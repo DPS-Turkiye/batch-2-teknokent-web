@@ -1,0 +1,20 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - nvm use 24
+        - npm ci --cache .npm --prefer-offline
+    build:
+      commands:
+        - echo "APP_URL=$APP_URL" >> .env
+        - echo "BACKEND_URL=$BACKEND_URL" >> .env
+        - npm run build
+  artifacts:
+    baseDirectory: .next
+    files:
+      - "**/*"
+  cache:
+    paths:
+      - .next/cache/**/*
+      - .npm/**/*
