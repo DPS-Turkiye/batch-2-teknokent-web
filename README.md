@@ -54,6 +54,24 @@ Project layout:
 - `src/lib/` — app logic (health client, HTTP client, constants)
 - `test/` — Vitest tests
 
+## Wireframe implementation
+
+The responsive, wireframe-faithful frontend currently includes:
+
+| Route        | Purpose                                                                                                     |
+| ------------ | ----------------------------------------------------------------------------------------------------------- |
+| `/`          | Public landing page with announcements, mentorship information, programs, training filters, FAQ, and footer |
+| `/login`     | Interactive role selection, login, and role-verification prototype                                          |
+| `/workspace` | Program and workspace selection prototype                                                                   |
+
+The code-facing route and folder names are English. Visible labels and page
+content remain Turkish. The former `/giris` and `/calisma-alani` URLs redirect
+to their English replacements for backward compatibility.
+
+The role and workspace flows currently use local mock state. The existing
+`/api/health` route remains connected to the backend, while business endpoint
+integration will be added when the post-login workspace screens are defined.
+
 ## Deployment (AWS Amplify)
 
 Pushing to `main` triggers an automatic deploy on AWS Amplify.

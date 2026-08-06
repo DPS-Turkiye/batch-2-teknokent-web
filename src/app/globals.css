@@ -1,1 +1,87 @@
 @import "tailwindcss";
+
+:root {
+  --ink: #111111;
+  --muted: #626262;
+  --line: #d7d7d7;
+  --soft-line: #e8e8e8;
+  --paper: #ffffff;
+  --wash: #f4f4f4;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family:
+    Inter,
+    ui-sans-serif,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Arial,
+    sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+summary,
+input {
+  outline-offset: 3px;
+}
+
+textarea,
+select {
+  outline-offset: 3px;
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--ink);
+}
+
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid #555555;
+}
+
+summary {
+  list-style: none;
+}
+
+summary::-webkit-details-marker {
+  display: none;
+}
+
+.display-serif {
+  font-family: Georgia, "Times New Roman", serif;
+}
+
+.wire-image {
+  background:
+    linear-gradient(135deg, transparent 49.5%, #e3e3e3 50%, transparent 50.5%),
+    linear-gradient(45deg, transparent 49.5%, #ededed 50%, transparent 50.5%),
+    #f7f7f7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
