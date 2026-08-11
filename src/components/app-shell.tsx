@@ -11,7 +11,8 @@ type AppArea =
   | "meetings"
   | "actions"
   | "files"
-  | "announcements";
+  | "announcements"
+  | "assistant";
 
 interface AppShellProps {
   active?: AppArea;
@@ -57,6 +58,12 @@ const navigation: Array<{
     label: "Duyurular",
     href: "/dashboard#notifications",
     icon: "announcements",
+  },
+  {
+    id: "assistant",
+    label: "Toplantı Asistanı",
+    href: "/assistant",
+    icon: "assistant",
   },
 ];
 

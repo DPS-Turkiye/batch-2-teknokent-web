@@ -1,14 +1,14 @@
 import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
-import type { BackendHealthResult, HealthResponse } from "@/interfaces/health";
-import { HealthStatus, isHealthStatus } from "@/interfaces/health";
+import type { BackendHealthResult, HealthResponse } from "@/types/health";
+import { HealthStatus, isHealthStatus } from "@/types/health";
 
 export type {
   BackendHealthResult,
   HealthComponentsResponse,
   HealthResponse,
-} from "@/interfaces/health";
-export { HealthStatus, isHealthStatus } from "@/interfaces/health";
+} from "@/types/health";
+export { HealthStatus, isHealthStatus } from "@/types/health";
 
 export class HealthFetchError extends Error {
   constructor(

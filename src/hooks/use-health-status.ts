@@ -3,16 +3,12 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchHealthClient, healthKeys, isHealthUp } from "@/lib/health";
-import type { HealthResponse } from "@/interfaces/health";
+import type {
+  HealthResponse,
+  UseHealthStatusResult,
+} from "@/types/health";
 
-export interface UseHealthStatusResult {
-  health: HealthResponse | undefined;
-  isLoading: boolean;
-  isError: boolean;
-  error: Error | null;
-  isUp: boolean;
-  refetch: () => void;
-}
+export type { UseHealthStatusResult } from "@/types/health";
 
 export function useHealthStatus(): UseHealthStatusResult {
   const query = useQuery({
