@@ -111,7 +111,7 @@ export function MeetingAssistantWorkbench() {
   useEffect(() => {
     //platformKey veya nativeMeetingId yoksa → transcript’i boşla ve çık.
     if (!selected?.platformKey || !selected?.nativeMeetingId) {
-      setTranscript([]);
+      
       return;
     }
   //Effect temizlenirken (unmount / bağımlılık değişimi) geç gelen cevabın state’i bozmaması için bayrak.
@@ -146,7 +146,9 @@ export function MeetingAssistantWorkbench() {
       window.clearInterval(timer);
     };
   }, [selected?.platformKey, selected?.nativeMeetingId]); //bot eklenşp toplantı seçilince ve soldan başka toplantı seçilirse çalışır
-
+//transkript yoksA
+  const visibleTranscript =
+  selected?.platformKey && selected?.nativeMeetingId ? transcript : [];
  
   const notes = SAMPLE_NOTES[selected.id] ?? [];
   const status = STATUS_META[selected.status];
@@ -379,19 +381,19 @@ export function MeetingAssistantWorkbench() {
                   Transcript
                 </span>
                 <span className="font-mono text-[10.5px] text-[var(--ma-t3)]">
-                  {transcript.length}
+                  {visibleTranscript.length}
                 </span>
                 <span className="h-px flex-1 bg-[var(--ma-line)]" />
               </div>
 
-              {transcript.length === 0 ? (
+              {visibleTranscript.length === 0 ? (
                 <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
                   Henüz transcript yok. Bot toplantıya katılınca canlı konuşmalar
                   burada akacak.
                 </p>
               ) : (
                 <div className="space-y-4">
-                  {transcript.map((line) => (
+                  {visibleTranscript.map((line) => (
                     <div key={line.id} className="flex gap-3">
                       <span className="w-10 shrink-0 pt-0.5 font-mono text-[11px] text-[var(--ma-t3)]">
                         {line.at}
