@@ -14,11 +14,7 @@ export type TranscriptSegment = {
 };
 
 export type MeetingStatus =
-  | "scheduled"
-  | "joining"
-  | "active"
-  | "completed"
-  | "failed";
+  "scheduled" | "joining" | "active" | "completed" | "failed";
 
 export type MeetingPlatform = "Google Meet" | "Zoom" | "Teams" | "Jitsi";
 
@@ -26,8 +22,8 @@ export type Meeting = {
   id: string;
   title: string;
   platform: MeetingPlatform;
-  platformKey: string;      // "google_meet"
-  nativeMeetingId: string;  // "hhz-tdnu-ksz"
+  platformKey: string;
+  nativeMeetingId: string;
   status: MeetingStatus;
   when: string;
   participants: string[];

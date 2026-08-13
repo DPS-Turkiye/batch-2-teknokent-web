@@ -1,11 +1,7 @@
 "use client";
 
 import { addMeetingBot, fetchTranscript } from "@/lib/assistant";
-import type {
-  Meeting,
-  MeetingStatus,
-  TranscriptLine,
-} from "@/types/assistant";
+import type { Meeting, MeetingStatus, TranscriptLine } from "@/types/assistant";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 const STATUS_META: Record<
@@ -44,7 +40,7 @@ const INITIAL_MEETINGS: Meeting[] = [
     id: "m1",
     title: "Mentorluk — Ürün roadmap",
     platform: "Google Meet",
-    platformKey: "google_meet", // m2→"zoom", m3→"teams"
+    platformKey: "google_meet",
     nativeMeetingId: "",
     status: "active",
     when: "Şimdi",
@@ -54,7 +50,7 @@ const INITIAL_MEETINGS: Meeting[] = [
     id: "m2",
     title: "Sprint review",
     platform: "Zoom",
-    platformKey: "google_meet", // m2→"zoom", m3→"teams"
+    platformKey: "google_meet",
     nativeMeetingId: "",
     status: "scheduled",
     when: "Bugün 15:00",
@@ -64,15 +60,13 @@ const INITIAL_MEETINGS: Meeting[] = [
     id: "m3",
     title: "Yatırımcı hazırlık",
     platform: "Teams",
-    platformKey: "google_meet", // m2→"zoom", m3→"teams"
+    platformKey: "google_meet",
     nativeMeetingId: "",
     status: "completed",
     when: "Dün",
     participants: ["Ayşe Kaya", "Mentor"],
   },
 ];
-
-
 
 const SAMPLE_NOTES: Record<string, string[]> = {
   m1: [
@@ -98,25 +92,19 @@ export function MeetingAssistantWorkbench() {
     null,
   );
   const [botError, setBotError] = useState<string | null>(null);
-  const [padByMeeting, setPadByMeeting] = useState<Record<string, string>>(SAMPLE_PAD);
+  const [padByMeeting, setPadByMeeting] =
+    useState<Record<string, string>>(SAMPLE_PAD);
 
   const selected = useMemo(
     () => meetings.find((m) => m.id === selectedId) ?? meetings[0],
     [meetings, selectedId],
   );
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
-  //Bu kod, seçili toplantının transcript’ini periyodik olarak backend’den çekip ekrana yazıyor.
-  //selected.platformKey veya selected.nativeMeetingId değişince (başka toplantı seçilince / bot eklenince) çalışıyor
-  //Seçili toplantı için transcript’i açılışta bir kez, sonra 3 sn’de bir yeniler; toplantı değişince eski poll’u keser.
   useEffect(() => {
-    //platformKey veya nativeMeetingId yoksa → transcript’i boşla ve çık.
     if (!selected?.platformKey || !selected?.nativeMeetingId) {
-      
       return;
     }
-  //Effect temizlenirken (unmount / bağımlılık değişimi) geç gelen cevabın state’i bozmaması için bayrak.
     let cancelled = false;
-  //Gelen segments’i UI’nin TranscriptLine şekline map edip setTranscript.
     const load = async () => {
       try {
         const segments = await fetchTranscript(
@@ -124,8 +112,8 @@ export function MeetingAssistantWorkbench() {
           selected.nativeMeetingId,
         );
         if (!cancelled) {
-          setTranscript(  //gelen segmentleri uı satırına çevirir
-            segments.map((s) => ({ 
+          setTranscript(
+            segments.map((s) => ({
               id: s.id || `${s.at}-${s.text}`,
               speaker: s.speaker,
               text: s.text,
@@ -133,23 +121,19 @@ export function MeetingAssistantWorkbench() {
             })),
           );
         }
-      } catch {
-        // boş bırak
-      }
+      } catch {}
     };
-  
+
     load();
-    const timer = window.setInterval(load, 1000); // 1 saniyede bir transcript'i çek
+    const timer = window.setInterval(load, 1000);
     return () => {
-      //Effect temizlenirken (unmount / bağımlılık değişimi) geç gelen cevabın state’i bozmaması için bayrak.
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [selected?.platformKey, selected?.nativeMeetingId]); //bot eklenşp toplantı seçilince ve soldan başka toplantı seçilirse çalışır
-//transkript yoksA
+  }, [selected?.platformKey, selected?.nativeMeetingId]);
   const visibleTranscript =
-  selected?.platformKey && selected?.nativeMeetingId ? transcript : [];
- 
+    selected?.platformKey && selected?.nativeMeetingId ? transcript : [];
+
   const notes = SAMPLE_NOTES[selected.id] ?? [];
   const status = STATUS_META[selected.status];
   const padText = padByMeeting[selected.id] ?? "";
@@ -157,16 +141,14 @@ export function MeetingAssistantWorkbench() {
 
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
-    //url boşsa veya zaaten sending ise çık
     const url = meetingUrl.trim();
     if (!url || botStatus === "sending") return;
-  
+
     setBotStatus("sending");
     setBotError(null);
-  
+
     try {
       const result = await addMeetingBot(url);
-      //başarılıysa toplantıyla ilgili bilgileri uı a yazar
       const platformLabel =
         result.platform === "google_meet"
           ? "Google Meet"
@@ -175,7 +157,7 @@ export function MeetingAssistantWorkbench() {
             : result.platform === "teams"
               ? "Teams"
               : "Jitsi";
-  
+
       const next: Meeting = {
         id: result.id || `m${Date.now()}`,
         title: result.title || "Yeni toplantı botu",
@@ -191,7 +173,7 @@ export function MeetingAssistantWorkbench() {
         when: "Az önce",
         participants: ["Ayşe Kaya"],
       };
-  
+
       setMeetings((prev) => [next, ...prev]);
       setSelectedId(next.id);
       setMeetingUrl("");
@@ -388,8 +370,8 @@ export function MeetingAssistantWorkbench() {
 
               {visibleTranscript.length === 0 ? (
                 <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
-                  Henüz transcript yok. Bot toplantıya katılınca canlı konuşmalar
-                  burada akacak.
+                  Henüz transcript yok. Bot toplantıya katılınca canlı
+                  konuşmalar burada akacak.
                 </p>
               ) : (
                 <div className="space-y-4">

@@ -1,6 +1,5 @@
 export const DEFAULT_APP_URL = "http://localhost:3000";
 export const DEFAULT_BACKEND_URL = "http://localhost:8080";
- //url lerin tek bir yerde toplandığı dosya
 export const BACKEND_HEALTH_PATH = "/api/health";
 export const HEALTH_API_PATH = "/api/health";
 
@@ -20,14 +19,12 @@ export function getBackendUrl(): string {
 export function getBackendHealthUrl(): string {
   return `${BACKEND_URL}${BACKEND_HEALTH_PATH}`;
 }
-//görüntülü görüşme botu
 
-//transkript için
 export const BOT_API_PATH = "/api/botapi";
 export const TRANSCRIPT_API_PATH = "/api/transcriptapi";
 
 export function getBotApiUrl(): string {
-  return BOT_API_PATH; // relative → localhost:3000/api/botapi
+  return BOT_API_PATH;
 }
 
 export function getTranscriptApiUrl(

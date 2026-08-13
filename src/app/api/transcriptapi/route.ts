@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     const url =
       `${getBackendUrl()}/api/assistant/transcripts/` +
       `${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`;
-//springe get komutu ile gider
+
     const res = await fetch(url, {
       headers: { Accept: "application/json" },
       cache: "no-store",
