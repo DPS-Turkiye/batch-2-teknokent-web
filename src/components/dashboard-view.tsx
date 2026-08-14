@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 import {
   AppShell,
@@ -8,22 +11,92 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
+import { useDemoSession } from "@/components/providers/session-provider";
 
-const notifications = [
-  ["Dr. Kemal Arslan toplantı notu ekledi", "2s önce · Mentordan"],
-  ["Program: Demo Day başvuruları açıldı", "1g önce · Program"],
-  ["Can Demir talebinizi kabul etti", "2g önce · Mentordan"],
-];
+type MeetingItem = {
+  id: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  agenda?: string;
+  meetLink?: string;
+  status: string;
+};
+
+type RequestItem = {
+  id: string;
+  mentorName: string;
+  supportArea: string;
+  status: string;
+  createdAt: string;
+};
+
+const requestStatusLabels: Record<string, string> = {
+  PENDING: "Yanıt bekleniyor",
+  MORE_INFO_REQUESTED: "Ek bilgi istendi",
+  ACCEPTED: "Kabul edildi",
+  DECLINED: "Uygun değil",
+  WITHDRAWN: "Geri çekildi",
+};
+
+function formatMeetingDate(dateString: string) {
+  const d = new Date(dateString);
+  return new Intl.DateTimeFormat("tr-TR", {
+    weekday: "short",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
+}
 
 export function DashboardView() {
+  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const session = useDemoSession();
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadData() {
+      try {
+        const [meetRes, requestRes] = await Promise.all([
+          fetch("/api/meetings"),
+          fetch("/api/mentor-requests"),
+        ]);
+
+        if (meetRes.ok) {
+          const meetData = await meetRes.json();
+          if (active && Array.isArray(meetData)) setMeetings(meetData);
+        }
+        if (requestRes.ok) {
+          const requestData = await requestRes.json();
+          if (active && Array.isArray(requestData)) setRequests(requestData);
+        }
+      } catch {
+        // Fall back gracefully
+      }
+    }
+
+    void loadData();
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const nextMeeting = meetings.length > 0 ? meetings[0] : null;
+
   return (
     <AppShell active="home">
       <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-6 pt-8 sm:px-8 sm:pt-14">
         <section className="flex min-h-44 flex-col justify-between gap-8 rounded-[24px] bg-[#45454d] p-6 text-white sm:h-[181px] sm:flex-row sm:items-start">
           <div>
-            <h1 className="text-2xl font-semibold">Hoş geldin, Ayşe</h1>
+            <h1 className="text-2xl font-semibold">
+              Hoş geldin, {session?.fullName.split(" ")[0] ?? "Mentee"}
+            </h1>
             <p className="mt-1 text-sm font-semibold">
-              NovaMed AI · Teknokent Başlangıç Programı 2024
+              {session?.organizationName ?? "Girişim"} · Teknokent Başlangıç
+              Programı 2026
             </p>
             <p className="mt-3 max-w-md text-sm leading-6 text-white/90">
               Mentorluk sürecinizi buradan takip edin. Yaklaşan toplantılarınızı
@@ -31,14 +104,23 @@ export function DashboardView() {
               talepleri oluşturun.
             </p>
           </div>
-          <SecondaryButton
-            href="/mentor-request"
-            className="shrink-0 text-[#45454d] shadow-sm hover:bg-[#f5f5f5]"
-          >
-            <span className="mr-2 text-lg">+</span> Mentorluk Talebi Oluştur
-          </SecondaryButton>
+          <div className="flex shrink-0 flex-col gap-2 sm:items-end">
+            <SecondaryButton
+              href="/mentor-request"
+              className="text-[#45454d] shadow-sm hover:bg-[#f5f5f5]"
+            >
+              <span className="mr-2 text-lg">+</span> Mentorluk Talebi Oluştur
+            </SecondaryButton>
+            <Link
+              href="/profile"
+              className="text-center text-xs font-medium text-white underline underline-offset-2"
+            >
+              Girişim profilini güncelle
+            </Link>
+          </div>
         </section>
 
+        {/* Live Upcoming Meeting Card */}
         <section className="flex flex-col gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
             <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#f3f4f6]">
@@ -46,18 +128,30 @@ export function DashboardView() {
             </span>
             <div>
               <h2 className="text-sm font-semibold text-[#171717]">
-                Yaklaşan Toplantı — 10 saat sonra
+                {nextMeeting
+                  ? "Yaklaşan Toplantı"
+                  : "Yaklaşan Toplantı — 10 saat sonra"}
               </h2>
               <p className="mt-1 text-xs text-[#6a7282]">
-                Dr. Kemal Arslan · Kullanıcı Araştırması &amp; Test Metodolojisi
+                {nextMeeting?.agenda
+                  ? nextMeeting.agenda
+                  : "Dr. Kemal Arslan · Kullanıcı Araştırması & Test Metodolojisi"}
               </p>
               <p className="mt-1 text-xs text-[#8a8a8a]">
-                Pzt, 12 Ağustos 2024 · 14:00 · Online
+                {nextMeeting
+                  ? `${formatMeetingDate(nextMeeting.scheduledAt)} · (${nextMeeting.durationMinutes} dk)`
+                  : "Pzt, 12 Ağustos 2026 · 14:00 · Online"}
               </p>
-              <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#6a7282]">
-                <span>△ 2 dosya yüklenmeli</span>
-                <span>△ 3 aksiyon tamamlanmadı</span>
-              </div>
+              {nextMeeting?.meetLink && (
+                <a
+                  href={nextMeeting.meetLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-1 inline-block text-xs font-medium text-blue-600 underline"
+                >
+                  Toplantı Linki →
+                </a>
+              )}
             </div>
           </div>
           <div className="flex shrink-0 gap-2">
@@ -74,49 +168,51 @@ export function DashboardView() {
           <section>
             <div className="mb-3 flex items-center justify-between">
               <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-                Aktif Mentorluklar
+                Mentorluk Taleplerim
               </h2>
               <span className="text-xs text-[#6a7282] underline underline-offset-2">
                 Tümünü gör
               </span>
             </div>
             <div className="space-y-3">
-              <article className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center">
-                <Avatar initials="DK" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#171717]">
-                    Kullanıcı Araştırması &amp; Test
-                  </h3>
-                  <p className="mt-0.5 text-xs text-[#6a7282]">
-                    Dr. Kemal Arslan
-                  </p>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-[#6a7282]">
-                    <Badge>Devam Ediyor</Badge>
-                    <span>•</span>
-                    <span>2 açık aksiyon</span>
-                  </div>
+              {requests.length ? (
+                requests.slice(0, 3).map((request) => (
+                  <Link
+                    key={request.id}
+                    href={`/mentor-request/status?request=${request.id}`}
+                    className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center"
+                  >
+                    <Avatar
+                      initials={request.mentorName
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)}
+                    />
+                    <div className="flex-1">
+                      <h3 className="text-sm font-semibold text-[#171717]">
+                        {request.supportArea}
+                      </h3>
+                      <p className="mt-0.5 text-xs text-[#6a7282]">
+                        {request.mentorName}
+                      </p>
+                      <div className="mt-2">
+                        <Badge>
+                          {requestStatusLabels[request.status] ??
+                            request.status}
+                        </Badge>
+                      </div>
+                    </div>
+                    <span className="text-xs text-[#aaa]">
+                      {formatMeetingDate(request.createdAt)}
+                    </span>
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-lg border border-dashed border-[#d1d5db] bg-white p-6 text-sm text-[#777]">
+                  Bu hesap için henüz mentorluk talebi yok.
                 </div>
-                <div className="text-left text-xs sm:text-right">
-                  <p className="text-[#aaa]">Son: 5 Ağustos</p>
-                  <p className="mt-1 text-[#555]">3. toplantıyı planla</p>
-                </div>
-              </article>
-              <article className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center">
-                <Avatar initials="SÖ" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#171717]">
-                    İş Modeli Validasyonu
-                  </h3>
-                  <p className="mt-0.5 text-xs text-[#6a7282]">Selin Öztürk</p>
-                  <div className="mt-2">
-                    <Badge>Yanıt Bekleniyor</Badge>
-                  </div>
-                </div>
-                <div className="text-left text-xs sm:text-right">
-                  <p className="text-[#aaa]">Son: 1 Ağustos</p>
-                  <p className="mt-1 text-[#555]">Mentor onayı bekleniyor</p>
-                </div>
-              </article>
+              )}
             </div>
           </section>
 
@@ -126,15 +222,20 @@ export function DashboardView() {
                 Bildirimler
               </h2>
               <div className="rounded-lg bg-white px-3">
-                {notifications.map(([title, time]) => (
+                {requests.slice(0, 3).map((request) => (
                   <div
-                    key={title}
+                    key={request.id}
                     className="flex gap-2 border-b border-[#e5e7eb] py-3 last:border-0"
                   >
                     <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#999]" />
                     <div>
-                      <p className="text-xs text-[#555]">{title}</p>
-                      <p className="mt-1 text-xs text-[#aaa]">{time}</p>
+                      <p className="text-xs text-[#555]">
+                        {request.mentorName}:{" "}
+                        {requestStatusLabels[request.status] ?? request.status}
+                      </p>
+                      <p className="mt-1 text-xs text-[#aaa]">
+                        {request.supportArea}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -146,22 +247,26 @@ export function DashboardView() {
                 Mentor Talepleri
               </h2>
               <div className="space-y-2">
-                <Link
-                  href="/mentor-request/status"
-                  className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
-                >
-                  <Avatar initials="AY" size="sm" />
-                  <span className="flex-1 text-xs">Ahmet Yılmaz</span>
-                  <Badge>Yanıt bekleniyor</Badge>
-                </Link>
-                <Link
-                  href="/mentor-request/status?state=accepted"
-                  className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
-                >
-                  <Avatar initials="CD" size="sm" />
-                  <span className="flex-1 text-xs">Can Demir</span>
-                  <Badge> Kabul edildi</Badge>
-                </Link>
+                {requests.slice(0, 2).map((request) => (
+                  <Link
+                    key={request.id}
+                    href={`/mentor-request/status?request=${request.id}`}
+                    className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
+                  >
+                    <Avatar
+                      initials={request.mentorName
+                        .split(" ")
+                        .map((part) => part[0])
+                        .join("")
+                        .slice(0, 2)}
+                      size="sm"
+                    />
+                    <span className="flex-1 text-xs">{request.mentorName}</span>
+                    <Badge>
+                      {requestStatusLabels[request.status] ?? request.status}
+                    </Badge>
+                  </Link>
+                ))}
               </div>
             </section>
 

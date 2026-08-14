@@ -1,7 +1,7 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
-import { ReactNode, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { ReactNode, useEffect, useState, useTransition } from "react";
 
 import {
   AppShell,
@@ -10,8 +10,91 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
+import type { MentorProfile } from "@/interfaces/mentor";
+
+type RequestMessage = {
+  messageType: "MENTOR_QUESTION" | "MENTEE_REPLY";
+  body: string;
+};
+type RequestView = {
+  id: string;
+  mentorId: string;
+  mentorName: string;
+  supportArea: string;
+  status: string;
+  mentorMessage: string | null;
+  rejectionReason: string | null;
+  createdAt: string;
+  messages: RequestMessage[];
+};
+type Slot = { id: string; startsAt: string };
+type Alternative = {
+  fullName: string;
+  initials: string;
+  professionalTitle: string;
+  company: string;
+};
+
+const statusLabels: Record<string, string> = {
+  PENDING: "Yanıt Bekleniyor",
+  MORE_INFO_REQUESTED: "Ek Bilgi İstendi",
+  ACCEPTED: "Kabul Edildi",
+  DECLINED: "Uygun Değil",
+  WITHDRAWN: "Geri Çekildi",
+};
+
+async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, init);
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.message ?? "Talep yüklenemedi.");
+  return body as T;
+}
+
+function useRequest(id: string | null) {
+  const [request, setRequest] = useState<RequestView | null>(null);
+  const [error, setError] = useState("");
+  const reload = async () => {
+    if (!id) return;
+    try {
+      setRequest(await requestJson<RequestView>(`/api/mentor-requests/${id}`));
+      setError("");
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Talep yüklenemedi.");
+    }
+  };
+  useEffect(() => {
+    if (!id) return;
+    let active = true;
+    void requestJson<RequestView>(`/api/mentor-requests/${id}`)
+      .then((data) => {
+        if (active) {
+          setRequest(data);
+          setError("");
+        }
+      })
+      .catch((cause: unknown) => {
+        if (active)
+          setError(
+            cause instanceof Error ? cause.message : "Talep yüklenemedi.",
+          );
+      });
+    return () => {
+      active = false;
+    };
+  }, [id]);
+  return { request, error, reload };
+}
+
+function dateLabel(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
 
 export function RequestSentView() {
+  const id = useSearchParams().get("request");
+  const { request, error, reload } = useRequest(id);
   return (
     <AppShell>
       <div className="mx-auto flex min-h-[calc(100vh-56px)] max-w-xl flex-col items-center px-4 py-16 text-center">
@@ -24,15 +107,36 @@ export function RequestSentView() {
         <p className="mt-2 text-sm text-[#777]">
           Mentor talebinizi değerlendirdiğinde size bildirim göndereceğiz.
         </p>
-        <dl className="mt-7 grid w-full grid-cols-2 gap-5 rounded-lg border border-[#e5e7eb] bg-white p-5 text-left text-sm">
-          <Info label="Mentor" value="Dr. Kemal Arslan" />
-          <Info label="Talep konusu" value="Kullanıcı testi" />
-          <Info label="Gönderilme tarihi" value="9 Ağustos 2024" />
-          <Info label="Beklenen yanıt süresi" value="~24 saat" />
-          <Info label="Talep durumu" value="Yanıt bekleniyor" />
-        </dl>
+        {error ? (
+          <p role="alert" className="mt-6 text-sm text-[#b42318]">
+            {error}
+          </p>
+        ) : null}
+        {request ? (
+          <dl className="mt-7 grid w-full grid-cols-2 gap-5 rounded-lg border border-[#e5e7eb] bg-white p-5 text-left text-sm">
+            <Info label="Mentor" value={request.mentorName} />
+            <Info label="Talep konusu" value={request.supportArea} />
+            <Info
+              label="Gönderilme tarihi"
+              value={dateLabel(request.createdAt)}
+            />
+            <Info label="Beklenen yanıt süresi" value="~24 saat" />
+            <Info label="Talep durumu" value={statusLabels[request.status]} />
+          </dl>
+        ) : (
+          <p className="mt-7 text-sm text-[#777]">
+            Talep bilgileri yükleniyor…
+          </p>
+        )}
         <div className="mt-6 grid w-full gap-2">
-          <PrimaryButton href="/mentor-request/status" className="w-full">
+          <PrimaryButton
+            href={
+              id
+                ? `/mentor-request/status?request=${id}`
+                : "/mentor-request/status"
+            }
+            className="w-full"
+          >
             Talep Detaylarını Gör
           </PrimaryButton>
           <SecondaryButton disabled className="w-full">
@@ -45,7 +149,11 @@ export function RequestSentView() {
             Ana Sayfaya Dön
           </SecondaryButton>
         </div>
-        <button type="button" className="mt-6 text-xs text-[#aaa]">
+        <button
+          type="button"
+          onClick={() => void reload()}
+          className="mt-6 text-xs text-[#aaa]"
+        >
           Fikrinizi değiştirdiniz mi?{" "}
           <span className="text-[#555]">Talebi geri çek</span>
         </button>
@@ -56,162 +164,328 @@ export function RequestSentView() {
 
 export function RequestStatusView() {
   const params = useSearchParams();
-  const requestedState = params.get("state") ?? "waiting";
-  const initial = ["waiting", "question", "accepted", "declined"].includes(
-    requestedState,
-  )
-    ? requestedState
-    : "waiting";
-  const [state, setState] = useState(initial);
-  const states = [
-    ["waiting", "Yanıt Bekleniyor"],
-    ["question", "Ek Bilgi İstendi"],
-    ["accepted", "Kabul Edildi"],
-    ["declined", "Uygun Değil"],
-  ];
+  const router = useRouter();
+  const explicitRequestId = params.get("request");
+  const requestedState = params.get("state");
+  const [requests, setRequests] = useState<RequestView[]>([]);
+  const [requestsError, setRequestsError] = useState("");
+  useEffect(() => {
+    void requestJson<RequestView[]>("/api/mentor-requests")
+      .then(setRequests)
+      .catch((cause: unknown) =>
+        setRequestsError(
+          cause instanceof Error ? cause.message : "Talepler yüklenemedi.",
+        ),
+      );
+  }, []);
+  const id =
+    explicitRequestId ??
+    requests.find((item) => item.status === requestedState)?.id ??
+    requests[0]?.id ??
+    null;
+  const { request, error, reload } = useRequest(id);
+  const [reply, setReply] = useState("");
+  const [isPending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState("");
+  const [slots, setSlots] = useState<Slot[]>([]);
+  const [alternatives, setAlternatives] = useState<Alternative[]>([]);
+  useEffect(() => {
+    if (request?.status === "ACCEPTED")
+      void requestJson<Slot[]>(
+        `/api/mentor-requests/${request.id}/availability`,
+      )
+        .then(setSlots)
+        .catch(() => setSlots([]));
+    if (request?.status === "DECLINED")
+      void requestJson<Alternative[]>(
+        `/api/mentor-requests/${request.id}/alternatives`,
+      )
+        .then(setAlternatives)
+        .catch(() => setAlternatives([]));
+  }, [request]);
+  const act = (url: string, init: RequestInit) =>
+    startTransition(async () => {
+      try {
+        await requestJson(url, init);
+        await reload();
+        setReply("");
+        setActionError("");
+      } catch (cause) {
+        setActionError(
+          cause instanceof Error ? cause.message : "İşlem tamamlanamadı.",
+        );
+      }
+    });
   return (
     <AppShell title="Talep Detayı" backHref="/dashboard">
       <div className="mx-auto max-w-[736px] px-4 py-6 sm:px-8">
         <div className="flex gap-2 overflow-x-auto">
-          {states.map(([id, label]) => (
-            <button
-              type="button"
-              key={id}
-              aria-pressed={state === id}
-              onClick={() => setState(id)}
-              className={`shrink-0 rounded-full border px-3 py-2 text-xs ${state === id ? "border-[#555] bg-[#555] font-medium text-white" : "border-[#e5e7eb] bg-white text-[#555]"}`}
-            >
-              {label}
-            </button>
-          ))}
+          {Object.entries(statusLabels)
+            .slice(0, 4)
+            .map(([key, label]) => (
+              <button
+                type="button"
+                key={key}
+                onClick={() =>
+                  router.push(`/mentor-request/status?state=${key}`)
+                }
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs ${request?.status === key ? "border-[#555] bg-[#555] font-medium text-white" : "border-[#e5e7eb] bg-white text-[#555]"}`}
+              >
+                {label}
+              </button>
+            ))}
         </div>
-        <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <div className="flex items-center gap-3">
-            <Avatar initials="DK" />
-            <div className="flex-1">
-              <h2 className="text-sm font-semibold">Dr. Kemal Arslan</h2>
-              <p className="mt-1 text-xs text-[#777]">
-                Kullanıcı testi · Gönderildi: 9 Ağustos 2024
-              </p>
-            </div>
-            <Badge
-              tone={
-                state === "accepted"
-                  ? "green"
-                  : state === "declined"
-                    ? "gray"
-                    : "amber"
-              }
-            >
-              {states.find(([id]) => id === state)?.[1]}
-            </Badge>
-          </div>
-        </section>
-        <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <div>
-            {state === "waiting" ? (
-              <div>
-                <h3 className="text-lg font-semibold">Yanıt bekleniyor</h3>
-                <p className="mt-2 text-sm text-[#777]">
-                  Beklenen yanıt süresi: ~24 saat
-                </p>
-                <p className="mt-1 text-xs text-[#aaa]">
-                  Gönderim: 9 Ağustos 2024 · 14:32
-                </p>
-              </div>
-            ) : null}
-            {state === "question" ? (
-              <div>
-                <Badge tone="amber">Ek bilgi istendi</Badge>
-                <p className="mt-4 text-sm font-semibold">Mentorun sorusu:</p>
-                <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
-                  “Şu ana kadar herhangi bir kullanıcı görüşmesi yaptınız mı?
-                  Varsa bulguları paylaşabilir misiniz?”
-                </blockquote>
-                <textarea
-                  placeholder="Yanıtınızı yazın…"
-                  className="mt-4 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm"
+        {requestsError || error ? (
+          <p role="alert" className="mt-4 text-sm text-[#b42318]">
+            {requestsError || error}
+          </p>
+        ) : null}
+        {!request && !error && !requestsError ? (
+          <p className="mt-4 text-sm text-[#777]">
+            {requests.length
+              ? "Bu durumda bir talep bulunmuyor."
+              : "Talep yükleniyor…"}
+          </p>
+        ) : null}
+        {request ? (
+          <>
+            <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-4">
+              <div className="flex items-center gap-3">
+                <Avatar
+                  initials={request.mentorName
+                    .split(" ")
+                    .map((part) => part[0])
+                    .join("")
+                    .slice(0, 2)}
                 />
-                <div className="mt-3 flex justify-end gap-2">
-                  <SecondaryButton>Dosya Ekle</SecondaryButton>
-                  <PrimaryButton>Yanıtı Gönder</PrimaryButton>
+                <div className="flex-1">
+                  <h2 className="text-sm font-semibold">
+                    {request.mentorName}
+                  </h2>
+                  <p className="mt-1 text-xs text-[#777]">
+                    {request.supportArea} · Gönderildi:{" "}
+                    {dateLabel(request.createdAt)}
+                  </p>
                 </div>
+                <Badge
+                  tone={
+                    request.status === "ACCEPTED"
+                      ? "green"
+                      : request.status === "DECLINED"
+                        ? "gray"
+                        : "amber"
+                  }
+                >
+                  {statusLabels[request.status]}
+                </Badge>
               </div>
-            ) : null}
-            {state === "accepted" ? <AcceptedRequestCalendar /> : null}
-            {state === "declined" ? (
+            </section>
+            <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
               <div>
-                <h3 className="text-lg font-semibold">Uygun değil</h3>
-                <p className="mt-3 text-sm text-[#777]">Neden uygun değil:</p>
-                <p className="mt-1 text-sm">Bu dönemde müsait değilim</p>
-                <div className="mt-5 flex items-center gap-3 rounded-lg border border-[#e5e7eb] p-4">
-                  <Avatar initials="SÖ" />
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold">Selin Öztürk</h4>
-                    <p className="mt-1 text-xs text-[#777]">
-                      Kurucu · HealthTech Ventures
+                {request.status === "PENDING" ? (
+                  <div>
+                    <h3 className="text-lg font-semibold">Yanıt bekleniyor</h3>
+                    <p className="mt-2 text-sm text-[#777]">
+                      Beklenen yanıt süresi: ~24 saat
+                    </p>
+                    <p className="mt-1 text-xs text-[#aaa]">
+                      Gönderim: 9 Ağustos 2024 · 14:32
                     </p>
                   </div>
-                  <PrimaryButton href="/mentor-request?step=4&exclude=Dr.%20Kemal%20Arslan">
-                    Alternatif Mentora Talep Gönder
-                  </PrimaryButton>
-                </div>
+                ) : null}
+                {request.status === "MORE_INFO_REQUESTED" ? (
+                  <div>
+                    <Badge tone="amber">Ek bilgi istendi</Badge>
+                    <p className="mt-4 text-sm font-semibold">
+                      Mentorun sorusu:
+                    </p>
+                    <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
+                      “
+                      {request.messages
+                        .filter(
+                          (message) =>
+                            message.messageType === "MENTOR_QUESTION",
+                        )
+                        .at(-1)?.body ?? request.mentorMessage}
+                      ”
+                    </blockquote>
+                    <textarea
+                      value={reply}
+                      onChange={(event) => setReply(event.target.value)}
+                      placeholder="Yanıtınızı yazın…"
+                      className="mt-4 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm"
+                    />
+                    <div className="mt-3 flex justify-end gap-2">
+                      <SecondaryButton disabled>Dosya Ekle</SecondaryButton>
+                      <PrimaryButton
+                        disabled={!reply.trim() || isPending}
+                        onClick={() =>
+                          act(`/api/mentor-requests/${request.id}/messages`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ message: reply }),
+                          })
+                        }
+                      >
+                        Yanıtı Gönder
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                ) : null}
+                {request.status === "ACCEPTED" ? (
+                  <AcceptedRequestCalendar
+                    message={request.mentorMessage}
+                    slots={slots}
+                    request={request}
+                  />
+                ) : null}
+                {request.status === "DECLINED" ? (
+                  <div>
+                    <h3 className="text-lg font-semibold">Uygun değil</h3>
+                    <p className="mt-3 text-sm text-[#777]">
+                      Neden uygun değil:
+                    </p>
+                    <p className="mt-1 text-sm">{request.rejectionReason}</p>
+                    <div className="mt-5 flex items-center gap-3 rounded-lg border border-[#e5e7eb] p-4">
+                      <Avatar initials={alternatives[0]?.initials ?? "?"} />
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold">
+                          {alternatives[0]?.fullName ?? "Alternatif mentor"}
+                        </h4>
+                        <p className="mt-1 text-xs text-[#777]">
+                          {alternatives[0]
+                            ? `${alternatives[0].professionalTitle} · ${alternatives[0].company}`
+                            : "Öneri yükleniyor"}
+                        </p>
+                      </div>
+                      <PrimaryButton
+                        href={`/mentor-request?step=4&request=${encodeURIComponent(request.id)}&exclude=${encodeURIComponent(request.mentorName)}`}
+                      >
+                        Alternatif Mentora Talep Gönder
+                      </PrimaryButton>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </section>
+            {request.status === "PENDING" ? (
+              <div className="mt-5 flex flex-wrap gap-2">
+                <SecondaryButton
+                  disabled={isPending}
+                  onClick={() =>
+                    act(`/api/mentor-requests/${request.id}/withdrawal`, {
+                      method: "PATCH",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({}),
+                    })
+                  }
+                >
+                  Talebi Geri Çek
+                </SecondaryButton>
+                <SecondaryButton href="/mentors/compare">
+                  Alternatif Mentorları Görüntüle
+                </SecondaryButton>
               </div>
             ) : null}
-          </div>
-        </section>
-        {state === "waiting" ? (
-          <div className="mt-5 flex flex-wrap gap-2">
-            <SecondaryButton>Talebi Geri Çek</SecondaryButton>
-            <SecondaryButton href="/mentors/compare">
-              Alternatif Mentorları Görüntüle
-            </SecondaryButton>
-          </div>
+            {actionError ? (
+              <p role="alert" className="mt-3 text-sm text-[#b42318]">
+                {actionError}
+              </p>
+            ) : null}
+          </>
         ) : null}
       </div>
     </AppShell>
   );
 }
 
-const acceptedCalendarDays = [
-  ["Pzt 12", "09:00", "10:30", "14:00", "15:30"],
-  ["Sal 13", "10:00", "11:30"],
-  ["Çar 14", "09:00", "14:00", "16:00"],
-  ["Per 15", "11:00", "15:00"],
-  ["Cum 16", "10:00"],
-];
+function AcceptedRequestCalendar({
+  message,
+  slots,
+  request,
+}: {
+  message: string | null;
+  slots: Slot[];
+  request?: RequestView;
+}) {
+  const router = useRouter();
+  const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
+  const [booking, setBooking] = useState(false);
+  const [bookedSuccess, setBookedSuccess] = useState(false);
 
-function AcceptedRequestCalendar() {
-  const [selected, setSelected] = useState<string | null>(null);
+  const selectedSlot = slots.find((s) => s.id === selectedSlotId);
+
+  const handleConfirmSlot = async () => {
+    if (!selectedSlot) return;
+    setBooking(true);
+    try {
+      const res = await fetch(`/api/mentor-requests/${request?.id}/meeting`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slotId: selectedSlot.id,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Toplantı kaydı oluşturulamadı.");
+      }
+
+      setBookedSuccess(true);
+      setTimeout(() => router.push("/calendar"), 1200);
+    } catch {
+      alert("Toplantı planlanırken bir hata oluştu.");
+    } finally {
+      setBooking(false);
+    }
+  };
 
   return (
     <div>
       <div className="rounded-md bg-[#f5f5f5] p-3 text-[#444]">
         <p className="text-xs font-semibold">Mentorun mesajı:</p>
-        <p className="mt-1 text-sm leading-5">
-          &quot;Merhaba, talebinizi inceledim. Kullanıcı testi konusunda
-          yardımcı olmaktan memnuniyet duyarım. Bir sonraki adım olarak toplantı
-          planlayalım.&quot;
-        </p>
+        <p className="mt-1 text-sm leading-5">&quot;{message}&quot;</p>
       </div>
+
+      {bookedSuccess && (
+        <div className="mt-4 rounded-md border border-emerald-300 bg-emerald-50 p-3 text-xs font-semibold text-emerald-800">
+          ✅ Toplantınız başarıyla takvime kaydedildi! Ana sayfaya
+          yönlendiriliyorsunuz...
+        </div>
+      )}
+
       <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {acceptedCalendarDays.map(([day, ...slots]) => (
+        {Object.entries(
+          Object.groupBy(slots, (slot) =>
+            new Date(slot.startsAt).toLocaleDateString("tr-TR", {
+              weekday: "short",
+              day: "numeric",
+            }),
+          ),
+        ).map(([day, groupedSlots]) => (
           <div key={day}>
             <h3 className="mb-2 text-center text-xs font-medium text-[#6a7282]">
               {day}
             </h3>
             <div className="space-y-2">
-              {slots.map((slot) => {
-                const value = `${day} ${slot}`;
+              {(groupedSlots ?? []).map((slot) => {
+                const isSelected = selectedSlotId === slot.id;
                 return (
                   <button
-                    key={slot}
+                    key={slot.id}
                     type="button"
-                    aria-pressed={selected === value}
-                    onClick={() => setSelected(value)}
-                    className={`h-9 w-full rounded-md border text-xs font-medium ${selected === value ? "border-[#555] bg-[#555] text-white" : "border-[#e5e7eb] bg-white text-[#364153]"}`}
+                    aria-pressed={isSelected}
+                    onClick={() => setSelectedSlotId(slot.id)}
+                    className={`h-9 w-full rounded-md border text-xs font-medium transition ${
+                      isSelected
+                        ? "border-[#555] bg-[#555] text-white font-bold"
+                        : "border-[#e5e7eb] bg-white text-[#364153] hover:bg-zinc-50"
+                    }`}
                   >
-                    {slot}
+                    {new Date(slot.startsAt).toLocaleTimeString("tr-TR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </button>
                 );
               })}
@@ -222,92 +496,113 @@ function AcceptedRequestCalendar() {
       <div className="mt-5 flex justify-end gap-3">
         <SecondaryButton disabled>Başka Saat Öner</SecondaryButton>
         <PrimaryButton
-          href={selected ? "/meetings/research" : undefined}
-          disabled={!selected}
+          disabled={!selectedSlotId || booking || bookedSuccess}
+          onClick={handleConfirmSlot}
         >
-          Saat Seç
+          {booking ? "Kaydediliyor..." : "Saat Seç & Toplantıyı Kaydet"}
         </PrimaryButton>
       </div>
     </div>
   );
 }
 
-const comparisonRows = [
-  ["İhtiyaç uyumu", "Çok yüksek", "Yüksek", "Orta"],
-  [
-    "İlgili uzmanlık",
-    "Kullanıcı testi, UX",
-    "B2B SaaS, Sağlık",
-    "Analitik, Segmentasyon",
-  ],
-  ["Startup seviyesi", "Seed & MVP", "MVP & Büyüme", "Pre-seed & Seed"],
-  ["Sektör deneyimi", "E-ticaret, SaaS", "HealthTech, SaaS", "Oyun, Tüketici"],
-  ["Mentorluk tarzı", "Yapılandırılmış", "Esnek", "Yönlendirici"],
-  ["Görüşme biçimi", "Online", "Online / YY", "Online"],
-  ["Mesajlaşma", "✓ Açık", "✓ Açık", "× Kapalı"],
-  ["Müsaitlik", "Bu hafta", "Bu hafta", "Gelecek hafta"],
-  ["Yanıt süresi", "~24 saat", "~48 saat", "~24 saat"],
-];
-
-export function MentorComparisonView() {
-  const mentors = [
-    ["DK", "Dr. Kemal Arslan", "En uygun"],
-    ["SÖ", "Selin Öztürk", ""],
-    ["MÇ", "Murat Çelik", ""],
+export function MentorComparisonView({
+  mentors,
+  mentorLoadError,
+}: {
+  mentors: MentorProfile[];
+  mentorLoadError?: string;
+}) {
+  const comparisonRows = [
+    ["İhtiyaç uyumu", ...mentors.map((mentor) => mentor.fitLabel)],
+    ["İlgili uzmanlık", ...mentors.map((mentor) => mentor.experienceLevel)],
+    ["Startup seviyesi", ...mentors.map((mentor) => mentor.startupStages)],
+    ["Sektör deneyimi", ...mentors.map((mentor) => mentor.sectorExperience)],
+    ["Mentorluk tarzı", ...mentors.map((mentor) => mentor.mentoringStyle)],
+    ["Görüşme biçimi", ...mentors.map((mentor) => mentor.meetingMode)],
+    ["Mesajlaşma", ...mentors.map((mentor) => mentor.communicationPreference)],
+    ["Müsaitlik", ...mentors.map((mentor) => mentor.availabilityLabel)],
+    ["Yanıt süresi", ...mentors.map((mentor) => mentor.responseTimeLabel)],
   ];
+
   return (
     <AppShell title="Mentor Karşılaştırması" backHref="/mentor-request">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8">
-        <div className="overflow-x-auto rounded-lg border border-[#e5e7eb] bg-white">
-          <table className="min-w-[800px] w-full border-collapse text-sm">
-            <thead>
-              <tr className="bg-[#fafafa]">
-                <th className="w-1/4 p-4 text-left" />
-                {mentors.map(([initials, name, label]) => (
-                  <th key={name} className="w-1/4 p-4 text-left font-medium">
-                    <span className="flex items-center gap-3">
-                      <Avatar initials={initials} size="sm" />
-                      {name}
-                    </span>
-                    {label ? (
-                      <span className="mt-3 block text-xs">{label}</span>
-                    ) : null}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {comparisonRows.map((row, index) => (
-                <tr
-                  key={row[0]}
-                  className={index % 2 ? "bg-[#fafafa]" : "bg-white"}
-                >
-                  {row.map((cell, cellIndex) => (
-                    <td
-                      key={`${row[0]}-${cellIndex}`}
-                      className={`p-4 ${cellIndex === 0 ? "text-[#777]" : "text-[#444]"}`}
+        {mentorLoadError ? (
+          <div
+            role="alert"
+            className="rounded-lg border border-[#fecaca] bg-[#fef2f2] p-5 text-sm text-[#991b1b]"
+          >
+            Mentor karşılaştırma verileri backend&apos;den yüklenemedi.{" "}
+            {mentorLoadError}
+          </div>
+        ) : null}
+        {!mentorLoadError && mentors.length === 0 ? (
+          <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center text-sm text-[#777]">
+            Karşılaştırılacak mentor bulunamadı.
+          </div>
+        ) : null}
+        {mentors.length > 0 ? (
+          <div className="overflow-x-auto rounded-lg border border-[#e5e7eb] bg-white">
+            <table className="min-w-[800px] w-full border-collapse text-sm">
+              <thead>
+                <tr className="bg-[#fafafa]">
+                  <th className="w-1/4 p-4 text-left" />
+                  {mentors.map((mentor, index) => (
+                    <th
+                      key={mentor.id}
+                      className="w-1/4 p-4 text-left font-medium"
                     >
-                      {cell}
+                      <span className="flex items-center gap-3">
+                        <Avatar initials={mentor.initials} size="sm" />
+                        {mentor.fullName}
+                      </span>
+                      {index === 0 ? (
+                        <span className="mt-3 block text-xs">En uygun</span>
+                      ) : null}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row, index) => (
+                  <tr
+                    key={row[0]}
+                    className={index % 2 ? "bg-[#fafafa]" : "bg-white"}
+                  >
+                    {row.map((cell, cellIndex) => (
+                      <td
+                        key={`${row[0]}-${cellIndex}`}
+                        className={`p-4 ${cellIndex === 0 ? "text-[#777]" : "text-[#444]"}`}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+                <tr>
+                  <td />
+                  {mentors.map((mentor) => (
+                    <td key={mentor.id} className="p-4">
+                      <SecondaryButton
+                        disabled
+                        className="mb-2 w-full border-0"
+                      >
+                        Profili Görüntüle
+                      </SecondaryButton>
+                      <PrimaryButton
+                        href={`/mentor-request?step=4&mentor=${mentor.id}`}
+                        className="w-full"
+                      >
+                        Bu Mentoru Seç
+                      </PrimaryButton>
                     </td>
                   ))}
                 </tr>
-              ))}
-              <tr>
-                <td />
-                {mentors.map(([, name]) => (
-                  <td key={name} className="p-4">
-                    <SecondaryButton className="mb-2 w-full border-0">
-                      Profili Görüntüle
-                    </SecondaryButton>
-                    <PrimaryButton href="/mentor-request" className="w-full">
-                      Bu Mentoru Seç
-                    </PrimaryButton>
-                  </td>
-                ))}
-              </tr>
-            </tbody>
-          </table>
-        </div>
+              </tbody>
+            </table>
+          </div>
+        ) : null}
       </div>
     </AppShell>
   );

@@ -3,6 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ReactNode, useState } from "react";
+import { useRouter } from "next/navigation";
+
+import { useDemoSession } from "@/components/providers/session-provider";
 
 type AppArea =
   | "home"
@@ -11,13 +14,16 @@ type AppArea =
   | "meetings"
   | "actions"
   | "files"
-  | "announcements";
+  | "announcements"
+  | "mentor-dashboard";
 
 interface AppShellProps {
   active?: AppArea;
   actions?: ReactNode;
   backHref?: string;
   children: ReactNode;
+  onBack?: () => void;
+  organizationName?: string;
   subtitle?: string;
   title?: string;
 }
@@ -30,13 +36,20 @@ const navigation: Array<{
 }> = [
   { id: "home", label: "Ana Sayfa", href: "/dashboard", icon: "home" },
   {
+    id: "mentor-dashboard",
+    label: "Mentor Paneli",
+    href: "/mentor-dashboard",
+    icon: "mentorships",
+  },
+  {
     id: "mentorships",
     label: "Mentorluklarım",
     icon: "mentorships",
   },
   {
     id: "calendar",
-    label: "Takvim",
+    label: "Takvimim",
+    href: "/calendar",
     icon: "calendar",
   },
   {
@@ -83,10 +96,29 @@ export function AppShell({
   actions,
   backHref,
   children,
+  onBack,
+  organizationName = "NovaMed AI",
   subtitle,
   title,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const session = useDemoSession();
+  const router = useRouter();
+  const resolvedOrganizationName =
+    session?.organizationName ?? organizationName;
+  const resolvedUserName = session?.fullName ?? "Mentee";
+  const userInitials = resolvedUserName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  async function logout() {
+    await fetch("/api/session", { method: "DELETE" });
+    router.push("/login");
+    router.refresh();
+  }
 
   return (
     <div className="min-h-screen bg-[#f9fafb] text-[#364153]">
@@ -144,15 +176,22 @@ export function AppShell({
         </nav>
         <div className="border-t border-[#f3f4f6] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar initials="AK" tone="purple" />
+            <Avatar initials={userInitials || "ME"} tone="purple" />
             <span className="min-w-0 leading-none">
               <strong className="block truncate text-xs font-medium">
-                Ayşe Kaya
+                {resolvedUserName}
               </strong>
               <span className="mt-1 block truncate text-[10px] text-[#99a1af]">
-                NovaMed AI
+                {resolvedOrganizationName}
               </span>
             </span>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="ml-auto text-[10px] text-[#99a1af] underline"
+            >
+              Çıkış
+            </button>
           </div>
         </div>
       </aside>
@@ -188,7 +227,16 @@ export function AppShell({
             >
               Menü
             </button>
-            {backHref ? (
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label="Geri dön"
+                className="text-xl leading-none text-[#99a1af]"
+              >
+                ←
+              </button>
+            ) : backHref ? (
               <Link
                 href={backHref}
                 aria-label="Geri dön"

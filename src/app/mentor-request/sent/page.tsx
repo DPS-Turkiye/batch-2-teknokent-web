@@ -1,5 +1,11 @@
+import { Suspense } from "react";
+
 import { RequestSentView } from "@/components/product-views";
 
 export default function RequestSentPage() {
-  return <RequestSentView />;
+  return (
+    <Suspense>
+      <RequestSentView />
+    </Suspense>
+  );
 }

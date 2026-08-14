@@ -1,11 +1,18 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { Brand } from "@/components/brand";
 
 type FlowStep = "roles" | "login" | "verifying" | "verified";
+
+type DemoAccount = {
+  id: string;
+  email: string;
+  fullName: string;
+  organizationName: string;
+  jobTitle: string;
+};
 
 interface RoleOption {
   id: string;
@@ -94,13 +101,14 @@ function FlowHeader() {
 }
 
 export function LoginFlow() {
-  const router = useRouter();
   const [step, setStep] = useState<FlowStep>("roles");
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [selectedRoleIds, setSelectedRoleIds] = useState<Set<string>>(
     () => new Set(),
   );
   const [email, setEmail] = useState("");
+  const [accounts, setAccounts] = useState<DemoAccount[]>([]);
+  const [loginError, setLoginError] = useState("");
 
   const selectedRoles = useMemo(
     () =>
@@ -111,13 +119,17 @@ export function LoginFlow() {
   );
 
   useEffect(() => {
-    if (step !== "verifying") {
-      return;
-    }
-
-    const timeout = window.setTimeout(() => setStep("verified"), 900);
-    return () => window.clearTimeout(timeout);
-  }, [step]);
+    let active = true;
+    void fetch("/api/demo-accounts", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data) => {
+        if (active && Array.isArray(data)) setAccounts(data);
+      })
+      .catch(() => undefined);
+    return () => {
+      active = false;
+    };
+  }, []);
 
   function toggleRole(roleId: string) {
     setSelectedRoleIds((current) => {
@@ -131,9 +143,25 @@ export function LoginFlow() {
     });
   }
 
-  function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStep("verifying");
+    setLoginError("");
+    try {
+      const response = await fetch("/api/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.message ?? "Giriş yapılamadı.");
+      setStep("verified");
+    } catch (error) {
+      setLoginError(
+        error instanceof Error ? error.message : "Giriş yapılamadı.",
+      );
+      setStep("login");
+    }
   }
 
   function resetFlow() {
@@ -296,18 +324,27 @@ export function LoginFlow() {
                 Programa davet edildiğiniz veya hesabınızla ilişkili e-posta
                 adresini kullanın.
               </p>
-              <button
-                type="button"
-                onClick={() => setStep("verifying")}
-                className="mt-6 w-full border border-zinc-500 px-4 py-3 text-xs font-medium hover:bg-zinc-50"
-              >
-                ODTÜ hesabıyla devam et
-              </button>
-              <div className="my-5 flex items-center gap-3 text-[9px] text-zinc-400">
-                <span className="h-px flex-1 bg-zinc-200" />
-                veya
-                <span className="h-px flex-1 bg-zinc-200" />
+              <div className="mt-5 space-y-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                  Demo mentee hesapları
+                </p>
+                {accounts.map((account) => (
+                  <button
+                    key={account.id}
+                    type="button"
+                    onClick={() => setEmail(account.email)}
+                    className={`w-full border p-3 text-left ${email === account.email ? "border-black bg-zinc-50" : "border-zinc-300"}`}
+                  >
+                    <strong className="block text-xs">
+                      {account.fullName}
+                    </strong>
+                    <span className="mt-1 block text-[10px] text-zinc-500">
+                      {account.organizationName} · {account.jobTitle}
+                    </span>
+                  </button>
+                ))}
               </div>
+              <div className="my-5 h-px bg-zinc-200" />
               <label className="block text-xs font-medium" htmlFor="email">
                 E-posta adresi
               </label>
@@ -322,10 +359,16 @@ export function LoginFlow() {
               />
               <button
                 type="submit"
+                disabled={!email.trim()}
                 className="mt-3 w-full border border-black bg-black px-4 py-3 text-xs font-medium text-white"
               >
                 Devam et
               </button>
+              {loginError ? (
+                <p className="mt-3 text-xs text-red-700" role="alert">
+                  {loginError}
+                </p>
+              ) : null}
               <a
                 href="#"
                 className="mt-5 block text-center text-[10px] underline underline-offset-4"
@@ -402,13 +445,17 @@ export function LoginFlow() {
             </p>
             <button
               type="button"
-              onClick={() => router.push("/workspace")}
+              onClick={() => {
+                window.location.href = selectedRoleIds.has("mentor")
+                  ? "/mentor-dashboard"
+                  : "/dashboard";
+              }}
               disabled={verifiedRoles.length === 0}
               className="mt-6 w-full border border-black bg-black px-4 py-3 text-xs font-medium text-white disabled:bg-zinc-300"
             >
               {selectedRoleIds.has("mentor")
                 ? "Mentor olarak devam et"
-                : "Doğrulanan görevlerle devam et"}
+                : "Mentee paneline devam et"}
             </button>
             {unverifiedRoleId ? (
               <button

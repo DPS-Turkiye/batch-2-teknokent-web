@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 
 import {
   AppShell,
@@ -10,6 +10,13 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from "@/components/app-shell";
+import type { MentorProfile } from "@/interfaces/mentor";
+import type { StartupContext } from "@/interfaces/startup";
+import { useDemoSession } from "@/components/providers/session-provider";
+import {
+  MentorshipRequestSubmissionError,
+  submitMentorshipRequest,
+} from "@/lib/mentorship-requests";
 
 const steps = ["İhtiyaç", "Beklenti", "Bilgiler", "Mentor Seçimi", "Talep"];
 const supportAreas = [
@@ -32,46 +39,105 @@ const urgencyOptions = [
   "Acil değil",
 ];
 
-const mentors = [
-  {
-    initials: "DK",
-    name: "Dr. Kemal Arslan",
-    role: "Ürün & Araştırma Direktörü · Trendyol",
-    availability: "Bu hafta müsait",
-    tags: ["Kullanıcı araştırması", "MVP testi", "UX stratejisi"],
-    meta: ["Online", "Mesajlaşma açık", "Yapılandırılmış & Uygulamalı"],
-    reasons: [
-      "MVP seviyesindeki girişimlerle çalışıyor",
-      "Kullanıcı testi süreçlerinde deneyimli",
-      "Bu hafta müsait",
-    ],
-  },
-  {
-    initials: "SÖ",
-    name: "Selin Öztürk",
-    role: "Kurucu · HealthTech Ventures",
-    availability: "Bu hafta müsait",
-    tags: ["B2B SaaS", "Sağlık teknolojileri", "Ürün-pazar uyumu"],
-    meta: ["Online / Yüz yüze", "Mesajlaşma açık", "Esnek & Birlikte keşfeden"],
-    reasons: [
-      "Sağlık teknolojileri deneyimi bulunuyor",
-      "B2B SaaS konusunda uzmanlaşmış",
-      "Kullanıcı doğrulama süreçlerinde aktif",
-    ],
-  },
-  {
-    initials: "MÇ",
-    name: "Murat Çelik",
-    role: "Ürün Müdürü · Peak Games",
-    availability: "Gelecek hafta müsait",
-    tags: ["Ürün analitik", "Kullanıcı segmentasyonu", "Test metodolojisi"],
-    meta: ["Online", "Yalnızca toplantı", "Yönlendirici & Stratejik"],
-    reasons: [
-      "Test metodolojisi konusunda uzmanlaşmış",
-      "Büyük kullanıcı kitleleriyle çalışma deneyimi",
-    ],
-  },
-];
+const urgencyValues = {
+  "Bu hafta": "THIS_WEEK",
+  "Önümüzdeki iki hafta": "NEXT_TWO_WEEKS",
+  "Bu ay": "THIS_MONTH",
+  "Acil değil": "NOT_URGENT",
+} as const;
+
+const formatValues = {
+  "Tek görüşme": "SINGLE_MEETING",
+  "Kısa mentorluk süreci": "SHORT_TERM",
+  "Düzenli mentorluk": "REGULAR",
+  "Uzman yönlendirmesi": "EXPERT_REFERRAL",
+} as const;
+
+const meetingModeValues = {
+  Online: "ONLINE",
+  "Yüz yüze": "IN_PERSON",
+  "Fark etmez": "NO_PREFERENCE",
+} as const;
+
+const urgencyLabels: Record<string, string> = {
+  THIS_WEEK: "Bu hafta",
+  NEXT_TWO_WEEKS: "Önümüzdeki iki hafta",
+  THIS_MONTH: "Bu ay",
+  NOT_URGENT: "Acil değil",
+};
+
+const formatLabels: Record<string, string> = {
+  SINGLE_MEETING: "Tek görüşme",
+  SHORT_TERM: "Kısa mentorluk süreci",
+  REGULAR: "Düzenli mentorluk",
+  EXPERT_REFERRAL: "Uzman yönlendirmesi",
+};
+
+const meetingModeLabels: Record<string, string> = {
+  ONLINE: "Online",
+  IN_PERSON: "Yüz yüze",
+  NO_PREFERENCE: "Fark etmez",
+};
+
+type RecommendationMetadata = {
+  matchingMethod: string;
+  matchingModel?: string;
+  generatedAt: string;
+};
+
+type MentorRequestDraft = {
+  area: string;
+  summary: string;
+  urgency: string;
+  format: string;
+  meetingMode: string;
+  requesterMessage: string | null;
+};
+
+type SourceMentorshipRequest = {
+  supportArea: string;
+  summary: string;
+  urgency: string;
+  mentorshipFormat: string;
+  meetingMode: string;
+  requesterMessage: string | null;
+};
+
+function readRequestDraft(storageKey: string): MentorRequestDraft | null {
+  try {
+    const savedDraft = sessionStorage.getItem(storageKey);
+    if (!savedDraft) return null;
+
+    const parsedDraft = JSON.parse(savedDraft) as Partial<MentorRequestDraft>;
+    if (
+      typeof parsedDraft.area !== "string" ||
+      typeof parsedDraft.summary !== "string" ||
+      typeof parsedDraft.urgency !== "string" ||
+      typeof parsedDraft.format !== "string" ||
+      typeof parsedDraft.meetingMode !== "string"
+    ) {
+      return null;
+    }
+
+    return {
+      area: parsedDraft.area,
+      summary: parsedDraft.summary,
+      urgency: parsedDraft.urgency,
+      format: parsedDraft.format,
+      meetingMode: parsedDraft.meetingMode,
+      requesterMessage:
+        typeof parsedDraft.requesterMessage === "string"
+          ? parsedDraft.requesterMessage
+          : null,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeStep(value: number): number {
+  return Number.isInteger(value) && value >= 1 && value <= 5 ? value : 1;
+}
 
 function StepIndicator({ current }: { current: number }) {
   return (
@@ -119,7 +185,7 @@ function PersonChoice({
       <span className="flex-1">
         <span className="flex items-center gap-2">
           <strong className="block text-sm font-medium">{name}</strong>
-          {selected && name === "Ayşe Kaya" ? <Badge>Ben</Badge> : null}
+          {selected ? <Badge>Ben</Badge> : null}
         </span>
         <span className="mt-0.5 block text-xs text-[#8a8a8a]">{role}</span>
       </span>
@@ -128,20 +194,33 @@ function PersonChoice({
   );
 }
 
-export function MentorRequestFlow() {
+export function MentorRequestFlow({
+  mentors,
+  mentorLoadError,
+  startup,
+  startupLoadError,
+}: {
+  mentors: MentorProfile[];
+  mentorLoadError?: string;
+  startup: StartupContext;
+  startupLoadError?: string;
+}) {
   const router = useRouter();
+  const session = useDemoSession();
   const params = useSearchParams();
   const requestedStep = Number(params.get("step"));
+  const requestedMentorId = params.get("mentor");
   const excludedMentor = params.get("exclude");
-  const availableMentors = excludedMentor
-    ? mentors.filter((item) => item.name !== excludedMentor)
+  const sourceRequestId = params.get("request");
+  const draftStorageKey = `teknokent:mentor-request-draft:${startup.organizationId}`;
+  const baseAvailableMentors = excludedMentor
+    ? mentors.filter((item) => item.fullName !== excludedMentor)
     : mentors;
-  const [step, setStep] = useState(() =>
-    Number.isInteger(requestedStep) && requestedStep >= 1 && requestedStep <= 5
-      ? requestedStep
-      : 1,
-  );
-  const [person, setPerson] = useState("Ayşe Kaya");
+  const excludedMentorId = excludedMentor
+    ? mentors.find((item) => item.fullName === excludedMentor)?.id
+    : undefined;
+  const [step, setStep] = useState(() => normalizeStep(requestedStep));
+  const [person, setPerson] = useState<string | null>(null);
   const [area, setArea] = useState("Ürün ve ürün yönetimi");
   const [summary, setSummary] = useState("");
   const [urgency, setUrgency] = useState(() =>
@@ -149,7 +228,273 @@ export function MentorRequestFlow() {
   );
   const [format, setFormat] = useState("Tek görüşme");
   const [meetingMode, setMeetingMode] = useState("Online");
-  const [mentor, setMentor] = useState(() => availableMentors[0]?.name ?? "");
+  const [requesterMessage, setRequesterMessage] = useState<string | null>(null);
+  const [submissionError, setSubmissionError] = useState("");
+  const [recommendedMentors, setRecommendedMentors] = useState<
+    MentorProfile[] | null
+  >(null);
+  const [matchingError, setMatchingError] = useState("");
+  const [isMatching, setIsMatching] = useState(false);
+  const [recommendationMetadata, setRecommendationMetadata] =
+    useState<RecommendationMetadata | null>(null);
+  const [isSubmitting, startSubmission] = useTransition();
+  const [mentorId, setMentorId] = useState(() =>
+    baseAvailableMentors.some((item) => item.id === requestedMentorId)
+      ? (requestedMentorId ?? "")
+      : (baseAvailableMentors[0]?.id ?? ""),
+  );
+  const availableMentors = recommendedMentors ?? baseAvailableMentors;
+  const selectedMentor =
+    availableMentors.find((item) => item.id === mentorId) ?? null;
+  const selectedPerson = person ?? session?.fullName ?? "Mentee";
+  const sessionInitials = selectedPerson
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const teamMembers = [
+    [sessionInitials || "ME", selectedPerson, session?.jobTitle ?? "Mentee"],
+  ];
+  const effectiveRequesterMessage = requesterMessage ?? summary.trim();
+
+  useEffect(() => {
+    function handleHistoryNavigation() {
+      const nextStep = Number(
+        new URLSearchParams(window.location.search).get("step"),
+      );
+      setStep(normalizeStep(nextStep));
+    }
+
+    window.addEventListener("popstate", handleHistoryNavigation);
+    return () =>
+      window.removeEventListener("popstate", handleHistoryNavigation);
+  }, []);
+
+  function goToStep(nextStep: number) {
+    const normalizedStep = normalizeStep(nextStep);
+    const url = new URL(window.location.href);
+
+    sessionStorage.setItem(
+      draftStorageKey,
+      JSON.stringify({
+        area,
+        summary,
+        urgency,
+        format,
+        meetingMode,
+        requesterMessage,
+      } satisfies MentorRequestDraft),
+    );
+
+    if (normalizedStep === 1) {
+      url.searchParams.delete("step");
+    } else {
+      url.searchParams.set("step", String(normalizedStep));
+    }
+
+    window.history.pushState({ mentorRequestStep: normalizedStep }, "", url);
+    setStep(normalizedStep);
+    if (normalizedStep === 4) void loadRecommendations();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function loadRecommendations() {
+    const savedDraft = summary.trim()
+      ? null
+      : readRequestDraft(draftStorageKey);
+    let matchArea = savedDraft?.area ?? area;
+    let matchSummary = savedDraft?.summary ?? summary;
+    let matchUrgency = savedDraft?.urgency ?? urgency;
+    let matchFormat = savedDraft?.format ?? format;
+    let matchMeetingMode = savedDraft?.meetingMode ?? meetingMode;
+    let matchRequesterMessage =
+      savedDraft?.requesterMessage ?? requesterMessage;
+
+    if (!matchSummary.trim() && sourceRequestId) {
+      setIsMatching(true);
+      setMatchingError("");
+      try {
+        const sourceResponse = await fetch(
+          `/api/mentor-requests/${sourceRequestId}`,
+          { cache: "no-store" },
+        );
+        const sourceText = await sourceResponse.text();
+        const sourceRequest = sourceText
+          ? (JSON.parse(sourceText) as SourceMentorshipRequest & {
+              message?: string;
+            })
+          : null;
+        if (!sourceResponse.ok || !sourceRequest) {
+          throw new Error(
+            sourceRequest?.message ?? "Önceki talep bilgileri yüklenemedi.",
+          );
+        }
+
+        matchArea = sourceRequest.supportArea;
+        matchSummary = sourceRequest.summary;
+        matchUrgency =
+          urgencyLabels[sourceRequest.urgency] ?? urgencyOptions[0];
+        matchFormat =
+          formatLabels[sourceRequest.mentorshipFormat] ?? "Tek görüşme";
+        matchMeetingMode =
+          meetingModeLabels[sourceRequest.meetingMode] ?? "Online";
+        matchRequesterMessage = sourceRequest.requesterMessage;
+
+        setArea(matchArea);
+        setSummary(matchSummary);
+        setUrgency(matchUrgency);
+        setFormat(matchFormat);
+        setMeetingMode(matchMeetingMode);
+        setRequesterMessage(matchRequesterMessage);
+        sessionStorage.setItem(
+          draftStorageKey,
+          JSON.stringify({
+            area: matchArea,
+            summary: matchSummary,
+            urgency: matchUrgency,
+            format: matchFormat,
+            meetingMode: matchMeetingMode,
+            requesterMessage: matchRequesterMessage,
+          } satisfies MentorRequestDraft),
+        );
+      } catch (error) {
+        setMatchingError(
+          error instanceof Error
+            ? error.message
+            : "Önceki talep bilgileri yüklenemedi.",
+        );
+        setRecommendationMetadata(null);
+        setRecommendedMentors(null);
+        setIsMatching(false);
+        return;
+      }
+    }
+
+    if (!matchSummary.trim()) {
+      setMatchingError(
+        "Mentor önerileri için önce İhtiyaç adımında talep özetini doldurun.",
+      );
+      setRecommendationMetadata(null);
+      setRecommendedMentors(null);
+      return;
+    }
+
+    if (savedDraft) {
+      setArea(savedDraft.area);
+      setSummary(savedDraft.summary);
+      setUrgency(savedDraft.urgency);
+      setFormat(savedDraft.format);
+      setMeetingMode(savedDraft.meetingMode);
+      setRequesterMessage(savedDraft.requesterMessage);
+    }
+
+    setIsMatching(true);
+    setMatchingError("");
+    try {
+      const response = await fetch("/api/mentor-recommendations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          supportArea: matchArea,
+          summary: matchSummary,
+          urgency: urgencyValues[matchUrgency as keyof typeof urgencyValues],
+          mentorshipFormat:
+            formatValues[matchFormat as keyof typeof formatValues],
+          meetingMode:
+            meetingModeValues[
+              matchMeetingMode as keyof typeof meetingModeValues
+            ],
+          startupSector: startup.sector,
+          startupStage: startup.stage,
+          startupSummary: startup.summary,
+          startupTechnologies: startup.technologies,
+          excludedMentorId,
+        }),
+      });
+      const responseText = await response.text();
+      const body = responseText ? JSON.parse(responseText) : null;
+      if (!response.ok || !Array.isArray(body)) {
+        throw new Error(body?.message ?? "Mentor önerileri alınamadı.");
+      }
+      setRecommendationMetadata({
+        matchingMethod:
+          response.headers.get("x-matching-method") ?? "DETERMINISTIC",
+        matchingModel: response.headers.get("x-matching-model") || undefined,
+        generatedAt:
+          response.headers.get("x-recommendation-generated-at") ??
+          new Date().toISOString(),
+      });
+      setRecommendedMentors(body);
+      setMentorId(body[0]?.id ?? "");
+    } catch (error) {
+      setMatchingError(
+        `${
+          error instanceof Error ? error.message : "Mentor önerileri alınamadı."
+        } Mevcut mentor listesi gösteriliyor.`,
+      );
+      setRecommendationMetadata({
+        matchingMethod: "FRONTEND_FALLBACK",
+        matchingModel: "unranked-mentor-list",
+        generatedAt: new Date().toISOString(),
+      });
+      setRecommendedMentors(baseAvailableMentors);
+    } finally {
+      setIsMatching(false);
+    }
+  }
+
+  function submitRequest() {
+    if (!selectedMentor || !recommendationMetadata) {
+      setSubmissionError(
+        "Mentor önerileri henüz hazırlanmadı. Lütfen mentor seçimi adımına dönün.",
+      );
+      return;
+    }
+
+    setSubmissionError("");
+    startSubmission(async () => {
+      try {
+        const savedRequest = await submitMentorshipRequest({
+          mentorId: selectedMentor.id,
+          requestedForName: selectedPerson,
+          supportArea: area,
+          summary,
+          urgency: urgencyValues[urgency as keyof typeof urgencyValues],
+          mentorshipFormat: formatValues[format as keyof typeof formatValues],
+          meetingMode:
+            meetingModeValues[meetingMode as keyof typeof meetingModeValues],
+          requesterMessage: effectiveRequesterMessage,
+          recommendationSnapshot: {
+            ...recommendationMetadata,
+            startupName: startup.name,
+            startupSector: startup.sector,
+            startupStage: startup.stage,
+            startupSummary: startup.summary,
+            startupTechnologies: startup.technologies,
+            recommendations: availableMentors.map((mentor, index) => ({
+              mentorId: mentor.id,
+              rank: index + 1,
+              selected: mentor.id === selectedMentor.id,
+              mentorName: mentor.fullName,
+              professionalTitle: mentor.professionalTitle,
+              company: mentor.company,
+              reasons: mentor.recommendationReasons,
+              evidence: mentor.recommendationEvidence,
+            })),
+          },
+        });
+        sessionStorage.removeItem(draftStorageKey);
+        router.push(`/mentor-request/sent?request=${savedRequest.id}`);
+      } catch (error) {
+        setSubmissionError(
+          error instanceof MentorshipRequestSubmissionError
+            ? error.message
+            : "Talep kaydedilemedi. Lütfen tekrar deneyin.",
+        );
+      }
+    });
+  }
 
   const titles = [
     [
@@ -164,10 +509,7 @@ export function MentorRequestFlow() {
       "Mentorla paylaşılacak bilgileri kontrol edin",
       "Aşağıdaki bilgiler startup profilinizden otomatik olarak alınmıştır.",
     ],
-    [
-      "İhtiyacınıza uygun mentorlar",
-      "Alan: Ürün & ürün yönetimi · Kullanıcı testi",
-    ],
+    ["İhtiyacınıza uygun mentorlar", `Alan: ${area} · ${summary.trim()}`],
     [
       "Mentorluk talebinizi gözden geçirin",
       "Göndermeden önce seçimlerinizi kontrol edin.",
@@ -177,11 +519,15 @@ export function MentorRequestFlow() {
   return (
     <AppShell
       backHref={step === 1 ? "/dashboard" : undefined}
+      onBack={step > 1 ? () => goToStep(step - 1) : undefined}
+      organizationName={startup.name}
       title={titles[step - 1][0]}
       subtitle={titles[step - 1][1]}
     >
       <div className="mx-auto w-full max-w-[1216px] px-4 py-6 sm:px-8">
-        <StepIndicator current={step} />
+        <div className="sticky top-14 z-10 -mx-4 border-b border-[#eeeeee] bg-[#f9fafb]/95 px-4 py-3 backdrop-blur sm:-mx-8 sm:px-8">
+          <StepIndicator current={step} />
+        </div>
 
         <div className="mt-8">
           {step === 1 ? (
@@ -191,17 +537,13 @@ export function MentorRequestFlow() {
                   Bu mentorluk sürecini kim/ kimler yürütecek?
                 </h2>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {[
-                    ["AK", "Ayşe Kaya", "CEO"],
-                    ["BŞ", "Burak Şahin", "CTO"],
-                    ["ED", "Ece Doğan", "Tasarım"],
-                  ].map(([initials, name, role]) => (
+                  {teamMembers.map(([initials, name, role]) => (
                     <PersonChoice
                       key={name}
                       initials={initials}
                       name={name}
                       role={role}
-                      selected={person === name}
+                      selected={selectedPerson === name}
                       onClick={() => setPerson(name)}
                     />
                   ))}
@@ -316,7 +658,12 @@ export function MentorRequestFlow() {
                   </div>
                 </section>
               </div>
-              <RequestSummary area={area} person={person} urgency={urgency} />
+              <RequestSummary
+                area={area}
+                person={selectedPerson}
+                startup={startup}
+                urgency={urgency}
+              />
             </div>
           ) : null}
 
@@ -329,31 +676,52 @@ export function MentorRequestFlow() {
                       <h2 className="text-sm font-semibold">
                         Startup Bilgileri
                       </h2>
-                      <p className="mt-2 text-base font-semibold">NovaMed AI</p>
+                      <p className="mt-2 text-base font-semibold">
+                        {startup.name}
+                      </p>
                       <p className="mt-1 text-sm text-[#777]">
-                        Sağlık Teknolojileri
+                        {startup.sector || "Sektör belirtilmedi"}
                       </p>
                     </div>
                     <SecondaryButton>Düzenle</SecondaryButton>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-[#555]">
-                    Hastane süreçlerini yapay zeka ile otomatize eden B2B SaaS
-                    platform.
+                    {startup.summary || "Girişim özeti henüz belirtilmedi."}
                   </p>
+                  {startupLoadError ? (
+                    <p className="mt-3 rounded-md border border-[#fde68a] bg-[#fffbeb] p-3 text-xs text-[#92400e]">
+                      {startupLoadError}
+                    </p>
+                  ) : null}
                   <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
                     <div>
                       <dt className="text-xs text-[#999]">Seviye</dt>
-                      <dd className="mt-1">MVP</dd>
+                      <dd className="mt-1">
+                        {startup.stage || "Belirtilmedi"}
+                      </dd>
                     </div>
                     <div>
                       <dt className="text-xs text-[#999]">Ekip</dt>
-                      <dd className="mt-1">4 kişi</dd>
+                      <dd className="mt-1">
+                        {startup.teamSize
+                          ? `${startup.teamSize} kişi`
+                          : "Belirtilmedi"}
+                      </dd>
                     </div>
                     <div>
-                      <dt className="text-xs text-[#999]">Program</dt>
-                      <dd className="mt-1">Başlangıç 2024</dd>
+                      <dt className="text-xs text-[#999]">Profil kaynağı</dt>
+                      <dd className="mt-1">
+                        {startup.confirmedProfile
+                          ? "Onaylanmış girişim profili"
+                          : "Organizasyon kaydı"}
+                      </dd>
                     </div>
                   </dl>
+                  {startup.sourceFilename ? (
+                    <p className="mt-3 text-xs text-[#999]">
+                      Kaynak: {startup.sourceFilename}
+                    </p>
+                  ) : null}
                 </section>
                 <section className="rounded-lg border border-[#e5e7eb] bg-white p-5">
                   <div className="flex items-center justify-between gap-4">
@@ -366,11 +734,7 @@ export function MentorRequestFlow() {
                     <SecondaryButton>Düzenle</SecondaryButton>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    {[
-                      ["AK", "Ayşe Kaya", "CEO"],
-                      ["BŞ", "Burak Şahin", "CTO"],
-                      ["ED", "Ece Doğan", "Tasarım"],
-                    ].map(([initials, name, role]) => (
+                    {teamMembers.map(([initials, name, role]) => (
                       <div key={name} className="flex items-center gap-2">
                         <Avatar initials={initials} size="sm" />
                         <span>
@@ -383,7 +747,12 @@ export function MentorRequestFlow() {
                 </section>
               </div>
               <div className="space-y-4">
-                <RequestSummary area={area} person={person} urgency={urgency} />
+                <RequestSummary
+                  area={area}
+                  person={selectedPerson}
+                  startup={startup}
+                  urgency={urgency}
+                />
                 <section className="rounded-lg border border-[#e5e7eb] bg-white p-4">
                   <h2 className="text-sm font-semibold">
                     Talebe Eklenecek Dosyalar
@@ -435,48 +804,115 @@ export function MentorRequestFlow() {
               <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#999]">
                 En Uygun Mentorlar
               </h2>
+              {!isMatching ? (
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[#e5e7eb] bg-white p-4 text-sm text-[#777]">
+                  <span>
+                    {recommendationMetadata
+                      ? "Talep bilgilerini kullanarak mentor sıralamasını yeniden oluşturabilirsiniz."
+                      : "Bu talep için mentor önerilerini hazırlayın."}
+                  </span>
+                  <PrimaryButton onClick={() => void loadRecommendations()}>
+                    {recommendationMetadata
+                      ? "Önerileri Yenile"
+                      : "Önerileri Hazırla"}
+                  </PrimaryButton>
+                </div>
+              ) : null}
+              {isMatching ? (
+                <div className="mb-4 rounded-lg border border-[#e5e7eb] bg-white p-5 text-sm text-[#777]">
+                  Talep bilgileriniz analiz ediliyor ve uygun mentorlar
+                  sıralanıyor…
+                </div>
+              ) : null}
+              {matchingError ? (
+                <div className="mb-4 rounded-lg border border-[#fde68a] bg-[#fffbeb] p-4 text-sm text-[#92400e]">
+                  {matchingError}
+                </div>
+              ) : null}
+              {mentorLoadError ? (
+                <div
+                  role="alert"
+                  className="mb-4 rounded-lg border border-[#fecaca] bg-[#fef2f2] p-4 text-sm text-[#991b1b]"
+                >
+                  Mentorlar backend&apos;den yüklenemedi. {mentorLoadError}
+                </div>
+              ) : null}
+              {!mentorLoadError && availableMentors.length === 0 ? (
+                <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center text-sm text-[#777]">
+                  Bu talep için görüntülenecek uygun mentor bulunamadı.
+                </div>
+              ) : null}
               <div className="space-y-3">
                 {availableMentors.map((item) => (
                   <article
-                    key={item.name}
-                    className={`rounded-lg border bg-white p-4 ${mentor === item.name ? "border-[#777]" : "border-[#e5e7eb]"}`}
+                    key={item.id}
+                    className={`rounded-lg border bg-white p-4 ${mentorId === item.id ? "border-[#777]" : "border-[#e5e7eb]"}`}
                   >
                     <div className="flex flex-wrap items-start gap-3">
                       <Avatar initials={item.initials} />
                       <div className="min-w-0 flex-1">
                         <h3 className="text-sm font-semibold text-[#171717]">
-                          {item.name}
+                          {item.fullName}
                         </h3>
                         <p className="mt-0.5 text-xs text-[#777]">
-                          {item.role}
+                          {item.professionalTitle} · {item.company}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
-                          {item.tags.map((tag) => (
+                          {item.specialties.map((tag) => (
                             <Badge key={tag}>{tag}</Badge>
                           ))}
                         </div>
                       </div>
-                      <Badge>{item.availability}</Badge>
+                      <Badge>{item.availabilityLabel}</Badge>
                     </div>
                     <div className="mt-4 grid gap-2 border-t border-[#f0f0f0] py-3 text-xs text-[#777] md:grid-cols-3">
-                      {item.meta.map((meta) => (
+                      {[
+                        item.meetingMode,
+                        item.communicationPreference,
+                        item.mentoringStyle,
+                      ].map((meta) => (
                         <span key={meta}>{meta}</span>
                       ))}
                     </div>
                     <div className="rounded-md bg-[#f9fafb] p-3">
                       <strong className="text-xs">Neden önerildi?</strong>
                       <ul className="mt-2 space-y-1 text-xs text-[#777]">
-                        {item.reasons.map((reason) => (
+                        {item.recommendationReasons.map((reason) => (
                           <li key={reason}>✓ {reason}</li>
                         ))}
                       </ul>
+                      {item.recommendationEvidence.length > 0 ? (
+                        <div className="mt-3 border-t border-[#e5e7eb] pt-3">
+                          <strong className="text-xs text-[#374151]">
+                            Onaylanmış mentor profilinden kanıt
+                          </strong>
+                          <div className="mt-2 space-y-2">
+                            {item.recommendationEvidence.map((evidence) => (
+                              <blockquote
+                                key={`${evidence.profileVersion}-${evidence.claim}`}
+                                className="border-l-2 border-[#9ca3af] pl-3 text-xs text-[#6b7280]"
+                              >
+                                <p>“{evidence.quote}”</p>
+                                <footer className="mt-1 text-[11px] text-[#9ca3af]">
+                                  {evidence.claim} · {evidence.profileVersion}
+                                  {evidence.sourcePage
+                                    ? ` · Sayfa ${evidence.sourcePage}`
+                                    : ""}
+                                </footer>
+                              </blockquote>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <SecondaryButton href="/mentors/compare">
+                      <SecondaryButton
+                        href={`/mentors/compare?mentor=${item.id}`}
+                      >
                         Profili Gör
                       </SecondaryButton>
-                      <PrimaryButton onClick={() => setMentor(item.name)}>
-                        {mentor === item.name ? "Seçildi" : "Mentor Seç"}
+                      <PrimaryButton onClick={() => setMentorId(item.id)}>
+                        {mentorId === item.id ? "Seçildi" : "Mentor Seç"}
                       </PrimaryButton>
                     </div>
                   </article>
@@ -489,15 +925,23 @@ export function MentorRequestFlow() {
             <div className="mx-auto max-w-3xl space-y-4">
               <section className="rounded-lg border border-[#e5e7eb] bg-white p-5">
                 <div className="flex items-center gap-3">
-                  <Avatar initials="DK" />
+                  <Avatar initials={selectedMentor?.initials ?? "?"} />
                   <div className="flex-1">
                     <p className="text-xs text-[#999]">Seçilen Mentor</p>
-                    <h2 className="mt-1 text-sm font-semibold">{mentor}</h2>
+                    <h2 className="mt-1 text-sm font-semibold">
+                      {selectedMentor?.fullName ?? "Mentor seçilmedi"}
+                    </h2>
                     <p className="mt-1 text-xs text-[#777]">
-                      Ürün & Araştırma Direktörü · Trendyol
+                      {selectedMentor
+                        ? `${selectedMentor.professionalTitle} · ${selectedMentor.company}`
+                        : "Lütfen önce bir mentor seçin"}
                     </p>
                   </div>
-                  <Badge tone="green">Bu hafta müsait</Badge>
+                  {selectedMentor ? (
+                    <Badge tone="green">
+                      {selectedMentor.availabilityLabel}
+                    </Badge>
+                  ) : null}
                 </div>
               </section>
               <section className="rounded-lg border border-[#e5e7eb] bg-white p-5">
@@ -505,7 +949,7 @@ export function MentorRequestFlow() {
                 <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-2">
                   <div>
                     <dt className="text-xs text-[#999]">Konu</dt>
-                    <dd className="mt-1">{area} · Kullanıcı testi</dd>
+                    <dd className="mt-1">{area}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-[#999]">Aciliyet</dt>
@@ -513,9 +957,7 @@ export function MentorRequestFlow() {
                   </div>
                   <div>
                     <dt className="text-xs text-[#999]">Problem</dt>
-                    <dd className="mt-1">
-                      Test yöntemini ve doğru kullanıcı grubunu belirleme
-                    </dd>
+                    <dd className="mt-1 whitespace-pre-wrap">{summary}</dd>
                   </div>
                   <div>
                     <dt className="text-xs text-[#999]">Mentorluk biçimi</dt>
@@ -528,7 +970,8 @@ export function MentorRequestFlow() {
               <label className="block rounded-lg border border-[#e5e7eb] bg-white p-5">
                 <span className="text-sm font-semibold">Talep Mesajı</span>
                 <textarea
-                  defaultValue="Merhaba, MVP'mizi ilk kullanıcılarla test etmeye hazırlanıyoruz. Test yöntemi ve doğru segment konusunda görüşlerinizi almak isteriz."
+                  value={effectiveRequesterMessage}
+                  onChange={(event) => setRequesterMessage(event.target.value)}
                   className="mt-3 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm outline-none"
                 />
               </label>
@@ -536,28 +979,41 @@ export function MentorRequestFlow() {
           ) : null}
         </div>
 
-        <div className="mt-8 flex items-center justify-between border-t border-[#eee] pt-5">
+        <div className="sticky bottom-0 z-10 -mx-4 mt-8 flex items-center justify-between border-t border-[#eee] bg-[#f9fafb]/95 px-4 py-4 backdrop-blur sm:-mx-8 sm:px-8">
           <SecondaryButton
             href={step === 1 ? "/dashboard" : undefined}
-            onClick={
-              step === 1 ? undefined : () => setStep((value) => value - 1)
-            }
+            onClick={step === 1 ? undefined : () => goToStep(step - 1)}
           >
             Geri
           </SecondaryButton>
           {step < 5 ? (
             <PrimaryButton
-              disabled={step === 1 && (!summary.trim() || !urgency)}
-              onClick={() => setStep((value) => value + 1)}
+              disabled={
+                (step === 1 && (!summary.trim() || !urgency)) ||
+                (step === 4 &&
+                  (isMatching || !selectedMentor || !recommendationMetadata))
+              }
+              onClick={() => goToStep(step + 1)}
             >
               Devam Et ›
             </PrimaryButton>
           ) : (
-            <PrimaryButton onClick={() => router.push("/mentor-request/sent")}>
-              Talebi Gönder
+            <PrimaryButton
+              onClick={submitRequest}
+              disabled={isSubmitting || !recommendationMetadata}
+            >
+              {isSubmitting ? "Kaydediliyor..." : "Talebi Gönder"}
             </PrimaryButton>
           )}
         </div>
+        {submissionError ? (
+          <p
+            className="mx-auto mt-3 max-w-3xl text-right text-sm text-[#b42318]"
+            role="alert"
+          >
+            {submissionError}
+          </p>
+        ) : null}
       </div>
     </AppShell>
   );
@@ -566,10 +1022,12 @@ export function MentorRequestFlow() {
 function RequestSummary({
   area,
   person,
+  startup,
   urgency,
 }: {
   area: string;
   person: string;
+  startup: StartupContext;
   urgency: string;
 }) {
   return (
@@ -588,7 +1046,10 @@ function RequestSummary({
         </div>
         <div>
           <dt className="text-xs text-[#aaa]">Startup</dt>
-          <dd className="mt-1">NovaMed AI · MVP</dd>
+          <dd className="mt-1">
+            {startup.name}
+            {startup.stage ? ` · ${startup.stage}` : ""}
+          </dd>
         </div>
         <div>
           <dt className="text-xs text-[#aaa]">Aciliyet</dt>
