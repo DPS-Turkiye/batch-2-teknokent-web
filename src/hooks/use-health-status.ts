@@ -3,9 +3,9 @@
 import { useQuery } from "@tanstack/react-query";
 
 import { fetchHealthClient, healthKeys, isHealthUp } from "@/lib/health";
-import type { HealthResponse, UseHealthStatusResult } from "@/types/health";
+import type { UseHealthStatusResult } from "@/interfaces/health";
 
-export type { UseHealthStatusResult } from "@/types/health";
+export type { UseHealthStatusResult } from "@/interfaces/health";
 
 export function useHealthStatus(): UseHealthStatusResult {
   const query = useQuery({

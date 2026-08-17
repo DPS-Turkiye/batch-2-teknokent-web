@@ -1,3 +1,5 @@
+import axios from "axios";
+
 import { getBotApiUrl, getTranscriptApiUrl } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { AddBotResult, TranscriptSegment } from "@/types/assistant";
@@ -5,30 +7,37 @@ import type { AddBotResult, TranscriptSegment } from "@/types/assistant";
 export type { AddBotResult, TranscriptSegment } from "@/types/assistant";
 
 export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
-  const response = await httpClient.post(getBotApiUrl(), { meetingUrl });
-
-  if (response.status < 200 || response.status >= 300) {
-    const detail =
-      (response.data && (response.data.detail || response.data.message)) ||
-      `Bot gönderilemedi (${response.status})`;
-    throw new Error(String(detail));
+  try {
+    const response = await httpClient.post(getBotApiUrl(), { meetingUrl });
+    return response.data as AddBotResult;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const detail =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        `Failed to send bot (${error.response?.status ?? "network error"})`;
+      throw new Error(String(detail));
+    }
+    throw error;
   }
-
-  return response.data as AddBotResult;
 }
 
 export async function fetchTranscript(
   platform: string,
   nativeMeetingId: string,
 ): Promise<TranscriptSegment[]> {
-  const response = await httpClient.get(
-    getTranscriptApiUrl(platform, nativeMeetingId),
-  );
-  if (response.status < 200 || response.status >= 300) {
-    const detail =
-      (response.data && response.data.detail) ||
-      `Transcript alınamadı (${response.status})`;
-    throw new Error(String(detail));
+  try {
+    const response = await httpClient.get(
+      getTranscriptApiUrl(platform, nativeMeetingId),
+    );
+    return (response.data?.segments ?? []) as TranscriptSegment[];
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const detail =
+        error.response?.data?.detail ||
+        `Failed to fetch transcript (${error.response?.status ?? "network error"})`;
+      throw new Error(String(detail));
+    }
+    throw error;
   }
-  return (response.data?.segments ?? []) as TranscriptSegment[];
 }

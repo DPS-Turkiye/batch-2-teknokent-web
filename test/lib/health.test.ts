@@ -72,7 +72,9 @@ describe("health lib", () => {
 
       const result = await fetchBackendHealth();
 
-      expect(httpClient.get).toHaveBeenCalledWith(getBackendHealthUrl());
+      expect(httpClient.get).toHaveBeenCalledWith(getBackendHealthUrl(), {
+        validateStatus: expect.any(Function),
+      });
       expect(result).toEqual({
         data: healthyResponse,
         httpStatus: 200,
@@ -128,7 +130,9 @@ describe("health lib", () => {
 
       const result = await fetchHealthClient();
 
-      expect(httpClient.get).toHaveBeenCalledWith(HEALTH_API_PATH);
+      expect(httpClient.get).toHaveBeenCalledWith(HEALTH_API_PATH, {
+        validateStatus: expect.any(Function),
+      });
       expect(result).toEqual(healthyResponse);
     });
 

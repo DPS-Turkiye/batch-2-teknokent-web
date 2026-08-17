@@ -1,21 +1,7 @@
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
-
-const footerGroups = [
-  {
-    title: "Platform",
-    links: ["Mentorluk Nedir?", "Programlar", "Eğitimler", "Duyurular"],
-  },
-  {
-    title: "Destek",
-    links: ["Yardım Merkezi", "Sıkça Sorulan Sorular", "İletişim"],
-  },
-  {
-    title: "Yasal",
-    links: ["Gizlilik", "Kullanım Koşulları", "KVKK"],
-  },
-] as const;
+import { SITE_FOOTER_GROUPS } from "@/lib/const";
 
 export function SiteFooter() {
   return (
@@ -36,7 +22,7 @@ export function SiteFooter() {
         </div>
 
         <div className="grid gap-8 sm:grid-cols-3">
-          {footerGroups.map((group) => (
+          {SITE_FOOTER_GROUPS.map((group) => (
             <div key={group.title}>
               <h2 className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
                 {group.title}

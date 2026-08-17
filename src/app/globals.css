@@ -9,7 +9,6 @@
   --wash: #f4f4f4;
 }
 
-/* Meeting assistant workbench tokens (scoped — vendor-neutral) */
 .ma-wb {
   color-scheme: dark;
   --ma-bg: #0e0e11;
@@ -33,8 +32,7 @@
   --ma-bluebg: rgba(110, 168, 254, 0.14);
   background: var(--ma-bg);
   color: var(--ma-t1);
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  font-family: inherit;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -54,14 +52,7 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family:
-    Inter,
-    ui-sans-serif,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    Arial,
-    sans-serif;
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 button,

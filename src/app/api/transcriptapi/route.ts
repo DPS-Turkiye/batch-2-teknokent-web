@@ -1,33 +1,35 @@
 import { NextResponse } from "next/server";
-import { getBackendUrl } from "@/lib/const";
+import {
+  fetchMeetingTranscript,
+  transcriptQuerySchema,
+} from "@/lib/transcriptapi";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const platform = searchParams.get("platform");
-    const nativeMeetingId = searchParams.get("nativeMeetingId");
 
-    if (!platform || !nativeMeetingId) {
+    const parsed = transcriptQuerySchema.safeParse({
+      platform: searchParams.get("platform"),
+      nativeMeetingId: searchParams.get("nativeMeetingId"),
+    });
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { detail: "platform ve nativeMeetingId gerekli" },
+        { detail: "platform and nativeMeetingId are required" },
         { status: 400 },
       );
     }
 
-    const url =
-      `${getBackendUrl()}/api/assistant/transcripts/` +
-      `${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`;
+    const { platform, nativeMeetingId } = parsed.data;
+    const { data, status } = await fetchMeetingTranscript(
+      platform,
+      nativeMeetingId,
+    );
 
-    const res = await fetch(url, {
-      headers: { Accept: "application/json" },
-      cache: "no-store",
-    });
-
-    const data = await res.json().catch(() => ({}));
-    return NextResponse.json(data, { status: res.status });
+    return NextResponse.json(data, { status });
   } catch {
     return NextResponse.json(
-      { detail: "Backend transcript isteği başarısız" },
+      { detail: "Failed to reach backend for transcript request" },
       { status: 502 },
     );
   }

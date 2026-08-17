@@ -1,7 +1,2 @@
-export type {
-  BackendHealthResult,
-  HealthComponentsResponse,
-  HealthResponse,
-  UseHealthStatusResult,
-} from "@/types/health";
-export { HealthStatus, isHealthStatus } from "@/types/health";
+export { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
+export type { LoginRoleGroup, LoginRoleOption } from "@/interfaces/login";

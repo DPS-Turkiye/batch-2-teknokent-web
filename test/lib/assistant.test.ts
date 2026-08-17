@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { addMeetingBot, fetchTranscript } from "@/lib/assistant";
@@ -6,19 +7,27 @@ import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
 vi.mock("@/lib/http-client", () => ({
-  //gerçek axios yerine sahte post / get
   httpClient: {
     post: vi.fn(),
     get: vi.fn(),
   },
 }));
 
+function createAxiosError<T>(data: T, status: number) {
+  return new AxiosError(
+    "Request failed",
+    String(status),
+    undefined,
+    undefined,
+    createAxiosResponse(data, status),
+  );
+}
+
 describe("assistant lib", () => {
   beforeEach(() => {
-    //her testten önce mock’ları temizle (testler birbirini bozmasın)
     vi.clearAllMocks();
   });
-  //spat: UI “Bot ekle” deyince helper doğru isteği atıp cevabı geri veriyor.
+
   it("addMeetingBot posts meeting url and returns data", async () => {
     const payload = {
       id: "bot-1",
@@ -38,11 +47,10 @@ describe("assistant lib", () => {
     });
     expect(result).toEqual(payload);
   });
-  //Sahte post → 400 + { detail: "bad link" },addMeetingBot exception atmalı
-  //spat: Hata status’ta UI’nin yakalayacağı throw oluşuyor (kırmızı mesaj için).
+
   it("addMeetingBot throws on error status", async () => {
-    vi.mocked(httpClient.post).mockResolvedValue(
-      createAxiosResponse({ detail: "bad link" }, 400),
+    vi.mocked(httpClient.post).mockRejectedValue(
+      createAxiosError({ detail: "bad link" }, 400),
     );
 
     await expect(addMeetingBot("https://zoom.us/j/1")).rejects.toThrow(
@@ -55,25 +63,24 @@ describe("assistant lib", () => {
       { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "01:05" },
     ];
     vi.mocked(httpClient.get).mockResolvedValue(
-      createAxiosResponse({ segments }, 200), //Sahte get → 200 + { segments: [...] }
+      createAxiosResponse({ segments }, 200),
     );
 
     const result = await fetchTranscript("google_meet", "abc-defg-hij");
 
     expect(httpClient.get).toHaveBeenCalledWith(
-      //Doğru query URL mi? (/api/transcriptapi?platform=...&nativeMeetingId=...
       getTranscriptApiUrl("google_meet", "abc-defg-hij"),
     );
-    expect(result).toEqual(segments); //Sonuç segments listesi mi?
+    expect(result).toEqual(segments);
   });
-  //İspat: Transcript alınamazsa sessizce yanlış data dönmez; hata fırlatır.
+
   it("fetchTranscript throws on error status", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
-      createAxiosResponse({ detail: "missing" }, 404), //Sahte get → 404 + { detail: "missing" }
+    vi.mocked(httpClient.get).mockRejectedValue(
+      createAxiosError({ detail: "missing" }, 404),
     );
 
     await expect(
-      fetchTranscript("google_meet", "abc-defg-hij"), //fetchTranscript throw etmeli
+      fetchTranscript("google_meet", "abc-defg-hij"),
     ).rejects.toThrow("missing");
   });
 });

@@ -13,10 +13,44 @@ export type TranscriptSegment = {
   at: string;
 };
 
-export type MeetingStatus =
-  "scheduled" | "joining" | "active" | "completed" | "failed";
+export enum BotStatus {
+  Sending = "sending",
+  Ok = "ok",
+  Err = "err",
+}
 
-export type MeetingPlatform = "Google Meet" | "Zoom" | "Teams" | "Jitsi";
+export enum MeetingStatus {
+  Scheduled = "scheduled",
+  Joining = "joining",
+  Active = "active",
+  Completed = "completed",
+  Failed = "failed",
+}
+
+export type MeetingStatusColor =
+  | "var(--ma-blue)"
+  | "var(--ma-accent)"
+  | "var(--ma-green)"
+  | "var(--ma-danger)";
+
+export type MeetingStatusBg =
+  | "var(--ma-bluebg)"
+  | "var(--ma-accentbg)"
+  | "var(--ma-greenbg)"
+  | "var(--ma-dangerbg)";
+
+export type MeetingStatusMeta = {
+  label: string;
+  color: MeetingStatusColor;
+  bg: MeetingStatusBg;
+};
+
+export enum MeetingPlatform {
+  GoogleMeet = "Google Meet",
+  Zoom = "Zoom",
+  Teams = "Teams",
+  Jitsi = "Jitsi",
+}
 
 export type Meeting = {
   id: string;
