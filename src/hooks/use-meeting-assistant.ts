@@ -1,14 +1,16 @@
 "use client";
 
 import { addMeetingBot, fetchTranscript } from "@/lib/assistant";
-import { addBotBodySchema } from "@/lib/botapi";
+import {
+  addBotBodySchema,
+  transcriptQuerySchema,
+} from "@/lib/assistant-schemas";
 import {
   ASSISTANT_INITIAL_MEETINGS,
   ASSISTANT_SAMPLE_NOTES,
   ASSISTANT_SAMPLE_PAD,
   MEETING_STATUS_META,
 } from "@/lib/const";
-import { transcriptQuerySchema } from "@/lib/transcriptapi";
 import {
   BotStatus,
   MeetingPlatform,

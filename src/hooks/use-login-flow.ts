@@ -1,17 +1,20 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
+import { useSession } from "@/components/providers/session-provider";
 import { LOGIN_ROLE_GROUPS } from "@/lib/const";
 import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
 
 export function useLoginFlow() {
+  const { login } = useSession();
   const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Roles);
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const [selectedRoleIds, setSelectedRoleIds] = useState<Set<LoginRoleId>>(
     () => new Set(),
   );
   const [email, setEmail] = useState("");
+  const [loginError, setLoginError] = useState("");
 
   const selectedRoles = useMemo(
     () =>
@@ -20,18 +23,6 @@ export function useLoginFlow() {
       ),
     [selectedRoleIds],
   );
-
-  useEffect(() => {
-    if (step !== LoginFlowStep.Verifying) {
-      return;
-    }
-
-    const timeout = window.setTimeout(
-      () => setStep(LoginFlowStep.Verified),
-      900,
-    );
-    return () => window.clearTimeout(timeout);
-  }, [step]);
 
   function toggleRole(roleId: LoginRoleId) {
     setSelectedRoleIds((current) => {
@@ -45,9 +36,21 @@ export function useLoginFlow() {
     });
   }
 
-  function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    setLoginError("");
     setStep(LoginFlowStep.Verifying);
+    try {
+      await login(email);
+      setStep(LoginFlowStep.Verified);
+    } catch (error) {
+      setLoginError(
+        error instanceof Error
+          ? error.message
+          : "Giriş tamamlanamadı. Lütfen tekrar deneyin.",
+      );
+      setStep(LoginFlowStep.Login);
+    }
   }
 
   function resetFlow() {
@@ -55,6 +58,7 @@ export function useLoginFlow() {
     setOpenGroup(null);
     setSelectedRoleIds(new Set());
     setEmail("");
+    setLoginError("");
   }
 
   const unverifiedRoleId =
@@ -75,6 +79,7 @@ export function useLoginFlow() {
     selectedRoleIds,
     email,
     setEmail,
+    loginError,
     selectedRoles,
     toggleRole,
     submitLogin,

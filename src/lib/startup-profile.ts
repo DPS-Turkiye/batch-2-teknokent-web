@@ -1,6 +1,7 @@
+import "server-only";
+
 import type { StartupContext } from "@/interfaces/startup";
-import { getBackendUrl } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
+import { backendRequest } from "@/lib/server/backend-client";
 
 export const DEMO_ORGANIZATION_ID = "10000000-0000-0000-0000-000000000001";
 
@@ -14,13 +15,6 @@ type ProfileAnalysisResponse = {
   sourceFilename?: string;
   profile?: unknown;
 };
-
-function auth() {
-  return {
-    username: process.env.BACKEND_USERNAME ?? "teknokent",
-    password: process.env.BACKEND_PASSWORD ?? "change-me",
-  };
-}
 
 function profileObject(value: unknown): Record<string, unknown> {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -53,16 +47,17 @@ export async function loadStartupContext(
   startup: StartupContext;
   error?: string;
 }> {
-  const requestAuth = auth();
   try {
     const [organizationResponse, profileResponse] = await Promise.all([
-      httpClient.get(`${getBackendUrl()}/api/organizations/${organizationId}`, {
-        auth: requestAuth,
+      backendRequest<OrganizationResponse>({
+        method: "GET",
+        url: `/api/organizations/${encodeURIComponent(organizationId)}`,
       }),
-      httpClient.get(
-        `${getBackendUrl()}/api/profile-analyses/latest/confirmed?organizationId=${organizationId}`,
-        { auth: requestAuth },
-      ),
+      backendRequest<ProfileAnalysisResponse>({
+        method: "GET",
+        url: "/api/profile-analyses/latest/confirmed",
+        params: { organizationId },
+      }),
     ]);
 
     if (organizationResponse.status !== 200) {

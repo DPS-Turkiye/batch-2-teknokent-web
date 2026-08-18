@@ -1,6 +1,7 @@
+import "server-only";
+
 import type { MentorProfile } from "@/interfaces/mentor";
-import { getBackendUrl } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
+import { backendRequest } from "@/lib/server/backend-client";
 
 export class MentorFetchError extends Error {
   constructor(
@@ -65,11 +66,9 @@ export function isMentorProfile(value: unknown): value is MentorProfile {
 
 export async function fetchMentors(): Promise<MentorProfile[]> {
   try {
-    const response = await httpClient.get(`${getBackendUrl()}/api/mentors`, {
-      auth: {
-        username: process.env.BACKEND_USERNAME ?? "teknokent",
-        password: process.env.BACKEND_PASSWORD ?? "change-me",
-      },
+    const response = await backendRequest<unknown>({
+      method: "GET",
+      url: "/api/mentors",
     });
 
     if (response.status !== 200) {

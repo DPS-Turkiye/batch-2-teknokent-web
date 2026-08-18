@@ -1,19 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getBackendUrl } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
 import {
   fetchMentors,
   isMentorProfile,
   loadMentors,
   MentorFetchError,
 } from "@/lib/mentors";
+import { backendRequest } from "@/lib/server/backend-client";
 import { createMentorResponse, mentorProfile } from "@test/fixtures/mentors";
 
-vi.mock("@/lib/http-client", () => ({
-  httpClient: {
-    get: vi.fn(),
-  },
+vi.mock("@/lib/server/backend-client", () => ({
+  backendRequest: vi.fn(),
 }));
 
 describe("mentor data", () => {
@@ -29,24 +26,19 @@ describe("mentor data", () => {
   });
 
   it("fetches mentor profiles with server-side Basic Auth", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendRequest).mockResolvedValue(
       createMentorResponse([mentorProfile]),
     );
 
     await expect(fetchMentors()).resolves.toEqual([mentorProfile]);
-    expect(httpClient.get).toHaveBeenCalledWith(
-      `${getBackendUrl()}/api/mentors`,
-      expect.objectContaining({
-        auth: expect.objectContaining({
-          username: expect.any(String),
-          password: expect.any(String),
-        }),
-      }),
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "GET",
+      url: "/api/mentors",
+    });
   });
 
   it("rejects non-successful responses", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendRequest).mockResolvedValue(
       createMentorResponse({ message: "Unauthorized" }, 401),
     );
 
@@ -57,7 +49,7 @@ describe("mentor data", () => {
   });
 
   it("rejects invalid response shapes", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue(
+    vi.mocked(backendRequest).mockResolvedValue(
       createMentorResponse([{ fullName: "Incomplete" }]),
     );
 
@@ -65,7 +57,7 @@ describe("mentor data", () => {
   });
 
   it("returns a renderable error result when the backend is unavailable", async () => {
-    vi.mocked(httpClient.get).mockRejectedValue(new Error("network down"));
+    vi.mocked(backendRequest).mockRejectedValue(new Error("network down"));
 
     await expect(loadMentors()).resolves.toEqual({
       mentors: [],

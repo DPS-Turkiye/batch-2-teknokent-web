@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Brand } from "@/components/brand";
 import { RoleGroupSection } from "@/components/login/role-group-section";
 import { useLoginFlow } from "@/hooks/use-login-flow";
+import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
 
 function FlowHeader() {
@@ -19,6 +20,7 @@ function FlowHeader() {
 
 export default function LoginPage() {
   const router = useRouter();
+  const demoAccounts = useDemoAccounts();
   const {
     roleGroups,
     step,
@@ -28,6 +30,7 @@ export default function LoginPage() {
     selectedRoleIds,
     email,
     setEmail,
+    loginError,
     selectedRoles,
     toggleRole,
     submitLogin,
@@ -125,10 +128,11 @@ export default function LoginPage() {
               </p>
               <button
                 type="button"
-                onClick={() => setStep(LoginFlowStep.Verifying)}
-                className="mt-6 w-full border border-zinc-500 px-4 py-3 text-xs font-medium hover:bg-zinc-50"
+                disabled
+                title="ODTÜ SSO entegrasyonu henüz yapılandırılmadı"
+                className="mt-6 w-full cursor-not-allowed border border-zinc-300 px-4 py-3 text-xs font-medium text-zinc-400"
               >
-                ODTÜ hesabıyla devam et
+                ODTÜ hesabıyla devam et (yakında)
               </button>
               <div className="my-5 flex items-center gap-3 text-[9px] text-zinc-400">
                 <span className="h-px flex-1 bg-zinc-200" />
@@ -147,12 +151,39 @@ export default function LoginPage() {
                 placeholder="ornek@metu.edu.tr"
                 className="mt-2 w-full border border-zinc-300 bg-zinc-50 px-3 py-3 text-sm placeholder:text-zinc-400"
               />
+              {demoAccounts.data?.length ? (
+                <div className="mt-3 border border-zinc-200 bg-zinc-50 p-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
+                    Demo hesapları
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {demoAccounts.data.map((account) => (
+                      <button
+                        key={account.id}
+                        type="button"
+                        onClick={() => setEmail(account.email)}
+                        className="border border-zinc-300 bg-white px-2 py-1 text-left text-[10px] hover:border-zinc-500"
+                      >
+                        {account.fullName} · {account.email}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
               <button
                 type="submit"
                 className="mt-3 w-full border border-black bg-black px-4 py-3 text-xs font-medium text-white"
               >
                 Devam et
               </button>
+              {loginError ? (
+                <p
+                  role="alert"
+                  className="mt-3 border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+                >
+                  {loginError}
+                </p>
+              ) : null}
               <a
                 href="#"
                 className="mt-5 block text-center text-[10px] underline underline-offset-4"

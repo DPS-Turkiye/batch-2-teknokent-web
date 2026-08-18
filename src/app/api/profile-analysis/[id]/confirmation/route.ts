@@ -1,40 +1,19 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { getBackendUrl } from "@/lib/const";
-
-function headers() {
-  const username = process.env.BACKEND_USERNAME ?? "teknokent";
-  const password = process.env.BACKEND_PASSWORD ?? "change-me";
-  return {
-    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
-    Accept: "application/json",
-    "Content-Type": "application/json",
-  };
-}
+import { confirmProfileAnalysis } from "@/lib/api/profile-analysis";
+import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
 export async function PATCH(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
   try {
-    const response = await fetch(
-      `${getBackendUrl()}/api/profile-analyses/${id}/confirmation`,
-      {
-        method: "PATCH",
-        headers: headers(),
-        body: await request.text(),
-        cache: "no-store",
-      },
-    );
-    return new NextResponse(await response.text(), {
-      status: response.status,
-      headers: { "Content-Type": "application/json" },
+    const { id } = await params;
+    const payload: unknown = await request.json();
+    return backendResponse(await confirmProfileAnalysis(id, payload));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Profile could not be saved.",
     });
-  } catch {
-    return NextResponse.json(
-      { message: "Profil kaydedilemedi." },
-      { status: 502 },
-    );
   }
 }

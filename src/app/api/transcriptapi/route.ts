@@ -1,12 +1,11 @@
-import { NextResponse } from "next/server";
-import {
-  fetchMeetingTranscript,
-  transcriptQuerySchema,
-} from "@/lib/transcriptapi";
+import { NextRequest, NextResponse } from "next/server";
+import { transcriptQuerySchema } from "@/lib/assistant-schemas";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
+import { apiErrorResponse } from "@/lib/server/api-response";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = request.nextUrl;
 
     const parsed = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),
@@ -15,7 +14,10 @@ export async function GET(request: Request) {
 
     if (!parsed.success) {
       return NextResponse.json(
-        { detail: "platform and nativeMeetingId are required" },
+        {
+          code: "INVALID_REQUEST",
+          message: "platform and nativeMeetingId are required.",
+        },
         { status: 400 },
       );
     }
@@ -27,10 +29,9 @@ export async function GET(request: Request) {
     );
 
     return NextResponse.json(data, { status });
-  } catch {
-    return NextResponse.json(
-      { detail: "Failed to reach backend for transcript request" },
-      { status: 502 },
-    );
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Meeting transcript service is unavailable.",
+    });
   }
 }

@@ -9,19 +9,55 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { Badge } from "@/components/common/badge";
 import { Avatar } from "@/components/common/avatar";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
+import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { AppArea } from "@/types/app-area";
+
+const requestStatusLabels = {
+  [MentorshipRequestStatus.Accepted]: "Kabul edildi",
+  [MentorshipRequestStatus.Declined]: "Uygun değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
+} satisfies Record<MentorshipRequestStatus, string>;
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
+function formatMeetingDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
 
 export default function DashboardPage() {
   const { notifications } = useDashboardNotifications();
+  const {
+    displayName,
+    isFallback,
+    isLoading,
+    nextMeeting,
+    organizationName,
+    requests,
+  } = useDashboardData();
 
   return (
     <AppShell active={AppArea.Home}>
       <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-6 pt-8 sm:px-8 sm:pt-14">
         <section className="flex min-h-44 flex-col justify-between gap-8 rounded-[24px] bg-[#45454d] p-6 text-white sm:h-[181px] sm:flex-row sm:items-start">
           <div>
-            <h1 className="text-2xl font-semibold">Hoş geldin, Ayşe</h1>
+            <h1 className="text-2xl font-semibold">
+              Hoş geldin, {displayName}
+            </h1>
             <p className="mt-1 text-sm font-semibold">
-              NovaMed AI · Teknokent Başlangıç Programı 2024
+              {organizationName} · Teknokent Başlangıç Programı 2026
             </p>
             <p className="mt-3 max-w-md text-sm leading-6 text-white/90">
               Mentorluk sürecinizi buradan takip edin. Yaklaşan toplantılarınızı
@@ -38,6 +74,12 @@ export default function DashboardPage() {
           </SecondaryButton>
         </section>
 
+        {isFallback ? (
+          <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
+            Canlı veriler yüklenemedi; demo verileri gösteriliyor.
+          </p>
+        ) : null}
+
         <section className="flex flex-col gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex gap-3">
             <span className="relative flex size-9 shrink-0 items-center justify-center rounded-lg bg-[#f3f4f6] text-[#6a7282]">
@@ -45,13 +87,17 @@ export default function DashboardPage() {
             </span>
             <div>
               <h2 className="text-sm font-semibold text-[#171717]">
-                Yaklaşan Toplantı — 10 saat sonra
+                {isLoading
+                  ? "Yaklaşan toplantı yükleniyor"
+                  : "Yaklaşan Toplantı"}
               </h2>
               <p className="mt-1 text-xs text-[#6a7282]">
-                Dr. Kemal Arslan · Kullanıcı Araştırması &amp; Test Metodolojisi
+                {nextMeeting?.agenda ?? "Planlanmış toplantı bulunmuyor"}
               </p>
               <p className="mt-1 text-xs text-[#8a8a8a]">
-                Pzt, 12 Ağustos 2024 · 14:00 · Online
+                {nextMeeting
+                  ? `${formatMeetingDate(nextMeeting.scheduledAt)} · ${nextMeeting.meetLink ? "Online" : "Görüşme biçimi belirtilmedi"}`
+                  : "Yeni bir toplantı planlandığında burada görünecek."}
               </p>
               <div className="mt-2 flex flex-wrap gap-4 text-xs text-[#6a7282]">
                 <span>△ 2 dosya yüklenmeli</span>
@@ -80,42 +126,30 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="space-y-3">
-              <article className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center">
-                <Avatar initials="DK" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#171717]">
-                    Kullanıcı Araştırması &amp; Test
-                  </h3>
-                  <p className="mt-0.5 text-xs text-[#6a7282]">
-                    Dr. Kemal Arslan
+              {requests.slice(0, 2).map((request) => (
+                <article
+                  key={request.id}
+                  className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center"
+                >
+                  <Avatar initials={initials(request.mentorName) || "MN"} />
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-[#171717]">
+                      {request.supportArea}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-[#6a7282]">
+                      {request.mentorName}
+                    </p>
+                    <div className="mt-2">
+                      <Badge>{requestStatusLabels[request.status]}</Badge>
+                    </div>
+                  </div>
+                  <p className="text-left text-xs text-[#aaa] sm:text-right">
+                    {new Intl.DateTimeFormat("tr-TR", {
+                      dateStyle: "medium",
+                    }).format(new Date(request.createdAt))}
                   </p>
-                  <div className="mt-2 flex items-center gap-3 text-xs text-[#6a7282]">
-                    <Badge>Devam Ediyor</Badge>
-                    <span>•</span>
-                    <span>2 açık aksiyon</span>
-                  </div>
-                </div>
-                <div className="text-left text-xs sm:text-right">
-                  <p className="text-[#aaa]">Son: 5 Ağustos</p>
-                  <p className="mt-1 text-[#555]">3. toplantıyı planla</p>
-                </div>
-              </article>
-              <article className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 sm:items-center">
-                <Avatar initials="SÖ" />
-                <div className="flex-1">
-                  <h3 className="text-sm font-semibold text-[#171717]">
-                    İş Modeli Validasyonu
-                  </h3>
-                  <p className="mt-0.5 text-xs text-[#6a7282]">Selin Öztürk</p>
-                  <div className="mt-2">
-                    <Badge>Yanıt Bekleniyor</Badge>
-                  </div>
-                </div>
-                <div className="text-left text-xs sm:text-right">
-                  <p className="text-[#aaa]">Son: 1 Ağustos</p>
-                  <p className="mt-1 text-[#555]">Mentor onayı bekleniyor</p>
-                </div>
-              </article>
+                </article>
+              ))}
             </div>
           </section>
 
@@ -149,22 +183,20 @@ export default function DashboardPage() {
                 Mentor Talepleri
               </h2>
               <div className="space-y-2">
-                <Link
-                  href="/mentor-request/status"
-                  className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
-                >
-                  <Avatar initials="AY" size="sm" />
-                  <span className="flex-1 text-xs">Ahmet Yılmaz</span>
-                  <Badge>Yanıt bekleniyor</Badge>
-                </Link>
-                <Link
-                  href="/mentor-request/status?state=accepted"
-                  className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
-                >
-                  <Avatar initials="CD" size="sm" />
-                  <span className="flex-1 text-xs">Can Demir</span>
-                  <Badge> Kabul edildi</Badge>
-                </Link>
+                {requests.slice(0, 3).map((request) => (
+                  <Link
+                    key={request.id}
+                    href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
+                    className="flex items-center gap-2 rounded-lg border border-[#e5e7eb] bg-white p-3"
+                  >
+                    <Avatar
+                      initials={initials(request.mentorName) || "MN"}
+                      size="sm"
+                    />
+                    <span className="flex-1 text-xs">{request.mentorName}</span>
+                    <Badge>{requestStatusLabels[request.status]}</Badge>
+                  </Link>
+                ))}
               </div>
             </section>
 

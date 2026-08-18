@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { useLandingPage } from "@/hooks/use-landing-page";
 import type {
   LandingFaq,
@@ -146,8 +144,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white">
-      <SiteHeader />
-
       <main>
         <section className="border-b border-zinc-200">
           <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-2 lg:px-8 lg:py-24">
@@ -400,8 +396,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <SiteFooter />
     </div>
   );
 }

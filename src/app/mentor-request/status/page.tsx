@@ -1,122 +1,254 @@
-﻿"use client";
+"use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { AppShell } from "@/components/hoc/app-shell";
+import { Avatar } from "@/components/common/avatar";
+import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
-import { Badge } from "@/components/common/badge";
-import { Avatar } from "@/components/common/avatar";
-import { AcceptedRequestCalendar } from "@/components/product-view-shared";
-import { MENTOR_REQUEST_STATUS_OPTIONS } from "@/lib/const";
+import { AppShell } from "@/components/hoc/app-shell";
+import {
+  useAlternativeMentors,
+  useMentorAvailability,
+  useMentorshipRequest,
+  useMentorshipRequests,
+  useReplyToMentorRequest,
+  useWithdrawMentorRequest,
+} from "@/hooks/use-mentorship-requests";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+
+const statusLabels: Record<MentorshipRequestStatus, string> = {
+  [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.Declined]: "Uygun Değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt Bekleniyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
+};
+
+const statusTones: Record<
+  MentorshipRequestStatus,
+  "amber" | "gray" | "green" | "purple"
+> = {
+  [MentorshipRequestStatus.Accepted]: "green",
+  [MentorshipRequestStatus.Declined]: "gray",
+  [MentorshipRequestStatus.MoreInfoRequested]: "purple",
+  [MentorshipRequestStatus.Pending]: "amber",
+  [MentorshipRequestStatus.Withdrawn]: "gray",
+};
+
+function initials(name: string) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
 
 export default function RequestStatusPage() {
+  const router = useRouter();
   const params = useSearchParams();
-  const requestedState = params.get("state") ?? "waiting";
-  const validIds = MENTOR_REQUEST_STATUS_OPTIONS.map(([id]) => id);
-  const initial = validIds.includes(requestedState as (typeof validIds)[number])
-    ? requestedState
-    : "waiting";
-  const [state, setState] = useState(initial);
+  const requestsQuery = useMentorshipRequests("mentee");
+  const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
+  const explicitId = params.get("request") ?? params.get("id");
+  const selectedId =
+    explicitId ??
+    requestsQuery.data?.find((request) => request.status === requestedStatus)
+      ?.id ??
+    requestsQuery.data?.[0]?.id ??
+    null;
+  const requestQuery = useMentorshipRequest(selectedId);
+  const request = requestQuery.data;
+  const replyMutation = useReplyToMentorRequest(selectedId);
+  const withdrawMutation = useWithdrawMentorRequest(selectedId);
+  const availabilityQuery = useMentorAvailability(
+    selectedId,
+    request?.status === MentorshipRequestStatus.Accepted,
+  );
+  const alternativesQuery = useAlternativeMentors(
+    selectedId,
+    request?.status === MentorshipRequestStatus.Declined,
+  );
+  const [reply, setReply] = useState("");
+
+  async function sendReply() {
+    if (!reply.trim()) return;
+    await replyMutation.mutateAsync(reply.trim());
+    setReply("");
+  }
+
   return (
     <AppShell title="Talep Detayı" backHref="/dashboard">
       <div className="mx-auto max-w-[736px] px-4 py-6 sm:px-8">
         <div className="flex gap-2 overflow-x-auto">
-          {MENTOR_REQUEST_STATUS_OPTIONS.map(([id, label]) => (
-            <button
-              type="button"
-              key={id}
-              aria-pressed={state === id}
-              onClick={() => setState(id)}
-              className={`shrink-0 rounded-full border px-3 py-2 text-xs ${state === id ? "border-[#555] bg-[#555] font-medium text-white" : "border-[#e5e7eb] bg-white text-[#555]"}`}
-            >
-              {label}
-            </button>
-          ))}
+          {Object.values(MentorshipRequestStatus)
+            .filter((status) => status !== MentorshipRequestStatus.Withdrawn)
+            .map((status) => (
+              <button
+                type="button"
+                key={status}
+                aria-pressed={request?.status === status}
+                onClick={() =>
+                  router.push(`/mentor-request/status?state=${status}`)
+                }
+                className={`shrink-0 rounded-full border px-3 py-2 text-xs ${request?.status === status ? "border-[#555] bg-[#555] font-medium text-white" : "border-[#e5e7eb] bg-white text-[#555]"}`}
+              >
+                {statusLabels[status]}
+              </button>
+            ))}
         </div>
-        <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <div className="flex items-center gap-3">
-            <Avatar initials="DK" />
-            <div className="flex-1">
-              <h2 className="text-sm font-semibold">Dr. Kemal Arslan</h2>
-              <p className="mt-1 text-xs text-[#777]">
-                Kullanıcı testi · Gönderildi: 9 Ağustos 2024
-              </p>
-            </div>
-            <Badge
-              tone={
-                state === "accepted"
-                  ? "green"
-                  : state === "declined"
-                    ? "gray"
-                    : "amber"
-              }
-            >
-              {MENTOR_REQUEST_STATUS_OPTIONS.find(([id]) => id === state)?.[1]}
-            </Badge>
-          </div>
-        </section>
-        <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <div>
-            {state === "waiting" ? (
-              <div>
-                <h3 className="text-lg font-semibold">Yanıt bekleniyor</h3>
-                <p className="mt-2 text-sm text-[#777]">
-                  Beklenen yanıt süresi: ~24 saat
-                </p>
-                <p className="mt-1 text-xs text-[#aaa]">
-                  Gönderim: 9 Ağustos 2024 · 14:32
-                </p>
-              </div>
-            ) : null}
-            {state === "question" ? (
-              <div>
-                <Badge tone="amber">Ek bilgi istendi</Badge>
-                <p className="mt-4 text-sm font-semibold">Mentorun sorusu:</p>
-                <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
-                  “Şu ana kadar herhangi bir kullanıcı görüşmesi yaptınız mı?
-                  Varsa bulguları paylaşabilir misiniz?”
-                </blockquote>
-                <textarea
-                  placeholder="Yanıtınızı yazın…"
-                  className="mt-4 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm"
-                />
-                <div className="mt-3 flex justify-end gap-2">
-                  <SecondaryButton>Dosya Ekle</SecondaryButton>
-                  <PrimaryButton>Yanıtı Gönder</PrimaryButton>
+
+        {requestsQuery.error || requestQuery.error ? (
+          <p role="alert" className="mt-4 text-sm text-red-700">
+            {requestsQuery.error?.message ?? requestQuery.error?.message}
+          </p>
+        ) : null}
+        {!request && !requestQuery.error ? (
+          <p className="mt-4 text-sm text-[#777]">Talep yükleniyor…</p>
+        ) : null}
+
+        {request ? (
+          <>
+            <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-4">
+              <div className="flex items-center gap-3">
+                <Avatar initials={initials(request.mentorName) || "MN"} />
+                <div className="flex-1">
+                  <h2 className="text-sm font-semibold">
+                    {request.mentorName}
+                  </h2>
+                  <p className="mt-1 text-xs text-[#777]">
+                    {request.supportArea} · Gönderildi:{" "}
+                    {new Intl.DateTimeFormat("tr-TR", {
+                      dateStyle: "long",
+                    }).format(new Date(request.createdAt))}
+                  </p>
                 </div>
+                <Badge tone={statusTones[request.status]}>
+                  {statusLabels[request.status]}
+                </Badge>
               </div>
-            ) : null}
-            {state === "accepted" ? <AcceptedRequestCalendar /> : null}
-            {state === "declined" ? (
-              <div>
-                <h3 className="text-lg font-semibold">Uygun değil</h3>
-                <p className="mt-3 text-sm text-[#777]">Neden uygun değil:</p>
-                <p className="mt-1 text-sm">Bu dönemde müsait değilim</p>
-                <div className="mt-5 flex items-center gap-3 rounded-lg border border-[#e5e7eb] p-4">
-                  <Avatar initials="SÖ" />
-                  <div className="flex-1">
-                    <h4 className="text-sm font-semibold">Selin Öztürk</h4>
-                    <p className="mt-1 text-xs text-[#777]">
-                      Kurucu · HealthTech Ventures
-                    </p>
+            </section>
+
+            <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
+              {request.status === MentorshipRequestStatus.Pending ? (
+                <div>
+                  <h3 className="text-lg font-semibold">Yanıt bekleniyor</h3>
+                  <p className="mt-2 text-sm text-[#777]">
+                    Mentor talebinizi henüz yanıtlamadı.
+                  </p>
+                </div>
+              ) : null}
+
+              {request.status === MentorshipRequestStatus.MoreInfoRequested ? (
+                <div>
+                  <Badge tone="amber">Ek bilgi istendi</Badge>
+                  <p className="mt-4 text-sm font-semibold">Mentorun sorusu:</p>
+                  <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
+                    {request.messages.find(
+                      (message) => message.messageType === "MENTOR_QUESTION",
+                    )?.body ??
+                      request.mentorMessage ??
+                      "Ek bilgi talep edildi."}
+                  </blockquote>
+                  <textarea
+                    value={reply}
+                    onChange={(event) => setReply(event.target.value)}
+                    placeholder="Yanıtınızı yazın…"
+                    className="mt-4 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm"
+                  />
+                  <div className="mt-3 flex justify-end">
+                    <PrimaryButton
+                      disabled={!reply.trim() || replyMutation.isPending}
+                      onClick={() => void sendReply()}
+                    >
+                      {replyMutation.isPending
+                        ? "Gönderiliyor…"
+                        : "Yanıtı Gönder"}
+                    </PrimaryButton>
                   </div>
-                  <PrimaryButton href="/mentor-request?step=4&exclude=Dr.%20Kemal%20Arslan">
-                    Alternatif Mentora Talep Gönder
-                  </PrimaryButton>
                 </div>
+              ) : null}
+
+              {request.status === MentorshipRequestStatus.Accepted ? (
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Toplantı zamanı seçin
+                  </h3>
+                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                    {availabilityQuery.data?.map((slot) => (
+                      <button
+                        key={slot.id}
+                        type="button"
+                        className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs"
+                      >
+                        {new Intl.DateTimeFormat("tr-TR", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(slot.startsAt))}{" "}
+                        · {slot.durationMinutes} dk
+                      </button>
+                    ))}
+                  </div>
+                  {!availabilityQuery.isLoading &&
+                  !availabilityQuery.data?.length ? (
+                    <p className="mt-3 text-sm text-[#777]">
+                      Mentor henüz müsaitlik zamanı paylaşmadı.
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {request.status === MentorshipRequestStatus.Declined ? (
+                <div>
+                  <h3 className="text-lg font-semibold">Uygun değil</h3>
+                  <p className="mt-3 text-sm text-[#777]">Neden uygun değil:</p>
+                  <p className="mt-1 text-sm">
+                    {request.rejectionReason ?? "Gerekçe belirtilmedi."}
+                  </p>
+                  <div className="mt-5 space-y-3">
+                    {alternativesQuery.data?.map((mentor) => (
+                      <div
+                        key={mentor.id}
+                        className="flex items-center gap-3 rounded-lg border border-[#e5e7eb] p-4"
+                      >
+                        <Avatar initials={mentor.initials} />
+                        <div className="flex-1">
+                          <h4 className="text-sm font-semibold">
+                            {mentor.fullName}
+                          </h4>
+                          <p className="mt-1 text-xs text-[#777]">
+                            {mentor.professionalTitle} · {mentor.company}
+                          </p>
+                        </div>
+                        <PrimaryButton
+                          href={`/mentor-request?step=4&exclude=${encodeURIComponent(request.mentorName)}&mentor=${encodeURIComponent(mentor.id)}`}
+                        >
+                          Bu Mentoru Seç
+                        </PrimaryButton>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </section>
+
+            {request.status === MentorshipRequestStatus.Pending ? (
+              <div className="mt-5 flex flex-wrap gap-2">
+                <SecondaryButton
+                  disabled={withdrawMutation.isPending}
+                  onClick={() => void withdrawMutation.mutateAsync()}
+                >
+                  {withdrawMutation.isPending
+                    ? "Geri çekiliyor…"
+                    : "Talebi Geri Çek"}
+                </SecondaryButton>
+                <SecondaryButton href="/mentors/compare">
+                  Alternatif Mentorları Görüntüle
+                </SecondaryButton>
               </div>
             ) : null}
-          </div>
-        </section>
-        {state === "waiting" ? (
-          <div className="mt-5 flex flex-wrap gap-2">
-            <SecondaryButton>Talebi Geri Çek</SecondaryButton>
-            <SecondaryButton href="/mentors/compare">
-              Alternatif Mentorları Görüntüle
-            </SecondaryButton>
-          </div>
+          </>
         ) : null}
       </div>
     </AppShell>

@@ -1,26 +1,17 @@
-import axios from "axios";
-import { z } from "zod";
-import { getBackendUrl } from "@/lib/const";
+import "server-only";
 
-export const transcriptQuerySchema = z.object({
-  platform: z.string().trim().min(1),
-  nativeMeetingId: z.string().trim().min(1),
-});
-
-const backendClient = axios.create({
-  baseURL: getBackendUrl(),
-  headers: {
-    Accept: "application/json",
-  },
-  validateStatus: () => true,
-});
+import { backendRequest } from "@/lib/server/backend-client";
 
 export async function fetchMeetingTranscript(
   platform: string,
   nativeMeetingId: string,
 ): Promise<{ data: unknown; status: number }> {
-  const response = await backendClient.get(
-    `/api/assistant/transcripts/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`,
+  const response = await backendRequest(
+    {
+      method: "GET",
+      url: `/api/assistant/transcripts/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`,
+    },
+    { authenticated: false },
   );
   return {
     data: response.data,

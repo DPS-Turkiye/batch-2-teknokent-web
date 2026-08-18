@@ -1,14 +1,20 @@
 import type { MentorEvidence } from "@/interfaces/mentor";
+import type {
+  MentorMeetingMode,
+  MentorRequestUrgency,
+  MentorshipFormat,
+} from "@/types/mentor-request";
+import { requireSuccess } from "@/lib/client/api";
+import { httpClient } from "@/lib/http-client";
 
 export type MentorshipRequestSubmission = {
   mentorId: string;
   requestedForName: string;
   supportArea: string;
   summary: string;
-  urgency: "THIS_WEEK" | "NEXT_TWO_WEEKS" | "THIS_MONTH" | "NOT_URGENT";
-  mentorshipFormat:
-    "SINGLE_MEETING" | "SHORT_TERM" | "REGULAR" | "EXPERT_REFERRAL";
-  meetingMode: "ONLINE" | "IN_PERSON" | "NO_PREFERENCE";
+  urgency: MentorRequestUrgency;
+  mentorshipFormat: MentorshipFormat;
+  meetingMode: MentorMeetingMode;
   requesterMessage: string;
   recommendationSnapshot: {
     matchingMethod: string;
@@ -47,22 +53,20 @@ export class MentorshipRequestSubmissionError extends Error {
 export async function submitMentorshipRequest(
   request: MentorshipRequestSubmission,
 ): Promise<MentorshipRequestSubmissionResponse> {
-  const response = await fetch("/api/mentor-requests", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
-  });
-
-  const responseBody: unknown = await response.json().catch(() => null);
-  if (!response.ok) {
-    const message =
-      responseBody &&
-      typeof responseBody === "object" &&
-      "message" in responseBody &&
-      typeof responseBody.message === "string"
-        ? responseBody.message
-        : "Talep kaydedilemedi. Lütfen tekrar deneyin.";
-    throw new MentorshipRequestSubmissionError(message);
+  let responseBody: unknown;
+  try {
+    responseBody = requireSuccess(
+      await httpClient.post<MentorshipRequestSubmissionResponse>(
+        "/api/mentor-requests",
+        request,
+      ),
+    );
+  } catch (error) {
+    throw new MentorshipRequestSubmissionError(
+      error instanceof Error
+        ? error.message
+        : "Talep kaydedilemedi. Lütfen tekrar deneyin.",
+    );
   }
 
   if (

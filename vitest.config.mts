@@ -15,6 +15,10 @@ export default defineConfig({
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
       "@test": path.resolve(import.meta.dirname, "./test"),
+      "server-only": path.resolve(
+        import.meta.dirname,
+        "./test/mocks/server-only.ts",
+      ),
     },
   },
 });

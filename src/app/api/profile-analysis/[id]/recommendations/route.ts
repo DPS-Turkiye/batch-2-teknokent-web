@@ -1,38 +1,18 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { getBackendUrl } from "@/lib/const";
-
-function headers() {
-  const username = process.env.BACKEND_USERNAME ?? "teknokent";
-  const password = process.env.BACKEND_PASSWORD ?? "change-me";
-  return {
-    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
-    Accept: "application/json",
-  };
-}
+import { recommendFromProfileAnalysis } from "@/lib/api/profile-analysis";
+import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
 export async function POST(
-  _request: Request,
+  _request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
-  const { id } = await params;
   try {
-    const response = await fetch(
-      `${getBackendUrl()}/api/profile-analyses/${id}/recommendations`,
-      {
-        method: "POST",
-        headers: headers(),
-        cache: "no-store",
-      },
-    );
-    return new NextResponse(await response.text(), {
-      status: response.status,
-      headers: { "Content-Type": "application/json" },
+    const { id } = await params;
+    return backendResponse(await recommendFromProfileAnalysis(id));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Matching service is unavailable.",
     });
-  } catch {
-    return NextResponse.json(
-      { message: "Eşleşme servisine ulaşılamadı." },
-      { status: 502 },
-    );
   }
 }

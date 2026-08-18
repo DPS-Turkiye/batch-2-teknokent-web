@@ -1,77 +1,37 @@
-import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { getBackendUrl } from "@/lib/const";
-import { getSessionIds } from "@/lib/server-session";
+import {
+  createMentorRequest,
+  fetchMentorRequests,
+} from "@/lib/api/mentor-requests";
+import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
-function backendHeaders() {
-  const username = process.env.BACKEND_USERNAME ?? "teknokent";
-  const password = process.env.BACKEND_PASSWORD ?? "change-me";
-  return {
-    Authorization: `Basic ${Buffer.from(`${username}:${password}`).toString("base64")}`,
-    Accept: "application/json",
-  };
-}
-
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     const { userId } = await getSessionIds();
-    const { searchParams } = new URL(request.url);
-    const role = searchParams.get("role");
-    const targetUrl =
-      role === "mentor"
-        ? `${getBackendUrl()}/api/mentorship-requests`
-        : `${getBackendUrl()}/api/mentorship-requests?requesterId=${userId}`;
-
-    const response = await fetch(targetUrl, {
-      headers: backendHeaders(),
-      cache: "no-store",
-    });
-    return new NextResponse(await response.text(), {
-      status: response.status,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch {
-    return NextResponse.json(
-      { message: "Talep servisine ulaşılamadı." },
-      { status: 502 },
+    const role =
+      request.nextUrl.searchParams.get("role") === "mentor"
+        ? "mentor"
+        : "mentee";
+    return backendResponse(
+      await fetchMentorRequests({ requesterId: userId, role }),
     );
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Mentorship request service is unavailable.",
+    });
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const { userId, organizationId } = await getSessionIds();
-    const submission = await request.json();
-    const backendResponse = await fetch(
-      `${getBackendUrl()}/api/mentorship-requests`,
-      {
-        method: "POST",
-        headers: {
-          ...backendHeaders(),
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          ...submission,
-          requesterId: userId,
-          organizationId,
-        }),
-        cache: "no-store",
-      },
-    );
-
-    const body = await backendResponse.text();
-    return new NextResponse(body, {
-      status: backendResponse.status,
-      headers: {
-        "Content-Type":
-          backendResponse.headers.get("content-type") ?? "application/json",
-      },
+    const session = await getSessionIds();
+    const payload = (await request.json()) as Record<string, unknown>;
+    return backendResponse(await createMentorRequest(session, payload));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Mentorship request could not be created.",
     });
-  } catch {
-    return NextResponse.json(
-      { message: "Talep servisine ulaşılamadı." },
-      { status: 502 },
-    );
   }
 }
