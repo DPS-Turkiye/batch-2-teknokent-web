@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 import "./globals.css";
 
@@ -35,7 +36,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${inter.className} flex min-h-full flex-col`}
       >
-        <QueryProvider>{children}</QueryProvider>
+        <QueryProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   );

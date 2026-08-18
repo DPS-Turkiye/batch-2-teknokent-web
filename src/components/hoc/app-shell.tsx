@@ -15,6 +15,7 @@ import {
 import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { useDemoSession } from "@/components/providers/session-provider";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
@@ -33,6 +34,12 @@ const navigation: Array<{
   icon: LucideIcon;
 }> = [
   { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
+  {
+    id: AppArea.MentorDashboard,
+    label: "Mentor Paneli",
+    href: "/mentor-dashboard",
+    icon: Users,
+  },
   { id: AppArea.Mentorships, label: "Mentorluklarım", icon: Users },
   { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
   {
@@ -94,6 +101,15 @@ export function AppShell({
   title,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const session = useDemoSession();
+  const displayName = session?.fullName ?? "Ayşe Kaya";
+  const displayOrganization = session?.organizationName ?? "NovaMed AI";
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 
   return (
     <div className="min-h-screen bg-[#f9fafb] text-[#364153]">
@@ -149,13 +165,13 @@ export function AppShell({
         </nav>
         <div className="border-t border-[#f3f4f6] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar initials="AK" tone="purple" />
+            <Avatar initials={initials || "AK"} tone="purple" />
             <span className="min-w-0 leading-none">
               <strong className="block truncate text-xs font-medium">
-                Ayşe Kaya
+                {displayName}
               </strong>
               <span className="mt-1 block truncate text-[10px] text-[#99a1af]">
-                NovaMed AI
+                {displayOrganization}
               </span>
             </span>
           </div>
