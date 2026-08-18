@@ -1,30 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { useCreateMeeting, useMeetings } from "@/hooks/use-meetings";
+import type { MeetingItem } from "@/interfaces/meeting";
 import { AppArea } from "@/types/app-area";
 import {
   authenticateWithGoogle,
   fetchGoogleCalendarEvents,
   getGoogleClientId,
 } from "@/lib/google-calendar";
-
-type MeetingItem = {
-  id: string;
-  organizationId: string;
-  mentorId?: string;
-  scheduledAt: string;
-  durationMinutes: number;
-  agenda?: string;
-  notes?: string;
-  outcomes?: string;
-  meetLink?: string;
-  status: string;
-};
 
 type CalendarViewMode = "MONTH" | "WEEK" | "AGENDA";
 
@@ -151,39 +140,21 @@ function parseIcalString(icsText: string): MeetingItem[] {
   return events;
 }
 
-async function persistImportedEventsToDatabase(events: MeetingItem[]) {
-  const DEFAULT_ORGANIZATION_ID = "10000000-0000-0000-0000-000000000001";
-  const DEFAULT_MENTOR_ID = "00000000-0000-0000-0000-000000000002";
-
-  for (const item of events) {
-    try {
-      const scheduledDate = new Date(item.scheduledAt);
-      const scheduledAtIso = !isNaN(scheduledDate.getTime())
-        ? scheduledDate.toISOString()
-        : new Date().toISOString();
-
-      await fetch("/api/meetings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          organizationId: DEFAULT_ORGANIZATION_ID,
-          mentorId: DEFAULT_MENTOR_ID,
-          scheduledAt: scheduledAtIso,
-          durationMinutes: item.durationMinutes || 45,
-          agenda: item.agenda || "Google Takvim Etkinliği",
-          meetLink: item.meetLink || "https://meet.google.com/teknokent-dps",
-          status: "SCHEDULED",
-        }),
-      });
-    } catch {
-      // Ignore individual item failures
-    }
-  }
-}
-
 export function CalendarView() {
-  const [meetings, setMeetings] = useState<MeetingItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const meetingsQuery = useMeetings();
+  const { mutateAsync: createMeeting } = useCreateMeeting();
+  const [importedMeetings, setImportedMeetings] = useState<MeetingItem[]>([]);
+  const meetings = useMemo(() => {
+    const byId = new Map<string, MeetingItem>();
+    for (const meeting of [
+      ...importedMeetings,
+      ...(meetingsQuery.data ?? []),
+    ]) {
+      byId.set(meeting.id, meeting);
+    }
+    return [...byId.values()];
+  }, [importedMeetings, meetingsQuery.data]);
+  const loading = meetingsQuery.isLoading;
   const [viewMode, setViewMode] = useState<CalendarViewMode>("MONTH");
   const [currentDate, setCurrentDate] = useState(new Date());
 
@@ -201,6 +172,38 @@ export function CalendarView() {
   const [importing, setImporting] = useState(false);
   const [importSuccessMsg, setImportSuccessMsg] = useState("");
   const [googleAccount, setGoogleAccount] = useState<string | null>(null);
+
+  const persistImportedEventsToDatabase = useCallback(
+    async (events: MeetingItem[]) => {
+      const saved: MeetingItem[] = [];
+      for (const item of events) {
+        try {
+          saved.push(
+            await createMeeting({
+              scheduledAt: new Date(item.scheduledAt).toISOString(),
+              durationMinutes: item.durationMinutes || 45,
+              agenda: item.agenda || "Google Takvim Etkinliği",
+              meetLink:
+                item.meetLink || "https://meet.google.com/teknokent-dps",
+              status: "SCHEDULED",
+            }),
+          );
+        } catch (error) {
+          console.error("Calendar event import failed", {
+            eventId: item.id,
+            error,
+          });
+        }
+      }
+      setImportedMeetings((current) => [
+        ...saved,
+        ...current.filter(
+          (item) => !events.some((event) => event.id === item.id),
+        ),
+      ]);
+    },
+    [createMeeting],
+  );
 
   const handleGoogleOAuthSync = async () => {
     setImporting(true);
@@ -223,7 +226,7 @@ export function CalendarView() {
           setCurrentDate(firstDate);
         }
 
-        setMeetings((prev) => {
+        setImportedMeetings((prev) => {
           const existingIds = new Set(prev.map((item) => item.id));
           const newEvents = gcalEvents.filter(
             (item) => !existingIds.has(item.id),
@@ -275,7 +278,7 @@ export function CalendarView() {
             if (!isNaN(firstDate.getTime())) {
               setCurrentDate(firstDate);
             }
-            setMeetings((prev) => {
+            setImportedMeetings((prev) => {
               const existingIds = new Set(prev.map((item) => item.id));
               const newEvents = gcalEvents.filter(
                 (item) => !existingIds.has(item.id),
@@ -289,32 +292,7 @@ export function CalendarView() {
         window.history.replaceState(null, "", window.location.pathname);
       }
     }
-  }, []);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadMeetings() {
-      try {
-        const res = await fetch("/api/meetings");
-        if (res.ok) {
-          const data = await res.json();
-          if (active && Array.isArray(data)) {
-            setMeetings(data);
-          }
-        }
-      } catch {
-        // Fallback
-      } finally {
-        if (active) setLoading(false);
-      }
-    }
-
-    void loadMeetings();
-    return () => {
-      active = false;
-    };
-  }, []);
+  }, [persistImportedEventsToDatabase]);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -327,7 +305,7 @@ export function CalendarView() {
       if (text) {
         const importedEvents = parseIcalString(text);
         if (importedEvents.length > 0) {
-          setMeetings((prev) => [...importedEvents, ...prev]);
+          setImportedMeetings((prev) => [...importedEvents, ...prev]);
           void persistImportedEventsToDatabase(importedEvents);
           setImportSuccessMsg(
             `✅ ${importedEvents.length} Google Takvim etkinliği başarıyla veritabanına aktarıldı!`,
@@ -360,7 +338,7 @@ export function CalendarView() {
         meetLink: "https://meet.google.com/imported-slot",
         status: "GOOGLE_CALENDAR",
       };
-      setMeetings((prev) => [sampleGcalEvent, ...prev]);
+      setImportedMeetings((prev) => [sampleGcalEvent, ...prev]);
       void persistImportedEventsToDatabase([sampleGcalEvent]);
       setImportSuccessMsg(
         "✅ Google Takvim bağlantısından etkinlikler başarıyla aktarıldı!",
@@ -495,6 +473,12 @@ export function CalendarView() {
             ))}
           </div>
         </section>
+
+        {meetingsQuery.error ? (
+          <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            Takvim verileri yüklenemedi: {meetingsQuery.error.message}
+          </p>
+        ) : null}
 
         {/* Calendar Body */}
         {loading ? (

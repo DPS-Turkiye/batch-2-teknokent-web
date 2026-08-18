@@ -1,25 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
+import {
+  useConfirmProfile,
+  useCreateManualProfile,
+  useProfileAnalysis,
+  useUploadProfileAnalysis,
+} from "@/hooks/use-profile-analysis";
+import type {
+  OcrMode,
+  ProfileAnalysis as Analysis,
+  ProfileType,
+} from "@/interfaces/profile-analysis";
 
-type Analysis = {
-  id: string;
-  sourceFilename: string;
-  profileType: "mentee" | "individual_mentee";
-  profile: Record<string, unknown> | string;
-  status: "DRAFT" | "CONFIRMED";
-  consentAcceptedAt?: string | null;
-  redactionSummary?: Record<string, number> | string;
-  ocrSummary?: Record<string, unknown> | string;
-  createdAt: string;
-};
-
-type ProfileType = Analysis["profileType"];
-type OcrMode = "off" | "auto" | "force";
 type EditableProfile = Record<string, string>;
 type ProfileFieldDefinition = [string, string, "input" | "textarea"];
 type TechnologyInference = {
@@ -132,71 +129,40 @@ function technologyInferences(
 }
 
 export function ProfileAnalysisView() {
-  const [analysis, setAnalysis] = useState<Analysis | null>(null);
+  const profileQuery = useProfileAnalysis();
+  const uploadMutation = useUploadProfileAnalysis();
+  const [hiddenAnalysisId, setHiddenAnalysisId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [profileType, setProfileType] = useState<
     "mentee" | "individual_mentee"
   >("mentee");
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [showManualForm, setShowManualForm] = useState(false);
   const [ocrMode, setOcrMode] = useState<OcrMode>("auto");
-  const hasSelectedFile = useRef(false);
   const fileInput = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetch("/api/profile-analysis")
-      .then(async (response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        if (data && !hasSelectedFile.current) setAnalysis(data);
-      })
-      .catch(() => undefined)
-      .finally(() => setLoading(false));
-  }, []);
+  const analysis =
+    profileQuery.data?.id === hiddenAnalysisId
+      ? null
+      : (profileQuery.data ?? null);
+  const processing = uploadMutation.isPending;
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     setFile(selected);
     setError("");
     if (selected) {
-      hasSelectedFile.current = true;
-      setAnalysis(null);
+      setHiddenAnalysisId(analysis?.id ?? null);
       setShowManualForm(false);
     }
   }
 
   async function upload() {
     if (!file || !consentAccepted) return;
-    setProcessing(true);
     setError("");
     try {
-      const form = new FormData();
-      form.set("file", file);
-      form.set("profileType", profileType);
-      form.set("consentAccepted", "true");
-      form.set("ocrMode", ocrMode);
-      const response = await fetch("/api/profile-analysis", {
-        method: "POST",
-        body: form,
-      });
-      const rawBody = await response.text();
-      let body: unknown = {};
-      try {
-        body = rawBody ? JSON.parse(rawBody) : {};
-      } catch {
-        // The backend can return an empty or non-JSON response for infrastructure errors.
-      }
-      if (!response.ok) {
-        const errorBody = body as { message?: string; detail?: string };
-        throw new Error(
-          errorBody.message ??
-            errorBody.detail ??
-            `Profil işlenemedi (sunucu yanıtı: ${response.status}).`,
-        );
-      }
-      setAnalysis(body as Analysis);
+      await uploadMutation.mutateAsync({ file, profileType, ocrMode });
+      setHiddenAnalysisId(null);
       if (fileInput.current) fileInput.current.value = "";
       setFile(null);
       setConsentAccepted(false);
@@ -204,8 +170,6 @@ export function ProfileAnalysisView() {
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Profil işlenemedi.");
       setShowManualForm(true);
-    } finally {
-      setProcessing(false);
     }
   }
 
@@ -335,20 +299,25 @@ export function ProfileAnalysisView() {
             {error}
           </p>
         )}
+        {profileQuery.error ? (
+          <p className="rounded-lg border border-[#fecaca] bg-[#fff1f2] p-4 text-sm text-[#b42318]">
+            Kaydedilmiş profil yüklenemedi: {profileQuery.error.message}
+          </p>
+        ) : null}
 
         {showManualForm ? (
           <ManualProfileForm
             key={profileType}
             profileType={profileType}
-            onSaved={(savedAnalysis) => {
-              setAnalysis(savedAnalysis);
+            onSaved={() => {
+              setHiddenAnalysisId(null);
               setError("");
               setShowManualForm(false);
             }}
           />
         ) : null}
 
-        {loading ? (
+        {profileQuery.isLoading ? (
           <p className="text-sm text-[#6a7282]">Kaydedilmiş profil aranıyor…</p>
         ) : analysis ? (
           <>
@@ -410,8 +379,8 @@ export function ProfileAnalysisView() {
                   analysis={analysis}
                   profile={profile}
                   profileType={analysis.profileType}
-                  onClear={() => setAnalysis(null)}
-                  onConfirmed={setAnalysis}
+                  onClear={() => setHiddenAnalysisId(analysis.id)}
+                  onConfirmed={() => setHiddenAnalysisId(null)}
                 />
               ) : (
                 <p className="mt-5 text-sm font-medium text-[#008236]">
@@ -456,33 +425,23 @@ function ProfileReview({
   const [draft, setDraft] = useState(() =>
     editableProfile(profile, profileType),
   );
-  const [saving, setSaving] = useState(false);
+  const confirmMutation = useConfirmProfile();
   const [error, setError] = useState("");
   const inferredTechnologies = technologyInferences(profile);
 
   async function confirm() {
-    setSaving(true);
     setError("");
     const profileToSave = profilePayload(profile, draft, profileType);
     try {
-      const response = await fetch(
-        `/api/profile-analysis/${analysis.id}/confirmation`,
-        {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ profile: profileToSave }),
-        },
-      );
-      const body = await response.json();
-      if (!response.ok)
-        throw new Error(body.message ?? body.detail ?? "Profil kaydedilemedi.");
-      onConfirmed(body);
+      const confirmed = await confirmMutation.mutateAsync({
+        id: analysis.id,
+        profile: profileToSave,
+      });
+      onConfirmed(confirmed);
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
       );
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -536,14 +495,16 @@ function ProfileReview({
       <div className="mt-4 flex flex-wrap gap-3">
         <button
           className="rounded-lg border border-[#d1d5db] bg-white px-4 py-2 text-sm font-medium text-[#4b5563] hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:opacity-60"
-          disabled={saving}
+          disabled={confirmMutation.isPending}
           onClick={clearFields}
           type="button"
         >
           Temizle
         </button>
-        <PrimaryButton disabled={saving} onClick={confirm}>
-          {saving ? "Kaydediliyor…" : "Profili Onayla ve Kaydet"}
+        <PrimaryButton disabled={confirmMutation.isPending} onClick={confirm}>
+          {confirmMutation.isPending
+            ? "Kaydediliyor…"
+            : "Profili Onayla ve Kaydet"}
         </PrimaryButton>
       </div>
     </div>
@@ -560,38 +521,21 @@ function ManualProfileForm({
   const [draft, setDraft] = useState<EditableProfile>(() =>
     editableProfile({}, profileType),
   );
-  const [saving, setSaving] = useState(false);
+  const createMutation = useCreateManualProfile();
   const [error, setError] = useState("");
 
   async function save() {
-    setSaving(true);
     setError("");
     try {
-      const response = await fetch("/api/profile-analysis/manual", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          profileType,
-          profile: profilePayload({}, draft, profileType),
-        }),
+      const saved = await createMutation.mutateAsync({
+        profileType,
+        profile: profilePayload({}, draft, profileType),
       });
-      const rawBody = await response.text();
-      let body: { message?: string; detail?: string } = {};
-      try {
-        body = rawBody ? JSON.parse(rawBody) : {};
-      } catch {
-        // Keep the fallback message for empty or non-JSON infrastructure errors.
-      }
-      if (!response.ok) {
-        throw new Error(body.message ?? body.detail ?? "Profil kaydedilemedi.");
-      }
-      onSaved(body as Analysis);
+      onSaved(saved);
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
       );
-    } finally {
-      setSaving(false);
     }
   }
 
@@ -610,8 +554,14 @@ function ManualProfileForm({
         onChange={setDraft}
       />
       {error ? <p className="mt-3 text-sm text-[#b42318]">{error}</p> : null}
-      <PrimaryButton className="mt-4" disabled={saving} onClick={save}>
-        {saving ? "Kaydediliyor…" : "Manuel Profili Onayla ve Kaydet"}
+      <PrimaryButton
+        className="mt-4"
+        disabled={createMutation.isPending}
+        onClick={save}
+      >
+        {createMutation.isPending
+          ? "Kaydediliyor…"
+          : "Manuel Profili Onayla ve Kaydet"}
       </PrimaryButton>
     </section>
   );
