@@ -1,6 +1,10 @@
 "use client";
 
-import { addMeetingBot, fetchTranscript, stopMeetingBot } from "@/lib/assistant";
+import {
+  addMeetingBot,
+  fetchTranscript,
+  stopMeetingBot,
+} from "@/lib/assistant";
 import {
   addBotBodySchema,
   transcriptQuerySchema,
@@ -162,9 +166,7 @@ export function useMeetingAssistant() {
       await stopMeetingBot(selected.platformKey, selected.nativeMeetingId);
       setMeetings((prev) =>
         prev.map((m) =>
-          m.id === selected.id
-            ? { ...m, status: MeetingStatus.Completed }
-            : m,
+          m.id === selected.id ? { ...m, status: MeetingStatus.Completed } : m,
         ),
       );
       setBotStatus(BotStatus.Ok);

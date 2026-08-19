@@ -1,6 +1,10 @@
 import axios from "axios";
 
-import { getBotApiUrl, getStopBotApiUrl, getTranscriptApiUrl } from "@/lib/const";
+import {
+  getBotApiUrl,
+  getStopBotApiUrl,
+  getTranscriptApiUrl,
+} from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { AddBotResult, TranscriptSegment } from "@/types/assistant";
 

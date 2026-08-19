@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addBotBodySchema, transcriptQuerySchema } from "@/lib/assistant-schemas";
+import {
+  addBotBodySchema,
+  transcriptQuerySchema,
+} from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
 import { apiErrorResponse } from "@/lib/server/api-response";
 
