@@ -1,0 +1,14 @@
+export type ProfileType = "individual_mentee" | "mentee";
+export type OcrMode = "auto" | "force" | "off";
+
+export type ProfileAnalysis = {
+  id: string;
+  sourceFilename: string;
+  profileType: ProfileType;
+  profile: Record<string, unknown> | string;
+  status: "DRAFT" | "CONFIRMED";
+  consentAcceptedAt?: string | null;
+  redactionSummary?: Record<string, number> | string;
+  ocrSummary?: Record<string, unknown> | string;
+  createdAt: string;
+};

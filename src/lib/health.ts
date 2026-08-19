@@ -1,4 +1,4 @@
-import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
+﻿import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { BackendHealthResult, HealthResponse } from "@/interfaces/health";
 import { HealthStatus, isHealthStatus } from "@/interfaces/health";
@@ -72,7 +72,9 @@ export const healthKeys = {
 
 export async function fetchBackendHealth(): Promise<BackendHealthResult> {
   try {
-    const response = await httpClient.get(getBackendHealthUrl());
+    const response = await httpClient.get(getBackendHealthUrl(), {
+      validateStatus: () => true,
+    });
 
     return parseHealthResponse(
       response.data,
@@ -88,7 +90,9 @@ export { HEALTH_API_PATH } from "@/lib/const";
 
 export async function fetchHealthClient(): Promise<HealthResponse> {
   try {
-    const response = await httpClient.get(HEALTH_API_PATH);
+    const response = await httpClient.get(HEALTH_API_PATH, {
+      validateStatus: () => true,
+    });
 
     return parseHealthResponse(
       response.data,

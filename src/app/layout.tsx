@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
+import { SessionProvider } from "@/components/providers/session-provider";
 
 import "./globals.css";
 
-const inter = Inter({
-  variable: "--font-inter",
-  subsets: ["latin"],
-});
-
 export const metadata: Metadata = {
-  title: "Teknokent Web",
-  description: "Teknokent Web Application",
+  title: {
+    default: "Mentorluk ve Girişim Programları Platformu",
+    template: "%s | ODTÜ Teknokent",
+  },
+  description:
+    "ODTÜ Teknokent mentorluk, eğitim ve girişim programları platformu.",
 };
 
 export default function RootLayout({
@@ -21,9 +20,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
-      <body className="min-h-full flex flex-col">
-        <QueryProvider>{children}</QueryProvider>
+    <html
+      lang="tr"
+      className="h-full antialiased"
+      data-scroll-behavior="smooth"
+    >
+      <body
+        suppressHydrationWarning
+        className="flex min-h-full flex-col font-sans"
+      >
+        <QueryProvider>
+          <SessionProvider>{children}</SessionProvider>
+        </QueryProvider>
       </body>
     </html>
   );

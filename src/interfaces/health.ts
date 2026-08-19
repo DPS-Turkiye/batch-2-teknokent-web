@@ -19,6 +19,15 @@ export interface BackendHealthResult {
   httpStatus: number;
 }
 
+export interface UseHealthStatusResult {
+  health: HealthResponse | undefined;
+  isLoading: boolean;
+  isError: boolean;
+  error: Error | null;
+  isUp: boolean;
+  refetch: () => void;
+}
+
 const healthStatuses = new Set<string>(Object.values(HealthStatus));
 
 export function isHealthStatus(value: unknown): value is HealthStatus {
