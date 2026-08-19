@@ -1,6 +1,6 @@
 "use client";
 
-import { addMeetingBot, fetchTranscript } from "@/lib/assistant";
+import { addMeetingBot, fetchTranscript, stopMeetingBot } from "@/lib/assistant";
 import {
   addBotBodySchema,
   transcriptQuerySchema,
@@ -151,6 +151,33 @@ export function useMeetingAssistant() {
     }
   };
 
+  const stopBot = async () => {
+    if (!selected?.platformKey || !selected?.nativeMeetingId) return;
+    if (botStatus === BotStatus.Sending) return;
+
+    setBotStatus(BotStatus.Sending);
+    setBotError(null);
+
+    try {
+      await stopMeetingBot(selected.platformKey, selected.nativeMeetingId);
+      setMeetings((prev) =>
+        prev.map((m) =>
+          m.id === selected.id
+            ? { ...m, status: MeetingStatus.Completed }
+            : m,
+        ),
+      );
+      setBotStatus(BotStatus.Ok);
+      window.setTimeout(() => setBotStatus(null), 4000);
+    } catch (error) {
+      setBotStatus(BotStatus.Err);
+      setBotError(
+        error instanceof Error ? error.message : "Failed to stop bot",
+      );
+      window.setTimeout(() => setBotStatus(null), 5000);
+    }
+  };
+
   const updatePadText = (value: string) => {
     setPadByMeeting((prev) => ({
       ...prev,
@@ -173,5 +200,6 @@ export function useMeetingAssistant() {
     padSaved,
     updatePadText,
     addBot,
+    stopBot,
   };
 }

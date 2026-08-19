@@ -15,3 +15,20 @@ export async function createMeetingBot(body: unknown): Promise<{
     status: response.status,
   };
 }
+
+export async function stopMeetingBotBackend(
+  platform: string,
+  nativeMeetingId: string,
+): Promise<{ data: unknown; status: number }> {
+  const response = await backendRequest(
+    {
+      method: "DELETE",
+      url: `/api/assistant/bots/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`,
+    },
+    { authenticated: false },
+  );
+  return {
+    data: response.data,
+    status: response.status,
+  };
+}

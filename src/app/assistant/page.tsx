@@ -26,6 +26,7 @@ export default function AssistantPage() {
     padSaved,
     updatePadText,
     addBot,
+    stopBot,
   } = useMeetingAssistant();
 
   return (
@@ -177,22 +178,18 @@ export default function AssistantPage() {
                   <span className="font-mono text-[var(--ma-t3)]">stream</span>
                   <span className="text-[var(--ma-t1)]">live-stt</span>
                 </span>
-                {selected.status === MeetingStatus.Active ||
-                selected.status === MeetingStatus.Joining ? (
-                  <button
-                    type="button"
-                    className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)]"
-                  >
-                    Stop bot
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    className="rounded-[7px] border border-[var(--ma-line2)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-accent)]"
-                  >
-                    Send bot again
-                  </button>
-                )}
+                <button
+                  type="button"
+                  onClick={() => void stopBot()}
+                  disabled={
+                    botStatus === BotStatus.Sending ||
+                    !selected.platformKey ||
+                    !selected.nativeMeetingId
+                  }
+                  className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)] disabled:opacity-50"
+                >
+                  Stop bot
+                </button>
               </div>
             </header>
 

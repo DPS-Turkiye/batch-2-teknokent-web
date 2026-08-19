@@ -1,6 +1,6 @@
 import axios from "axios";
 
-import { getBotApiUrl, getTranscriptApiUrl } from "@/lib/const";
+import { getBotApiUrl, getStopBotApiUrl, getTranscriptApiUrl } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { AddBotResult, TranscriptSegment } from "@/types/assistant";
 
@@ -16,6 +16,24 @@ export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
         error.response?.data?.detail ||
         error.response?.data?.message ||
         `Failed to send bot (${error.response?.status ?? "network error"})`;
+      throw new Error(String(detail));
+    }
+    throw error;
+  }
+}
+
+export async function stopMeetingBot(
+  platform: string,
+  nativeMeetingId: string,
+): Promise<void> {
+  try {
+    await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId));
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const detail =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        `Failed to stop bot (${error.response?.status ?? "network error"})`;
       throw new Error(String(detail));
     }
     throw error;

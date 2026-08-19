@@ -44,6 +44,14 @@ export function getBotApiUrl(): string {
   return BOT_API_PATH;
 }
 
+export function getStopBotApiUrl(
+  platform: string,
+  nativeMeetingId: string,
+): string {
+  const q = new URLSearchParams({ platform, nativeMeetingId });
+  return `${BOT_API_PATH}?${q.toString()}`;
+}
+
 export function getTranscriptApiUrl(
   platform: string,
   nativeMeetingId: string,
