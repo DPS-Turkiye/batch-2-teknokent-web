@@ -32,7 +32,7 @@ export async function backendRequest<T = unknown>(
 ): Promise<BackendResponse<T>> {
   const response = await axios.request<T>({
     baseURL: getBackendUrl(),
-    timeout: 15000,
+    timeout: config.timeout ?? 120000,
     ...config,
     headers: { Accept: "application/json", ...config.headers },
     validateStatus: () => true,
