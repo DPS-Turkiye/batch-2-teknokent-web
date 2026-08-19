@@ -25,9 +25,10 @@ Environment variables (see `.env.example`):
 | ------------------------------ | ---------------------------------------- | ----------------------- |
 | `APP_URL`                      | Public URL of this web app               | `http://localhost:3000` |
 | `BACKEND_URL`                  | Teknokent backend base URL               | `http://localhost:8080` |
-| `BACKEND_USERNAME`             | Server-side backend Basic Auth username  | `teknokent`             |
-| `BACKEND_PASSWORD`             | Server-side backend Basic Auth password  | `change-me`             |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID | empty                   |
+| `BACKEND_USERNAME`             | Server-side backend Basic Auth username  | `teknokent`                                   |
+| `BACKEND_PASSWORD`             | Server-side backend Basic Auth password  | `change-me`                                   |
+| `SESSION_PASSWORD`             | Encryption key for iron-session cookies  | (min 32 characters)                           |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID | empty                                         |
 
 If a variable is missing, localhost defaults from `src/lib/const.ts` are used.
 
@@ -80,7 +81,7 @@ urgency, format and meeting preference to Spring Boot. The backend combines them
 with the confirmed mentee/startup profile, applies eligibility, ranks the mentor
 pool, and returns `Neden önerildi?` reasons plus confirmed-profile evidence. The
 frontend does not call AI providers or expose provider keys; all AI access remains
-behind Spring Boot and the local Python services.
+behind Spring Boot.
 
 Profile fields are populated from the latest backend analysis. **Temizle** clears
 only the current browser form so data from a previous screen/session is not shown;
@@ -95,8 +96,7 @@ as `NEXT_PUBLIC_*` variables.
 
 ## End-to-end MVP test
 
-1. Start the parser/matcher services and Docker backend as described in the
-   backend README.
+1. Start the Docker backend and PostgreSQL as described in the backend README.
 2. Start this app with `npm run dev`, open `http://localhost:3000/login`, and
    choose a seeded mentee account.
 3. Open `/profile`, accept consent, upload a PDF, choose `OCR'ı zorla` for scanned
