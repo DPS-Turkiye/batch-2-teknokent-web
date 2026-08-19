@@ -25,10 +25,10 @@ Environment variables (see `.env.example`):
 | ------------------------------ | ---------------------------------------- | ----------------------- |
 | `APP_URL`                      | Public URL of this web app               | `http://localhost:3000` |
 | `BACKEND_URL`                  | Teknokent backend base URL               | `http://localhost:8080` |
-| `BACKEND_USERNAME`             | Server-side backend Basic Auth username  | `teknokent`                                   |
-| `BACKEND_PASSWORD`             | Server-side backend Basic Auth password  | `change-me`                                   |
-| `SESSION_PASSWORD`             | Encryption key for iron-session cookies  | (min 32 characters)                           |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID | empty                                         |
+| `BACKEND_USERNAME`             | Server-side backend Basic Auth username  | `teknokent`             |
+| `BACKEND_PASSWORD`             | Server-side backend Basic Auth password  | `change-me`             |
+| `SESSION_PASSWORD`             | Encryption key for iron-session cookies  | (min 32 characters)     |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID | empty                   |
 
 If a variable is missing, localhost defaults from `src/lib/const.ts` are used.
 
