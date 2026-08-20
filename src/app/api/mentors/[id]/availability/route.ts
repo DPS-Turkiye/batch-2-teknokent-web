@@ -1,10 +1,11 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import {
   createMentorAvailability,
   fetchMentorAvailability,
 } from "@/lib/api/mentors";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -24,6 +25,15 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
+    if (id !== (await getSessionMentorId())) {
+      return NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "You can only manage your own availability.",
+        },
+        { status: 403 },
+      );
+    }
     const data = (await request.json()) as {
       startsAt: string;
       durationMinutes?: number;

@@ -7,17 +7,7 @@ import {
   useDeleteMentorAvailabilitySlot,
   useOwnMentorAvailability,
 } from "@/hooks/use-mentor-availability";
-
-function formatSlot(startsAt: string) {
-  const date = new Date(startsAt);
-  const datePart = new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "medium",
-  }).format(date);
-  const timePart = new Intl.DateTimeFormat("tr-TR", {
-    timeStyle: "short",
-  }).format(date);
-  return `${datePart}, ${timePart}`;
-}
+import { formatSlotDateTime } from "@/lib/format";
 
 export function MentorAvailabilityPanel({
   mentorId,
@@ -101,7 +91,7 @@ export function MentorAvailabilityPanel({
               className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
             >
               <span className="font-medium text-zinc-800">
-                📅 {formatSlot(slot.startsAt)}
+                📅 {formatSlotDateTime(slot.startsAt)}
               </span>
               {slot.booked ? (
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">

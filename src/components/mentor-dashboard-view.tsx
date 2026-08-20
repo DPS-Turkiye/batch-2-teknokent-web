@@ -18,6 +18,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { formatSlotDateTime } from "@/lib/format";
 import { AppArea } from "@/types/app-area";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
@@ -45,17 +46,6 @@ const filterOptions = [
   [MentorRequestFilter.Declined, "Uygun Değil"],
 ] as const;
 
-function formatSlot(startsAt: string) {
-  const date = new Date(startsAt);
-  const datePart = new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "long",
-  }).format(date);
-  const timePart = new Intl.DateTimeFormat("tr-TR", {
-    timeStyle: "short",
-  }).format(date);
-  return `${datePart}, ${timePart}`;
-}
-
 export function MentorDashboardView() {
   const session = useDemoSession();
   const mentorId = session?.role === "MENTOR" ? session.userId : null;
@@ -78,7 +68,7 @@ export function MentorDashboardView() {
     showAvailabilityStep,
   );
   const selectedSlots = (availabilityQuery.data ?? []).map((slot) =>
-    formatSlot(slot.startsAt),
+    formatSlotDateTime(slot.startsAt),
   );
 
   const closeDecision = () => {

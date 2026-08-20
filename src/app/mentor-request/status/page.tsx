@@ -18,6 +18,7 @@ import {
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { formatSlotDateTime } from "@/lib/format";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
@@ -74,6 +75,11 @@ export default function RequestStatusPage() {
   const scheduleMutation = useScheduleMeeting(selectedId);
   const [reply, setReply] = useState("");
   const [scheduledSlotId, setScheduledSlotId] = useState<string | null>(null);
+  const [scheduledForId, setScheduledForId] = useState<string | null>(null);
+  if (scheduledForId !== selectedId) {
+    setScheduledForId(selectedId);
+    setScheduledSlotId(null);
+  }
 
   async function bookSlot(slotId: string) {
     const meeting = await scheduleMutation.mutateAsync(slotId);
@@ -197,15 +203,13 @@ export default function RequestStatusPage() {
                           <button
                             key={slot.id}
                             type="button"
-                            disabled={scheduleMutation.isPending}
+                            disabled={slot.booked || scheduleMutation.isPending}
                             onClick={() => void bookSlot(slot.id)}
                             className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs hover:border-[#555] disabled:cursor-not-allowed disabled:opacity-60"
                           >
-                            {new Intl.DateTimeFormat("tr-TR", {
-                              dateStyle: "medium",
-                              timeStyle: "short",
-                            }).format(new Date(slot.startsAt))}{" "}
-                            · {slot.durationMinutes} dk
+                            {formatSlotDateTime(slot.startsAt)} ·{" "}
+                            {slot.durationMinutes} dk
+                            {slot.booked ? " · Dolu" : ""}
                           </button>
                         ))}
                       </div>
