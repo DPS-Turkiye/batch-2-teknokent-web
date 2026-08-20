@@ -3,8 +3,10 @@
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { MentorAvailabilityPanel } from "@/components/mentor-dashboard/availability-panel";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
+import { useDemoSession } from "@/components/providers/session-provider";
 import {
   useMentorAvailability,
   useMentorRequestDecision,
@@ -55,6 +57,8 @@ function formatSlot(startsAt: string) {
 }
 
 export function MentorDashboardView() {
+  const session = useDemoSession();
+  const mentorId = session?.role === "MENTOR" ? session.userId : null;
   const requestsQuery = useMentorshipRequests("mentor");
   const decisionMutation = useMentorRequestDecision();
   const requests = requestsQuery.data ?? [];
@@ -199,6 +203,8 @@ export function MentorDashboardView() {
             </div>
           )}
         </section>
+
+        <MentorAvailabilityPanel mentorId={mentorId} />
 
         {selectedRequest ? (
           <MentorDecisionModal
