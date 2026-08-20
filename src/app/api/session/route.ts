@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   destroySession,
-  findMenteeSessionByEmail,
+  findSessionByEmail,
   getSessionUser,
   saveSessionUser,
 } from "@/lib/session";
@@ -34,12 +34,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const session = await findMenteeSessionByEmail(body.email);
+    const session = await findSessionByEmail(body.email);
     if (!session) {
       return NextResponse.json(
         {
           code: "SESSION_REQUIRED",
-          message: "No demo mentee account was found for this email.",
+          message: "No demo account was found for this email.",
         },
         { status: 404 },
       );

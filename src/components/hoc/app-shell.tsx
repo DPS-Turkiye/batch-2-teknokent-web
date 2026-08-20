@@ -16,6 +16,7 @@ import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { useDemoSession } from "@/components/providers/session-provider";
+import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
@@ -103,7 +104,10 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const session = useDemoSession();
   const displayName = session?.fullName ?? "Ayşe Kaya";
-  const displayOrganization = session?.organizationName ?? "NovaMed AI";
+  const displayOrganization =
+    session?.role === UserRole.Mentor
+      ? "Mentor"
+      : (session?.organizationName ?? "NovaMed AI");
   const initials = displayName
     .split(/\s+/)
     .filter(Boolean)

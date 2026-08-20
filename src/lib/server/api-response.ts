@@ -17,6 +17,11 @@ export function backendResponse(
     if (typeof value === "string") headers.set(name, value);
   }
 
+  if (response.status === 204 || response.status === 304) {
+    headers.delete("Content-Type");
+    return new NextResponse(null, { status: response.status, headers });
+  }
+
   return NextResponse.json(response.data ?? {}, {
     status: response.status,
     headers,

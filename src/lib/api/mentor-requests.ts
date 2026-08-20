@@ -1,5 +1,7 @@
 import "server-only";
 
+import { UserRole } from "@/interfaces/session";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export enum MentorRequestAction {
@@ -27,21 +29,21 @@ export function isMentorRequestAction(
 
 export function fetchMentorRequests(options: {
   requesterId?: string;
-  role?: "mentee" | "mentor";
+  role?: UserRole.Mentee | UserRole.Mentor;
 }) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: "/api/mentorship-requests",
     params:
-      options.role === "mentor"
-        ? undefined
+      options.role === UserRole.Mentor
+        ? { mentorId: options.requesterId }
         : { requesterId: options.requesterId },
   });
 }
 
 export function fetchMentorRequest(id: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/mentorship-requests/${encodeURIComponent(id)}`,
   });
 }
@@ -51,7 +53,7 @@ export function createMentorRequest(
   payload: Record<string, unknown>,
 ) {
   return backendRequest({
-    method: "POST",
+    method: HttpMethod.Post,
     url: "/api/mentorship-requests",
     data: {
       ...payload,
@@ -65,13 +67,17 @@ export function mutateMentorRequest(options: {
   action: MentorRequestAction;
   data?: Record<string, unknown>;
   id: string;
-  method: "GET" | "PATCH" | "POST";
+  method: HttpMethod;
   requesterId: string;
+  mentorId?: string;
 }) {
-  const data =
-    options.data && ACTIONS_WITH_REQUESTER.has(options.action)
-      ? { ...options.data, requesterId: options.requesterId }
-      : options.data;
+  let data = options.data;
+  if (data && ACTIONS_WITH_REQUESTER.has(options.action)) {
+    data = { ...data, requesterId: options.requesterId };
+  }
+  if (data && options.action === MentorRequestAction.Decision) {
+    data = { ...data, mentorId: options.mentorId };
+  }
   return backendRequest({
     method: options.method,
     url: `/api/mentorship-requests/${encodeURIComponent(options.id)}/${options.action}`,
