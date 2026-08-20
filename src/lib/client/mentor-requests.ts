@@ -1,12 +1,16 @@
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { MentorProfile } from "@/interfaces/mentor";
+import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
-export async function getMentorRequests(role: "mentee" | "mentor" = "mentee") {
+export async function getMentorRequests(
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+) {
   return requireSuccess(
     await httpClient.get<MentorshipRequest[]>("/api/mentor-requests", {
-      params: role === "mentor" ? { role } : undefined,
+      params: role === UserRole.Mentor ? { role } : undefined,
     }),
   );
 }
@@ -39,13 +43,6 @@ export async function withdrawMentorRequest(id: string) {
     ),
   );
 }
-
-export type MentorAvailabilitySlot = {
-  id: string;
-  startsAt: string;
-  durationMinutes: number;
-  booked?: boolean;
-};
 
 export async function getMentorAvailability(id: string) {
   return requireSuccess(

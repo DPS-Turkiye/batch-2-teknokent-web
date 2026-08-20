@@ -7,6 +7,7 @@ import { RoleGroupSection } from "@/components/login/role-group-section";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
+import { UserRole } from "@/interfaces/session";
 
 function FlowHeader() {
   return (
@@ -40,8 +41,8 @@ export default function LoginPage() {
   const demoAccounts = useDemoAccounts(
     selectedRoleIds.has(LoginRoleId.Mentor) &&
       !selectedRoleIds.has(LoginRoleId.Mentee)
-      ? "MENTOR"
-      : "MENTEE",
+      ? UserRole.Mentor
+      : UserRole.Mentee,
   );
 
   return (

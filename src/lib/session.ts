@@ -3,10 +3,11 @@ import "server-only";
 import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
-import type {
-  BackendUser,
-  DemoSession,
-  SessionData,
+import {
+  UserRole,
+  type BackendUser,
+  type DemoSession,
+  type SessionData,
 } from "@/interfaces/session";
 import { fetchUser, fetchUsers } from "@/lib/api/accounts";
 
@@ -33,25 +34,25 @@ function sessionOptions(): SessionOptions {
 }
 
 export function toSession(user: BackendUser): DemoSession | null {
-  if (user.role === "MENTEE") {
+  if (user.role === UserRole.Mentee) {
     if (!user.organizationId || !user.organizationName) return null;
     return {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Mentee",
-      role: "MENTEE",
+      role: UserRole.Mentee,
       organizationId: user.organizationId,
       organizationName: user.organizationName,
     };
   }
-  if (user.role === "MENTOR") {
+  if (user.role === UserRole.Mentor) {
     return {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Mentor",
-      role: "MENTOR",
+      role: UserRole.Mentor,
     };
   }
   return null;
@@ -73,8 +74,8 @@ export async function getSessionUser(options: { demoFallback?: boolean } = {}) {
 export async function findSessionByEmail(email: string) {
   const normalizedEmail = email.trim().toLowerCase();
   const [mentees, mentors] = await Promise.all([
-    fetchUsers("MENTEE"),
-    fetchUsers("MENTOR"),
+    fetchUsers(UserRole.Mentee),
+    fetchUsers(UserRole.Mentor),
   ]);
   const candidates = [
     ...(mentees.status === 200 && Array.isArray(mentees.data)
@@ -111,5 +112,5 @@ export async function getSessionIds() {
 
 export async function getSessionMentorId() {
   const session = await getSessionUser();
-  return session?.role === "MENTOR" ? session.userId : DEFAULT_MENTOR_ID;
+  return session?.role === UserRole.Mentor ? session.userId : DEFAULT_MENTOR_ID;
 }

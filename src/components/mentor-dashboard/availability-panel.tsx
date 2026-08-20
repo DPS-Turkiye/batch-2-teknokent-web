@@ -1,12 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { CalendarDays } from "lucide-react";
 
-import {
-  useCreateMentorAvailabilitySlot,
-  useDeleteMentorAvailabilitySlot,
-  useOwnMentorAvailability,
-} from "@/hooks/use-mentor-availability";
+import { useAvailabilitySlot } from "@/components/mentor-dashboard/_hooks/use-availability-slot";
 import { formatSlotDateTime } from "@/lib/format";
 
 export function MentorAvailabilityPanel({
@@ -14,41 +10,16 @@ export function MentorAvailabilityPanel({
 }: {
   mentorId: string | null;
 }) {
-  const availabilityQuery = useOwnMentorAvailability(mentorId);
-  const createMutation = useCreateMentorAvailabilitySlot(mentorId);
-  const deleteMutation = useDeleteMentorAvailabilitySlot(mentorId);
-  const [startsAt, setStartsAt] = useState("");
-  const [error, setError] = useState("");
-
-  async function addSlot() {
-    if (!startsAt) return;
-    setError("");
-    try {
-      await createMutation.mutateAsync({
-        startsAt: new Date(startsAt).toISOString(),
-      });
-      setStartsAt("");
-    } catch (mutationError) {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Zaman dilimi eklenemedi.",
-      );
-    }
-  }
-
-  async function removeSlot(slotId: string) {
-    setError("");
-    try {
-      await deleteMutation.mutateAsync(slotId);
-    } catch (mutationError) {
-      setError(
-        mutationError instanceof Error
-          ? mutationError.message
-          : "Zaman dilimi kaldırılamadı.",
-      );
-    }
-  }
+  const {
+    availabilityQuery,
+    startsAt,
+    setStartsAt,
+    error,
+    isCreating,
+    isDeleting,
+    addSlot,
+    removeSlot,
+  } = useAvailabilitySlot(mentorId);
 
   if (!mentorId) return null;
 
@@ -68,11 +39,11 @@ export function MentorAvailabilityPanel({
         />
         <button
           type="button"
-          disabled={!startsAt || createMutation.isPending}
+          disabled={!startsAt || isCreating}
           onClick={() => void addSlot()}
           className="rounded-lg bg-zinc-900 px-4 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:bg-zinc-300"
         >
-          {createMutation.isPending ? "Ekleniyor..." : "Zaman Dilimi Ekle"}
+          {isCreating ? "Ekleniyor..." : "Zaman Dilimi Ekle"}
         </button>
       </div>
       {error ? (
@@ -90,8 +61,9 @@ export function MentorAvailabilityPanel({
               key={slot.id}
               className="flex items-center justify-between rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs"
             >
-              <span className="font-medium text-zinc-800">
-                📅 {formatSlotDateTime(slot.startsAt)}
+              <span className="flex items-center gap-1.5 font-medium text-zinc-800">
+                <CalendarDays className="size-3.5 shrink-0" aria-hidden />
+                {formatSlotDateTime(slot.startsAt)}
               </span>
               {slot.booked ? (
                 <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
@@ -100,7 +72,7 @@ export function MentorAvailabilityPanel({
               ) : (
                 <button
                   type="button"
-                  disabled={deleteMutation.isPending}
+                  disabled={isDeleting}
                   onClick={() => void removeSlot(slot.id)}
                   className="text-[10px] font-bold uppercase tracking-wider text-red-600 hover:underline disabled:text-zinc-400"
                 >

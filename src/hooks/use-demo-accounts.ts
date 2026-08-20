@@ -2,11 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import type { BackendUser } from "@/interfaces/session";
+import { UserRole, type BackendUser } from "@/interfaces/session";
 import { httpClient } from "@/lib/http-client";
 
 async function fetchDemoAccounts(
-  role: "MENTEE" | "MENTOR",
+  role: UserRole.Mentee | UserRole.Mentor,
 ): Promise<BackendUser[]> {
   const response = await httpClient.get<BackendUser[]>("/api/demo-accounts", {
     params: { role },
@@ -17,7 +17,9 @@ async function fetchDemoAccounts(
   return response.data;
 }
 
-export function useDemoAccounts(role: "MENTEE" | "MENTOR" = "MENTEE") {
+export function useDemoAccounts(
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+) {
   return useQuery({
     queryKey: ["demo-accounts", role],
     queryFn: () => fetchDemoAccounts(role),

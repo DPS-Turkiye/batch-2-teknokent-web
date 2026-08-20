@@ -18,6 +18,7 @@ import {
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
@@ -51,7 +52,7 @@ function initials(name: string) {
 export default function RequestStatusPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const requestsQuery = useMentorshipRequests("mentee");
+  const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
   const explicitId = params.get("request") ?? params.get("id");
   const selectedId =

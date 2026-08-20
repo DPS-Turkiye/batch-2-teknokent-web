@@ -5,6 +5,7 @@ import {
   MentorRequestAction,
   mutateMentorRequest,
 } from "@/lib/api/mentor-requests";
+import { HttpMethod } from "@/lib/http-method";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
@@ -23,9 +24,9 @@ async function forward(request: NextRequest, context: RouteContext) {
     }
 
     const { userId } = await getSessionIds();
-    const method = request.method as "GET" | "PATCH" | "POST";
+    const method = request.method as HttpMethod;
     const data =
-      method === "GET"
+      method === HttpMethod.Get
         ? undefined
         : ((await request.json()) as Record<string, unknown>);
     const mentorId =

@@ -1,4 +1,4 @@
-import type { MentorAvailabilitySlot } from "@/lib/client/mentor-requests";
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
