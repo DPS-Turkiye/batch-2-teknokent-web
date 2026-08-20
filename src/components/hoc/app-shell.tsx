@@ -103,7 +103,10 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const session = useDemoSession();
   const displayName = session?.fullName ?? "Ayşe Kaya";
-  const displayOrganization = session?.organizationName ?? "NovaMed AI";
+  const displayOrganization =
+    session?.role === "MENTOR"
+      ? "Mentor"
+      : (session?.organizationName ?? "NovaMed AI");
   const initials = displayName
     .split(/\s+/)
     .filter(Boolean)

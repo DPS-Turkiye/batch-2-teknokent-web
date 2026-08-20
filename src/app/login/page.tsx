@@ -20,7 +20,6 @@ function FlowHeader() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const demoAccounts = useDemoAccounts();
   const {
     roleGroups,
     step,
@@ -38,6 +37,12 @@ export default function LoginPage() {
     unverifiedRoleId,
     verifiedRoles,
   } = useLoginFlow();
+  const demoAccounts = useDemoAccounts(
+    selectedRoleIds.has(LoginRoleId.Mentor) &&
+      !selectedRoleIds.has(LoginRoleId.Mentee)
+      ? "MENTOR"
+      : "MENTEE",
+  );
 
   return (
     <div className="min-h-screen bg-zinc-100">

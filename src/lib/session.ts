@@ -12,6 +12,7 @@ import { fetchUser, fetchUsers } from "@/lib/api/accounts";
 
 export const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000003";
 export const DEFAULT_ORGANIZATION_ID = "10000000-0000-0000-0000-000000000001";
+export const DEFAULT_MENTOR_ID = "00000000-0000-0000-0000-000000000002";
 
 function sessionOptions(): SessionOptions {
   const password = process.env.SESSION_PASSWORD;
@@ -32,15 +33,28 @@ function sessionOptions(): SessionOptions {
 }
 
 export function toSession(user: BackendUser): DemoSession | null {
-  if (!user.organizationId || !user.organizationName) return null;
-  return {
-    userId: user.id,
-    email: user.email,
-    fullName: user.fullName,
-    jobTitle: user.jobTitle ?? "Mentee",
-    organizationId: user.organizationId,
-    organizationName: user.organizationName,
-  };
+  if (user.role === "MENTEE") {
+    if (!user.organizationId || !user.organizationName) return null;
+    return {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      jobTitle: user.jobTitle ?? "Mentee",
+      role: "MENTEE",
+      organizationId: user.organizationId,
+      organizationName: user.organizationName,
+    };
+  }
+  if (user.role === "MENTOR") {
+    return {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      jobTitle: user.jobTitle ?? "Mentor",
+      role: "MENTOR",
+    };
+  }
+  return null;
 }
 
 export async function getSessionStore() {
@@ -56,11 +70,21 @@ export async function getSessionUser(options: { demoFallback?: boolean } = {}) {
   return response.status === 200 ? toSession(response.data) : null;
 }
 
-export async function findMenteeSessionByEmail(email: string) {
-  const response = await fetchUsers("MENTEE");
-  if (response.status !== 200 || !Array.isArray(response.data)) return null;
+export async function findSessionByEmail(email: string) {
   const normalizedEmail = email.trim().toLowerCase();
-  const user = response.data.find(
+  const [mentees, mentors] = await Promise.all([
+    fetchUsers("MENTEE"),
+    fetchUsers("MENTOR"),
+  ]);
+  const candidates = [
+    ...(mentees.status === 200 && Array.isArray(mentees.data)
+      ? mentees.data
+      : []),
+    ...(mentors.status === 200 && Array.isArray(mentors.data)
+      ? mentors.data
+      : []),
+  ];
+  const user = candidates.find(
     (candidate) => candidate.email.toLowerCase() === normalizedEmail,
   );
   return user ? toSession(user) : null;
@@ -83,4 +107,9 @@ export async function getSessionIds() {
     userId: session?.userId ?? DEFAULT_USER_ID,
     organizationId: session?.organizationId ?? DEFAULT_ORGANIZATION_ID,
   };
+}
+
+export async function getSessionMentorId() {
+  const session = await getSessionUser();
+  return session?.role === "MENTOR" ? session.userId : DEFAULT_MENTOR_ID;
 }

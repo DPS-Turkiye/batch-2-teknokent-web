@@ -3,8 +3,9 @@ export type DemoSession = {
   email: string;
   fullName: string;
   jobTitle: string;
-  organizationId: string;
-  organizationName: string;
+  role: "MENTEE" | "MENTOR";
+  organizationId?: string;
+  organizationName?: string;
 };
 
 export type BackendUser = {

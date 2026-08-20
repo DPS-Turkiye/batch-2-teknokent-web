@@ -6,6 +6,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
 import {
+  useMentorAvailability,
   useMentorRequestDecision,
   useMentorshipRequests,
 } from "@/hooks/use-mentorship-requests";
@@ -16,8 +17,6 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { AppArea } from "@/types/app-area";
-
-const DEMO_MENTOR_ID = "00000000-0000-0000-0000-000000000002";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
   [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,
@@ -44,6 +43,17 @@ const filterOptions = [
   [MentorRequestFilter.Declined, "Uygun Değil"],
 ] as const;
 
+function formatSlot(startsAt: string) {
+  const date = new Date(startsAt);
+  const datePart = new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "long",
+  }).format(date);
+  const timePart = new Intl.DateTimeFormat("tr-TR", {
+    timeStyle: "short",
+  }).format(date);
+  return `${datePart}, ${timePart}`;
+}
+
 export function MentorDashboardView() {
   const requestsQuery = useMentorshipRequests("mentor");
   const decisionMutation = useMentorRequestDecision();
@@ -59,7 +69,13 @@ export function MentorDashboardView() {
   const [decisionMessage, setDecisionMessage] = useState("");
   const [actionError, setActionError] = useState("");
   const [showAvailabilityStep, setShowAvailabilityStep] = useState(false);
-  const selectedSlots = ["12 Ağustos 2026, 14:00", "14 Ağustos 2026, 10:30"];
+  const availabilityQuery = useMentorAvailability(
+    selectedRequest?.id ?? null,
+    showAvailabilityStep,
+  );
+  const selectedSlots = (availabilityQuery.data ?? []).map((slot) =>
+    formatSlot(slot.startsAt),
+  );
 
   const closeDecision = () => {
     setSelectedRequest(null);
@@ -76,7 +92,6 @@ export function MentorDashboardView() {
     try {
       await decisionMutation.mutateAsync({
         id: selectedRequest.id,
-        mentorId: DEMO_MENTOR_ID,
         status: decisionStatuses[decisionMode],
         message:
           decisionMessage ||
@@ -191,6 +206,7 @@ export function MentorDashboardView() {
             mode={decisionMode}
             message={decisionMessage}
             selectedSlots={selectedSlots}
+            isLoadingSlots={availabilityQuery.isLoading}
             showAvailability={showAvailabilityStep}
             isPending={decisionMutation.isPending}
             error={actionError}

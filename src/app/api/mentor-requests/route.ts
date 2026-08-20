@@ -5,18 +5,19 @@ import {
   fetchMentorRequests,
 } from "@/lib/api/mentor-requests";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
+import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {
-    const { userId } = await getSessionIds();
     const role =
       request.nextUrl.searchParams.get("role") === "mentor"
         ? "mentor"
         : "mentee";
-    return backendResponse(
-      await fetchMentorRequests({ requesterId: userId, role }),
-    );
+    const requesterId =
+      role === "mentor"
+        ? await getSessionMentorId()
+        : (await getSessionIds()).userId;
+    return backendResponse(await fetchMentorRequests({ requesterId, role }));
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Mentorship request service is unavailable.",

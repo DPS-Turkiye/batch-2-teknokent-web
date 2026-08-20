@@ -10,6 +10,7 @@ type Props = {
   mode: MentorDecisionMode | null;
   message: string;
   selectedSlots: string[];
+  isLoadingSlots: boolean;
   showAvailability: boolean;
   isPending: boolean;
   error: string;
@@ -65,6 +66,7 @@ export function MentorDecisionModal(props: Props) {
     mode,
     message,
     selectedSlots,
+    isLoadingSlots,
     showAvailability,
     isPending,
     error,
@@ -95,17 +97,28 @@ export function MentorDecisionModal(props: Props) {
               <p className="text-xs font-semibold text-zinc-700">
                 Sunulan Zaman Dilimleri:
               </p>
-              {selectedSlots.map((slot) => (
-                <div
-                  key={slot}
-                  className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900"
-                >
-                  <span className="font-semibold">📅 {slot}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                    Aktif Slot
-                  </span>
-                </div>
-              ))}
+              {isLoadingSlots ? (
+                <p className="text-xs text-zinc-500">
+                  Müsaitlik bilgileri yükleniyor...
+                </p>
+              ) : selectedSlots.length === 0 ? (
+                <p className="text-xs text-zinc-500">
+                  Takviminizde önümüzdeki günler için tanımlı bir müsaitlik
+                  bulunamadı.
+                </p>
+              ) : (
+                selectedSlots.map((slot) => (
+                  <div
+                    key={slot}
+                    className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900"
+                  >
+                    <span className="font-semibold">📅 {slot}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                      Aktif Slot
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
             <div className="flex justify-end border-t border-zinc-100 pt-4">
               <PrimaryButton onClick={onClose}>

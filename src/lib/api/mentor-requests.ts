@@ -34,7 +34,7 @@ export function fetchMentorRequests(options: {
     url: "/api/mentorship-requests",
     params:
       options.role === "mentor"
-        ? undefined
+        ? { mentorId: options.requesterId }
         : { requesterId: options.requesterId },
   });
 }
@@ -67,11 +67,15 @@ export function mutateMentorRequest(options: {
   id: string;
   method: "GET" | "PATCH" | "POST";
   requesterId: string;
+  mentorId?: string;
 }) {
-  const data =
-    options.data && ACTIONS_WITH_REQUESTER.has(options.action)
-      ? { ...options.data, requesterId: options.requesterId }
-      : options.data;
+  let data = options.data;
+  if (data && ACTIONS_WITH_REQUESTER.has(options.action)) {
+    data = { ...data, requesterId: options.requesterId };
+  }
+  if (data && options.action === MentorRequestAction.Decision) {
+    data = { ...data, mentorId: options.mentorId };
+  }
   return backendRequest({
     method: options.method,
     url: `/api/mentorship-requests/${encodeURIComponent(options.id)}/${options.action}`,

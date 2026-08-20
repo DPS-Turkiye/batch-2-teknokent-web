@@ -14,6 +14,7 @@ import {
   useMentorshipRequest,
   useMentorshipRequests,
   useReplyToMentorRequest,
+  useScheduleMeeting,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -70,7 +71,14 @@ export default function RequestStatusPage() {
     selectedId,
     request?.status === MentorshipRequestStatus.Declined,
   );
+  const scheduleMutation = useScheduleMeeting(selectedId);
   const [reply, setReply] = useState("");
+  const [scheduledSlotId, setScheduledSlotId] = useState<string | null>(null);
+
+  async function bookSlot(slotId: string) {
+    const meeting = await scheduleMutation.mutateAsync(slotId);
+    if (meeting) setScheduledSlotId(slotId);
+  }
 
   async function sendReply() {
     if (!reply.trim()) return;
@@ -172,30 +180,48 @@ export default function RequestStatusPage() {
 
               {request.status === MentorshipRequestStatus.Accepted ? (
                 <div>
-                  <h3 className="text-lg font-semibold">
-                    Toplantı zamanı seçin
-                  </h3>
-                  <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                    {availabilityQuery.data?.map((slot) => (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs"
-                      >
-                        {new Intl.DateTimeFormat("tr-TR", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        }).format(new Date(slot.startsAt))}{" "}
-                        · {slot.durationMinutes} dk
-                      </button>
-                    ))}
-                  </div>
-                  {!availabilityQuery.isLoading &&
-                  !availabilityQuery.data?.length ? (
-                    <p className="mt-3 text-sm text-[#777]">
-                      Mentor henüz müsaitlik zamanı paylaşmadı.
-                    </p>
-                  ) : null}
+                  {scheduledSlotId ? (
+                    <div>
+                      <Badge tone="green">Toplantı planlandı</Badge>
+                      <p className="mt-3 text-sm text-[#555]">
+                        Seçtiğiniz zaman dilimi için toplantınız oluşturuldu.
+                      </p>
+                    </div>
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-semibold">
+                        Toplantı zamanı seçin
+                      </h3>
+                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                        {availabilityQuery.data?.map((slot) => (
+                          <button
+                            key={slot.id}
+                            type="button"
+                            disabled={scheduleMutation.isPending}
+                            onClick={() => void bookSlot(slot.id)}
+                            className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs hover:border-[#555] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            {new Intl.DateTimeFormat("tr-TR", {
+                              dateStyle: "medium",
+                              timeStyle: "short",
+                            }).format(new Date(slot.startsAt))}{" "}
+                            · {slot.durationMinutes} dk
+                          </button>
+                        ))}
+                      </div>
+                      {!availabilityQuery.isLoading &&
+                      !availabilityQuery.data?.length ? (
+                        <p className="mt-3 text-sm text-[#777]">
+                          Mentor henüz müsaitlik zamanı paylaşmadı.
+                        </p>
+                      ) : null}
+                      {scheduleMutation.error ? (
+                        <p role="alert" className="mt-3 text-sm text-red-700">
+                          {scheduleMutation.error.message}
+                        </p>
+                      ) : null}
+                    </>
+                  )}
                 </div>
               ) : null}
 

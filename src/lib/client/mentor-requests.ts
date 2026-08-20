@@ -54,6 +54,24 @@ export async function getMentorAvailability(id: string) {
   );
 }
 
+export type ScheduledMeeting = {
+  id: string;
+  mentorshipRequestId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetLink: string | null;
+  status: string;
+};
+
+export async function scheduleMeeting(options: { id: string; slotId: string }) {
+  return requireSuccess(
+    await httpClient.post<ScheduledMeeting>(
+      `/api/mentor-requests/${encodeURIComponent(options.id)}/meeting`,
+      { slotId: options.slotId },
+    ),
+  );
+}
+
 export async function getAlternativeMentors(id: string) {
   return requireSuccess(
     await httpClient.get<MentorProfile[]>(
@@ -64,7 +82,6 @@ export async function getAlternativeMentors(id: string) {
 
 export async function decideMentorRequest(options: {
   id: string;
-  mentorId: string;
   message: string;
   status: MentorshipRequest["status"];
 }) {
@@ -72,7 +89,6 @@ export async function decideMentorRequest(options: {
     await httpClient.patch<MentorshipRequest>(
       `/api/mentor-requests/${encodeURIComponent(options.id)}/decision`,
       {
-        mentorId: options.mentorId,
         status: options.status,
         message: options.message,
       },

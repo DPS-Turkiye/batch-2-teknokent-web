@@ -10,6 +10,7 @@ import {
   getMentorRequest,
   getMentorRequests,
   replyToMentorRequest,
+  scheduleMeeting,
   withdrawMentorRequest,
 } from "@/lib/client/mentor-requests";
 
@@ -67,6 +68,20 @@ export function useWithdrawMentorRequest(id: string | null) {
     mutationFn: () => withdrawMentorRequest(id as string),
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
+      return queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey("mentee"),
+      });
+    },
+  });
+}
+
+export function useScheduleMeeting(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (slotId: string) =>
+      scheduleMeeting({ id: id as string, slotId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mentor-availability", id] });
       return queryClient.invalidateQueries({
         queryKey: mentorshipRequestsQueryKey("mentee"),
       });

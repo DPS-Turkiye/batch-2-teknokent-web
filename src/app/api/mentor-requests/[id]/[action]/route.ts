@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import {
   isMentorRequestAction,
+  MentorRequestAction,
   mutateMentorRequest,
 } from "@/lib/api/mentor-requests";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
+import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{ action: string; id: string }>;
@@ -27,6 +28,10 @@ async function forward(request: NextRequest, context: RouteContext) {
       method === "GET"
         ? undefined
         : ((await request.json()) as Record<string, unknown>);
+    const mentorId =
+      action === MentorRequestAction.Decision
+        ? await getSessionMentorId()
+        : undefined;
     return backendResponse(
       await mutateMentorRequest({
         action,
@@ -34,6 +39,7 @@ async function forward(request: NextRequest, context: RouteContext) {
         id,
         method,
         requesterId: userId,
+        mentorId,
       }),
     );
   } catch (error) {
