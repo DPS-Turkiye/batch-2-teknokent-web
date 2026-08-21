@@ -60,6 +60,16 @@ export function getTranscriptApiUrl(
   return `${TRANSCRIPT_API_PATH}?${q.toString()}`;
 }
 
+export const MEETING_REPORT_API_PATH = "/api/botapi/report";
+
+export function getMeetingReportApiUrl(
+  platform: string,
+  nativeMeetingId: string,
+): string {
+  const q = new URLSearchParams({ platform, nativeMeetingId });
+  return `${MEETING_REPORT_API_PATH}?${q.toString()}`;
+}
+
 export const LANDING_ANNOUNCEMENTS: LandingAnnouncement[] = [
   {
     category: "Program",
