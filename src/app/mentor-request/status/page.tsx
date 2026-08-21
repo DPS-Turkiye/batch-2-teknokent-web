@@ -17,6 +17,7 @@ import {
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { SessionRole } from "@/interfaces/session";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
@@ -49,7 +50,7 @@ function initials(name: string) {
 export default function RequestStatusPage() {
   const router = useRouter();
   const params = useSearchParams();
-  const requestsQuery = useMentorshipRequests("mentee");
+  const requestsQuery = useMentorshipRequests(SessionRole.Mentee);
   const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
   const explicitId = params.get("request") ?? params.get("id");
   const selectedId =

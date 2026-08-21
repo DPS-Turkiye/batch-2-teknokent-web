@@ -1,5 +1,6 @@
 import "server-only";
 
+import { SessionRole } from "@/interfaces/session";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export enum MentorRequestAction {
@@ -8,6 +9,7 @@ export enum MentorRequestAction {
   Decision = "decision",
   Messages = "messages",
   Meeting = "meeting",
+  Meetings = "meetings",
   Withdrawal = "withdrawal",
 }
 
@@ -27,14 +29,14 @@ export function isMentorRequestAction(
 
 export function fetchMentorRequests(options: {
   requesterId?: string;
-  role?: "mentee" | "mentor";
+  role?: SessionRole;
 }) {
   return backendRequest({
     method: "GET",
     url: "/api/mentorship-requests",
     params:
-      options.role === "mentor"
-        ? undefined
+      options.role === SessionRole.Mentor
+        ? { mentorId: options.requesterId }
         : { requesterId: options.requesterId },
   });
 }

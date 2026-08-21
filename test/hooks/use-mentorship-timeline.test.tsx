@@ -1,0 +1,142 @@
+import { QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  useLogMeeting,
+  useMentorshipMeetings,
+  useUpdateMeeting,
+} from "@/hooks/use-mentorship-timeline";
+import {
+  getMentorshipMeetings,
+  logMentorshipMeeting,
+} from "@/lib/client/mentor-requests";
+import { updateMeeting } from "@/lib/client/meetings";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { createTestQueryClient } from "@test/test-utils";
+
+vi.mock("@/lib/client/mentor-requests", () => ({
+  getMentorshipMeetings: vi.fn(),
+  logMentorshipMeeting: vi.fn(),
+}));
+
+vi.mock("@/lib/client/meetings", () => ({
+  updateMeeting: vi.fn(),
+}));
+
+function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
+  return {
+    id: "meeting-1",
+    organizationId: "org-1",
+    mentorId: "mentor-1",
+    scheduledAt: "2026-08-15T10:00:00.000Z",
+    durationMinutes: 45,
+    status: MeetingStatus.Completed,
+    ...overrides,
+  };
+}
+
+function wrapperFor(queryClient: ReturnType<typeof createTestQueryClient>) {
+  return function Wrapper({ children }: { children: ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+  };
+}
+
+describe("useMentorshipMeetings", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not fetch when no request id is set", () => {
+    vi.mocked(getMentorshipMeetings).mockResolvedValue([]);
+
+    renderHook(() => useMentorshipMeetings(null), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    expect(getMentorshipMeetings).not.toHaveBeenCalled();
+  });
+
+  it("fetches the timeline for a given request id", async () => {
+    vi.mocked(getMentorshipMeetings).mockResolvedValue([meeting()]);
+
+    const { result } = renderHook(() => useMentorshipMeetings("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.data).toEqual([meeting()]);
+    expect(getMentorshipMeetings).toHaveBeenCalledWith("request-1");
+  });
+});
+
+describe("useLogMeeting", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("refetches the timeline after logging a meeting", async () => {
+    vi.mocked(getMentorshipMeetings).mockResolvedValue([]);
+    vi.mocked(logMentorshipMeeting).mockResolvedValue(meeting());
+    const queryClient = createTestQueryClient();
+    const wrapper = wrapperFor(queryClient);
+
+    const meetings = renderHook(() => useMentorshipMeetings("request-1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(meetings.result.current.isLoading).toBe(false));
+
+    const logMeeting = renderHook(() => useLogMeeting("request-1"), {
+      wrapper,
+    });
+
+    await logMeeting.result.current.mutateAsync({
+      mentorId: "mentor-1",
+      scheduledAt: "2026-08-15T10:00:00.000Z",
+      durationMinutes: 45,
+      status: MeetingStatus.Completed,
+    });
+
+    await waitFor(() => {
+      expect(getMentorshipMeetings).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+describe("useUpdateMeeting", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("refetches the timeline after updating a meeting", async () => {
+    vi.mocked(getMentorshipMeetings).mockResolvedValue([]);
+    vi.mocked(updateMeeting).mockResolvedValue(meeting());
+    const queryClient = createTestQueryClient();
+    const wrapper = wrapperFor(queryClient);
+
+    const meetings = renderHook(() => useMentorshipMeetings("request-1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(meetings.result.current.isLoading).toBe(false));
+
+    const update = renderHook(() => useUpdateMeeting("request-1"), {
+      wrapper,
+    });
+
+    await update.result.current.mutateAsync({
+      id: "meeting-1",
+      payload: { notes: "Yeni not" },
+    });
+
+    expect(updateMeeting).toHaveBeenCalledWith("meeting-1", {
+      notes: "Yeni not",
+    });
+    await waitFor(() => {
+      expect(getMentorshipMeetings).toHaveBeenCalledTimes(2);
+    });
+  });
+});

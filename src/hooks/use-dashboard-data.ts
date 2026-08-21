@@ -8,6 +8,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { SessionRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 
@@ -55,7 +56,7 @@ const FALLBACK_REQUESTS: MentorshipRequest[] = [
 export function useDashboardData() {
   const { session } = useSession();
   const meetingsQuery = useMeetings();
-  const requestsQuery = useMentorshipRequests("mentee");
+  const requestsQuery = useMentorshipRequests(SessionRole.Mentee);
 
   useEffect(() => {
     if (meetingsQuery.error) {

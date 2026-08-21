@@ -1,4 +1,4 @@
-import type { MeetingItem } from "@/interfaces/meeting";
+import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -9,5 +9,20 @@ export async function getMeetings() {
 export async function postMeeting(payload: Record<string, unknown>) {
   return requireSuccess(
     await httpClient.post<MeetingItem>("/api/meetings", payload),
+  );
+}
+
+export type UpdateMeetingPayload = {
+  notes?: string;
+  outcomes?: string;
+  status?: MeetingStatus;
+};
+
+export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
+  return requireSuccess(
+    await httpClient.patch<MeetingItem>(
+      `/api/meetings/${encodeURIComponent(id)}`,
+      payload,
+    ),
   );
 }

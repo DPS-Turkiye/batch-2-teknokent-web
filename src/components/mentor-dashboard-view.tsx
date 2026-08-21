@@ -5,7 +5,9 @@ import { useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
+import { useSession } from "@/components/providers/session-provider";
 import {
+  useMentorAvailability,
   useMentorRequestDecision,
   useMentorshipRequests,
 } from "@/hooks/use-mentorship-requests";
@@ -15,9 +17,8 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { SessionRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
-
-const DEMO_MENTOR_ID = "00000000-0000-0000-0000-000000000002";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
   [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,
@@ -45,7 +46,8 @@ const filterOptions = [
 ] as const;
 
 export function MentorDashboardView() {
-  const requestsQuery = useMentorshipRequests("mentor");
+  const { session } = useSession();
+  const requestsQuery = useMentorshipRequests(SessionRole.Mentor);
   const decisionMutation = useMentorRequestDecision();
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
@@ -59,7 +61,11 @@ export function MentorDashboardView() {
   const [decisionMessage, setDecisionMessage] = useState("");
   const [actionError, setActionError] = useState("");
   const [showAvailabilityStep, setShowAvailabilityStep] = useState(false);
-  const selectedSlots = ["12 Ağustos 2026, 14:00", "14 Ağustos 2026, 10:30"];
+  const availabilityQuery = useMentorAvailability(
+    selectedRequest?.id ?? null,
+    showAvailabilityStep,
+  );
+  const selectedSlots = availabilityQuery.data ?? [];
 
   const closeDecision = () => {
     setSelectedRequest(null);
@@ -70,13 +76,13 @@ export function MentorDashboardView() {
   };
 
   const handleDecisionSubmit = async () => {
-    if (!selectedRequest || !decisionMode) return;
+    if (!selectedRequest || !decisionMode || !session) return;
     setActionError("");
 
     try {
       await decisionMutation.mutateAsync({
         id: selectedRequest.id,
-        mentorId: DEMO_MENTOR_ID,
+        mentorId: session.userId,
         status: decisionStatuses[decisionMode],
         message:
           decisionMessage ||

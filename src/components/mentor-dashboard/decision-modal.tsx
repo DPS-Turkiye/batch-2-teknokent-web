@@ -1,7 +1,10 @@
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import type { MentorAvailabilitySlot } from "@/lib/client/mentor-requests";
 import {
   MentorDecisionMode,
+  MentorshipRequestMessageType,
+  MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 
@@ -9,7 +12,7 @@ type Props = {
   request: MentorshipRequest;
   mode: MentorDecisionMode | null;
   message: string;
-  selectedSlots: string[];
+  selectedSlots: MentorAvailabilitySlot[];
   showAvailability: boolean;
   isPending: boolean;
   error: string;
@@ -19,13 +22,21 @@ type Props = {
   onSubmit: () => void;
 };
 
-const statusLabels = {
-  ACCEPTED: "Kabul Edildi",
-  DECLINED: "Uygun Değil",
-  MORE_INFO_REQUESTED: "Ek Bilgi İstendi",
-  PENDING: "Yanıt Bekliyor",
-  WITHDRAWN: "Geri Çekildi",
-} as const;
+const statusLabels: Record<MentorshipRequestStatus, string> = {
+  [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.Declined]: "Uygun Değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
+};
+
+function formatSlot(slot: MentorAvailabilitySlot) {
+  const formatted = new Intl.DateTimeFormat("tr-TR", {
+    dateStyle: "long",
+    timeStyle: "short",
+  }).format(new Date(slot.startsAt));
+  return `${formatted} (${slot.durationMinutes} dk)`;
+}
 
 const decisionOptions = [
   {
@@ -95,17 +106,23 @@ export function MentorDecisionModal(props: Props) {
               <p className="text-xs font-semibold text-zinc-700">
                 Sunulan Zaman Dilimleri:
               </p>
-              {selectedSlots.map((slot) => (
-                <div
-                  key={slot}
-                  className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900"
-                >
-                  <span className="font-semibold">📅 {slot}</span>
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
-                    Aktif Slot
-                  </span>
-                </div>
-              ))}
+              {selectedSlots.length === 0 ? (
+                <p className="text-xs text-zinc-500">
+                  Müsaitlik listenizde uygun zaman dilimi bulunamadı.
+                </p>
+              ) : (
+                selectedSlots.map((slot) => (
+                  <div
+                    key={slot.id}
+                    className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900"
+                  >
+                    <span className="font-semibold">📅 {formatSlot(slot)}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
+                      Aktif Slot
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
             <div className="flex justify-end border-t border-zinc-100 pt-4">
               <PrimaryButton onClick={onClose}>
@@ -157,13 +174,15 @@ export function MentorDecisionModal(props: Props) {
                       <div
                         key={`${item.messageType}-${index}`}
                         className={`rounded-lg border p-2 text-xs ${
-                          item.messageType === "MENTOR_QUESTION"
+                          item.messageType ===
+                          MentorshipRequestMessageType.MentorQuestion
                             ? "border-amber-200 bg-amber-50 text-amber-900"
                             : "border-blue-200 bg-blue-50 text-blue-900"
                         }`}
                       >
                         <span className="font-bold">
-                          {item.messageType === "MENTOR_QUESTION"
+                          {item.messageType ===
+                          MentorshipRequestMessageType.MentorQuestion
                             ? "Mentor Sorusu:"
                             : "Girişimci Yanıtı:"}
                         </span>{" "}

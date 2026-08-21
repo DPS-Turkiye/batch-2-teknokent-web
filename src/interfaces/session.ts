@@ -1,10 +1,16 @@
+export enum SessionRole {
+  Mentee = "mentee",
+  Mentor = "mentor",
+}
+
 export type DemoSession = {
   userId: string;
   email: string;
   fullName: string;
   jobTitle: string;
-  organizationId: string;
-  organizationName: string;
+  organizationId?: string;
+  organizationName?: string;
+  role: SessionRole;
 };
 
 export type BackendUser = {

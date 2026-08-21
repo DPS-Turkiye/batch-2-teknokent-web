@@ -3,10 +3,11 @@ import "server-only";
 import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
-import type {
-  BackendUser,
-  DemoSession,
-  SessionData,
+import {
+  SessionRole,
+  type BackendUser,
+  type DemoSession,
+  type SessionData,
 } from "@/interfaces/session";
 import { fetchUser, fetchUsers } from "@/lib/api/accounts";
 
@@ -32,14 +33,23 @@ function sessionOptions(): SessionOptions {
 }
 
 export function toSession(user: BackendUser): DemoSession | null {
-  if (!user.organizationId || !user.organizationName) return null;
+  if (user.role !== "MENTEE" && user.role !== "MENTOR") return null;
+  const role = user.role === "MENTOR" ? SessionRole.Mentor : SessionRole.Mentee;
+  if (
+    role === SessionRole.Mentee &&
+    (!user.organizationId || !user.organizationName)
+  ) {
+    return null;
+  }
   return {
     userId: user.id,
     email: user.email,
     fullName: user.fullName,
-    jobTitle: user.jobTitle ?? "Mentee",
-    organizationId: user.organizationId,
-    organizationName: user.organizationName,
+    jobTitle:
+      user.jobTitle ?? (role === SessionRole.Mentor ? "Mentor" : "Mentee"),
+    organizationId: user.organizationId ?? undefined,
+    organizationName: user.organizationName ?? undefined,
+    role,
   };
 }
 
@@ -56,8 +66,8 @@ export async function getSessionUser(options: { demoFallback?: boolean } = {}) {
   return response.status === 200 ? toSession(response.data) : null;
 }
 
-export async function findMenteeSessionByEmail(email: string) {
-  const response = await fetchUsers("MENTEE");
+export async function findDemoSessionByEmail(email: string) {
+  const response = await fetchUsers();
   if (response.status !== 200 || !Array.isArray(response.data)) return null;
   const normalizedEmail = email.trim().toLowerCase();
   const user = response.data.find(

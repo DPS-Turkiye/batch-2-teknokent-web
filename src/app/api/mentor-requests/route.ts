@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 
+import { SessionRole } from "@/interfaces/session";
 import {
   createMentorRequest,
   fetchMentorRequests,
@@ -11,9 +12,9 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await getSessionIds();
     const role =
-      request.nextUrl.searchParams.get("role") === "mentor"
-        ? "mentor"
-        : "mentee";
+      request.nextUrl.searchParams.get("role") === SessionRole.Mentor
+        ? SessionRole.Mentor
+        : SessionRole.Mentee;
     return backendResponse(
       await fetchMentorRequests({ requesterId: userId, role }),
     );
