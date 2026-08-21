@@ -7,6 +7,18 @@ import { RoleGroupSection } from "@/components/login/role-group-section";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
+import type { BackendUser } from "@/interfaces/session";
+
+// Only these roles map to a distinct pool of seeded backend accounts.
+// Admin/Program Manager/Trainer aren't backed by their own account pool
+// yet, so a selection made up only of those shows every demo account.
+const BACKEND_ROLE_BY_LOGIN_ROLE: Partial<
+  Record<LoginRoleId, BackendUser["role"]>
+> = {
+  [LoginRoleId.Mentor]: "MENTOR",
+  [LoginRoleId.StartupOwner]: "MENTEE",
+  [LoginRoleId.Mentee]: "MENTEE",
+};
 
 function FlowHeader() {
   return (
@@ -38,6 +50,17 @@ export default function LoginPage() {
     unverifiedRoleId,
     verifiedRoles,
   } = useLoginFlow();
+
+  const allowedBackendRoles = new Set(
+    [...selectedRoleIds]
+      .map((roleId) => BACKEND_ROLE_BY_LOGIN_ROLE[roleId])
+      .filter((role): role is BackendUser["role"] => Boolean(role)),
+  );
+  const visibleDemoAccounts = allowedBackendRoles.size
+    ? (demoAccounts.data?.filter((account) =>
+        allowedBackendRoles.has(account.role),
+      ) ?? [])
+    : (demoAccounts.data ?? []);
 
   return (
     <div className="min-h-screen bg-zinc-100">
@@ -151,13 +174,13 @@ export default function LoginPage() {
                 placeholder="ornek@metu.edu.tr"
                 className="mt-2 w-full border border-zinc-300 bg-zinc-50 px-3 py-3 text-sm placeholder:text-zinc-400"
               />
-              {demoAccounts.data?.length ? (
+              {visibleDemoAccounts.length ? (
                 <div className="mt-3 border border-zinc-200 bg-zinc-50 p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
                     Demo hesapları
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {demoAccounts.data.map((account) => (
+                    {visibleDemoAccounts.map((account) => (
                       <button
                         key={account.id}
                         type="button"
