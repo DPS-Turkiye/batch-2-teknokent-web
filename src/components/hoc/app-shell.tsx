@@ -16,6 +16,7 @@ import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { useDemoSession } from "@/components/providers/session-provider";
+import { SessionRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
@@ -27,56 +28,87 @@ interface AppShellProps {
   title?: string;
 }
 
-const navigation: Array<{
+function buildNavigation(isMentor: boolean): Array<{
   id: AppArea;
   label: string;
   href?: string;
   icon: LucideIcon;
-}> = [
-  { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
-  {
-    id: AppArea.MentorDashboard,
-    label: "Mentor Paneli",
-    href: "/mentor-dashboard",
-    icon: Users,
-  },
-  { id: AppArea.Mentorships, label: "Mentorluklarım", icon: Users },
-  { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
-  {
-    id: AppArea.Meetings,
-    label: "Toplantılar",
-    href: "/meetings/research",
-    icon: Video,
-  },
-  {
-    id: AppArea.Actions,
-    label: "Aksiyonlar",
-    href: "/meetings/research/prepare",
-    icon: ClipboardList,
-  },
-  {
-    id: AppArea.Files,
-    label: "Dosyalar",
-    href: "/meetings/research",
-    icon: FolderOpen,
-  },
-  {
-    id: AppArea.Announcements,
-    label: "Duyurular",
-    href: "/dashboard#notifications",
-    icon: Bell,
-  },
-  {
-    id: AppArea.Assistant,
-    label: "Toplantı Asistanı",
-    href: "/assistant",
-    icon: Bot,
-  },
-];
+}> {
+  if (isMentor) {
+    return [
+      {
+        id: AppArea.MentorHome,
+        label: "Ana Sayfa",
+        href: "/mentor-home",
+        icon: Home,
+      },
+      {
+        id: AppArea.MentorDashboard,
+        label: "Mentor Paneli",
+        href: "/mentor-dashboard",
+        icon: Users,
+      },
+      { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+      {
+        id: AppArea.Meetings,
+        label: "Toplantılar",
+        href: "/meetings/research",
+        icon: Video,
+      },
+      {
+        id: AppArea.Announcements,
+        label: "Duyurular",
+        icon: Bell,
+      },
+      {
+        id: AppArea.Assistant,
+        label: "Toplantı Asistanı",
+        href: "/assistant",
+        icon: Bot,
+      },
+    ];
+  }
 
-function BrandBlock() {
+  return [
+    { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
+    { id: AppArea.Mentorships, label: "Mentorluklarım", icon: Users },
+    { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+    {
+      id: AppArea.Meetings,
+      label: "Toplantılar",
+      href: "/meetings/research",
+      icon: Video,
+    },
+    {
+      id: AppArea.Actions,
+      label: "Aksiyonlar",
+      href: "/meetings/research/prepare",
+      icon: ClipboardList,
+    },
+    {
+      id: AppArea.Files,
+      label: "Dosyalar",
+      href: "/meetings/research",
+      icon: FolderOpen,
+    },
+    {
+      id: AppArea.Announcements,
+      label: "Duyurular",
+      href: "/dashboard#notifications",
+      icon: Bell,
+    },
+    {
+      id: AppArea.Assistant,
+      label: "Toplantı Asistanı",
+      href: "/assistant",
+      icon: Bot,
+    },
+  ];
+}
+
+function BrandBlock({ href }: { href: string }) {
   return (
-    <Link href="/dashboard" className="flex items-center gap-2">
+    <Link href={href} className="flex items-center gap-2">
       <span className="flex size-7 items-center justify-center rounded-md bg-[#4f39f6] text-xs font-bold text-white">
         OT
       </span>
@@ -102,6 +134,9 @@ export function AppShell({
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const session = useDemoSession();
+  const isMentor = session?.role === SessionRole.Mentor;
+  const homeHref = isMentor ? "/mentor-home" : "/dashboard";
+  const navigation = buildNavigation(isMentor);
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization = session?.organizationName ?? "NovaMed AI";
   const initials = displayName
@@ -117,7 +152,7 @@ export function AppShell({
         className={`${mobileOpen ? "flex" : "hidden"} fixed inset-y-0 left-0 z-40 w-56 flex-col border-r border-[#f3f4f6] bg-white lg:flex`}
       >
         <div className="flex h-[61px] items-center border-b border-[#f3f4f6] px-5">
-          <BrandBlock />
+          <BrandBlock href={homeHref} />
         </div>
         <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
           {navigation.map((item) => {
@@ -190,7 +225,7 @@ export function AppShell({
       <div className="lg:pl-56">
         {!title && !actions ? (
           <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#f3f4f6] bg-white px-4 lg:hidden">
-            <BrandBlock />
+            <BrandBlock href={homeHref} />
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
