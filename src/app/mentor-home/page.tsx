@@ -150,7 +150,7 @@ export default function MentorHomePage() {
             Uzmanlık alanlarınızı ve müsaitlik bilgilerinizi güncel tutarak daha
             uygun taleplerle eşleşin.
           </p>
-          <SecondaryButton href="/mentor-dashboard" className="mt-3">
+          <SecondaryButton href="/mentor-profile" className="mt-3">
             Profili Görüntüle
           </SecondaryButton>
         </section>
