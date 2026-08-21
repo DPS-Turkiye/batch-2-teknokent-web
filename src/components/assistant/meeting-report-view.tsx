@@ -23,9 +23,7 @@ function Section({
 
 function BulletList({ items }: { items: string[] }) {
   if (items.length === 0) {
-    return (
-      <p className="text-[12.5px] text-[var(--ma-t3)]">Belirtilmedi.</p>
-    );
+    return <p className="text-[12.5px] text-[var(--ma-t3)]">Belirtilmedi.</p>;
   }
   return (
     <ul className="space-y-1.5">
