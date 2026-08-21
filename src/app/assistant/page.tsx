@@ -5,10 +5,11 @@ import {
   useMeetingAssistant,
 } from "@/hooks/use-meeting-assistant";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingReportView } from "@/components/assistant/meeting-report-view";
+import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
 import { AppArea } from "@/types/app-area";
 import { BotStatus, MeetingStatus } from "@/types/assistant";
 import { Calendar } from "lucide-react";
-import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
 
 export default function AssistantPage() {
   const {
@@ -27,6 +28,10 @@ export default function AssistantPage() {
     updatePadText,
     addBot,
     stopBot,
+    meetingReport,
+    reportStatus,
+    reportError,
+    regenerateReport,
   } = useMeetingAssistant();
 
   return (
@@ -229,6 +234,41 @@ export default function AssistantPage() {
                     ))}
                   </div>
                 )}
+
+                <div className="mt-8">
+                  <div className="mb-2.5 flex items-center gap-2">
+                    <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
+                      Toplantı raporu
+                    </span>
+                    <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                    <button
+                      type="button"
+                      onClick={() => regenerateReport()}
+                      disabled={
+                        reportStatus === BotStatus.Sending ||
+                        !selected.platformKey ||
+                        !selected.nativeMeetingId
+                      }
+                      className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
+                    >
+                      {reportStatus === BotStatus.Sending
+                        ? "Üretiliyor…"
+                        : "Rapor üret"}
+                    </button>
+                  </div>
+                  <BotStatusRenderer
+                    status={reportStatus}
+                    error={reportError}
+                  />
+                  {meetingReport ? (
+                    <MeetingReportView report={meetingReport} />
+                  ) : (
+                    <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
+                      Stop bot sonrası transcript’ten AI raporu burada
+                      görünecek.
+                    </p>
+                  )}
+                </div>
 
                 <div className="mt-8">
                   <div className="mb-2.5 flex items-center gap-2">

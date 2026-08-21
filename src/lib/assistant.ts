@@ -2,13 +2,22 @@ import axios from "axios";
 
 import {
   getBotApiUrl,
+  getMeetingReportApiUrl,
   getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
-import type { AddBotResult, TranscriptSegment } from "@/types/assistant";
+import type {
+  AddBotResult,
+  MeetingReport,
+  TranscriptSegment,
+} from "@/types/assistant";
 
-export type { AddBotResult, TranscriptSegment } from "@/types/assistant";
+export type {
+  AddBotResult,
+  MeetingReport,
+  TranscriptSegment,
+} from "@/types/assistant";
 
 export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
@@ -58,6 +67,28 @@ export async function fetchTranscript(
       const detail =
         error.response?.data?.detail ||
         `Failed to fetch transcript (${error.response?.status ?? "network error"})`;
+      throw new Error(String(detail));
+    }
+    throw error;
+  }
+}
+
+export async function generateMeetingReport(
+  platform: string,
+  nativeMeetingId: string,
+): Promise<MeetingReport> {
+  try {
+    const response = await httpClient.post(
+      getMeetingReportApiUrl(platform, nativeMeetingId),
+      {},
+    );
+    return response.data as MeetingReport;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const detail =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        `Failed to generate meeting report (${error.response?.status ?? "network error"})`;
       throw new Error(String(detail));
     }
     throw error;
