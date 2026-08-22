@@ -7,7 +7,7 @@ import {
   logMentorshipMeeting,
 } from "@/lib/client/mentor-requests";
 import { httpClient } from "@/lib/http-client";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { createMentorResponse } from "@test/fixtures/mentors";
@@ -28,7 +28,7 @@ describe("mentor-requests client", () => {
   it("omits the role param for a mentee request list", async () => {
     vi.mocked(httpClient.get).mockResolvedValue(createMentorResponse([]));
 
-    await getMentorRequests(SessionRole.Mentee);
+    await getMentorRequests(UserRole.Mentee);
 
     expect(httpClient.get).toHaveBeenCalledWith("/api/mentor-requests", {
       params: undefined,
@@ -38,19 +38,18 @@ describe("mentor-requests client", () => {
   it("sends the role param for a mentor request list", async () => {
     vi.mocked(httpClient.get).mockResolvedValue(createMentorResponse([]));
 
-    await getMentorRequests(SessionRole.Mentor);
+    await getMentorRequests(UserRole.Mentor);
 
     expect(httpClient.get).toHaveBeenCalledWith("/api/mentor-requests", {
-      params: { role: SessionRole.Mentor },
+      params: { role: UserRole.Mentor },
     });
   });
 
-  it("submits a decision with the real mentor id", async () => {
+  it("submits a decision", async () => {
     vi.mocked(httpClient.patch).mockResolvedValue(createMentorResponse({}));
 
     await decideMentorRequest({
       id: "request-1",
-      mentorId: "mentor-1",
       message: "Kabul edildi",
       status: MentorshipRequestStatus.Accepted,
     });
@@ -58,7 +57,6 @@ describe("mentor-requests client", () => {
     expect(httpClient.patch).toHaveBeenCalledWith(
       "/api/mentor-requests/request-1/decision",
       {
-        mentorId: "mentor-1",
         status: MentorshipRequestStatus.Accepted,
         message: "Kabul edildi",
       },

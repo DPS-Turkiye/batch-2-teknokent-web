@@ -6,7 +6,7 @@ import { useState } from "react";
 import { Brand } from "@/components/brand";
 import { useDemoSession } from "@/components/providers/session-provider";
 import { WorkspaceCard } from "@/components/workspace/workspace-card";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { WORKSPACES } from "@/lib/const";
 
 export default function WorkspacePage() {
@@ -17,7 +17,7 @@ export default function WorkspacePage() {
     null,
   );
   const homeHref =
-    session?.role === SessionRole.Mentor ? "/mentor-home" : "/dashboard";
+    session?.role === UserRole.Mentor ? "/mentor-home" : "/dashboard";
 
   return (
     <div className="min-h-screen bg-zinc-100">

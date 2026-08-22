@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import WorkspacePage from "@/app/workspace/page";
-import { SessionRole, type DemoSession } from "@/interfaces/session";
+import { UserRole, type DemoSession } from "@/interfaces/session";
 
 const push = vi.fn();
 const mockUseDemoSession = vi.fn<() => DemoSession | null>();
@@ -22,7 +22,7 @@ function mentorSession(): DemoSession {
     email: "leyla.aksoy@teknokent.demo",
     fullName: "Leyla Aksoy",
     jobTitle: "Mentor",
-    role: SessionRole.Mentor,
+    role: UserRole.Mentor,
   };
 }
 
@@ -34,7 +34,7 @@ function menteeSession(): DemoSession {
     jobTitle: "Kurucu & CEO",
     organizationId: "org-1",
     organizationName: "NovaMed AI",
-    role: SessionRole.Mentee,
+    role: UserRole.Mentee,
   };
 }
 

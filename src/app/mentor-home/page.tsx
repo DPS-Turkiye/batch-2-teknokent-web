@@ -11,7 +11,7 @@ import { Avatar } from "@/components/common/avatar";
 import { useDemoSession } from "@/components/providers/session-provider";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
 function initials(name: string) {
@@ -25,7 +25,7 @@ function initials(name: string) {
 
 export default function MentorHomePage() {
   const session = useDemoSession();
-  const requestsQuery = useMentorshipRequests(SessionRole.Mentor);
+  const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
 
   const pending = requests.filter(

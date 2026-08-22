@@ -1,18 +1,16 @@
+import type { NextRequest } from "next/server";
+
+import { UserRole } from "@/interfaces/session";
 import { fetchUsers } from "@/lib/api/accounts";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const [mentees, mentors] = await Promise.all([
-      fetchUsers("MENTEE"),
-      fetchUsers("MENTOR"),
-    ]);
-    if (mentees.status !== 200) return backendResponse(mentees);
-    if (mentors.status !== 200) return backendResponse(mentors);
-    return backendResponse({
-      ...mentees,
-      data: [...mentees.data, ...mentors.data],
-    });
+    const role =
+      request.nextUrl.searchParams.get("role") === UserRole.Mentor
+        ? UserRole.Mentor
+        : UserRole.Mentee;
+    return backendResponse(await fetchUsers(role));
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Demo accounts could not be loaded.",

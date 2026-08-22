@@ -1,6 +1,5 @@
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
-import type { MentorAvailabilitySlot } from "@/lib/client/mentor-requests";
 import {
   MentorDecisionMode,
   MentorshipRequestMessageType,
@@ -12,7 +11,8 @@ type Props = {
   request: MentorshipRequest;
   mode: MentorDecisionMode | null;
   message: string;
-  selectedSlots: MentorAvailabilitySlot[];
+  selectedSlots: string[];
+  isLoadingSlots: boolean;
   showAvailability: boolean;
   isPending: boolean;
   error: string;
@@ -29,14 +29,6 @@ const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",
   [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
 };
-
-function formatSlot(slot: MentorAvailabilitySlot) {
-  const formatted = new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "long",
-    timeStyle: "short",
-  }).format(new Date(slot.startsAt));
-  return `${formatted} (${slot.durationMinutes} dk)`;
-}
 
 const decisionOptions = [
   {
@@ -76,6 +68,7 @@ export function MentorDecisionModal(props: Props) {
     mode,
     message,
     selectedSlots,
+    isLoadingSlots,
     showAvailability,
     isPending,
     error,
@@ -106,17 +99,22 @@ export function MentorDecisionModal(props: Props) {
               <p className="text-xs font-semibold text-zinc-700">
                 Sunulan Zaman Dilimleri:
               </p>
-              {selectedSlots.length === 0 ? (
+              {isLoadingSlots ? (
                 <p className="text-xs text-zinc-500">
-                  Müsaitlik listenizde uygun zaman dilimi bulunamadı.
+                  Müsaitlik bilgileri yükleniyor...
+                </p>
+              ) : selectedSlots.length === 0 ? (
+                <p className="text-xs text-zinc-500">
+                  Takviminizde önümüzdeki günler için tanımlı bir müsaitlik
+                  bulunamadı.
                 </p>
               ) : (
                 selectedSlots.map((slot) => (
                   <div
-                    key={slot.id}
+                    key={slot}
                     className="flex items-center justify-between rounded-xl border border-emerald-200 bg-emerald-50/50 p-3 text-xs text-emerald-900"
                   >
-                    <span className="font-semibold">📅 {formatSlot(slot)}</span>
+                    <span className="font-semibold">📅 {slot}</span>
                     <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                       Aktif Slot
                     </span>

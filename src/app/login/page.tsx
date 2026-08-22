@@ -7,18 +7,7 @@ import { RoleGroupSection } from "@/components/login/role-group-section";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
-import type { BackendUser } from "@/interfaces/session";
-
-// Only these roles map to a distinct pool of seeded backend accounts.
-// Admin/Program Manager/Trainer aren't backed by their own account pool
-// yet, so a selection made up only of those shows every demo account.
-const BACKEND_ROLE_BY_LOGIN_ROLE: Partial<
-  Record<LoginRoleId, BackendUser["role"]>
-> = {
-  [LoginRoleId.Mentor]: "MENTOR",
-  [LoginRoleId.StartupOwner]: "MENTEE",
-  [LoginRoleId.Mentee]: "MENTEE",
-};
+import { UserRole } from "@/interfaces/session";
 
 function FlowHeader() {
   return (
@@ -32,7 +21,6 @@ function FlowHeader() {
 
 export default function LoginPage() {
   const router = useRouter();
-  const demoAccounts = useDemoAccounts();
   const {
     roleGroups,
     step,
@@ -50,17 +38,13 @@ export default function LoginPage() {
     unverifiedRoleId,
     verifiedRoles,
   } = useLoginFlow();
-
-  const allowedBackendRoles = new Set(
-    [...selectedRoleIds]
-      .map((roleId) => BACKEND_ROLE_BY_LOGIN_ROLE[roleId])
-      .filter((role): role is BackendUser["role"] => Boolean(role)),
+  const demoAccounts = useDemoAccounts(
+    selectedRoleIds.has(LoginRoleId.Mentor) &&
+      !selectedRoleIds.has(LoginRoleId.Mentee)
+      ? UserRole.Mentor
+      : UserRole.Mentee,
   );
-  const visibleDemoAccounts = allowedBackendRoles.size
-    ? (demoAccounts.data?.filter((account) =>
-        allowedBackendRoles.has(account.role),
-      ) ?? [])
-    : (demoAccounts.data ?? []);
+  const visibleDemoAccounts = demoAccounts.data ?? [];
 
   return (
     <div className="min-h-screen bg-zinc-100">

@@ -69,3 +69,22 @@ export type TranscriptLine = {
   text: string;
   at: string;
 };
+
+export type MeetingReportActionItem = {
+  owner: string | null;
+  task: string;
+  due: string | null;
+};
+
+export type MeetingReport = {
+  title: string;
+  meetingDate: string | null;
+  topic: string | null;
+  summary: string;
+  topicsDiscussed: string[];
+  decisions: string[];
+  actionItems: MeetingReportActionItem[];
+  risksOrBlockers: string[];
+  nextSteps: string[];
+  model: string;
+};

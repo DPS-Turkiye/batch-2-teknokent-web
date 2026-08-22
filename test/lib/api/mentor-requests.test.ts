@@ -1,0 +1,92 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import {
+  fetchMentorRequests,
+  mutateMentorRequest,
+  MentorRequestAction,
+} from "@/lib/api/mentor-requests";
+import { UserRole } from "@/interfaces/session";
+import { HttpMethod } from "@/lib/http-method";
+import { backendRequest } from "@/lib/server/backend-client";
+
+vi.mock("@/lib/server/backend-client", () => ({
+  backendRequest: vi.fn(),
+}));
+
+describe("fetchMentorRequests", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("scopes by mentorId when role is mentor", async () => {
+    await fetchMentorRequests({
+      requesterId: "mentor-1",
+      role: UserRole.Mentor,
+    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { mentorId: "mentor-1" } }),
+    );
+  });
+
+  it("scopes by requesterId when role is mentee", async () => {
+    await fetchMentorRequests({
+      requesterId: "mentee-1",
+      role: UserRole.Mentee,
+    });
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ params: { requesterId: "mentee-1" } }),
+    );
+  });
+});
+
+describe("mutateMentorRequest", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("injects the mentor id into decision payloads", async () => {
+    await mutateMentorRequest({
+      action: MentorRequestAction.Decision,
+      data: { status: "ACCEPTED", message: "ok" },
+      id: "req-1",
+      method: HttpMethod.Patch,
+      requesterId: "mentee-1",
+      mentorId: "mentor-1",
+    });
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { status: "ACCEPTED", message: "ok", mentorId: "mentor-1" },
+      }),
+    );
+  });
+
+  it("injects the requester id for actions that need it, not the mentor id", async () => {
+    await mutateMentorRequest({
+      action: MentorRequestAction.Withdrawal,
+      data: {},
+      id: "req-1",
+      method: HttpMethod.Patch,
+      requesterId: "mentee-1",
+    });
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: { requesterId: "mentee-1" },
+      }),
+    );
+  });
+
+  it("leaves the payload untouched for actions outside either list", async () => {
+    await mutateMentorRequest({
+      action: MentorRequestAction.Availability,
+      id: "req-1",
+      method: HttpMethod.Get,
+      requesterId: "mentee-1",
+    });
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ data: undefined }),
+    );
+  });
+});

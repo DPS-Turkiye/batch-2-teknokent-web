@@ -7,7 +7,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { SessionRole, type DemoSession } from "@/interfaces/session";
+import { UserRole, type DemoSession } from "@/interfaces/session";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -32,7 +32,7 @@ function mentorSession(): DemoSession {
     email: "leyla.aksoy@teknokent.demo",
     fullName: "Leyla Aksoy",
     jobTitle: "Mentor",
-    role: SessionRole.Mentor,
+    role: UserRole.Mentor,
   };
 }
 

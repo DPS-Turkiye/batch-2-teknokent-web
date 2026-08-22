@@ -1,16 +1,17 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { MentorProfile } from "@/interfaces/mentor";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
 export async function getMentorRequests(
-  role: SessionRole = SessionRole.Mentee,
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
 ) {
   return requireSuccess(
     await httpClient.get<MentorshipRequest[]>("/api/mentor-requests", {
-      params: role === SessionRole.Mentor ? { role } : undefined,
+      params: role === UserRole.Mentor ? { role } : undefined,
     }),
   );
 }
@@ -44,16 +45,28 @@ export async function withdrawMentorRequest(id: string) {
   );
 }
 
-export type MentorAvailabilitySlot = {
-  id: string;
-  startsAt: string;
-  durationMinutes: number;
-};
-
 export async function getMentorAvailability(id: string) {
   return requireSuccess(
     await httpClient.get<MentorAvailabilitySlot[]>(
       `/api/mentor-requests/${encodeURIComponent(id)}/availability`,
+    ),
+  );
+}
+
+export type ScheduledMeeting = {
+  id: string;
+  mentorshipRequestId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  meetLink: string | null;
+  status: string;
+};
+
+export async function scheduleMeeting(options: { id: string; slotId: string }) {
+  return requireSuccess(
+    await httpClient.post<ScheduledMeeting>(
+      `/api/mentor-requests/${encodeURIComponent(options.id)}/meeting`,
+      { slotId: options.slotId },
     ),
   );
 }
@@ -98,7 +111,6 @@ export async function logMentorshipMeeting(
 
 export async function decideMentorRequest(options: {
   id: string;
-  mentorId: string;
   message: string;
   status: MentorshipRequest["status"];
 }) {
@@ -106,7 +118,6 @@ export async function decideMentorRequest(options: {
     await httpClient.patch<MentorshipRequest>(
       `/api/mentor-requests/${encodeURIComponent(options.id)}/decision`,
       {
-        mentorId: options.mentorId,
         status: options.status,
         message: options.message,
       },

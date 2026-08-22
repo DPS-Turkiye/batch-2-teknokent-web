@@ -1,8 +1,7 @@
-"use client";
-
 import {
   addMeetingBot,
   fetchTranscript,
+  generateMeetingReport,
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
@@ -20,6 +19,7 @@ import {
   MeetingPlatform,
   MeetingStatus,
   type Meeting,
+  type MeetingReport,
   type TranscriptLine,
 } from "@/types/assistant";
 import { FormEvent, useEffect, useMemo, useState } from "react";
@@ -44,6 +44,11 @@ export function useMeetingAssistant() {
   const [padByMeeting, setPadByMeeting] =
     useState<Record<string, string>>(ASSISTANT_SAMPLE_PAD);
   const [transcript, setTranscript] = useState<TranscriptLine[]>([]);
+  const [reportByMeeting, setReportByMeeting] = useState<
+    Record<string, MeetingReport>
+  >({});
+  const [reportStatus, setReportStatus] = useState<BotStatus | null>(null);
+  const [reportError, setReportError] = useState<string | null>(null);
 
   const selected = useMemo(
     () => meetings.find((m) => m.id === selectedId) ?? meetings[0],
@@ -114,6 +119,7 @@ export function useMeetingAssistant() {
   const status = MEETING_STATUS_META[selected.status];
   const padText = padByMeeting[selected.id] ?? "";
   const padSaved = padText.trim().length > 0;
+  const meetingReport = reportByMeeting[selected.id] ?? null;
 
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
@@ -155,6 +161,39 @@ export function useMeetingAssistant() {
     }
   };
 
+  const requestMeetingReport = async (
+    platform: string,
+    nativeMeetingId: string,
+    meetingId: string,
+  ) => {
+    setReportStatus(BotStatus.Sending);
+    setReportError(null);
+    try {
+      const report = await generateMeetingReport(platform, nativeMeetingId);
+      setReportByMeeting((prev) => ({
+        ...prev,
+        [meetingId]: {
+          ...report,
+          topicsDiscussed: report.topicsDiscussed ?? [],
+          decisions: report.decisions ?? [],
+          actionItems: report.actionItems ?? [],
+          risksOrBlockers: report.risksOrBlockers ?? [],
+          nextSteps: report.nextSteps ?? [],
+        },
+      }));
+      setReportStatus(BotStatus.Ok);
+      window.setTimeout(() => setReportStatus(null), 4000);
+    } catch (error) {
+      setReportStatus(BotStatus.Err);
+      setReportError(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate meeting report",
+      );
+      window.setTimeout(() => setReportStatus(null), 6000);
+    }
+  };
+
   const stopBot = async () => {
     if (!selected?.platformKey || !selected?.nativeMeetingId) return;
     if (botStatus === BotStatus.Sending) return;
@@ -171,6 +210,11 @@ export function useMeetingAssistant() {
       );
       setBotStatus(BotStatus.Ok);
       window.setTimeout(() => setBotStatus(null), 4000);
+      void requestMeetingReport(
+        selected.platformKey,
+        selected.nativeMeetingId,
+        selected.id,
+      );
     } catch (error) {
       setBotStatus(BotStatus.Err);
       setBotError(
@@ -203,5 +247,16 @@ export function useMeetingAssistant() {
     updatePadText,
     addBot,
     stopBot,
+    meetingReport,
+    reportStatus,
+    reportError,
+    regenerateReport: () => {
+      if (!selected?.platformKey || !selected?.nativeMeetingId) return;
+      void requestMeetingReport(
+        selected.platformKey,
+        selected.nativeMeetingId,
+        selected.id,
+      );
+    },
   };
 }

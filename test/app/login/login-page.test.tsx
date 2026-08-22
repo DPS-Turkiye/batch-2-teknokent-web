@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
 import { useDemoAccounts } from "@/hooks/use-demo-accounts";
-import type { BackendUser } from "@/interfaces/session";
+import { UserRole, type BackendUser } from "@/interfaces/session";
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn() }),
@@ -18,36 +18,39 @@ vi.mock("@/hooks/use-demo-accounts", () => ({
   useDemoAccounts: vi.fn(),
 }));
 
-function accounts(): BackendUser[] {
-  return [
-    {
-      id: "mentee-1",
-      email: "ayse.kaya@novamed.demo",
-      fullName: "Ayşe Kaya",
-      role: "MENTEE",
-      organizationId: "org-1",
-      organizationName: "NovaMed AI",
-    },
-    {
-      id: "mentor-1",
-      email: "leyla.aksoy@teknokent.demo",
-      fullName: "Leyla Aksoy",
-      role: "MENTOR",
-    },
-  ];
-}
+const MENTEE: BackendUser = {
+  id: "mentee-1",
+  email: "ayse.kaya@novamed.demo",
+  fullName: "Ayşe Kaya",
+  role: UserRole.Mentee,
+  organizationId: "org-1",
+  organizationName: "NovaMed AI",
+};
 
-function mockAccounts(data: BackendUser[]) {
-  vi.mocked(useDemoAccounts).mockReturnValue({
-    data,
-    isLoading: false,
-    error: null,
-  } as ReturnType<typeof useDemoAccounts>);
+const MENTOR: BackendUser = {
+  id: "mentor-1",
+  email: "leyla.aksoy@teknokent.demo",
+  fullName: "Leyla Aksoy",
+  role: UserRole.Mentor,
+};
+
+// The picker no longer filters client-side — GET /api/demo-accounts is
+// role-scoped server-side, so this mirrors that: only the requested role's
+// pool comes back.
+function mockRoleScopedAccounts() {
+  vi.mocked(useDemoAccounts).mockImplementation(
+    (role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee) =>
+      ({
+        data: role === UserRole.Mentor ? [MENTOR] : [MENTEE],
+        isLoading: false,
+        error: null,
+      }) as ReturnType<typeof useDemoAccounts>,
+  );
 }
 
 describe("LoginPage demo account list", () => {
   it("shows only mentor accounts once the Mentor role is selected", async () => {
-    mockAccounts(accounts());
+    mockRoleScopedAccounts();
     const user = userEvent.setup();
     render(<LoginPage />);
 
@@ -64,10 +67,11 @@ describe("LoginPage demo account list", () => {
     expect(
       screen.queryByRole("button", { name: /Ayşe Kaya/ }),
     ).not.toBeInTheDocument();
+    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentor);
   });
 
   it("shows only mentee accounts once a startup-team role is selected", async () => {
-    mockAccounts(accounts());
+    mockRoleScopedAccounts();
     const user = userEvent.setup();
     render(<LoginPage />);
 
@@ -82,10 +86,11 @@ describe("LoginPage demo account list", () => {
     expect(
       screen.queryByRole("button", { name: /Leyla Aksoy/ }),
     ).not.toBeInTheDocument();
+    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
   });
 
-  it("shows every account when only a role with no backend pool is selected", async () => {
-    mockAccounts(accounts());
+  it("defaults to mentee accounts when a role with no backend pool is selected", async () => {
+    mockRoleScopedAccounts();
     const user = userEvent.setup();
     render(<LoginPage />);
 
@@ -94,11 +99,6 @@ describe("LoginPage demo account list", () => {
     await user.click(screen.getAllByRole("checkbox")[0]);
     await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
 
-    expect(
-      screen.getByRole("button", { name: /Leyla Aksoy/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Ayşe Kaya/ }),
-    ).toBeInTheDocument();
+    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
   });
 });

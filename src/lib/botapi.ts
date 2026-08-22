@@ -32,3 +32,22 @@ export async function stopMeetingBotBackend(
     status: response.status,
   };
 }
+
+export async function generateMeetingReportBackend(
+  platform: string,
+  nativeMeetingId: string,
+  body: { model?: string },
+): Promise<{ data: unknown; status: number }> {
+  const response = await backendRequest(
+    {
+      method: "POST",
+      url: `/api/assistant/bots/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}/report`,
+      data: body,
+    },
+    { authenticated: false },
+  );
+  return {
+    data: response.data,
+    status: response.status,
+  };
+}

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   decideMentorRequest,
   getAlternativeMentors,
@@ -11,13 +11,17 @@ import {
   getMentorRequest,
   getMentorRequests,
   replyToMentorRequest,
+  scheduleMeeting,
   withdrawMentorRequest,
 } from "@/lib/client/mentor-requests";
 
-export const mentorshipRequestsQueryKey = (role: SessionRole) =>
-  ["mentorship-requests", role] as const;
+export const mentorshipRequestsQueryKey = (
+  role: UserRole.Mentee | UserRole.Mentor,
+) => ["mentorship-requests", role] as const;
 
-export function useMentorshipRequests(role: SessionRole = SessionRole.Mentee) {
+export function useMentorshipRequests(
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+) {
   return useQuery({
     queryKey: mentorshipRequestsQueryKey(role),
     queryFn: () => getMentorRequests(role),
@@ -56,7 +60,7 @@ export function useReplyToMentorRequest(id: string | null) {
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
-        queryKey: mentorshipRequestsQueryKey(SessionRole.Mentee),
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
       });
     },
   });
@@ -69,7 +73,21 @@ export function useWithdrawMentorRequest(id: string | null) {
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
-        queryKey: mentorshipRequestsQueryKey(SessionRole.Mentee),
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
+      });
+    },
+  });
+}
+
+export function useScheduleMeeting(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (slotId: string) =>
+      scheduleMeeting({ id: id as string, slotId }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mentor-availability", id] });
+      return queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
       });
     },
   });
@@ -85,7 +103,7 @@ export function useMentorRequestDecision() {
     mutationFn: decideMentorRequest,
     onSuccess: () =>
       queryClient.invalidateQueries({
-        queryKey: mentorshipRequestsQueryKey(SessionRole.Mentor),
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
       }),
   });
 }

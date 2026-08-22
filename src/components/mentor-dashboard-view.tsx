@@ -5,26 +5,14 @@ import { useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
-import { useSession } from "@/components/providers/session-provider";
+import { useDecision } from "@/hooks/use-decision";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
-  useMentorAvailability,
-  useMentorRequestDecision,
-  useMentorshipRequests,
-} from "@/hooks/use-mentorship-requests";
-import {
-  MentorDecisionMode,
   MentorRequestFilter,
   MentorshipRequestStatus,
-  type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { SessionRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
-
-const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
-  [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,
-  [MentorDecisionMode.AskInfo]: MentorshipRequestStatus.MoreInfoRequested,
-  [MentorDecisionMode.Decline]: MentorshipRequestStatus.Declined,
-};
 
 const filterStatuses: Record<
   Exclude<MentorRequestFilter, MentorRequestFilter.All>,
@@ -46,62 +34,12 @@ const filterOptions = [
 ] as const;
 
 export function MentorDashboardView() {
-  const { session } = useSession();
-  const requestsQuery = useMentorshipRequests(SessionRole.Mentor);
-  const decisionMutation = useMentorRequestDecision();
+  const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
     MentorRequestFilter.All,
   );
-  const [selectedRequest, setSelectedRequest] =
-    useState<MentorshipRequest | null>(null);
-  const [decisionMode, setDecisionMode] = useState<MentorDecisionMode | null>(
-    null,
-  );
-  const [decisionMessage, setDecisionMessage] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [showAvailabilityStep, setShowAvailabilityStep] = useState(false);
-  const availabilityQuery = useMentorAvailability(
-    selectedRequest?.id ?? null,
-    showAvailabilityStep,
-  );
-  const selectedSlots = availabilityQuery.data ?? [];
-
-  const closeDecision = () => {
-    setSelectedRequest(null);
-    setDecisionMode(null);
-    setDecisionMessage("");
-    setActionError("");
-    setShowAvailabilityStep(false);
-  };
-
-  const handleDecisionSubmit = async () => {
-    if (!selectedRequest || !decisionMode || !session) return;
-    setActionError("");
-
-    try {
-      await decisionMutation.mutateAsync({
-        id: selectedRequest.id,
-        mentorId: session.userId,
-        status: decisionStatuses[decisionMode],
-        message:
-          decisionMessage ||
-          (decisionMode === MentorDecisionMode.Accept
-            ? "Talebiniz kabul edildi."
-            : "Detaylı bilgi rica ederim."),
-      });
-
-      if (decisionMode === MentorDecisionMode.Accept) {
-        setShowAvailabilityStep(true);
-      } else {
-        closeDecision();
-      }
-    } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "İşlem sırasında hata oluştu.",
-      );
-    }
-  };
+  const decision = useDecision();
 
   const filteredRequests = requests.filter((request) => {
     if (filter === MentorRequestFilter.All) return true;
@@ -180,30 +118,27 @@ export function MentorDashboardView() {
                 <MentorRequestCard
                   key={request.id}
                   request={request}
-                  onReview={(selected) => {
-                    setSelectedRequest(selected);
-                    setDecisionMode(null);
-                    setShowAvailabilityStep(false);
-                  }}
+                  onReview={decision.selectRequest}
                 />
               ))}
             </div>
           )}
         </section>
 
-        {selectedRequest ? (
+        {decision.selectedRequest ? (
           <MentorDecisionModal
-            request={selectedRequest}
-            mode={decisionMode}
-            message={decisionMessage}
-            selectedSlots={selectedSlots}
-            showAvailability={showAvailabilityStep}
-            isPending={decisionMutation.isPending}
-            error={actionError}
-            onModeChange={setDecisionMode}
-            onMessageChange={setDecisionMessage}
-            onClose={closeDecision}
-            onSubmit={() => void handleDecisionSubmit()}
+            request={decision.selectedRequest}
+            mode={decision.decisionMode}
+            message={decision.decisionMessage}
+            selectedSlots={decision.selectedSlots}
+            isLoadingSlots={decision.isLoadingSlots}
+            showAvailability={decision.showAvailabilityStep}
+            isPending={decision.isPending}
+            error={decision.actionError}
+            onModeChange={decision.setDecisionMode}
+            onMessageChange={decision.setDecisionMessage}
+            onClose={decision.closeDecision}
+            onSubmit={() => void decision.submitDecision()}
           />
         ) : null}
       </div>

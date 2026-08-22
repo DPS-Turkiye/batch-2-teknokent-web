@@ -35,7 +35,8 @@ function baseProps() {
     request: request(),
     mode: null as MentorDecisionMode | null,
     message: "",
-    selectedSlots: [],
+    selectedSlots: [] as string[],
+    isLoadingSlots: false,
     showAvailability: false,
     isPending: false,
     error: "",
@@ -112,25 +113,26 @@ describe("MentorDecisionModal", () => {
     expect(screen.getByText("Red Gerekçesi / Açıklama:")).toBeInTheDocument();
   });
 
-  it("formats real availability slots in the availability step", () => {
+  it("renders pre-formatted availability slots in the availability step", () => {
     render(
       <MentorDecisionModal
         {...baseProps()}
         showAvailability
-        selectedSlots={[
-          {
-            id: "slot-1",
-            startsAt: "2026-08-26T05:00:00.000Z",
-            durationMinutes: 60,
-          },
-        ]}
+        selectedSlots={["26 Ağustos 2026 08:00 (60 dk)"]}
       />,
     );
 
     expect(screen.getByText(/60 dk/)).toBeInTheDocument();
+  });
+
+  it("shows a loading message while availability is being fetched", () => {
+    render(
+      <MentorDecisionModal {...baseProps()} showAvailability isLoadingSlots />,
+    );
+
     expect(
-      screen.queryByText("12 Ağustos 2026, 14:00"),
-    ).not.toBeInTheDocument();
+      screen.getByText("Müsaitlik bilgileri yükleniyor..."),
+    ).toBeInTheDocument();
   });
 
   it("shows a fallback message when no availability slots exist", () => {
@@ -143,7 +145,9 @@ describe("MentorDecisionModal", () => {
     );
 
     expect(
-      screen.getByText("Müsaitlik listenizde uygun zaman dilimi bulunamadı."),
+      screen.getByText(
+        "Takviminizde önümüzdeki günler için tanımlı bir müsaitlik bulunamadı.",
+      ),
     ).toBeInTheDocument();
   });
 });
