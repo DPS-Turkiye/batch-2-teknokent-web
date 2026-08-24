@@ -26,3 +26,26 @@ export interface MentorProfile {
   recommendationReasons: string[];
   recommendationEvidence: MentorEvidence[];
 }
+
+export type UpdateMentorProfilePayload = Pick<
+  MentorProfile,
+  | "professionalTitle"
+  | "company"
+  | "availabilityLabel"
+  | "responseTimeLabel"
+  | "meetingMode"
+  | "communicationPreference"
+  | "mentoringStyle"
+  | "fitLabel"
+  | "experienceLevel"
+  | "sectorExperience"
+  | "startupStages"
+  | "specialties"
+>;
+
+export interface MentorAvailabilitySlot {
+  id: string;
+  startsAt: string;
+  durationMinutes: number;
+  booked: boolean;
+}

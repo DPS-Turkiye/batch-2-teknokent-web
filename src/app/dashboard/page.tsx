@@ -11,6 +11,7 @@ import { Avatar } from "@/components/common/avatar";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const requestStatusLabels = {
@@ -20,15 +21,6 @@ const requestStatusLabels = {
   [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
   [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
 } satisfies Record<MentorshipRequestStatus, string>;
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
 
 function formatMeetingDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {

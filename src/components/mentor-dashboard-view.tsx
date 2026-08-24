@@ -3,10 +3,8 @@
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
-import { MentorAvailabilityPanel } from "@/components/mentor-dashboard/availability-panel";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
-import { useDemoSession } from "@/components/providers/session-provider";
 import { useDecision } from "@/hooks/use-decision";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
@@ -36,8 +34,6 @@ const filterOptions = [
 ] as const;
 
 export function MentorDashboardView() {
-  const session = useDemoSession();
-  const mentorId = session?.role === UserRole.Mentor ? session.userId : null;
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
@@ -128,8 +124,6 @@ export function MentorDashboardView() {
             </div>
           )}
         </section>
-
-        <MentorAvailabilityPanel mentorId={mentorId} />
 
         {decision.selectedRequest ? (
           <MentorDecisionModal

@@ -17,6 +17,8 @@ export function backendResponse(
     if (typeof value === "string") headers.set(name, value);
   }
 
+  // 204/304 responses must not carry a body per the Fetch spec — NextResponse
+  // throws if one is attached, so skip it entirely for those statuses.
   if (response.status === 204 || response.status === 304) {
     headers.delete("Content-Type");
     return new NextResponse(null, { status: response.status, headers });

@@ -20,6 +20,7 @@ import {
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
+import { initials } from "@/lib/utils";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
@@ -39,15 +40,6 @@ const statusTones: Record<
   [MentorshipRequestStatus.Pending]: "amber",
   [MentorshipRequestStatus.Withdrawn]: "gray",
 };
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
 
 export default function RequestStatusPage() {
   const router = useRouter();

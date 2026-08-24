@@ -1,22 +1,30 @@
+import Link from "next/link";
+
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 
-const statusLabels = {
-  ACCEPTED: "Kabul Edildi",
-  DECLINED: "Uygun Değil",
-  MORE_INFO_REQUESTED: "Ek Bilgi İstendi",
-  PENDING: "Yanıt Bekliyor",
-  WITHDRAWN: "Geri Çekildi",
-} as const;
+const statusLabels: Record<MentorshipRequestStatus, string> = {
+  [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.Declined]: "Uygun Değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
+};
 
-const statusTones = {
-  ACCEPTED: "green",
-  DECLINED: "gray",
-  MORE_INFO_REQUESTED: "purple",
-  PENDING: "amber",
-  WITHDRAWN: "gray",
-} as const;
+const statusTones: Record<
+  MentorshipRequestStatus,
+  "gray" | "green" | "amber" | "purple"
+> = {
+  [MentorshipRequestStatus.Accepted]: "green",
+  [MentorshipRequestStatus.Declined]: "gray",
+  [MentorshipRequestStatus.MoreInfoRequested]: "purple",
+  [MentorshipRequestStatus.Pending]: "amber",
+  [MentorshipRequestStatus.Withdrawn]: "gray",
+};
 
 export function MentorRequestCard({
   request,
@@ -64,7 +72,7 @@ export function MentorRequestCard({
         ) : null}
       </div>
 
-      <div className="mt-5 border-t border-zinc-100 pt-3">
+      <div className="mt-5 space-y-2 border-t border-zinc-100 pt-3">
         <button
           type="button"
           onClick={() => onReview(request)}
@@ -72,6 +80,14 @@ export function MentorRequestCard({
         >
           Talebi İncele &amp; Yanıtla →
         </button>
+        {request.status === MentorshipRequestStatus.Accepted ? (
+          <Link
+            href={`/mentor-dashboard/mentorship/${request.id}`}
+            className="block w-full rounded-lg border border-zinc-300 py-2 text-center text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50"
+          >
+            Süreci Görüntüle
+          </Link>
+        ) : null}
       </div>
     </article>
   );

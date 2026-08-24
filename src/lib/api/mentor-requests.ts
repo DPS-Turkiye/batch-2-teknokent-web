@@ -10,6 +10,7 @@ export enum MentorRequestAction {
   Decision = "decision",
   Messages = "messages",
   Meeting = "meeting",
+  Meetings = "meetings",
   Withdrawal = "withdrawal",
 }
 

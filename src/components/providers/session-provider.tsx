@@ -26,7 +26,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const sessionQuery = useQuery({
     queryKey: SESSION_QUERY_KEY,
     queryFn: fetchSession,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
   const loginMutation = useMutation({
     mutationFn: async (email: string) => {

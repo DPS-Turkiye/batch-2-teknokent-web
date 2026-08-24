@@ -44,6 +44,7 @@ export default function LoginPage() {
       ? UserRole.Mentor
       : UserRole.Mentee,
   );
+  const visibleDemoAccounts = demoAccounts.data ?? [];
 
   return (
     <div className="min-h-screen bg-zinc-100">
@@ -157,13 +158,13 @@ export default function LoginPage() {
                 placeholder="ornek@metu.edu.tr"
                 className="mt-2 w-full border border-zinc-300 bg-zinc-50 px-3 py-3 text-sm placeholder:text-zinc-400"
               />
-              {demoAccounts.data?.length ? (
+              {visibleDemoAccounts.length ? (
                 <div className="mt-3 border border-zinc-200 bg-zinc-50 p-3">
                   <p className="text-[10px] font-semibold uppercase tracking-wide text-zinc-500">
                     Demo hesapları
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
-                    {demoAccounts.data.map((account) => (
+                    {visibleDemoAccounts.map((account) => (
                       <button
                         key={account.id}
                         type="button"

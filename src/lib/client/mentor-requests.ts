@@ -1,3 +1,4 @@
+import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { MentorProfile } from "@/interfaces/mentor";
@@ -74,6 +75,36 @@ export async function getAlternativeMentors(id: string) {
   return requireSuccess(
     await httpClient.get<MentorProfile[]>(
       `/api/mentor-requests/${encodeURIComponent(id)}/alternatives`,
+    ),
+  );
+}
+
+export async function getMentorshipMeetings(id: string) {
+  return requireSuccess(
+    await httpClient.get<MeetingItem[]>(
+      `/api/mentor-requests/${encodeURIComponent(id)}/meetings`,
+    ),
+  );
+}
+
+export type LogMeetingPayload = {
+  mentorId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  agenda?: string;
+  notes?: string;
+  outcomes?: string;
+  status: MeetingStatus;
+};
+
+export async function logMentorshipMeeting(
+  id: string,
+  payload: LogMeetingPayload,
+) {
+  return requireSuccess(
+    await httpClient.post<MeetingItem>(
+      `/api/mentor-requests/${encodeURIComponent(id)}/meetings`,
+      payload,
     ),
   );
 }

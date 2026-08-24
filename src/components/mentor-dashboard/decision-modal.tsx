@@ -2,6 +2,8 @@ import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import {
   MentorDecisionMode,
+  MentorshipRequestMessageType,
+  MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 
@@ -20,13 +22,13 @@ type Props = {
   onSubmit: () => void;
 };
 
-const statusLabels = {
-  ACCEPTED: "Kabul Edildi",
-  DECLINED: "Uygun Değil",
-  MORE_INFO_REQUESTED: "Ek Bilgi İstendi",
-  PENDING: "Yanıt Bekliyor",
-  WITHDRAWN: "Geri Çekildi",
-} as const;
+const statusLabels: Record<MentorshipRequestStatus, string> = {
+  [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.Declined]: "Uygun Değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
+};
 
 const decisionOptions = [
   {
@@ -170,13 +172,15 @@ export function MentorDecisionModal(props: Props) {
                       <div
                         key={`${item.messageType}-${index}`}
                         className={`rounded-lg border p-2 text-xs ${
-                          item.messageType === "MENTOR_QUESTION"
+                          item.messageType ===
+                          MentorshipRequestMessageType.MentorQuestion
                             ? "border-amber-200 bg-amber-50 text-amber-900"
                             : "border-blue-200 bg-blue-50 text-blue-900"
                         }`}
                       >
                         <span className="font-bold">
-                          {item.messageType === "MENTOR_QUESTION"
+                          {item.messageType ===
+                          MentorshipRequestMessageType.MentorQuestion
                             ? "Mentor Sorusu:"
                             : "Girişimci Yanıtı:"}
                         </span>{" "}

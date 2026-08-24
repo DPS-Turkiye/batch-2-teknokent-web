@@ -20,3 +20,11 @@ export function createMeeting(
     data: { ...payload, organizationId },
   });
 }
+
+export function updateMeeting(id: string, payload: Record<string, unknown>) {
+  return backendRequest({
+    method: "PATCH",
+    url: `/api/meetings/${encodeURIComponent(id)}`,
+    data: payload,
+  });
+}

@@ -20,8 +20,13 @@ export enum MentorRequestFilter {
   Pending = MentorshipRequestStatus.Pending,
 }
 
+export enum MentorshipRequestMessageType {
+  MenteeReply = "MENTEE_REPLY",
+  MentorQuestion = "MENTOR_QUESTION",
+}
+
 export type RequestMessage = {
-  messageType: "MENTEE_REPLY" | "MENTOR_QUESTION";
+  messageType: MentorshipRequestMessageType;
   body: string;
 };
 
