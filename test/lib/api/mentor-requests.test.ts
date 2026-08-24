@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   fetchMentorRequests,
+  isMentorRequestAction,
   mutateMentorRequest,
   MentorRequestAction,
 } from "@/lib/api/mentor-requests";
@@ -36,6 +37,30 @@ describe("fetchMentorRequests", () => {
     expect(backendRequest).toHaveBeenCalledWith(
       expect.objectContaining({ params: { requesterId: "mentee-1" } }),
     );
+  });
+});
+
+describe("isMentorRequestAction", () => {
+  it("accepts every action the [id]/[action] proxy route needs to route, including the mentorship timeline's plural 'meetings'", () => {
+    // Regression test: this enum was accidentally reduced to only "meeting"
+    // (singular, PR #8's meeting-booking action) while merging main into
+    // the branch that added the mentorship timeline feature, which posts to
+    // .../meetings (plural). That silently 400'd every timeline request.
+    for (const action of [
+      "alternatives",
+      "availability",
+      "decision",
+      "messages",
+      "meeting",
+      "meetings",
+      "withdrawal",
+    ]) {
+      expect(isMentorRequestAction(action)).toBe(true);
+    }
+  });
+
+  it("rejects an unknown action", () => {
+    expect(isMentorRequestAction("not-a-real-action")).toBe(false);
   });
 });
 
