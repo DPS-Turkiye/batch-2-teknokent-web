@@ -1,14 +1,13 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import MentorProfilePage from "@/app/mentor-profile/page";
 import {
-  useCreateAvailabilitySlot,
-  useDeleteAvailabilitySlot,
+  useAvailabilitySlotForm,
   useMentorAvailabilitySlots,
   useMentorProfile,
-  useUpdateMentorProfile,
+  useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import type {
   MentorAvailabilitySlot,
@@ -24,10 +23,9 @@ vi.mock("@/components/hoc/app-shell", () => ({
 
 vi.mock("@/hooks/use-mentor-profile", () => ({
   useMentorProfile: vi.fn(),
-  useUpdateMentorProfile: vi.fn(),
+  useMentorProfileForm: vi.fn(),
   useMentorAvailabilitySlots: vi.fn(),
-  useCreateAvailabilitySlot: vi.fn(),
-  useDeleteAvailabilitySlot: vi.fn(),
+  useAvailabilitySlotForm: vi.fn(),
 }));
 
 function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
@@ -66,29 +64,48 @@ function slot(
   };
 }
 
+function mockProfileForm(overrides: Record<string, unknown> = {}) {
+  vi.mocked(useMentorProfileForm).mockReturnValue({
+    form: profile(),
+    specialtyInput: "",
+    setSpecialtyInput: vi.fn(),
+    saveError: "",
+    saveSuccess: false,
+    isSaving: false,
+    updateField: vi.fn(),
+    addSpecialty: vi.fn(),
+    removeSpecialty: vi.fn(),
+    handleSave: vi.fn(),
+    ...overrides,
+  } as ReturnType<typeof useMentorProfileForm>);
+}
+
+function mockSlotForm(overrides: Record<string, unknown> = {}) {
+  vi.mocked(useAvailabilitySlotForm).mockReturnValue({
+    slotForm: { startsAt: "2026-08-22T10:00", durationMinutes: 60 },
+    setSlotForm: vi.fn(),
+    slotError: "",
+    isCreating: false,
+    isDeleting: false,
+    handleAddSlot: vi.fn(),
+    handleDeleteSlot: vi.fn(),
+    ...overrides,
+  } as ReturnType<typeof useAvailabilitySlotForm>);
+}
+
 describe("MentorProfilePage", () => {
-  it("pre-fills the form with the loaded profile", () => {
+  it("renders the profile form once the profile loads", () => {
     vi.mocked(useMentorProfile).mockReturnValue({
       data: profile(),
       isLoading: false,
       error: null,
     } as ReturnType<typeof useMentorProfile>);
-    vi.mocked(useUpdateMentorProfile).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useUpdateMentorProfile>);
+    mockProfileForm();
     vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
       data: [],
       isLoading: false,
     } as ReturnType<typeof useMentorAvailabilitySlots>);
-    vi.mocked(useCreateAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateAvailabilitySlot>);
-    vi.mocked(useDeleteAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useDeleteAvailabilitySlot>);
+    mockSlotForm();
 
     renderWithQueryClient(<MentorProfilePage />);
 
@@ -96,69 +113,41 @@ describe("MentorProfilePage", () => {
     expect(screen.getByText("Sürdürülebilir iş modeli")).toBeInTheDocument();
   });
 
-  it("saves edited fields through the update mutation", async () => {
-    const mutateAsync = vi.fn().mockResolvedValue(profile());
+  it("calls handleSave when the save button is clicked", async () => {
+    const handleSave = vi.fn();
     vi.mocked(useMentorProfile).mockReturnValue({
       data: profile(),
       isLoading: false,
       error: null,
     } as ReturnType<typeof useMentorProfile>);
-    vi.mocked(useUpdateMentorProfile).mockReturnValue({
-      mutateAsync,
-      isPending: false,
-    } as unknown as ReturnType<typeof useUpdateMentorProfile>);
+    mockProfileForm({ handleSave });
     vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
       data: [],
       isLoading: false,
     } as ReturnType<typeof useMentorAvailabilitySlots>);
-    vi.mocked(useCreateAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateAvailabilitySlot>);
-    vi.mocked(useDeleteAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useDeleteAvailabilitySlot>);
+    mockSlotForm();
 
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProfilePage />);
 
-    const companyInput = screen.getByDisplayValue("Döngü Labs");
-    await user.clear(companyInput);
-    await user.type(companyInput, "Yeni Şirket");
     await user.click(screen.getByRole("button", { name: "Profili Kaydet" }));
 
-    await waitFor(() =>
-      expect(mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({ company: "Yeni Şirket" }),
-      ),
-    );
-    expect(screen.getByText("Profil güncellendi.")).toBeInTheDocument();
+    expect(handleSave).toHaveBeenCalled();
   });
 
-  it("renders availability slots and removes one via the delete mutation", async () => {
-    const deleteMutateAsync = vi.fn().mockResolvedValue(undefined);
+  it("renders availability slots and calls handleDeleteSlot", async () => {
+    const handleDeleteSlot = vi.fn();
     vi.mocked(useMentorProfile).mockReturnValue({
       data: profile(),
       isLoading: false,
       error: null,
     } as ReturnType<typeof useMentorProfile>);
-    vi.mocked(useUpdateMentorProfile).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useUpdateMentorProfile>);
+    mockProfileForm();
     vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
       data: [slot()],
       isLoading: false,
     } as ReturnType<typeof useMentorAvailabilitySlots>);
-    vi.mocked(useCreateAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateAvailabilitySlot>);
-    vi.mocked(useDeleteAvailabilitySlot).mockReturnValue({
-      mutateAsync: deleteMutateAsync,
-      isPending: false,
-    } as unknown as ReturnType<typeof useDeleteAvailabilitySlot>);
+    mockSlotForm({ handleDeleteSlot });
 
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProfilePage />);
@@ -166,9 +155,7 @@ describe("MentorProfilePage", () => {
     expect(screen.getByText(/60 dk/)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Kaldır" }));
 
-    await waitFor(() =>
-      expect(deleteMutateAsync).toHaveBeenCalledWith("slot-1"),
-    );
+    expect(handleDeleteSlot).toHaveBeenCalledWith("slot-1");
   });
 
   it("disables removing a booked slot", () => {
@@ -177,22 +164,12 @@ describe("MentorProfilePage", () => {
       isLoading: false,
       error: null,
     } as ReturnType<typeof useMentorProfile>);
-    vi.mocked(useUpdateMentorProfile).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useUpdateMentorProfile>);
+    mockProfileForm();
     vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
       data: [slot({ booked: true })],
       isLoading: false,
     } as ReturnType<typeof useMentorAvailabilitySlots>);
-    vi.mocked(useCreateAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useCreateAvailabilitySlot>);
-    vi.mocked(useDeleteAvailabilitySlot).mockReturnValue({
-      mutateAsync: vi.fn(),
-      isPending: false,
-    } as unknown as ReturnType<typeof useDeleteAvailabilitySlot>);
+    mockSlotForm();
 
     renderWithQueryClient(<MentorProfilePage />);
 

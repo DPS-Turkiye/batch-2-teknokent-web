@@ -1,10 +1,11 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   useLogMeeting,
+  useLogMeetingForm,
   useMentorshipMeetings,
   useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
@@ -138,5 +139,79 @@ describe("useUpdateMeeting", () => {
     await waitFor(() => {
       expect(getMentorshipMeetings).toHaveBeenCalledTimes(2);
     });
+  });
+});
+
+describe("useLogMeetingForm", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does nothing when there is no mentor id", async () => {
+    const { result } = renderHook(() => useLogMeetingForm("request-1", null), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    await act(async () => {
+      await result.current.handleLogMeeting();
+    });
+
+    expect(logMentorshipMeeting).not.toHaveBeenCalled();
+  });
+
+  it("logs a meeting with the given mentor id and clears agenda/notes on success", async () => {
+    vi.mocked(logMentorshipMeeting).mockResolvedValue(meeting());
+    const { result } = renderHook(
+      () => useLogMeetingForm("request-1", "mentor-1"),
+      { wrapper: wrapperFor(createTestQueryClient()) },
+    );
+
+    act(() => {
+      result.current.updateForm({ agenda: "Gündem", notes: "Not" });
+    });
+
+    await act(async () => {
+      await result.current.handleLogMeeting();
+    });
+
+    expect(logMentorshipMeeting).toHaveBeenCalledWith(
+      "request-1",
+      expect.objectContaining({ mentorId: "mentor-1", agenda: "Gündem" }),
+    );
+    expect(result.current.form.agenda).toBe("");
+    expect(result.current.form.notes).toBe("");
+  });
+
+  it("reports an error when logging fails", async () => {
+    vi.mocked(logMentorshipMeeting).mockRejectedValue(
+      new Error("Görüşme kaydedilemedi."),
+    );
+    const { result } = renderHook(
+      () => useLogMeetingForm("request-1", "mentor-1"),
+      { wrapper: wrapperFor(createTestQueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.handleLogMeeting();
+    });
+
+    expect(result.current.logError).toBe("Görüşme kaydedilemedi.");
+  });
+
+  it("resets the form back to its defaults", () => {
+    const { result } = renderHook(
+      () => useLogMeetingForm("request-1", "mentor-1"),
+      { wrapper: wrapperFor(createTestQueryClient()) },
+    );
+
+    act(() => {
+      result.current.updateForm({ agenda: "Gündem" });
+    });
+    expect(result.current.form.agenda).toBe("Gündem");
+
+    act(() => {
+      result.current.resetForm();
+    });
+    expect(result.current.form.agenda).toBe("");
   });
 });

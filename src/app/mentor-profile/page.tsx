@@ -1,21 +1,19 @@
 "use client";
 
-import { useState } from "react";
-
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import {
-  useCreateAvailabilitySlot,
-  useDeleteAvailabilitySlot,
+  useAvailabilitySlotForm,
   useMentorAvailabilitySlots,
   useMentorProfile,
-  useUpdateMentorProfile,
+  useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import type {
   MentorProfile,
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
+import { formatDateTime } from "@/lib/utils";
 
 const FIELDS: Array<{
   key: keyof UpdateMentorProfilePayload;
@@ -34,81 +32,19 @@ const FIELDS: Array<{
   { key: "startupStages", label: "Girişim Aşamaları" },
 ];
 
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "long",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function toDateTimeLocalValue(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
-function defaultSlotStart() {
-  // The backend rejects slots that aren't strictly in the future, so
-  // default a bit ahead of "now" rather than exactly at it — otherwise
-  // accepting the default value as-is fails by the time the request lands.
-  return toDateTimeLocalValue(new Date(Date.now() + 60 * 60 * 1000));
-}
-
 function ProfileForm({ profile }: { profile: MentorProfile }) {
-  const updateProfileMutation = useUpdateMentorProfile();
-  const [form, setForm] = useState<UpdateMentorProfilePayload>(() => ({
-    professionalTitle: profile.professionalTitle,
-    company: profile.company,
-    availabilityLabel: profile.availabilityLabel,
-    responseTimeLabel: profile.responseTimeLabel,
-    meetingMode: profile.meetingMode,
-    communicationPreference: profile.communicationPreference,
-    mentoringStyle: profile.mentoringStyle,
-    fitLabel: profile.fitLabel,
-    experienceLevel: profile.experienceLevel,
-    sectorExperience: profile.sectorExperience,
-    startupStages: profile.startupStages,
-    specialties: profile.specialties,
-  }));
-  const [specialtyInput, setSpecialtyInput] = useState("");
-  const [saveError, setSaveError] = useState("");
-  const [saveSuccess, setSaveSuccess] = useState(false);
-
-  const updateField = (
-    key: keyof UpdateMentorProfilePayload,
-    value: string,
-  ) => {
-    setForm((previous) => ({ ...previous, [key]: value }));
-  };
-
-  const addSpecialty = () => {
-    const value = specialtyInput.trim();
-    if (!value || form.specialties.includes(value)) return;
-    setForm((previous) => ({
-      ...previous,
-      specialties: [...previous.specialties, value],
-    }));
-    setSpecialtyInput("");
-  };
-
-  const removeSpecialty = (value: string) => {
-    setForm((previous) => ({
-      ...previous,
-      specialties: previous.specialties.filter((item) => item !== value),
-    }));
-  };
-
-  const handleSave = async () => {
-    setSaveError("");
-    setSaveSuccess(false);
-    try {
-      await updateProfileMutation.mutateAsync(form);
-      setSaveSuccess(true);
-    } catch (error) {
-      setSaveError(
-        error instanceof Error ? error.message : "Profil kaydedilemedi.",
-      );
-    }
-  };
+  const {
+    form,
+    specialtyInput,
+    setSpecialtyInput,
+    saveError,
+    saveSuccess,
+    isSaving,
+    updateField,
+    addSpecialty,
+    removeSpecialty,
+    handleSave,
+  } = useMentorProfileForm(profile);
 
   return (
     <>
@@ -180,13 +116,8 @@ function ProfileForm({ profile }: { profile: MentorProfile }) {
       ) : null}
 
       <div className="mt-4">
-        <PrimaryButton
-          disabled={updateProfileMutation.isPending}
-          onClick={() => void handleSave()}
-        >
-          {updateProfileMutation.isPending
-            ? "Kaydediliyor..."
-            : "Profili Kaydet"}
+        <PrimaryButton disabled={isSaving} onClick={() => void handleSave()}>
+          {isSaving ? "Kaydediliyor..." : "Profili Kaydet"}
         </PrimaryButton>
       </div>
     </>
@@ -196,40 +127,15 @@ function ProfileForm({ profile }: { profile: MentorProfile }) {
 export default function MentorProfilePage() {
   const profileQuery = useMentorProfile();
   const availabilityQuery = useMentorAvailabilitySlots();
-  const createSlotMutation = useCreateAvailabilitySlot();
-  const deleteSlotMutation = useDeleteAvailabilitySlot();
-
-  const [slotForm, setSlotForm] = useState({
-    startsAt: defaultSlotStart(),
-    durationMinutes: 60,
-  });
-  const [slotError, setSlotError] = useState("");
-
-  const handleAddSlot = async () => {
-    setSlotError("");
-    try {
-      await createSlotMutation.mutateAsync({
-        startsAt: new Date(slotForm.startsAt).toISOString(),
-        durationMinutes: slotForm.durationMinutes,
-      });
-      setSlotForm({
-        startsAt: defaultSlotStart(),
-        durationMinutes: 60,
-      });
-    } catch (error) {
-      setSlotError(
-        error instanceof Error ? error.message : "Zaman dilimi eklenemedi.",
-      );
-    }
-  };
-
-  const handleDeleteSlot = async (slotId: string) => {
-    try {
-      await deleteSlotMutation.mutateAsync(slotId);
-    } catch {
-      // surfaced via deleteSlotMutation.error below
-    }
-  };
+  const {
+    slotForm,
+    setSlotForm,
+    slotError,
+    isCreating,
+    isDeleting,
+    handleAddSlot,
+    handleDeleteSlot,
+  } = useAvailabilitySlotForm();
 
   const slots = availabilityQuery.data ?? [];
 
@@ -289,7 +195,7 @@ export default function MentorProfilePage() {
                   </span>
                   <button
                     type="button"
-                    disabled={slot.booked || deleteSlotMutation.isPending}
+                    disabled={slot.booked || isDeleting}
                     onClick={() => void handleDeleteSlot(slot.id)}
                     className="text-zinc-400 hover:text-red-600 disabled:cursor-not-allowed disabled:opacity-40"
                   >
@@ -335,10 +241,10 @@ export default function MentorProfilePage() {
               />
             </div>
             <PrimaryButton
-              disabled={createSlotMutation.isPending}
+              disabled={isCreating}
               onClick={() => void handleAddSlot()}
             >
-              {createSlotMutation.isPending ? "Ekleniyor..." : "Ekle"}
+              {isCreating ? "Ekleniyor..." : "Ekle"}
             </PrimaryButton>
           </div>
           {slotError ? (

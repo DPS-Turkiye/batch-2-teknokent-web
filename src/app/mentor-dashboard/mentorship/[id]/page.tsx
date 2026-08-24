@@ -11,12 +11,13 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { useSession } from "@/components/providers/session-provider";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import {
-  useLogMeeting,
+  useLogMeetingForm,
   useMentorshipMeetings,
   useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { formatDateTime } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
@@ -54,18 +55,6 @@ const meetingStatusTones: Record<
   [MeetingStatus.Cancelled]: "gray",
   [MeetingStatus.GoogleCalendar]: "purple",
 };
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "long",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function toDateTimeLocalValue(date: Date) {
-  const pad = (value: number) => String(value).padStart(2, "0");
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
 
 function MeetingNoteEditor({
   meeting,
@@ -139,42 +128,14 @@ export default function MentorshipTimelinePage() {
   const { session } = useSession();
   const requestQuery = useMentorshipRequest(requestId);
   const meetingsQuery = useMentorshipMeetings(requestId);
-  const logMeetingMutation = useLogMeeting(requestId);
   const updateMeetingMutation = useUpdateMeeting(requestId);
+  const { form, logError, isLogging, updateForm, resetForm, handleLogMeeting } =
+    useLogMeetingForm(requestId, session?.userId ?? null);
 
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
-  const [logError, setLogError] = useState("");
-  const now = new Date();
-  const [form, setForm] = useState({
-    scheduledAt: toDateTimeLocalValue(now),
-    durationMinutes: 60,
-    agenda: "",
-    notes: "",
-    status: MeetingStatus.Completed,
-  });
 
   const request = requestQuery.data;
   const meetings = meetingsQuery.data ?? [];
-
-  const handleLogMeeting = async () => {
-    if (!session) return;
-    setLogError("");
-    try {
-      await logMeetingMutation.mutateAsync({
-        mentorId: session.userId,
-        scheduledAt: new Date(form.scheduledAt).toISOString(),
-        durationMinutes: form.durationMinutes,
-        agenda: form.agenda || undefined,
-        notes: form.notes || undefined,
-        status: form.status,
-      });
-      setForm((previous) => ({ ...previous, agenda: "", notes: "" }));
-    } catch (error) {
-      setLogError(
-        error instanceof Error ? error.message : "Görüşme kaydedilemedi.",
-      );
-    }
-  };
 
   return (
     <AppShell
@@ -317,10 +278,7 @@ export default function MentorshipTimelinePage() {
                     type="datetime-local"
                     value={form.scheduledAt}
                     onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        scheduledAt: event.target.value,
-                      }))
+                      updateForm({ scheduledAt: event.target.value })
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
                   />
@@ -334,10 +292,9 @@ export default function MentorshipTimelinePage() {
                     min={1}
                     value={form.durationMinutes}
                     onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
+                      updateForm({
                         durationMinutes: Number(event.target.value),
-                      }))
+                      })
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
                   />
@@ -350,10 +307,7 @@ export default function MentorshipTimelinePage() {
                     type="text"
                     value={form.agenda}
                     onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        agenda: event.target.value,
-                      }))
+                      updateForm({ agenda: event.target.value })
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
                     placeholder="Görüşme konusu..."
@@ -367,10 +321,7 @@ export default function MentorshipTimelinePage() {
                     rows={3}
                     value={form.notes}
                     onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
-                        notes: event.target.value,
-                      }))
+                      updateForm({ notes: event.target.value })
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
                     placeholder="Görüşme notları..."
@@ -383,10 +334,9 @@ export default function MentorshipTimelinePage() {
                   <select
                     value={form.status}
                     onChange={(event) =>
-                      setForm((previous) => ({
-                        ...previous,
+                      updateForm({
                         status: event.target.value as MeetingStatus,
-                      }))
+                      })
                     }
                     className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
                   >
@@ -406,26 +356,12 @@ export default function MentorshipTimelinePage() {
                 </p>
               ) : null}
               <div className="mt-4 flex justify-end gap-3">
-                <SecondaryButton
-                  onClick={() =>
-                    setForm({
-                      scheduledAt: toDateTimeLocalValue(new Date()),
-                      durationMinutes: 60,
-                      agenda: "",
-                      notes: "",
-                      status: MeetingStatus.Completed,
-                    })
-                  }
-                >
-                  Temizle
-                </SecondaryButton>
+                <SecondaryButton onClick={resetForm}>Temizle</SecondaryButton>
                 <PrimaryButton
-                  disabled={logMeetingMutation.isPending}
+                  disabled={isLogging}
                   onClick={() => void handleLogMeeting()}
                 >
-                  {logMeetingMutation.isPending
-                    ? "Kaydediliyor..."
-                    : "Görüşmeyi Kaydet"}
+                  {isLogging ? "Kaydediliyor..." : "Görüşmeyi Kaydet"}
                 </PrimaryButton>
               </div>
             </section>

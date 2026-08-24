@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { MeetingStatus } from "@/interfaces/meeting";
 import {
   getMentorshipMeetings,
   logMentorshipMeeting,
@@ -11,6 +13,7 @@ import {
   updateMeeting,
   type UpdateMeetingPayload,
 } from "@/lib/client/meetings";
+import { toDateTimeLocalValue } from "@/lib/utils";
 
 export const mentorshipMeetingsQueryKey = (requestId: string) =>
   ["mentorship-meetings", requestId] as const;
@@ -49,4 +52,58 @@ export function useUpdateMeeting(requestId: string | null) {
       });
     },
   });
+}
+
+function emptyLogForm() {
+  return {
+    scheduledAt: toDateTimeLocalValue(new Date()),
+    durationMinutes: 60,
+    agenda: "",
+    notes: "",
+    status: MeetingStatus.Completed,
+  };
+}
+
+export function useLogMeetingForm(
+  requestId: string | null,
+  mentorId: string | null,
+) {
+  const logMeetingMutation = useLogMeeting(requestId);
+  const [form, setForm] = useState(emptyLogForm);
+  const [logError, setLogError] = useState("");
+
+  const updateForm = (patch: Partial<ReturnType<typeof emptyLogForm>>) => {
+    setForm((previous) => ({ ...previous, ...patch }));
+  };
+
+  const resetForm = () => setForm(emptyLogForm());
+
+  const handleLogMeeting = async () => {
+    if (!mentorId) return;
+    setLogError("");
+    try {
+      await logMeetingMutation.mutateAsync({
+        mentorId,
+        scheduledAt: new Date(form.scheduledAt).toISOString(),
+        durationMinutes: form.durationMinutes,
+        agenda: form.agenda || undefined,
+        notes: form.notes || undefined,
+        status: form.status,
+      });
+      setForm((previous) => ({ ...previous, agenda: "", notes: "" }));
+    } catch (error) {
+      setLogError(
+        error instanceof Error ? error.message : "Görüşme kaydedilemedi.",
+      );
+    }
+  };
+
+  return {
+    form,
+    logError,
+    isLogging: logMeetingMutation.isPending,
+    updateForm,
+    resetForm,
+    handleLogMeeting,
+  };
 }

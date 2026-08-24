@@ -1,11 +1,11 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorshipTimelinePage from "@/app/mentor-dashboard/mentorship/[id]/page";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import {
-  useLogMeeting,
+  useLogMeetingForm,
   useMentorshipMeetings,
   useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
@@ -35,7 +35,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 
 vi.mock("@/hooks/use-mentorship-timeline", () => ({
   useMentorshipMeetings: vi.fn(),
-  useLogMeeting: vi.fn(),
+  useLogMeetingForm: vi.fn(),
   useUpdateMeeting: vi.fn(),
 }));
 
@@ -68,13 +68,22 @@ const requestFixture = {
   messages: [],
 };
 
+const emptyLogForm = {
+  scheduledAt: "2026-08-22T10:00",
+  durationMinutes: 60,
+  agenda: "",
+  notes: "",
+  status: MeetingStatus.Completed,
+};
+
 describe("MentorshipTimelinePage", () => {
-  const mutateAsync = vi.fn();
   const mutate = vi.fn();
+  const handleLogMeeting = vi.fn();
+  const updateForm = vi.fn();
+  const resetForm = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mutateAsync.mockResolvedValue(meeting());
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: requestFixture,
       isLoading: false,
@@ -83,10 +92,14 @@ describe("MentorshipTimelinePage", () => {
       data: [meeting()],
       isLoading: false,
     } as ReturnType<typeof useMentorshipMeetings>);
-    vi.mocked(useLogMeeting).mockReturnValue({
-      mutateAsync,
-      isPending: false,
-    } as unknown as ReturnType<typeof useLogMeeting>);
+    vi.mocked(useLogMeetingForm).mockReturnValue({
+      form: emptyLogForm,
+      logError: "",
+      isLogging: false,
+      updateForm,
+      resetForm,
+      handleLogMeeting,
+    } as ReturnType<typeof useLogMeetingForm>);
     vi.mocked(useUpdateMeeting).mockReturnValue({
       mutate,
       isPending: false,
@@ -137,24 +150,22 @@ describe("MentorshipTimelinePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("logs a new meeting with the real session mentor id", async () => {
+  it("calls handleLogMeeting when the log-meeting button is clicked", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MentorshipTimelinePage />);
 
-    await user.type(
-      screen.getByPlaceholderText("Görüşme konusu..."),
-      "Yeni gündem",
-    );
     await user.click(screen.getByText("Görüşmeyi Kaydet"));
 
-    await waitFor(() => {
-      expect(mutateAsync).toHaveBeenCalledWith(
-        expect.objectContaining({
-          mentorId: "mentor-1",
-          agenda: "Yeni gündem",
-        }),
-      );
-    });
+    expect(handleLogMeeting).toHaveBeenCalled();
+  });
+
+  it("updates the form when the agenda field changes", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<MentorshipTimelinePage />);
+
+    await user.type(screen.getByPlaceholderText("Görüşme konusu..."), "x");
+
+    expect(updateForm).toHaveBeenCalledWith({ agenda: "x" });
   });
 
   it("opens the note editor and saves an update for a meeting", async () => {

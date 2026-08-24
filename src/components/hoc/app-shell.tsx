@@ -17,6 +17,7 @@ import { ReactNode, useState } from "react";
 import { Avatar } from "@/components/common/avatar";
 import { useDemoSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
+import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
@@ -142,12 +143,7 @@ export function AppShell({
     session?.role === UserRole.Mentor
       ? "Mentor"
       : (session?.organizationName ?? "NovaMed AI");
-  const initials = displayName
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
+  const avatarInitials = initials(displayName);
 
   return (
     <div className="min-h-screen bg-[#f9fafb] text-[#364153]">
@@ -203,7 +199,7 @@ export function AppShell({
         </nav>
         <div className="border-t border-[#f3f4f6] px-4 py-3">
           <div className="flex items-center gap-2.5">
-            <Avatar initials={initials || "AK"} tone="purple" />
+            <Avatar initials={avatarInitials || "AK"} tone="purple" />
             <span className="min-w-0 leading-none">
               <strong className="block truncate text-xs font-medium">
                 {displayName}

@@ -12,16 +12,8 @@ import { useDemoSession } from "@/components/providers/session-provider";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-
-function initials(name: string) {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
-}
 
 export default function MentorHomePage() {
   const session = useDemoSession();
