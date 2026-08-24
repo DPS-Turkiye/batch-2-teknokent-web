@@ -1,7 +1,9 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
-import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import type { MentorProfile } from "@/interfaces/mentor";
+import type {
+  MentorAvailabilitySlot,
+  MentorProfile,
+} from "@/interfaces/mentor";
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
