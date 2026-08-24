@@ -38,16 +38,10 @@ function buildNavigation(isMentor: boolean): Array<{
   if (isMentor) {
     return [
       {
-        id: AppArea.MentorHome,
-        label: "Ana Sayfa",
-        href: "/mentor-home",
-        icon: Home,
-      },
-      {
         id: AppArea.MentorDashboard,
-        label: "Mentor Paneli",
+        label: "Ana Sayfa",
         href: "/mentor-dashboard",
-        icon: Users,
+        icon: Home,
       },
       { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
       {
@@ -136,7 +130,7 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const session = useDemoSession();
   const isMentor = session?.role === UserRole.Mentor;
-  const homeHref = isMentor ? "/mentor-home" : "/dashboard";
+  const homeHref = isMentor ? "/mentor-dashboard" : "/dashboard";
   const navigation = buildNavigation(isMentor);
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization =

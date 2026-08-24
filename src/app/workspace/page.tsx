@@ -17,7 +17,7 @@ export default function WorkspacePage() {
     null,
   );
   const homeHref =
-    session?.role === UserRole.Mentor ? "/mentor-home" : "/dashboard";
+    session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
 
   return (
     <div className="min-h-screen bg-zinc-100">

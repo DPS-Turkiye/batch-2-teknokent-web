@@ -140,7 +140,7 @@ export default function MentorProfilePage() {
   const slots = availabilityQuery.data ?? [];
 
   return (
-    <AppShell title="Mentor Profilim" backHref="/mentor-home">
+    <AppShell title="Mentor Profilim" backHref="/mentor-dashboard">
       <div className="mx-auto w-full max-w-[900px] space-y-6 px-4 pb-12 pt-8 sm:px-8">
         <section className="rounded-xl border border-zinc-200 bg-white p-5">
           <h2 className="text-sm font-bold text-zinc-900">Profil Bilgileri</h2>
