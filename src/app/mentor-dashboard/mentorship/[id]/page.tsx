@@ -12,8 +12,8 @@ import { useSession } from "@/components/providers/session-provider";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import {
   useLogMeetingForm,
+  useMeetingNoteForm,
   useMentorshipMeetings,
-  useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -58,22 +58,23 @@ const meetingStatusTones: Record<
 
 function MeetingNoteEditor({
   meeting,
-  onSave,
-  isSaving,
+  requestId,
+  onSaved,
 }: {
   meeting: MeetingItem;
-  onSave: (payload: {
-    notes?: string;
-    outcomes?: string;
-    status?: MeetingStatus;
-  }) => void;
-  isSaving: boolean;
+  requestId: string | null;
+  onSaved: () => void;
 }) {
-  const [notes, setNotes] = useState(meeting.notes ?? "");
-  const [outcomes, setOutcomes] = useState(meeting.outcomes ?? "");
-  const [status, setStatus] = useState<MeetingStatus>(
-    (meeting.status as MeetingStatus) ?? MeetingStatus.Scheduled,
-  );
+  const {
+    notes,
+    setNotes,
+    outcomes,
+    setOutcomes,
+    status,
+    setStatus,
+    handleSave,
+    isSaving,
+  } = useMeetingNoteForm(requestId, meeting);
 
   return (
     <div className="mt-3 space-y-2 border-t border-zinc-100 pt-3">
@@ -113,7 +114,7 @@ function MeetingNoteEditor({
         </select>
         <PrimaryButton
           disabled={isSaving}
-          onClick={() => onSave({ notes, outcomes, status })}
+          onClick={() => void handleSave().then(onSaved)}
         >
           {isSaving ? "Kaydediliyor..." : "Kaydet"}
         </PrimaryButton>
@@ -128,7 +129,6 @@ export default function MentorshipTimelinePage() {
   const { session } = useSession();
   const requestQuery = useMentorshipRequest(requestId);
   const meetingsQuery = useMentorshipMeetings(requestId);
-  const updateMeetingMutation = useUpdateMeeting(requestId);
   const { form, logError, isLogging, updateForm, resetForm, handleLogMeeting } =
     useLogMeetingForm(requestId, session?.userId ?? null);
 
@@ -242,13 +242,8 @@ export default function MentorshipTimelinePage() {
                       {editingMeetingId === meeting.id ? (
                         <MeetingNoteEditor
                           meeting={meeting}
-                          isSaving={updateMeetingMutation.isPending}
-                          onSave={(payload) => {
-                            updateMeetingMutation.mutate(
-                              { id: meeting.id, payload },
-                              { onSuccess: () => setEditingMeetingId(null) },
-                            );
-                          }}
+                          requestId={requestId}
+                          onSaved={() => setEditingMeetingId(null)}
                         />
                       ) : (
                         <button

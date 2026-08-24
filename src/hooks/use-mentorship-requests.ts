@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
@@ -91,6 +92,48 @@ export function useScheduleMeeting(id: string | null) {
       });
     },
   });
+}
+
+export function useReplyForm(id: string | null) {
+  const replyMutation = useReplyToMentorRequest(id);
+  const [reply, setReply] = useState("");
+
+  const sendReply = async () => {
+    if (!reply.trim()) return;
+    await replyMutation.mutateAsync(reply.trim());
+    setReply("");
+  };
+
+  return {
+    reply,
+    setReply,
+    sendReply,
+    isSending: replyMutation.isPending,
+    error: replyMutation.error,
+  };
+}
+
+export function useSlotBooking(id: string | null) {
+  const scheduleMutation = useScheduleMeeting(id);
+  const [scheduledSlotId, setScheduledSlotId] = useState<string | null>(null);
+  const [scheduledForId, setScheduledForId] = useState<string | null>(null);
+
+  if (scheduledForId !== id) {
+    setScheduledForId(id);
+    setScheduledSlotId(null);
+  }
+
+  const bookSlot = async (slotId: string) => {
+    const meeting = await scheduleMutation.mutateAsync(slotId);
+    if (meeting) setScheduledSlotId(slotId);
+  };
+
+  return {
+    scheduledSlotId,
+    bookSlot,
+    isBooking: scheduleMutation.isPending,
+    error: scheduleMutation.error,
+  };
 }
 
 export function useMentorRequestDecision() {

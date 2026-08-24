@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
@@ -13,8 +12,8 @@ import {
   useMentorAvailability,
   useMentorshipRequest,
   useMentorshipRequests,
-  useReplyToMentorRequest,
-  useScheduleMeeting,
+  useReplyForm,
+  useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -55,7 +54,6 @@ export default function RequestStatusPage() {
     null;
   const requestQuery = useMentorshipRequest(selectedId);
   const request = requestQuery.data;
-  const replyMutation = useReplyToMentorRequest(selectedId);
   const withdrawMutation = useWithdrawMentorRequest(selectedId);
   const availabilityQuery = useMentorAvailability(
     selectedId,
@@ -65,25 +63,19 @@ export default function RequestStatusPage() {
     selectedId,
     request?.status === MentorshipRequestStatus.Declined,
   );
-  const scheduleMutation = useScheduleMeeting(selectedId);
-  const [reply, setReply] = useState("");
-  const [scheduledSlotId, setScheduledSlotId] = useState<string | null>(null);
-  const [scheduledForId, setScheduledForId] = useState<string | null>(null);
-  if (scheduledForId !== selectedId) {
-    setScheduledForId(selectedId);
-    setScheduledSlotId(null);
-  }
-
-  async function bookSlot(slotId: string) {
-    const meeting = await scheduleMutation.mutateAsync(slotId);
-    if (meeting) setScheduledSlotId(slotId);
-  }
-
-  async function sendReply() {
-    if (!reply.trim()) return;
-    await replyMutation.mutateAsync(reply.trim());
-    setReply("");
-  }
+  const {
+    reply,
+    setReply,
+    sendReply,
+    isSending,
+    error: replyError,
+  } = useReplyForm(selectedId);
+  const {
+    scheduledSlotId,
+    bookSlot,
+    isBooking,
+    error: scheduleError,
+  } = useSlotBooking(selectedId);
 
   return (
     <AppShell title="Talep Detayı" backHref="/dashboard">
@@ -166,14 +158,17 @@ export default function RequestStatusPage() {
                   />
                   <div className="mt-3 flex justify-end">
                     <PrimaryButton
-                      disabled={!reply.trim() || replyMutation.isPending}
+                      disabled={!reply.trim() || isSending}
                       onClick={() => void sendReply()}
                     >
-                      {replyMutation.isPending
-                        ? "Gönderiliyor…"
-                        : "Yanıtı Gönder"}
+                      {isSending ? "Gönderiliyor…" : "Yanıtı Gönder"}
                     </PrimaryButton>
                   </div>
+                  {replyError ? (
+                    <p role="alert" className="mt-3 text-sm text-red-700">
+                      {replyError.message}
+                    </p>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -196,7 +191,7 @@ export default function RequestStatusPage() {
                           <button
                             key={slot.id}
                             type="button"
-                            disabled={slot.booked || scheduleMutation.isPending}
+                            disabled={slot.booked || isBooking}
                             onClick={() => void bookSlot(slot.id)}
                             className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs hover:border-[#555] disabled:cursor-not-allowed disabled:opacity-60"
                           >
@@ -212,9 +207,9 @@ export default function RequestStatusPage() {
                           Mentor henüz müsaitlik zamanı paylaşmadı.
                         </p>
                       ) : null}
-                      {scheduleMutation.error ? (
+                      {scheduleError ? (
                         <p role="alert" className="mt-3 text-sm text-red-700">
-                          {scheduleMutation.error.message}
+                          {scheduleError.message}
                         </p>
                       ) : null}
                     </>

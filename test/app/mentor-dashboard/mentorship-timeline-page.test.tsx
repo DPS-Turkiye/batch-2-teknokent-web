@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -6,8 +6,8 @@ import MentorshipTimelinePage from "@/app/mentor-dashboard/mentorship/[id]/page"
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import {
   useLogMeetingForm,
+  useMeetingNoteForm,
   useMentorshipMeetings,
-  useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -36,7 +36,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 vi.mock("@/hooks/use-mentorship-timeline", () => ({
   useMentorshipMeetings: vi.fn(),
   useLogMeetingForm: vi.fn(),
-  useUpdateMeeting: vi.fn(),
+  useMeetingNoteForm: vi.fn(),
 }));
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
@@ -77,10 +77,11 @@ const emptyLogForm = {
 };
 
 describe("MentorshipTimelinePage", () => {
-  const mutate = vi.fn();
   const handleLogMeeting = vi.fn();
   const updateForm = vi.fn();
   const resetForm = vi.fn();
+  const handleSave = vi.fn();
+  const setNotes = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -100,10 +101,17 @@ describe("MentorshipTimelinePage", () => {
       resetForm,
       handleLogMeeting,
     } as ReturnType<typeof useLogMeetingForm>);
-    vi.mocked(useUpdateMeeting).mockReturnValue({
-      mutate,
-      isPending: false,
-    } as unknown as ReturnType<typeof useUpdateMeeting>);
+    handleSave.mockResolvedValue(undefined);
+    vi.mocked(useMeetingNoteForm).mockReturnValue({
+      notes: "Test not",
+      setNotes,
+      outcomes: "",
+      setOutcomes: vi.fn(),
+      status: MeetingStatus.Completed,
+      setStatus: vi.fn(),
+      handleSave,
+      isSaving: false,
+    } as ReturnType<typeof useMeetingNoteForm>);
   });
 
   it("shows a loading state while the request is loading", () => {
@@ -168,22 +176,34 @@ describe("MentorshipTimelinePage", () => {
     expect(updateForm).toHaveBeenCalledWith({ agenda: "x" });
   });
 
-  it("opens the note editor and saves an update for a meeting", async () => {
+  it("opens the note editor, edits notes via the hook, and saves", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MentorshipTimelinePage />);
 
     await user.click(screen.getByText("Not / durum düzenle"));
     const notesFields = screen.getAllByPlaceholderText("Görüşme notları...");
-    await user.clear(notesFields[0]);
-    await user.type(notesFields[0], "Düzenlenmiş not");
+    await user.type(notesFields[0], "x");
+
+    expect(setNotes).toHaveBeenCalled();
+    expect(useMeetingNoteForm).toHaveBeenCalledWith(
+      "request-1",
+      expect.objectContaining({ id: "meeting-1" }),
+    );
+
     await user.click(screen.getByText("Kaydet"));
 
-    expect(mutate).toHaveBeenCalledWith(
-      expect.objectContaining({
-        id: "meeting-1",
-        payload: expect.objectContaining({ notes: "Düzenlenmiş not" }),
-      }),
-      expect.anything(),
+    expect(handleSave).toHaveBeenCalled();
+  });
+
+  it("closes the note editor after a successful save", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<MentorshipTimelinePage />);
+
+    await user.click(screen.getByText("Not / durum düzenle"));
+    await user.click(screen.getByText("Kaydet"));
+
+    await waitFor(() =>
+      expect(screen.getByText("Not / durum düzenle")).toBeInTheDocument(),
     );
   });
 });

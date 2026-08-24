@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   useLogMeeting,
   useLogMeetingForm,
+  useMeetingNoteForm,
   useMentorshipMeetings,
   useUpdateMeeting,
 } from "@/hooks/use-mentorship-timeline";
@@ -213,5 +214,59 @@ describe("useLogMeetingForm", () => {
       result.current.resetForm();
     });
     expect(result.current.form.agenda).toBe("");
+  });
+});
+
+describe("useMeetingNoteForm", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("initializes its fields from the given meeting", () => {
+    const { result } = renderHook(
+      () =>
+        useMeetingNoteForm(
+          "request-1",
+          meeting({ notes: "Eski not", outcomes: "Eski sonuç" }),
+        ),
+      { wrapper: wrapperFor(createTestQueryClient()) },
+    );
+
+    expect(result.current.notes).toBe("Eski not");
+    expect(result.current.outcomes).toBe("Eski sonuç");
+    expect(result.current.status).toBe(MeetingStatus.Completed);
+  });
+
+  it("saves the edited fields for the given meeting and refetches the timeline", async () => {
+    vi.mocked(getMentorshipMeetings).mockResolvedValue([]);
+    vi.mocked(updateMeeting).mockResolvedValue(meeting());
+    const queryClient = createTestQueryClient();
+    const wrapper = wrapperFor(queryClient);
+
+    const meetings = renderHook(() => useMentorshipMeetings("request-1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(meetings.result.current.isLoading).toBe(false));
+
+    const { result } = renderHook(
+      () => useMeetingNoteForm("request-1", meeting()),
+      { wrapper },
+    );
+
+    act(() => {
+      result.current.setNotes("Düzenlenmiş not");
+    });
+
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    expect(updateMeeting).toHaveBeenCalledWith(
+      "meeting-1",
+      expect.objectContaining({ notes: "Düzenlenmiş not" }),
+    );
+    await waitFor(() => {
+      expect(getMentorshipMeetings).toHaveBeenCalledTimes(2);
+    });
   });
 });
