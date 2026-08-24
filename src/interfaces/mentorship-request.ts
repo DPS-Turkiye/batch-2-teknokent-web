@@ -30,6 +30,17 @@ export type RequestMessage = {
   body: string;
 };
 
+export type RecommendationSnapshot = {
+  matchingMethod: string;
+  matchingModel: string | null;
+  generatedAt: string;
+  startupName: string | null;
+  startupSector: string | null;
+  startupStage: string | null;
+  startupSummary: string | null;
+  startupTechnologies: string[];
+};
+
 export type MentorshipRequest = {
   id: string;
   requesterId: string;
@@ -45,4 +56,5 @@ export type MentorshipRequest = {
   rejectionReason: string | null;
   createdAt: string;
   messages: RequestMessage[];
+  recommendationSnapshot: RecommendationSnapshot | null;
 };

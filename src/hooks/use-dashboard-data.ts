@@ -37,6 +37,7 @@ const FALLBACK_REQUESTS: MentorshipRequest[] = [
     rejectionReason: null,
     createdAt: "2026-08-09T14:32:00+03:00",
     messages: [],
+    recommendationSnapshot: null,
   },
   {
     id: "demo-accepted-request",
@@ -50,6 +51,7 @@ const FALLBACK_REQUESTS: MentorshipRequest[] = [
     rejectionReason: null,
     createdAt: "2026-08-01T11:00:00+03:00",
     messages: [],
+    recommendationSnapshot: null,
   },
 ];
 

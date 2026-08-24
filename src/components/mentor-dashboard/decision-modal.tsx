@@ -164,6 +164,50 @@ export function MentorDecisionModal(props: Props) {
                 </div>
               </div>
 
+              {request.recommendationSnapshot ? (
+                <div className="space-y-2 rounded-xl border border-zinc-200 bg-white p-3">
+                  <p className="font-semibold text-zinc-800">Girişim Profili</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    {request.recommendationSnapshot.startupSector ? (
+                      <div>
+                        <span className="text-zinc-400">Sektör:</span>
+                        <p className="font-semibold text-zinc-800">
+                          {request.recommendationSnapshot.startupSector}
+                        </p>
+                      </div>
+                    ) : null}
+                    {request.recommendationSnapshot.startupStage ? (
+                      <div>
+                        <span className="text-zinc-400">Aşama:</span>
+                        <p className="font-semibold text-zinc-800">
+                          {request.recommendationSnapshot.startupStage}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                  {request.recommendationSnapshot.startupSummary ? (
+                    <p className="text-zinc-600">
+                      {request.recommendationSnapshot.startupSummary}
+                    </p>
+                  ) : null}
+                  {request.recommendationSnapshot.startupTechnologies.length >
+                  0 ? (
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      {request.recommendationSnapshot.startupTechnologies.map(
+                        (technology) => (
+                          <span
+                            key={technology}
+                            className="rounded-full bg-zinc-100 px-2.5 py-1 text-[11px] font-medium text-zinc-700"
+                          >
+                            {technology}
+                          </span>
+                        ),
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+              ) : null}
+
               {request.messages.length > 0 ? (
                 <div className="space-y-2">
                   <p className="font-semibold text-zinc-800">Mesaj Geçmişi:</p>
