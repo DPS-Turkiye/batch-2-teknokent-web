@@ -12,7 +12,6 @@ import { AppArea } from "@/types/app-area";
 import {
   authenticateWithGoogle,
   fetchGoogleCalendarEvents,
-  getGoogleClientId,
 } from "@/lib/google-calendar";
 
 type CalendarViewMode = "MONTH" | "WEEK" | "AGENDA";
@@ -167,8 +166,6 @@ export function CalendarView() {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importTab, setImportTab] = useState<"FILE" | "URL" | "OAUTH">("OAUTH");
   const [gcalUrl, setGcalUrl] = useState("");
-  const [customClientId, setCustomClientId] = useState(getGoogleClientId());
-  const [directToken, setDirectToken] = useState("");
   const [importing, setImporting] = useState(false);
   const [importSuccessMsg, setImportSuccessMsg] = useState("");
   const [googleAccount, setGoogleAccount] = useState<string | null>(null);
@@ -208,16 +205,10 @@ export function CalendarView() {
   const handleGoogleOAuthSync = async () => {
     setImporting(true);
     try {
-      let tokenToUse = directToken.trim();
-      let accountName = "Google Hesabı (Bağlı)";
+      const authResult = await authenticateWithGoogle();
+      const accountName = authResult.email ?? "Google Hesabı (Bağlı)";
 
-      if (!tokenToUse) {
-        const authResult = await authenticateWithGoogle(customClientId);
-        tokenToUse = authResult.token;
-        accountName = authResult.email ?? "Google Hesabı (Bağlı)";
-      }
-
-      const gcalEvents = await fetchGoogleCalendarEvents(tokenToUse);
+      const gcalEvents = await fetchGoogleCalendarEvents(authResult.token);
 
       if (gcalEvents.length > 0) {
         // Jump calendar view to the date of the imported event
@@ -827,43 +818,6 @@ export function CalendarView() {
                                 ? "Google Oturumu Açılıyor..."
                                 : "Google İle Oturum Aç ve Takvimimi Aktar"}
                             </button>
-                          </div>
-
-                          <div className="rounded-xl border border-zinc-200 bg-white p-3 text-xs text-zinc-600 space-y-3">
-                            <p className="font-semibold text-zinc-800">
-                              ⚙️ Kendi Google Cloud Client ID veya
-                              Token&apos;ınızı Kullanın:
-                            </p>
-
-                            <div>
-                              <label className="block font-medium text-zinc-700 text-[11px]">
-                                Google OAuth Client ID (Google Cloud
-                                Console&apos;dan):
-                              </label>
-                              <input
-                                type="text"
-                                value={customClientId}
-                                onChange={(e) =>
-                                  setCustomClientId(e.target.value)
-                                }
-                                placeholder="xxxxxx.apps.googleusercontent.com"
-                                className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
-                              />
-                            </div>
-
-                            <div>
-                              <label className="block font-medium text-zinc-700 text-[11px]">
-                                Veya Doğrudan Google Access Token (OAuth
-                                Playground):
-                              </label>
-                              <input
-                                type="text"
-                                value={directToken}
-                                onChange={(e) => setDirectToken(e.target.value)}
-                                placeholder="ya29.a0... (Google OAuth Playground token)"
-                                className="mt-1 w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
-                              />
-                            </div>
                           </div>
                         </div>
                       )}
