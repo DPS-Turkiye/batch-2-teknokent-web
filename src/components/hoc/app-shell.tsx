@@ -120,7 +120,6 @@ function buildNavigation(isMentor: boolean): Array<{
   ];
 }
 
-
 function BrandBlock({ href }: { href: string }) {
   return (
     <Link href={href} className="flex items-center gap-2">
