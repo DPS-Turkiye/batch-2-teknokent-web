@@ -458,21 +458,6 @@ export const MEETING_FEEDBACK_QUESTIONS = [
   "Bu mentoru başka bir girişimciye önerir misiniz?",
 ] as const;
 
-export const WORKSPACES = [
-  {
-    id: "metustars",
-    title: "METUStars 2026",
-    role: "Mentor",
-    status: "Aktif",
-  },
-  {
-    id: "dps-egitim",
-    title: "DPS Girişimcilik Eğitimi",
-    role: "Eğitmen",
-    status: "Aktif",
-  },
-] as const;
-
 export const SITE_NAV_ITEMS = [
   { href: "#duyurular", label: "Duyurular" },
   { href: "#mentorluk", label: "Mentorluk Nedir?" },

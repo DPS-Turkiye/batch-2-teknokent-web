@@ -11,6 +11,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
 import { useDemoSession } from "@/components/providers/session-provider";
+import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDecision } from "@/hooks/use-decision";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
@@ -42,6 +43,7 @@ const filterOptions = [
 
 export function MentorDashboardView() {
   const session = useDemoSession();
+  const { notifications } = useDashboardNotifications();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
@@ -139,6 +141,34 @@ export function MentorDashboardView() {
                     </div>
                   </div>
                 </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section id="notifications">
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
+            Bildirimler
+          </h2>
+          {notifications.length === 0 ? (
+            <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center text-sm text-[#6a7282]">
+              Henüz bir bildiriminiz yok.
+            </div>
+          ) : (
+            <div className="rounded-lg border border-[#e5e7eb] bg-white px-3">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.title}
+                  className="flex gap-2 border-b border-[#e5e7eb] py-3 last:border-0"
+                >
+                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#999]" />
+                  <div>
+                    <p className="text-xs text-[#555]">{notification.title}</p>
+                    <p className="mt-1 text-xs text-[#aaa]">
+                      {notification.time}
+                    </p>
+                  </div>
+                </div>
               ))}
             </div>
           )}

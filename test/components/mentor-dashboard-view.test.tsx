@@ -138,6 +138,17 @@ describe("MentorDashboardView", () => {
     expect(screen.getByText("Bekleyen talep bulunmuyor.")).toBeInTheDocument();
   });
 
+  it("shows the demo notifications section for Duyurular to link to", () => {
+    mockRequests([]);
+
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Bildirimler")).toBeInTheDocument();
+    expect(
+      screen.getByText("Can Demir talebinizi kabul etti"),
+    ).toBeInTheDocument();
+  });
+
   it("links to the mentor profile page", () => {
     mockRequests([]);
 

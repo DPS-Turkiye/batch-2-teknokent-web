@@ -7,7 +7,6 @@ import { Brand } from "@/components/brand";
 import { useDemoSession } from "@/components/providers/session-provider";
 import { WorkspaceCard } from "@/components/workspace/workspace-card";
 import { UserRole } from "@/interfaces/session";
-import { WORKSPACES } from "@/lib/const";
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -16,8 +15,12 @@ export default function WorkspacePage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
     null,
   );
-  const homeHref =
-    session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
+  const isMentor = session?.role === UserRole.Mentor;
+  const homeHref = isMentor ? "/mentor-dashboard" : "/dashboard";
+  const workspaceTitle = isMentor
+    ? (session?.fullName ?? "Mentor")
+    : (session?.organizationName ?? "");
+  const workspaceRole = isMentor ? "Mentor" : "Girişim Ekibi";
 
   return (
     <div className="min-h-screen bg-zinc-100">
@@ -29,25 +32,24 @@ export default function WorkspacePage() {
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1180px] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <section className="w-full max-w-xl">
           <h1 className="text-3xl font-medium leading-tight tracking-tight sm:text-4xl">
-            Hangi çalışma alanına geçmek istiyorsunuz?
+            Çalışma alanınıza devam edin
           </h1>
           <p className="mt-3 text-xs leading-5 text-zinc-600">
-            Hesabınız birden fazla program veya görevle ilişkili.
+            Aşağıdaki çalışma alanına geçerek devam edebilirsiniz.
           </p>
 
           <div className="mt-8 space-y-3">
-            {WORKSPACES.map((workspace) => (
+            {session ? (
               <WorkspaceCard
-                key={workspace.id}
-                title={workspace.title}
-                role={workspace.role}
-                status={workspace.status}
+                title={workspaceTitle}
+                role={workspaceRole}
+                status="Aktif"
                 onSelect={() => {
-                  setSelectedWorkspace(workspace.title);
+                  setSelectedWorkspace(workspaceTitle);
                   router.push(homeHref);
                 }}
               />
-            ))}
+            ) : null}
           </div>
 
           <label className="mt-5 flex cursor-pointer items-center gap-3 text-xs text-zinc-600">

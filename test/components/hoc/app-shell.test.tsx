@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { UserRole, type DemoSession } from "@/interfaces/session";
+import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { AppArea } from "@/types/app-area";
 
 const mockUseDemoSession = vi.fn<() => DemoSession | null>();
@@ -53,6 +54,10 @@ describe("AppShell navigation", () => {
       "href",
       "/calendar",
     );
+    expect(screen.getByRole("link", { name: /Duyurular/ })).toHaveAttribute(
+      "href",
+      "/mentor-dashboard#notifications",
+    );
   });
 
   it("sends a mentee's home link to /dashboard and hides the mentor panel", () => {
@@ -67,11 +72,27 @@ describe("AppShell navigation", () => {
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
-    expect(screen.getByText("Mentorluklarım")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Mentorluklarım/ }),
+    ).toHaveAttribute("href", "/mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
       "/calendar",
     );
+  });
+
+  it("shows the real notification count on the Duyurular badge, not a hardcoded number", () => {
+    mockUseDemoSession.mockReturnValue(menteeSession());
+
+    render(
+      <AppShell active={AppArea.Home}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(
+      screen.getByText(String(DASHBOARD_NOTIFICATIONS.length)),
+    ).toBeInTheDocument();
   });
 
   it("falls back to the mentee home when there is no active session", () => {
