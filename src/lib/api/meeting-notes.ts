@@ -1,0 +1,86 @@
+import "server-only";
+
+import { HttpMethod } from "@/lib/http-method";
+import { backendRequest } from "@/lib/server/backend-client";
+
+type SessionIds = {
+  userId: string;
+  organizationId: string;
+};
+
+function meetingPath(meetingId: string, suffix: string) {
+  return `/api/meetings/${encodeURIComponent(meetingId)}${suffix}`;
+}
+
+export function fetchMeetingNote(meetingId: string, organizationId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: meetingPath(meetingId, "/note"),
+    params: { organizationId },
+  });
+}
+
+export function saveMeetingNote(
+  meetingId: string,
+  session: SessionIds,
+  payload: { content: string; version: number },
+) {
+  return backendRequest({
+    method: HttpMethod.Put,
+    url: meetingPath(meetingId, "/note"),
+    data: { ...payload, ...session },
+  });
+}
+
+export function fetchMeetingTodos(meetingId: string, organizationId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: meetingPath(meetingId, "/todos"),
+    params: { organizationId },
+  });
+}
+
+export function createMeetingTodo(
+  meetingId: string,
+  session: SessionIds,
+  payload: { title: string },
+) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: meetingPath(meetingId, "/todos"),
+    data: { ...payload, ...session },
+  });
+}
+
+export function updateMeetingTodo(
+  meetingId: string,
+  todoId: string,
+  organizationId: string,
+  payload: { title?: string; done?: boolean },
+) {
+  return backendRequest({
+    method: HttpMethod.Patch,
+    url: meetingPath(meetingId, `/todos/${encodeURIComponent(todoId)}`),
+    data: { ...payload, organizationId },
+  });
+}
+
+export function deleteMeetingTodo(
+  meetingId: string,
+  todoId: string,
+  organizationId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Delete,
+    url: meetingPath(meetingId, `/todos/${encodeURIComponent(todoId)}`),
+    params: { organizationId },
+  });
+}
+
+export function issueRealtimeToken(session: SessionIds) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: "/api/realtime/token",
+    data: session,
+  });
+}
