@@ -1,8 +1,8 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET, PUT } from "@/app/api/meetings/[meetingId]/note/route";
-import { POST } from "@/app/api/meetings/[meetingId]/todos/route";
+import { GET, PUT } from "@/app/api/meetings/[id]/note/route";
+import { POST } from "@/app/api/meetings/[id]/todos/route";
 import {
   createMeetingTodo,
   fetchMeetingNote,
@@ -20,7 +20,7 @@ vi.mock("@/lib/session", () => ({
   getSessionIds: vi.fn(),
 }));
 
-const params = Promise.resolve({ meetingId: "meeting-1" });
+const params = Promise.resolve({ id: "meeting-1" });
 
 function jsonRequest(method: string, body: unknown) {
   return new NextRequest("http://localhost/x", {
