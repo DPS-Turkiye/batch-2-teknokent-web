@@ -8,4 +8,5 @@ export enum AppArea {
   Files = "files",
   Announcements = "announcements",
   Assistant = "assistant",
+  Notes = "notes",
 }

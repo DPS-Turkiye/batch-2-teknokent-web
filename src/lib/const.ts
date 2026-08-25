@@ -70,6 +70,32 @@ export function getMeetingReportApiUrl(
   return `${MEETING_REPORT_API_PATH}?${q.toString()}`;
 }
 
+export const DEFAULT_REALTIME_URL = "ws://localhost:8080/ws";
+export const REALTIME_TOKEN_API_PATH = "/api/realtime/token";
+
+export function getRealtimeUrl(): string {
+  return process.env.NEXT_PUBLIC_REALTIME_URL ?? DEFAULT_REALTIME_URL;
+}
+
+export function getMeetingNoteApiUrl(meetingId: string): string {
+  return `/api/meetings/${encodeURIComponent(meetingId)}/note`;
+}
+
+export function getMeetingTodosApiUrl(meetingId: string): string {
+  return `/api/meetings/${encodeURIComponent(meetingId)}/todos`;
+}
+
+export function getMeetingTodoApiUrl(
+  meetingId: string,
+  todoId: string,
+): string {
+  return `${getMeetingTodosApiUrl(meetingId)}/${encodeURIComponent(todoId)}`;
+}
+
+export function getMeetingRoomTopic(meetingId: string): string {
+  return `/topic/meetings/${meetingId}`;
+}
+
 export const LANDING_ANNOUNCEMENTS: LandingAnnouncement[] = [
   {
     category: "Program",

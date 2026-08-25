@@ -15,7 +15,11 @@
     "ci": "npm run lint && npm run format:check && npm run typecheck && npm test"
   },
   "dependencies": {
+    "@stomp/stompjs": "^7.3.0",
     "@tanstack/react-query": "^5.101.4",
+    "@tiptap/pm": "^3.30.3",
+    "@tiptap/react": "^3.30.3",
+    "@tiptap/starter-kit": "^3.30.3",
     "axios": "^1.18.1",
     "iron-session": "^8.0.4",
     "lucide-react": "^1.31.0",
