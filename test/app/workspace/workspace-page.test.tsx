@@ -39,7 +39,7 @@ function menteeSession(): DemoSession {
 }
 
 describe("WorkspacePage routing", () => {
-  it("sends a mentor to /mentor-home when picking a workspace", async () => {
+  it("sends a mentor to /mentor-dashboard when picking a workspace", async () => {
     mockUseDemoSession.mockReturnValue(mentorSession());
     const user = userEvent.setup();
 
@@ -48,7 +48,7 @@ describe("WorkspacePage routing", () => {
       screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
     );
 
-    expect(push).toHaveBeenCalledWith("/mentor-home");
+    expect(push).toHaveBeenCalledWith("/mentor-dashboard");
   });
 
   it("sends a mentee to /dashboard when picking a workspace", async () => {

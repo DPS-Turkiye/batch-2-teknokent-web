@@ -1,7 +1,9 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
-import type { MentorAvailabilitySlot } from "@/interfaces/mentor-availability";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import type { MentorProfile } from "@/interfaces/mentor";
+import type {
+  MentorAvailabilitySlot,
+  MentorProfile,
+} from "@/interfaces/mentor";
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -31,6 +33,18 @@ export async function replyToMentorRequest(options: {
   return requireSuccess(
     await httpClient.post<MentorshipRequest>(
       `/api/mentor-requests/${encodeURIComponent(options.id)}/messages`,
+      { message: options.message },
+    ),
+  );
+}
+
+export async function postMentorMessage(options: {
+  id: string;
+  message: string;
+}) {
+  return requireSuccess(
+    await httpClient.post<MentorshipRequest>(
+      `/api/mentor-requests/${encodeURIComponent(options.id)}/mentor-messages`,
       { message: options.message },
     ),
   );

@@ -64,6 +64,18 @@ export function MentorRequestCard({
           </p>
         </div>
 
+        {request.recommendationSnapshot?.startupSector ||
+        request.recommendationSnapshot?.startupStage ? (
+          <p className="mt-2 text-xs text-zinc-500">
+            {[
+              request.recommendationSnapshot.startupSector,
+              request.recommendationSnapshot.startupStage,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        ) : null}
+
         {request.mentorMessage ? (
           <div className="mt-3 text-xs text-zinc-600">
             <span className="font-semibold text-zinc-700">Mentor Notu:</span>{" "}

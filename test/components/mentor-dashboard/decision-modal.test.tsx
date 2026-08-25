@@ -26,6 +26,7 @@ function request(
     rejectionReason: null,
     createdAt: "2026-08-17T09:49:54.374504Z",
     messages: [],
+    recommendationSnapshot: null,
     ...overrides,
   };
 }
@@ -133,6 +134,41 @@ describe("MentorDecisionModal", () => {
     expect(
       screen.getByText("Müsaitlik bilgileri yükleniyor..."),
     ).toBeInTheDocument();
+  });
+
+  it("shows the startup profile section when a recommendation snapshot exists", () => {
+    render(
+      <MentorDecisionModal
+        {...baseProps()}
+        request={request({
+          recommendationSnapshot: {
+            matchingMethod: "semantic",
+            matchingModel: "gpt-4o-mini",
+            generatedAt: "2026-08-17T09:00:00Z",
+            startupName: "GreenLoop",
+            startupSector: "ClimateTech",
+            startupStage: "Pilot",
+            startupSummary: "Atık akışı ve döngüsellik analiz platformu.",
+            startupTechnologies: ["IoT", "Python"],
+          },
+        })}
+      />,
+    );
+
+    expect(screen.getByText("Girişim Profili")).toBeInTheDocument();
+    expect(screen.getByText("ClimateTech")).toBeInTheDocument();
+    expect(screen.getByText("Pilot")).toBeInTheDocument();
+    expect(
+      screen.getByText("Atık akışı ve döngüsellik analiz platformu."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("IoT")).toBeInTheDocument();
+    expect(screen.getByText("Python")).toBeInTheDocument();
+  });
+
+  it("does not show the startup profile section when there is no recommendation snapshot", () => {
+    render(<MentorDecisionModal {...baseProps()} />);
+
+    expect(screen.queryByText("Girişim Profili")).not.toBeInTheDocument();
   });
 
   it("shows a fallback message when no availability slots exist", () => {

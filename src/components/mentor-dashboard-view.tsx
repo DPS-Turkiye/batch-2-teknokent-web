@@ -1,10 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { Users } from "lucide-react";
 
+import { Avatar } from "@/components/common/avatar";
+import { Badge } from "@/components/common/badge";
+import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
+import { useDemoSession } from "@/components/providers/session-provider";
 import { useDecision } from "@/hooks/use-decision";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
@@ -12,6 +18,7 @@ import {
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const filterStatuses: Record<
@@ -34,12 +41,20 @@ const filterOptions = [
 ] as const;
 
 export function MentorDashboardView() {
+  const session = useDemoSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
     MentorRequestFilter.All,
   );
   const decision = useDecision();
+
+  const pendingCount = requests.filter(
+    (request) => request.status === MentorshipRequestStatus.Pending,
+  ).length;
+  const accepted = requests.filter(
+    (request) => request.status === MentorshipRequestStatus.Accepted,
+  );
 
   const filteredRequests = requests.filter((request) => {
     if (filter === MentorRequestFilter.All) return true;
@@ -56,7 +71,7 @@ export function MentorDashboardView() {
                 Mentor Paneli — DPS Mentor Experience
               </span>
               <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-                Gelen Mentorluk Talepleri
+                Hoş geldin, {session?.fullName ?? "Mentor"}
               </h1>
               <p className="mt-1 text-sm text-zinc-300">
                 Girişimcilerden gelen destek taleplerini inceleyin, ek bilgi
@@ -66,18 +81,88 @@ export function MentorDashboardView() {
             <div className="shrink-0 rounded-xl bg-white/5 p-4 text-center sm:text-right">
               <p className="text-xs text-zinc-400">Bekleyen Talepler</p>
               <p className="text-3xl font-black text-amber-400">
-                {
-                  requests.filter(
-                    (request) =>
-                      request.status === MentorshipRequestStatus.Pending,
-                  ).length
-                }
+                {pendingCount}
+              </p>
+              <p className="mt-1 text-xs text-zinc-400">
+                {pendingCount > 0
+                  ? `${pendingCount} talep yanıtınızı bekliyor.`
+                  : "Bekleyen talep bulunmuyor."}
               </p>
             </div>
           </div>
         </section>
 
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
+              Aktif Mentorluklar
+            </h2>
+          </div>
+
+          {requestsQuery.isLoading ? (
+            <div className="rounded-lg border border-[#e5e7eb] bg-white p-8 text-center text-sm text-[#6a7282]">
+              Yükleniyor...
+            </div>
+          ) : accepted.length === 0 ? (
+            <div className="flex items-center gap-3 rounded-lg border border-[#e5e7eb] bg-white p-6 text-sm text-[#6a7282]">
+              <Users
+                className="size-4 shrink-0"
+                strokeWidth={1.75}
+                aria-hidden
+              />
+              Henüz kabul edilmiş bir mentorluk talebiniz yok.
+            </div>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              {accepted.map((request) => (
+                <Link
+                  key={request.id}
+                  href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
+                  className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 transition hover:border-[#c7c7cc]"
+                >
+                  <Avatar
+                    initials={
+                      initials(
+                        request.organizationName ?? request.requesterName ?? "",
+                      ) || "MN"
+                    }
+                  />
+                  <div className="flex-1">
+                    <h3 className="text-sm font-semibold text-[#171717]">
+                      {request.organizationName ?? request.requesterName}
+                    </h3>
+                    <p className="mt-0.5 text-xs text-[#6a7282]">
+                      {request.supportArea}
+                    </p>
+                    <div className="mt-2">
+                      <Badge tone="green">Kabul Edildi</Badge>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="flex flex-col gap-3 rounded-lg border border-[#e5e7eb] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-sm font-semibold text-[#171717]">
+              Mentor profiliniz
+            </h2>
+            <p className="mt-1 text-xs text-[#6a7282]">
+              Uzmanlık alanlarınızı ve müsaitlik bilgilerinizi güncel tutarak
+              daha uygun taleplerle eşleşin.
+            </p>
+          </div>
+          <SecondaryButton href="/mentor-profile" className="shrink-0">
+            Profili Görüntüle
+          </SecondaryButton>
+        </section>
+
         <section className="space-y-4">
+          <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
+            Gelen Mentorluk Talepleri
+          </h2>
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-3">
             <div className="flex flex-wrap gap-2">
               {filterOptions.map(([key, label]) => (

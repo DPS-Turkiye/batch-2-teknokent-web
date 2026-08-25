@@ -24,6 +24,7 @@ function request(
     rejectionReason: null,
     createdAt: "2026-08-17T09:49:54.374504Z",
     messages: [],
+    recommendationSnapshot: null,
     ...overrides,
   };
 }
@@ -67,5 +68,33 @@ describe("MentorRequestCard", () => {
       "href",
       "/mentor-dashboard/mentorship/40000000-0000-0000-0000-000000000012",
     );
+  });
+
+  it("shows the startup's sector and stage when a recommendation snapshot exists", () => {
+    render(
+      <MentorRequestCard
+        request={request({
+          recommendationSnapshot: {
+            matchingMethod: "semantic",
+            matchingModel: "gpt-4o-mini",
+            generatedAt: "2026-08-17T09:00:00Z",
+            startupName: "GreenLoop",
+            startupSector: "ClimateTech",
+            startupStage: "Pilot",
+            startupSummary: null,
+            startupTechnologies: [],
+          },
+        })}
+        onReview={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText("ClimateTech · Pilot")).toBeInTheDocument();
+  });
+
+  it("shows nothing extra when there is no recommendation snapshot", () => {
+    render(<MentorRequestCard request={request()} onReview={vi.fn()} />);
+
+    expect(screen.queryByText(/·/)).not.toBeInTheDocument();
   });
 });

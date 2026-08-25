@@ -9,6 +9,7 @@ export enum MentorRequestAction {
   Availability = "availability",
   Decision = "decision",
   Messages = "messages",
+  MentorMessages = "mentor-messages",
   Meeting = "meeting",
   Meetings = "meetings",
   Withdrawal = "withdrawal",
@@ -76,7 +77,11 @@ export function mutateMentorRequest(options: {
   if (data && ACTIONS_WITH_REQUESTER.has(options.action)) {
     data = { ...data, requesterId: options.requesterId };
   }
-  if (data && options.action === MentorRequestAction.Decision) {
+  if (
+    data &&
+    (options.action === MentorRequestAction.Decision ||
+      options.action === MentorRequestAction.MentorMessages)
+  ) {
     data = { ...data, mentorId: options.mentorId };
   }
   return backendRequest({

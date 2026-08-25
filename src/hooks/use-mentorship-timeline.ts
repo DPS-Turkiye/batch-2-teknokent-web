@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   getMentorshipMeetings,
   logMentorshipMeeting,
@@ -52,6 +52,35 @@ export function useUpdateMeeting(requestId: string | null) {
       });
     },
   });
+}
+
+export function useMeetingNoteForm(
+  requestId: string | null,
+  meeting: MeetingItem,
+) {
+  const updateMeetingMutation = useUpdateMeeting(requestId);
+  const [notes, setNotes] = useState(meeting.notes ?? "");
+  const [outcomes, setOutcomes] = useState(meeting.outcomes ?? "");
+  const [status, setStatus] = useState<MeetingStatus>(
+    (meeting.status as MeetingStatus) ?? MeetingStatus.Scheduled,
+  );
+
+  const handleSave = () =>
+    updateMeetingMutation.mutateAsync({
+      id: meeting.id,
+      payload: { notes, outcomes, status },
+    });
+
+  return {
+    notes,
+    setNotes,
+    outcomes,
+    setOutcomes,
+    status,
+    setStatus,
+    handleSave,
+    isSaving: updateMeetingMutation.isPending,
+  };
 }
 
 function emptyLogForm() {

@@ -34,20 +34,18 @@ function menteeSession(): DemoSession {
 }
 
 describe("AppShell navigation", () => {
-  it("sends a mentor's home link to /mentor-home and shows mentor-only nav items", () => {
+  it("sends a mentor's home link to /mentor-dashboard and shows mentor-only nav items", () => {
     mockUseDemoSession.mockReturnValue(mentorSession());
 
     render(
-      <AppShell active={AppArea.MentorHome}>
+      <AppShell active={AppArea.MentorDashboard}>
         <p>content</p>
       </AppShell>,
     );
 
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
-    expect(homeLinks[0]).toHaveAttribute("href", "/mentor-home");
-    expect(
-      screen.getAllByRole("link", { name: /Mentor Paneli/ })[0],
-    ).toHaveAttribute("href", "/mentor-dashboard");
+    expect(homeLinks[0]).toHaveAttribute("href", "/mentor-dashboard");
+    expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
     expect(screen.queryByText("Mentorluklarım")).not.toBeInTheDocument();
     expect(screen.queryByText("Aksiyonlar")).not.toBeInTheDocument();
     expect(screen.queryByText("Dosyalar")).not.toBeInTheDocument();

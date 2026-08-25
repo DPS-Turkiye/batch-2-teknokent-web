@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
@@ -10,6 +11,7 @@ import {
   getMentorAvailability,
   getMentorRequest,
   getMentorRequests,
+  postMentorMessage,
   replyToMentorRequest,
   scheduleMeeting,
   withdrawMentorRequest,
@@ -66,6 +68,20 @@ export function useReplyToMentorRequest(id: string | null) {
   });
 }
 
+export function usePostMentorMessage(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (message: string) =>
+      postMentorMessage({ id: id as string, message }),
+    onSuccess: (request) => {
+      queryClient.setQueryData(["mentorship-request", id], request);
+      return queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+      });
+    },
+  });
+}
+
 export function useWithdrawMentorRequest(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -91,6 +107,67 @@ export function useScheduleMeeting(id: string | null) {
       });
     },
   });
+}
+
+export function useReplyForm(id: string | null) {
+  const replyMutation = useReplyToMentorRequest(id);
+  const [reply, setReply] = useState("");
+
+  const sendReply = async () => {
+    if (!reply.trim()) return;
+    await replyMutation.mutateAsync(reply.trim());
+    setReply("");
+  };
+
+  return {
+    reply,
+    setReply,
+    sendReply,
+    isSending: replyMutation.isPending,
+    error: replyMutation.error,
+  };
+}
+
+export function useMentorMessageForm(id: string | null) {
+  const postMessageMutation = usePostMentorMessage(id);
+  const [message, setMessage] = useState("");
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    await postMessageMutation.mutateAsync(message.trim());
+    setMessage("");
+  };
+
+  return {
+    message,
+    setMessage,
+    sendMessage,
+    isSending: postMessageMutation.isPending,
+    error: postMessageMutation.error,
+  };
+}
+
+export function useSlotBooking(id: string | null) {
+  const scheduleMutation = useScheduleMeeting(id);
+  const [scheduledSlotId, setScheduledSlotId] = useState<string | null>(null);
+  const [scheduledForId, setScheduledForId] = useState<string | null>(null);
+
+  if (scheduledForId !== id) {
+    setScheduledForId(id);
+    setScheduledSlotId(null);
+  }
+
+  const bookSlot = async (slotId: string) => {
+    const meeting = await scheduleMutation.mutateAsync(slotId);
+    if (meeting) setScheduledSlotId(slotId);
+  };
+
+  return {
+    scheduledSlotId,
+    bookSlot,
+    isBooking: scheduleMutation.isPending,
+    error: scheduleMutation.error,
+  };
 }
 
 export function useMentorRequestDecision() {
