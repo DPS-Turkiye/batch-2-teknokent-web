@@ -3,7 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorshipTimelinePage from "@/app/mentor-dashboard/mentorship/[id]/page";
-import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
+import {
+  useMentorMessageForm,
+  useMentorshipRequest,
+} from "@/hooks/use-mentorship-requests";
 import {
   useLogMeetingForm,
   useMeetingNoteForm,
@@ -31,6 +34,7 @@ vi.mock("@/components/providers/session-provider", () => ({
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequest: vi.fn(),
+  useMentorMessageForm: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-mentorship-timeline", () => ({
@@ -82,9 +86,18 @@ describe("MentorshipTimelinePage", () => {
   const resetForm = vi.fn();
   const handleSave = vi.fn();
   const setNotes = vi.fn();
+  const setMessage = vi.fn();
+  const sendMessage = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useMentorMessageForm).mockReturnValue({
+      message: "",
+      setMessage,
+      sendMessage,
+      isSending: false,
+      error: null,
+    } as ReturnType<typeof useMentorMessageForm>);
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: requestFixture,
       isLoading: false,
@@ -193,6 +206,15 @@ describe("MentorshipTimelinePage", () => {
     await user.click(screen.getByText("Kaydet"));
 
     expect(handleSave).toHaveBeenCalled();
+  });
+
+  it("shows the messaging section for an accepted request and sends a message", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<MentorshipTimelinePage />);
+
+    expect(screen.getByText("Mesajlaşma")).toBeInTheDocument();
+    await user.type(screen.getByPlaceholderText("Mesajınızı yazın..."), "x");
+    expect(setMessage).toHaveBeenCalled();
   });
 
   it("closes the note editor after a successful save", async () => {

@@ -23,11 +23,17 @@ export enum MentorRequestFilter {
 export enum MentorshipRequestMessageType {
   MenteeReply = "MENTEE_REPLY",
   MentorQuestion = "MENTOR_QUESTION",
+  MenteeMessage = "MENTEE_MESSAGE",
+  MentorMessage = "MENTOR_MESSAGE",
 }
 
 export type RequestMessage = {
+  id: string;
+  authorId: string;
+  authorName: string;
   messageType: MentorshipRequestMessageType;
   body: string;
+  createdAt: string;
 };
 
 export type RecommendationSnapshot = {

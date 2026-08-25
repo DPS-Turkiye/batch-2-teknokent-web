@@ -7,6 +7,8 @@ import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { ConversationThread } from "@/components/mentorship/conversation-thread";
+import { useSession } from "@/components/providers/session-provider";
 import {
   useAlternativeMentors,
   useMentorAvailability,
@@ -16,7 +18,10 @@ import {
   useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import {
+  MentorshipRequestMessageType,
+  MentorshipRequestStatus,
+} from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
 import { initials } from "@/lib/utils";
@@ -43,6 +48,7 @@ const statusTones: Record<
 export default function RequestStatusPage() {
   const router = useRouter();
   const params = useSearchParams();
+  const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
   const explicitId = params.get("request") ?? params.get("id");
@@ -145,7 +151,9 @@ export default function RequestStatusPage() {
                   <p className="mt-4 text-sm font-semibold">Mentorun sorusu:</p>
                   <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
                     {request.messages.find(
-                      (message) => message.messageType === "MENTOR_QUESTION",
+                      (message) =>
+                        message.messageType ===
+                        MentorshipRequestMessageType.MentorQuestion,
                     )?.body ??
                       request.mentorMessage ??
                       "Ek bilgi talep edildi."}
@@ -214,6 +222,25 @@ export default function RequestStatusPage() {
                       ) : null}
                     </>
                   )}
+
+                  {session ? (
+                    <div className="mt-6 border-t border-[#e5e7eb] pt-4">
+                      <h3 className="text-sm font-semibold">
+                        Mentor ile mesajlaş
+                      </h3>
+                      <div className="mt-3">
+                        <ConversationThread
+                          messages={request.messages}
+                          viewerUserId={session.userId}
+                          value={reply}
+                          onChange={setReply}
+                          onSend={() => void sendReply()}
+                          isSending={isSending}
+                          error={replyError}
+                        />
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
 

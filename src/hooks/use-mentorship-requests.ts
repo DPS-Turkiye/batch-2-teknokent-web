@@ -11,6 +11,7 @@ import {
   getMentorAvailability,
   getMentorRequest,
   getMentorRequests,
+  postMentorMessage,
   replyToMentorRequest,
   scheduleMeeting,
   withdrawMentorRequest,
@@ -67,6 +68,20 @@ export function useReplyToMentorRequest(id: string | null) {
   });
 }
 
+export function usePostMentorMessage(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (message: string) =>
+      postMentorMessage({ id: id as string, message }),
+    onSuccess: (request) => {
+      queryClient.setQueryData(["mentorship-request", id], request);
+      return queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+      });
+    },
+  });
+}
+
 export function useWithdrawMentorRequest(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -110,6 +125,25 @@ export function useReplyForm(id: string | null) {
     sendReply,
     isSending: replyMutation.isPending,
     error: replyMutation.error,
+  };
+}
+
+export function useMentorMessageForm(id: string | null) {
+  const postMessageMutation = usePostMentorMessage(id);
+  const [message, setMessage] = useState("");
+
+  const sendMessage = async () => {
+    if (!message.trim()) return;
+    await postMessageMutation.mutateAsync(message.trim());
+    setMessage("");
+  };
+
+  return {
+    message,
+    setMessage,
+    sendMessage,
+    isSending: postMessageMutation.isPending,
+    error: postMessageMutation.error,
   };
 }
 

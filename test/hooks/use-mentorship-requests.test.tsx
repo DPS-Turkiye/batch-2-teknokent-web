@@ -3,8 +3,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useReplyForm, useSlotBooking } from "@/hooks/use-mentorship-requests";
 import {
+  useMentorMessageForm,
+  useReplyForm,
+  useSlotBooking,
+} from "@/hooks/use-mentorship-requests";
+import {
+  postMentorMessage,
   replyToMentorRequest,
   scheduleMeeting,
   type ScheduledMeeting,
@@ -12,6 +17,7 @@ import {
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/mentor-requests", () => ({
+  postMentorMessage: vi.fn(),
   replyToMentorRequest: vi.fn(),
   scheduleMeeting: vi.fn(),
 }));
@@ -147,5 +153,69 @@ describe("useSlotBooking", () => {
     rerender({ id: "request-2" });
 
     await waitFor(() => expect(result.current.scheduledSlotId).toBeNull());
+  });
+});
+
+describe("useMentorMessageForm", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does nothing when the message is empty or whitespace", async () => {
+    const { result } = renderHook(() => useMentorMessageForm("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    act(() => {
+      result.current.setMessage("   ");
+    });
+
+    await act(async () => {
+      await result.current.sendMessage();
+    });
+
+    expect(postMentorMessage).not.toHaveBeenCalled();
+  });
+
+  it("sends the trimmed message and clears the field on success", async () => {
+    vi.mocked(postMentorMessage).mockResolvedValue({
+      id: "request-1",
+    } as never);
+
+    const { result } = renderHook(() => useMentorMessageForm("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    act(() => {
+      result.current.setMessage("  Yarın uygun mu?  ");
+    });
+
+    await act(async () => {
+      await result.current.sendMessage();
+    });
+
+    expect(postMentorMessage).toHaveBeenCalledWith({
+      id: "request-1",
+      message: "Yarın uygun mu?",
+    });
+    expect(result.current.message).toBe("");
+  });
+
+  it("does not clear the field when sending fails", async () => {
+    vi.mocked(postMentorMessage).mockRejectedValue(new Error("network"));
+
+    const { result } = renderHook(() => useMentorMessageForm("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    act(() => {
+      result.current.setMessage("Merhaba");
+    });
+
+    await act(async () => {
+      await expect(result.current.sendMessage()).rejects.toThrow();
+    });
+
+    expect(result.current.message).toBe("Merhaba");
   });
 });

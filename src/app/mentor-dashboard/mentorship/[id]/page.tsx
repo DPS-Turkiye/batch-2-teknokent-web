@@ -8,8 +8,12 @@ import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
-import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
+import {
+  useMentorMessageForm,
+  useMentorshipRequest,
+} from "@/hooks/use-mentorship-requests";
 import {
   useLogMeetingForm,
   useMeetingNoteForm,
@@ -131,6 +135,13 @@ export default function MentorshipTimelinePage() {
   const meetingsQuery = useMentorshipMeetings(requestId);
   const { form, logError, isLogging, updateForm, resetForm, handleLogMeeting } =
     useLogMeetingForm(requestId, session?.userId ?? null);
+  const {
+    message,
+    setMessage,
+    sendMessage,
+    isSending,
+    error: messageError,
+  } = useMentorMessageForm(requestId);
 
   const [editingMeetingId, setEditingMeetingId] = useState<string | null>(null);
 
@@ -173,6 +184,23 @@ export default function MentorshipTimelinePage() {
                 {statusLabels[request.status]}
               </Badge>
             </section>
+
+            {request.status === MentorshipRequestStatus.Accepted && session ? (
+              <section className="rounded-xl border border-zinc-200 bg-white p-5">
+                <h3 className="text-sm font-bold text-zinc-900">Mesajlaşma</h3>
+                <div className="mt-4">
+                  <ConversationThread
+                    messages={request.messages}
+                    viewerUserId={session.userId}
+                    value={message}
+                    onChange={setMessage}
+                    onSend={() => void sendMessage()}
+                    isSending={isSending}
+                    error={messageError}
+                  />
+                </div>
+              </section>
+            ) : null}
 
             <section className="rounded-xl border border-zinc-200 bg-white p-5">
               <h3 className="text-sm font-bold text-zinc-900">

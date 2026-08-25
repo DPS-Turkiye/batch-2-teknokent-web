@@ -30,7 +30,8 @@ async function forward(request: NextRequest, context: RouteContext) {
         ? undefined
         : ((await request.json()) as Record<string, unknown>);
     const mentorId =
-      action === MentorRequestAction.Decision
+      action === MentorRequestAction.Decision ||
+      action === MentorRequestAction.MentorMessages
         ? await getSessionMentorId()
         : undefined;
     return backendResponse(

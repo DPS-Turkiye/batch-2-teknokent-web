@@ -38,6 +38,18 @@ export async function replyToMentorRequest(options: {
   );
 }
 
+export async function postMentorMessage(options: {
+  id: string;
+  message: string;
+}) {
+  return requireSuccess(
+    await httpClient.post<MentorshipRequest>(
+      `/api/mentor-requests/${encodeURIComponent(options.id)}/mentor-messages`,
+      { message: options.message },
+    ),
+  );
+}
+
 export async function withdrawMentorRequest(id: string) {
   return requireSuccess(
     await httpClient.patch<MentorshipRequest>(

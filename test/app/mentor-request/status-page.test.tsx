@@ -28,6 +28,12 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({
+    session: { userId: "requester-1", email: "mentee@teknokent.demo" },
+  }),
+}));
+
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
   useMentorshipRequest: vi.fn(),
@@ -161,6 +167,23 @@ describe("RequestStatusPage", () => {
     renderWithQueryClient(<RequestStatusPage />);
 
     expect(screen.getByText("Toplantı planlandı")).toBeInTheDocument();
+  });
+
+  it("shows the mentor conversation thread when accepted", async () => {
+    vi.mocked(useMentorshipRequest).mockReturnValue({
+      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
+      error: null,
+    } as ReturnType<typeof useMentorshipRequest>);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(screen.getByText("Mentor ile mesajlaş")).toBeInTheDocument();
+    await user.type(
+      screen.getByPlaceholderText("Mesajınızı yazın..."),
+      "Merhaba",
+    );
+    expect(setReply).toHaveBeenCalled();
   });
 
   it("shows alternative mentors when declined", () => {
