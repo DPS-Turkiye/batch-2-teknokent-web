@@ -43,7 +43,12 @@ function buildNavigation(isMentor: boolean): Array<{
         href: "/mentor-dashboard",
         icon: Home,
       },
-      { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+      {
+        id: AppArea.Calendar,
+        label: "Takvim",
+        href: "/calendar",
+        icon: Calendar,
+      },
       {
         id: AppArea.Meetings,
         label: "Toplantılar",
@@ -67,7 +72,12 @@ function buildNavigation(isMentor: boolean): Array<{
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
     { id: AppArea.Mentorships, label: "Mentorluklarım", icon: Users },
-    { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+    {
+      id: AppArea.Calendar,
+      label: "Takvim",
+      href: "/calendar",
+      icon: Calendar,
+    },
     {
       id: AppArea.Meetings,
       label: "Toplantılar",

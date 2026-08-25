@@ -49,6 +49,10 @@ describe("AppShell navigation", () => {
     expect(screen.queryByText("Mentorluklarım")).not.toBeInTheDocument();
     expect(screen.queryByText("Aksiyonlar")).not.toBeInTheDocument();
     expect(screen.queryByText("Dosyalar")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
+      "href",
+      "/calendar",
+    );
   });
 
   it("sends a mentee's home link to /dashboard and hides the mentor panel", () => {
@@ -64,6 +68,10 @@ describe("AppShell navigation", () => {
     expect(homeLinks[0]).toHaveAttribute("href", "/dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
     expect(screen.getByText("Mentorluklarım")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
+      "href",
+      "/calendar",
+    );
   });
 
   it("falls back to the mentee home when there is no active session", () => {

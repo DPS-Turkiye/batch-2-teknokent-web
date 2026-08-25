@@ -72,13 +72,14 @@ export function useDashboardData() {
     }
   }, [meetingsQuery.error, requestsQuery.error]);
 
-  const meetings = meetingsQuery.data ?? FALLBACK_MEETINGS;
-  const requests = requestsQuery.data ?? FALLBACK_REQUESTS;
+  const hasError = Boolean(meetingsQuery.error || requestsQuery.error);
+  const meetings = meetingsQuery.data ?? (hasError ? FALLBACK_MEETINGS : []);
+  const requests = requestsQuery.data ?? (hasError ? FALLBACK_REQUESTS : []);
 
   return {
-    displayName: session?.fullName.split(" ")[0] ?? "Ayşe",
-    organizationName: session?.organizationName ?? "NovaMed AI",
-    isFallback: Boolean(meetingsQuery.error || requestsQuery.error),
+    displayName: session?.fullName.split(" ")[0] ?? "",
+    organizationName: session?.organizationName ?? "",
+    isFallback: hasError,
     isLoading: meetingsQuery.isLoading || requestsQuery.isLoading,
     nextMeeting: meetings[0] ?? null,
     requests,
