@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Home,
   type LucideIcon,
+  UserPlus,
   Users,
   Video,
 } from "lucide-react";
@@ -102,6 +103,12 @@ function buildNavigation(isMentor: boolean): Array<{
       label: "Dosyalar",
       href: "/meetings/research",
       icon: FolderOpen,
+    },
+    {
+      id: AppArea.Team,
+      label: "Ekibim",
+      href: "/team",
+      icon: UserPlus,
     },
     {
       id: AppArea.Announcements,

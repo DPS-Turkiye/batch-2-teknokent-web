@@ -10,27 +10,29 @@ import {
   uploadProfileAnalysis,
 } from "@/lib/client/profile-analysis";
 
-export const PROFILE_ANALYSIS_QUERY_KEY = [
-  "profile-analysis",
-  "latest",
-] as const;
+export function profileAnalysisQueryKey(appUserId?: string) {
+  return ["profile-analysis", "latest", appUserId ?? "self"] as const;
+}
 
-function useProfileMutation<TInput>(
+function useProfileMutation<TInput extends { appUserId?: string }>(
   mutationFn: (input: TInput) => Promise<ProfileAnalysis>,
 ) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn,
-    onSuccess: (analysis) => {
-      queryClient.setQueryData(PROFILE_ANALYSIS_QUERY_KEY, analysis);
+    onSuccess: (analysis, variables) => {
+      queryClient.setQueryData(
+        profileAnalysisQueryKey(variables.appUserId),
+        analysis,
+      );
     },
   });
 }
 
-export function useProfileAnalysis() {
+export function useProfileAnalysis(appUserId?: string) {
   return useQuery({
-    queryKey: PROFILE_ANALYSIS_QUERY_KEY,
-    queryFn: getLatestProfileAnalysis,
+    queryKey: profileAnalysisQueryKey(appUserId),
+    queryFn: () => getLatestProfileAnalysis(appUserId),
   });
 }
 
@@ -43,5 +45,11 @@ export function useCreateManualProfile() {
 }
 
 export function useConfirmProfile() {
-  return useProfileMutation(confirmProfile);
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: confirmProfile,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["profile-analysis"] });
+    },
+  });
 }

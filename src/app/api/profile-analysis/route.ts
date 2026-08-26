@@ -11,10 +11,14 @@ import { getSessionIds } from "@/lib/session";
 
 const OCR_MODES = new Set<OcrMode>(["auto", "force", "off"]);
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const { organizationId } = await getSessionIds();
-    return backendResponse(await fetchLatestProfileAnalysis(organizationId));
+    const appUserId =
+      request.nextUrl.searchParams.get("appUserId") ?? undefined;
+    return backendResponse(
+      await fetchLatestProfileAnalysis(organizationId, appUserId),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Profile service is unavailable.",
@@ -36,6 +40,7 @@ export async function POST(request: NextRequest) {
     const ocrMode: OcrMode = OCR_MODES.has(requestedOcrMode as OcrMode)
       ? (requestedOcrMode as OcrMode)
       : "auto";
+    const appUserId = form.get("appUserId");
 
     if (!(file instanceof File)) {
       return NextResponse.json(
@@ -58,6 +63,7 @@ export async function POST(request: NextRequest) {
         file,
         ocrMode,
         organizationId,
+        appUserId: typeof appUserId === "string" ? appUserId : undefined,
         profileType,
       }),
     );
