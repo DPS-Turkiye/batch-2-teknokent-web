@@ -9,6 +9,7 @@ import {
   FolderOpen,
   Home,
   type LucideIcon,
+  NotebookPen,
   UserPlus,
   Users,
   Video,
@@ -69,6 +70,12 @@ function buildNavigation(isMentor: boolean): Array<{
         href: "/assistant",
         icon: Bot,
       },
+      {
+        id: AppArea.Notes,
+        label: "Not Defterleri",
+        href: "/notes",
+        icon: NotebookPen,
+      },
     ];
   }
 
@@ -121,6 +128,12 @@ function buildNavigation(isMentor: boolean): Array<{
       label: "Toplantı Asistanı",
       href: "/assistant",
       icon: Bot,
+    },
+    {
+      id: AppArea.Notes,
+      label: "Not Defterleri",
+      href: "/notes",
+      icon: NotebookPen,
     },
   ];
 }
