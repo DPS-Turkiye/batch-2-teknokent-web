@@ -8,6 +8,7 @@ import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { ActionItemsSection } from "@/components/mentorship/action-items-section";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
 import {
@@ -200,6 +201,14 @@ export default function MentorshipTimelinePage() {
                   />
                 </div>
               </section>
+            ) : null}
+
+            {request.status === MentorshipRequestStatus.Accepted ? (
+              <ActionItemsSection
+                requestId={requestId}
+                ownerId={request.requesterId}
+                ownerName={request.requesterName}
+              />
             ) : null}
 
             <section className="rounded-xl border border-zinc-200 bg-white p-5">
