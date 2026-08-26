@@ -62,4 +62,30 @@ describe("WorkspacePage routing", () => {
 
     expect(push).toHaveBeenCalledWith("/dashboard");
   });
+
+  it("shows exactly one card matching the real mentor session, not a hardcoded list", () => {
+    mockUseDemoSession.mockReturnValue(mentorSession());
+
+    render(<WorkspacePage />);
+
+    expect(
+      screen.getAllByRole("button", { name: "Çalışma alanına geç" }),
+    ).toHaveLength(1);
+    expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
+    expect(screen.getByText("Mentor")).toBeInTheDocument();
+    expect(screen.queryByText("METUStars 2026")).not.toBeInTheDocument();
+  });
+
+  it("shows exactly one card matching the real mentee session, not a hardcoded list", () => {
+    mockUseDemoSession.mockReturnValue(menteeSession());
+
+    render(<WorkspacePage />);
+
+    expect(
+      screen.getAllByRole("button", { name: "Çalışma alanına geç" }),
+    ).toHaveLength(1);
+    expect(screen.getByText("NovaMed AI")).toBeInTheDocument();
+    expect(screen.getByText("Girişim Ekibi")).toBeInTheDocument();
+    expect(screen.queryByText("Eğitmen")).not.toBeInTheDocument();
+  });
 });

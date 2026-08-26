@@ -6,6 +6,10 @@ import { ChangeEvent, useRef, useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import {
+  useAddOrganizationMember,
+  useOrganizationMembers,
+} from "@/hooks/use-organization-members";
+import {
   useConfirmProfile,
   useCreateManualProfile,
   useProfileAnalysis,
@@ -16,6 +20,9 @@ import type {
   ProfileAnalysis as Analysis,
   ProfileType,
 } from "@/interfaces/profile-analysis";
+
+type ProfileTarget =
+  { kind: "self" } | { kind: "existing"; appUserId: string } | { kind: "new" };
 
 type EditableProfile = Record<string, string>;
 type ProfileFieldDefinition = [string, string, "input" | "textarea"];
@@ -129,7 +136,15 @@ function technologyInferences(
 }
 
 export function ProfileAnalysisView() {
-  const profileQuery = useProfileAnalysis();
+  const [target, setTarget] = useState<ProfileTarget>({ kind: "self" });
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberJobTitle, setNewMemberJobTitle] = useState("");
+  const membersQuery = useOrganizationMembers();
+  const addMemberMutation = useAddOrganizationMember();
+  const resolvedAppUserId =
+    target.kind === "existing" ? target.appUserId : undefined;
+  const profileQuery = useProfileAnalysis(resolvedAppUserId);
   const uploadMutation = useUploadProfileAnalysis();
   const [hiddenAnalysisId, setHiddenAnalysisId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -145,7 +160,7 @@ export function ProfileAnalysisView() {
     profileQuery.data?.id === hiddenAnalysisId
       ? null
       : (profileQuery.data ?? null);
-  const processing = uploadMutation.isPending;
+  const processing = uploadMutation.isPending || addMemberMutation.isPending;
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -161,7 +176,26 @@ export function ProfileAnalysisView() {
     if (!file || !consentAccepted) return;
     setError("");
     try {
-      await uploadMutation.mutateAsync({ file, profileType, ocrMode });
+      let appUserId = resolvedAppUserId;
+      if (target.kind === "new") {
+        if (!newMemberName.trim() || !newMemberEmail.trim()) {
+          setError("Yeni ekip üyesi için ad soyad ve e-posta gereklidir.");
+          return;
+        }
+        const member = await addMemberMutation.mutateAsync({
+          fullName: newMemberName,
+          email: newMemberEmail,
+          jobTitle: newMemberJobTitle || undefined,
+        });
+        appUserId = member.id;
+        setTarget({ kind: "existing", appUserId: member.id });
+      }
+      await uploadMutation.mutateAsync({
+        file,
+        profileType,
+        ocrMode,
+        appUserId,
+      });
       setHiddenAnalysisId(null);
       if (fileInput.current) fileInput.current.value = "";
       setFile(null);
@@ -190,6 +224,109 @@ export function ProfileAnalysisView() {
             CV’nizi veya pitch deck’inizi yükleyin. Yapılandırılmış profil
             kaydedilir ve mentor önerileri için kullanılır.
           </p>
+        </section>
+
+        <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
+          <h2 className="text-base font-semibold text-[#364153]">
+            Kimin için?
+          </h2>
+          <fieldset className="mt-4 flex flex-col gap-3 text-sm text-[#364153]">
+            <label className="flex items-center gap-2">
+              <input
+                checked={target.kind === "self"}
+                disabled={processing}
+                name="profile-target"
+                onChange={() => setTarget({ kind: "self" })}
+                type="radio"
+              />
+              Kendim
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                checked={target.kind === "existing"}
+                disabled={processing}
+                name="profile-target"
+                onChange={() => {
+                  const firstMember = membersQuery.data?.[0];
+                  setTarget(
+                    firstMember
+                      ? { kind: "existing", appUserId: firstMember.id }
+                      : { kind: "existing", appUserId: "" },
+                  );
+                }}
+                type="radio"
+              />
+              Mevcut ekip üyesi
+            </label>
+            {target.kind === "existing" ? (
+              membersQuery.data && membersQuery.data.length > 0 ? (
+                <select
+                  className="ml-6 max-w-xs rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
+                  disabled={processing}
+                  value={target.appUserId}
+                  onChange={(event) =>
+                    setTarget({
+                      kind: "existing",
+                      appUserId: event.target.value,
+                    })
+                  }
+                >
+                  {membersQuery.data.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.fullName}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <p className="ml-6 text-xs text-[#6a7282]">
+                  Henüz eklenmiş bir ekip üyesi yok.{" "}
+                  <Link
+                    className="font-medium text-[#4f39f6] hover:underline"
+                    href="/team"
+                  >
+                    Ekip üyesi ekle
+                  </Link>
+                  .
+                </p>
+              )
+            ) : null}
+            <label className="flex items-center gap-2">
+              <input
+                checked={target.kind === "new"}
+                disabled={processing}
+                name="profile-target"
+                onChange={() => setTarget({ kind: "new" })}
+                type="radio"
+              />
+              Yeni ekip üyesi ekle
+            </label>
+            {target.kind === "new" ? (
+              <div className="ml-6 grid max-w-xs gap-2">
+                <input
+                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
+                  disabled={processing}
+                  onChange={(event) => setNewMemberName(event.target.value)}
+                  placeholder="Ad Soyad"
+                  value={newMemberName}
+                />
+                <input
+                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
+                  disabled={processing}
+                  onChange={(event) => setNewMemberEmail(event.target.value)}
+                  placeholder="E-posta"
+                  type="email"
+                  value={newMemberEmail}
+                />
+                <input
+                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
+                  disabled={processing}
+                  onChange={(event) => setNewMemberJobTitle(event.target.value)}
+                  placeholder="Unvan (opsiyonel)"
+                  value={newMemberJobTitle}
+                />
+              </div>
+            ) : null}
+          </fieldset>
         </section>
 
         <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
@@ -309,6 +446,7 @@ export function ProfileAnalysisView() {
           <ManualProfileForm
             key={profileType}
             profileType={profileType}
+            appUserId={resolvedAppUserId}
             onSaved={() => {
               setHiddenAnalysisId(null);
               setError("");
@@ -513,9 +651,11 @@ function ProfileReview({
 
 function ManualProfileForm({
   profileType,
+  appUserId,
   onSaved,
 }: {
   profileType: ProfileType;
+  appUserId?: string;
   onSaved: (analysis: Analysis) => void;
 }) {
   const [draft, setDraft] = useState<EditableProfile>(() =>
@@ -530,6 +670,7 @@ function ManualProfileForm({
       const saved = await createMutation.mutateAsync({
         profileType,
         profile: profilePayload({}, draft, profileType),
+        appUserId,
       });
       onSaved(saved);
     } catch (reason) {

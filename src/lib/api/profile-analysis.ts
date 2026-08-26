@@ -5,11 +5,14 @@ import { backendRequest } from "@/lib/server/backend-client";
 export type ProfileType = "individual_mentee" | "mentee";
 export type OcrMode = "auto" | "force" | "off";
 
-export function fetchLatestProfileAnalysis(organizationId: string) {
+export function fetchLatestProfileAnalysis(
+  organizationId: string,
+  appUserId?: string,
+) {
   return backendRequest({
     method: "GET",
     url: "/api/profile-analyses/latest",
-    params: { organizationId },
+    params: { organizationId, appUserId },
   });
 }
 
@@ -17,6 +20,7 @@ export function createProfileAnalysis(options: {
   file: File;
   ocrMode: OcrMode;
   organizationId: string;
+  appUserId?: string;
   profileType: ProfileType;
 }) {
   const data = new FormData();
@@ -26,6 +30,7 @@ export function createProfileAnalysis(options: {
     url: "/api/profile-analyses",
     params: {
       organizationId: options.organizationId,
+      appUserId: options.appUserId,
       profileType: options.profileType,
       consentAccepted: true,
       ocrMode: options.ocrMode,
@@ -37,12 +42,13 @@ export function createProfileAnalysis(options: {
 
 export function createManualProfileAnalysis(
   organizationId: string,
+  appUserId: string | undefined,
   payload: unknown,
 ) {
   return backendRequest({
     method: "POST",
     url: "/api/profile-analyses/manual",
-    params: { organizationId },
+    params: { organizationId, appUserId },
     data: payload,
   });
 }

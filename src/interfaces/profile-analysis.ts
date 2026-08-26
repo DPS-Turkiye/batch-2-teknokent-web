@@ -3,6 +3,7 @@ export type OcrMode = "auto" | "force" | "off";
 
 export type ProfileAnalysis = {
   id: string;
+  appUserId?: string | null;
   sourceFilename: string;
   profileType: ProfileType;
   profile: Record<string, unknown> | string;

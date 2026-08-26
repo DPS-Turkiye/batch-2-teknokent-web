@@ -10,6 +10,7 @@ import {
   Home,
   type LucideIcon,
   NotebookPen,
+  UserPlus,
   Users,
   Video,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import { ReactNode, useState } from "react";
 import { Avatar } from "@/components/common/avatar";
 import { useDemoSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
+import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -44,7 +46,12 @@ function buildNavigation(isMentor: boolean): Array<{
         href: "/mentor-dashboard",
         icon: Home,
       },
-      { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+      {
+        id: AppArea.Calendar,
+        label: "Takvim",
+        href: "/calendar",
+        icon: Calendar,
+      },
       {
         id: AppArea.Meetings,
         label: "Toplantılar",
@@ -54,6 +61,7 @@ function buildNavigation(isMentor: boolean): Array<{
       {
         id: AppArea.Announcements,
         label: "Duyurular",
+        href: "/mentor-dashboard#notifications",
         icon: Bell,
       },
       {
@@ -73,8 +81,18 @@ function buildNavigation(isMentor: boolean): Array<{
 
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
-    { id: AppArea.Mentorships, label: "Mentorluklarım", icon: Users },
-    { id: AppArea.Calendar, label: "Takvim", icon: Calendar },
+    {
+      id: AppArea.Mentorships,
+      label: "Mentorluklarım",
+      href: "/mentorships",
+      icon: Users,
+    },
+    {
+      id: AppArea.Calendar,
+      label: "Takvim",
+      href: "/calendar",
+      icon: Calendar,
+    },
     {
       id: AppArea.Meetings,
       label: "Toplantılar",
@@ -92,6 +110,12 @@ function buildNavigation(isMentor: boolean): Array<{
       label: "Dosyalar",
       href: "/meetings/research",
       icon: FolderOpen,
+    },
+    {
+      id: AppArea.Team,
+      label: "Ekibim",
+      href: "/team",
+      icon: UserPlus,
     },
     {
       id: AppArea.Announcements,
@@ -172,9 +196,10 @@ export function AppShell({
                   aria-hidden
                 />
                 <span>{item.label}</span>
-                {item.id === AppArea.Announcements ? (
+                {item.id === AppArea.Announcements &&
+                DASHBOARD_NOTIFICATIONS.length > 0 ? (
                   <span className="ml-auto flex size-4 items-center justify-center rounded-full bg-[#555] text-[10px] font-semibold text-white">
-                    3
+                    {DASHBOARD_NOTIFICATIONS.length}
                   </span>
                 ) : null}
               </>
