@@ -168,6 +168,7 @@ export function AppShell({
   const session = useDemoSession();
   const isMentor = session?.role === UserRole.Mentor;
   const homeHref = isMentor ? "/mentor-dashboard" : "/dashboard";
+  const profileHref = isMentor ? "/mentor-profile" : "/profile";
   const navigation = buildNavigation(isMentor);
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization =
@@ -230,7 +231,11 @@ export function AppShell({
           })}
         </nav>
         <div className="border-t border-[#f3f4f6] px-4 py-3">
-          <div className="flex items-center gap-2.5">
+          <Link
+            href={profileHref}
+            onClick={() => setMobileOpen(false)}
+            className="flex items-center gap-2.5 rounded-md -mx-1 px-1 py-1 transition-colors hover:bg-[#f9fafb]"
+          >
             <Avatar initials={avatarInitials || "AK"} tone="purple" />
             <span className="min-w-0 leading-none">
               <strong className="block truncate text-xs font-medium">
@@ -240,7 +245,7 @@ export function AppShell({
                 {displayOrganization}
               </span>
             </span>
-          </div>
+          </Link>
         </div>
       </aside>
 
