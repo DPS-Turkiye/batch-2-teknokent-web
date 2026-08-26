@@ -203,9 +203,12 @@ export default function DashboardPage() {
               <p className="mt-2 text-[11px] text-[#555]">
                 %72 tamamlandı — 2 alan eksik
               </p>
-              <button type="button" className="mt-2 text-[11px] font-medium">
+              <Link
+                href="/profile"
+                className="mt-2 inline-block text-[11px] font-medium text-[#4f39f6] hover:underline"
+              >
                 Profili Tamamla →
-              </button>
+              </Link>
             </section>
           </aside>
         </div>
