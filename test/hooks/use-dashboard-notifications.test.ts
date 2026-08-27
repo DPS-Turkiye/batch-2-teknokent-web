@@ -22,7 +22,15 @@ describe("useDashboardNotifications", () => {
     const { result } = renderHook(() => useDashboardNotifications());
 
     expect(Array.isArray(result.current.notifications)).toBe(true);
-    expect(result.current.notifications.every((item) => typeof item.title === "string")).toBe(true);
-    expect(result.current.notifications.every((item) => typeof item.time === "string")).toBe(true);
+    expect(
+      result.current.notifications.every(
+        (item) => typeof item.title === "string",
+      ),
+    ).toBe(true);
+    expect(
+      result.current.notifications.every(
+        (item) => typeof item.time === "string",
+      ),
+    ).toBe(true);
   });
 });

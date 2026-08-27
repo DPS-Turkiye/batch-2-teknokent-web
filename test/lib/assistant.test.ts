@@ -96,7 +96,9 @@ describe("assistant lib", () => {
   });
 
   it("stopMeetingBot calls delete with generated url", async () => {
-    vi.mocked(httpClient.delete).mockResolvedValue(createAxiosResponse({}, 204));
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
 
     await stopMeetingBot("google_meet", "abc-defg-hij");
 
@@ -108,9 +110,9 @@ describe("assistant lib", () => {
   it("stopMeetingBot uses fallback message on network failures", async () => {
     vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
 
-    await expect(
-      stopMeetingBot("google_meet", "abc-defg-hij"),
-    ).rejects.toThrow("Failed to stop bot (network error)");
+    await expect(stopMeetingBot("google_meet", "abc-defg-hij")).rejects.toThrow(
+      "Failed to stop bot (network error)",
+    );
   });
 
   it("generateMeetingReport posts empty payload and returns report", async () => {
@@ -126,7 +128,9 @@ describe("assistant lib", () => {
       nextSteps: ["Backlog netlestir"],
       model: "gpt-5.4",
     };
-    vi.mocked(httpClient.post).mockResolvedValue(createAxiosResponse(report, 200));
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createAxiosResponse(report, 200),
+    );
 
     const result = await generateMeetingReport("google_meet", "abc-defg-hij");
 

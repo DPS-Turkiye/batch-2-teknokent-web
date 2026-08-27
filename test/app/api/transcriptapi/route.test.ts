@@ -14,7 +14,9 @@ describe("assistant transcript API route", () => {
   });
 
   it("returns 400 when transcript query params are missing", async () => {
-    const response = await GET(new NextRequest("http://localhost/api/transcriptapi"));
+    const response = await GET(
+      new NextRequest("http://localhost/api/transcriptapi"),
+    );
 
     expect(response.status).toBe(400);
     expect(fetchMeetingTranscript).not.toHaveBeenCalled();
@@ -22,7 +24,9 @@ describe("assistant transcript API route", () => {
 
   it("forwards transcript responses with backend status", async () => {
     vi.mocked(fetchMeetingTranscript).mockResolvedValue({
-      data: { segments: [{ id: "s1", speaker: "Ayse", text: "Hello", at: "00:01" }] },
+      data: {
+        segments: [{ id: "s1", speaker: "Ayse", text: "Hello", at: "00:01" }],
+      },
       status: 200,
     });
 

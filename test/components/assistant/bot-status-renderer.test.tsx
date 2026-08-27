@@ -13,10 +13,7 @@ describe("BotStatusRenderer", () => {
 
   it("renders provided error text when status is error", () => {
     render(
-      <BotStatusRenderer
-        status={BotStatus.Err}
-        error="provider unavailable"
-      />,
+      <BotStatusRenderer status={BotStatus.Err} error="provider unavailable" />,
     );
 
     expect(screen.getByText("provider unavailable")).toBeInTheDocument();
@@ -29,7 +26,9 @@ describe("BotStatusRenderer", () => {
   });
 
   it("renders nothing while no status is available", () => {
-    const { container } = render(<BotStatusRenderer status={null} error={null} />);
+    const { container } = render(
+      <BotStatusRenderer status={null} error={null} />,
+    );
 
     expect(container).toBeEmptyDOMElement();
   });

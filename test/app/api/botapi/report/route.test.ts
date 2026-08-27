@@ -88,7 +88,9 @@ describe("assistant report API route", () => {
   });
 
   it("returns 502 when backend report call throws", async () => {
-    vi.mocked(generateMeetingReportBackend).mockRejectedValue(new Error("boom"));
+    vi.mocked(generateMeetingReportBackend).mockRejectedValue(
+      new Error("boom"),
+    );
 
     const request = new NextRequest(
       "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",

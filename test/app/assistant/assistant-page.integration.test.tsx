@@ -13,7 +13,9 @@ import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
 vi.mock("@/components/hoc/app-shell", () => ({
-  AppShell: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AppShell: ({ children }: { children: React.ReactNode }) => (
+    <div>{children}</div>
+  ),
 }));
 
 vi.mock("@/lib/http-client", () => ({
@@ -116,7 +118,9 @@ describe("AssistantPage integration", () => {
       throw new Error(`Unexpected POST URL: ${String(url)}`);
     });
 
-    vi.mocked(httpClient.delete).mockResolvedValue(createAxiosResponse({}, 204));
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
 
     render(<AssistantPage />);
 
@@ -127,9 +131,9 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Bot ekle" }));
 
     await waitFor(() => {
-      expect(screen.getAllByText("Yeni Test Toplantisi").length).toBeGreaterThan(
-        0,
-      );
+      expect(
+        screen.getAllByText("Yeni Test Toplantisi").length,
+      ).toBeGreaterThan(0);
     });
 
     await user.click(screen.getByRole("button", { name: "Stop bot" }));

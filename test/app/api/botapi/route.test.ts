@@ -34,7 +34,9 @@ describe("assistant bot API route", () => {
 
     const request = new NextRequest("http://localhost/api/botapi", {
       method: "POST",
-      body: JSON.stringify({ meetingUrl: "https://meet.google.com/abc-defg-hij" }),
+      body: JSON.stringify({
+        meetingUrl: "https://meet.google.com/abc-defg-hij",
+      }),
     });
 
     const response = await POST(request);
