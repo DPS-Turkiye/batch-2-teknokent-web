@@ -81,6 +81,7 @@ export function HealthStatus() {
       <div className="mt-4 space-y-2">
         <StatusBadge label="Version" value={health.version} />
         <StatusBadge label="Database" value={health.components.database} />
+        <StatusBadge label="Redis" value={health.components.redis} />
         <StatusBadge label="Checked at" value={health.timestamp} />
       </div>
 

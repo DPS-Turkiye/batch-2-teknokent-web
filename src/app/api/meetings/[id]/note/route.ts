@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "content and version are required.",
+          message: "content is required.",
         },
         { status: 400 },
       );

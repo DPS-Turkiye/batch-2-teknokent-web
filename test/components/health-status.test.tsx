@@ -45,6 +45,7 @@ describe("HealthStatus", () => {
     expect(screen.getByText("Version")).toBeInTheDocument();
     expect(screen.getByText("local")).toBeInTheDocument();
     expect(screen.getByText("Database")).toBeInTheDocument();
+    expect(screen.getByText("Redis")).toBeInTheDocument();
     expect(screen.getByText("2026-01-01T00:00:00Z")).toBeInTheDocument();
   });
 

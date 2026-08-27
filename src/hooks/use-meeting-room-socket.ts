@@ -2,18 +2,19 @@
 
 import { Client } from "@stomp/stompjs";
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-import {
-  meetingNoteQueryKey,
-  meetingTodosQueryKey,
-} from "@/hooks/use-meeting-notes";
+import { meetingTodosQueryKey } from "@/hooks/use-meeting-notes";
 import {
   MeetingRoomEventType,
   type MeetingRoomEvent,
 } from "@/interfaces/meeting-note";
 import { postRealtimeToken } from "@/lib/client/meeting-notes";
-import { getMeetingRoomTopic, getRealtimeUrl } from "@/lib/const";
+import {
+  getMeetingDocumentDestination,
+  getMeetingRoomTopic,
+  getRealtimeUrl,
+} from "@/lib/const";
 
 export enum RealtimeStatus {
   Connecting = "connecting",
@@ -21,12 +22,18 @@ export enum RealtimeStatus {
   Offline = "offline",
 }
 
-export function useMeetingRoomSocket(meetingId: string) {
+type DocumentUpdateListener = (update: string) => void;
+
+export function useMeetingRoomSocket(meetingId: string, enabled = true) {
   const queryClient = useQueryClient();
-  const [status, setStatus] = useState(RealtimeStatus.Connecting);
+  const [connectionStatus, setConnectionStatus] = useState(
+    RealtimeStatus.Connecting,
+  );
+  const clientRef = useRef<Client | null>(null);
+  const listeners = useRef(new Set<DocumentUpdateListener>());
 
   useEffect(() => {
-    if (!meetingId) return;
+    if (!meetingId || !enabled) return;
 
     const client = new Client({
       brokerURL: getRealtimeUrl(),
@@ -37,18 +44,19 @@ export function useMeetingRoomSocket(meetingId: string) {
           client.brokerURL = `${getRealtimeUrl()}?token=${encodeURIComponent(token)}`;
         } catch (error) {
           console.error("Realtime token could not be issued", error);
-          setStatus(RealtimeStatus.Offline);
+          setConnectionStatus(RealtimeStatus.Offline);
         }
       },
       onConnect: () => {
-        setStatus(RealtimeStatus.Connected);
+        setConnectionStatus(RealtimeStatus.Connected);
         client.subscribe(getMeetingRoomTopic(meetingId), (message) => {
           const event = JSON.parse(message.body) as MeetingRoomEvent;
-          if (event.type === MeetingRoomEventType.NoteUpdated && event.note) {
-            queryClient.setQueryData(
-              meetingNoteQueryKey(meetingId),
-              event.note,
-            );
+          if (
+            event.type === MeetingRoomEventType.DocumentUpdated &&
+            event.update
+          ) {
+            const update = event.update;
+            listeners.current.forEach((listener) => listener(update));
           }
           if (event.type === MeetingRoomEventType.TodosUpdated && event.todos) {
             queryClient.setQueryData(
@@ -58,15 +66,44 @@ export function useMeetingRoomSocket(meetingId: string) {
           }
         });
       },
-      onWebSocketClose: () => setStatus(RealtimeStatus.Offline),
-      onStompError: () => setStatus(RealtimeStatus.Offline),
+      onWebSocketClose: () => setConnectionStatus(RealtimeStatus.Offline),
+      onStompError: () => setConnectionStatus(RealtimeStatus.Offline),
     });
 
+    clientRef.current = client;
     client.activate();
     return () => {
+      clientRef.current = null;
       void client.deactivate();
     };
-  }, [meetingId, queryClient]);
+  }, [enabled, meetingId, queryClient]);
 
-  return status;
+  const subscribeToDocumentUpdates = useCallback(
+    (listener: DocumentUpdateListener) => {
+      listeners.current.add(listener);
+      return () => {
+        listeners.current.delete(listener);
+      };
+    },
+    [],
+  );
+
+  const publishDocumentUpdate = useCallback(
+    (update: string, fullState: boolean) => {
+      const client = clientRef.current;
+      if (!client?.connected) return;
+      client.publish({
+        destination: getMeetingDocumentDestination(meetingId),
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ update, fullState }),
+      });
+    },
+    [meetingId],
+  );
+
+  return {
+    status: enabled && meetingId ? connectionStatus : RealtimeStatus.Offline,
+    subscribeToDocumentUpdates,
+    publishDocumentUpdate,
+  };
 }

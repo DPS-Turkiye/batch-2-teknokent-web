@@ -2,7 +2,6 @@ import { z } from "zod";
 
 export const saveMeetingNoteBodySchema = z.object({
   content: z.string().max(200000),
-  version: z.number().int().min(0),
 });
 
 export const createMeetingTodoBodySchema = z.object({

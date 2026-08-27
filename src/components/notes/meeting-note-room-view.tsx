@@ -2,7 +2,9 @@
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingNoteEditor } from "@/components/notes/meeting-note-editor";
+import { MeetingNoteSnapshotView } from "@/components/notes/meeting-note-snapshot-view";
 import { MeetingTodoList } from "@/components/notes/meeting-todo-list";
+import { useMeetingNoteDocument } from "@/hooks/use-meeting-note-document";
 import {
   RealtimeStatus,
   useMeetingRoomSocket,
@@ -22,9 +24,21 @@ interface MeetingNoteRoomViewProps {
 }
 
 export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
-  const realtimeStatus = useMeetingRoomSocket(meetingId);
   const meetingsQuery = useMeetings();
   const meeting = meetingsQuery.data?.find((item) => item.id === meetingId);
+
+  const {
+    status: realtimeStatus,
+    subscribeToDocumentUpdates,
+    publishDocumentUpdate,
+  } = useMeetingRoomSocket(meetingId, Boolean(meeting));
+
+  const noteDocument = useMeetingNoteDocument(
+    meetingId,
+    realtimeStatus === RealtimeStatus.Connected,
+    subscribeToDocumentUpdates,
+    publishDocumentUpdate,
+  );
 
   return (
     <AppShell
@@ -50,8 +64,18 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
         </span>
       }
     >
-      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-        <MeetingNoteEditor meetingId={meetingId} />
+      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-8 lg:h-[calc(100dvh-5.5rem)] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch">
+        {realtimeStatus === RealtimeStatus.Offline ? (
+          <MeetingNoteSnapshotView meetingId={meetingId} />
+        ) : (
+          <MeetingNoteEditor
+            meetingId={meetingId}
+            doc={noteDocument.doc}
+            documentStatus={noteDocument.status}
+            seedFromSnapshot={noteDocument.seedFromSnapshot}
+            persistFullState={noteDocument.persistFullState}
+          />
+        )}
         <MeetingTodoList meetingId={meetingId} />
       </div>
     </AppShell>

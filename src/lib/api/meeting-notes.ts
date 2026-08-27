@@ -20,10 +20,21 @@ export function fetchMeetingNote(meetingId: string, organizationId: string) {
   });
 }
 
+export function fetchMeetingNoteDocument(
+  meetingId: string,
+  organizationId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: meetingPath(meetingId, "/note/document"),
+    params: { organizationId },
+  });
+}
+
 export function saveMeetingNote(
   meetingId: string,
   session: SessionIds,
-  payload: { content: string; version: number },
+  payload: { content: string },
 ) {
   return backendRequest({
     method: HttpMethod.Put,

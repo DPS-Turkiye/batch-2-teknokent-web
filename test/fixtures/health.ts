@@ -6,6 +6,7 @@ export const healthyResponse: HealthResponse = {
   version: "local",
   components: {
     database: HealthStatus.UP,
+    redis: HealthStatus.UP,
   },
 };
 
@@ -15,6 +16,7 @@ export const unhealthyResponse: HealthResponse = {
   version: "local",
   components: {
     database: HealthStatus.DOWN,
+    redis: HealthStatus.DOWN,
   },
 };
 

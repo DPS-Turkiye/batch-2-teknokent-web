@@ -49,6 +49,12 @@ describe("health lib", () => {
           components: { database: "UNKNOWN" },
         }),
       ).toBe(false);
+      expect(
+        isValidHealthResponse({
+          ...healthyResponse,
+          components: { database: HealthStatus.UP },
+        }),
+      ).toBe(false);
     });
 
     it("detects whether health is up", () => {
