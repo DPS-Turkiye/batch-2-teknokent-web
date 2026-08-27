@@ -1,8 +1,18 @@
 import { AxiosError } from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { addMeetingBot, fetchTranscript } from "@/lib/assistant";
-import { getBotApiUrl, getTranscriptApiUrl } from "@/lib/const";
+import {
+  addMeetingBot,
+  fetchTranscript,
+  generateMeetingReport,
+  stopMeetingBot,
+} from "@/lib/assistant";
+import {
+  getBotApiUrl,
+  getMeetingReportApiUrl,
+  getStopBotApiUrl,
+  getTranscriptApiUrl,
+} from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
@@ -10,6 +20,7 @@ vi.mock("@/lib/http-client", () => ({
   httpClient: {
     post: vi.fn(),
     get: vi.fn(),
+    delete: vi.fn(),
   },
 }));
 
@@ -82,5 +93,65 @@ describe("assistant lib", () => {
     await expect(
       fetchTranscript("google_meet", "abc-defg-hij"),
     ).rejects.toThrow("missing");
+  });
+
+  it("stopMeetingBot calls delete with generated url", async () => {
+    vi.mocked(httpClient.delete).mockResolvedValue(createAxiosResponse({}, 204));
+
+    await stopMeetingBot("google_meet", "abc-defg-hij");
+
+    expect(httpClient.delete).toHaveBeenCalledWith(
+      getStopBotApiUrl("google_meet", "abc-defg-hij"),
+    );
+  });
+
+  it("stopMeetingBot uses fallback message on network failures", async () => {
+    vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
+
+    await expect(
+      stopMeetingBot("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Failed to stop bot (network error)");
+  });
+
+  it("generateMeetingReport posts empty payload and returns report", async () => {
+    const report = {
+      title: "Mentorluk Gorusmesi",
+      meetingDate: "2026-08-27",
+      topic: "Urun Yol Haritasi",
+      summary: "Toplanti verimli gecti.",
+      topicsDiscussed: ["Yol haritasi"],
+      decisions: ["MVP iki haftada cikacak"],
+      actionItems: [{ owner: "Ayse", task: "Demo hazirla", due: "2026-09-01" }],
+      risksOrBlockers: ["Kaynak kisiti"],
+      nextSteps: ["Backlog netlestir"],
+      model: "gpt-5.4",
+    };
+    vi.mocked(httpClient.post).mockResolvedValue(createAxiosResponse(report, 200));
+
+    const result = await generateMeetingReport("google_meet", "abc-defg-hij");
+
+    expect(httpClient.post).toHaveBeenCalledWith(
+      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      {},
+    );
+    expect(result).toEqual(report);
+  });
+
+  it("generateMeetingReport prefers provider detail message", async () => {
+    vi.mocked(httpClient.post).mockRejectedValue(
+      createAxiosError({ detail: "invalid api key" }, 401),
+    );
+
+    await expect(
+      generateMeetingReport("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("invalid api key");
+  });
+
+  it("generateMeetingReport uses fallback message when response has no detail", async () => {
+    vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
+
+    await expect(
+      generateMeetingReport("google_meet", "abc-defg-hij"),
+    ).rejects.toThrow("Failed to generate meeting report (502)");
   });
 });
