@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createActionItem, fetchActionItems } from "@/lib/api/action-items";
-import { resolveOrganizationIdForRequest } from "@/lib/server/action-item-scope";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
 function missingRequestId() {
@@ -16,8 +15,7 @@ export async function GET(request: NextRequest) {
     const requestId = request.nextUrl.searchParams.get("requestId");
     if (!requestId) return missingRequestId();
 
-    const organizationId = await resolveOrganizationIdForRequest(requestId);
-    return backendResponse(await fetchActionItems(organizationId));
+    return backendResponse(await fetchActionItems(requestId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Action items could not be loaded.",
@@ -33,9 +31,8 @@ export async function POST(request: NextRequest) {
     >;
     if (typeof requestId !== "string") return missingRequestId();
 
-    const organizationId = await resolveOrganizationIdForRequest(requestId);
     return backendResponse(
-      await createActionItem({ ...payload, organizationId }),
+      await createActionItem({ ...payload, mentorshipRequestId: requestId }),
     );
   } catch (error) {
     return apiErrorResponse(error, {

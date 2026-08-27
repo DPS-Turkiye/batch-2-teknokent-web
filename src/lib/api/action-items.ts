@@ -3,11 +3,11 @@ import "server-only";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
-export function fetchActionItems(organizationId: string) {
+export function fetchActionItems(mentorshipRequestId: string) {
   return backendRequest({
     method: HttpMethod.Get,
     url: "/api/actions",
-    params: { organizationId },
+    params: { mentorshipRequestId },
   });
 }
 
@@ -21,13 +21,13 @@ export function createActionItem(payload: Record<string, unknown>) {
 
 export function updateActionItem(
   id: string,
-  organizationId: string,
+  mentorshipRequestId: string,
   payload: Record<string, unknown>,
 ) {
   return backendRequest({
     method: HttpMethod.Patch,
     url: `/api/actions/${encodeURIComponent(id)}`,
-    params: { organizationId },
+    params: { mentorshipRequestId },
     data: payload,
   });
 }

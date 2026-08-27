@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { updateActionItem } from "@/lib/api/action-items";
-import { resolveOrganizationIdForRequest } from "@/lib/server/action-item-scope";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
 export async function PATCH(
@@ -21,8 +20,7 @@ export async function PATCH(
       );
     }
 
-    const organizationId = await resolveOrganizationIdForRequest(requestId);
-    return backendResponse(await updateActionItem(id, organizationId, payload));
+    return backendResponse(await updateActionItem(id, requestId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Action item could not be updated.",
