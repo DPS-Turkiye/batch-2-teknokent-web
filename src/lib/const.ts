@@ -81,6 +81,10 @@ export function getMeetingNoteApiUrl(meetingId: string): string {
   return `/api/meetings/${encodeURIComponent(meetingId)}/note`;
 }
 
+export function getMeetingNoteDocumentApiUrl(meetingId: string): string {
+  return `${getMeetingNoteApiUrl(meetingId)}/document`;
+}
+
 export function getMeetingTodosApiUrl(meetingId: string): string {
   return `/api/meetings/${encodeURIComponent(meetingId)}/todos`;
 }
@@ -94,6 +98,10 @@ export function getMeetingTodoApiUrl(
 
 export function getMeetingRoomTopic(meetingId: string): string {
   return `/topic/meetings/${meetingId}`;
+}
+
+export function getMeetingDocumentDestination(meetingId: string): string {
+  return `/app/meetings/${meetingId}/document`;
 }
 
 export const LANDING_ANNOUNCEMENTS: LandingAnnouncement[] = [

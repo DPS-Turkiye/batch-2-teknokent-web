@@ -1,4 +1,4 @@
-﻿import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
+import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import type { BackendHealthResult, HealthResponse } from "@/interfaces/health";
 import { HealthStatus, isHealthStatus } from "@/interfaces/health";
@@ -38,7 +38,8 @@ export function isValidHealthResponse(value: unknown): value is HealthResponse {
     typeof candidate.version === "string" &&
     !!components &&
     typeof components === "object" &&
-    isHealthStatus((components as { database: unknown }).database)
+    isHealthStatus((components as { database: unknown }).database) &&
+    isHealthStatus((components as { redis: unknown }).redis)
   );
 }
 

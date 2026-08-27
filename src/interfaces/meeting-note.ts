@@ -17,15 +17,20 @@ export type MeetingTodo = {
   updatedAt?: string | null;
 };
 
+export type MeetingNoteDocument = {
+  state: string | null;
+  seedFromSnapshot: boolean;
+};
+
 export enum MeetingRoomEventType {
-  NoteUpdated = "NOTE_UPDATED",
+  DocumentUpdated = "DOCUMENT_UPDATED",
   TodosUpdated = "TODOS_UPDATED",
 }
 
 export type MeetingRoomEvent = {
   type: MeetingRoomEventType;
-  note?: MeetingNote | null;
   todos?: MeetingTodo[] | null;
+  update?: string | null;
 };
 
 export type RealtimeToken = {

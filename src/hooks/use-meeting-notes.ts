@@ -29,7 +29,7 @@ export function useMeetingNote(meetingId: string) {
 export function useSaveMeetingNote(meetingId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: { content: string; version: number }) =>
+    mutationFn: (payload: { content: string }) =>
       putMeetingNote(meetingId, payload),
     onSuccess: (note: MeetingNote) =>
       queryClient.setQueryData(meetingNoteQueryKey(meetingId), note),

@@ -4,6 +4,7 @@ import {
   createMeetingTodo,
   deleteMeetingTodo,
   fetchMeetingNote,
+  fetchMeetingNoteDocument,
   saveMeetingNote,
   updateMeetingTodo,
 } from "@/lib/api/meeting-notes";
@@ -34,7 +35,6 @@ describe("meeting note server API", () => {
   it("sends the editor content together with the session identity", async () => {
     await saveMeetingNote("meeting-1", session, {
       content: "<p>Sprint</p>",
-      version: 4,
     });
 
     expect(backendRequest).toHaveBeenCalledWith({
@@ -42,10 +42,19 @@ describe("meeting note server API", () => {
       url: "/api/meetings/meeting-1/note",
       data: {
         content: "<p>Sprint</p>",
-        version: 4,
         userId: "user-1",
         organizationId: "org-1",
       },
+    });
+  });
+
+  it("scopes live document reads to the caller organization", async () => {
+    await fetchMeetingNoteDocument("meeting-1", "org-1");
+
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: HttpMethod.Get,
+      url: "/api/meetings/meeting-1/note/document",
+      params: { organizationId: "org-1" },
     });
   });
 

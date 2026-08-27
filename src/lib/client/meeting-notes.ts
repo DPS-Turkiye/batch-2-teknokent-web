@@ -1,11 +1,13 @@
 import type {
   MeetingNote,
+  MeetingNoteDocument,
   MeetingTodo,
   RealtimeToken,
 } from "@/interfaces/meeting-note";
 import { requireSuccess } from "@/lib/client/api";
 import {
   getMeetingNoteApiUrl,
+  getMeetingNoteDocumentApiUrl,
   getMeetingTodoApiUrl,
   getMeetingTodosApiUrl,
   REALTIME_TOKEN_API_PATH,
@@ -18,9 +20,17 @@ export async function getMeetingNote(meetingId: string) {
   );
 }
 
+export async function getMeetingNoteDocument(meetingId: string) {
+  return requireSuccess(
+    await httpClient.get<MeetingNoteDocument>(
+      getMeetingNoteDocumentApiUrl(meetingId),
+    ),
+  );
+}
+
 export async function putMeetingNote(
   meetingId: string,
-  payload: { content: string; version: number },
+  payload: { content: string },
 ) {
   return requireSuccess(
     await httpClient.put<MeetingNote>(getMeetingNoteApiUrl(meetingId), payload),

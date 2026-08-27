@@ -5,6 +5,7 @@ export enum HealthStatus {
 
 export interface HealthComponentsResponse {
   database: HealthStatus;
+  redis: HealthStatus;
 }
 
 export interface HealthResponse {
