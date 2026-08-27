@@ -35,7 +35,7 @@ function menteeSession(): DemoSession {
 }
 
 describe("AppShell navigation", () => {
-  it("sends a mentor's home link to /mentor-dashboard and shows mentor-only nav items", () => {
+  it("sends a mentor's core navigation to the redesigned mentor surfaces", () => {
     mockUseDemoSession.mockReturnValue(mentorSession());
 
     render(
@@ -47,9 +47,9 @@ describe("AppShell navigation", () => {
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/mentor-dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
-    expect(screen.queryByText("Mentorluklarım")).not.toBeInTheDocument();
-    expect(screen.queryByText("Aksiyonlar")).not.toBeInTheDocument();
-    expect(screen.queryByText("Dosyalar")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Mentorluklarım/ }),
+    ).toHaveAttribute("href", "/mentor-dashboard#mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
       "/calendar",

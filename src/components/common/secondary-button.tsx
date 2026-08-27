@@ -14,7 +14,7 @@ export function SecondaryButton({
   disabled?: boolean;
   className?: string;
 }) {
-  const styles = `inline-flex min-h-9 items-center justify-center rounded-md border border-[#e5e7eb] bg-white px-4 text-sm font-medium text-[#555] transition hover:bg-[#f9fafb] disabled:cursor-not-allowed disabled:text-[#aaa] disabled:hover:bg-white ${className}`;
+  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg border border-[#e4e7ea] bg-white px-4 text-sm font-semibold text-[#3c424a] transition hover:border-[#e86f22] hover:bg-[#fff9f5] hover:text-[#c85816] disabled:cursor-not-allowed disabled:text-[#aaa] disabled:hover:bg-white ${className}`;
   if (href && !disabled) {
     return (
       <Link href={href} className={styles}>

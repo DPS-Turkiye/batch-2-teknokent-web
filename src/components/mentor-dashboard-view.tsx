@@ -66,7 +66,7 @@ export function MentorDashboardView() {
   return (
     <AppShell active={AppArea.MentorDashboard}>
       <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-12 pt-8 sm:px-8 sm:pt-10">
-        <section className="rounded-[24px] bg-[#27272a] p-6 text-white sm:p-8">
+        <section className="rounded-[24px] bg-[#e86f22] p-6 text-white shadow-[0_16px_40px_rgba(232,111,34,.16)] sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <span className="inline-block rounded-md bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/90">
@@ -75,17 +75,15 @@ export function MentorDashboardView() {
               <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
                 Hoş geldin, {session?.fullName ?? "Mentor"}
               </h1>
-              <p className="mt-1 text-sm text-zinc-300">
+              <p className="mt-1 text-sm text-white/80">
                 Girişimcilerden gelen destek taleplerini inceleyin, ek bilgi
                 isteyin veya takviminize uygun saatleri sunun.
               </p>
             </div>
-            <div className="shrink-0 rounded-xl bg-white/5 p-4 text-center sm:text-right">
-              <p className="text-xs text-zinc-400">Bekleyen Talepler</p>
-              <p className="text-3xl font-black text-amber-400">
-                {pendingCount}
-              </p>
-              <p className="mt-1 text-xs text-zinc-400">
+            <div className="shrink-0 rounded-xl bg-white/15 p-4 text-center sm:text-right">
+              <p className="text-xs text-white/75">Bekleyen Talepler</p>
+              <p className="text-3xl font-black text-white">{pendingCount}</p>
+              <p className="mt-1 text-xs text-white/75">
                 {pendingCount > 0
                   ? `${pendingCount} talep yanıtınızı bekliyor.`
                   : "Bekleyen talep bulunmuyor."}
@@ -94,7 +92,7 @@ export function MentorDashboardView() {
           </div>
         </section>
 
-        <section>
+        <section id="mentorships">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
               Aktif Mentorluklar
@@ -189,7 +187,7 @@ export function MentorDashboardView() {
           </SecondaryButton>
         </section>
 
-        <section className="space-y-4">
+        <section id="requests" className="space-y-4">
           <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
             Gelen Mentorluk Talepleri
           </h2>
@@ -202,8 +200,8 @@ export function MentorDashboardView() {
                   onClick={() => setFilter(key)}
                   className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
                     filter === key
-                      ? "bg-zinc-900 text-white"
-                      : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                      ? "bg-[#e86f22] text-white"
+                      : "bg-[#fdebdd] text-[#b94f12] hover:bg-[#f8d5bd]"
                   }`}
                 >
                   {label}

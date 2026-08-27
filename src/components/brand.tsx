@@ -9,16 +9,14 @@ export function Brand() {
     >
       <span
         aria-hidden="true"
-        className="grid size-9 shrink-0 place-items-center border border-zinc-300 bg-zinc-100 text-center text-[7px] font-semibold leading-[1.05] tracking-tight"
+        className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#fdebdd] text-center text-[9px] font-black leading-[1.05] tracking-[-0.08em] text-[#e5701d]"
       >
-        ODTÜ
-        <br />
-        TK
+        metual
       </span>
       <span className="max-w-44">
-        Mentorluk ve Girişim
+        ODTÜ Teknokent
         <br />
-        Programları Platformu
+        Mentorluk Platformu
       </span>
     </Link>
   );

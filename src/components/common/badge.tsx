@@ -8,10 +8,10 @@ export function Badge({
   tone?: "gray" | "green" | "amber" | "purple";
 }) {
   const tones = {
-    gray: "bg-[#f5f5f5] text-[#555]",
+    gray: "bg-[#fdebdd] text-[#b94f12]",
     green: "bg-[#f0fdf4] text-[#008236]",
     amber: "bg-[#fffbeb] text-[#bb4d00]",
-    purple: "bg-[#eef2ff] text-[#432dd7]",
+    purple: "bg-[#fdebdd] text-[#b94f12]",
   };
   return (
     <span

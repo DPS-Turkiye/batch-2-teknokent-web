@@ -382,14 +382,14 @@ export function CalendarView() {
     <AppShell active={AppArea.Calendar}>
       <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-12 pt-8 sm:px-8 sm:pt-10">
         {/* Banner */}
-        <section className="rounded-[24px] bg-[#18181b] p-6 text-white sm:p-8">
+        <section className="rounded-[24px] bg-[#e86f22] p-6 text-white shadow-[0_16px_40px_rgba(232,111,34,.16)] sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <span className="inline-block rounded-md bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/90">
+              <span className="inline-block rounded-md bg-white/15 px-3 py-1 text-xs font-medium tracking-wide text-white/90">
                 Toplantı &amp; Takvim Senkronizasyonu
               </span>
               <h1 className="mt-2 text-2xl font-bold sm:text-3xl">Takvimim</h1>
-              <p className="mt-1 text-sm text-zinc-300">
+              <p className="mt-1 text-sm text-white/80">
                 Görüşmelerinizi takip edin, Google Takvim’e aktarın veya harici
                 Google Takviminizi içe aktarın.
               </p>
@@ -398,7 +398,7 @@ export function CalendarView() {
               <button
                 type="button"
                 onClick={() => setShowImportModal(true)}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm transition hover:bg-blue-700"
+                className="flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-[#c85816] shadow-sm transition hover:bg-[#fff9f5]"
               >
                 📥 Google Takvimden Aktar
               </button>
@@ -507,21 +507,21 @@ export function CalendarView() {
                   <div
                     key={dayNum}
                     className={`min-h-28 bg-white p-2 transition hover:bg-zinc-50/80 ${
-                      isToday ? "ring-2 ring-indigo-500 ring-inset" : ""
+                      isToday ? "ring-2 ring-[#e86f22] ring-inset" : ""
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span
                         className={`text-xs font-bold ${
                           isToday
-                            ? "flex size-6 items-center justify-center rounded-full bg-indigo-600 text-white"
+                            ? "flex size-6 items-center justify-center rounded-full bg-[#e86f22] text-white"
                             : "text-zinc-700"
                         }`}
                       >
                         {dayNum}
                       </span>
                       {dayMeetings.length > 0 && (
-                        <span className="rounded-full bg-indigo-100 px-1.5 py-0.5 text-[10px] font-bold text-indigo-700">
+                        <span className="rounded-full bg-[#fdebdd] px-1.5 py-0.5 text-[10px] font-bold text-[#c85816]">
                           {dayMeetings.length}
                         </span>
                       )}
@@ -538,7 +538,7 @@ export function CalendarView() {
                             className={`w-full truncate rounded p-1 text-left text-[11px] font-semibold transition ${
                               isGoogle
                                 ? "bg-amber-50 text-amber-900 border border-amber-300 hover:bg-amber-100"
-                                : "bg-indigo-50 text-indigo-900 border border-indigo-200 hover:bg-indigo-100"
+                                : "bg-[#fff7f1] text-[#9e4311] border border-[#f4c6a7] hover:bg-[#fdebdd]"
                             }`}
                           >
                             {isGoogle ? "📅 Google: " : "🕒 "}
@@ -660,7 +660,7 @@ export function CalendarView() {
                     <button
                       type="button"
                       onClick={() => setSelectedMeeting(m)}
-                      className="rounded-lg bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
+                      className="rounded-lg bg-[#e86f22] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#ce5e19]"
                     >
                       Detay &amp; Senkronize Et →
                     </button>

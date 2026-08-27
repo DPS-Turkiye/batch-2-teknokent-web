@@ -14,7 +14,7 @@ export function PrimaryButton({
   disabled?: boolean;
   className?: string;
 }) {
-  const styles = `inline-flex min-h-9 items-center justify-center rounded-md bg-[#555] px-4 text-sm font-medium text-white shadow-sm transition hover:bg-[#3f3f3f] disabled:cursor-not-allowed disabled:bg-[#aaa] ${className}`;
+  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg bg-[#e86f22] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2] ${className}`;
   if (href) {
     return (
       <Link href={href} className={styles}>
