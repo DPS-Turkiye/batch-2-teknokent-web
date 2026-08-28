@@ -104,6 +104,10 @@ export function getMeetingDocumentDestination(meetingId: string): string {
   return `/app/meetings/${meetingId}/document`;
 }
 
+export function getMeetingPresenceDestination(meetingId: string): string {
+  return `/app/meetings/${meetingId}/presence`;
+}
+
 export const LANDING_ANNOUNCEMENTS: LandingAnnouncement[] = [
   {
     category: "Program",

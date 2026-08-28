@@ -2,7 +2,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as Y from "yjs";
 
 import { base64ToBytes, bytesToBase64 } from "@/lib/base64";
-import { bindMeetingNoteDocument } from "@/lib/meeting-note-document";
+import {
+  bindMeetingNoteContributors,
+  bindMeetingNoteDocument,
+  formatMeetingNoteContributors,
+} from "@/lib/meeting-note-document";
 
 function encodedState(doc: Y.Doc) {
   return bytesToBase64(Y.encodeStateAsUpdate(doc));
@@ -85,5 +89,49 @@ describe("meeting note document bridge", () => {
     vi.advanceTimersByTime(3000);
 
     expect(publish).not.toHaveBeenCalled();
+  });
+
+  it("lists people who typed, not people who only opened the note", () => {
+    const doc = new Y.Doc();
+    bindMeetingNoteContributors(doc, { userId: "1", name: "Sude" });
+
+    expect(formatMeetingNoteContributors(doc)).toBe("");
+
+    doc.getText("note").insert(0, "Sprint");
+
+    expect(formatMeetingNoteContributors(doc)).toBe("Sude");
+  });
+
+  it("keeps a remote writer's name without crediting the reader", () => {
+    const doc = new Y.Doc();
+    bindMeetingNoteContributors(doc, { userId: "1", name: "Sude" });
+
+    const other = new Y.Doc();
+    bindMeetingNoteContributors(other, {
+      userId: "2",
+      name: "Kemal Arslan",
+    });
+    other.getText("note").insert(0, "Ortak not");
+    Y.applyUpdate(doc, Y.encodeStateAsUpdate(other), "remote");
+
+    expect(formatMeetingNoteContributors(doc)).toBe("Kemal Arslan");
+  });
+
+  it("joins several writers with commas once each", () => {
+    const doc = new Y.Doc();
+    bindMeetingNoteContributors(doc, { userId: "1", name: "Sude" });
+    doc.getText("note").insert(0, "Sprint");
+
+    const other = new Y.Doc();
+    bindMeetingNoteContributors(other, {
+      userId: "2",
+      name: "Kemal Arslan",
+    });
+    Y.applyUpdate(other, Y.encodeStateAsUpdate(doc));
+    other.getText("note").insert(6, " notu");
+
+    Y.applyUpdate(doc, Y.encodeStateAsUpdate(other), "remote");
+
+    expect(formatMeetingNoteContributors(doc)).toBe("Sude, Kemal Arslan");
   });
 });

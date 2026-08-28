@@ -105,6 +105,31 @@ summary::-webkit-details-marker {
     #f7f7f7;
 }
 
+.collaboration-carets__caret {
+  position: relative;
+  z-index: 20;
+  margin-left: -1px;
+  margin-right: -1px;
+  border-left: 2px solid currentColor;
+  border-right: none;
+  word-break: normal;
+  pointer-events: none;
+}
+
+.collaboration-carets__label {
+  position: absolute;
+  top: -1.4em;
+  left: -1px;
+  padding: 0.1rem 0.3rem;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: normal;
+  color: #ffffff;
+  white-space: nowrap;
+  user-select: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

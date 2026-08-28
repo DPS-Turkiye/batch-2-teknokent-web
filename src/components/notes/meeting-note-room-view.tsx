@@ -5,6 +5,7 @@ import { MeetingNoteEditor } from "@/components/notes/meeting-note-editor";
 import { MeetingNoteSnapshotView } from "@/components/notes/meeting-note-snapshot-view";
 import { MeetingTodoList } from "@/components/notes/meeting-todo-list";
 import { useMeetingNoteDocument } from "@/hooks/use-meeting-note-document";
+import { useMeetingNotePresence } from "@/hooks/use-meeting-note-presence";
 import {
   RealtimeStatus,
   useMeetingRoomSocket,
@@ -31,6 +32,8 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
     status: realtimeStatus,
     subscribeToDocumentUpdates,
     publishDocumentUpdate,
+    subscribeToPresenceUpdates,
+    publishPresenceUpdate,
   } = useMeetingRoomSocket(meetingId, Boolean(meeting));
 
   const noteDocument = useMeetingNoteDocument(
@@ -38,6 +41,13 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
     realtimeStatus === RealtimeStatus.Connected,
     subscribeToDocumentUpdates,
     publishDocumentUpdate,
+  );
+
+  const awareness = useMeetingNotePresence(
+    noteDocument.doc,
+    realtimeStatus === RealtimeStatus.Connected,
+    subscribeToPresenceUpdates,
+    publishPresenceUpdate,
   );
 
   return (
@@ -71,6 +81,7 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
           <MeetingNoteEditor
             meetingId={meetingId}
             doc={noteDocument.doc}
+            awareness={awareness}
             documentStatus={noteDocument.status}
             seedFromSnapshot={noteDocument.seedFromSnapshot}
             persistFullState={noteDocument.persistFullState}

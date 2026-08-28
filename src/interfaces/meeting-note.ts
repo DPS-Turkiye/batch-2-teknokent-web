@@ -24,6 +24,7 @@ export type MeetingNoteDocument = {
 
 export enum MeetingRoomEventType {
   DocumentUpdated = "DOCUMENT_UPDATED",
+  PresenceUpdated = "PRESENCE_UPDATED",
   TodosUpdated = "TODOS_UPDATED",
 }
 

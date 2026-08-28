@@ -1,19 +1,29 @@
 "use client";
 
 import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { Awareness } from "y-protocols/awareness";
 import type * as Y from "yjs";
 
+import { useDemoSession } from "@/components/providers/session-provider";
 import { DocumentStatus } from "@/hooks/use-meeting-note-document";
 import { useMeetingNote, useSaveMeetingNote } from "@/hooks/use-meeting-notes";
+import {
+  CONTRIBUTORS_KEY,
+  bindMeetingNoteContributors,
+  formatMeetingNoteContributors,
+} from "@/lib/meeting-note-document";
+import { pickPresenceColor } from "@/lib/meeting-note-presence";
 
 const SNAPSHOT_INTERVAL_MS = 20000;
 
 interface MeetingNoteEditorProps {
   meetingId: string;
   doc: Y.Doc;
+  awareness: Awareness;
   documentStatus: DocumentStatus;
   seedFromSnapshot: boolean;
   persistFullState: () => void;
@@ -22,22 +32,38 @@ interface MeetingNoteEditorProps {
 export function MeetingNoteEditor({
   meetingId,
   doc,
+  awareness,
   documentStatus,
   seedFromSnapshot,
   persistFullState,
 }: MeetingNoteEditorProps) {
   const noteQuery = useMeetingNote(meetingId);
   const saveNote = useSaveMeetingNote(meetingId);
+  const session = useDemoSession();
+
+  const presenceUser = useMemo(
+    () => ({
+      name: session?.fullName ?? "Misafir",
+      color: pickPresenceColor(session?.userId ?? "guest"),
+    }),
+    [session?.fullName, session?.userId],
+  );
 
   const [hasUnsavedSnapshot, setHasUnsavedSnapshot] = useState(false);
+  const [contributorNames, setContributorNames] = useState("");
   const isDirty = useRef(false);
   const didSeed = useRef(false);
+  const isSeeding = useRef(false);
   const snapshotRef = useRef<() => void>(() => {});
 
   const editor = useEditor({
     extensions: [
       StarterKit.configure({ undoRedo: false }),
       Collaboration.configure({ document: doc }),
+      CollaborationCaret.configure({
+        provider: { awareness },
+        user: presenceUser,
+      }),
     ],
     immediatelyRender: false,
     editable: false,
@@ -58,6 +84,27 @@ export function MeetingNoteEditor({
   }, [editor, documentStatus]);
 
   useEffect(() => {
+    editor?.commands.updateUser(presenceUser);
+  }, [editor, presenceUser]);
+
+  useEffect(() => {
+    const refresh = () =>
+      setContributorNames(formatMeetingNoteContributors(doc));
+    refresh();
+    const contributors = doc.getMap<string>(CONTRIBUTORS_KEY);
+    contributors.observe(refresh);
+    const stop = bindMeetingNoteContributors(
+      doc,
+      session ? { userId: session.userId, name: session.fullName } : null,
+      () => isSeeding.current,
+    );
+    return () => {
+      contributors.unobserve(refresh);
+      stop();
+    };
+  }, [doc, session]);
+
+  useEffect(() => {
     if (!editor || documentStatus !== DocumentStatus.Ready) return;
     if (didSeed.current) return;
     if (seedFromSnapshot && noteQuery.isLoading) return;
@@ -65,8 +112,13 @@ export function MeetingNoteEditor({
     didSeed.current = true;
     if (!seedFromSnapshot) return;
 
-    if (noteQuery.data?.content) {
-      editor.commands.setContent(noteQuery.data.content);
+    isSeeding.current = true;
+    try {
+      if (noteQuery.data?.content) {
+        editor.commands.setContent(noteQuery.data.content);
+      }
+    } finally {
+      isSeeding.current = false;
     }
     persistFullState();
   }, [
@@ -118,7 +170,11 @@ export function MeetingNoteEditor({
     <section className="flex min-h-[70vh] flex-col rounded-xl border border-[#e5e7eb] bg-white p-4 lg:h-full lg:min-h-0">
       <div className="mb-3 flex shrink-0 items-center gap-3">
         <h2 className="text-sm font-semibold text-[#171717]">Not defteri</h2>
-        <span className="text-xs text-[#8a8a8a]">{statusLabel}</span>
+        <span className="text-xs text-[#8a8a8a]">
+          {contributorNames
+            ? `${statusLabel} · ${contributorNames}`
+            : statusLabel}
+        </span>
       </div>
 
       {documentStatus === DocumentStatus.Failed ? (

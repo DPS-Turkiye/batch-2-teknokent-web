@@ -12,6 +12,7 @@ import {
 import { postRealtimeToken } from "@/lib/client/meeting-notes";
 import {
   getMeetingDocumentDestination,
+  getMeetingPresenceDestination,
   getMeetingRoomTopic,
   getRealtimeUrl,
 } from "@/lib/const";
@@ -22,7 +23,7 @@ export enum RealtimeStatus {
   Offline = "offline",
 }
 
-type DocumentUpdateListener = (update: string) => void;
+type RealtimeUpdateListener = (update: string) => void;
 
 export function useMeetingRoomSocket(meetingId: string, enabled = true) {
   const queryClient = useQueryClient();
@@ -30,7 +31,8 @@ export function useMeetingRoomSocket(meetingId: string, enabled = true) {
     RealtimeStatus.Connecting,
   );
   const clientRef = useRef<Client | null>(null);
-  const listeners = useRef(new Set<DocumentUpdateListener>());
+  const listeners = useRef(new Set<RealtimeUpdateListener>());
+  const presenceListeners = useRef(new Set<RealtimeUpdateListener>());
 
   useEffect(() => {
     if (!meetingId || !enabled) return;
@@ -58,6 +60,13 @@ export function useMeetingRoomSocket(meetingId: string, enabled = true) {
             const update = event.update;
             listeners.current.forEach((listener) => listener(update));
           }
+          if (
+            event.type === MeetingRoomEventType.PresenceUpdated &&
+            event.update
+          ) {
+            const update = event.update;
+            presenceListeners.current.forEach((listener) => listener(update));
+          }
           if (event.type === MeetingRoomEventType.TodosUpdated && event.todos) {
             queryClient.setQueryData(
               meetingTodosQueryKey(meetingId),
@@ -79,10 +88,20 @@ export function useMeetingRoomSocket(meetingId: string, enabled = true) {
   }, [enabled, meetingId, queryClient]);
 
   const subscribeToDocumentUpdates = useCallback(
-    (listener: DocumentUpdateListener) => {
+    (listener: RealtimeUpdateListener) => {
       listeners.current.add(listener);
       return () => {
         listeners.current.delete(listener);
+      };
+    },
+    [],
+  );
+
+  const subscribeToPresenceUpdates = useCallback(
+    (listener: RealtimeUpdateListener) => {
+      presenceListeners.current.add(listener);
+      return () => {
+        presenceListeners.current.delete(listener);
       };
     },
     [],
@@ -101,9 +120,24 @@ export function useMeetingRoomSocket(meetingId: string, enabled = true) {
     [meetingId],
   );
 
+  const publishPresenceUpdate = useCallback(
+    (update: string) => {
+      const client = clientRef.current;
+      if (!client?.connected) return;
+      client.publish({
+        destination: getMeetingPresenceDestination(meetingId),
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ update }),
+      });
+    },
+    [meetingId],
+  );
+
   return {
     status: enabled && meetingId ? connectionStatus : RealtimeStatus.Offline,
     subscribeToDocumentUpdates,
     publishDocumentUpdate,
+    subscribeToPresenceUpdates,
+    publishPresenceUpdate,
   };
 }
