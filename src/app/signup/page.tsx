@@ -1,5 +1,11 @@
+import { Suspense } from "react";
+
 import { SignupFlow } from "@/components/signup/signup-flow";
 
 export default function SignupPage() {
-  return <SignupFlow />;
+  return (
+    <Suspense>
+      <SignupFlow />
+    </Suspense>
+  );
 }

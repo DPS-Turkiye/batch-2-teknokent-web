@@ -2,8 +2,8 @@
 
 import { Plus, User } from "lucide-react";
 
-import { ChipGroup } from "@/components/signup/chip-group";
-import { FileDrop } from "@/components/signup/file-drop";
+import { ChipGroup } from "@/components/common/chip-group";
+import { FileDrop } from "@/components/common/file-drop";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import {
   BIO_MAX_LENGTH,
