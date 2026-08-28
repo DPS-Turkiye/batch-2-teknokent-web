@@ -12,6 +12,7 @@ import {
   Menu,
   MessageCircle,
   NotebookPen,
+  Star,
   UserPlus,
   Users,
   Video,
@@ -84,7 +85,7 @@ function buildNavigation(isMentor: boolean): NavigationItem[] {
       href: "/calendar",
       icon: CalendarDays,
     },
-    { id: AppArea.Team, label: "Startup’ım", href: "/profile", icon: UserPlus },
+    { id: AppArea.Startup, label: "Startup’ım", href: "/profile", icon: Star },
     {
       id: AppArea.Meetings,
       label: "Mesajlar",
@@ -95,6 +96,12 @@ function buildNavigation(isMentor: boolean): NavigationItem[] {
 }
 
 const utilityNavigation: NavigationItem[] = [
+  {
+    id: AppArea.Team,
+    label: "Ekibim",
+    href: "/team",
+    icon: UserPlus,
+  },
   {
     id: AppArea.Meetings,
     label: "Toplantılar",
