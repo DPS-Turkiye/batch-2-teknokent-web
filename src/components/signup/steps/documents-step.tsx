@@ -2,7 +2,7 @@
 
 import { Check } from "lucide-react";
 
-import { FileDrop } from "@/components/signup/file-drop";
+import { FileDrop } from "@/components/common/file-drop";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { STARTUP_DOCUMENTS } from "@/interfaces/signup";
 

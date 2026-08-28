@@ -2,7 +2,7 @@
 
 import { ImagePlus } from "lucide-react";
 
-import { ChipGroup } from "@/components/signup/chip-group";
+import { ChipGroup } from "@/components/common/chip-group";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import {
   MATURITY_OPTIONS,

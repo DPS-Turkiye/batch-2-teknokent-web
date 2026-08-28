@@ -6,22 +6,44 @@ import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { PASSWORD_MIN_LENGTH, useRegisterForm } from "@/hooks/use-auth-form";
 
-const steps = [
+const menteeSteps = [
   "Hesabını oluştur",
   "Startup profilini tamamla",
   "Ekibini davet et",
   "Onaydan sonra sisteme katıl",
 ];
 
-export function RegisterView({ onContinue }: { onContinue: () => void }) {
+/**
+ * The mentor account-creation frame (274:6487) reuses the mentee's
+ * "Nasıl çalışır?" copy — flagged in the export's own README as startup
+ * specific and to be corrected during implementation. These are the mentor
+ * equivalents; confirm the wording with the designer.
+ */
+const mentorSteps = [
+  "Hesabını oluştur",
+  "CV'nden mentor profilini oluştur",
+  "Uzmanlık ve tercihlerini seç",
+  "Onaydan sonra eşleşmelere başla",
+];
+
+export function RegisterView({
+  onContinue,
+  isMentor = false,
+}: {
+  onContinue: () => void;
+  isMentor?: boolean;
+}) {
   const { form, update, canSubmit, passwordTooShort, passwordsMismatch } =
     useRegisterForm();
+  const steps = isMentor ? mentorSteps : menteeSteps;
 
   return (
     <AuthShell>
       <div className="flex flex-col gap-2 py-8">
         <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
-          Startup&apos;ınla METUal&apos;a katıl
+          {isMentor
+            ? "Mentor olarak METUal'a katıl"
+            : "Startup'ınla METUal'a katıl"}
         </h1>
 
         <div className="flex flex-col gap-4 pt-7">
