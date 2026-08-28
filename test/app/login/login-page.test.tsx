@@ -117,6 +117,45 @@ describe("Login screen", () => {
     expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentor);
   });
 
+  it("labels each demo account with its role", () => {
+    render(<LoginPage />);
+
+    const mentee = screen.getByRole("button", { name: /Ayşe Kaya/ });
+    const mentor = screen.getByRole("button", { name: /Leyla Aksoy/ });
+
+    expect(mentee).toHaveTextContent("Mentee");
+    expect(mentor).toHaveTextContent("Mentor");
+  });
+
+  it("filters the demo list to one role at a time", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: "Mentor" }));
+    expect(
+      screen.getByRole("button", { name: /Leyla Aksoy/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Ayşe Kaya/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Mentee" }));
+    expect(
+      screen.getByRole("button", { name: /Ayşe Kaya/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Leyla Aksoy/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Tümü" }));
+    expect(
+      screen.getByRole("button", { name: /Ayşe Kaya/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Leyla Aksoy/ }),
+    ).toBeInTheDocument();
+  });
+
   it("fills the email field from a demo account button", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);

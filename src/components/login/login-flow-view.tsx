@@ -11,6 +11,21 @@ import { useLoginFlow } from "@/hooks/use-login-flow";
 import { LoginFlowStep } from "@/interfaces/login";
 import { UserRole } from "@/interfaces/session";
 
+/**
+ * Temporary developer affordance: the Figma frame has no demo picker, but
+ * there are no real credentials yet, so this is the only way to sign in.
+ * Never rendered in a production build; remove it once real auth lands.
+ */
+const SHOW_DEMO_PICKER = process.env.NODE_ENV !== "production";
+
+type DemoFilter = "all" | "mentee" | "mentor";
+
+const DEMO_FILTERS: { id: DemoFilter; label: string }[] = [
+  { id: "all", label: "Tümü" },
+  { id: "mentee", label: "Mentee" },
+  { id: "mentor", label: "Mentor" },
+];
+
 const joinRoutes = [
   {
     href: "/signup",
@@ -40,12 +55,26 @@ export function LoginFlowView() {
   const [rememberMe, setRememberMe] = useState(false);
 
   // Demo accounts are the only way in until real credentials exist.
-  const demoAccounts = useDemoAccounts(UserRole.Mentee);
+  const menteeAccounts = useDemoAccounts(UserRole.Mentee);
   const mentorAccounts = useDemoAccounts(UserRole.Mentor);
+  const [demoFilter, setDemoFilter] = useState<DemoFilter>("all");
+
   const accounts = [
-    ...(demoAccounts.data ?? []),
-    ...(mentorAccounts.data ?? []),
-  ];
+    ...(menteeAccounts.data ?? []).map((account) => ({
+      account,
+      role: UserRole.Mentee,
+    })),
+    ...(mentorAccounts.data ?? []).map((account) => ({
+      account,
+      role: UserRole.Mentor,
+    })),
+  ].filter(
+    (entry) =>
+      demoFilter === "all" ||
+      (demoFilter === "mentor"
+        ? entry.role === UserRole.Mentor
+        : entry.role === UserRole.Mentee),
+  );
 
   const isVerifying = step === LoginFlowStep.Verifying;
 
@@ -134,22 +163,63 @@ export function LoginFlowView() {
           </p>
         ) : null}
 
-        {accounts.length ? (
-          <div className="mt-4 rounded-xl border border-[#e8eaed] bg-[#fcfcfd] p-3">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9ca3af]">
-              Demo hesapları
-            </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {accounts.map((account) => (
+        {SHOW_DEMO_PICKER ? (
+          <div className="mt-4 rounded-xl border border-dashed border-[#e8eaed] bg-[#fcfcfd] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9ca3af]">
+                Demo hesapları
+                <span className="ml-1.5 font-normal normal-case tracking-normal text-[#c9cdd2]">
+                  · yalnızca geliştirme
+                </span>
+              </p>
+              <div
+                role="group"
+                aria-label="Demo hesap filtresi"
+                className="flex items-center gap-1 rounded-lg bg-[#f1f2f4] p-0.5"
+              >
+                {DEMO_FILTERS.map((filter) => (
+                  <button
+                    key={filter.id}
+                    type="button"
+                    aria-pressed={demoFilter === filter.id}
+                    onClick={() => setDemoFilter(filter.id)}
+                    className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
+                      demoFilter === filter.id
+                        ? "bg-white text-[#22262b] shadow-sm"
+                        : "text-[#858c96] hover:text-[#22262b]"
+                    }`}
+                  >
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {accounts.map(({ account, role }) => (
                 <button
                   key={account.id}
                   type="button"
                   onClick={() => setEmail(account.email)}
-                  className="rounded-lg border border-[#e8eaed] bg-white px-2.5 py-1.5 text-left text-[11px] text-[#374151] transition hover:border-[#e5701d] hover:text-[#c85816]"
+                  className="flex items-center gap-2 rounded-lg border border-[#e8eaed] bg-white px-2.5 py-1.5 text-left text-[11px] text-[#374151] transition hover:border-[#e5701d] hover:text-[#c85816]"
                 >
+                  <span
+                    className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
+                      role === UserRole.Mentor
+                        ? "bg-[#eaf1fb] text-[#2f6fd0]"
+                        : "bg-[#fdebdd] text-[#c85816]"
+                    }`}
+                  >
+                    {role === UserRole.Mentor ? "Mentor" : "Mentee"}
+                  </span>
                   {account.fullName} · {account.email}
                 </button>
               ))}
+              {accounts.length === 0 ? (
+                <p className="text-[11px] text-[#858c96]">
+                  Bu filtrede demo hesabı yok.
+                </p>
+              ) : null}
             </div>
           </div>
         ) : null}
