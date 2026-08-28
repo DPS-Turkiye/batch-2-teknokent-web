@@ -102,3 +102,63 @@ describe("LoginPage demo account list", () => {
     expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
   });
 });
+
+describe("LoginPage redesigned shell", () => {
+  it("opens on the METUal welcome with the role groups", () => {
+    mockRoleScopedAccounts();
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("heading", { name: "METUal'a hoş geldin" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Mentorluk ve Eğitim/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("offers the sign-up route to new users from the role step", () => {
+    mockRoleScopedAccounts();
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("link", { name: /Startup'ımla katıl/ }),
+    ).toHaveAttribute("href", "/signup");
+  });
+
+  it("reaches the redesigned credentials step and can go back", async () => {
+    mockRoleScopedAccounts();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: /Girişim Ekibi/ }));
+    await user.click(screen.getAllByRole("checkbox")[1]);
+    await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
+
+    expect(
+      screen.getByRole("button", { name: "Giriş yap" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/E-posta/)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /Görevleri değiştir/ }),
+    );
+    expect(
+      screen.getByRole("button", { name: /görevle devam et/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("fills the email field from a demo account button", async () => {
+    mockRoleScopedAccounts();
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: /Girişim Ekibi/ }));
+    await user.click(screen.getAllByRole("checkbox")[1]);
+    await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
+    await user.click(screen.getByRole("button", { name: /Ayşe Kaya/ }));
+
+    expect(screen.getByLabelText(/E-posta/)).toHaveValue(
+      "ayse.kaya@novamed.demo",
+    );
+  });
+});

@@ -13,7 +13,7 @@ const steps = [
   "Onaydan sonra sisteme katıl",
 ];
 
-export function RegisterView() {
+export function RegisterView({ onContinue }: { onContinue: () => void }) {
   const { form, update, canSubmit, passwordTooShort, passwordsMismatch } =
     useRegisterForm();
 
@@ -96,18 +96,14 @@ export function RegisterView() {
         </div>
 
         <div className="pt-6">
-          <Link
-            href="/signup"
-            aria-disabled={!canSubmit}
-            tabIndex={canSubmit ? undefined : -1}
-            className={`flex h-[46px] w-full items-center justify-center rounded-[10px] text-sm font-semibold text-white transition ${
-              canSubmit
-                ? "bg-[#e5701d] hover:bg-[#ce5e19]"
-                : "pointer-events-none bg-[#c9cdd2]"
-            }`}
+          <button
+            type="button"
+            onClick={onContinue}
+            disabled={!canSubmit}
+            className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
           >
             Hesap oluştur ve devam et
-          </Link>
+          </button>
         </div>
 
         <div className="mt-8 rounded-xl border border-[#e8eaed] p-4">
@@ -132,7 +128,7 @@ export function RegisterView() {
         <p className="pt-5 text-center text-xs text-[#6b7280]">
           Zaten hesabın var mı?{" "}
           <Link
-            href="/auth/login"
+            href="/login"
             className="font-semibold text-[#e5701d] hover:underline"
           >
             Giriş yap

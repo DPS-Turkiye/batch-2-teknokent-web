@@ -1,5 +1,5 @@
-import { SignupWizardView } from "@/components/signup/signup-wizard";
+import { SignupFlow } from "@/components/signup/signup-flow";
 
 export default function SignupPage() {
-  return <SignupWizardView />;
+  return <SignupFlow />;
 }
