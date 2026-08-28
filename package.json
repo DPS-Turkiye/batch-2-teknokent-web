@@ -12,7 +12,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "ci": "npm run lint && npm run format:check && npm run typecheck && npm test"
+    "ci": "npm run lint && npm run format:check && npm run typecheck && npm test",
+    "prepare": "husky"
   },
   "dependencies": {
     "@stomp/stompjs": "^7.3.0",
@@ -46,6 +47,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "jsdom": "^30.0.0",
     "prettier": "^3.9.4",
     "tailwindcss": "^4",

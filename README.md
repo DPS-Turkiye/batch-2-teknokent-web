@@ -43,6 +43,8 @@ npm run test:watch   # run tests in watch mode
 npm run format       # format with Prettier
 ```
 
+`npm install` enables Husky git hooks. Pre-commit runs `npm run ci`. Skip with `git commit --no-verify`.
+
 Pull requests to `main` run the GitHub Actions workflow (`.github/workflows/pr-build.yml`).
 
 ## Stack
