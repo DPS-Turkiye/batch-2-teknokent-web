@@ -48,7 +48,9 @@ describe("Account creation step", () => {
     await user.type(screen.getByLabelText("Şifre *"), "sifre1234");
     await user.type(screen.getByLabelText(/Şifre tekrar/), "baskasifre");
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Passwords do not match.");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Passwords do not match.",
+    );
   });
 
   it("submits the collected form only once it is valid", async () => {

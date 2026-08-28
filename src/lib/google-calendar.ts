@@ -88,8 +88,7 @@ export async function authenticateWithGoogle(
             }
           }
         }
-      } catch {
-      }
+      } catch {}
     }, 500);
 
     function cleanup() {

@@ -24,7 +24,9 @@ const ERROR_MESSAGES: Record<string, string> = {
 
 export function describeAuthError(error: unknown): string {
   if (error instanceof FirebaseError) {
-    return ERROR_MESSAGES[error.code] ?? "Authentication could not be completed.";
+    return (
+      ERROR_MESSAGES[error.code] ?? "Authentication could not be completed."
+    );
   }
   if (error instanceof Error && error.message) {
     return error.message;

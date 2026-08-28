@@ -178,8 +178,7 @@ export function useAvailabilitySlotForm() {
   const handleDeleteSlot = async (slotId: string) => {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
-    } catch {
-    }
+    } catch {}
   };
 
   return {

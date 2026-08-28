@@ -9,7 +9,8 @@ import { getSessionUser } from "@/lib/session";
 
 async function requireFounderSession() {
   const session = await getSessionUser();
-  if (!session?.organizationId) {
+  const organizationId = session?.organizationId;
+  if (!session || !organizationId) {
     return {
       ok: false as const,
       response: NextResponse.json(
@@ -18,7 +19,7 @@ async function requireFounderSession() {
       ),
     };
   }
-  return { ok: true as const, session };
+  return { ok: true as const, session, organizationId };
 }
 
 export async function GET() {
@@ -26,7 +27,7 @@ export async function GET() {
     const auth = await requireFounderSession();
     if (!auth.ok) return auth.response;
     return backendResponse(
-      await fetchInviteCode(auth.session.organizationId, auth.session.userId),
+      await fetchInviteCode(auth.organizationId, auth.session.userId),
     );
   } catch (error) {
     return apiErrorResponse(error, {
@@ -40,10 +41,7 @@ export async function POST() {
     const auth = await requireFounderSession();
     if (!auth.ok) return auth.response;
     return backendResponse(
-      await regenerateInviteCode(
-        auth.session.organizationId,
-        auth.session.userId,
-      ),
+      await regenerateInviteCode(auth.organizationId, auth.session.userId),
     );
   } catch (error) {
     return apiErrorResponse(error, {

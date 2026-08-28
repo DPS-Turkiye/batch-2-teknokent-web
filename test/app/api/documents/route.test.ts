@@ -13,7 +13,11 @@ vi.mock("@/lib/session", () => ({
   getSessionIds: vi.fn(),
 }));
 
-function request(options: { token?: string; kind?: string; file?: Blob | null }) {
+function request(options: {
+  token?: string;
+  kind?: string;
+  file?: Blob | null;
+}) {
   const form = new FormData();
   if (options.file !== null) {
     form.set(

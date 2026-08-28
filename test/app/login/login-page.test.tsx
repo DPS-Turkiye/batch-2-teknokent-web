@@ -151,7 +151,10 @@ describe("Login screen", () => {
 
   it("signs the user back out when the account is not approved yet", async () => {
     login.mockRejectedValue(
-      new ClientApiError("Your account is waiting for coordinator approval.", 403),
+      new ClientApiError(
+        "Your account is waiting for coordinator approval.",
+        403,
+      ),
     );
     const user = userEvent.setup();
     render(<LoginPage />);

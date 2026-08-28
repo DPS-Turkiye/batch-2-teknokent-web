@@ -52,32 +52,36 @@ export function useMentorOnboarding() {
     [],
   );
 
-  const uploadCv = useCallback((file: { name: string; size: number; file?: File }) => {
-    setDraft((current) => ({ ...current, cv: file }));
-    setPhase(IntroPhase.Parsing);
-    if (!file.file) {
-      parseTimer.current = setTimeout(
-        () => setPhase(IntroPhase.Review),
-        CV_PARSE_MS,
-      );
-      return;
-    }
-    void (async () => {
-      try {
-        const idToken = await currentIdToken();
-        if (!idToken) {
-          throw new Error("Your session has expired. Please sign in again.");
-        }
-        await uploadDocument(file.file, "cv", idToken);
+  const uploadCv = useCallback(
+    (file: { name: string; size: number; file?: File }) => {
+      setDraft((current) => ({ ...current, cv: file }));
+      setPhase(IntroPhase.Parsing);
+      const uploaded = file.file;
+      if (!uploaded) {
         parseTimer.current = setTimeout(
           () => setPhase(IntroPhase.Review),
           CV_PARSE_MS,
         );
-      } catch {
-        setPhase(IntroPhase.Upload);
+        return;
       }
-    })();
-  }, []);
+      void (async () => {
+        try {
+          const idToken = await currentIdToken();
+          if (!idToken) {
+            throw new Error("Your session has expired. Please sign in again.");
+          }
+          await uploadDocument(uploaded, "cv", idToken);
+          parseTimer.current = setTimeout(
+            () => setPhase(IntroPhase.Review),
+            CV_PARSE_MS,
+          );
+        } catch {
+          setPhase(IntroPhase.Upload);
+        }
+      })();
+    },
+    [],
+  );
 
   const enterManually = useCallback(() => {
     if (parseTimer.current) clearTimeout(parseTimer.current);

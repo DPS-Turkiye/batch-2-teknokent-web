@@ -184,7 +184,11 @@ export function ProfileAnalysisView() {
       setConsentAccepted(false);
       setShowManualForm(false);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Could not process the profile.");
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Could not process the profile.",
+      );
       setShowManualForm(true);
     }
   }
@@ -563,7 +567,9 @@ function ProfileReview({
       onConfirmed(confirmed);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Could not save the profile.",
+        reason instanceof Error
+          ? reason.message
+          : "Could not save the profile.",
       );
     }
   }
@@ -660,7 +666,9 @@ function ManualProfileForm({
       onSaved(saved);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Could not save the profile.",
+        reason instanceof Error
+          ? reason.message
+          : "Could not save the profile.",
       );
     }
   }

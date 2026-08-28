@@ -35,7 +35,9 @@ export default function AdminPage() {
       );
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Could not complete the action.",
+        reason instanceof Error
+          ? reason.message
+          : "Could not complete the action.",
       );
     }
   }

@@ -69,7 +69,10 @@ export async function POST(request: NextRequest) {
     }
     if (response.status !== 200) {
       return NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Sign-in could not be completed." },
+        {
+          code: "SESSION_REQUIRED",
+          message: "Sign-in could not be completed.",
+        },
         { status: response.status },
       );
     }

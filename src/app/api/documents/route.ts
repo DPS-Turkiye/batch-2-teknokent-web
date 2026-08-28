@@ -17,7 +17,10 @@ export async function POST(request: NextRequest) {
     const kind = String(form.get("kind") ?? "").trim();
     if (!(file instanceof Blob) || !kind) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A file and document kind are required." },
+        {
+          code: "INVALID_REQUEST",
+          message: "A file and document kind are required.",
+        },
         { status: 400 },
       );
     }
