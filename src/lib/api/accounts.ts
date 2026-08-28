@@ -1,13 +1,24 @@
 import "server-only";
 
-import type { BackendUser } from "@/interfaces/session";
+import { UserAccountStatus, type BackendUser } from "@/interfaces/session";
 import { backendRequest } from "@/lib/server/backend-client";
 
-export function fetchUsers(role?: BackendUser["role"]) {
+export type AccountDecision = {
+  user: BackendUser;
+  inviteCode: string | null;
+};
+
+export function fetchUsers(options?: {
+  role?: BackendUser["role"];
+  status?: UserAccountStatus;
+}) {
   return backendRequest<BackendUser[]>({
     method: "GET",
     url: "/api/users",
-    params: role ? { role } : undefined,
+    params: {
+      ...(options?.role ? { role: options.role } : {}),
+      ...(options?.status ? { status: options.status } : {}),
+    },
   });
 }
 
@@ -15,5 +26,17 @@ export function fetchUser(userId: string) {
   return backendRequest<BackendUser>({
     method: "GET",
     url: `/api/users/${encodeURIComponent(userId)}`,
+  });
+}
+
+export function decideAccountStatus(
+  userId: string,
+  actorId: string,
+  status: UserAccountStatus.Approved | UserAccountStatus.Rejected,
+) {
+  return backendRequest<AccountDecision>({
+    method: "PATCH",
+    url: `/api/users/${encodeURIComponent(userId)}/status`,
+    data: { actorId, status },
   });
 }

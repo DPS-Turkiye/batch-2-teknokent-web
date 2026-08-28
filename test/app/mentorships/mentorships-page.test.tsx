@@ -16,7 +16,7 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useDemoSession: () => null,
+  useAppSession: () => null,
 }));
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({

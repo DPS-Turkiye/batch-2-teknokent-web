@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { backendResponse } from "@/lib/server/api-response";
+import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import type { BackendResponse } from "@/lib/server/backend-client";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
 function fakeResponse<T>(
   status: number,
@@ -20,10 +21,6 @@ describe("backendResponse", () => {
   });
 
   it("returns a bodyless response for 204 No Content instead of throwing", () => {
-    // NextResponse.json(...) on a 204 status throws per the Fetch spec (a
-    // 204/304 response must not carry a body). This is the fix for the
-    // DELETE /api/mentor-profile/availability/{id} route returning a 502
-    // even though the backend correctly returned 204.
     expect(() => backendResponse(fakeResponse(204, ""))).not.toThrow();
 
     const response = backendResponse(fakeResponse(204, ""));
@@ -37,5 +34,19 @@ describe("backendResponse", () => {
     const response = backendResponse(fakeResponse(304, ""));
     expect(response.status).toBe(304);
     expect(response.body).toBeNull();
+  });
+});
+
+describe("apiErrorResponse", () => {
+  it("maps a missing session to 401 instead of a 502 backend failure", async () => {
+    const response = apiErrorResponse(new SessionRequiredError(), {
+      message: "Dashboard service is unavailable.",
+    });
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      code: "SESSION_REQUIRED",
+      message: "No active session.",
+    });
   });
 });

@@ -2,28 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 import { authFieldClass } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { useLoginFlow } from "@/hooks/use-login-flow";
-import { LoginFlowStep } from "@/interfaces/login";
-import { UserRole } from "@/interfaces/session";
-
-/**
- * Temporary: the only way to sign in until real credentials exist. Never
- * rendered in a production build; remove once the auth backend lands.
- */
-const SHOW_DEMO_PICKER = process.env.NODE_ENV !== "production";
-
-type DemoFilter = "all" | "mentee" | "mentor";
-
-const DEMO_FILTERS: { id: DemoFilter; label: string }[] = [
-  { id: "all", label: "Tümü" },
-  { id: "mentee", label: "Mentee" },
-  { id: "mentor", label: "Mentor" },
-];
 
 const joinRoutes = [
   {
@@ -39,42 +22,27 @@ const joinRoutes = [
   },
 ];
 
-/**
- * Submitting runs the existing demo session login, so sign-in behaves exactly
- * as before. The password field is presentational until the auth backend lands.
- */
 export function LoginFlowView() {
   const router = useRouter();
-  const { email, setEmail, loginError, submitLogin, step } = useLoginFlow();
-  const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
-
-  const menteeAccounts = useDemoAccounts(UserRole.Mentee);
-  const mentorAccounts = useDemoAccounts(UserRole.Mentor);
-  const [demoFilter, setDemoFilter] = useState<DemoFilter>("all");
-
-  const accounts = [
-    ...(menteeAccounts.data ?? []).map((account) => ({
-      account,
-      role: UserRole.Mentee,
-    })),
-    ...(mentorAccounts.data ?? []).map((account) => ({
-      account,
-      role: UserRole.Mentor,
-    })),
-  ].filter(
-    (entry) =>
-      demoFilter === "all" ||
-      (demoFilter === "mentor"
-        ? entry.role === UserRole.Mentor
-        : entry.role === UserRole.Mentee),
-  );
-
-  const isVerifying = step === LoginFlowStep.Verifying;
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    rememberMe,
+    setRememberMe,
+    loginError,
+    notice,
+    submitLogin,
+    sendPasswordReset,
+    isReady,
+    isVerifying,
+    isVerified,
+  } = useLoginFlow();
 
   useEffect(() => {
-    if (step === LoginFlowStep.Verified) router.push("/workspace");
-  }, [step, router]);
+    if (isVerified) router.push("/workspace");
+  }, [isVerified, router]);
 
   return (
     <AuthShell>
@@ -112,6 +80,7 @@ export function LoginFlowView() {
               </label>
               <button
                 type="button"
+                onClick={sendPasswordReset}
                 className="text-xs font-medium text-[#e5701d] hover:underline"
               >
                 Şifremi unuttum
@@ -120,6 +89,7 @@ export function LoginFlowView() {
             <input
               id="login-password"
               type="password"
+              required
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               placeholder="••••••••"
@@ -141,7 +111,7 @@ export function LoginFlowView() {
         <div className="pt-6">
           <button
             type="submit"
-            disabled={isVerifying}
+            disabled={!isReady || isVerifying}
             className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
           >
             {isVerifying ? "Giriş yapılıyor…" : "Giriş yap"}
@@ -157,65 +127,13 @@ export function LoginFlowView() {
           </p>
         ) : null}
 
-        {SHOW_DEMO_PICKER ? (
-          <div className="mt-4 rounded-xl border border-dashed border-[#e8eaed] bg-[#fcfcfd] p-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-[#9ca3af]">
-                Demo hesapları
-                <span className="ml-1.5 font-normal normal-case tracking-normal text-[#c9cdd2]">
-                  · yalnızca geliştirme
-                </span>
-              </p>
-              <div
-                role="group"
-                aria-label="Demo hesap filtresi"
-                className="flex items-center gap-1 rounded-lg bg-[#f1f2f4] p-0.5"
-              >
-                {DEMO_FILTERS.map((filter) => (
-                  <button
-                    key={filter.id}
-                    type="button"
-                    aria-pressed={demoFilter === filter.id}
-                    onClick={() => setDemoFilter(filter.id)}
-                    className={`rounded-md px-2.5 py-1 text-[11px] font-semibold transition ${
-                      demoFilter === filter.id
-                        ? "bg-white text-[#22262b] shadow-sm"
-                        : "text-[#858c96] hover:text-[#22262b]"
-                    }`}
-                  >
-                    {filter.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="mt-2.5 flex flex-wrap gap-2">
-              {accounts.map(({ account, role }) => (
-                <button
-                  key={account.id}
-                  type="button"
-                  onClick={() => setEmail(account.email)}
-                  className="flex items-center gap-2 rounded-lg border border-[#e8eaed] bg-white px-2.5 py-1.5 text-left text-[11px] text-[#374151] transition hover:border-[#e5701d] hover:text-[#c85816]"
-                >
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[9px] font-bold uppercase ${
-                      role === UserRole.Mentor
-                        ? "bg-[#eaf1fb] text-[#2f6fd0]"
-                        : "bg-[#fdebdd] text-[#c85816]"
-                    }`}
-                  >
-                    {role === UserRole.Mentor ? "Mentor" : "Mentee"}
-                  </span>
-                  {account.fullName} · {account.email}
-                </button>
-              ))}
-              {accounts.length === 0 ? (
-                <p className="text-[11px] text-[#858c96]">
-                  Bu filtrede demo hesabı yok.
-                </p>
-              ) : null}
-            </div>
-          </div>
+        {notice ? (
+          <p
+            role="status"
+            className="mt-3 rounded-lg border border-[#f2d3b8] bg-[#fff9f5] px-3 py-2 text-xs text-[#c85816]"
+          >
+            {notice}
+          </p>
         ) : null}
 
         <div className="mt-9 border-t border-[#f3f4f6] pt-7">
@@ -241,12 +159,12 @@ export function LoginFlowView() {
         </div>
 
         <div className="flex items-center justify-center pt-4">
-          <button
-            type="button"
+          <Link
+            href="/invite"
             className="text-xs text-[#6b7280] underline hover:text-[#111827]"
           >
             Bir davet aldın mı? Davet kodunla devam et
-          </button>
+          </Link>
         </div>
       </form>
     </AuthShell>

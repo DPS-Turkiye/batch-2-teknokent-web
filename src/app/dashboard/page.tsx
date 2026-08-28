@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
         {isFallback ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-            Canlı veriler yüklenemedi; demo verileri gösteriliyor.
+            Live data could not be loaded; showing demo data.
           </p>
         ) : null}
 

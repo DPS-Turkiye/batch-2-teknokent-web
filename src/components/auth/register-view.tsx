@@ -1,19 +1,22 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
-import { PASSWORD_MIN_LENGTH, useRegisterForm } from "@/hooks/use-auth-form";
+import { useRegisterForm } from "@/hooks/use-auth-form";
+import { PASSWORD_MIN_LENGTH, type RegisterForm } from "@/interfaces/auth";
+import { ClientApiError } from "@/lib/client/api";
+import { describeAuthError } from "@/lib/firebase/auth";
 
 const menteeSteps = [
   "Hesabını oluştur",
   "Startup profilini tamamla",
-  "Ekibini davet et",
-  "Onaydan sonra sisteme katıl",
+  "Koordinatör onayını bekle",
+  "Onaydan sonra ekibini davet et",
 ];
 
-// Mentor equivalents of the mentee steps; wording pending confirmation.
 const mentorSteps = [
   "Hesabını oluştur",
   "CV'nden mentor profilini oluştur",
@@ -22,15 +25,32 @@ const mentorSteps = [
 ];
 
 export function RegisterView({
-  onContinue,
+  onSubmit,
   isMentor = false,
 }: {
-  onContinue: () => void;
+  onSubmit: (form: RegisterForm) => Promise<void>;
   isMentor?: boolean;
 }) {
   const { form, update, canSubmit, passwordTooShort, passwordsMismatch } =
     useRegisterForm();
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const steps = isMentor ? mentorSteps : menteeSteps;
+
+  async function handleSubmit() {
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit(form);
+    } catch (caught) {
+      setError(
+        caught instanceof ClientApiError
+          ? caught.message
+          : describeAuthError(caught),
+      );
+      setSubmitting(false);
+    }
+  }
 
   return (
     <AuthShell>
@@ -90,7 +110,7 @@ export function RegisterView({
             />
             {passwordTooShort ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Şifre en az {PASSWORD_MIN_LENGTH} karakter olmalı.
+                Password must be at least {PASSWORD_MIN_LENGTH} characters.
               </p>
             ) : null}
           </div>
@@ -106,7 +126,7 @@ export function RegisterView({
             />
             {passwordsMismatch ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Şifreler eşleşmiyor.
+                Passwords do not match.
               </p>
             ) : null}
           </div>
@@ -115,13 +135,22 @@ export function RegisterView({
         <div className="pt-6">
           <button
             type="button"
-            onClick={onContinue}
-            disabled={!canSubmit}
+            onClick={handleSubmit}
+            disabled={!canSubmit || submitting}
             className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
           >
-            Hesap oluştur ve devam et
+            {submitting ? "Hesap oluşturuluyor…" : "Hesap oluştur ve devam et"}
           </button>
         </div>
+
+        {error ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+          >
+            {error}
+          </p>
+        ) : null}
 
         <div className="mt-8 rounded-xl border border-[#e8eaed] p-4">
           <h2 className="text-[13px] font-semibold text-[#111827]">

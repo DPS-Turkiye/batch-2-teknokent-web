@@ -1,8 +1,12 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { RegisterView } from "@/components/auth/register-view";
+
+vi.mock("@/lib/firebase/auth", () => ({
+  describeAuthError: () => "Authentication could not be completed.",
+}));
 
 async function fillAll(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^Ad/), "Gülse");
@@ -15,40 +19,42 @@ async function fillAll(user: ReturnType<typeof userEvent.setup>) {
 
 describe("Account creation step", () => {
   it("lists the four onboarding steps", () => {
-    render(<RegisterView onContinue={vi.fn()} />);
+    render(<RegisterView onSubmit={vi.fn()} />);
 
     expect(screen.getByText("Nasıl çalışır?")).toBeInTheDocument();
     expect(screen.getByText("Hesabını oluştur")).toBeInTheDocument();
     expect(screen.getByText("Startup profilini tamamla")).toBeInTheDocument();
-    expect(screen.getByText("Ekibini davet et")).toBeInTheDocument();
-    expect(screen.getByText("Onaydan sonra sisteme katıl")).toBeInTheDocument();
+    expect(screen.getByText("Koordinatör onayını bekle")).toBeInTheDocument();
+    expect(
+      screen.getByText("Onaydan sonra ekibini davet et"),
+    ).toBeInTheDocument();
   });
 
   it("warns when the password is too short", async () => {
     const user = userEvent.setup();
-    render(<RegisterView onContinue={vi.fn()} />);
+    render(<RegisterView onSubmit={vi.fn()} />);
 
     await user.type(screen.getByLabelText("Şifre *"), "kisa");
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Şifre en az 8 karakter olmalı.",
+      "Password must be at least 8 characters.",
     );
   });
 
   it("warns when the two passwords differ", async () => {
     const user = userEvent.setup();
-    render(<RegisterView onContinue={vi.fn()} />);
+    render(<RegisterView onSubmit={vi.fn()} />);
 
     await user.type(screen.getByLabelText("Şifre *"), "sifre1234");
     await user.type(screen.getByLabelText(/Şifre tekrar/), "baskasifre");
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Şifreler eşleşmiyor.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Passwords do not match.");
   });
 
-  it("only continues into onboarding once the form is valid", async () => {
+  it("submits the collected form only once it is valid", async () => {
     const user = userEvent.setup();
-    const onContinue = vi.fn();
-    render(<RegisterView onContinue={onContinue} />);
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    render(<RegisterView onSubmit={onSubmit} />);
 
     const cta = screen.getByRole("button", {
       name: "Hesap oluştur ve devam et",
@@ -59,11 +65,38 @@ describe("Account creation step", () => {
     expect(cta).toBeEnabled();
 
     await user.click(cta);
-    expect(onContinue).toHaveBeenCalledOnce();
+    await waitFor(() =>
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          firstName: "Gülse",
+          lastName: "Buran",
+          email: "gulse@dongu.co",
+          phone: "+905551112233",
+        }),
+      ),
+    );
+  });
+
+  it("keeps the user on the form when account creation fails", async () => {
+    const user = userEvent.setup();
+    const onSubmit = vi.fn().mockRejectedValue(new Error("boom"));
+    render(<RegisterView onSubmit={onSubmit} />);
+
+    await fillAll(user);
+    await user.click(
+      screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Authentication could not be completed.",
+    );
+    expect(
+      screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),
+    ).toBeEnabled();
   });
 
   it("links back to the existing login route", () => {
-    render(<RegisterView onContinue={vi.fn()} />);
+    render(<RegisterView onSubmit={vi.fn()} />);
 
     expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
       "href",

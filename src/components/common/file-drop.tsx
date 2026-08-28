@@ -19,7 +19,7 @@ export function FileDrop({
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0];
-    if (selected) onChange({ name: selected.name, size: selected.size });
+    if (selected) onChange({ name: selected.name, size: selected.size, file: selected });
   }
 
   if (file) {

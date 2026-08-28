@@ -10,6 +10,9 @@ export default defineConfig({
     globals: true,
     css: false,
     include: ["test/**/*.{test,spec}.{ts,tsx}"],
+    // The multi-step signup and onboarding walks type dozens of characters
+    // through userEvent, which is slow enough in jsdom to trip the 5s default.
+    testTimeout: 20000,
   },
   resolve: {
     alias: {

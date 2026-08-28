@@ -23,7 +23,6 @@ export function AuthHeader() {
   );
 }
 
-/** Full-width page in the auth visual language, for steps without artwork. */
 export function AuthPage({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#111827]">

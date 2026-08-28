@@ -17,21 +17,11 @@ vi.mock("iron-session", () => ({
   ),
 }));
 
-vi.mock("@/lib/api/accounts", () => ({
-  fetchUser: vi.fn(),
-  fetchUsers: vi.fn(),
-}));
-
 process.env.SESSION_PASSWORD = "a".repeat(32);
 
-const { fetchUser, fetchUsers } = await import("@/lib/api/accounts");
-const {
-  DEFAULT_MENTOR_ID,
-  DEFAULT_USER_ID,
-  findSessionByEmail,
-  getSessionMentorId,
-  toSession,
-} = await import("@/lib/session");
+const { getSessionIds, getSessionMentorId, getSessionUser, toSession } =
+  await import("@/lib/session");
+const { SessionRequiredError } = await import("@/lib/server/session-error");
 
 function mentee(overrides: Partial<BackendUser> = {}): BackendUser {
   return {
@@ -83,37 +73,58 @@ describe("toSession", () => {
     });
   });
 
-  it("rejects an admin user", () => {
-    expect(toSession(mentee({ role: UserRole.Admin }))).toBeNull();
+  it("builds an admin session without requiring an organization", () => {
+    expect(
+      toSession(
+        mentee({
+          role: UserRole.Admin,
+          organizationId: null,
+          organizationName: null,
+          jobTitle: null,
+        }),
+      ),
+    ).toEqual({
+      userId: "10000000-0000-0000-0000-000000000001",
+      email: "mentee@teknokent.demo",
+      fullName: "Deniz Arslan",
+      jobTitle: "Koordinatör",
+      role: UserRole.Admin,
+    });
   });
 });
 
-describe("findSessionByEmail", () => {
+describe("getSessionUser", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIronSession.user = undefined;
   });
 
-  it("finds a matching mentor across both mentee and mentor lookups", async () => {
-    vi.mocked(fetchUsers).mockImplementation(async (role) => ({
-      data: role === UserRole.Mentor ? [mentor()] : [mentee()],
-      headers: {},
-      status: 200,
-    }));
+  it("returns null when the session cookie is missing", async () => {
+    await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
 
-    const session = await findSessionByEmail("ECE.DEMIR@teknokent.demo");
-    expect(session?.role).toBe(UserRole.Mentor);
+describe("getSessionIds", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIronSession.user = undefined;
   });
 
-  it("returns null when no account matches", async () => {
-    vi.mocked(fetchUsers).mockResolvedValue({
-      data: [],
-      headers: {},
-      status: 200,
+  it("throws when the session cookie is missing", async () => {
+    await expect(getSessionIds()).rejects.toBeInstanceOf(SessionRequiredError);
+  });
+
+  it("returns the cookie's user and organization, not a demo account", async () => {
+    mockIronSession.user = {
+      userId: "founder-1",
+      role: UserRole.Mentee,
+      organizationId: "org-1",
+    };
+
+    await expect(getSessionIds()).resolves.toEqual({
+      userId: "founder-1",
+      organizationId: "org-1",
     });
-
-    await expect(
-      findSessionByEmail("nobody@teknokent.demo"),
-    ).resolves.toBeNull();
   });
 });
 
@@ -134,14 +145,9 @@ describe("getSessionMentorId", () => {
     );
   });
 
-  it("falls back to the demo mentor id when there is no mentor session", async () => {
-    vi.mocked(fetchUser).mockResolvedValue({
-      data: mentee(),
-      headers: {},
-      status: 200,
-    });
-
-    await expect(getSessionMentorId()).resolves.toBe(DEFAULT_MENTOR_ID);
-    expect(fetchUser).toHaveBeenCalledWith(DEFAULT_USER_ID);
+  it("throws when there is no mentor session", async () => {
+    await expect(getSessionMentorId()).rejects.toBeInstanceOf(
+      SessionRequiredError,
+    );
   });
 });

@@ -59,7 +59,6 @@ export const PROGRAM_OPTIONS = [
   "Metu Stars- Grow",
 ] as const;
 
-// Second level pending product confirmation.
 export const PROGRAM_LEVEL_OPTIONS = ["MVP", "Prototip"] as const;
 
 export const CONTACT_PREFERENCE_OPTIONS = [
@@ -69,7 +68,6 @@ export const CONTACT_PREFERENCE_OPTIONS = [
   "E-posta",
 ] as const;
 
-// Inferred option lists, pending product confirmation.
 export const SECTOR_OPTIONS = [
   "SaaS",
   "E-ticaret",
@@ -151,6 +149,7 @@ export const DOCUMENT_CHECKLIST: {
 export interface UploadedFile {
   name: string;
   size: number;
+  file?: File;
 }
 
 export interface PersonalProfileDraft {

@@ -4,11 +4,23 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onboarding-flow";
 import { SignupFlow } from "@/components/signup/signup-flow";
+import { registerMentor } from "@/lib/client/auth";
 
 const searchParams = { get: vi.fn() };
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
+}));
+
+vi.mock("@/lib/firebase/auth", () => ({
+  createFirebaseAccount: vi.fn().mockResolvedValue("id-token"),
+  currentIdToken: vi.fn().mockResolvedValue("id-token"),
+  describeAuthError: () => "Authentication could not be completed.",
+}));
+
+vi.mock("@/lib/client/auth", () => ({
+  registerMentor: vi.fn().mockResolvedValue({}),
+  registerFounder: vi.fn().mockResolvedValue({}),
 }));
 
 async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
@@ -35,9 +47,11 @@ describe("Signup role routing", () => {
       screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),
     );
 
-    expect(
-      screen.getByRole("heading", { name: "Kişisel profilini oluştur" }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Kişisel profilini oluştur" }),
+      ).toBeInTheDocument(),
+    );
   });
 
   it("sends a mentor to the mentor onboarding flow", async () => {
@@ -57,9 +71,19 @@ describe("Signup role routing", () => {
       screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),
     );
 
-    expect(
-      screen.getByRole("heading", { name: "Sizi tanıyalım" }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: "Sizi tanıyalım" }),
+      ).toBeInTheDocument(),
+    );
+    expect(vi.mocked(registerMentor)).toHaveBeenCalledWith(
+      {
+        fullName: "Nihan Öztürk",
+        email: "nihan@peak.co",
+        phone: "+905551112233",
+      },
+      "id-token",
+    );
   });
 });
 

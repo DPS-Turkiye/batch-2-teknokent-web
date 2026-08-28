@@ -3,17 +3,23 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/hoc/app-shell";
-import { UserRole, type DemoSession } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { AppArea } from "@/types/app-area";
 
-const mockUseDemoSession = vi.fn<() => DemoSession | null>();
+const mockuseAppSession = vi.fn<() => AppSession | null>();
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useDemoSession: () => mockUseDemoSession(),
+  useAppSession: () => mockuseAppSession(),
+  useSession: () => ({
+    isLoading: false,
+    login: vi.fn(),
+    logout: vi.fn().mockResolvedValue(undefined),
+    session: mockuseAppSession(),
+  }),
 }));
 
-function mentorSession(): DemoSession {
+function mentorSession(): AppSession {
   return {
     userId: "mentor-1",
     email: "leyla.aksoy@teknokent.demo",
@@ -23,7 +29,7 @@ function mentorSession(): DemoSession {
   };
 }
 
-function menteeSession(): DemoSession {
+function menteeSession(): AppSession {
   return {
     userId: "mentee-1",
     email: "ayse.kaya@novamed.demo",
@@ -35,9 +41,48 @@ function menteeSession(): DemoSession {
   };
 }
 
+function adminSession(): AppSession {
+  return {
+    userId: "admin-1",
+    email: "admin@teknokent.demo",
+    fullName: "Demo Administrator",
+    jobTitle: "Koordinatör",
+    role: UserRole.Admin,
+  };
+}
+
 describe("AppShell navigation", () => {
+  it("offers a logout control so the session cookie can be replaced", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+
+    render(
+      <AppShell active={AppArea.Home}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("button", { name: "Çıkış" })).toBeInTheDocument();
+  });
+
+  it("gives an admin only the applications inbox", () => {
+    mockuseAppSession.mockReturnValue(adminSession());
+
+    render(
+      <AppShell active={AppArea.Admin}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    const primaryNav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(
+      within(primaryNav).getByRole("link", { name: /Başvurular/ }),
+    ).toHaveAttribute("href", "/admin");
+    expect(screen.queryByText("Ekibim")).not.toBeInTheDocument();
+    expect(screen.queryByText("Startup’ım")).not.toBeInTheDocument();
+  });
+
   it("sends a mentor's core navigation to the redesigned mentor surfaces", () => {
-    mockUseDemoSession.mockReturnValue(mentorSession());
+    mockuseAppSession.mockReturnValue(mentorSession());
 
     render(
       <AppShell active={AppArea.MentorDashboard}>
@@ -62,7 +107,7 @@ describe("AppShell navigation", () => {
   });
 
   it("sends a mentee's home link to /dashboard and hides the mentor panel", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>
@@ -83,7 +128,7 @@ describe("AppShell navigation", () => {
   });
 
   it("shows the real notification count on the Duyurular badge, not a hardcoded number", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>
@@ -97,7 +142,7 @@ describe("AppShell navigation", () => {
   });
 
   it("falls back to the mentee home when there is no active session", () => {
-    mockUseDemoSession.mockReturnValue(null);
+    mockuseAppSession.mockReturnValue(null);
 
     render(
       <AppShell active={AppArea.Home}>
@@ -110,7 +155,7 @@ describe("AppShell navigation", () => {
   });
 
   it("gives mentees a Startup'ım entry and withholds it from mentors", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
     const { unmount } = render(
       <AppShell active={AppArea.Home}>
         <p>content</p>
@@ -123,7 +168,7 @@ describe("AppShell navigation", () => {
     ).toHaveAttribute("href", "/profile");
 
     unmount();
-    mockUseDemoSession.mockReturnValue(mentorSession());
+    mockuseAppSession.mockReturnValue(mentorSession());
     render(
       <AppShell active={AppArea.MentorDashboard}>
         <p>content</p>
@@ -137,10 +182,7 @@ describe("AppShell navigation", () => {
   });
 
   it("keeps /team reachable from the utility menu so it is never orphaned", () => {
-    // Regression guard: the "Ekibim" entry was once repurposed into
-    // "Startup'ım" and repointed at /profile, leaving /team with no
-    // navigation entry at all.
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>
@@ -157,7 +199,7 @@ describe("AppShell navigation", () => {
   });
 
   it("marks Startup'ım and Ekibim as separate areas so only one highlights", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Startup}>
@@ -178,7 +220,7 @@ describe("AppShell navigation", () => {
   });
 
   it("points the account control at the role-appropriate profile", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
     const { unmount } = render(
       <AppShell active={AppArea.Home}>
         <p>content</p>
@@ -191,7 +233,7 @@ describe("AppShell navigation", () => {
     );
 
     unmount();
-    mockUseDemoSession.mockReturnValue(mentorSession());
+    mockuseAppSession.mockReturnValue(mentorSession());
     render(
       <AppShell active={AppArea.MentorDashboard}>
         <p>content</p>
@@ -207,7 +249,7 @@ describe("AppShell navigation", () => {
 
 describe("AppShell mobile drawer", () => {
   it("stays closed until the menu button is pressed", () => {
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>
@@ -222,7 +264,7 @@ describe("AppShell mobile drawer", () => {
 
   it("opens with both primary and utility destinations, then closes again", async () => {
     const user = userEvent.setup();
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>
@@ -239,14 +281,12 @@ describe("AppShell mobile drawer", () => {
     expect(drawer).not.toBeNull();
     const drawerNav = within(drawer as HTMLElement).getByRole("navigation");
 
-    // primary destinations
     expect(
       within(drawerNav).getByRole("link", { name: /Ana Sayfa/ }),
     ).toHaveAttribute("href", "/dashboard");
     expect(
       within(drawerNav).getByRole("link", { name: /Startup’ım/ }),
     ).toHaveAttribute("href", "/profile");
-    // utility destinations that are not in the top bar
     expect(
       within(drawerNav).getByRole("link", { name: /Ekibim/ }),
     ).toHaveAttribute("href", "/team");
@@ -262,7 +302,7 @@ describe("AppShell mobile drawer", () => {
 
   it("closes when a destination inside the drawer is chosen", async () => {
     const user = userEvent.setup();
-    mockUseDemoSession.mockReturnValue(menteeSession());
+    mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
       <AppShell active={AppArea.Home}>

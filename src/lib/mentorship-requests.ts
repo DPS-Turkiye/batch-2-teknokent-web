@@ -65,7 +65,7 @@ export async function submitMentorshipRequest(
     throw new MentorshipRequestSubmissionError(
       error instanceof Error
         ? error.message
-        : "Talep kaydedilemedi. Lütfen tekrar deneyin.",
+        : "The request could not be saved. Please try again.",
     );
   }
 
@@ -76,7 +76,7 @@ export async function submitMentorshipRequest(
     typeof (responseBody as Record<string, unknown>).status !== "string"
   ) {
     throw new MentorshipRequestSubmissionError(
-      "Talep kaydedildi ancak yanıt doğrulanamadı.",
+      "The request was saved but the response could not be verified.",
     );
   }
 

@@ -6,38 +6,35 @@ import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import {
-  useAddOrganizationMember,
-  useOrganizationMembers,
-} from "@/hooks/use-organization-members";
+  useOrganizationInvite,
+  useRotateInviteCode,
+} from "@/hooks/use-organization-invite";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 export default function TeamPage() {
   const membersQuery = useOrganizationMembers();
-  const addMember = useAddOrganizationMember();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [jobTitle, setJobTitle] = useState("");
-  const [error, setError] = useState("");
+  const inviteQuery = useOrganizationInvite();
+  const rotate = useRotateInviteCode();
+  const [copied, setCopied] = useState(false);
+  const [rotateError, setRotateError] = useState("");
 
-  async function handleSubmit() {
-    if (!fullName.trim() || !email.trim()) {
-      setError("Ad soyad ve e-posta gereklidir.");
-      return;
-    }
-    setError("");
+  async function copyCode() {
+    const code = inviteQuery.data?.inviteCode;
+    if (!code) return;
+    await navigator.clipboard.writeText(code);
+    setCopied(true);
+  }
+
+  async function rotateCode() {
+    setRotateError("");
+    setCopied(false);
     try {
-      await addMember.mutateAsync({
-        fullName,
-        email,
-        jobTitle: jobTitle || undefined,
-      });
-      setFullName("");
-      setEmail("");
-      setJobTitle("");
+      await rotate.mutateAsync();
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Ekip üyesi eklenemedi.",
+      setRotateError(
+        reason instanceof Error ? reason.message : "Could not rotate the code.",
       );
     }
   }
@@ -49,6 +46,42 @@ export default function TeamPage() {
           Geçici arayüz — tasarım ekibinden gelecek gerçek tasarımla
           değiştirilecektir.
         </p>
+
+        <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
+          <h2 className="text-base font-semibold text-[#364153]">Davet kodu</h2>
+          <p className="mt-1 text-xs text-[#6a7282]">
+            Ekip arkadaşın /invite sayfasında bu kodla kayıt olur.
+          </p>
+          {inviteQuery.isLoading ? (
+            <p className="mt-4 text-sm text-[#6a7282]">Yükleniyor...</p>
+          ) : inviteQuery.error ? (
+            <p className="mt-4 text-sm text-red-600">
+              {inviteQuery.error.message}
+            </p>
+          ) : (
+            <>
+              <p className="mt-4 font-mono text-2xl tracking-widest">
+                {inviteQuery.data?.inviteCode}
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <PrimaryButton onClick={() => void copyCode()}>
+                  {copied ? "Kopyalandı" : "Kopyala"}
+                </PrimaryButton>
+                <button
+                  type="button"
+                  disabled={rotate.isPending}
+                  onClick={() => void rotateCode()}
+                  className="rounded-lg border border-[#e5e7eb] px-3 py-2 text-sm font-medium text-[#364153] disabled:opacity-50"
+                >
+                  {rotate.isPending ? "Üretiliyor..." : "Yeni kod üret"}
+                </button>
+              </div>
+              {rotateError ? (
+                <p className="mt-3 text-sm text-red-600">{rotateError}</p>
+              ) : null}
+            </>
+          )}
+        </section>
 
         <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
           <h2 className="text-base font-semibold text-[#364153]">
@@ -85,47 +118,6 @@ export default function TeamPage() {
               ))}
             </div>
           )}
-        </section>
-
-        <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
-          <h2 className="text-base font-semibold text-[#364153]">
-            Ekip Üyesi Ekle
-          </h2>
-          <div className="mt-4 grid gap-3">
-            <label className="grid gap-1 text-sm font-medium text-[#4b5563]">
-              <span>Ad Soyad</span>
-              <input
-                className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm font-normal"
-                value={fullName}
-                onChange={(event) => setFullName(event.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-medium text-[#4b5563]">
-              <span>E-posta</span>
-              <input
-                type="email"
-                className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm font-normal"
-                value={email}
-                onChange={(event) => setEmail(event.target.value)}
-              />
-            </label>
-            <label className="grid gap-1 text-sm font-medium text-[#4b5563]">
-              <span>Unvan (opsiyonel)</span>
-              <input
-                className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm font-normal"
-                value={jobTitle}
-                onChange={(event) => setJobTitle(event.target.value)}
-              />
-            </label>
-            {error ? <p className="text-sm text-red-600">{error}</p> : null}
-            <PrimaryButton
-              className="mt-2 w-fit"
-              disabled={addMember.isPending}
-              onClick={() => void handleSubmit()}
-            >
-              {addMember.isPending ? "Ekleniyor..." : "Ekip Üyesi Ekle"}
-            </PrimaryButton>
-          </div>
         </section>
       </div>
     </AppShell>

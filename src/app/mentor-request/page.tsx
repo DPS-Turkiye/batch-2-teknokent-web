@@ -1,16 +1,23 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
 import { MentorRequestFlow } from "@/components/mentor-request/mentor-request-flow";
 import { loadMentors } from "@/lib/mentors";
-import { getSessionIds } from "@/lib/session";
+import { getSessionUser } from "@/lib/session";
 import { loadStartupContext } from "@/lib/startup-profile";
 
 export const dynamic = "force-dynamic";
 
 export default async function MentorRequestPage() {
-  const { organizationId } = await getSessionIds();
+  const session = await getSessionUser();
+  if (!session?.organizationId) {
+    redirect("/login");
+  }
   const [{ mentors, error: mentorError }, { startup, error: startupError }] =
-    await Promise.all([loadMentors(), loadStartupContext(organizationId)]);
+    await Promise.all([
+      loadMentors(),
+      loadStartupContext(session.organizationId),
+    ]);
 
   return (
     <Suspense>

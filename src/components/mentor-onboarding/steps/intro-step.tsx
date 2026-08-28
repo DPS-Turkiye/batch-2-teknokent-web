@@ -57,7 +57,7 @@ export function IntroStep({ flow }: { flow: MentorOnboarding }) {
             className="hidden"
             onChange={(event) => {
               const file = event.target.files?.[0];
-              if (file) uploadCv({ name: file.name, size: file.size });
+              if (file) uploadCv({ name: file.name, size: file.size, file });
             }}
           />
         </section>

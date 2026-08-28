@@ -9,6 +9,7 @@ import {
   ClipboardList,
   FolderOpen,
   Home,
+  LogOut,
   Menu,
   MessageCircle,
   NotebookPen,
@@ -22,7 +23,10 @@ import {
 import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
-import { useDemoSession } from "@/components/providers/session-provider";
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
 import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { initials } from "@/lib/utils";
@@ -43,8 +47,18 @@ type NavigationItem = {
   icon: LucideIcon;
 };
 
-function buildNavigation(isMentor: boolean): NavigationItem[] {
-  if (isMentor)
+function buildNavigation(role?: UserRole): NavigationItem[] {
+  if (role === UserRole.Admin) {
+    return [
+      {
+        id: AppArea.Admin,
+        label: "Başvurular",
+        href: "/admin",
+        icon: ClipboardList,
+      },
+    ];
+  }
+  if (role === UserRole.Mentor)
     return [
       {
         id: AppArea.MentorDashboard,
@@ -163,15 +177,33 @@ export function AppShell({
   title,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const session = useDemoSession();
+  const session = useAppSession();
+  const { logout } = useSession();
+  const isAdmin = session?.role === UserRole.Admin;
   const isMentor = session?.role === UserRole.Mentor;
-  const homeHref = isMentor ? "/mentor-dashboard" : "/dashboard";
-  const profileHref = isMentor ? "/mentor-profile" : "/profile";
-  const navigation = buildNavigation(isMentor);
+  const homeHref = isAdmin
+    ? "/admin"
+    : isMentor
+      ? "/mentor-dashboard"
+      : "/dashboard";
+  const profileHref = isMentor
+    ? "/mentor-profile"
+    : isAdmin
+      ? "/admin"
+      : "/profile";
+  const navigation = buildNavigation(session?.role);
+  const extras = isAdmin ? [] : utilityNavigation;
   const displayName = session?.fullName ?? "Ayşe Kaya";
-  const displayOrganization = isMentor
-    ? "Mentor"
-    : (session?.organizationName ?? "NovaMed AI");
+  const displayOrganization = isAdmin
+    ? "Admin"
+    : isMentor
+      ? "Mentor"
+      : (session?.organizationName ?? "NovaMed AI");
+
+  async function handleLogout() {
+    await logout();
+    window.location.replace("/login");
+  }
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
@@ -198,28 +230,32 @@ export function AppShell({
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            <details className="relative hidden xl:block">
-              <summary className="flex h-10 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-medium text-[#676e78] hover:bg-[#f8f9fa]">
-                Diğer <ChevronDown className="size-3.5" />
-              </summary>
-              <div className="absolute right-0 top-12 w-52 rounded-2xl border border-[#e4e7ea] bg-white p-2 shadow-xl">
-                {utilityNavigation.map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-[#676e78] hover:bg-[#f8f9fa] hover:text-[#22262b]"
-                  >
-                    <item.icon className="size-4" />
-                    {item.label}
-                  </Link>
-                ))}
-              </div>
-            </details>
+            {extras.length > 0 ? (
+              <details className="relative hidden xl:block">
+                <summary className="flex h-10 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-medium text-[#676e78] hover:bg-[#f8f9fa]">
+                  Diğer <ChevronDown className="size-3.5" />
+                </summary>
+                <div className="absolute right-0 top-12 w-52 rounded-2xl border border-[#e4e7ea] bg-white p-2 shadow-xl">
+                  {extras.map((item) => (
+                    <Link
+                      key={item.label}
+                      href={item.href}
+                      className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-[#676e78] hover:bg-[#f8f9fa] hover:text-[#22262b]"
+                    >
+                      <item.icon className="size-4" />
+                      {item.label}
+                    </Link>
+                  ))}
+                </div>
+              </details>
+            ) : null}
             <Link
               href={
-                isMentor
-                  ? "/mentor-dashboard#notifications"
-                  : "/dashboard#notifications"
+                isAdmin
+                  ? "/admin"
+                  : isMentor
+                    ? "/mentor-dashboard#notifications"
+                    : "/dashboard#notifications"
               }
               aria-label="Duyurular"
               className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
@@ -231,6 +267,14 @@ export function AppShell({
                 </span>
               ) : null}
             </Link>
+            <button
+              type="button"
+              onClick={() => void handleLogout()}
+              className="hidden h-10 items-center gap-1.5 rounded-full border border-[#e4e7ea] px-3 text-xs font-medium text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22] sm:flex"
+            >
+              <LogOut className="size-3.5" strokeWidth={1.8} aria-hidden />
+              Çıkış
+            </button>
             <Link
               href={profileHref}
               className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 hover:border-[#e4e7ea]"
@@ -278,7 +322,7 @@ export function AppShell({
               </button>
             </div>
             <nav className="mt-8 space-y-1">
-              {[...navigation, ...utilityNavigation].map((item, index) => (
+              {[...navigation, ...extras].map((item, index) => (
                 <Link
                   key={`${item.label}-${index}`}
                   href={item.href}
@@ -289,6 +333,14 @@ export function AppShell({
                   {item.label}
                 </Link>
               ))}
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#fdebdd] hover:text-[#c85816]"
+              >
+                <LogOut className="size-4" />
+                Çıkış
+              </button>
             </nav>
           </aside>
         </div>

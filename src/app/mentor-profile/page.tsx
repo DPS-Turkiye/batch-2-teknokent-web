@@ -154,7 +154,7 @@ export default function MentorProfilePage() {
             </p>
           ) : profileQuery.error || !profileQuery.data ? (
             <p className="mt-6 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
-              Profil yüklenemedi.
+              Could not load the profile.
             </p>
           ) : (
             <ProfileForm profile={profileQuery.data} />

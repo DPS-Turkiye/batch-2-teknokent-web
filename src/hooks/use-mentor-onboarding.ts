@@ -13,6 +13,8 @@ import {
   type MentorOnboardingDraft,
   type ParsedProfile,
 } from "@/interfaces/mentor-onboarding";
+import { uploadDocument } from "@/lib/client/documents";
+import { currentIdToken } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
   return {
@@ -50,17 +52,33 @@ export function useMentorOnboarding() {
     [],
   );
 
-  /** Accepts a CV, shows the parsing state, then hands over to review. */
-  const uploadCv = useCallback((file: { name: string; size: number }) => {
+  const uploadCv = useCallback((file: { name: string; size: number; file?: File }) => {
     setDraft((current) => ({ ...current, cv: file }));
     setPhase(IntroPhase.Parsing);
-    parseTimer.current = setTimeout(
-      () => setPhase(IntroPhase.Review),
-      CV_PARSE_MS,
-    );
+    if (!file.file) {
+      parseTimer.current = setTimeout(
+        () => setPhase(IntroPhase.Review),
+        CV_PARSE_MS,
+      );
+      return;
+    }
+    void (async () => {
+      try {
+        const idToken = await currentIdToken();
+        if (!idToken) {
+          throw new Error("Your session has expired. Please sign in again.");
+        }
+        await uploadDocument(file.file, "cv", idToken);
+        parseTimer.current = setTimeout(
+          () => setPhase(IntroPhase.Review),
+          CV_PARSE_MS,
+        );
+      } catch {
+        setPhase(IntroPhase.Upload);
+      }
+    })();
   }, []);
 
-  /** "Bilgilerimi manuel gireceğim" — skip the parse, fill in by hand. */
   const enterManually = useCallback(() => {
     if (parseTimer.current) clearTimeout(parseTimer.current);
     setPhase(IntroPhase.Review);

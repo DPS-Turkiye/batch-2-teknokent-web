@@ -122,7 +122,7 @@ export function useLogMeetingForm(
       setForm((previous) => ({ ...previous, agenda: "", notes: "" }));
     } catch (error) {
       setLogError(
-        error instanceof Error ? error.message : "Görüşme kaydedilemedi.",
+        error instanceof Error ? error.message : "Could not save the meeting.",
       );
     }
   };

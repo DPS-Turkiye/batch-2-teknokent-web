@@ -1,90 +1,92 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
-import { LOGIN_ROLE_GROUPS } from "@/lib/const";
-import { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
+import { LoginFlowStep } from "@/interfaces/login";
+import { ClientApiError } from "@/lib/client/api";
+import {
+  describeAuthError,
+  requestPasswordReset,
+  signInToFirebase,
+  signOutOfFirebase,
+} from "@/lib/firebase/auth";
 
 export function useLoginFlow() {
-  const { login } = useSession();
-  const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Roles);
-  const [openGroup, setOpenGroup] = useState<string | null>(null);
-  const [selectedRoleIds, setSelectedRoleIds] = useState<Set<LoginRoleId>>(
-    () => new Set(),
-  );
+  const { login, logout } = useSession();
+  const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Login);
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [isReady, setIsReady] = useState(false);
 
-  const selectedRoles = useMemo(
-    () =>
-      LOGIN_ROLE_GROUPS.flatMap((group) =>
-        group.roles.filter((role) => selectedRoleIds.has(role.id)),
-      ),
-    [selectedRoleIds],
-  );
-
-  function toggleRole(roleId: LoginRoleId) {
-    setSelectedRoleIds((current) => {
-      const next = new Set(current);
-      if (next.has(roleId)) {
-        next.delete(roleId);
-      } else {
-        next.add(roleId);
-      }
-      return next;
-    });
-  }
+  useEffect(() => {
+    let active = true;
+    logout()
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setIsReady(true);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!isReady) return;
     setLoginError("");
+    setNotice("");
     setStep(LoginFlowStep.Verifying);
     try {
-      await login(email);
+      const idToken = await signInToFirebase(email, password, rememberMe);
+      await login(idToken, rememberMe);
       setStep(LoginFlowStep.Verified);
     } catch (error) {
+      if (error instanceof ClientApiError) {
+        await signOutOfFirebase().catch(() => undefined);
+      }
       setLoginError(
-        error instanceof Error
+        error instanceof ClientApiError
           ? error.message
-          : "Giriş tamamlanamadı. Lütfen tekrar deneyin.",
+          : describeAuthError(error),
       );
       setStep(LoginFlowStep.Login);
     }
   }
 
-  function resetFlow() {
-    setStep(LoginFlowStep.Roles);
-    setOpenGroup(null);
-    setSelectedRoleIds(new Set());
-    setEmail("");
+  async function sendPasswordReset() {
     setLoginError("");
+    setNotice("");
+    if (!email.trim()) {
+      setLoginError("Enter your email to receive a password reset link.");
+      return;
+    }
+    try {
+      await requestPasswordReset(email);
+      setNotice("A password reset link was sent to your email.");
+    } catch (error) {
+      setLoginError(describeAuthError(error));
+    }
   }
 
-  const unverifiedRoleId =
-    selectedRoleIds.has(LoginRoleId.Mentor) &&
-    selectedRoleIds.has(LoginRoleId.Trainer)
-      ? LoginRoleId.Trainer
-      : null;
-  const verifiedRoles = selectedRoles.filter(
-    (role) => role.id !== unverifiedRoleId,
-  );
-
   return {
-    roleGroups: LOGIN_ROLE_GROUPS,
     step,
-    setStep,
-    openGroup,
-    setOpenGroup,
-    selectedRoleIds,
     email,
     setEmail,
+    password,
+    setPassword,
+    rememberMe,
+    setRememberMe,
     loginError,
-    selectedRoles,
-    toggleRole,
+    notice,
     submitLogin,
-    resetFlow,
-    unverifiedRoleId,
-    verifiedRoles,
+    sendPasswordReset,
+    isReady,
+    isVerifying: step === LoginFlowStep.Verifying,
+    isVerified: step === LoginFlowStep.Verified,
   };
 }

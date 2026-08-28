@@ -125,7 +125,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
       setSaveSuccess(true);
     } catch (error) {
       setSaveError(
-        error instanceof Error ? error.message : "Profil kaydedilemedi.",
+        error instanceof Error ? error.message : "Could not save the profile.",
       );
     }
   };
@@ -145,9 +145,6 @@ export function useMentorProfileForm(profile: MentorProfile) {
 }
 
 function defaultSlotStart() {
-  // The backend rejects slots that aren't strictly in the future, so
-  // default a bit ahead of "now" rather than exactly at it — otherwise
-  // accepting the default value as-is fails by the time the request lands.
   return toDateTimeLocalValue(new Date(Date.now() + 60 * 60 * 1000));
 }
 
@@ -173,7 +170,7 @@ export function useAvailabilitySlotForm() {
       });
     } catch (error) {
       setSlotError(
-        error instanceof Error ? error.message : "Zaman dilimi eklenemedi.",
+        error instanceof Error ? error.message : "Could not add the time slot.",
       );
     }
   };
@@ -182,7 +179,6 @@ export function useAvailabilitySlotForm() {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
     } catch {
-      // surfaced via deleteSlotMutation.error below
     }
   };
 

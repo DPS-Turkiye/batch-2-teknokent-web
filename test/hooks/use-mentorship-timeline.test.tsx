@@ -185,7 +185,7 @@ describe("useLogMeetingForm", () => {
 
   it("reports an error when logging fails", async () => {
     vi.mocked(logMentorshipMeeting).mockRejectedValue(
-      new Error("Görüşme kaydedilemedi."),
+      new Error("Could not save the meeting."),
     );
     const { result } = renderHook(
       () => useLogMeetingForm("request-1", "mentor-1"),
@@ -196,7 +196,7 @@ describe("useLogMeetingForm", () => {
       await result.current.handleLogMeeting();
     });
 
-    expect(result.current.logError).toBe("Görüşme kaydedilemedi.");
+    expect(result.current.logError).toBe("Could not save the meeting.");
   });
 
   it("resets the form back to its defaults", () => {

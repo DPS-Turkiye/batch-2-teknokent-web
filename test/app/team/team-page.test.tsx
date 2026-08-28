@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import TeamPage from "@/app/team/page";
 import {
-  useAddOrganizationMember,
-  useOrganizationMembers,
-} from "@/hooks/use-organization-members";
+  useOrganizationInvite,
+  useRotateInviteCode,
+} from "@/hooks/use-organization-invite";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -17,7 +18,11 @@ vi.mock("@/components/hoc/app-shell", () => ({
 
 vi.mock("@/hooks/use-organization-members", () => ({
   useOrganizationMembers: vi.fn(),
-  useAddOrganizationMember: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-organization-invite", () => ({
+  useOrganizationInvite: vi.fn(),
+  useRotateInviteCode: vi.fn(),
 }));
 
 describe("TeamPage", () => {
@@ -25,10 +30,15 @@ describe("TeamPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useAddOrganizationMember).mockReturnValue({
+    vi.mocked(useRotateInviteCode).mockReturnValue({
       mutateAsync,
       isPending: false,
-    } as ReturnType<typeof useAddOrganizationMember>);
+    } as ReturnType<typeof useRotateInviteCode>);
+    vi.mocked(useOrganizationInvite).mockReturnValue({
+      data: { organizationId: "org-1", inviteCode: "ABCD2345" },
+      isLoading: false,
+      error: null,
+    } as ReturnType<typeof useOrganizationInvite>);
   });
 
   it("shows an empty state when there are no members", () => {
@@ -68,46 +78,58 @@ describe("TeamPage", () => {
     ).toBeInTheDocument();
   });
 
-  it("submits the add-member form with the entered fields", async () => {
+  it("shows the invite code instead of an add-member form", () => {
     vi.mocked(useOrganizationMembers).mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
     } as ReturnType<typeof useOrganizationMembers>);
-    mutateAsync.mockResolvedValue({});
-    const user = userEvent.setup();
 
     renderWithQueryClient(<TeamPage />);
 
-    await user.type(screen.getByLabelText("Ad Soyad"), "Yeni Üye");
-    await user.type(
-      screen.getByLabelText("E-posta"),
-      "yeni.uye@greenloop.demo",
-    );
-    await user.click(screen.getByRole("button", { name: "Ekip Üyesi Ekle" }));
-
-    expect(mutateAsync).toHaveBeenCalledWith({
-      fullName: "Yeni Üye",
-      email: "yeni.uye@greenloop.demo",
-      jobTitle: undefined,
-    });
+    expect(screen.getByText("ABCD2345")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Ekip Üyesi Ekle" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("shows a validation error when required fields are missing", async () => {
+  it("copies the invite code to the clipboard", async () => {
     vi.mocked(useOrganizationMembers).mockReturnValue({
       data: [],
       isLoading: false,
       error: null,
     } as ReturnType<typeof useOrganizationMembers>);
     const user = userEvent.setup();
+    Object.defineProperty(navigator, "clipboard", {
+      configurable: true,
+      value: { writeText: vi.fn().mockResolvedValue(undefined) },
+    });
+    const clipboardWrite = vi.spyOn(navigator.clipboard, "writeText");
 
     renderWithQueryClient(<TeamPage />);
+    await user.click(screen.getByRole("button", { name: "Kopyala" }));
 
-    await user.click(screen.getByRole("button", { name: "Ekip Üyesi Ekle" }));
-
+    expect(clipboardWrite).toHaveBeenCalledWith("ABCD2345");
     expect(
-      screen.getByText("Ad soyad ve e-posta gereklidir."),
+      screen.getByRole("button", { name: "Kopyalandı" }),
     ).toBeInTheDocument();
-    expect(mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("asks the server to rotate the invite code", async () => {
+    vi.mocked(useOrganizationMembers).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    } as ReturnType<typeof useOrganizationMembers>);
+    mutateAsync.mockResolvedValue({
+      organizationId: "org-1",
+      inviteCode: "NEWCODE8",
+    });
+    const user = userEvent.setup();
+
+    renderWithQueryClient(<TeamPage />);
+    await user.click(screen.getByRole("button", { name: "Yeni kod üret" }));
+
+    expect(mutateAsync).toHaveBeenCalled();
   });
 });

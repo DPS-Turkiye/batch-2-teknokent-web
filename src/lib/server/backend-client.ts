@@ -28,15 +28,22 @@ function backendCredentials() {
 
 export async function backendRequest<T = unknown>(
   config: AxiosRequestConfig,
-  options: { authenticated?: boolean } = {},
+  options: { authenticated?: boolean; idToken?: string } = {},
 ): Promise<BackendResponse<T>> {
+  const useBasic = options.authenticated !== false && !options.idToken;
   const response = await axios.request<T>({
     baseURL: getBackendUrl(),
     timeout: 15000,
     ...config,
-    headers: { Accept: "application/json", ...config.headers },
+    headers: {
+      Accept: "application/json",
+      ...(options.idToken
+        ? { Authorization: `Bearer ${options.idToken}` }
+        : undefined),
+      ...config.headers,
+    },
     validateStatus: () => true,
-    auth: options.authenticated === false ? undefined : backendCredentials(),
+    auth: useBasic ? backendCredentials() : undefined,
   });
 
   return {

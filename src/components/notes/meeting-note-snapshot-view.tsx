@@ -39,8 +39,8 @@ export function MeetingNoteSnapshotView({
       </div>
 
       <p className="mb-3 shrink-0 rounded-lg border border-[#f0e0c9] bg-[#fdf8f2] px-3 py-2 text-xs text-[#8a5a2b]">
-        Canlı bağlantı kurulamadı. Son yedeklenen not gösteriliyor; birlikte
-        yazmak için sayfayı yenile.
+        Live connection could not be established. Showing the last saved note;
+        refresh the page to write together.
       </p>
 
       {noteQuery.isLoading ? (
