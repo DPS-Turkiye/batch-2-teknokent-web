@@ -13,12 +13,7 @@ const menteeSteps = [
   "Onaydan sonra sisteme katıl",
 ];
 
-/**
- * The mentor account-creation frame (274:6487) reuses the mentee's
- * "Nasıl çalışır?" copy — flagged in the export's own README as startup
- * specific and to be corrected during implementation. These are the mentor
- * equivalents; confirm the wording with the designer.
- */
+// Mentor equivalents of the mentee steps; wording pending confirmation.
 const mentorSteps = [
   "Hesabını oluştur",
   "CV'nden mentor profilini oluştur",
