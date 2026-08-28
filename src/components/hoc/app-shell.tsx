@@ -4,15 +4,20 @@ import Link from "next/link";
 import {
   Bell,
   Bot,
-  Calendar,
+  CalendarDays,
+  ChevronDown,
   ClipboardList,
   FolderOpen,
   Home,
-  type LucideIcon,
+  Menu,
+  MessageCircle,
   NotebookPen,
+  Star,
   UserPlus,
   Users,
   Video,
+  X,
+  type LucideIcon,
 } from "lucide-react";
 import { ReactNode, useState } from "react";
 
@@ -31,14 +36,15 @@ interface AppShellProps {
   subtitle?: string;
   title?: string;
 }
-
-function buildNavigation(isMentor: boolean): Array<{
+type NavigationItem = {
   id: AppArea;
   label: string;
-  href?: string;
+  href: string;
   icon: LucideIcon;
-}> {
-  if (isMentor) {
+};
+
+function buildNavigation(isMentor: boolean): NavigationItem[] {
+  if (isMentor)
     return [
       {
         id: AppArea.MentorDashboard,
@@ -47,38 +53,24 @@ function buildNavigation(isMentor: boolean): Array<{
         icon: Home,
       },
       {
+        id: AppArea.Mentorships,
+        label: "Mentorluklarım",
+        href: "/mentor-dashboard#mentorships",
+        icon: Users,
+      },
+      {
         id: AppArea.Calendar,
         label: "Takvim",
         href: "/calendar",
-        icon: Calendar,
+        icon: CalendarDays,
       },
       {
         id: AppArea.Meetings,
-        label: "Toplantılar",
-        href: "/meetings/research",
-        icon: Video,
-      },
-      {
-        id: AppArea.Announcements,
-        label: "Duyurular",
-        href: "/mentor-dashboard#notifications",
-        icon: Bell,
-      },
-      {
-        id: AppArea.Assistant,
-        label: "Toplantı Asistanı",
-        href: "/assistant",
-        icon: Bot,
-      },
-      {
-        id: AppArea.Notes,
-        label: "Not Defterleri",
-        href: "/notes",
-        icon: NotebookPen,
+        label: "Mesajlar",
+        href: "/mentor-dashboard#requests",
+        icon: MessageCircle,
       },
     ];
-  }
-
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
     {
@@ -91,66 +83,72 @@ function buildNavigation(isMentor: boolean): Array<{
       id: AppArea.Calendar,
       label: "Takvim",
       href: "/calendar",
-      icon: Calendar,
+      icon: CalendarDays,
     },
+    { id: AppArea.Startup, label: "Startup’ım", href: "/profile", icon: Star },
     {
       id: AppArea.Meetings,
-      label: "Toplantılar",
-      href: "/meetings/research",
-      icon: Video,
-    },
-    {
-      id: AppArea.Actions,
-      label: "Aksiyonlar",
-      href: "/meetings/research/prepare",
-      icon: ClipboardList,
-    },
-    {
-      id: AppArea.Files,
-      label: "Dosyalar",
-      href: "/meetings/research",
-      icon: FolderOpen,
-    },
-    {
-      id: AppArea.Team,
-      label: "Ekibim",
-      href: "/team",
-      icon: UserPlus,
-    },
-    {
-      id: AppArea.Announcements,
-      label: "Duyurular",
-      href: "/dashboard#notifications",
-      icon: Bell,
-    },
-    {
-      id: AppArea.Assistant,
-      label: "Toplantı Asistanı",
-      href: "/assistant",
-      icon: Bot,
-    },
-    {
-      id: AppArea.Notes,
-      label: "Not Defterleri",
-      href: "/notes",
-      icon: NotebookPen,
+      label: "Mesajlar",
+      href: "/mentor-request/status",
+      icon: MessageCircle,
     },
   ];
 }
 
+const utilityNavigation: NavigationItem[] = [
+  {
+    id: AppArea.Team,
+    label: "Ekibim",
+    href: "/team",
+    icon: UserPlus,
+  },
+  {
+    id: AppArea.Meetings,
+    label: "Toplantılar",
+    href: "/meetings/research",
+    icon: Video,
+  },
+  {
+    id: AppArea.Actions,
+    label: "Aksiyonlar",
+    href: "/meetings/research/prepare",
+    icon: ClipboardList,
+  },
+  {
+    id: AppArea.Files,
+    label: "Dosyalar",
+    href: "/meetings/research",
+    icon: FolderOpen,
+  },
+  {
+    id: AppArea.Assistant,
+    label: "Toplantı Asistanı",
+    href: "/assistant",
+    icon: Bot,
+  },
+  {
+    id: AppArea.Notes,
+    label: "Not Defterleri",
+    href: "/notes",
+    icon: NotebookPen,
+  },
+];
+
 function BrandBlock({ href }: { href: string }) {
   return (
-    <Link href={href} className="flex items-center gap-2">
-      <span className="flex size-7 items-center justify-center rounded-md bg-[#4f39f6] text-xs font-bold text-white">
-        OT
+    <Link
+      href={href}
+      className="flex items-center gap-2"
+      aria-label="metual ana sayfa"
+    >
+      <span className="text-[22px] font-black tracking-[-0.08em] text-[#e5701d]">
+        metual
       </span>
-      <span className="leading-none">
-        <strong className="block text-xs font-semibold text-[#1e2939]">
-          ODTÜ Teknokent
-        </strong>
-        <span className="mt-0.5 block text-[10px] text-[#99a1af]">
-          Mentörlük Sistemi
-        </span>
+      <span className="hidden h-4 w-px bg-[#e4e7ea] sm:block" />
+      <span className="hidden text-[10px] font-medium leading-tight text-[#858c96] sm:block">
+        ODTÜ Teknokent
+        <br />
+        Mentorluk Platformu
       </span>
     </Link>
   );
@@ -171,141 +169,157 @@ export function AppShell({
   const profileHref = isMentor ? "/mentor-profile" : "/profile";
   const navigation = buildNavigation(isMentor);
   const displayName = session?.fullName ?? "Ayşe Kaya";
-  const displayOrganization =
-    session?.role === UserRole.Mentor
-      ? "Mentor"
-      : (session?.organizationName ?? "NovaMed AI");
-  const avatarInitials = initials(displayName);
+  const displayOrganization = isMentor
+    ? "Mentor"
+    : (session?.organizationName ?? "NovaMed AI");
 
   return (
-    <div className="min-h-screen bg-[#f9fafb] text-[#364153]">
-      <aside
-        className={`${mobileOpen ? "flex" : "hidden"} fixed inset-y-0 left-0 z-40 w-56 flex-col border-r border-[#f3f4f6] bg-white lg:flex`}
-      >
-        <div className="flex h-[61px] items-center border-b border-[#f3f4f6] px-5">
+    <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
+      <header className="sticky top-0 z-40 border-b border-[#e4e7ea] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center gap-5 px-4 sm:px-8">
           <BrandBlock href={homeHref} />
-        </div>
-        <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
-          {navigation.map((item) => {
-            const selected = item.id === active;
-            const Icon = item.icon;
-            const content = (
-              <>
-                <Icon
-                  className="size-4 shrink-0"
-                  strokeWidth={1.75}
-                  aria-hidden
-                />
-                <span>{item.label}</span>
-                {item.id === AppArea.Announcements &&
-                DASHBOARD_NOTIFICATIONS.length > 0 ? (
-                  <span className="ml-auto flex size-4 items-center justify-center rounded-full bg-[#555] text-[10px] font-semibold text-white">
-                    {DASHBOARD_NOTIFICATIONS.length}
-                  </span>
-                ) : null}
-              </>
-            );
-            const styles = `flex h-9 items-center gap-2.5 rounded-md px-3 text-sm transition-colors ${
-              selected
-                ? "bg-[#eef2ff] font-medium text-[#432dd7]"
-                : "text-[#6a7282] hover:bg-[#f9fafb] hover:text-[#364153]"
-            }`;
-            return item.href ? (
-              <Link
-                key={item.id}
-                href={item.href}
-                onClick={() => setMobileOpen(false)}
-                className={styles}
-              >
-                {content}
-              </Link>
-            ) : (
-              <span
-                key={item.id}
-                aria-disabled="true"
-                className={`${styles} cursor-not-allowed opacity-60 hover:bg-transparent hover:text-[#6a7282]`}
-              >
-                {content}
-              </span>
-            );
-          })}
-        </nav>
-        <div className="border-t border-[#f3f4f6] px-4 py-3">
-          <Link
-            href={profileHref}
-            onClick={() => setMobileOpen(false)}
-            className="flex items-center gap-2.5 rounded-md -mx-1 px-1 py-1 transition-colors hover:bg-[#f9fafb]"
+          <nav
+            className="mx-auto hidden items-center rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1 lg:flex"
+            aria-label="Ana menü"
           >
-            <Avatar initials={avatarInitials || "AK"} tone="purple" />
-            <span className="min-w-0 leading-none">
-              <strong className="block truncate text-xs font-medium">
-                {displayName}
-              </strong>
-              <span className="mt-1 block truncate text-[10px] text-[#99a1af]">
-                {displayOrganization}
+            {navigation.map((item) => {
+              const selected = item.id === active;
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={`${item.label}-${item.href}`}
+                  href={item.href}
+                  className={`flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-medium transition ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                >
+                  <Icon className="size-4" strokeWidth={1.8} aria-hidden />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <details className="relative hidden xl:block">
+              <summary className="flex h-10 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-medium text-[#676e78] hover:bg-[#f8f9fa]">
+                Diğer <ChevronDown className="size-3.5" />
+              </summary>
+              <div className="absolute right-0 top-12 w-52 rounded-2xl border border-[#e4e7ea] bg-white p-2 shadow-xl">
+                {utilityNavigation.map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-[#676e78] hover:bg-[#f8f9fa] hover:text-[#22262b]"
+                  >
+                    <item.icon className="size-4" />
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            </details>
+            <Link
+              href={
+                isMentor
+                  ? "/mentor-dashboard#notifications"
+                  : "/dashboard#notifications"
+              }
+              aria-label="Duyurular"
+              className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
+            >
+              <Bell className="size-[18px]" strokeWidth={1.8} />
+              {DASHBOARD_NOTIFICATIONS.length ? (
+                <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
+                  {DASHBOARD_NOTIFICATIONS.length}
+                </span>
+              ) : null}
+            </Link>
+            <Link
+              href={profileHref}
+              className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 hover:border-[#e4e7ea]"
+            >
+              <Avatar initials={initials(displayName) || "AK"} tone="orange" />
+              <span className="hidden max-w-28 leading-tight sm:block">
+                <strong className="block truncate text-xs font-semibold">
+                  {displayName}
+                </strong>
+                <span className="block truncate text-[10px] text-[#858c96]">
+                  {displayOrganization}
+                </span>
               </span>
-            </span>
-          </Link>
+            </Link>
+            <button
+              type="button"
+              onClick={() => setMobileOpen(true)}
+              aria-label="Menüyü aç"
+              className="grid size-10 place-items-center rounded-full border border-[#e4e7ea] lg:hidden"
+            >
+              <Menu className="size-5" />
+            </button>
+          </div>
         </div>
-      </aside>
-
+      </header>
       {mobileOpen ? (
-        <button
-          aria-label="Menüyü kapat"
-          className="fixed inset-0 z-30 bg-black/20 lg:hidden"
+        <div
+          className="fixed inset-0 z-50 bg-black/25 lg:hidden"
+          role="presentation"
           onClick={() => setMobileOpen(false)}
-          type="button"
-        />
+        >
+          <aside
+            className="ml-auto flex h-full w-[min(88vw,340px)] flex-col bg-white p-5 shadow-2xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between">
+              <BrandBlock href={homeHref} />
+              <button
+                type="button"
+                onClick={() => setMobileOpen(false)}
+                aria-label="Menüyü kapat"
+                className="grid size-10 place-items-center rounded-full border border-[#e4e7ea]"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+            <nav className="mt-8 space-y-1">
+              {[...navigation, ...utilityNavigation].map((item, index) => (
+                <Link
+                  key={`${item.label}-${index}`}
+                  href={item.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#fdebdd] hover:text-[#c85816]"
+                >
+                  <item.icon className="size-4" />
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </div>
       ) : null}
-
-      <div className="lg:pl-56">
-        {!title && !actions ? (
-          <header className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-[#f3f4f6] bg-white px-4 lg:hidden">
-            <BrandBlock href={homeHref} />
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="rounded-md border border-[#e5e7eb] px-3 py-1.5 text-sm"
-            >
-              Menü
-            </button>
-          </header>
-        ) : null}
-        {(title || actions) && (
-          <header className="sticky top-0 z-20 flex min-h-14 items-center gap-4 border-b border-[#f3f4f6] bg-white px-4 sm:px-8">
-            <button
-              type="button"
-              onClick={() => setMobileOpen(true)}
-              className="rounded-md border border-[#e5e7eb] px-2 py-1 text-sm lg:hidden"
-            >
-              Menü
-            </button>
+      {title || actions || backHref ? (
+        <div className="border-b border-[#e4e7ea] bg-white">
+          <div className="mx-auto flex min-h-16 max-w-[1320px] items-center gap-4 px-4 sm:px-8">
             {backHref ? (
               <Link
                 href={backHref}
                 aria-label="Geri dön"
-                className="text-xl leading-none text-[#99a1af]"
+                className="text-xl text-[#858c96]"
               >
                 ←
               </Link>
             ) : null}
             <div className="min-w-0 flex-1 py-3">
               {title ? (
-                <h1 className="truncate text-lg font-semibold text-[#171717]">
-                  {title}
-                </h1>
+                <h1 className="truncate text-lg font-semibold">{title}</h1>
               ) : null}
               {subtitle ? (
-                <p className="mt-0.5 truncate text-xs text-[#8a8a8a]">
+                <p className="mt-0.5 truncate text-xs text-[#858c96]">
                   {subtitle}
                 </p>
               ) : null}
             </div>
-            {actions ? <div className="shrink-0">{actions}</div> : null}
-          </header>
-        )}
-        <main>{children}</main>
-      </div>
+            {actions}
+          </div>
+        </div>
+      ) : null}
+      <main>{children}</main>
     </div>
   );
 }

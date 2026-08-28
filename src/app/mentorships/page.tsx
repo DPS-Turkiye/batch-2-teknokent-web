@@ -25,7 +25,37 @@ export default function MentorshipsPage() {
 
   return (
     <AppShell active={AppArea.Mentorships} title="Mentorluklarım">
-      <div className="mx-auto w-full max-w-[820px] space-y-3 px-4 pb-12 pt-6 sm:px-8">
+      <div className="mx-auto w-full max-w-[1080px] space-y-5 px-4 pb-12 pt-8 sm:px-8">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-[#e86f22]">
+              Mentorluk alanın
+            </p>
+            <h2 className="mt-1 text-2xl font-semibold">
+              Tüm süreçlerin tek yerde
+            </h2>
+            <p className="mt-2 text-sm text-[#676e78]">
+              Aktif, bekleyen ve tamamlanan mentor taleplerini takip et.
+            </p>
+          </div>
+          <Link
+            href="/mentor-request"
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-[#e86f22] px-4 text-sm font-semibold text-white hover:bg-[#ce5e19]"
+          >
+            Yeni mentor talebi
+          </Link>
+        </div>
+        <div className="flex gap-2 border-b border-[#e4e7ea] pb-3">
+          <span className="rounded-full bg-[#fdebdd] px-4 py-2 text-xs font-semibold text-[#c85816]">
+            Tümü
+          </span>
+          <span className="rounded-full px-4 py-2 text-xs font-medium text-[#676e78]">
+            Aktif
+          </span>
+          <span className="rounded-full px-4 py-2 text-xs font-medium text-[#676e78]">
+            Geçmiş
+          </span>
+        </div>
         {requestsQuery.isLoading ? (
           <div className="rounded-lg border border-[#e5e7eb] bg-white p-8 text-center text-sm text-[#6a7282]">
             Yükleniyor...
@@ -43,9 +73,12 @@ export default function MentorshipsPage() {
             <Link
               key={request.id}
               href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
-              className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 transition hover:border-[#c7c7c7] sm:items-center"
+              className="flex items-start gap-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 transition hover:border-[#f2b78f] hover:shadow-sm sm:items-center"
             >
-              <Avatar initials={initials(request.mentorName) || "MN"} />
+              <Avatar
+                initials={initials(request.mentorName) || "MN"}
+                tone="orange"
+              />
               <div className="flex-1">
                 <h3 className="text-sm font-semibold text-[#171717]">
                   {request.supportArea}

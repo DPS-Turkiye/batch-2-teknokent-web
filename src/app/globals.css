@@ -7,6 +7,14 @@
   --soft-line: #e8e8e8;
   --paper: #ffffff;
   --wash: #f4f4f4;
+  --metual-orange: #e86f22;
+  --metual-orange-dark: #c85816;
+  --metual-orange-soft: #fdebdd;
+  --metual-page: #f8f9fa;
+  --metual-surface: #ffffff;
+  --metual-line: #e4e7ea;
+  --metual-text: #22262b;
+  --metual-muted: #676e78;
 }
 
 .ma-wb {
@@ -78,12 +86,12 @@ button:focus-visible,
 a:focus-visible,
 summary:focus-visible,
 input:focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid var(--metual-orange);
 }
 
 textarea:focus-visible,
 select:focus-visible {
-  outline: 2px solid #555555;
+  outline: 2px solid var(--metual-orange);
 }
 
 summary {

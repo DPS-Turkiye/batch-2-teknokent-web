@@ -20,6 +20,7 @@ import type {
   ProfileAnalysis as Analysis,
   ProfileType,
 } from "@/interfaces/profile-analysis";
+import { AppArea } from "@/types/app-area";
 
 type ProfileTarget =
   { kind: "self" } | { kind: "existing"; appUserId: string } | { kind: "new" };
@@ -216,7 +217,11 @@ export function ProfileAnalysisView() {
   );
 
   return (
-    <AppShell title="Girişim Profili" backHref="/dashboard">
+    <AppShell
+      active={AppArea.Startup}
+      title="Girişim Profili"
+      backHref="/dashboard"
+    >
       <main className="mx-auto w-full max-w-4xl space-y-6 px-4 pb-10 pt-8 sm:px-8">
         <section className="rounded-2xl bg-[#45454d] p-6 text-white sm:p-8">
           <h1 className="text-2xl font-semibold">Profilini oluştur</h1>
