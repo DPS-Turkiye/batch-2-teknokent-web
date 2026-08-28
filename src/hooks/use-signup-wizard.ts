@@ -35,6 +35,14 @@ function emptyDraft(): SignupDraft {
       website: "",
       program: PROGRAM_OPTIONS[0],
       problem: "",
+      solution: "",
+      currentSolution: "",
+      targetUser: "",
+      sector: "",
+      maturity: "",
+      teamSize: "",
+      productStatus: "",
+      userEvidence: "",
       supportAreas: [],
       programLevel: PROGRAM_LEVEL_OPTIONS[0],
       logo: null,
@@ -53,6 +61,7 @@ export function useSignupWizard() {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
   const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
   const [submitted, setSubmitted] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
   const updatePersonal = useCallback(
     <K extends keyof PersonalProfileDraft>(
@@ -140,6 +149,12 @@ export function useSignupWizard() {
 
   const submit = useCallback(() => setSubmitted(true), []);
 
+  /**
+   * UI-only for now: the design offers "Taslak olarak kaydet" on every step,
+   * but there is no persistence backend yet, so this just acknowledges.
+   */
+  const saveDraft = useCallback(() => setDraftSavedAt(Date.now()), []);
+
   const bioRemaining = BIO_MAX_LENGTH - draft.personal.bio.length;
   const taglineRemaining = TAGLINE_MAX_LENGTH - draft.startup.tagline.length;
 
@@ -151,6 +166,36 @@ export function useSignupWizard() {
       })),
     [draft.documents],
   );
+
+  const completion = useMemo(() => {
+    const { personal, startup, documents } = draft;
+    const checks: { label: string; done: boolean }[] = [
+      { label: "Ad", done: Boolean(personal.firstName.trim()) },
+      { label: "Soyad", done: Boolean(personal.lastName.trim()) },
+      { label: "Rol", done: Boolean(personal.role.trim()) },
+      { label: "Kısa tanıtım", done: Boolean(personal.bio.trim()) },
+      { label: "LinkedIn", done: Boolean(personal.linkedin.trim()) },
+      { label: "CV", done: Boolean(personal.cv) },
+      { label: "Uzmanlık alanları", done: personal.expertise.length > 0 },
+      { label: "Startup adı", done: Boolean(startup.name.trim()) },
+      { label: "Tek satırlık tanım", done: Boolean(startup.tagline.trim()) },
+      { label: "Web sitesi URL'i", done: Boolean(startup.website.trim()) },
+      { label: "Problem", done: Boolean(startup.problem.trim()) },
+      { label: "Çözüm", done: Boolean(startup.solution.trim()) },
+      { label: "Hedef kullanıcı", done: Boolean(startup.targetUser.trim()) },
+      { label: "Sektör", done: Boolean(startup.sector) },
+      { label: "Olgunluk seviyesi", done: Boolean(startup.maturity) },
+      { label: "Ekip büyüklüğü", done: Boolean(startup.teamSize) },
+      { label: "Ürün durumu", done: Boolean(startup.productStatus) },
+      { label: "Destek alanları", done: startup.supportAreas.length > 0 },
+      { label: "Dosyalar", done: Object.keys(documents).length > 0 },
+    ];
+    const done = checks.filter((c) => c.done).length;
+    return {
+      percent: Math.round((done / checks.length) * 100),
+      missing: checks.filter((c) => !c.done).map((c) => c.label),
+    };
+  }, [draft]);
 
   const canContinue = useMemo(() => {
     if (step === SignupStep.PersonalProfile) {
@@ -168,9 +213,11 @@ export function useSignupWizard() {
     step,
     draft,
     submitted,
+    draftSavedAt,
     bioRemaining,
     taglineRemaining,
     checklist,
+    completion,
     canContinue,
     isFirstStep: step === SignupStep.PersonalProfile,
     isLastStep: step === SignupStep.Review,
@@ -178,6 +225,7 @@ export function useSignupWizard() {
     goNext,
     goBack,
     submit,
+    saveDraft,
     setDocument,
     toggleContactPreference,
     toggleExpertise,

@@ -154,6 +154,51 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.documents).toEqual({});
   });
 
+  it("reports profile completion and names what is still missing", () => {
+    const { result } = renderHook(() => useSignupWizard());
+
+    expect(result.current.completion.percent).toBe(0);
+    expect(result.current.completion.missing).toContain("Web sitesi URL'i");
+
+    fillPersonal(result);
+    expect(result.current.completion.percent).toBeGreaterThan(0);
+    expect(result.current.completion.missing).not.toContain("Ad");
+
+    act(() => result.current.updateStartup("website", "https://dongu.example"));
+    expect(result.current.completion.missing).not.toContain("Web sitesi URL'i");
+  });
+
+  it("records a draft save without submitting the profile", () => {
+    const { result } = renderHook(() => useSignupWizard());
+
+    expect(result.current.draftSavedAt).toBeNull();
+
+    act(() => result.current.saveDraft());
+
+    expect(result.current.draftSavedAt).not.toBeNull();
+    expect(result.current.submitted).toBe(false);
+  });
+
+  it("keeps the new startup fields in the draft", () => {
+    const { result } = renderHook(() => useSignupWizard());
+
+    act(() => {
+      result.current.updateStartup("solution", "Eşleştirme motoru");
+      result.current.updateStartup("targetUser", "KOBİ'ler");
+      result.current.updateStartup("sector", "SaaS");
+      result.current.updateStartup("teamSize", "3");
+      result.current.updateStartup("productStatus", "Prototip / wireframe");
+    });
+
+    expect(result.current.draft.startup.solution).toBe("Eşleştirme motoru");
+    expect(result.current.draft.startup.targetUser).toBe("KOBİ'ler");
+    expect(result.current.draft.startup.sector).toBe("SaaS");
+    expect(result.current.draft.startup.teamSize).toBe("3");
+    expect(result.current.draft.startup.productStatus).toBe(
+      "Prototip / wireframe",
+    );
+  });
+
   it("flips to the submitted state only when submit is called", () => {
     const { result } = renderHook(() => useSignupWizard());
 

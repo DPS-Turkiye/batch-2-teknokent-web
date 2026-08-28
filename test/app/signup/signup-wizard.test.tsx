@@ -3,6 +3,23 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { SignupWizardView } from "@/components/signup/signup-wizard";
+import { SIGNUP_STEP_CTA, SignupStep } from "@/interfaces/signup";
+
+const CTA = {
+  personal: SIGNUP_STEP_CTA[SignupStep.PersonalProfile],
+  startup: SIGNUP_STEP_CTA[SignupStep.StartupProfile],
+  documents: SIGNUP_STEP_CTA[SignupStep.Documents],
+  review: SIGNUP_STEP_CTA[SignupStep.Review],
+};
+
+async function fillStartupStep(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
+  await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
+  await user.type(
+    screen.getByLabelText(/Web sitesi \/ sosyal link/),
+    "https://dongu.example",
+  );
+}
 
 async function completePersonalStep(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText("Ad"), "Gülse");
@@ -35,7 +52,7 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView />);
 
-    const next = screen.getByRole("button", { name: "Devam et" });
+    const next = screen.getByRole("button", { name: CTA.personal });
     expect(next).toBeDisabled();
 
     await completePersonalStep(user);
@@ -76,27 +93,19 @@ describe("Signup wizard", () => {
     render(<SignupWizardView />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
 
     expect(
       screen.getByRole("heading", { name: "Startup profilini oluştur" }),
     ).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
-    await user.type(
-      screen.getByLabelText(/Tek satırlık tanım/),
-      "Gönüllüleri eşleştirir",
-    );
-    await user.type(
-      screen.getByLabelText(/Web sitesi \/ sosyal link/),
-      "https://dongu.example",
-    );
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
 
     expect(
       screen.getByRole("heading", { name: "Dosyalarını Yükle" }),
     ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
 
     expect(
       screen.getByRole("heading", { name: "Profilini gözden geçir" }),
@@ -110,15 +119,10 @@ describe("Signup wizard", () => {
     render(<SignupWizardView />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-    await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
-    await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
-    await user.type(
-      screen.getByLabelText(/Web sitesi \/ sosyal link/),
-      "https://dongu.example",
-    );
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
 
     const personalSection = screen
       .getByText("Kişisel bilgiler")
@@ -137,17 +141,12 @@ describe("Signup wizard", () => {
     render(<SignupWizardView />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-    await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
-    await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
-    await user.type(
-      screen.getByLabelText(/Web sitesi \/ sosyal link/),
-      "https://dongu.example",
-    );
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
 
-    await user.click(screen.getByRole("button", { name: "Onaya gönder" }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
 
     expect(screen.getByText("Koordinatör incelemesinde")).toBeInTheDocument();
     expect(screen.getByText("Profil tamamlandı")).toBeInTheDocument();

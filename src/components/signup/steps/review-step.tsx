@@ -47,7 +47,7 @@ function EditableSection({
 const EMPTY = "—";
 
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
-  const { draft, goToStep } = wizard;
+  const { draft, goToStep, completion } = wizard;
   const { personal, startup, documents } = draft;
 
   const fullName =
@@ -136,7 +136,51 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
       </EditableSection>
 
       <EditableSection
-        title="Dosyalar"
+        title="Girişim hakkında"
+        onEdit={() => goToStep(SignupStep.StartupProfile)}
+      >
+        <Row label="Problem">{startup.problem || EMPTY}</Row>
+        <Row label="Çözüm">{startup.solution || EMPTY}</Row>
+        <Row label="Hedef kullanıcı">{startup.targetUser || EMPTY}</Row>
+        <Row label="Sektör">{startup.sector || EMPTY}</Row>
+        <Row label="Aşama">{startup.maturity || EMPTY}</Row>
+      </EditableSection>
+
+      <EditableSection
+        title="Bugünkü durum"
+        onEdit={() => goToStep(SignupStep.StartupProfile)}
+      >
+        <Row label="Ekip">
+          {startup.teamSize ? `${startup.teamSize} kişi` : EMPTY}
+        </Row>
+        <Row label="Ürün durumu">{startup.productStatus || EMPTY}</Row>
+        <Row label="Kullanıcı kanıtı">{startup.userEvidence || EMPTY}</Row>
+      </EditableSection>
+
+      <EditableSection
+        title="Destek alanları"
+        onEdit={() => goToStep(SignupStep.StartupProfile)}
+      >
+        <Row label="Seçilen alanlar">
+          {startup.supportAreas.length ? (
+            <span className="flex flex-wrap gap-1.5">
+              {startup.supportAreas.map((item) => (
+                <span
+                  key={item}
+                  className="rounded-md bg-[#f1f2f4] px-2 py-0.5 text-[11px] text-[#3c424a]"
+                >
+                  {item}
+                </span>
+              ))}
+            </span>
+          ) : (
+            EMPTY
+          )}
+        </Row>
+      </EditableSection>
+
+      <EditableSection
+        title="Dosyalarım"
         onEdit={() => goToStep(SignupStep.Documents)}
       >
         {uploaded.length ? (
@@ -149,6 +193,37 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
           <Row label="Dosyalar">Henüz dosya yüklenmedi</Row>
         )}
       </EditableSection>
+
+      <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Profil tamamlanma</h2>
+          <span className="text-sm font-bold text-[#e86f22]">
+            %{completion.percent}
+          </span>
+        </div>
+        <div
+          role="progressbar"
+          aria-valuenow={completion.percent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Profil tamamlanma"
+          className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-[#f1f2f4]"
+        >
+          <div
+            className="h-full rounded-full bg-[#e86f22] transition-all"
+            style={{ width: `${completion.percent}%` }}
+          />
+        </div>
+        {completion.missing.length ? (
+          <p className="mt-3 text-xs text-[#676e78]">
+            Eksik: {completion.missing.join(", ")} eklenebilir.
+          </p>
+        ) : (
+          <p className="mt-3 text-xs text-[#676e78]">
+            Profilin eksiksiz görünüyor.
+          </p>
+        )}
+      </section>
     </div>
   );
 }

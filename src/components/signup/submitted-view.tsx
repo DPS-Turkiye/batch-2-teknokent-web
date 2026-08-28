@@ -1,6 +1,14 @@
 "use client";
 
-import { Check, FileText, Lock, Mail, PencilLine } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  FileText,
+  Lock,
+  Mail,
+  PencilLine,
+} from "lucide-react";
+import Link from "next/link";
 
 import type { SignupDraft } from "@/interfaces/signup";
 
@@ -134,6 +142,14 @@ export function SubmittedView({ draft }: { draft: SignupDraft }) {
         verdiğinde veya düzenleme talep ettiğinde profil yeniden düzenlenebilir
         hale gelir.
       </p>
+
+      <Link
+        href="/"
+        className="inline-flex items-center gap-1.5 px-1 text-xs font-semibold text-[#e86f22] hover:text-[#c85816]"
+      >
+        <ArrowLeft className="size-3.5" />
+        Ana sayfaya dön
+      </Link>
 
       {draft.personal.cv ? (
         <p className="flex items-center gap-2 px-1 text-[11px] text-[#a4aab2]">

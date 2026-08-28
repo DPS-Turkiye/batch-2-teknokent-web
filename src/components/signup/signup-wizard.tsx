@@ -11,6 +11,7 @@ import { StartupProfileStep } from "@/components/signup/steps/startup-profile-st
 import { SubmittedView } from "@/components/signup/submitted-view";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import {
+  SIGNUP_STEP_CTA,
   SIGNUP_STEP_LABELS,
   SIGNUP_STEP_ORDER,
   SignupStep,
@@ -105,23 +106,30 @@ export function SignupWizardView() {
                 ) : null}
               </div>
 
-              <div className="mt-8 flex items-center justify-between gap-3">
+              <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
                 <SecondaryButton onClick={wizard.goBack} disabled={isFirstStep}>
                   Geri
                 </SecondaryButton>
-                {isLastStep ? (
-                  <PrimaryButton onClick={wizard.submit}>
-                    Onaya gönder
-                  </PrimaryButton>
-                ) : (
+                <div className="flex flex-wrap items-center gap-3">
+                  <SecondaryButton onClick={wizard.saveDraft}>
+                    Taslak olarak kaydet
+                  </SecondaryButton>
                   <PrimaryButton
-                    onClick={wizard.goNext}
-                    disabled={!canContinue}
+                    onClick={isLastStep ? wizard.submit : wizard.goNext}
+                    disabled={!isLastStep && !canContinue}
                   >
-                    Devam et
+                    {SIGNUP_STEP_CTA[step]}
                   </PrimaryButton>
-                )}
+                </div>
               </div>
+              {wizard.draftSavedAt ? (
+                <p
+                  role="status"
+                  className="mt-3 text-right text-xs text-[#676e78]"
+                >
+                  Taslak kaydedildi.
+                </p>
+              ) : null}
             </div>
           </>
         )}
