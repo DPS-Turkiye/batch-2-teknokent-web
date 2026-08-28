@@ -1,0 +1,238 @@
+"use client";
+
+import { useCallback, useMemo, useState } from "react";
+
+import {
+  BIO_MAX_LENGTH,
+  DOCUMENT_CHECKLIST,
+  PROGRAM_LEVEL_OPTIONS,
+  PROGRAM_OPTIONS,
+  SIGNUP_STEP_ORDER,
+  SignupStep,
+  StartupDocumentKind,
+  TAGLINE_MAX_LENGTH,
+  type PersonalProfileDraft,
+  type SignupDraft,
+  type StartupProfileDraft,
+  type UploadedFile,
+} from "@/interfaces/signup";
+
+function emptyDraft(): SignupDraft {
+  return {
+    personal: {
+      firstName: "",
+      lastName: "",
+      role: "",
+      bio: "",
+      linkedin: "",
+      expertise: [],
+      contactPreferences: [],
+      cv: null,
+    },
+    startup: {
+      name: "",
+      tagline: "",
+      website: "",
+      program: PROGRAM_OPTIONS[0],
+      problem: "",
+      solution: "",
+      currentSolution: "",
+      targetUser: "",
+      sector: "",
+      maturity: "",
+      teamSize: "",
+      productStatus: "",
+      userEvidence: "",
+      supportAreas: [],
+      programLevel: PROGRAM_LEVEL_OPTIONS[0],
+      logo: null,
+    },
+    documents: {},
+  };
+}
+
+function toggle(list: string[], value: string) {
+  return list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
+}
+
+export function useSignupWizard() {
+  const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
+  const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
+  const [submitted, setSubmitted] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+
+  const updatePersonal = useCallback(
+    <K extends keyof PersonalProfileDraft>(
+      key: K,
+      value: PersonalProfileDraft[K],
+    ) => {
+      setDraft((current) => ({
+        ...current,
+        personal: { ...current.personal, [key]: value },
+      }));
+    },
+    [],
+  );
+
+  const updateStartup = useCallback(
+    <K extends keyof StartupProfileDraft>(
+      key: K,
+      value: StartupProfileDraft[K],
+    ) => {
+      setDraft((current) => ({
+        ...current,
+        startup: { ...current.startup, [key]: value },
+      }));
+    },
+    [],
+  );
+
+  const toggleExpertise = useCallback((value: string) => {
+    setDraft((current) => ({
+      ...current,
+      personal: {
+        ...current.personal,
+        expertise: toggle(current.personal.expertise, value),
+      },
+    }));
+  }, []);
+
+  const toggleSupportArea = useCallback((value: string) => {
+    setDraft((current) => ({
+      ...current,
+      startup: {
+        ...current.startup,
+        supportAreas: toggle(current.startup.supportAreas, value),
+      },
+    }));
+  }, []);
+
+  const toggleContactPreference = useCallback((value: string) => {
+    setDraft((current) => ({
+      ...current,
+      personal: {
+        ...current.personal,
+        contactPreferences: toggle(current.personal.contactPreferences, value),
+      },
+    }));
+  }, []);
+
+  const setDocument = useCallback(
+    (kind: StartupDocumentKind, file: UploadedFile | null) => {
+      setDraft((current) => {
+        const documents = { ...current.documents };
+        if (file) documents[kind] = file;
+        else delete documents[kind];
+        return { ...current, documents };
+      });
+    },
+    [],
+  );
+
+  const goToStep = useCallback((next: SignupStep) => setStep(next), []);
+
+  const goNext = useCallback(() => {
+    setStep((current) => {
+      const index = SIGNUP_STEP_ORDER.indexOf(current);
+      return SIGNUP_STEP_ORDER[index + 1] ?? current;
+    });
+  }, []);
+
+  const goBack = useCallback(() => {
+    setStep((current) => {
+      const index = SIGNUP_STEP_ORDER.indexOf(current);
+      return SIGNUP_STEP_ORDER[index - 1] ?? current;
+    });
+  }, []);
+
+  const submit = useCallback(() => setSubmitted(true), []);
+
+  /**
+   * UI-only for now: the design offers "Taslak olarak kaydet" on every step,
+   * but there is no persistence backend yet, so this just acknowledges.
+   */
+  const saveDraft = useCallback(() => setDraftSavedAt(Date.now()), []);
+
+  const bioRemaining = BIO_MAX_LENGTH - draft.personal.bio.length;
+  const taglineRemaining = TAGLINE_MAX_LENGTH - draft.startup.tagline.length;
+
+  const checklist = useMemo(
+    () =>
+      DOCUMENT_CHECKLIST.map((item) => ({
+        ...item,
+        done: Boolean(draft.documents[item.kind]),
+      })),
+    [draft.documents],
+  );
+
+  const completion = useMemo(() => {
+    const { personal, startup, documents } = draft;
+    const checks: { label: string; done: boolean }[] = [
+      { label: "Ad", done: Boolean(personal.firstName.trim()) },
+      { label: "Soyad", done: Boolean(personal.lastName.trim()) },
+      { label: "Rol", done: Boolean(personal.role.trim()) },
+      { label: "Kısa tanıtım", done: Boolean(personal.bio.trim()) },
+      { label: "LinkedIn", done: Boolean(personal.linkedin.trim()) },
+      { label: "CV", done: Boolean(personal.cv) },
+      { label: "Uzmanlık alanları", done: personal.expertise.length > 0 },
+      { label: "Startup adı", done: Boolean(startup.name.trim()) },
+      { label: "Tek satırlık tanım", done: Boolean(startup.tagline.trim()) },
+      { label: "Web sitesi URL'i", done: Boolean(startup.website.trim()) },
+      { label: "Problem", done: Boolean(startup.problem.trim()) },
+      { label: "Çözüm", done: Boolean(startup.solution.trim()) },
+      { label: "Hedef kullanıcı", done: Boolean(startup.targetUser.trim()) },
+      { label: "Sektör", done: Boolean(startup.sector) },
+      { label: "Olgunluk seviyesi", done: Boolean(startup.maturity) },
+      { label: "Ekip büyüklüğü", done: Boolean(startup.teamSize) },
+      { label: "Ürün durumu", done: Boolean(startup.productStatus) },
+      { label: "Destek alanları", done: startup.supportAreas.length > 0 },
+      { label: "Dosyalar", done: Object.keys(documents).length > 0 },
+    ];
+    const done = checks.filter((c) => c.done).length;
+    return {
+      percent: Math.round((done / checks.length) * 100),
+      missing: checks.filter((c) => !c.done).map((c) => c.label),
+    };
+  }, [draft]);
+
+  const canContinue = useMemo(() => {
+    if (step === SignupStep.PersonalProfile) {
+      const { firstName, lastName, role } = draft.personal;
+      return Boolean(firstName.trim() && lastName.trim() && role.trim());
+    }
+    if (step === SignupStep.StartupProfile) {
+      const { name, tagline, website } = draft.startup;
+      return Boolean(name.trim() && tagline.trim() && website.trim());
+    }
+    return true;
+  }, [draft, step]);
+
+  return {
+    step,
+    draft,
+    submitted,
+    draftSavedAt,
+    bioRemaining,
+    taglineRemaining,
+    checklist,
+    completion,
+    canContinue,
+    isFirstStep: step === SignupStep.PersonalProfile,
+    isLastStep: step === SignupStep.Review,
+    goToStep,
+    goNext,
+    goBack,
+    submit,
+    saveDraft,
+    setDocument,
+    toggleContactPreference,
+    toggleExpertise,
+    toggleSupportArea,
+    updatePersonal,
+    updateStartup,
+  };
+}
+
+export type SignupWizard = ReturnType<typeof useSignupWizard>;

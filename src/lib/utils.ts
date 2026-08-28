@@ -18,3 +18,8 @@ export function initials(name: string) {
     .map((part) => part[0]?.toUpperCase())
     .join("");
 }
+
+export function formatFileSize(bytes: number) {
+  const mb = bytes / (1024 * 1024);
+  return `${mb < 0.1 ? mb.toFixed(2) : Number(mb.toFixed(1))} MB`;
+}

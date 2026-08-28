@@ -1,17 +1,20 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
 import { useDemoAccounts } from "@/hooks/use-demo-accounts";
 import { UserRole, type BackendUser } from "@/interfaces/session";
 
+const push = vi.fn();
+const login = vi.fn();
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn() }),
+  useRouter: () => ({ push }),
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useSession: () => ({ login: vi.fn() }),
+  useSession: () => ({ login }),
 }));
 
 vi.mock("@/hooks/use-demo-accounts", () => ({
@@ -34,10 +37,9 @@ const MENTOR: BackendUser = {
   role: UserRole.Mentor,
 };
 
-// The picker no longer filters client-side — GET /api/demo-accounts is
-// role-scoped server-side, so this mirrors that: only the requested role's
-// pool comes back.
-function mockRoleScopedAccounts() {
+// The redesigned screen has no role-selection step, so it offers every demo
+// account: one role-scoped request per role, concatenated for the picker.
+function mockAccounts() {
   vi.mocked(useDemoAccounts).mockImplementation(
     (role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee) =>
       ({
@@ -48,57 +50,148 @@ function mockRoleScopedAccounts() {
   );
 }
 
-describe("LoginPage demo account list", () => {
-  it("shows only mentor accounts once the Mentor role is selected", async () => {
-    mockRoleScopedAccounts();
+beforeEach(() => {
+  push.mockReset();
+  login.mockReset();
+  mockAccounts();
+});
+
+describe("Login screen", () => {
+  it("renders the shared login frame", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("heading", { name: "METUal'a hoş geldin" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/E-posta/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Şifre/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Şifremi unuttum" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Beni Hatırla")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Bir davet aldın mı? Davet kodunla devam et",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("masks the password field", () => {
+    render(<LoginPage />);
+
+    expect(screen.getByLabelText(/Şifre/)).toHaveAttribute("type", "password");
+  });
+
+  it("toggles Beni Hatırla", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.click(
-      screen.getByRole("button", { name: /Mentorluk ve Eğitim/ }),
-    );
-    // First checkbox in the open "Mentorluk ve Eğitim" group is Mentor.
-    await user.click(screen.getAllByRole("checkbox")[0]);
-    await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
+    const remember = screen.getByLabelText("Beni Hatırla");
+    expect(remember).not.toBeChecked();
 
+    await user.click(remember);
+    expect(remember).toBeChecked();
+  });
+
+  it("offers both join routes to new users", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("link", { name: /Startup'ımla katıl/ }),
+    ).toHaveAttribute("href", "/signup");
+    expect(
+      screen.getByRole("link", { name: /Mentor olmak istiyorum/ }),
+    ).toHaveAttribute("href", "/signup?role=mentor");
+  });
+
+  it("lists mentee and mentor demo accounts together", () => {
+    render(<LoginPage />);
+
+    expect(
+      screen.getByRole("button", { name: /Ayşe Kaya/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Leyla Aksoy/ }),
+    ).toBeInTheDocument();
+    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
+    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentor);
+  });
+
+  it("labels each demo account with its role", () => {
+    render(<LoginPage />);
+
+    const mentee = screen.getByRole("button", { name: /Ayşe Kaya/ });
+    const mentor = screen.getByRole("button", { name: /Leyla Aksoy/ });
+
+    expect(mentee).toHaveTextContent("Mentee");
+    expect(mentor).toHaveTextContent("Mentor");
+  });
+
+  it("filters the demo list to one role at a time", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: "Mentor" }));
     expect(
       screen.getByRole("button", { name: /Leyla Aksoy/ }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Ayşe Kaya/ }),
     ).not.toBeInTheDocument();
-    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentor);
-  });
 
-  it("shows only mentee accounts once a startup-team role is selected", async () => {
-    mockRoleScopedAccounts();
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    await user.click(screen.getByRole("button", { name: /Girişim Ekibi/ }));
-    // Second checkbox in the open "Girişim Ekibi" group is Mentee / Ekip Üyesi.
-    await user.click(screen.getAllByRole("checkbox")[1]);
-    await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
-
+    await user.click(screen.getByRole("button", { name: "Mentee" }));
     expect(
       screen.getByRole("button", { name: /Ayşe Kaya/ }),
     ).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: /Leyla Aksoy/ }),
     ).not.toBeInTheDocument();
-    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
+
+    await user.click(screen.getByRole("button", { name: "Tümü" }));
+    expect(
+      screen.getByRole("button", { name: /Ayşe Kaya/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Leyla Aksoy/ }),
+    ).toBeInTheDocument();
   });
 
-  it("defaults to mentee accounts when a role with no backend pool is selected", async () => {
-    mockRoleScopedAccounts();
+  it("fills the email field from a demo account button", async () => {
     const user = userEvent.setup();
     render(<LoginPage />);
 
-    await user.click(screen.getByRole("button", { name: /Kurum Yönetimi/ }));
-    // First checkbox in the open "Kurum Yönetimi" group is Admin.
-    await user.click(screen.getAllByRole("checkbox")[0]);
-    await user.click(screen.getByRole("button", { name: /görevle devam et/ }));
+    await user.click(screen.getByRole("button", { name: /Leyla Aksoy/ }));
 
-    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
+    expect(screen.getByLabelText(/E-posta/)).toHaveValue(
+      "leyla.aksoy@teknokent.demo",
+    );
+  });
+
+  it("signs in with the chosen account and continues to the workspace", async () => {
+    login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: /Ayşe Kaya/ }));
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(login).toHaveBeenCalledWith("ayse.kaya@novamed.demo"),
+    );
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+  });
+
+  it("surfaces a failed sign-in without navigating away", async () => {
+    login.mockRejectedValue(new Error("Hesap bulunamadı."));
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/E-posta/), "yok@ornek.com");
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Hesap bulunamadı.",
+    );
+    expect(push).not.toHaveBeenCalled();
   });
 });
