@@ -12,9 +12,8 @@ import { LoginFlowStep } from "@/interfaces/login";
 import { UserRole } from "@/interfaces/session";
 
 /**
- * Temporary developer affordance: the Figma frame has no demo picker, but
- * there are no real credentials yet, so this is the only way to sign in.
- * Never rendered in a production build; remove it once real auth lands.
+ * Temporary: the only way to sign in until real credentials exist. Never
+ * rendered in a production build; remove once the auth backend lands.
  */
 const SHOW_DEMO_PICKER = process.env.NODE_ENV !== "production";
 
@@ -41,12 +40,8 @@ const joinRoutes = [
 ];
 
 /**
- * The shared login screen (Figma mentor/1, 274:6429 — the same frame as
- * sunum/ana log in 208:1984 plus "Beni Hatırla").
- *
- * Submitting runs the existing demo session login, so signing in still works
- * exactly as before; only the screen around it changed. The password field is
- * presentational until the auth backend lands.
+ * Submitting runs the existing demo session login, so sign-in behaves exactly
+ * as before. The password field is presentational until the auth backend lands.
  */
 export function LoginFlowView() {
   const router = useRouter();
@@ -54,7 +49,6 @@ export function LoginFlowView() {
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Demo accounts are the only way in until real credentials exist.
   const menteeAccounts = useDemoAccounts(UserRole.Mentee);
   const mentorAccounts = useDemoAccounts(UserRole.Mentor);
   const [demoFilter, setDemoFilter] = useState<DemoFilter>("all");

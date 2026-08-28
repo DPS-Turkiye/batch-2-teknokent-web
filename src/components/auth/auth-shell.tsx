@@ -35,11 +35,6 @@ export function AuthPage({ children }: { children: ReactNode }) {
   );
 }
 
-/**
- * Split layout from the login and account-creation frames
- * (Figma sunum/Log in-Onboard, 208:1984 and 208:2041): a narrow form card
- * on the left and the METUal illustration on the right.
- */
 export function AuthShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#111827]">

@@ -17,10 +17,7 @@ import {
   SignupStep,
 } from "@/interfaces/signup";
 
-/**
- * The single-column steps sit in a narrow centred column in Figma; the two
- * steps with a right-hand rail need the wider canvas.
- */
+// Steps with a right-hand rail need the wider column.
 const STEP_WIDTH: Record<SignupStep, string> = {
   [SignupStep.PersonalProfile]: "max-w-[680px]",
   [SignupStep.StartupProfile]: "max-w-[1080px]",

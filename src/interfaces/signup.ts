@@ -12,7 +12,6 @@ export const SIGNUP_STEP_LABELS: Record<SignupStep, string> = {
   [SignupStep.Review]: "Onay gönder",
 };
 
-/** Step-specific primary actions, as labelled in the Figma frames. */
 export const SIGNUP_STEP_CTA: Record<SignupStep, string> = {
   [SignupStep.PersonalProfile]: "Startup'ımı oluştur",
   [SignupStep.StartupProfile]: "Dosyalarını Ekle →",
@@ -60,11 +59,7 @@ export const PROGRAM_OPTIONS = [
   "Metu Stars- Grow",
 ] as const;
 
-/**
- * The Figma frame (139:1700) labels BOTH radio rows "MVP". Reproduced here as
- * two distinct levels so the control is usable; the second label needs product
- * confirmation before this ships.
- */
+// Second level pending product confirmation.
 export const PROGRAM_LEVEL_OPTIONS = ["MVP", "Prototip"] as const;
 
 export const CONTACT_PREFERENCE_OPTIONS = [
@@ -74,11 +69,7 @@ export const CONTACT_PREFERENCE_OPTIONS = [
   "E-posta",
 ] as const;
 
-/**
- * The Figma selects show only their current value, so the full option lists
- * below are inferred and need product confirmation. The displayed values from
- * the frames are kept as the first meaningful entry.
- */
+// Inferred option lists, pending product confirmation.
 export const SECTOR_OPTIONS = [
   "SaaS",
   "E-ticaret",

@@ -4,11 +4,7 @@ import { FileText, Upload, X } from "lucide-react";
 import { ChangeEvent, useRef } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
-
-function formatSize(bytes: number) {
-  const mb = bytes / (1024 * 1024);
-  return `${mb < 0.1 ? mb.toFixed(2) : Math.round(mb)} MB`;
-}
+import { formatFileSize } from "@/lib/utils";
 
 export function FileDrop({
   file,
@@ -35,7 +31,7 @@ export function FileDrop({
             {file.name}
           </span>
           <span className="block text-[11px] text-[#858c96]">
-            {formatSize(file.size)}
+            {formatFileSize(file.size)}
           </span>
         </span>
         <button
