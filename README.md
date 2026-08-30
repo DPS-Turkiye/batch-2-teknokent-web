@@ -21,16 +21,24 @@ npm run dev
 
 Environment variables (see `.env.example`):
 
-| Variable                       | Description                              | Default                 |
-| ------------------------------ | ---------------------------------------- | ----------------------- |
-| `APP_URL`                      | Public URL of this web app               | `http://localhost:3000` |
-| `BACKEND_URL`                  | Teknokent backend base URL               | `http://localhost:8080` |
-| `BACKEND_USERNAME`             | Server-side backend Basic Auth username  | `teknokent`             |
-| `BACKEND_PASSWORD`             | Server-side backend Basic Auth password  | `change-me`             |
-| `SESSION_PASSWORD`             | Encryption key for iron-session cookies  | (min 32 characters)     |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Optional Google Calendar OAuth client ID | empty                   |
+| Variable                                   | Description                              | Default                  |
+| ------------------------------------------ | ---------------------------------------- | ------------------------ |
+| `APP_URL`                                  | Public URL of this web app               | `http://localhost:3000`  |
+| `BACKEND_URL`                              | Teknokent backend base URL               | `http://localhost:8080`  |
+| `BACKEND_USERNAME`                         | Server-side backend Basic Auth username  | `teknokent`              |
+| `BACKEND_PASSWORD`                         | Server-side backend Basic Auth password  | `change-me`              |
+| `SESSION_PASSWORD`                         | Encryption key for iron-session cookies  | (min 32 characters)      |
+| `NEXT_PUBLIC_REALTIME_URL`                 | Browser WebSocket URL for live notes     | `ws://localhost:8080/ws` |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`             | Optional Google Calendar OAuth client ID | empty                    |
+| `NEXT_PUBLIC_FIREBASE_API_KEY`             | Firebase web API key                     | empty                    |
+| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`         | Firebase auth domain                     | empty                    |
+| `NEXT_PUBLIC_FIREBASE_PROJECT_ID`          | Firebase project ID                      | empty                    |
+| `NEXT_PUBLIC_FIREBASE_APP_ID`              | Firebase web app ID                      | empty                    |
+| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase sender ID                       | empty                    |
+| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`      | Firebase storage bucket                  | empty                    |
 
 If a variable is missing, localhost defaults from `src/lib/const.ts` are used.
+Firebase login stays off until the three required `NEXT_PUBLIC_FIREBASE_*` keys are set.
 
 ## Development
 
@@ -115,11 +123,16 @@ Pushing to `main` triggers an automatic deploy on AWS Amplify.
 
 Build settings live in `amplify.yml`. Amplify uses Node 24, runs `npm ci`, writes environment variables to `.env`, then `npm run build`.
 
-Set these in the Amplify console for each branch/environment:
+Set these in the Amplify console (app-level env). `amplify.yml` writes every key into `.env` before `npm run build`:
 
-| Variable      | Description                                                     |
-| ------------- | --------------------------------------------------------------- |
-| `APP_URL`     | Deployed web app URL (e.g. `https://main.xxxxx.amplifyapp.com`) |
-| `BACKEND_URL` | Production backend URL                                          |
+| Variable                                | Description                                                        |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| `APP_URL`                               | Deployed web app URL (`https://main.dxcmjf7esever.amplifyapp.com`) |
+| `BACKEND_URL`                           | CloudFront HTTPS API origin                                        |
+| `BACKEND_USERNAME` / `BACKEND_PASSWORD` | Spring HTTP Basic auth                                             |
+| `SESSION_PASSWORD`                      | iron-session cookie key (min 32 characters)                        |
+| `NEXT_PUBLIC_REALTIME_URL`              | `wss://<cdn_domain>/ws` — never `ws://` on Amplify HTTPS           |
+| `NEXT_PUBLIC_FIREBASE_*`                | Firebase web app config (same project as backend SSM)              |
+| `NEXT_PUBLIC_GOOGLE_CLIENT_ID`          | Optional Google Calendar OAuth client ID                           |
 
 Ensure the backend allows requests from the deployed web app URL if CORS or security rules apply.
