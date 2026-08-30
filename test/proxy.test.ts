@@ -1,17 +1,17 @@
 import { NextRequest } from "next/server";
 import { describe, expect, it } from "vitest";
 
-import { middleware } from "@/middleware";
+import { proxy } from "@/proxy";
 
 function request(path: string, cookie?: string) {
   const headers = new Headers();
   if (cookie) headers.set("cookie", cookie);
-  return middleware(
+  return proxy(
     new NextRequest(new URL(path, "http://localhost:3000"), { headers }),
   );
 }
 
-describe("middleware", () => {
+describe("proxy", () => {
   it("lets public routes through without a session cookie", () => {
     const response = request("/login");
     expect(response.status).toBe(200);
