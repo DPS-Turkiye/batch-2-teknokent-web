@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-import { useDemoSession } from "@/components/providers/session-provider";
+import { useAppSession } from "@/components/providers/session-provider";
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
@@ -42,7 +42,7 @@ export function MentorRequestFlow({
   startupLoadError?: string;
 }) {
   const router = useRouter();
-  const session = useDemoSession();
+  const session = useAppSession();
   const params = useSearchParams();
   const requestedStep = Number(params.get("step"));
   const excludedMentor = params.get("exclude");

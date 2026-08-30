@@ -30,7 +30,7 @@ export default async function MentorComparisonPage() {
             role="alert"
             className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700"
           >
-            Mentorlar şu anda yüklenemedi: {error}
+            Mentors could not be loaded: {error}
           </p>
         ) : null}
         {visibleMentors.length === 0 ? (

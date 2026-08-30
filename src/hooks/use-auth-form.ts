@@ -2,41 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-export interface LoginForm {
-  email: string;
-  password: string;
-}
+import { PASSWORD_MIN_LENGTH, type RegisterForm } from "@/interfaces/auth";
 
-export interface RegisterForm {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  password: string;
-  passwordConfirm: string;
-}
-
-export const PASSWORD_MIN_LENGTH = 8;
-
-/**
- * Form state for the login screen. UI-only: the auth backend is another
- * developer's work, so nothing is submitted anywhere yet.
- */
-export function useLoginForm() {
-  const [form, setForm] = useState<LoginForm>({ email: "", password: "" });
-
-  const update = useCallback(
-    <K extends keyof LoginForm>(key: K, value: LoginForm[K]) =>
-      setForm((current) => ({ ...current, [key]: value })),
-    [],
-  );
-
-  const canSubmit = Boolean(form.email.trim() && form.password.trim());
-
-  return { form, update, canSubmit };
-}
-
-/** Form state for mentee account creation. UI-only, as above. */
 export function useRegisterForm() {
   const [form, setForm] = useState<RegisterForm>({
     firstName: "",

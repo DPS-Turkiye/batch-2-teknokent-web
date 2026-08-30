@@ -7,6 +7,7 @@ import {
   fetchOrganizationMembers,
 } from "@/lib/api/organization-members";
 import { getSessionIds } from "@/lib/session";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
 vi.mock("@/lib/api/organization-members", () => ({
   fetchOrganizationMembers: vi.fn(),
@@ -36,6 +37,19 @@ describe("/api/organization-members", () => {
     await GET();
 
     expect(fetchOrganizationMembers).toHaveBeenCalledWith("org-1");
+  });
+
+  it("GET returns 401 when there is no session instead of the demo organization", async () => {
+    vi.mocked(getSessionIds).mockRejectedValue(new SessionRequiredError());
+
+    const response = await GET();
+
+    expect(response.status).toBe(401);
+    expect(await response.json()).toEqual({
+      code: "SESSION_REQUIRED",
+      message: "No active session.",
+    });
+    expect(fetchOrganizationMembers).not.toHaveBeenCalled();
   });
 
   it("POST scopes the new member to the session's own organization", async () => {

@@ -19,7 +19,6 @@ export const MENTOR_STEP_ORDER: MentorOnboardingStep[] = [
   MentorOnboardingStep.Preferences,
 ];
 
-/** Step 1 runs upload -> parsing -> review before the wizard moves on. */
 export enum IntroPhase {
   Upload = "upload",
   Parsing = "parsing",
@@ -42,11 +41,6 @@ export interface ParsedProfile {
   inferredAreas: string[];
 }
 
-/**
- * Stand-in for what the CV parser will return. The mentor parsing endpoint is
- * another developer's work, so step 1 shows this shape after a simulated
- * parse rather than calling anything.
- */
 export const PLACEHOLDER_PARSED_PROFILE: ParsedProfile = {
   fullName: "",
   title: "",
@@ -58,7 +52,6 @@ export const PLACEHOLDER_PARSED_PROFILE: ParsedProfile = {
 
 export const MAX_EXPERTISE_AREAS = 6;
 
-/** Areas the design shows as "coming from the CV". */
 export const SUGGESTED_EXPERTISE = [
   "Finans",
   "Yatırım Alma",
@@ -66,7 +59,6 @@ export const SUGGESTED_EXPERTISE = [
   "Strateji",
 ] as const;
 
-/** The "you might also want to add these" pool. */
 export const ADDITIONAL_EXPERTISE = [
   "Birim Ekonomisi",
   "Fiyatlandırma",
@@ -146,7 +138,7 @@ export const MENTOR_SECTORS = [
 export const CAPACITY_OPTIONS = ["1", "2", "3", "4+"] as const;
 
 export interface MentorOnboardingDraft {
-  cv: { name: string; size: number } | null;
+  cv: { name: string; size: number; file?: File } | null;
   profile: ParsedProfile;
   expertise: string[];
   supportTopics: string[];

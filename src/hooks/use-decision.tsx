@@ -73,7 +73,9 @@ export function useDecision() {
       }
     } catch (error) {
       setActionError(
-        error instanceof Error ? error.message : "İşlem sırasında hata oluştu.",
+        error instanceof Error
+          ? error.message
+          : "The action could not be completed.",
       );
     }
   }

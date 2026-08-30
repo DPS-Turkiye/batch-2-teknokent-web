@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { UserRole, type DemoSession } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 
 const mockUseSession = vi.fn();
 const mockUseMeetings = vi.fn();
@@ -21,7 +21,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: () => mockUseMentorshipRequests(),
 }));
 
-function denizSession(): DemoSession {
+function denizSession(): AppSession {
   return {
     userId: "mentee-1",
     email: "deniz.arslan@greenloop.demo",

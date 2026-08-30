@@ -93,10 +93,10 @@ export async function loadStartupContext(
       },
       error:
         profileResponse.status === 404
-          ? "Onaylanmış girişim profili bulunamadı; organizasyon kaydı kullanılıyor."
+          ? "No confirmed startup profile was found; using the organization record."
           : profileResponse.status === 200
             ? undefined
-            : `Profil API HTTP ${profileResponse.status} döndürdü; organizasyon kaydı kullanılıyor.`,
+            : `The profile API returned HTTP ${profileResponse.status}; using the organization record.`,
     };
   } catch (error) {
     return {
@@ -112,7 +112,7 @@ export async function loadStartupContext(
       error:
         error instanceof Error
           ? error.message
-          : "Girişim bilgileri yüklenemedi.",
+          : "Startup details could not be loaded.",
     };
   }
 }

@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Awareness } from "y-protocols/awareness";
 import type * as Y from "yjs";
 
-import { useDemoSession } from "@/components/providers/session-provider";
+import { useAppSession } from "@/components/providers/session-provider";
 import { DocumentStatus } from "@/hooks/use-meeting-note-document";
 import { useMeetingNote, useSaveMeetingNote } from "@/hooks/use-meeting-notes";
 import {
@@ -39,7 +39,7 @@ export function MeetingNoteEditor({
 }: MeetingNoteEditorProps) {
   const noteQuery = useMeetingNote(meetingId);
   const saveNote = useSaveMeetingNote(meetingId);
-  const session = useDemoSession();
+  const session = useAppSession();
 
   const presenceUser = useMemo(
     () => ({

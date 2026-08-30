@@ -64,7 +64,7 @@ describe("CalendarView", () => {
     render(<CalendarView />);
 
     expect(
-      screen.getByText(/Takvim verileri yüklenemedi: boom/),
+      screen.getByText(/Calendar data could not be loaded: boom/),
     ).toBeInTheDocument();
   });
 
@@ -82,7 +82,6 @@ describe("CalendarView", () => {
       screen.getByRole("button", { name: "Ajanda / Liste" }),
     ).toBeInTheDocument();
 
-    // month is the default selection
     expect(monthButton.className).toContain("bg-white");
   });
 

@@ -57,10 +57,14 @@ function toggle(list: string[], value: string) {
     : [...list, value];
 }
 
-export function useSignupWizard() {
+export function useSignupWizard(
+  options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
+) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
   const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
   const updatePersonal = useCallback(
@@ -147,12 +151,28 @@ export function useSignupWizard() {
     });
   }, []);
 
-  const submit = useCallback(() => setSubmitted(true), []);
+  const onSubmit = options.onSubmit;
+  const submit = useCallback(async () => {
+    setSubmitError("");
+    if (!onSubmit) {
+      setSubmitted(true);
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await onSubmit(draft);
+      setSubmitted(true);
+    } catch (error) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "The application could not be submitted. Try again.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  }, [draft, onSubmit]);
 
-  /**
-   * UI-only for now: the design offers "Taslak olarak kaydet" on every step,
-   * but there is no persistence backend yet, so this just acknowledges.
-   */
   const saveDraft = useCallback(() => setDraftSavedAt(Date.now()), []);
 
   const bioRemaining = BIO_MAX_LENGTH - draft.personal.bio.length;
@@ -213,6 +233,8 @@ export function useSignupWizard() {
     step,
     draft,
     submitted,
+    submitting,
+    submitError,
     draftSavedAt,
     bioRemaining,
     taglineRemaining,

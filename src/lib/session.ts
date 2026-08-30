@@ -6,16 +6,12 @@ import { cookies } from "next/headers";
 import {
   UserRole,
   type BackendUser,
-  type DemoSession,
+  type AppSession,
   type SessionData,
 } from "@/interfaces/session";
-import { fetchUser, fetchUsers } from "@/lib/api/accounts";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
-export const DEFAULT_USER_ID = "00000000-0000-0000-0000-000000000003";
-export const DEFAULT_ORGANIZATION_ID = "10000000-0000-0000-0000-000000000001";
-export const DEFAULT_MENTOR_ID = "00000000-0000-0000-0000-000000000002";
-
-function sessionOptions(): SessionOptions {
+function sessionOptions(persist = false): SessionOptions {
   const password = process.env.SESSION_PASSWORD;
   if (!password || password.length < 32) {
     throw new Error("SESSION_PASSWORD must contain at least 32 characters.");
@@ -28,12 +24,12 @@ function sessionOptions(): SessionOptions {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 12,
+      maxAge: persist ? 60 * 60 * 12 : undefined,
     },
   };
 }
 
-export function toSession(user: BackendUser): DemoSession | null {
+export function toSession(user: BackendUser): AppSession | null {
   if (user.role === UserRole.Mentee) {
     if (!user.organizationId || !user.organizationName) return null;
     return {
@@ -55,62 +51,53 @@ export function toSession(user: BackendUser): DemoSession | null {
       role: UserRole.Mentor,
     };
   }
+  if (user.role === UserRole.Admin) {
+    return {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      jobTitle: user.jobTitle ?? "Koordinatör",
+      role: UserRole.Admin,
+    };
+  }
   return null;
 }
 
-export async function getSessionStore() {
-  return getIronSession<SessionData>(await cookies(), sessionOptions());
+export async function getSessionStore(persist = false) {
+  return getIronSession<SessionData>(await cookies(), sessionOptions(persist));
 }
 
-export async function getSessionUser(options: { demoFallback?: boolean } = {}) {
+export async function getSessionUser() {
   const session = await getSessionStore();
-  if (session.user) return session.user;
-  if (options.demoFallback === false) return null;
-
-  const response = await fetchUser(DEFAULT_USER_ID);
-  return response.status === 200 ? toSession(response.data) : null;
+  return session.user ?? null;
 }
 
-export async function findSessionByEmail(email: string) {
-  const normalizedEmail = email.trim().toLowerCase();
-  const [mentees, mentors] = await Promise.all([
-    fetchUsers(UserRole.Mentee),
-    fetchUsers(UserRole.Mentor),
-  ]);
-  const candidates = [
-    ...(mentees.status === 200 && Array.isArray(mentees.data)
-      ? mentees.data
-      : []),
-    ...(mentors.status === 200 && Array.isArray(mentors.data)
-      ? mentors.data
-      : []),
-  ];
-  const user = candidates.find(
-    (candidate) => candidate.email.toLowerCase() === normalizedEmail,
-  );
-  return user ? toSession(user) : null;
-}
-
-export async function saveSessionUser(user: DemoSession) {
-  const session = await getSessionStore();
+export async function saveSessionUser(user: AppSession, persist = false) {
+  const session = await getSessionStore(persist);
   session.user = user;
   await session.save();
 }
 
 export async function destroySession() {
   const session = await getSessionStore();
-  session.destroy();
+  await session.destroy();
 }
 
 export async function getSessionIds() {
   const session = await getSessionUser();
+  if (!session) {
+    throw new SessionRequiredError();
+  }
   return {
-    userId: session?.userId ?? DEFAULT_USER_ID,
-    organizationId: session?.organizationId ?? DEFAULT_ORGANIZATION_ID,
+    userId: session.userId,
+    organizationId: session.organizationId ?? "",
   };
 }
 
 export async function getSessionMentorId() {
   const session = await getSessionUser();
-  return session?.role === UserRole.Mentor ? session.userId : DEFAULT_MENTOR_ID;
+  if (session?.role !== UserRole.Mentor) {
+    throw new SessionRequiredError();
+  }
+  return session.userId;
 }

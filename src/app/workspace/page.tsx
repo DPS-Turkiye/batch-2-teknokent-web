@@ -4,29 +4,53 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Brand } from "@/components/brand";
-import { useDemoSession } from "@/components/providers/session-provider";
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { WorkspaceCard } from "@/components/workspace/workspace-card";
 import { UserRole } from "@/interfaces/session";
 
 export default function WorkspacePage() {
   const router = useRouter();
-  const session = useDemoSession();
+  const session = useAppSession();
+  const { logout } = useSession();
   const [remember, setRemember] = useState(false);
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
     null,
   );
+  const isAdmin = session?.role === UserRole.Admin;
   const isMentor = session?.role === UserRole.Mentor;
-  const homeHref = isMentor ? "/mentor-dashboard" : "/dashboard";
-  const workspaceTitle = isMentor
-    ? (session?.fullName ?? "Mentor")
-    : (session?.organizationName ?? "");
-  const workspaceRole = isMentor ? "Mentor" : "Girişim Ekibi";
+  const homeHref = isAdmin
+    ? "/admin"
+    : isMentor
+      ? "/mentor-dashboard"
+      : "/dashboard";
+  const workspaceTitle = isAdmin
+    ? (session?.fullName ?? "Admin")
+    : isMentor
+      ? (session?.fullName ?? "Mentor")
+      : (session?.organizationName ?? "");
+  const workspaceRole = isAdmin
+    ? "Admin"
+    : isMentor
+      ? "Mentor"
+      : "Girişim Ekibi";
 
   return (
     <div className="min-h-screen bg-zinc-100">
       <header className="border-b border-zinc-200 bg-white">
-        <div className="mx-auto flex min-h-16 max-w-[1180px] items-center px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex min-h-16 max-w-[1180px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <Brand />
+          <button
+            type="button"
+            onClick={() =>
+              void logout().then(() => window.location.replace("/login"))
+            }
+            className="text-xs font-medium text-zinc-600 underline underline-offset-4 hover:text-black"
+          >
+            Çıkış yap
+          </button>
         </div>
       </header>
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1180px] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

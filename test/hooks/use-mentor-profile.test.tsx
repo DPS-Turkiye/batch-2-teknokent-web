@@ -192,7 +192,7 @@ describe("useMentorProfileForm", () => {
 
   it("reports an error when saving fails", async () => {
     vi.mocked(updateMentorProfile).mockRejectedValue(
-      new Error("Profil kaydedilemedi."),
+      new Error("Could not save the profile."),
     );
     const { result } = renderHook(() => useMentorProfileForm(profile()), {
       wrapper: wrapperFor(createTestQueryClient()),
@@ -202,7 +202,7 @@ describe("useMentorProfileForm", () => {
       await result.current.handleSave();
     });
 
-    expect(result.current.saveError).toBe("Profil kaydedilemedi.");
+    expect(result.current.saveError).toBe("Could not save the profile.");
   });
 });
 
@@ -227,7 +227,7 @@ describe("useAvailabilitySlotForm", () => {
 
   it("reports an error when adding a slot fails", async () => {
     vi.mocked(createAvailabilitySlot).mockRejectedValue(
-      new Error("Zaman dilimi eklenemedi."),
+      new Error("Could not add the time slot."),
     );
     const { result } = renderHook(() => useAvailabilitySlotForm(), {
       wrapper: wrapperFor(createTestQueryClient()),
@@ -237,7 +237,7 @@ describe("useAvailabilitySlotForm", () => {
       await result.current.handleAddSlot();
     });
 
-    expect(result.current.slotError).toBe("Zaman dilimi eklenemedi.");
+    expect(result.current.slotError).toBe("Could not add the time slot.");
   });
 
   it("deletes a slot by id", async () => {

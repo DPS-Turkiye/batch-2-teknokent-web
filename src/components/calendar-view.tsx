@@ -73,7 +73,6 @@ function downloadIcalFile(meeting: MeetingItem) {
   URL.revokeObjectURL(url);
 }
 
-// iCal Parser for Google Calendar Import
 function parseIcalString(icsText: string): MeetingItem[] {
   const events: MeetingItem[] = [];
   const veventBlocks = icsText.split("BEGIN:VEVENT");
@@ -157,12 +156,10 @@ export function CalendarView() {
   const [viewMode, setViewMode] = useState<CalendarViewMode>("MONTH");
   const [currentDate, setCurrentDate] = useState(new Date());
 
-  // Selected meeting for detail modal
   const [selectedMeeting, setSelectedMeeting] = useState<MeetingItem | null>(
     null,
   );
 
-  // Import Modal State
   const [showImportModal, setShowImportModal] = useState(false);
   const [importTab, setImportTab] = useState<"FILE" | "URL" | "OAUTH">("OAUTH");
   const [gcalUrl, setGcalUrl] = useState("");
@@ -211,7 +208,6 @@ export function CalendarView() {
       const gcalEvents = await fetchGoogleCalendarEvents(authResult.token);
 
       if (gcalEvents.length > 0) {
-        // Jump calendar view to the date of the imported event
         const firstDate = new Date(gcalEvents[0].scheduledAt);
         if (!isNaN(firstDate.getTime())) {
           setCurrentDate(firstDate);
@@ -224,7 +220,6 @@ export function CalendarView() {
           );
           return [...newEvents, ...prev];
         });
-        // Save imported events into PostgreSQL database
         void persistImportedEventsToDatabase(gcalEvents);
       }
 
@@ -240,7 +235,7 @@ export function CalendarView() {
       alert(
         err instanceof Error
           ? err.message
-          : "Google hesabı ile bağlanırken bir hata oluştu.",
+          : "Could not connect the Google account.",
       );
     } finally {
       setImporting(false);
@@ -248,7 +243,6 @@ export function CalendarView() {
   };
 
   useEffect(() => {
-    // Check if loaded inside popup redirect or main window redirect with access_token hash
     if (
       typeof window !== "undefined" &&
       window.location.hash.includes("access_token")
@@ -307,7 +301,7 @@ export function CalendarView() {
           }, 2000);
         } else {
           alert(
-            "Dosyada geçerli etkinlik bulunamadı. Lütfen geçerli bir .ics Google Takvim dışa aktarımı seçin.",
+            "No valid events were found. Choose a valid Google Calendar .ics export.",
           );
         }
       }
@@ -340,13 +334,12 @@ export function CalendarView() {
         setGcalUrl("");
       }, 2000);
     } catch {
-      alert("Takvim bağlantısına ulaşılamadı.");
+      alert("Could not reach the calendar link.");
     } finally {
       setImporting(false);
     }
   };
 
-  // Calendar math for Month Grid
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
@@ -381,7 +374,6 @@ export function CalendarView() {
   return (
     <AppShell active={AppArea.Calendar}>
       <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-12 pt-8 sm:px-8 sm:pt-10">
-        {/* Banner */}
         <section className="rounded-[24px] bg-[#e86f22] p-6 text-white shadow-[0_16px_40px_rgba(232,111,34,.16)] sm:p-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -412,7 +404,6 @@ export function CalendarView() {
           </div>
         </section>
 
-        {/* Toolbar */}
         <section className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-zinc-200 bg-white p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <button
@@ -467,17 +458,15 @@ export function CalendarView() {
 
         {meetingsQuery.error ? (
           <p className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            Takvim verileri yüklenemedi: {meetingsQuery.error.message}
+            Calendar data could not be loaded: {meetingsQuery.error.message}
           </p>
         ) : null}
 
-        {/* Calendar Body */}
         {loading ? (
           <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
             Takvim yükleniyor...
           </div>
         ) : viewMode === "MONTH" ? (
-          /* MONTH GRID VIEW */
           <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
             <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50 text-center text-xs font-bold text-zinc-600">
               {dayNames.map((d) => (
@@ -557,7 +546,6 @@ export function CalendarView() {
             </div>
           </section>
         ) : viewMode === "WEEK" ? (
-          /* WEEK VIEW */
           <section className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
             <h3 className="mb-4 text-sm font-bold text-zinc-800">
               Bu Haftanın Görüşme Programı
@@ -614,7 +602,6 @@ export function CalendarView() {
             </div>
           </section>
         ) : (
-          /* AGENDA LIST VIEW */
           <section className="space-y-3">
             <h3 className="text-sm font-bold text-zinc-800">
               Tüm Toplantılar &amp; Aktarılan Etkinlikler
@@ -671,7 +658,6 @@ export function CalendarView() {
           </section>
         )}
 
-        {/* IMPORT FROM GOOGLE CALENDAR MODAL */}
         {showImportModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
@@ -835,7 +821,6 @@ export function CalendarView() {
           </div>
         )}
 
-        {/* Meeting Detail Modal */}
         {selectedMeeting && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
             <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8">

@@ -53,9 +53,4 @@ describe("/api/profile-analysis", () => {
 
     expect(fetchLatestProfileAnalysis).toHaveBeenCalledWith("org-1", undefined);
   });
-
-  // POST (multipart upload) is verified via live browser testing rather than
-  // here: NextRequest.formData() under the project's jsdom test environment
-  // doesn't interoperate with jsdom's File/FormData polyfills, so a File
-  // parsed back out never satisfies `instanceof File` in the route handler.
 });

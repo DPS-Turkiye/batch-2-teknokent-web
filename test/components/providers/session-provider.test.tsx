@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   SessionProvider,
-  useDemoSession,
+  useAppSession,
 } from "@/components/providers/session-provider";
 import { httpClient } from "@/lib/http-client";
 
@@ -17,7 +17,7 @@ vi.mock("@/lib/http-client", () => ({
 }));
 
 function SessionLabel() {
-  const session = useDemoSession();
+  const session = useAppSession();
   return <p>{session ? session.fullName : "no session"}</p>;
 }
 
@@ -33,11 +33,6 @@ function renderSession(queryClient: QueryClient) {
 
 describe("SessionProvider cross-tab freshness", () => {
   it("re-fetches the session on every mount instead of serving a stale cached identity", async () => {
-    // This is the regression behind "Requester must have the MENTEE role":
-    // the httpOnly cookie is the source of truth and can change in another
-    // tab (e.g. logging in as a different demo account). staleTime must be 0
-    // so a freshly mounted consumer always reflects the real cookie instead
-    // of a minutes-old cached identity.
     const queryClient = new QueryClient();
     vi.mocked(httpClient.get).mockResolvedValueOnce({
       status: 200,
@@ -50,8 +45,6 @@ describe("SessionProvider cross-tab freshness", () => {
     );
     first.unmount();
 
-    // Simulate the cookie now belonging to a different account (e.g. the
-    // user switched accounts in another tab) before this component remounts.
     vi.mocked(httpClient.get).mockResolvedValueOnce({
       status: 200,
       data: { fullName: "Ayşe Kaya" },

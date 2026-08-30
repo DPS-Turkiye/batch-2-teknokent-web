@@ -10,14 +10,18 @@ import { ReviewStep } from "@/components/signup/steps/review-step";
 import { StartupProfileStep } from "@/components/signup/steps/startup-profile-step";
 import { SubmittedView } from "@/components/signup/submitted-view";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
+import type { RegisteredAccount } from "@/interfaces/auth";
 import {
   SIGNUP_STEP_CTA,
   SIGNUP_STEP_LABELS,
   SIGNUP_STEP_ORDER,
   SignupStep,
+  type SignupDraft,
 } from "@/interfaces/signup";
+import { registerFounder } from "@/lib/client/auth";
+import { uploadDocument } from "@/lib/client/documents";
+import { currentIdToken } from "@/lib/firebase/auth";
 
-// Steps with a right-hand rail need the wider column.
 const STEP_WIDTH: Record<SignupStep, string> = {
   [SignupStep.PersonalProfile]: "max-w-[680px]",
   [SignupStep.StartupProfile]: "max-w-[1080px]",
@@ -59,8 +63,34 @@ function Stepper({ current }: { current: SignupStep }) {
   );
 }
 
-export function SignupWizardView() {
-  const wizard = useSignupWizard();
+export function SignupWizardView({ account }: { account: RegisteredAccount }) {
+  async function submitApplication(draft: SignupDraft) {
+    const idToken = await currentIdToken();
+    if (!idToken) {
+      throw new Error("Your session has expired. Please sign in again.");
+    }
+    await registerFounder(
+      {
+        fullName: account.fullName,
+        email: account.email,
+        phone: account.phone || undefined,
+        organizationName: draft.startup.name.trim(),
+        description: draft.startup.tagline.trim() || undefined,
+        jobTitle: draft.personal.role.trim() || undefined,
+      },
+      idToken,
+    );
+    if (draft.personal.cv?.file) {
+      await uploadDocument(draft.personal.cv.file, "cv", idToken);
+    }
+    for (const [kind, uploaded] of Object.entries(draft.documents)) {
+      if (uploaded?.file) {
+        await uploadDocument(uploaded.file, kind, idToken);
+      }
+    }
+  }
+
+  const wizard = useSignupWizard({ onSubmit: submitApplication });
   const { step, submitted, canContinue, isFirstStep, isLastStep } = wizard;
 
   return (
@@ -113,12 +143,24 @@ export function SignupWizardView() {
                   </SecondaryButton>
                   <PrimaryButton
                     onClick={isLastStep ? wizard.submit : wizard.goNext}
-                    disabled={!isLastStep && !canContinue}
+                    disabled={
+                      wizard.submitting || (!isLastStep && !canContinue)
+                    }
                   >
-                    {SIGNUP_STEP_CTA[step]}
+                    {wizard.submitting
+                      ? "Gönderiliyor…"
+                      : SIGNUP_STEP_CTA[step]}
                   </PrimaryButton>
                 </div>
               </div>
+              {wizard.submitError ? (
+                <p
+                  role="alert"
+                  className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+                >
+                  {wizard.submitError}
+                </p>
+              ) : null}
               {wizard.draftSavedAt ? (
                 <p
                   role="status"

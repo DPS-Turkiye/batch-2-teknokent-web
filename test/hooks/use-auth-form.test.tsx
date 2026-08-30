@@ -1,36 +1,8 @@
 import { act, renderHook } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import {
-  PASSWORD_MIN_LENGTH,
-  useLoginForm,
-  useRegisterForm,
-} from "@/hooks/use-auth-form";
-
-describe("useLoginForm", () => {
-  it("blocks submission until both fields are filled", () => {
-    const { result } = renderHook(() => useLoginForm());
-
-    expect(result.current.canSubmit).toBe(false);
-
-    act(() => result.current.update("email", "gulse@dongu.co"));
-    expect(result.current.canSubmit).toBe(false);
-
-    act(() => result.current.update("password", "sifre1234"));
-    expect(result.current.canSubmit).toBe(true);
-  });
-
-  it("does not accept whitespace as a filled field", () => {
-    const { result } = renderHook(() => useLoginForm());
-
-    act(() => {
-      result.current.update("email", "   ");
-      result.current.update("password", "   ");
-    });
-
-    expect(result.current.canSubmit).toBe(false);
-  });
-});
+import { useRegisterForm } from "@/hooks/use-auth-form";
+import { PASSWORD_MIN_LENGTH } from "@/interfaces/auth";
 
 describe("useRegisterForm", () => {
   function fillValid(result: { current: ReturnType<typeof useRegisterForm> }) {

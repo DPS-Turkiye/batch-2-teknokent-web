@@ -3,21 +3,23 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createContext, ReactNode, useContext } from "react";
 
-import type { DemoSession } from "@/interfaces/session";
+import type { AppSession } from "@/interfaces/session";
+import { createSession } from "@/lib/client/auth";
+import { signOutOfFirebase } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 
 type SessionContextValue = {
   isLoading: boolean;
-  login: (email: string) => Promise<DemoSession>;
+  login: (idToken: string, rememberMe?: boolean) => Promise<AppSession>;
   logout: () => Promise<void>;
-  session: DemoSession | null;
+  session: AppSession | null;
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
 const SESSION_QUERY_KEY = ["session"] as const;
 
-async function fetchSession(): Promise<DemoSession | null> {
-  const response = await httpClient.get<DemoSession>("/api/session");
+async function fetchSession(): Promise<AppSession | null> {
+  const response = await httpClient.get<AppSession>("/api/session");
   return response.status === 200 ? response.data : null;
 }
 
@@ -30,16 +32,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: true,
   });
   const loginMutation = useMutation({
-    mutationFn: async (email: string) => {
-      const response = await httpClient.post<DemoSession>("/api/session", {
-        email,
-      });
-      if (response.status !== 200) {
-        const body = response.data as unknown as { message?: string };
-        throw new Error(body.message ?? "Login failed.");
-      }
-      return response.data;
-    },
+    mutationFn: ({
+      idToken,
+      rememberMe,
+    }: {
+      idToken: string;
+      rememberMe?: boolean;
+    }) => createSession(idToken, rememberMe ?? false),
     onSuccess: (session) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, session);
     },
@@ -47,9 +46,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const logoutMutation = useMutation({
     mutationFn: async () => {
       await httpClient.delete("/api/session");
+      await signOutOfFirebase().catch(() => undefined);
     },
     onSuccess: () => {
       queryClient.setQueryData(SESSION_QUERY_KEY, null);
+      queryClient.clear();
     },
   });
 
@@ -57,7 +58,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     <SessionContext.Provider
       value={{
         isLoading: sessionQuery.isLoading,
-        login: loginMutation.mutateAsync,
+        login: (idToken, rememberMe) =>
+          loginMutation.mutateAsync({ idToken, rememberMe }),
         logout: logoutMutation.mutateAsync,
         session: sessionQuery.data ?? null,
       }}
@@ -75,6 +77,6 @@ export function useSession() {
   return context;
 }
 
-export function useDemoSession() {
+export function useAppSession() {
   return useSession().session;
 }

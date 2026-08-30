@@ -5,10 +5,8 @@ import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
-import {
-  useAddOrganizationMember,
-  useOrganizationMembers,
-} from "@/hooks/use-organization-members";
+import { useOrganizationInvite } from "@/hooks/use-organization-invite";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import {
   useConfirmProfile,
   useCreateManualProfile,
@@ -22,8 +20,7 @@ import type {
 } from "@/interfaces/profile-analysis";
 import { AppArea } from "@/types/app-area";
 
-type ProfileTarget =
-  { kind: "self" } | { kind: "existing"; appUserId: string } | { kind: "new" };
+type ProfileTarget = { kind: "self" } | { kind: "existing"; appUserId: string };
 
 type EditableProfile = Record<string, string>;
 type ProfileFieldDefinition = [string, string, "input" | "textarea"];
@@ -138,11 +135,9 @@ function technologyInferences(
 
 export function ProfileAnalysisView() {
   const [target, setTarget] = useState<ProfileTarget>({ kind: "self" });
-  const [newMemberName, setNewMemberName] = useState("");
-  const [newMemberEmail, setNewMemberEmail] = useState("");
-  const [newMemberJobTitle, setNewMemberJobTitle] = useState("");
   const membersQuery = useOrganizationMembers();
-  const addMemberMutation = useAddOrganizationMember();
+  const inviteQuery = useOrganizationInvite();
+  const [copied, setCopied] = useState(false);
   const resolvedAppUserId =
     target.kind === "existing" ? target.appUserId : undefined;
   const profileQuery = useProfileAnalysis(resolvedAppUserId);
@@ -161,7 +156,7 @@ export function ProfileAnalysisView() {
     profileQuery.data?.id === hiddenAnalysisId
       ? null
       : (profileQuery.data ?? null);
-  const processing = uploadMutation.isPending || addMemberMutation.isPending;
+  const processing = uploadMutation.isPending;
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
@@ -177,25 +172,11 @@ export function ProfileAnalysisView() {
     if (!file || !consentAccepted) return;
     setError("");
     try {
-      let appUserId = resolvedAppUserId;
-      if (target.kind === "new") {
-        if (!newMemberName.trim() || !newMemberEmail.trim()) {
-          setError("Yeni ekip üyesi için ad soyad ve e-posta gereklidir.");
-          return;
-        }
-        const member = await addMemberMutation.mutateAsync({
-          fullName: newMemberName,
-          email: newMemberEmail,
-          jobTitle: newMemberJobTitle || undefined,
-        });
-        appUserId = member.id;
-        setTarget({ kind: "existing", appUserId: member.id });
-      }
       await uploadMutation.mutateAsync({
         file,
         profileType,
         ocrMode,
-        appUserId,
+        appUserId: resolvedAppUserId,
       });
       setHiddenAnalysisId(null);
       if (fileInput.current) fileInput.current.value = "";
@@ -203,7 +184,11 @@ export function ProfileAnalysisView() {
       setConsentAccepted(false);
       setShowManualForm(false);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Profil işlenemedi.");
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "Could not process the profile.",
+      );
       setShowManualForm(true);
     }
   }
@@ -289,48 +274,47 @@ export function ProfileAnalysisView() {
                     className="font-medium text-[#4f39f6] hover:underline"
                     href="/team"
                   >
-                    Ekip üyesi ekle
+                    Davet kodunu paylaş
                   </Link>
                   .
                 </p>
               )
             ) : null}
-            <label className="flex items-center gap-2">
-              <input
-                checked={target.kind === "new"}
-                disabled={processing}
-                name="profile-target"
-                onChange={() => setTarget({ kind: "new" })}
-                type="radio"
-              />
-              Yeni ekip üyesi ekle
-            </label>
-            {target.kind === "new" ? (
-              <div className="ml-6 grid max-w-xs gap-2">
-                <input
-                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
-                  disabled={processing}
-                  onChange={(event) => setNewMemberName(event.target.value)}
-                  placeholder="Ad Soyad"
-                  value={newMemberName}
-                />
-                <input
-                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
-                  disabled={processing}
-                  onChange={(event) => setNewMemberEmail(event.target.value)}
-                  placeholder="E-posta"
-                  type="email"
-                  value={newMemberEmail}
-                />
-                <input
-                  className="rounded-md border border-[#d1d5db] bg-white p-2 text-sm"
-                  disabled={processing}
-                  onChange={(event) => setNewMemberJobTitle(event.target.value)}
-                  placeholder="Unvan (opsiyonel)"
-                  value={newMemberJobTitle}
-                />
-              </div>
-            ) : null}
+            <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#f8f9fa] p-3">
+              <p className="text-xs font-medium text-[#364153]">
+                Ekibe katılmak için davet kodu
+              </p>
+              <p className="mt-1 text-[11px] text-[#6a7282]">
+                Arkadaşın /invite sayfasında bu kodla kayıt olur. Kod yalnızca
+                startup liderinde görünür.
+              </p>
+              {inviteQuery.isLoading ? (
+                <p className="mt-2 text-xs text-[#6a7282]">Yükleniyor...</p>
+              ) : inviteQuery.error ? (
+                <p className="mt-2 text-xs text-red-600">
+                  {inviteQuery.error.message}
+                </p>
+              ) : (
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <p className="font-mono text-lg tracking-widest">
+                    {inviteQuery.data?.inviteCode}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const code = inviteQuery.data?.inviteCode;
+                      if (!code) return;
+                      void navigator.clipboard.writeText(code).then(() => {
+                        setCopied(true);
+                      });
+                    }}
+                    className="rounded-md border border-[#d1d5db] bg-white px-2 py-1 text-xs font-medium text-[#364153]"
+                  >
+                    {copied ? "Kopyalandı" : "Kopyala"}
+                  </button>
+                </div>
+              )}
+            </div>
           </fieldset>
         </section>
 
@@ -443,7 +427,7 @@ export function ProfileAnalysisView() {
         )}
         {profileQuery.error ? (
           <p className="rounded-lg border border-[#fecaca] bg-[#fff1f2] p-4 text-sm text-[#b42318]">
-            Kaydedilmiş profil yüklenemedi: {profileQuery.error.message}
+            Saved profile could not be loaded: {profileQuery.error.message}
           </p>
         ) : null}
 
@@ -583,7 +567,9 @@ function ProfileReview({
       onConfirmed(confirmed);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
+        reason instanceof Error
+          ? reason.message
+          : "Could not save the profile.",
       );
     }
   }
@@ -680,7 +666,9 @@ function ManualProfileForm({
       onSaved(saved);
     } catch (reason) {
       setError(
-        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
+        reason instanceof Error
+          ? reason.message
+          : "Could not save the profile.",
       );
     }
   }

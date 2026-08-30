@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import { SignupStep, StartupDocumentKind } from "@/interfaces/signup";
@@ -199,13 +199,41 @@ describe("useSignupWizard", () => {
     );
   });
 
-  it("flips to the submitted state only when submit is called", () => {
+  it("flips to the submitted state only when submit is called", async () => {
     const { result } = renderHook(() => useSignupWizard());
 
     act(() => result.current.goToStep(SignupStep.Review));
     expect(result.current.submitted).toBe(false);
 
-    act(() => result.current.submit());
+    await act(() => result.current.submit());
     expect(result.current.submitted).toBe(true);
+  });
+
+  it("sends the draft to the submit handler before flipping state", async () => {
+    const onSubmit = vi.fn().mockResolvedValue(undefined);
+    const { result } = renderHook(() => useSignupWizard({ onSubmit }));
+
+    act(() => result.current.updateStartup("name", "Döngü"));
+    await act(() => result.current.submit());
+
+    expect(onSubmit).toHaveBeenCalledWith(
+      expect.objectContaining({
+        startup: expect.objectContaining({ name: "Döngü" }),
+      }),
+    );
+    expect(result.current.submitted).toBe(true);
+  });
+
+  it("stays unsubmitted and reports the reason when the handler fails", async () => {
+    const onSubmit = vi
+      .fn()
+      .mockRejectedValue(new Error("Davet kodu geçersiz"));
+    const { result } = renderHook(() => useSignupWizard({ onSubmit }));
+
+    await act(() => result.current.submit());
+
+    expect(result.current.submitted).toBe(false);
+    expect(result.current.submitError).toBe("Davet kodu geçersiz");
+    expect(result.current.submitting).toBe(false);
   });
 });

@@ -10,7 +10,7 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
-import { useDemoSession } from "@/components/providers/session-provider";
+import { useAppSession } from "@/components/providers/session-provider";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDecision } from "@/hooks/use-decision";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
@@ -42,7 +42,7 @@ const filterOptions = [
 ] as const;
 
 export function MentorDashboardView() {
-  const session = useDemoSession();
+  const session = useAppSession();
   const { notifications } = useDashboardNotifications();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];

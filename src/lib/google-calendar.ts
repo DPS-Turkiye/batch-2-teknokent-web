@@ -18,10 +18,6 @@ export function getGoogleClientId(): string {
   return process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 }
 
-/**
- * Initiates Google OAuth2 authorization popup for browser SPA token retrieval.
- * Uses postMessage and interval check to reliably capture access_token.
- */
 export async function authenticateWithGoogle(
   customClientId?: string,
 ): Promise<{ token: string; email?: string }> {
@@ -53,7 +49,7 @@ export async function authenticateWithGoogle(
     if (!popup) {
       reject(
         new Error(
-          "Açılır pencere (pop-up) engellendi. Lütfen tarayıcınızın pop-up engelleyicisini kapatıp tekrar deneyin.",
+          "The popup was blocked. Allow pop-ups in your browser and try again.",
         ),
       );
       return;
@@ -73,7 +69,7 @@ export async function authenticateWithGoogle(
       try {
         if (popup.closed) {
           cleanup();
-          reject(new Error("Google oturum açma penceresi kapatıldı."));
+          reject(new Error("The Google sign-in window was closed."));
           return;
         }
 
@@ -92,9 +88,7 @@ export async function authenticateWithGoogle(
             }
           }
         }
-      } catch {
-        // Ignore cross-origin errors while popup is on google.com domain
-      }
+      } catch {}
     }, 500);
 
     function cleanup() {
@@ -104,9 +98,6 @@ export async function authenticateWithGoogle(
   });
 }
 
-/**
- * Fetches live primary calendar events directly from Google Calendar API v3
- */
 export async function fetchGoogleCalendarEvents(accessToken: string) {
   if (accessToken.startsWith("simulated-oauth-token")) {
     const now = new Date();

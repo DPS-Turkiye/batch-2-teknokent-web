@@ -3,62 +3,61 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
-import { useDemoAccounts } from "@/hooks/use-demo-accounts";
-import { UserRole, type BackendUser } from "@/interfaces/session";
+import { ClientApiError } from "@/lib/client/api";
+import {
+  requestPasswordReset,
+  signInToFirebase,
+  signOutOfFirebase,
+} from "@/lib/firebase/auth";
 
 const push = vi.fn();
 const login = vi.fn();
+const logout = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useSession: () => ({ login }),
+  useSession: () => ({ login, logout }),
 }));
 
-vi.mock("@/hooks/use-demo-accounts", () => ({
-  useDemoAccounts: vi.fn(),
+vi.mock("@/lib/firebase/auth", () => ({
+  signInToFirebase: vi.fn(),
+  requestPasswordReset: vi.fn(),
+  signOutOfFirebase: vi.fn(),
+  describeAuthError: () => "Incorrect email or password.",
 }));
 
-const MENTEE: BackendUser = {
-  id: "mentee-1",
-  email: "ayse.kaya@novamed.demo",
-  fullName: "Ayşe Kaya",
-  role: UserRole.Mentee,
-  organizationId: "org-1",
-  organizationName: "NovaMed AI",
-};
-
-const MENTOR: BackendUser = {
-  id: "mentor-1",
-  email: "leyla.aksoy@teknokent.demo",
-  fullName: "Leyla Aksoy",
-  role: UserRole.Mentor,
-};
-
-// The redesigned screen has no role-selection step, so it offers every demo
-// account: one role-scoped request per role, concatenated for the picker.
-function mockAccounts() {
-  vi.mocked(useDemoAccounts).mockImplementation(
-    (role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee) =>
-      ({
-        data: role === UserRole.Mentor ? [MENTOR] : [MENTEE],
-        isLoading: false,
-        error: null,
-      }) as ReturnType<typeof useDemoAccounts>,
-  );
+async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
+  await user.type(screen.getByLabelText(/E-posta/), "gulse@dongu.co");
+  await user.type(screen.getByLabelText(/Şifre/), "sifre1234");
 }
 
 beforeEach(() => {
-  push.mockReset();
-  login.mockReset();
-  mockAccounts();
+  vi.clearAllMocks();
+  vi.mocked(signInToFirebase).mockResolvedValue("id-token");
+  vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
+  logout.mockResolvedValue(undefined);
 });
 
+async function waitUntilLoginReady() {
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Giriş yap" })).toBeEnabled(),
+  );
+}
+
 describe("Login screen", () => {
-  it("renders the shared login frame", () => {
+  it("clears any leftover session as soon as the login page opens", async () => {
     render(<LoginPage />);
+
+    await waitFor(() => expect(logout).toHaveBeenCalled());
+    await waitUntilLoginReady();
+  });
+
+  it("renders the shared login frame", async () => {
+    render(<LoginPage />);
+    await waitUntilLoginReady();
 
     expect(
       screen.getByRole("heading", { name: "METUal'a hoş geldin" }),
@@ -69,32 +68,18 @@ describe("Login screen", () => {
       screen.getByRole("button", { name: "Şifremi unuttum" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Beni Hatırla")).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", {
-        name: "Bir davet aldın mı? Davet kodunla devam et",
-      }),
-    ).toBeInTheDocument();
   });
 
-  it("masks the password field", () => {
+  it("masks the password field", async () => {
     render(<LoginPage />);
+    await waitUntilLoginReady();
 
     expect(screen.getByLabelText(/Şifre/)).toHaveAttribute("type", "password");
   });
 
-  it("toggles Beni Hatırla", async () => {
-    const user = userEvent.setup();
+  it("offers both join routes and the invite route to new users", async () => {
     render(<LoginPage />);
-
-    const remember = screen.getByLabelText("Beni Hatırla");
-    expect(remember).not.toBeChecked();
-
-    await user.click(remember);
-    expect(remember).toBeChecked();
-  });
-
-  it("offers both join routes to new users", () => {
-    render(<LoginPage />);
+    await waitUntilLoginReady();
 
     expect(
       screen.getByRole("link", { name: /Startup'ımla katıl/ }),
@@ -102,96 +87,112 @@ describe("Login screen", () => {
     expect(
       screen.getByRole("link", { name: /Mentor olmak istiyorum/ }),
     ).toHaveAttribute("href", "/signup?role=mentor");
+    expect(
+      screen.getByRole("link", {
+        name: "Bir davet aldın mı? Davet kodunla devam et",
+      }),
+    ).toHaveAttribute("href", "/invite");
   });
 
-  it("lists mentee and mentor demo accounts together", () => {
-    render(<LoginPage />);
-
-    expect(
-      screen.getByRole("button", { name: /Ayşe Kaya/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Leyla Aksoy/ }),
-    ).toBeInTheDocument();
-    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentee);
-    expect(useDemoAccounts).toHaveBeenCalledWith(UserRole.Mentor);
-  });
-
-  it("labels each demo account with its role", () => {
-    render(<LoginPage />);
-
-    const mentee = screen.getByRole("button", { name: /Ayşe Kaya/ });
-    const mentor = screen.getByRole("button", { name: /Leyla Aksoy/ });
-
-    expect(mentee).toHaveTextContent("Mentee");
-    expect(mentor).toHaveTextContent("Mentor");
-  });
-
-  it("filters the demo list to one role at a time", async () => {
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    await user.click(screen.getByRole("button", { name: "Mentor" }));
-    expect(
-      screen.getByRole("button", { name: /Leyla Aksoy/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Ayşe Kaya/ }),
-    ).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Mentee" }));
-    expect(
-      screen.getByRole("button", { name: /Ayşe Kaya/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.queryByRole("button", { name: /Leyla Aksoy/ }),
-    ).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Tümü" }));
-    expect(
-      screen.getByRole("button", { name: /Ayşe Kaya/ }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /Leyla Aksoy/ }),
-    ).toBeInTheDocument();
-  });
-
-  it("fills the email field from a demo account button", async () => {
-    const user = userEvent.setup();
-    render(<LoginPage />);
-
-    await user.click(screen.getByRole("button", { name: /Leyla Aksoy/ }));
-
-    expect(screen.getByLabelText(/E-posta/)).toHaveValue(
-      "leyla.aksoy@teknokent.demo",
-    );
-  });
-
-  it("signs in with the chosen account and continues to the workspace", async () => {
+  it("signs in through Firebase and continues to the workspace", async () => {
     login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     render(<LoginPage />);
+    await waitUntilLoginReady();
 
-    await user.click(screen.getByRole("button", { name: /Ayşe Kaya/ }));
+    await fillCredentials(user);
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     await waitFor(() =>
-      expect(login).toHaveBeenCalledWith("ayse.kaya@novamed.demo"),
+      expect(signInToFirebase).toHaveBeenCalledWith(
+        "gulse@dongu.co",
+        "sifre1234",
+        false,
+      ),
     );
+    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", false));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
   });
 
-  it("surfaces a failed sign-in without navigating away", async () => {
-    login.mockRejectedValue(new Error("Hesap bulunamadı."));
+  it("passes Beni Hatırla through as the persistence choice", async () => {
+    login.mockResolvedValue(undefined);
     const user = userEvent.setup();
     render(<LoginPage />);
+    await waitUntilLoginReady();
 
-    await user.type(screen.getByLabelText(/E-posta/), "yok@ornek.com");
+    await user.click(screen.getByLabelText("Beni Hatırla"));
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(signInToFirebase).toHaveBeenCalledWith(
+        "gulse@dongu.co",
+        "sifre1234",
+        true,
+      ),
+    );
+    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", true));
+  });
+
+  it("surfaces wrong credentials without navigating away", async () => {
+    vi.mocked(signInToFirebase).mockRejectedValue(new Error("nope"));
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Hesap bulunamadı.",
+      "Incorrect email or password.",
     );
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("signs the user back out when the account is not approved yet", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Your account is waiting for coordinator approval.",
+        403,
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Your account is waiting for coordinator approval.",
+    );
+    await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
+    expect(push).not.toHaveBeenCalled();
+  });
+
+  it("sends a reset link for the typed email", async () => {
+    vi.mocked(requestPasswordReset).mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByLabelText(/E-posta/), "gulse@dongu.co");
+    await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
+
+    expect(await screen.findByRole("status")).toHaveTextContent(
+      "A password reset link was sent to your email.",
+    );
+    expect(requestPasswordReset).toHaveBeenCalledWith("gulse@dongu.co");
+  });
+
+  it("asks for an email before sending a reset link", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Enter your email to receive a password reset link.",
+    );
+    expect(requestPasswordReset).not.toHaveBeenCalled();
   });
 });

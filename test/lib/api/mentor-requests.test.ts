@@ -42,10 +42,6 @@ describe("fetchMentorRequests", () => {
 
 describe("isMentorRequestAction", () => {
   it("accepts every action the [id]/[action] proxy route needs to route, including the mentorship timeline's plural 'meetings'", () => {
-    // Regression test: this enum was accidentally reduced to only "meeting"
-    // (singular, PR #8's meeting-booking action) while merging main into
-    // the branch that added the mentorship timeline feature, which posts to
-    // .../meetings (plural). That silently 400'd every timeline request.
     for (const action of [
       "alternatives",
       "availability",

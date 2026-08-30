@@ -9,10 +9,10 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { UserRole, type DemoSession } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { renderWithQueryClient } from "@test/test-utils";
 
-const mockUseDemoSession = vi.fn<() => DemoSession | null>();
+const mockuseAppSession = vi.fn<() => AppSession | null>();
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -21,7 +21,7 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useDemoSession: () => mockUseDemoSession(),
+  useAppSession: () => mockuseAppSession(),
 }));
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
@@ -32,7 +32,7 @@ vi.mock("@/hooks/use-decision", () => ({
   useDecision: vi.fn(),
 }));
 
-function mentorSession(): DemoSession {
+function mentorSession(): AppSession {
   return {
     userId: "mentor-1",
     email: "leyla.aksoy@teknokent.demo",
@@ -79,7 +79,7 @@ describe("MentorDashboardView", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseDemoSession.mockReturnValue(mentorSession());
+    mockuseAppSession.mockReturnValue(mentorSession());
     vi.mocked(useDecision).mockReturnValue({
       selectedRequest: null,
       decisionMode: null,
