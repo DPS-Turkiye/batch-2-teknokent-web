@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -12,7 +13,11 @@ import {
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
 
+export const ACCOUNT_NOT_APPROVED = "ACCOUNT_NOT_APPROVED";
+export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
+
 export function useLoginFlow() {
+  const router = useRouter();
   const { login, logout } = useSession();
   const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Login);
   const [email, setEmail] = useState("");
@@ -47,6 +52,14 @@ export function useLoginFlow() {
       setStep(LoginFlowStep.Verified);
     } catch (error) {
       if (error instanceof ClientApiError) {
+        if (error.code === ACCOUNT_NOT_APPROVED) {
+          router.push("/application-status");
+          return;
+        }
+        if (error.code === REGISTRATION_REQUIRED) {
+          router.push("/signup?resume=1");
+          return;
+        }
         await signOutOfFirebase().catch(() => undefined);
       }
       setLoginError(
@@ -62,12 +75,14 @@ export function useLoginFlow() {
     setLoginError("");
     setNotice("");
     if (!email.trim()) {
-      setLoginError("Enter your email to receive a password reset link.");
+      setLoginError(
+        "Şifre sıfırlama bağlantısı için e-posta adresinizi girin.",
+      );
       return;
     }
     try {
       await requestPasswordReset(email);
-      setNotice("A password reset link was sent to your email.");
+      setNotice("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
     } catch (error) {
       setLoginError(describeAuthError(error));
     }

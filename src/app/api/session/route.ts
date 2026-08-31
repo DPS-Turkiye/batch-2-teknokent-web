@@ -39,7 +39,7 @@ export async function GET() {
         );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Session service is unavailable.",
+      message: "Oturum servisine ulaşılamıyor.",
     });
   }
 }
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "A Firebase ID token is required.",
+          message: "Firebase kimlik anahtarı gerekli.",
         },
         { status: 400 },
       );
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "REGISTRATION_REQUIRED",
-          message: "Registration is not complete for this account.",
+          message: "Bu hesabın kaydı tamamlanmamış.",
         },
         { status: 401 },
       );
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "SESSION_REQUIRED",
-          message: "Sign-in could not be completed.",
+          message: "Giriş tamamlanamadı.",
         },
         { status: response.status },
       );
@@ -85,8 +85,8 @@ export async function POST(request: NextRequest) {
           status: user.status,
           message:
             user.status === UserAccountStatus.Rejected
-              ? "Your application was not approved."
-              : "Your account is waiting for coordinator approval.",
+              ? "Başvurunuz onaylanmadı."
+              : "Hesabınız koordinatör onayı bekliyor.",
         },
         { status: 403 },
       );
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "SESSION_REQUIRED",
-          message: "A workspace is not ready for this account.",
+          message: "Bu hesap için çalışma alanı hazır değil.",
         },
         { status: 409 },
       );
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(session);
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Login could not be completed.",
+      message: "Giriş yapılamadı.",
     });
   }
 }
@@ -119,7 +119,7 @@ export async function DELETE() {
     return NextResponse.json({ ok: true });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Logout could not be completed.",
+      message: "Çıkış yapılamadı.",
     });
   }
 }

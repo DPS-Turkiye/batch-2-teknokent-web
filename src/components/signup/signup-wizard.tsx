@@ -67,11 +67,16 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
   async function submitApplication(draft: SignupDraft) {
     const idToken = await currentIdToken();
     if (!idToken) {
-      throw new Error("Your session has expired. Please sign in again.");
+      throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
     }
+    const draftName = [draft.personal.firstName, draft.personal.lastName]
+      .map((part) => part.trim())
+      .filter(Boolean)
+      .join(" ");
+
     await registerFounder(
       {
-        fullName: account.fullName,
+        fullName: draftName || account.fullName,
         email: account.email,
         phone: account.phone || undefined,
         organizationName: draft.startup.name.trim(),

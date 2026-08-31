@@ -4,6 +4,7 @@ export class ClientApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly code?: string,
   ) {
     super(message);
     this.name = "ClientApiError";
@@ -20,5 +21,12 @@ export function requireSuccess<T>(response: AxiosResponse<T>): T {
     typeof body.message === "string"
       ? body.message
       : `Request failed with HTTP ${response.status}.`;
-  throw new ClientApiError(message, response.status);
+  const code =
+    body &&
+    typeof body === "object" &&
+    "code" in body &&
+    typeof body.code === "string"
+      ? body.code
+      : undefined;
+  throw new ClientApiError(message, response.status, code);
 }

@@ -10,25 +10,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
+import { ApplicationStatusTimeline } from "@/components/auth/application-status-timeline";
 import type { SignupDraft } from "@/interfaces/signup";
-
-type TimelineEntry = {
-  title: string;
-  detail?: string;
-  state: "done" | "current" | "pending";
-};
-
-const timeline: TimelineEntry[] = [
-  { title: "Profil tamamlandı", state: "done" },
-  { title: "Koordinatöre gönderildi", state: "done" },
-  {
-    title: "İnceleniyor",
-    detail:
-      "Profilin koordinatörler tarafından incelenir. Genellikle 1-3 iş günü sürer.",
-    state: "current",
-  },
-  { title: "Startup aktif olacak", state: "pending" },
-];
+import { UserAccountStatus } from "@/interfaces/session";
 
 const nextUp = [
   {
@@ -73,48 +57,7 @@ export function SubmittedView({ draft }: { draft: SignupDraft }) {
         <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[#a4aab2]">
           Süreç
         </h2>
-        <ol className="mt-4 space-y-0">
-          {timeline.map((entry, index) => (
-            <li key={entry.title} className="flex gap-3">
-              <div className="flex flex-col items-center">
-                <span
-                  aria-hidden
-                  className={`grid size-6 shrink-0 place-items-center rounded-full border-2 ${
-                    entry.state === "pending"
-                      ? "border-[#e4e7ea] bg-white text-[#c9cdd2]"
-                      : "border-[#e86f22] bg-white text-[#e86f22]"
-                  }`}
-                >
-                  {entry.state === "done" ? (
-                    <Check className="size-3" />
-                  ) : (
-                    <span
-                      className={`size-2 rounded-full ${entry.state === "current" ? "bg-[#e86f22]" : "bg-[#e4e7ea]"}`}
-                    />
-                  )}
-                </span>
-                {index < timeline.length - 1 ? (
-                  <span
-                    aria-hidden
-                    className={`w-0.5 flex-1 ${entry.state === "pending" ? "bg-[#e4e7ea]" : "bg-[#f2b78f]"}`}
-                  />
-                ) : null}
-              </div>
-              <div className="pb-6">
-                <p
-                  className={`text-sm font-medium ${entry.state === "pending" ? "text-[#a4aab2]" : "text-[#22262b]"}`}
-                >
-                  {entry.title}
-                </p>
-                {entry.detail ? (
-                  <p className="mt-1 text-xs leading-relaxed text-[#676e78]">
-                    {entry.detail}
-                  </p>
-                ) : null}
-              </div>
-            </li>
-          ))}
-        </ol>
+        <ApplicationStatusTimeline status={UserAccountStatus.Pending} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
@@ -142,6 +85,13 @@ export function SubmittedView({ draft }: { draft: SignupDraft }) {
         verdiğinde veya düzenleme talep ettiğinde profil yeniden düzenlenebilir
         hale gelir.
       </p>
+
+      <Link
+        href="/application-status"
+        className="inline-flex rounded-xl bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#c85816]"
+      >
+        Başvuru durumunu görüntüle
+      </Link>
 
       <Link
         href="/"

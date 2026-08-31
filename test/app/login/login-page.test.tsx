@@ -26,7 +26,7 @@ vi.mock("@/lib/firebase/auth", () => ({
   signInToFirebase: vi.fn(),
   requestPasswordReset: vi.fn(),
   signOutOfFirebase: vi.fn(),
-  describeAuthError: () => "Incorrect email or password.",
+  describeAuthError: () => "E-posta veya şifre hatalı.",
 }));
 
 async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
@@ -144,16 +144,17 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Incorrect email or password.",
+      "E-posta veya şifre hatalı.",
     );
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("signs the user back out when the account is not approved yet", async () => {
+  it("sends a not-yet-approved account to the status page, still signed in", async () => {
     login.mockRejectedValue(
       new ClientApiError(
-        "Your account is waiting for coordinator approval.",
+        "Hesabınız koordinatör onayı bekliyor.",
         403,
+        "ACCOUNT_NOT_APPROVED",
       ),
     );
     const user = userEvent.setup();
@@ -163,11 +164,48 @@ describe("Login screen", () => {
     await fillCredentials(user);
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/application-status"),
+    );
+    // The Firebase session has to survive, or the status page has no token.
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("still signs the user out for a rejection without that code", async () => {
+    login.mockRejectedValue(
+      new ClientApiError("Bu hesabın kaydı tamamlanmamış.", 401),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Your account is waiting for coordinator approval.",
+      "Bu hesabın kaydı tamamlanmamış.",
     );
     await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("resumes an interrupted signup instead of stranding the account", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Bu hesabın kaydı tamamlanmamış.",
+        401,
+        "REGISTRATION_REQUIRED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/signup?resume=1"));
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
   });
 
   it("sends a reset link for the typed email", async () => {
@@ -179,7 +217,7 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "A password reset link was sent to your email.",
+      "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
     );
     expect(requestPasswordReset).toHaveBeenCalledWith("gulse@dongu.co");
   });
@@ -191,7 +229,7 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Enter your email to receive a password reset link.",
+      "Şifre sıfırlama bağlantısı için e-posta adresinizi girin.",
     );
     expect(requestPasswordReset).not.toHaveBeenCalled();
   });
