@@ -8,12 +8,20 @@ import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onbo
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisterForm, RegisteredAccount } from "@/interfaces/auth";
 import { registerMentor } from "@/lib/client/auth";
-import { createFirebaseAccount } from "@/lib/firebase/auth";
+import { createFirebaseAccount, currentUserEmail } from "@/lib/firebase/auth";
 
 export function SignupFlow() {
   const searchParams = useSearchParams();
   const isMentor = searchParams.get("role") === "mentor";
-  const [account, setAccount] = useState<RegisteredAccount | null>(null);
+  const isResuming = searchParams.get("resume") === "1";
+  // A signup interrupted after the Firebase account was created leaves no
+  // backend user. Resuming drops the visitor straight back into the wizard;
+  // their name is collected again in its first step.
+  const [account, setAccount] = useState<RegisteredAccount | null>(() => {
+    if (!isResuming) return null;
+    const email = currentUserEmail();
+    return email ? { fullName: "", email, phone: "" } : null;
+  });
 
   async function createAccount(form: RegisterForm) {
     const created: RegisteredAccount = {

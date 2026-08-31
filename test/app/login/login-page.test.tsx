@@ -149,9 +149,31 @@ describe("Login screen", () => {
     expect(push).not.toHaveBeenCalled();
   });
 
-  it("signs the user back out when the account is not approved yet", async () => {
+  it("sends a not-yet-approved account to the status page, still signed in", async () => {
     login.mockRejectedValue(
-      new ClientApiError("Hesabınız koordinatör onayı bekliyor.", 403),
+      new ClientApiError(
+        "Hesabınız koordinatör onayı bekliyor.",
+        403,
+        "ACCOUNT_NOT_APPROVED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/application-status"),
+    );
+    // The Firebase session has to survive, or the status page has no token.
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("still signs the user out for a rejection without that code", async () => {
+    login.mockRejectedValue(
+      new ClientApiError("Bu hesabın kaydı tamamlanmamış.", 401),
     );
     const user = userEvent.setup();
     render(<LoginPage />);
@@ -161,10 +183,29 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Hesabınız koordinatör onayı bekliyor.",
+      "Bu hesabın kaydı tamamlanmamış.",
     );
     await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("resumes an interrupted signup instead of stranding the account", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Bu hesabın kaydı tamamlanmamış.",
+        401,
+        "REGISTRATION_REQUIRED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/signup?resume=1"));
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
   });
 
   it("sends a reset link for the typed email", async () => {

@@ -18,6 +18,12 @@ describe("proxy", () => {
     expect(response.headers.get("location")).toBeNull();
   });
 
+  it("lets the application status page through without a session cookie", () => {
+    const response = request("/application-status");
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
+  });
+
   it("sends unauthenticated visitors away from protected pages", () => {
     const response = request("/dashboard");
     expect(response.status).toBe(307);

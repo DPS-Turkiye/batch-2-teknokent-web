@@ -68,6 +68,14 @@ export async function requestPasswordReset(email: string): Promise<void> {
   await sendPasswordResetEmail(firebaseAuth(), email.trim());
 }
 
+export function currentUserEmail(): string | null {
+  try {
+    return firebaseAuth().currentUser?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function currentIdToken(): Promise<string | null> {
   const user = firebaseAuth().currentUser;
   return user ? user.getIdToken() : null;

@@ -69,6 +69,12 @@ export async function registerMember(
   );
 }
 
+export async function fetchAccountStatus(idToken: string) {
+  return requireSuccess(
+    await httpClient.get<BackendUser>("/api/auth/status", bearer(idToken)),
+  );
+}
+
 export async function createSession(idToken: string, rememberMe = false) {
   return requireSuccess(
     await httpClient.post<AppSession>(
