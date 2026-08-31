@@ -12,9 +12,16 @@ export async function getMentorProfile() {
   );
 }
 
-export async function updateMentorProfile(payload: UpdateMentorProfilePayload) {
+export async function updateMentorProfile(
+  payload: UpdateMentorProfilePayload,
+  idToken?: string,
+) {
   return requireSuccess(
-    await httpClient.put<MentorProfile>("/api/mentor-profile", payload),
+    await httpClient.put<MentorProfile>(
+      "/api/mentor-profile",
+      payload,
+      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+    ),
   );
 }
 

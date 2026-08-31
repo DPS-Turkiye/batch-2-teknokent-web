@@ -13,8 +13,10 @@ import {
   type MentorOnboardingDraft,
   type ParsedProfile,
 } from "@/interfaces/mentor-onboarding";
+import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
+import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
-import { currentIdToken } from "@/lib/firebase/auth";
+import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
   return {
@@ -43,6 +45,9 @@ export function useMentorOnboarding() {
   const [phase, setPhase] = useState<IntroPhase>(IntroPhase.Upload);
   const [draft, setDraft] = useState<MentorOnboardingDraft>(emptyDraft);
   const [completed, setCompleted] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [saveError, setSaveError] = useState("");
   const parseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -55,6 +60,7 @@ export function useMentorOnboarding() {
   const uploadCv = useCallback(
     (file: { name: string; size: number; file?: File }) => {
       setDraft((current) => ({ ...current, cv: file }));
+      setUploadError("");
       setPhase(IntroPhase.Parsing);
       const uploaded = file.file;
       if (!uploaded) {
@@ -75,7 +81,8 @@ export function useMentorOnboarding() {
             () => setPhase(IntroPhase.Review),
             CV_PARSE_MS,
           );
-        } catch {
+        } catch (error) {
+          setUploadError(describeAuthError(error));
           setPhase(IntroPhase.Upload);
         }
       })();
@@ -181,7 +188,39 @@ export function useMentorOnboarding() {
     [],
   );
 
-  const complete = useCallback(() => setCompleted(true), []);
+  // Onboarding runs before approval, so the token is forwarded explicitly —
+  // there is no session cookie yet. The five presentation labels this flow does
+  // not ask about are left empty for the mentor profile screen to fill in.
+  const complete = useCallback(async () => {
+    setSaveError("");
+    setIsSaving(true);
+    try {
+      const idToken = await currentIdToken();
+      if (!idToken) {
+        throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+      }
+      const payload: UpdateMentorProfilePayload = {
+        professionalTitle: draft.profile.title.trim(),
+        company: draft.profile.company.trim(),
+        availabilityLabel: "",
+        responseTimeLabel: "",
+        meetingMode: "",
+        communicationPreference: "",
+        mentoringStyle: draft.mentoringStyles.join(", "),
+        fitLabel: "",
+        experienceLevel: draft.profile.totalExperience.trim(),
+        sectorExperience: draft.sectors.join(", "),
+        startupStages: draft.workingStages.join(", "),
+        specialties: draft.expertise,
+      };
+      await updateMentorProfile(payload, idToken);
+      setCompleted(true);
+    } catch (error) {
+      setSaveError(describeAuthError(error));
+    } finally {
+      setIsSaving(false);
+    }
+  }, [draft]);
 
   const expertiseLimitReached = draft.expertise.length >= MAX_EXPERTISE_AREAS;
 
@@ -200,6 +239,9 @@ export function useMentorOnboarding() {
     draft,
     completed,
     canContinue,
+    isSaving,
+    uploadError,
+    saveError,
     expertiseLimitReached,
     isFirstStep: step === MentorOnboardingStep.Intro,
     isLastStep: step === MentorOnboardingStep.Preferences,

@@ -55,7 +55,16 @@ function Stepper({ current }: { current: MentorOnboardingStep }) {
 
 export function MentorOnboardingFlow() {
   const flow = useMentorOnboarding();
-  const { step, completed, canContinue, isFirstStep, isLastStep } = flow;
+  const {
+    step,
+    completed,
+    canContinue,
+    isFirstStep,
+    isLastStep,
+    isSaving,
+    uploadError,
+    saveError,
+  } = flow;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
@@ -98,15 +107,28 @@ export function MentorOnboardingFlow() {
               ) : null}
             </div>
 
+            {uploadError || saveError ? (
+              <p
+                role="alert"
+                className="mx-auto mt-6 w-full max-w-[620px] rounded-xl bg-[#fdeaea] px-4 py-3 text-sm text-[#b42318]"
+              >
+                {uploadError || saveError}
+              </p>
+            ) : null}
+
             <div className="mx-auto mt-8 flex w-full max-w-[620px] items-center justify-between gap-3">
               <SecondaryButton onClick={flow.goBack} disabled={isFirstStep}>
                 Geri
               </SecondaryButton>
               <PrimaryButton
                 onClick={isLastStep ? flow.complete : flow.goNext}
-                disabled={!canContinue}
+                disabled={!canContinue || isSaving}
               >
-                {isLastStep ? "Profili tamamla" : "Devam et"}
+                {isLastStep
+                  ? isSaving
+                    ? "Kaydediliyor..."
+                    : "Profili tamamla"
+                  : "Devam et"}
               </PrimaryButton>
             </div>
           </>

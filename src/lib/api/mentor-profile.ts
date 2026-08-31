@@ -12,12 +12,16 @@ export function fetchMentorProfile(mentorId: string) {
 export function updateMentorProfile(
   mentorId: string,
   payload: Record<string, unknown>,
+  idToken?: string,
 ) {
-  return backendRequest({
-    method: "PUT",
-    url: `/api/mentors/${encodeURIComponent(mentorId)}`,
-    data: payload,
-  });
+  return backendRequest(
+    {
+      method: "PUT",
+      url: `/api/mentors/${encodeURIComponent(mentorId)}`,
+      data: payload,
+    },
+    idToken ? { idToken } : undefined,
+  );
 }
 
 export function fetchMentorAvailability(mentorId: string) {
