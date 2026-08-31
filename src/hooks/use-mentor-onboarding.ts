@@ -16,6 +16,12 @@ import {
 import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
+import {
+  clearDraft,
+  dropDetachedFile,
+  loadDraft,
+  saveDraft,
+} from "@/lib/draft-storage";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
@@ -32,6 +38,21 @@ function emptyDraft(): MentorOnboardingDraft {
   };
 }
 
+const DRAFT_KEY = "mentor-onboarding";
+
+function restoreDraft(): {
+  draft: MentorOnboardingDraft;
+  droppedFiles: number;
+} {
+  const saved = loadDraft<MentorOnboardingDraft>(DRAFT_KEY);
+  if (!saved) return { draft: emptyDraft(), droppedFiles: 0 };
+  const cv = dropDetachedFile(saved.cv);
+  return {
+    draft: { ...emptyDraft(), ...saved, cv: cv.value },
+    droppedFiles: cv.dropped,
+  };
+}
+
 function toggle(list: string[], value: string) {
   return list.includes(value)
     ? list.filter((item) => item !== value)
@@ -43,11 +64,17 @@ export function useMentorOnboarding() {
     MentorOnboardingStep.Intro,
   );
   const [phase, setPhase] = useState<IntroPhase>(IntroPhase.Upload);
-  const [draft, setDraft] = useState<MentorOnboardingDraft>(emptyDraft);
+  const [restored] = useState(restoreDraft);
+  const [draft, setDraft] = useState<MentorOnboardingDraft>(restored.draft);
+  const droppedFiles = restored.droppedFiles;
   const [completed, setCompleted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [saveError, setSaveError] = useState("");
+
+  useEffect(() => {
+    saveDraft(DRAFT_KEY, draft);
+  }, [draft]);
   const parseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(
@@ -214,6 +241,7 @@ export function useMentorOnboarding() {
         specialties: draft.expertise,
       };
       await updateMentorProfile(payload, idToken);
+      clearDraft(DRAFT_KEY);
       setCompleted(true);
     } catch (error) {
       setSaveError(describeAuthError(error));
@@ -242,6 +270,7 @@ export function useMentorOnboarding() {
     isSaving,
     uploadError,
     saveError,
+    droppedFiles,
     expertiseLimitReached,
     isFirstStep: step === MentorOnboardingStep.Intro,
     isLastStep: step === MentorOnboardingStep.Preferences,

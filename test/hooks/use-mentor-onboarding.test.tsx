@@ -276,3 +276,58 @@ describe("useMentorOnboarding — saving the profile", () => {
     expect(result.current.phase).toBe(IntroPhase.Upload);
   });
 });
+
+describe("useMentorOnboarding — resuming after a refresh", () => {
+  beforeEach(() => {
+    vi.useRealTimers();
+    vi.mocked(currentIdToken).mockResolvedValue("id-token");
+    vi.mocked(updateMentorProfile).mockResolvedValue(
+      {} as Awaited<ReturnType<typeof updateMentorProfile>>,
+    );
+  });
+
+  it("restores selections made before the page was reloaded", () => {
+    const first = renderHook(() => useMentorOnboarding());
+    act(() => {
+      first.result.current.toggleExpertise("Finans");
+      first.result.current.updateProfile("company", "Peak");
+    });
+    first.unmount();
+
+    const second = renderHook(() => useMentorOnboarding());
+
+    expect(second.result.current.draft.expertise).toEqual(["Finans"]);
+    expect(second.result.current.draft.profile.company).toBe("Peak");
+    expect(second.result.current.droppedFiles).toBe(0);
+  });
+
+  it("reports an attachment that could not survive the reload", () => {
+    const first = renderHook(() => useMentorOnboarding());
+    act(() =>
+      first.result.current.uploadCv({
+        name: "cv.pdf",
+        size: 10,
+        file: new File(["x"], "cv.pdf"),
+      }),
+    );
+    first.unmount();
+
+    const second = renderHook(() => useMentorOnboarding());
+
+    expect(second.result.current.droppedFiles).toBe(1);
+    expect(second.result.current.draft.cv).toBeNull();
+  });
+
+  it("forgets the draft once the profile is saved", async () => {
+    const first = renderHook(() => useMentorOnboarding());
+    act(() => first.result.current.toggleExpertise("Finans"));
+    await act(async () => {
+      await first.result.current.complete();
+    });
+    first.unmount();
+
+    const second = renderHook(() => useMentorOnboarding());
+
+    expect(second.result.current.draft.expertise).toEqual([]);
+  });
+});

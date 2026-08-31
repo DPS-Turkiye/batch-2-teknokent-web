@@ -8,6 +8,7 @@ import { DocumentsStep } from "@/components/signup/steps/documents-step";
 import { PersonalProfileStep } from "@/components/signup/steps/personal-profile-step";
 import { ReviewStep } from "@/components/signup/steps/review-step";
 import { StartupProfileStep } from "@/components/signup/steps/startup-profile-step";
+import { RestoredDraftNotice } from "@/components/common/restored-draft-notice";
 import { SubmittedView } from "@/components/signup/submitted-view";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
@@ -121,6 +122,8 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         ) : (
           <>
             <Stepper current={step} />
+
+            <RestoredDraftNotice droppedFiles={wizard.droppedFiles} />
 
             <div className={`mx-auto w-full ${STEP_WIDTH[step]}`}>
               <div className="mt-8">

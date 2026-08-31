@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { PrimaryButton } from "@/components/common/primary-button";
+import { RestoredDraftNotice } from "@/components/common/restored-draft-notice";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { MentorCompleteView } from "@/components/mentor-onboarding/complete-view";
 import { CompatibilityStep } from "@/components/mentor-onboarding/steps/compatibility-step";
@@ -91,6 +92,8 @@ export function MentorOnboardingFlow() {
         ) : (
           <>
             <Stepper current={step} />
+
+            <RestoredDraftNotice droppedFiles={flow.droppedFiles} />
 
             <div className="mt-8">
               {step === MentorOnboardingStep.Intro ? (
