@@ -68,7 +68,7 @@ export function useMentorOnboarding() {
         try {
           const idToken = await currentIdToken();
           if (!idToken) {
-            throw new Error("Your session has expired. Please sign in again.");
+            throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
           }
           await uploadDocument(uploaded, "cv", idToken);
           parseTimer.current = setTimeout(

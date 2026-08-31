@@ -26,7 +26,7 @@ vi.mock("@/lib/firebase/auth", () => ({
   signInToFirebase: vi.fn(),
   requestPasswordReset: vi.fn(),
   signOutOfFirebase: vi.fn(),
-  describeAuthError: () => "Incorrect email or password.",
+  describeAuthError: () => "E-posta veya şifre hatalı.",
 }));
 
 async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
@@ -144,17 +144,14 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Incorrect email or password.",
+      "E-posta veya şifre hatalı.",
     );
     expect(push).not.toHaveBeenCalled();
   });
 
   it("signs the user back out when the account is not approved yet", async () => {
     login.mockRejectedValue(
-      new ClientApiError(
-        "Your account is waiting for coordinator approval.",
-        403,
-      ),
+      new ClientApiError("Hesabınız koordinatör onayı bekliyor.", 403),
     );
     const user = userEvent.setup();
     render(<LoginPage />);
@@ -164,7 +161,7 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Giriş yap" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Your account is waiting for coordinator approval.",
+      "Hesabınız koordinatör onayı bekliyor.",
     );
     await waitFor(() => expect(signOutOfFirebase).toHaveBeenCalled());
     expect(push).not.toHaveBeenCalled();
@@ -179,7 +176,7 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
 
     expect(await screen.findByRole("status")).toHaveTextContent(
-      "A password reset link was sent to your email.",
+      "Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.",
     );
     expect(requestPasswordReset).toHaveBeenCalledWith("gulse@dongu.co");
   });
@@ -191,7 +188,7 @@ describe("Login screen", () => {
     await user.click(screen.getByRole("button", { name: "Şifremi unuttum" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Enter your email to receive a password reset link.",
+      "Şifre sıfırlama bağlantısı için e-posta adresinizi girin.",
     );
     expect(requestPasswordReset).not.toHaveBeenCalled();
   });

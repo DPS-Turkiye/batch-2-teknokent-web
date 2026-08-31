@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn().mockResolvedValue("id-token"),
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
-  describeAuthError: () => "Authentication could not be completed.",
+  describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
 }));
 
 vi.mock("@/lib/client/auth", () => ({

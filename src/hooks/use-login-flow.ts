@@ -62,12 +62,14 @@ export function useLoginFlow() {
     setLoginError("");
     setNotice("");
     if (!email.trim()) {
-      setLoginError("Enter your email to receive a password reset link.");
+      setLoginError(
+        "Şifre sıfırlama bağlantısı için e-posta adresinizi girin.",
+      );
       return;
     }
     try {
       await requestPasswordReset(email);
-      setNotice("A password reset link was sent to your email.");
+      setNotice("Şifre sıfırlama bağlantısı e-posta adresinize gönderildi.");
     } catch (error) {
       setLoginError(describeAuthError(error));
     }

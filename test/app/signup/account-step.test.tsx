@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { RegisterView } from "@/components/auth/register-view";
 
 vi.mock("@/lib/firebase/auth", () => ({
-  describeAuthError: () => "Authentication could not be completed.",
+  describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
 }));
 
 async function fillAll(user: ReturnType<typeof userEvent.setup>) {
@@ -90,7 +90,7 @@ describe("Account creation step", () => {
     );
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Authentication could not be completed.",
+      "Kimlik doğrulama tamamlanamadı.",
     );
     expect(
       screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),

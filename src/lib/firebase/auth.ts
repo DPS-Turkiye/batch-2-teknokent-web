@@ -12,26 +12,26 @@ import {
 import { firebaseAuth } from "@/lib/firebase/client";
 
 const ERROR_MESSAGES: Record<string, string> = {
-  "auth/email-already-in-use": "An account already exists with this email.",
-  "auth/invalid-email": "The email address is invalid.",
-  "auth/weak-password": "The password is too weak. Choose a longer password.",
-  "auth/invalid-credential": "Incorrect email or password.",
-  "auth/user-not-found": "Incorrect email or password.",
-  "auth/wrong-password": "Incorrect email or password.",
-  "auth/too-many-requests": "Too many attempts. Wait a bit and try again.",
-  "auth/network-request-failed": "Could not connect. Try again.",
+  "auth/email-already-in-use":
+    "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
+  "auth/invalid-email": "E-posta adresi geçersiz.",
+  "auth/weak-password": "Şifre çok zayıf. Daha uzun bir şifre seçin.",
+  "auth/invalid-credential": "E-posta veya şifre hatalı.",
+  "auth/user-not-found": "E-posta veya şifre hatalı.",
+  "auth/wrong-password": "E-posta veya şifre hatalı.",
+  "auth/too-many-requests":
+    "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
+  "auth/network-request-failed": "Bağlantı kurulamadı. Tekrar deneyin.",
 };
 
 export function describeAuthError(error: unknown): string {
   if (error instanceof FirebaseError) {
-    return (
-      ERROR_MESSAGES[error.code] ?? "Authentication could not be completed."
-    );
+    return ERROR_MESSAGES[error.code] ?? "Kimlik doğrulama tamamlanamadı.";
   }
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Authentication could not be completed.";
+  return "Kimlik doğrulama tamamlanamadı.";
 }
 
 export async function createFirebaseAccount(
