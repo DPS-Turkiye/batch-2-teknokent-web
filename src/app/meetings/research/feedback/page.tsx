@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 
@@ -16,7 +18,7 @@ const benefits = [
   "Yeni bir bakış açısı kazanmak",
 ];
 
-export default function MeetingFeedbackPage() {
+function MeetingFeedbackContent() {
   const {
     canSubmit,
     rate,
@@ -162,5 +164,19 @@ export default function MeetingFeedbackPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+export default function MeetingFeedbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center bg-[#f7f7f8] text-sm text-[#676e78]">
+          Değerlendirme yükleniyor…
+        </div>
+      }
+    >
+      <MeetingFeedbackContent />
+    </Suspense>
   );
 }
