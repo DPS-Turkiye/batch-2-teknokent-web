@@ -4,3 +4,10 @@ export enum MentorshipDetailTab {
   Actions = "actions",
   Files = "files",
 }
+
+export enum MentorshipWorkspaceTab {
+  MentorPool = "mentor-pool",
+  Active = "active",
+  Requests = "requests",
+  History = "history",
+}

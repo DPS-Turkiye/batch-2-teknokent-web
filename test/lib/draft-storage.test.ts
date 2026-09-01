@@ -9,6 +9,7 @@ import {
 
 afterEach(() => {
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   sessionStorage.clear();
 });
 
@@ -38,11 +39,13 @@ describe("draft storage", () => {
   });
 
   it("never throws when storage itself is unavailable", () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new Error("blocked");
-    });
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new Error("blocked");
+    vi.stubGlobal("sessionStorage", {
+      setItem: () => {
+        throw new Error("blocked");
+      },
+      getItem: () => {
+        throw new Error("blocked");
+      },
     });
 
     expect(() => saveDraft("k", { a: 1 })).not.toThrow();

@@ -25,13 +25,21 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
+  const requests = overrides.requests ?? [];
   return {
+    activeRequests: requests.filter(
+      (request) => request.status === MentorshipRequestStatus.Accepted,
+    ),
     displayName: "Deniz",
     organizationName: "GreenLoop",
     isFallback: false,
     isLoading: false,
     nextMeeting: null,
-    requests: [],
+    pendingRequests: requests.filter(
+      (request) => request.status === MentorshipRequestStatus.Pending,
+    ),
+    requests,
+    upcomingMeetings: [],
     ...overrides,
   } as DashboardData;
 }
@@ -73,7 +81,7 @@ describe("Mentee dashboard", () => {
     render(<DashboardPage />);
 
     expect(screen.getByText("SIRADAKİ TOPLANTI")).toBeInTheDocument();
-    expect(screen.getByText("Finansal model görüşmesi")).toBeInTheDocument();
+    expect(screen.getAllByText("Finansal model görüşmesi")).not.toHaveLength(0);
     expect(screen.getByText(/Online görüşme/)).toBeInTheDocument();
   });
 
@@ -104,6 +112,14 @@ describe("Mentee dashboard", () => {
   it("links each mentorship request to its own status page", () => {
     mockUseDashboardData.mockReturnValue(
       dashboardData({
+        activeRequests: [
+          {
+            id: "req-1",
+            mentorName: "Leyla Aksoy",
+            supportArea: "İş modeli ve strateji",
+            status: MentorshipRequestStatus.Accepted,
+          },
+        ],
         requests: [
           {
             id: "req-1",
@@ -124,7 +140,9 @@ describe("Mentee dashboard", () => {
   });
 
   it("shows an empty state instead of request cards when there are none", () => {
-    mockUseDashboardData.mockReturnValue(dashboardData({ requests: [] }));
+    mockUseDashboardData.mockReturnValue(
+      dashboardData({ activeRequests: [], requests: [] }),
+    );
 
     render(<DashboardPage />);
 

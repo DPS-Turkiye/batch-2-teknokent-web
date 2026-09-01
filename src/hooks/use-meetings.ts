@@ -2,7 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getMeetings, postMeeting } from "@/lib/client/meetings";
+import {
+  getMeetings,
+  postMeeting,
+  updateMeeting,
+  type UpdateMeetingPayload,
+} from "@/lib/client/meetings";
 
 export const MEETINGS_QUERY_KEY = ["meetings"] as const;
 
@@ -16,5 +21,20 @@ export function useCreateMeeting() {
     mutationFn: postMeeting,
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY }),
+  });
+}
+
+export function useUpdateMeeting(id: string | undefined) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: UpdateMeetingPayload) =>
+      updateMeeting(id as string, payload),
+    onSuccess: (meeting) => {
+      queryClient.setQueryData(
+        MEETINGS_QUERY_KEY,
+        (current: Awaited<ReturnType<typeof getMeetings>> | undefined) =>
+          current?.map((item) => (item.id === meeting.id ? meeting : item)),
+      );
+    },
   });
 }

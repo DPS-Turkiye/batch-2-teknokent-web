@@ -1,5 +1,6 @@
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
+import { Check } from "lucide-react";
 import type { StartupContext } from "@/interfaces/startup";
 import { MENTOR_REQUEST_STEPS } from "@/lib/const";
 import { MentorRequestStep } from "@/types/mentor-request";
@@ -12,10 +13,10 @@ export function StepIndicator({ current }: { current: MentorRequestStep }) {
         return (
           <li
             key={label}
-            className={`flex items-center gap-2 text-xs ${step <= current ? "text-[#555]" : "text-[#aaa]"}`}
+            className={`flex items-center gap-2 text-xs ${step <= current ? "text-[#c85816]" : "text-[#aaa]"}`}
           >
             <span
-              className={`flex size-5 shrink-0 items-center justify-center rounded-full font-semibold ${step === current ? "bg-[#555] text-white" : "bg-[#f1f1f1]"}`}
+              className={`flex size-5 shrink-0 items-center justify-center rounded-full font-semibold ${step === current ? "bg-[#e86f22] text-white" : "bg-[#f1f1f1]"}`}
             >
               {step}
             </span>
@@ -44,7 +45,7 @@ export function PersonChoice({
     <button
       type="button"
       onClick={onClick}
-      className={`flex min-h-16 items-center gap-3 rounded-lg border bg-white p-3 text-left ${selected ? "border-[#777]" : "border-[#e5e7eb]"}`}
+      className={`flex min-h-16 items-center gap-3 rounded-xl border bg-white p-3 text-left ${selected ? "border-[#e86f22] bg-[#fff9f5]" : "border-[#e5e7eb]"}`}
     >
       <Avatar initials={initials} size="sm" />
       <span className="flex-1">
@@ -54,7 +55,7 @@ export function PersonChoice({
         </span>
         <span className="mt-0.5 block text-xs text-[#8a8a8a]">{role}</span>
       </span>
-      {selected ? <span>✓</span> : null}
+      {selected ? <Check className="size-4 text-[#e86f22]" /> : null}
     </button>
   );
 }
@@ -71,7 +72,7 @@ export function RequestSummary({
   urgency: string;
 }) {
   return (
-    <aside className="h-fit rounded-lg border border-[#e5e7eb] bg-white p-4">
+    <aside className="h-fit rounded-2xl border border-[#e5e7eb] bg-white p-4">
       <h2 className="text-xs font-semibold uppercase text-[#888]">
         Talep Özeti
       </h2>

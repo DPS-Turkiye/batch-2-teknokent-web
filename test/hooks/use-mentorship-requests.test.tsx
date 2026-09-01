@@ -5,9 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   useMentorMessageForm,
+  useRequestFileUpload,
   useReplyForm,
   useSlotBooking,
 } from "@/hooks/use-mentorship-requests";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   postMentorMessage,
   replyToMentorRequest,
@@ -20,6 +22,10 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   postMentorMessage: vi.fn(),
   replyToMentorRequest: vi.fn(),
   scheduleMeeting: vi.fn(),
+}));
+
+vi.mock("@/lib/client/documents", () => ({
+  uploadDocument: vi.fn(),
 }));
 
 function scheduledMeeting(
@@ -217,5 +223,39 @@ describe("useMentorMessageForm", () => {
     });
 
     expect(result.current.message).toBe("Merhaba");
+  });
+});
+
+describe("useRequestFileUpload", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("stores the document and posts its filename to the conversation", async () => {
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "document-1",
+      kind: "pitch-deck",
+      originalFilename: "financial-model.pdf",
+      sizeBytes: 12,
+    });
+    vi.mocked(replyToMentorRequest).mockResolvedValue({
+      id: "request-1",
+    } as never);
+    const file = new File(["financial data"], "financial-model.pdf", {
+      type: "application/pdf",
+    });
+    const { result } = renderHook(() => useRequestFileUpload("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    await act(async () => {
+      await result.current.mutateAsync(file);
+    });
+
+    expect(uploadDocument).toHaveBeenCalledWith(file, "pitch-deck");
+    expect(replyToMentorRequest).toHaveBeenCalledWith({
+      id: "request-1",
+      message: "Dosya paylaşıldı: financial-model.pdf",
+    });
   });
 });

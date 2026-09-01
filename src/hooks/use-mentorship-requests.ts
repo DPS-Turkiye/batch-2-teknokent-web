@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   decideMentorRequest,
   getAlternativeMentors,
@@ -145,6 +146,26 @@ export function useMentorMessageForm(id: string | null) {
     isSending: postMessageMutation.isPending,
     error: postMessageMutation.error,
   };
+}
+
+export function useRequestFileUpload(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const stored = await uploadDocument(file, "pitch-deck");
+      const request = await replyToMentorRequest({
+        id: id as string,
+        message: `Dosya paylaşıldı: ${stored.originalFilename}`,
+      });
+      return { request, stored };
+    },
+    onSuccess: ({ request }) => {
+      queryClient.setQueryData(["mentorship-request", id], request);
+      return queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
+      });
+    },
+  });
 }
 
 export function useSlotBooking(id: string | null) {

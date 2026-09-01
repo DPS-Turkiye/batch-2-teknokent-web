@@ -1,3 +1,5 @@
+import { Send } from "lucide-react";
+
 import { PrimaryButton } from "@/components/common/primary-button";
 import type { RequestMessage } from "@/interfaces/mentorship-request";
 import { formatDateTime } from "@/lib/utils";
@@ -24,7 +26,7 @@ export function ConversationThread({
       {messages.length === 0 ? (
         <p className="text-xs text-zinc-500">Henüz mesaj yok.</p>
       ) : (
-        <ul className="max-h-80 space-y-2 overflow-y-auto">
+        <ul className="max-h-[420px] space-y-3 overflow-y-auto rounded-2xl bg-[#f8f9fa] p-4">
           {messages.map((message) => {
             const isOwnMessage = message.authorId === viewerUserId;
             return (
@@ -33,10 +35,10 @@ export function ConversationThread({
                 className={`flex ${isOwnMessage ? "justify-end" : "justify-start"}`}
               >
                 <div
-                  className={`max-w-[80%] rounded-lg border p-2.5 text-xs ${
+                  className={`max-w-[80%] rounded-2xl border px-4 py-3 text-xs ${
                     isOwnMessage
-                      ? "border-zinc-800 bg-zinc-900 text-white"
-                      : "border-zinc-200 bg-zinc-50 text-zinc-800"
+                      ? "border-[#e86f22] bg-[#e86f22] text-white"
+                      : "border-[#e4e7ea] bg-white text-[#22262b]"
                   }`}
                 >
                   <div
@@ -61,7 +63,7 @@ export function ConversationThread({
           value={value}
           onChange={(event) => onChange(event.target.value)}
           placeholder="Mesajınızı yazın..."
-          className="w-full rounded-lg border border-zinc-300 p-2 text-xs focus:border-zinc-900 focus:outline-none"
+          className="w-full rounded-2xl border border-[#dfe2e6] bg-white p-3 text-xs focus:border-[#e86f22] focus:outline-none"
         />
         {error ? (
           <p role="alert" className="text-xs text-red-700">
@@ -71,6 +73,7 @@ export function ConversationThread({
         <div className="flex justify-end">
           <PrimaryButton disabled={!value.trim() || isSending} onClick={onSend}>
             {isSending ? "Gönderiliyor..." : "Gönder"}
+            <Send className="size-3.5" />
           </PrimaryButton>
         </div>
       </div>

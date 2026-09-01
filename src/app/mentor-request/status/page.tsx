@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { CheckCircle2, FileUp, Upload } from "lucide-react";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
@@ -15,6 +16,7 @@ import {
   useMentorshipRequest,
   useMentorshipRequests,
   useReplyForm,
+  useRequestFileUpload,
   useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
@@ -82,10 +84,11 @@ export default function RequestStatusPage() {
     isBooking,
     error: scheduleError,
   } = useSlotBooking(selectedId);
+  const fileUpload = useRequestFileUpload(selectedId);
 
   return (
     <AppShell title="Talep Detayı" backHref="/dashboard">
-      <div className="mx-auto max-w-[736px] px-4 py-6 sm:px-8">
+      <div className="mx-auto max-w-[960px] px-4 py-6 sm:px-8">
         <div className="flex gap-2 overflow-x-auto">
           {Object.values(MentorshipRequestStatus)
             .filter((status) => status !== MentorshipRequestStatus.Withdrawn)
@@ -225,7 +228,54 @@ export default function RequestStatusPage() {
 
                   {session ? (
                     <div className="mt-6 border-t border-[#e5e7eb] pt-4">
-                      <h3 className="text-sm font-semibold">
+                      <div className="rounded-2xl border border-[#f2b78f] bg-[#fff9f5] p-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+                          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-[#e86f22]">
+                            <FileUp className="size-5" />
+                          </span>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="text-sm font-semibold">
+                              Görüşme dosyanı paylaş
+                            </h3>
+                            <p className="mt-1 text-xs text-[#676e78]">
+                              PDF veya DOCX · En fazla 10 MB. Dosya S3’e
+                              yüklenir ve mentora mesaj olarak bildirilir.
+                            </p>
+                          </div>
+                          <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-4 text-xs font-semibold text-white">
+                            <Upload className="size-4" />
+                            {fileUpload.isPending
+                              ? "Yükleniyor…"
+                              : "Dosya yükle"}
+                            <input
+                              type="file"
+                              accept=".pdf,.docx"
+                              disabled={fileUpload.isPending}
+                              className="hidden"
+                              aria-label="Mentorluk dosyası yükle"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (file) void fileUpload.mutateAsync(file);
+                              }}
+                            />
+                          </label>
+                        </div>
+                        {fileUpload.data ? (
+                          <div className="mt-4 flex items-center gap-3 rounded-xl border border-[#b8e0c6] bg-white p-3 text-xs text-[#23824b]">
+                            <CheckCircle2 className="size-4 shrink-0" />
+                            <span className="truncate font-medium">
+                              {fileUpload.data.stored.originalFilename}
+                            </span>
+                            <span className="ml-auto shrink-0">Gönderildi</span>
+                          </div>
+                        ) : null}
+                        {fileUpload.error ? (
+                          <p role="alert" className="mt-3 text-xs text-red-700">
+                            {fileUpload.error.message}
+                          </p>
+                        ) : null}
+                      </div>
+                      <h3 className="mt-6 text-sm font-semibold">
                         Mentor ile mesajlaş
                       </h3>
                       <div className="mt-3">
