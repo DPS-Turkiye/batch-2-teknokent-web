@@ -81,7 +81,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       {
         id: AppArea.Meetings,
         label: "Mesajlar",
-        href: "/mentor-dashboard#requests",
+        href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
     ];
