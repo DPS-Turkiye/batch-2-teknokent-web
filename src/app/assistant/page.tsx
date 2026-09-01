@@ -48,7 +48,7 @@ export default function AssistantPage() {
 
   return (
     <AppShell active={AppArea.Assistant}>
-      <div className="ma-wb flex h-[calc(100vh-72px)] min-h-[520px] flex-col">
+      <div className="ma-wb flex h-[calc(100vh-3.5rem)] min-h-[520px] flex-col lg:h-screen">
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <aside className="flex w-[280px] shrink-0 flex-col border-r border-[var(--ma-line)] bg-[var(--ma-sidebar)] max-md:w-[240px]">
             <div className="flex items-center gap-2.5 px-3.5 pb-2 pt-3">

@@ -30,6 +30,7 @@ import {
 } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
 import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
+import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -202,33 +203,20 @@ export function AppShell({
   const [mobileOpen, setMobileOpen] = useState(false);
   const session = useAppSession();
   const { logout } = useSession();
-  const isAdmin = session?.role === UserRole.Admin;
-  const isCoordinator = session?.role === UserRole.Coordinator;
-  const isMentor = session?.role === UserRole.Mentor;
-  const homeHref = isAdmin
-    ? "/admin"
-    : isCoordinator
-      ? "/programs"
-      : isMentor
-        ? "/mentor-dashboard"
-        : "/dashboard";
-  const profileHref = isMentor
-    ? "/mentor-profile"
-    : isAdmin
-      ? "/admin"
-      : isCoordinator
-        ? "/programs"
-        : "/profile";
+  const {
+    homeHref,
+    profileHref,
+    notificationsHref,
+    roleLabel,
+    showNotificationBadge,
+    usesRoleSubtitle,
+  } = roleWorkspace(session?.role);
   const navigation = buildNavigation(session?.role);
   const extras = buildUtilityNavigation(session?.role);
   const displayName = session?.fullName ?? "Ayşe Kaya";
-  const displayOrganization = isAdmin
-    ? "Admin"
-    : isCoordinator
-      ? "Koordinatör"
-      : isMentor
-        ? "Mentor"
-        : (session?.organizationName ?? "NovaMed AI");
+  const displayOrganization = usesRoleSubtitle
+    ? roleLabel
+    : (session?.organizationName ?? "");
 
   async function handleLogout() {
     await logout();
@@ -280,20 +268,12 @@ export function AppShell({
               </details>
             ) : null}
             <Link
-              href={
-                isAdmin
-                  ? "/admin"
-                  : isCoordinator
-                    ? "/programs"
-                    : isMentor
-                      ? "/mentor-dashboard#notifications"
-                      : "/dashboard#notifications"
-              }
+              href={notificationsHref}
               aria-label="Duyurular"
               className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
             >
               <Bell className="size-[18px]" strokeWidth={1.8} />
-              {!isCoordinator && DASHBOARD_NOTIFICATIONS.length ? (
+              {showNotificationBadge && DASHBOARD_NOTIFICATIONS.length ? (
                 <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
                   {DASHBOARD_NOTIFICATIONS.length}
                 </span>

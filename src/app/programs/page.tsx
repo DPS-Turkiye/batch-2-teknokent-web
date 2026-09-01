@@ -28,7 +28,6 @@ export default function ProgramsPage() {
   const decideRequest = useDecideProgramMentorRequest();
 
   const programs = programsQuery.data ?? [];
-  const startups = directoryQuery.data?.startups ?? [];
   const mentors = directoryQuery.data?.mentors ?? [];
 
   const [name, setName] = useState("");
@@ -43,12 +42,13 @@ export default function ProgramsPage() {
   const selectedProgramId = targetProgramId || programs[0]?.id || "";
 
   const visibleStartups = useMemo(() => {
+    const startups = directoryQuery.data?.startups ?? [];
     const needle = query.trim().toLocaleLowerCase("tr");
     if (!needle) return startups;
     return startups.filter((startup) =>
       startup.name.toLocaleLowerCase("tr").includes(needle),
     );
-  }, [query, startups]);
+  }, [query, directoryQuery.data?.startups]);
 
   function flash(message: string) {
     setError("");
