@@ -1,6 +1,7 @@
 "use client";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { RequiredHint } from "@/components/common/required-hint";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import {
   CAPACITY_OPTIONS,
@@ -27,18 +28,19 @@ export function PreferencesStep({ flow }: { flow: MentorOnboarding }) {
       </header>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <h2 className="mb-3 text-sm font-semibold">Mentorluk biçimi</h2>
+        <h2 className="mb-3 text-sm font-semibold">Mentorluk biçimi *</h2>
         <ChipGroup
           label="Mentorluk biçimi"
           options={MENTORING_STYLES}
           selected={draft.mentoringStyles}
           onToggle={toggleMentoringStyle}
         />
+        <RequiredHint show={draft.mentoringStyles.length === 0} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
         <h2 className="mb-3 text-sm font-semibold">
-          Çalışmak istediğiniz girişim aşaması
+          Çalışmak istediğiniz girişim aşaması *
         </h2>
         <ChipGroup
           label="Çalışmak istediğiniz girişim aşaması"
@@ -46,14 +48,12 @@ export function PreferencesStep({ flow }: { flow: MentorOnboarding }) {
           selected={draft.workingStages}
           onToggle={toggleWorkingStage}
         />
+        <RequiredHint show={draft.workingStages.length === 0} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
         <div className="mb-3 flex items-center gap-2">
-          <h2 className="text-sm font-semibold">Tercih edilen sektörler</h2>
-          <span className="rounded-full bg-[#f1f2f4] px-2 py-0.5 text-[10px] font-medium text-[#858c96]">
-            Opsiyonel
-          </span>
+          <h2 className="text-sm font-semibold">Tercih edilen sektörler *</h2>
         </div>
         <ChipGroup
           label="Tercih edilen sektörler"
@@ -61,6 +61,7 @@ export function PreferencesStep({ flow }: { flow: MentorOnboarding }) {
           selected={draft.sectors}
           onToggle={toggleSector}
         />
+        <RequiredHint show={draft.sectors.length === 0} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">

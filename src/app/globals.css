@@ -18,30 +18,29 @@
 }
 
 .ma-wb {
-  color-scheme: dark;
-  --ma-bg: #0e0e11;
-  --ma-sidebar: #1a1b20;
-  --ma-panel: #222329;
-  --ma-panel2: #2b2c34;
-  --ma-rail: #1a1b20;
-  --ma-line: rgba(255, 255, 255, 0.09);
-  --ma-line2: rgba(255, 255, 255, 0.16);
-  --ma-t1: #ededf0;
-  --ma-t2: #9a9aa4;
-  --ma-t3: #65656f;
-  --ma-accent: #d8855c;
-  --ma-accentbg: rgba(216, 133, 92, 0.14);
-  --ma-on-accent: #241008;
-  --ma-danger: #e0645e;
-  --ma-dangerbg: rgba(224, 100, 94, 0.12);
-  --ma-green: #48b787;
-  --ma-greenbg: rgba(72, 183, 135, 0.14);
-  --ma-blue: #6ea8fe;
-  --ma-bluebg: rgba(110, 168, 254, 0.14);
+  color-scheme: light;
+  --ma-bg: var(--metual-page);
+  --ma-sidebar: var(--metual-surface);
+  --ma-panel: var(--metual-surface);
+  --ma-panel2: #f1f2f4;
+  --ma-rail: var(--metual-surface);
+  --ma-line: var(--metual-line);
+  --ma-line2: #d5d9de;
+  --ma-t1: var(--metual-text);
+  --ma-t2: var(--metual-muted);
+  --ma-t3: #858c96;
+  --ma-accent: var(--metual-orange);
+  --ma-accentbg: var(--metual-orange-soft);
+  --ma-on-accent: #ffffff;
+  --ma-danger: #c2410c;
+  --ma-dangerbg: #fee4d7;
+  --ma-green: #0f7a4d;
+  --ma-greenbg: #e5f6ee;
+  --ma-blue: #2563eb;
+  --ma-bluebg: #e8f0fe;
   background: var(--ma-bg);
   color: var(--ma-t1);
   font-family: inherit;
-  -webkit-font-smoothing: antialiased;
 }
 
 .ma-wb input,

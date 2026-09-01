@@ -1,5 +1,6 @@
 export enum UserRole {
   Admin = "ADMIN",
+  Coordinator = "COORDINATOR",
   Mentee = "MENTEE",
   Mentor = "MENTOR",
 }
@@ -15,7 +16,8 @@ export type AppSession = {
   email: string;
   fullName: string;
   jobTitle: string;
-  role: UserRole.Mentee | UserRole.Mentor | UserRole.Admin;
+  role:
+    UserRole.Mentee | UserRole.Mentor | UserRole.Admin | UserRole.Coordinator;
   organizationId?: string;
   organizationName?: string;
 };

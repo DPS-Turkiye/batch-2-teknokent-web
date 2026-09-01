@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingAssistantSharePanel } from "@/components/notes/meeting-assistant-share-panel";
 import { MeetingNoteEditor } from "@/components/notes/meeting-note-editor";
 import { MeetingNoteSnapshotView } from "@/components/notes/meeting-note-snapshot-view";
 import { MeetingTodoList } from "@/components/notes/meeting-todo-list";
@@ -75,18 +76,21 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
       }
     >
       <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-8 lg:h-[calc(100dvh-5.5rem)] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch">
-        {realtimeStatus === RealtimeStatus.Offline ? (
-          <MeetingNoteSnapshotView meetingId={meetingId} />
-        ) : (
-          <MeetingNoteEditor
-            meetingId={meetingId}
-            doc={noteDocument.doc}
-            awareness={awareness}
-            documentStatus={noteDocument.status}
-            seedFromSnapshot={noteDocument.seedFromSnapshot}
-            persistFullState={noteDocument.persistFullState}
-          />
-        )}
+        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+          {realtimeStatus === RealtimeStatus.Offline ? (
+            <MeetingNoteSnapshotView meetingId={meetingId} />
+          ) : (
+            <MeetingNoteEditor
+              meetingId={meetingId}
+              doc={noteDocument.doc}
+              awareness={awareness}
+              documentStatus={noteDocument.status}
+              seedFromSnapshot={noteDocument.seedFromSnapshot}
+              persistFullState={noteDocument.persistFullState}
+            />
+          )}
+          <MeetingAssistantSharePanel meetingId={meetingId} />
+        </div>
         <MeetingTodoList meetingId={meetingId} />
       </div>
     </AppShell>

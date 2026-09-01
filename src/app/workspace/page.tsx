@@ -9,7 +9,7 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { WorkspaceCard } from "@/components/workspace/workspace-card";
-import { UserRole } from "@/interfaces/session";
+import { workspaceForSession } from "@/lib/role-workspace";
 
 export default function WorkspacePage() {
   const router = useRouter();
@@ -19,23 +19,11 @@ export default function WorkspacePage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
     null,
   );
-  const isAdmin = session?.role === UserRole.Admin;
-  const isMentor = session?.role === UserRole.Mentor;
-  const homeHref = isAdmin
-    ? "/admin"
-    : isMentor
-      ? "/mentor-dashboard"
-      : "/dashboard";
-  const workspaceTitle = isAdmin
-    ? (session?.fullName ?? "Admin")
-    : isMentor
-      ? (session?.fullName ?? "Mentor")
-      : (session?.organizationName ?? "");
-  const workspaceRole = isAdmin
-    ? "Admin"
-    : isMentor
-      ? "Mentor"
-      : "Girişim Ekibi";
+  const {
+    homeHref,
+    title: workspaceTitle,
+    roleLabel: workspaceRole,
+  } = workspaceForSession(session);
 
   return (
     <div className="min-h-screen bg-zinc-100">

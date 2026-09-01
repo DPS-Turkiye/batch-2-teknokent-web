@@ -15,6 +15,16 @@ import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDecision } from "@/hooks/use-decision";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
+  useDecideProgramInvitation,
+  useProgramInvitations,
+  usePrograms,
+  useRequestProgramMembership,
+} from "@/hooks/use-programs";
+import {
+  ProgramMentorInvitedBy,
+  ProgramMentorStatus,
+} from "@/interfaces/program";
+import {
   MentorRequestFilter,
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
@@ -44,6 +54,12 @@ const filterOptions = [
 export function MentorDashboardView() {
   const session = useAppSession();
   const { notifications } = useDashboardNotifications();
+  const invitationsQuery = useProgramInvitations();
+  const programsQuery = usePrograms();
+  const decideInvitation = useDecideProgramInvitation();
+  const requestMembership = useRequestProgramMembership();
+  const invitations = invitationsQuery.data ?? [];
+  const openPrograms = programsQuery.data ?? [];
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const requests = requestsQuery.data ?? [];
   const [filter, setFilter] = useState<MentorRequestFilter>(
@@ -148,11 +164,57 @@ export function MentorDashboardView() {
           <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
             Bildirimler
           </h2>
-          {notifications.length === 0 ? (
+          {invitations.length > 0 ? (
+            <div className="mb-3 space-y-3">
+              {invitations.map((invitation) => (
+                <article
+                  key={invitation.programId}
+                  className="rounded-lg border border-[#e5e7eb] bg-white p-4"
+                >
+                  <p className="text-sm font-semibold">
+                    {invitation.programName}
+                  </p>
+                  <p className="mt-1 text-xs text-[#6a7282]">
+                    {invitation.coordinatorName} sizi bu programa mentör olarak
+                    davet etti.
+                  </p>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      disabled={decideInvitation.isPending}
+                      onClick={() =>
+                        void decideInvitation.mutateAsync({
+                          programId: invitation.programId,
+                          accepted: true,
+                        })
+                      }
+                      className="rounded-lg bg-[#e86f22] px-3 py-1.5 text-xs font-semibold text-white disabled:bg-[#c9cdd2]"
+                    >
+                      Kabul et
+                    </button>
+                    <button
+                      type="button"
+                      disabled={decideInvitation.isPending}
+                      onClick={() =>
+                        void decideInvitation.mutateAsync({
+                          programId: invitation.programId,
+                          accepted: false,
+                        })
+                      }
+                      className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs disabled:opacity-50"
+                    >
+                      Reddet
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : null}
+          {notifications.length === 0 && invitations.length === 0 ? (
             <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center text-sm text-[#6a7282]">
               Henüz bir bildiriminiz yok.
             </div>
-          ) : (
+          ) : notifications.length === 0 ? null : (
             <div className="rounded-lg border border-[#e5e7eb] bg-white px-3">
               {notifications.map((notification) => (
                 <div
@@ -169,6 +231,71 @@ export function MentorDashboardView() {
                 </div>
               ))}
             </div>
+          )}
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
+            Programlar
+          </h2>
+          {programsQuery.isLoading ? (
+            <p className="text-sm text-[#6a7282]">Yükleniyor...</p>
+          ) : openPrograms.length === 0 ? (
+            <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-sm text-[#6a7282]">
+              Katılabileceğiniz açık program yok.
+            </div>
+          ) : (
+            <ul className="space-y-3">
+              {openPrograms.map((program) => {
+                const membership = program.mentors.find(
+                  (mentor) => mentor.mentorId === session?.userId,
+                );
+                const accepted =
+                  membership?.status === ProgramMentorStatus.Accepted;
+                const pending =
+                  membership?.status === ProgramMentorStatus.Pending;
+                const pendingInvite =
+                  pending &&
+                  membership?.invitedBy === ProgramMentorInvitedBy.Coordinator;
+                return (
+                  <li
+                    key={program.id}
+                    className="flex items-center justify-between gap-3 rounded-lg border border-[#e5e7eb] bg-white px-4 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">{program.name}</p>
+                      <p className="text-xs text-[#6a7282]">
+                        {program.coordinatorName}
+                      </p>
+                    </div>
+                    {accepted ? (
+                      <span className="text-xs font-medium text-emerald-700">
+                        Katıldınız
+                      </span>
+                    ) : pendingInvite ? (
+                      <span className="text-xs text-[#6a7282]">
+                        Davet bildiriminde
+                      </span>
+                    ) : pending ? (
+                      <span className="text-xs text-[#6a7282]">
+                        İstek gönderildi
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled={requestMembership.isPending}
+                        onClick={() =>
+                          void requestMembership.mutateAsync(program.id)
+                        }
+                        className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                      >
+                        Mentör olmak istiyorum
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </section>
 

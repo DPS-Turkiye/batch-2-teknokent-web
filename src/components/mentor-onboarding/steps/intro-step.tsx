@@ -4,6 +4,7 @@ import { FileText, Loader2, Upload } from "lucide-react";
 import { useRef } from "react";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { RequiredHint } from "@/components/common/required-hint";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import {
   ADDITIONAL_EXPERTISE,
@@ -166,39 +167,48 @@ export function IntroStep({ flow }: { flow: MentorOnboarding }) {
           </div>
           <div>
             <label className={labelClass} htmlFor="mentor-title">
-              Mevcut unvan
+              Mevcut unvan *
             </label>
             <input
               id="mentor-title"
               className={fieldClass}
+              required
+              aria-required="true"
               value={draft.profile.title}
               onChange={(event) => updateProfile("title", event.target.value)}
             />
+            <RequiredHint show={!draft.profile.title.trim()} />
           </div>
           <div>
             <label className={labelClass} htmlFor="mentor-company">
-              Şirket
+              Şirket *
             </label>
             <input
               id="mentor-company"
               className={fieldClass}
+              required
+              aria-required="true"
               value={draft.profile.company}
               onChange={(event) => updateProfile("company", event.target.value)}
             />
+            <RequiredHint show={!draft.profile.company.trim()} />
           </div>
           <div>
             <label className={labelClass} htmlFor="mentor-experience">
-              Toplam deneyim
+              Toplam deneyim *
             </label>
             <input
               id="mentor-experience"
               className={fieldClass}
+              required
+              aria-required="true"
               placeholder="Örn. 9 yıl"
               value={draft.profile.totalExperience}
               onChange={(event) =>
                 updateProfile("totalExperience", event.target.value)
               }
             />
+            <RequiredHint show={!draft.profile.totalExperience.trim()} />
           </div>
         </div>
       </section>

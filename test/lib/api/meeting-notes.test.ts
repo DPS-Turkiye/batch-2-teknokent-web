@@ -3,8 +3,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createMeetingTodo,
   deleteMeetingTodo,
+  fetchAssistantShare,
   fetchMeetingNote,
   fetchMeetingNoteDocument,
+  publishAssistantShare,
   saveMeetingNote,
   updateMeetingTodo,
 } from "@/lib/api/meeting-notes";
@@ -96,5 +98,30 @@ describe("meeting note server API", () => {
         url: "/api/meetings/meeting%20with%20space/note",
       }),
     );
+  });
+
+  it("reads and publishes assistant shares", async () => {
+    await fetchAssistantShare("meeting-1", "org-1");
+    await publishAssistantShare("meeting-1", "mentor-1", {
+      kind: "TRANSCRIPT",
+      transcript: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
+    });
+
+    expect(backendRequest).toHaveBeenNthCalledWith(1, {
+      method: HttpMethod.Get,
+      url: "/api/meetings/meeting-1/assistant-share",
+      params: { organizationId: "org-1" },
+    });
+    expect(backendRequest).toHaveBeenNthCalledWith(2, {
+      method: HttpMethod.Post,
+      url: "/api/meetings/meeting-1/assistant-share",
+      data: {
+        kind: "TRANSCRIPT",
+        transcript: [
+          { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+        ],
+        actorId: "mentor-1",
+      },
+    });
   });
 });

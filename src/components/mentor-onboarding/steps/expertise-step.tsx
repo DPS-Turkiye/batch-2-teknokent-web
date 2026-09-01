@@ -1,6 +1,7 @@
 "use client";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { RequiredHint } from "@/components/common/required-hint";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import {
   ADDITIONAL_EXPERTISE,
@@ -30,6 +31,7 @@ export function ExpertiseStep({ flow }: { flow: MentorOnboarding }) {
           selected={draft.expertise}
           onToggle={toggleExpertise}
         />
+        <RequiredHint show={draft.expertise.length === 0} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">

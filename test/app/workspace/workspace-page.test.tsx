@@ -79,6 +79,24 @@ describe("WorkspacePage routing", () => {
     expect(push).toHaveBeenCalledWith("/admin");
   });
 
+  it("sends a coordinator to /programs when picking a workspace", async () => {
+    mockuseAppSession.mockReturnValue({
+      userId: "coord-1",
+      email: "coordinator@teknokent.demo",
+      fullName: "Demo Coordinator",
+      jobTitle: "Koordinatör",
+      role: UserRole.Coordinator,
+    });
+    const user = userEvent.setup();
+
+    render(<WorkspacePage />);
+    await user.click(
+      screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
+    );
+
+    expect(push).toHaveBeenCalledWith("/programs");
+  });
+
   it("sends a mentee to /dashboard when picking a workspace", async () => {
     mockuseAppSession.mockReturnValue(menteeSession());
     const user = userEvent.setup();

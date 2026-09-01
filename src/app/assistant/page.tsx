@@ -7,6 +7,7 @@ import {
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingReportView } from "@/components/assistant/meeting-report-view";
 import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
+import { formatSlotDateTime } from "@/lib/format";
 import { AppArea } from "@/types/app-area";
 import { BotStatus, MeetingStatus } from "@/types/assistant";
 import { Calendar } from "lucide-react";
@@ -21,6 +22,10 @@ export default function AssistantPage() {
     botStatus,
     botError,
     visibleTranscript,
+    canEditTranscript,
+    transcriptDirty,
+    updateTranscriptLine,
+    removeTranscriptLine,
     notes,
     status,
     padText,
@@ -32,6 +37,13 @@ export default function AssistantPage() {
     reportStatus,
     reportError,
     regenerateReport,
+    platformMeetings,
+    targetMeetingId,
+    setTargetMeetingId,
+    shareStatus,
+    shareError,
+    sendTranscript,
+    sendReport,
   } = useMeetingAssistant();
 
   return (
@@ -179,6 +191,45 @@ export default function AssistantPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-2">
+                <select
+                  value={targetMeetingId}
+                  onChange={(e) => setTargetMeetingId(e.target.value)}
+                  aria-label="Not defteri toplantısı"
+                  className="h-8 max-w-[220px] rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 text-[11.5px] text-[var(--ma-t1)]"
+                >
+                  <option value="">Not defteri toplantısı seç…</option>
+                  {platformMeetings.map((meeting) => (
+                    <option key={meeting.id} value={meeting.id}>
+                      {meeting.agenda ?? "Mentorluk Görüşmesi"} ·{" "}
+                      {formatSlotDateTime(meeting.scheduledAt)}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={() => void sendTranscript()}
+                  disabled={
+                    !targetMeetingId ||
+                    visibleTranscript.length === 0 ||
+                    shareStatus === BotStatus.Sending
+                  }
+                  className="rounded-[7px] border border-[var(--ma-line2)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-t1)] disabled:opacity-50"
+                >
+                  Transkripti gönder
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void sendReport()}
+                  disabled={
+                    !targetMeetingId ||
+                    !meetingReport ||
+                    transcriptDirty ||
+                    shareStatus === BotStatus.Sending
+                  }
+                  className="rounded-[7px] bg-[var(--ma-accent)] px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                >
+                  Raporu gönder
+                </button>
                 <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 py-1 text-[11.5px] text-[var(--ma-t2)]">
                   <span className="font-mono text-[var(--ma-t3)]">stream</span>
                   <span className="text-[var(--ma-t1)]">live-stt</span>
@@ -207,8 +258,22 @@ export default function AssistantPage() {
                   <span className="font-mono text-[10.5px] text-[var(--ma-t3)]">
                     {visibleTranscript.length}
                   </span>
+                  {canEditTranscript ? (
+                    <span className="text-[11px] text-[var(--ma-t3)]">
+                      Düzenlenebilir
+                    </span>
+                  ) : null}
                   <span className="h-px flex-1 bg-[var(--ma-line)]" />
                 </div>
+                {shareError ? (
+                  <p className="mb-3 text-[11px] text-[var(--ma-danger)]">
+                    {shareError}
+                  </p>
+                ) : shareStatus === BotStatus.Ok ? (
+                  <p className="mb-3 text-[11px] text-[var(--ma-green)]">
+                    Not defterine gönderildi.
+                  </p>
+                ) : null}
 
                 {visibleTranscript.length === 0 ? (
                   <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
@@ -222,13 +287,48 @@ export default function AssistantPage() {
                         <span className="w-10 shrink-0 pt-0.5 font-mono text-[11px] text-[var(--ma-t3)]">
                           {line.at}
                         </span>
-                        <div className="min-w-0">
-                          <div className="text-[12px] font-medium text-[var(--ma-blue)]">
-                            {line.speaker}
-                          </div>
-                          <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
-                            {line.text}
-                          </p>
+                        <div className="min-w-0 flex-1">
+                          {canEditTranscript ? (
+                            <>
+                              <input
+                                value={line.speaker}
+                                onChange={(e) =>
+                                  updateTranscriptLine(line.id, {
+                                    speaker: e.target.value,
+                                  })
+                                }
+                                aria-label="Konuşmacı"
+                                className="w-full rounded-md border border-[var(--ma-line)] bg-white px-2 py-1 text-[12px] font-medium text-[var(--ma-blue)] outline-none focus:border-[var(--ma-accent)]"
+                              />
+                              <textarea
+                                value={line.text}
+                                onChange={(e) =>
+                                  updateTranscriptLine(line.id, {
+                                    text: e.target.value,
+                                  })
+                                }
+                                aria-label="Transkript satırı"
+                                rows={2}
+                                className="mt-1 w-full resize-y rounded-md border border-[var(--ma-line)] bg-white px-2 py-1.5 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none focus:border-[var(--ma-accent)]"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => removeTranscriptLine(line.id)}
+                                className="mt-1 text-[11px] text-[var(--ma-danger)]"
+                              >
+                                Satırı sil
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-[12px] font-medium text-[var(--ma-blue)]">
+                                {line.speaker}
+                              </div>
+                              <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
+                                {line.text}
+                              </p>
+                            </>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -241,6 +341,11 @@ export default function AssistantPage() {
                       Toplantı raporu
                     </span>
                     <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                    {transcriptDirty && meetingReport ? (
+                      <span className="text-[11px] text-[var(--ma-accent)]">
+                        Transkript değişti. Raporu güncellemek için tekrar üret.
+                      </span>
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => regenerateReport()}

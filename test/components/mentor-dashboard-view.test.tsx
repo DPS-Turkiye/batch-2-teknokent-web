@@ -32,6 +32,19 @@ vi.mock("@/hooks/use-decision", () => ({
   useDecision: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-programs", () => ({
+  useProgramInvitations: () => ({ data: [], isLoading: false }),
+  usePrograms: () => ({ data: [], isLoading: false }),
+  useDecideProgramInvitation: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+  useRequestProgramMembership: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
+}));
+
 function mentorSession(): AppSession {
   return {
     userId: "mentor-1",

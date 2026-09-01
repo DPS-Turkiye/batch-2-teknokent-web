@@ -1,3 +1,5 @@
+import type { MeetingReport, TranscriptLine } from "@/types/assistant";
+
 export type MeetingNote = {
   meetingId: string;
   content: string;
@@ -38,3 +40,21 @@ export type RealtimeToken = {
   token: string;
   expiresAt: string;
 };
+
+export type MeetingAssistantShare = {
+  meetingId: string;
+  transcript: TranscriptLine[] | null;
+  transcriptPublishedAt: string | null;
+  report: MeetingReport | null;
+  reportPublishedAt: string | null;
+};
+
+export type PublishAssistantSharePayload =
+  | {
+      kind: "TRANSCRIPT";
+      transcript: TranscriptLine[];
+    }
+  | {
+      kind: "REPORT";
+      report: MeetingReport;
+    };
