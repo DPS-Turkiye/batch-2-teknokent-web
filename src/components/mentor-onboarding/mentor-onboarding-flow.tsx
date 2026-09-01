@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { PrimaryButton } from "@/components/common/primary-button";
+import { RestoredDraftNotice } from "@/components/common/restored-draft-notice";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { MentorCompleteView } from "@/components/mentor-onboarding/complete-view";
 import { CompatibilityStep } from "@/components/mentor-onboarding/steps/compatibility-step";
@@ -55,7 +56,16 @@ function Stepper({ current }: { current: MentorOnboardingStep }) {
 
 export function MentorOnboardingFlow() {
   const flow = useMentorOnboarding();
-  const { step, completed, canContinue, isFirstStep, isLastStep } = flow;
+  const {
+    step,
+    completed,
+    canContinue,
+    isFirstStep,
+    isLastStep,
+    isSaving,
+    uploadError,
+    saveError,
+  } = flow;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
@@ -83,6 +93,8 @@ export function MentorOnboardingFlow() {
           <>
             <Stepper current={step} />
 
+            <RestoredDraftNotice droppedFiles={flow.droppedFiles} />
+
             <div className="mt-8">
               {step === MentorOnboardingStep.Intro ? (
                 <IntroStep flow={flow} />
@@ -98,15 +110,28 @@ export function MentorOnboardingFlow() {
               ) : null}
             </div>
 
+            {uploadError || saveError ? (
+              <p
+                role="alert"
+                className="mx-auto mt-6 w-full max-w-[620px] rounded-xl bg-[#fdeaea] px-4 py-3 text-sm text-[#b42318]"
+              >
+                {uploadError || saveError}
+              </p>
+            ) : null}
+
             <div className="mx-auto mt-8 flex w-full max-w-[620px] items-center justify-between gap-3">
               <SecondaryButton onClick={flow.goBack} disabled={isFirstStep}>
                 Geri
               </SecondaryButton>
               <PrimaryButton
                 onClick={isLastStep ? flow.complete : flow.goNext}
-                disabled={!canContinue}
+                disabled={!canContinue || isSaving}
               >
-                {isLastStep ? "Profili tamamla" : "Devam et"}
+                {isLastStep
+                  ? isSaving
+                    ? "Kaydediliyor..."
+                    : "Profili tamamla"
+                  : "Devam et"}
               </PrimaryButton>
             </div>
           </>

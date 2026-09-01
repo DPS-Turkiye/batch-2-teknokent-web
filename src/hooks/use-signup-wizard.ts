@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   BIO_MAX_LENGTH,
@@ -16,6 +16,12 @@ import {
   type StartupProfileDraft,
   type UploadedFile,
 } from "@/interfaces/signup";
+import {
+  clearDraft,
+  dropDetachedFile,
+  loadDraft,
+  saveDraft as persistDraft,
+} from "@/lib/draft-storage";
 
 function emptyDraft(): SignupDraft {
   return {
@@ -57,15 +63,49 @@ function toggle(list: string[], value: string) {
     : [...list, value];
 }
 
+const DRAFT_KEY = "signup-wizard";
+
+function restoreDraft(): { draft: SignupDraft; droppedFiles: number } {
+  const saved = loadDraft<SignupDraft>(DRAFT_KEY);
+  if (!saved) return { draft: emptyDraft(), droppedFiles: 0 };
+
+  const base = emptyDraft();
+  const cv = dropDetachedFile(saved.personal?.cv ?? null);
+  const logo = dropDetachedFile(saved.startup?.logo ?? null);
+
+  let dropped = cv.dropped + logo.dropped;
+  const documents: SignupDraft["documents"] = {};
+  for (const [kind, uploaded] of Object.entries(saved.documents ?? {})) {
+    const kept = dropDetachedFile(uploaded ?? null);
+    dropped += kept.dropped;
+    if (kept.value) documents[kind as StartupDocumentKind] = kept.value;
+  }
+
+  return {
+    draft: {
+      personal: { ...base.personal, ...saved.personal, cv: cv.value },
+      startup: { ...base.startup, ...saved.startup, logo: logo.value },
+      documents,
+    },
+    droppedFiles: dropped,
+  };
+}
+
 export function useSignupWizard(
   options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
 ) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
-  const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
+  const [restored] = useState(restoreDraft);
+  const [draft, setDraft] = useState<SignupDraft>(restored.draft);
+  const droppedFiles = restored.droppedFiles;
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    persistDraft(DRAFT_KEY, draft);
+  }, [draft]);
 
   const updatePersonal = useCallback(
     <K extends keyof PersonalProfileDraft>(
@@ -161,6 +201,7 @@ export function useSignupWizard(
     setSubmitting(true);
     try {
       await onSubmit(draft);
+      clearDraft(DRAFT_KEY);
       setSubmitted(true);
     } catch (error) {
       setSubmitError(
@@ -236,6 +277,7 @@ export function useSignupWizard(
     submitting,
     submitError,
     draftSavedAt,
+    droppedFiles,
     bioRemaining,
     taglineRemaining,
     checklist,

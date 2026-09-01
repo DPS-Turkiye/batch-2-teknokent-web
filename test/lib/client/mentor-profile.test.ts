@@ -57,7 +57,31 @@ describe("mentor profile client", () => {
 
     await updateMentorProfile(payload);
 
-    expect(httpClient.put).toHaveBeenCalledWith("/api/mentor-profile", payload);
+    expect(httpClient.put).toHaveBeenCalledWith(
+      "/api/mentor-profile",
+      payload,
+      undefined,
+    );
+  });
+
+  it("attaches the bearer token when onboarding saves before approval", async () => {
+    vi.mocked(httpClient.put).mockResolvedValue({
+      status: 200,
+      data: {},
+    } as never);
+
+    await updateMentorProfile(
+      { specialties: [] } as unknown as Parameters<
+        typeof updateMentorProfile
+      >[0],
+      "id-token",
+    );
+
+    expect(httpClient.put).toHaveBeenCalledWith(
+      "/api/mentor-profile",
+      { specialties: [] },
+      { headers: { Authorization: "Bearer id-token" } },
+    );
   });
 
   it("fetches the mentor's availability slots", async () => {

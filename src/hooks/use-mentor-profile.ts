@@ -32,7 +32,8 @@ export function useMentorProfile() {
 export function useUpdateMentorProfile() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: updateMentorProfile,
+    mutationFn: (payload: UpdateMentorProfilePayload) =>
+      updateMentorProfile(payload),
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: MENTOR_PROFILE_QUERY_KEY }),
   });

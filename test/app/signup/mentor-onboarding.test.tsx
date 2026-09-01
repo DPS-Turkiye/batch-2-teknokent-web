@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onboarding-flow";
 import { SignupFlow } from "@/components/signup/signup-flow";
 import { registerMentor } from "@/lib/client/auth";
+import { updateMentorProfile } from "@/lib/client/mentor-profile";
 
 const searchParams = { get: vi.fn() };
 
@@ -21,6 +22,10 @@ vi.mock("@/lib/firebase/auth", () => ({
 vi.mock("@/lib/client/auth", () => ({
   registerMentor: vi.fn().mockResolvedValue({}),
   registerFounder: vi.fn().mockResolvedValue({}),
+}));
+
+vi.mock("@/lib/client/mentor-profile", () => ({
+  updateMentorProfile: vi.fn().mockResolvedValue({}),
 }));
 
 async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
@@ -180,6 +185,13 @@ describe("Mentor onboarding flow", () => {
       expect(
         screen.getByRole("heading", { name: "Mentor profiliniz hazır" }),
       ).toBeInTheDocument(),
+    );
+    expect(updateMentorProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        specialties: expect.arrayContaining(["Finans"]),
+        mentoringStyle: "Problem çözme",
+      }),
+      "id-token",
     );
     expect(screen.getByText("Finans")).toBeInTheDocument();
     expect(
