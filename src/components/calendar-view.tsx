@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { DAY_SHORT_LABELS } from "@/lib/calendar";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
@@ -15,8 +16,6 @@ import {
 } from "@/lib/google-calendar";
 
 type CalendarViewMode = "MONTH" | "WEEK" | "AGENDA";
-
-const dayNames = ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"];
 
 function formatISOForGoogle(date: Date) {
   return date.toISOString().replace(/-|:|\.\d\d\d/g, "");
@@ -469,7 +468,7 @@ export function CalendarView() {
         ) : viewMode === "MONTH" ? (
           <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
             <div className="grid grid-cols-7 border-b border-zinc-200 bg-zinc-50 text-center text-xs font-bold text-zinc-600">
-              {dayNames.map((d) => (
+              {DAY_SHORT_LABELS.map((d) => (
                 <div key={d} className="py-3">
                   {d}
                 </div>
@@ -568,7 +567,7 @@ export function CalendarView() {
                     className="rounded-xl border border-zinc-200 bg-zinc-50 p-3"
                   >
                     <p className="text-center text-xs font-bold text-zinc-600">
-                      {dayNames[idx]} {dayDate.getDate()}
+                      {DAY_SHORT_LABELS[idx]} {dayDate.getDate()}
                     </p>
                     <div className="mt-3 space-y-2">
                       {dayMeetings.length === 0 ? (

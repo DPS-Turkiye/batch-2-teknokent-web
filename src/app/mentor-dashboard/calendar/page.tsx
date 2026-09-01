@@ -12,39 +12,14 @@ import {
   useMentorCalendar,
 } from "@/hooks/use-mentor-calendar";
 import { Weekday, WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
+import {
+  hourOf,
+  isSameDay,
+  timeLabel,
+  weekRangeLabel,
+  WEEKDAY_SHORT_LABELS,
+} from "@/lib/calendar";
 import { AppArea } from "@/types/app-area";
-
-const DAY_LABELS = ["Pzt", "Sal", "Çar", "Per", "Cum"];
-const MONTHS = [
-  "Ocak",
-  "Şubat",
-  "Mart",
-  "Nisan",
-  "Mayıs",
-  "Haziran",
-  "Temmuz",
-  "Ağustos",
-  "Eylül",
-  "Ekim",
-  "Kasım",
-  "Aralık",
-];
-
-function hourOf(iso: string) {
-  return new Date(iso).getHours();
-}
-
-function minuteLabel(iso: string) {
-  return new Date(iso).toLocaleTimeString("tr-TR", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function sameDay(iso: string, day: Date) {
-  const at = new Date(iso);
-  return at.toDateString() === day.toDateString();
-}
 
 export default function MentorCalendarPage() {
   const calendar = useMentorCalendar();
@@ -61,7 +36,7 @@ export default function MentorCalendarPage() {
 
   const { weekStart, days } = calendar;
   const rangeEnd = days[days.length - 1];
-  const range = `${weekStart.getDate()}–${rangeEnd.getDate()} ${MONTHS[rangeEnd.getMonth()]}`;
+  const range = weekRangeLabel(weekStart, rangeEnd);
 
   function openMeeting(at: Date | null) {
     setMeetingAt(at);
@@ -146,7 +121,7 @@ export default function MentorCalendarPage() {
                         scope="col"
                         className="border-b border-[#e4e7ea] pb-2 font-medium text-[#676e78]"
                       >
-                        {DAY_LABELS[index]} {day.getDate()}
+                        {WEEKDAY_SHORT_LABELS[index]} {day.getDate()}
                       </th>
                     ))}
                   </tr>
@@ -163,12 +138,12 @@ export default function MentorCalendarPage() {
                       {days.map((day) => {
                         const meeting = calendar.meetings.find(
                           (item) =>
-                            sameDay(item.scheduledAt, day) &&
+                            isSameDay(item.scheduledAt, day) &&
                             hourOf(item.scheduledAt) === hour,
                         );
                         const slot = calendar.slots.find(
                           (item) =>
-                            sameDay(item.startsAt, day) &&
+                            isSameDay(item.startsAt, day) &&
                             hourOf(item.startsAt) === hour,
                         );
                         return (
@@ -182,7 +157,7 @@ export default function MentorCalendarPage() {
                                   {meeting.agenda || "Mentorluk görüşmesi"}
                                 </span>
                                 <span className="block truncate opacity-90">
-                                  {minuteLabel(meeting.scheduledAt)}
+                                  {timeLabel(meeting.scheduledAt)}
                                 </span>
                               </div>
                             ) : (
