@@ -24,6 +24,31 @@ export function updateMentorProfile(
   );
 }
 
+export function fetchMentorAvailabilityRules(mentorId: string) {
+  return backendRequest({
+    method: "GET",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules`,
+  });
+}
+
+export function createMentorAvailabilityRule(
+  mentorId: string,
+  payload: Record<string, unknown>,
+) {
+  return backendRequest({
+    method: "POST",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules`,
+    data: payload,
+  });
+}
+
+export function deleteMentorAvailabilityRule(mentorId: string, ruleId: string) {
+  return backendRequest({
+    method: "DELETE",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules/${encodeURIComponent(ruleId)}`,
+  });
+}
+
 export function fetchMentorAvailability(mentorId: string) {
   return backendRequest({
     method: "GET",

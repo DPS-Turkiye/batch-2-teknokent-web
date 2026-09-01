@@ -39,12 +39,14 @@ function formatMeetingDate(value: string) {
 export default function DashboardPage() {
   const { notifications } = useDashboardNotifications();
   const {
+    activeRequests,
     displayName,
     isFallback,
     isLoading,
     nextMeeting,
     organizationName,
-    requests,
+    pendingRequests,
+    upcomingMeetings,
   } = useDashboardData();
 
   return (
@@ -168,8 +170,8 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="space-y-3">
-              {requests.length ? (
-                requests.slice(0, 3).map((request) => (
+              {activeRequests.length ? (
+                activeRequests.slice(0, 3).map((request) => (
                   <Link
                     key={request.id}
                     href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
@@ -196,6 +198,49 @@ export default function DashboardPage() {
                   Henüz aktif bir mentorluk bulunmuyor.
                 </div>
               )}
+            </div>
+            <div className="mb-4 mt-7 flex items-center justify-between">
+              <h2 className="text-base font-semibold">Yaklaşanlar</h2>
+              <Link
+                href="/calendar"
+                className="text-xs font-semibold text-[#e86f22]"
+              >
+                Takvim →
+              </Link>
+            </div>
+            <div className="overflow-hidden rounded-2xl border border-[#e4e7ea] bg-white">
+              {(upcomingMeetings.length
+                ? upcomingMeetings
+                : nextMeeting
+                  ? [nextMeeting]
+                  : []
+              ).map((meeting) => (
+                <Link
+                  key={meeting.id}
+                  href={
+                    "/meetings/research?id=" + encodeURIComponent(meeting.id)
+                  }
+                  className="flex items-center gap-3 border-b border-[#eef0f2] p-4 last:border-b-0 hover:bg-[#fff9f5]"
+                >
+                  <span className="grid size-9 place-items-center rounded-xl bg-[#fdebdd] text-[#e86f22]">
+                    <CalendarDays className="size-4" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <small className="block text-[10px] text-[#858c96]">
+                      {formatMeetingDate(meeting.scheduledAt)}
+                    </small>
+                    <strong className="mt-0.5 block truncate text-xs">
+                      {meeting.agenda ?? "Mentorluk görüşmesi"}
+                    </strong>
+                  </span>
+                  <ArrowRight className="size-4 text-[#a4aab2]" />
+                </Link>
+              ))}
+              {!nextMeeting && !upcomingMeetings.length ? (
+                <p className="p-5 text-center text-xs text-[#858c96]">
+                  Yaklaşan etkinlik bulunmuyor.
+                </p>
+              ) : null}
             </div>
           </section>
           <aside className="space-y-5">
@@ -227,6 +272,48 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold">
+                  Bekleyen mentorluk talepleri
+                </h2>
+                <span className="rounded-full bg-[#fdebdd] px-2 py-1 text-[10px] font-semibold text-[#c85816]">
+                  {pendingRequests.length}
+                </span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {pendingRequests.slice(0, 2).map((request) => (
+                  <Link
+                    key={request.id}
+                    href={
+                      "/mentor-request/status?id=" +
+                      encodeURIComponent(request.id)
+                    }
+                    className="flex items-center gap-3 rounded-xl border border-[#eef0f2] p-3 hover:border-[#f2b78f]"
+                  >
+                    <Avatar
+                      initials={initials(request.mentorName) || "MN"}
+                      size="sm"
+                      tone="orange"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <strong className="block truncate text-xs">
+                        {request.mentorName}
+                      </strong>
+                      <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
+                        {requestStatusLabels[request.status]}
+                      </small>
+                    </span>
+                    <ArrowRight className="size-4 text-[#a4aab2]" />
+                  </Link>
+                ))}
+                {!pendingRequests.length ? (
+                  <p className="py-3 text-center text-xs text-[#858c96]">
+                    Bekleyen talep yok.
+                  </p>
+                ) : null}
               </div>
             </section>
             <section

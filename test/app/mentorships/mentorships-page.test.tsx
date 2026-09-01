@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import MentorshipsPage from "@/app/mentorships/page";
@@ -95,5 +96,22 @@ describe("MentorshipsPage", () => {
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+  });
+
+  it("separates pending requests into the Talepler tab", async () => {
+    const user = userEvent.setup();
+    mockRequests([
+      request({
+        id: "pending-1",
+        mentorName: "Ece Demir",
+        status: MentorshipRequestStatus.Pending,
+      }),
+    ]);
+
+    renderWithQueryClient(<MentorshipsPage />);
+    expect(screen.queryByText("Ece Demir")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    expect(screen.getByText("Ece Demir")).toBeInTheDocument();
   });
 });

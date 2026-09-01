@@ -1,4 +1,5 @@
 import type {
+  MentorAvailabilityRule,
   MentorAvailabilitySlot,
   MentorProfile,
   UpdateMentorProfilePayload,
@@ -21,6 +22,36 @@ export async function updateMentorProfile(
       "/api/mentor-profile",
       payload,
       idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
+    ),
+  );
+}
+
+export async function getAvailabilityRules() {
+  return requireSuccess(
+    await httpClient.get<MentorAvailabilityRule[]>(
+      "/api/mentor-profile/availability-rules",
+    ),
+  );
+}
+
+export async function createAvailabilityRule(payload: {
+  dayOfWeek: string;
+  startTime: string;
+  endTime: string;
+  slotMinutes: number;
+}) {
+  return requireSuccess(
+    await httpClient.post<MentorAvailabilityRule>(
+      "/api/mentor-profile/availability-rules",
+      payload,
+    ),
+  );
+}
+
+export async function deleteAvailabilityRule(ruleId: string) {
+  return requireSuccess(
+    await httpClient.delete(
+      `/api/mentor-profile/availability-rules/${encodeURIComponent(ruleId)}`,
     ),
   );
 }

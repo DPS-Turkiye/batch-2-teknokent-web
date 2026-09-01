@@ -43,6 +43,44 @@ export type UpdateMentorProfilePayload = Pick<
   | "specialties"
 >;
 
+export enum Weekday {
+  Monday = "MONDAY",
+  Tuesday = "TUESDAY",
+  Wednesday = "WEDNESDAY",
+  Thursday = "THURSDAY",
+  Friday = "FRIDAY",
+  Saturday = "SATURDAY",
+  Sunday = "SUNDAY",
+}
+
+export const WEEKDAY_LABELS: Record<Weekday, string> = {
+  [Weekday.Monday]: "Pazartesi",
+  [Weekday.Tuesday]: "Salı",
+  [Weekday.Wednesday]: "Çarşamba",
+  [Weekday.Thursday]: "Perşembe",
+  [Weekday.Friday]: "Cuma",
+  [Weekday.Saturday]: "Cumartesi",
+  [Weekday.Sunday]: "Pazar",
+};
+
+export const WEEKDAY_ORDER: Weekday[] = [
+  Weekday.Monday,
+  Weekday.Tuesday,
+  Weekday.Wednesday,
+  Weekday.Thursday,
+  Weekday.Friday,
+  Weekday.Saturday,
+  Weekday.Sunday,
+];
+
+export interface MentorAvailabilityRule {
+  id: string;
+  dayOfWeek: Weekday;
+  startTime: string;
+  endTime: string;
+  slotMinutes: number;
+}
+
 export interface MentorAvailabilitySlot {
   id: string;
   startsAt: string;

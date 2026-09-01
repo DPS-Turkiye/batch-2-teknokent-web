@@ -101,13 +101,13 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       {
         id: AppArea.Calendar,
         label: "Takvim",
-        href: "/calendar",
+        href: "/mentor-dashboard/calendar",
         icon: CalendarDays,
       },
       {
         id: AppArea.Meetings,
         label: "Mesajlar",
-        href: "/mentor-dashboard#requests",
+        href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
       ASSISTANT_NAV,
@@ -138,7 +138,15 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
 }
 
 function buildUtilityNavigation(role?: UserRole): NavigationItem[] {
-  if (role === UserRole.Admin || role === UserRole.Coordinator) {
+  // Every destination below was built around a mentee's organization, meeting
+  // flow or identity: /team needs an organization a mentor does not have and
+  // returns 401, and the meeting, assistant and notebook routes render mentee
+  // data. Mentors stay out until mentor equivalents exist.
+  if (
+    role === UserRole.Admin ||
+    role === UserRole.Coordinator ||
+    role === UserRole.Mentor
+  ) {
     return [];
   }
 

@@ -9,6 +9,7 @@ import {
   useMentorshipRequest,
   useMentorshipRequests,
   useReplyForm,
+  useRequestFileUpload,
   useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
@@ -40,6 +41,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorAvailability: vi.fn(),
   useAlternativeMentors: vi.fn(),
   useReplyForm: vi.fn(),
+  useRequestFileUpload: vi.fn(),
   useSlotBooking: vi.fn(),
   useWithdrawMentorRequest: vi.fn(),
 }));
@@ -64,6 +66,7 @@ describe("RequestStatusPage", () => {
   const sendReply = vi.fn();
   const bookSlot = vi.fn();
   const mutateAsync = vi.fn();
+  const uploadFile = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -99,6 +102,12 @@ describe("RequestStatusPage", () => {
       mutateAsync,
       isPending: false,
     } as unknown as ReturnType<typeof useWithdrawMentorRequest>);
+    vi.mocked(useRequestFileUpload).mockReturnValue({
+      data: undefined,
+      error: null,
+      isPending: false,
+      mutateAsync: uploadFile,
+    } as unknown as ReturnType<typeof useRequestFileUpload>);
   });
 
   it("shows the mentor's question and lets the mentee type a reply", async () => {
@@ -184,6 +193,22 @@ describe("RequestStatusPage", () => {
       "Merhaba",
     );
     expect(setReply).toHaveBeenCalled();
+  });
+
+  it("uploads a mentorship file from the accepted conversation", async () => {
+    vi.mocked(useMentorshipRequest).mockReturnValue({
+      data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
+      error: null,
+    } as ReturnType<typeof useMentorshipRequest>);
+    const user = userEvent.setup();
+    renderWithQueryClient(<RequestStatusPage />);
+
+    const file = new File(["content"], "financial-model.pdf", {
+      type: "application/pdf",
+    });
+    await user.upload(screen.getByLabelText("Mentorluk dosyası yükle"), file);
+
+    expect(uploadFile).toHaveBeenCalledWith(file);
   });
 
   it("shows alternative mentors when declined", () => {

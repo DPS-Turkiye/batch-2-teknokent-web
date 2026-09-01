@@ -75,13 +75,24 @@ export function useDashboardData() {
   const hasError = Boolean(meetingsQuery.error || requestsQuery.error);
   const meetings = meetingsQuery.data ?? (hasError ? FALLBACK_MEETINGS : []);
   const requests = requestsQuery.data ?? (hasError ? FALLBACK_REQUESTS : []);
+  const activeRequests = requests.filter(
+    (request) => request.status === MentorshipRequestStatus.Accepted,
+  );
+  const pendingRequests = requests.filter(
+    (request) =>
+      request.status === MentorshipRequestStatus.Pending ||
+      request.status === MentorshipRequestStatus.MoreInfoRequested,
+  );
 
   return {
+    activeRequests,
     displayName: session?.fullName.split(" ")[0] ?? "",
     organizationName: session?.organizationName ?? "",
     isFallback: hasError,
     isLoading: meetingsQuery.isLoading || requestsQuery.isLoading,
     nextMeeting: meetings[0] ?? null,
+    pendingRequests,
     requests,
+    upcomingMeetings: meetings.slice(1, 4),
   };
 }

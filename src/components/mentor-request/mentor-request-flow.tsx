@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { AppShell } from "@/components/hoc/app-shell";
@@ -205,7 +206,7 @@ export function MentorRequestFlow({
                       key={item}
                       type="button"
                       onClick={() => setArea(item)}
-                      className={`min-h-10 rounded-md border px-3 text-left text-sm ${area === item ? "border-[#555] bg-white" : "border-[#e5e7eb] bg-white"}`}
+                      className={`min-h-10 rounded-xl border px-3 text-left text-sm ${area === item ? "border-[#e86f22] bg-[#fff9f5] text-[#c85816]" : "border-[#e5e7eb] bg-white"}`}
                     >
                       {item}
                     </button>
@@ -235,7 +236,7 @@ export function MentorRequestFlow({
                         type="button"
                         aria-pressed={urgency === option}
                         onClick={() => setUrgency(option)}
-                        className={`min-h-10 rounded-md border px-3 text-sm ${urgency === option ? "border-[#555] bg-[#555] text-white" : "border-[#e5e7eb] bg-white"}`}
+                        className={`min-h-10 rounded-xl border px-3 text-sm ${urgency === option ? "border-[#e86f22] bg-[#e86f22] text-white" : "border-[#e5e7eb] bg-white"}`}
                       >
                         {option}
                       </button>
@@ -276,7 +277,7 @@ export function MentorRequestFlow({
                         type="button"
                         key={label}
                         onClick={() => setFormat(label)}
-                        className={`rounded-lg border bg-white p-4 text-left ${format === label ? "border-[#555]" : "border-[#e5e7eb]"}`}
+                        className={`rounded-2xl border bg-white p-4 text-left ${format === label ? "border-[#e86f22] bg-[#fff9f5]" : "border-[#e5e7eb]"}`}
                       >
                         <strong className="text-sm">{label}</strong>
                         <span className="mt-2 block text-xs leading-5 text-[#777]">
@@ -296,7 +297,7 @@ export function MentorRequestFlow({
                         type="button"
                         key={item}
                         onClick={() => setMeetingMode(item)}
-                        className={`rounded-full border px-4 py-2 text-sm ${meetingMode === item ? "border-[#555] bg-[#555] text-white" : "border-[#e5e7eb] bg-white"}`}
+                        className={`rounded-full border px-4 py-2 text-sm ${meetingMode === item ? "border-[#e86f22] bg-[#e86f22] text-white" : "border-[#e5e7eb] bg-white"}`}
                       >
                         {item}
                       </button>
@@ -408,7 +409,7 @@ export function MentorRequestFlow({
                         <input
                           type="checkbox"
                           defaultChecked={index === 0}
-                          className="size-4 accent-[#555]"
+                          className="size-4 accent-[#e86f22]"
                         />
                         {file}
                       </label>
@@ -430,7 +431,7 @@ export function MentorRequestFlow({
                     <button
                       key={filter}
                       type="button"
-                      className={`rounded-full border px-4 py-2 text-xs ${index === 0 ? "border-[#555] bg-[#555] text-white" : "border-[#e5e7eb] bg-white"}`}
+                      className={`rounded-full border px-4 py-2 text-xs ${index === 0 ? "border-[#e86f22] bg-[#e86f22] text-white" : "border-[#e5e7eb] bg-white"}`}
                     >
                       {filter}
                     </button>
@@ -458,7 +459,7 @@ export function MentorRequestFlow({
                 {mentors.map((item) => (
                   <article
                     key={item.id}
-                    className={`rounded-lg border bg-white p-4 ${mentorId === item.id ? "border-[#777]" : "border-[#e5e7eb]"}`}
+                    className={`rounded-2xl border bg-white p-4 ${mentorId === item.id ? "border-[#e86f22] shadow-sm" : "border-[#e5e7eb]"}`}
                   >
                     <div className="flex flex-wrap items-start gap-3">
                       <Avatar initials={item.initials} />
@@ -497,12 +498,17 @@ export function MentorRequestFlow({
                       <strong className="text-xs">Neden önerildi?</strong>
                       <ul className="mt-2 space-y-1 text-xs text-[#777]">
                         {item.recommendationReasons.map((reason) => (
-                          <li key={reason}>✓ {reason}</li>
+                          <li key={reason} className="flex items-start gap-1.5">
+                            <CheckCircle2 className="mt-0.5 size-3 shrink-0 text-[#e86f22]" />
+                            {reason}
+                          </li>
                         ))}
                       </ul>
                     </div>
                     <div className="mt-4 flex gap-2">
-                      <SecondaryButton href="/mentors/compare">
+                      <SecondaryButton
+                        href={`/mentors/${encodeURIComponent(item.id)}`}
+                      >
                         Profili Gör
                       </SecondaryButton>
                       <PrimaryButton onClick={() => setMentorId(item.id)}>

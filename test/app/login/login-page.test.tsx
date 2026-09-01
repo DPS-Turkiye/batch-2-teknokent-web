@@ -48,11 +48,14 @@ async function waitUntilLoginReady() {
 }
 
 describe("Login screen", () => {
-  it("clears any leftover session as soon as the login page opens", async () => {
+  it("does not sign anyone out just because the login page opened", async () => {
     render(<LoginPage />);
-
-    await waitFor(() => expect(logout).toHaveBeenCalled());
     await waitUntilLoginReady();
+
+    // The cookie and the Firebase session are shared across tabs, so logging
+    // out here signed out an authenticated tab elsewhere.
+    expect(logout).not.toHaveBeenCalled();
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
   });
 
   it("renders the shared login frame", async () => {

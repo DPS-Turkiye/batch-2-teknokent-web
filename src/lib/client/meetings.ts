@@ -18,6 +18,23 @@ export type UpdateMeetingPayload = {
   status?: MeetingStatus;
 };
 
+export type MeetingFeedbackPayload = {
+  ratings: number[];
+  benefits: string[];
+};
+
+export async function postMeetingFeedback(
+  meetingId: string,
+  payload: MeetingFeedbackPayload,
+) {
+  return requireSuccess(
+    await httpClient.post(
+      `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
+      payload,
+    ),
+  );
+}
+
 export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
   return requireSuccess(
     await httpClient.patch<MeetingItem>(
