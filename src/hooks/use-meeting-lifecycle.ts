@@ -5,6 +5,8 @@ import { useMemo, useState } from "react";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { useMeetings, useUpdateMeeting } from "@/hooks/use-meetings";
+import { postMeetingFeedback } from "@/lib/client/meetings";
+import { MEETING_FEEDBACK_QUESTIONS } from "@/lib/const";
 
 const fallbackMeeting: MeetingItem = {
   id: "preview-meeting",
@@ -122,11 +124,19 @@ export function useMeetingLifecycle() {
 }
 
 export function useMeetingFeedback() {
-  const [ratings, setRatings] = useState([4, 4, 5, 5]);
-  const [selectedBenefits, setSelectedBenefits] = useState(
-    () => new Set(["Finansal modeli anlamak", "Somut aksiyonlar belirlemek"]),
+  const searchParams = useSearchParams();
+  const meetingId = searchParams.get("id");
+  // Ratings track the questions the page renders; 0 means "not answered yet",
+  // so nothing is submitted on the user's behalf.
+  const [ratings, setRatings] = useState<number[]>(() =>
+    MEETING_FEEDBACK_QUESTIONS.map(() => 0),
+  );
+  const [selectedBenefits, setSelectedBenefits] = useState<Set<string>>(
+    () => new Set(),
   );
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
 
   function rate(questionIndex: number, value: number) {
     setRatings((current) =>
@@ -145,12 +155,40 @@ export function useMeetingFeedback() {
     });
   }
 
+  const canSubmit = ratings.every((rating) => rating > 0) && !submitting;
+
+  async function submit() {
+    if (!canSubmit) return;
+    // Without a meeting id there is nothing to attach the evaluation to, so the
+    // preview flow stays local rather than pretending to save.
+    if (!meetingId) {
+      setSubmitted(true);
+      return;
+    }
+    setSubmitError("");
+    setSubmitting(true);
+    try {
+      await postMeetingFeedback(meetingId, {
+        ratings,
+        benefits: [...selectedBenefits],
+      });
+      setSubmitted(true);
+    } catch {
+      setSubmitError("Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return {
+    canSubmit,
     rate,
     ratings,
     selectedBenefits,
-    submit: () => setSubmitted(true),
+    submit,
+    submitError,
     submitted,
+    submitting,
     toggleBenefit,
   };
 }

@@ -17,8 +17,17 @@ const benefits = [
 ];
 
 export default function MeetingFeedbackPage() {
-  const { rate, ratings, selectedBenefits, submit, submitted, toggleBenefit } =
-    useMeetingFeedback();
+  const {
+    canSubmit,
+    rate,
+    ratings,
+    selectedBenefits,
+    submit,
+    submitError,
+    submitted,
+    submitting,
+    toggleBenefit,
+  } = useMeetingFeedback();
 
   return (
     <AppShell
@@ -123,13 +132,23 @@ export default function MeetingFeedbackPage() {
                   className="mt-2 min-h-28 w-full resize-y rounded-xl border border-[#dfe2e6] p-4 text-sm font-normal outline-none"
                 />
               </label>
+              {submitError ? (
+                <p
+                  role="alert"
+                  className="mt-6 rounded-xl bg-[#fdeaea] px-4 py-3 text-sm text-[#b42318]"
+                >
+                  {submitError}
+                </p>
+              ) : null}
+
               <div className="mt-7 flex flex-wrap gap-3">
                 <button
                   type="button"
                   onClick={submit}
-                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white hover:bg-[#ce5e19]"
+                  disabled={!canSubmit}
+                  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Değerlendirmeyi gönder
+                  {submitting ? "Gönderiliyor..." : "Değerlendirmeyi gönder"}
                 </button>
                 <Link
                   href="/mentorships"

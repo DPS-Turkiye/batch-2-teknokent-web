@@ -63,11 +63,14 @@ beforeEach(() => {
     toggleAction,
   });
   vi.mocked(useMeetingFeedback).mockReturnValue({
+    canSubmit: true,
     rate,
-    ratings: [4, 4, 5, 5],
+    ratings: [4, 4, 5],
     selectedBenefits: new Set(["Finansal modeli anlamak"]),
     submit,
+    submitError: "",
     submitted: false,
+    submitting: false,
     toggleBenefit,
   });
 });
@@ -107,5 +110,44 @@ describe("meeting lifecycle pages", () => {
 
     await user.click(screen.getByText("Değerlendirmeyi gönder"));
     expect(submit).toHaveBeenCalledOnce();
+  });
+
+  it("will not submit an evaluation until every question is rated", async () => {
+    vi.mocked(useMeetingFeedback).mockReturnValue({
+      canSubmit: false,
+      rate,
+      ratings: [4, 0, 0],
+      selectedBenefits: new Set<string>(),
+      submit,
+      submitError: "",
+      submitted: false,
+      submitting: false,
+      toggleBenefit,
+    });
+    const user = userEvent.setup();
+    render(<MeetingFeedbackPage />);
+
+    await user.click(screen.getByText("Değerlendirmeyi gönder"));
+
+    expect(submit).not.toHaveBeenCalled();
+  });
+
+  it("shows a failed submission instead of a success state", () => {
+    vi.mocked(useMeetingFeedback).mockReturnValue({
+      canSubmit: true,
+      rate,
+      ratings: [4, 4, 5],
+      selectedBenefits: new Set<string>(),
+      submit,
+      submitError: "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.",
+      submitted: false,
+      submitting: false,
+      toggleBenefit,
+    });
+    render(<MeetingFeedbackPage />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Değerlendirme kaydedilemedi",
+    );
   });
 });

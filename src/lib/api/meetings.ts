@@ -25,6 +25,19 @@ export function createMeeting(
   });
 }
 
+export function submitMeetingFeedback(
+  meetingId: string,
+  authorId: string,
+  payload: Record<string, unknown>,
+) {
+  return backendRequest({
+    method: "POST",
+    url: `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
+    params: { authorId },
+    data: payload,
+  });
+}
+
 export function updateMeeting(id: string, payload: Record<string, unknown>) {
   return backendRequest({
     method: "PATCH",
