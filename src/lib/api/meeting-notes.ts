@@ -95,3 +95,27 @@ export function issueRealtimeToken(session: SessionIds) {
     data: session,
   });
 }
+
+export function fetchAssistantShare(meetingId: string, organizationId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: meetingPath(meetingId, "/assistant-share"),
+    params: { organizationId },
+  });
+}
+
+export function publishAssistantShare(
+  meetingId: string,
+  actorId: string,
+  payload: {
+    kind: "TRANSCRIPT" | "REPORT";
+    transcript?: unknown;
+    report?: unknown;
+  },
+) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: meetingPath(meetingId, "/assistant-share"),
+    data: { ...payload, actorId },
+  });
+}

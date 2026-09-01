@@ -1,5 +1,6 @@
 export enum AppArea {
   Admin = "admin",
+  Programs = "programs",
   Home = "home",
   MentorDashboard = "mentor-dashboard",
   Mentorships = "mentorships",

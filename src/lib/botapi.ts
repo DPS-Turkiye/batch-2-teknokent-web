@@ -36,7 +36,7 @@ export async function stopMeetingBotBackend(
 export async function generateMeetingReportBackend(
   platform: string,
   nativeMeetingId: string,
-  body: { model?: string },
+  body: { model?: string; segments?: unknown[] },
 ): Promise<{ data: unknown; status: number }> {
   const response = await backendRequest(
     {

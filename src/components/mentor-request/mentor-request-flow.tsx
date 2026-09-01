@@ -479,13 +479,20 @@ export function MentorRequestFlow({
                       <Badge>{item.availabilityLabel}</Badge>
                     </div>
                     <div className="mt-4 grid gap-2 border-t border-[#f0f0f0] py-3 text-xs text-[#777] md:grid-cols-3">
-                      {[
-                        item.meetingMode,
-                        item.communicationPreference,
-                        item.mentoringStyle,
-                      ].map((meta) => (
-                        <span key={meta}>{meta}</span>
-                      ))}
+                      {(
+                        [
+                          ["meetingMode", item.meetingMode],
+                          [
+                            "communicationPreference",
+                            item.communicationPreference,
+                          ],
+                          ["mentoringStyle", item.mentoringStyle],
+                        ] as const
+                      )
+                        .filter(([, value]) => value.trim().length > 0)
+                        .map(([field, value]) => (
+                          <span key={field}>{value}</span>
+                        ))}
                     </div>
                     <div className="rounded-md bg-[#f9fafb] p-3">
                       <strong className="text-xs">Neden önerildi?</strong>

@@ -3,6 +3,7 @@
 import { Check } from "lucide-react";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { RequiredHint } from "@/components/common/required-hint";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import { PROGRAM_STAGES, SUPPORT_TOPICS } from "@/interfaces/mentor-onboarding";
 
@@ -30,6 +31,7 @@ export function CompatibilityStep({ flow }: { flow: MentorOnboarding }) {
           selected={draft.supportTopics}
           onToggle={toggleSupportTopic}
         />
+        <RequiredHint show={draft.supportTopics.length === 0} />
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
@@ -80,6 +82,7 @@ export function CompatibilityStep({ flow }: { flow: MentorOnboarding }) {
             );
           })}
         </div>
+        <RequiredHint show={draft.programStages.length === 0} />
       </section>
 
       <p className="rounded-2xl bg-[#f1f2f4] p-4 text-xs text-[#676e78]">

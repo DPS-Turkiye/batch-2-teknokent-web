@@ -1,11 +1,14 @@
 import type {
+  MeetingAssistantShare,
   MeetingNote,
   MeetingNoteDocument,
   MeetingTodo,
+  PublishAssistantSharePayload,
   RealtimeToken,
 } from "@/interfaces/meeting-note";
 import { requireSuccess } from "@/lib/client/api";
 import {
+  getAssistantShareApiUrl,
   getMeetingNoteApiUrl,
   getMeetingNoteDocumentApiUrl,
   getMeetingTodoApiUrl,
@@ -75,5 +78,25 @@ export async function removeMeetingTodo(meetingId: string, todoId: string) {
 export async function postRealtimeToken() {
   return requireSuccess(
     await httpClient.post<RealtimeToken>(REALTIME_TOKEN_API_PATH),
+  );
+}
+
+export async function getAssistantShare(meetingId: string) {
+  return requireSuccess(
+    await httpClient.get<MeetingAssistantShare>(
+      getAssistantShareApiUrl(meetingId),
+    ),
+  );
+}
+
+export async function postAssistantShare(
+  meetingId: string,
+  payload: PublishAssistantSharePayload,
+) {
+  return requireSuccess(
+    await httpClient.post<MeetingAssistantShare>(
+      getAssistantShareApiUrl(meetingId),
+      payload,
+    ),
   );
 }

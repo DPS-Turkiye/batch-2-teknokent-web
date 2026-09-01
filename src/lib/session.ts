@@ -56,8 +56,17 @@ export function toSession(user: BackendUser): AppSession | null {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
-      jobTitle: user.jobTitle ?? "Koordinatör",
+      jobTitle: user.jobTitle ?? "Admin",
       role: UserRole.Admin,
+    };
+  }
+  if (user.role === UserRole.Coordinator) {
+    return {
+      userId: user.id,
+      email: user.email,
+      fullName: user.fullName,
+      jobTitle: user.jobTitle ?? "Koordinatör",
+      role: UserRole.Coordinator,
     };
   }
   return null;

@@ -10,6 +10,7 @@ import { httpClient } from "@/lib/http-client";
 import type {
   AddBotResult,
   MeetingReport,
+  TranscriptLine,
   TranscriptSegment,
 } from "@/types/assistant";
 
@@ -76,11 +77,12 @@ export async function fetchTranscript(
 export async function generateMeetingReport(
   platform: string,
   nativeMeetingId: string,
+  segments: TranscriptLine[],
 ): Promise<MeetingReport> {
   try {
     const response = await httpClient.post(
       getMeetingReportApiUrl(platform, nativeMeetingId),
-      {},
+      { segments },
     );
     return response.data as MeetingReport;
   } catch (error) {
