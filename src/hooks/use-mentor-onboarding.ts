@@ -53,6 +53,48 @@ function restoreDraft(): {
   };
 }
 
+function filled(value: string) {
+  return value.trim().length > 0;
+}
+
+function orFallback(value: string, fallback: string) {
+  return filled(value) ? value.trim() : fallback;
+}
+
+function hasIntroProfile(profile: ParsedProfile) {
+  return (
+    filled(profile.title) &&
+    filled(profile.company) &&
+    filled(profile.totalExperience)
+  );
+}
+
+function toUpdatePayload(
+  draft: MentorOnboardingDraft,
+): UpdateMentorProfilePayload {
+  const expertise = draft.expertise.join(", ");
+  return {
+    professionalTitle: orFallback(draft.profile.title, "Mentor"),
+    company: orFallback(draft.profile.company, "Bağımsız"),
+    availabilityLabel: "",
+    responseTimeLabel: "",
+    meetingMode: "",
+    communicationPreference: "",
+    mentoringStyle: draft.mentoringStyles.join(", "),
+    fitLabel: "",
+    experienceLevel: orFallback(
+      draft.profile.totalExperience,
+      expertise || "Mentor",
+    ),
+    sectorExperience: orFallback(
+      draft.sectors.join(", "),
+      expertise || "Genel",
+    ),
+    startupStages: orFallback(draft.workingStages.join(", "), "Belirtilmedi"),
+    specialties: draft.expertise,
+  };
+}
+
 function toggle(list: string[], value: string) {
   return list.includes(value)
     ? list.filter((item) => item !== value)
@@ -226,20 +268,7 @@ export function useMentorOnboarding() {
       if (!idToken) {
         throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
       }
-      const payload: UpdateMentorProfilePayload = {
-        professionalTitle: draft.profile.title.trim(),
-        company: draft.profile.company.trim(),
-        availabilityLabel: "",
-        responseTimeLabel: "",
-        meetingMode: "",
-        communicationPreference: "",
-        mentoringStyle: draft.mentoringStyles.join(", "),
-        fitLabel: "",
-        experienceLevel: draft.profile.totalExperience.trim(),
-        sectorExperience: draft.sectors.join(", "),
-        startupStages: draft.workingStages.join(", "),
-        specialties: draft.expertise,
-      };
+      const payload = toUpdatePayload(draft);
       await updateMentorProfile(payload, idToken);
       clearDraft(DRAFT_KEY);
       setCompleted(true);
@@ -253,12 +282,18 @@ export function useMentorOnboarding() {
   const expertiseLimitReached = draft.expertise.length >= MAX_EXPERTISE_AREAS;
 
   const canContinue = useMemo(() => {
-    if (step === MentorOnboardingStep.Intro) return phase === IntroPhase.Review;
+    if (step === MentorOnboardingStep.Intro) {
+      return phase === IntroPhase.Review && hasIntroProfile(draft.profile);
+    }
     if (step === MentorOnboardingStep.Expertise)
       return draft.expertise.length > 0;
     if (step === MentorOnboardingStep.Compatibility)
       return draft.supportTopics.length > 0 && draft.programStages.length > 0;
-    return draft.mentoringStyles.length > 0;
+    return (
+      draft.mentoringStyles.length > 0 &&
+      draft.workingStages.length > 0 &&
+      draft.sectors.length > 0
+    );
   }, [draft, phase, step]);
 
   return {

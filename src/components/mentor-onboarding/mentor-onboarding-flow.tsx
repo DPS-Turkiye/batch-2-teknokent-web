@@ -80,7 +80,7 @@ export function MentorOnboardingFlow() {
           </Link>
           <span className="ml-auto rounded-full border border-[#e4e7ea] px-3 py-1.5 text-xs text-[#676e78]">
             {completed
-              ? "Mentor profili hazır"
+              ? "Başvuru gönderildi"
               : `Mentor profil kurulumu ${step}/4`}
           </span>
         </div>

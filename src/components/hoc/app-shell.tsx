@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ChevronDown,
   ClipboardList,
+  FolderKanban,
   FolderOpen,
   Home,
   LogOut,
@@ -47,6 +48,20 @@ type NavigationItem = {
   icon: LucideIcon;
 };
 
+const NOTES_NAV: NavigationItem = {
+  id: AppArea.Notes,
+  label: "Not Defterlerim",
+  href: "/notes",
+  icon: NotebookPen,
+};
+
+const ASSISTANT_NAV: NavigationItem = {
+  id: AppArea.Assistant,
+  label: "Toplantı Asistanı",
+  href: "/assistant",
+  icon: Bot,
+};
+
 function buildNavigation(role?: UserRole): NavigationItem[] {
   if (role === UserRole.Admin) {
     return [
@@ -55,6 +70,16 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         label: "Başvurular",
         href: "/admin",
         icon: ClipboardList,
+      },
+    ];
+  }
+  if (role === UserRole.Coordinator) {
+    return [
+      {
+        id: AppArea.Programs,
+        label: "Programlar",
+        href: "/programs",
+        icon: FolderKanban,
       },
     ];
   }
@@ -84,6 +109,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         href: "/mentor-dashboard#requests",
         icon: MessageCircle,
       },
+      ASSISTANT_NAV,
     ];
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
@@ -106,47 +132,44 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       href: "/mentor-request/status",
       icon: MessageCircle,
     },
+    NOTES_NAV,
   ];
 }
 
-const utilityNavigation: NavigationItem[] = [
-  {
-    id: AppArea.Team,
-    label: "Ekibim",
-    href: "/team",
-    icon: UserPlus,
-  },
-  {
-    id: AppArea.Meetings,
-    label: "Toplantılar",
-    href: "/meetings/research",
-    icon: Video,
-  },
-  {
-    id: AppArea.Actions,
-    label: "Aksiyonlar",
-    href: "/meetings/research/prepare",
-    icon: ClipboardList,
-  },
-  {
-    id: AppArea.Files,
-    label: "Dosyalar",
-    href: "/meetings/research",
-    icon: FolderOpen,
-  },
-  {
-    id: AppArea.Assistant,
-    label: "Toplantı Asistanı",
-    href: "/assistant",
-    icon: Bot,
-  },
-  {
-    id: AppArea.Notes,
-    label: "Not Defterleri",
-    href: "/notes",
-    icon: NotebookPen,
-  },
-];
+function buildUtilityNavigation(role?: UserRole): NavigationItem[] {
+  if (role === UserRole.Admin || role === UserRole.Coordinator) {
+    return [];
+  }
+
+  const extras: NavigationItem[] = [
+    {
+      id: AppArea.Team,
+      label: "Ekibim",
+      href: "/team",
+      icon: UserPlus,
+    },
+    {
+      id: AppArea.Meetings,
+      label: "Toplantılar",
+      href: "/meetings/research",
+      icon: Video,
+    },
+    {
+      id: AppArea.Actions,
+      label: "Aksiyonlar",
+      href: "/meetings/research/prepare",
+      icon: ClipboardList,
+    },
+    {
+      id: AppArea.Files,
+      label: "Dosyalar",
+      href: "/meetings/research",
+      icon: FolderOpen,
+    },
+  ];
+
+  return extras;
+}
 
 function BrandBlock({ href }: { href: string }) {
   return (
@@ -180,25 +203,32 @@ export function AppShell({
   const session = useAppSession();
   const { logout } = useSession();
   const isAdmin = session?.role === UserRole.Admin;
+  const isCoordinator = session?.role === UserRole.Coordinator;
   const isMentor = session?.role === UserRole.Mentor;
   const homeHref = isAdmin
     ? "/admin"
-    : isMentor
-      ? "/mentor-dashboard"
-      : "/dashboard";
+    : isCoordinator
+      ? "/programs"
+      : isMentor
+        ? "/mentor-dashboard"
+        : "/dashboard";
   const profileHref = isMentor
     ? "/mentor-profile"
     : isAdmin
       ? "/admin"
-      : "/profile";
+      : isCoordinator
+        ? "/programs"
+        : "/profile";
   const navigation = buildNavigation(session?.role);
-  const extras = isAdmin ? [] : utilityNavigation;
+  const extras = buildUtilityNavigation(session?.role);
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization = isAdmin
     ? "Admin"
-    : isMentor
-      ? "Mentor"
-      : (session?.organizationName ?? "NovaMed AI");
+    : isCoordinator
+      ? "Koordinatör"
+      : isMentor
+        ? "Mentor"
+        : (session?.organizationName ?? "NovaMed AI");
 
   async function handleLogout() {
     await logout();
@@ -221,7 +251,7 @@ export function AppShell({
                 <Link
                   key={`${item.label}-${item.href}`}
                   href={item.href}
-                  className={`flex h-10 items-center gap-2 rounded-full px-4 text-[13px] font-medium transition ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 xl:px-4 ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
                   {item.label}
@@ -253,15 +283,17 @@ export function AppShell({
               href={
                 isAdmin
                   ? "/admin"
-                  : isMentor
-                    ? "/mentor-dashboard#notifications"
-                    : "/dashboard#notifications"
+                  : isCoordinator
+                    ? "/programs"
+                    : isMentor
+                      ? "/mentor-dashboard#notifications"
+                      : "/dashboard#notifications"
               }
               aria-label="Duyurular"
               className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
             >
               <Bell className="size-[18px]" strokeWidth={1.8} />
-              {DASHBOARD_NOTIFICATIONS.length ? (
+              {!isCoordinator && DASHBOARD_NOTIFICATIONS.length ? (
                 <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
                   {DASHBOARD_NOTIFICATIONS.length}
                 </span>

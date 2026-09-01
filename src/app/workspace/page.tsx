@@ -20,22 +20,29 @@ export default function WorkspacePage() {
     null,
   );
   const isAdmin = session?.role === UserRole.Admin;
+  const isCoordinator = session?.role === UserRole.Coordinator;
   const isMentor = session?.role === UserRole.Mentor;
   const homeHref = isAdmin
     ? "/admin"
-    : isMentor
-      ? "/mentor-dashboard"
-      : "/dashboard";
+    : isCoordinator
+      ? "/programs"
+      : isMentor
+        ? "/mentor-dashboard"
+        : "/dashboard";
   const workspaceTitle = isAdmin
     ? (session?.fullName ?? "Admin")
-    : isMentor
-      ? (session?.fullName ?? "Mentor")
-      : (session?.organizationName ?? "");
+    : isCoordinator
+      ? (session?.fullName ?? "Koordinatör")
+      : isMentor
+        ? (session?.fullName ?? "Mentor")
+        : (session?.organizationName ?? "");
   const workspaceRole = isAdmin
     ? "Admin"
-    : isMentor
-      ? "Mentor"
-      : "Girişim Ekibi";
+    : isCoordinator
+      ? "Koordinatör"
+      : isMentor
+        ? "Mentor"
+        : "Girişim Ekibi";
 
   return (
     <div className="min-h-screen bg-zinc-100">

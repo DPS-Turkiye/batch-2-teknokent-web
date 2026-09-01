@@ -2,11 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { MeetingNote, MeetingTodo } from "@/interfaces/meeting-note";
+import type {
+  MeetingAssistantShare,
+  MeetingNote,
+  MeetingTodo,
+  PublishAssistantSharePayload,
+} from "@/interfaces/meeting-note";
 import {
+  getAssistantShare,
   getMeetingNote,
   getMeetingTodos,
   patchMeetingTodo,
+  postAssistantShare,
   postMeetingTodo,
   putMeetingNote,
   removeMeetingTodo,
@@ -77,4 +84,30 @@ export function useDeleteMeetingTodo(meetingId: string) {
   return useTodoMutation(meetingId, (todoId: string) =>
     removeMeetingTodo(meetingId, todoId),
   );
+}
+
+export const assistantShareQueryKey = (meetingId: string) =>
+  ["assistant-share", meetingId] as const;
+
+export function useAssistantShare(meetingId: string) {
+  return useQuery({
+    queryKey: assistantShareQueryKey(meetingId),
+    queryFn: () => getAssistantShare(meetingId),
+    enabled: Boolean(meetingId),
+  });
+}
+
+export function usePublishAssistantShare() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      meetingId,
+      payload,
+    }: {
+      meetingId: string;
+      payload: PublishAssistantSharePayload;
+    }) => postAssistantShare(meetingId, payload),
+    onSuccess: (share: MeetingAssistantShare) =>
+      queryClient.setQueryData(assistantShareQueryKey(share.meetingId), share),
+  });
 }

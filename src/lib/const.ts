@@ -96,6 +96,10 @@ export function getMeetingTodoApiUrl(
   return `${getMeetingTodosApiUrl(meetingId)}/${encodeURIComponent(todoId)}`;
 }
 
+export function getAssistantShareApiUrl(meetingId: string): string {
+  return `/api/meetings/${encodeURIComponent(meetingId)}/assistant-share`;
+}
+
 export function getMeetingRoomTopic(meetingId: string): string {
   return `/topic/meetings/${meetingId}`;
 }

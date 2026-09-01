@@ -28,6 +28,15 @@ vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn().mockResolvedValue({}),
 }));
 
+async function fillRequiredIntro(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(
+    screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
+  );
+  await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
+  await user.type(screen.getByLabelText(/Şirket/), "Peak");
+  await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
+}
+
 async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/^Ad/), "Nihan");
   await user.type(screen.getByLabelText(/Soyad/), "Öztürk");
@@ -122,6 +131,14 @@ describe("Mentor onboarding flow", () => {
     expect(
       screen.getByRole("heading", { name: "Bilgilerinizi kontrol edin" }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Devam et" })).toBeDisabled();
+    expect(
+      screen.getAllByText("Bu alanı doldurman zorunlu.").length,
+    ).toBeGreaterThan(0);
+
+    await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
+    await user.type(screen.getByLabelText(/Şirket/), "Peak");
+    await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
     expect(screen.getByRole("button", { name: "Devam et" })).toBeEnabled();
   });
 
@@ -129,9 +146,7 @@ describe("Mentor onboarding flow", () => {
     const user = userEvent.setup();
     render(<MentorOnboardingFlow />);
 
-    await user.click(
-      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
-    );
+    await fillRequiredIntro(user);
     await user.click(screen.getByRole("button", { name: "Devam et" }));
 
     for (const area of [
@@ -156,9 +171,7 @@ describe("Mentor onboarding flow", () => {
     const user = userEvent.setup();
     render(<MentorOnboardingFlow />);
 
-    await user.click(
-      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
-    );
+    await fillRequiredIntro(user);
     await user.click(screen.getByRole("button", { name: "Devam et" }));
 
     await user.click(screen.getByRole("button", { name: "Finans" }));
@@ -179,11 +192,15 @@ describe("Mentor onboarding flow", () => {
       }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Problem çözme" }));
+    await user.click(screen.getByRole("button", { name: "MVP" }));
+    await user.click(screen.getByRole("button", { name: "SaaS" }));
     await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
 
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: "Mentor profiliniz hazır" }),
+        screen.getByRole("heading", {
+          name: "Başvurunuz onay için gönderildi",
+        }),
       ).toBeInTheDocument(),
     );
     expect(updateMentorProfile).toHaveBeenCalledWith(
@@ -195,11 +212,11 @@ describe("Mentor onboarding flow", () => {
     );
     expect(screen.getByText("Finans")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Mentor paneline geç" }),
-    ).toHaveAttribute("href", "/mentor-dashboard");
+      screen.getByRole("link", { name: "Başvuru durumunu görüntüle" }),
+    ).toHaveAttribute("href", "/application-status");
     expect(
-      screen.getByRole("link", { name: "Profilimi görüntüle" }),
-    ).toHaveAttribute("href", "/mentor-profile");
+      screen.queryByRole("link", { name: "Mentor paneline geç" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lets the mentor step back to a previous step", async () => {
@@ -211,6 +228,9 @@ describe("Mentor onboarding flow", () => {
     await user.click(
       screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
     );
+    await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
+    await user.type(screen.getByLabelText(/Şirket/), "Peak");
+    await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
     await user.click(screen.getByRole("button", { name: "Devam et" }));
     expect(screen.getByRole("button", { name: "Geri" })).toBeEnabled();
 

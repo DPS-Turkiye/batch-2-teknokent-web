@@ -41,6 +41,16 @@ function reachReview(result: {
   act(() => void vi.advanceTimersByTime(CV_PARSE_MS));
 }
 
+function fillIntroProfile(result: {
+  current: ReturnType<typeof useMentorOnboarding>;
+}) {
+  act(() => {
+    result.current.updateProfile("title", "Ürün Direktörü");
+    result.current.updateProfile("company", "Peak");
+    result.current.updateProfile("totalExperience", "9 yıl");
+  });
+}
+
 describe("useMentorOnboarding", () => {
   it("starts on the intro step awaiting a CV", () => {
     const { result } = renderHook(() => useMentorOnboarding());
@@ -61,6 +71,9 @@ describe("useMentorOnboarding", () => {
 
     act(() => void vi.advanceTimersByTime(CV_PARSE_MS));
     expect(result.current.phase).toBe(IntroPhase.Review);
+    expect(result.current.canContinue).toBe(false);
+
+    fillIntroProfile(result);
     expect(result.current.canContinue).toBe(true);
   });
 
@@ -71,6 +84,9 @@ describe("useMentorOnboarding", () => {
 
     expect(result.current.phase).toBe(IntroPhase.Review);
     expect(result.current.draft.cv).toBeNull();
+    expect(result.current.canContinue).toBe(false);
+
+    fillIntroProfile(result);
     expect(result.current.canContinue).toBe(true);
   });
 
@@ -161,6 +177,12 @@ describe("useMentorOnboarding", () => {
     expect(result.current.canContinue).toBe(false);
 
     act(() => result.current.toggleMentoringStyle("Problem çözme"));
+    expect(result.current.canContinue).toBe(false);
+
+    act(() => result.current.toggleWorkingStage("MVP"));
+    expect(result.current.canContinue).toBe(false);
+
+    act(() => result.current.toggleSector("SaaS"));
     expect(result.current.canContinue).toBe(true);
 
     await act(async () => {
@@ -231,7 +253,7 @@ describe("useMentorOnboarding — saving the profile", () => {
         communicationPreference: "",
         mentoringStyle: "Problem çözme",
         fitLabel: "",
-        experienceLevel: "",
+        experienceLevel: "Finans",
         sectorExperience: "SaaS, Fintech",
         startupStages: "MVP",
         specialties: ["Finans"],

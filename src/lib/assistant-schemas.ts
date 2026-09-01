@@ -11,4 +11,15 @@ export const transcriptQuerySchema = z.object({
 
 export const generateMeetingReportBodySchema = z.object({
   model: z.string().trim().min(1).optional(),
+  segments: z
+    .array(
+      z.object({
+        id: z.string(),
+        speaker: z.string(),
+        text: z.string(),
+        at: z.string(),
+      }),
+    )
+    .min(1)
+    .optional(),
 });

@@ -132,11 +132,15 @@ describe("assistant lib", () => {
       createAxiosResponse(report, 200),
     );
 
-    const result = await generateMeetingReport("google_meet", "abc-defg-hij");
+    const result = await generateMeetingReport("google_meet", "abc-defg-hij", [
+      { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+    ]);
 
     expect(httpClient.post).toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-      {},
+      {
+        segments: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
+      },
     );
     expect(result).toEqual(report);
   });
@@ -147,7 +151,9 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij"),
+      generateMeetingReport("google_meet", "abc-defg-hij", [
+        { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+      ]),
     ).rejects.toThrow("invalid api key");
   });
 
@@ -155,7 +161,9 @@ describe("assistant lib", () => {
     vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij"),
+      generateMeetingReport("google_meet", "abc-defg-hij", [
+        { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+      ]),
     ).rejects.toThrow("Failed to generate meeting report (502)");
   });
 });

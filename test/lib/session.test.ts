@@ -87,8 +87,27 @@ describe("toSession", () => {
       userId: "10000000-0000-0000-0000-000000000001",
       email: "mentee@teknokent.demo",
       fullName: "Deniz Arslan",
-      jobTitle: "Koordinatör",
+      jobTitle: "Admin",
       role: UserRole.Admin,
+    });
+  });
+
+  it("builds a coordinator session without requiring an organization", () => {
+    expect(
+      toSession(
+        mentee({
+          role: UserRole.Coordinator,
+          organizationId: null,
+          organizationName: null,
+          jobTitle: null,
+        }),
+      ),
+    ).toEqual({
+      userId: "10000000-0000-0000-0000-000000000001",
+      email: "mentee@teknokent.demo",
+      fullName: "Deniz Arslan",
+      jobTitle: "Koordinatör",
+      role: UserRole.Coordinator,
     });
   });
 });

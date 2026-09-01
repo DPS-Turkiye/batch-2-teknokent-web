@@ -18,6 +18,23 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/hooks/use-meetings", () => ({
+  useMeetings: () => ({
+    data: [
+      {
+        id: "meeting-1",
+        organizationId: "org-1",
+        scheduledAt: "2026-09-01T10:00:00Z",
+        durationMinutes: 45,
+        agenda: "Sprint review",
+        status: "SCHEDULED",
+      },
+    ],
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 vi.mock("@/lib/http-client", () => ({
   httpClient: {
     post: vi.fn(),
@@ -78,8 +95,15 @@ describe("AssistantPage integration", () => {
     });
   });
 
-  it("stops an added meeting and renders generated report", async () => {
+  it("stops an added meeting then generates a report from the transcript", async () => {
     const user = userEvent.setup();
+    const segments = [
+      { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+    ];
+
+    vi.mocked(httpClient.get).mockResolvedValue(
+      createAxiosResponse({ segments }, 200),
+    );
 
     vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
       if (url === getBotApiUrl()) {
@@ -144,10 +168,21 @@ describe("AssistantPage integration", () => {
       );
     });
 
+    expect(httpClient.post).not.toHaveBeenCalledWith(
+      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      expect.anything(),
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Düzenlenebilir")).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("button", { name: "Rapor üret" }));
+
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-        {},
+        { segments },
       );
     });
 
