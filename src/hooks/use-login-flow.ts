@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
@@ -18,27 +18,19 @@ export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
 
 export function useLoginFlow() {
   const router = useRouter();
-  const { login, logout } = useSession();
+  const { login } = useSession();
   const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [notice, setNotice] = useState("");
-  const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    logout()
-      .catch(() => undefined)
-      .finally(() => {
-        if (active) setIsReady(true);
-      });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // Nothing to prepare: the form is usable immediately. This used to await a
+  // logout on mount, which let a second tab sitting on /login sign out an
+  // authenticated tab - the cookie and Firebase session are shared across tabs.
+  // Logout is an explicit action only.
+  const isReady = true;
 
   async function submitLogin(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

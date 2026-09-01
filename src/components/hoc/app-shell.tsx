@@ -192,7 +192,11 @@ export function AppShell({
       ? "/admin"
       : "/profile";
   const navigation = buildNavigation(session?.role);
-  const extras = isAdmin ? [] : utilityNavigation;
+  // Every utility destination was built around a mentee's organization, meeting
+  // flow or identity: /team needs an organization a mentor does not have, and the
+  // meeting, assistant and notebook routes render mentee data. They stay hidden
+  // for mentors until mentor equivalents exist.
+  const extras = isAdmin || isMentor ? [] : utilityNavigation;
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization = isAdmin
     ? "Admin"
