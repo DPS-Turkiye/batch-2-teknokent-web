@@ -98,7 +98,12 @@ describe("AppShell navigation", () => {
     ).toHaveAttribute("href", "/mentor-dashboard#mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
-      "/calendar",
+      "/mentor-dashboard/calendar",
+    );
+    // Messaging is its own screen now, not an anchor to the request list.
+    expect(screen.getByRole("link", { name: /Mesajlar/ })).toHaveAttribute(
+      "href",
+      "/mentor-dashboard/messages",
     );
     expect(screen.getByRole("link", { name: /Duyurular/ })).toHaveAttribute(
       "href",

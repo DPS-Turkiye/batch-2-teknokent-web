@@ -75,7 +75,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       {
         id: AppArea.Calendar,
         label: "Takvim",
-        href: "/calendar",
+        href: "/mentor-dashboard/calendar",
         icon: CalendarDays,
       },
       {
