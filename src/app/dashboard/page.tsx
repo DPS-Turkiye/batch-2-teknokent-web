@@ -117,7 +117,7 @@ export default function DashboardPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-base font-semibold">Hızlı işlemler</h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               ["Mentor bul", "Yeni bir uzmanla eşleş", "/mentor-request", Plus],
               [
@@ -127,15 +127,9 @@ export default function DashboardPage() {
                 Sparkles,
               ],
               [
-                "Takvimi aç",
-                "Programını ve uygunluğu gör",
-                "/calendar",
-                CalendarDays,
-              ],
-              [
-                "Dosya gönder",
-                "Mentor talebine dosya ekle",
-                "/mentor-request/status",
+                "Mentorluk taleplerim",
+                "Taleplerinin durumunu izle",
+                "/mentorships",
                 FileUp,
               ],
             ].map(([label, description, href, Icon]) => (
