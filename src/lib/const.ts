@@ -13,7 +13,6 @@ import type { Meeting, MeetingStatusMeta } from "@/types/assistant";
 import { MeetingPlatform, MeetingStatus } from "@/types/assistant";
 import type { MentorRequestMentor } from "@/types/mentor-request";
 import { MentorRequestStep } from "@/types/mentor-request";
-import { MentorshipDetailTab } from "@/types/mentorship";
 
 export const DEFAULT_APP_URL = "http://localhost:3000";
 export const DEFAULT_BACKEND_URL = "http://localhost:8080";
@@ -396,16 +395,6 @@ export const MENTOR_REQUEST_URGENCY_OPTIONS = [
   "Bu ay",
   "Acil değil",
 ] as const;
-
-export const MENTORSHIP_DETAIL_TABS: {
-  id: MentorshipDetailTab;
-  label: string;
-}[] = [
-  { id: MentorshipDetailTab.Overview, label: "Genel Bakış" },
-  { id: MentorshipDetailTab.Meetings, label: "Toplantılar" },
-  { id: MentorshipDetailTab.Actions, label: "Aksiyonlar" },
-  { id: MentorshipDetailTab.Files, label: "Dosyalar" },
-];
 
 export const MENTOR_REQUEST_MENTORS: MentorRequestMentor[] = [
   {

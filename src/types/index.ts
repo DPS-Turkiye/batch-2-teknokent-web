@@ -28,6 +28,5 @@ export type {
 } from "@/types/landing";
 export type { MentorRequestMentor } from "@/types/mentor-request";
 export { MentorRequestStep } from "@/types/mentor-request";
-export { MentorshipDetailTab } from "@/types/mentorship";
 export { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
 export type { LoginRoleGroup, LoginRoleOption } from "@/interfaces/login";
