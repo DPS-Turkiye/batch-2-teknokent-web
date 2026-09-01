@@ -10,7 +10,13 @@ import {
   type MentorAvailabilityRule,
   type MentorAvailabilitySlot,
 } from "@/interfaces/mentor";
-import { getMeetings } from "@/lib/client/meetings";
+import { getMeetings, postMeeting } from "@/lib/client/meetings";
+import {
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
@@ -84,6 +90,25 @@ export function useMentorCalendar() {
     void queryClient.invalidateQueries({ queryKey: AVAILABILITY_SLOTS_KEY });
   }
 
+  const requestsQuery = useMentorshipRequests(UserRole.Mentor);
+
+  // Only an accepted mentorship can host a meeting; the proxy resolves the
+  // organization from whichever one is picked.
+  const mentorships = useMemo<MentorshipRequest[]>(
+    () =>
+      (requestsQuery.data ?? []).filter(
+        (request) => request.status === MentorshipRequestStatus.Accepted,
+      ),
+    [requestsQuery.data],
+  );
+
+  const createMeeting = useMutation({
+    mutationFn: postMeeting,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["meetings"] });
+    },
+  });
+
   const createRule = useMutation({
     mutationFn: createAvailabilityRule,
     onSuccess: invalidateAvailability,
@@ -99,26 +124,23 @@ export function useMentorCalendar() {
     return end;
   }, [weekStart]);
 
-  function inWeek(iso: string) {
-    const at = new Date(iso);
-    return at >= weekStart && at < weekEnd;
-  }
-
   // No program events exist in the data model yet, so that tab is empty by
   // definition rather than by filtering.
   const meetings = useMemo<MeetingItem[]>(() => {
     if (filter === CalendarFilter.Program) return [];
-    return (meetingsQuery.data ?? []).filter((meeting) =>
-      inWeek(meeting.scheduledAt),
-    );
-  }, [meetingsQuery.data, filter, weekStart]);
+    return (meetingsQuery.data ?? []).filter((meeting) => {
+      const at = new Date(meeting.scheduledAt);
+      return at >= weekStart && at < weekEnd;
+    });
+  }, [meetingsQuery.data, filter, weekStart, weekEnd]);
 
   const slots = useMemo<MentorAvailabilitySlot[]>(
     () =>
-      (slotsQuery.data ?? []).filter(
-        (slot) => !slot.booked && inWeek(slot.startsAt),
-      ),
-    [slotsQuery.data, weekStart],
+      (slotsQuery.data ?? []).filter((slot) => {
+        const at = new Date(slot.startsAt);
+        return !slot.booked && at >= weekStart && at < weekEnd;
+      }),
+    [slotsQuery.data, weekStart, weekEnd],
   );
 
   const rules = useMemo<MentorAvailabilityRule[]>(
@@ -133,6 +155,15 @@ export function useMentorCalendar() {
   );
 
   return {
+    addMeeting: (input: {
+      mentorshipRequestId: string;
+      scheduledAt: string;
+      durationMinutes: number;
+      agenda: string;
+    }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
+    isSavingMeeting: createMeeting.isPending,
+    meetingError: createMeeting.error,
+    mentorships,
     addRule: (input: {
       dayOfWeek: Weekday;
       startTime: string;

@@ -6,6 +6,10 @@ import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
 import { CalendarFilter, useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { Weekday } from "@/interfaces/mentor";
 
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ session: { fullName: "Nihan Öztürk" } }),
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -20,6 +24,7 @@ vi.mock("@/hooks/use-mentor-calendar", async () => {
 });
 
 const addRule = vi.fn();
+const addMeeting = vi.fn();
 const removeRule = vi.fn();
 const setFilter = vi.fn();
 const nextWeek = vi.fn();
@@ -28,7 +33,17 @@ const monday = new Date("2026-08-24T00:00:00");
 
 function mock(overrides: Record<string, unknown> = {}) {
   vi.mocked(useMentorCalendar).mockReturnValue({
+    addMeeting,
     addRule,
+    isSavingMeeting: false,
+    meetingError: null,
+    mentorships: [
+      {
+        id: "req-1",
+        organizationName: "Döngü",
+        supportArea: "UX/UI Mentorluk",
+      },
+    ],
     days: Array.from({ length: 5 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(d.getDate() + i);
@@ -121,9 +136,7 @@ describe("MentorCalendarPage", () => {
     const user = userEvent.setup();
     render(<MentorCalendarPage />);
 
-    await user.click(
-      screen.getByRole("button", { name: "Yeni Müsaitlik Ekle" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Düzenle" }));
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
 
     expect(addRule).toHaveBeenCalledWith({
@@ -152,5 +165,69 @@ describe("MentorCalendarPage", () => {
     await user.click(screen.getByRole("button", { name: "Kaldır" }));
 
     expect(removeRule).toHaveBeenCalledWith("r1");
+  });
+
+  it("opens the meeting dialog from the Yeni Toplantı Oluştur button", async () => {
+    mock();
+    const user = userEvent.setup();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText("Start up seç")).toBeInTheDocument();
+    expect(
+      screen.getByDisplayValue("Mentor: Nihan Öztürk"),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the dialog prefilled when an empty slot is clicked", async () => {
+    mock();
+    const user = userEvent.setup();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("creates the meeting against the chosen mentorship", async () => {
+    addMeeting.mockResolvedValue(undefined);
+    mock();
+    const user = userEvent.setup();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Toplantıyı oluştur" }),
+    );
+
+    expect(addMeeting).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mentorshipRequestId: "req-1",
+        durationMinutes: 60,
+        agenda: "Mentor: Nihan Öztürk",
+      }),
+    );
+  });
+
+  it("explains that a meeting needs an accepted mentorship first", async () => {
+    mock({ mentorships: [] });
+    const user = userEvent.setup();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
+    );
+
+    expect(
+      screen.getByText(/önce bir mentorluk talebini kabul etmeniz/),
+    ).toBeInTheDocument();
   });
 });

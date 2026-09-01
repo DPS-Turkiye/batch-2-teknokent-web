@@ -3,6 +3,8 @@
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { CreateMeetingDialog } from "@/components/mentor-dashboard/create-meeting-dialog";
+import { useSession } from "@/components/providers/session-provider";
 import {
   CALENDAR_FILTER_LABELS,
   CALENDAR_HOURS,
@@ -46,7 +48,10 @@ function sameDay(iso: string, day: Date) {
 
 export default function MentorCalendarPage() {
   const calendar = useMentorCalendar();
+  const { session } = useSession();
   const [showRuleForm, setShowRuleForm] = useState(false);
+  const [meetingAt, setMeetingAt] = useState<Date | null>(null);
+  const [meetingOpen, setMeetingOpen] = useState(false);
   const [draft, setDraft] = useState({
     dayOfWeek: Weekday.Tuesday,
     startTime: "14:00",
@@ -57,6 +62,21 @@ export default function MentorCalendarPage() {
   const { weekStart, days } = calendar;
   const rangeEnd = days[days.length - 1];
   const range = `${weekStart.getDate()}–${rangeEnd.getDate()} ${MONTHS[rangeEnd.getMonth()]}`;
+
+  function openMeeting(at: Date | null) {
+    setMeetingAt(at);
+    setMeetingOpen(true);
+  }
+
+  async function submitMeeting(input: {
+    mentorshipRequestId: string;
+    scheduledAt: string;
+    durationMinutes: number;
+    agenda: string;
+  }) {
+    await calendar.addMeeting(input);
+    setMeetingOpen(false);
+  }
 
   async function submitRule() {
     await calendar.addRule(draft);
@@ -165,12 +185,23 @@ export default function MentorCalendarPage() {
                                   {minuteLabel(meeting.scheduledAt)}
                                 </span>
                               </div>
-                            ) : slot ? (
-                              <div
-                                className="h-full rounded bg-[#dbeafe]"
-                                title="Müsait"
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const at = new Date(day);
+                                  at.setHours(hour, 0, 0, 0);
+                                  openMeeting(at);
+                                }}
+                                aria-label={`${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`}
+                                title={slot ? "Müsait" : undefined}
+                                className={`h-full w-full rounded ${
+                                  slot
+                                    ? "bg-[#dbeafe] hover:bg-[#bfdbfe]"
+                                    : "hover:bg-[#f8f9fa]"
+                                }`}
                               />
-                            ) : null}
+                            )}
                           </td>
                         );
                       })}
@@ -190,17 +221,30 @@ export default function MentorCalendarPage() {
           <aside className="space-y-4">
             <button
               type="button"
-              onClick={() => setShowRuleForm((open) => !open)}
+              onClick={() => openMeeting(null)}
               className="w-full rounded-xl bg-[#e86f22] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#ce5e19]"
             >
-              Yeni Müsaitlik Ekle
+              Yeni Toplantı Oluştur
             </button>
 
             <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
-              <h2 className="text-sm font-bold text-[#22262b]">Müsaitliğim</h2>
-              <p className="mt-1 text-xs text-[#858c96]">
-                Tekrarlayan haftalık uygunluk
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h2 className="text-sm font-bold text-[#22262b]">
+                    Müsaitliğim
+                  </h2>
+                  <p className="mt-1 text-xs text-[#858c96]">
+                    Tekrarlayan haftalık uygunluk
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowRuleForm((open) => !open)}
+                  className="rounded-lg border border-[#e4e7ea] px-3 py-1.5 text-xs font-medium text-[#676e78]"
+                >
+                  Düzenle
+                </button>
+              </div>
 
               {calendar.rules.length === 0 ? (
                 <p className="mt-4 text-xs text-[#676e78]">
@@ -306,6 +350,18 @@ export default function MentorCalendarPage() {
           </aside>
         </div>
       </div>
+
+      {meetingOpen ? (
+        <CreateMeetingDialog
+          mentorName={session?.fullName ?? ""}
+          mentorships={calendar.mentorships}
+          startAt={meetingAt}
+          isSaving={calendar.isSavingMeeting}
+          error={calendar.meetingError}
+          onClose={() => setMeetingOpen(false)}
+          onSubmit={submitMeeting}
+        />
+      ) : null}
     </AppShell>
   );
 }
