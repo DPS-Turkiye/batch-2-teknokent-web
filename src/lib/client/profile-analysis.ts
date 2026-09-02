@@ -55,3 +55,27 @@ export async function confirmProfile(input: {
     ),
   );
 }
+
+/**
+ * The fields the signup step reads out of a parsed CV. The backend returns the
+ * whole individual_mentee schema; these are the parts this screen uses.
+ */
+export type ParsedCvProfile = {
+  current_role?: string | null;
+  desired_role?: string | null;
+  professional_summary?: string | null;
+  professional_functions?: string[] | null;
+  technologies?: string[] | null;
+  industries?: string[] | null;
+};
+
+export async function parseCv(file: File) {
+  const data = new FormData();
+  data.set("file", file);
+  return requireSuccess(
+    await httpClient.post<ParsedCvProfile>(
+      "/api/profile-analysis/preview",
+      data,
+    ),
+  );
+}

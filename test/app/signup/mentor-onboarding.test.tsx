@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,6 +6,7 @@ import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onbo
 import { SignupFlow } from "@/components/signup/signup-flow";
 import { registerMentor } from "@/lib/client/auth";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { renderWithQueryClient as render } from "@test/test-utils";
 
 const searchParams = { get: vi.fn() };
 
