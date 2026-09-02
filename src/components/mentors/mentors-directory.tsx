@@ -34,7 +34,10 @@ export function MentorsDirectory({
 }) {
   const shouldFetch = mentorsProp === undefined;
   const mentorsQuery = useMentors({ enabled: shouldFetch });
-  const mentors = mentorsProp ?? mentorsQuery.data ?? [];
+  const mentors = useMemo(
+    () => mentorsProp ?? mentorsQuery.data ?? [],
+    [mentorsProp, mentorsQuery.data],
+  );
   const error =
     errorProp ??
     (mentorsQuery.error instanceof Error
