@@ -257,6 +257,45 @@ describe("Signup wizard", () => {
     );
   });
 
+  // The parsed chips used to fill the screen and then vanish at submit, because
+  // registerFounder had nowhere to put them.
+  it("sends the parsed expertise, bio and LinkedIn through registration", async () => {
+    vi.mocked(parseCv).mockResolvedValue({
+      current_role: "Ürün Yöneticisi",
+      professional_summary: "Ürün odaklı kurucu",
+      professional_functions: ["Ürün Yönetimi"],
+      technologies: ["PyTorch"],
+    });
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await user.type(screen.getByLabelText("Ad"), "Gülse");
+    await user.type(screen.getByLabelText("Soyad"), "Buran");
+    await user.type(screen.getByLabelText("LinkedIn"), "linkedin.com/in/gulse");
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+    expect(await screen.findByText("Ürün Yönetimi")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    await waitFor(() =>
+      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          expertise: ["Ürün Yönetimi", "PyTorch"],
+          bio: "Ürün odaklı kurucu",
+          linkedinUrl: "linkedin.com/in/gulse",
+        }),
+        expect.anything(),
+      ),
+    );
+  });
+
   it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
@@ -350,6 +389,7 @@ describe("Signup wizard", () => {
           jobTitle: "Designer",
           // No program chosen is a real answer and is sent, not omitted.
           programId: null,
+          expertise: [],
         },
         "id-token",
       ),
