@@ -84,6 +84,9 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         description: draft.startup.tagline.trim() || undefined,
         jobTitle: draft.personal.role.trim() || undefined,
         programId: draft.startup.programId,
+        bio: draft.personal.bio.trim() || undefined,
+        linkedinUrl: draft.personal.linkedin.trim() || undefined,
+        expertise: draft.personal.expertise,
       },
       idToken,
     );

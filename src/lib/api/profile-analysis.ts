@@ -40,6 +40,25 @@ export function createProfileAnalysis(options: {
   });
 }
 
+/**
+ * Parse-only: the backend returns the structured profile and persists nothing,
+ * so this is safe before the user has an organization for a write to be scoped
+ * to. That is what makes it usable during signup, unlike createProfileAnalysis.
+ */
+export function parseCvPreview(file: File) {
+  const data = new FormData();
+  data.set("file", file);
+  return backendRequest<Record<string, unknown>>({
+    method: "POST",
+    url: "/api/profile-analyses/preview",
+    params: { consentAccepted: true, profileType: "individual_mentee" },
+    data,
+    timeout: 120000,
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
+  });
+}
+
 export function createManualProfileAnalysis(
   organizationId: string,
   appUserId: string | undefined,

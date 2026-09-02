@@ -97,17 +97,18 @@ describe("useSignupWizard", () => {
     expect(result.current.step).toBe(SignupStep.PersonalProfile);
   });
 
-  it("toggles expertise, support areas and contact preferences on and off", () => {
+  it("sets expertise, and toggles support areas and contact preferences", () => {
     const { result } = renderHook(() => useSignupWizard());
 
-    act(() => result.current.toggleExpertise("Figma"));
-    act(() => result.current.toggleExpertise("Branding"));
+    // Expertise is free-form now — the step replaces the whole set rather than
+    // toggling entries of a fixed list.
+    act(() => result.current.setExpertise(["Figma", "Branding"]));
     expect(result.current.draft.personal.expertise).toEqual([
       "Figma",
       "Branding",
     ]);
 
-    act(() => result.current.toggleExpertise("Figma"));
+    act(() => result.current.setExpertise(["Branding"]));
     expect(result.current.draft.personal.expertise).toEqual(["Branding"]);
 
     act(() => result.current.toggleSupportArea("Finans"));

@@ -11,6 +11,9 @@ export type FounderRegistration = {
   phone?: string;
   /** Null is a real answer meaning no program, so it is sent rather than omitted. */
   programId?: string | null;
+  bio?: string;
+  linkedinUrl?: string;
+  expertise?: string[];
 };
 
 export type MentorRegistration = {
