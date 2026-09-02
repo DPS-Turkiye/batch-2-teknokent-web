@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT } from "@/app/api/programs/mine/active/route";
+import { GET as GET_NAMES } from "@/app/api/programs/names/route";
 import { GET } from "@/app/api/programs/mine/route";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   fetchOrganizationPrograms,
+  fetchProgramNames,
   updateActiveProgram,
 } from "@/lib/api/programs";
 import { requireStartupSession } from "@/lib/server/require-program-access";
@@ -13,6 +15,7 @@ import { requireStartupSession } from "@/lib/server/require-program-access";
 vi.mock("@/lib/api/programs", () => ({
   fetchOrganizationPrograms: vi.fn(),
   updateActiveProgram: vi.fn(),
+  fetchProgramNames: vi.fn(),
 }));
 
 vi.mock("@/lib/server/require-program-access", () => ({
@@ -131,5 +134,25 @@ describe("PUT /api/programs/mine/active", () => {
     await PUT(activeRequest({}));
 
     expect(updateActiveProgram).toHaveBeenCalledWith("mentee-1", null);
+  });
+});
+
+describe("GET /api/programs/names", () => {
+  // Unlike /mine, this one must work with no session at all: the caller is
+  // half-way through signup and has no account yet.
+  it("serves the list without requiring a session", async () => {
+    vi.mocked(fetchProgramNames).mockResolvedValue({
+      data: [{ id: "prog-1", name: "metustarts 2026" }],
+      headers: {},
+      status: 200,
+    });
+
+    const response = await GET_NAMES();
+
+    expect(response.status).toBe(200);
+    expect(requireStartupSession).not.toHaveBeenCalled();
+    await expect(response.json()).resolves.toEqual([
+      { id: "prog-1", name: "metustarts 2026" },
+    ]);
   });
 });

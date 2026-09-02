@@ -67,3 +67,9 @@ export type OrganizationPrograms = {
   /** Null when the startup has no assignment, or has one but has not chosen. */
   activeProgramId: string | null;
 };
+
+/** Just enough to name a program in the signup picker, before the user has an account. */
+export type ProgramName = {
+  id: string;
+  name: string;
+};

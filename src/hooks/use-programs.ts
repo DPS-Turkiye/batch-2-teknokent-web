@@ -8,6 +8,7 @@ import {
   decideProgramInvitation,
   decideProgramMentorRequest,
   getOrganizationPrograms,
+  getProgramNames,
   getProgramDirectory,
   getProgramInvitations,
   getPrograms,
@@ -20,9 +21,18 @@ import {
 export const PROGRAMS_QUERY_KEY = ["programs"] as const;
 export const PROGRAM_DIRECTORY_QUERY_KEY = ["program-directory"] as const;
 export const PROGRAM_INVITATIONS_QUERY_KEY = ["program-invitations"] as const;
+export const PROGRAM_NAMES_QUERY_KEY = ["program-names"] as const;
 export const ORGANIZATION_PROGRAMS_QUERY_KEY = [
   "organization-programs",
 ] as const;
+
+/** Program names for the signup picker, before the visitor has an account. */
+export function useProgramNames() {
+  return useQuery({
+    queryKey: PROGRAM_NAMES_QUERY_KEY,
+    queryFn: getProgramNames,
+  });
+}
 
 /** The signed-in startup's own program assignments and its active choice. */
 export function useOrganizationPrograms() {

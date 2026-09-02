@@ -83,6 +83,7 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         organizationName: draft.startup.name.trim(),
         description: draft.startup.tagline.trim() || undefined,
         jobTitle: draft.personal.role.trim() || undefined,
+        programId: draft.startup.programId,
       },
       idToken,
     );

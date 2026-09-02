@@ -3,11 +3,12 @@
 import { ImagePlus } from "lucide-react";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { ProgramSelect } from "@/components/common/program-select";
+import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import {
   MATURITY_OPTIONS,
   PROGRAM_LEVEL_OPTIONS,
-  PROGRAM_OPTIONS,
   SECTOR_OPTIONS,
   SUPPORT_AREA_OPTIONS,
   TAGLINE_MAX_LENGTH,
@@ -21,7 +22,10 @@ function Required() {
   return <span className="text-[#e86f22]">*</span>;
 }
 
+const NO_PROGRAM_LABEL = "Bir programa dahil değilim";
+
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
+  const programsQuery = useProgramNames();
   const { draft, updateStartup, toggleSupportArea, taglineRemaining } = wizard;
   const { startup } = draft;
 
@@ -109,23 +113,26 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             </div>
 
             <div>
-              <label className={labelClass} htmlFor="signup-program">
-                Dahil olduğun program
-              </label>
-              <select
-                id="signup-program"
-                className={fieldClass}
-                value={startup.program}
-                onChange={(event) =>
-                  updateStartup("program", event.target.value)
-                }
-              >
-                {PROGRAM_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
+              <span className={labelClass}>Dahil olduğun program</span>
+              {programsQuery.isLoading ? (
+                <p className="text-sm text-[#6a7282]">Programlar yükleniyor…</p>
+              ) : programsQuery.error ? (
+                // A failed load must not silently look like "no programs exist".
+                <p className="text-sm text-[#b91c1c]">
+                  {programsQuery.error.message}
+                </p>
+              ) : (
+                <ProgramSelect
+                  id="signup-program"
+                  label="Dahil olduğun program"
+                  options={programsQuery.data ?? []}
+                  value={startup.programId}
+                  onChange={(programId) =>
+                    updateStartup("programId", programId)
+                  }
+                  noProgramLabel={NO_PROGRAM_LABEL}
+                />
+              )}
             </div>
           </section>
 

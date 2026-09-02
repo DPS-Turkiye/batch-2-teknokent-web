@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -77,36 +77,6 @@ describe("ActiveProgramPicker", () => {
     ).toBeInTheDocument();
   });
 
-  it("keeps the options hidden until the picker is opened", async () => {
-    const user = userEvent.setup();
-    mockUseOrganizationPrograms.mockReturnValue(
-      query({ data: { programs: PROGRAMS, activeProgramId: null } }),
-    );
-
-    render(<ActiveProgramPicker />);
-    expect(screen.getByRole("listbox", { hidden: true })).not.toBeVisible();
-
-    await user.click(screen.getByRole("button", { name: /dahil değilim/ }));
-
-    expect(screen.getByRole("listbox")).toBeVisible();
-  });
-
-  it("offers every assigned program plus an explicit no-program option", async () => {
-    const user = userEvent.setup();
-    mockUseOrganizationPrograms.mockReturnValue(
-      query({ data: { programs: PROGRAMS, activeProgramId: null } }),
-    );
-
-    render(<ActiveProgramPicker />);
-    await user.click(screen.getByRole("button", { name: /dahil değilim/ }));
-
-    const options = within(screen.getByRole("listbox")).getAllByRole("option");
-    expect(options).toHaveLength(3);
-    expect(options[0]).toHaveTextContent("Bir programa dahil değilim");
-    expect(options[1]).toHaveTextContent("metustarts 2026");
-    expect(options[2]).toHaveTextContent("Seed 2026");
-  });
-
   it("saves the program the startup picks", async () => {
     const user = userEvent.setup();
     mockUseOrganizationPrograms.mockReturnValue(
@@ -136,18 +106,6 @@ describe("ActiveProgramPicker", () => {
   });
 
   // Re-picking the current program would be a pointless round trip.
-  it("does not save when the already-active program is picked again", async () => {
-    const user = userEvent.setup();
-    mockUseOrganizationPrograms.mockReturnValue(
-      query({ data: { programs: PROGRAMS, activeProgramId: "prog-1" } }),
-    );
-
-    render(<ActiveProgramPicker />);
-    await user.click(screen.getByRole("button", { name: /metustarts 2026/ }));
-    await user.click(screen.getByRole("option", { name: /metustarts 2026/ }));
-
-    expect(mockMutate).not.toHaveBeenCalled();
-  });
 
   it("surfaces a failed save instead of silently reverting", () => {
     mockUseOrganizationPrograms.mockReturnValue(

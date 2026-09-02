@@ -7,6 +7,7 @@ import {
 } from "@/interfaces/session";
 import type {
   OrganizationPrograms,
+  ProgramName,
   Program,
   ProgramDirectory,
   ProgramInvitation,
@@ -19,6 +20,13 @@ export function fetchPrograms(actorId: string) {
     method: "GET",
     url: "/api/programs",
     params: { actorId },
+  });
+}
+
+export function fetchProgramNames() {
+  return backendRequest<ProgramName[]>({
+    method: "GET",
+    url: "/api/programs/names",
   });
 }
 
