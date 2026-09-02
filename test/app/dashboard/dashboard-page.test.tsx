@@ -87,10 +87,9 @@ describe("Mentee dashboard", () => {
       "href",
       "https://meet.google.com/abc-defg-hij",
     );
-    expect(screen.getByRole("link", { name: /Toplantıya git/ })).toHaveAttribute(
-      "href",
-      "https://meet.google.com/abc-defg-hij",
-    );
+    expect(
+      screen.getByRole("link", { name: /Toplantıya git/ }),
+    ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
 
   it("prompts the mentee to plan a meeting when none is scheduled", () => {
