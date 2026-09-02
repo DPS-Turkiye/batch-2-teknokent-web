@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { ClipboardList } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DAY_SHORT_LABELS } from "@/lib/calendar";
 
@@ -901,7 +903,14 @@ export function CalendarView() {
                 </div>
               </div>
 
-              <div className="flex justify-end border-t border-zinc-100 pt-4">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-4">
+                <Link
+                  href="/meetings/research/prepare"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#e86f22] px-4 text-xs font-bold text-white transition hover:bg-[#c85816]"
+                >
+                  <ClipboardList className="size-4" aria-hidden />
+                  Toplantıya hazırlan
+                </Link>
                 <SecondaryButton onClick={() => setSelectedMeeting(null)}>
                   Kapat
                 </SecondaryButton>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { useOrganizationInvite } from "@/hooks/use-organization-invite";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
@@ -522,6 +523,8 @@ export function ProfileAnalysisView() {
             başlayın.
           </section>
         )}
+
+        <TeamSummarySection />
 
         <p className="text-center text-sm text-[#6a7282]">
           <Link

@@ -110,4 +110,24 @@ describe("CalendarView", () => {
       0,
     );
   });
+
+  it("offers Toplantıya hazırlan from an opened meeting, replacing the Aksiyonlar menu entry", async () => {
+    const user = userEvent.setup();
+    mockUseMeetings.mockReturnValue(
+      meetingsResult({ data: [meeting({ agenda: "Pazarlama görüşmesi" })] }),
+    );
+
+    render(<CalendarView />);
+    await user.click(screen.getByRole("button", { name: "Ajanda / Liste" }));
+
+    expect(
+      screen.queryByRole("link", { name: /Toplantıya hazırlan/ }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getAllByRole("button", { name: /Detay/ })[0]);
+
+    expect(
+      screen.getByRole("link", { name: /Toplantıya hazırlan/ }),
+    ).toHaveAttribute("href", "/meetings/research/prepare");
+  });
 });
