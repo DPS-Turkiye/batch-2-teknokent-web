@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import {
   STATUS_META,
@@ -249,8 +249,8 @@ export default function AssistantPage() {
               </div>
             </header>
 
-            <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
-              <div className="mx-auto max-w-3xl">
+            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+              <div className="w-full">
                 <div className="mb-5 flex items-center gap-2">
                   <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
                     Transcript

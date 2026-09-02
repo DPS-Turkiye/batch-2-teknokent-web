@@ -3,6 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
+import { useSession } from "@/components/providers/session-provider";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { usePrograms } from "@/hooks/use-programs";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   Weekday,
@@ -10,19 +13,19 @@ import {
   type MentorAvailabilityRule,
   type MentorAvailabilitySlot,
 } from "@/interfaces/mentor";
-import { getMeetings, postMeeting } from "@/lib/client/meetings";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { getMeetings, postMeeting } from "@/lib/client/meetings";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
   getAvailabilityRules,
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
+import { programsMentorHasJoined } from "@/lib/meeting-targets";
 
 export enum CalendarFilter {
   All = "all",
@@ -53,6 +56,7 @@ function startOfWeek(date: Date) {
 
 export function useMentorCalendar() {
   const queryClient = useQueryClient();
+  const { session } = useSession();
   const [weekOffset, setWeekOffset] = useState(0);
   const [filter, setFilter] = useState<CalendarFilter>(CalendarFilter.All);
 
@@ -91,9 +95,15 @@ export function useMentorCalendar() {
   }
 
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
+  const programsQuery = usePrograms();
 
-  // Only an accepted mentorship can host a meeting; the proxy resolves the
-  // organization from whichever one is picked.
+  const programs = useMemo(
+    () => programsMentorHasJoined(programsQuery.data ?? [], session?.userId),
+    [programsQuery.data, session?.userId],
+  );
+
+  // Meetings can be booked against an accepted 1:1 mentorship or a startup
+  // in a program this mentor has joined. The proxy resolves the organization.
   const mentorships = useMemo<MentorshipRequest[]>(
     () =>
       (requestsQuery.data ?? []).filter(
@@ -143,6 +153,19 @@ export function useMentorCalendar() {
     [slotsQuery.data, weekStart, weekEnd],
   );
 
+  /** The "next 7 days" strip in the meeting dialog ignores the browsed week. */
+  const upcomingSlots = useMemo<MentorAvailabilitySlot[]>(() => {
+    const now = new Date();
+    const horizon = new Date(now);
+    horizon.setDate(horizon.getDate() + 7);
+    return (slotsQuery.data ?? [])
+      .filter((slot) => {
+        const at = new Date(slot.startsAt);
+        return !slot.booked && at >= now && at < horizon;
+      })
+      .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
+  }, [slotsQuery.data]);
+
   const rules = useMemo<MentorAvailabilityRule[]>(
     () =>
       [...(rulesQuery.data ?? [])].sort(
@@ -156,10 +179,13 @@ export function useMentorCalendar() {
 
   return {
     addMeeting: (input: {
-      mentorshipRequestId: string;
+      mentorshipRequestId?: string;
+      programId?: string;
+      organizationId?: string;
       scheduledAt: string;
       durationMinutes: number;
       agenda: string;
+      meetLink?: string;
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
     isSavingMeeting: createMeeting.isPending,
     meetingError: createMeeting.error,
@@ -178,11 +204,13 @@ export function useMentorCalendar() {
     meetings,
     nextWeek: () => setWeekOffset((current) => current + 1),
     previousWeek: () => setWeekOffset((current) => current - 1),
+    programs,
     removeRule: (ruleId: string) => removeRule.mutateAsync(ruleId),
     rules,
     ruleError: createRule.error ?? removeRule.error,
     setFilter,
     slots,
+    upcomingSlots,
     thisWeek: () => setWeekOffset(0),
     weekStart,
   };

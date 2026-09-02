@@ -47,3 +47,45 @@ export function isSameDay(iso: string, day: Date) {
 export function weekRangeLabel(start: Date, end: Date) {
   return `${start.getDate()}–${end.getDate()} ${MONTH_LABELS[end.getMonth()]}`;
 }
+
+export const MEETING_PICKER_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
+export const MEETING_PICKER_DAY_COUNT = 5;
+
+export type MeetingPickerColumn = {
+  key: string;
+  heading: string;
+  slots: Date[];
+};
+
+function dayHeading(day: Date) {
+  return `${day.getDate()} ${DAY_SHORT_LABELS[(day.getDay() + 6) % 7]}`;
+}
+
+/** Next few days, 09:00–18:00, including hours the mentor is not marked free. */
+export function upcomingHourColumns(
+  now = new Date(),
+  dayCount = MEETING_PICKER_DAY_COUNT,
+  hours = MEETING_PICKER_HOURS,
+): MeetingPickerColumn[] {
+  const columns: MeetingPickerColumn[] = [];
+  const cursor = new Date(now);
+  cursor.setHours(0, 0, 0, 0);
+  for (let offset = 0; columns.length < dayCount && offset < 14; offset += 1) {
+    const day = new Date(cursor);
+    day.setDate(cursor.getDate() + offset);
+    const slots = hours
+      .map((hour) => {
+        const at = new Date(day);
+        at.setHours(hour, 0, 0, 0);
+        return at;
+      })
+      .filter((at) => at.getTime() > now.getTime());
+    if (slots.length === 0) continue;
+    columns.push({
+      key: day.toDateString(),
+      heading: dayHeading(day),
+      slots,
+    });
+  }
+  return columns;
+}

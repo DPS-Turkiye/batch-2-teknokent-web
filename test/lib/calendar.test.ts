@@ -7,6 +7,7 @@ import {
   hourOf,
   isSameDay,
   timeLabel,
+  upcomingHourColumns,
   weekRangeLabel,
 } from "@/lib/calendar";
 
@@ -52,5 +53,13 @@ describe("calendar helpers", () => {
     expect(weekRangeLabel(new Date(2026, 7, 31), new Date(2026, 8, 4))).toBe(
       "31–4 Eylül",
     );
+  });
+
+  it("offers selectable hours even when the mentor has no free slots", () => {
+    const now = new Date(2026, 8, 2, 12, 30);
+    const columns = upcomingHourColumns(now);
+    expect(columns.length).toBe(5);
+    expect(columns[0]?.slots.some((slot) => slot.getHours() === 13)).toBe(true);
+    expect(columns[1]?.slots[0]?.getHours()).toBe(9);
   });
 });

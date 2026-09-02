@@ -103,9 +103,10 @@ describe("useDashboardData", () => {
         {
           id: "m1",
           organizationId: "org-1",
-          scheduledAt: "2026-08-30T10:00:00+03:00",
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           durationMinutes: 30,
           agenda: "Gerçek toplantı",
+          meetLink: "https://meet.google.com/abc-defg-hij",
           status: "SCHEDULED",
         },
       ],
@@ -139,5 +140,9 @@ describe("useDashboardData", () => {
     expect(result.current.requests).toHaveLength(1);
     expect(result.current.requests[0].mentorName).toBe("Gerçek Mentor");
     expect(result.current.nextMeeting?.agenda).toBe("Gerçek toplantı");
+    expect(result.current.nextMeeting?.meetLink).toBe(
+      "https://meet.google.com/abc-defg-hij",
+    );
+    expect(result.current.upcomingMeetings).toHaveLength(1);
   });
 });

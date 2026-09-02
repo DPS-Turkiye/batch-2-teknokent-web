@@ -13,25 +13,13 @@ import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useMentorshipWorkspace } from "@/hooks/use-mentorship-workspace";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import {
+  MENTORSHIPS_REQUEST_STATUS_LABELS,
+  MENTORSHIPS_TABS,
+} from "@/lib/const";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
-
-const requestStatusLabels = {
-  [MentorshipRequestStatus.Accepted]: "Aktif mentorluk",
-  [MentorshipRequestStatus.Declined]: "Uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
-  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-} satisfies Record<MentorshipRequestStatus, string>;
-
-const tabs = [
-  [MentorshipWorkspaceTab.MentorPool, "Mentor Havuzu"],
-  [MentorshipWorkspaceTab.Active, "Aktif"],
-  [MentorshipWorkspaceTab.Requests, "Talepler"],
-  [MentorshipWorkspaceTab.History, "Geçmiş"],
-] as const;
 
 export default function MentorshipsPage() {
   const {
@@ -94,7 +82,7 @@ export default function MentorshipsPage() {
           role="tablist"
           aria-label="Mentorluk görünümleri"
         >
-          {tabs.map(([id, label]) => (
+          {MENTORSHIPS_TABS.map(([id, label]) => (
             <button
               key={id}
               type="button"
@@ -185,7 +173,9 @@ export default function MentorshipsPage() {
                       {request.supportArea}
                     </p>
                   </div>
-                  <Badge>{requestStatusLabels[request.status]}</Badge>
+                  <Badge>
+                    {MENTORSHIPS_REQUEST_STATUS_LABELS[request.status]}
+                  </Badge>
                 </div>
                 <div className="mt-5 flex items-center justify-between border-t border-[#eef0f2] pt-4">
                   <span className="flex items-center gap-1.5 text-[11px] text-[#858c96]">

@@ -11,6 +11,10 @@ const PUBLIC_PATHS = new Set([
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.next();
+  }
+
   const hasSession = request.cookies.has("teknokent_session");
 
   if (PUBLIC_PATHS.has(pathname) || pathname.startsWith("/invite")) {

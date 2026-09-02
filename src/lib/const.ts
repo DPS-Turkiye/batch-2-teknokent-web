@@ -9,10 +9,17 @@ import type {
 } from "@/types/landing";
 import type { LoginRoleGroup } from "@/interfaces/login";
 import { LoginRoleId } from "@/interfaces/login";
+import type { MeetingItem } from "@/interfaces/meeting";
+import {
+  MentorRequestFilter,
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 import type { Meeting, MeetingStatusMeta } from "@/types/assistant";
 import { MeetingPlatform, MeetingStatus } from "@/types/assistant";
 import type { MentorRequestMentor } from "@/types/mentor-request";
 import { MentorRequestStep } from "@/types/mentor-request";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export const DEFAULT_APP_URL = "http://localhost:3000";
 export const DEFAULT_BACKEND_URL = "http://localhost:8080";
@@ -280,6 +287,97 @@ export const DASHBOARD_NOTIFICATIONS: DashboardNotification[] = [
   {
     title: "Can Demir talebinizi kabul etti",
     time: "2g önce · Mentordan",
+  },
+];
+
+export const DASHBOARD_REQUEST_STATUS_LABELS = {
+  [MentorshipRequestStatus.Accepted]: "Aktif",
+  [MentorshipRequestStatus.Declined]: "Uygun değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Bilgi bekliyor",
+  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
+} satisfies Record<MentorshipRequestStatus, string>;
+
+export const MENTORSHIPS_REQUEST_STATUS_LABELS = {
+  [MentorshipRequestStatus.Accepted]: "Aktif mentorluk",
+  [MentorshipRequestStatus.Declined]: "Uygun değil",
+  [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
+  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
+  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
+} satisfies Record<MentorshipRequestStatus, string>;
+
+export const MENTORSHIPS_TABS = [
+  [MentorshipWorkspaceTab.MentorPool, "Mentor Havuzu"],
+  [MentorshipWorkspaceTab.Active, "Aktif"],
+  [MentorshipWorkspaceTab.Requests, "Talepler"],
+  [MentorshipWorkspaceTab.History, "Geçmiş"],
+] as const;
+
+export const MENTOR_DASHBOARD_FILTER_STATUSES: Record<
+  Exclude<MentorRequestFilter, MentorRequestFilter.All>,
+  MentorshipRequestStatus
+> = {
+  [MentorRequestFilter.Accepted]: MentorshipRequestStatus.Accepted,
+  [MentorRequestFilter.Declined]: MentorshipRequestStatus.Declined,
+  [MentorRequestFilter.MoreInfoRequested]:
+    MentorshipRequestStatus.MoreInfoRequested,
+  [MentorRequestFilter.Pending]: MentorshipRequestStatus.Pending,
+};
+
+export const MENTOR_DASHBOARD_FILTER_OPTIONS = [
+  [MentorRequestFilter.All, "Tüm Talepler"],
+  [MentorRequestFilter.Pending, "Bekleyenler"],
+  [MentorRequestFilter.MoreInfoRequested, "Ek Bilgi İstenenler"],
+  [MentorRequestFilter.Accepted, "Kabul Edilenler"],
+  [MentorRequestFilter.Declined, "Uygun Değil"],
+] as const;
+
+export const CREATE_MEETING_NO_STARTUP_MESSAGE =
+  "Toplantı oluşturmak için kabul edilmiş bir mentorluk veya katıldığınız programdaki bir startup gerekir.";
+
+export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [
+  {
+    id: "demo-upcoming-meeting",
+    organizationId: "demo",
+    organizationName: "Demo Startup",
+    mentorId: "demo-mentor",
+    mentorName: "Ahmet Yılmaz",
+    scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+    durationMinutes: 60,
+    agenda: "Kullanıcı Araştırması & Test Metodolojisi",
+    meetLink: "https://meet.google.com/demo-meet-link",
+    status: "SCHEDULED",
+  },
+];
+
+export const DASHBOARD_FALLBACK_REQUESTS: MentorshipRequest[] = [
+  {
+    id: "demo-pending-request",
+    requesterId: "demo",
+    organizationId: "demo",
+    mentorId: "demo-mentor-1",
+    mentorName: "Ahmet Yılmaz",
+    supportArea: "Kullanıcı araştırması",
+    status: MentorshipRequestStatus.Pending,
+    mentorMessage: null,
+    rejectionReason: null,
+    createdAt: "2026-08-09T14:32:00+03:00",
+    messages: [],
+    recommendationSnapshot: null,
+  },
+  {
+    id: "demo-accepted-request",
+    requesterId: "demo",
+    organizationId: "demo",
+    mentorId: "demo-mentor-2",
+    mentorName: "Can Demir",
+    supportArea: "İş modeli",
+    status: MentorshipRequestStatus.Accepted,
+    mentorMessage: null,
+    rejectionReason: null,
+    createdAt: "2026-08-01T11:00:00+03:00",
+    messages: [],
+    recommendationSnapshot: null,
   },
 ];
 

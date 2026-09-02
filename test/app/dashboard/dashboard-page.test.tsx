@@ -73,7 +73,8 @@ describe("Mentee dashboard", () => {
           id: "meeting-1",
           agenda: "Finansal model görüşmesi",
           scheduledAt: "2026-09-02T13:30:00.000Z",
-          meetLink: "https://meet.example.com/abc",
+          durationMinutes: 45,
+          meetLink: "https://meet.google.com/abc-defg-hij",
         },
       } as Partial<DashboardData>),
     );
@@ -82,7 +83,14 @@ describe("Mentee dashboard", () => {
 
     expect(screen.getByText("SIRADAKİ TOPLANTI")).toBeInTheDocument();
     expect(screen.getAllByText("Finansal model görüşmesi")).not.toHaveLength(0);
-    expect(screen.getByText(/Online görüşme/)).toBeInTheDocument();
+    expect(screen.getByText("Google Meet")).toHaveAttribute(
+      "href",
+      "https://meet.google.com/abc-defg-hij",
+    );
+    expect(screen.getByRole("link", { name: /Toplantıya git/ })).toHaveAttribute(
+      "href",
+      "https://meet.google.com/abc-defg-hij",
+    );
   });
 
   it("prompts the mentee to plan a meeting when none is scheduled", () => {
@@ -149,5 +157,33 @@ describe("Mentee dashboard", () => {
     expect(
       screen.getByText("Henüz aktif bir mentorluk bulunmuyor."),
     ).toBeInTheDocument();
+  });
+
+  it("shows upcoming meeting time and a join link in Yaklaşanlar", () => {
+    mockUseDashboardData.mockReturnValue(
+      dashboardData({
+        upcomingMeetings: [
+          {
+            id: "meeting-1",
+            organizationId: "org-1",
+            mentorName: "Leyla Aksoy",
+            agenda: "Finansal model görüşmesi",
+            scheduledAt: "2026-09-10T10:00:00.000Z",
+            durationMinutes: 45,
+            meetLink: "https://meet.google.com/abc-defg-hij",
+            status: "SCHEDULED",
+          },
+        ],
+      } as Partial<DashboardData>),
+    );
+
+    render(<DashboardPage />);
+
+    expect(screen.getByText("Finansal model görüşmesi")).toBeInTheDocument();
+    expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Katıl" })).toHaveAttribute(
+      "href",
+      "https://meet.google.com/abc-defg-hij",
+    );
   });
 });
