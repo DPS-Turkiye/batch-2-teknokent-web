@@ -1,4 +1,4 @@
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,6 +6,8 @@ import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { SIGNUP_STEP_CTA, SignupStep } from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
+import { getProgramNames } from "@/lib/client/programs";
+import { renderWithQueryClient as render } from "@test/test-utils";
 
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
@@ -13,6 +15,12 @@ vi.mock("@/lib/firebase/auth", () => ({
 
 vi.mock("@/lib/client/auth", () => ({
   registerFounder: vi.fn().mockResolvedValue({}),
+}));
+
+// The program picker now loads real programs; the wizard's own assertions are
+// not about that list, so it stays empty here.
+vi.mock("@/lib/client/programs", () => ({
+  getProgramNames: vi.fn().mockResolvedValue([]),
 }));
 
 const ACCOUNT: RegisteredAccount = {
@@ -130,6 +138,57 @@ describe("Signup wizard", () => {
     expect(screen.getAllByText("Döngü").length).toBeGreaterThan(0);
   });
 
+  it("offers the coordinator's real programs, not a hardcoded list", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "prog-1", name: "metustarts 2026" },
+      { id: "prog-2", name: "Seed 2026" },
+    ]);
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+
+    const picker = await screen.findByRole("button", {
+      name: /Bir programa dahil değilim/,
+    });
+    await user.click(picker);
+
+    expect(
+      screen.getByRole("option", { name: /metustarts 2026/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: /Seed 2026/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("sends the chosen program id through registration", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "prog-1", name: "metustarts 2026" },
+    ]);
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await user.click(
+      await screen.findByRole("button", { name: /Bir programa dahil değilim/ }),
+    );
+    await user.click(screen.getByRole("option", { name: /metustarts 2026/ }));
+
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    await waitFor(() =>
+      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
+        expect.objectContaining({ programId: "prog-1" }),
+        expect.anything(),
+      ),
+    );
+  });
+
   it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
@@ -221,6 +280,8 @@ describe("Signup wizard", () => {
           organizationName: "Döngü",
           description: "Kısa tanım",
           jobTitle: "Designer",
+          // No program chosen is a real answer and is sent, not omitted.
+          programId: null,
         },
         "id-token",
       ),

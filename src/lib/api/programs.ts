@@ -6,6 +6,8 @@ import {
   type BackendUser,
 } from "@/interfaces/session";
 import type {
+  OrganizationPrograms,
+  ProgramName,
   Program,
   ProgramDirectory,
   ProgramInvitation,
@@ -18,6 +20,29 @@ export function fetchPrograms(actorId: string) {
     method: "GET",
     url: "/api/programs",
     params: { actorId },
+  });
+}
+
+export function fetchProgramNames() {
+  return backendRequest<ProgramName[]>({
+    method: "GET",
+    url: "/api/programs/names",
+  });
+}
+
+export function fetchOrganizationPrograms(actorId: string) {
+  return backendRequest<OrganizationPrograms>({
+    method: "GET",
+    url: "/api/programs/mine",
+    params: { actorId },
+  });
+}
+
+export function updateActiveProgram(actorId: string, programId: string | null) {
+  return backendRequest<OrganizationPrograms>({
+    method: "PUT",
+    url: "/api/programs/mine/active",
+    data: { actorId, programId },
   });
 }
 

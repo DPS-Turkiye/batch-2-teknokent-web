@@ -10,6 +10,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
+import { ActiveProgramPicker } from "@/components/dashboard/active-program-picker";
 import { AppShell } from "@/components/hoc/app-shell";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { Badge } from "@/components/common/badge";
@@ -228,6 +229,7 @@ export default function DashboardPage() {
             />
           </section>
           <aside className="space-y-5">
+            <ActiveProgramPicker />
             <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-semibold">Bugünkü görevler</h2>
