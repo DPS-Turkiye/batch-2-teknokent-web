@@ -87,15 +87,6 @@ export const MATURITY_OPTIONS = [
   "Gelir elde ediyor",
 ] as const;
 
-export const TEAM_SIZE_OPTIONS = ["1", "2", "3", "4", "5+"] as const;
-
-export const PRODUCT_STATUS_OPTIONS = [
-  "Fikir / araştırma",
-  "Prototip / wireframe",
-  "Çalışan MVP",
-  "Yayında",
-] as const;
-
 export enum StartupDocumentKind {
   Canvas = "canvas",
   PitchDeck = "pitch-deck",
@@ -174,9 +165,6 @@ export interface StartupProfileDraft {
   targetUser: string;
   sector: string;
   maturity: string;
-  teamSize: string;
-  productStatus: string;
-  userEvidence: string;
   supportAreas: string[];
   programLevel: string;
   logo: UploadedFile | null;

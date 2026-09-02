@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import DashboardPage from "@/app/dashboard/page";
@@ -149,5 +149,27 @@ describe("Mentee dashboard", () => {
     expect(
       screen.getByText("Henüz aktif bir mentorluk bulunmuyor."),
     ).toBeInTheDocument();
+  });
+  it("offers exactly three quick actions, each with its own destination", () => {
+    mockUseDashboardData.mockReturnValue(dashboardData());
+
+    render(<DashboardPage />);
+
+    const quickActions = within(
+      screen
+        .getByRole("heading", { name: "Hızlı işlemler" })
+        .closest("section") as HTMLElement,
+    );
+
+    expect(quickActions.getAllByRole("link")).toHaveLength(3);
+    expect(
+      quickActions.getByRole("link", { name: /Mentor bul/ }),
+    ).toHaveAttribute("href", "/mentor-request");
+    expect(
+      quickActions.getByRole("link", { name: /Toplantıya hazırlan/ }),
+    ).toHaveAttribute("href", "/meetings/research/prepare");
+    expect(
+      quickActions.getByRole("link", { name: /Mentorluk taleplerim/ }),
+    ).toHaveAttribute("href", "/mentorships");
   });
 });

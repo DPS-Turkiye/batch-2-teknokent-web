@@ -46,9 +46,6 @@ function emptyDraft(): SignupDraft {
       targetUser: "",
       sector: "",
       maturity: "",
-      teamSize: "",
-      productStatus: "",
-      userEvidence: "",
       supportAreas: [],
       programLevel: PROGRAM_LEVEL_OPTIONS[0],
       logo: null,
@@ -246,8 +243,6 @@ export function useSignupWizard(
       { label: "Hedef kullanıcı", done: Boolean(startup.targetUser.trim()) },
       { label: "Sektör", done: Boolean(startup.sector) },
       { label: "Olgunluk seviyesi", done: Boolean(startup.maturity) },
-      { label: "Ekip büyüklüğü", done: Boolean(startup.teamSize) },
-      { label: "Ürün durumu", done: Boolean(startup.productStatus) },
       { label: "Destek alanları", done: startup.supportAreas.length > 0 },
       { label: "Dosyalar", done: Object.keys(documents).length > 0 },
     ];

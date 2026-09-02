@@ -147,17 +147,6 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
       </EditableSection>
 
       <EditableSection
-        title="Bugünkü durum"
-        onEdit={() => goToStep(SignupStep.StartupProfile)}
-      >
-        <Row label="Ekip">
-          {startup.teamSize ? `${startup.teamSize} kişi` : EMPTY}
-        </Row>
-        <Row label="Ürün durumu">{startup.productStatus || EMPTY}</Row>
-        <Row label="Kullanıcı kanıtı">{startup.userEvidence || EMPTY}</Row>
-      </EditableSection>
-
-      <EditableSection
         title="Destek alanları"
         onEdit={() => goToStep(SignupStep.StartupProfile)}
       >
