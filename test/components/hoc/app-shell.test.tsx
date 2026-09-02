@@ -79,9 +79,12 @@ describe("AppShell navigation", () => {
     ).toHaveAttribute("href", "/admin");
     expect(screen.queryByText("Ekibim")).not.toBeInTheDocument();
     expect(screen.queryByText("Startup’ım")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Mentörler/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it("gives a coordinator only the programs workspace", () => {
+  it("gives a coordinator programs and the mentor directory", () => {
     mockuseAppSession.mockReturnValue({
       userId: "coord-1",
       email: "coordinator@teknokent.demo",
@@ -100,6 +103,9 @@ describe("AppShell navigation", () => {
     expect(
       within(primaryNav).getByRole("link", { name: /Programlar/ }),
     ).toHaveAttribute("href", "/programs");
+    expect(
+      within(primaryNav).getByRole("link", { name: /Mentörler/ }),
+    ).toHaveAttribute("href", "/mentors");
     expect(screen.queryByText("Başvurular")).not.toBeInTheDocument();
     expect(screen.queryByText("Ekibim")).not.toBeInTheDocument();
   });
@@ -116,6 +122,10 @@ describe("AppShell navigation", () => {
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/mentor-dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Mentörler/ })).toHaveAttribute(
+      "href",
+      "/mentors",
+    );
     expect(
       screen.getByRole("link", { name: /Mentorluklarım/ }),
     ).toHaveAttribute("href", "/mentor-dashboard#mentorships");
@@ -153,6 +163,10 @@ describe("AppShell navigation", () => {
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Mentörler/ })).toHaveAttribute(
+      "href",
+      "/mentors",
+    );
     expect(
       screen.getByRole("link", { name: /Mentorluklarım/ }),
     ).toHaveAttribute("href", "/mentorships");
@@ -334,6 +348,9 @@ describe("AppShell mobile drawer", () => {
       within(drawerNav).getByRole("link", { name: /Ana Sayfa/ }),
     ).toHaveAttribute("href", "/dashboard");
     expect(
+      within(drawerNav).getByRole("link", { name: /Mentörler/ }),
+    ).toHaveAttribute("href", "/mentors");
+    expect(
       within(drawerNav).getByRole("link", { name: /Startup’ım/ }),
     ).toHaveAttribute("href", "/profile");
     expect(
@@ -390,6 +407,9 @@ describe("AppShell mobile drawer", () => {
     expect(
       within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
     ).toHaveAttribute("href", "/assistant");
+    expect(
+      within(drawerNav).getByRole("link", { name: /Mentörler/ }),
+    ).toHaveAttribute("href", "/mentors");
     expect(
       within(drawerNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();

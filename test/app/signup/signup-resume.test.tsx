@@ -1,4 +1,5 @@
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SignupFlow } from "@/components/signup/signup-flow";
@@ -13,6 +14,8 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn(),
   currentUserEmail: vi.fn(),
+  currentIdToken: vi.fn(),
+  isCurrentEmailVerified: () => true,
   describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
 }));
 
@@ -47,9 +50,46 @@ describe("SignupFlow resume", () => {
 
     render(<SignupFlow />);
 
+    expect(
+      screen.getByRole("heading", { name: "Kaydını nasıl tamamlayacaksın?" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
+  });
+
+  it("opens the startup wizard after the resume picker chooses startup", async () => {
+    searchParams.set("resume", "1");
+    vi.mocked(currentUserEmail).mockReturnValue("gulse@dongu.co");
+
+    render(<SignupFlow />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Startup olarak devam et" }),
+    );
+
     expect(await screen.findByTestId("wizard")).toHaveTextContent(
       "gulse@dongu.co",
     );
+  });
+
+  it("opens mentor onboarding after the resume picker chooses mentor", async () => {
+    searchParams.set("resume", "1");
+    vi.mocked(currentUserEmail).mockReturnValue("leyla@mentor.co");
+
+    render(<SignupFlow />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Mentor olarak devam et" }),
+    );
+
+    expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
+  });
+
+  it("resumes mentor onboarding when the URL already says mentor", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "mentor");
+    vi.mocked(currentUserEmail).mockReturnValue("leyla@mentor.co");
+
+    render(<SignupFlow />);
+
+    expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
   });
 
   it("does not resume when Firebase has no signed-in user", () => {

@@ -18,5 +18,7 @@ export type MeetingItem = {
   notes?: string;
   outcomes?: string;
   meetLink?: string;
+  transcribeRequested?: boolean;
+  botDispatchedAt?: string | null;
   status: MeetingStatus | string;
 };

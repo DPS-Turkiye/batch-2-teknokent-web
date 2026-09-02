@@ -6,15 +6,17 @@ import { FormEvent, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
 import { ClientApiError } from "@/lib/client/api";
+import { emailCharacterError } from "@/lib/email";
 import {
+  currentIdToken,
   describeAuthError,
+  isCurrentEmailVerified,
   requestPasswordReset,
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
 
-export const ACCOUNT_NOT_APPROVED = "ACCOUNT_NOT_APPROVED";
-export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
+import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
 
 export function useLoginFlow() {
   const router = useRouter();
@@ -25,11 +27,8 @@ export function useLoginFlow() {
   const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [notice, setNotice] = useState("");
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
 
-  // Nothing to prepare: the form is usable immediately. This used to await a
-  // logout on mount, which let a second tab sitting on /login sign out an
-  // authenticated tab - the cookie and Firebase session are shared across tabs.
-  // Logout is an explicit action only.
   const isReady = true;
 
   async function submitLogin(event: FormEvent<HTMLFormElement>) {
@@ -38,8 +37,19 @@ export function useLoginFlow() {
     setLoginError("");
     setNotice("");
     setStep(LoginFlowStep.Verifying);
+    const emailError = emailCharacterError(email);
+    if (emailError) {
+      setLoginError(emailError);
+      setStep(LoginFlowStep.Login);
+      return;
+    }
     try {
       const idToken = await signInToFirebase(email, password, rememberMe);
+      if (!isCurrentEmailVerified()) {
+        setNeedsEmailVerification(true);
+        setStep(LoginFlowStep.Login);
+        return;
+      }
       await login(idToken, rememberMe);
       setStep(LoginFlowStep.Verified);
     } catch (error) {
@@ -92,6 +102,16 @@ export function useLoginFlow() {
     notice,
     submitLogin,
     sendPasswordReset,
+    needsEmailVerification,
+    continueAfterEmailVerified: async () => {
+      const idToken = await currentIdToken();
+      if (!idToken) {
+        throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+      }
+      await login(idToken, rememberMe);
+      setNeedsEmailVerification(false);
+      setStep(LoginFlowStep.Verified);
+    },
     isReady,
     isVerifying: step === LoginFlowStep.Verifying,
     isVerified: step === LoginFlowStep.Verified,

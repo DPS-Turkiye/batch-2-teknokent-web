@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import { type InputHTMLAttributes, type ReactNode } from "react";
 
 export const authFieldClass =
   "h-11 w-full rounded-[10px] border border-[#e8eaed] bg-white px-3.5 text-sm text-[#111827] outline-none transition placeholder:text-[#9ca3af] focus:border-[#e5701d]";
@@ -10,6 +10,8 @@ export function AuthField({
   label,
   required = false,
   type = "text",
+  inputMode,
+  autoComplete,
   placeholder,
   value,
   onChange,
@@ -19,6 +21,8 @@ export function AuthField({
   label: string;
   required?: boolean;
   type?: string;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
+  autoComplete?: string;
   placeholder?: string;
   value: string;
   onChange: (value: string) => void;
@@ -39,6 +43,8 @@ export function AuthField({
       <input
         id={id}
         type={type}
+        inputMode={inputMode}
+        autoComplete={autoComplete}
         placeholder={placeholder}
         value={value}
         onChange={(event) => onChange(event.target.value)}

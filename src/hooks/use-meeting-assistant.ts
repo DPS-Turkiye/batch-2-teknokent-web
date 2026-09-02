@@ -9,13 +9,19 @@ import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
-import { postAssistantShare } from "@/lib/client/meeting-notes";
+import { updateMeeting } from "@/lib/client/meetings";
 import {
   ASSISTANT_INITIAL_MEETINGS,
   ASSISTANT_SAMPLE_NOTES,
   ASSISTANT_SAMPLE_PAD,
   MEETING_STATUS_META,
+  TRANSCRIPT_BOT_MAX_TIMER_MS,
 } from "@/lib/const";
+import { postAssistantShare } from "@/lib/client/meeting-notes";
+import {
+  isTranscriptBotDue,
+  nextTranscriptBotAction,
+} from "@/lib/transcript-bot";
 import {
   BotStatus,
   MeetingPlatform,
@@ -24,7 +30,14 @@ import {
   type MeetingReport,
   type TranscriptLine,
 } from "@/types/assistant";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import {
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 export { MEETING_STATUS_META as STATUS_META };
 
@@ -57,8 +70,28 @@ function normalizeReport(report: MeetingReport): MeetingReport {
   };
 }
 
+function transcriptBotSentKey(meetingId: string) {
+  return `transcript-bot-sent:${meetingId}`;
+}
+
+function wasTranscriptBotSent(meetingId: string) {
+  try {
+    return sessionStorage.getItem(transcriptBotSentKey(meetingId)) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markTranscriptBotSent(meetingId: string, sent: boolean) {
+  try {
+    if (sent) sessionStorage.setItem(transcriptBotSentKey(meetingId), "1");
+    else sessionStorage.removeItem(transcriptBotSentKey(meetingId));
+  } catch {}
+}
+
 export function useMeetingAssistant() {
   const platformMeetingsQuery = useMeetings();
+  const sendingBotRef = useRef(false);
   const [meetings, setMeetings] = useState(ASSISTANT_INITIAL_MEETINGS);
   const [selectedId, setSelectedId] = useState(
     ASSISTANT_INITIAL_MEETINGS[0].id,
@@ -161,6 +194,115 @@ export function useMeetingAssistant() {
     transcriptDirtyByMeeting,
   ]);
 
+  const sendBotForUrl = useCallback(
+    async (
+      url: string,
+      options?: { keepUrl?: boolean; calendarMeetingId?: string },
+    ) => {
+      const parsed = addBotBodySchema.safeParse({ meetingUrl: url });
+      if (!parsed.success || sendingBotRef.current) return false;
+
+      sendingBotRef.current = true;
+      setBotStatus(BotStatus.Sending);
+      setBotError(null);
+
+      try {
+        const result = await addMeetingBot(parsed.data.meetingUrl);
+        const next: Meeting = {
+          id: result.id || `m${Date.now()}`,
+          title: result.title || "Yeni toplantı botu",
+          platform: platformLabel(result.platform),
+          platformKey: result.platform,
+          nativeMeetingId: result.nativeMeetingId,
+          status:
+            result.status === "joining"
+              ? MeetingStatus.Joining
+              : MeetingStatus.Scheduled,
+          when: "Şimdi",
+          participants: ["Ayşe Kaya"],
+        };
+
+        setMeetings((prev) => [next, ...prev]);
+        setSelectedId(next.id);
+        setMeetingUrl(options?.keepUrl ? parsed.data.meetingUrl : "");
+        setBotStatus(BotStatus.Ok);
+        setTranscriptByMeeting((prev) => ({ ...prev, [next.id]: [] }));
+        window.setTimeout(() => setBotStatus(null), 4000);
+
+        if (options?.calendarMeetingId) {
+          markTranscriptBotSent(options.calendarMeetingId, true);
+          try {
+            await updateMeeting(options.calendarMeetingId, {
+              transcriptBotDispatched: true,
+            });
+          } catch (error) {
+            console.error("Failed to mark transcript bot dispatched", error);
+          }
+        }
+        return true;
+      } catch (error) {
+        if (options?.calendarMeetingId) {
+          markTranscriptBotSent(options.calendarMeetingId, false);
+        }
+        setBotStatus(BotStatus.Err);
+        setBotError(
+          error instanceof Error ? error.message : "Failed to send bot",
+        );
+        window.setTimeout(() => setBotStatus(null), 5000);
+        return false;
+      } finally {
+        sendingBotRef.current = false;
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    const calendarMeetings = platformMeetingsQuery.data ?? [];
+    let cancelled = false;
+    let timer: number | undefined;
+
+    const schedule = () => {
+      if (cancelled) return;
+      const due = calendarMeetings.find((item) => isTranscriptBotDue(item));
+      const dueLink = due?.meetLink?.trim();
+      if (dueLink) {
+        setMeetingUrl((current) => (current === dueLink ? current : dueLink));
+      }
+
+      const action = nextTranscriptBotAction(calendarMeetings);
+      if (!action) return;
+
+      if (action.delayMs > 0) {
+        timer = window.setTimeout(
+          schedule,
+          Math.min(action.delayMs, TRANSCRIPT_BOT_MAX_TIMER_MS),
+        );
+        return;
+      }
+
+      setMeetingUrl((current) =>
+        current === action.meetLink ? current : action.meetLink,
+      );
+
+      if (wasTranscriptBotSent(action.meetingId)) return;
+
+      markTranscriptBotSent(action.meetingId, true);
+      void sendBotForUrl(action.meetLink, {
+        keepUrl: true,
+        calendarMeetingId: action.meetingId,
+      }).then((ok) => {
+        if (!ok) markTranscriptBotSent(action.meetingId, false);
+      });
+    };
+
+    schedule();
+    return () => {
+      cancelled = true;
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [platformMeetingsQuery.data, sendBotForUrl]);
+
   const visibleTranscript = selectedTranscript;
 
   const notes = ASSISTANT_SAMPLE_NOTES[selected.id] ?? [];
@@ -170,42 +312,7 @@ export function useMeetingAssistant() {
 
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
-    const parsed = addBotBodySchema.safeParse({ meetingUrl });
-    if (!parsed.success || botStatus === BotStatus.Sending) return;
-
-    setBotStatus(BotStatus.Sending);
-    setBotError(null);
-
-    try {
-      const result = await addMeetingBot(parsed.data.meetingUrl);
-
-      const next: Meeting = {
-        id: result.id || `m${Date.now()}`,
-        title: result.title || "Yeni toplantı botu",
-        platform: platformLabel(result.platform),
-        platformKey: result.platform,
-        nativeMeetingId: result.nativeMeetingId,
-        status:
-          result.status === "joining"
-            ? MeetingStatus.Joining
-            : MeetingStatus.Scheduled,
-        when: "Şimdi",
-        participants: ["Ayşe Kaya"],
-      };
-
-      setMeetings((prev) => [next, ...prev]);
-      setSelectedId(next.id);
-      setMeetingUrl("");
-      setBotStatus(BotStatus.Ok);
-      setTranscriptByMeeting((prev) => ({ ...prev, [next.id]: [] }));
-      window.setTimeout(() => setBotStatus(null), 4000);
-    } catch (error) {
-      setBotStatus(BotStatus.Err);
-      setBotError(
-        error instanceof Error ? error.message : "Failed to send bot",
-      );
-      window.setTimeout(() => setBotStatus(null), 5000);
-    }
+    await sendBotForUrl(meetingUrl);
   };
 
   const requestMeetingReport = async () => {

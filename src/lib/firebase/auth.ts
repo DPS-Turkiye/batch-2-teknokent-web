@@ -3,30 +3,33 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
+  sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
 
+import {
+  EMAIL_VERIFICATION_EXEMPT,
+  FIREBASE_AUTH_ERROR_MESSAGES,
+} from "@/lib/const";
 import { firebaseAuth } from "@/lib/firebase/client";
 
-const ERROR_MESSAGES: Record<string, string> = {
-  "auth/email-already-in-use":
-    "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
-  "auth/invalid-email": "E-posta adresi geçersiz.",
-  "auth/weak-password": "Şifre çok zayıf. Daha uzun bir şifre seçin.",
-  "auth/invalid-credential": "E-posta veya şifre hatalı.",
-  "auth/user-not-found": "E-posta veya şifre hatalı.",
-  "auth/wrong-password": "E-posta veya şifre hatalı.",
-  "auth/too-many-requests":
-    "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
-  "auth/network-request-failed": "Bağlantı kurulamadı. Tekrar deneyin.",
-};
+const EXEMPT_EMAILS = new Set<string>(EMAIL_VERIFICATION_EXEMPT);
+
+export function isEmailVerificationExempt(
+  email: string | null | undefined,
+): boolean {
+  return EXEMPT_EMAILS.has(email?.trim().toLowerCase() ?? "");
+}
 
 export function describeAuthError(error: unknown): string {
   if (error instanceof FirebaseError) {
-    return ERROR_MESSAGES[error.code] ?? "Kimlik doğrulama tamamlanamadı.";
+    return (
+      FIREBASE_AUTH_ERROR_MESSAGES[error.code] ??
+      "Kimlik doğrulama tamamlanamadı."
+    );
   }
   if (error instanceof Error && error.message) {
     return error.message;
@@ -43,7 +46,36 @@ export async function createFirebaseAccount(
     email.trim(),
     password,
   );
+  if (!isEmailVerificationExempt(credential.user.email)) {
+    await sendEmailVerification(credential.user);
+  }
   return credential.user.getIdToken();
+}
+
+export async function resendVerificationEmail(): Promise<void> {
+  const user = firebaseAuth().currentUser;
+  if (!user) {
+    throw new Error("Doğrulama maili için önce giriş yapın.");
+  }
+  await sendEmailVerification(user);
+}
+
+export function isCurrentEmailVerified(): boolean {
+  try {
+    const user = firebaseAuth().currentUser;
+    if (!user) return false;
+    return user.emailVerified === true || isEmailVerificationExempt(user.email);
+  } catch {
+    return false;
+  }
+}
+
+export async function reloadAndCheckEmailVerified(): Promise<boolean> {
+  const user = firebaseAuth().currentUser;
+  if (!user) return false;
+  if (isEmailVerificationExempt(user.email)) return true;
+  await user.reload();
+  return user.emailVerified;
 }
 
 export async function signInToFirebase(

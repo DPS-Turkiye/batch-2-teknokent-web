@@ -1,13 +1,16 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorshipsPage from "@/app/mentorships/page";
+import { useMentors } from "@/hooks/use-mentors";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import type { MentorProfile } from "@/interfaces/mentor";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { mentorProfile } from "@test/fixtures/mentors";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -22,6 +25,10 @@ vi.mock("@/components/providers/session-provider", () => ({
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-mentors", () => ({
+  useMentors: vi.fn(),
 }));
 
 function request(
@@ -39,6 +46,7 @@ function request(
     rejectionReason: null,
     createdAt: "2026-08-17T09:49:54.374504Z",
     messages: [],
+    recommendationSnapshot: null,
     ...overrides,
   };
 }
@@ -52,10 +60,26 @@ function mockRequests(
     isLoading: false,
     error: null,
     ...overrides,
-  } as ReturnType<typeof useMentorshipRequests>);
+  } as unknown as ReturnType<typeof useMentorshipRequests>);
+}
+
+function mockMentors(
+  data: MentorProfile[],
+  overrides: Partial<ReturnType<typeof useMentors>> = {},
+) {
+  vi.mocked(useMentors).mockReturnValue({
+    data,
+    isLoading: false,
+    error: null,
+    ...overrides,
+  } as unknown as ReturnType<typeof useMentors>);
 }
 
 describe("MentorshipsPage", () => {
+  beforeEach(() => {
+    mockMentors([]);
+  });
+
   it("lists every mentorship request, not just the dashboard's first two", () => {
     mockRequests([
       request({ id: "1", mentorName: "Leyla Aksoy" }),
@@ -113,5 +137,19 @@ describe("MentorshipsPage", () => {
 
     await user.click(screen.getByRole("tab", { name: "Talepler" }));
     expect(screen.getByText("Ece Demir")).toBeInTheDocument();
+  });
+
+  it("lists backend mentors on the Mentor Havuzu tab", async () => {
+    mockMentors([mentorProfile]);
+    const user = userEvent.setup();
+    mockRequests([]);
+
+    renderWithQueryClient(<MentorshipsPage />);
+    await user.click(screen.getByRole("tab", { name: "Mentor Havuzu" }));
+
+    expect(
+      screen.getByRole("link", { name: /Dr. Kemal Arslan/ }),
+    ).toHaveAttribute("href", `/mentors/${mentorProfile.id}`);
+    expect(screen.queryByText(/Maks\./)).not.toBeInTheDocument();
   });
 });

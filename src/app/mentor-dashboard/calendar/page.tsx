@@ -83,6 +83,7 @@ export default function MentorCalendarPage() {
           durationMinutes: input.durationMinutes,
           agenda: input.agenda,
           meetLink,
+          transcribeRequested: input.transcribeRequested ?? false,
         });
       }
       setMeetingOpen(false);

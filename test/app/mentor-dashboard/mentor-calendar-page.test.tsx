@@ -328,6 +328,43 @@ describe("MentorCalendarPage", () => {
         durationMinutes: 60,
         agenda: "Mentor: Nihan Öztürk",
         meetLink: "https://meet.google.com/abc-defg-hij",
+        transcribeRequested: false,
+      }),
+    );
+  });
+
+  it("sends a transcript bot when the mentor checks the box", async () => {
+    addMeeting.mockResolvedValue(undefined);
+    mock();
+    const user = userEvent.setup();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
+    );
+
+    expect(
+      screen.getByRole("checkbox", {
+        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
+      }),
+    ).not.toBeChecked();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
+      }),
+    );
+    expect(screen.getByRole("status")).toHaveTextContent(
+      /toplantı raporunu ve transkripti menteelerinize gönderebilirsiniz/i,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Gönder" }));
+
+    expect(addMeeting).toHaveBeenCalledWith(
+      expect.objectContaining({
+        transcribeRequested: true,
+        meetLink: "https://meet.google.com/abc-defg-hij",
       }),
     );
   });

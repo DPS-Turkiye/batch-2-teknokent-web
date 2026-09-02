@@ -1,7 +1,10 @@
 import { FirebaseError } from "firebase/app";
 import { describe, expect, it, vi } from "vitest";
 
-import { describeAuthError } from "@/lib/firebase/auth";
+import {
+  describeAuthError,
+  isEmailVerificationExempt,
+} from "@/lib/firebase/auth";
 
 vi.mock("@/lib/firebase/client", () => ({
   firebaseAuth: () => {
@@ -60,5 +63,14 @@ describe("describeAuthError", () => {
   it("falls back to Turkish for a non-Error value", () => {
     expect(describeAuthError("boom")).toBe(FALLBACK);
     expect(describeAuthError(new Error(""))).toBe(FALLBACK);
+  });
+});
+
+describe("isEmailVerificationExempt", () => {
+  it("allows only the two dummy staff inboxes", () => {
+    expect(isEmailVerificationExempt("admin@teknokent.demo")).toBe(true);
+    expect(isEmailVerificationExempt("Coordinator@teknokent.demo")).toBe(true);
+    expect(isEmailVerificationExempt("gulse@dongu.co")).toBe(false);
+    expect(isEmailVerificationExempt("mentor@teknokent.demo")).toBe(false);
   });
 });

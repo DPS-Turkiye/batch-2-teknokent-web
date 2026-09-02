@@ -6,38 +6,64 @@ import { useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { useSession } from "@/components/providers/session-provider";
 import { useRegisterForm } from "@/hooks/use-auth-form";
-import { PASSWORD_MIN_LENGTH } from "@/interfaces/auth";
 import { ClientApiError } from "@/lib/client/api";
 import { registerMember } from "@/lib/client/auth";
-import { createFirebaseAccount, describeAuthError } from "@/lib/firebase/auth";
+import {
+  createFirebaseAccount,
+  currentIdToken,
+  describeAuthError,
+  isCurrentEmailVerified,
+} from "@/lib/firebase/auth";
+import { PASSWORD_HINT } from "@/lib/password";
 
 export function InviteView() {
   const router = useRouter();
   const { login } = useSession();
-  const { form, update, canSubmit, passwordTooShort, passwordsMismatch } =
-    useRegisterForm();
+  const {
+    form,
+    update,
+    canSubmit,
+    passwordStrengthErrorMessage,
+    passwordsMismatch,
+    emailCharacterErrorMessage,
+  } = useRegisterForm();
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+
+  async function joinAfterEmailVerified() {
+    const idToken = await currentIdToken();
+    if (!idToken) {
+      throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+    }
+    await registerMember(
+      {
+        fullName: `${form.firstName.trim()} ${form.lastName.trim()}`,
+        email: form.email.trim(),
+        inviteCode: inviteCode.trim(),
+        phone: form.phone.trim() || undefined,
+      },
+      idToken,
+    );
+    await login(idToken);
+    router.push("/workspace");
+  }
 
   async function handleSubmit() {
     setSubmitting(true);
     setError("");
     try {
-      const idToken = await createFirebaseAccount(form.email, form.password);
-      await registerMember(
-        {
-          fullName: `${form.firstName.trim()} ${form.lastName.trim()}`,
-          email: form.email.trim(),
-          inviteCode: inviteCode.trim(),
-          phone: form.phone.trim() || undefined,
-        },
-        idToken,
-      );
-      await login(idToken);
-      router.push("/workspace");
+      await createFirebaseAccount(form.email, form.password);
+      if (!isCurrentEmailVerified()) {
+        setNeedsEmailVerification(true);
+        setSubmitting(false);
+        return;
+      }
+      await joinAfterEmailVerified();
     } catch (caught) {
       setError(
         caught instanceof ClientApiError
@@ -46,6 +72,15 @@ export function InviteView() {
       );
       setSubmitting(false);
     }
+  }
+
+  if (needsEmailVerification) {
+    return (
+      <VerifyEmailView
+        email={form.email.trim()}
+        onVerified={joinAfterEmailVerified}
+      />
+    );
   }
 
   return (
@@ -86,15 +121,24 @@ export function InviteView() {
               onChange={(value) => update("lastName", value)}
             />
           </div>
-          <AuthField
-            id="invite-email"
-            label="E-posta"
-            required
-            type="email"
-            placeholder="ornek@email.com"
-            value={form.email}
-            onChange={(value) => update("email", value)}
-          />
+          <div>
+            <AuthField
+              id="invite-email"
+              label="E-posta"
+              required
+              type="text"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="ornek@email.com"
+              value={form.email}
+              onChange={(value) => update("email", value)}
+            />
+            {emailCharacterErrorMessage ? (
+              <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
+                {emailCharacterErrorMessage}
+              </p>
+            ) : null}
+          </div>
           <AuthField
             id="invite-phone"
             label="Telefon"
@@ -110,15 +154,17 @@ export function InviteView() {
               label="Şifre"
               required
               type="password"
-              placeholder={`En az ${PASSWORD_MIN_LENGTH} karakter`}
+              placeholder={PASSWORD_HINT}
               value={form.password}
               onChange={(value) => update("password", value)}
             />
-            {passwordTooShort ? (
+            {passwordStrengthErrorMessage ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Password must be at least {PASSWORD_MIN_LENGTH} characters.
+                {passwordStrengthErrorMessage}
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-1.5 text-xs text-[#6b7280]">{PASSWORD_HINT}</p>
+            )}
           </div>
           <div>
             <AuthField
