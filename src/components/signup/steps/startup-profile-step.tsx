@@ -6,13 +6,11 @@ import { ChipGroup } from "@/components/common/chip-group";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import {
   MATURITY_OPTIONS,
-  PRODUCT_STATUS_OPTIONS,
   PROGRAM_LEVEL_OPTIONS,
   PROGRAM_OPTIONS,
   SECTOR_OPTIONS,
   SUPPORT_AREA_OPTIONS,
   TAGLINE_MAX_LENGTH,
-  TEAM_SIZE_OPTIONS,
 } from "@/interfaces/signup";
 
 const fieldClass =
@@ -231,68 +229,6 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
                   ))}
                 </select>
               </div>
-            </div>
-          </section>
-
-          <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-            <h2 className="text-sm font-semibold">Bugünkü durum</h2>
-            <div>
-              <span className={labelClass}>Ekip büyüklüğü</span>
-              <div
-                role="group"
-                aria-label="Ekip büyüklüğü"
-                className="flex flex-wrap gap-2"
-              >
-                {TEAM_SIZE_OPTIONS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-pressed={startup.teamSize === option}
-                    onClick={() => updateStartup("teamSize", option)}
-                    className={`min-h-9 min-w-11 rounded-lg border px-3 text-xs font-medium transition ${
-                      startup.teamSize === option
-                        ? "border-[#e86f22] bg-[#fff9f5] text-[#c85816]"
-                        : "border-[#e4e7ea] bg-white text-[#676e78] hover:border-[#f2b78f]"
-                    }`}
-                  >
-                    {option}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-product-status">
-                Ürün durumu
-              </label>
-              <select
-                id="signup-product-status"
-                className={fieldClass}
-                value={startup.productStatus}
-                onChange={(event) =>
-                  updateStartup("productStatus", event.target.value)
-                }
-              >
-                <option value="">Seç…</option>
-                {PRODUCT_STATUS_OPTIONS.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-user-evidence">
-                Mevcut kullanıcı / müşteri kanıtı
-              </label>
-              <textarea
-                id="signup-user-evidence"
-                rows={3}
-                className={`${fieldClass} min-h-24 resize-y py-3 leading-relaxed`}
-                value={startup.userEvidence}
-                onChange={(event) =>
-                  updateStartup("userEvidence", event.target.value)
-                }
-              />
             </div>
           </section>
         </div>

@@ -130,6 +130,33 @@ describe("Signup wizard", () => {
     expect(screen.getAllByText("Döngü").length).toBeGreaterThan(0);
   });
 
+  it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+
+    expect(
+      screen.getByRole("heading", { name: "Startup profilini oluştur" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Bugünkü durum")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText("Ekip büyüklüğü")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Ürün durumu/)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/Mevcut kullanıcı \/ müşteri kanıtı/),
+    ).not.toBeInTheDocument();
+
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+
+    expect(
+      screen.getByRole("heading", { name: "Profilini gözden geçir" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Bugünkü durum")).not.toBeInTheDocument();
+  });
+
   it("returns to the matching step when a review section is edited", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);

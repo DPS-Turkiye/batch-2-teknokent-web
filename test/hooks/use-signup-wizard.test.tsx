@@ -186,17 +186,23 @@ describe("useSignupWizard", () => {
       result.current.updateStartup("solution", "Eşleştirme motoru");
       result.current.updateStartup("targetUser", "KOBİ'ler");
       result.current.updateStartup("sector", "SaaS");
-      result.current.updateStartup("teamSize", "3");
-      result.current.updateStartup("productStatus", "Prototip / wireframe");
+      result.current.updateStartup("maturity", "Prototip");
     });
 
     expect(result.current.draft.startup.solution).toBe("Eşleştirme motoru");
     expect(result.current.draft.startup.targetUser).toBe("KOBİ'ler");
     expect(result.current.draft.startup.sector).toBe("SaaS");
-    expect(result.current.draft.startup.teamSize).toBe("3");
-    expect(result.current.draft.startup.productStatus).toBe(
-      "Prototip / wireframe",
-    );
+    expect(result.current.draft.startup.maturity).toBe("Prototip");
+  });
+
+  it("no longer tracks the removed Bugünkü durum fields", () => {
+    const { result } = renderHook(() => useSignupWizard());
+
+    expect(result.current.draft.startup).not.toHaveProperty("teamSize");
+    expect(result.current.draft.startup).not.toHaveProperty("productStatus");
+    expect(result.current.draft.startup).not.toHaveProperty("userEvidence");
+    expect(result.current.completion.missing).not.toContain("Ekip büyüklüğü");
+    expect(result.current.completion.missing).not.toContain("Ürün durumu");
   });
 
   it("flips to the submitted state only when submit is called", async () => {
