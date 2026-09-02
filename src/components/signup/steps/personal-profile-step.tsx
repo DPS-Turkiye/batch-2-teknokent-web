@@ -3,12 +3,14 @@
 import { Plus, User } from "lucide-react";
 
 import { ChipGroup } from "@/components/common/chip-group";
+import { EditableChips } from "@/components/common/editable-chips";
 import { FileDrop } from "@/components/common/file-drop";
+import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import {
   BIO_MAX_LENGTH,
   CONTACT_PREFERENCE_OPTIONS,
-  EXPERTISE_OPTIONS,
+  type UploadedFile,
 } from "@/interfaces/signup";
 
 const fieldClass =
@@ -16,9 +18,35 @@ const fieldClass =
 const labelClass = "mb-1.5 block text-xs font-medium text-[#3c424a]";
 
 export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
-  const { draft, updatePersonal, toggleExpertise, toggleContactPreference } =
+  const { draft, updatePersonal, setExpertise, toggleContactPreference } =
     wizard;
   const { personal } = draft;
+  const cvParse = useCvParse();
+
+  function onCvSelected(file: UploadedFile | null) {
+    updatePersonal("cv", file);
+    if (!file?.file) return;
+    cvParse.mutate(file.file, {
+      onSuccess: (parsed) => {
+        // Suggestions, not an overwrite: anything the user already typed wins,
+        // and every parsed chip can be removed afterwards.
+        if (parsed.role && !personal.role.trim()) {
+          updatePersonal("role", parsed.role);
+        }
+        if (parsed.summary && !personal.bio.trim()) {
+          updatePersonal("bio", parsed.summary.slice(0, BIO_MAX_LENGTH));
+        }
+        if (parsed.expertise.length) {
+          setExpertise([
+            ...personal.expertise,
+            ...parsed.expertise.filter(
+              (value) => !personal.expertise.includes(value),
+            ),
+          ]);
+        }
+      },
+    });
+  }
 
   return (
     <div className="space-y-5">
@@ -123,18 +151,38 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
           <FileDrop
             file={personal.cv}
             label="CV dosyası seç"
-            onChange={(file) => updatePersonal("cv", file)}
+            onChange={onCvSelected}
           />
+          {cvParse.isPending ? (
+            <p className="mt-2 text-xs text-[#676e78]" role="status">
+              CV okunuyor, alanların dolduruluyor…
+            </p>
+          ) : null}
+          {cvParse.error ? (
+            // A failed parse must say so rather than looking like an empty CV.
+            <p className="mt-2 text-xs text-[#b91c1c]" role="alert">
+              {cvParse.error.message}
+            </p>
+          ) : null}
+          {cvParse.isSuccess && !cvParse.isPending ? (
+            <p className="mt-2 text-xs text-[#0f7b4f]" role="status">
+              CV okundu. Aşağıdaki alanları kontrol edip düzenleyebilirsin.
+            </p>
+          ) : null}
         </div>
       </section>
 
       <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <h2 className="mb-3 text-sm font-semibold">Uzmanlık alanları</h2>
-        <ChipGroup
+        <h2 className="mb-1 text-sm font-semibold">Uzmanlık alanları</h2>
+        <p className="mb-3 text-xs text-[#676e78]">
+          CV yüklediğinde otomatik doldurulur. İstediğini kaldırabilir, kendin
+          ekleyebilirsin.
+        </p>
+        <EditableChips
           label="Uzmanlık alanları"
-          options={EXPERTISE_OPTIONS}
-          selected={personal.expertise}
-          onToggle={toggleExpertise}
+          values={personal.expertise}
+          onChange={setExpertise}
+          placeholder="Örn. Ürün Yönetimi"
         />
       </section>
 

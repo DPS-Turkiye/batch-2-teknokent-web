@@ -29,18 +29,6 @@ export const SIGNUP_STEP_ORDER: SignupStep[] = [
 export const BIO_MAX_LENGTH = 280;
 export const TAGLINE_MAX_LENGTH = 80;
 
-export const EXPERTISE_OPTIONS = [
-  "UI/UX Design",
-  "Branding",
-  "User Research",
-  "Figma",
-  "Prototyping",
-  "Illustration",
-  "Motion Design",
-  "Product Strategy",
-  "HTML/CSS",
-] as const;
-
 export const SUPPORT_AREA_OPTIONS = [
   "Finans",
   "Pazarlama",

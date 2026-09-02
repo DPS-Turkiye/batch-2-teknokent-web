@@ -129,13 +129,12 @@ export function useSignupWizard(
     [],
   );
 
-  const toggleExpertise = useCallback((value: string) => {
+  // Expertise is free-form now: values come from the parsed CV or the user's own
+  // typing, so the step replaces the whole set rather than toggling a fixed list.
+  const setExpertise = useCallback((values: string[]) => {
     setDraft((current) => ({
       ...current,
-      personal: {
-        ...current.personal,
-        expertise: toggle(current.personal.expertise, value),
-      },
+      personal: { ...current.personal, expertise: values },
     }));
   }, []);
 
@@ -286,7 +285,7 @@ export function useSignupWizard(
     saveDraft,
     setDocument,
     toggleContactPreference,
-    toggleExpertise,
+    setExpertise,
     toggleSupportArea,
     updatePersonal,
     updateStartup,

@@ -6,6 +6,7 @@ import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { SIGNUP_STEP_CTA, SignupStep } from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
+import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
@@ -21,6 +22,10 @@ vi.mock("@/lib/client/auth", () => ({
 // not about that list, so it stays empty here.
 vi.mock("@/lib/client/programs", () => ({
   getProgramNames: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/lib/client/profile-analysis", () => ({
+  parseCv: vi.fn(),
 }));
 
 const ACCOUNT: RegisteredAccount = {
@@ -98,18 +103,81 @@ describe("Signup wizard", () => {
     expect(screen.getByText("7/280")).toBeInTheDocument();
   });
 
-  it("selects and deselects an expertise chip", async () => {
+  // Expertise is free-form now: there is no fixed list to toggle, so the mentee
+  // types their own and can remove any chip.
+  it("adds and removes a free-form expertise chip", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
-    const chip = screen.getByRole("button", { name: "Figma" });
-    expect(chip).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText(/Henüz bir alan eklenmedi/)).toBeInTheDocument();
 
-    await user.click(chip);
-    expect(chip).toHaveAttribute("aria-pressed", "true");
+    await user.type(
+      screen.getByLabelText("Uzmanlık alanları ekle"),
+      "Ürün Yönetimi",
+    );
+    await user.click(screen.getByRole("button", { name: /Ekle/ }));
 
-    await user.click(chip);
-    expect(chip).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByText("Ürün Yönetimi")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Ürün Yönetimi alanını kaldır" }),
+    );
+
+    expect(screen.queryByText("Ürün Yönetimi")).not.toBeInTheDocument();
+  });
+
+  it("fills the role and expertise from a parsed CV", async () => {
+    vi.mocked(parseCv).mockResolvedValue({
+      current_role: "Ürün Yöneticisi",
+      professional_functions: ["Ürün Yönetimi"],
+      technologies: ["PyTorch"],
+    });
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+
+    expect(await screen.findByText("Ürün Yönetimi")).toBeInTheDocument();
+    expect(screen.getByText("PyTorch")).toBeInTheDocument();
+    expect(screen.getByLabelText("Startup'taki rolün")).toHaveValue(
+      "Ürün Yöneticisi",
+    );
+  });
+
+  // The mentee's own words win; the CV only fills what is still blank.
+  it("does not overwrite a role the mentee already typed", async () => {
+    vi.mocked(parseCv).mockResolvedValue({ current_role: "Ürün Yöneticisi" });
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await user.type(screen.getByLabelText("Startup'taki rolün"), "Kurucu");
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+
+    await waitFor(() => expect(vi.mocked(parseCv)).toHaveBeenCalled());
+    expect(screen.getByLabelText("Startup'taki rolün")).toHaveValue("Kurucu");
+  });
+
+  it("says so when the CV cannot be read, rather than looking empty", async () => {
+    vi.mocked(parseCv).mockRejectedValue(
+      new Error("CV okunamadı. Bilgileri elle girebilirsin."),
+    );
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "CV okunamadı. Bilgileri elle girebilirsin.",
+    );
   });
 
   it("walks through every step and reaches the review summary", async () => {
@@ -184,6 +252,45 @@ describe("Signup wizard", () => {
     await waitFor(() =>
       expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
         expect.objectContaining({ programId: "prog-1" }),
+        expect.anything(),
+      ),
+    );
+  });
+
+  // The parsed chips used to fill the screen and then vanish at submit, because
+  // registerFounder had nowhere to put them.
+  it("sends the parsed expertise, bio and LinkedIn through registration", async () => {
+    vi.mocked(parseCv).mockResolvedValue({
+      current_role: "Ürün Yöneticisi",
+      professional_summary: "Ürün odaklı kurucu",
+      professional_functions: ["Ürün Yönetimi"],
+      technologies: ["PyTorch"],
+    });
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await user.type(screen.getByLabelText("Ad"), "Gülse");
+    await user.type(screen.getByLabelText("Soyad"), "Buran");
+    await user.type(screen.getByLabelText("LinkedIn"), "linkedin.com/in/gulse");
+    await user.upload(
+      screen.getByLabelText(/CV dosyası seç/),
+      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
+    );
+    expect(await screen.findByText("Ürün Yönetimi")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    await waitFor(() =>
+      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          expertise: ["Ürün Yönetimi", "PyTorch"],
+          bio: "Ürün odaklı kurucu",
+          linkedinUrl: "linkedin.com/in/gulse",
+        }),
         expect.anything(),
       ),
     );
@@ -282,6 +389,7 @@ describe("Signup wizard", () => {
           jobTitle: "Designer",
           // No program chosen is a real answer and is sent, not omitted.
           programId: null,
+          expertise: [],
         },
         "id-token",
       ),
