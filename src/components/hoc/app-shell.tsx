@@ -5,19 +5,15 @@ import {
   Bell,
   Bot,
   CalendarDays,
-  ChevronDown,
   ClipboardList,
   FolderKanban,
-  FolderOpen,
   Home,
   LogOut,
   Menu,
   MessageCircle,
   NotebookPen,
   Star,
-  UserPlus,
   Users,
-  Video,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -137,49 +133,6 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
   ];
 }
 
-function buildUtilityNavigation(role?: UserRole): NavigationItem[] {
-  // Every destination below was built around a mentee's organization, meeting
-  // flow or identity: /team needs an organization a mentor does not have and
-  // returns 401, and the meeting, assistant and notebook routes render mentee
-  // data. Mentors stay out until mentor equivalents exist.
-  if (
-    role === UserRole.Admin ||
-    role === UserRole.Coordinator ||
-    role === UserRole.Mentor
-  ) {
-    return [];
-  }
-
-  const extras: NavigationItem[] = [
-    {
-      id: AppArea.Team,
-      label: "Ekibim",
-      href: "/team",
-      icon: UserPlus,
-    },
-    {
-      id: AppArea.Meetings,
-      label: "Toplantılar",
-      href: "/meetings/research",
-      icon: Video,
-    },
-    {
-      id: AppArea.Actions,
-      label: "Aksiyonlar",
-      href: "/meetings/research/prepare",
-      icon: ClipboardList,
-    },
-    {
-      id: AppArea.Files,
-      label: "Dosyalar",
-      href: "/meetings/research",
-      icon: FolderOpen,
-    },
-  ];
-
-  return extras;
-}
-
 function BrandBlock({ href }: { href: string }) {
   return (
     <Link
@@ -220,7 +173,6 @@ export function AppShell({
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
   const navigation = buildNavigation(session?.role);
-  const extras = buildUtilityNavigation(session?.role);
   const displayName = session?.fullName ?? "Ayşe Kaya";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -256,25 +208,6 @@ export function AppShell({
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            {extras.length > 0 ? (
-              <details className="relative hidden xl:block">
-                <summary className="flex h-10 cursor-pointer items-center gap-1 rounded-full px-3 text-xs font-medium text-[#676e78] hover:bg-[#f8f9fa]">
-                  Diğer <ChevronDown className="size-3.5" />
-                </summary>
-                <div className="absolute right-0 top-12 w-52 rounded-2xl border border-[#e4e7ea] bg-white p-2 shadow-xl">
-                  {extras.map((item) => (
-                    <Link
-                      key={item.label}
-                      href={item.href}
-                      className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-xs text-[#676e78] hover:bg-[#f8f9fa] hover:text-[#22262b]"
-                    >
-                      <item.icon className="size-4" />
-                      {item.label}
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            ) : null}
             <Link
               href={notificationsHref}
               aria-label="Duyurular"
@@ -342,7 +275,7 @@ export function AppShell({
               </button>
             </div>
             <nav className="mt-8 space-y-1">
-              {[...navigation, ...extras].map((item, index) => (
+              {navigation.map((item, index) => (
                 <Link
                   key={`${item.label}-${index}`}
                   href={item.href}

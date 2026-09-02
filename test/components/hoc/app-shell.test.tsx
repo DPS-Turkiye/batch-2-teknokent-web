@@ -223,7 +223,7 @@ describe("AppShell navigation", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("keeps /team reachable from the utility menu so it is never orphaned", () => {
+  it("no longer carries a Diğer menu of utility destinations", () => {
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -232,15 +232,22 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    const teamLinks = screen
-      .getAllByRole("link", { name: /Ekibim/ })
-      .map((link) => link.getAttribute("href"));
-
-    expect(teamLinks.length).toBeGreaterThan(0);
-    expect(teamLinks).toContain("/team");
+    // Ekibim moved into Startup'ım and the three meeting entries were already
+    // covered by Takvim and Mesajlar, so the dropdown has nothing left to hold.
+    // /team stays reachable from the profile page — see the profile view test.
+    expect(screen.queryByText("Diğer")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Ekibim/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Aksiyonlar/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Dosyalar/ }),
+    ).not.toBeInTheDocument();
   });
 
-  it("marks Startup'ım and Ekibim as separate areas so only one highlights", () => {
+  it("marks Startup'ım as active without a competing Ekibim area", () => {
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -304,7 +311,7 @@ describe("AppShell mobile drawer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("opens with both primary and utility destinations, then closes again", async () => {
+  it("opens with the primary destinations, then closes again", async () => {
     const user = userEvent.setup();
     mockuseAppSession.mockReturnValue(menteeSession());
 
@@ -329,9 +336,6 @@ describe("AppShell mobile drawer", () => {
     expect(
       within(drawerNav).getByRole("link", { name: /Startup’ım/ }),
     ).toHaveAttribute("href", "/profile");
-    expect(
-      within(drawerNav).getByRole("link", { name: /Ekibim/ }),
-    ).toHaveAttribute("href", "/team");
     expect(
       within(drawerNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");
