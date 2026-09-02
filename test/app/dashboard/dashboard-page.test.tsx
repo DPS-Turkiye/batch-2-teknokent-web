@@ -18,6 +18,12 @@ vi.mock("@/hooks/use-dashboard-notifications", () => ({
   useDashboardNotifications: () => ({ notifications: [] }),
 }));
 
+// The dashboard now renders the program picker, which has its own tests. Stub it
+// here so these assertions stay about the dashboard.
+vi.mock("@/components/dashboard/active-program-picker", () => ({
+  ActiveProgramPicker: () => null,
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>

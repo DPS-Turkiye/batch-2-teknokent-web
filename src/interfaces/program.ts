@@ -50,3 +50,20 @@ export type ProgramDirectory = {
     email: string;
   }>;
 };
+
+/**
+ * A program the signed-in user's own startup has been assigned to. Narrower than
+ * {@link Program} on purpose: the backend does not expose the other startups or
+ * the mentor roster of a program a startup merely belongs to.
+ */
+export type OrganizationProgram = {
+  id: string;
+  name: string;
+  coordinatorName: string;
+};
+
+export type OrganizationPrograms = {
+  programs: OrganizationProgram[];
+  /** Null when the startup has no assignment, or has one but has not chosen. */
+  activeProgramId: string | null;
+};

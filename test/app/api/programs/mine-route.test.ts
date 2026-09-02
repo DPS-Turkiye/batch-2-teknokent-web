@@ -1,0 +1,135 @@
+import { NextRequest, NextResponse } from "next/server";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { PUT } from "@/app/api/programs/mine/active/route";
+import { GET } from "@/app/api/programs/mine/route";
+import { UserRole, type AppSession } from "@/interfaces/session";
+import {
+  fetchOrganizationPrograms,
+  updateActiveProgram,
+} from "@/lib/api/programs";
+import { requireStartupSession } from "@/lib/server/require-program-access";
+
+vi.mock("@/lib/api/programs", () => ({
+  fetchOrganizationPrograms: vi.fn(),
+  updateActiveProgram: vi.fn(),
+}));
+
+vi.mock("@/lib/server/require-program-access", () => ({
+  requireStartupSession: vi.fn(),
+}));
+
+function startupSession(): AppSession {
+  return {
+    userId: "mentee-1",
+    email: "founder@novamed.demo",
+    fullName: "Ayşe Kaya",
+    jobTitle: "Kurucu",
+    role: UserRole.Mentee,
+    organizationId: "org-1",
+  };
+}
+
+// backendRequest resolves an envelope, not the payload.
+const PROGRAMS = {
+  data: {
+    programs: [
+      {
+        id: "prog-1",
+        name: "metustarts 2026",
+        coordinatorName: "Demo Koordinatör",
+      },
+    ],
+    activeProgramId: null,
+  },
+  headers: {},
+  status: 200,
+};
+
+function activeRequest(body: unknown) {
+  return new NextRequest("http://localhost/api/programs/mine/active", {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+}
+
+beforeEach(() => vi.clearAllMocks());
+
+describe("GET /api/programs/mine", () => {
+  it("refuses a caller who is not a startup member", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: false,
+      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
+    });
+
+    expect((await GET()).status).toBe(403);
+    expect(fetchOrganizationPrograms).not.toHaveBeenCalled();
+  });
+
+  it("passes the session user through as the actor", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: true,
+      session: startupSession(),
+    });
+    vi.mocked(fetchOrganizationPrograms).mockResolvedValue(PROGRAMS);
+
+    const response = await GET();
+
+    expect(fetchOrganizationPrograms).toHaveBeenCalledWith("mentee-1");
+    await expect(response.json()).resolves.toMatchObject({
+      activeProgramId: null,
+    });
+  });
+});
+
+describe("PUT /api/programs/mine/active", () => {
+  it("refuses a caller who is not a startup member", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: false,
+      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
+    });
+
+    expect((await PUT(activeRequest({ programId: "prog-1" }))).status).toBe(
+      403,
+    );
+    expect(updateActiveProgram).not.toHaveBeenCalled();
+  });
+
+  it("forwards the chosen program", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: true,
+      session: startupSession(),
+    });
+    vi.mocked(updateActiveProgram).mockResolvedValue(PROGRAMS);
+
+    await PUT(activeRequest({ programId: "prog-1" }));
+
+    expect(updateActiveProgram).toHaveBeenCalledWith("mentee-1", "prog-1");
+  });
+
+  // Null is a real choice — it clears the active program — so it must reach the
+  // backend as null rather than being dropped as a missing field.
+  it("forwards an explicit null as a cleared choice", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: true,
+      session: startupSession(),
+    });
+    vi.mocked(updateActiveProgram).mockResolvedValue(PROGRAMS);
+
+    await PUT(activeRequest({ programId: null }));
+
+    expect(updateActiveProgram).toHaveBeenCalledWith("mentee-1", null);
+  });
+
+  it("treats a missing programId as a cleared choice, not undefined", async () => {
+    vi.mocked(requireStartupSession).mockResolvedValue({
+      ok: true,
+      session: startupSession(),
+    });
+    vi.mocked(updateActiveProgram).mockResolvedValue(PROGRAMS);
+
+    await PUT(activeRequest({}));
+
+    expect(updateActiveProgram).toHaveBeenCalledWith("mentee-1", null);
+  });
+});

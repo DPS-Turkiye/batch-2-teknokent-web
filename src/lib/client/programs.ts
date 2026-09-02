@@ -1,4 +1,5 @@
 import type {
+  OrganizationPrograms,
   Program,
   ProgramDirectory,
   ProgramInvitation,
@@ -8,6 +9,20 @@ import { httpClient } from "@/lib/http-client";
 
 export async function getPrograms() {
   return requireSuccess(await httpClient.get<Program[]>("/api/programs"));
+}
+
+export async function getOrganizationPrograms() {
+  return requireSuccess(
+    await httpClient.get<OrganizationPrograms>("/api/programs/mine"),
+  );
+}
+
+export async function setActiveProgram(programId: string | null) {
+  return requireSuccess(
+    await httpClient.put<OrganizationPrograms>("/api/programs/mine/active", {
+      programId,
+    }),
+  );
 }
 
 export async function getProgramDirectory() {
