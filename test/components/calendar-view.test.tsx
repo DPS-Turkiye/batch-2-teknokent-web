@@ -21,6 +21,7 @@ vi.mock("@/components/hoc/app-shell", () => ({
 vi.mock("@/lib/google-calendar", () => ({
   authenticateWithGoogle: vi.fn(),
   fetchGoogleCalendarEvents: vi.fn(),
+  relayGoogleOAuthTokenFromUrl: vi.fn(() => false),
 }));
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {

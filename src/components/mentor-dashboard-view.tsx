@@ -10,9 +10,11 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
 import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
+import { UpcomingMeetingsList } from "@/components/upcoming-meetings-list";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDecision } from "@/hooks/use-decision";
+import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
   useDecideProgramInvitation,
@@ -29,27 +31,13 @@ import {
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import {
+  MENTOR_DASHBOARD_FILTER_OPTIONS,
+  MENTOR_DASHBOARD_FILTER_STATUSES,
+} from "@/lib/const";
+import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-
-const filterStatuses: Record<
-  Exclude<MentorRequestFilter, MentorRequestFilter.All>,
-  MentorshipRequestStatus
-> = {
-  [MentorRequestFilter.Accepted]: MentorshipRequestStatus.Accepted,
-  [MentorRequestFilter.Declined]: MentorshipRequestStatus.Declined,
-  [MentorRequestFilter.MoreInfoRequested]:
-    MentorshipRequestStatus.MoreInfoRequested,
-  [MentorRequestFilter.Pending]: MentorshipRequestStatus.Pending,
-};
-
-const filterOptions = [
-  [MentorRequestFilter.All, "Tüm Talepler"],
-  [MentorRequestFilter.Pending, "Bekleyenler"],
-  [MentorRequestFilter.MoreInfoRequested, "Ek Bilgi İstenenler"],
-  [MentorRequestFilter.Accepted, "Kabul Edilenler"],
-  [MentorRequestFilter.Declined, "Uygun Değil"],
-] as const;
 
 export function MentorDashboardView() {
   const session = useAppSession();
@@ -61,7 +49,9 @@ export function MentorDashboardView() {
   const invitations = invitationsQuery.data ?? [];
   const openPrograms = programsQuery.data ?? [];
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
+  const meetingsQuery = useMeetings();
   const requests = requestsQuery.data ?? [];
+  const { upcomingMeetings } = pickUpcomingMeetings(meetingsQuery.data ?? []);
   const [filter, setFilter] = useState<MentorRequestFilter>(
     MentorRequestFilter.All,
   );
@@ -76,7 +66,7 @@ export function MentorDashboardView() {
 
   const filteredRequests = requests.filter((request) => {
     if (filter === MentorRequestFilter.All) return true;
-    return request.status === filterStatuses[filter];
+    return request.status === MENTOR_DASHBOARD_FILTER_STATUSES[filter];
   });
 
   return (
@@ -158,6 +148,26 @@ export function MentorDashboardView() {
               ))}
             </div>
           )}
+        </section>
+
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
+              Yaklaşan Toplantılar
+            </h2>
+            <Link
+              href="/mentor-dashboard/calendar"
+              className="text-xs font-semibold text-[#e86f22]"
+            >
+              Takvim →
+            </Link>
+          </div>
+          <UpcomingMeetingsList
+            meetings={upcomingMeetings}
+            isLoading={meetingsQuery.isLoading}
+            emptyLabel="Yaklaşan toplantı bulunmuyor."
+            counterpartOf={(meeting) => meeting.organizationName}
+          />
         </section>
 
         <section id="notifications">
@@ -320,7 +330,7 @@ export function MentorDashboardView() {
           </h2>
           <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-3">
             <div className="flex flex-wrap gap-2">
-              {filterOptions.map(([key, label]) => (
+              {MENTOR_DASHBOARD_FILTER_OPTIONS.map(([key, label]) => (
                 <button
                   key={key}
                   type="button"

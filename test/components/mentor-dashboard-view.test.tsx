@@ -32,6 +32,12 @@ vi.mock("@/hooks/use-decision", () => ({
   useDecision: vi.fn(),
 }));
 
+const mockUseMeetings = vi.fn();
+
+vi.mock("@/hooks/use-meetings", () => ({
+  useMeetings: () => mockUseMeetings(),
+}));
+
 vi.mock("@/hooks/use-programs", () => ({
   useProgramInvitations: () => ({ data: [], isLoading: false }),
   usePrograms: () => ({ data: [], isLoading: false }),
@@ -93,6 +99,11 @@ describe("MentorDashboardView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockuseAppSession.mockReturnValue(mentorSession());
+    mockUseMeetings.mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    });
     vi.mocked(useDecision).mockReturnValue({
       selectedRequest: null,
       decisionMode: null,
@@ -149,6 +160,36 @@ describe("MentorDashboardView", () => {
       screen.getByText("Henüz kabul edilmiş bir mentorluk talebiniz yok."),
     ).toBeInTheDocument();
     expect(screen.getByText("Bekleyen talep bulunmuyor.")).toBeInTheDocument();
+  });
+
+  it("shows upcoming meetings with time and a Google Meet join link", () => {
+    mockRequests([]);
+    mockUseMeetings.mockReturnValue({
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          organizationName: "GreenLoop",
+          agenda: "Ürün incelemesi",
+          scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          durationMinutes: 45,
+          meetLink: "https://meet.google.com/abc-defg-hij",
+          status: "SCHEDULED",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
+
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Yaklaşan Toplantılar")).toBeInTheDocument();
+    expect(screen.getByText("Ürün incelemesi")).toBeInTheDocument();
+    expect(screen.getByText("GreenLoop")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Katıl" })).toHaveAttribute(
+      "href",
+      "https://meet.google.com/abc-defg-hij",
+    );
   });
 
   it("shows the demo notifications section for Duyurular to link to", () => {

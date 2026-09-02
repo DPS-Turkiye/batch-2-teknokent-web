@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
-import { CreateMeetingDialog } from "@/components/mentor-dashboard/create-meeting-dialog";
+import {
+  CreateMeetingDialog,
+  type CreateMeetingBatch,
+} from "@/components/mentor-dashboard/create-meeting-dialog";
+import { MeetingDetailDialog } from "@/components/mentor-dashboard/meeting-detail-dialog";
 import { useSession } from "@/components/providers/session-provider";
 import {
   CALENDAR_FILTER_LABELS,
@@ -11,6 +15,7 @@ import {
   CalendarFilter,
   useMentorCalendar,
 } from "@/hooks/use-mentor-calendar";
+import type { MeetingItem } from "@/interfaces/meeting";
 import { Weekday, WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import {
   hourOf,
@@ -19,6 +24,12 @@ import {
   weekRangeLabel,
   WEEKDAY_SHORT_LABELS,
 } from "@/lib/calendar";
+import {
+  createGoogleMeetEvent,
+  ensureGoogleCalendarToken,
+  relayGoogleOAuthTokenFromUrl,
+} from "@/lib/google-calendar";
+import { meetingCalendarTitle } from "@/lib/meeting-participants";
 import { AppArea } from "@/types/app-area";
 
 export default function MentorCalendarPage() {
@@ -27,6 +38,9 @@ export default function MentorCalendarPage() {
   const [showRuleForm, setShowRuleForm] = useState(false);
   const [meetingAt, setMeetingAt] = useState<Date | null>(null);
   const [meetingOpen, setMeetingOpen] = useState(false);
+  const [detailMeeting, setDetailMeeting] = useState<MeetingItem | null>(null);
+  const [creatingMeet, setCreatingMeet] = useState(false);
+  const [meetError, setMeetError] = useState<Error | null>(null);
   const [draft, setDraft] = useState({
     dayOfWeek: Weekday.Tuesday,
     startTime: "14:00",
@@ -38,19 +52,49 @@ export default function MentorCalendarPage() {
   const rangeEnd = days[days.length - 1];
   const range = weekRangeLabel(weekStart, rangeEnd);
 
+  useEffect(() => {
+    relayGoogleOAuthTokenFromUrl();
+  }, []);
+
   function openMeeting(at: Date | null) {
     setMeetingAt(at);
+    setMeetError(null);
     setMeetingOpen(true);
   }
 
-  async function submitMeeting(input: {
-    mentorshipRequestId: string;
-    scheduledAt: string;
-    durationMinutes: number;
-    agenda: string;
-  }) {
-    await calendar.addMeeting(input);
-    setMeetingOpen(false);
+  async function submitMeeting(input: CreateMeetingBatch) {
+    setMeetError(null);
+    setCreatingMeet(true);
+    try {
+      let meetLink = input.meetLink;
+      if (!meetLink) {
+        const { token } = await ensureGoogleCalendarToken();
+        meetLink = await createGoogleMeetEvent({
+          accessToken: token,
+          title: input.agenda,
+          startIso: input.scheduledAt,
+          durationMinutes: input.durationMinutes,
+        });
+      }
+      for (const recipient of input.recipients) {
+        await calendar.addMeeting({
+          ...recipient,
+          scheduledAt: input.scheduledAt,
+          durationMinutes: input.durationMinutes,
+          agenda: input.agenda,
+          meetLink,
+        });
+      }
+      setMeetingOpen(false);
+    } catch (reason) {
+      setMeetError(
+        reason instanceof Error
+          ? reason
+          : new Error("Google Meet oluşturulamadı."),
+      );
+    } finally {
+      setCreatingMeet(false);
+    }
   }
 
   async function submitRule() {
@@ -149,17 +193,22 @@ export default function MentorCalendarPage() {
                         return (
                           <td
                             key={day.toISOString() + hour}
-                            className="h-10 border border-[#f1f2f4] p-0.5 align-top"
+                            className="h-[4.25rem] w-[18%] border border-[#f1f2f4] p-1 align-top"
                           >
                             {meeting ? (
-                              <div className="h-full rounded bg-[#2f7ff0] px-1.5 py-1 text-[10px] leading-tight text-white">
-                                <span className="block truncate font-semibold">
-                                  {meeting.agenda || "Mentorluk görüşmesi"}
+                              <button
+                                type="button"
+                                onClick={() => setDetailMeeting(meeting)}
+                                aria-label={`${meetingCalendarTitle(meeting)} detayını aç`}
+                                className="flex min-h-[3.25rem] w-fit min-w-[6.5rem] max-w-[9.5rem] flex-col justify-center rounded-lg bg-[#2f7ff0] px-2 py-1.5 text-left text-[11px] leading-snug text-white shadow-[0_1px_2px_rgba(15,23,42,.12)] hover:bg-[#1f6fe0]"
+                              >
+                                <span className="line-clamp-2 font-semibold">
+                                  {meetingCalendarTitle(meeting)}
                                 </span>
-                                <span className="block truncate opacity-90">
+                                <span className="mt-0.5 truncate text-[10px] opacity-90">
                                   {timeLabel(meeting.scheduledAt)}
                                 </span>
-                              </div>
+                              </button>
                             ) : (
                               <button
                                 type="button"
@@ -170,7 +219,7 @@ export default function MentorCalendarPage() {
                                 }}
                                 aria-label={`${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`}
                                 title={slot ? "Müsait" : undefined}
-                                className={`h-full w-full rounded ${
+                                className={`h-full w-full rounded-lg ${
                                   slot
                                     ? "bg-[#dbeafe] hover:bg-[#bfdbfe]"
                                     : "hover:bg-[#f8f9fa]"
@@ -330,11 +379,21 @@ export default function MentorCalendarPage() {
         <CreateMeetingDialog
           mentorName={session?.fullName ?? ""}
           mentorships={calendar.mentorships}
+          programs={calendar.programs}
           startAt={meetingAt}
-          isSaving={calendar.isSavingMeeting}
-          error={calendar.meetingError}
+          isSaving={calendar.isSavingMeeting || creatingMeet}
+          error={meetError ?? calendar.meetingError}
           onClose={() => setMeetingOpen(false)}
           onSubmit={submitMeeting}
+        />
+      ) : null}
+
+      {detailMeeting ? (
+        <MeetingDetailDialog
+          meeting={detailMeeting}
+          mentorships={calendar.mentorships}
+          programs={calendar.programs}
+          onClose={() => setDetailMeeting(null)}
         />
       ) : null}
     </AppShell>

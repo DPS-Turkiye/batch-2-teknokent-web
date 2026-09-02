@@ -5,6 +5,8 @@ import { GET, POST } from "@/app/api/meetings/route";
 import { UserRole } from "@/interfaces/session";
 import { createMeeting, fetchMeetings } from "@/lib/api/meetings";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
+import { fetchPrograms } from "@/lib/api/programs";
+import { ProgramMentorStatus } from "@/interfaces/program";
 import { getSessionIds, getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/meetings", () => ({
@@ -14,6 +16,10 @@ vi.mock("@/lib/api/meetings", () => ({
 
 vi.mock("@/lib/api/mentor-requests", () => ({
   fetchMentorRequest: vi.fn(),
+}));
+
+vi.mock("@/lib/api/programs", () => ({
+  fetchPrograms: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({
@@ -119,7 +125,7 @@ describe("POST /api/meetings", () => {
     );
   });
 
-  it("refuses a mentor meeting with no mentorship attached", async () => {
+  it("refuses a mentor meeting with no mentorship or program startup", async () => {
     signInAsMentor();
 
     const response = await POST(
@@ -130,6 +136,123 @@ describe("POST /api/meetings", () => {
     );
 
     expect(response.status).toBe(400);
+    expect(createMeeting).not.toHaveBeenCalled();
+  });
+
+  it("resolves the organization from a program startup the mentor joined", async () => {
+    signInAsMentor();
+    vi.mocked(fetchPrograms).mockResolvedValue({
+      data: [
+        {
+          id: "prog-1",
+          startups: [{ id: "org-greenloop", name: "GreenLoop" }],
+          mentors: [
+            {
+              mentorId: "mentor-1",
+              status: ProgramMentorStatus.Accepted,
+            },
+          ],
+        },
+      ],
+      headers: {},
+      status: 200,
+    } as Awaited<ReturnType<typeof fetchPrograms>>);
+
+    await POST(
+      new NextRequest("http://localhost/api/meetings", {
+        method: "POST",
+        body: JSON.stringify({
+          programId: "prog-1",
+          organizationId: "org-greenloop",
+          agenda: "Mentor: Leyla Aksoy",
+        }),
+      }),
+    );
+
+    expect(fetchMentorRequest).not.toHaveBeenCalled();
+    expect(createMeeting).toHaveBeenCalledWith(
+      "org-greenloop",
+      {
+        programId: "prog-1",
+        organizationId: "org-greenloop",
+        agenda: "Mentor: Leyla Aksoy",
+      },
+      "mentor-1",
+    );
+  });
+
+  it("also creates the meeting for other accepted mentors in the program", async () => {
+    signInAsMentor();
+    vi.mocked(fetchPrograms).mockResolvedValue({
+      data: [
+        {
+          id: "prog-1",
+          startups: [{ id: "org-greenloop", name: "GreenLoop" }],
+          mentors: [
+            {
+              mentorId: "mentor-1",
+              status: ProgramMentorStatus.Accepted,
+            },
+            {
+              mentorId: "mentor-2",
+              status: ProgramMentorStatus.Accepted,
+            },
+            {
+              mentorId: "mentor-3",
+              status: ProgramMentorStatus.Pending,
+            },
+          ],
+        },
+      ],
+      headers: {},
+      status: 200,
+    } as Awaited<ReturnType<typeof fetchPrograms>>);
+
+    await POST(
+      new NextRequest("http://localhost/api/meetings", {
+        method: "POST",
+        body: JSON.stringify({
+          programId: "prog-1",
+          organizationId: "org-greenloop",
+          agenda: "Mentor: Leyla Aksoy",
+        }),
+      }),
+    );
+
+    expect(createMeeting).toHaveBeenCalledTimes(2);
+    expect(createMeeting).toHaveBeenNthCalledWith(
+      2,
+      "org-greenloop",
+      expect.objectContaining({ programId: "prog-1" }),
+      "mentor-2",
+    );
+  });
+
+  it("refuses a program startup when the mentor has not joined", async () => {
+    signInAsMentor();
+    vi.mocked(fetchPrograms).mockResolvedValue({
+      data: [
+        {
+          id: "prog-1",
+          startups: [{ id: "org-greenloop", name: "GreenLoop" }],
+          mentors: [],
+        },
+      ],
+      headers: {},
+      status: 200,
+    } as Awaited<ReturnType<typeof fetchPrograms>>);
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/meetings", {
+        method: "POST",
+        body: JSON.stringify({
+          programId: "prog-1",
+          organizationId: "org-greenloop",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(403);
     expect(createMeeting).not.toHaveBeenCalled();
   });
 

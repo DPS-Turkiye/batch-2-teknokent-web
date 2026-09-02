@@ -15,6 +15,7 @@ import { AppArea } from "@/types/app-area";
 import {
   authenticateWithGoogle,
   fetchGoogleCalendarEvents,
+  relayGoogleOAuthTokenFromUrl,
 } from "@/lib/google-calendar";
 
 type CalendarViewMode = "MONTH" | "WEEK" | "AGENDA";
@@ -244,18 +245,14 @@ export function CalendarView() {
   };
 
   useEffect(() => {
+    if (relayGoogleOAuthTokenFromUrl()) return;
+
     if (
       typeof window !== "undefined" &&
       window.location.hash.includes("access_token")
     ) {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const token = hashParams.get("access_token");
-
-      if (window.opener && token) {
-        window.opener.postMessage({ type: "GOOGLE_OAUTH_TOKEN", token }, "*");
-        window.close();
-        return;
-      }
 
       if (token) {
         void fetchGoogleCalendarEvents(token).then((gcalEvents) => {

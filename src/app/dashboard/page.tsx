@@ -3,7 +3,6 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  CalendarDays,
   CheckCircle2,
   Clock3,
   FileUp,
@@ -16,26 +15,13 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { Badge } from "@/components/common/badge";
 import { Avatar } from "@/components/common/avatar";
+import { UpcomingMeetingsList } from "@/components/upcoming-meetings-list";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { DASHBOARD_REQUEST_STATUS_LABELS } from "@/lib/const";
+import { formatSlotDateTime } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-
-const requestStatusLabels = {
-  [MentorshipRequestStatus.Accepted]: "Aktif",
-  [MentorshipRequestStatus.Declined]: "Uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Bilgi bekliyor",
-  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-} satisfies Record<MentorshipRequestStatus, string>;
-
-function formatMeetingDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
 
 export default function DashboardPage() {
   const { notifications } = useDashboardNotifications();
@@ -84,9 +70,23 @@ export default function DashboardPage() {
               </h2>
               <p className="mt-2 text-sm text-white/85">
                 {nextMeeting
-                  ? `${formatMeetingDate(nextMeeting.scheduledAt)} · ${nextMeeting.meetLink ? "Online görüşme" : "Görüşme biçimi belirtilmedi"}`
+                  ? `${formatSlotDateTime(nextMeeting.scheduledAt)} · ${nextMeeting.durationMinutes} dk`
                   : "Planlanmış toplantı bulunmuyor."}
               </p>
+              {nextMeeting?.meetLink ? (
+                <a
+                  href={nextMeeting.meetLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-block text-sm font-semibold text-white underline underline-offset-2"
+                >
+                  Google Meet
+                </a>
+              ) : nextMeeting ? (
+                <p className="mt-2 text-sm text-white/85">
+                  Görüşme biçimi belirtilmedi
+                </p>
+              ) : null}
               <div className="mt-5 flex flex-wrap gap-4 text-xs text-white/85">
                 <span className="flex items-center gap-1.5">
                   <CheckCircle2 className="size-4" />
@@ -104,12 +104,23 @@ export default function DashboardPage() {
               >
                 Hazırlan
               </SecondaryButton>
-              <Link
-                href="/meetings/research"
-                className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#c85816]"
-              >
-                Toplantıya git <ArrowRight className="size-4" />
-              </Link>
+              {nextMeeting?.meetLink ? (
+                <a
+                  href={nextMeeting.meetLink}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#c85816]"
+                >
+                  Toplantıya git <ArrowRight className="size-4" />
+                </a>
+              ) : (
+                <Link
+                  href="/meetings/research"
+                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#c85816]"
+                >
+                  Toplantıya git <ArrowRight className="size-4" />
+                </Link>
+              )}
             </div>
           </div>
         </section>
@@ -184,7 +195,9 @@ export default function DashboardPage() {
                         {request.supportArea}
                       </p>
                     </div>
-                    <Badge>{requestStatusLabels[request.status]}</Badge>
+                    <Badge>
+                      {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                    </Badge>
                     <ArrowRight className="size-4 text-[#a4aab2]" />
                   </Link>
                 ))
@@ -203,40 +216,17 @@ export default function DashboardPage() {
                 Takvim →
               </Link>
             </div>
-            <div className="overflow-hidden rounded-2xl border border-[#e4e7ea] bg-white">
-              {(upcomingMeetings.length
-                ? upcomingMeetings
-                : nextMeeting
-                  ? [nextMeeting]
-                  : []
-              ).map((meeting) => (
-                <Link
-                  key={meeting.id}
-                  href={
-                    "/meetings/research?id=" + encodeURIComponent(meeting.id)
-                  }
-                  className="flex items-center gap-3 border-b border-[#eef0f2] p-4 last:border-b-0 hover:bg-[#fff9f5]"
-                >
-                  <span className="grid size-9 place-items-center rounded-xl bg-[#fdebdd] text-[#e86f22]">
-                    <CalendarDays className="size-4" />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <small className="block text-[10px] text-[#858c96]">
-                      {formatMeetingDate(meeting.scheduledAt)}
-                    </small>
-                    <strong className="mt-0.5 block truncate text-xs">
-                      {meeting.agenda ?? "Mentorluk görüşmesi"}
-                    </strong>
-                  </span>
-                  <ArrowRight className="size-4 text-[#a4aab2]" />
-                </Link>
-              ))}
-              {!nextMeeting && !upcomingMeetings.length ? (
-                <p className="p-5 text-center text-xs text-[#858c96]">
-                  Yaklaşan etkinlik bulunmuyor.
-                </p>
-              ) : null}
-            </div>
+            <UpcomingMeetingsList
+              meetings={
+                upcomingMeetings.length
+                  ? upcomingMeetings
+                  : nextMeeting
+                    ? [nextMeeting]
+                    : []
+              }
+              emptyLabel="Yaklaşan etkinlik bulunmuyor."
+              counterpartOf={(meeting) => meeting.mentorName}
+            />
           </section>
           <aside className="space-y-5">
             <ActiveProgramPicker />
@@ -299,7 +289,7 @@ export default function DashboardPage() {
                         {request.mentorName}
                       </strong>
                       <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
-                        {requestStatusLabels[request.status]}
+                        {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
                       </small>
                     </span>
                     <ArrowRight className="size-4 text-[#a4aab2]" />
