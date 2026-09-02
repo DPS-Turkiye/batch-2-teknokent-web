@@ -1,5 +1,6 @@
 "use client";
 
+import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { SignupStep, STARTUP_DOCUMENTS } from "@/interfaces/signup";
 
@@ -49,6 +50,12 @@ const EMPTY = "—";
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const { draft, goToStep, completion } = wizard;
   const { personal, startup, documents } = draft;
+
+  // The draft carries the program id; the summary has to name it.
+  const programsQuery = useProgramNames();
+  const programName =
+    programsQuery.data?.find((program) => program.id === startup.programId)
+      ?.name ?? null;
 
   const fullName =
     [personal.firstName, personal.lastName].filter(Boolean).join(" ") || EMPTY;
@@ -129,7 +136,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
         <Row label="Startup adı">{startup.name || EMPTY}</Row>
         <Row label="Tanım">{startup.tagline || EMPTY}</Row>
         <Row label="Web sitesi">{startup.website || EMPTY}</Row>
-        <Row label="Program">{startup.program}</Row>
+        <Row label="Program">{programName ?? "Bir programa dahil değilim"}</Row>
         <Row label="Destek alanları">
           {startup.supportAreas.join(", ") || EMPTY}
         </Row>

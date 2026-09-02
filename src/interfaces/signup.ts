@@ -53,12 +53,6 @@ export const SUPPORT_AREA_OPTIONS = [
   "Yatırım",
 ] as const;
 
-export const PROGRAM_OPTIONS = [
-  "Metu Stars- Build",
-  "Metu Stars- Launch",
-  "Metu Stars- Grow",
-] as const;
-
 export const PROGRAM_LEVEL_OPTIONS = ["MVP", "Prototip"] as const;
 
 export const CONTACT_PREFERENCE_OPTIONS = [
@@ -158,7 +152,8 @@ export interface StartupProfileDraft {
   name: string;
   tagline: string;
   website: string;
-  program: string;
+  /** Chosen at signup; null is a real answer meaning no program. */
+  programId: string | null;
   problem: string;
   solution: string;
   currentSolution: string;

@@ -7,17 +7,51 @@ import {
   createProgram,
   decideProgramInvitation,
   decideProgramMentorRequest,
+  getOrganizationPrograms,
+  getProgramNames,
   getProgramDirectory,
   getProgramInvitations,
   getPrograms,
   inviteProgramMentor,
   removeProgramStartup,
   requestProgramMembership,
+  setActiveProgram,
 } from "@/lib/client/programs";
 
 export const PROGRAMS_QUERY_KEY = ["programs"] as const;
 export const PROGRAM_DIRECTORY_QUERY_KEY = ["program-directory"] as const;
 export const PROGRAM_INVITATIONS_QUERY_KEY = ["program-invitations"] as const;
+export const PROGRAM_NAMES_QUERY_KEY = ["program-names"] as const;
+export const ORGANIZATION_PROGRAMS_QUERY_KEY = [
+  "organization-programs",
+] as const;
+
+/** Program names for the signup picker, before the visitor has an account. */
+export function useProgramNames() {
+  return useQuery({
+    queryKey: PROGRAM_NAMES_QUERY_KEY,
+    queryFn: getProgramNames,
+  });
+}
+
+/** The signed-in startup's own program assignments and its active choice. */
+export function useOrganizationPrograms() {
+  return useQuery({
+    queryKey: ORGANIZATION_PROGRAMS_QUERY_KEY,
+    queryFn: getOrganizationPrograms,
+  });
+}
+
+export function useSetActiveProgram() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setActiveProgram,
+    // The response is the freshly-read list, so seed the cache with it rather
+    // than invalidating and paying for a second round trip.
+    onSuccess: (data) =>
+      queryClient.setQueryData(ORGANIZATION_PROGRAMS_QUERY_KEY, data),
+  });
+}
 
 export function usePrograms() {
   return useQuery({
