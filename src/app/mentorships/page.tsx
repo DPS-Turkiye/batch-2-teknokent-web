@@ -12,6 +12,7 @@ import {
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { useMentorshipWorkspace } from "@/hooks/use-mentorship-workspace";
 import {
   MENTORSHIPS_REQUEST_STATUS_LABELS,
@@ -22,16 +23,8 @@ import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export default function MentorshipsPage() {
-  const {
-    error,
-    isLoading,
-    query,
-    requests,
-    setQuery,
-    setTab,
-    tab,
-    totalRequests,
-  } = useMentorshipWorkspace();
+  const { error, isLoading, query, requests, setQuery, setTab, tab } =
+    useMentorshipWorkspace();
 
   return (
     <AppShell active={AppArea.Mentorships} title="Mentorluklarım">
@@ -65,15 +58,24 @@ export default function MentorshipsPage() {
                 mentorları önersin.
               </p>
             </div>
-            <label className="flex min-h-10 min-w-0 items-center gap-2 rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] px-3 sm:w-80">
-              <Search className="size-4 text-[#858c96]" />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Mentor veya konu ara…"
-                className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-              />
-            </label>
+            {tab === MentorshipWorkspaceTab.MentorPool ? (
+              <Link
+                href="/mentor-request"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#e86f22] px-4 text-xs font-semibold text-white hover:bg-[#ce5e19] sm:w-auto"
+              >
+                Eşleşmeyi başlat
+              </Link>
+            ) : (
+              <label className="flex min-h-10 min-w-0 items-center gap-2 rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] px-3 sm:w-80">
+                <Search className="size-4 text-[#858c96]" />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="Mentor veya konu ara…"
+                  className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+                />
+              </label>
+            )}
           </div>
         </section>
 
@@ -102,36 +104,9 @@ export default function MentorshipsPage() {
         </div>
 
         {tab === MentorshipWorkspaceTab.MentorPool ? (
-          <section className="mt-5 grid gap-4 md:grid-cols-2">
-            <Link
-              href="/mentor-request"
-              className="group rounded-2xl border border-[#f2b78f] bg-[#fff9f5] p-6 transition hover:-translate-y-0.5 hover:shadow-md"
-            >
-              <span className="grid size-11 place-items-center rounded-xl bg-[#e86f22] text-white">
-                <Sparkles className="size-5" />
-              </span>
-              <h2 className="mt-5 text-lg font-semibold">
-                İhtiyacına göre mentor bul
-              </h2>
-              <p className="mt-2 text-sm leading-6 text-[#676e78]">
-                Destek alanını, aciliyeti ve görüşme beklentini paylaş; eşleşme
-                motoru gerçek mentor havuzunu sıralasın.
-              </p>
-              <span className="mt-5 inline-flex items-center gap-2 text-xs font-semibold text-[#c85816]">
-                Eşleşmeyi başlat <ArrowRight className="size-4" />
-              </span>
-            </Link>
-            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-6">
-              <p className="text-xs text-[#858c96]">Toplam süreç</p>
-              <strong className="mt-2 block text-3xl text-[#e86f22]">
-                {totalRequests}
-              </strong>
-              <p className="mt-4 text-sm leading-6 text-[#676e78]">
-                Mentor profilleri, eşleşme gerekçeleri ve uygunluk saatleri
-                talep akışında canlı veriden gösterilir.
-              </p>
-            </section>
-          </section>
+          <div className="mt-5">
+            <MentorsDirectory embedded />
+          </div>
         ) : isLoading ? (
           <div className="mt-5 rounded-2xl border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
             Yükleniyor...

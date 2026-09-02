@@ -6,6 +6,7 @@ import { useEffect } from "react";
 
 import { authFieldClass } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 
 const joinRoutes = [
@@ -35,6 +36,8 @@ export function LoginFlowView() {
     notice,
     submitLogin,
     sendPasswordReset,
+    needsEmailVerification,
+    continueAfterEmailVerified,
     isReady,
     isVerifying,
     isVerified,
@@ -43,6 +46,12 @@ export function LoginFlowView() {
   useEffect(() => {
     if (isVerified) router.push("/workspace");
   }, [isVerified, router]);
+
+  if (needsEmailVerification) {
+    return (
+      <VerifyEmailView email={email} onVerified={continueAfterEmailVerified} />
+    );
+  }
 
   return (
     <AuthShell>
@@ -61,7 +70,9 @@ export function LoginFlowView() {
             </label>
             <input
               id="login-email"
-              type="email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}

@@ -17,6 +17,7 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn().mockResolvedValue("id-token"),
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
+  isCurrentEmailVerified: () => true,
   describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
 }));
 
@@ -43,8 +44,8 @@ async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Soyad/), "Öztürk");
   await user.type(screen.getByLabelText(/E-posta/), "nihan@peak.co");
   await user.type(screen.getByLabelText(/Telefon/), "+905551112233");
-  await user.type(screen.getByLabelText("Şifre *"), "sifre1234");
-  await user.type(screen.getByLabelText(/Şifre tekrar/), "sifre1234");
+  await user.type(screen.getByLabelText("Şifre *"), "Sifre1234!");
+  await user.type(screen.getByLabelText(/Şifre tekrar/), "Sifre1234!");
 }
 
 describe("Signup role routing", () => {

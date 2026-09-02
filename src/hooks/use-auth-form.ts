@@ -2,7 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 
-import { PASSWORD_MIN_LENGTH, type RegisterForm } from "@/interfaces/auth";
+import { type RegisterForm } from "@/interfaces/auth";
+import { emailCharacterError } from "@/lib/email";
+import { passwordStrengthError } from "@/lib/password";
 
 export function useRegisterForm() {
   const [form, setForm] = useState<RegisterForm>({
@@ -20,11 +22,12 @@ export function useRegisterForm() {
     [],
   );
 
-  const passwordTooShort =
-    form.password.length > 0 && form.password.length < PASSWORD_MIN_LENGTH;
+  const passwordStrengthErrorMessage = passwordStrengthError(form.password);
 
   const passwordsMismatch =
     form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm;
+
+  const emailCharacterErrorMessage = emailCharacterError(form.email);
 
   const canSubmit = useMemo(
     () =>
@@ -32,12 +35,21 @@ export function useRegisterForm() {
         form.firstName.trim() &&
         form.lastName.trim() &&
         form.email.trim() &&
+        !emailCharacterErrorMessage &&
         form.phone.trim() &&
-        form.password.length >= PASSWORD_MIN_LENGTH &&
+        form.password.trim() &&
+        !passwordStrengthErrorMessage &&
         form.password === form.passwordConfirm,
       ),
-    [form],
+    [form, emailCharacterErrorMessage, passwordStrengthErrorMessage],
   );
 
-  return { form, update, canSubmit, passwordTooShort, passwordsMismatch };
+  return {
+    form,
+    update,
+    canSubmit,
+    passwordStrengthErrorMessage,
+    passwordsMismatch,
+    emailCharacterErrorMessage,
+  };
 }

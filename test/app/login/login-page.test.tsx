@@ -27,6 +27,10 @@ vi.mock("@/lib/firebase/auth", () => ({
   requestPasswordReset: vi.fn(),
   signOutOfFirebase: vi.fn(),
   describeAuthError: () => "E-posta veya şifre hatalı.",
+  isCurrentEmailVerified: () => true,
+  currentIdToken: vi.fn(),
+  reloadAndCheckEmailVerified: vi.fn(),
+  resendVerificationEmail: vi.fn(),
 }));
 
 async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
@@ -209,6 +213,19 @@ describe("Login screen", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/signup?resume=1"));
     expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("refuses an email that contains ı before calling Firebase", async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await user.type(screen.getByLabelText(/E-posta/), "sude@gmaıl.com");
+    await user.type(screen.getByLabelText(/Şifre/), "sifre1234");
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/ı yerine i/);
+    expect(signInToFirebase).not.toHaveBeenCalled();
   });
 
   it("sends a reset link for the typed email", async () => {

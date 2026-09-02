@@ -7,6 +7,7 @@ import {
   CalendarDays,
   ClipboardList,
   FolderKanban,
+  GraduationCap,
   Home,
   LogOut,
   Menu,
@@ -59,6 +60,13 @@ const ASSISTANT_NAV: NavigationItem = {
   icon: Bot,
 };
 
+const MENTORS_NAV: NavigationItem = {
+  id: AppArea.Mentors,
+  label: "Mentörler",
+  href: "/mentors",
+  icon: GraduationCap,
+};
+
 function buildNavigation(role?: UserRole): NavigationItem[] {
   if (role === UserRole.Admin) {
     return [
@@ -78,6 +86,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         href: "/programs",
         icon: FolderKanban,
       },
+      MENTORS_NAV,
     ];
   }
   if (role === UserRole.Mentor)
@@ -88,6 +97,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         href: "/mentor-dashboard",
         icon: Home,
       },
+      MENTORS_NAV,
       {
         id: AppArea.Mentorships,
         label: "Mentorluklarım",
@@ -110,6 +120,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
     ];
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
+    MENTORS_NAV,
     {
       id: AppArea.Mentorships,
       label: "Mentorluklarım",

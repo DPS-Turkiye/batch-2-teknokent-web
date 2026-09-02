@@ -28,13 +28,13 @@ export default async function MentorDetailPage({
   if (!mentor) notFound();
 
   return (
-    <AppShell active={AppArea.Mentorships}>
+    <AppShell active={AppArea.Mentors}>
       <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
         <Link
-          href="/mentor-request?step=4"
+          href="/mentors"
           className="inline-flex items-center gap-2 text-xs font-medium text-[#676e78] hover:text-[#e86f22]"
         >
-          <ArrowLeft className="size-4" /> Mentor önerilerine dön
+          <ArrowLeft className="size-4" /> Mentörlere dön
         </Link>
 
         <section className="mt-6 grid gap-5 rounded-3xl border border-[#e4e7ea] bg-white p-6 shadow-sm md:grid-cols-[96px_minmax(0,1fr)_230px]">

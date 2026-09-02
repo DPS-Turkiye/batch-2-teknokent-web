@@ -13,21 +13,19 @@ async function fillAll(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Soyad/), "Buran");
   await user.type(screen.getByLabelText(/E-posta/), "gulse@dongu.co");
   await user.type(screen.getByLabelText(/Telefon/), "+905551112233");
-  await user.type(screen.getByLabelText("Şifre *"), "sifre1234");
-  await user.type(screen.getByLabelText(/Şifre tekrar/), "sifre1234");
+  await user.type(screen.getByLabelText("Şifre *"), "Sifre1234!");
+  await user.type(screen.getByLabelText(/Şifre tekrar/), "Sifre1234!");
 }
 
 describe("Account creation step", () => {
-  it("lists the four onboarding steps", () => {
+  it("lists the onboarding steps", () => {
     render(<RegisterView onSubmit={vi.fn()} />);
 
     expect(screen.getByText("Nasıl çalışır?")).toBeInTheDocument();
     expect(screen.getByText("Hesabını oluştur")).toBeInTheDocument();
+    expect(screen.getByText("E-postanı doğrula")).toBeInTheDocument();
     expect(screen.getByText("Startup profilini tamamla")).toBeInTheDocument();
     expect(screen.getByText("Koordinatör onayını bekle")).toBeInTheDocument();
-    expect(
-      screen.getByText("Onaydan sonra ekibini davet et"),
-    ).toBeInTheDocument();
   });
 
   it("warns when the password is too short", async () => {
@@ -37,7 +35,7 @@ describe("Account creation step", () => {
     await user.type(screen.getByLabelText("Şifre *"), "kisa");
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Password must be at least 8 characters.",
+      "Şifre en az 8 karakter olmalı.",
     );
   });
 
@@ -45,7 +43,7 @@ describe("Account creation step", () => {
     const user = userEvent.setup();
     render(<RegisterView onSubmit={vi.fn()} />);
 
-    await user.type(screen.getByLabelText("Şifre *"), "sifre1234");
+    await user.type(screen.getByLabelText("Şifre *"), "Sifre1234!");
     await user.type(screen.getByLabelText(/Şifre tekrar/), "baskasifre");
 
     expect(screen.getByRole("alert")).toHaveTextContent(

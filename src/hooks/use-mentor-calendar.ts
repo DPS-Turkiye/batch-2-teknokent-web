@@ -186,6 +186,7 @@ export function useMentorCalendar() {
       durationMinutes: number;
       agenda: string;
       meetLink?: string;
+      transcribeRequested?: boolean;
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
     isSavingMeeting: createMeeting.isPending,
     meetingError: createMeeting.error,

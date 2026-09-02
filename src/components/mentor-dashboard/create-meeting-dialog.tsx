@@ -65,6 +65,7 @@ export type CreateMeetingInput = CreateMeetingRecipient & {
   durationMinutes: number;
   agenda: string;
   meetLink?: string;
+  transcribeRequested?: boolean;
 };
 
 export type CreateMeetingBatch = {
@@ -72,6 +73,7 @@ export type CreateMeetingBatch = {
   durationMinutes: number;
   agenda: string;
   meetLink?: string;
+  transcribeRequested?: boolean;
   recipients: CreateMeetingRecipient[];
 };
 
@@ -119,6 +121,7 @@ export function CreateMeetingDialog({
   const [agenda, setAgenda] = useState(`Mentor: ${mentorName}`);
   const [manualMeetLink, setManualMeetLink] = useState("");
   const [linkError, setLinkError] = useState("");
+  const [transcribeRequested, setTranscribeRequested] = useState(false);
 
   const columns = useMemo(() => upcomingHourColumns(), []);
   const scheduledAt = startAt ?? (slotIso ? new Date(slotIso) : null);
@@ -150,6 +153,7 @@ export function CreateMeetingDialog({
       durationMinutes: 60,
       agenda,
       meetLink,
+      transcribeRequested,
       recipients: recipients.map(meetingRecipient),
     });
   }
@@ -178,7 +182,7 @@ export function CreateMeetingDialog({
       aria-label="Yeni toplantı oluştur"
       className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
     >
-      <div className="max-h-[92vh] w-full max-w-[420px] overflow-y-auto rounded-2xl bg-white p-5 shadow-lg">
+      <div className="max-h-[94vh] w-full max-w-[720px] overflow-y-auto rounded-2xl bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-bold text-[#22262b]">Start up seç</h2>
           <button
@@ -350,6 +354,35 @@ export function CreateMeetingDialog({
                   <p className="text-xs text-[#b42318]">{linkError}</p>
                 ) : null}
               </div>
+            ) : null}
+
+            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4e7ea] p-3">
+              <input
+                type="checkbox"
+                checked={transcribeRequested}
+                onChange={(event) =>
+                  setTranscribeRequested(event.target.checked)
+                }
+                className="mt-0.5 size-4 accent-[#e86f22]"
+              />
+              <span>
+                <span className="block text-sm font-semibold text-[#22262b]">
+                  Toplantının transkriptinin çıkarılmasını istiyorum
+                </span>
+                <span className="mt-1 block text-xs leading-5 text-[#676e78]">
+                  İşaretlersen toplantı saatinde Meet linki asistanına yapışır
+                  ve bot otomatik katılır.
+                </span>
+              </span>
+            </label>
+            {transcribeRequested ? (
+              <p
+                role="status"
+                className="mt-2 rounded-xl bg-[#fff9f5] px-3 py-2 text-xs leading-5 text-[#c85816]"
+              >
+                Toplantı sonrası Toplantı Asistanı&apos;ndan toplantı raporunu
+                ve transkripti menteelerinize gönderebilirsiniz.
+              </p>
             ) : null}
 
             <button

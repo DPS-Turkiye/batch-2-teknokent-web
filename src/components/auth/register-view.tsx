@@ -6,21 +6,22 @@ import { useState } from "react";
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { useRegisterForm } from "@/hooks/use-auth-form";
-import { PASSWORD_MIN_LENGTH, type RegisterForm } from "@/interfaces/auth";
+import { type RegisterForm } from "@/interfaces/auth";
 import { ClientApiError } from "@/lib/client/api";
 import { describeAuthError } from "@/lib/firebase/auth";
+import { PASSWORD_HINT } from "@/lib/password";
 
 const menteeSteps = [
   "Hesabını oluştur",
+  "E-postanı doğrula",
   "Startup profilini tamamla",
   "Koordinatör onayını bekle",
-  "Onaydan sonra ekibini davet et",
 ];
 
 const mentorSteps = [
   "Hesabını oluştur",
+  "E-postanı doğrula",
   "CV'nden mentor profilini oluştur",
-  "Uzmanlık ve tercihlerini seç",
   "Onaydan sonra eşleşmelere başla",
 ];
 
@@ -31,8 +32,14 @@ export function RegisterView({
   onSubmit: (form: RegisterForm) => Promise<void>;
   isMentor?: boolean;
 }) {
-  const { form, update, canSubmit, passwordTooShort, passwordsMismatch } =
-    useRegisterForm();
+  const {
+    form,
+    update,
+    canSubmit,
+    passwordStrengthErrorMessage,
+    passwordsMismatch,
+    emailCharacterErrorMessage,
+  } = useRegisterForm();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const steps = isMentor ? mentorSteps : menteeSteps;
@@ -80,15 +87,24 @@ export function RegisterView({
               onChange={(value) => update("lastName", value)}
             />
           </div>
-          <AuthField
-            id="register-email"
-            label="E-posta"
-            required
-            type="email"
-            placeholder="ornek@email.com"
-            value={form.email}
-            onChange={(value) => update("email", value)}
-          />
+          <div>
+            <AuthField
+              id="register-email"
+              label="E-posta"
+              required
+              type="text"
+              inputMode="email"
+              autoComplete="email"
+              placeholder="ornek@email.com"
+              value={form.email}
+              onChange={(value) => update("email", value)}
+            />
+            {emailCharacterErrorMessage ? (
+              <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
+                {emailCharacterErrorMessage}
+              </p>
+            ) : null}
+          </div>
           <AuthField
             id="register-phone"
             label="Telefon"
@@ -104,15 +120,17 @@ export function RegisterView({
               label="Şifre"
               required
               type="password"
-              placeholder={`En az ${PASSWORD_MIN_LENGTH} karakter`}
+              placeholder={PASSWORD_HINT}
               value={form.password}
               onChange={(value) => update("password", value)}
             />
-            {passwordTooShort ? (
+            {passwordStrengthErrorMessage ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Password must be at least {PASSWORD_MIN_LENGTH} characters.
+                {passwordStrengthErrorMessage}
               </p>
-            ) : null}
+            ) : (
+              <p className="mt-1.5 text-xs text-[#6b7280]">{PASSWORD_HINT}</p>
+            )}
           </div>
           <div>
             <AuthField

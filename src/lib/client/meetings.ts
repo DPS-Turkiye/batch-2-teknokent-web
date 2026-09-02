@@ -16,6 +16,7 @@ export type UpdateMeetingPayload = {
   notes?: string;
   outcomes?: string;
   status?: MeetingStatus;
+  transcriptBotDispatched?: boolean;
 };
 
 export type MeetingFeedbackPayload = {

@@ -43,6 +43,31 @@ export function getBackendHealthUrl(): string {
   return `${BACKEND_URL}${BACKEND_HEALTH_PATH}`;
 }
 
+export const EMAIL_VERIFICATION_EXEMPT = [
+  "admin@teknokent.demo",
+  "coordinator@teknokent.demo",
+] as const;
+
+export const FIREBASE_AUTH_ERROR_MESSAGES: Record<string, string> = {
+  "auth/email-already-in-use":
+    "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
+  "auth/invalid-email": "E-posta adresi geçersiz.",
+  "auth/weak-password": "Şifre çok zayıf. Daha uzun bir şifre seçin.",
+  "auth/invalid-credential": "E-posta veya şifre hatalı.",
+  "auth/user-not-found": "E-posta veya şifre hatalı.",
+  "auth/wrong-password": "E-posta veya şifre hatalı.",
+  "auth/too-many-requests":
+    "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
+  "auth/network-request-failed": "Bağlantı kurulamadı. Tekrar deneyin.",
+  "auth/missing-email": "E-posta adresinizi girin.",
+};
+
+export const ACCOUNT_NOT_APPROVED = "ACCOUNT_NOT_APPROVED";
+export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
+
+export const TRANSCRIPT_BOT_LEAD_MS = 60_000;
+export const TRANSCRIPT_BOT_MAX_TIMER_MS = 86_400_000;
+
 export const BOT_API_PATH = "/api/botapi";
 export const TRANSCRIPT_API_PATH = "/api/transcriptapi";
 
