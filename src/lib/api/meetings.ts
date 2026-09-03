@@ -53,7 +53,10 @@ export function fetchMeetingRoom(id: string) {
   });
 }
 
-export function inviteMeetingGuest(id: string, payload: Record<string, unknown>) {
+export function inviteMeetingGuest(
+  id: string,
+  payload: Record<string, unknown>,
+) {
   return backendRequest({
     method: "POST",
     url: `/api/meetings/${encodeURIComponent(id)}/guests`,

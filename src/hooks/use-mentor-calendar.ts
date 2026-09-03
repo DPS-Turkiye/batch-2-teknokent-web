@@ -18,7 +18,12 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { getMeetings, postMeeting, postMeetingGuest, deleteMeeting } from "@/lib/client/meetings";
+import {
+  getMeetings,
+  postMeeting,
+  postMeetingGuest,
+  deleteMeeting,
+} from "@/lib/client/meetings";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
@@ -125,7 +130,11 @@ export function useMentorCalendar() {
       payload,
     }: {
       meetingId: string;
-      payload: { organizationId?: string; mentorId?: string; programId?: string };
+      payload: {
+        organizationId?: string;
+        mentorId?: string;
+        programId?: string;
+      };
     }) => postMeetingGuest(meetingId, payload),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
@@ -209,11 +218,14 @@ export function useMentorCalendar() {
       meetLink?: string;
       transcribeRequested?: boolean;
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
-    inviteGuest: (meetingId: string, payload: {
-      organizationId?: string;
-      mentorId?: string;
-      programId?: string;
-    }) => inviteGuest.mutateAsync({ meetingId, payload }),
+    inviteGuest: (
+      meetingId: string,
+      payload: {
+        organizationId?: string;
+        mentorId?: string;
+        programId?: string;
+      },
+    ) => inviteGuest.mutateAsync({ meetingId, payload }),
     removeMeeting: (meetingId: string) => removeMeeting.mutateAsync(meetingId),
     isSavingMeeting:
       createMeeting.isPending ||
