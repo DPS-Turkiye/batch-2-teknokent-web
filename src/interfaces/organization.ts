@@ -1,9 +1,4 @@
-/**
- * The organization's own startup profile — what the founder typed in the signup
- * wizard's second step. Distinct from `StartupContext` in `startup.ts`, which is
- * derived from a parsed CV or pitch deck: this is what the user said, that is
- * what the parser extracted.
- */
+// Distinct from StartupContext in startup.ts, which is parsed from a CV/deck.
 export interface StartupProfile {
   id: string;
   name: string;

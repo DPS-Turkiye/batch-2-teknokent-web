@@ -1,13 +1,57 @@
 "use client";
 
 import { Check, Pencil } from "lucide-react";
-import { useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 
 import { EditableChips } from "@/components/common/editable-chips";
 import { fieldClass, labelClass } from "@/components/common/form-field";
 
+/**
+ * Grows the textarea to fit its content instead of scrolling inside a fixed
+ * box. A manual resize handle asks the user to do this by hand for every
+ * field; this does it for them, and still lets them shrink it back down.
+ */
+function useAutoResize(value: string) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  useLayoutEffect(() => {
+    const node = ref.current;
+    if (!node) return;
+    node.style.height = "auto";
+    node.style.height = `${node.scrollHeight}px`;
+  }, [value]);
+
+  return ref;
+}
+
 const editButtonClass =
   "inline-flex min-h-8 shrink-0 items-center gap-1.5 rounded-full border border-[#e4e7ea] bg-white px-3 text-xs font-semibold text-[#3c424a] transition hover:border-[#e86f22] hover:text-[#c85816]";
+
+function AutoResizeTextarea({
+  id,
+  value,
+  onChange,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+}) {
+  const ref = useAutoResize(value);
+  return (
+    <textarea
+      autoFocus
+      ref={ref}
+      id={id}
+      rows={1}
+      className={`${fieldClass} min-h-28 resize-y overflow-hidden py-3 leading-relaxed`}
+      placeholder={placeholder}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    />
+  );
+}
 
 /** A summary-first profile field that only becomes an input on request. */
 export function EditableInfoField({
@@ -36,14 +80,11 @@ export function EditableInfoField({
           </label>
           {isEditing ? (
             multiline ? (
-              <textarea
-                autoFocus
+              <AutoResizeTextarea
                 id={id}
-                rows={4}
-                className={`${fieldClass} min-h-28 resize-y py-3 leading-relaxed`}
                 placeholder={placeholder}
                 value={value}
-                onChange={(event) => onChange(event.target.value)}
+                onChange={onChange}
               />
             ) : (
               <input

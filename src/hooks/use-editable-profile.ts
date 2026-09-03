@@ -3,14 +3,8 @@
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-/**
- * Load a profile, edit it as a draft, save it back.
- *
- * Shared by the personal and startup sections on /profile: both load one
- * record, track edits against it, and save the whole thing. Keeping one copy
- * means the dirty tracking, the save-confirmation reset and the Hibernate-safe
- * draft derivation are implemented and tested once.
- */
+// Shared by the personal and startup sections on /profile, so both are
+// implemented and tested once: load a record, edit it as a draft, save it back.
 export function useEditableProfile<TLoaded, TDraft extends object>({
   queryKey,
   load,
@@ -49,9 +43,7 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   const loaded = query.data;
   const draft = useMemo(
     () => (loaded ? { ...toDraft(loaded), ...edits } : null),
-    // toDraft is a module-level function in every caller, so it is stable.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loaded, edits],
+    [loaded, edits, toDraft],
   );
 
   // A save confirmation that never clears reads as stale the moment the user
@@ -69,8 +61,7 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
       Boolean(
         loaded && JSON.stringify(toDraft(loaded)) !== JSON.stringify(draft),
       ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [loaded, draft],
+    [loaded, draft, toDraft],
   );
 
   const submit = useCallback(() => {
