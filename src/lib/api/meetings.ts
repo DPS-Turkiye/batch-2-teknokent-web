@@ -45,3 +45,25 @@ export function updateMeeting(id: string, payload: Record<string, unknown>) {
     data: payload,
   });
 }
+
+export function fetchMeetingRoom(id: string) {
+  return backendRequest({
+    method: "GET",
+    url: `/api/meetings/${encodeURIComponent(id)}/room`,
+  });
+}
+
+export function inviteMeetingGuest(id: string, payload: Record<string, unknown>) {
+  return backendRequest({
+    method: "POST",
+    url: `/api/meetings/${encodeURIComponent(id)}/guests`,
+    data: payload,
+  });
+}
+
+export function deleteMeeting(id: string) {
+  return backendRequest({
+    method: "DELETE",
+    url: `/api/meetings/${encodeURIComponent(id)}`,
+  });
+}

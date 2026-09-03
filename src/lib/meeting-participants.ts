@@ -1,6 +1,6 @@
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { ProgramMentorStatus, type Program } from "@/interfaces/program";
+import type { Program } from "@/interfaces/program";
 
 export type MeetingParticipant = {
   label: string;
@@ -27,29 +27,29 @@ export function describeMeetingParticipants(
   options?: {
     mentorships?: MentorshipRequest[];
     programs?: Program[];
+    peers?: MeetingItem[];
   },
 ): MeetingParticipant[] {
   const rows: MeetingParticipant[] = [];
   const seen = new Set<string>();
+  const peers = options?.peers?.length ? options.peers : [meeting];
 
-  addParticipant(rows, seen, "Startup", meeting.organizationName);
-  addParticipant(rows, seen, "Mentor", meeting.mentorName);
+  for (const peer of peers) {
+    addParticipant(rows, seen, "Startup", peer.organizationName);
+    addParticipant(rows, seen, "Mentor", peer.mentorName);
+  }
 
-  const mentorship = options?.mentorships?.find(
-    (item) => item.organizationId === meeting.organizationId,
-  );
-  addParticipant(rows, seen, "Mentee", mentorship?.requesterName);
+  for (const peer of peers) {
+    const mentorship = options?.mentorships?.find(
+      (item) => item.organizationId === peer.organizationId,
+    );
+    addParticipant(rows, seen, "Mentee", mentorship?.requesterName);
+  }
 
-  const program = options?.programs?.find((item) =>
-    item.startups.some((startup) => startup.id === meeting.organizationId),
-  );
-  if (!program) return rows;
-
-  addParticipant(rows, seen, "Program", program.name);
-  for (const mentor of program.mentors) {
-    if (mentor.status !== ProgramMentorStatus.Accepted) continue;
-    if (mentor.mentorId && mentor.mentorId === meeting.mentorId) continue;
-    addParticipant(rows, seen, "Mentor", mentor.fullName);
+  const orgIds = new Set(peers.map((peer) => peer.organizationId));
+  for (const program of options?.programs ?? []) {
+    if (!program.startups.some((startup) => orgIds.has(startup.id))) continue;
+    addParticipant(rows, seen, "Program", program.name);
   }
   return rows;
 }

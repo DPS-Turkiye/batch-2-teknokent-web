@@ -91,3 +91,43 @@ export function groupMeetingTargets(
 
   return { byProgram, ungrouped };
 }
+
+export function unusedMeetingTargets(
+  mentorships: MentorshipRequest[],
+  programs: Program[],
+  peerOrganizationIds: Iterable<string>,
+) {
+  const taken = new Set(peerOrganizationIds);
+  const grouped = groupMeetingTargets(mentorships, programs);
+  return {
+    ungrouped: grouped.ungrouped.filter(
+      (target) => !taken.has(target.organizationId),
+    ),
+    byProgram: grouped.byProgram
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) => !taken.has(item.organizationId)),
+      }))
+      .filter((group) => group.items.length > 0),
+  };
+}
+
+export function unusedProgramMentors(
+  programs: Program[],
+  peerMentorIds: Iterable<string>,
+) {
+  const taken = new Set(peerMentorIds);
+  const mentors = new Map<string, string>();
+  for (const program of programs) {
+    for (const mentor of program.mentors) {
+      if (mentor.status !== ProgramMentorStatus.Accepted) continue;
+      if (!mentor.mentorId || taken.has(mentor.mentorId)) continue;
+      if (!mentor.fullName.trim()) continue;
+      mentors.set(mentor.mentorId, mentor.fullName);
+    }
+  }
+  return [...mentors.entries()].map(([mentorId, fullName]) => ({
+    mentorId,
+    fullName,
+  }));
+}

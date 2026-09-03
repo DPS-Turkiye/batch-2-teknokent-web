@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +9,7 @@ import {
   createGoogleMeetEvent,
   ensureGoogleCalendarToken,
 } from "@/lib/google-calendar";
+import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ session: { fullName: "Nihan Öztürk" } }),
@@ -27,6 +28,10 @@ vi.mock("@/hooks/use-mentor-calendar", async () => {
   return { ...actual, useMentorCalendar: vi.fn() };
 });
 
+vi.mock("@/lib/client/meetings", () => ({
+  getMeetingRoom: vi.fn(async () => []),
+}));
+
 vi.mock("@/lib/google-calendar", async () => {
   const actual = await vi.importActual<typeof import("@/lib/google-calendar")>(
     "@/lib/google-calendar",
@@ -41,6 +46,8 @@ vi.mock("@/lib/google-calendar", async () => {
 
 const addRule = vi.fn();
 const addMeeting = vi.fn();
+const inviteGuest = vi.fn();
+const removeMeeting = vi.fn();
 const removeRule = vi.fn();
 const setFilter = vi.fn();
 const nextWeek = vi.fn();
@@ -53,6 +60,8 @@ const upcomingSlotStart = new Date("2026-08-26T10:00:00");
 function mock(overrides: Record<string, unknown> = {}) {
   vi.mocked(useMentorCalendar).mockReturnValue({
     addMeeting,
+    inviteGuest,
+    removeMeeting,
     addRule,
     isSavingMeeting: false,
     meetingError: null,
@@ -110,7 +119,7 @@ beforeEach(() => {
 describe("MentorCalendarPage", () => {
   it("shows the week range and the three filters", () => {
     mock();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     expect(screen.getByText("24–28 Ağustos")).toBeInTheDocument();
     for (const label of ["Tümü", "Mentorluk", "Program"]) {
@@ -131,7 +140,7 @@ describe("MentorCalendarPage", () => {
       ],
       freeSlotCount: 3,
     });
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     expect(screen.getByText("Salı")).toBeInTheDocument();
     expect(screen.getByText("14:00–17:00")).toBeInTheDocument();
@@ -154,7 +163,7 @@ describe("MentorCalendarPage", () => {
         },
       ],
     });
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     expect(screen.getByText("UX/UI Mentorluk")).toBeInTheDocument();
   });
@@ -179,7 +188,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(screen.getByRole("button", { name: /Döngü detayını aç/ }));
 
@@ -196,6 +205,35 @@ describe("MentorCalendarPage", () => {
         name: "https://meet.google.com/abc-defg-hij",
       }),
     ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
+  });
+
+  it("lets the mentor delete the opened meeting", async () => {
+    const at = new Date(monday);
+    at.setDate(at.getDate() + 2);
+    at.setHours(11, 0, 0, 0);
+    removeMeeting.mockResolvedValue(undefined);
+    mock({
+      meetings: [
+        {
+          id: "m1",
+          scheduledAt: at.toISOString(),
+          durationMinutes: 60,
+          agenda: "Mentor: Nihan Öztürk",
+          meetLink: "https://meet.google.com/abc-defg-hij",
+          status: "SCHEDULED",
+          organizationId: "org-1",
+          organizationName: "Döngü",
+        },
+      ],
+    });
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const user = userEvent.setup();
+    renderWithQueryClient(<MentorCalendarPage />);
+
+    await user.click(screen.getByRole("button", { name: /Döngü detayını aç/ }));
+    await user.click(screen.getByRole("button", { name: "Toplantıyı sil" }));
+
+    expect(removeMeeting).toHaveBeenCalledWith("m1");
   });
 
   it("says a booked meeting has no link yet when none was saved", async () => {
@@ -215,7 +253,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /UX\/UI Mentorluk detayını aç/ }),
@@ -228,7 +266,7 @@ describe("MentorCalendarPage", () => {
 
   it("says the Program tab has nothing in it yet", () => {
     mock({ filter: CalendarFilter.Program });
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     expect(
       screen.getByText("Program etkinlikleri henüz tanımlı değil."),
@@ -239,7 +277,7 @@ describe("MentorCalendarPage", () => {
     addRule.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(screen.getByRole("button", { name: "Düzenle" }));
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
@@ -265,7 +303,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(screen.getByRole("button", { name: "Kaldır" }));
 
@@ -275,7 +313,7 @@ describe("MentorCalendarPage", () => {
   it("asks for a date when the dialog is opened without a slot", async () => {
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
@@ -296,7 +334,7 @@ describe("MentorCalendarPage", () => {
   it("skips the date picker when an empty calendar cell is clicked", async () => {
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -311,7 +349,7 @@ describe("MentorCalendarPage", () => {
     addMeeting.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -337,7 +375,7 @@ describe("MentorCalendarPage", () => {
     addMeeting.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -373,7 +411,7 @@ describe("MentorCalendarPage", () => {
     addMeeting.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
@@ -399,7 +437,7 @@ describe("MentorCalendarPage", () => {
     addMeeting.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -420,7 +458,7 @@ describe("MentorCalendarPage", () => {
     addMeeting.mockResolvedValue(undefined);
     mock();
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -453,7 +491,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
@@ -482,7 +520,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -529,7 +567,7 @@ describe("MentorCalendarPage", () => {
       ],
     });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
@@ -546,7 +584,7 @@ describe("MentorCalendarPage", () => {
   it("explains that a meeting needs a mentorship or program startup first", async () => {
     mock({ mentorships: [] });
     const user = userEvent.setup();
-    render(<MentorCalendarPage />);
+    renderWithQueryClient(<MentorCalendarPage />);
 
     await user.click(
       screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),

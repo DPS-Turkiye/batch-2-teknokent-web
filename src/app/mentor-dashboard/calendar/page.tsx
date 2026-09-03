@@ -30,6 +30,7 @@ import {
   relayGoogleOAuthTokenFromUrl,
 } from "@/lib/google-calendar";
 import { meetingCalendarTitle } from "@/lib/meeting-participants";
+import { meetingRecipient } from "@/lib/meeting-targets";
 import { AppArea } from "@/types/app-area";
 
 export default function MentorCalendarPage() {
@@ -394,7 +395,31 @@ export default function MentorCalendarPage() {
           meeting={detailMeeting}
           mentorships={calendar.mentorships}
           programs={calendar.programs}
+          isBusy={calendar.isSavingMeeting}
+          error={calendar.meetingError}
           onClose={() => setDetailMeeting(null)}
+          onAddStartup={async (target) => {
+            await calendar.addMeeting({
+              ...meetingRecipient(target),
+              scheduledAt: detailMeeting.scheduledAt,
+              durationMinutes: detailMeeting.durationMinutes,
+              agenda: detailMeeting.agenda ?? "",
+              meetLink: detailMeeting.meetLink,
+              transcribeRequested: detailMeeting.transcribeRequested,
+            });
+          }}
+          onAddMentor={async (mentorId, organizationIds) => {
+            for (const organizationId of organizationIds) {
+              await calendar.inviteGuest(detailMeeting.id, {
+                mentorId,
+                organizationId,
+              });
+            }
+          }}
+          onDelete={async () => {
+            await calendar.removeMeeting(detailMeeting.id);
+            setDetailMeeting(null);
+          }}
         />
       ) : null}
     </AppShell>

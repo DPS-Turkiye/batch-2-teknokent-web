@@ -86,6 +86,28 @@ describe("describeMeetingParticipants", () => {
       { label: "Mentor", name: "mentör yılmaz" },
       { label: "Mentee", name: "Gülse" },
       { label: "Program", name: "Ön kuluçka" },
+    ]);
+  });
+
+  it("lists every startup and mentor already in the meeting room", () => {
+    const rows = describeMeetingParticipants(meeting, {
+      peers: [
+        meeting,
+        {
+          ...meeting,
+          id: "m2",
+          organizationId: "org-2",
+          organizationName: "NovaMed",
+          mentorId: "mentor-2",
+          mentorName: "Ayşe Kaya",
+        },
+      ],
+    });
+
+    expect(rows).toEqual([
+      { label: "Startup", name: "Döngü" },
+      { label: "Mentor", name: "mentör yılmaz" },
+      { label: "Startup", name: "NovaMed" },
       { label: "Mentor", name: "Ayşe Kaya" },
     ]);
   });

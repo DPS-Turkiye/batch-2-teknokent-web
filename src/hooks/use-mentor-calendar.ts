@@ -18,7 +18,7 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { getMeetings, postMeeting } from "@/lib/client/meetings";
+import { getMeetings, postMeeting, postMeetingGuest, deleteMeeting } from "@/lib/client/meetings";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
@@ -116,6 +116,27 @@ export function useMentorCalendar() {
     mutationFn: postMeeting,
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
+    },
+  });
+  const inviteGuest = useMutation({
+    mutationFn: ({
+      meetingId,
+      payload,
+    }: {
+      meetingId: string;
+      payload: { organizationId?: string; mentorId?: string; programId?: string };
+    }) => postMeetingGuest(meetingId, payload),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
+    },
+  });
+  const removeMeeting = useMutation({
+    mutationFn: deleteMeeting,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["meetings"] });
+      void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
     },
   });
 
@@ -188,8 +209,18 @@ export function useMentorCalendar() {
       meetLink?: string;
       transcribeRequested?: boolean;
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
-    isSavingMeeting: createMeeting.isPending,
-    meetingError: createMeeting.error,
+    inviteGuest: (meetingId: string, payload: {
+      organizationId?: string;
+      mentorId?: string;
+      programId?: string;
+    }) => inviteGuest.mutateAsync({ meetingId, payload }),
+    removeMeeting: (meetingId: string) => removeMeeting.mutateAsync(meetingId),
+    isSavingMeeting:
+      createMeeting.isPending ||
+      inviteGuest.isPending ||
+      removeMeeting.isPending,
+    meetingError:
+      createMeeting.error ?? inviteGuest.error ?? removeMeeting.error,
     mentorships,
     addRule: (input: {
       dayOfWeek: Weekday;

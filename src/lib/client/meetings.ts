@@ -44,3 +44,29 @@ export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
     ),
   );
 }
+
+export async function getMeetingRoom(id: string) {
+  return requireSuccess(
+    await httpClient.get<MeetingItem[]>(
+      `/api/meetings/${encodeURIComponent(id)}/room`,
+    ),
+  );
+}
+
+export async function postMeetingGuest(
+  id: string,
+  payload: { organizationId?: string; mentorId?: string; programId?: string },
+) {
+  return requireSuccess(
+    await httpClient.post<MeetingItem>(
+      `/api/meetings/${encodeURIComponent(id)}/guests`,
+      payload,
+    ),
+  );
+}
+
+export async function deleteMeeting(id: string) {
+  return requireSuccess(
+    await httpClient.delete(`/api/meetings/${encodeURIComponent(id)}`),
+  );
+}
