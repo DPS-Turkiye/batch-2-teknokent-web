@@ -1,12 +1,11 @@
 "use client";
 
-import { EditableChips } from "@/components/common/editable-chips";
-import {
-  FormField,
-  cardClass,
-  cardHeadingClass,
-} from "@/components/common/form-field";
+import { cardClass, cardHeadingClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
+import {
+  EditableInfoChips,
+  EditableInfoField,
+} from "@/components/profile/editable-info-field";
 import { useStartupProfile } from "@/hooks/use-startup-profile";
 
 /**
@@ -64,14 +63,14 @@ export function StartupProfileSection() {
           ) : null}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
+        <div className="grid gap-3 sm:grid-cols-2">
+          <EditableInfoField
             id="startup-name"
             label="Startup adı"
             value={draft.name}
             onChange={(value) => setField("name", value)}
           />
-          <FormField
+          <EditableInfoField
             id="startup-website"
             label="Web sitesi"
             placeholder="ornek.com"
@@ -80,7 +79,7 @@ export function StartupProfileSection() {
           />
         </div>
 
-        <FormField
+        <EditableInfoField
           id="startup-tagline"
           label="Tek satırlık tanım"
           placeholder="Ne yaptığınızı bir cümlede anlatın."
@@ -92,28 +91,28 @@ export function StartupProfileSection() {
       <section className={cardClass}>
         <h2 className={cardHeadingClass}>Girişim hakkında</h2>
 
-        <FormField
+        <EditableInfoField
           id="startup-problem"
           label="Hangi problemi çözüyorsunuz?"
           multiline
           value={draft.problem ?? ""}
           onChange={(value) => setField("problem", value)}
         />
-        <FormField
+        <EditableInfoField
           id="startup-solution"
           label="Çözümünüz"
           multiline
           value={draft.solution ?? ""}
           onChange={(value) => setField("solution", value)}
         />
-        <FormField
+        <EditableInfoField
           id="startup-current-solution"
           label="Mevcut çözüm"
           multiline
           value={draft.currentSolution ?? ""}
           onChange={(value) => setField("currentSolution", value)}
         />
-        <FormField
+        <EditableInfoField
           id="startup-target-user"
           label="Hedef kullanıcı"
           multiline
@@ -121,14 +120,14 @@ export function StartupProfileSection() {
           onChange={(value) => setField("targetUser", value)}
         />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FormField
+        <div className="grid gap-3 sm:grid-cols-2">
+          <EditableInfoField
             id="startup-sector"
             label="Sektör"
             value={draft.sector ?? ""}
             onChange={(value) => setField("sector", value)}
           />
-          <FormField
+          <EditableInfoField
             id="startup-maturity"
             label="Olgunluk"
             value={draft.maturity ?? ""}
@@ -136,7 +135,7 @@ export function StartupProfileSection() {
           />
         </div>
 
-        <FormField
+        <EditableInfoField
           id="startup-program-level"
           label="Program seviyesi"
           value={draft.programLevel ?? ""}
@@ -146,7 +145,7 @@ export function StartupProfileSection() {
 
       <section className={cardClass}>
         <h2 className={cardHeadingClass}>Destek alanları</h2>
-        <EditableChips
+        <EditableInfoChips
           label="Destek alanları"
           values={draft.supportAreas}
           onChange={(values) => setField("supportAreas", values)}

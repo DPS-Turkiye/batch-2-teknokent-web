@@ -1,12 +1,11 @@
 "use client";
 
-import { EditableChips } from "@/components/common/editable-chips";
-import {
-  FormField,
-  cardClass,
-  cardHeadingClass,
-} from "@/components/common/form-field";
+import { cardClass, cardHeadingClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
+import {
+  EditableInfoChips,
+  EditableInfoField,
+} from "@/components/profile/editable-info-field";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
 
 /**
@@ -63,14 +62,14 @@ export function PersonalProfileSection() {
         ) : null}
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
+      <div className="grid gap-3 sm:grid-cols-2">
+        <EditableInfoField
           id="profile-full-name"
           label="Ad soyad"
           value={draft.fullName}
           onChange={(value) => setField("fullName", value)}
         />
-        <FormField
+        <EditableInfoField
           id="profile-job-title"
           label="Rol"
           placeholder="Startup'taki rolün"
@@ -79,14 +78,14 @@ export function PersonalProfileSection() {
         />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
+      <div className="grid gap-3 sm:grid-cols-2">
+        <EditableInfoField
           id="profile-phone"
           label="Telefon"
           value={draft.phone ?? ""}
           onChange={(value) => setField("phone", value)}
         />
-        <FormField
+        <EditableInfoField
           id="profile-linkedin"
           label="LinkedIn"
           placeholder="linkedin.com/in/…"
@@ -95,7 +94,7 @@ export function PersonalProfileSection() {
         />
       </div>
 
-      <FormField
+      <EditableInfoField
         id="profile-bio"
         label="Kısa tanıtım"
         multiline
@@ -104,7 +103,7 @@ export function PersonalProfileSection() {
         onChange={(value) => setField("bio", value)}
       />
 
-      <EditableChips
+      <EditableInfoChips
         label="Uzmanlık alanları"
         values={draft.expertise}
         onChange={(values) => setField("expertise", values)}

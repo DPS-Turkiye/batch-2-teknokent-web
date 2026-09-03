@@ -44,12 +44,10 @@ describe("StartupProfileSection", () => {
   it("shows what the founder typed at signup", async () => {
     render(<StartupProfileSection />);
 
-    expect(await screen.findByLabelText("Startup adı")).toHaveValue("Döngü");
-    expect(screen.getByLabelText("Web sitesi")).toHaveValue("dongu.co");
-    expect(screen.getByLabelText("Hangi problemi çözüyorsunuz?")).toHaveValue(
-      "Gönüllüler bulunamıyor",
-    );
-    expect(screen.getByLabelText("Sektör")).toHaveValue("SaaS");
+    expect(await screen.findByText("Döngü")).toBeInTheDocument();
+    expect(screen.getByText("dongu.co")).toBeInTheDocument();
+    expect(screen.getByText("Gönüllüler bulunamıyor")).toBeInTheDocument();
+    expect(screen.getByText("SaaS")).toBeInTheDocument();
     expect(screen.getByText("Finans")).toBeInTheDocument();
   });
 
@@ -63,6 +61,9 @@ describe("StartupProfileSection", () => {
     });
     expect(save).toBeDisabled();
 
+    await user.click(
+      screen.getByRole("button", { name: "Sektör alanını düzenle" }),
+    );
     await user.type(screen.getByLabelText("Sektör"), "X");
     expect(save).toBeEnabled();
   });
@@ -74,7 +75,10 @@ describe("StartupProfileSection", () => {
     const user = userEvent.setup();
     render(<StartupProfileSection />);
 
-    const sector = await screen.findByLabelText("Sektör");
+    await user.click(
+      await screen.findByRole("button", { name: "Sektör alanını düzenle" }),
+    );
+    const sector = screen.getByLabelText("Sektör");
     await user.clear(sector);
     await user.type(sector, "HealthTech");
     await user.click(
@@ -98,7 +102,10 @@ describe("StartupProfileSection", () => {
     const user = userEvent.setup();
     render(<StartupProfileSection />);
 
-    await user.type(await screen.findByLabelText("Sektör"), "X");
+    await user.click(
+      await screen.findByRole("button", { name: "Sektör alanını düzenle" }),
+    );
+    await user.type(screen.getByLabelText("Sektör"), "X");
     await user.click(
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     );

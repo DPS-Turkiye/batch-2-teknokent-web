@@ -36,15 +36,11 @@ describe("PersonalProfileSection", () => {
   it("shows the bio, LinkedIn and expertise that were previously write-only", async () => {
     render(<PersonalProfileSection />);
 
-    expect(await screen.findByLabelText("Kısa tanıtım")).toHaveValue(
-      "Ürün odaklı kurucu",
-    );
-    expect(screen.getByLabelText("LinkedIn")).toHaveValue(
-      "linkedin.com/in/gulse",
-    );
+    expect(await screen.findByText("Ürün odaklı kurucu")).toBeInTheDocument();
+    expect(screen.getByText("linkedin.com/in/gulse")).toBeInTheDocument();
     expect(screen.getByText("UI/UX")).toBeInTheDocument();
     expect(screen.getByText("Figma")).toBeInTheDocument();
-    expect(screen.getByLabelText("Ad soyad")).toHaveValue("Gülse Buran");
+    expect(screen.getByText("Gülse Buran")).toBeInTheDocument();
   });
 
   it("keeps save disabled until something changes", async () => {
@@ -56,6 +52,9 @@ describe("PersonalProfileSection", () => {
     });
     expect(save).toBeDisabled();
 
+    await user.click(
+      screen.getByRole("button", { name: "Rol alanını düzenle" }),
+    );
     await user.type(screen.getByLabelText("Rol"), "X");
     expect(save).toBeEnabled();
   });
@@ -67,7 +66,10 @@ describe("PersonalProfileSection", () => {
     const user = userEvent.setup();
     render(<PersonalProfileSection />);
 
-    const role = await screen.findByLabelText("Rol");
+    await user.click(
+      await screen.findByRole("button", { name: "Rol alanını düzenle" }),
+    );
+    const role = screen.getByLabelText("Rol");
     await user.clear(role);
     await user.type(role, "Kurucu");
     await user.click(
@@ -94,7 +96,10 @@ describe("PersonalProfileSection", () => {
     const user = userEvent.setup();
     render(<PersonalProfileSection />);
 
-    await user.type(await screen.findByLabelText("Rol"), "X");
+    await user.click(
+      await screen.findByRole("button", { name: "Rol alanını düzenle" }),
+    );
+    await user.type(screen.getByLabelText("Rol"), "X");
     await user.click(
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     );
