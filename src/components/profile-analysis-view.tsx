@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { StartupProfileSection } from "@/components/profile/startup-profile-section";
 import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { useOrganizationInvite } from "@/hooks/use-organization-invite";
@@ -523,6 +524,8 @@ export function ProfileAnalysisView() {
             başlayın.
           </section>
         )}
+
+        <StartupProfileSection />
 
         <TeamSummarySection />
 
