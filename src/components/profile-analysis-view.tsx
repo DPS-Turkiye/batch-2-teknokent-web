@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { PersonalProfileSection } from "@/components/profile/personal-profile-section";
 import { StartupProfileSection } from "@/components/profile/startup-profile-section";
 import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import { PrimaryButton } from "@/components/common/primary-button";
@@ -524,6 +525,8 @@ export function ProfileAnalysisView() {
             başlayın.
           </section>
         )}
+
+        <PersonalProfileSection />
 
         <StartupProfileSection />
 

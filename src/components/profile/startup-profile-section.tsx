@@ -36,7 +36,6 @@ export function StartupProfileSection() {
   const {
     draft,
     setField,
-    setSupportAreas,
     save,
     saved,
     isLoading,
@@ -92,7 +91,7 @@ export function StartupProfileSection() {
           <EditableChips
             label="Destek alanları"
             values={draft.supportAreas}
-            onChange={setSupportAreas}
+            onChange={(values) => setField("supportAreas", values)}
           />
 
           {saveError ? (
