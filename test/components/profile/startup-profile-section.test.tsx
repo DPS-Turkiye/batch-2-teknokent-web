@@ -46,7 +46,7 @@ describe("StartupProfileSection", () => {
 
     expect(await screen.findByLabelText("Startup adı")).toHaveValue("Döngü");
     expect(screen.getByLabelText("Web sitesi")).toHaveValue("dongu.co");
-    expect(screen.getByLabelText("Problem")).toHaveValue(
+    expect(screen.getByLabelText("Hangi problemi çözüyorsunuz?")).toHaveValue(
       "Gönüllüler bulunamıyor",
     );
     expect(screen.getByLabelText("Sektör")).toHaveValue("SaaS");

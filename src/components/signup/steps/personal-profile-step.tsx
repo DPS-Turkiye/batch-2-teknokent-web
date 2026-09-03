@@ -12,10 +12,7 @@ import {
   CONTACT_PREFERENCE_OPTIONS,
   type UploadedFile,
 } from "@/interfaces/signup";
-
-const fieldClass =
-  "min-h-11 w-full rounded-xl border border-[#e4e7ea] bg-white px-3.5 text-sm text-[#22262b] outline-none transition placeholder:text-[#a4aab2] focus:border-[#e86f22]";
-const labelClass = "mb-1.5 block text-xs font-medium text-[#3c424a]";
+import { fieldClass, labelClass } from "@/components/common/form-field";
 
 export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
   const { draft, updatePersonal, setExpertise, toggleContactPreference } =

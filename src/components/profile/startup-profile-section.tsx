@@ -1,37 +1,19 @@
 "use client";
 
 import { EditableChips } from "@/components/common/editable-chips";
-import { PrimaryButton } from "@/components/common/primary-button";
 import {
-  useStartupProfile,
-  type StartupProfileField,
-} from "@/hooks/use-startup-profile";
+  FormField,
+  cardClass,
+  cardHeadingClass,
+} from "@/components/common/form-field";
+import { PrimaryButton } from "@/components/common/primary-button";
+import { useStartupProfile } from "@/hooks/use-startup-profile";
 
 /**
- * The signup wizard's startup step, reopened after signup. The fields mirror
- * that step one for one, so a founder edits what they originally typed rather
- * than a different-shaped form.
+ * The signup wizard's second step, reopened after signup. Grouped the way that
+ * step groups it — Temel bilgiler, Girişim hakkında, Destek alanları — so a
+ * founder edits what they originally typed, in the shape they typed it.
  */
-const TEXT_FIELDS: {
-  field: StartupProfileField;
-  label: string;
-  multiline?: boolean;
-}[] = [
-  { field: "name", label: "Startup adı" },
-  { field: "description", label: "Tek satırlık tanım" },
-  { field: "website", label: "Web sitesi" },
-  { field: "problem", label: "Problem", multiline: true },
-  { field: "solution", label: "Çözüm", multiline: true },
-  { field: "currentSolution", label: "Mevcut çözüm", multiline: true },
-  { field: "targetUser", label: "Hedef kullanıcı", multiline: true },
-  { field: "sector", label: "Sektör" },
-  { field: "maturity", label: "Olgunluk" },
-  { field: "programLevel", label: "Program seviyesi" },
-];
-
-const INPUT_CLASS =
-  "w-full rounded-lg border border-[#e5e7eb] px-3 py-2 text-sm text-[#171717] outline-none focus:border-[#e86f22]";
-
 export function StartupProfileSection() {
   const {
     draft,
@@ -45,64 +27,141 @@ export function StartupProfileSection() {
     canSave,
   } = useStartupProfile();
 
+  if (isLoading) {
+    return (
+      <section className={cardClass}>
+        <h2 className={cardHeadingClass}>Startup bilgilerim</h2>
+        <p className="text-sm text-[#676e78]">Bilgiler yükleniyor…</p>
+      </section>
+    );
+  }
+
+  if (loadError || !draft) {
+    return (
+      <section className={cardClass}>
+        <h2 className={cardHeadingClass}>Startup bilgilerim</h2>
+        <p className="text-sm text-[#b91c1c]">
+          {loadError ?? "Bilgiler yüklenemedi."}
+        </p>
+      </section>
+    );
+  }
+
   return (
-    <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-[#364153]">
-          Startup bilgilerim
-        </h2>
-        {saved ? (
-          <span className="text-xs font-semibold text-[#15803d]">
-            Kaydedildi
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-1 text-xs text-[#6a7282]">
-        Kayıt sırasında girdiğin bilgiler. İstediğin zaman güncelleyebilirsin.
-      </p>
-
-      {isLoading ? (
-        <p className="mt-4 text-sm text-[#6a7282]">Bilgiler yükleniyor…</p>
-      ) : loadError ? (
-        <p className="mt-4 text-sm text-[#b91c1c]">{loadError}</p>
-      ) : !draft ? null : (
-        <div className="mt-4 space-y-4">
-          {TEXT_FIELDS.map(({ field, label, multiline }) => (
-            <label key={field} className="block">
-              <span className="text-xs font-medium text-[#6a7282]">
-                {label}
-              </span>
-              {multiline ? (
-                <textarea
-                  className={`${INPUT_CLASS} mt-1 min-h-20`}
-                  value={draft[field] ?? ""}
-                  onChange={(event) => setField(field, event.target.value)}
-                />
-              ) : (
-                <input
-                  className={`${INPUT_CLASS} mt-1`}
-                  value={draft[field] ?? ""}
-                  onChange={(event) => setField(field, event.target.value)}
-                />
-              )}
-            </label>
-          ))}
-
-          <EditableChips
-            label="Destek alanları"
-            values={draft.supportAreas}
-            onChange={(values) => setField("supportAreas", values)}
-          />
-
-          {saveError ? (
-            <p className="text-sm text-[#b91c1c]">{saveError}</p>
+    <div className="space-y-5">
+      <section className={cardClass}>
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <h2 className={cardHeadingClass}>Temel bilgiler</h2>
+            <p className="mt-1 text-xs text-[#676e78]">
+              Kayıt sırasında girdiğin startup bilgileri.
+            </p>
+          </div>
+          {saved ? (
+            <span className="rounded-full bg-[#ecfdf3] px-2.5 py-1 text-xs font-medium text-[#15803d]">
+              Kaydedildi
+            </span>
           ) : null}
+        </div>
 
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            id="startup-name"
+            label="Startup adı"
+            value={draft.name}
+            onChange={(value) => setField("name", value)}
+          />
+          <FormField
+            id="startup-website"
+            label="Web sitesi"
+            placeholder="ornek.com"
+            value={draft.website ?? ""}
+            onChange={(value) => setField("website", value)}
+          />
+        </div>
+
+        <FormField
+          id="startup-tagline"
+          label="Tek satırlık tanım"
+          placeholder="Ne yaptığınızı bir cümlede anlatın."
+          value={draft.description ?? ""}
+          onChange={(value) => setField("description", value)}
+        />
+      </section>
+
+      <section className={cardClass}>
+        <h2 className={cardHeadingClass}>Girişim hakkında</h2>
+
+        <FormField
+          id="startup-problem"
+          label="Hangi problemi çözüyorsunuz?"
+          multiline
+          value={draft.problem ?? ""}
+          onChange={(value) => setField("problem", value)}
+        />
+        <FormField
+          id="startup-solution"
+          label="Çözümünüz"
+          multiline
+          value={draft.solution ?? ""}
+          onChange={(value) => setField("solution", value)}
+        />
+        <FormField
+          id="startup-current-solution"
+          label="Mevcut çözüm"
+          multiline
+          value={draft.currentSolution ?? ""}
+          onChange={(value) => setField("currentSolution", value)}
+        />
+        <FormField
+          id="startup-target-user"
+          label="Hedef kullanıcı"
+          multiline
+          value={draft.targetUser ?? ""}
+          onChange={(value) => setField("targetUser", value)}
+        />
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField
+            id="startup-sector"
+            label="Sektör"
+            value={draft.sector ?? ""}
+            onChange={(value) => setField("sector", value)}
+          />
+          <FormField
+            id="startup-maturity"
+            label="Olgunluk"
+            value={draft.maturity ?? ""}
+            onChange={(value) => setField("maturity", value)}
+          />
+        </div>
+
+        <FormField
+          id="startup-program-level"
+          label="Program seviyesi"
+          value={draft.programLevel ?? ""}
+          onChange={(value) => setField("programLevel", value)}
+        />
+      </section>
+
+      <section className={cardClass}>
+        <h2 className={cardHeadingClass}>Destek alanları</h2>
+        <EditableChips
+          label="Destek alanları"
+          values={draft.supportAreas}
+          onChange={(values) => setField("supportAreas", values)}
+        />
+
+        {saveError ? (
+          <p className="text-sm text-[#b91c1c]">{saveError}</p>
+        ) : null}
+
+        <div className="flex justify-end border-t border-[#f1f3f5] pt-4">
           <PrimaryButton onClick={save} disabled={!canSave}>
             {isSaving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
           </PrimaryButton>
         </div>
-      )}
-    </section>
+      </section>
+    </div>
   );
 }
