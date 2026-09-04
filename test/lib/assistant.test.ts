@@ -59,6 +59,19 @@ describe("assistant lib", () => {
     expect(result).toEqual(payload);
   });
 
+  it("addMeetingBot throws when the BFF returns an error status", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createAxiosResponse(
+        { message: "Meeting assistant service is unavailable." },
+        502,
+      ),
+    );
+
+    await expect(
+      addMeetingBot("https://meet.google.com/abc-defg-hij"),
+    ).rejects.toThrow("Meeting assistant service is unavailable.");
+  });
+
   it("addMeetingBot throws on error status", async () => {
     vi.mocked(httpClient.post).mockRejectedValue(
       createAxiosError({ detail: "bad link" }, 400),

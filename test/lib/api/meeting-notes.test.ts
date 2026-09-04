@@ -101,7 +101,7 @@ describe("meeting note server API", () => {
   });
 
   it("reads and publishes assistant shares", async () => {
-    await fetchAssistantShare("meeting-1", "org-1");
+    await fetchAssistantShare("meeting-1", { organizationId: "org-1" });
     await publishAssistantShare("meeting-1", "mentor-1", {
       kind: "TRANSCRIPT",
       transcript: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],

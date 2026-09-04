@@ -38,6 +38,7 @@ export default function AssistantPage() {
     reportError,
     regenerateReport,
     platformMeetings,
+    isLoadingMeetings,
     targetMeetingId,
     setTargetMeetingId,
     shareStatus,
@@ -114,9 +115,16 @@ export default function AssistantPage() {
               </form>
 
               <ul className="space-y-0.5">
+                {meetings.length === 0 ? (
+                  <li className="px-2.5 py-3 text-[12px] leading-relaxed text-[var(--ma-t3)]">
+                    {isLoadingMeetings
+                      ? "Toplantılar yükleniyor…"
+                      : "Kayıtlı toplantı yok. Takvimden toplantı oluştur veya link yapıştır."}
+                  </li>
+                ) : null}
                 {meetings.map((m) => {
                   const meta = STATUS_META[m.status];
-                  const on = m.id === selected.id;
+                  const on = m.id === selected?.id;
                   return (
                     <li key={m.id}>
                       <button
@@ -166,236 +174,252 @@ export default function AssistantPage() {
           </aside>
 
           <section className="flex min-w-0 flex-1 flex-col bg-[var(--ma-bg)]">
-            <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-[var(--ma-line)] bg-[var(--ma-sidebar)] px-4 py-2.5">
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  {selected.status === MeetingStatus.Active ? (
-                    <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--ma-green)]">
-                      <span className="size-[7px] rounded-full bg-[var(--ma-green)] shadow-[0_0_0_3px_var(--ma-greenbg)]" />
-                      Live
-                    </span>
-                  ) : (
-                    <span
-                      className="inline-flex rounded px-2 py-0.5 text-[11px] font-semibold"
-                      style={{ color: status.color, background: status.bg }}
-                    >
-                      {status.label}
-                    </span>
-                  )}
-                  <h2 className="truncate text-sm font-semibold text-[var(--ma-t1)]">
-                    {selected.title}
-                  </h2>
-                </div>
-                <p className="mt-0.5 truncate text-[11.5px] text-[var(--ma-t3)]">
-                  {selected.platform} · {selected.participants.join(", ")}
-                </p>
+            {!selected ? (
+              <div className="flex flex-1 items-center justify-center px-6 text-center text-[13px] text-[var(--ma-t3)]">
+                {isLoadingMeetings
+                  ? "Toplantılar yükleniyor…"
+                  : "Bir toplantı seç veya link yapıştırarak bot ekle."}
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <select
-                  value={targetMeetingId}
-                  onChange={(e) => setTargetMeetingId(e.target.value)}
-                  aria-label="Not defteri toplantısı"
-                  className="h-8 max-w-[220px] rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 text-[11.5px] text-[var(--ma-t1)]"
-                >
-                  <option value="">Not defteri toplantısı seç…</option>
-                  {platformMeetings.map((meeting) => (
-                    <option key={meeting.id} value={meeting.id}>
-                      {meeting.agenda ?? "Mentorluk Görüşmesi"} ·{" "}
-                      {formatSlotDateTime(meeting.scheduledAt)}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => void sendTranscript()}
-                  disabled={
-                    !targetMeetingId ||
-                    visibleTranscript.length === 0 ||
-                    shareStatus === BotStatus.Sending
-                  }
-                  className="rounded-[7px] border border-[var(--ma-line2)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-t1)] disabled:opacity-50"
-                >
-                  Transkripti gönder
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void sendReport()}
-                  disabled={
-                    !targetMeetingId ||
-                    !meetingReport ||
-                    transcriptDirty ||
-                    shareStatus === BotStatus.Sending
-                  }
-                  className="rounded-[7px] bg-[var(--ma-accent)] px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
-                >
-                  Raporu gönder
-                </button>
-                <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 py-1 text-[11.5px] text-[var(--ma-t2)]">
-                  <span className="font-mono text-[var(--ma-t3)]">stream</span>
-                  <span className="text-[var(--ma-t1)]">live-stt</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => void stopBot()}
-                  disabled={
-                    botStatus === BotStatus.Sending ||
-                    !selected.platformKey ||
-                    !selected.nativeMeetingId
-                  }
-                  className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)] disabled:opacity-50"
-                >
-                  Stop bot
-                </button>
-              </div>
-            </header>
-
-            <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
-              <div className="w-full">
-                <div className="mb-5 flex items-center gap-2">
-                  <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
-                    Transcript
-                  </span>
-                  <span className="font-mono text-[10.5px] text-[var(--ma-t3)]">
-                    {visibleTranscript.length}
-                  </span>
-                  {canEditTranscript ? (
-                    <span className="text-[11px] text-[var(--ma-t3)]">
-                      Düzenlenebilir
-                    </span>
-                  ) : null}
-                  <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                </div>
-                {shareError ? (
-                  <p className="mb-3 text-[11px] text-[var(--ma-danger)]">
-                    {shareError}
-                  </p>
-                ) : shareStatus === BotStatus.Ok ? (
-                  <p className="mb-3 text-[11px] text-[var(--ma-green)]">
-                    Not defterine gönderildi.
-                  </p>
-                ) : null}
-
-                {visibleTranscript.length === 0 ? (
-                  <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
-                    Henüz transcript yok. Bot toplantıya katılınca canlı
-                    konuşmalar burada akacak.
-                  </p>
-                ) : (
-                  <div className="space-y-4">
-                    {visibleTranscript.map((line) => (
-                      <div key={line.id} className="flex gap-3">
-                        <span className="w-10 shrink-0 pt-0.5 font-mono text-[11px] text-[var(--ma-t3)]">
-                          {line.at}
+            ) : (
+              <>
+                <header className="flex shrink-0 flex-wrap items-center gap-3 border-b border-[var(--ma-line)] bg-[var(--ma-sidebar)] px-4 py-2.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {selected.status === MeetingStatus.Active ? (
+                        <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--ma-green)]">
+                          <span className="size-[7px] rounded-full bg-[var(--ma-green)] shadow-[0_0_0_3px_var(--ma-greenbg)]" />
+                          Live
                         </span>
-                        <div className="min-w-0 flex-1">
-                          {canEditTranscript ? (
-                            <>
-                              <input
-                                value={line.speaker}
-                                onChange={(e) =>
-                                  updateTranscriptLine(line.id, {
-                                    speaker: e.target.value,
-                                  })
-                                }
-                                aria-label="Konuşmacı"
-                                className="w-full rounded-md border border-[var(--ma-line)] bg-white px-2 py-1 text-[12px] font-medium text-[var(--ma-blue)] outline-none focus:border-[var(--ma-accent)]"
-                              />
-                              <textarea
-                                value={line.text}
-                                onChange={(e) =>
-                                  updateTranscriptLine(line.id, {
-                                    text: e.target.value,
-                                  })
-                                }
-                                aria-label="Transkript satırı"
-                                rows={2}
-                                className="mt-1 w-full resize-y rounded-md border border-[var(--ma-line)] bg-white px-2 py-1.5 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none focus:border-[var(--ma-accent)]"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeTranscriptLine(line.id)}
-                                className="mt-1 text-[11px] text-[var(--ma-danger)]"
-                              >
-                                Satırı sil
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <div className="text-[12px] font-medium text-[var(--ma-blue)]">
-                                {line.speaker}
-                              </div>
-                              <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
-                                {line.text}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                      ) : (
+                        <span
+                          className="inline-flex rounded px-2 py-0.5 text-[11px] font-semibold"
+                          style={{ color: status.color, background: status.bg }}
+                        >
+                          {status.label}
+                        </span>
+                      )}
+                      <h2 className="truncate text-sm font-semibold text-[var(--ma-t1)]">
+                        {selected.title}
+                      </h2>
+                    </div>
+                    <p className="mt-0.5 truncate text-[11.5px] text-[var(--ma-t3)]">
+                      {selected.platform} · {selected.participants.join(", ")}
+                    </p>
                   </div>
-                )}
-
-                <div className="mt-8">
-                  <div className="mb-2.5 flex items-center gap-2">
-                    <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
-                      Toplantı raporu
-                    </span>
-                    <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                    {transcriptDirty && meetingReport ? (
-                      <span className="text-[11px] text-[var(--ma-accent)]">
-                        Transkript değişti. Raporu güncellemek için tekrar üret.
-                      </span>
-                    ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    <select
+                      value={targetMeetingId}
+                      onChange={(e) => setTargetMeetingId(e.target.value)}
+                      aria-label="Not defteri toplantısı"
+                      className="h-8 max-w-[220px] rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 text-[11.5px] text-[var(--ma-t1)]"
+                    >
+                      <option value="">Not defteri toplantısı seç…</option>
+                      {platformMeetings.map((meeting) => (
+                        <option key={meeting.id} value={meeting.id}>
+                          {meeting.agenda ?? "Mentorluk Görüşmesi"} ·{" "}
+                          {formatSlotDateTime(meeting.scheduledAt)}
+                        </option>
+                      ))}
+                    </select>
                     <button
                       type="button"
-                      onClick={() => regenerateReport()}
+                      onClick={() => void sendTranscript()}
                       disabled={
-                        reportStatus === BotStatus.Sending ||
+                        !targetMeetingId ||
+                        visibleTranscript.every((line) => !line.text.trim()) ||
+                        shareStatus === BotStatus.Sending
+                      }
+                      className="rounded-[7px] border border-[var(--ma-line2)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-t1)] disabled:opacity-50"
+                    >
+                      Transkripti gönder
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void sendReport()}
+                      disabled={
+                        !targetMeetingId ||
+                        !meetingReport ||
+                        transcriptDirty ||
+                        shareStatus === BotStatus.Sending
+                      }
+                      className="rounded-[7px] bg-[var(--ma-accent)] px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
+                    >
+                      Raporu gönder
+                    </button>
+                    <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 py-1 text-[11.5px] text-[var(--ma-t2)]">
+                      <span className="font-mono text-[var(--ma-t3)]">
+                        stream
+                      </span>
+                      <span className="text-[var(--ma-t1)]">live-stt</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => void stopBot()}
+                      disabled={
+                        botStatus === BotStatus.Sending ||
                         !selected.platformKey ||
                         !selected.nativeMeetingId
                       }
-                      className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
+                      className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)] disabled:opacity-50"
                     >
-                      {reportStatus === BotStatus.Sending
-                        ? "Üretiliyor…"
-                        : "Rapor üret"}
+                      Stop bot
                     </button>
                   </div>
-                  <BotStatusRenderer
-                    status={reportStatus}
-                    error={reportError}
-                  />
-                  {meetingReport ? (
-                    <MeetingReportView report={meetingReport} />
-                  ) : (
-                    <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
-                      Stop bot sonrası transcript’ten AI raporu burada
-                      görünecek.
-                    </p>
-                  )}
-                </div>
+                </header>
 
-                <div className="mt-8">
-                  <div className="mb-2.5 flex items-center gap-2">
-                    <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
-                      Özet
-                    </span>
-                    <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5">
+                  <div className="w-full">
+                    <div className="mb-5 flex items-center gap-2">
+                      <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
+                        Transcript
+                      </span>
+                      <span className="font-mono text-[10.5px] text-[var(--ma-t3)]">
+                        {visibleTranscript.length}
+                      </span>
+                      {canEditTranscript ? (
+                        <span className="text-[11px] text-[var(--ma-t3)]">
+                          Düzenlenebilir
+                        </span>
+                      ) : null}
+                      <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                    </div>
+                    {shareError ? (
+                      <p className="mb-3 text-[11px] text-[var(--ma-danger)]">
+                        {shareError}
+                      </p>
+                    ) : shareStatus === BotStatus.Ok ? (
+                      <p className="mb-3 text-[11px] text-[var(--ma-green)]">
+                        Not defterine gönderildi.
+                      </p>
+                    ) : null}
+
+                    {visibleTranscript.length === 0 ? (
+                      <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
+                        Henüz transcript yok. Bot toplantıya katılınca canlı
+                        konuşmalar burada akacak.
+                      </p>
+                    ) : (
+                      <div className="space-y-4">
+                        {visibleTranscript.map((line) => (
+                          <div key={line.id} className="flex gap-3">
+                            <span className="w-10 shrink-0 pt-0.5 font-mono text-[11px] text-[var(--ma-t3)]">
+                              {line.at}
+                            </span>
+                            <div className="min-w-0 flex-1">
+                              {canEditTranscript ? (
+                                <>
+                                  <input
+                                    value={line.speaker}
+                                    onChange={(e) =>
+                                      updateTranscriptLine(line.id, {
+                                        speaker: e.target.value,
+                                      })
+                                    }
+                                    aria-label="Konuşmacı"
+                                    className="w-full rounded-md border border-[var(--ma-line)] bg-white px-2 py-1 text-[12px] font-medium text-[var(--ma-blue)] outline-none focus:border-[var(--ma-accent)]"
+                                  />
+                                  <textarea
+                                    value={line.text}
+                                    onChange={(e) =>
+                                      updateTranscriptLine(line.id, {
+                                        text: e.target.value,
+                                      })
+                                    }
+                                    aria-label="Transkript satırı"
+                                    rows={2}
+                                    className="mt-1 w-full resize-y rounded-md border border-[var(--ma-line)] bg-white px-2 py-1.5 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none focus:border-[var(--ma-accent)]"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      removeTranscriptLine(line.id)
+                                    }
+                                    className="mt-1 text-[11px] text-[var(--ma-danger)]"
+                                  >
+                                    Satırı sil
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <div className="text-[12px] font-medium text-[var(--ma-blue)]">
+                                    {line.speaker}
+                                  </div>
+                                  <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
+                                    {line.text}
+                                  </p>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="mt-8">
+                      <div className="mb-2.5 flex items-center gap-2">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
+                          Toplantı raporu
+                        </span>
+                        <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                        {transcriptDirty && meetingReport ? (
+                          <span className="text-[11px] text-[var(--ma-accent)]">
+                            Transkript değişti. Raporu güncellemek için tekrar
+                            üret.
+                          </span>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => regenerateReport()}
+                          disabled={
+                            reportStatus === BotStatus.Sending ||
+                            !selected.platformKey ||
+                            !selected.nativeMeetingId
+                          }
+                          className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
+                        >
+                          {reportStatus === BotStatus.Sending
+                            ? "Üretiliyor…"
+                            : "Rapor üret"}
+                        </button>
+                      </div>
+                      <BotStatusRenderer
+                        status={reportStatus}
+                        error={reportError}
+                      />
+                      {meetingReport ? (
+                        <MeetingReportView report={meetingReport} />
+                      ) : (
+                        <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
+                          Toplantı bitince veya bot durdurulunca transkriptten
+                          rapor otomatik üretilir. Not defterine düşmesi için
+                          gönder.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="mt-8">
+                      <div className="mb-2.5 flex items-center gap-2">
+                        <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
+                          Özet
+                        </span>
+                        <span className="h-px flex-1 bg-[var(--ma-line)]" />
+                      </div>
+                      <ul className="space-y-2">
+                        {notes.map((note) => (
+                          <li
+                            key={note}
+                            className="flex gap-2 rounded-lg border border-[var(--ma-line)] bg-[var(--ma-panel)] px-3 py-2 text-[12.5px] text-[var(--ma-t1)]"
+                          >
+                            <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[var(--ma-accent)]" />
+                            {note}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
                   </div>
-                  <ul className="space-y-2">
-                    {notes.map((note) => (
-                      <li
-                        key={note}
-                        className="flex gap-2 rounded-lg border border-[var(--ma-line)] bg-[var(--ma-panel)] px-3 py-2 text-[12.5px] text-[var(--ma-t1)]"
-                      >
-                        <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[var(--ma-accent)]" />
-                        {note}
-                      </li>
-                    ))}
-                  </ul>
                 </div>
-              </div>
-            </div>
+              </>
+            )}
           </section>
 
           <aside className="flex w-[420px] shrink-0 flex-col border-l border-[var(--ma-line)] bg-[var(--ma-rail)] max-lg:hidden xl:w-[460px]">
@@ -404,7 +428,7 @@ export default function AssistantPage() {
                 Not defteri
               </span>
               <span className="text-[11px] text-[var(--ma-t3)]">
-                · {selected.title}
+                · {selected?.title ?? "Toplantı"}
               </span>
               <span className="ml-auto text-[11px] text-[var(--ma-t3)]">
                 {padSaved ? "Kaydedildi" : "Boş"}

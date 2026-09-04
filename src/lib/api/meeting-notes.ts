@@ -96,11 +96,17 @@ export function issueRealtimeToken(session: SessionIds) {
   });
 }
 
-export function fetchAssistantShare(meetingId: string, organizationId: string) {
+export function fetchAssistantShare(
+  meetingId: string,
+  scope: { organizationId?: string; viewerId?: string },
+) {
   return backendRequest({
     method: HttpMethod.Get,
     url: meetingPath(meetingId, "/assistant-share"),
-    params: { organizationId },
+    params: {
+      ...(scope.organizationId ? { organizationId: scope.organizationId } : {}),
+      ...(scope.viewerId ? { viewerId: scope.viewerId } : {}),
+    },
   });
 }
 

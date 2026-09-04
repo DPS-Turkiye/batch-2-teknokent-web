@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   BIO_MAX_LENGTH,
@@ -15,12 +15,9 @@ import {
   type StartupProfileDraft,
   type UploadedFile,
 } from "@/interfaces/signup";
-import {
-  clearDraft,
-  dropDetachedFile,
-  loadDraft,
-  saveDraft as persistDraft,
-} from "@/lib/draft-storage";
+import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
+import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
+import { dropDetachedFile } from "@/lib/draft-storage";
 
 function emptyDraft(): SignupDraft {
   return {
@@ -59,19 +56,23 @@ function toggle(list: string[], value: string) {
     : [...list, value];
 }
 
-const DRAFT_KEY = "signup-wizard";
+const DRAFT_KIND = "signup-wizard" as const;
 
-function restoreDraft(): { draft: SignupDraft; droppedFiles: number } {
-  const saved = loadDraft<SignupDraft>(DRAFT_KEY);
-  if (!saved) return { draft: emptyDraft(), droppedFiles: 0 };
-
+function restoreFromPayload(saved: unknown): {
+  draft: SignupDraft;
+  droppedFiles: number;
+} {
+  if (!saved || typeof saved !== "object") {
+    return { draft: emptyDraft(), droppedFiles: 0 };
+  }
+  const parsed = saved as Partial<SignupDraft>;
   const base = emptyDraft();
-  const cv = dropDetachedFile(saved.personal?.cv ?? null);
-  const logo = dropDetachedFile(saved.startup?.logo ?? null);
+  const cv = dropDetachedFile(parsed.personal?.cv ?? null);
+  const logo = dropDetachedFile(parsed.startup?.logo ?? null);
 
   let dropped = cv.dropped + logo.dropped;
   const documents: SignupDraft["documents"] = {};
-  for (const [kind, uploaded] of Object.entries(saved.documents ?? {})) {
+  for (const [kind, uploaded] of Object.entries(parsed.documents ?? {})) {
     const kept = dropDetachedFile(uploaded ?? null);
     dropped += kept.dropped;
     if (kept.value) documents[kind as StartupDocumentKind] = kept.value;
@@ -79,8 +80,8 @@ function restoreDraft(): { draft: SignupDraft; droppedFiles: number } {
 
   return {
     draft: {
-      personal: { ...base.personal, ...saved.personal, cv: cv.value },
-      startup: { ...base.startup, ...saved.startup, logo: logo.value },
+      personal: { ...base.personal, ...parsed.personal, cv: cv.value },
+      startup: { ...base.startup, ...parsed.startup, logo: logo.value },
       documents,
     },
     droppedFiles: dropped,
@@ -91,17 +92,27 @@ export function useSignupWizard(
   options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
 ) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
-  const [restored] = useState(restoreDraft);
-  const [draft, setDraft] = useState<SignupDraft>(restored.draft);
-  const droppedFiles = restored.droppedFiles;
+  const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
+  const [droppedFiles, setDroppedFiles] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
 
-  useEffect(() => {
-    persistDraft(DRAFT_KEY, draft);
-  }, [draft]);
+  const onRestore = useCallback((saved: OnboardingDraftRecord) => {
+    const restored = restoreFromPayload(saved.payload);
+    setDraft(restored.draft);
+    setDroppedFiles(restored.droppedFiles);
+    const nextStep = Number(saved.step) as SignupStep;
+    if (SIGNUP_STEP_ORDER.includes(nextStep)) setStep(nextStep);
+  }, []);
+
+  const { saveNow, clearRemote } = useOnboardingDraftSync({
+    kind: DRAFT_KIND,
+    step,
+    payload: draft,
+    onRestore,
+  });
 
   const updatePersonal = useCallback(
     <K extends keyof PersonalProfileDraft>(
@@ -196,7 +207,7 @@ export function useSignupWizard(
     setSubmitting(true);
     try {
       await onSubmit(draft);
-      clearDraft(DRAFT_KEY);
+      await clearRemote();
       setSubmitted(true);
     } catch (error) {
       setSubmitError(
@@ -207,9 +218,12 @@ export function useSignupWizard(
     } finally {
       setSubmitting(false);
     }
-  }, [draft, onSubmit]);
+  }, [clearRemote, draft, onSubmit]);
 
-  const saveDraft = useCallback(() => setDraftSavedAt(Date.now()), []);
+  const saveDraft = useCallback(async () => {
+    await saveNow();
+    setDraftSavedAt(Date.now());
+  }, [saveNow]);
 
   const bioRemaining = BIO_MAX_LENGTH - draft.personal.bio.length;
   const taglineRemaining = TAGLINE_MAX_LENGTH - draft.startup.tagline.length;

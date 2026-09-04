@@ -14,14 +14,11 @@ import {
   type ParsedProfile,
 } from "@/interfaces/mentor-onboarding";
 import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
+import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
+import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
-import {
-  clearDraft,
-  dropDetachedFile,
-  loadDraft,
-  saveDraft,
-} from "@/lib/draft-storage";
+import { dropDetachedFile } from "@/lib/draft-storage";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
@@ -38,19 +35,38 @@ function emptyDraft(): MentorOnboardingDraft {
   };
 }
 
-const DRAFT_KEY = "mentor-onboarding";
+const DRAFT_KIND = "mentor-onboarding" as const;
 
-function restoreDraft(): {
+function restoreFromPayload(saved: unknown): {
   draft: MentorOnboardingDraft;
   droppedFiles: number;
+  phase: IntroPhase;
 } {
-  const saved = loadDraft<MentorOnboardingDraft>(DRAFT_KEY);
-  if (!saved) return { draft: emptyDraft(), droppedFiles: 0 };
-  const cv = dropDetachedFile(saved.cv);
-  return {
-    draft: { ...emptyDraft(), ...saved, cv: cv.value },
-    droppedFiles: cv.dropped,
+  if (!saved || typeof saved !== "object") {
+    return { draft: emptyDraft(), droppedFiles: 0, phase: IntroPhase.Upload };
+  }
+  const { introPhase, ...rest } = saved as MentorOnboardingDraft & {
+    introPhase?: string;
   };
+  const cv = dropDetachedFile(rest.cv ?? null);
+  return {
+    draft: { ...emptyDraft(), ...rest, cv: cv.value },
+    droppedFiles: cv.dropped,
+    phase: restorePhase(introPhase, cv.value),
+  };
+}
+
+function restorePhase(
+  introPhase: string | undefined,
+  cv: MentorOnboardingDraft["cv"],
+): IntroPhase {
+  if (introPhase === IntroPhase.Review) return IntroPhase.Review;
+  if (introPhase === IntroPhase.Upload) return IntroPhase.Upload;
+  // Don't resume a fake "parsing" timer after a reload.
+  if (introPhase === IntroPhase.Parsing) {
+    return cv ? IntroPhase.Review : IntroPhase.Upload;
+  }
+  return IntroPhase.Upload;
 }
 
 function filled(value: string) {
@@ -106,18 +122,33 @@ export function useMentorOnboarding() {
     MentorOnboardingStep.Intro,
   );
   const [phase, setPhase] = useState<IntroPhase>(IntroPhase.Upload);
-  const [restored] = useState(restoreDraft);
-  const [draft, setDraft] = useState<MentorOnboardingDraft>(restored.draft);
-  const droppedFiles = restored.droppedFiles;
+  const [draft, setDraft] = useState<MentorOnboardingDraft>(emptyDraft);
+  const [droppedFiles, setDroppedFiles] = useState(0);
   const [completed, setCompleted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [saveError, setSaveError] = useState("");
-
-  useEffect(() => {
-    saveDraft(DRAFT_KEY, draft);
-  }, [draft]);
   const parseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const onRestore = useCallback((saved: OnboardingDraftRecord) => {
+    const restored = restoreFromPayload(saved.payload);
+    setDraft(restored.draft);
+    setDroppedFiles(restored.droppedFiles);
+    setPhase(restored.phase);
+    const nextStep = Number(saved.step) as MentorOnboardingStep;
+    if (MENTOR_STEP_ORDER.includes(nextStep)) setStep(nextStep);
+  }, []);
+
+  const remotePayload = useMemo(
+    () => ({ ...draft, introPhase: phase }),
+    [draft, phase],
+  );
+  const { clearRemote } = useOnboardingDraftSync({
+    kind: DRAFT_KIND,
+    step,
+    payload: remotePayload,
+    onRestore,
+  });
 
   useEffect(
     () => () => {
@@ -270,14 +301,14 @@ export function useMentorOnboarding() {
       }
       const payload = toUpdatePayload(draft);
       await updateMentorProfile(payload, idToken);
-      clearDraft(DRAFT_KEY);
+      await clearRemote();
       setCompleted(true);
     } catch (error) {
       setSaveError(describeAuthError(error));
     } finally {
       setIsSaving(false);
     }
-  }, [draft]);
+  }, [clearRemote, draft]);
 
   const expertiseLimitReached = draft.expertise.length >= MAX_EXPERTISE_AREAS;
 

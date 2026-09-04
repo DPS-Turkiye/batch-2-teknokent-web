@@ -1,8 +1,23 @@
-import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import { SignupStep, StartupDocumentKind } from "@/interfaces/signup";
+import {
+  clearOnboardingDraft,
+  fetchOnboardingDraft,
+  saveOnboardingDraft,
+} from "@/lib/client/onboarding-draft";
+
+vi.mock("@/lib/firebase/auth", () => ({
+  currentIdToken: vi.fn().mockResolvedValue("id-token"),
+}));
+
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  fetchOnboardingDraft: vi.fn(),
+  saveOnboardingDraft: vi.fn(),
+  clearOnboardingDraft: vi.fn(),
+}));
 
 function fillPersonal(result: { current: ReturnType<typeof useSignupWizard> }) {
   act(() => {
@@ -13,6 +28,16 @@ function fillPersonal(result: { current: ReturnType<typeof useSignupWizard> }) {
 }
 
 describe("useSignupWizard", () => {
+  beforeEach(() => {
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
+    vi.mocked(saveOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "1",
+      payload: {},
+    });
+    vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
+  });
+
   it("starts on the personal profile step with an empty draft", () => {
     const { result } = renderHook(() => useSignupWizard());
 
@@ -169,15 +194,37 @@ describe("useSignupWizard", () => {
     expect(result.current.completion.missing).not.toContain("Web sitesi URL'i");
   });
 
-  it("records a draft save without submitting the profile", () => {
+  it("records a draft save without submitting the profile", async () => {
     const { result } = renderHook(() => useSignupWizard());
 
     expect(result.current.draftSavedAt).toBeNull();
 
-    act(() => result.current.saveDraft());
+    await act(async () => {
+      await result.current.saveDraft();
+    });
 
     expect(result.current.draftSavedAt).not.toBeNull();
     expect(result.current.submitted).toBe(false);
+    expect(saveOnboardingDraft).toHaveBeenCalled();
+  });
+
+  it("restores a previously saved draft from the server", async () => {
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "2",
+      payload: {
+        personal: { firstName: "Gülse", lastName: "Buran", role: "Designer" },
+        startup: { name: "Döngü" },
+      },
+    });
+
+    const { result } = renderHook(() => useSignupWizard());
+
+    await waitFor(() =>
+      expect(result.current.draft.personal.firstName).toBe("Gülse"),
+    );
+    expect(result.current.step).toBe(SignupStep.StartupProfile);
+    expect(result.current.draft.startup.name).toBe("Döngü");
   });
 
   it("keeps the new startup fields in the draft", () => {

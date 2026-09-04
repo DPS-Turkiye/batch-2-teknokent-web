@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { type AxiosResponse } from "axios";
 
 import {
   getBotApiUrl,
@@ -20,19 +20,48 @@ export type {
   TranscriptSegment,
 } from "@/types/assistant";
 
+function readAssistantError(data: unknown, fallback: string): string {
+  if (data && typeof data === "object") {
+    if ("detail" in data && typeof data.detail === "string" && data.detail) {
+      return data.detail;
+    }
+    if ("message" in data && typeof data.message === "string" && data.message) {
+      return data.message;
+    }
+  }
+  return fallback;
+}
+
+function requireAssistantOk<T>(
+  response: AxiosResponse<T>,
+  fallback: string,
+): T {
+  if (response.status >= 200 && response.status < 300) return response.data;
+  throw new Error(
+    readAssistantError(response.data, `${fallback} (${response.status})`),
+  );
+}
+
+function wrapAssistantError(error: unknown, fallback: string): never {
+  if (axios.isAxiosError(error)) {
+    throw new Error(
+      readAssistantError(
+        error.response?.data,
+        `${fallback} (${error.response?.status ?? "network error"})`,
+      ),
+    );
+  }
+  throw error;
+}
+
 export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
-    const response = await httpClient.post(getBotApiUrl(), { meetingUrl });
-    return response.data as AddBotResult;
+    return requireAssistantOk(
+      await httpClient.post<AddBotResult>(getBotApiUrl(), { meetingUrl }),
+      "Failed to send bot",
+    );
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const detail =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        `Failed to send bot (${error.response?.status ?? "network error"})`;
-      throw new Error(String(detail));
-    }
-    throw error;
+    wrapAssistantError(error, "Failed to send bot");
   }
 }
 
@@ -41,16 +70,12 @@ export async function stopMeetingBot(
   nativeMeetingId: string,
 ): Promise<void> {
   try {
-    await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId));
+    requireAssistantOk(
+      await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId)),
+      "Failed to stop bot",
+    );
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const detail =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        `Failed to stop bot (${error.response?.status ?? "network error"})`;
-      throw new Error(String(detail));
-    }
-    throw error;
+    wrapAssistantError(error, "Failed to stop bot");
   }
 }
 
@@ -59,18 +84,15 @@ export async function fetchTranscript(
   nativeMeetingId: string,
 ): Promise<TranscriptSegment[]> {
   try {
-    const response = await httpClient.get(
-      getTranscriptApiUrl(platform, nativeMeetingId),
+    const data = requireAssistantOk(
+      await httpClient.get<{ segments?: TranscriptSegment[] }>(
+        getTranscriptApiUrl(platform, nativeMeetingId),
+      ),
+      "Failed to fetch transcript",
     );
-    return (response.data?.segments ?? []) as TranscriptSegment[];
+    return data?.segments ?? [];
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const detail =
-        error.response?.data?.detail ||
-        `Failed to fetch transcript (${error.response?.status ?? "network error"})`;
-      throw new Error(String(detail));
-    }
-    throw error;
+    wrapAssistantError(error, "Failed to fetch transcript");
   }
 }
 
@@ -80,19 +102,14 @@ export async function generateMeetingReport(
   segments: TranscriptLine[],
 ): Promise<MeetingReport> {
   try {
-    const response = await httpClient.post(
-      getMeetingReportApiUrl(platform, nativeMeetingId),
-      { segments },
+    return requireAssistantOk(
+      await httpClient.post<MeetingReport>(
+        getMeetingReportApiUrl(platform, nativeMeetingId),
+        { segments },
+      ),
+      "Failed to generate meeting report",
     );
-    return response.data as MeetingReport;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      const detail =
-        error.response?.data?.detail ||
-        error.response?.data?.message ||
-        `Failed to generate meeting report (${error.response?.status ?? "network error"})`;
-      throw new Error(String(detail));
-    }
-    throw error;
+    wrapAssistantError(error, "Failed to generate meeting report");
   }
 }

@@ -6,25 +6,32 @@ import {
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
+  matchCalendarMeetingId,
+  platformLabel,
+  toAssistantMeeting,
+  isAssistantCalendarMeeting,
+  withAssistantOverlay,
+} from "@/lib/assistant-meetings";
+import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
 import { updateMeeting } from "@/lib/client/meetings";
 import {
-  ASSISTANT_INITIAL_MEETINGS,
+  getAssistantShare,
+  postAssistantShare,
+} from "@/lib/client/meeting-notes";
+import {
   ASSISTANT_SAMPLE_NOTES,
-  ASSISTANT_SAMPLE_PAD,
   MEETING_STATUS_META,
   TRANSCRIPT_BOT_MAX_TIMER_MS,
 } from "@/lib/const";
-import { postAssistantShare } from "@/lib/client/meeting-notes";
 import {
   isTranscriptBotDue,
   nextTranscriptBotAction,
 } from "@/lib/transcript-bot";
 import {
   BotStatus,
-  MeetingPlatform,
   MeetingStatus,
   type Meeting,
   type MeetingReport,
@@ -41,32 +48,46 @@ import {
 
 export { MEETING_STATUS_META as STATUS_META };
 
-function platformLabel(platform: string): MeetingPlatform {
-  if (platform === "google_meet") return MeetingPlatform.GoogleMeet;
-  if (platform === "zoom") return MeetingPlatform.Zoom;
-  if (platform === "teams") return MeetingPlatform.Teams;
-  return MeetingPlatform.Jitsi;
-}
+type MeetingOverlay = Partial<
+  Pick<
+    Meeting,
+    "status" | "nativeMeetingId" | "platformKey" | "platform" | "title"
+  >
+>;
 
 function mapSegments(
-  segments: { id?: string; speaker: string; text: string; at: string }[],
+  segments: {
+    id?: string;
+    speaker?: string | null;
+    text?: string | null;
+    at?: string | null;
+  }[],
 ): TranscriptLine[] {
-  return segments.map((s) => ({
-    id: s.id || `${s.at}-${s.text}`,
-    speaker: s.speaker,
-    text: s.text,
-    at: s.at,
+  return segments.map((s, index) => ({
+    id: s.id?.trim() || `${s.at ?? ""}-${s.text ?? ""}` || `line-${index}`,
+    speaker: s.speaker?.trim() || "Speaker",
+    text: s.text ?? "",
+    at: s.at ?? "",
   }));
 }
 
 function normalizeReport(report: MeetingReport): MeetingReport {
   return {
     ...report,
+    title: report.title || "Toplantı raporu",
+    meetingDate: report.meetingDate ?? null,
+    topic: report.topic ?? null,
+    summary: report.summary ?? "",
     topicsDiscussed: report.topicsDiscussed ?? [],
     decisions: report.decisions ?? [],
-    actionItems: report.actionItems ?? [],
+    actionItems: (report.actionItems ?? []).map((item) => ({
+      owner: item.owner ?? null,
+      task: item.task || "",
+      due: item.due ?? null,
+    })),
     risksOrBlockers: report.risksOrBlockers ?? [],
     nextSteps: report.nextSteps ?? [],
+    model: report.model ?? "",
   };
 }
 
@@ -89,18 +110,36 @@ function markTranscriptBotSent(meetingId: string, sent: boolean) {
   } catch {}
 }
 
+function hasText(lines: TranscriptLine[]) {
+  return lines.some((line) => line.text.trim());
+}
+
+function publishableTranscript(lines: TranscriptLine[]) {
+  return lines
+    .filter((line) => line.text.trim())
+    .map((line) => ({
+      id: line.id,
+      speaker: line.speaker,
+      text: line.text,
+      at: line.at,
+    }));
+}
+
 export function useMeetingAssistant() {
   const platformMeetingsQuery = useMeetings();
-  const sendingBotRef = useRef(false);
-  const [meetings, setMeetings] = useState(ASSISTANT_INITIAL_MEETINGS);
-  const [selectedId, setSelectedId] = useState(
-    ASSISTANT_INITIAL_MEETINGS[0].id,
+  const calendarItems = useMemo(
+    () => platformMeetingsQuery.data ?? [],
+    [platformMeetingsQuery.data],
   );
+  const sendingBotRef = useRef(false);
+  const autoReportAttemptedRef = useRef<Record<string, boolean>>({});
+  const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
+  const [overlays, setOverlays] = useState<Record<string, MeetingOverlay>>({});
+  const [selectedId, setSelectedId] = useState("");
   const [meetingUrl, setMeetingUrl] = useState("");
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [botError, setBotError] = useState<string | null>(null);
-  const [padByMeeting, setPadByMeeting] =
-    useState<Record<string, string>>(ASSISTANT_SAMPLE_PAD);
+  const [padByMeeting, setPadByMeeting] = useState<Record<string, string>>({});
   const [transcriptByMeeting, setTranscriptByMeeting] = useState<
     Record<string, TranscriptLine[]>
   >({});
@@ -110,14 +149,33 @@ export function useMeetingAssistant() {
   const [reportByMeeting, setReportByMeeting] = useState<
     Record<string, MeetingReport>
   >({});
+  const [shareLoadedFor, setShareLoadedFor] = useState<Record<string, boolean>>(
+    {},
+  );
   const [reportStatus, setReportStatus] = useState<BotStatus | null>(null);
   const [reportError, setReportError] = useState<string | null>(null);
   const [targetMeetingId, setTargetMeetingId] = useState("");
   const [shareStatus, setShareStatus] = useState<BotStatus | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
 
+  const calendarMeetings = useMemo(() => {
+    return calendarItems
+      .filter(isAssistantCalendarMeeting)
+      .map((item) =>
+        withAssistantOverlay(toAssistantMeeting(item), overlays[item.id]),
+      );
+  }, [calendarItems, overlays]);
+
+  const meetings = useMemo(() => {
+    const calendarIds = new Set(calendarMeetings.map((item) => item.id));
+    return [
+      ...adHocMeetings.filter((item) => !calendarIds.has(item.id)),
+      ...calendarMeetings,
+    ];
+  }, [adHocMeetings, calendarMeetings]);
+
   const selected = useMemo(
-    () => meetings.find((m) => m.id === selectedId) ?? meetings[0],
+    () => meetings.find((item) => item.id === selectedId) ?? meetings[0],
     [meetings, selectedId],
   );
 
@@ -132,33 +190,98 @@ export function useMeetingAssistant() {
     ? (reportByMeeting[selected.id] ?? null)
     : null;
 
+  const canPersist = useCallback(
+    (meetingId: string) => calendarItems.some((item) => item.id === meetingId),
+    [calendarItems],
+  );
+  const notebookMeetingId =
+    selected && canPersist(selected.id) ? selected.id : targetMeetingId;
+
+  const selectedMeetLink = selected
+    ? (calendarItems
+        .find((item) => item.id === selected.id)
+        ?.meetLink?.trim() ?? "")
+    : "";
+
+  useEffect(() => {
+    if (!selected || !canPersist(selected.id) || shareLoadedFor[selected.id]) {
+      return;
+    }
+    if (transcriptDirtyByMeeting[selected.id]) {
+      return;
+    }
+
+    const meetingId = selected.id;
+    let cancelled = false;
+    void getAssistantShare(meetingId)
+      .then((share) => {
+        if (cancelled) return;
+        if (share.transcript?.length) {
+          setTranscriptByMeeting((prev) => ({
+            ...prev,
+            [meetingId]: share.transcript ?? [],
+          }));
+        }
+        if (share.report) {
+          setReportByMeeting((prev) => ({
+            ...prev,
+            [meetingId]: normalizeReport(share.report as MeetingReport),
+          }));
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load saved transcript", error);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setShareLoadedFor((prev) => ({ ...prev, [meetingId]: true }));
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selected, canPersist, shareLoadedFor, transcriptDirtyByMeeting]);
+
+  const transcriptByMeetingRef = useRef(transcriptByMeeting);
+  useEffect(() => {
+    transcriptByMeetingRef.current = transcriptByMeeting;
+  }, [transcriptByMeeting]);
+
   useEffect(() => {
     const parsed = transcriptQuerySchema.safeParse({
       platform: selected?.platformKey,
       nativeMeetingId: selected?.nativeMeetingId,
     });
-    if (!parsed.success || !selected) {
+    if (!parsed.success || !selected) return;
+    if (
+      canPersist(selected.id) &&
+      !shareLoadedFor[selected.id] &&
+      !transcriptDirtyByMeeting[selected.id]
+    ) {
       return;
     }
+    if (transcriptDirtyByMeeting[selected.id]) return;
     if (
-      transcriptDirtyByMeeting[selected.id] ||
-      selected.status === MeetingStatus.Completed
+      selected.status === MeetingStatus.Completed &&
+      hasText(transcriptByMeetingRef.current[selected.id] ?? [])
     ) {
       return;
     }
 
+    const meetingId = selected.id;
     const { platform, nativeMeetingId } = parsed.data;
     let cancelled = false;
 
     const load = async () => {
       try {
         const segments = await fetchTranscript(platform, nativeMeetingId);
-        if (!cancelled) {
-          setTranscriptByMeeting((prev) => ({
-            ...prev,
-            [selected.id]: mapSegments(segments),
-          }));
-        }
+        if (cancelled) return;
+        const lines = mapSegments(segments);
+        setTranscriptByMeeting((prev) => ({
+          ...prev,
+          [meetingId]: lines,
+        }));
       } catch (error) {
         console.error("Failed to fetch transcript", {
           platform,
@@ -185,14 +308,7 @@ export function useMeetingAssistant() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [
-    selected,
-    selected?.id,
-    selected?.platformKey,
-    selected?.nativeMeetingId,
-    selected?.status,
-    transcriptDirtyByMeeting,
-  ]);
+  }, [selected, canPersist, shareLoadedFor, transcriptDirtyByMeeting]);
 
   const sendBotForUrl = useCallback(
     async (
@@ -206,11 +322,21 @@ export function useMeetingAssistant() {
       setBotStatus(BotStatus.Sending);
       setBotError(null);
 
+      const persistId =
+        options?.calendarMeetingId ??
+        matchCalendarMeetingId(calendarItems, parsed.data.meetingUrl);
+
       try {
         const result = await addMeetingBot(parsed.data.meetingUrl);
+        const calendarItem = persistId
+          ? calendarItems.find((item) => item.id === persistId)
+          : undefined;
         const next: Meeting = {
-          id: result.id || `m${Date.now()}`,
-          title: result.title || "Yeni toplantı botu",
+          id: persistId ?? result.id ?? `m${Date.now()}`,
+          title:
+            calendarItem?.agenda?.trim() ||
+            result.title ||
+            "Yeni toplantı botu",
           platform: platformLabel(result.platform),
           platformKey: result.platform,
           nativeMeetingId: result.nativeMeetingId,
@@ -218,21 +344,39 @@ export function useMeetingAssistant() {
             result.status === "joining"
               ? MeetingStatus.Joining
               : MeetingStatus.Scheduled,
-          when: "Şimdi",
-          participants: ["Ayşe Kaya"],
+          when: calendarItem ? toAssistantMeeting(calendarItem).when : "Şimdi",
+          participants: calendarItem
+            ? toAssistantMeeting(calendarItem).participants
+            : [],
         };
 
-        setMeetings((prev) => [next, ...prev]);
+        if (persistId) {
+          setOverlays((prev) => ({
+            ...prev,
+            [persistId]: {
+              nativeMeetingId: next.nativeMeetingId,
+              platformKey: next.platformKey,
+              platform: next.platform,
+              status: next.status,
+              title: next.title,
+            },
+          }));
+        } else {
+          setAdHocMeetings((prev) => [
+            next,
+            ...prev.filter((item) => item.id !== next.id),
+          ]);
+        }
         setSelectedId(next.id);
         setMeetingUrl(options?.keepUrl ? parsed.data.meetingUrl : "");
         setBotStatus(BotStatus.Ok);
         setTranscriptByMeeting((prev) => ({ ...prev, [next.id]: [] }));
         window.setTimeout(() => setBotStatus(null), 4000);
 
-        if (options?.calendarMeetingId) {
-          markTranscriptBotSent(options.calendarMeetingId, true);
+        if (persistId) {
+          markTranscriptBotSent(persistId, true);
           try {
-            await updateMeeting(options.calendarMeetingId, {
+            await updateMeeting(persistId, {
               transcriptBotDispatched: true,
             });
           } catch (error) {
@@ -241,8 +385,8 @@ export function useMeetingAssistant() {
         }
         return true;
       } catch (error) {
-        if (options?.calendarMeetingId) {
-          markTranscriptBotSent(options.calendarMeetingId, false);
+        if (persistId) {
+          markTranscriptBotSent(persistId, false);
         }
         setBotStatus(BotStatus.Err);
         setBotError(
@@ -254,23 +398,23 @@ export function useMeetingAssistant() {
         sendingBotRef.current = false;
       }
     },
-    [],
+    [calendarItems],
   );
 
   useEffect(() => {
-    const calendarMeetings = platformMeetingsQuery.data ?? [];
+    const calendarMeetingsDue = platformMeetingsQuery.data ?? [];
     let cancelled = false;
     let timer: number | undefined;
 
     const schedule = () => {
       if (cancelled) return;
-      const due = calendarMeetings.find((item) => isTranscriptBotDue(item));
+      const due = calendarMeetingsDue.find((item) => isTranscriptBotDue(item));
       const dueLink = due?.meetLink?.trim();
       if (dueLink) {
         setMeetingUrl((current) => (current === dueLink ? current : dueLink));
       }
 
-      const action = nextTranscriptBotAction(calendarMeetings);
+      const action = nextTranscriptBotAction(calendarMeetingsDue);
       if (!action) return;
 
       if (action.delayMs > 0) {
@@ -304,84 +448,134 @@ export function useMeetingAssistant() {
   }, [platformMeetingsQuery.data, sendBotForUrl]);
 
   const visibleTranscript = selectedTranscript;
-
-  const notes = ASSISTANT_SAMPLE_NOTES[selected.id] ?? [];
-  const status = MEETING_STATUS_META[selected.status];
-  const padText = padByMeeting[selected.id] ?? "";
+  const notes = selected ? (ASSISTANT_SAMPLE_NOTES[selected.id] ?? []) : [];
+  const status = selected
+    ? MEETING_STATUS_META[selected.status]
+    : MEETING_STATUS_META[MeetingStatus.Scheduled];
+  const padText = selected ? (padByMeeting[selected.id] ?? "") : "";
   const padSaved = padText.trim().length > 0;
 
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
-    await sendBotForUrl(meetingUrl);
+    await sendBotForUrl(selectedMeetLink || meetingUrl);
   };
 
-  const requestMeetingReport = async () => {
-    if (!selected?.platformKey || !selected?.nativeMeetingId) return;
-    const segments = selectedTranscript.filter((line) => line.text.trim());
-    if (segments.length === 0) {
-      setReportStatus(BotStatus.Err);
-      setReportError("Rapor için önce transkript gerekli.");
-      window.setTimeout(() => setReportStatus(null), 6000);
-      return;
-    }
+  const requestMeetingReport = useCallback(
+    async (lines?: TranscriptLine[], meeting?: Meeting) => {
+      const target = meeting ?? selected;
+      if (!target?.platformKey || !target?.nativeMeetingId) return;
+      const segments = (
+        lines ??
+        transcriptByMeetingRef.current[target.id] ??
+        []
+      ).filter((line) => line.text.trim());
+      if (segments.length === 0) {
+        setReportStatus(BotStatus.Err);
+        setReportError("Rapor için önce transkript gerekli.");
+        window.setTimeout(() => setReportStatus(null), 6000);
+        return;
+      }
 
-    setReportStatus(BotStatus.Sending);
-    setReportError(null);
-    try {
-      const report = await generateMeetingReport(
-        selected.platformKey,
-        selected.nativeMeetingId,
-        segments,
-      );
-      setReportByMeeting((prev) => ({
-        ...prev,
-        [selected.id]: normalizeReport(report),
-      }));
-      setTranscriptDirtyByMeeting((prev) => ({
-        ...prev,
-        [selected.id]: false,
-      }));
-      setReportStatus(BotStatus.Ok);
-      window.setTimeout(() => setReportStatus(null), 4000);
-    } catch (error) {
-      setReportStatus(BotStatus.Err);
-      setReportError(
-        error instanceof Error
-          ? error.message
-          : "Failed to generate meeting report",
-      );
-      window.setTimeout(() => setReportStatus(null), 6000);
-    }
+      autoReportAttemptedRef.current[target.id] = true;
+      setReportStatus(BotStatus.Sending);
+      setReportError(null);
+      try {
+        const report = normalizeReport(
+          await generateMeetingReport(
+            target.platformKey,
+            target.nativeMeetingId,
+            segments,
+          ),
+        );
+        setReportByMeeting((prev) => ({
+          ...prev,
+          [target.id]: report,
+        }));
+        setTranscriptDirtyByMeeting((prev) => ({
+          ...prev,
+          [target.id]: false,
+        }));
+        setReportStatus(BotStatus.Ok);
+        window.setTimeout(() => setReportStatus(null), 4000);
+      } catch (error) {
+        setReportStatus(BotStatus.Err);
+        setReportError(
+          error instanceof Error
+            ? error.message
+            : "Failed to generate meeting report",
+        );
+        window.setTimeout(() => setReportStatus(null), 6000);
+      }
+    },
+    [selected],
+  );
+
+  useEffect(() => {
+    if (!selected) return;
+    if (selected.status !== MeetingStatus.Completed) return;
+    if (!selected.platformKey || !selected.nativeMeetingId) return;
+    if (canPersist(selected.id) && !shareLoadedFor[selected.id]) return;
+    if (transcriptDirtyByMeeting[selected.id]) return;
+    if (reportByMeeting[selected.id]) return;
+    if (autoReportAttemptedRef.current[selected.id]) return;
+    const lines = transcriptByMeeting[selected.id] ?? [];
+    if (!hasText(lines)) return;
+    void requestMeetingReport(lines, selected);
+  }, [
+    selected,
+    canPersist,
+    shareLoadedFor,
+    transcriptDirtyByMeeting,
+    reportByMeeting,
+    transcriptByMeeting,
+    requestMeetingReport,
+  ]);
+
+  const markCompleted = (meetingId: string) => {
+    setOverlays((prev) => ({
+      ...prev,
+      [meetingId]: { ...prev[meetingId], status: MeetingStatus.Completed },
+    }));
+    setAdHocMeetings((prev) =>
+      prev.map((item) =>
+        item.id === meetingId
+          ? { ...item, status: MeetingStatus.Completed }
+          : item,
+      ),
+    );
   };
 
   const stopBot = async () => {
-    if (!selected?.platformKey || !selected?.nativeMeetingId) return;
+    const meeting = selected;
+    if (!meeting?.platformKey || !meeting?.nativeMeetingId) return;
     if (botStatus === BotStatus.Sending) return;
 
     setBotStatus(BotStatus.Sending);
     setBotError(null);
 
     try {
-      await stopMeetingBot(selected.platformKey, selected.nativeMeetingId);
+      await stopMeetingBot(meeting.platformKey, meeting.nativeMeetingId);
+      let lines = transcriptByMeeting[meeting.id] ?? [];
       try {
         const segments = await fetchTranscript(
-          selected.platformKey,
-          selected.nativeMeetingId,
+          meeting.platformKey,
+          meeting.nativeMeetingId,
         );
+        lines = mapSegments(segments);
         setTranscriptByMeeting((prev) => ({
           ...prev,
-          [selected.id]: mapSegments(segments),
+          [meeting.id]: lines,
         }));
       } catch (error) {
         console.error("Failed to fetch transcript after stop", error);
       }
-      setMeetings((prev) =>
-        prev.map((m) =>
-          m.id === selected.id ? { ...m, status: MeetingStatus.Completed } : m,
-        ),
-      );
+      markCompleted(meeting.id);
       setBotStatus(BotStatus.Ok);
       window.setTimeout(() => setBotStatus(null), 4000);
+
+      if (hasText(lines)) {
+        await requestMeetingReport(lines, meeting);
+      }
     } catch (error) {
       setBotStatus(BotStatus.Err);
       setBotError(
@@ -392,6 +586,7 @@ export function useMeetingAssistant() {
   };
 
   const updatePadText = (value: string) => {
+    if (!selected) return;
     setPadByMeeting((prev) => ({
       ...prev,
       [selected.id]: value,
@@ -424,13 +619,14 @@ export function useMeetingAssistant() {
   };
 
   const sendTranscript = async () => {
-    if (!targetMeetingId || selectedTranscript.length === 0) return;
+    const lines = publishableTranscript(selectedTranscript);
+    if (!notebookMeetingId || lines.length === 0) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(targetMeetingId, {
+      await postAssistantShare(notebookMeetingId, {
         kind: "TRANSCRIPT",
-        transcript: selectedTranscript,
+        transcript: lines,
       });
       setShareStatus(BotStatus.Ok);
       window.setTimeout(() => setShareStatus(null), 4000);
@@ -444,11 +640,11 @@ export function useMeetingAssistant() {
   };
 
   const sendReport = async () => {
-    if (!targetMeetingId || !meetingReport || transcriptDirty) return;
+    if (!notebookMeetingId || !meetingReport || transcriptDirty) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(targetMeetingId, {
+      await postAssistantShare(notebookMeetingId, {
         kind: "REPORT",
         report: meetingReport,
       });
@@ -467,7 +663,7 @@ export function useMeetingAssistant() {
     meetings,
     selected,
     setSelectedId,
-    meetingUrl,
+    meetingUrl: selectedMeetLink || meetingUrl,
     setMeetingUrl,
     botStatus,
     botError,
@@ -490,7 +686,8 @@ export function useMeetingAssistant() {
       void requestMeetingReport();
     },
     platformMeetings: platformMeetingsQuery.data ?? [],
-    targetMeetingId,
+    isLoadingMeetings: platformMeetingsQuery.isLoading,
+    targetMeetingId: notebookMeetingId,
     setTargetMeetingId,
     shareStatus,
     shareError,
