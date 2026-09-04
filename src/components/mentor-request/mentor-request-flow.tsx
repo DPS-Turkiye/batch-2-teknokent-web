@@ -330,7 +330,9 @@ export function MentorRequestFlow({
                         {startup.sector || "Sektör belirtilmedi"}
                       </p>
                     </div>
-                    <SecondaryButton>Düzenle</SecondaryButton>
+                    <SecondaryButton href="/profile" target="_blank">
+                      Düzenle
+                    </SecondaryButton>
                   </div>
                   <p className="mt-4 text-sm leading-6 text-[#555]">
                     {startup.summary || "Girişim özeti henüz eklenmedi."}
@@ -368,7 +370,9 @@ export function MentorRequestFlow({
                         Mentora gösterilecek üyeler
                       </p>
                     </div>
-                    <SecondaryButton>Düzenle</SecondaryButton>
+                    <SecondaryButton href="/team" target="_blank">
+                      Düzenle
+                    </SecondaryButton>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     {teamMembers.map(([initials, name, role]) => (
