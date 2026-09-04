@@ -21,6 +21,12 @@ vi.mock("@/lib/firebase/auth", () => ({
   describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
 }));
 
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  fetchOnboardingDraft: vi.fn().mockResolvedValue(null),
+  saveOnboardingDraft: vi.fn().mockResolvedValue({}),
+  clearOnboardingDraft: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/client/auth", () => ({
   registerMentor: vi.fn().mockResolvedValue({}),
   registerFounder: vi.fn().mockResolvedValue({}),

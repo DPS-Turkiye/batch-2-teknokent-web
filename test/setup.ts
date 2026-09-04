@@ -5,8 +5,8 @@ import { afterEach, vi } from "vitest";
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  // Wizard drafts persist to sessionStorage, which jsdom shares across tests
-  // in a file. Without this, one test's draft is restored by the next.
+  // Login persistence, Google Calendar tokens and the transcript-bot-sent
+  // flag still live in sessionStorage, which jsdom shares across tests.
   try {
     sessionStorage.clear();
   } catch {

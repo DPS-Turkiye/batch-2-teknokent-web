@@ -5,10 +5,13 @@ import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
 function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
   return (
-    <section className="rounded-xl border border-[#e4e7ea] bg-white p-4">
+    <section
+      className="rounded-xl border border-[#e4e7ea] bg-white p-4"
+      aria-readonly="true"
+    >
       <h2 className="text-sm font-semibold text-[#22262b]">Transkript</h2>
       <p className="mt-0.5 text-[11px] text-[#858c96]">
-        Mentör tarafından gönderildi
+        Mentör tarafından gönderildi · salt okunur
       </p>
       <ol className="mt-3 space-y-3">
         {lines.map((line) => (
@@ -39,10 +42,13 @@ function ReportBlock({ report }: { report: MeetingReport }) {
   const nextSteps = report.nextSteps ?? [];
 
   return (
-    <section className="rounded-xl border border-[#e4e7ea] bg-white p-4">
+    <section
+      className="rounded-xl border border-[#e4e7ea] bg-white p-4"
+      aria-readonly="true"
+    >
       <h2 className="text-sm font-semibold text-[#22262b]">Toplantı raporu</h2>
       <p className="mt-0.5 text-[11px] text-[#858c96]">
-        Mentör tarafından gönderildi
+        Mentör tarafından gönderildi · salt okunur
       </p>
       <h3 className="mt-3 text-sm font-semibold text-[#22262b]">
         {report.title || "Toplantı raporu"}

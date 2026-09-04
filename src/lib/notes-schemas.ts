@@ -4,41 +4,73 @@ export const saveMeetingNoteBodySchema = z.object({
   content: z.string().max(200000),
 });
 
+const textField = z
+  .union([z.string(), z.number(), z.boolean(), z.null()])
+  .optional()
+  .transform((value) => (value == null ? "" : String(value)));
+
+const nullableText = z
+  .union([z.string(), z.null()])
+  .optional()
+  .transform((value) => {
+    if (value == null) return null;
+    const trimmed = value.trim();
+    return trimmed.length === 0 ? null : trimmed;
+  });
+
+const textList = z
+  .array(z.union([z.string(), z.number(), z.null()]))
+  .optional()
+  .transform(
+    (items) =>
+      items
+        ?.map((item) => (item == null ? "" : String(item)))
+        .filter((item) => item.trim().length > 0) ?? [],
+  );
+
 export const publishAssistantShareBodySchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("TRANSCRIPT"),
     transcript: z
       .array(
-        z.object({
-          id: z.string(),
-          speaker: z.string(),
-          text: z.string(),
-          at: z.string(),
-        }),
+        z
+          .object({
+            id: textField,
+            speaker: textField,
+            text: textField,
+            at: textField,
+          })
+          .transform((line) => ({
+            id: line.id.trim() || `${line.at}-${line.text}` || "line",
+            speaker: line.speaker.trim() || "Speaker",
+            text: line.text,
+            at: line.at,
+          })),
       )
       .min(1),
   }),
   z.object({
     kind: z.literal("REPORT"),
     report: z.object({
-      title: z.string(),
-      meetingDate: z.string().nullable().optional(),
-      topic: z.string().nullable().optional(),
-      summary: z.string(),
-      topicsDiscussed: z.array(z.string()).optional(),
-      decisions: z.array(z.string()).optional(),
+      title: textField,
+      meetingDate: nullableText,
+      topic: nullableText,
+      summary: textField,
+      topicsDiscussed: textList,
+      decisions: textList,
       actionItems: z
         .array(
           z.object({
-            owner: z.string().nullable().optional(),
-            task: z.string(),
-            due: z.string().nullable().optional(),
+            owner: nullableText,
+            task: textField,
+            due: nullableText,
           }),
         )
-        .optional(),
-      risksOrBlockers: z.array(z.string()).optional(),
-      nextSteps: z.array(z.string()).optional(),
-      model: z.string().optional(),
+        .optional()
+        .transform((items) => items ?? []),
+      risksOrBlockers: textList,
+      nextSteps: textList,
+      model: textField,
     }),
   }),
 ]);

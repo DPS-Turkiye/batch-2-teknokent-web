@@ -3,7 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AssistantPage from "@/app/assistant/page";
+import { useMeetings } from "@/hooks/use-meetings";
 import {
+  getAssistantShareApiUrl,
   getBotApiUrl,
   getMeetingReportApiUrl,
   getStopBotApiUrl,
@@ -19,20 +21,7 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 vi.mock("@/hooks/use-meetings", () => ({
-  useMeetings: () => ({
-    data: [
-      {
-        id: "meeting-1",
-        organizationId: "org-1",
-        scheduledAt: "2026-09-01T10:00:00Z",
-        durationMinutes: 45,
-        agenda: "Sprint review",
-        status: "SCHEDULED",
-      },
-    ],
-    isLoading: false,
-    isError: false,
-  }),
+  useMeetings: vi.fn(),
 }));
 
 vi.mock("@/lib/http-client", () => ({
@@ -40,12 +29,32 @@ vi.mock("@/lib/http-client", () => ({
     post: vi.fn(),
     get: vi.fn(),
     delete: vi.fn(),
+    patch: vi.fn(),
   },
 }));
+
+const defaultMeetings = {
+  data: [
+    {
+      id: "meeting-1",
+      organizationId: "org-1",
+      scheduledAt: "2026-09-01T10:00:00Z",
+      durationMinutes: 45,
+      agenda: "Sprint review",
+      status: "SCHEDULED",
+    },
+  ],
+  isLoading: false,
+  isError: false,
+  isPending: false,
+  isSuccess: true,
+  refetch: vi.fn(),
+};
 
 describe("AssistantPage integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useMeetings).mockReturnValue(defaultMeetings as never);
     vi.mocked(httpClient.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
@@ -168,17 +177,6 @@ describe("AssistantPage integration", () => {
       );
     });
 
-    expect(httpClient.post).not.toHaveBeenCalledWith(
-      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
-      expect.anything(),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText("Düzenlenebilir")).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByRole("button", { name: "Rapor üret" }));
-
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
@@ -186,7 +184,237 @@ describe("AssistantPage integration", () => {
       );
     });
 
+    expect(screen.getByText("Düzenlenebilir")).toBeInTheDocument();
     expect(screen.getByText("Mentorluk Gorusmesi")).toBeInTheDocument();
     expect(screen.getByText("Toplanti verimli gecti.")).toBeInTheDocument();
+  });
+
+  it("does not generate a report after stop when the transcript is empty", async () => {
+    const user = userEvent.setup();
+
+    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+      if (url === getBotApiUrl()) {
+        return createAxiosResponse(
+          {
+            id: "bot-1",
+            platform: "google_meet",
+            nativeMeetingId: "abc-defg-hij",
+            status: "scheduled",
+            title: "Yeni Test Toplantisi",
+          },
+          201,
+        );
+      }
+      throw new Error(`Unexpected POST URL: ${String(url)}`);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+
+    render(<AssistantPage />);
+
+    await user.type(
+      screen.getByPlaceholderText("Toplantı linki yapıştır…"),
+      "https://meet.google.com/abc-defg-hij",
+    );
+    await user.click(screen.getByRole("button", { name: "Bot ekle" }));
+
+    await waitFor(() => {
+      expect(
+        screen.getAllByText("Yeni Test Toplantisi").length,
+      ).toBeGreaterThan(0);
+    });
+
+    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+
+    await waitFor(() => {
+      expect(httpClient.delete).toHaveBeenCalledWith(
+        getStopBotApiUrl("google_meet", "abc-defg-hij"),
+      );
+    });
+
+    expect(httpClient.post).not.toHaveBeenCalledWith(
+      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      expect.anything(),
+    );
+    expect(
+      screen.getByText(
+        /Toplantı bitince veya bot durdurulunca transkriptten rapor/,
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("restores a saved transcript after the mentor opens the assistant again", async () => {
+    vi.mocked(useMeetings).mockReturnValue({
+      ...defaultMeetings,
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          organizationName: "NovaMed",
+          scheduledAt: "2026-09-01T10:00:00Z",
+          durationMinutes: 45,
+          agenda: "Mentorluk — Ürün roadmap",
+          meetLink: "https://meet.google.com/aaa-bbbb-ccc",
+          transcribeRequested: true,
+          status: "COMPLETED",
+        },
+      ],
+    } as never);
+
+    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+      if (url === getAssistantShareApiUrl("meeting-1")) {
+        return createAxiosResponse(
+          {
+            meetingId: "meeting-1",
+            transcript: [
+              {
+                id: "s1",
+                speaker: "Ayşe",
+                text: "Kayıtlı transkript",
+                at: "00:10",
+              },
+            ],
+            report: {
+              title: "Kayıtlı rapor",
+              meetingDate: "2026-09-01",
+              topic: "Ürün",
+              summary: "Özet veritabanından geldi.",
+              topicsDiscussed: [],
+              decisions: [],
+              actionItems: [],
+              risksOrBlockers: [],
+              nextSteps: [],
+              model: "gpt-5.4",
+            },
+          },
+          200,
+        );
+      }
+      return createAxiosResponse({ segments: [] }, 200);
+    });
+
+    render(<AssistantPage />);
+
+    expect(
+      (await screen.findAllByText("Mentorluk — Ürün roadmap")).length,
+    ).toBeGreaterThan(0);
+    expect(await screen.findByText("Kayıtlı transkript")).toBeInTheDocument();
+    expect(screen.getByText("Kayıtlı rapor")).toBeInTheDocument();
+    expect(screen.getByText("Özet veritabanından geldi.")).toBeInTheDocument();
+  });
+
+  it("does not publish after stop until the mentor sends the edited transcript", async () => {
+    const user = userEvent.setup();
+    const segments = [
+      { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+    ];
+
+    vi.mocked(useMeetings).mockReturnValue({
+      ...defaultMeetings,
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          scheduledAt: "2099-09-01T10:00:00Z",
+          durationMinutes: 45,
+          agenda: "Sprint review",
+          meetLink: "https://meet.google.com/abc-defg-hij",
+          transcribeRequested: true,
+          status: "SCHEDULED",
+        },
+      ],
+    } as never);
+
+    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+      if (String(url).includes("assistant-share")) {
+        return createAxiosResponse(
+          { meetingId: "meeting-1", transcript: null, report: null },
+          200,
+        );
+      }
+      return createAxiosResponse({ segments }, 200);
+    });
+    vi.mocked(httpClient.post).mockImplementation(async (url: string) => {
+      if (url === getBotApiUrl()) {
+        return createAxiosResponse(
+          {
+            id: "bot-1",
+            platform: "google_meet",
+            nativeMeetingId: "abc-defg-hij",
+            status: "scheduled",
+            title: "Yeni Test Toplantisi",
+          },
+          201,
+        );
+      }
+      if (url === getAssistantShareApiUrl("meeting-1")) {
+        return createAxiosResponse({ meetingId: "meeting-1" }, 200);
+      }
+      if (url === getMeetingReportApiUrl("google_meet", "abc-defg-hij")) {
+        return createAxiosResponse(
+          {
+            title: "Mentorluk Gorusmesi",
+            summary: "Toplanti verimli gecti.",
+            topicsDiscussed: [],
+            decisions: [],
+            actionItems: [],
+            risksOrBlockers: [],
+            nextSteps: [],
+            model: "gpt-5.4",
+          },
+          200,
+        );
+      }
+      throw new Error(`Unexpected POST URL: ${String(url)}`);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+
+    render(<AssistantPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Toplantı linki yapıştır…"),
+      ).toHaveValue("https://meet.google.com/abc-defg-hij");
+    });
+    await user.click(screen.getByRole("button", { name: "Bot ekle" }));
+    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+
+    await waitFor(() => {
+      expect(httpClient.post).toHaveBeenCalledWith(
+        getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+        { segments },
+      );
+    });
+    expect(httpClient.post).not.toHaveBeenCalledWith(
+      getAssistantShareApiUrl("meeting-1"),
+      expect.anything(),
+    );
+
+    const textInput = await screen.findByDisplayValue("Merhaba");
+    await user.clear(textInput);
+    await user.type(textInput, "Düzenlenmiş merhaba");
+    await user.click(
+      screen.getByRole("button", { name: "Transkripti gönder" }),
+    );
+
+    await waitFor(() => {
+      expect(httpClient.post).toHaveBeenCalledWith(
+        getAssistantShareApiUrl("meeting-1"),
+        {
+          kind: "TRANSCRIPT",
+          transcript: [
+            {
+              id: "s1",
+              speaker: "Ayşe",
+              text: "Düzenlenmiş merhaba",
+              at: "00:10",
+            },
+          ],
+        },
+      );
+    });
   });
 });

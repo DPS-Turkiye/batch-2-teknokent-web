@@ -11,11 +11,21 @@ import {
 
 import { uploadDocument } from "@/lib/client/documents";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import {
+  clearOnboardingDraft,
+  fetchOnboardingDraft,
+  saveOnboardingDraft,
+} from "@/lib/client/onboarding-draft";
 import { currentIdToken } from "@/lib/firebase/auth";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn(),
+}));
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  fetchOnboardingDraft: vi.fn(),
+  saveOnboardingDraft: vi.fn(),
+  clearOnboardingDraft: vi.fn(),
 }));
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(),
@@ -31,6 +41,13 @@ beforeEach(() => {
   vi.mocked(updateMentorProfile).mockResolvedValue(
     {} as Awaited<ReturnType<typeof updateMentorProfile>>,
   );
+  vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
+  vi.mocked(saveOnboardingDraft).mockResolvedValue({
+    kind: "mentor-onboarding",
+    step: "1",
+    payload: {},
+  });
+  vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
 });
 afterEach(() => vi.useRealTimers());
 
@@ -220,6 +237,13 @@ describe("useMentorOnboarding — saving the profile", () => {
   beforeEach(() => {
     vi.useRealTimers();
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
+    vi.mocked(saveOnboardingDraft).mockResolvedValue({
+      kind: "mentor-onboarding",
+      step: "1",
+      payload: {},
+    });
+    vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
   });
 
   it("sends the collected draft to the mentor profile endpoint", async () => {
@@ -300,31 +324,62 @@ describe("useMentorOnboarding — saving the profile", () => {
 });
 
 describe("useMentorOnboarding — resuming after a refresh", () => {
+  let stored: {
+    kind: "mentor-onboarding";
+    step: string;
+    payload: unknown;
+  } | null;
+
   beforeEach(() => {
     vi.useRealTimers();
+    stored = null;
     vi.mocked(currentIdToken).mockResolvedValue("id-token");
     vi.mocked(updateMentorProfile).mockResolvedValue(
       {} as Awaited<ReturnType<typeof updateMentorProfile>>,
     );
+    vi.mocked(fetchOnboardingDraft).mockImplementation(async () => stored);
+    vi.mocked(saveOnboardingDraft).mockImplementation(async (_token, body) => {
+      stored = {
+        kind: "mentor-onboarding",
+        step: body.step,
+        payload: body.payload,
+      };
+      return stored;
+    });
+    vi.mocked(clearOnboardingDraft).mockImplementation(async () => {
+      stored = null;
+    });
   });
 
-  it("restores selections made before the page was reloaded", () => {
+  it("restores selections made before the page was reloaded", async () => {
     const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
     act(() => {
       first.result.current.toggleExpertise("Finans");
       first.result.current.updateProfile("company", "Peak");
     });
     first.unmount();
+    await waitFor(() =>
+      expect(stored?.payload).toEqual(
+        expect.objectContaining({
+          expertise: ["Finans"],
+          profile: expect.objectContaining({ company: "Peak" }),
+        }),
+      ),
+    );
 
     const second = renderHook(() => useMentorOnboarding());
 
-    expect(second.result.current.draft.expertise).toEqual(["Finans"]);
+    await waitFor(() =>
+      expect(second.result.current.draft.expertise).toEqual(["Finans"]),
+    );
     expect(second.result.current.draft.profile.company).toBe("Peak");
     expect(second.result.current.droppedFiles).toBe(0);
   });
 
-  it("reports an attachment that could not survive the reload", () => {
+  it("reports an attachment that could not survive the reload", async () => {
     const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
     act(() =>
       first.result.current.uploadCv({
         name: "cv.pdf",
@@ -333,15 +388,23 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
       }),
     );
     first.unmount();
+    await waitFor(() =>
+      expect(stored?.payload).toEqual(
+        expect.objectContaining({
+          cv: { name: "cv.pdf", size: 10 },
+        }),
+      ),
+    );
 
     const second = renderHook(() => useMentorOnboarding());
 
-    expect(second.result.current.droppedFiles).toBe(1);
+    await waitFor(() => expect(second.result.current.droppedFiles).toBe(1));
     expect(second.result.current.draft.cv).toBeNull();
   });
 
   it("forgets the draft once the profile is saved", async () => {
     const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
     act(() => first.result.current.toggleExpertise("Finans"));
     await act(async () => {
       await first.result.current.complete();
@@ -350,6 +413,9 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
 
     const second = renderHook(() => useMentorOnboarding());
 
-    expect(second.result.current.draft.expertise).toEqual([]);
+    await waitFor(() =>
+      expect(second.result.current.draft.expertise).toEqual([]),
+    );
+    expect(stored).toBeNull();
   });
 });

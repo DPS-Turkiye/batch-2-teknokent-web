@@ -14,6 +14,12 @@ vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
 }));
 
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  fetchOnboardingDraft: vi.fn().mockResolvedValue(null),
+  saveOnboardingDraft: vi.fn().mockResolvedValue({}),
+  clearOnboardingDraft: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("@/lib/client/auth", () => ({
   registerFounder: vi.fn().mockResolvedValue({}),
 }));

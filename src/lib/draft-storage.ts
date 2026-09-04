@@ -1,42 +1,19 @@
-const PREFIX = "metual.draft.";
-
 /**
- * Wizard drafts live in sessionStorage, not localStorage: an in-progress
- * signup should not outlive the tab or be visible to the next person on a
- * shared machine. Every access is guarded — storage throws outright in some
- * privacy modes.
+ * File handles cannot survive JSON (or a round-trip through the server). The
+ * surrounding {name, size} is kept so a restore can tell the user to attach
+ * the file again rather than pretending it is still there.
  */
-export function saveDraft(key: string, value: unknown): void {
+export function stripFileHandles<T>(value: T): T {
   try {
-    sessionStorage.setItem(
-      PREFIX + key,
-      // File handles cannot survive serialisation; the surrounding
-      // {name, size} is kept so the restore can report what was lost.
+    return JSON.parse(
       JSON.stringify(value, (_, entry) =>
         typeof File !== "undefined" && entry instanceof File
           ? undefined
           : entry,
       ),
-    );
+    ) as T;
   } catch {
-    // A draft that cannot be saved must not break the wizard.
-  }
-}
-
-export function loadDraft<T>(key: string): T | null {
-  try {
-    const raw = sessionStorage.getItem(PREFIX + key);
-    return raw ? (JSON.parse(raw) as T) : null;
-  } catch {
-    return null;
-  }
-}
-
-export function clearDraft(key: string): void {
-  try {
-    sessionStorage.removeItem(PREFIX + key);
-  } catch {
-    // Nothing to do; a stale draft is cleared on the next successful submit.
+    return value;
   }
 }
 

@@ -370,8 +370,8 @@ export function CreateMeetingDialog({
                   Toplantının transkriptinin çıkarılmasını istiyorum
                 </span>
                 <span className="mt-1 block text-xs leading-5 text-[#676e78]">
-                  İşaretlersen toplantı saatinde Meet linki asistanına yapışır
-                  ve bot otomatik katılır.
+                  İşaretlersen Meet linki Toplantı Asistanı listesine düşer;
+                  toplantı saatinde bot otomatik katılır.
                 </span>
               </span>
             </label>
