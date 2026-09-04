@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 
+import { FilterPills } from "@/components/calendar/filter-pills";
+import { WeekGridTable } from "@/components/calendar/week-grid-table";
 import { AppShell } from "@/components/hoc/app-shell";
 import {
   CreateMeetingDialog,
@@ -10,7 +12,6 @@ import {
 import { MeetingDetailDialog } from "@/components/mentor-dashboard/meeting-detail-dialog";
 import { useSession } from "@/components/providers/session-provider";
 import {
-  CALENDAR_FILTER_LABELS,
   CALENDAR_HOURS,
   CalendarFilter,
   useMentorCalendar,
@@ -109,22 +110,8 @@ export default function MentorCalendarPage() {
       <div className="mx-auto w-full max-w-[1180px] px-4 pb-14 pt-8 sm:px-8">
         <h1 className="text-2xl font-bold text-[#22262b]">Takvim</h1>
 
-        <div className="mt-4 flex flex-wrap gap-2">
-          {Object.values(CalendarFilter).map((option) => (
-            <button
-              key={option}
-              type="button"
-              onClick={() => calendar.setFilter(option)}
-              aria-pressed={calendar.filter === option}
-              className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                calendar.filter === option
-                  ? "bg-[#e86f22] text-white"
-                  : "bg-[#fdebdd] text-[#b94f12] hover:bg-[#f8d5bd]"
-              }`}
-            >
-              {CALENDAR_FILTER_LABELS[option]}
-            </button>
-          ))}
+        <div className="mt-4">
+          <FilterPills filter={calendar.filter} onChange={calendar.setFilter} />
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
@@ -156,86 +143,54 @@ export default function MentorCalendarPage() {
               </div>
             </div>
 
-            <div className="mt-4 overflow-x-auto">
-              <table className="w-full min-w-[640px] border-collapse text-xs">
-                <thead>
-                  <tr>
-                    <th className="w-14" />
-                    {days.map((day, index) => (
-                      <th
-                        key={day.toISOString()}
-                        scope="col"
-                        className="border-b border-[#e4e7ea] pb-2 font-medium text-[#676e78]"
-                      >
-                        {WEEKDAY_SHORT_LABELS[index]} {day.getDate()}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {CALENDAR_HOURS.map((hour) => (
-                    <tr key={hour}>
-                      <th
-                        scope="row"
-                        className="pr-2 text-right align-top font-normal text-[#a4aab2]"
-                      >
-                        {String(hour).padStart(2, "0")}:00
-                      </th>
-                      {days.map((day) => {
-                        const meeting = calendar.meetings.find(
-                          (item) =>
-                            isSameDay(item.scheduledAt, day) &&
-                            hourOf(item.scheduledAt) === hour,
-                        );
-                        const slot = calendar.slots.find(
-                          (item) =>
-                            isSameDay(item.startsAt, day) &&
-                            hourOf(item.startsAt) === hour,
-                        );
-                        return (
-                          <td
-                            key={day.toISOString() + hour}
-                            className="h-[4.25rem] w-[18%] border border-[#f1f2f4] p-1 align-top"
-                          >
-                            {meeting ? (
-                              <button
-                                type="button"
-                                onClick={() => setDetailMeeting(meeting)}
-                                aria-label={`${meetingCalendarTitle(meeting)} detayını aç`}
-                                className="flex min-h-[3.25rem] w-fit min-w-[6.5rem] max-w-[9.5rem] flex-col justify-center rounded-lg bg-[#2f7ff0] px-2 py-1.5 text-left text-[11px] leading-snug text-white shadow-[0_1px_2px_rgba(15,23,42,.12)] hover:bg-[#1f6fe0]"
-                              >
-                                <span className="line-clamp-2 font-semibold">
-                                  {meetingCalendarTitle(meeting)}
-                                </span>
-                                <span className="mt-0.5 truncate text-[10px] opacity-90">
-                                  {timeLabel(meeting.scheduledAt)}
-                                </span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  const at = new Date(day);
-                                  at.setHours(hour, 0, 0, 0);
-                                  openMeeting(at);
-                                }}
-                                aria-label={`${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`}
-                                title={slot ? "Müsait" : undefined}
-                                className={`h-full w-full rounded-lg ${
-                                  slot
-                                    ? "bg-[#dbeafe] hover:bg-[#bfdbfe]"
-                                    : "hover:bg-[#f8f9fa]"
-                                }`}
-                              />
-                            )}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <WeekGridTable
+              days={days}
+              hours={CALENDAR_HOURS}
+              dayLabels={WEEKDAY_SHORT_LABELS}
+              renderCell={(day, hour) => {
+                const meeting = calendar.meetings.find(
+                  (item) =>
+                    isSameDay(item.scheduledAt, day) &&
+                    hourOf(item.scheduledAt) === hour,
+                );
+                const slot = calendar.slots.find(
+                  (item) =>
+                    isSameDay(item.startsAt, day) &&
+                    hourOf(item.startsAt) === hour,
+                );
+                return meeting ? (
+                  <button
+                    type="button"
+                    onClick={() => setDetailMeeting(meeting)}
+                    aria-label={`${meetingCalendarTitle(meeting)} detayını aç`}
+                    className="flex min-h-[3.25rem] w-fit min-w-[6.5rem] max-w-[9.5rem] flex-col justify-center rounded-lg bg-[#2f7ff0] px-2 py-1.5 text-left text-[11px] leading-snug text-white shadow-[0_1px_2px_rgba(15,23,42,.12)] hover:bg-[#1f6fe0]"
+                  >
+                    <span className="line-clamp-2 font-semibold">
+                      {meetingCalendarTitle(meeting)}
+                    </span>
+                    <span className="mt-0.5 truncate text-[10px] opacity-90">
+                      {timeLabel(meeting.scheduledAt)}
+                    </span>
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const at = new Date(day);
+                      at.setHours(hour, 0, 0, 0);
+                      openMeeting(at);
+                    }}
+                    aria-label={`${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`}
+                    title={slot ? "Müsait" : undefined}
+                    className={`h-full w-full rounded-lg ${
+                      slot
+                        ? "bg-[#dbeafe] hover:bg-[#bfdbfe]"
+                        : "hover:bg-[#f8f9fa]"
+                    }`}
+                  />
+                );
+              }}
+            />
 
             {calendar.filter === CalendarFilter.Program ? (
               <p className="mt-4 rounded-xl bg-[#f1f2f4] p-4 text-center text-xs text-[#676e78]">
