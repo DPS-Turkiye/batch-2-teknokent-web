@@ -4,10 +4,12 @@ import { Check } from "lucide-react";
 
 import { FileDrop } from "@/components/common/file-drop";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { STARTUP_DOCUMENTS } from "@/interfaces/signup";
 
 export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
   const { draft, setDocument, checklist } = wizard;
+  const storedDocuments = useStoredDocuments();
 
   return (
     <div className="space-y-5">
@@ -22,19 +24,25 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
 
       <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
         <div className="grid gap-5 sm:grid-cols-2">
-          {STARTUP_DOCUMENTS.map((document) => (
-            <section key={document.kind}>
-              <h2 className="text-sm font-semibold">{document.title}</h2>
-              <p className="mb-3 mt-1 text-xs leading-relaxed text-[#676e78]">
-                {document.description}
-              </p>
-              <FileDrop
-                file={draft.documents[document.kind] ?? null}
-                label={`${document.title} için dosya seç`}
-                onChange={(file) => setDocument(document.kind, file)}
-              />
-            </section>
-          ))}
+          {STARTUP_DOCUMENTS.map((document) => {
+            const stored = storedDocuments.byKind(document.kind);
+            return (
+              <section key={document.kind}>
+                <h2 className="text-sm font-semibold">{document.title}</h2>
+                <p className="mb-3 mt-1 text-xs leading-relaxed text-[#676e78]">
+                  {document.description}
+                </p>
+                <FileDrop
+                  file={draft.documents[document.kind] ?? null}
+                  label={`${document.title} için dosya seç`}
+                  onChange={(file) => setDocument(document.kind, file)}
+                  alreadyStored={
+                    stored ? { name: stored.originalFilename } : null
+                  }
+                />
+              </section>
+            );
+          })}
         </div>
 
         <aside className="h-fit rounded-2xl border border-[#e4e7ea] bg-white p-2">

@@ -10,10 +10,12 @@ export function FileDrop({
   file,
   label,
   onChange,
+  alreadyStored,
 }: {
   file: UploadedFile | null;
   label: string;
   onChange: (file: UploadedFile | null) => void;
+  alreadyStored?: { name: string } | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -21,6 +23,39 @@ export function FileDrop({
     const selected = event.target.files?.[0];
     if (selected)
       onChange({ name: selected.name, size: selected.size, file: selected });
+  }
+
+  if (!file && alreadyStored) {
+    return (
+      <div>
+        <div className="flex items-center gap-3 rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] px-3 py-2.5">
+          <FileText className="size-5 shrink-0 text-[#676e78]" />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-medium text-[#22262b]">
+              {alreadyStored.name}
+            </span>
+            <span className="block text-[11px] text-[#858c96]">
+              Zaten yüklendi
+            </span>
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="mt-2 text-[11px] font-medium text-[#c85816] hover:underline"
+        >
+          Yerine başka bir dosya seç
+        </button>
+        <input
+          ref={inputRef}
+          type="file"
+          accept=".pdf,.docx"
+          aria-label={label}
+          className="hidden"
+          onChange={handleChange}
+        />
+      </div>
+    );
   }
 
   if (file) {

@@ -7,6 +7,7 @@ import { EditableChips } from "@/components/common/editable-chips";
 import { FileDrop } from "@/components/common/file-drop";
 import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import {
   BIO_MAX_LENGTH,
   CONTACT_PREFERENCE_OPTIONS,
@@ -19,6 +20,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
     wizard;
   const { personal } = draft;
   const cvParse = useCvParse();
+  const storedCv = useStoredDocuments().byKind("cv");
 
   function onCvSelected(file: UploadedFile | null) {
     updatePersonal("cv", file);
@@ -149,6 +151,9 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
             file={personal.cv}
             label="CV dosyası seç"
             onChange={onCvSelected}
+            alreadyStored={
+              storedCv ? { name: storedCv.originalFilename } : null
+            }
           />
           {cvParse.isPending ? (
             <p className="mt-2 text-xs text-[#676e78]" role="status">

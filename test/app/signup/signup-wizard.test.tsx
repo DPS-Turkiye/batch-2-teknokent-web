@@ -10,6 +10,7 @@ import {
   SignupStep,
 } from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
+import { listDocuments } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { renderWithQueryClient as render } from "@test/test-utils";
@@ -36,6 +37,12 @@ vi.mock("@/lib/client/programs", () => ({
 
 vi.mock("@/lib/client/profile-analysis", () => ({
   parseCv: vi.fn(),
+}));
+
+// A brand-new signup has nothing stored yet; individual tests override this
+// for the resumed-session case.
+vi.mock("@/lib/client/documents", () => ({
+  listDocuments: vi.fn().mockResolvedValue([]),
 }));
 
 const ACCOUNT: RegisteredAccount = {
@@ -188,6 +195,24 @@ describe("Signup wizard", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "CV okunamadı. Bilgileri elle girebilirsin.",
     );
+  });
+
+  // Reported: a resumed session (after a reload dropped the in-memory File
+  // object) showed the CV dropzone as empty even though it was already stored.
+  it("shows an already-uploaded CV instead of an empty dropzone on a resumed session", async () => {
+    vi.mocked(listDocuments).mockResolvedValue([
+      {
+        id: "doc-1",
+        kind: "cv",
+        originalFilename: "gulse-cv.pdf",
+        sizeBytes: 1024,
+      },
+    ]);
+
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    expect(await screen.findByText("gulse-cv.pdf")).toBeInTheDocument();
+    expect(screen.getByText("Zaten yüklendi")).toBeInTheDocument();
   });
 
   it("walks through every step and reaches the review summary", async () => {
