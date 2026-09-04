@@ -32,7 +32,10 @@ function readAssistantError(data: unknown, fallback: string): string {
   return fallback;
 }
 
-function requireAssistantOk<T>(response: AxiosResponse<T>, fallback: string): T {
+function requireAssistantOk<T>(
+  response: AxiosResponse<T>,
+  fallback: string,
+): T {
   if (response.status >= 200 && response.status < 300) return response.data;
   throw new Error(
     readAssistantError(response.data, `${fallback} (${response.status})`),

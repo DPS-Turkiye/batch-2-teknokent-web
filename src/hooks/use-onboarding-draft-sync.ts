@@ -36,16 +36,16 @@ export function useOnboardingDraftSync(options: {
   const step = String(options.step);
   const [ready, setReady] = useState(false);
   const payloadRef = useRef(options.payload);
-  payloadRef.current = options.payload;
   const stepRef = useRef(step);
-  stepRef.current = step;
   const onRestoreRef = useRef(onRestore);
-  onRestoreRef.current = onRestore;
   const clearedRef = useRef(false);
-  const baselineRef = useRef<string | null>(null);
-  if (baselineRef.current === null) {
-    baselineRef.current = fingerprint(step, options.payload);
-  }
+  const baselineRef = useRef(fingerprint(step, options.payload));
+
+  useEffect(() => {
+    payloadRef.current = options.payload;
+    stepRef.current = step;
+    onRestoreRef.current = onRestore;
+  }, [options.payload, step, onRestore]);
 
   const persist = useCallback(async () => {
     if (clearedRef.current) return;

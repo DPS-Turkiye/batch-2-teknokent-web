@@ -32,9 +32,7 @@ export function sameMeetingUrl(left?: string | null, right?: string | null) {
   const a = parseMeetingUrl(left ?? "");
   const b = parseMeetingUrl(right ?? "");
   if (a && b) {
-    return (
-      a.platform === b.platform && a.nativeMeetingId === b.nativeMeetingId
-    );
+    return a.platform === b.platform && a.nativeMeetingId === b.nativeMeetingId;
   }
   const normalizedLeft = (left ?? "").trim();
   const normalizedRight = (right ?? "").trim();

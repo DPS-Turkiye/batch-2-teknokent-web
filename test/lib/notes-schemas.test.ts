@@ -14,7 +14,12 @@ describe("publishAssistantShareBodySchema", () => {
     expect(parsed.data).toEqual({
       kind: "TRANSCRIPT",
       transcript: [
-        { id: "00:10-Merhaba", speaker: "Speaker", text: "Merhaba", at: "00:10" },
+        {
+          id: "00:10-Merhaba",
+          speaker: "Speaker",
+          text: "Merhaba",
+          at: "00:10",
+        },
       ],
     });
   });

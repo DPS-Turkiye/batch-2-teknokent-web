@@ -30,7 +30,6 @@ import {
   isTranscriptBotDue,
   nextTranscriptBotAction,
 } from "@/lib/transcript-bot";
-import type { MeetingItem } from "@/interfaces/meeting";
 import {
   BotStatus,
   MeetingStatus,
@@ -128,9 +127,10 @@ function publishableTranscript(lines: TranscriptLine[]) {
 
 export function useMeetingAssistant() {
   const platformMeetingsQuery = useMeetings();
-  const calendarRef = useRef<MeetingItem[]>([]);
-  calendarRef.current = platformMeetingsQuery.data ?? [];
-
+  const calendarItems = useMemo(
+    () => platformMeetingsQuery.data ?? [],
+    [platformMeetingsQuery.data],
+  );
   const sendingBotRef = useRef(false);
   const autoReportAttemptedRef = useRef<Record<string, boolean>>({});
   const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
@@ -159,12 +159,12 @@ export function useMeetingAssistant() {
   const [shareError, setShareError] = useState<string | null>(null);
 
   const calendarMeetings = useMemo(() => {
-    return (platformMeetingsQuery.data ?? [])
+    return calendarItems
       .filter(isAssistantCalendarMeeting)
       .map((item) =>
         withAssistantOverlay(toAssistantMeeting(item), overlays[item.id]),
       );
-  }, [platformMeetingsQuery.data, overlays]);
+  }, [calendarItems, overlays]);
 
   const meetings = useMemo(() => {
     const calendarIds = new Set(calendarMeetings.map((item) => item.id));
@@ -178,8 +178,6 @@ export function useMeetingAssistant() {
     () => meetings.find((item) => item.id === selectedId) ?? meetings[0],
     [meetings, selectedId],
   );
-  const selectedRef = useRef(selected);
-  selectedRef.current = selected;
 
   const selectedTranscript = selected
     ? (transcriptByMeeting[selected.id] ?? [])
@@ -192,39 +190,24 @@ export function useMeetingAssistant() {
     ? (reportByMeeting[selected.id] ?? null)
     : null;
 
-  const canPersist = useCallback((meetingId: string) => {
-    return calendarRef.current.some((item) => item.id === meetingId);
-  }, []);
+  const canPersist = useCallback(
+    (meetingId: string) => calendarItems.some((item) => item.id === meetingId),
+    [calendarItems],
+  );
+  const notebookMeetingId =
+    selected && canPersist(selected.id) ? selected.id : targetMeetingId;
 
-  useEffect(() => {
-    if (meetings.length === 0) return;
-    if (!meetings.some((item) => item.id === selectedId)) {
-      setSelectedId(meetings[0].id);
-    }
-  }, [meetings, selectedId]);
-
-  useEffect(() => {
-    if (!selected) return;
-    const link = calendarRef.current
-      .find((item) => item.id === selected.id)
-      ?.meetLink?.trim();
-    if (link) {
-      setMeetingUrl((current) => (current === link ? current : link));
-    }
-  }, [selected?.id]);
-
-  useEffect(() => {
-    if (selected && canPersist(selected.id)) {
-      setTargetMeetingId(selected.id);
-    }
-  }, [selected, canPersist]);
+  const selectedMeetLink = selected
+    ? (calendarItems
+        .find((item) => item.id === selected.id)
+        ?.meetLink?.trim() ?? "")
+    : "";
 
   useEffect(() => {
     if (!selected || !canPersist(selected.id) || shareLoadedFor[selected.id]) {
       return;
     }
     if (transcriptDirtyByMeeting[selected.id]) {
-      setShareLoadedFor((prev) => ({ ...prev, [selected.id]: true }));
       return;
     }
 
@@ -261,7 +244,9 @@ export function useMeetingAssistant() {
   }, [selected, canPersist, shareLoadedFor, transcriptDirtyByMeeting]);
 
   const transcriptByMeetingRef = useRef(transcriptByMeeting);
-  transcriptByMeetingRef.current = transcriptByMeeting;
+  useEffect(() => {
+    transcriptByMeetingRef.current = transcriptByMeeting;
+  }, [transcriptByMeeting]);
 
   useEffect(() => {
     const parsed = transcriptQuerySchema.safeParse({
@@ -269,7 +254,13 @@ export function useMeetingAssistant() {
       nativeMeetingId: selected?.nativeMeetingId,
     });
     if (!parsed.success || !selected) return;
-    if (canPersist(selected.id) && !shareLoadedFor[selected.id]) return;
+    if (
+      canPersist(selected.id) &&
+      !shareLoadedFor[selected.id] &&
+      !transcriptDirtyByMeeting[selected.id]
+    ) {
+      return;
+    }
     if (transcriptDirtyByMeeting[selected.id]) return;
     if (
       selected.status === MeetingStatus.Completed &&
@@ -333,12 +324,12 @@ export function useMeetingAssistant() {
 
       const persistId =
         options?.calendarMeetingId ??
-        matchCalendarMeetingId(calendarRef.current, parsed.data.meetingUrl);
+        matchCalendarMeetingId(calendarItems, parsed.data.meetingUrl);
 
       try {
         const result = await addMeetingBot(parsed.data.meetingUrl);
         const calendarItem = persistId
-          ? calendarRef.current.find((item) => item.id === persistId)
+          ? calendarItems.find((item) => item.id === persistId)
           : undefined;
         const next: Meeting = {
           id: persistId ?? result.id ?? `m${Date.now()}`,
@@ -407,7 +398,7 @@ export function useMeetingAssistant() {
         sendingBotRef.current = false;
       }
     },
-    [],
+    [calendarItems],
   );
 
   useEffect(() => {
@@ -466,12 +457,12 @@ export function useMeetingAssistant() {
 
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
-    await sendBotForUrl(meetingUrl);
+    await sendBotForUrl(selectedMeetLink || meetingUrl);
   };
 
   const requestMeetingReport = useCallback(
     async (lines?: TranscriptLine[], meeting?: Meeting) => {
-      const target = meeting ?? selectedRef.current;
+      const target = meeting ?? selected;
       if (!target?.platformKey || !target?.nativeMeetingId) return;
       const segments = (
         lines ??
@@ -516,7 +507,7 @@ export function useMeetingAssistant() {
         window.setTimeout(() => setReportStatus(null), 6000);
       }
     },
-    [],
+    [selected],
   );
 
   useEffect(() => {
@@ -629,11 +620,11 @@ export function useMeetingAssistant() {
 
   const sendTranscript = async () => {
     const lines = publishableTranscript(selectedTranscript);
-    if (!targetMeetingId || lines.length === 0) return;
+    if (!notebookMeetingId || lines.length === 0) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(targetMeetingId, {
+      await postAssistantShare(notebookMeetingId, {
         kind: "TRANSCRIPT",
         transcript: lines,
       });
@@ -649,11 +640,11 @@ export function useMeetingAssistant() {
   };
 
   const sendReport = async () => {
-    if (!targetMeetingId || !meetingReport || transcriptDirty) return;
+    if (!notebookMeetingId || !meetingReport || transcriptDirty) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(targetMeetingId, {
+      await postAssistantShare(notebookMeetingId, {
         kind: "REPORT",
         report: meetingReport,
       });
@@ -672,7 +663,7 @@ export function useMeetingAssistant() {
     meetings,
     selected,
     setSelectedId,
-    meetingUrl,
+    meetingUrl: selectedMeetLink || meetingUrl,
     setMeetingUrl,
     botStatus,
     botError,
@@ -696,7 +687,7 @@ export function useMeetingAssistant() {
     },
     platformMeetings: platformMeetingsQuery.data ?? [],
     isLoadingMeetings: platformMeetingsQuery.isLoading,
-    targetMeetingId,
+    targetMeetingId: notebookMeetingId,
     setTargetMeetingId,
     shareStatus,
     shareError,

@@ -14,11 +14,7 @@ vi.mock("@/lib/api/onboarding-draft", () => ({
   deleteOnboardingDraft: vi.fn(),
 }));
 
-function request(options: {
-  method: string;
-  token?: string;
-  body?: unknown;
-}) {
+function request(options: { method: string; token?: string; body?: unknown }) {
   return {
     method: options.method,
     headers: {
