@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
-import { SIGNUP_STEP_CTA, SignupStep } from "@/interfaces/signup";
+import {
+  PROGRAM_LEVEL_OPTIONS,
+  SIGNUP_STEP_CTA,
+  SignupStep,
+} from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
@@ -302,6 +306,39 @@ describe("Signup wizard", () => {
     );
   });
 
+  // The same defect as the parsed chips above, one level up: the startup step's
+  // fields filled the screen and the review page, then vanished at submit
+  // because registerFounder sent only the organization name and description.
+  it("sends the startup step's fields through registration", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+
+    await fillStartupStep(user);
+    await user.type(
+      screen.getByLabelText("Hangi problemi çözüyorsunuz?"),
+      "Gönüllüler bulunamıyor",
+    );
+    await user.selectOptions(screen.getByLabelText("Sektör"), "SaaS");
+
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    await waitFor(() =>
+      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          website: "https://dongu.example",
+          problem: "Gönüllüler bulunamıyor",
+          sector: "SaaS",
+        }),
+        expect.anything(),
+      ),
+    );
+  });
+
   it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
@@ -396,6 +433,17 @@ describe("Signup wizard", () => {
           // No program chosen is a real answer and is sent, not omitted.
           programId: null,
           expertise: [],
+          // Blank startup fields are sent as undefined rather than "", so the
+          // backend stores null instead of an empty string.
+          website: "https://dongu.example",
+          problem: undefined,
+          solution: undefined,
+          currentSolution: undefined,
+          targetUser: undefined,
+          sector: undefined,
+          maturity: undefined,
+          programLevel: PROGRAM_LEVEL_OPTIONS[0],
+          supportAreas: [],
         },
         "id-token",
       ),
