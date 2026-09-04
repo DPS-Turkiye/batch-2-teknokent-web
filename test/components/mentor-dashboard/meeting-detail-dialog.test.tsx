@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MeetingDetailDialog } from "@/components/mentor-dashboard/meeting-detail-dialog";
 import { MeetingStatus } from "@/interfaces/meeting";
-import { ProgramMentorInvitedBy, ProgramMentorStatus } from "@/interfaces/program";
+import {
+  ProgramMentorInvitedBy,
+  ProgramMentorStatus,
+} from "@/interfaces/program";
 import { getMeetingRoom } from "@/lib/client/meetings";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -77,7 +80,10 @@ describe("MeetingDetailDialog", () => {
       />,
     );
 
-    await user.selectOptions(screen.getByLabelText("Startup ekle"), "program:prog-1:org-2");
+    await user.selectOptions(
+      screen.getByLabelText("Startup ekle"),
+      "program:prog-1:org-2",
+    );
     await user.click(screen.getAllByRole("button", { name: "Ekle" })[0]);
 
     expect(onAddStartup).toHaveBeenCalledWith(

@@ -14,6 +14,16 @@ export type FounderRegistration = {
   bio?: string;
   linkedinUrl?: string;
   expertise?: string[];
+  /** The wizard's startup step. Collected since it was built, stored since V35. */
+  website?: string;
+  problem?: string;
+  solution?: string;
+  currentSolution?: string;
+  targetUser?: string;
+  sector?: string;
+  maturity?: string;
+  programLevel?: string;
+  supportAreas?: string[];
 };
 
 export type MentorRegistration = {
