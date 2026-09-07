@@ -38,6 +38,21 @@ export function getBackendUrl(): string {
   return BACKEND_URL;
 }
 
+/**
+ * The Amplify-hosted frontend's own edge blocks any request body over ~8KB on
+ * its proxy routes, so document uploads go straight from the browser to the
+ * backend instead. That needs a NEXT_PUBLIC_ variable, since BACKEND_URL is
+ * never inlined into the client bundle — amplify.yml derives this one from
+ * BACKEND_URL at build time so the two cannot drift apart.
+ */
+export const PUBLIC_BACKEND_URL = normalizeUrl(
+  process.env.NEXT_PUBLIC_BACKEND_URL ?? DEFAULT_BACKEND_URL,
+);
+
+export function getPublicBackendUrl(): string {
+  return PUBLIC_BACKEND_URL;
+}
+
 export function getBackendHealthUrl(): string {
   return `${BACKEND_URL}${BACKEND_HEALTH_PATH}`;
 }
