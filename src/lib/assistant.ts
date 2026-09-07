@@ -1,6 +1,10 @@
 import axios, { type AxiosResponse } from "axios";
 
 import {
+  amplifyBlockedMessage,
+  jsonFitsAmplifyWaf,
+} from "@/lib/amplify-safe-body";
+import {
   getBotApiUrl,
   getMeetingReportApiUrl,
   getStopBotApiUrl,
@@ -21,6 +25,8 @@ export type {
 } from "@/types/assistant";
 
 function readAssistantError(data: unknown, fallback: string): string {
+  const blocked = amplifyBlockedMessage(data);
+  if (blocked) return blocked;
   if (data && typeof data === "object") {
     if ("detail" in data && typeof data.detail === "string" && data.detail) {
       return data.detail;
@@ -102,10 +108,14 @@ export async function generateMeetingReport(
   segments: TranscriptLine[],
 ): Promise<MeetingReport> {
   try {
+    const body =
+      segments.length > 0 && jsonFitsAmplifyWaf({ segments })
+        ? { segments }
+        : {};
     return requireAssistantOk(
       await httpClient.post<MeetingReport>(
         getMeetingReportApiUrl(platform, nativeMeetingId),
-        { segments },
+        body,
       ),
       "Failed to generate meeting report",
     );

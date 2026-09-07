@@ -55,6 +55,17 @@ export type PublishAssistantSharePayload =
       transcript: TranscriptLine[];
     }
   | {
+      kind: "PROVIDER_TRANSCRIPT";
+      platform: string;
+      nativeMeetingId: string;
+    }
+  | {
+      kind: "TRANSCRIPT_S3";
+    }
+  | {
       kind: "REPORT";
       report: MeetingReport;
+    }
+  | {
+      kind: "REPORT_S3";
     };

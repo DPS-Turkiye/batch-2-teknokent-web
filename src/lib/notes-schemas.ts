@@ -28,7 +28,7 @@ const textList = z
         .filter((item) => item.trim().length > 0) ?? [],
   );
 
-export const publishAssistantShareBodySchema = z.discriminatedUnion("kind", [
+export const publishAssistantShareBodySchema = z.union([
   z.object({
     kind: z.literal("TRANSCRIPT"),
     transcript: z
@@ -48,6 +48,17 @@ export const publishAssistantShareBodySchema = z.discriminatedUnion("kind", [
           })),
       )
       .min(1),
+  }),
+  z.object({
+    kind: z.literal("PROVIDER_TRANSCRIPT"),
+    platform: z.string().trim().min(1),
+    nativeMeetingId: z.string().trim().min(1),
+  }),
+  z.object({
+    kind: z.literal("TRANSCRIPT_S3"),
+  }),
+  z.object({
+    kind: z.literal("REPORT_S3"),
   }),
   z.object({
     kind: z.literal("REPORT"),

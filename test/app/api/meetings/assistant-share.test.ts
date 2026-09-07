@@ -6,10 +6,15 @@ import {
   fetchAssistantShare,
   publishAssistantShare,
 } from "@/lib/api/meeting-notes";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { getSessionUser } from "@/lib/session";
 import { UserRole } from "@/interfaces/session";
 import { NextResponse } from "next/server";
+
+vi.mock("@/lib/transcriptapi", () => ({
+  fetchMeetingTranscript: vi.fn(),
+}));
 
 vi.mock("@/lib/api/meeting-notes", () => ({
   fetchAssistantShare: vi.fn(),
@@ -191,5 +196,124 @@ describe("assistant share API route", () => {
 
     expect(response.status).toBe(403);
     expect(publishAssistantShare).not.toHaveBeenCalled();
+  });
+
+  it("loads the provider transcript when the client cannot POST the full body", async () => {
+    vi.mocked(requireMentorSession).mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "mentor-1",
+        email: "leyla@teknokent.demo",
+        fullName: "Leyla Aksoy",
+        jobTitle: "Mentor",
+        role: UserRole.Mentor,
+      },
+    });
+    vi.mocked(fetchMeetingTranscript).mockResolvedValue({
+      data: {
+        segments: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
+      },
+      status: 200,
+    });
+    vi.mocked(publishAssistantShare).mockResolvedValue({
+      data: { meetingId: "meeting-1" },
+      headers: {},
+      status: 200,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/x", {
+        method: "POST",
+        body: JSON.stringify({
+          kind: "PROVIDER_TRANSCRIPT",
+          platform: "google_meet",
+          nativeMeetingId: "abc-defg-hij",
+        }),
+      }),
+      { params },
+    );
+
+    expect(response.status).toBe(200);
+    expect(fetchMeetingTranscript).toHaveBeenCalledWith(
+      "google_meet",
+      "abc-defg-hij",
+    );
+    expect(publishAssistantShare).toHaveBeenCalledWith(
+      "meeting-1",
+      "mentor-1",
+      {
+        kind: "TRANSCRIPT",
+        transcript: [
+          { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
+        ],
+      },
+    );
+  });
+
+  it("publishes a transcript the mentor already uploaded to S3", async () => {
+    vi.mocked(requireMentorSession).mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "mentor-1",
+        email: "leyla@teknokent.demo",
+        fullName: "Leyla Aksoy",
+        jobTitle: "Mentor",
+        role: UserRole.Mentor,
+      },
+    });
+    vi.mocked(publishAssistantShare).mockResolvedValue({
+      data: { meetingId: "meeting-1" },
+      headers: {},
+      status: 200,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/x", {
+        method: "POST",
+        body: JSON.stringify({ kind: "TRANSCRIPT_S3" }),
+      }),
+      { params },
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishAssistantShare).toHaveBeenCalledWith(
+      "meeting-1",
+      "mentor-1",
+      { kind: "TRANSCRIPT_S3" },
+    );
+    expect(fetchMeetingTranscript).not.toHaveBeenCalled();
+  });
+
+  it("publishes a report the mentor already uploaded to S3", async () => {
+    vi.mocked(requireMentorSession).mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "mentor-1",
+        email: "leyla@teknokent.demo",
+        fullName: "Leyla Aksoy",
+        jobTitle: "Mentor",
+        role: UserRole.Mentor,
+      },
+    });
+    vi.mocked(publishAssistantShare).mockResolvedValue({
+      data: { meetingId: "meeting-1" },
+      headers: {},
+      status: 200,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/x", {
+        method: "POST",
+        body: JSON.stringify({ kind: "REPORT_S3" }),
+      }),
+      { params },
+    );
+
+    expect(response.status).toBe(200);
+    expect(publishAssistantShare).toHaveBeenCalledWith(
+      "meeting-1",
+      "mentor-1",
+      { kind: "REPORT_S3" },
+    );
   });
 });

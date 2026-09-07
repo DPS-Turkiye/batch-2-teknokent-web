@@ -16,15 +16,17 @@ import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
+import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
 import { updateMeeting } from "@/lib/client/meetings";
 import {
   getAssistantShare,
-  postAssistantShare,
+  publishTranscriptShare,
+  publishReportShare,
 } from "@/lib/client/meeting-notes";
 import {
-  ASSISTANT_SAMPLE_NOTES,
   MEETING_STATUS_META,
   TRANSCRIPT_BOT_MAX_TIMER_MS,
+  TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
 import {
   isTranscriptBotDue,
@@ -157,7 +159,6 @@ export function useMeetingAssistant() {
   const [targetMeetingId, setTargetMeetingId] = useState("");
   const [shareStatus, setShareStatus] = useState<BotStatus | null>(null);
   const [shareError, setShareError] = useState<string | null>(null);
-
   const calendarMeetings = useMemo(() => {
     return calendarItems
       .filter(isAssistantCalendarMeeting)
@@ -303,7 +304,7 @@ export function useMeetingAssistant() {
       };
     }
 
-    const timer = window.setInterval(load, 1000);
+    const timer = window.setInterval(load, TRANSCRIPT_POLL_MS);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -448,7 +449,7 @@ export function useMeetingAssistant() {
   }, [platformMeetingsQuery.data, sendBotForUrl]);
 
   const visibleTranscript = selectedTranscript;
-  const notes = selected ? (ASSISTANT_SAMPLE_NOTES[selected.id] ?? []) : [];
+  const notes: string[] = [];
   const status = selected
     ? MEETING_STATUS_META[selected.status]
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
@@ -570,8 +571,29 @@ export function useMeetingAssistant() {
         console.error("Failed to fetch transcript after stop", error);
       }
       markCompleted(meeting.id);
-      setBotStatus(BotStatus.Ok);
-      window.setTimeout(() => setBotStatus(null), 4000);
+      let storedAsCompleted = true;
+      if (canPersist(meeting.id)) {
+        try {
+          await updateMeeting(meeting.id, {
+            status: CalendarMeetingStatus.Completed,
+            transcriptBotDispatched: true,
+          });
+        } catch (error) {
+          console.error("Failed to mark meeting completed after stop", error);
+          storedAsCompleted = false;
+        }
+      }
+      void platformMeetingsQuery.refetch();
+      if (storedAsCompleted) {
+        setBotStatus(BotStatus.Ok);
+        window.setTimeout(() => setBotStatus(null), 4000);
+      } else {
+        setBotStatus(BotStatus.Err);
+        setBotError(
+          "Bot durduruldu ama toplantı sunucuda bitti olarak işaretlenemedi. Sayfayı yenileyip tekrar Stop bot düğmesine basın.",
+        );
+        window.setTimeout(() => setBotStatus(null), 8000);
+      }
 
       if (hasText(lines)) {
         await requestMeetingReport(lines, meeting);
@@ -624,10 +646,7 @@ export function useMeetingAssistant() {
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(notebookMeetingId, {
-        kind: "TRANSCRIPT",
-        transcript: lines,
-      });
+      await publishTranscriptShare(notebookMeetingId, lines);
       setShareStatus(BotStatus.Ok);
       window.setTimeout(() => setShareStatus(null), 4000);
     } catch (error) {
@@ -644,10 +663,7 @@ export function useMeetingAssistant() {
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
-      await postAssistantShare(notebookMeetingId, {
-        kind: "REPORT",
-        report: meetingReport,
-      });
+      await publishReportShare(notebookMeetingId, meetingReport);
       setShareStatus(BotStatus.Ok);
       window.setTimeout(() => setShareStatus(null), 4000);
     } catch (error) {

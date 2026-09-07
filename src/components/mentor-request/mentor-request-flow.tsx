@@ -16,11 +16,11 @@ import {
   StepIndicator,
 } from "@/components/mentor-request/request-presenters";
 import { useMentorRequest } from "@/hooks/use-mentor-request";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import type { MentorProfile } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
 import {
   MENTOR_REQUEST_SUPPORT_AREAS,
-  MENTOR_REQUEST_TEAM_MEMBERS,
   MENTOR_REQUEST_TITLES,
   MENTOR_REQUEST_URGENCY_OPTIONS,
 } from "@/lib/const";
@@ -29,6 +29,7 @@ import {
   MEETING_MODE_BY_LABEL,
   URGENCY_BY_LABEL,
 } from "@/lib/mentor-request-options";
+import { teamMembersForMentorRequest } from "@/lib/mentor-request-team";
 import { MentorRequestStep } from "@/types/mentor-request";
 
 export function MentorRequestFlow({
@@ -78,19 +79,8 @@ export function MentorRequestFlow({
   const [mentorId, setMentorId] = useState(() => initialMentors[0]?.id ?? "");
   const [requesterMessage, setRequesterMessage] = useState("");
   const selectedPerson = person || session?.fullName || "Mentee";
-  const teamMembers = session
-    ? ([
-        [
-          session.fullName
-            .split(/\s+/)
-            .slice(0, 2)
-            .map((part) => part[0]?.toUpperCase())
-            .join(""),
-          session.fullName,
-          session.jobTitle,
-        ],
-      ] as const)
-    : MENTOR_REQUEST_TEAM_MEMBERS;
+  const membersQuery = useOrganizationMembers();
+  const teamMembers = teamMembersForMentorRequest(membersQuery.data, session);
   const selectedMentor = mentors.find((item) => item.id === mentorId) ?? null;
   const excludedMentorId = excludedMentor
     ? initialMentors.find((item) => item.fullName === excludedMentor)?.id
@@ -184,16 +174,20 @@ export function MentorRequestFlow({
                   Bu mentorluk sürecini kim/ kimler yürütecek?
                 </h2>
                 <div className="grid gap-3 md:grid-cols-3">
-                  {teamMembers.map(([initials, name, role]) => (
-                    <PersonChoice
-                      key={name}
-                      initials={initials}
-                      name={name}
-                      role={role}
-                      selected={selectedPerson === name}
-                      onClick={() => setPerson(name)}
-                    />
-                  ))}
+                  {membersQuery.isLoading ? (
+                    <p className="text-sm text-[#777]">Ekip yükleniyor…</p>
+                  ) : (
+                    teamMembers.map((member) => (
+                      <PersonChoice
+                        key={member.id}
+                        initials={member.initials}
+                        name={member.name}
+                        role={member.role}
+                        selected={selectedPerson === member.name}
+                        onClick={() => setPerson(member.name)}
+                      />
+                    ))
+                  )}
                 </div>
               </section>
               <section>
@@ -368,18 +362,37 @@ export function MentorRequestFlow({
                         Mentora gösterilecek üyeler
                       </p>
                     </div>
-                    <SecondaryButton>Düzenle</SecondaryButton>
+                    <SecondaryButton href="/team">Düzenle</SecondaryButton>
                   </div>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                    {teamMembers.map(([initials, name, role]) => (
-                      <div key={name} className="flex items-center gap-2">
-                        <Avatar initials={initials} size="sm" />
-                        <span>
-                          <strong className="block text-xs">{name}</strong>
-                          <span className="text-xs text-[#999]">{role}</span>
-                        </span>
-                      </div>
-                    ))}
+                    {membersQuery.isLoading ? (
+                      <p className="text-sm text-[#777]">Ekip yükleniyor…</p>
+                    ) : membersQuery.error ? (
+                      <p className="text-sm text-red-600">
+                        Ekip üyeleri yüklenemedi.
+                      </p>
+                    ) : teamMembers.length === 0 ? (
+                      <p className="text-sm text-[#777]">
+                        Henüz eklenmiş bir ekip üyesi yok.
+                      </p>
+                    ) : (
+                      teamMembers.map((member) => (
+                        <div
+                          key={member.id}
+                          className="flex items-center gap-2"
+                        >
+                          <Avatar initials={member.initials} size="sm" />
+                          <span>
+                            <strong className="block text-xs">
+                              {member.name}
+                            </strong>
+                            <span className="text-xs text-[#999]">
+                              {member.role}
+                            </span>
+                          </span>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </section>
               </div>

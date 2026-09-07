@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { AppArea } from "@/types/app-area";
 
 const mockuseAppSession = vi.fn<() => AppSession | null>();
@@ -183,7 +182,7 @@ describe("AppShell navigation", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("shows the real notification count on the Duyurular badge, not a hardcoded number", () => {
+  it("hides the Duyurular badge when there are no notifications", () => {
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -192,9 +191,8 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    expect(
-      screen.getByText(String(DASHBOARD_NOTIFICATIONS.length)),
-    ).toBeInTheDocument();
+    const bell = screen.getByRole("link", { name: "Duyurular" });
+    expect(bell.querySelector("span")).toBeNull();
   });
 
   it("falls back to the mentee home when there is no active session", () => {
