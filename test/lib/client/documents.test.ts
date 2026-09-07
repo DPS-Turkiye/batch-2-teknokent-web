@@ -6,6 +6,7 @@ import { httpClient } from "@/lib/http-client";
 
 vi.mock("@/lib/http-client", () => ({
   httpClient: { post: vi.fn() },
+  UPLOAD_TIMEOUT_MS: 120000,
 }));
 
 vi.mock("@/lib/firebase/auth", () => ({

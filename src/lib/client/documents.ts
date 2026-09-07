@@ -1,7 +1,7 @@
 import { getPublicBackendUrl } from "@/lib/const";
 import { requireSuccess } from "@/lib/client/api";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { httpClient } from "@/lib/http-client";
+import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 
 export type StoredDocument = {
   id: string;
@@ -33,7 +33,10 @@ export async function uploadDocument(
     await httpClient.post<StoredDocument>(
       `${getPublicBackendUrl()}/api/documents`,
       data,
-      { headers: { Authorization: `Bearer ${token}` } },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: UPLOAD_TIMEOUT_MS,
+      },
     ),
   );
 }
