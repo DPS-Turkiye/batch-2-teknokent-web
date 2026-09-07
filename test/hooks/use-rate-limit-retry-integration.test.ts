@@ -66,7 +66,7 @@ describe("Rate Limit Retry - API Integration", () => {
     fetchMock.mockRejectedValue(timeoutError);
 
     try {
-      await fetch("/api/assistant/query");
+      await fetchMock("/api/assistant/query");
     } catch (error) {
       expect((error as Error).message).toBe("Request timeout");
     }
@@ -87,7 +87,7 @@ describe("Rate Limit Retry - API Integration", () => {
     const retryLogic = async () => {
       for (let i = 0; i < maxRetries; i++) {
         attempts++;
-        const response = await fetch("/api/assistant/query");
+        const response = await fetchMock("/api/assistant/query");
         if (response.status !== 429) return response;
       }
       throw new Error("Max retries exceeded");
@@ -113,7 +113,7 @@ describe("Rate Limit Retry - API Integration", () => {
       "X-Request-ID": "req-456",
     };
 
-    await fetch("/api/assistant/query", {
+    await fetchMock("/api/assistant/query", {
       method: "POST",
       headers,
       body: JSON.stringify({ query: "test" }),
@@ -211,7 +211,10 @@ describe("Rate Limit Retry - API Integration", () => {
   });
 
   it("should track retry attempts in metadata", async () => {
-    const metadata = { attempts: 0, lastRetryTime: null };
+    const metadata: { attempts: number; lastRetryTime: string | null } = {
+      attempts: 0,
+      lastRetryTime: null,
+    };
 
     fetchMock
       .mockResolvedValueOnce(
@@ -225,7 +228,10 @@ describe("Rate Limit Retry - API Integration", () => {
 
     const trackRetries = async (
       fn: () => Promise<Response>
-    ): Promise<{ response: Response; metadata: typeof metadata }> => {
+    ): Promise<{
+      response: Response;
+      metadata: { attempts: number; lastRetryTime: string | null };
+    }> => {
       for (let i = 0; i < 3; i++) {
         metadata.attempts++;
         metadata.lastRetryTime = new Date().toISOString();
