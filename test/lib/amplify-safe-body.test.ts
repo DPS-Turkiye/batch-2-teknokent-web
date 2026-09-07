@@ -21,10 +21,17 @@ describe("jsonFitsAmplifyWaf", () => {
       text: "x".repeat(80),
       at: "00:10",
     }));
-    expect(JSON.stringify({ segments: transcript }).length).toBeGreaterThan(
-      AMPLIFY_SAFE_JSON_CHARS,
-    );
+    expect(
+      new TextEncoder().encode(JSON.stringify({ segments: transcript }))
+        .length,
+    ).toBeGreaterThan(AMPLIFY_SAFE_JSON_CHARS);
     expect(jsonFitsAmplifyWaf({ segments: transcript })).toBe(false);
+  });
+
+  it("counts UTF-8 bytes so Turkish text cannot sneak past CloudFront", () => {
+    const text = "ş".repeat(4_000);
+    expect(text.length).toBeLessThan(AMPLIFY_SAFE_JSON_CHARS);
+    expect(jsonFitsAmplifyWaf({ summary: text })).toBe(false);
   });
 
   it("detects CloudFront HTML 403 bodies", () => {

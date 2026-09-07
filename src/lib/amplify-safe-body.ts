@@ -5,7 +5,10 @@ export const AMPLIFY_BLOCKED_MESSAGE =
 
 export function jsonFitsAmplifyWaf(payload: unknown): boolean {
   try {
-    return JSON.stringify(payload).length <= AMPLIFY_SAFE_JSON_CHARS;
+    return (
+      new TextEncoder().encode(JSON.stringify(payload)).length <=
+      AMPLIFY_SAFE_JSON_CHARS
+    );
   } catch {
     return false;
   }

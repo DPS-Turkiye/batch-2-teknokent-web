@@ -135,6 +135,7 @@ export function useMeetingAssistant() {
   );
   const sendingBotRef = useRef(false);
   const autoReportAttemptedRef = useRef<Record<string, boolean>>({});
+  const reportInFlightRef = useRef<Record<string, Promise<void>>>({});
   const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
   const [overlays, setOverlays] = useState<Record<string, MeetingOverlay>>({});
   const [selectedId, setSelectedId] = useState("");
@@ -477,36 +478,46 @@ export function useMeetingAssistant() {
         return;
       }
 
+      const existing = reportInFlightRef.current[target.id];
+      if (existing) return existing;
+
       autoReportAttemptedRef.current[target.id] = true;
       setReportStatus(BotStatus.Sending);
       setReportError(null);
-      try {
-        const report = normalizeReport(
-          await generateMeetingReport(
-            target.platformKey,
-            target.nativeMeetingId,
-            segments,
-          ),
-        );
-        setReportByMeeting((prev) => ({
-          ...prev,
-          [target.id]: report,
-        }));
-        setTranscriptDirtyByMeeting((prev) => ({
-          ...prev,
-          [target.id]: false,
-        }));
-        setReportStatus(BotStatus.Ok);
-        window.setTimeout(() => setReportStatus(null), 4000);
-      } catch (error) {
-        setReportStatus(BotStatus.Err);
-        setReportError(
-          error instanceof Error
-            ? error.message
-            : "Failed to generate meeting report",
-        );
-        window.setTimeout(() => setReportStatus(null), 6000);
-      }
+      const run = (async () => {
+        try {
+          const report = normalizeReport(
+            await generateMeetingReport(
+              target.platformKey,
+              target.nativeMeetingId,
+              segments,
+            ),
+          );
+          setReportByMeeting((prev) => ({
+            ...prev,
+            [target.id]: report,
+          }));
+          setTranscriptDirtyByMeeting((prev) => ({
+            ...prev,
+            [target.id]: false,
+          }));
+          setReportStatus(BotStatus.Ok);
+          window.setTimeout(() => setReportStatus(null), 4000);
+        } catch (error) {
+          autoReportAttemptedRef.current[target.id] = false;
+          setReportStatus(BotStatus.Err);
+          setReportError(
+            error instanceof Error
+              ? error.message
+              : "Failed to generate meeting report",
+          );
+          window.setTimeout(() => setReportStatus(null), 6000);
+        } finally {
+          delete reportInFlightRef.current[target.id];
+        }
+      })();
+      reportInFlightRef.current[target.id] = run;
+      return run;
     },
     [selected],
   );
@@ -521,7 +532,28 @@ export function useMeetingAssistant() {
     if (autoReportAttemptedRef.current[selected.id]) return;
     const lines = transcriptByMeeting[selected.id] ?? [];
     if (!hasText(lines)) return;
-    void requestMeetingReport(lines, selected);
+    const meetingId = selected.id;
+    const persist = canPersist(meetingId);
+    const timer = window.setTimeout(() => {
+      void (async () => {
+        if (persist) {
+          try {
+            const share = await getAssistantShare(meetingId);
+            if (share.report) {
+              setReportByMeeting((prev) => ({
+                ...prev,
+                [meetingId]: normalizeReport(share.report as MeetingReport),
+              }));
+              autoReportAttemptedRef.current[meetingId] = true;
+              return;
+            }
+          } catch {
+          }
+        }
+        await requestMeetingReport(lines, selected);
+      })();
+    }, 4000);
+    return () => window.clearTimeout(timer);
   }, [
     selected,
     canPersist,
