@@ -46,7 +46,9 @@ describe("S3 Upload Feature", () => {
   });
 
   it("should handle S3 upload errors gracefully", async () => {
-    const mockS3Upload = vi.fn().mockRejectedValue(new Error("S3 Upload failed"));
+    const mockS3Upload = vi
+      .fn()
+      .mockRejectedValue(new Error("S3 Upload failed"));
 
     try {
       await mockS3Upload("large content");
@@ -71,8 +73,7 @@ describe("S3 Upload Feature", () => {
   it("should handle meeting transcript uploads", async () => {
     const transcript = {
       meetingId: "meeting-123",
-      content:
-        "Lorem ipsum dolor sit amet...".repeat(50000), // Large transcript
+      content: "Lorem ipsum dolor sit amet...".repeat(50000), // Large transcript
       duration: 3600,
     };
 
@@ -90,8 +91,7 @@ describe("S3 Upload Feature", () => {
   it("should handle meeting report uploads", async () => {
     const report = {
       meetingId: "meeting-123",
-      reportContent:
-        "Meeting Report: ".repeat(50000), // Large report
+      reportContent: "Meeting Report: ".repeat(50000), // Large report
       generatedAt: new Date().toISOString(),
     };
 

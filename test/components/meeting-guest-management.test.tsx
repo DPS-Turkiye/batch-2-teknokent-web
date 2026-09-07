@@ -37,23 +37,27 @@ describe("Meeting Guest Management", () => {
   });
 
   it("should prevent duplicate guests in meeting", async () => {
-    const mockAddGuest = vi.fn().mockImplementation(
-      async (guest: { meetingId: string; guestEmail: string }) => {
-        const existingGuests = [
-          { meetingId: "meeting-123", guestEmail: "guest@example.com" },
-        ];
+    const mockAddGuest = vi
+      .fn()
+      .mockImplementation(
+        async (guest: { meetingId: string; guestEmail: string }) => {
+          const existingGuests = [
+            { meetingId: "meeting-123", guestEmail: "guest@example.com" },
+          ];
 
-        const isDuplicate = existingGuests.some(
-          (g) => g.meetingId === guest.meetingId && g.guestEmail === guest.guestEmail
-        );
+          const isDuplicate = existingGuests.some(
+            (g) =>
+              g.meetingId === guest.meetingId &&
+              g.guestEmail === guest.guestEmail,
+          );
 
-        if (isDuplicate) {
-          throw new Error("Misafir zaten eklenmiş");
-        }
+          if (isDuplicate) {
+            throw new Error("Misafir zaten eklenmiş");
+          }
 
-        return { success: true };
-      }
-    );
+          return { success: true };
+        },
+      );
 
     const guest = {
       meetingId: "meeting-123",
@@ -139,7 +143,7 @@ describe("Meeting Guest Management", () => {
   it("should restrict guest management to meeting mentor", async () => {
     const mockCheckPermission = (
       userId: string,
-      meetingMentorId: string
+      meetingMentorId: string,
     ): boolean => {
       return userId === meetingMentorId;
     };
@@ -152,18 +156,20 @@ describe("Meeting Guest Management", () => {
   });
 
   it("should handle maximum guest limit", async () => {
-    const mockAddGuest = vi.fn().mockImplementation(
-      async (guest: { meetingId: string; guestEmail: string }) => {
-        const maxGuests = 50;
-        const currentGuests = 50; // Assume already at max
+    const mockAddGuest = vi
+      .fn()
+      .mockImplementation(
+        async (guest: { meetingId: string; guestEmail: string }) => {
+          const maxGuests = 50;
+          const currentGuests = 50; // Assume already at max
 
-        if (currentGuests >= maxGuests) {
-          throw new Error("Maksimum misafir sayısına ulaşıldı");
-        }
+          if (currentGuests >= maxGuests) {
+            throw new Error("Maksimum misafir sayısına ulaşıldı");
+          }
 
-        return { success: true };
-      }
-    );
+          return { success: true };
+        },
+      );
 
     try {
       await mockAddGuest({
@@ -182,10 +188,7 @@ describe("Meeting Guest Management", () => {
       timestamp: string;
     }> = [];
 
-    const addToHistory = (
-      action: "added" | "removed",
-      email: string
-    ) => {
+    const addToHistory = (action: "added" | "removed", email: string) => {
       guestHistory.push({
         action,
         guestEmail: email,

@@ -22,7 +22,7 @@ describe("Rate Limit Retry Logic", () => {
 
     expect(response.status).toBe(429);
     expect(
-      response.headers.get("X-Rate-Limit-Retry-After-Seconds")
+      response.headers.get("X-Rate-Limit-Retry-After-Seconds"),
     ).toBeDefined();
   });
 
@@ -35,11 +35,11 @@ describe("Rate Limit Retry Logic", () => {
         headers: {
           "X-Rate-Limit-Retry-After-Seconds": retryAfter,
         },
-      }
+      },
     );
 
     const retryHeader = response.headers.get(
-      "X-Rate-Limit-Retry-After-Seconds"
+      "X-Rate-Limit-Retry-After-Seconds",
     );
     expect(retryHeader).toBe(retryAfter);
   });
@@ -51,10 +51,9 @@ describe("Rate Limit Retry Logic", () => {
     const mockRequest = vi.fn().mockImplementation(async () => {
       attempts++;
       if (attempts < maxAttempts) {
-        return new Response(
-          JSON.stringify({ message: "Rate limited" }),
-          { status: 429 }
-        );
+        return new Response(JSON.stringify({ message: "Rate limited" }), {
+          status: 429,
+        });
       }
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
@@ -64,7 +63,7 @@ describe("Rate Limit Retry Logic", () => {
     // Simulate exponential backoff: 2^1, 2^2, 2^3 seconds
     const exponentialBackoff = async (
       fn: () => Promise<Response>,
-      maxRetries = 3
+      maxRetries = 3,
     ): Promise<Response> => {
       for (let i = 0; i < maxRetries; i++) {
         const response = await fn();
@@ -94,7 +93,7 @@ describe("Rate Limit Retry Logic", () => {
         headers: {
           "X-Rate-Limit-Retry-After-Seconds": "60",
         },
-      }
+      },
     );
 
     if (response.status === 429) {
@@ -115,8 +114,7 @@ describe("Rate Limit Retry Logic", () => {
       },
     });
 
-    const remaining =
-      response.headers.get("X-Rate-Limit-Remaining") || "0";
+    const remaining = response.headers.get("X-Rate-Limit-Remaining") || "0";
     expect(parseInt(remaining)).toBe(42);
   });
 
@@ -146,12 +144,10 @@ describe("Rate Limit Retry Logic", () => {
           headers: {
             "X-Rate-Limit-Retry-After-Seconds": retryAfter,
           },
-        }
+        },
       );
 
-      const header = response.headers.get(
-        "X-Rate-Limit-Retry-After-Seconds"
-      );
+      const header = response.headers.get("X-Rate-Limit-Retry-After-Seconds");
       expect(header).toBe(retryAfter);
       expect(parseInt(header || "0")).toBeGreaterThan(0);
     }
