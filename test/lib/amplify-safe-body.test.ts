@@ -22,8 +22,7 @@ describe("jsonFitsAmplifyWaf", () => {
       at: "00:10",
     }));
     expect(
-      new TextEncoder().encode(JSON.stringify({ segments: transcript }))
-        .length,
+      new TextEncoder().encode(JSON.stringify({ segments: transcript })).length,
     ).toBeGreaterThan(AMPLIFY_SAFE_JSON_CHARS);
     expect(jsonFitsAmplifyWaf({ segments: transcript })).toBe(false);
   });

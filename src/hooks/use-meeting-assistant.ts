@@ -547,8 +547,7 @@ export function useMeetingAssistant() {
               autoReportAttemptedRef.current[meetingId] = true;
               return;
             }
-          } catch {
-          }
+          } catch {}
         }
         await requestMeetingReport(lines, selected);
       })();
