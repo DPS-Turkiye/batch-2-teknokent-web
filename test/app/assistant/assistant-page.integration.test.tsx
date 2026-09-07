@@ -10,6 +10,7 @@ import {
   getMeetingReportApiUrl,
   getStopBotApiUrl,
   getTranscriptApiUrl,
+  TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
@@ -18,6 +19,10 @@ vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
+}));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: () => null,
 }));
 
 vi.mock("@/hooks/use-meetings", () => ({
@@ -54,9 +59,14 @@ const defaultMeetings = {
 describe("AssistantPage integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    sessionStorage.clear();
     vi.mocked(useMeetings).mockReturnValue(defaultMeetings as never);
     vi.mocked(httpClient.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
+    );
+    vi.mocked(httpClient.patch).mockResolvedValue(
+      createAxiosResponse({ id: "meeting-1" }, 200),
     );
   });
 
@@ -237,10 +247,126 @@ describe("AssistantPage integration", () => {
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       expect.anything(),
     );
+    expect(screen.getByText(/Stop bot düğmesine basın/)).toBeInTheDocument();
+  });
+
+  it("stores the stop in the meeting row so a reopened assistant stops polling", async () => {
+    const user = userEvent.setup();
+    const startedAt = new Date(Date.now() - 5 * 60_000).toISOString();
+    const liveMeeting = {
+      id: "meeting-1",
+      organizationId: "org-1",
+      scheduledAt: startedAt,
+      durationMinutes: 120,
+      agenda: "Mentorluk — Ürün roadmap",
+      meetLink: "https://meet.google.com/abc-defg-hij",
+      transcribeRequested: true,
+      botDispatchedAt: startedAt,
+      status: "SCHEDULED",
+    };
+
+    vi.mocked(useMeetings).mockReturnValue({
+      ...defaultMeetings,
+      data: [liveMeeting],
+    } as never);
+
+    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+      if (String(url).includes("assistant-share")) {
+        return createAxiosResponse(
+          { meetingId: "meeting-1", transcript: null, report: null },
+          200,
+        );
+      }
+      return createAxiosResponse({ segments: [] }, 200);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+
+    const first = render(<AssistantPage />);
+    expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await waitFor(() => {
+      expect(httpClient.patch).toHaveBeenCalledWith("/api/meetings/meeting-1", {
+        status: "COMPLETED",
+        transcriptBotDispatched: true,
+      });
+    });
+    expect(defaultMeetings.refetch).toHaveBeenCalled();
+
+    first.unmount();
+    vi.mocked(useMeetings).mockReturnValue({
+      ...defaultMeetings,
+      data: [{ ...liveMeeting, status: "COMPLETED" }],
+    } as never);
+    render(<AssistantPage />);
+
+    expect((await screen.findAllByText("Bitti")).length).toBeGreaterThan(0);
+    expect(screen.queryAllByText("Canlı")).toHaveLength(0);
     expect(
-      screen.getByText(
-        /Toplantı bitince veya bot durdurulunca transkriptten rapor/,
-      ),
+      screen.queryAllByText(/Transkripti görmek ve rapor oluşturmak için/),
+    ).toHaveLength(0);
+
+    const transcriptCalls = () =>
+      vi
+        .mocked(httpClient.get)
+        .mock.calls.filter(
+          ([url]) =>
+            String(url) === getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+        ).length;
+    const before = transcriptCalls();
+    vi.useFakeTimers();
+    vi.advanceTimersByTime(TRANSCRIPT_POLL_MS * 3);
+    vi.useRealTimers();
+
+    expect(transcriptCalls()).toBe(before);
+  });
+
+  it("warns the mentor when the stop could not be stored on the meeting", async () => {
+    const user = userEvent.setup();
+    const startedAt = new Date(Date.now() - 5 * 60_000).toISOString();
+
+    vi.mocked(useMeetings).mockReturnValue({
+      ...defaultMeetings,
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          scheduledAt: startedAt,
+          durationMinutes: 120,
+          agenda: "Mentorluk — Ürün roadmap",
+          meetLink: "https://meet.google.com/abc-defg-hij",
+          transcribeRequested: true,
+          botDispatchedAt: startedAt,
+          status: "SCHEDULED",
+        },
+      ],
+    } as never);
+
+    vi.mocked(httpClient.get).mockImplementation(async (url: string) => {
+      if (String(url).includes("assistant-share")) {
+        return createAxiosResponse(
+          { meetingId: "meeting-1", transcript: null, report: null },
+          200,
+        );
+      }
+      return createAxiosResponse({ segments: [] }, 200);
+    });
+    vi.mocked(httpClient.delete).mockResolvedValue(
+      createAxiosResponse({}, 204),
+    );
+    vi.mocked(httpClient.patch).mockResolvedValue(
+      createAxiosResponse({ message: "Meeting could not be updated." }, 502),
+    );
+
+    render(<AssistantPage />);
+    expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
+
+    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+
+    expect(
+      await screen.findByText(/sunucuda bitti olarak işaretlenemedi/),
     ).toBeInTheDocument();
   });
 

@@ -1,5 +1,7 @@
 import type { AxiosResponse } from "axios";
 
+import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
+
 export class ClientApiError extends Error {
   constructor(
     message: string,
@@ -43,15 +45,15 @@ function fallbackMessage(status: number) {
 export function requireSuccess<T>(response: AxiosResponse<T>): T {
   if (response.status >= 200 && response.status < 300) return response.data;
   const body = response.data as unknown;
-  // The backend's own message is always preferred; the fallback only covers
-  // responses that carry none.
+  const blocked = amplifyBlockedMessage(body);
   const message =
-    body &&
+    blocked ??
+    (body &&
     typeof body === "object" &&
     "message" in body &&
     typeof body.message === "string"
       ? body.message
-      : fallbackMessage(response.status);
+      : fallbackMessage(response.status));
   const code =
     body &&
     typeof body === "object" &&
