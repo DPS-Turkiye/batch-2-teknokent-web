@@ -10,7 +10,7 @@ import {
   getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
-import { httpClient } from "@/lib/http-client";
+import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 import type {
   AddBotResult,
   MeetingReport,
@@ -116,6 +116,7 @@ export async function generateMeetingReport(
       await httpClient.post<MeetingReport>(
         getMeetingReportApiUrl(platform, nativeMeetingId),
         body,
+        { timeout: UPLOAD_TIMEOUT_MS },
       ),
       "Failed to generate meeting report",
     );

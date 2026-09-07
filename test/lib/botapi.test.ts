@@ -76,6 +76,7 @@ describe("assistant server lib", () => {
         method: "POST",
         url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
         data: { model: "gpt-5.4" },
+        timeout: 120000,
       },
       { authenticated: false },
     );

@@ -30,6 +30,7 @@ vi.mock("@/hooks/use-meetings", () => ({
 }));
 
 vi.mock("@/lib/http-client", () => ({
+  UPLOAD_TIMEOUT_MS: 120_000,
   httpClient: {
     post: vi.fn(),
     get: vi.fn(),
@@ -191,6 +192,7 @@ describe("AssistantPage integration", () => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
         { segments },
+        { timeout: 120_000 },
       );
     });
 
@@ -512,6 +514,7 @@ describe("AssistantPage integration", () => {
       expect(httpClient.post).toHaveBeenCalledWith(
         getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
         { segments },
+        { timeout: 120_000 },
       );
     });
     expect(httpClient.post).not.toHaveBeenCalledWith(

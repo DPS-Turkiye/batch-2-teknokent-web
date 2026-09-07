@@ -143,6 +143,11 @@ export async function putJsonToPresignedUrl(
     body: JSON.stringify(body),
   });
   if (!response.ok) {
+    if (response.status === 403) {
+      throw new Error(
+        "S3 CORS bu origin için kapalı. Bucket'a PUT + Content-Type izni gerekir.",
+      );
+    }
     throw new Error(errorMessage);
   }
 }
@@ -159,12 +164,14 @@ export async function publishTranscriptShare(
   lines: TranscriptLine[],
 ) {
   const payload = { kind: "TRANSCRIPT" as const, transcript: lines };
-  if (jsonFitsAmplifyWaf(payload)) {
+  try {
+    const upload = await createTranscriptUpload(meetingId);
+    await putTranscriptToPresignedUrl(upload, lines);
+    return postAssistantShare(meetingId, { kind: "TRANSCRIPT_S3" });
+  } catch (error) {
+    if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
-  const upload = await createTranscriptUpload(meetingId);
-  await putTranscriptToPresignedUrl(upload, lines);
-  return postAssistantShare(meetingId, { kind: "TRANSCRIPT_S3" });
 }
 
 export async function publishReportShare(
@@ -172,10 +179,12 @@ export async function publishReportShare(
   report: MeetingReport,
 ) {
   const payload = { kind: "REPORT" as const, report };
-  if (jsonFitsAmplifyWaf(payload)) {
+  try {
+    const upload = await createReportUpload(meetingId);
+    await putJsonToPresignedUrl(upload, report, "Rapor S3'e yüklenemedi.");
+    return postAssistantShare(meetingId, { kind: "REPORT_S3" });
+  } catch (error) {
+    if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
-  const upload = await createReportUpload(meetingId);
-  await putJsonToPresignedUrl(upload, report, "Rapor S3'e yüklenemedi.");
-  return postAssistantShare(meetingId, { kind: "REPORT_S3" });
 }

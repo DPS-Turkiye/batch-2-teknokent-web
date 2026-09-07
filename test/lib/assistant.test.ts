@@ -17,6 +17,7 @@ import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
 
 vi.mock("@/lib/http-client", () => ({
+  UPLOAD_TIMEOUT_MS: 120_000,
   httpClient: {
     post: vi.fn(),
     get: vi.fn(),
@@ -154,6 +155,7 @@ describe("assistant lib", () => {
       {
         segments: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
       },
+      { timeout: 120_000 },
     );
     expect(result).toEqual(report);
   });
@@ -193,6 +195,7 @@ describe("assistant lib", () => {
     expect(httpClient.post).toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       {},
+      { timeout: 120_000 },
     );
   });
 

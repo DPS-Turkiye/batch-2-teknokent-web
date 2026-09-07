@@ -43,6 +43,7 @@ export async function generateMeetingReportBackend(
       method: "POST",
       url: `/api/assistant/bots/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}/report`,
       data: body,
+      timeout: 120000,
     },
     { authenticated: false },
   );
