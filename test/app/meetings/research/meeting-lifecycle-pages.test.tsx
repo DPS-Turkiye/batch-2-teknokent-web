@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MeetingFeedbackPage from "@/app/meetings/research/feedback/page";
 import MeetingDetailPage from "@/app/meetings/research/page";
+import MeetingPreparationPage from "@/app/meetings/research/prepare/page";
 import MeetingSummaryPage from "@/app/meetings/research/summary/page";
 import {
   useMeetingFeedback,
@@ -130,6 +131,21 @@ describe("meeting lifecycle pages", () => {
     await user.click(screen.getByText("Değerlendirmeyi gönder"));
 
     expect(submit).not.toHaveBeenCalled();
+  });
+
+  // Reported: the prepare page always said "10 saatten az kaldı" no matter how
+  // far off the meeting actually was.
+  it("computes the countdown from the meeting's scheduled time", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-09-01T13:00:00+03:00"));
+
+    render(<MeetingPreparationPage />);
+
+    expect(
+      screen.getByText("△ Toplantıya 2 saatten az kaldı"),
+    ).toBeInTheDocument();
+
+    vi.useRealTimers();
   });
 
   it("shows a failed submission instead of a success state", () => {

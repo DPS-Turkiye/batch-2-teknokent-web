@@ -23,3 +23,15 @@ export function formatFileSize(bytes: number) {
   const mb = bytes / (1024 * 1024);
   return `${mb < 0.1 ? mb.toFixed(2) : Number(mb.toFixed(1))} MB`;
 }
+
+/** "Toplantıya 3 saatten az kaldı" style countdown, computed from an ISO timestamp. */
+export function meetingCountdownLabel(iso: string, now = new Date()) {
+  const diffMs = new Date(iso).getTime() - now.getTime();
+  if (diffMs <= 0) return "Toplantı zamanı geldi";
+  const minutes = Math.ceil(diffMs / 60_000);
+  if (minutes < 60) return `Toplantıya ${minutes} dakikadan az kaldı`;
+  const hours = Math.ceil(diffMs / 3_600_000);
+  if (hours < 48) return `Toplantıya ${hours} saatten az kaldı`;
+  const days = Math.ceil(diffMs / 86_400_000);
+  return `Toplantıya ${days} günden az kaldı`;
+}

@@ -40,3 +40,16 @@ export async function uploadDocument(
     ),
   );
 }
+
+/**
+ * A brand-new signup has no account yet, so the backend 401s and that means
+ * "nothing stored" rather than an error worth surfacing.
+ */
+export async function listDocuments(
+  idToken: string,
+): Promise<StoredDocument[]> {
+  const response = await httpClient.get<StoredDocument[]>("/api/documents", {
+    headers: { Authorization: `Bearer ${idToken}` },
+  });
+  return response.status === 200 ? response.data : [];
+}

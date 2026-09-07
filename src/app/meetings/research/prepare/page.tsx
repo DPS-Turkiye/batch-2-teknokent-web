@@ -1,16 +1,19 @@
 ﻿"use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { Badge } from "@/components/common/badge";
 import { Card } from "@/components/product-view-shared";
+import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
 import { MEETING_PREPARE_CHECKLIST } from "@/lib/const";
+import { meetingCountdownLabel } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
-export default function MeetingPreparationPage() {
+function MeetingPreparationContent() {
+  const { meeting } = useMeetingLifecycle();
   const [checked, setChecked] = useState<Set<string>>(
     () => new Set([MEETING_PREPARE_CHECKLIST[0]]),
   );
@@ -31,7 +34,7 @@ export default function MeetingPreparationPage() {
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-8">
         <section className="rounded-lg border border-[#e5e7eb] bg-white p-4">
           <h2 className="text-sm font-semibold">
-            △ Toplantıya 10 saatten az kaldı
+            △ {meetingCountdownLabel(meeting.scheduledAt)}
           </h2>
           <p className="mt-2 text-xs text-[#777]">
             {MEETING_PREPARE_CHECKLIST.length - checked.size} görev
@@ -108,5 +111,19 @@ export default function MeetingPreparationPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function MeetingPreparationPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center bg-[#f7f7f8] text-sm text-[#676e78]">
+          Yükleniyor…
+        </div>
+      }
+    >
+      <MeetingPreparationContent />
+    </Suspense>
   );
 }
