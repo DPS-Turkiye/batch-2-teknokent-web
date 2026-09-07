@@ -109,13 +109,9 @@ describe("assistant lib", () => {
   });
 
   it("stopMeetingBot calls delete with generated url", async () => {
-<<<<<<< Updated upstream
     vi.mocked(httpClient.delete).mockResolvedValue(
       createAxiosResponse({}, 204),
     );
-=======
-    vi.mocked(httpClient.delete).mockResolvedValue(createAxiosResponse({}, 204));
->>>>>>> Stashed changes
 
     await stopMeetingBot("google_meet", "abc-defg-hij");
 
@@ -127,15 +123,9 @@ describe("assistant lib", () => {
   it("stopMeetingBot uses fallback message on network failures", async () => {
     vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
 
-<<<<<<< Updated upstream
     await expect(stopMeetingBot("google_meet", "abc-defg-hij")).rejects.toThrow(
       "Failed to stop bot (network error)",
     );
-=======
-    await expect(
-      stopMeetingBot("google_meet", "abc-defg-hij"),
-    ).rejects.toThrow("Failed to stop bot (network error)");
->>>>>>> Stashed changes
   });
 
   it("generateMeetingReport posts empty payload and returns report", async () => {
@@ -151,7 +141,6 @@ describe("assistant lib", () => {
       nextSteps: ["Backlog netlestir"],
       model: "gpt-5.4",
     };
-<<<<<<< Updated upstream
     vi.mocked(httpClient.post).mockResolvedValue(
       createAxiosResponse(report, 200),
     );
@@ -200,20 +189,11 @@ describe("assistant lib", () => {
     }));
 
     await generateMeetingReport("google_meet", "abc-defg-hij", segments);
-=======
-    vi.mocked(httpClient.post).mockResolvedValue(createAxiosResponse(report, 200));
-
-    const result = await generateMeetingReport("google_meet", "abc-defg-hij");
->>>>>>> Stashed changes
 
     expect(httpClient.post).toHaveBeenCalledWith(
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       {},
     );
-<<<<<<< Updated upstream
-=======
-    expect(result).toEqual(report);
->>>>>>> Stashed changes
   });
 
   it("generateMeetingReport prefers provider detail message", async () => {
@@ -222,13 +202,9 @@ describe("assistant lib", () => {
     );
 
     await expect(
-<<<<<<< Updated upstream
       generateMeetingReport("google_meet", "abc-defg-hij", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
-=======
-      generateMeetingReport("google_meet", "abc-defg-hij"),
->>>>>>> Stashed changes
     ).rejects.toThrow("invalid api key");
   });
 
@@ -236,13 +212,9 @@ describe("assistant lib", () => {
     vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
 
     await expect(
-<<<<<<< Updated upstream
       generateMeetingReport("google_meet", "abc-defg-hij", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
-=======
-      generateMeetingReport("google_meet", "abc-defg-hij"),
->>>>>>> Stashed changes
     ).rejects.toThrow("Failed to generate meeting report (502)");
   });
 });
