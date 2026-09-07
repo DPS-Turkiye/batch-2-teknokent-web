@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 
-import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
+import { listStoredDocuments } from "@/lib/api/documents";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
@@ -13,6 +13,12 @@ function bearerToken(request: NextRequest) {
     : null;
 }
 
+/**
+ * Read-only. The upload that used to sit beside this now goes straight from the
+ * browser to the backend, because this app's own edge blocks request bodies over
+ * ~8KB. Listing is small JSON, so it still proxies — and a brand-new signup has
+ * no session cookie yet, hence the bearer path alongside it.
+ */
 export async function GET(request: NextRequest) {
   try {
     const idToken = bearerToken(request);
@@ -25,39 +31,6 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Documents could not be loaded.",
-    });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const idToken = bearerToken(request);
-    const form = await request.formData();
-    const file = form.get("file");
-    const kind = String(form.get("kind") ?? "").trim();
-    if (!(file instanceof Blob) || !kind) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: "A file and document kind are required.",
-        },
-        { status: 400 },
-      );
-    }
-
-    if (idToken) {
-      return backendResponse(
-        await uploadStoredDocument({ file: file as File, kind, idToken }),
-      );
-    }
-
-    const { userId } = await getSessionIds();
-    return backendResponse(
-      await uploadStoredDocument({ file: file as File, kind, userId }),
-    );
-  } catch (error) {
-    return apiErrorResponse(error, {
-      message: "The file could not be stored.",
     });
   }
 }

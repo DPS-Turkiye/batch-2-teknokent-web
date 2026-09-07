@@ -5,6 +5,7 @@ import {
   DEFAULT_BACKEND_URL,
   getBackendHealthUrl,
   getBackendUrl,
+  getPublicBackendUrl,
 } from "@/lib/const";
 import {
   fetchBackendHealth,
@@ -190,6 +191,11 @@ describe("health lib", () => {
 
     it("falls back to localhost defaults when env is missing", () => {
       expect(BACKEND_URL).toBe(DEFAULT_BACKEND_URL);
+    });
+
+    it("resolves the browser-visible backend URL to the same host", () => {
+      expect(getPublicBackendUrl()).not.toMatch(/\/$/);
+      expect(getPublicBackendUrl()).toBe(getBackendUrl());
     });
   });
 });
