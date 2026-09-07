@@ -44,7 +44,7 @@ const startup: StartupContext = {
   confirmedProfile: false,
 };
 
-describe("MentorRequestFlow team members", () => {
+describe("MentorRequestFlow — Bilgiler step", () => {
   beforeEach(() => {
     vi.mocked(useOrganizationMembers).mockReturnValue({
       data: [
@@ -78,9 +78,29 @@ describe("MentorRequestFlow team members", () => {
     ).toBeInTheDocument();
     expect(within(teamSection!).getByText("Ali Veli")).toBeInTheDocument();
     expect(within(teamSection!).getByText("CTO")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Düzenle" })).toHaveAttribute(
-      "href",
-      "/team",
-    );
+    // Scoped to the section: this step carries two Düzenle links now.
+    expect(
+      within(teamSection!).getByRole("link", { name: "Düzenle" }),
+    ).toHaveAttribute("href", "/team");
+  });
+
+  // Reported: the two Düzenle buttons on the info-review step had no href or
+  // handler, so a mentee could not fix outdated startup/team info mid-request.
+  // Both open in a new tab, because this flow holds its in-progress state in
+  // local component state — navigating away in the same tab would discard it.
+  it("links Startup Bilgileri's Düzenle to the profile page, opened in a new tab", () => {
+    renderWithQueryClient(<MentorRequestFlow mentors={[]} startup={startup} />);
+
+    const links = screen.getAllByRole("link", { name: "Düzenle" });
+    expect(links[0]).toHaveAttribute("href", "/profile");
+    expect(links[0]).toHaveAttribute("target", "_blank");
+  });
+
+  it("links Ekip Üyeleri's Düzenle to the team page, opened in a new tab", () => {
+    renderWithQueryClient(<MentorRequestFlow mentors={[]} startup={startup} />);
+
+    const links = screen.getAllByRole("link", { name: "Düzenle" });
+    expect(links[1]).toHaveAttribute("href", "/team");
+    expect(links[1]).toHaveAttribute("target", "_blank");
   });
 });

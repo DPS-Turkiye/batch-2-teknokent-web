@@ -1,17 +1,37 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { uploadStoredDocument } from "@/lib/api/documents";
+import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 const BEARER_PREFIX = "Bearer ";
 
+function bearerToken(request: NextRequest) {
+  const header = request.headers.get("authorization");
+  return header?.startsWith(BEARER_PREFIX)
+    ? header.slice(BEARER_PREFIX.length).trim()
+    : null;
+}
+
+export async function GET(request: NextRequest) {
+  try {
+    const idToken = bearerToken(request);
+    if (idToken) {
+      return backendResponse(await listStoredDocuments({ idToken }));
+    }
+
+    const { userId } = await getSessionIds();
+    return backendResponse(await listStoredDocuments({ userId }));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Documents could not be loaded.",
+    });
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const header = request.headers.get("authorization");
-    const idToken = header?.startsWith(BEARER_PREFIX)
-      ? header.slice(BEARER_PREFIX.length).trim()
-      : null;
+    const idToken = bearerToken(request);
     const form = await request.formData();
     const file = form.get("file");
     const kind = String(form.get("kind") ?? "").trim();
