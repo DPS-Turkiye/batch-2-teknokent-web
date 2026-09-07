@@ -1,13 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CALENDAR_FILTER_LABELS,
+  CalendarFilter,
   DAY_SHORT_LABELS,
   MONTH_LABELS,
   WEEKDAY_SHORT_LABELS,
   hourOf,
   isSameDay,
+  monthGridCells,
+  monthLabel,
+  startOfWeek,
   timeLabel,
   upcomingHourColumns,
+  weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
 
@@ -61,5 +67,42 @@ describe("calendar helpers", () => {
     expect(columns.length).toBe(5);
     expect(columns[0]?.slots.some((slot) => slot.getHours() === 13)).toBe(true);
     expect(columns[1]?.slots[0]?.getHours()).toBe(9);
+  });
+});
+
+describe("shared calendar filter", () => {
+  it("has a label for every filter value", () => {
+    for (const value of Object.values(CalendarFilter)) {
+      expect(CALENDAR_FILTER_LABELS[value]).toBeTruthy();
+    }
+  });
+});
+
+describe("week and month grid helpers", () => {
+  it("starts the week on Monday regardless of the given day", () => {
+    const wednesday = new Date(2026, 8, 2); // 2026-09-02 is a Wednesday
+    const start = startOfWeek(wednesday);
+    expect(start.getDay()).toBe(1);
+    expect(start.getDate()).toBe(31);
+  });
+
+  it("generates the requested number of consecutive days", () => {
+    const start = new Date(2026, 7, 31);
+    const days = weekDays(start, 7);
+    expect(days).toHaveLength(7);
+    expect(days[0].getDate()).toBe(31);
+    expect(days[6].getDate()).toBe(6);
+  });
+
+  it("pads the month grid so the first cell is always a Monday", () => {
+    // September 2026 starts on a Tuesday, so one leading cell is expected.
+    const cells = monthGridCells(new Date(2026, 8, 15));
+    expect(cells[0].date.getDay()).toBe(1);
+    expect(cells[0].inCurrentMonth).toBe(false);
+    expect(cells.length % 7).toBe(0);
+  });
+
+  it("labels the month in Turkish", () => {
+    expect(monthLabel(new Date(2026, 8, 15))).toBe("Eylül 2026");
   });
 });

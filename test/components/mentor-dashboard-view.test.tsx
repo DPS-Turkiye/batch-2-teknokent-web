@@ -192,15 +192,13 @@ describe("MentorDashboardView", () => {
     );
   });
 
-  it("shows the demo notifications section for Duyurular to link to", () => {
+  it("shows an empty notifications section when there is nothing to display", () => {
     mockRequests([]);
 
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getByText("Bildirimler")).toBeInTheDocument();
-    expect(
-      screen.getByText("Can Demir talebinizi kabul etti"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Henüz bir bildiriminiz yok.")).toBeInTheDocument();
   });
 
   it("links to the mentor profile page", () => {

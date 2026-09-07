@@ -54,7 +54,7 @@ export default function DashboardPage() {
 
         {isFallback ? (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-            Live data could not be loaded; showing demo data.
+            Veriler yüklenemedi. Daha sonra yeniden dene.
           </p>
         ) : null}
 
@@ -308,17 +308,25 @@ export default function DashboardPage() {
             >
               <h2 className="text-sm font-semibold">Bildirimler</h2>
               <div className="mt-3 divide-y divide-[#eef0f2]">
-                {notifications.slice(0, 3).map((notification) => (
-                  <div key={notification.title} className="flex gap-3 py-3">
-                    <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#e86f22]" />
-                    <div>
-                      <p className="text-xs leading-5">{notification.title}</p>
-                      <p className="mt-0.5 text-[10px] text-[#858c96]">
-                        {notification.time}
-                      </p>
+                {notifications.length ? (
+                  notifications.slice(0, 3).map((notification) => (
+                    <div key={notification.title} className="flex gap-3 py-3">
+                      <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#e86f22]" />
+                      <div>
+                        <p className="text-xs leading-5">
+                          {notification.title}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-[#858c96]">
+                          {notification.time}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <p className="py-3 text-center text-xs text-[#858c96]">
+                    Henüz bildiriminiz yok.
+                  </p>
+                )}
               </div>
             </section>
           </aside>

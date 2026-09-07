@@ -1,5 +1,5 @@
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 
 export type StoredDocument = {
   id: string;
@@ -21,11 +21,10 @@ export async function uploadDocument(
   data.set("file", file);
   data.set("kind", kind);
   return requireSuccess(
-    await httpClient.post<StoredDocument>(
-      "/api/documents",
-      data,
-      idToken ? bearer(idToken) : undefined,
-    ),
+    await httpClient.post<StoredDocument>("/api/documents", data, {
+      ...(idToken ? bearer(idToken) : {}),
+      timeout: UPLOAD_TIMEOUT_MS,
+    }),
   );
 }
 

@@ -364,6 +364,38 @@ describe("Signup wizard", () => {
     );
   });
 
+  // Reported: the page sits on "Gönderiliyor…" while a draft can still be saved,
+  // so a second write races the submission already in flight.
+  it("disables the draft and back actions while submitting", async () => {
+    let settle: ((value: unknown) => void) | undefined;
+    vi.mocked(registerFounder).mockReturnValue(
+      new Promise((resolve) => {
+        settle = resolve;
+      }) as ReturnType<typeof registerFounder>,
+    );
+
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await fillStartupStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    const draft = await screen.findByRole("button", {
+      name: "Taslak olarak kaydet",
+    });
+    await waitFor(() => expect(draft).toBeDisabled());
+    expect(screen.getByRole("button", { name: "Geri" })).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Gönderiliyor…" }),
+    ).toBeDisabled();
+
+    settle?.({});
+  });
+
   it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);

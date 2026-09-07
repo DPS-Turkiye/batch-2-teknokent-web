@@ -1,5 +1,17 @@
 /** Shared Turkish calendar labels and date helpers used by the calendar views. */
 
+export enum CalendarFilter {
+  All = "all",
+  Mentorship = "mentorship",
+  Program = "program",
+}
+
+export const CALENDAR_FILTER_LABELS: Record<CalendarFilter, string> = {
+  [CalendarFilter.All]: "Tümü",
+  [CalendarFilter.Mentorship]: "Mentorluk",
+  [CalendarFilter.Program]: "Program",
+};
+
 export const DAY_SHORT_LABELS = [
   "Pzt",
   "Sal",
@@ -46,6 +58,61 @@ export function isSameDay(iso: string, day: Date) {
 /** "31–4 Eylül" — the month comes from the last day so a spanning week reads correctly. */
 export function weekRangeLabel(start: Date, end: Date) {
   return `${start.getDate()}–${end.getDate()} ${MONTH_LABELS[end.getMonth()]}`;
+}
+
+/** The mentee grid runs 09:00–21:00 and Monday–Sunday, per the design. */
+export const MENTEE_CALENDAR_HOURS = Array.from(
+  { length: 13 },
+  (_, i) => 9 + i,
+);
+
+export function startOfWeek(date: Date) {
+  const copy = new Date(date);
+  // getDay() is Sunday-based; the grid starts on Monday.
+  const offset = (copy.getDay() + 6) % 7;
+  copy.setDate(copy.getDate() - offset);
+  copy.setHours(0, 0, 0, 0);
+  return copy;
+}
+
+export function weekDays(weekStart: Date, count: number) {
+  return Array.from({ length: count }, (_, index) => {
+    const day = new Date(weekStart);
+    day.setDate(day.getDate() + index);
+    return day;
+  });
+}
+
+export type MonthCell = { date: Date; inCurrentMonth: boolean };
+
+/** A 7-wide grid of the month's days, padded with the trailing days of the
+ * previous month so the first cell always falls on a Monday. */
+export function monthGridCells(monthDate: Date): MonthCell[] {
+  const year = monthDate.getFullYear();
+  const month = monthDate.getMonth();
+  const firstOfMonth = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leadingBlanks = (firstOfMonth.getDay() + 6) % 7;
+
+  const cells: MonthCell[] = [];
+  for (let i = leadingBlanks; i > 0; i -= 1) {
+    const date = new Date(year, month, 1 - i);
+    cells.push({ date, inCurrentMonth: false });
+  }
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    cells.push({ date: new Date(year, month, day), inCurrentMonth: true });
+  }
+  while (cells.length % 7 !== 0) {
+    const last = cells[cells.length - 1].date;
+    const date = new Date(last);
+    date.setDate(date.getDate() + 1);
+    cells.push({ date, inCurrentMonth: false });
+  }
+  return cells;
+}
+
+export function monthLabel(date: Date) {
+  return `${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`;
 }
 
 export const MEETING_PICKER_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
