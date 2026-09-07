@@ -4,8 +4,6 @@ import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
-import { Badge } from "@/components/common/badge";
-import { Avatar } from "@/components/common/avatar";
 import { AppArea } from "@/types/app-area";
 import { MEETING_SCHEDULE_DAYS, MEETING_SCHEDULE_FILTERS } from "@/lib/const";
 
@@ -19,12 +17,7 @@ export default function ScheduleMeetingPage() {
     >
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-8">
         <section className="flex items-center gap-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
-          <Avatar initials="DK" size="sm" />
-          <span className="text-sm">Dr. Kemal Arslan</span>
-          <span>·</span>
-          <span className="text-sm">Kullanıcı testi</span>
-          <span>·</span>
-          <Badge>Online</Badge>
+          <span className="text-sm">Mentor ile ortak müsait zaman seçin.</span>
         </section>
         <div className="mt-5 flex flex-wrap gap-2">
           {MEETING_SCHEDULE_FILTERS.map((label, index) => (

@@ -15,9 +15,8 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import type { Meeting, MeetingStatusMeta } from "@/types/assistant";
-import { MeetingPlatform, MeetingStatus } from "@/types/assistant";
-import type { MentorRequestMentor } from "@/types/mentor-request";
+import type { MeetingStatusMeta } from "@/types/assistant";
+import { MeetingStatus } from "@/types/assistant";
 import { MentorRequestStep } from "@/types/mentor-request";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
@@ -67,6 +66,7 @@ export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
 
 export const TRANSCRIPT_BOT_LEAD_MS = 60_000;
 export const TRANSCRIPT_BOT_MAX_TIMER_MS = 86_400_000;
+export const TRANSCRIPT_POLL_MS = 5_000;
 
 export const BOT_API_PATH = "/api/botapi";
 export const TRANSCRIPT_API_PATH = "/api/transcriptapi";
@@ -129,6 +129,16 @@ export function getMeetingTodoApiUrl(
 
 export function getAssistantShareApiUrl(meetingId: string): string {
   return `/api/meetings/${encodeURIComponent(meetingId)}/assistant-share`;
+}
+
+export function getAssistantShareTranscriptUploadApiUrl(
+  meetingId: string,
+): string {
+  return `${getAssistantShareApiUrl(meetingId)}/transcript-upload`;
+}
+
+export function getAssistantShareReportUploadApiUrl(meetingId: string): string {
+  return `${getAssistantShareApiUrl(meetingId)}/report-upload`;
 }
 
 export function getMeetingRoomTopic(meetingId: string): string {
@@ -300,20 +310,7 @@ export const LANDING_FAQS: LandingFaq[] = [
   },
 ];
 
-export const DASHBOARD_NOTIFICATIONS: DashboardNotification[] = [
-  {
-    title: "Dr. Kemal Arslan toplantı notu ekledi",
-    time: "2s önce · Mentordan",
-  },
-  {
-    title: "Program: Demo Day başvuruları açıldı",
-    time: "1g önce · Program",
-  },
-  {
-    title: "Can Demir talebinizi kabul etti",
-    time: "2g önce · Mentordan",
-  },
-];
+export const DASHBOARD_NOTIFICATIONS: DashboardNotification[] = [];
 
 export const DASHBOARD_REQUEST_STATUS_LABELS = {
   [MentorshipRequestStatus.Accepted]: "Aktif",
@@ -360,51 +357,9 @@ export const MENTOR_DASHBOARD_FILTER_OPTIONS = [
 export const CREATE_MEETING_NO_STARTUP_MESSAGE =
   "Toplantı oluşturmak için kabul edilmiş bir mentorluk veya katıldığınız programdaki bir startup gerekir.";
 
-export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [
-  {
-    id: "demo-upcoming-meeting",
-    organizationId: "demo",
-    organizationName: "Demo Startup",
-    mentorId: "demo-mentor",
-    mentorName: "Ahmet Yılmaz",
-    scheduledAt: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
-    durationMinutes: 60,
-    agenda: "Kullanıcı Araştırması & Test Metodolojisi",
-    meetLink: "https://meet.google.com/demo-meet-link",
-    status: "SCHEDULED",
-  },
-];
+export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [];
 
-export const DASHBOARD_FALLBACK_REQUESTS: MentorshipRequest[] = [
-  {
-    id: "demo-pending-request",
-    requesterId: "demo",
-    organizationId: "demo",
-    mentorId: "demo-mentor-1",
-    mentorName: "Ahmet Yılmaz",
-    supportArea: "Kullanıcı araştırması",
-    status: MentorshipRequestStatus.Pending,
-    mentorMessage: null,
-    rejectionReason: null,
-    createdAt: "2026-08-09T14:32:00+03:00",
-    messages: [],
-    recommendationSnapshot: null,
-  },
-  {
-    id: "demo-accepted-request",
-    requesterId: "demo",
-    organizationId: "demo",
-    mentorId: "demo-mentor-2",
-    mentorName: "Can Demir",
-    supportArea: "İş modeli",
-    status: MentorshipRequestStatus.Accepted,
-    mentorMessage: null,
-    rejectionReason: null,
-    createdAt: "2026-08-01T11:00:00+03:00",
-    messages: [],
-    recommendationSnapshot: null,
-  },
-];
+export const DASHBOARD_FALLBACK_REQUESTS: MentorshipRequest[] = [];
 
 export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
   {
@@ -523,59 +478,6 @@ export const MENTOR_REQUEST_URGENCY_OPTIONS = [
   "Acil değil",
 ] as const;
 
-export const MENTOR_REQUEST_MENTORS: MentorRequestMentor[] = [
-  {
-    initials: "DK",
-    name: "Dr. Kemal Arslan",
-    role: "Ürün & Araştırma Direktörü · Trendyol",
-    availability: "Bu hafta müsait",
-    tags: ["Kullanıcı araştırması", "MVP testi", "UX stratejisi"],
-    meta: ["Online", "Mesajlaşma açık", "Yapılandırılmış & Uygulamalı"],
-    reasons: [
-      "MVP seviyesindeki girişimlerle çalışıyor",
-      "Kullanıcı testi süreçlerinde deneyimli",
-      "Bu hafta müsait",
-    ],
-  },
-  {
-    initials: "SÖ",
-    name: "Selin Öztürk",
-    role: "Kurucu · HealthTech Ventures",
-    availability: "Bu hafta müsait",
-    tags: ["B2B SaaS", "Sağlık teknolojileri", "Ürün-pazar uyumu"],
-    meta: ["Online / Yüz yüze", "Mesajlaşma açık", "Esnek & Birlikte keşfeden"],
-    reasons: [
-      "Sağlık teknolojileri deneyimi bulunuyor",
-      "B2B SaaS konusunda uzmanlaşmış",
-      "Kullanıcı doğrulama süreçlerinde aktif",
-    ],
-  },
-  {
-    initials: "MÇ",
-    name: "Murat Çelik",
-    role: "Ürün Müdürü · Peak Games",
-    availability: "Gelecek hafta müsait",
-    tags: ["Ürün analitik", "Kullanıcı segmentasyonu", "Test metodolojisi"],
-    meta: ["Online", "Yalnızca toplantı", "Yönlendirici & Stratejik"],
-    reasons: [
-      "Test metodolojisi konusunda uzmanlaşmış",
-      "Büyük kullanıcı kitleleriyle çalışma deneyimi",
-    ],
-  },
-];
-
-export const MENTOR_REQUEST_TEAM_MEMBERS = [
-  ["AK", "Ayşe Kaya", "CEO"],
-  ["BŞ", "Burak Şahin", "CTO"],
-  ["ED", "Ece Doğan", "Tasarım"],
-] as const;
-
-export const MENTOR_COMPARE_COLUMNS = [
-  ["DK", "Dr. Kemal Arslan", "En uygun"],
-  ["SÖ", "Selin Öztürk", ""],
-  ["MÇ", "Murat Çelik", ""],
-] as const;
-
 export const MENTOR_REQUEST_STATUS_OPTIONS = [
   ["waiting", "Yanıt Bekleniyor"],
   ["question", "Ek Bilgi İstendi"],
@@ -644,23 +546,6 @@ export const ACCEPTED_CALENDAR_DAYS = [
   ["Cum 16", "10:00"],
 ] as const;
 
-export const MENTOR_COMPARISON_ROWS = [
-  ["İhtiyaç uyumu", "Çok yüksek", "Yüksek", "Orta"],
-  [
-    "İlgili uzmanlık",
-    "Kullanıcı testi, UX",
-    "B2B SaaS, Sağlık",
-    "Analitik, Segmentasyon",
-  ],
-  ["Startup seviyesi", "Seed & MVP", "MVP & Büyüme", "Pre-seed & Seed"],
-  ["Sektör deneyimi", "E-ticaret, SaaS", "HealthTech, SaaS", "Oyun, Tüketici"],
-  ["Mentorluk tarzı", "Yapılandırılmış", "Esnek", "Yönlendirici"],
-  ["Görüşme biçimi", "Online", "Online / YY", "Online"],
-  ["Mesajlaşma", "✓ Açık", "✓ Açık", "× Kapalı"],
-  ["Müsaitlik", "Bu hafta", "Bu hafta", "Gelecek hafta"],
-  ["Yanıt süresi", "~24 saat", "~48 saat", "~24 saat"],
-];
-
 export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
   [MeetingStatus.Scheduled]: {
     label: "Planlandı",
@@ -687,53 +572,4 @@ export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
     color: "var(--ma-danger)",
     bg: "var(--ma-dangerbg)",
   },
-};
-
-export const ASSISTANT_INITIAL_MEETINGS: Meeting[] = [
-  {
-    id: "m1",
-    title: "Mentorluk — Ürün roadmap",
-    platform: MeetingPlatform.GoogleMeet,
-    platformKey: "google_meet",
-    nativeMeetingId: "",
-    status: MeetingStatus.Active,
-    when: "Şimdi",
-    participants: ["Ayşe Kaya", "Dr. Kemal Arslan"],
-  },
-  {
-    id: "m2",
-    title: "Sprint review",
-    platform: MeetingPlatform.Zoom,
-    platformKey: "google_meet",
-    nativeMeetingId: "",
-    status: MeetingStatus.Scheduled,
-    when: "Bugün 15:00",
-    participants: ["Ayşe Kaya", "Takım"],
-  },
-  {
-    id: "m3",
-    title: "Yatırımcı hazırlık",
-    platform: MeetingPlatform.Teams,
-    platformKey: "google_meet",
-    nativeMeetingId: "",
-    status: MeetingStatus.Completed,
-    when: "Dün",
-    participants: ["Ayşe Kaya", "Mentor"],
-  },
-];
-
-export const ASSISTANT_SAMPLE_NOTES: Record<string, string[]> = {
-  m1: [
-    "Kullanıcı testi cohort: 8 kişi",
-    "Odak metrikler: activation, time-to-value",
-    "Aksiyon: haftaya aksiyon listesi paylaşılacak",
-  ],
-  m2: ["Toplantı henüz başlamadı."],
-  m3: ["Traction slaytı güncellenecek", "MRR + churn grafikleri eklenecek"],
-};
-
-export const ASSISTANT_SAMPLE_PAD: Record<string, string> = {
-  m1: "• Cohort hedefi: 8 kişi\n• Activation + TTV metrikleri\n• Haftaya aksiyon listesi paylaş",
-  m2: "",
-  m3: "• Traction slaytı güçlendirilecek\n• MRR + churn grafikleri",
 };

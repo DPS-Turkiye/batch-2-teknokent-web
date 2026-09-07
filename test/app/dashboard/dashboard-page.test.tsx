@@ -110,7 +110,7 @@ describe("Mentee dashboard", () => {
   });
 
   it("warns only when the queries actually failed, never while loading", () => {
-    const warning = "Live data could not be loaded; showing demo data.";
+    const warning = "Veriler yüklenemedi. Daha sonra yeniden dene.";
 
     mockUseDashboardData.mockReturnValue(dashboardData({ isLoading: true }));
     const { unmount } = render(<DashboardPage />);
