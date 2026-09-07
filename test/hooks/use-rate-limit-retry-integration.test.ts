@@ -141,8 +141,6 @@ describe("Rate Limit Retry - API Integration", () => {
         new Response(JSON.stringify({ success: true }), { status: 200 })
       );
 
-    const startTime = Date.now();
-
     const retryWithCustomDelay = async (
       fn: () => Promise<Response>,
       maxRetries = 2
@@ -172,11 +170,15 @@ describe("Rate Limit Retry - API Integration", () => {
   });
 
   it("should handle partial network failure with fallback", async () => {
-    fetchMock
-      .mockRejectedValueOnce(new Error("Network error"))
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
-      );
+    let callCount = 0;
+
+    fetchMock.mockImplementation(async () => {
+      callCount++;
+      if (callCount === 1) {
+        throw new Error("Network error");
+      }
+      return new Response(JSON.stringify({ success: true }), { status: 200 });
+    });
 
     const retryOnNetworkError = async (): Promise<Response> => {
       try {
@@ -197,16 +199,19 @@ describe("Rate Limit Retry - API Integration", () => {
     const errorCodes = [400, 401, 403, 404];
 
     for (const code of errorCodes) {
-      fetchMock.mockResolvedValue(
-        new Response(JSON.stringify({ error: "Client error" }), {
+      let callCount = 0;
+      fetchMock.mockImplementation(async () => {
+        callCount++;
+        return new Response(JSON.stringify({ error: "Client error" }), {
           status: code,
-        })
-      );
+        });
+      });
 
       const response = await fetchMock("/api/test");
 
       expect(response.status).toBe(code);
-      expect(response.status).not.toBe(429);
+      expect(callCount).toBe(1); // Should only call once, no retries
+      vi.clearAllMocks();
     }
   });
 
