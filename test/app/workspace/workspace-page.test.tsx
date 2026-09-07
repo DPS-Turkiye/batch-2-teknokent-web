@@ -1,15 +1,14 @@
 import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import WorkspacePage from "@/app/workspace/page";
 import { UserRole, type AppSession } from "@/interfaces/session";
 
-const push = vi.fn();
+const replace = vi.fn();
 const mockuseAppSession = vi.fn<() => AppSession | null>();
 
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push }),
+  useRouter: () => ({ replace, push: vi.fn() }),
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -54,84 +53,62 @@ function adminSession(): AppSession {
   };
 }
 
+function coordinatorSession(): AppSession {
+  return {
+    userId: "coordinator-1",
+    email: "coordinator@teknokent.demo",
+    fullName: "Demo Koordinatör",
+    jobTitle: "Koordinatör",
+    role: UserRole.Coordinator,
+  };
+}
+
 describe("WorkspacePage routing", () => {
-  it("sends a mentor to /mentor-dashboard when picking a workspace", async () => {
-    mockuseAppSession.mockReturnValue(mentorSession());
-    const user = userEvent.setup();
-
-    render(<WorkspacePage />);
-    await user.click(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
-    );
-
-    expect(push).toHaveBeenCalledWith("/mentor-dashboard");
+  beforeEach(() => {
+    replace.mockReset();
+    mockuseAppSession.mockReset();
   });
 
-  it("sends an admin to /admin when picking a workspace", async () => {
+  // Reported: the workspace picker appeared even though there is only ever one
+  // workspace to pick, so it asked for a confirmation on every single login.
+  it("forwards a mentor to /mentor-dashboard without asking", () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+
+    render(<WorkspacePage />);
+
+    expect(replace).toHaveBeenCalledWith("/mentor-dashboard");
+  });
+
+  it("forwards a mentee to /dashboard without asking", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+
+    render(<WorkspacePage />);
+
+    expect(replace).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("forwards an admin to /admin without asking", () => {
     mockuseAppSession.mockReturnValue(adminSession());
-    const user = userEvent.setup();
 
     render(<WorkspacePage />);
-    await user.click(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
-    );
 
-    expect(push).toHaveBeenCalledWith("/admin");
+    expect(replace).toHaveBeenCalledWith("/admin");
   });
 
-  it("sends a coordinator to /programs when picking a workspace", async () => {
-    mockuseAppSession.mockReturnValue({
-      userId: "coord-1",
-      email: "coordinator@teknokent.demo",
-      fullName: "Demo Coordinator",
-      jobTitle: "Koordinatör",
-      role: UserRole.Coordinator,
-    });
-    const user = userEvent.setup();
+  it("forwards a coordinator to /programs without asking", () => {
+    mockuseAppSession.mockReturnValue(coordinatorSession());
 
     render(<WorkspacePage />);
-    await user.click(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
-    );
 
-    expect(push).toHaveBeenCalledWith("/programs");
+    expect(replace).toHaveBeenCalledWith("/programs");
   });
 
-  it("sends a mentee to /dashboard when picking a workspace", async () => {
-    mockuseAppSession.mockReturnValue(menteeSession());
-    const user = userEvent.setup();
-
-    render(<WorkspacePage />);
-    await user.click(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" })[0],
-    );
-
-    expect(push).toHaveBeenCalledWith("/dashboard");
-  });
-
-  it("shows exactly one card matching the real mentor session, not a hardcoded list", () => {
-    mockuseAppSession.mockReturnValue(mentorSession());
+  it("waits for the session rather than guessing a destination", () => {
+    mockuseAppSession.mockReturnValue(null);
 
     render(<WorkspacePage />);
 
-    expect(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" }),
-    ).toHaveLength(1);
-    expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
-    expect(screen.getByText("Mentor")).toBeInTheDocument();
-    expect(screen.queryByText("METUStars 2026")).not.toBeInTheDocument();
-  });
-
-  it("shows exactly one card matching the real mentee session, not a hardcoded list", () => {
-    mockuseAppSession.mockReturnValue(menteeSession());
-
-    render(<WorkspacePage />);
-
-    expect(
-      screen.getAllByRole("button", { name: "Çalışma alanına geç" }),
-    ).toHaveLength(1);
-    expect(screen.getByText("NovaMed AI")).toBeInTheDocument();
-    expect(screen.getByText("Girişim Ekibi")).toBeInTheDocument();
-    expect(screen.queryByText("Eğitmen")).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.getByText(/Çalışma alanınız açılıyor/)).toBeInTheDocument();
   });
 });

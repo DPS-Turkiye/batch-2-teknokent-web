@@ -13,7 +13,7 @@ function ActionLinks() {
         Giriş Yap
       </Link>
       <Link
-        href="/login"
+        href="/signup"
         className="border border-zinc-400 px-4 py-2 text-center text-xs font-medium transition-colors hover:bg-zinc-100"
       >
         Kayıt Ol
