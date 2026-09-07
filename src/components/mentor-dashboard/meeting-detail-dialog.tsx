@@ -4,6 +4,7 @@ import { Video, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
+import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
@@ -259,6 +260,10 @@ export function MeetingDetailDialog({
               Bu toplantı için henüz bir görüşme bağlantısı yok.
             </p>
           )}
+        </div>
+
+        <div className="mt-4">
+          <SyncMeetingActions meeting={meeting} />
         </div>
 
         {meeting.notes ? (
