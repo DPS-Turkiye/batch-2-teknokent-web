@@ -155,11 +155,19 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
               </div>
 
               <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
-                <SecondaryButton onClick={wizard.goBack} disabled={isFirstStep}>
+                <SecondaryButton
+                  onClick={wizard.goBack}
+                  disabled={isFirstStep || wizard.submitting}
+                >
                   Geri
                 </SecondaryButton>
                 <div className="flex flex-wrap items-center gap-3">
-                  <SecondaryButton onClick={wizard.saveDraft}>
+                  {/* Saving a draft or stepping back mid-submit races the
+                      submission already in flight. */}
+                  <SecondaryButton
+                    onClick={wizard.saveDraft}
+                    disabled={wizard.submitting}
+                  >
                     Taslak olarak kaydet
                   </SecondaryButton>
                   <PrimaryButton

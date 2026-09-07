@@ -4,7 +4,7 @@ import type {
   ProfileType,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
-import { httpClient } from "@/lib/http-client";
+import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 
 export async function getLatestProfileAnalysis(appUserId?: string) {
   const query = appUserId ? `?appUserId=${encodeURIComponent(appUserId)}` : "";
@@ -27,7 +27,9 @@ export async function uploadProfileAnalysis(input: {
   data.set("ocrMode", input.ocrMode);
   if (input.appUserId) data.set("appUserId", input.appUserId);
   return requireSuccess(
-    await httpClient.post<ProfileAnalysis>("/api/profile-analysis", data),
+    await httpClient.post<ProfileAnalysis>("/api/profile-analysis", data, {
+      timeout: UPLOAD_TIMEOUT_MS,
+    }),
   );
 }
 
@@ -76,6 +78,7 @@ export async function parseCv(file: File) {
     await httpClient.post<ParsedCvProfile>(
       "/api/profile-analysis/preview",
       data,
+      { timeout: UPLOAD_TIMEOUT_MS },
     ),
   );
 }
