@@ -7,7 +7,6 @@ import { getSessionIds } from "@/lib/session";
 
 vi.mock("@/lib/api/profile-analysis", () => ({
   fetchLatestProfileAnalysis: vi.fn(),
-  createProfileAnalysis: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({

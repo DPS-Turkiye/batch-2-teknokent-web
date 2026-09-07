@@ -4,7 +4,26 @@ import type {
   ProfileType,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
+import { getPublicBackendUrl } from "@/lib/const";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
+
+/**
+ * Both parsing calls carry a PDF, and the Amplify-hosted frontend's own edge
+ * blocks any request body over ~8KB on its proxy routes, so they go straight to
+ * the backend. Unlike a plain document this cannot be sent to S3 instead: the
+ * parser reads the bytes in-request, so the backend has to receive them itself.
+ */
+async function uploadConfig() {
+  const token = await currentIdToken();
+  if (!token) {
+    throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+  }
+  return {
+    headers: { Authorization: `Bearer ${token}` },
+    timeout: UPLOAD_TIMEOUT_MS,
+  };
+}
 
 export async function getLatestProfileAnalysis(appUserId?: string) {
   const query = appUserId ? `?appUserId=${encodeURIComponent(appUserId)}` : "";
@@ -22,14 +41,18 @@ export async function uploadProfileAnalysis(input: {
 }) {
   const data = new FormData();
   data.set("file", input.file);
-  data.set("profileType", input.profileType);
-  data.set("consentAccepted", "true");
-  data.set("ocrMode", input.ocrMode);
-  if (input.appUserId) data.set("appUserId", input.appUserId);
+  const query = new URLSearchParams({
+    profileType: input.profileType,
+    consentAccepted: "true",
+    ocrMode: input.ocrMode,
+  });
+  if (input.appUserId) query.set("appUserId", input.appUserId);
   return requireSuccess(
-    await httpClient.post<ProfileAnalysis>("/api/profile-analysis", data, {
-      timeout: UPLOAD_TIMEOUT_MS,
-    }),
+    await httpClient.post<ProfileAnalysis>(
+      `${getPublicBackendUrl()}/api/profile-analyses?${query}`,
+      data,
+      await uploadConfig(),
+    ),
   );
 }
 
@@ -74,11 +97,15 @@ export type ParsedCvProfile = {
 export async function parseCv(file: File) {
   const data = new FormData();
   data.set("file", file);
+  const query = new URLSearchParams({
+    profileType: "individual_mentee",
+    consentAccepted: "true",
+  });
   return requireSuccess(
     await httpClient.post<ParsedCvProfile>(
-      "/api/profile-analysis/preview",
+      `${getPublicBackendUrl()}/api/profile-analyses/preview?${query}`,
       data,
-      { timeout: UPLOAD_TIMEOUT_MS },
+      await uploadConfig(),
     ),
   );
 }
