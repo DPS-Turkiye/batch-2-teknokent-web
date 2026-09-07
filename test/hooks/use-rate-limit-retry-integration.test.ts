@@ -9,7 +9,7 @@ describe("Rate Limit Retry - API Integration", () => {
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    global.fetch = fetchMock as any;
+    global.fetch = fetchMock as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -34,7 +34,7 @@ describe("Rate Limit Retry - API Integration", () => {
 
     const retryWithBackoff = async (
       fn: () => Promise<Response>,
-      maxRetries = 3
+      maxRetries = 3,
     ): Promise<Response> => {
       for (let i = 0; i < maxRetries; i++) {
         const response = await fn();
@@ -53,7 +53,7 @@ describe("Rate Limit Retry - API Integration", () => {
 
     const response = await retryWithBackoff(
       () => fetchMock("/api/assistant/query"),
-      3
+      3,
     );
 
     expect(response.status).toBe(200);
@@ -78,7 +78,7 @@ describe("Rate Limit Retry - API Integration", () => {
     fetchMock.mockResolvedValue(
       new Response(JSON.stringify({ message: "Rate limited" }), {
         status: 429,
-      })
+      }),
     );
 
     let attempts = 0;
@@ -104,7 +104,7 @@ describe("Rate Limit Retry - API Integration", () => {
 
   it("should include request headers in retry", async () => {
     fetchMock.mockResolvedValue(
-      new Response(JSON.stringify({ success: true }), { status: 200 })
+      new Response(JSON.stringify({ success: true }), { status: 200 }),
     );
 
     const headers = {
@@ -121,7 +121,7 @@ describe("Rate Limit Retry - API Integration", () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       "/api/assistant/query",
-      expect.objectContaining({ headers })
+      expect.objectContaining({ headers }),
     );
   });
 
@@ -135,15 +135,15 @@ describe("Rate Limit Retry - API Integration", () => {
           headers: {
             "X-Rate-Limit-Retry-After-Seconds": retryAfterSeconds.toString(),
           },
-        })
+        }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
+        new Response(JSON.stringify({ success: true }), { status: 200 }),
       );
 
     const retryWithCustomDelay = async (
       fn: () => Promise<Response>,
-      maxRetries = 2
+      maxRetries = 2,
     ): Promise<Response> => {
       for (let i = 0; i < maxRetries; i++) {
         const response = await fn();
@@ -152,7 +152,7 @@ describe("Rate Limit Retry - API Integration", () => {
         }
         if (i < maxRetries - 1) {
           const retryAfter = parseInt(
-            response.headers.get("X-Rate-Limit-Retry-After-Seconds") || "1"
+            response.headers.get("X-Rate-Limit-Retry-After-Seconds") || "1",
           );
           // In real scenario use: await sleep(retryAfter * 1000)
           // For tests, use a fraction of time
@@ -183,7 +183,7 @@ describe("Rate Limit Retry - API Integration", () => {
     const retryOnNetworkError = async (): Promise<Response> => {
       try {
         return await fetchMock("/api/assistant/query");
-      } catch (error) {
+      } catch {
         // Retry once
         return await fetchMock("/api/assistant/query");
       }
@@ -225,14 +225,14 @@ describe("Rate Limit Retry - API Integration", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ message: "Rate limited" }), {
           status: 429,
-        })
+        }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
+        new Response(JSON.stringify({ success: true }), { status: 200 }),
       );
 
     const trackRetries = async (
-      fn: () => Promise<Response>
+      fn: () => Promise<Response>,
     ): Promise<{
       response: Response;
       metadata: { attempts: number; lastRetryTime: string | null };

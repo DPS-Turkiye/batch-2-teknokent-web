@@ -9,7 +9,7 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    global.fetch = fetchMock as any;
+    global.fetch = fetchMock as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -22,17 +22,20 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({ error: "Database constraint violation" }),
-          { status: 500 }
-        )
+          { status: 500 },
+        ),
       )
       // Rollback: remove guest
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ rollbackSuccess: true }), {
           status: 200,
-        })
+        }),
       );
 
-    const addGuestWithRollback = async (meetingId: string, guest: { email: string; name: string }) => {
+    const addGuestWithRollback = async (
+      meetingId: string,
+      guest: { email: string; name: string },
+    ) => {
       const addResponse = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
         body: JSON.stringify({ meetingId, guest }),
@@ -74,7 +77,12 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
     expect(validateGuestEmail("@example.com")).toBe(false);
 
     // Should not make API call for invalid email
-    const invalidEmails = ["test", "test@", "@example.com", "test @example.com"];
+    const invalidEmails = [
+      "test",
+      "test@",
+      "@example.com",
+      "test @example.com",
+    ];
 
     for (const email of invalidEmails) {
       expect(validateGuestEmail(email)).toBe(false);
@@ -88,16 +96,18 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ guestId: "guest-123" }), {
           status: 200,
-        })
+        }),
       )
       .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ error: "Google Calendar API error" }),
-          { status: 500 }
-        )
+        new Response(JSON.stringify({ error: "Google Calendar API error" }), {
+          status: 500,
+        }),
       );
 
-    const addGuestWithCalendarSync = async (meetingId: string, guest: any) => {
+    const addGuestWithCalendarSync = async (
+      meetingId: string,
+      guest: { email?: string },
+    ) => {
       // Step 1: Add guest to database
       const addResponse = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
@@ -133,7 +143,6 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
     const mockCheckPermission = (
       userId: string,
       meetingMentorId: string,
-      meetingId: string
     ): boolean => {
       return userId === meetingMentorId;
     };
@@ -144,9 +153,9 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
     const deleteGuestSafely = async (
       userId: string,
       meetingId: string,
-      guestId: string
+      guestId: string,
     ) => {
-      if (!mockCheckPermission(userId, mentorId, meetingId)) {
+      if (!mockCheckPermission(userId, mentorId)) {
         throw new Error("Unauthorized: Only meeting mentor can delete guests");
       }
 
@@ -175,11 +184,14 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
           error: "Maximum guests limit (50) reached",
           code: "MAX_GUESTS_EXCEEDED",
         }),
-        { status: 400 }
+        { status: 400 },
       );
     });
 
-    const addGuestWithLimitCheck = async (meetingId: string, guest: any) => {
+    const addGuestWithLimitCheck = async (
+      meetingId: string,
+      guest: { email?: string },
+    ) => {
       const response = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
         body: JSON.stringify({ meetingId, guest }),
@@ -209,16 +221,18 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       .mockResolvedValueOnce(
         new Response(JSON.stringify({ guestId: "guest-123" }), {
           status: 200,
-        })
+        }),
       )
       .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({ error: "Email service unavailable" }),
-          { status: 503 }
-        )
+        new Response(JSON.stringify({ error: "Email service unavailable" }), {
+          status: 503,
+        }),
       );
 
-    const addGuestWithNotification = async (meetingId: string, guest: any) => {
+    const addGuestWithNotification = async (
+      meetingId: string,
+      guest: { email?: string },
+    ) => {
       // Add guest
       const addResponse = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
@@ -236,7 +250,7 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
 
       if (emailResponse.status !== 200) {
         console.warn(
-          `Warning: Invitation email failed for ${guest.email}, but guest was added`
+          `Warning: Invitation email failed for ${guest.email}, but guest was added`,
         );
       }
 
@@ -257,17 +271,14 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       { email: "guest2@example.com", name: "Guest 2" },
     ];
 
-    fetchMock.mockImplementation(async (url: string, options: any) => {
+    fetchMock.mockImplementation(async (url: string, options?: RequestInit) => {
       const body = JSON.parse(options.body);
 
       // Check if already exists
-      if (
-        guests.some((g) => g.email === body.guest.email)
-      ) {
-        return new Response(
-          JSON.stringify({ error: "Guest already added" }),
-          { status: 409 }
-        );
+      if (guests.some((g) => g.email === body.guest.email)) {
+        return new Response(JSON.stringify({ error: "Guest already added" }), {
+          status: 409,
+        });
       }
 
       guests.push(body.guest);
@@ -278,7 +289,7 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
 
     const addGuestWithDuplicateCheck = async (
       meetingId: string,
-      guest: any
+      guest: { email?: string },
     ) => {
       const response = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
@@ -308,14 +319,13 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
   });
 
   it("should handle bulk guest operations with partial failure", async () => {
-    fetchMock.mockImplementation(async (url: string, options: any) => {
+    fetchMock.mockImplementation(async (url: string, options?: RequestInit) => {
       const body = JSON.parse(options.body);
 
       if (body.guest.email === "invalid@") {
-        return new Response(
-          JSON.stringify({ error: "Invalid email format" }),
-          { status: 400 }
-        );
+        return new Response(JSON.stringify({ error: "Invalid email format" }), {
+          status: 400,
+        });
       }
 
       return new Response(JSON.stringify({ guestId: "guest-123" }), {
@@ -325,7 +335,7 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
 
     const bulkAddGuests = async (
       meetingId: string,
-      guestsList: any[]
+      guestsList: Array<{ email?: string }>,
     ) => {
       const results = { success: 0, failed: 0, errors: [] };
 
@@ -363,16 +373,13 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
   it("should handle guest deletion with calendar sync", async () => {
     fetchMock
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
+        new Response(JSON.stringify({ success: true }), { status: 200 }),
       )
       .mockResolvedValueOnce(
-        new Response(JSON.stringify({ success: true }), { status: 200 })
+        new Response(JSON.stringify({ success: true }), { status: 200 }),
       );
 
-    const deleteGuestWithSync = async (
-      meetingId: string,
-      guestId: string
-    ) => {
+    const deleteGuestWithSync = async (meetingId: string, guestId: string) => {
       // Delete from database
       const dbResponse = await fetchMock("/api/meetings/guests/delete", {
         method: "DELETE",

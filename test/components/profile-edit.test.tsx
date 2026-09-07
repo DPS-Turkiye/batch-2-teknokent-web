@@ -1,6 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 
 /**
  * Test for Profile Editing Feature (PR #34)
@@ -45,9 +43,7 @@ describe("Profile Editing", () => {
   });
 
   it("should allow mentee to edit startup profile information", async () => {
-    const mockSaveStartupProfile = vi
-      .fn()
-      .mockResolvedValue({ success: true });
+    const mockSaveStartupProfile = vi.fn().mockResolvedValue({ success: true });
 
     const startupData = {
       companyName: "TechStartup Inc",
@@ -65,7 +61,10 @@ describe("Profile Editing", () => {
   });
 
   it("should validate required profile fields", async () => {
-    const validateProfile = (profile: { firstName?: string; email?: string }) => {
+    const validateProfile = (profile: {
+      firstName?: string;
+      email?: string;
+    }) => {
       const errors: string[] = [];
 
       if (!profile.firstName || profile.firstName.trim() === "") {
@@ -101,9 +100,7 @@ describe("Profile Editing", () => {
   });
 
   it("should handle profile update errors", async () => {
-    const mockSave = vi
-      .fn()
-      .mockRejectedValue(new Error("Sunucu hatası"));
+    const mockSave = vi.fn().mockRejectedValue(new Error("Sunucu hatası"));
 
     try {
       await mockSave({ firstName: "Test" });
@@ -154,7 +151,10 @@ describe("Profile Editing", () => {
   });
 
   it("should save startup profile with proper validation", async () => {
-    const validateStartup = (startup: { companyName?: string; industry?: string }) => {
+    const validateStartup = (startup: {
+      companyName?: string;
+      industry?: string;
+    }) => {
       const errors: string[] = [];
 
       if (!startup.companyName || startup.companyName.trim() === "") {
@@ -175,9 +175,7 @@ describe("Profile Editing", () => {
   });
 
   it("should preserve existing data when partial update is made", async () => {
-    const mockPartialUpdate = vi
-      .fn()
-      .mockResolvedValue({ success: true });
+    const mockPartialUpdate = vi.fn().mockResolvedValue({ success: true });
 
     const existingProfile = {
       firstName: "Ahmet",

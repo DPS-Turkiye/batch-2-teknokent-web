@@ -9,7 +9,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
 
   beforeEach(() => {
     fetchMock = vi.fn();
-    global.fetch = fetchMock as any;
+    global.fetch = fetchMock as unknown as typeof fetch;
   });
 
   afterEach(() => {
@@ -19,7 +19,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
   it("should handle S3 upload failure and retry", async () => {
     let attempts = 0;
 
-    fetchMock.mockImplementation(async (url: string, options: any) => {
+    fetchMock.mockImplementation(async () => {
       attempts++;
       if (attempts === 1) {
         return new Response(JSON.stringify({ error: "Connection timeout" }), {
@@ -28,13 +28,13 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
       }
       return new Response(
         JSON.stringify({ url: "https://s3.amazonaws.com/file-123" }),
-        { status: 200 }
+        { status: 200 },
       );
     });
 
     const uploadWithRetry = async (
       file: Blob,
-      maxRetries = 2
+      maxRetries = 2,
     ): Promise<{ url: string }> => {
       for (let i = 0; i < maxRetries; i++) {
         const response = await fetchMock("/api/upload/s3", {
@@ -71,10 +71,9 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
       return { url: "https://s3.amazonaws.com/file-123" };
     };
 
-    const largeFile = new Blob(
-      [new ArrayBuffer(MAX_FILE_SIZE + 1000)],
-      { type: "text/plain" }
-    );
+    const largeFile = new Blob([new ArrayBuffer(MAX_FILE_SIZE + 1000)], {
+      type: "text/plain",
+    });
 
     try {
       await validateAndUpload(largeFile);
@@ -87,8 +86,8 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
     fetchMock.mockResolvedValue(
       new Response(
         JSON.stringify({ error: "Access Denied", code: "AccessDenied" }),
-        { status: 403 }
-      )
+        { status: 403 },
+      ),
     );
 
     const response = await fetchMock("/api/upload/s3", {
@@ -109,10 +108,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
     const uploadLargeFile = async (onProgress: (percent: number) => void) => {
       for (let i = 0; i < totalSize; i += chunkSize) {
         const uploadedBytes = i + chunkSize;
-        const percent = Math.min(
-          (uploadedBytes / totalSize) * 100,
-          100
-        );
+        const percent = Math.min((uploadedBytes / totalSize) * 100, 100);
         onProgress(percent);
 
         await new Promise((resolve) => setTimeout(resolve, 10));
@@ -138,12 +134,11 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
           method: "POST",
           body: file,
         });
-      } catch (error) {
+      } catch {
         // Fallback to inline upload
-        return new Response(
-          JSON.stringify({ uploadedInline: true }),
-          { status: 200 }
-        );
+        return new Response(JSON.stringify({ uploadedInline: true }), {
+          status: 200,
+        });
       }
     };
 
@@ -156,7 +151,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
 
   it("should handle malformed S3 response", async () => {
     fetchMock.mockResolvedValue(
-      new Response("Invalid JSON response", { status: 200 })
+      new Response("Invalid JSON response", { status: 200 }),
     );
 
     const parseS3Response = async () => {
@@ -199,7 +194,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
         JSON.stringify({
           url: `https://s3.amazonaws.com/file-${uploadCount}`,
         }),
-        { status: 200 }
+        { status: 200 },
       );
     });
 
@@ -210,7 +205,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
     ];
 
     const uploads = files.map((file) =>
-      fetchMock("/api/upload/s3", { method: "POST", body: file })
+      fetchMock("/api/upload/s3", { method: "POST", body: file }),
     );
 
     const results = await Promise.all(uploads);
@@ -229,15 +224,14 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
       delays.push(Date.now() - startTime);
 
       if (attempts < 3) {
-        return new Response(
-          JSON.stringify({ error: "SlowDown" }),
-          { status: 503 }
-        );
+        return new Response(JSON.stringify({ error: "SlowDown" }), {
+          status: 503,
+        });
       }
 
       return new Response(
         JSON.stringify({ url: "https://s3.amazonaws.com/file" }),
-        { status: 200 }
+        { status: 200 },
       );
     });
 
