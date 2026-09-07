@@ -5,17 +5,13 @@ import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 
 describe("useDashboardNotifications", () => {
-  it("returns the dashboard notifications array from the shared constant", () => {
+  it("returns an empty notification list until a real feed exists", () => {
     const { result } = renderHook(() => useDashboardNotifications());
 
     expect(result.current).toEqual({
       notifications: DASHBOARD_NOTIFICATIONS,
     });
-    expect(result.current.notifications).toHaveLength(3);
-    expect(result.current.notifications[0]).toMatchObject({
-      title: "Dr. Kemal Arslan toplantı notu ekledi",
-      time: "2s önce · Mentordan",
-    });
+    expect(result.current.notifications).toEqual([]);
   });
 
   it("keeps the notification list stable and readable", () => {

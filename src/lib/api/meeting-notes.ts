@@ -114,7 +114,7 @@ export function publishAssistantShare(
   meetingId: string,
   actorId: string,
   payload: {
-    kind: "TRANSCRIPT" | "REPORT";
+    kind: "TRANSCRIPT" | "TRANSCRIPT_S3" | "REPORT" | "REPORT_S3";
     transcript?: unknown;
     report?: unknown;
   },
@@ -123,5 +123,21 @@ export function publishAssistantShare(
     method: HttpMethod.Post,
     url: meetingPath(meetingId, "/assistant-share"),
     data: { ...payload, actorId },
+  });
+}
+
+export function createTranscriptUpload(meetingId: string, actorId: string) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: meetingPath(meetingId, "/assistant-share/transcript-upload"),
+    data: { actorId },
+  });
+}
+
+export function createReportUpload(meetingId: string, actorId: string) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: meetingPath(meetingId, "/assistant-share/report-upload"),
+    data: { actorId },
   });
 }

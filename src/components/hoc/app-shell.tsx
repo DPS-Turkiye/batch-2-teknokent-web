@@ -184,7 +184,7 @@ export function AppShell({
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
   const navigation = buildNavigation(session?.role);
-  const displayName = session?.fullName ?? "Ayşe Kaya";
+  const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
     : (session?.organizationName ?? "");
@@ -243,7 +243,7 @@ export function AppShell({
               href={profileHref}
               className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 hover:border-[#e4e7ea]"
             >
-              <Avatar initials={initials(displayName) || "AK"} tone="orange" />
+              <Avatar initials={initials(displayName) || "K"} tone="orange" />
               <span className="hidden max-w-28 leading-tight sm:block">
                 <strong className="block truncate text-xs font-semibold">
                   {displayName}

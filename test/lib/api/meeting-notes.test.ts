@@ -7,6 +7,8 @@ import {
   fetchMeetingNote,
   fetchMeetingNoteDocument,
   publishAssistantShare,
+  createTranscriptUpload,
+  createReportUpload,
   saveMeetingNote,
   updateMeetingTodo,
 } from "@/lib/api/meeting-notes";
@@ -122,6 +124,26 @@ describe("meeting note server API", () => {
         ],
         actorId: "mentor-1",
       },
+    });
+  });
+
+  it("asks the backend for a presigned transcript upload URL", async () => {
+    await createTranscriptUpload("meeting-1", "mentor-1");
+
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: HttpMethod.Post,
+      url: "/api/meetings/meeting-1/assistant-share/transcript-upload",
+      data: { actorId: "mentor-1" },
+    });
+  });
+
+  it("asks the backend for a presigned report upload URL", async () => {
+    await createReportUpload("meeting-1", "mentor-1");
+
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: HttpMethod.Post,
+      url: "/api/meetings/meeting-1/assistant-share/report-upload",
+      data: { actorId: "mentor-1" },
     });
   });
 });

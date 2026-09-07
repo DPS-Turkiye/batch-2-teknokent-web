@@ -76,7 +76,7 @@ describe("useDashboardData", () => {
     expect(result.current.requests).toEqual([]);
   });
 
-  it("falls back to demo content and flags isFallback only on an actual query error", () => {
+  it("flags isFallback on a query error without injecting demo people", () => {
     mockUseSession.mockReturnValue({ session: denizSession() });
     mockUseMeetings.mockReturnValue({
       data: undefined,
@@ -92,8 +92,8 @@ describe("useDashboardData", () => {
     const { result } = renderHook(() => useDashboardData());
 
     expect(result.current.isFallback).toBe(true);
-    expect(result.current.requests.length).toBeGreaterThan(0);
-    expect(result.current.nextMeeting).not.toBeNull();
+    expect(result.current.requests).toEqual([]);
+    expect(result.current.nextMeeting).toBeNull();
   });
 
   it("passes through real data once the queries resolve", () => {

@@ -24,6 +24,42 @@ describe("publishAssistantShareBodySchema", () => {
     });
   });
 
+  it("accepts a provider transcript pointer for Amplify-safe sharing", () => {
+    const parsed = publishAssistantShareBodySchema.safeParse({
+      kind: "PROVIDER_TRANSCRIPT",
+      platform: "google_meet",
+      nativeMeetingId: "abc-defg-hij",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data).toEqual({
+      kind: "PROVIDER_TRANSCRIPT",
+      platform: "google_meet",
+      nativeMeetingId: "abc-defg-hij",
+    });
+  });
+
+  it("accepts a pointer to a transcript already uploaded to S3", () => {
+    const parsed = publishAssistantShareBodySchema.safeParse({
+      kind: "TRANSCRIPT_S3",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data).toEqual({ kind: "TRANSCRIPT_S3" });
+  });
+
+  it("accepts a pointer to a report already uploaded to S3", () => {
+    const parsed = publishAssistantShareBodySchema.safeParse({
+      kind: "REPORT_S3",
+    });
+
+    expect(parsed.success).toBe(true);
+    if (!parsed.success) return;
+    expect(parsed.data).toEqual({ kind: "REPORT_S3" });
+  });
+
   it("accepts a report with null title and summary", () => {
     const parsed = publishAssistantShareBodySchema.safeParse({
       kind: "REPORT",

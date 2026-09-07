@@ -31,33 +31,23 @@ import {
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
 import { programsMentorHasJoined } from "@/lib/meeting-targets";
+import {
+  CalendarFilter,
+  CALENDAR_FILTER_LABELS,
+  startOfWeek,
+  weekDays,
+} from "@/lib/calendar";
 
-export enum CalendarFilter {
-  All = "all",
-  Mentorship = "mentorship",
-  Program = "program",
-}
-
-export const CALENDAR_FILTER_LABELS: Record<CalendarFilter, string> = {
-  [CalendarFilter.All]: "Tümü",
-  [CalendarFilter.Mentorship]: "Mentorluk",
-  [CalendarFilter.Program]: "Program",
-};
+// Re-exported for existing importers; the canonical definition moved to
+// lib/calendar so the mentee calendar can share it without depending on a
+// "mentor" hook.
+export { CalendarFilter, CALENDAR_FILTER_LABELS };
 
 /** The grid runs 09:00–18:00, matching the design. */
 export const CALENDAR_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
 
 export const AVAILABILITY_RULES_KEY = ["mentor-availability-rules"] as const;
 export const AVAILABILITY_SLOTS_KEY = ["mentor-availability-slots"] as const;
-
-function startOfWeek(date: Date) {
-  const copy = new Date(date);
-  // getDay() is Sunday-based; the grid starts on Monday.
-  const offset = (copy.getDay() + 6) % 7;
-  copy.setDate(copy.getDate() - offset);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
 
 export function useMentorCalendar() {
   const queryClient = useQueryClient();
@@ -71,15 +61,7 @@ export function useMentorCalendar() {
     return base;
   }, [weekOffset]);
 
-  const days = useMemo(
-    () =>
-      Array.from({ length: 5 }, (_, index) => {
-        const day = new Date(weekStart);
-        day.setDate(day.getDate() + index);
-        return day;
-      }),
-    [weekStart],
-  );
+  const days = useMemo(() => weekDays(weekStart, 5), [weekStart]);
 
   const meetingsQuery = useQuery({
     queryKey: ["meetings"],
