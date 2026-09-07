@@ -522,44 +522,29 @@ export function useMeetingAssistant() {
     [selected],
   );
 
+  const selectedTranscriptFingerprint = selectedTranscript
+    .filter((line) => line.text.trim())
+    .map((line) => `${line.speaker}:${line.text}`)
+    .join("\n");
+
   useEffect(() => {
     if (!selected) return;
-    if (selected.status !== MeetingStatus.Completed) return;
     if (!selected.platformKey || !selected.nativeMeetingId) return;
     if (canPersist(selected.id) && !shareLoadedFor[selected.id]) return;
-    if (transcriptDirtyByMeeting[selected.id]) return;
     if (reportByMeeting[selected.id]) return;
     if (autoReportAttemptedRef.current[selected.id]) return;
-    const lines = transcriptByMeeting[selected.id] ?? [];
+    const lines = transcriptByMeetingRef.current[selected.id] ?? [];
     if (!hasText(lines)) return;
-    const meetingId = selected.id;
-    const persist = canPersist(meetingId);
     const timer = window.setTimeout(() => {
-      void (async () => {
-        if (persist) {
-          try {
-            const share = await getAssistantShare(meetingId);
-            if (share.report) {
-              setReportByMeeting((prev) => ({
-                ...prev,
-                [meetingId]: normalizeReport(share.report as MeetingReport),
-              }));
-              autoReportAttemptedRef.current[meetingId] = true;
-              return;
-            }
-          } catch {}
-        }
-        await requestMeetingReport(lines, selected);
-      })();
-    }, 4000);
+      void requestMeetingReport(lines, selected);
+    }, 8_000);
     return () => window.clearTimeout(timer);
   }, [
     selected,
     canPersist,
     shareLoadedFor,
-    transcriptDirtyByMeeting,
     reportByMeeting,
-    transcriptByMeeting,
+    selectedTranscriptFingerprint,
     requestMeetingReport,
   ]);
 
