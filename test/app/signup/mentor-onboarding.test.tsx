@@ -4,7 +4,8 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onboarding-flow";
 import { SignupFlow } from "@/components/signup/signup-flow";
-import { registerMentor } from "@/lib/client/auth";
+import { ClientApiError } from "@/lib/client/api";
+import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
@@ -16,6 +17,7 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn().mockResolvedValue("id-token"),
+  currentFirebaseAccount: vi.fn().mockResolvedValue(null),
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
   isCurrentEmailVerified: () => true,
   describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
@@ -28,6 +30,7 @@ vi.mock("@/lib/client/onboarding-draft", () => ({
 }));
 
 vi.mock("@/lib/client/auth", () => ({
+  fetchAccountStatus: vi.fn(),
   registerMentor: vi.fn().mockResolvedValue({}),
   registerFounder: vi.fn().mockResolvedValue({}),
 }));
@@ -78,6 +81,9 @@ describe("Signup role routing", () => {
 
   it("sends a mentor to the mentor onboarding flow", async () => {
     searchParams.get.mockReturnValue("mentor");
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Registration required", 401),
+    );
     const user = userEvent.setup();
     render(<SignupFlow />);
 
