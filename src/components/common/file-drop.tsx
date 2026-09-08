@@ -1,9 +1,10 @@
 "use client";
 
 import { FileText, Upload, X } from "lucide-react";
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
+import { validateDocumentUploadFile } from "@/lib/file-validation";
 import { formatFileSize } from "@/lib/utils";
 
 export function FileDrop({
@@ -18,11 +19,22 @@ export function FileDrop({
   alreadyStored?: { name: string } | null;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState("");
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0];
-    if (selected)
-      onChange({ name: selected.name, size: selected.size, file: selected });
+    if (!selected) return;
+
+    const validationError = validateDocumentUploadFile(selected);
+    if (validationError) {
+      setError(validationError);
+      event.target.value = "";
+      onChange(null);
+      return;
+    }
+
+    setError("");
+    onChange({ name: selected.name, size: selected.size, file: selected });
   }
 
   if (!file && alreadyStored) {
@@ -54,6 +66,11 @@ export function FileDrop({
           className="hidden"
           onChange={handleChange}
         />
+        {error ? (
+          <p className="mt-2 text-[11px] text-[#b42318]" role="alert">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -104,6 +121,11 @@ export function FileDrop({
         className="hidden"
         onChange={handleChange}
       />
+      {error ? (
+        <p className="mt-2 text-[11px] text-[#b42318]" role="alert">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

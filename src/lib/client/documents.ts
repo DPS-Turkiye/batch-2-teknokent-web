@@ -1,5 +1,6 @@
 import { getPublicBackendUrl } from "@/lib/const";
 import { requireSuccess } from "@/lib/client/api";
+import { validateDocumentUploadFile } from "@/lib/file-validation";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 
@@ -22,6 +23,11 @@ export async function uploadDocument(
   kind: string,
   idToken?: string,
 ) {
+  const validationError = validateDocumentUploadFile(file);
+  if (validationError) {
+    throw new Error(validationError);
+  }
+
   const token = idToken ?? (await currentIdToken());
   if (!token) {
     throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");

@@ -16,6 +16,7 @@ import {
   useProfileAnalysis,
   useUploadProfileAnalysis,
 } from "@/hooks/use-profile-analysis";
+import { validateProfilePdfFile } from "@/lib/file-validation";
 import type {
   OcrMode,
   ProfileAnalysis as Analysis,
@@ -163,6 +164,15 @@ export function ProfileAnalysisView() {
 
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
+    if (selected) {
+      const validationError = validateProfilePdfFile(selected);
+      if (validationError) {
+        setFile(null);
+        setError(validationError);
+        event.target.value = "";
+        return;
+      }
+    }
     setFile(selected);
     setError("");
     if (selected) {

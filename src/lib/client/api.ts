@@ -1,6 +1,7 @@
 import type { AxiosResponse } from "axios";
 
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
+import { UPLOAD_ERROR_MESSAGES } from "@/lib/upload-error-messages";
 
 export class ClientApiError extends Error {
   constructor(
@@ -30,9 +31,11 @@ function fallbackMessage(status: number) {
     case 404:
       return "Aradığın kayıt bulunamadı.";
     case 413:
-      return "Dosya çok büyük. En fazla 50 MB yükleyebilirsin.";
+      return UPLOAD_ERROR_MESSAGES.tooLarge(50);
     case 415:
-      return "Bu dosya türü desteklenmiyor. Lütfen PDF yükle.";
+      return UPLOAD_ERROR_MESSAGES.unsupportedType("PDF veya DOCX");
+    case 422:
+      return UPLOAD_ERROR_MESSAGES.suspiciousContent;
     case 429:
       return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
     default:

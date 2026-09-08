@@ -19,6 +19,7 @@ import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { validateDocumentUploadFile } from "@/lib/file-validation";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
@@ -168,6 +169,12 @@ export function useMentorOnboarding() {
           () => setPhase(IntroPhase.Review),
           CV_PARSE_MS,
         );
+        return;
+      }
+      const validationError = validateDocumentUploadFile(uploaded);
+      if (validationError) {
+        setUploadError(validationError);
+        setPhase(IntroPhase.Upload);
         return;
       }
       void (async () => {
