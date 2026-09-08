@@ -86,11 +86,28 @@ export async function postRealtimeToken() {
 }
 
 export async function getAssistantShare(meetingId: string) {
-  return requireSuccess(
+  const share = requireSuccess(
     await httpClient.get<MeetingAssistantShare>(
       getAssistantShareApiUrl(meetingId),
     ),
   );
+  const transcript =
+    share.transcript ??
+    (await readJsonFromUrl<TranscriptLine[]>(share.transcriptUrl));
+  const report =
+    share.report ?? (await readJsonFromUrl<MeetingReport>(share.reportUrl));
+  return { ...share, transcript, report };
+}
+
+async function readJsonFromUrl<T>(
+  url: string | null | undefined,
+): Promise<T | null> {
+  if (!url) return null;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error("Not defterindeki transkript veya rapor okunamadı.");
+  }
+  return (await response.json()) as T;
 }
 
 export async function postAssistantShare(

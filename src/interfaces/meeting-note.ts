@@ -44,8 +44,10 @@ export type RealtimeToken = {
 export type MeetingAssistantShare = {
   meetingId: string;
   transcript: TranscriptLine[] | null;
+  transcriptUrl?: string | null;
   transcriptPublishedAt: string | null;
   report: MeetingReport | null;
+  reportUrl?: string | null;
   reportPublishedAt: string | null;
 };
 

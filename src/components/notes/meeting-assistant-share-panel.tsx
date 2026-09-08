@@ -120,6 +120,14 @@ export function MeetingAssistantSharePanel({
   const transcript = share?.transcript ?? null;
   const report = share?.report ?? null;
 
+  if (shareQuery.isError) {
+    return (
+      <p className="rounded-xl border border-[#f1d4d4] bg-[#fff7f7] px-4 py-3 text-sm text-[#9b2c2c]">
+        Mentörün gönderdiği transkript veya rapor şu an yüklenemedi.
+      </p>
+    );
+  }
+
   if (!transcript?.length && !report) {
     return null;
   }
