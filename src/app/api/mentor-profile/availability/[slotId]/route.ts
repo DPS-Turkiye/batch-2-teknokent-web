@@ -13,7 +13,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return backendResponse(await deleteMentorAvailabilitySlot(userId, slotId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Availability slot could not be removed.",
+      message: "Müsaitlik saati silinemedi.",
     });
   }
 }

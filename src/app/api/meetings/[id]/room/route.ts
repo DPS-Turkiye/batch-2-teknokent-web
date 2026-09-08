@@ -23,7 +23,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return backendResponse(await fetchMeetingRoom(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting room could not be loaded.",
+      message: "Toplantı odası yüklenemedi.",
     });
   }
 }

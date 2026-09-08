@@ -4,19 +4,16 @@ import { Suspense, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
-import { SecondaryButton } from "@/components/common/secondary-button";
-import { Badge } from "@/components/common/badge";
 import { Card } from "@/components/product-view-shared";
+import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
 import { MEETING_PREPARE_CHECKLIST } from "@/lib/const";
 import { meetingCountdownLabel } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 function MeetingPreparationContent() {
-  const { meeting } = useMeetingLifecycle();
-  const [checked, setChecked] = useState<Set<string>>(
-    () => new Set([MEETING_PREPARE_CHECKLIST[0]]),
-  );
+  const { error, isLoading, meeting, meetingHref } = useMeetingLifecycle();
+  const [checked, setChecked] = useState<Set<string>>(() => new Set());
   function toggle(label: string) {
     setChecked((current) => {
       const next = new Set(current);
@@ -25,11 +22,22 @@ function MeetingPreparationContent() {
       return next;
     });
   }
+  if (!meeting) {
+    return (
+      <AppShell
+        active={AppArea.Actions}
+        title="Toplantıya hazırlanın"
+        backHref="/meetings"
+      >
+        <MeetingUnavailable error={error} isLoading={isLoading} />
+      </AppShell>
+    );
+  }
   return (
     <AppShell
       active={AppArea.Actions}
       title="Toplantıya hazırlanın"
-      backHref="/meetings/research"
+      backHref={meetingHref("/meetings/research")}
     >
       <div className="mx-auto max-w-3xl px-4 py-6 sm:px-8">
         <section className="rounded-lg border border-[#e5e7eb] bg-white p-4">
@@ -45,15 +53,8 @@ function MeetingPreparationContent() {
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div className="space-y-4">
             <Card title="Toplantının Amacı">
-              <p className="font-medium">
-                Kullanıcı testi yöntemi ve segmentasyon
-              </p>
-              <p className="mt-2 leading-5 text-[#777]">
-                MVP&apos;yi ilk kullanıcılarla test etmeye hazırlanıyoruz. Test
-                yöntemini ve doğru kullanıcı grubunu belirlemekte zorlanıyoruz.
-              </p>
-              <p className="mt-2 text-xs text-[#aaa]">
-                Beklenen çıktı: Uygulanabilir bir kullanıcı testi planı
+              <p className="whitespace-pre-wrap font-medium leading-6">
+                {meeting.agenda ?? "Bu görüşme için gündem eklenmemiş."}
               </p>
             </Card>
             <Card title="Hazırlık Listesi">
@@ -81,31 +82,27 @@ function MeetingPreparationContent() {
               </div>
             </Card>
           </div>
-          <div className="space-y-4">
-            <Card title="Gerekli Dosyalar">
-              <p>
-                ▱ Pitch Deck v3.pdf <Badge tone="green">Yüklendi</Badge>
-              </p>
-              <p className="mt-2">
-                △ Ürün demosu <Badge>Eksik</Badge>
-              </p>
-              <p className="mt-2">
-                △ Araştırma verisi <Badge>Eksik</Badge>
-              </p>
-              <SecondaryButton className="mt-4 w-full border-dashed">
-                Dosya Yükle
-              </SecondaryButton>
-            </Card>
-            <Card title="Mentora Not">
-              <textarea
-                placeholder="Mentora iletmek istediğiniz kısa bir not ekleyebilirsiniz..."
-                className="min-h-24 w-full resize-none rounded-md border border-[#e5e7eb] p-3 text-sm"
-              />
+          <div>
+            <Card title="Toplantı Bilgileri">
+              <dl className="space-y-3 text-sm">
+                <div>
+                  <dt className="text-xs text-[#777]">Mentor</dt>
+                  <dd className="mt-1 font-medium">
+                    {meeting.mentorName ?? "Mentor bilgisi bekleniyor"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-xs text-[#777]">Süre</dt>
+                  <dd className="mt-1 font-medium">
+                    {meeting.durationMinutes} dakika
+                  </dd>
+                </div>
+              </dl>
             </Card>
           </div>
         </div>
         <div className="mt-6 flex justify-end">
-          <PrimaryButton href="/meetings/research">
+          <PrimaryButton href={meetingHref("/meetings/research")}>
             Toplantı Detayına Git ›
           </PrimaryButton>
         </div>

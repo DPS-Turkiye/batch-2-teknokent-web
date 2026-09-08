@@ -40,14 +40,14 @@ describe("GET /api/health", () => {
 
   it("returns 502 when backend health fetch fails", async () => {
     vi.mocked(fetchBackendHealth).mockRejectedValue(
-      new HealthFetchError("Backend health check request failed"),
+      new HealthFetchError("Sunucu sağlık kontrolü başarısız oldu."),
     );
 
     const response = await GET();
 
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({
-      message: "Backend health check request failed",
+      message: "Sunucu sağlık kontrolü başarısız oldu.",
     });
   });
 
@@ -58,7 +58,7 @@ describe("GET /api/health", () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
-      message: "Unexpected health check failure",
+      message: "Sağlık kontrolü beklenmedik biçimde başarısız oldu.",
     });
   });
 });

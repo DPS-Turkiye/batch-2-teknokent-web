@@ -21,7 +21,7 @@ function requireIdToken(request: NextRequest) {
   return NextResponse.json(
     {
       code: "INVALID_REQUEST",
-      message: "A Firebase ID token is required.",
+      message: "Firebase kimlik anahtarı gerekli.",
     },
     { status: 400 },
   );
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchOnboardingDraft(idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The onboarding draft could not be loaded.",
+      message: "Kayıt taslağı yüklenemedi.",
     });
   }
 }
@@ -57,7 +57,7 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The onboarding draft could not be saved.",
+      message: "Kayıt taslağı kaydedilemedi.",
     });
   }
 }
@@ -69,7 +69,7 @@ export async function DELETE(request: NextRequest) {
     return backendResponse(await deleteOnboardingDraft(idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The onboarding draft could not be cleared.",
+      message: "Kayıt taslağı silinemedi.",
     });
   }
 }

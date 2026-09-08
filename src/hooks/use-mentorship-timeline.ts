@@ -122,7 +122,7 @@ export function useLogMeetingForm(
       setForm((previous) => ({ ...previous, agenda: "", notes: "" }));
     } catch (error) {
       setLogError(
-        error instanceof Error ? error.message : "Could not save the meeting.",
+        error instanceof Error ? error.message : "Toplantı kaydedilemedi.",
       );
     }
   };

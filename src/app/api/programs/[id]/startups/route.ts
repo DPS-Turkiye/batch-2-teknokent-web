@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { organizationId?: string };
     if (!body.organizationId) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A startup is required." },
+        { code: "INVALID_REQUEST", message: "Bir startup seçmeniz gerekiyor." },
         { status: 400 },
       );
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The startup could not be added to the program.",
+      message: "Startup programa eklenemedi.",
     });
   }
 }

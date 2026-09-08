@@ -92,7 +92,7 @@ describe("assistant bot API route", () => {
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({
       code: "BACKEND_UNAVAILABLE",
-      message: "Meeting assistant service is unavailable.",
+      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
     });
   });
 });

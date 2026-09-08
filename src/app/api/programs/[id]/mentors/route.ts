@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { mentorId?: string };
     if (!body.mentorId) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A mentor is required." },
+        { code: "INVALID_REQUEST", message: "Bir mentor seçmeniz gerekiyor." },
         { status: 400 },
       );
     }
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The mentor could not be invited.",
+      message: "Mentor davet edilemedi.",
     });
   }
 }

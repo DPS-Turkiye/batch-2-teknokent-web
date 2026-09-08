@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { ToastProvider } from "@/components/providers/toast-provider";
 
 import "./globals.css";
 
@@ -30,7 +31,9 @@ export default function RootLayout({
         className="flex min-h-full flex-col font-sans"
       >
         <QueryProvider>
-          <SessionProvider>{children}</SessionProvider>
+          <ToastProvider>
+            <SessionProvider>{children}</SessionProvider>
+          </ToastProvider>
         </QueryProvider>
       </body>
     </html>

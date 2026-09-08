@@ -213,7 +213,7 @@ export function useSignupWizard(
       setSubmitError(
         error instanceof Error
           ? error.message
-          : "The application could not be submitted. Try again.",
+          : "Başvuru gönderilemedi. Lütfen tekrar deneyin.",
       );
     } finally {
       setSubmitting(false);

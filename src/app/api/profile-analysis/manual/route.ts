@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profile service is unavailable.",
+      message: "Profil hizmetine ulaşılamıyor.",
     });
   }
 }

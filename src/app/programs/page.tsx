@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { useToast } from "@/components/providers/toast-provider";
 import {
   useAddProgramStartup,
   useCreateProgram,
@@ -19,6 +20,7 @@ import {
 import { AppArea } from "@/types/app-area";
 
 export default function ProgramsPage() {
+  const { showToast } = useToast();
   const programsQuery = usePrograms();
   const directoryQuery = useProgramDirectory();
   const createProgram = useCreateProgram();
@@ -36,8 +38,6 @@ export default function ProgramsPage() {
   const [mentorByProgram, setMentorByProgram] = useState<
     Record<string, string>
   >({});
-  const [error, setError] = useState("");
-  const [notice, setNotice] = useState("");
 
   const selectedProgramId = targetProgramId || programs[0]?.id || "";
 
@@ -51,13 +51,15 @@ export default function ProgramsPage() {
   }, [query, directoryQuery.data?.startups]);
 
   function flash(message: string) {
-    setError("");
-    setNotice(message);
+    showToast({ message, tone: "success" });
   }
 
   function fail(reason: unknown) {
-    setNotice("");
-    setError(reason instanceof Error ? reason.message : "İşlem tamamlanamadı.");
+    showToast({
+      message:
+        reason instanceof Error ? reason.message : "İşlem tamamlanamadı.",
+      tone: "error",
+    });
   }
 
   async function handleCreate(event: FormEvent<HTMLFormElement>) {
@@ -74,7 +76,7 @@ export default function ProgramsPage() {
 
   async function handleAddStartup(organizationId: string) {
     if (!selectedProgramId) {
-      setError("Önce bir program oluşturun.");
+      showToast({ message: "Önce bir program oluşturun.", tone: "error" });
       return;
     }
     try {
@@ -91,13 +93,6 @@ export default function ProgramsPage() {
   return (
     <AppShell active={AppArea.Programs} title="Programlar">
       <div className="mx-auto w-full max-w-4xl space-y-8 px-4 pb-12 pt-6 sm:px-8">
-        {notice ? (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            {notice}
-          </p>
-        ) : null}
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
-
         <form
           onSubmit={(event) => void handleCreate(event)}
           className="rounded-xl border border-[#e5e7eb] bg-white p-5"

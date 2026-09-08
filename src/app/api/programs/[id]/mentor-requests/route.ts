@@ -14,7 +14,7 @@ export async function POST(_request: Request, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The program request could not be sent.",
+      message: "Program katılım talebi gönderilemedi.",
     });
   }
 }

@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchMentorRequests({ requesterId, role }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request service is unavailable.",
+      message: "Mentorluk talebi hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorRequest(session, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request could not be created.",
+      message: "Mentorluk talebi oluşturulamadı.",
     });
   }
 }

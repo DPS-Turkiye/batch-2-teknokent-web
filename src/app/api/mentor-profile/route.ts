@@ -22,7 +22,7 @@ export async function GET() {
     return backendResponse(await fetchMentorProfile(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor profile could not be loaded.",
+      message: "Mentor profili yüklenemedi.",
     });
   }
 }
@@ -47,7 +47,7 @@ export async function PUT(request: NextRequest) {
     return backendResponse(await updateMentorProfile(userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor profile could not be updated.",
+      message: "Mentor profili güncellenemedi.",
     });
   }
 }

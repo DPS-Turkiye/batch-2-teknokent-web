@@ -191,7 +191,7 @@ describe("Mentor onboarding flow", () => {
       }),
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Yatırıma hazırlık" }));
-    await user.click(screen.getByRole("button", { name: /Build/ }));
+    await user.click(screen.getByRole("button", { name: /Geliştirme/ }));
     await user.click(screen.getByRole("button", { name: "Devam et" }));
 
     expect(

@@ -80,10 +80,10 @@ export async function fetchBackendHealth(): Promise<BackendHealthResult> {
     return parseHealthResponse(
       response.data,
       response.status,
-      "Backend health response has an invalid shape",
+      "Sunucu sağlık yanıtı beklenen biçimde değil.",
     );
   } catch (error) {
-    throw toHealthFetchError("Backend health check request failed", error);
+    throw toHealthFetchError("Sunucu sağlık kontrolü başarısız oldu.", error);
   }
 }
 
@@ -98,9 +98,9 @@ export async function fetchHealthClient(): Promise<HealthResponse> {
     return parseHealthResponse(
       response.data,
       response.status,
-      "Health API response has an invalid shape",
+      "Sağlık hizmeti yanıtı beklenen biçimde değil.",
     ).data;
   } catch (error) {
-    throw toHealthFetchError("Health API request failed", error);
+    throw toHealthFetchError("Sağlık hizmeti isteği başarısız oldu.", error);
   }
 }

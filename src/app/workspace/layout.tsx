@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Workspace",
+  title: "Çalışma Alanı",
   description: "Program and role workspace selection.",
 };
 

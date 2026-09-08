@@ -13,7 +13,7 @@ export async function GET() {
     return backendResponse(await fetchMentorAvailability(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Availability could not be loaded.",
+      message: "Müsaitlik bilgileri yüklenemedi.",
     });
   }
 }
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorAvailabilitySlot(userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Availability slot could not be created.",
+      message: "Müsaitlik saati oluşturulamadı.",
     });
   }
 }

@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!status) {
       return apiErrorResponse(new Error("Invalid status"), {
         code: "INVALID_REQUEST",
-        message: "Status must be APPROVED or REJECTED.",
+        message: "Durum APPROVED veya REJECTED olmalıdır.",
         status: 400,
       });
     }
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Account status could not be updated.",
+      message: "Hesap durumu güncellenemedi.",
     });
   }
 }

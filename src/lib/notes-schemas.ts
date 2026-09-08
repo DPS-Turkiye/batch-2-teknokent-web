@@ -96,5 +96,5 @@ export const updateMeetingTodoBodySchema = z
     done: z.boolean().optional(),
   })
   .refine((body) => body.title !== undefined || body.done !== undefined, {
-    message: "Provide a title or a done flag.",
+    message: "Bir başlık veya tamamlanma durumu girin.",
   });

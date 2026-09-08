@@ -392,7 +392,9 @@ export function useMeetingAssistant() {
         }
         setBotStatus(BotStatus.Err);
         setBotError(
-          error instanceof Error ? error.message : "Failed to send bot",
+          error instanceof Error
+            ? error.message
+            : "Toplantı asistanı gönderilemedi.",
         );
         window.setTimeout(() => setBotStatus(null), 5000);
         return false;
@@ -509,7 +511,7 @@ export function useMeetingAssistant() {
           setReportError(
             error instanceof Error
               ? error.message
-              : "Failed to generate meeting report",
+              : "Toplantı raporu oluşturulamadı.",
           );
           window.setTimeout(() => setReportStatus(null), 6000);
         } finally {
@@ -617,7 +619,9 @@ export function useMeetingAssistant() {
     } catch (error) {
       setBotStatus(BotStatus.Err);
       setBotError(
-        error instanceof Error ? error.message : "Failed to stop bot",
+        error instanceof Error
+          ? error.message
+          : "Toplantı asistanı durdurulamadı.",
       );
       window.setTimeout(() => setBotStatus(null), 5000);
     }

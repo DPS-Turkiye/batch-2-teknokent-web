@@ -42,18 +42,28 @@ function fallbackMessage(status: number) {
   }
 }
 
+function visibleServerMessage(body: unknown, status: number) {
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("message" in body) ||
+    typeof body.message !== "string"
+  ) {
+    return fallbackMessage(status);
+  }
+  const message = body.message.trim();
+  const looksEnglish =
+    /\b(the|a user|could|must|only|not found|already|awaiting|requires?|invalid|failed|provide|this endpoint|is unavailable)\b/i.test(
+      message,
+    );
+  return looksEnglish ? fallbackMessage(status) : message;
+}
+
 export function requireSuccess<T>(response: AxiosResponse<T>): T {
   if (response.status >= 200 && response.status < 300) return response.data;
   const body = response.data as unknown;
   const blocked = amplifyBlockedMessage(body);
-  const message =
-    blocked ??
-    (body &&
-    typeof body === "object" &&
-    "message" in body &&
-    typeof body.message === "string"
-      ? body.message
-      : fallbackMessage(response.status));
+  const message = blocked ?? visibleServerMessage(body, response.status);
   const code =
     body &&
     typeof body === "object" &&
