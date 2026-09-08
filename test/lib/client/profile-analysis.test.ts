@@ -22,8 +22,6 @@ describe("profile analysis uploads", () => {
     vi.mocked(currentIdToken).mockResolvedValue("fresh-token");
   });
 
-  // Reported: the Amplify-hosted frontend's own edge blocks any request body
-  // over ~8KB, so a real CV never reached the parser through the proxy route.
   it("parseCv posts to the backend, not the Next.js proxy", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 200,
@@ -65,8 +63,6 @@ describe("profile analysis uploads", () => {
     });
   });
 
-  // The organization is resolved from the token server-side now, so the browser
-  // must never name one: sending it would reopen cross-organization writes.
   it("never sends an organizationId", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,

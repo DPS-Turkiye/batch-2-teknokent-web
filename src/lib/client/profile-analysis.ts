@@ -8,12 +8,6 @@ import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 
-/**
- * Both parsing calls carry a PDF, and the Amplify-hosted frontend's own edge
- * blocks any request body over ~8KB on its proxy routes, so they go straight to
- * the backend. Unlike a plain document this cannot be sent to S3 instead: the
- * parser reads the bytes in-request, so the backend has to receive them itself.
- */
 async function uploadConfig() {
   const token = await currentIdToken();
   if (!token) {
