@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { httpClient } from "@/lib/http-client";
 import {
+  getAssistantShare,
   publishReportShare,
   publishTranscriptShare,
   type TranscriptUploadUrl,
@@ -173,5 +174,42 @@ describe("publishReportShare", () => {
         report: report("Kısa özet"),
       },
     );
+  });
+});
+
+describe("getAssistantShare", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it("loads transcript and report from S3 URLs", async () => {
+    vi.mocked(httpClient.get).mockResolvedValue({
+      status: 200,
+      data: {
+        meetingId: "meeting-1",
+        transcript: null,
+        transcriptUrl: "https://s3.example/transcript",
+        transcriptPublishedAt: "2026-09-01T10:00:00Z",
+        report: null,
+        reportUrl: "https://s3.example/report",
+        reportPublishedAt: "2026-09-01T10:00:00Z",
+      },
+    } as never);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string) => ({
+        ok: true,
+        json: async () =>
+          String(url).includes("transcript")
+            ? [line("Merhaba")]
+            : { title: "Rapor", summary: "Özet" },
+      })),
+    );
+
+    const share = await getAssistantShare("meeting-1");
+
+    expect(share.transcript?.[0]?.text).toBe("Merhaba");
+    expect(share.report?.summary).toBe("Özet");
   });
 });

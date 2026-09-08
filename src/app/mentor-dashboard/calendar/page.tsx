@@ -354,14 +354,10 @@ export default function MentorCalendarPage() {
           error={calendar.meetingError}
           onClose={() => setDetailMeeting(null)}
           onAddStartup={async (target) => {
-            await calendar.addMeeting({
-              ...meetingRecipient(target),
-              scheduledAt: detailMeeting.scheduledAt,
-              durationMinutes: detailMeeting.durationMinutes,
-              agenda: detailMeeting.agenda ?? "",
-              meetLink: detailMeeting.meetLink,
-              transcribeRequested: detailMeeting.transcribeRequested,
-            });
+            await calendar.inviteGuest(
+              detailMeeting.id,
+              meetingRecipient(target),
+            );
           }}
           onAddMentor={async (mentorId, organizationIds) => {
             for (const organizationId of organizationIds) {
