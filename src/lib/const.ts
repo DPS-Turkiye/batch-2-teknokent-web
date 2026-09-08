@@ -541,15 +541,31 @@ export const SITE_NAV_ITEMS = [
 export const SITE_FOOTER_GROUPS = [
   {
     title: "Platform",
-    links: ["Mentorluk Nedir?", "Programlar", "Eğitimler", "Duyurular"],
+    links: [
+      { href: "/#mentorluk", label: "Mentorluk Nedir?" },
+      { href: "/#programlar", label: "Programlar" },
+      { href: "/#egitimler", label: "Eğitimler" },
+      { href: "/#duyurular", label: "Duyurular" },
+    ],
   },
   {
     title: "Destek",
-    links: ["Yardım Merkezi", "Sıkça Sorulan Sorular", "İletişim"],
+    links: [
+      {
+        href: "mailto:info@metu.edu.tr?subject=METUal%20Destek",
+        label: "Yardım Merkezi",
+      },
+      { href: "/#sss", label: "Sıkça Sorulan Sorular" },
+      { href: "mailto:info@metu.edu.tr", label: "İletişim" },
+    ],
   },
   {
     title: "Yasal",
-    links: ["Gizlilik", "Kullanım Koşulları", "KVKK"],
+    links: [
+      { href: null, label: "Gizlilik" },
+      { href: null, label: "Kullanım Koşulları" },
+      { href: null, label: "KVKK" },
+    ],
   },
 ] as const;
 
