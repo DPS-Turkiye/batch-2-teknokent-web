@@ -248,6 +248,7 @@ export function useSignupWizard(
       { label: "CV", done: Boolean(personal.cv) },
       { label: "Uzmanlık alanları", done: personal.expertise.length > 0 },
       { label: "Startup adı", done: Boolean(startup.name.trim()) },
+      { label: "Logo", done: Boolean(startup.logo) },
       { label: "Tek satırlık tanım", done: Boolean(startup.tagline.trim()) },
       { label: "Web sitesi URL'i", done: Boolean(startup.website.trim()) },
       { label: "Problem", done: Boolean(startup.problem.trim()) },
@@ -271,8 +272,8 @@ export function useSignupWizard(
       return Boolean(firstName.trim() && lastName.trim() && role.trim());
     }
     if (step === SignupStep.StartupProfile) {
-      const { name, tagline, website } = draft.startup;
-      return Boolean(name.trim() && tagline.trim() && website.trim());
+      const { name, tagline, website, logo } = draft.startup;
+      return Boolean(name.trim() && tagline.trim() && website.trim() && logo);
     }
     return true;
   }, [draft, step]);

@@ -1,7 +1,7 @@
 "use client";
 
 import { FileText, Upload, X } from "lucide-react";
-import { ChangeEvent, useRef } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
 import { formatFileSize } from "@/lib/utils";
@@ -11,18 +11,32 @@ export function FileDrop({
   label,
   onChange,
   alreadyStored,
+  accept = ".pdf,.docx",
+  helpText = "PDF veya DOCX · En fazla 10 MB",
+  maxBytes = 10 * 1024 * 1024,
 }: {
   file: UploadedFile | null;
   label: string;
   onChange: (file: UploadedFile | null) => void;
   alreadyStored?: { name: string } | null;
+  accept?: string;
+  helpText?: string;
+  maxBytes?: number;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0];
-    if (selected)
-      onChange({ name: selected.name, size: selected.size, file: selected });
+    if (!selected) return;
+    if (selected.size > maxBytes) {
+      setError(`Dosya boyutu ${formatFileSize(maxBytes)} sınırını aşamaz.`);
+      event.target.value = "";
+      return;
+    }
+
+    setError(null);
+    onChange({ name: selected.name, size: selected.size, file: selected });
   }
 
   if (!file && alreadyStored) {
@@ -49,11 +63,16 @@ export function FileDrop({
         <input
           ref={inputRef}
           type="file"
-          accept=".pdf,.docx"
+          accept={accept}
           aria-label={label}
           className="hidden"
           onChange={handleChange}
         />
+        {error ? (
+          <p role="alert" className="mt-2 text-[11px] text-red-600">
+            {error}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -72,7 +91,10 @@ export function FileDrop({
         </span>
         <button
           type="button"
-          onClick={() => onChange(null)}
+          onClick={() => {
+            setError(null);
+            onChange(null);
+          }}
           aria-label={`${file.name} dosyasını kaldır`}
           className="grid size-7 place-items-center rounded-full text-[#858c96] hover:bg-[#f8f9fa] hover:text-[#22262b]"
         >
@@ -93,13 +115,16 @@ export function FileDrop({
       >
         Dosya seç
       </button>
-      <p className="mt-3 text-[11px] text-[#858c96]">
-        PDF veya DOCX · En fazla 10 MB
-      </p>
+      <p className="mt-3 text-[11px] text-[#858c96]">{helpText}</p>
+      {error ? (
+        <p role="alert" className="mt-2 text-[11px] text-red-600">
+          {error}
+        </p>
+      ) : null}
       <input
         ref={inputRef}
         type="file"
-        accept=".pdf,.docx"
+        accept={accept}
         aria-label={label}
         className="hidden"
         onChange={handleChange}

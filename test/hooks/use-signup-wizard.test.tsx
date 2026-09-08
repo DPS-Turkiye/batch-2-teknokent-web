@@ -74,7 +74,7 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(false);
   });
 
-  it("blocks the startup step until name, tagline and website are filled", () => {
+  it("blocks the startup step until name, tagline, website and logo are filled", () => {
     const { result } = renderHook(() => useSignupWizard());
     fillPersonal(result);
     act(() => result.current.goNext());
@@ -86,6 +86,16 @@ describe("useSignupWizard", () => {
       result.current.updateStartup("name", "Döngü");
       result.current.updateStartup("tagline", "Gönüllüleri eşleştirir");
       result.current.updateStartup("website", "https://dongu.example");
+    });
+
+    expect(result.current.canContinue).toBe(false);
+
+    act(() => {
+      result.current.updateStartup("logo", {
+        name: "logo.png",
+        size: 4,
+        file: new File(["logo"], "logo.png", { type: "image/png" }),
+      });
     });
 
     expect(result.current.canContinue).toBe(true);

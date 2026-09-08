@@ -102,6 +102,9 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
     if (draft.personal.cv?.file) {
       await uploadDocument(draft.personal.cv.file, "cv", idToken);
     }
+    if (draft.startup.logo?.file) {
+      await uploadDocument(draft.startup.logo.file, "logo", idToken);
+    }
     for (const [kind, uploaded] of Object.entries(draft.documents)) {
       if (uploaded?.file) {
         await uploadDocument(uploaded.file, kind, idToken);

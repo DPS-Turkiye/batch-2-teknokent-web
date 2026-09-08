@@ -7,6 +7,7 @@ export class ClientApiError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    readonly fieldErrors: Record<string, string> = {},
   ) {
     super(message);
     this.name = "ClientApiError";
@@ -61,5 +62,13 @@ export function requireSuccess<T>(response: AxiosResponse<T>): T {
     typeof body.code === "string"
       ? body.code
       : undefined;
-  throw new ClientApiError(message, response.status, code);
+  const fieldErrors =
+    body &&
+    typeof body === "object" &&
+    "fieldErrors" in body &&
+    body.fieldErrors &&
+    typeof body.fieldErrors === "object"
+      ? (body.fieldErrors as Record<string, string>)
+      : {};
+  throw new ClientApiError(message, response.status, code, fieldErrors);
 }
