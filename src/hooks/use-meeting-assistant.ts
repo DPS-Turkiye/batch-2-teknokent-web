@@ -196,12 +196,8 @@ export function useMeetingAssistant() {
     (meetingId: string) => calendarItems.some((item) => item.id === meetingId),
     [calendarItems],
   );
-  const notebookMeetingId = targetMeetingId;
-
-  useEffect(() => {
-    if (!selected || !canPersist(selected.id)) return;
-    setTargetMeetingId(selected.id);
-  }, [selected?.id, canPersist, selected]);
+  const notebookMeetingId =
+    selected && canPersist(selected.id) ? selected.id : targetMeetingId;
 
   const selectedMeetLink = selected
     ? (calendarItems
