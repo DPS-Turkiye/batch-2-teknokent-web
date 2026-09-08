@@ -32,16 +32,52 @@ describe("proxy", () => {
     );
   });
 
-  it("lets visitors stay on login even if a leftover session cookie exists", () => {
+  // Reported: a signed-in visitor could still open /login and /signup. These
+  // two cases previously asserted that they stayed there.
+  it("sends a signed-in visitor away from login", () => {
     const response = request("/login", "teknokent_session=signed-in");
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/workspace",
+    );
   });
 
-  it("lets visitors stay on signup even if a leftover session cookie exists", () => {
+  it("sends a signed-in visitor away from signup", () => {
     const response = request("/signup", "teknokent_session=signed-in");
-    expect(response.status).toBe(200);
-    expect(response.headers.get("location")).toBeNull();
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/workspace",
+    );
+  });
+
+  it("honours where the visitor was originally headed", () => {
+    const response = request(
+      "/login?next=%2Fcalendar",
+      "teknokent_session=signed-in",
+    );
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/calendar",
+    );
+  });
+
+  it("refuses to forward to another origin", () => {
+    const response = request(
+      "/login?next=https%3A%2F%2Fevil.example%2Fsteal",
+      "teknokent_session=signed-in",
+    );
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/workspace",
+    );
+  });
+
+  it("refuses a protocol-relative destination", () => {
+    const response = request(
+      "/login?next=%2F%2Fevil.example%2Fsteal",
+      "teknokent_session=signed-in",
+    );
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/workspace",
+    );
   });
 
   it("lets signed-in visitors into protected pages", () => {

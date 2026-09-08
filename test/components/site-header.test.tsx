@@ -22,6 +22,8 @@ describe("SiteHeader", () => {
 
     const signUp = screen.getAllByText("Kayıt Ol");
     expect(signUp.length).toBeGreaterThanOrEqual(1);
-    expect(signUp[0].closest("a")).toHaveAttribute("href", "/login");
+    // Reported: this pointed at /login, so the landing page offered no route
+    // into signup at all. Previously asserted as /login.
+    expect(signUp[0].closest("a")).toHaveAttribute("href", "/signup");
   });
 });
