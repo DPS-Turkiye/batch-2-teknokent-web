@@ -75,8 +75,8 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
         </span>
       }
     >
-      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-8 lg:h-[calc(100dvh-5.5rem)] lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] lg:items-stretch">
-        <div className="flex min-h-0 flex-col gap-4 overflow-y-auto">
+      <div className="mx-auto grid max-w-6xl gap-4 px-4 py-6 sm:px-8 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="flex flex-col gap-4">
           {realtimeStatus === RealtimeStatus.Offline ? (
             <MeetingNoteSnapshotView meetingId={meetingId} />
           ) : (
@@ -91,7 +91,9 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
           )}
           <MeetingAssistantSharePanel meetingId={meetingId} />
         </div>
-        <MeetingTodoList meetingId={meetingId} />
+        <div className="lg:sticky lg:top-[88px] lg:self-start">
+          <MeetingTodoList meetingId={meetingId} />
+        </div>
       </div>
     </AppShell>
   );
