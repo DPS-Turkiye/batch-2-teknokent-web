@@ -26,7 +26,6 @@ export type {
   LandingTraining,
   LandingTrainingCategory,
 } from "@/types/landing";
-export type { MentorRequestMentor } from "@/types/mentor-request";
 export { MentorRequestStep } from "@/types/mentor-request";
 export { LoginFlowStep, LoginRoleId } from "@/interfaces/login";
 export type { LoginRoleGroup, LoginRoleOption } from "@/interfaces/login";
