@@ -127,6 +127,13 @@ describe("MentorCalendarPage", () => {
     }
   });
 
+  it("lets the calendar grid shrink to the mobile viewport", () => {
+    mock();
+    renderWithQueryClient(<MentorCalendarPage />);
+
+    expect(screen.getByRole("table").closest("section")).toHaveClass("min-w-0");
+  });
+
   it("renders recurring availability and this week's capacity", () => {
     mock({
       rules: [
