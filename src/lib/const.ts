@@ -16,7 +16,6 @@ import {
 } from "@/interfaces/mentorship-request";
 import type { MeetingStatusMeta } from "@/types/assistant";
 import { MeetingStatus } from "@/types/assistant";
-import { MentorRequestStep } from "@/types/mentor-request";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export const DEFAULT_APP_URL = "http://localhost:3000";
@@ -435,67 +434,6 @@ export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
     ],
   },
 ];
-
-export const MENTOR_REQUEST_STEPS = [
-  "İhtiyaç",
-  "Beklenti",
-  "Bilgiler",
-  "Mentor Seçimi",
-  "Talep",
-] as const;
-
-export const MENTOR_REQUEST_TITLES: Record<
-  MentorRequestStep,
-  [string, string]
-> = {
-  [MentorRequestStep.Need]: [
-    "Hangi konuda desteğe ihtiyacınız var?",
-    "İhtiyacınızı doğru tanımlamanız, size daha uygun mentorların önerilmesini sağlar.",
-  ],
-  [MentorRequestStep.Expectation]: [
-    "Nasıl bir destek arıyorsunuz?",
-    "Mentorluk biçimi ve iletişim tercihlerinizi belirleyin.",
-  ],
-  [MentorRequestStep.Info]: [
-    "Mentorla paylaşılacak bilgileri kontrol edin",
-    "Aşağıdaki bilgiler startup profilinizden otomatik olarak alınmıştır.",
-  ],
-  [MentorRequestStep.MentorSelect]: [
-    "İhtiyacınıza uygun mentorlar",
-    "Alan: Ürün & ürün yönetimi · Kullanıcı testi",
-  ],
-  [MentorRequestStep.Review]: [
-    "Mentorluk talebinizi gözden geçirin",
-    "Göndermeden önce seçimlerinizi kontrol edin.",
-  ],
-};
-
-export const MENTOR_REQUEST_SUPPORT_AREAS = [
-  "Ürün ve ürün yönetimi",
-  "Kullanıcı araştırması ve tasarım",
-  "Yazılım ve teknoloji",
-  "Satış ve pazarlama",
-  "İş modeli ve strateji",
-  "Finans ve yatırım",
-  "Hukuk ve fikrî mülkiyet",
-  "Ekip ve organizasyon",
-  "Destek programları ve teşvikler",
-  "Diğer",
-] as const;
-
-export const MENTOR_REQUEST_URGENCY_OPTIONS = [
-  "Bu hafta",
-  "Önümüzdeki iki hafta",
-  "Bu ay",
-  "Acil değil",
-] as const;
-
-export const MENTOR_REQUEST_STATUS_OPTIONS = [
-  ["waiting", "Yanıt Bekleniyor"],
-  ["question", "Ek Bilgi İstendi"],
-  ["accepted", "Kabul Edildi"],
-  ["declined", "Uygun Değil"],
-] as const;
 
 export const MEETING_SCHEDULE_DAYS = [
   ["Pzt 12", "09:00", "10:30", "14:00", "15:30"],

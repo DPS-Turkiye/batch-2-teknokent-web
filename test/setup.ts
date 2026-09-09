@@ -2,6 +2,10 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+// jsdom has no layout, so its scrollTo logs "Not implemented" on every wizard
+// step change. Tests that assert on scrolling stub this with vi.stubGlobal.
+window.scrollTo = () => {};
+
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
