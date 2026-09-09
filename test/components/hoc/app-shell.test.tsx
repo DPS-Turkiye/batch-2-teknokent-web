@@ -72,6 +72,8 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
     const nav = within(screen.getByRole("navigation", { name: "Ana menü" }));
+    expect(screen.getByRole("banner").closest(".mentor-home")).toBeNull();
+    expect(screen.getByRole("main")).toHaveClass("mentor-home");
     expect(screen.getByRole("banner")).toHaveClass("border-b");
     expect(screen.getByRole("banner")).not.toHaveClass(
       "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",

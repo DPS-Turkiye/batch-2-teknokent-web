@@ -198,7 +198,7 @@ export function AppShell({
 
   return (
     <div
-      className={`min-h-screen text-[#22262b] ${mentorHome ? "mentor-home bg-white" : "bg-[#f8f9fa]"}`}
+      className={`min-h-screen text-[#22262b] ${mentorHome ? "bg-white" : "bg-[#f8f9fa]"}`}
     >
       <header className="sticky top-0 z-40 border-b border-[#e4e7ea] bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[72px] max-w-[1320px] items-center gap-5 px-4 sm:px-8">
@@ -408,7 +408,7 @@ export function AppShell({
           </div>
         </div>
       ) : null}
-      <main>{children}</main>
+      <main className={mentorHome ? "mentor-home" : undefined}>{children}</main>
     </div>
   );
 }
