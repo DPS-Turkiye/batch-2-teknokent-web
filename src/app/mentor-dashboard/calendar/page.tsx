@@ -115,7 +115,7 @@ export default function MentorCalendarPage() {
         </div>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
-          <section className="rounded-2xl border border-[#e4e7ea] bg-white p-4 sm:p-5">
+          <section className="min-w-0 rounded-2xl border border-[#e4e7ea] bg-white p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-sm font-bold text-[#22262b]">{range}</h2>
               <div className="flex gap-2">
