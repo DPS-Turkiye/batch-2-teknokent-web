@@ -1,8 +1,7 @@
 "use client";
 
-import { ImagePlus } from "lucide-react";
-
 import { ChipGroup } from "@/components/common/chip-group";
+import { FileDrop } from "@/components/common/file-drop";
 import { ProgramSelect } from "@/components/common/program-select";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
@@ -41,19 +40,20 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         <div className="space-y-5">
           <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
             <h2 className="text-sm font-semibold">Temel bilgiler</h2>
-            <div className="flex gap-4">
+            <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
               <div>
                 <span className={labelClass}>
                   Logo
                   <Required />
                 </span>
-                <button
-                  type="button"
-                  aria-label="Logo yükle"
-                  className="grid size-[52px] place-items-center rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] text-[#a4aab2] transition hover:border-[#e86f22] hover:text-[#e86f22]"
-                >
-                  <ImagePlus className="size-5" strokeWidth={1.6} />
-                </button>
+                <FileDrop
+                  file={startup.logo}
+                  label="Startup logosu seç"
+                  accept=".png,.jpg,.jpeg,.webp"
+                  helpText="PNG, JPG veya WebP · En fazla 5 MB"
+                  maxBytes={5 * 1024 * 1024}
+                  onChange={(file) => updateStartup("logo", file)}
+                />
               </div>
               <div className="flex-1">
                 <label className={labelClass} htmlFor="signup-startup-name">

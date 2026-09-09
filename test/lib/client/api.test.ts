@@ -42,6 +42,23 @@ describe("requireSuccess", () => {
     }
   });
 
+  it("keeps field-level validation messages from the backend", () => {
+    try {
+      requireSuccess(
+        response(400, {
+          message: "Form validation failed.",
+          fieldErrors: { phone: "Telefon numarası geçersiz." },
+        }),
+      );
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ClientApiError);
+      expect((error as ClientApiError).fieldErrors).toEqual({
+        phone: "Telefon numarası geçersiz.",
+      });
+    }
+  });
+
   // A rejection from an edge proxy carries no JSON body, which is how testers
   // ended up looking at "Request failed with HTTP 403."
   it.each([

@@ -35,10 +35,12 @@ export function RegisterView({
   const {
     form,
     update,
+    updatePhone,
     canSubmit,
     passwordStrengthErrorMessage,
     passwordsMismatch,
     emailCharacterErrorMessage,
+    phoneErrorMessage,
   } = useRegisterForm();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -110,9 +112,13 @@ export function RegisterView({
             label="Telefon"
             required
             type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            maxLength={16}
             placeholder="+90"
             value={form.phone}
-            onChange={(value) => update("phone", value)}
+            onChange={updatePhone}
+            error={phoneErrorMessage}
           />
           <div>
             <AuthField
@@ -144,7 +150,7 @@ export function RegisterView({
             />
             {passwordsMismatch ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Passwords do not match.
+                Şifreler eşleşmiyor.
               </p>
             ) : null}
           </div>

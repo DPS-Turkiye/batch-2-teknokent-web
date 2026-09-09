@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PersonalProfileSection } from "@/components/profile/personal-profile-section";
 import type { UserProfile } from "@/interfaces/user-profile";
+import { ClientApiError } from "@/lib/client/api";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
@@ -59,6 +60,42 @@ describe("PersonalProfileSection", () => {
     expect(save).toBeEnabled();
   });
 
+  it("marks the required name and explains its validation error", async () => {
+    const user = userEvent.setup();
+    render(<PersonalProfileSection />);
+
+    const label = await screen.findByText("Ad soyad", { selector: "label" });
+    expect(label).toHaveTextContent("Ad soyad *");
+    await user.click(
+      screen.getByRole("button", { name: "Ad soyad alanını düzenle" }),
+    );
+    await user.clear(
+      screen.getByRole("textbox", { name: "Ad soyad*", exact: true }),
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Ad soyad zorunludur.");
+    expect(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    ).toBeDisabled();
+  });
+
+  it("accepts only digits in the editable phone field", async () => {
+    const user = userEvent.setup();
+    render(<PersonalProfileSection />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Telefon alanını düzenle" }),
+    );
+    const phone = screen.getByLabelText("Telefon");
+    await user.clear(phone);
+    await user.type(phone, "+90abc555");
+
+    expect(phone).toHaveValue("+90555");
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Türkiye numarası +90'dan sonra 10 haneli olmalıdır.",
+    );
+  });
+
   it("saves the edited profile and confirms it", async () => {
     vi.mocked(saveUserProfile).mockResolvedValue(
       profile({ jobTitle: "Kurucu" }),
@@ -108,5 +145,31 @@ describe("PersonalProfileSection", () => {
       await screen.findByText("Profile could not be saved."),
     ).toBeInTheDocument();
     expect(screen.queryByText("Kaydedildi")).not.toBeInTheDocument();
+  });
+
+  it("places backend validation feedback beside the affected field", async () => {
+    vi.mocked(saveUserProfile).mockRejectedValue(
+      new ClientApiError("Request validation failed", 400, undefined, {
+        jobTitle: "Rol en fazla 100 karakter olabilir.",
+      }),
+    );
+    const user = userEvent.setup();
+    render(<PersonalProfileSection />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Rol alanını düzenle" }),
+    );
+    await user.type(screen.getByLabelText("Rol"), "X");
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    );
+
+    expect(
+      await screen.findByText("Rol en fazla 100 karakter olabilir."),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Rol")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
   });
 });

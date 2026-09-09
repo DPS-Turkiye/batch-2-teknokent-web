@@ -10,7 +10,7 @@ import {
   SignupStep,
 } from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
-import { listDocuments } from "@/lib/client/documents";
+import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { renderWithQueryClient as render } from "@test/test-utils";
@@ -43,6 +43,7 @@ vi.mock("@/lib/client/profile-analysis", () => ({
 // for the resumed-session case.
 vi.mock("@/lib/client/documents", () => ({
   listDocuments: vi.fn().mockResolvedValue([]),
+  uploadDocument: vi.fn().mockResolvedValue({}),
 }));
 
 const ACCOUNT: RegisteredAccount = {
@@ -59,6 +60,10 @@ const CTA = {
 };
 
 async function fillStartupStep(user: ReturnType<typeof userEvent.setup>) {
+  await user.upload(
+    screen.getByLabelText("Startup logosu seç"),
+    new File(["logo"], "logo.png", { type: "image/png" }),
+  );
   await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
   await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
   await user.type(
@@ -74,6 +79,50 @@ async function completePersonalStep(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe("Signup wizard", () => {
+  it("requires and uploads the startup logo", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
+    await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
+    await user.type(
+      screen.getByLabelText(/Web sitesi \/ sosyal link/),
+      "https://dongu.example",
+    );
+    expect(screen.getByRole("button", { name: CTA.startup })).toBeDisabled();
+
+    await user.upload(
+      screen.getByLabelText("Startup logosu seç"),
+      new File([new Uint8Array(5 * 1024 * 1024 + 1)], "large-logo.png", {
+        type: "image/png",
+      }),
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Dosya boyutu 5 MB sınırını aşamaz.",
+    );
+    expect(screen.getByRole("button", { name: CTA.startup })).toBeDisabled();
+
+    await user.upload(
+      screen.getByLabelText("Startup logosu seç"),
+      new File(["logo"], "logo.png", { type: "image/png" }),
+    );
+    expect(screen.getByRole("button", { name: CTA.startup })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: CTA.startup }));
+    await user.click(screen.getByRole("button", { name: CTA.documents }));
+    await user.click(screen.getByRole("button", { name: CTA.review }));
+
+    await waitFor(() =>
+      expect(vi.mocked(uploadDocument)).toHaveBeenCalledWith(
+        expect.objectContaining({ name: "logo.png" }),
+        "logo",
+        "id-token",
+      ),
+    );
+  });
+
   it("opens on step 1 with the four setup steps listed", () => {
     render(<SignupWizardView account={ACCOUNT} />);
 

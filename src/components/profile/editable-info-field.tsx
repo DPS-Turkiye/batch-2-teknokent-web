@@ -1,7 +1,12 @@
 "use client";
 
 import { Check, Pencil } from "lucide-react";
-import { useLayoutEffect, useRef, useState } from "react";
+import {
+  type InputHTMLAttributes,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { EditableChips } from "@/components/common/editable-chips";
 import { fieldClass, labelClass } from "@/components/common/form-field";
@@ -32,11 +37,17 @@ function AutoResizeTextarea({
   value,
   onChange,
   placeholder,
+  required,
+  error,
+  maxLength,
 }: {
   id: string;
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  required?: boolean;
+  error?: string;
+  maxLength?: number;
 }) {
   const ref = useAutoResize(value);
   return (
@@ -47,6 +58,10 @@ function AutoResizeTextarea({
       rows={1}
       className={`${fieldClass} min-h-28 resize-y overflow-hidden py-3 leading-relaxed`}
       placeholder={placeholder}
+      required={required}
+      maxLength={maxLength}
+      aria-invalid={Boolean(error)}
+      aria-describedby={error ? `${id}-error` : undefined}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     />
@@ -61,6 +76,10 @@ export function EditableInfoField({
   onChange,
   multiline = false,
   placeholder,
+  required = false,
+  error,
+  inputMode,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -68,6 +87,10 @@ export function EditableInfoField({
   onChange: (value: string) => void;
   multiline?: boolean;
   placeholder?: string;
+  required?: boolean;
+  error?: string;
+  inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
+  maxLength?: number;
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -77,12 +100,16 @@ export function EditableInfoField({
         <div className="min-w-0 flex-1">
           <label className={labelClass} htmlFor={isEditing ? id : undefined}>
             {label}
+            {required ? <span className="text-[#e86f22]"> *</span> : null}
           </label>
           {isEditing ? (
             multiline ? (
               <AutoResizeTextarea
                 id={id}
                 placeholder={placeholder}
+                required={required}
+                error={error}
+                maxLength={maxLength}
                 value={value}
                 onChange={onChange}
               />
@@ -92,6 +119,11 @@ export function EditableInfoField({
                 id={id}
                 className={fieldClass}
                 placeholder={placeholder}
+                required={required}
+                inputMode={inputMode}
+                maxLength={maxLength}
+                aria-invalid={Boolean(error)}
+                aria-describedby={error ? `${id}-error` : undefined}
                 value={value}
                 onChange={(event) => onChange(event.target.value)}
               />
@@ -103,6 +135,15 @@ export function EditableInfoField({
               )}
             </p>
           )}
+          {error ? (
+            <p
+              id={`${id}-error`}
+              role="alert"
+              className="mt-1.5 text-xs text-[#b91c1c]"
+            >
+              {error}
+            </p>
+          ) : null}
         </div>
         <button
           type="button"
@@ -126,10 +167,12 @@ export function EditableInfoChips({
   label,
   values,
   onChange,
+  error,
 }: {
   label: string;
   values: string[];
   onChange: (values: string[]) => void;
+  error?: string;
 }) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -170,6 +213,11 @@ export function EditableInfoChips({
             </span>
           ))}
         </div>
+      ) : null}
+      {error ? (
+        <p role="alert" className="mt-1.5 text-xs text-[#b91c1c]">
+          {error}
+        </p>
       ) : null}
     </div>
   );
