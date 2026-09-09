@@ -310,14 +310,16 @@ export default function DashboardPage() {
               <div className="mt-3 divide-y divide-[#eef0f2]">
                 {notifications.length ? (
                   notifications.slice(0, 3).map((notification) => (
-                    <div key={notification.title} className="flex gap-3 py-3">
+                    <div key={notification.id} className="flex gap-3 py-3">
                       <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#e86f22]" />
                       <div>
                         <p className="text-xs leading-5">
                           {notification.title}
                         </p>
                         <p className="mt-0.5 text-[10px] text-[#858c96]">
-                          {notification.time}
+                          {new Date(notification.createdAt).toLocaleString(
+                            "tr-TR",
+                          )}
                         </p>
                       </div>
                     </div>

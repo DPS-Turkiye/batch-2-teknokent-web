@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  Bell,
   Bot,
   CalendarDays,
   ClipboardList,
@@ -21,12 +20,12 @@ import {
 import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { NotificationMenu } from "@/components/common/notification-menu";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
-import { DASHBOARD_NOTIFICATIONS } from "@/lib/const";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -180,7 +179,6 @@ export function AppShell({
   const {
     homeHref,
     profileHref,
-    notificationsHref,
     roleLabel,
     showNotificationBadge,
     usesRoleSubtitle,
@@ -221,18 +219,7 @@ export function AppShell({
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            <Link
-              href={notificationsHref}
-              aria-label="Duyurular"
-              className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
-            >
-              <Bell className="size-[18px]" strokeWidth={1.8} />
-              {showNotificationBadge && DASHBOARD_NOTIFICATIONS.length ? (
-                <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
-                  {DASHBOARD_NOTIFICATIONS.length}
-                </span>
-              ) : null}
-            </Link>
+            <NotificationMenu showBadge={showNotificationBadge} />
             <div className="relative hidden sm:block">
               <button
                 type="button"

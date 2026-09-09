@@ -44,6 +44,10 @@ export type LandingTrainingCategory =
   | "Teknoloji";
 
 export type DashboardNotification = {
+  id: string;
   title: string;
-  time: string;
+  body: string;
+  href?: string | null;
+  readAt?: string | null;
+  createdAt: string;
 };

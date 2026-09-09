@@ -9,6 +9,17 @@ import { AppArea } from "@/types/app-area";
 const mockuseAppSession = vi.fn<() => AppSession | null>();
 const mockLogout = vi.fn().mockResolvedValue(undefined);
 
+vi.mock("@/hooks/use-dashboard-notifications", () => ({
+  useDashboardNotifications: () => ({
+    deleteNotification: vi.fn(),
+    error: null,
+    isLoading: false,
+    markRead: vi.fn(),
+    notifications: [],
+    unreadCount: 0,
+  }),
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => mockuseAppSession(),
   useSession: () => ({
@@ -157,9 +168,9 @@ describe("AppShell navigation", () => {
       "href",
       "/mentor-dashboard/messages",
     );
-    expect(screen.getByRole("link", { name: /Duyurular/ })).toHaveAttribute(
-      "href",
-      "/mentor-dashboard#notifications",
+    expect(screen.getByRole("button", { name: "Bildirimler" })).toHaveAttribute(
+      "aria-haspopup",
+      "dialog",
     );
     const mentorNav = screen.getByRole("navigation", { name: "Ana menü" });
     expect(
@@ -202,7 +213,7 @@ describe("AppShell navigation", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("hides the Duyurular badge when there are no notifications", () => {
+  it("opens notifications in place instead of linking to another page", () => {
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -211,8 +222,9 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    const bell = screen.getByRole("link", { name: "Duyurular" });
+    const bell = screen.getByRole("button", { name: "Bildirimler" });
     expect(bell.querySelector("span")).toBeNull();
+    expect(bell).not.toHaveAttribute("href");
   });
 
   it("falls back to the mentee home when there is no active session", () => {
