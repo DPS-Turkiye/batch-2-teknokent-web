@@ -6,6 +6,7 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import {
+  formatRequestSentAt,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
@@ -71,5 +72,14 @@ describe("mentorship workspace helpers", () => {
         request,
       ),
     ).toBe(26);
+  });
+
+  it("labels a request sent today with the local time", () => {
+    expect(
+      formatRequestSentAt(
+        "2026-09-09T07:42:00.000Z",
+        new Date("2026-09-09T12:00:00.000Z"),
+      ),
+    ).toMatch(/^bugün \d{2}:\d{2}$/);
   });
 });

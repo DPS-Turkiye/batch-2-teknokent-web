@@ -6,11 +6,11 @@ export function meetingsForRequest(
   meetings: MeetingItem[],
   request: MentorshipRequest,
 ) {
-  return meetings.filter(
-    (meeting) =>
-      meeting.mentorshipRequestId === request.id ||
-      meeting.mentorId === request.mentorId,
+  const linked = meetings.filter(
+    (meeting) => meeting.mentorshipRequestId === request.id,
   );
+  if (linked.length > 0) return linked;
+  return meetings.filter((meeting) => meeting.mentorId === request.mentorId);
 }
 
 export function pickRequestMeeting(
@@ -42,4 +42,42 @@ export function requestProgressPercent(
       String(meeting.status).toUpperCase() === MeetingStatus.Completed,
   ).length;
   return Math.min(90, 8 + completed * 18);
+}
+
+export function mentorWorkspaceName(request: MentorshipRequest) {
+  return (
+    request.organizationName ||
+    request.requestedForName ||
+    request.requesterName ||
+    "Girişim"
+  );
+}
+
+export function mentorWorkspacePerson(request: MentorshipRequest) {
+  return request.requestedForName || request.requesterName || "";
+}
+
+export function mentorRequestHref(id: string) {
+  return `/mentor-dashboard/mentorship/${encodeURIComponent(id)}`;
+}
+
+export function formatRequestSentAt(createdAt: string, now = new Date()) {
+  const date = new Date(createdAt);
+  const time = new Intl.DateTimeFormat("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+  const sameDay = (left: Date, right: Date) =>
+    left.getFullYear() === right.getFullYear() &&
+    left.getMonth() === right.getMonth() &&
+    left.getDate() === right.getDate();
+  if (sameDay(date, now)) return `bugün ${time}`;
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  if (sameDay(date, yesterday)) return `dün ${time}`;
+  const day = new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+  }).format(date);
+  return `${day} ${time}`;
 }

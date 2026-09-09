@@ -17,6 +17,7 @@ export type UpdateMeetingPayload = {
   outcomes?: string;
   status?: MeetingStatus;
   transcriptBotDispatched?: boolean;
+  meetLink?: string;
 };
 
 export type MeetingFeedbackPayload = {

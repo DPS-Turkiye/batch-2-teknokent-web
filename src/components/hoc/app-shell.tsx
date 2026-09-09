@@ -99,6 +99,12 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       },
       MENTORS_NAV,
       {
+        id: AppArea.Mentorships,
+        label: "Mentorluklarım",
+        href: "/mentorships",
+        icon: Users,
+      },
+      {
         id: AppArea.Calendar,
         label: "Takvim",
         href: "/mentor-dashboard/calendar",
