@@ -63,7 +63,7 @@ function adminSession(): AppSession {
 }
 
 describe("AppShell navigation", () => {
-  it("keeps four real destinations and working account and notification menus on the new mentor home", async () => {
+  it("uses the established navbar and keeps every mentor destination on the new mentor home", async () => {
     mockuseAppSession.mockReturnValue(mentorSession());
     const user = userEvent.setup();
     render(
@@ -72,12 +72,12 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
     const nav = within(screen.getByRole("navigation", { name: "Ana menü" }));
-    expect(screen.getByRole("banner")).toHaveClass(
+    expect(screen.getByRole("banner")).toHaveClass("border-b");
+    expect(screen.getByRole("banner")).not.toHaveClass(
       "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]",
     );
-    expect(screen.getByRole("banner")).not.toHaveClass("border-b");
-    expect(nav.getAllByRole("link")).toHaveLength(4);
-    expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
+    expect(nav.getAllByRole("link")).toHaveLength(6);
+    expect(nav.getByRole("link", { name: "Ana Sayfa" })).toHaveAttribute(
       "aria-current",
       "page",
     );
@@ -85,6 +85,13 @@ describe("AppShell navigation", () => {
       "href",
       "/mentorships",
     );
+    expect(nav.getByRole("link", { name: "Mentörler" })).toHaveAttribute(
+      "href",
+      "/mentors",
+    );
+    expect(
+      nav.getByRole("link", { name: "Toplantı Asistanı" }),
+    ).toHaveAttribute("href", "/assistant");
     await user.click(screen.getByRole("button", { name: "Bildirimler" }));
     expect(
       screen.getByRole("dialog", { name: "Bildirimler" }),
@@ -99,7 +106,7 @@ describe("AppShell navigation", () => {
     );
   });
 
-  it("moves the active mentor message tab to the Figma pill position", () => {
+  it("uses the established active pill on the new mentor messages page", () => {
     mockuseAppSession.mockReturnValue(mentorSession());
     render(
       <AppShell active={AppArea.Meetings} mentorHome>
@@ -107,15 +114,10 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole("link", { name: "Mesajlar" })).toHaveClass(
-      "min-[1440px]:left-[685px]",
-      "min-[1440px]:h-[38px]",
-      "min-[1440px]:w-[88px]",
-    );
-    expect(screen.getByRole("link", { name: "Mesajlar" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
+    const messages = screen.getByRole("link", { name: "Mesajlar" });
+    expect(messages).toHaveClass("h-10", "bg-[#fdebdd]", "text-[#c85816]");
+    expect(messages).not.toHaveClass("min-[1440px]:absolute");
+    expect(messages).toHaveAttribute("aria-current", "page");
   });
 
   beforeEach(() => {

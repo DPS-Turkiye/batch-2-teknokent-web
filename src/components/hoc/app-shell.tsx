@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   Bot,
@@ -46,20 +45,6 @@ type NavigationItem = {
   href: string;
   icon: LucideIcon;
 };
-
-function mentorNavigationPosition(area: AppArea, selected: boolean) {
-  if (area === AppArea.MentorDashboard)
-    return selected
-      ? "min-[1440px]:left-[325px] min-[1440px]:w-24 min-[1440px]:justify-center"
-      : "min-[1440px]:left-[343px]";
-  if (area === AppArea.Mentorships) return "min-[1440px]:left-[458px]";
-  if (area === AppArea.Calendar) return "min-[1440px]:left-[608px]";
-  if (area === AppArea.Meetings)
-    return selected
-      ? "min-[1440px]:left-[685px] min-[1440px]:h-[38px] min-[1440px]:w-[88px] min-[1440px]:justify-center"
-      : "min-[1440px]:left-[703px]";
-  return "";
-}
 
 const NOTES_NAV: NavigationItem = {
   id: AppArea.Notes,
@@ -200,16 +185,7 @@ export function AppShell({
     showNotificationBadge,
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
-  const navigation = buildNavigation(session?.role).filter(
-    (item) =>
-      !mentorHome ||
-      [
-        AppArea.MentorDashboard,
-        AppArea.Mentorships,
-        AppArea.Calendar,
-        AppArea.Meetings,
-      ].includes(item.id),
-  );
+  const navigation = buildNavigation(session?.role);
   const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -224,34 +200,11 @@ export function AppShell({
     <div
       className={`min-h-screen text-[#22262b] ${mentorHome ? "mentor-home bg-white" : "bg-[#f8f9fa]"}`}
     >
-      <header
-        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${mentorHome ? "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]" : "border-b border-[#e4e7ea]"}`}
-      >
-        <div
-          className={`relative mx-auto flex items-center gap-5 px-4 ${mentorHome ? "h-16 max-w-[1440px] sm:px-[22px]" : "h-[72px] max-w-[1320px] sm:px-8"}`}
-        >
-          {mentorHome ? (
-            <Link
-              href={homeHref}
-              aria-label="metual ana sayfa"
-              className="relative h-16 w-[124px] shrink-0 min-[1440px]:absolute min-[1440px]:left-[22px] min-[1440px]:top-0"
-            >
-              <Image
-                src="/mentor-dashboard/logo-mark.png"
-                width={32}
-                height={32}
-                alt=""
-                className="absolute left-0 top-[15px] size-8 rounded-lg"
-              />
-              <span className="absolute left-11 top-[7px] text-[30px] font-semibold leading-[45px] text-[var(--metual-orange)]">
-                metual
-              </span>
-            </Link>
-          ) : (
-            <BrandBlock href={homeHref} />
-          )}
+      <header className="sticky top-0 z-40 border-b border-[#e4e7ea] bg-white/95 backdrop-blur">
+        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center gap-5 px-4 sm:px-8">
+          <BrandBlock href={homeHref} />
           <nav
-            className={`mx-auto hidden items-center lg:flex ${mentorHome ? "gap-3 min-[1440px]:absolute min-[1440px]:inset-0 min-[1440px]:block" : "rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1"}`}
+            className="mx-auto hidden items-center rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1 lg:flex"
             aria-label="Ana menü"
           >
             {navigation.map((item) => {
@@ -262,62 +215,30 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 ${mentorHome ? `h-9 min-[1440px]:absolute min-[1440px]:top-[13px] min-[1440px]:px-0 ${mentorNavigationPosition(item.id, selected)}` : "h-10 xl:px-4"} ${selected ? (mentorHome ? "bg-[#e86f22] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 xl:px-4 ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
-                  {mentorHome ? null : (
-                    <Icon className="size-4" strokeWidth={1.8} aria-hidden />
-                  )}
-                  {mentorHome && item.id === AppArea.MentorDashboard
-                    ? "Anasayfa"
-                    : item.label}
+                  <Icon className="size-4" strokeWidth={1.8} aria-hidden />
+                  {item.label}
                 </Link>
               );
             })}
           </nav>
-          <div
-            className={`ml-auto flex items-center gap-2 lg:ml-0 ${mentorHome ? "min-[1440px]:pointer-events-none min-[1440px]:absolute min-[1440px]:inset-0 min-[1440px]:block" : ""}`}
-          >
-            <div
-              className={
-                mentorHome
-                  ? "min-[1440px]:pointer-events-auto min-[1440px]:absolute min-[1440px]:left-[1210px] min-[1440px]:top-[14px]"
-                  : ""
-              }
-            >
-              <NotificationMenu
-                showBadge={showNotificationBadge}
-                minimal={mentorHome}
-              />
-            </div>
-            <div
-              className={`relative hidden sm:block ${mentorHome ? "min-[1440px]:pointer-events-auto min-[1440px]:absolute min-[1440px]:left-[1272px] min-[1440px]:top-[14px]" : ""}`}
-            >
+          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+            <NotificationMenu showBadge={showNotificationBadge} />
+            <div className="relative hidden sm:block">
               <button
                 type="button"
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
                 onClick={() => setAccountOpen((open) => !open)}
-                className={`flex items-center rounded-full border border-transparent text-left hover:border-[#e4e7ea] ${mentorHome ? "h-9 gap-3 p-0 pr-2" : "gap-2 p-1 pr-2"}`}
+                className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 text-left hover:border-[#e4e7ea]"
               >
-                {mentorHome ? (
-                  <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fdebdd] text-xs font-medium text-[#c85816]">
-                    {initials(displayName) || "K"}
-                  </span>
-                ) : (
-                  <Avatar
-                    initials={initials(displayName) || "K"}
-                    tone="orange"
-                  />
-                )}
+                <Avatar initials={initials(displayName) || "K"} tone="orange" />
                 <span className="hidden max-w-28 leading-tight sm:block">
-                  <strong
-                    className={`block truncate text-xs ${mentorHome ? "font-medium leading-5" : "font-semibold"}`}
-                  >
+                  <strong className="block truncate text-xs font-semibold">
                     {displayName}
                   </strong>
-                  <span
-                    className={`${mentorHome ? "hidden" : "block"} truncate text-[10px] text-[#858c96]`}
-                  >
+                  <span className="block truncate text-[10px] text-[#858c96]">
                     {displayOrganization}
                   </span>
                 </span>
