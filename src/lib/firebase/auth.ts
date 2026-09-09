@@ -108,6 +108,27 @@ export function currentUserEmail(): string | null {
   }
 }
 
+export async function currentFirebaseAccount(): Promise<{
+  email: string;
+  fullName: string;
+  verified: boolean;
+} | null> {
+  try {
+    const auth = firebaseAuth();
+    await auth.authStateReady();
+    const user = auth.currentUser;
+    if (!user?.email) return null;
+    return {
+      email: user.email,
+      fullName: user.displayName?.trim() ?? "",
+      verified:
+        user.emailVerified === true || isEmailVerificationExempt(user.email),
+    };
+  } catch {
+    return null;
+  }
+}
+
 export async function currentIdToken(): Promise<string | null> {
   const user = firebaseAuth().currentUser;
   return user ? user.getIdToken() : null;
