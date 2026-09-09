@@ -26,6 +26,7 @@ import {
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
+import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { initials } from "@/lib/utils";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
@@ -316,10 +317,8 @@ export default function RequestStatusPage() {
                             {mentor.professionalTitle} · {mentor.company}
                           </p>
                         </div>
-                        <PrimaryButton
-                          href={`/mentor-request?step=4&exclude=${encodeURIComponent(request.mentorName)}&mentor=${encodeURIComponent(mentor.id)}`}
-                        >
-                          Bu Mentoru Seç
+                        <PrimaryButton href={mentorProfileHref(mentor.id)}>
+                          Profili gör
                         </PrimaryButton>
                       </div>
                     ))}

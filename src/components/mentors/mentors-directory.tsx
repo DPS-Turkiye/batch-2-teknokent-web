@@ -17,6 +17,7 @@ import {
   type MentorDirectoryFilters,
   type MentorSort,
 } from "@/lib/mentor-directory";
+import { mentorProfileHref } from "@/lib/mentor-profile-request";
 
 const SORT_LABELS: Record<MentorSort, string> = {
   best: "En uygun",
@@ -186,7 +187,7 @@ export function MentorsDirectory({
           {visible.map((mentor) => (
             <li key={mentor.id} className="border-t border-[#eef0f2]">
               <Link
-                href={`/mentors/${encodeURIComponent(mentor.id)}`}
+                href={mentorProfileHref(mentor.id)}
                 className="flex items-center gap-3 px-4 py-4 transition hover:bg-[#fff9f5] sm:px-5"
               >
                 <Avatar initials={mentor.initials} tone="orange" />

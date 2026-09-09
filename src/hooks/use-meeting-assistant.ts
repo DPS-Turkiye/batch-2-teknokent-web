@@ -142,7 +142,6 @@ export function useMeetingAssistant() {
   const [meetingUrl, setMeetingUrl] = useState("");
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [botError, setBotError] = useState<string | null>(null);
-  const [padByMeeting, setPadByMeeting] = useState<Record<string, string>>({});
   const [transcriptByMeeting, setTranscriptByMeeting] = useState<
     Record<string, TranscriptLine[]>
   >({});
@@ -454,9 +453,6 @@ export function useMeetingAssistant() {
   const status = selected
     ? MEETING_STATUS_META[selected.status]
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
-  const padText = selected ? (padByMeeting[selected.id] ?? "") : "";
-  const padSaved = padText.trim().length > 0;
-
   const addBot = async (event?: FormEvent) => {
     event?.preventDefault();
     await sendBotForUrl(selectedMeetLink || meetingUrl);
@@ -537,7 +533,7 @@ export function useMeetingAssistant() {
     if (!hasText(lines)) return;
     const timer = window.setTimeout(() => {
       void requestMeetingReport(lines, selected);
-    }, 8_000);
+    }, 4_000);
     return () => window.clearTimeout(timer);
   }, [
     selected,
@@ -623,14 +619,6 @@ export function useMeetingAssistant() {
     }
   };
 
-  const updatePadText = (value: string) => {
-    if (!selected) return;
-    setPadByMeeting((prev) => ({
-      ...prev,
-      [selected.id]: value,
-    }));
-  };
-
   const updateTranscriptLine = (
     lineId: string,
     patch: Partial<Pick<TranscriptLine, "speaker" | "text">>,
@@ -706,9 +694,6 @@ export function useMeetingAssistant() {
     removeTranscriptLine,
     notes,
     status,
-    padText,
-    padSaved,
-    updatePadText,
     addBot,
     stopBot,
     meetingReport,

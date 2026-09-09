@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { type NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { createMeeting, fetchMeetings } from "@/lib/api/meetings";
