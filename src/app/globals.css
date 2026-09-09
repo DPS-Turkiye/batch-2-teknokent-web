@@ -1,5 +1,33 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: "Mentor Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/mentor-dashboard/inter-regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Mentor Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/mentor-dashboard/inter-medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: "Mentor Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/mentor-dashboard/inter-semibold.ttf") format("truetype");
+}
+
+.mentor-home {
+  font-family: "Mentor Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
 :root {
   --ink: #111111;
   --muted: #626262;

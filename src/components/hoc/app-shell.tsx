@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bot,
   CalendarDays,
@@ -31,6 +32,7 @@ import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
+  mentorHome?: boolean;
   active?: AppArea;
   actions?: ReactNode;
   backHref?: string;
@@ -164,6 +166,7 @@ function BrandBlock({ href }: { href: string }) {
 }
 
 export function AppShell({
+  mentorHome = false,
   active,
   actions,
   backHref,
@@ -183,7 +186,16 @@ export function AppShell({
     showNotificationBadge,
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
-  const navigation = buildNavigation(session?.role);
+  const navigation = buildNavigation(session?.role).filter(
+    (item) =>
+      !mentorHome ||
+      [
+        AppArea.MentorDashboard,
+        AppArea.Mentorships,
+        AppArea.Calendar,
+        AppArea.Meetings,
+      ].includes(item.id),
+  );
   const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -195,12 +207,36 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
-      <header className="sticky top-0 z-40 border-b border-[#e4e7ea] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center gap-5 px-4 sm:px-8">
-          <BrandBlock href={homeHref} />
+    <div
+      className={`min-h-screen text-[#22262b] ${mentorHome ? "mentor-home bg-white" : "bg-[#f8f9fa]"}`}
+    >
+      <header
+        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${mentorHome ? "" : "border-b border-[#e4e7ea]"}`}
+      >
+        <div
+          className={`mx-auto flex items-center gap-5 px-4 ${mentorHome ? "h-16 max-w-[1440px] sm:px-[22px]" : "h-[72px] max-w-[1320px] sm:px-8"}`}
+        >
+          {mentorHome ? (
+            <Link
+              href={homeHref}
+              aria-label="metual ana sayfa"
+              className="flex shrink-0 items-center gap-2.5"
+            >
+              <Image
+                src="/mentor-dashboard/logo-mark.png"
+                width={34}
+                height={34}
+                alt=""
+              />
+              <span className="text-[30px] font-semibold tracking-tight text-[var(--metual-orange)]">
+                metual
+              </span>
+            </Link>
+          ) : (
+            <BrandBlock href={homeHref} />
+          )}
           <nav
-            className="mx-auto hidden items-center rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1 lg:flex"
+            className={`mx-auto hidden items-center lg:flex ${mentorHome ? "gap-3" : "rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1"}`}
             aria-label="Ana menü"
           >
             {navigation.map((item) => {
@@ -210,16 +246,24 @@ export function AppShell({
                 <Link
                   key={`${item.label}-${item.href}`}
                   href={item.href}
-                  className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 xl:px-4 ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  aria-current={selected ? "page" : undefined}
+                  className={`flex items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 ${mentorHome ? "h-[38px] xl:px-5" : "h-10 xl:px-4"} ${selected ? (mentorHome ? "bg-[#e86f22] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
-                  <Icon className="size-4" strokeWidth={1.8} aria-hidden />
-                  {item.label}
+                  {mentorHome ? null : (
+                    <Icon className="size-4" strokeWidth={1.8} aria-hidden />
+                  )}
+                  {mentorHome && item.id === AppArea.MentorDashboard
+                    ? "Anasayfa"
+                    : item.label}
                 </Link>
               );
             })}
           </nav>
           <div className="ml-auto flex items-center gap-2 lg:ml-0">
-            <NotificationMenu showBadge={showNotificationBadge} />
+            <NotificationMenu
+              showBadge={showNotificationBadge}
+              minimal={mentorHome}
+            />
             <div className="relative hidden sm:block">
               <button
                 type="button"
@@ -233,7 +277,9 @@ export function AppShell({
                   <strong className="block truncate text-xs font-semibold">
                     {displayName}
                   </strong>
-                  <span className="block truncate text-[10px] text-[#858c96]">
+                  <span
+                    className={`${mentorHome ? "hidden" : "block"} truncate text-[10px] text-[#858c96]`}
+                  >
                     {displayOrganization}
                   </span>
                 </span>

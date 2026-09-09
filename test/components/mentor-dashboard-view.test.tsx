@@ -129,11 +129,9 @@ describe("MentorDashboardView", () => {
 
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("Hoş geldin, Leyla Aksoy")).toBeInTheDocument();
+    expect(screen.getByText("Merhaba Leyla,")).toBeInTheDocument();
     expect(screen.getByText("2")).toBeInTheDocument();
-    expect(
-      screen.getByText("2 talep yanıtınızı bekliyor."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Yeni mentorluk talebi")).toBeInTheDocument();
   });
 
   it("links each accepted mentorship to its timeline page", () => {
@@ -183,36 +181,44 @@ describe("MentorDashboardView", () => {
 
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("Yaklaşan Toplantılar")).toBeInTheDocument();
+    expect(screen.getByText("Yaklaşan görüşmeler")).toBeInTheDocument();
     expect(screen.getByText("Ürün incelemesi")).toBeInTheDocument();
     expect(screen.getByText("GreenLoop")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Katıl" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Katıl →" })).toHaveAttribute(
       "href",
       "https://meet.google.com/abc-defg-hij",
     );
   });
 
-  it("shows an empty notifications section when there is nothing to display", () => {
+  it("omits the old homepage sections covered by the workspace and account menus", () => {
     mockRequests([]);
 
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("Bildirimler")).toBeInTheDocument();
-    expect(screen.getByText("Henüz bir bildiriminiz yok.")).toBeInTheDocument();
+    expect(screen.queryByText("Bildirimler")).not.toBeInTheDocument();
+    expect(screen.queryByText("Programlar")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Gelen Mentorluk Talepleri"),
+    ).not.toBeInTheDocument();
   });
 
-  it("links to the mentor profile page", () => {
-    mockRequests([]);
+  it("shows request errors instead of an empty state or zero counts", () => {
+    mockRequests([], { error: new Error("unavailable") });
 
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("Profili Görüntüle")).toHaveAttribute(
-      "href",
-      "/mentor-profile",
-    );
+    expect(
+      screen.getAllByText(
+        "Mentorluk talepleri yüklenemedi. Lütfen yeniden deneyin.",
+      ),
+    ).toHaveLength(3);
+    expect(
+      screen.queryByText("Bekleyen talep bulunmuyor."),
+    ).not.toBeInTheDocument();
+    expect(screen.getAllByText("—")).toHaveLength(2);
   });
 
-  it("filters the request list and opens the decision flow on review", async () => {
+  it("opens the pending request from both attention and rail controls", async () => {
     mockRequests([
       request({ id: "1", status: MentorshipRequestStatus.Pending }),
       request({ id: "2", status: MentorshipRequestStatus.Declined }),
@@ -221,12 +227,21 @@ describe("MentorDashboardView", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("2 talep listeleniyor")).toBeInTheDocument();
+    expect(useMentorshipRequests).toHaveBeenCalledWith(UserRole.Mentor);
+    await user.click(screen.getByRole("button", { name: "Talebi incele" }));
+    expect(selectRequest).toHaveBeenLastCalledWith(
+      expect.objectContaining({ id: "1" }),
+    );
+    await user.click(screen.getByRole("button", { name: /Mentorluğa git/ }));
+    expect(selectRequest).toHaveBeenCalledTimes(2);
+  });
 
-    await user.click(screen.getByRole("button", { name: "Bekleyenler" }));
-    expect(screen.getByText("1 talep listeleniyor")).toBeInTheDocument();
-
-    await user.click(screen.getByText("Talebi İncele & Yanıtla →"));
-    expect(selectRequest).toHaveBeenCalled();
+  it("keeps loading counts distinct from zero and does not invent preparation data", () => {
+    mockRequests([], { isLoading: true });
+    mockUseMeetings.mockReturnValue({ data: [], isLoading: true, error: null });
+    renderWithQueryClient(<MentorDashboardView />);
+    expect(screen.getAllByText("…")).toHaveLength(3);
+    expect(screen.queryByText("0")).not.toBeInTheDocument();
+    expect(screen.queryByText("Hazırlık güncellendi")).not.toBeInTheDocument();
   });
 });

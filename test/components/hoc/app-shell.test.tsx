@@ -63,6 +63,38 @@ function adminSession(): AppSession {
 }
 
 describe("AppShell navigation", () => {
+  it("keeps four real destinations and working account and notification menus on the new mentor home", async () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+    const user = userEvent.setup();
+    render(
+      <AppShell active={AppArea.MentorDashboard} mentorHome>
+        <p>Mentor home</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole("navigation", { name: "Ana menü" }));
+    expect(nav.getAllByRole("link")).toHaveLength(4);
+    expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(nav.getByRole("link", { name: "Mentorluklarım" })).toHaveAttribute(
+      "href",
+      "/mentorships",
+    );
+    await user.click(screen.getByRole("button", { name: "Bildirimler" }));
+    expect(
+      screen.getByRole("dialog", { name: "Bildirimler" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Bildirimleri kapat" }),
+    );
+    await user.click(screen.getByRole("button", { name: /Hesap menüsünü aç/ }));
+    expect(screen.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
+      "href",
+      "/mentor-profile",
+    );
+  });
+
   beforeEach(() => {
     mockLogout.mockClear();
   });

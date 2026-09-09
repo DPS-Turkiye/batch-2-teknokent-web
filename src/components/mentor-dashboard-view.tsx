@@ -1,380 +1,292 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
-import { Users } from "lucide-react";
-
-import { Avatar } from "@/components/common/avatar";
-import { Badge } from "@/components/common/badge";
-import { SecondaryButton } from "@/components/common/secondary-button";
+import type { ReactNode } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorDecisionModal } from "@/components/mentor-dashboard/decision-modal";
-import { MentorRequestCard } from "@/components/mentor-dashboard/request-card";
-import { UpcomingMeetingsList } from "@/components/upcoming-meetings-list";
-import { useAppSession } from "@/components/providers/session-provider";
-import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
-import { useDecision } from "@/hooks/use-decision";
-import { useMeetings } from "@/hooks/use-meetings";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import {
-  useDecideProgramInvitation,
-  useProgramInvitations,
-  usePrograms,
-  useRequestProgramMembership,
-} from "@/hooks/use-programs";
-import {
-  ProgramMentorInvitedBy,
-  ProgramMentorStatus,
-} from "@/interfaces/program";
-import {
-  MentorRequestFilter,
-  MentorshipRequestStatus,
-} from "@/interfaces/mentorship-request";
-import { UserRole } from "@/interfaces/session";
-import {
-  MENTOR_DASHBOARD_FILTER_OPTIONS,
-  MENTOR_DASHBOARD_FILTER_STATUSES,
-} from "@/lib/const";
-import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
+import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { formatMeetingShort } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
-export function MentorDashboardView() {
-  const session = useAppSession();
-  const { notifications } = useDashboardNotifications();
-  const invitationsQuery = useProgramInvitations();
-  const programsQuery = usePrograms();
-  const decideInvitation = useDecideProgramInvitation();
-  const requestMembership = useRequestProgramMembership();
-  const invitations = invitationsQuery.data ?? [];
-  const openPrograms = programsQuery.data ?? [];
-  const requestsQuery = useMentorshipRequests(UserRole.Mentor);
-  const meetingsQuery = useMeetings();
-  const requests = requestsQuery.data ?? [];
-  const { upcomingMeetings } = pickUpcomingMeetings(meetingsQuery.data ?? []);
-  const [filter, setFilter] = useState<MentorRequestFilter>(
-    MentorRequestFilter.All,
-  );
-  const decision = useDecision();
-
-  const pendingCount = requests.filter(
-    (request) => request.status === MentorshipRequestStatus.Pending,
-  ).length;
-  const accepted = requests.filter(
-    (request) => request.status === MentorshipRequestStatus.Accepted,
-  );
-
-  const filteredRequests = requests.filter((request) => {
-    if (filter === MentorRequestFilter.All) return true;
-    return request.status === MENTOR_DASHBOARD_FILTER_STATUSES[filter];
-  });
-
+function StateCard({ children }: { children: ReactNode }) {
   return (
-    <AppShell active={AppArea.MentorDashboard}>
-      <div className="mx-auto w-full max-w-[1208px] space-y-6 px-4 pb-12 pt-8 sm:px-8 sm:pt-10">
-        <section className="rounded-[24px] bg-[#e86f22] p-6 text-white shadow-[0_16px_40px_rgba(232,111,34,.16)] sm:p-8">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <span className="inline-block rounded-md bg-white/10 px-3 py-1 text-xs font-medium tracking-wide text-white/90">
-                Mentor Paneli — DPS Mentor Experience
-              </span>
-              <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
-                Hoş geldin, {session?.fullName ?? "Mentor"}
-              </h1>
-              <p className="mt-1 text-sm text-white/80">
-                Girişimcilerden gelen destek taleplerini inceleyin, ek bilgi
-                isteyin veya takviminize uygun saatleri sunun.
-              </p>
-            </div>
-            <div className="shrink-0 rounded-xl bg-white/15 p-4 text-center sm:text-right">
-              <p className="text-xs text-white/75">Bekleyen Talepler</p>
-              <p className="text-3xl font-black text-white">{pendingCount}</p>
-              <p className="mt-1 text-xs text-white/75">
-                {pendingCount > 0
-                  ? `${pendingCount} talep yanıtınızı bekliyor.`
-                  : "Bekleyen talep bulunmuyor."}
-              </p>
-            </div>
-          </div>
-        </section>
-
-        <section id="mentorships">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-              Aktif Mentorluklar
-            </h2>
-          </div>
-
-          {requestsQuery.isLoading ? (
-            <div className="rounded-lg border border-[#e5e7eb] bg-white p-8 text-center text-sm text-[#6a7282]">
-              Yükleniyor...
-            </div>
-          ) : accepted.length === 0 ? (
-            <div className="flex items-center gap-3 rounded-lg border border-[#e5e7eb] bg-white p-6 text-sm text-[#6a7282]">
-              <Users
-                className="size-4 shrink-0"
-                strokeWidth={1.75}
-                aria-hidden
-              />
-              Henüz kabul edilmiş bir mentorluk talebiniz yok.
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {accepted.map((request) => (
-                <Link
-                  key={request.id}
-                  href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
-                  className="flex items-start gap-4 rounded-lg border border-[#e5e7eb] bg-white p-4 transition hover:border-[#c7c7cc]"
-                >
-                  <Avatar
-                    initials={
-                      initials(
-                        request.organizationName ?? request.requesterName ?? "",
-                      ) || "MN"
-                    }
-                  />
-                  <div className="flex-1">
-                    <h3 className="text-sm font-semibold text-[#171717]">
-                      {request.organizationName ?? request.requesterName}
-                    </h3>
-                    <p className="mt-0.5 text-xs text-[#6a7282]">
-                      {request.supportArea}
-                    </p>
-                    <div className="mt-2">
-                      <Badge tone="green">Kabul Edildi</Badge>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-              Yaklaşan Toplantılar
-            </h2>
-            <Link
-              href="/mentor-dashboard/calendar"
-              className="text-xs font-semibold text-[#e86f22]"
+    <p className="rounded-[20px] border border-[var(--metual-line)] p-5 text-sm text-[var(--metual-muted)]">
+      {children}
+    </p>
+  );
+}
+function MentorshipCard({
+  request,
+  onReview,
+}: {
+  request: MentorshipRequest;
+  onReview?: () => void;
+}) {
+  const name = request.requesterName || request.organizationName || "Girişimci";
+  const content = (
+    <>
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[12.5px] font-medium text-[#a8480e]">
+          {initials(name)}
+        </span>
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-medium">{name}</h3>
+          <p className="mt-0.5 truncate text-xs text-[#7a828d]">
+            {request.supportArea}
+          </p>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-1 border-t border-[#eef0f3] pt-3 text-[12.5px] font-semibold text-[#565e68]">
+        Mentorluğa git{" "}
+        <Image
+          src="/mentor-dashboard/chevron.svg"
+          alt=""
+          width={16}
+          height={16}
+        />
+      </div>
+    </>
+  );
+  const style =
+    "block w-full rounded-[20px] border border-[#dde1e6] bg-white p-4 text-left transition hover:border-[var(--metual-orange)]";
+  return onReview ? (
+    <button type="button" className={style} onClick={onReview}>
+      {content}
+    </button>
+  ) : (
+    <Link
+      className={style}
+      href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
+    >
+      {content}
+    </Link>
+  );
+}
+export function MentorDashboardView() {
+  const {
+    firstName,
+    pending,
+    accepted,
+    upcomingMeetings,
+    weekMeetingCount,
+    requestsQuery,
+    meetingsQuery,
+    decision,
+  } = useMentorDashboard();
+  const requestState = requestsQuery.isLoading
+    ? "Talepler yükleniyor..."
+    : requestsQuery.error
+      ? "Mentorluk talepleri yüklenemedi. Lütfen yeniden deneyin."
+      : null;
+  const metric = (value: number, loading: boolean, failed: boolean) =>
+    loading ? "…" : failed ? "—" : value;
+  return (
+    <AppShell active={AppArea.MentorDashboard} mentorHome>
+      <div className="mx-auto w-full max-w-[1292px] px-4 pb-16 pt-8 sm:px-8 sm:pt-10">
+        <header>
+          <h1 className="text-[28px] font-semibold leading-tight">
+            Merhaba {firstName},
+          </h1>
+          <p className="mt-2 text-sm text-[var(--metual-muted)]">
+            Bugün mentorluk süreçlerinde senden beklenenleri tek yerde
+            toparladık.
+          </p>
+        </header>
+        <dl className="mt-6 grid gap-5 sm:grid-cols-3">
+          {[
+            [
+              "Yeni mentorluk talebi",
+              metric(
+                pending.length,
+                requestsQuery.isLoading,
+                !!requestsQuery.error,
+              ),
+            ],
+            [
+              "Aktif mentorluk",
+              metric(
+                accepted.length,
+                requestsQuery.isLoading,
+                !!requestsQuery.error,
+              ),
+            ],
+            [
+              "Bu hafta görüşme",
+              metric(
+                weekMeetingCount,
+                meetingsQuery.isLoading,
+                !!meetingsQuery.error,
+              ),
+            ],
+          ].map(([label, value]) => (
+            <div
+              key={label}
+              className="flex flex-col-reverse gap-2 rounded-[10px] border border-[var(--metual-line)] px-5 py-4"
             >
-              Takvim →
-            </Link>
-          </div>
-          <UpcomingMeetingsList
-            meetings={upcomingMeetings}
-            isLoading={meetingsQuery.isLoading}
-            emptyLabel="Yaklaşan toplantı bulunmuyor."
-            counterpartOf={(meeting) => meeting.organizationName}
-          />
-        </section>
-
-        <section id="notifications">
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-            Bildirimler
-          </h2>
-          {invitations.length > 0 ? (
-            <div className="mb-3 space-y-3">
-              {invitations.map((invitation) => (
-                <article
-                  key={invitation.programId}
-                  className="rounded-lg border border-[#e5e7eb] bg-white p-4"
-                >
-                  <p className="text-sm font-semibold">
-                    {invitation.programName}
-                  </p>
-                  <p className="mt-1 text-xs text-[#6a7282]">
-                    {invitation.coordinatorName} sizi bu programa mentör olarak
-                    davet etti.
-                  </p>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      disabled={decideInvitation.isPending}
-                      onClick={() =>
-                        void decideInvitation.mutateAsync({
-                          programId: invitation.programId,
-                          accepted: true,
-                        })
-                      }
-                      className="rounded-lg bg-[#e86f22] px-3 py-1.5 text-xs font-semibold text-white disabled:bg-[#c9cdd2]"
+              <dt className="text-[13px] text-[var(--metual-muted)]">
+                {label}
+              </dt>
+              <dd className="text-[28px] font-semibold leading-tight">
+                {value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <div className="mt-[26px] grid items-start gap-8 lg:grid-cols-[minmax(0,745fr)_minmax(0,401fr)] lg:gap-[6.6%]">
+          <div className="min-w-0 space-y-6">
+            <section aria-labelledby="attention-heading">
+              <h2 id="attention-heading" className="mb-3 text-lg font-semibold">
+                Dikkat isteyenler
+              </h2>
+              {requestState ? (
+                <StateCard>{requestState}</StateCard>
+              ) : pending.length === 0 ? (
+                <StateCard>Bekleyen talep bulunmuyor.</StateCard>
+              ) : (
+                <div className="space-y-3">
+                  {pending.map((request) => (
+                    <article
+                      key={request.id}
+                      className="flex flex-col gap-5 rounded-[20px] border border-[var(--metual-line)] px-5 py-6 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      Kabul et
-                    </button>
-                    <button
-                      type="button"
-                      disabled={decideInvitation.isPending}
-                      onClick={() =>
-                        void decideInvitation.mutateAsync({
-                          programId: invitation.programId,
-                          accepted: false,
-                        })
-                      }
-                      className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs disabled:opacity-50"
-                    >
-                      Reddet
-                    </button>
-                  </div>
-                </article>
-              ))}
-            </div>
-          ) : null}
-          {notifications.length === 0 && invitations.length === 0 ? (
-            <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center text-sm text-[#6a7282]">
-              Henüz bir bildiriminiz yok.
-            </div>
-          ) : notifications.length === 0 ? null : (
-            <div className="rounded-lg border border-[#e5e7eb] bg-white px-3">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className="flex gap-2 border-b border-[#e5e7eb] py-3 last:border-0"
-                >
-                  <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#999]" />
-                  <div>
-                    <p className="text-xs text-[#555]">{notification.title}</p>
-                    <p className="mt-1 text-xs text-[#aaa]">
-                      {new Date(notification.createdAt).toLocaleString("tr-TR")}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        <section>
-          <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-            Programlar
-          </h2>
-          {programsQuery.isLoading ? (
-            <p className="text-sm text-[#6a7282]">Yükleniyor...</p>
-          ) : openPrograms.length === 0 ? (
-            <div className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-sm text-[#6a7282]">
-              Katılabileceğiniz açık program yok.
-            </div>
-          ) : (
-            <ul className="space-y-3">
-              {openPrograms.map((program) => {
-                const membership = program.mentors.find(
-                  (mentor) => mentor.mentorId === session?.userId,
-                );
-                const accepted =
-                  membership?.status === ProgramMentorStatus.Accepted;
-                const pending =
-                  membership?.status === ProgramMentorStatus.Pending;
-                const pendingInvite =
-                  pending &&
-                  membership?.invitedBy === ProgramMentorInvitedBy.Coordinator;
-                return (
-                  <li
-                    key={program.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-[#e5e7eb] bg-white px-4 py-3"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{program.name}</p>
-                      <p className="text-xs text-[#6a7282]">
-                        {program.coordinatorName}
-                      </p>
-                    </div>
-                    {accepted ? (
-                      <span className="text-xs font-medium text-emerald-700">
-                        Katıldınız
-                      </span>
-                    ) : pendingInvite ? (
-                      <span className="text-xs text-[#6a7282]">
-                        Davet bildiriminde
-                      </span>
-                    ) : pending ? (
-                      <span className="text-xs text-[#6a7282]">
-                        İstek gönderildi
-                      </span>
-                    ) : (
+                      <div className="min-w-0">
+                        <h3 className="break-words text-lg font-semibold">
+                          {[request.organizationName, request.requesterName]
+                            .filter(Boolean)
+                            .join(" · ") || "Mentorluk talebi"}
+                        </h3>
+                        {request.recommendationSnapshot?.startupStage ? (
+                          <p className="mt-3 text-xs text-[var(--metual-muted)]">
+                            {request.recommendationSnapshot.startupStage}
+                          </p>
+                        ) : null}
+                        <p className="mt-3 inline-block rounded-full bg-[#fff7f2] px-[11px] py-1.5 text-xs font-medium text-[var(--metual-orange)]">
+                          {request.supportArea}
+                        </p>
+                      </div>
                       <button
                         type="button"
-                        disabled={requestMembership.isPending}
-                        onClick={() =>
-                          void requestMembership.mutateAsync(program.id)
-                        }
-                        className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs font-medium disabled:opacity-50"
+                        onClick={() => decision.selectRequest(request)}
+                        className="min-h-[38px] shrink-0 rounded-lg bg-[var(--metual-orange)] px-7 py-2 text-[13px] font-medium text-white hover:bg-[var(--metual-orange-dark)]"
                       >
-                        Mentör olmak istiyorum
+                        Talebi incele
                       </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-3 rounded-lg border border-[#e5e7eb] bg-white p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="text-sm font-semibold text-[#171717]">
-              Mentor profiliniz
-            </h2>
-            <p className="mt-1 text-xs text-[#6a7282]">
-              Uzmanlık alanlarınızı ve müsaitlik bilgilerinizi güncel tutarak
-              daha uygun taleplerle eşleşin.
-            </p>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
+            <section aria-labelledby="meetings-heading">
+              <h2 id="meetings-heading" className="mb-3 text-lg font-semibold">
+                Yaklaşan görüşmeler
+              </h2>
+              {meetingsQuery.isLoading ? (
+                <StateCard>Görüşmeler yükleniyor...</StateCard>
+              ) : meetingsQuery.error ? (
+                <StateCard>
+                  Görüşmeler yüklenemedi. Lütfen yeniden deneyin.
+                </StateCard>
+              ) : upcomingMeetings.length === 0 ? (
+                <StateCard>Yaklaşan görüşme bulunmuyor.</StateCard>
+              ) : (
+                <div className="space-y-5">
+                  {upcomingMeetings.map((meeting) => (
+                    <article
+                      key={meeting.id}
+                      className="rounded-[20px] border border-[var(--metual-line)] px-5 py-[18px]"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h3 className="break-words text-[15px] font-semibold">
+                            {meeting.organizationName || "Mentorluk görüşmesi"}
+                          </h3>
+                          <p className="mt-2 text-[13px] text-[var(--metual-muted)]">
+                            {meeting.agenda || "Görüşme konusu belirtilmedi."}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#f6f7f9] px-[11px] py-1.5 text-xs text-[var(--metual-muted)]">
+                          Planlandı
+                        </span>
+                      </div>
+                      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-[13px] font-medium">
+                        <time dateTime={meeting.scheduledAt}>
+                          {formatMeetingShort(meeting.scheduledAt)} ·{" "}
+                          {meeting.durationMinutes} dk
+                        </time>
+                        {meeting.meetLink ? (
+                          <a
+                            href={meeting.meetLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[var(--metual-orange)] hover:underline"
+                          >
+                            Katıl →
+                          </a>
+                        ) : (
+                          <Link
+                            href="/mentor-dashboard/calendar"
+                            className="text-[var(--metual-orange)] hover:underline"
+                          >
+                            Takvimi aç →
+                          </Link>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </section>
           </div>
-          <SecondaryButton href="/mentor-profile" className="shrink-0">
-            Profili Görüntüle
-          </SecondaryButton>
-        </section>
-
-        <section id="requests" className="space-y-4">
-          <h2 className="text-xs font-semibold uppercase tracking-[0.05em] text-[#99a1af]">
-            Gelen Mentorluk Talepleri
-          </h2>
-          <div className="flex flex-wrap items-center justify-between gap-4 border-b border-zinc-200 pb-3">
-            <div className="flex flex-wrap gap-2">
-              {MENTOR_DASHBOARD_FILTER_OPTIONS.map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  onClick={() => setFilter(key)}
-                  className={`rounded-full px-4 py-1.5 text-xs font-semibold transition ${
-                    filter === key
-                      ? "bg-[#e86f22] text-white"
-                      : "bg-[#fdebdd] text-[#b94f12] hover:bg-[#f8d5bd]"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <span className="text-xs font-medium text-zinc-500">
-              {filteredRequests.length} talep listeleniyor
-            </span>
-          </div>
-
-          {requestsQuery.isLoading ? (
-            <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
-              Talepler yükleniyor...
-            </div>
-          ) : requestsQuery.error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-600">
-              {requestsQuery.error.message}
-            </div>
-          ) : filteredRequests.length === 0 ? (
-            <div className="rounded-xl border border-zinc-200 bg-white p-12 text-center text-sm text-zinc-500">
-              Bu filtreye uygun mentorluk talebi bulunamadı.
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredRequests.map((request) => (
-                <MentorRequestCard
-                  key={request.id}
-                  request={request}
-                  onReview={decision.selectRequest}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
+          <aside className="min-w-0 space-y-6">
+            <section id="requests" aria-labelledby="requests-heading">
+              <h2
+                id="requests-heading"
+                className="mb-3 text-[15px] font-semibold tracking-[-0.15px]"
+              >
+                Mentorluk Talepleri
+              </h2>
+              {requestState ? (
+                <StateCard>{requestState}</StateCard>
+              ) : pending.length === 0 ? (
+                <StateCard>Yeni mentorluk talebiniz yok.</StateCard>
+              ) : (
+                <div className="space-y-3">
+                  {pending.map((request) => (
+                    <MentorshipCard
+                      key={request.id}
+                      request={request}
+                      onReview={() => decision.selectRequest(request)}
+                    />
+                  ))}
+                </div>
+              )}
+            </section>
+            <section id="mentorships" aria-labelledby="active-heading">
+              <h2
+                id="active-heading"
+                className="mb-3 text-[15px] font-semibold tracking-[-0.15px]"
+              >
+                Aktif Mentorluklar
+              </h2>
+              {requestState ? (
+                <StateCard>{requestState}</StateCard>
+              ) : accepted.length === 0 ? (
+                <StateCard>
+                  Henüz kabul edilmiş bir mentorluk talebiniz yok.
+                </StateCard>
+              ) : (
+                <div className="space-y-3">
+                  {accepted.map((request) => (
+                    <MentorshipCard key={request.id} request={request} />
+                  ))}
+                </div>
+              )}
+            </section>
+          </aside>
+        </div>
         {decision.selectedRequest ? (
           <MentorDecisionModal
             request={decision.selectedRequest}
