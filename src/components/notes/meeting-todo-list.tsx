@@ -31,7 +31,7 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
   }
 
   return (
-    <section className="flex h-full flex-col rounded-xl border border-[#e5e7eb] bg-white p-4">
+    <section className="flex flex-col rounded-xl border border-[#e5e7eb] bg-white p-4">
       <div className="mb-3 flex items-center gap-3">
         <h2 className="text-sm font-semibold text-[#171717]">Yapılacaklar</h2>
         <span className="text-xs text-[#8a8a8a]">

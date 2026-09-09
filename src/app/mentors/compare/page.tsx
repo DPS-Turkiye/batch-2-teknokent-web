@@ -2,6 +2,7 @@ import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { loadMentors } from "@/lib/mentors";
 
 export const dynamic = "force-dynamic";
@@ -78,14 +79,17 @@ export default async function MentorComparisonPage() {
                   <td />
                   {visibleMentors.map((mentor) => (
                     <td key={mentor.id} className="p-4">
-                      <SecondaryButton className="mb-2 w-full border-0">
+                      <SecondaryButton
+                        href={mentorProfileHref(mentor.id)}
+                        className="mb-2 w-full border-0"
+                      >
                         Profili Görüntüle
                       </SecondaryButton>
                       <PrimaryButton
-                        href={`/mentor-request?step=4&mentor=${encodeURIComponent(mentor.id)}`}
+                        href={mentorProfileHref(mentor.id)}
                         className="w-full"
                       >
-                        Bu Mentoru Seç
+                        Mentorluk talebi gönder
                       </PrimaryButton>
                     </td>
                   ))}

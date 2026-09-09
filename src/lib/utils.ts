@@ -35,3 +35,9 @@ export function meetingCountdownLabel(iso: string, now = new Date()) {
   const days = Math.ceil(diffMs / 86_400_000);
   return `Toplantıya ${days} günden az kaldı`;
 }
+
+export function scrollToTop() {
+  if (typeof window === "undefined") return;
+  if (typeof window.scrollTo !== "function") return;
+  window.scrollTo(0, 0);
+}

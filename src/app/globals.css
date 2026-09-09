@@ -142,3 +142,10 @@ summary::-webkit-details-marker {
     scroll-behavior: auto;
   }
 }
+
+/* Tailwind v4's Preflight leaves buttons on the browser default cursor, so
+   nothing in the app signalled that a control was clickable. */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
