@@ -31,9 +31,6 @@ export default function AssistantPage() {
     removeTranscriptLine,
     notes,
     status,
-    padText,
-    padSaved,
-    updatePadText,
     addBot,
     stopBot,
     meetingReport,
@@ -256,12 +253,6 @@ export default function AssistantPage() {
                       >
                         Raporu gönder
                       </button>
-                      <span className="inline-flex items-center gap-1.5 rounded-[7px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-2 py-1 text-[11.5px] text-[var(--ma-t2)]">
-                        <span className="font-mono text-[var(--ma-t3)]">
-                          stream
-                        </span>
-                        <span className="text-[var(--ma-t1)]">live-stt</span>
-                      </span>
                       <button
                         type="button"
                         onClick={() => void stopBot()}
@@ -443,32 +434,6 @@ export default function AssistantPage() {
               </>
             )}
           </section>
-
-          <aside className="flex w-[420px] shrink-0 flex-col border-l border-[var(--ma-line)] bg-[var(--ma-rail)] max-lg:hidden xl:w-[460px]">
-            <div className="flex items-center gap-2 border-b border-[var(--ma-line)] px-4 py-2.5">
-              <span className="text-[12.5px] font-medium text-[var(--ma-t1)]">
-                Not defteri
-              </span>
-              <span className="text-[11px] text-[var(--ma-t3)]">
-                · {selected?.title ?? "Toplantı"}
-              </span>
-              <span className="ml-auto text-[11px] text-[var(--ma-t3)]">
-                {padSaved ? "Kaydedildi" : "Boş"}
-              </span>
-            </div>
-            <div className="flex min-h-0 flex-1 flex-col p-3">
-              <textarea
-                value={padText}
-                onChange={(e) => updatePadText(e.target.value)}
-                placeholder="Toplantı sırasında notlarını buraya yaz…"
-                spellCheck={false}
-                className="min-h-0 w-full flex-1 resize-none rounded-[10px] border border-[var(--ma-line2)] bg-[var(--ma-panel)] px-3.5 py-3 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none placeholder:text-[var(--ma-t3)] focus:border-[var(--ma-accent)]"
-              />
-              <p className="mt-2 text-[11px] leading-snug text-[var(--ma-t3)]">
-                Notlar bu toplantıya özeldir. Değiştikçe otomatik tutulur.
-              </p>
-            </div>
-          </aside>
         </div>
       </div>
     </AppShell>

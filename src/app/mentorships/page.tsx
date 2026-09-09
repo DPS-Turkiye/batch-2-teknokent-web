@@ -1,86 +1,46 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ArrowRight,
-  CalendarDays,
-  MessageCircle,
-  Search,
-  Sparkles,
-} from "lucide-react";
+import { ArrowRight, Sparkles } from "lucide-react";
 
-import { Avatar } from "@/components/common/avatar";
-import { Badge } from "@/components/common/badge";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { useMentorshipWorkspace } from "@/hooks/use-mentorship-workspace";
+import { formatMeetingShort } from "@/lib/format";
+import { MENTORSHIPS_TABS } from "@/lib/const";
 import {
-  MENTORSHIPS_REQUEST_STATUS_LABELS,
-  MENTORSHIPS_TABS,
-} from "@/lib/const";
-import { initials } from "@/lib/utils";
+  pickRequestMeeting,
+  requestProgressPercent,
+} from "@/lib/mentorship-workspace";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
+import type { MeetingItem } from "@/interfaces/meeting";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 
 export default function MentorshipsPage() {
-  const { error, isLoading, query, requests, setQuery, setTab, tab } =
+  const { error, historyRequests, isLoading, meetings, requests, setTab, tab } =
     useMentorshipWorkspace();
 
   return (
-    <AppShell active={AppArea.Mentorships} title="Mentorluklarım">
+    <AppShell active={AppArea.Mentorships}>
       <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-[#e86f22]">
-              Mentorluk alanın
+        <section className="rounded-[20px] border border-[#f97316] bg-white p-[18px]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-[17px] font-medium text-[#22262b]">
+              Yeni bir mentor mu arıyorsun?
             </p>
-            <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-              Mentorluklarım
-            </h1>
-            <p className="mt-2 text-sm text-[#676e78]">
-              Mentorlarını keşfet, taleplerini izle ve aktif süreçlerini yönet.
-            </p>
-          </div>
-          <Link
-            href="/mentor-request"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white hover:bg-[#ce5e19]"
-          >
-            Yeni mentor talebi <ArrowRight className="size-4" />
-          </Link>
-        </div>
-
-        <section className="mt-7 rounded-2xl border border-[#f2b78f] bg-white p-4">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="flex-1">
-              <strong className="text-sm">Yeni bir mentor mu arıyorsun?</strong>
-              <p className="mt-1 text-xs text-[#676e78]">
-                İhtiyacını tanımla; sistem girişim profiline göre en uygun
-                mentorları önersin.
-              </p>
-            </div>
-            {tab === MentorshipWorkspaceTab.MentorPool ? (
-              <Link
-                href="/mentor-request"
-                className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#e86f22] px-4 text-xs font-semibold text-white hover:bg-[#ce5e19] sm:w-auto"
-              >
-                Eşleşmeyi başlat
-              </Link>
-            ) : (
-              <label className="flex min-h-10 min-w-0 items-center gap-2 rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] px-3 sm:w-80">
-                <Search className="size-4 text-[#858c96]" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Mentor veya konu ara…"
-                  className="min-w-0 flex-1 bg-transparent text-xs outline-none"
-                />
-              </label>
-            )}
+            <Link
+              href="/mentor-request"
+              className="inline-flex min-h-[52px] items-center justify-center gap-1.5 rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
+            >
+              İhtiyacını Tanımla
+              <ArrowRight className="size-6" aria-hidden />
+            </Link>
           </div>
         </section>
 
         <div
-          className="mt-4 grid grid-cols-4 border-b border-[#e4e7ea]"
+          className="mt-[22px] grid grid-cols-4"
           role="tablist"
           aria-label="Mentorluk görünümleri"
         >
@@ -92,10 +52,10 @@ export default function MentorshipsPage() {
               aria-selected={tab === id}
               onClick={() => setTab(id)}
               className={
-                "border-b-2 px-2 py-3 text-xs font-semibold transition " +
+                "border-b-[3px] px-3 py-[7px] text-xs font-medium transition " +
                 (tab === id
-                  ? "border-[#e86f22] text-[#c85816]"
-                  : "border-transparent text-[#858c96] hover:text-[#515861]")
+                  ? "border-[#f97316] text-[#e86f22]"
+                  : "border-[#e4e7ea] text-[#676e78] hover:text-[#515861]")
               }
             >
               {label}
@@ -108,59 +68,38 @@ export default function MentorshipsPage() {
             <MentorsDirectory embedded />
           </div>
         ) : isLoading ? (
-          <div className="mt-5 rounded-2xl border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
+          <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
             Yükleniyor...
           </div>
         ) : error ? (
-          <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+          <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
             {error.message}
           </div>
+        ) : tab === MentorshipWorkspaceTab.Active ? (
+          <ActiveTab requests={requests} meetings={meetings} />
+        ) : tab === MentorshipWorkspaceTab.History ? (
+          <HistoryTab requests={historyRequests} />
         ) : requests.length === 0 ? (
-          <div className="mt-5 rounded-2xl border border-dashed border-[#d6dade] bg-white p-12 text-center">
-            <Sparkles className="mx-auto size-7 text-[#e86f22]" />
-            <h2 className="mt-4 text-base font-semibold">
-              Henüz bir mentorluk talebiniz yok.
-            </h2>
-            <p className="mt-1 text-sm text-[#676e78]">
-              Bu görünümde gösterilecek bir süreç bulunmuyor.
-            </p>
-          </div>
+          <EmptyState />
         ) : (
-          <section className="mt-5 grid gap-4 md:grid-cols-2">
+          <section className="mt-5 grid gap-4">
             {requests.map((request) => (
               <Link
                 key={request.id}
-                href={
-                  "/mentor-request/status?id=" + encodeURIComponent(request.id)
-                }
-                className="rounded-2xl border border-[#e4e7ea] bg-white p-5 transition hover:border-[#f2b78f] hover:shadow-sm"
+                href={requestHref(request.id)}
+                className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
               >
-                <div className="flex items-start gap-3">
-                  <Avatar
-                    initials={initials(request.mentorName) || "MN"}
-                    tone="orange"
-                  />
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-sm font-semibold">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h2 className="truncate text-[17px] font-medium text-[#22262b]">
                       {request.mentorName}
                     </h2>
-                    <p className="mt-1 truncate text-xs text-[#676e78]">
+                    <p className="mt-0.5 truncate text-xs text-[#676e78]">
                       {request.supportArea}
                     </p>
                   </div>
-                  <Badge>
-                    {MENTORSHIPS_REQUEST_STATUS_LABELS[request.status]}
-                  </Badge>
-                </div>
-                <div className="mt-5 flex items-center justify-between border-t border-[#eef0f2] pt-4">
-                  <span className="flex items-center gap-1.5 text-[11px] text-[#858c96]">
-                    <CalendarDays className="size-3.5" />
-                    {new Intl.DateTimeFormat("tr-TR", {
-                      dateStyle: "medium",
-                    }).format(new Date(request.createdAt))}
-                  </span>
-                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c85816]">
-                    Süreci aç <MessageCircle className="size-4" />
+                  <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
+                    Süreci aç →
                   </span>
                 </div>
               </Link>
@@ -170,4 +109,118 @@ export default function MentorshipsPage() {
       </div>
     </AppShell>
   );
+}
+
+function ActiveTab({
+  requests,
+  meetings,
+}: {
+  requests: MentorshipRequest[];
+  meetings: MeetingItem[];
+}) {
+  return (
+    <section className="mt-5">
+      <h2 className="text-lg font-medium text-[#22262b]">Aktif mentorluklar</h2>
+      {requests.length === 0 ? (
+        <div className="mt-4 rounded-[20px] border border-[#e4e7ea] bg-white px-6 py-[87px] text-center text-[17px] font-medium text-[#22262b]">
+          Aktif Mentörlüğünüz Bulunmamaktadır
+        </div>
+      ) : (
+        <div className="mt-4 grid gap-4">
+          {requests.map((request) => {
+            const meeting = pickRequestMeeting(meetings, request);
+            const progress = requestProgressPercent(meetings, request);
+            return (
+              <Link
+                key={request.id}
+                href={requestHref(request.id)}
+                className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-[17px] font-medium text-[#22262b]">
+                      {request.mentorName}
+                    </h3>
+                    <p className="mt-0.5 truncate text-xs text-[#676e78]">
+                      {request.supportArea}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
+                    Mentorluğa git →
+                  </span>
+                </div>
+                <span className="mt-2.5 inline-flex rounded-[14px] bg-[#fdebdd] px-3 py-[7px] text-xs font-medium text-[#e86f22]">
+                  {request.supportArea}
+                </span>
+                <div className="mt-2.5 h-1.5 overflow-hidden rounded-md bg-[#e4e7ea]">
+                  <div
+                    className="h-1.5 rounded-md bg-[#e86f22]"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+                <div className="mt-2">
+                  <p className="text-[11px] text-[#858c96]">
+                    {meeting ? "İlk görüşme" : "Görüşme"}
+                  </p>
+                  <p className="mt-0.5 text-[13px] font-medium text-[#22262b]">
+                    {meeting
+                      ? formatMeetingShort(meeting.scheduledAt)
+                      : "Henüz planlanmadı"}
+                  </p>
+                </div>
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function HistoryTab({ requests }: { requests: MentorshipRequest[] }) {
+  return (
+    <section className="mt-5">
+      <h2 className="text-lg font-medium text-[#22262b]">
+        Yakın zamanda tamamlanan
+      </h2>
+      {requests.length === 0 ? (
+        <EmptyState />
+      ) : (
+        <div className="mt-[22px] grid gap-[22px]">
+          {requests.map((request) => (
+            <Link
+              key={request.id}
+              href={requestHref(request.id)}
+              className="flex items-center gap-[18px] rounded-[20px] border border-[#e4e7ea] bg-white px-[18px] py-4 transition hover:border-[#f2b78f]"
+            >
+              <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#22262b]">
+                {request.mentorName} · {request.supportArea}
+              </p>
+              <span className="shrink-0 rounded-lg border border-[#e4e7ea] px-4 py-2.5 text-[13px] font-medium text-[#22262b]">
+                Mentorluk geçmişi →
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="mt-5 rounded-[20px] border border-dashed border-[#d6dade] bg-white p-12 text-center">
+      <Sparkles className="mx-auto size-7 text-[#e86f22]" />
+      <h2 className="mt-4 text-base font-semibold">
+        Henüz bir mentorluk talebiniz yok.
+      </h2>
+      <p className="mt-1 text-sm text-[#676e78]">
+        Bu görünümde gösterilecek bir süreç bulunmuyor.
+      </p>
+    </div>
+  );
+}
+
+function requestHref(id: string) {
+  return "/mentor-request/status?id=" + encodeURIComponent(id);
 }
