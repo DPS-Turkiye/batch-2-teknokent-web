@@ -101,7 +101,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       {
         id: AppArea.Mentorships,
         label: "Mentorluklarım",
-        href: "/mentor-dashboard#mentorships",
+        href: "/mentorships",
         icon: Users,
       },
       {

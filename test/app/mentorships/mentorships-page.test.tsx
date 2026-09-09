@@ -7,6 +7,7 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import type { MentorProfile } from "@/interfaces/mentor";
+import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
@@ -26,6 +27,10 @@ vi.mock("@/components/providers/session-provider", () => ({
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
+  useMentorRequestDecision: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("@/hooks/use-mentors", () => ({
@@ -34,6 +39,7 @@ vi.mock("@/hooks/use-mentors", () => ({
 
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
+  MEETINGS_QUERY_KEY: ["meetings"],
 }));
 
 function request(
@@ -110,8 +116,36 @@ describe("MentorshipsPage", () => {
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(
-      screen.getByRole("link", { name: /İş modeli ve strateji/ }),
+      screen.getByRole("link", { name: "Mentorluğa git →" }),
     ).toHaveAttribute("href", "/mentor-request/status?id=req-42");
+  });
+
+  it("shows the meeting link on the Aktif tab for the whole startup", () => {
+    mockRequests([request({ id: "req-42" })]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "req-42",
+          scheduledAt: "2026-09-10T10:00:00.000Z",
+          durationMinutes: 45,
+          meetLink: "https://meet.google.com/abc-defg-hij",
+          status: MeetingStatus.Scheduled,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(
+      screen.getByRole("link", {
+        name: "https://meet.google.com/abc-defg-hij",
+      }),
+    ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
 
   it("shows an empty state when there are no active mentorships", () => {

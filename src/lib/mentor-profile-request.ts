@@ -1,6 +1,11 @@
 import type { MentorProfile } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
 import {
+  isValidPreferredSlot,
+  preferredSlotsMessageLines,
+  type PreferredSlot,
+} from "@/lib/mentor-availability-days";
+import {
   DEFAULT_NEED_GOAL_IDS,
   DEFAULT_NEED_SITUATION_ID,
   messageForNeedGoals,
@@ -40,14 +45,14 @@ export function profileMentorshipSubmission({
   requestedForName,
   problem,
   outcome,
-  preferredTimes,
+  preferredSlots,
 }: {
   mentor: MentorProfile;
   startup: StartupContext;
   requestedForName: string;
   problem?: string;
   outcome?: string;
-  preferredTimes?: readonly string[];
+  preferredSlots?: readonly PreferredSlot[];
 }): MentorshipRequestSubmission {
   const draft = readNeedDraft();
   const supportArea = draft
@@ -67,9 +72,9 @@ export function profileMentorshipSubmission({
         draft.goalNote ?? "",
       )
     : "";
-  const timesLine = preferredTimes?.filter(Boolean).length
-    ? `Tercih edilen saatler: ${preferredTimes.filter(Boolean).join(", ")}`
-    : "";
+  const timesLine = preferredSlotsMessageLines(
+    preferredSlots?.filter(isValidPreferredSlot) ?? [],
+  );
 
   return {
     mentorId: mentor.id,
@@ -79,7 +84,7 @@ export function profileMentorshipSubmission({
     urgency: MentorRequestUrgency.ThisWeek,
     mentorshipFormat: MentorshipFormat.SingleMeeting,
     meetingMode: meetingModeForMentor(mentor.meetingMode),
-    requesterMessage: [outcome?.trim() || draftOutcome, timesLine]
+    requesterMessage: [outcome?.trim() || draftOutcome, ...timesLine]
       .filter(Boolean)
       .join("\n"),
     recommendationSnapshot: {

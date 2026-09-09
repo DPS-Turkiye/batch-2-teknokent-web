@@ -18,8 +18,10 @@ const historyStatuses = new Set([
   MentorshipRequestStatus.Withdrawn,
 ]);
 
-export function useMentorshipWorkspace() {
-  const requestsQuery = useMentorshipRequests(UserRole.Mentee);
+export function useMentorshipWorkspace(
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+) {
+  const requestsQuery = useMentorshipRequests(role);
   const meetingsQuery = useMeetings();
   const [tab, setTab] = useState(MentorshipWorkspaceTab.Active);
 

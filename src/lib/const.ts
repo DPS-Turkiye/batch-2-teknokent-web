@@ -349,6 +349,12 @@ export const MENTORSHIPS_TABS = [
   [MentorshipWorkspaceTab.History, "Geçmiş"],
 ] as const;
 
+export const MENTOR_MENTORSHIPS_TABS = [
+  [MentorshipWorkspaceTab.Requests, "Talepler"],
+  [MentorshipWorkspaceTab.Active, "Aktif"],
+  [MentorshipWorkspaceTab.History, "Geçmiş"],
+] as const;
+
 export const MENTOR_DASHBOARD_FILTER_STATUSES: Record<
   Exclude<MentorRequestFilter, MentorRequestFilter.All>,
   MentorshipRequestStatus

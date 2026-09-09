@@ -55,8 +55,10 @@ export type MentorshipRequest = {
   organizationName?: string;
   mentorId: string;
   mentorName: string;
+  requestedForName?: string;
   supportArea: string;
   summary?: string;
+  requesterMessage?: string;
   status: MentorshipRequestStatus;
   mentorMessage: string | null;
   rejectionReason: string | null;

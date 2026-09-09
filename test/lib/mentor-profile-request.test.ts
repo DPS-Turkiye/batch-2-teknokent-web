@@ -56,13 +56,20 @@ describe("mentor-profile-request", () => {
       mentor: mentorProfile,
       startup,
       requestedForName: "Sudenaz Yılmaz",
-      preferredTimes: ["10:00", "10:30", "14:00"],
+      preferredSlots: [
+        { date: "2026-09-10", time: "10:00" },
+        { date: "2026-09-10", time: "10:30" },
+        { date: "2026-09-11", time: "14:00" },
+      ],
     });
 
     expect(payload.mentorId).toBe(mentorProfile.id);
     expect(payload.supportArea).toBe("İş modeli ve strateji");
     expect(payload.requesterMessage).toContain(
-      "Tercih edilen saatler: 10:00, 10:30, 14:00",
+      "Tercih edilen saatler: 10 Eylül Perşembe · 10:00, 10 Eylül Perşembe · 10:30, 11 Eylül Cuma · 14:00",
+    );
+    expect(payload.requesterMessage).toContain(
+      "preferredSlots:2026-09-10T10:00,2026-09-10T10:30,2026-09-11T14:00",
     );
     expect(payload.recommendationSnapshot.recommendations).toEqual([
       expect.objectContaining({

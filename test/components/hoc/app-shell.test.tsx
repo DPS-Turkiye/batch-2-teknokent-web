@@ -127,7 +127,7 @@ describe("AppShell navigation", () => {
     );
     expect(
       screen.getByRole("link", { name: /Mentorluklarım/ }),
-    ).toHaveAttribute("href", "/mentor-dashboard#mentorships");
+    ).toHaveAttribute("href", "/mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
       "/mentor-dashboard/calendar",
