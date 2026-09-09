@@ -57,7 +57,7 @@ export function NotificationMenu({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}
-        className={`relative grid size-10 place-items-center rounded-full text-[#676e78] hover:bg-[#fff7f2] hover:text-[#e86f22] ${minimal ? "" : "border border-[#e4e7ea]"}`}
+        className={`relative grid place-items-center rounded-lg text-[#676e78] hover:bg-[#fff7f2] hover:text-[#e86f22] ${minimal ? "size-9" : "size-10 rounded-full border border-[#e4e7ea]"}`}
       >
         {minimal ? (
           <span
