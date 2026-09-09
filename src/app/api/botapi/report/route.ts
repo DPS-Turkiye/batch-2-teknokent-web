@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "platform and nativeMeetingId are required.",
+          message: "Platform ve toplantı kimliği gerekli.",
         },
         { status: 400 },
       );
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Invalid report request body.",
+          message: "Rapor isteği geçersiz.",
         },
         { status: 400 },
       );
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting report service is unavailable.",
+      message: "Toplantı raporu hizmetine ulaşılamıyor.",
     });
   }
 }

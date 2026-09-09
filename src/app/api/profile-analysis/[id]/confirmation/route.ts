@@ -13,7 +13,7 @@ export async function PATCH(
     return backendResponse(await confirmProfileAnalysis(id, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profile could not be saved.",
+      message: "Profil kaydedilemedi.",
     });
   }
 }

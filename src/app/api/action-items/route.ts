@@ -5,7 +5,7 @@ import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 
 function missingRequestId() {
   return NextResponse.json(
-    { code: "INVALID_REQUEST", message: "A requestId is required." },
+    { code: "INVALID_REQUEST", message: "Talep kimliği gerekli." },
     { status: 400 },
   );
 }
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchActionItems(requestId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Action items could not be loaded.",
+      message: "Aksiyonlar yüklenemedi.",
     });
   }
 }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Action item could not be created.",
+      message: "Aksiyon oluşturulamadı.",
     });
   }
 }

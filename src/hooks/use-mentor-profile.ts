@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/providers/toast-provider";
 
 import type {
   MentorProfile,
@@ -86,6 +87,7 @@ function toEditablePayload(profile: MentorProfile): UpdateMentorProfilePayload {
 }
 
 export function useMentorProfileForm(profile: MentorProfile) {
+  const { showToast } = useToast();
   const updateProfileMutation = useUpdateMentorProfile();
   const [form, setForm] = useState<UpdateMentorProfilePayload>(() =>
     toEditablePayload(profile),
@@ -124,10 +126,12 @@ export function useMentorProfileForm(profile: MentorProfile) {
     try {
       await updateProfileMutation.mutateAsync(form);
       setSaveSuccess(true);
+      showToast({ message: "Mentor profiliniz kaydedildi.", tone: "success" });
     } catch (error) {
       setSaveError(
-        error instanceof Error ? error.message : "Could not save the profile.",
+        error instanceof Error ? error.message : "Profil kaydedilemedi.",
       );
+      showToast({ message: "Mentor profili kaydedilemedi.", tone: "error" });
     }
   };
 
@@ -150,6 +154,7 @@ function defaultSlotStart() {
 }
 
 export function useAvailabilitySlotForm() {
+  const { showToast } = useToast();
   const createSlotMutation = useCreateAvailabilitySlot();
   const deleteSlotMutation = useDeleteAvailabilitySlot();
   const [slotForm, setSlotForm] = useState({
@@ -169,17 +174,22 @@ export function useAvailabilitySlotForm() {
         startsAt: defaultSlotStart(),
         durationMinutes: 60,
       });
+      showToast({ message: "Müsaitlik saati eklendi.", tone: "success" });
     } catch (error) {
       setSlotError(
-        error instanceof Error ? error.message : "Could not add the time slot.",
+        error instanceof Error ? error.message : "Müsaitlik saati eklenemedi.",
       );
+      showToast({ message: "Müsaitlik saati eklenemedi.", tone: "error" });
     }
   };
 
   const handleDeleteSlot = async (slotId: string) => {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
-    } catch {}
+      showToast({ message: "Müsaitlik saati silindi.", tone: "success" });
+    } catch {
+      showToast({ message: "Müsaitlik saati silinemedi.", tone: "error" });
+    }
   };
 
   return {

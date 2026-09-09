@@ -30,7 +30,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await listStoredDocuments({ userId }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Documents could not be loaded.",
+      message: "Belgeler yüklenemedi.",
     });
   }
 }

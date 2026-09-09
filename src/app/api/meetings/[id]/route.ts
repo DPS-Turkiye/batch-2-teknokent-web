@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     return backendResponse(await updateMeeting(id, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting could not be updated.",
+      message: "Toplantı güncellenemedi.",
     });
   }
 }
@@ -37,7 +37,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return backendResponse(await deleteMeeting(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting could not be deleted.",
+      message: "Toplantı silinemedi.",
     });
   }
 }

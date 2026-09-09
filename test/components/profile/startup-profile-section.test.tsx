@@ -68,6 +68,27 @@ describe("StartupProfileSection", () => {
     expect(save).toBeEnabled();
   });
 
+  it("marks the startup name as required and shows its field error", async () => {
+    const user = userEvent.setup();
+    render(<StartupProfileSection />);
+
+    const label = await screen.findByText("Startup adı", { selector: "label" });
+    expect(label).toHaveTextContent("Startup adı *");
+    await user.click(
+      screen.getByRole("button", { name: "Startup adı alanını düzenle" }),
+    );
+    await user.clear(
+      screen.getByRole("textbox", { name: "Startup adı*", exact: true }),
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Startup adı zorunludur.",
+    );
+    expect(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    ).toBeDisabled();
+  });
+
   it("saves the edited profile and confirms it", async () => {
     vi.mocked(saveStartupProfile).mockResolvedValue(
       profile({ sector: "HealthTech" }),

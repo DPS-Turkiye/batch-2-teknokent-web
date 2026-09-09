@@ -12,7 +12,7 @@ export async function POST(
     return backendResponse(await recommendFromProfileAnalysis(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Matching service is unavailable.",
+      message: "Eşleştirme hizmetine ulaşılamıyor.",
     });
   }
 }

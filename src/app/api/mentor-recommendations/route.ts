@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor recommendation service is unavailable.",
+      message: "Mentor öneri hizmetine ulaşılamıyor.",
     });
   }
 }

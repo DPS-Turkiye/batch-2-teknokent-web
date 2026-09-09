@@ -43,7 +43,7 @@ export function HealthStatus() {
           Health check failed
         </h2>
         <p className="mt-2 text-sm text-red-600 dark:text-red-400">
-          {error?.message ?? "Unable to load backend health status."}
+          {error?.message ?? "Sunucu sağlık durumu yüklenemedi."}
         </p>
         <button
           type="button"

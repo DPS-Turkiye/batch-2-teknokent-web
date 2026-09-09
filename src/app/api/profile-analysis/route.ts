@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profile service is unavailable.",
+      message: "Profil hizmetine ulaşılamıyor.",
     });
   }
 }

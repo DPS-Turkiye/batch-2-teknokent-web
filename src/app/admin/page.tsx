@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useToast } from "@/components/providers/toast-provider";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import {
@@ -11,34 +11,37 @@ import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
 export default function AdminPage() {
+  const { showToast } = useToast();
   const pendingQuery = usePendingAccounts();
   const decide = useDecidePendingAccount();
-  const [notice, setNotice] = useState("");
-  const [error, setError] = useState("");
 
   async function decideAccount(
     userId: string,
     status: UserAccountStatus.Approved | UserAccountStatus.Rejected,
   ) {
-    setError("");
-    setNotice("");
     try {
       const result = await decide.mutateAsync({ userId, status });
       if (status === UserAccountStatus.Rejected) {
-        setNotice(`${result.user.fullName} reddedildi.`);
+        showToast({
+          message: `${result.user.fullName} reddedildi.`,
+          tone: "success",
+        });
         return;
       }
-      setNotice(
-        result.inviteCode
+      showToast({
+        message: result.inviteCode
           ? `${result.user.fullName} onaylandı. Davet kodu: ${result.inviteCode}`
           : `${result.user.fullName} onaylandı.`,
-      );
+        tone: "success",
+      });
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Could not complete the action.",
-      );
+      showToast({
+        message:
+          reason instanceof Error
+            ? reason.message
+            : "Başvuru kararı kaydedilemedi.",
+        tone: "error",
+      });
     }
   }
 
@@ -48,12 +51,6 @@ export default function AdminPage() {
         <p className="text-sm text-[#6a7282]">
           Kurucu ve mentor başvuruları onaylanmadan uygulamaya giremez.
         </p>
-        {notice ? (
-          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
-            {notice}
-          </p>
-        ) : null}
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {pendingQuery.isLoading ? (
           <p className="text-sm text-[#6a7282]">Yükleniyor...</p>
         ) : pendingQuery.error ? (

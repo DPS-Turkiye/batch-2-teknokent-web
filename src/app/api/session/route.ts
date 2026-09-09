@@ -34,7 +34,7 @@ export async function GET() {
     return session
       ? NextResponse.json(session)
       : NextResponse.json(
-          { code: "SESSION_REQUIRED", message: "No active session." },
+          { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
           { status: 401 },
         );
   } catch (error) {

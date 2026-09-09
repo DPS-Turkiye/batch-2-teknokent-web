@@ -13,7 +13,7 @@ export async function GET() {
     return backendResponse(await fetchOrganizationMembers(organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Team members could not be loaded.",
+      message: "Ekip üyeleri yüklenemedi.",
     });
   }
 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Team member could not be added.",
+      message: "Ekip üyesi eklenemedi.",
     });
   }
 }

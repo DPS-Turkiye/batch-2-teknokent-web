@@ -16,6 +16,8 @@ export function AuthField({
   value,
   onChange,
   action,
+  error,
+  maxLength,
 }: {
   id: string;
   label: string;
@@ -27,6 +29,8 @@ export function AuthField({
   value: string;
   onChange: (value: string) => void;
   action?: ReactNode;
+  error?: string | null;
+  maxLength?: number;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
@@ -47,9 +51,17 @@ export function AuthField({
         autoComplete={autoComplete}
         placeholder={placeholder}
         value={value}
+        maxLength={maxLength}
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? `${id}-error` : undefined}
         onChange={(event) => onChange(event.target.value)}
-        className={authFieldClass}
+        className={`${authFieldClass} ${error ? "border-[#c0392b]" : ""}`}
       />
+      {error ? (
+        <p id={`${id}-error`} role="alert" className="text-xs text-[#c0392b]">
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }

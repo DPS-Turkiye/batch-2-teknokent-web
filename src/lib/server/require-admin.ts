@@ -11,7 +11,7 @@ export async function requireAdminSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -22,7 +22,7 @@ export async function requireAdminSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Only an admin can review applications.",
+          message: "Başvuruları yalnızca yöneticiler inceleyebilir.",
         },
         { status: 403 },
       ),

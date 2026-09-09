@@ -46,8 +46,18 @@ describe("Account creation step", () => {
     await user.type(screen.getByLabelText("Şifre *"), "Sifre1234!");
     await user.type(screen.getByLabelText(/Şifre tekrar/), "baskasifre");
 
+    expect(screen.getByRole("alert")).toHaveTextContent("Şifreler eşleşmiyor.");
+  });
+
+  it("removes letters from the phone field and validates Turkish length", async () => {
+    const user = userEvent.setup();
+    render(<RegisterView onSubmit={vi.fn()} />);
+
+    await user.type(screen.getByLabelText(/Telefon/), "+90abc555");
+
+    expect(screen.getByLabelText(/Telefon/)).toHaveValue("+90555");
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "Passwords do not match.",
+      "Türkiye numarası +90'dan sonra 10 haneli olmalıdır.",
     );
   });
 

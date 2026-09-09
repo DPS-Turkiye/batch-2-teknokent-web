@@ -70,7 +70,7 @@ describe("assistant lib", () => {
 
     await expect(
       addMeetingBot("https://meet.google.com/abc-defg-hij"),
-    ).rejects.toThrow("Meeting assistant service is unavailable.");
+    ).rejects.toThrow("Toplantı asistanı gönderilemedi.");
   });
 
   it("addMeetingBot throws on error status", async () => {
@@ -79,7 +79,7 @@ describe("assistant lib", () => {
     );
 
     await expect(addMeetingBot("https://zoom.us/j/1")).rejects.toThrow(
-      "bad link",
+      "Toplantı asistanı gönderilemedi.",
     );
   });
 
@@ -125,7 +125,7 @@ describe("assistant lib", () => {
     vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
 
     await expect(stopMeetingBot("google_meet", "abc-defg-hij")).rejects.toThrow(
-      "Failed to stop bot (network error)",
+      "Toplantı asistanı durdurulamadı. (ağ hatası)",
     );
   });
 
@@ -208,7 +208,7 @@ describe("assistant lib", () => {
       generateMeetingReport("google_meet", "abc-defg-hij", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
-    ).rejects.toThrow("invalid api key");
+    ).rejects.toThrow("Toplantı raporu oluşturulamadı.");
   });
 
   it("generateMeetingReport uses fallback message when response has no detail", async () => {
@@ -218,6 +218,6 @@ describe("assistant lib", () => {
       generateMeetingReport("google_meet", "abc-defg-hij", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
-    ).rejects.toThrow("Failed to generate meeting report (502)");
+    ).rejects.toThrow("Toplantı raporu oluşturulamadı. (502)");
   });
 });

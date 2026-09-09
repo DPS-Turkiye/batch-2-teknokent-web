@@ -14,9 +14,7 @@ function firebaseOptions(): FirebaseOptions {
   const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
 
   if (!apiKey || !authDomain || !projectId) {
-    throw new Error(
-      "NEXT_PUBLIC_FIREBASE_API_KEY, NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN and NEXT_PUBLIC_FIREBASE_PROJECT_ID must be configured.",
-    );
+    throw new Error("Firebase bağlantı ayarları yapılandırılmalıdır.");
   }
 
   return {

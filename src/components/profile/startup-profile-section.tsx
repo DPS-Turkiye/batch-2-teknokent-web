@@ -23,6 +23,7 @@ export function StartupProfileSection() {
     isSaving,
     loadError,
     saveError,
+    fieldErrors,
     canSave,
   } = useStartupProfile();
 
@@ -68,6 +69,9 @@ export function StartupProfileSection() {
             id="startup-name"
             label="Startup adı"
             value={draft.name}
+            required
+            error={fieldErrors.name}
+            maxLength={255}
             onChange={(value) => setField("name", value)}
           />
           <EditableInfoField
@@ -75,6 +79,8 @@ export function StartupProfileSection() {
             label="Web sitesi"
             placeholder="ornek.com"
             value={draft.website ?? ""}
+            error={fieldErrors.website}
+            maxLength={255}
             onChange={(value) => setField("website", value)}
           />
         </div>
@@ -84,6 +90,8 @@ export function StartupProfileSection() {
           label="Tek satırlık tanım"
           placeholder="Ne yaptığınızı bir cümlede anlatın."
           value={draft.description ?? ""}
+          error={fieldErrors.description}
+          maxLength={5000}
           onChange={(value) => setField("description", value)}
         />
       </section>
@@ -96,6 +104,8 @@ export function StartupProfileSection() {
           label="Hangi problemi çözüyorsunuz?"
           multiline
           value={draft.problem ?? ""}
+          error={fieldErrors.problem}
+          maxLength={5000}
           onChange={(value) => setField("problem", value)}
         />
         <EditableInfoField
@@ -103,6 +113,8 @@ export function StartupProfileSection() {
           label="Çözümünüz"
           multiline
           value={draft.solution ?? ""}
+          error={fieldErrors.solution}
+          maxLength={5000}
           onChange={(value) => setField("solution", value)}
         />
         <EditableInfoField
@@ -110,6 +122,8 @@ export function StartupProfileSection() {
           label="Mevcut çözüm"
           multiline
           value={draft.currentSolution ?? ""}
+          error={fieldErrors.currentSolution}
+          maxLength={5000}
           onChange={(value) => setField("currentSolution", value)}
         />
         <EditableInfoField
@@ -117,6 +131,8 @@ export function StartupProfileSection() {
           label="Hedef kullanıcı"
           multiline
           value={draft.targetUser ?? ""}
+          error={fieldErrors.targetUser}
+          maxLength={5000}
           onChange={(value) => setField("targetUser", value)}
         />
 
@@ -125,12 +141,16 @@ export function StartupProfileSection() {
             id="startup-sector"
             label="Sektör"
             value={draft.sector ?? ""}
+            error={fieldErrors.sector}
+            maxLength={255}
             onChange={(value) => setField("sector", value)}
           />
           <EditableInfoField
             id="startup-maturity"
             label="Olgunluk"
             value={draft.maturity ?? ""}
+            error={fieldErrors.maturity}
+            maxLength={255}
             onChange={(value) => setField("maturity", value)}
           />
         </div>
@@ -139,6 +159,8 @@ export function StartupProfileSection() {
           id="startup-program-level"
           label="Program seviyesi"
           value={draft.programLevel ?? ""}
+          error={fieldErrors.programLevel}
+          maxLength={255}
           onChange={(value) => setField("programLevel", value)}
         />
       </section>
@@ -148,6 +170,7 @@ export function StartupProfileSection() {
         <EditableInfoChips
           label="Destek alanları"
           values={draft.supportAreas}
+          error={fieldErrors.supportAreas}
           onChange={(values) => setField("supportAreas", values)}
         />
 

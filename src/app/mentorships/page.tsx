@@ -5,6 +5,9 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
+import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
+import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
+import { useAppSession } from "@/components/providers/session-provider";
 import { useMentorshipWorkspace } from "@/hooks/use-mentorship-workspace";
 import { formatMeetingShort } from "@/lib/format";
 import { MENTORSHIPS_TABS } from "@/lib/const";
@@ -12,12 +15,22 @@ import {
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
+import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 
 export default function MentorshipsPage() {
+  const session = useAppSession();
+  if (session?.role === UserRole.Mentor) {
+    return <MentorMentorshipsWorkspace />;
+  }
+
+  return <MenteeMentorshipsWorkspace />;
+}
+
+function MenteeMentorshipsWorkspace() {
   const { error, historyRequests, isLoading, meetings, requests, setTab, tab } =
     useMentorshipWorkspace();
 
@@ -131,10 +144,9 @@ function ActiveTab({
             const meeting = pickRequestMeeting(meetings, request);
             const progress = requestProgressPercent(meetings, request);
             return (
-              <Link
+              <article
                 key={request.id}
-                href={requestHref(request.id)}
-                className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
+                className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -145,9 +157,12 @@ function ActiveTab({
                       {request.supportArea}
                     </p>
                   </div>
-                  <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
+                  <Link
+                    href={requestHref(request.id)}
+                    className="shrink-0 text-[13px] font-medium text-[#e86f22]"
+                  >
                     Mentorluğa git →
-                  </span>
+                  </Link>
                 </div>
                 <span className="mt-2.5 inline-flex rounded-[14px] bg-[#fdebdd] px-3 py-[7px] text-xs font-medium text-[#e86f22]">
                   {request.supportArea}
@@ -168,7 +183,14 @@ function ActiveTab({
                       : "Henüz planlanmadı"}
                   </p>
                 </div>
-              </Link>
+                <div className="mt-3">
+                  <p className="text-[11px] text-[#858c96]">Meet linki</p>
+                  <MeetLinkDisplay
+                    meetLink={meeting?.meetLink}
+                    className="mt-1"
+                  />
+                </div>
+              </article>
             );
           })}
         </div>

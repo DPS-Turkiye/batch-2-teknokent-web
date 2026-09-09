@@ -18,7 +18,7 @@ export async function POST(_request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Transcript upload URL could not be created.",
+      message: "Transkript yükleme bağlantısı oluşturulamadı.",
     });
   }
 }

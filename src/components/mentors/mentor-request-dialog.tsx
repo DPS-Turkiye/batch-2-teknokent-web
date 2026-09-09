@@ -12,13 +12,17 @@ import type {
 } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
 import {
-  assignPreferredTime,
+  assignPreferredSlot,
   availabilityColumns,
-  hasThreeHalfHourTimes,
+  emptyPreferredSlots,
+  formatPreferredSlot,
+  hasThreePreferredSlots,
   isHalfOrFullHour,
-  PREFERRED_SLOT_COUNT,
+  isValidPreferredSlot,
+  preferredSlotKey,
+  slotFromStartsAt,
   slotTimeLabel,
-  timeFromStartsAt,
+  upcomingPreferenceDays,
 } from "@/lib/mentor-availability-days";
 import { profileMentorshipSubmission } from "@/lib/mentor-profile-request";
 import {
@@ -64,31 +68,38 @@ export function MentorRequestDialog({
         )
       : "",
   );
-  const [preferredTimes, setPreferredTimes] = useState<string[]>(
-    Array.from({ length: PREFERRED_SLOT_COUNT }, () => ""),
-  );
+  const [preferredSlots, setPreferredSlots] = useState(emptyPreferredSlots);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
   const columns = availabilityColumns(slots);
+  const dayOptions = upcomingPreferenceDays();
   const topic =
     (draft
       ? needTitleForSummary(draft.topicId, draft.otherSummary)
       : mentor.specialties[0]) || mentor.professionalTitle;
-  const canSend = hasThreeHalfHourTimes(preferredTimes);
+  const canSend = hasThreePreferredSlots(preferredSlots);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
-  const summaryWhen = preferredTimes.filter(Boolean).join(" · ");
+  const summaryWhen = preferredSlots
+    .map(formatPreferredSlot)
+    .filter(Boolean)
+    .join(" · ");
 
-  function updateTime(index: number, value: string) {
-    setPreferredTimes((current) =>
-      current.map((time, timeIndex) => (timeIndex === index ? value : time)),
+  function updateSlot(
+    index: number,
+    patch: Partial<{ date: string; time: string }>,
+  ) {
+    setPreferredSlots((current) =>
+      current.map((slot, slotIndex) =>
+        slotIndex === index ? { ...slot, ...patch } : slot,
+      ),
     );
   }
 
   async function sendRequest() {
     if (!session?.fullName) return;
     if (!canSend) {
-      setError("Tam veya buçuk saatte üç farklı tercih seç.");
+      setError("Günü ve tam/buçuk saatiyle üç farklı tercih seç.");
       return;
     }
     setIsSubmitting(true);
@@ -101,7 +112,7 @@ export function MentorRequestDialog({
           requestedForName: session.fullName,
           problem,
           outcome,
-          preferredTimes: preferredTimes.filter(isHalfOrFullHour),
+          preferredSlots: preferredSlots.filter(isValidPreferredSlot),
         }),
       );
       onSent(saved.id);
@@ -186,7 +197,8 @@ export function MentorRequestDialog({
             <p className="mt-1 text-xs text-[#858c96]">Önümüzdeki 7 gün</p>
             {columns.length === 0 ? (
               <p className="mt-4 text-sm text-[#676e78]">
-                Mentörün açık saati yok. Aşağıdan üç tercih saati girebilirsin.
+                Mentörün açık saati yok. Aşağıdan üç tercih günü ve saati
+                girebilirsin.
               </p>
             ) : (
               <div className="mt-4 flex gap-2 overflow-x-auto">
@@ -202,16 +214,20 @@ export function MentorRequestDialog({
                     </p>
                     <div className="mt-2 flex w-full flex-col gap-1.5">
                       {column.slots.map((slot) => {
-                        const time = timeFromStartsAt(slot.startsAt);
-                        const selected = preferredTimes.includes(time);
+                        const preference = slotFromStartsAt(slot.startsAt);
+                        const selected = preferredSlots.some(
+                          (item) =>
+                            preferredSlotKey(item) ===
+                            preferredSlotKey(preference),
+                        );
                         return (
                           <button
                             key={slot.id}
                             type="button"
                             onClick={() => {
-                              if (!isHalfOrFullHour(time)) return;
-                              setPreferredTimes((current) =>
-                                assignPreferredTime(current, time),
+                              if (!isHalfOrFullHour(preference.time)) return;
+                              setPreferredSlots((current) =>
+                                assignPreferredSlot(current, preference),
                               );
                             }}
                             className={`min-h-7 rounded-full px-1 text-[11px] font-medium ${
@@ -235,33 +251,49 @@ export function MentorRequestDialog({
             </p>
             <div className="mt-4 border-t border-[#e4e7ea] pt-3">
               <p className="text-xs font-medium text-[#22262b]">
-                Üç tercih saati gir
+                Üç tercih günü ve saati gir
               </p>
               <p className="mt-1 text-[11px] text-[#858c96]">
-                Saatler tam (10:00) veya buçuk (10:30) olmalı.
+                Her tercih için gün seç. Saatler tam (10:00) veya buçuk (10:30)
+                olmalı.
               </p>
               <div className="mt-2 grid gap-2">
-                {preferredTimes.map((time, index) => (
-                  <label
+                {preferredSlots.map((slot, index) => (
+                  <div
                     key={index}
-                    className="flex items-center gap-2 text-xs text-[#676e78]"
+                    className="flex flex-wrap items-center gap-2 text-xs text-[#676e78]"
                   >
                     <span className="w-16">{index + 1}. tercih</span>
+                    <select
+                      value={slot.date}
+                      aria-label={`${index + 1}. tercih günü`}
+                      onChange={(event) =>
+                        updateSlot(index, { date: event.target.value })
+                      }
+                      className="min-h-9 min-w-[132px] flex-1 rounded-lg border border-[#d4d8dd] px-2.5 text-sm text-[#22262b] outline-none"
+                    >
+                      <option value="">Gün seç</option>
+                      {dayOptions.map((day) => (
+                        <option key={day.value} value={day.value}>
+                          {day.label}
+                        </option>
+                      ))}
+                    </select>
                     <input
                       type="time"
                       step={1800}
-                      value={time}
+                      value={slot.time}
                       aria-label={`${index + 1}. tercih saati`}
                       onChange={(event) =>
-                        updateTime(index, event.target.value)
+                        updateSlot(index, { time: event.target.value })
                       }
-                      className={`min-h-9 flex-1 rounded-lg border px-2.5 text-sm text-[#22262b] outline-none ${
-                        time && !isHalfOrFullHour(time)
+                      className={`min-h-9 min-w-[110px] flex-1 rounded-lg border px-2.5 text-sm text-[#22262b] outline-none ${
+                        slot.time && !isHalfOrFullHour(slot.time)
                           ? "border-red-400"
                           : "border-[#d4d8dd]"
                       }`}
                     />
-                  </label>
+                  </div>
                 ))}
               </div>
             </div>
@@ -279,7 +311,7 @@ export function MentorRequestDialog({
                 Konu: {topic}
               </p>
               <p className="rounded-lg border border-[#d4d8dd] px-3.5 py-3">
-                {summaryWhen || "Üç saat seçildiğinde tarih burada görünür"}
+                {summaryWhen || "Üç gün ve saat seçildiğinde burada görünür"}
                 {summaryWhen
                   ? ` · ${durationMinutes} dk · ${mentor.meetingMode || "Online"}`
                   : ""}

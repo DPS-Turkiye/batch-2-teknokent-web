@@ -14,7 +14,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { accepted?: boolean };
     if (typeof body.accepted !== "boolean") {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A decision is required." },
+        { code: "INVALID_REQUEST", message: "Bir karar seçmeniz gerekiyor." },
         { status: 400 },
       );
     }
@@ -28,7 +28,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The mentor request could not be decided.",
+      message: "Mentor talebi yanıtlanamadı.",
     });
   }
 }

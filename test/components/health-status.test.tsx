@@ -65,7 +65,9 @@ describe("HealthStatus", () => {
     const user = userEvent.setup();
 
     vi.mocked(fetchHealthClient)
-      .mockRejectedValueOnce(new HealthFetchError("Health API request failed"))
+      .mockRejectedValueOnce(
+        new HealthFetchError("Sağlık hizmeti isteği başarısız oldu."),
+      )
       .mockResolvedValueOnce(healthyResponse);
 
     renderWithQueryClient(<HealthStatus />);
@@ -75,7 +77,9 @@ describe("HealthStatus", () => {
     });
 
     expect(screen.getByText("Health check failed")).toBeInTheDocument();
-    expect(screen.getByText("Health API request failed")).toBeInTheDocument();
+    expect(
+      screen.getByText("Sağlık hizmeti isteği başarısız oldu."),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Retry" }));
 

@@ -29,10 +29,18 @@ function readAssistantError(data: unknown, fallback: string): string {
   if (blocked) return blocked;
   if (data && typeof data === "object") {
     if ("detail" in data && typeof data.detail === "string" && data.detail) {
-      return data.detail;
+      return /\b(bad|invalid|failed|error|could|must|not found|unavailable)\b/i.test(
+        data.detail,
+      )
+        ? fallback
+        : data.detail;
     }
     if ("message" in data && typeof data.message === "string" && data.message) {
-      return data.message;
+      return /\b(bad|invalid|failed|error|could|must|not found|unavailable)\b/i.test(
+        data.message,
+      )
+        ? fallback
+        : data.message;
     }
   }
   return fallback;
@@ -53,7 +61,7 @@ function wrapAssistantError(error: unknown, fallback: string): never {
     throw new Error(
       readAssistantError(
         error.response?.data,
-        `${fallback} (${error.response?.status ?? "network error"})`,
+        `${fallback} (${error.response?.status ?? "ağ hatası"})`,
       ),
     );
   }
@@ -64,10 +72,10 @@ export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
     return requireAssistantOk(
       await httpClient.post<AddBotResult>(getBotApiUrl(), { meetingUrl }),
-      "Failed to send bot",
+      "Toplantı asistanı gönderilemedi.",
     );
   } catch (error) {
-    wrapAssistantError(error, "Failed to send bot");
+    wrapAssistantError(error, "Toplantı asistanı gönderilemedi.");
   }
 }
 
@@ -78,10 +86,10 @@ export async function stopMeetingBot(
   try {
     requireAssistantOk(
       await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId)),
-      "Failed to stop bot",
+      "Toplantı asistanı durdurulamadı.",
     );
   } catch (error) {
-    wrapAssistantError(error, "Failed to stop bot");
+    wrapAssistantError(error, "Toplantı asistanı durdurulamadı.");
   }
 }
 
@@ -94,11 +102,11 @@ export async function fetchTranscript(
       await httpClient.get<{ segments?: TranscriptSegment[] }>(
         getTranscriptApiUrl(platform, nativeMeetingId),
       ),
-      "Failed to fetch transcript",
+      "Toplantı transkripti alınamadı.",
     );
     return data?.segments ?? [];
   } catch (error) {
-    wrapAssistantError(error, "Failed to fetch transcript");
+    wrapAssistantError(error, "Toplantı transkripti alınamadı.");
   }
 }
 
@@ -118,9 +126,9 @@ export async function generateMeetingReport(
         body,
         { timeout: UPLOAD_TIMEOUT_MS },
       ),
-      "Failed to generate meeting report",
+      "Toplantı raporu oluşturulamadı.",
     );
   } catch (error) {
-    wrapAssistantError(error, "Failed to generate meeting report");
+    wrapAssistantError(error, "Toplantı raporu oluşturulamadı.");
   }
 }

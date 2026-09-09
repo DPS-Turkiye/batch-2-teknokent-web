@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Provide a title or a done flag.",
+          message: "Bir başlık veya tamamlanma durumu girin.",
         },
         { status: 400 },
       );
@@ -29,7 +29,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting todo could not be updated.",
+      message: "Toplantı görevi güncellenemedi.",
     });
   }
 }
@@ -41,7 +41,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return backendResponse(await deleteMeetingTodo(id, todoId, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting todo could not be removed.",
+      message: "Toplantı görevi silinemedi.",
     });
   }
 }

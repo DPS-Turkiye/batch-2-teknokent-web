@@ -32,7 +32,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Assistant share could not be loaded.",
+      message: "Asistan paylaşımı yüklenemedi.",
     });
   }
 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "A transcript or report payload is required.",
+          message: "Transkript veya rapor içeriği gerekli.",
         },
         { status: 400 },
       );
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         return NextResponse.json(
           {
             code: "INVALID_REQUEST",
-            message: "Provider transcript is empty.",
+            message: "Toplantı transkripti boş.",
           },
           { status: 400 },
         );
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Assistant share could not be published.",
+      message: "Asistan paylaşımı yayımlanamadı.",
     });
   }
 }

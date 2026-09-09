@@ -12,7 +12,7 @@ export async function GET() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Pending accounts could not be loaded.",
+      message: "Bekleyen hesaplar yüklenemedi.",
     });
   }
 }

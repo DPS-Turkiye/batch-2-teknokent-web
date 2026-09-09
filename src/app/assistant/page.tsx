@@ -81,7 +81,7 @@ export default function AssistantPage() {
             <div className="min-h-0 flex-1 overflow-y-auto p-2">
               <div className="mb-1.5 flex items-center px-1">
                 <span className="flex-1 text-[11px] uppercase tracking-[0.04em] text-[var(--ma-t3)]">
-                  meetings
+                  toplantılar
                 </span>
               </div>
 
@@ -189,7 +189,7 @@ export default function AssistantPage() {
                         {selected.status === MeetingStatus.Active ? (
                           <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.04em] text-[var(--ma-green)]">
                             <span className="size-[7px] rounded-full bg-[var(--ma-green)] shadow-[0_0_0_3px_var(--ma-greenbg)]" />
-                            Live
+                            Canlı
                           </span>
                         ) : (
                           <span
@@ -263,7 +263,7 @@ export default function AssistantPage() {
                         }
                         className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)] disabled:opacity-50"
                       >
-                        Stop bot
+                        Asistanı durdur
                       </button>
                     </div>
                   </div>
@@ -272,8 +272,8 @@ export default function AssistantPage() {
                   selected.status === MeetingStatus.Scheduled ? (
                     <p className="mt-2 text-[11.5px] leading-relaxed text-[var(--ma-t2)]">
                       Transkripti görmek ve rapor oluşturmak için{" "}
-                      <strong>Stop bot</strong> düğmesine basın. Bot durunca
-                      transkript kilitlenir ve rapor otomatik üretilir.
+                      <strong>Asistanı durdur</strong> düğmesine basın. Asistan
+                      durunca transkript kilitlenir ve rapor otomatik üretilir.
                     </p>
                   ) : null}
                 </header>
@@ -282,7 +282,7 @@ export default function AssistantPage() {
                   <div className="w-full">
                     <div className="mb-5 flex items-center gap-2">
                       <span className="text-[10.5px] font-semibold uppercase tracking-[0.07em] text-[var(--ma-t3)]">
-                        Transcript
+                        Transkript
                       </span>
                       <span className="font-mono text-[10.5px] text-[var(--ma-t3)]">
                         {visibleTranscript.length}
@@ -308,8 +308,8 @@ export default function AssistantPage() {
                       <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
                         {selected.status === MeetingStatus.Active ||
                         selected.status === MeetingStatus.Joining
-                          ? "Konuşmalar burada birikir. Transkripti kilitlemek ve raporu üretmek için Stop bot düğmesine basın."
-                          : "Henüz transcript yok. Bot toplantıya katılınca canlı konuşmalar burada akacak."}
+                          ? "Konuşmalar burada birikir. Transkripti kilitlemek ve raporu üretmek için Asistanı durdur düğmesine basın."
+                          : "Henüz transkript yok. Asistan toplantıya katılınca canlı konuşmalar burada akacak."}
                       </p>
                     ) : (
                       <div className="space-y-4">
@@ -404,8 +404,8 @@ export default function AssistantPage() {
                       ) : (
                         <p className="text-[12.5px] leading-relaxed text-[var(--ma-t3)]">
                           Transkripti kilitlemek ve raporu otomatik üretmek için
-                          Stop bot düğmesine basın. Menteenin not defterinin
-                          altına düşmesi için gönderin.
+                          Asistanı durdur düğmesine basın. Menteenin not
+                          defterinin altına düşmesi için gönderin.
                         </p>
                       )}
                     </div>

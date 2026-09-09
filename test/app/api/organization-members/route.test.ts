@@ -47,7 +47,7 @@ describe("/api/organization-members", () => {
     expect(response.status).toBe(401);
     expect(await response.json()).toEqual({
       code: "SESSION_REQUIRED",
-      message: "No active session.",
+      message: "Etkin oturum bulunamadı.",
     });
     expect(fetchOrganizationMembers).not.toHaveBeenCalled();
   });

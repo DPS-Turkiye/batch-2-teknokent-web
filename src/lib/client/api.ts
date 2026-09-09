@@ -7,6 +7,7 @@ export class ClientApiError extends Error {
     message: string,
     readonly status: number,
     readonly code?: string,
+    readonly fieldErrors: Record<string, string> = {},
   ) {
     super(message);
     this.name = "ClientApiError";
@@ -42,18 +43,28 @@ function fallbackMessage(status: number) {
   }
 }
 
+function visibleServerMessage(body: unknown, status: number) {
+  if (
+    !body ||
+    typeof body !== "object" ||
+    !("message" in body) ||
+    typeof body.message !== "string"
+  ) {
+    return fallbackMessage(status);
+  }
+  const message = body.message.trim();
+  const looksEnglish =
+    /\b(the|a user|could|must|only|not found|already|awaiting|requires?|invalid|failed|provide|this endpoint|is unavailable)\b/i.test(
+      message,
+    );
+  return looksEnglish ? fallbackMessage(status) : message;
+}
+
 export function requireSuccess<T>(response: AxiosResponse<T>): T {
   if (response.status >= 200 && response.status < 300) return response.data;
   const body = response.data as unknown;
   const blocked = amplifyBlockedMessage(body);
-  const message =
-    blocked ??
-    (body &&
-    typeof body === "object" &&
-    "message" in body &&
-    typeof body.message === "string"
-      ? body.message
-      : fallbackMessage(response.status));
+  const message = blocked ?? visibleServerMessage(body, response.status);
   const code =
     body &&
     typeof body === "object" &&
@@ -61,5 +72,13 @@ export function requireSuccess<T>(response: AxiosResponse<T>): T {
     typeof body.code === "string"
       ? body.code
       : undefined;
-  throw new ClientApiError(message, response.status, code);
+  const fieldErrors =
+    body &&
+    typeof body === "object" &&
+    "fieldErrors" in body &&
+    body.fieldErrors &&
+    typeof body.fieldErrors === "object"
+      ? (body.fieldErrors as Record<string, string>)
+      : {};
+  throw new ClientApiError(message, response.status, code, fieldErrors);
 }

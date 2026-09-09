@@ -14,14 +14,19 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("role") === UserRole.Mentor
         ? UserRole.Mentor
         : UserRole.Mentee;
-    const requesterId =
-      role === UserRole.Mentor
-        ? await getSessionMentorId()
-        : (await getSessionIds()).userId;
-    return backendResponse(await fetchMentorRequests({ requesterId, role }));
+    if (role === UserRole.Mentor) {
+      return backendResponse(
+        await fetchMentorRequests({
+          requesterId: await getSessionMentorId(),
+          role,
+        }),
+      );
+    }
+    const { organizationId } = await getSessionIds();
+    return backendResponse(await fetchMentorRequests({ organizationId, role }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request service is unavailable.",
+      message: "Mentorluk talebi hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorRequest(session, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request could not be created.",
+      message: "Mentorluk talebi oluşturulamadı.",
     });
   }
 }

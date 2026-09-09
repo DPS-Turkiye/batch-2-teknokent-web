@@ -22,7 +22,9 @@ describe("BotStatusRenderer", () => {
   it("renders fallback error text when status is error and no message provided", () => {
     render(<BotStatusRenderer status={BotStatus.Err} error={null} />);
 
-    expect(screen.getByText("Failed to send bot")).toBeInTheDocument();
+    expect(
+      screen.getByText("Toplantı asistanı gönderilemedi."),
+    ).toBeInTheDocument();
   });
 
   it("renders nothing while no status is available", () => {

@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { useLandingPage } from "@/hooks/use-landing-page";
+import { usePublicSessionDestination } from "@/hooks/use-public-session-destination";
 import type {
   LandingFaq,
   LandingTraining,
@@ -131,6 +132,7 @@ function FaqList({ faqs }: { faqs: LandingFaq[] }) {
 }
 
 export default function Home() {
+  const sessionDestination = usePublicSessionDestination();
   const {
     announcements,
     mentorSteps,
@@ -161,10 +163,10 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                 <Link
-                  href="/login"
+                  href={sessionDestination.href}
                   className="border border-black bg-black px-5 py-3 text-center text-xs font-medium text-white hover:bg-zinc-800"
                 >
-                  Giriş Yap
+                  {sessionDestination.label}
                 </Link>
                 <a
                   href="#programlar"
@@ -381,10 +383,10 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
-                href="/login"
+                href={sessionDestination.href}
                 className="border border-black bg-black px-5 py-3 text-xs font-medium text-white"
               >
-                Giriş Yap
+                {sessionDestination.label}
               </Link>
               <a
                 href="#programlar"

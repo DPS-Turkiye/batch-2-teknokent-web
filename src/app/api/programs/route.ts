@@ -14,7 +14,7 @@ export async function GET() {
     return backendResponse(await fetchPrograms(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Programs could not be loaded.",
+      message: "Programlar yüklenemedi.",
     });
   }
 }
@@ -27,14 +27,14 @@ export async function POST(request: NextRequest) {
     const name = body.name?.trim() ?? "";
     if (!name) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A program name is required." },
+        { code: "INVALID_REQUEST", message: "Program adı gerekli." },
         { status: 400 },
       );
     }
     return backendResponse(await createProgram(auth.session.userId, name));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The program could not be created.",
+      message: "Program oluşturulamadı.",
     });
   }
 }

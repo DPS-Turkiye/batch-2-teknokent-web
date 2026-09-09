@@ -18,7 +18,7 @@ async function forward(request: NextRequest, context: RouteContext) {
     const { action, id } = await context.params;
     if (!isMentorRequestAction(action)) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Unsupported request action." },
+        { code: "INVALID_REQUEST", message: "Bu talep işlemi desteklenmiyor." },
         { status: 400 },
       );
     }
@@ -46,7 +46,7 @@ async function forward(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request action failed.",
+      message: "Mentorluk talebi işlemi tamamlanamadı.",
     });
   }
 }

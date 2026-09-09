@@ -3,6 +3,7 @@
 import { FolderKanban } from "lucide-react";
 
 import { ProgramSelect } from "@/components/common/program-select";
+import { useToast } from "@/components/providers/toast-provider";
 import {
   useOrganizationPrograms,
   useSetActiveProgram,
@@ -11,6 +12,7 @@ import {
 const NO_PROGRAM_LABEL = "Bir programa dahil değilim";
 
 export function ActiveProgramPicker() {
+  const { showToast } = useToast();
   const programsQuery = useOrganizationPrograms();
   const setActive = useSetActiveProgram();
 
@@ -47,15 +49,20 @@ export function ActiveProgramPicker() {
               hint: program.coordinatorName,
             }))}
             value={activeId}
-            onChange={(programId) => setActive.mutate(programId)}
+            onChange={(programId) =>
+              setActive.mutate(programId, {
+                onSuccess: () =>
+                  showToast({
+                    message: "Etkin program güncellendi.",
+                    tone: "success",
+                  }),
+                onError: (error) =>
+                  showToast({ message: error.message, tone: "error" }),
+              })
+            }
             noProgramLabel={NO_PROGRAM_LABEL}
             disabled={setActive.isPending}
           />
-          {setActive.error ? (
-            <p className="mt-3 text-sm text-[#b91c1c]" role="alert">
-              {setActive.error.message}
-            </p>
-          ) : null}
         </div>
       )}
     </section>

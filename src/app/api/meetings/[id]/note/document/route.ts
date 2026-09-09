@@ -15,7 +15,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingNoteDocument(id, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting note document is unavailable.",
+      message: "Toplantı notu belgesine ulaşılamıyor.",
     });
   }
 }

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { useToast } from "@/components/providers/toast-provider";
 import {
   useOrganizationInvite,
   useRotateInviteCode,
@@ -14,39 +15,37 @@ import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 export default function TeamPage() {
+  const { showToast } = useToast();
   const membersQuery = useOrganizationMembers();
   const inviteQuery = useOrganizationInvite();
   const rotate = useRotateInviteCode();
   const [copied, setCopied] = useState(false);
-  const [rotateError, setRotateError] = useState("");
 
   async function copyCode() {
     const code = inviteQuery.data?.inviteCode;
     if (!code) return;
     await navigator.clipboard.writeText(code);
     setCopied(true);
+    showToast({ message: "Davet kodu kopyalandı.", tone: "success" });
   }
 
   async function rotateCode() {
-    setRotateError("");
     setCopied(false);
     try {
       await rotate.mutateAsync();
+      showToast({ message: "Yeni davet kodu üretildi.", tone: "success" });
     } catch (reason) {
-      setRotateError(
-        reason instanceof Error ? reason.message : "Could not rotate the code.",
-      );
+      showToast({
+        message:
+          reason instanceof Error ? reason.message : "Yeni kod üretilemedi.",
+        tone: "error",
+      });
     }
   }
 
   return (
     <AppShell active={AppArea.Team} title="Ekibim" backHref="/dashboard">
       <div className="mx-auto w-full max-w-3xl space-y-6 px-4 pb-12 pt-6 sm:px-8">
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-          Geçici arayüz — tasarım ekibinden gelecek gerçek tasarımla
-          değiştirilecektir.
-        </p>
-
         <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
           <h2 className="text-base font-semibold text-[#364153]">Davet kodu</h2>
           <p className="mt-1 text-xs text-[#6a7282]">
@@ -76,9 +75,6 @@ export default function TeamPage() {
                   {rotate.isPending ? "Üretiliyor..." : "Yeni kod üret"}
                 </button>
               </div>
-              {rotateError ? (
-                <p className="mt-3 text-sm text-red-600">{rotateError}</p>
-              ) : null}
             </>
           )}
         </section>

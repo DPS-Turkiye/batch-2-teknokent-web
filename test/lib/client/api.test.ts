@@ -12,13 +12,18 @@ describe("requireSuccess", () => {
     expect(requireSuccess(response(200, { id: "1" }))).toEqual({ id: "1" });
   });
 
-  // The backend words its own failures; those must survive untouched.
-  it("prefers the backend's message over the fallback", () => {
+  it("replaces an English backend message with the Turkish fallback", () => {
     expect(() =>
       requireSuccess(
         response(403, { message: "This account is awaiting approval" }),
       ),
-    ).toThrow("This account is awaiting approval");
+    ).toThrow(/yetkin yok/);
+  });
+
+  it("keeps a Turkish backend message", () => {
+    expect(() =>
+      requireSuccess(response(403, { message: "Hesabınız onay bekliyor." })),
+    ).toThrow("Hesabınız onay bekliyor.");
   });
 
   it("keeps the backend's error code", () => {
@@ -34,6 +39,23 @@ describe("requireSuccess", () => {
       expect(error).toBeInstanceOf(ClientApiError);
       expect((error as ClientApiError).code).toBe("SESSION_REQUIRED");
       expect((error as ClientApiError).status).toBe(401);
+    }
+  });
+
+  it("keeps field-level validation messages from the backend", () => {
+    try {
+      requireSuccess(
+        response(400, {
+          message: "Form validation failed.",
+          fieldErrors: { phone: "Telefon numarası geçersiz." },
+        }),
+      );
+      expect.unreachable("should have thrown");
+    } catch (error) {
+      expect(error).toBeInstanceOf(ClientApiError);
+      expect((error as ClientApiError).fieldErrors).toEqual({
+        phone: "Telefon numarası geçersiz.",
+      });
     }
   });
 

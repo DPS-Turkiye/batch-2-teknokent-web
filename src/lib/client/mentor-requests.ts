@@ -109,6 +109,7 @@ export type LogMeetingPayload = {
   notes?: string;
   outcomes?: string;
   status: MeetingStatus;
+  meetLink?: string;
 };
 
 export async function logMentorshipMeeting(

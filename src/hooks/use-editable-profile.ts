@@ -2,6 +2,9 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/providers/toast-provider";
+
+import { ClientApiError } from "@/lib/client/api";
 
 // Shared by the personal and startup sections on /profile, so both are
 // implemented and tested once: load a record, edit it as a draft, save it back.
@@ -10,15 +13,16 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   load,
   save,
   toDraft,
-  isValid,
+  validate,
 }: {
   queryKey: readonly unknown[];
   load: () => Promise<TLoaded>;
   save: (draft: TDraft) => Promise<TLoaded>;
   toDraft: (loaded: TLoaded) => TDraft;
-  isValid: (draft: TDraft) => boolean;
+  validate: (draft: TDraft) => Partial<Record<keyof TDraft, string>>;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const query = useQuery({ queryKey, queryFn: load });
 
   // The draft is derived from the loaded record plus the user's edits rather
@@ -31,13 +35,17 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     mutate,
     isPending: isSaving,
     error: saveError,
+    reset: resetSave,
   } = useMutation({
     mutationFn: save,
     onSuccess: (loaded) => {
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});
       setSaved(true);
+      showToast({ message: "Değişiklikleriniz kaydedildi.", tone: "success" });
     },
+    onError: () =>
+      showToast({ message: "Değişiklikler kaydedilemedi.", tone: "error" }),
   });
 
   const loaded = query.data;
@@ -45,15 +53,25 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     () => (loaded ? { ...toDraft(loaded), ...edits } : null),
     [loaded, edits, toDraft],
   );
+  const clientFieldErrors = useMemo(
+    () => (draft ? validate(draft) : {}),
+    [draft, validate],
+  );
+  const serverFieldErrors =
+    saveError instanceof ClientApiError ? saveError.fieldErrors : {};
+  const fieldErrors = { ...serverFieldErrors, ...clientFieldErrors } as Partial<
+    Record<keyof TDraft, string>
+  >;
 
   // A save confirmation that never clears reads as stale the moment the user
   // edits again, so the next change retires it.
   const setField = useCallback(
     <K extends keyof TDraft>(field: K, value: TDraft[K]) => {
       setSaved(false);
+      resetSave();
       setEdits((current) => ({ ...current, [field]: value }));
     },
-    [],
+    [resetSave],
   );
 
   const isDirty = useMemo(
@@ -65,9 +83,9 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   );
 
   const submit = useCallback(() => {
-    if (!draft || !isValid(draft)) return;
+    if (!draft || Object.keys(validate(draft)).length) return;
     mutate(draft);
-  }, [draft, isValid, mutate]);
+  }, [draft, mutate, validate]);
 
   return {
     draft,
@@ -80,6 +98,10 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     // The load error blocks the form; a save error sits beside it.
     loadError: query.error?.message ?? null,
     saveError: saveError?.message ?? null,
-    canSave: Boolean(draft && isValid(draft)) && isDirty && !isSaving,
+    fieldErrors,
+    canSave:
+      Boolean(draft && Object.keys(clientFieldErrors).length === 0) &&
+      isDirty &&
+      !isSaving,
   };
 }

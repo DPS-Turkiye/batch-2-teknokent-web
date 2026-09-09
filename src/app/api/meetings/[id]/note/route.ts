@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingNote(id, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting note service is unavailable.",
+      message: "Toplantı notu hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -29,7 +29,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "content is required.",
+          message: "Not içeriği gerekli.",
         },
         { status: 400 },
       );
@@ -39,7 +39,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     return backendResponse(await saveMeetingNote(id, session, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting note could not be saved.",
+      message: "Toplantı notu kaydedilemedi.",
     });
   }
 }

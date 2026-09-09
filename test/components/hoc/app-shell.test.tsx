@@ -1,12 +1,13 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
 const mockuseAppSession = vi.fn<() => AppSession | null>();
+const mockLogout = vi.fn().mockResolvedValue(undefined);
 
 vi.mock("@/hooks/use-dashboard-notifications", () => ({
   useDashboardNotifications: () => ({
@@ -24,7 +25,7 @@ vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({
     isLoading: false,
     login: vi.fn(),
-    logout: vi.fn().mockResolvedValue(undefined),
+    logout: mockLogout,
     session: mockuseAppSession(),
   }),
 }));
@@ -62,7 +63,12 @@ function adminSession(): AppSession {
 }
 
 describe("AppShell navigation", () => {
-  it("offers a logout control so the session cookie can be replaced", () => {
+  beforeEach(() => {
+    mockLogout.mockClear();
+  });
+
+  it("keeps logout inside the account menu and asks for confirmation", async () => {
+    const user = userEvent.setup();
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -71,7 +77,21 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole("button", { name: "Çıkış" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Çıkış yap" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Hesap menüsünü aç/ }));
+    await user.click(screen.getByRole("menuitem", { name: "Çıkış yap" }));
+
+    expect(
+      screen.getByRole("dialog", { name: "Çıkış yapmak istiyor musunuz?" }),
+    ).toBeInTheDocument();
+    expect(mockLogout).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(mockLogout).not.toHaveBeenCalled();
   });
 
   it("gives an admin only the applications inbox", () => {
@@ -138,7 +158,7 @@ describe("AppShell navigation", () => {
     );
     expect(
       screen.getByRole("link", { name: /Mentorluklarım/ }),
-    ).toHaveAttribute("href", "/mentor-dashboard#mentorships");
+    ).toHaveAttribute("href", "/mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
       "/mentor-dashboard/calendar",
@@ -292,7 +312,8 @@ describe("AppShell navigation", () => {
     expect(mentorships.className).not.toContain("bg-[#fdebdd]");
   });
 
-  it("points the account control at the role-appropriate profile", () => {
+  it("points the account menu at the role-appropriate profile", async () => {
+    const user = userEvent.setup();
     mockuseAppSession.mockReturnValue(menteeSession());
     const { unmount } = render(
       <AppShell active={AppArea.Home}>
@@ -300,7 +321,8 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole("link", { name: /Ayşe Kaya/ })).toHaveAttribute(
+    await user.click(screen.getByRole("button", { name: /Ayşe Kaya/ }));
+    expect(screen.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
       "href",
       "/profile",
     );
@@ -313,7 +335,8 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    expect(screen.getByRole("link", { name: /Leyla Aksoy/ })).toHaveAttribute(
+    await user.click(screen.getByRole("button", { name: /Leyla Aksoy/ }));
+    expect(screen.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
       "href",
       "/mentor-profile",
     );

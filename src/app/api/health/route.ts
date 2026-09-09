@@ -13,7 +13,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { message: "Unexpected health check failure" },
+      { message: "Sağlık kontrolü beklenmedik biçimde başarısız oldu." },
       { status: 500 },
     );
   }

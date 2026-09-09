@@ -9,7 +9,7 @@ export async function GET() {
     return backendResponse(await fetchProgramInvitations(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program invitations could not be loaded.",
+      message: "Program davetleri yüklenemedi.",
     });
   }
 }

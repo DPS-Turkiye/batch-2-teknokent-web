@@ -16,7 +16,7 @@ async function requireRole(
     return {
       ok: false,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -36,12 +36,15 @@ async function requireRole(
 export function requireCoordinatorSession() {
   return requireRole(
     UserRole.Coordinator,
-    "Only a coordinator can manage programs.",
+    "Programları yalnızca koordinatörler yönetebilir.",
   );
 }
 
 export function requireMentorSession() {
-  return requireRole(UserRole.Mentor, "Only a mentor can do this.");
+  return requireRole(
+    UserRole.Mentor,
+    "Bu işlemi yalnızca mentorlar yapabilir.",
+  );
 }
 
 /**
@@ -57,7 +60,7 @@ export async function requireStartupSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -68,7 +71,7 @@ export async function requireStartupSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Only a startup member can view their programs.",
+          message: "Programlarını yalnızca startup üyeleri görüntüleyebilir.",
         },
         { status: 403 },
       ),
@@ -83,7 +86,7 @@ export async function requireCoordinatorOrMentorSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -97,7 +100,8 @@ export async function requireCoordinatorOrMentorSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Only a coordinator or mentor can view programs.",
+          message:
+            "Programları yalnızca koordinatörler ve mentorlar görüntüleyebilir.",
         },
         { status: 403 },
       ),

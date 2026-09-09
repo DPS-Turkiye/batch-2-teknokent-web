@@ -39,7 +39,7 @@ describe("GET /api/mentor-requests", () => {
     });
   });
 
-  it("resolves the mentee id from the session for the default role", async () => {
+  it("resolves the startup id from the session for the default role", async () => {
     vi.mocked(getSessionIds).mockResolvedValue({
       userId: "mentee-1",
       organizationId: "org-1",
@@ -50,7 +50,7 @@ describe("GET /api/mentor-requests", () => {
     expect(getSessionIds).toHaveBeenCalled();
     expect(getSessionMentorId).not.toHaveBeenCalled();
     expect(fetchMentorRequests).toHaveBeenCalledWith({
-      requesterId: "mentee-1",
+      organizationId: "org-1",
       role: UserRole.Mentee,
     });
   });

@@ -8,7 +8,7 @@ export async function GET() {
     return backendResponse(await fetchMentorDirectory());
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentors could not be loaded.",
+      message: "Mentorlar yüklenemedi.",
     });
   }
 }

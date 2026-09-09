@@ -9,6 +9,7 @@ import {
   getStartupProfile,
   saveStartupProfile,
 } from "@/lib/client/organization";
+import { validateStartupProfile } from "@/lib/profile-validation";
 
 export const STARTUP_PROFILE_QUERY_KEY = ["startup-profile"] as const;
 
@@ -34,17 +35,12 @@ function toDraft(profile: StartupProfile): StartupProfileInput {
   };
 }
 
-// A startup without a name is not a startup; everything else is optional.
-function isValid(draft: StartupProfileInput) {
-  return Boolean(draft.name.trim());
-}
-
 export function useStartupProfile() {
   return useEditableProfile({
     queryKey: STARTUP_PROFILE_QUERY_KEY,
     load: getStartupProfile,
     save: saveStartupProfile,
     toDraft,
-    isValid,
+    validate: validateStartupProfile,
   });
 }

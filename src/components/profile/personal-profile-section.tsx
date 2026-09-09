@@ -7,6 +7,7 @@ import {
   EditableInfoField,
 } from "@/components/profile/editable-info-field";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
+import { normalizePhoneInput } from "@/lib/phone";
 
 /**
  * The signup wizard's first step, reopened after signup. Until now these fields
@@ -23,6 +24,7 @@ export function PersonalProfileSection() {
     isSaving,
     loadError,
     saveError,
+    fieldErrors,
     canSave,
   } = usePersonalProfile();
 
@@ -67,6 +69,9 @@ export function PersonalProfileSection() {
           id="profile-full-name"
           label="Ad soyad"
           value={draft.fullName}
+          required
+          error={fieldErrors.fullName}
+          maxLength={255}
           onChange={(value) => setField("fullName", value)}
         />
         <EditableInfoField
@@ -74,6 +79,8 @@ export function PersonalProfileSection() {
           label="Rol"
           placeholder="Startup'taki rolün"
           value={draft.jobTitle ?? ""}
+          error={fieldErrors.jobTitle}
+          maxLength={255}
           onChange={(value) => setField("jobTitle", value)}
         />
       </div>
@@ -83,13 +90,18 @@ export function PersonalProfileSection() {
           id="profile-phone"
           label="Telefon"
           value={draft.phone ?? ""}
-          onChange={(value) => setField("phone", value)}
+          inputMode="tel"
+          maxLength={16}
+          error={fieldErrors.phone}
+          onChange={(value) => setField("phone", normalizePhoneInput(value))}
         />
         <EditableInfoField
           id="profile-linkedin"
           label="LinkedIn"
           placeholder="linkedin.com/in/…"
           value={draft.linkedinUrl ?? ""}
+          error={fieldErrors.linkedinUrl}
+          maxLength={255}
           onChange={(value) => setField("linkedinUrl", value)}
         />
       </div>
@@ -100,12 +112,15 @@ export function PersonalProfileSection() {
         multiline
         placeholder="Kendini birkaç cümleyle anlat."
         value={draft.bio ?? ""}
+        error={fieldErrors.bio}
+        maxLength={5000}
         onChange={(value) => setField("bio", value)}
       />
 
       <EditableInfoChips
         label="Uzmanlık alanları"
         values={draft.expertise}
+        error={fieldErrors.expertise}
         onChange={(values) => setField("expertise", values)}
       />
 

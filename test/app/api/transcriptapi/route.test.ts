@@ -55,7 +55,7 @@ describe("assistant transcript API route", () => {
     expect(response.status).toBe(502);
     await expect(response.json()).resolves.toEqual({
       code: "BACKEND_UNAVAILABLE",
-      message: "Meeting transcript service is unavailable.",
+      message: "Toplantı transkript hizmetine ulaşılamıyor.",
     });
   });
 });
