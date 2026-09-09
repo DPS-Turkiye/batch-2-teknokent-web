@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
 import { UserRole } from "@/interfaces/session";
+import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -49,60 +50,64 @@ function renderDialog() {
   return { onClose, onSent };
 }
 
+function fillPreference(index: number, date: string, time: string) {
+  fireEvent.change(screen.getByLabelText(`${index}. tercih günü`), {
+    target: { value: date },
+  });
+  fireEvent.change(screen.getByLabelText(`${index}. tercih saati`), {
+    target: { value: time },
+  });
+}
+
 describe("MentorRequestDialog", () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.mocked(submitMentorshipRequest).mockReset();
   });
 
-  it("keeps Talebi gönder disabled until three half-hour times are entered", () => {
+  it("keeps Talebi gönder disabled until three day-and-time preferences are entered", () => {
     renderDialog();
+    const days = upcomingPreferenceDays();
+    const first = days[0]?.value ?? "";
+    const second = days[1]?.value ?? "";
+    const third = days[2]?.value ?? "";
 
     const send = screen.getByRole("button", { name: "Talebi gönder" });
     expect(send).toBeDisabled();
+    expect(screen.getByLabelText("1. tercih günü")).toBeInTheDocument();
 
-    fireEvent.change(screen.getByLabelText("1. tercih saati"), {
-      target: { value: "10:15" },
-    });
-    fireEvent.change(screen.getByLabelText("2. tercih saati"), {
-      target: { value: "10:30" },
-    });
-    fireEvent.change(screen.getByLabelText("3. tercih saati"), {
-      target: { value: "14:00" },
-    });
+    fillPreference(1, first, "10:15");
+    fillPreference(2, second, "10:30");
+    fillPreference(3, third, "14:00");
     expect(send).toBeDisabled();
 
-    fireEvent.change(screen.getByLabelText("1. tercih saati"), {
-      target: { value: "10:00" },
-    });
+    fillPreference(1, first, "10:00");
     expect(send).toBeEnabled();
   });
 
-  it("sends the request with the three preferred times", async () => {
+  it("sends the request with three preferred days and times", async () => {
     vi.mocked(submitMentorshipRequest).mockResolvedValue({
       id: "req-1",
       status: "PENDING",
     });
     const user = userEvent.setup();
     const { onSent } = renderDialog();
+    const days = upcomingPreferenceDays();
+    const first = days[0]?.value ?? "";
+    const second = days[1]?.value ?? "";
+    const third = days[2]?.value ?? "";
 
-    fireEvent.change(screen.getByLabelText("1. tercih saati"), {
-      target: { value: "10:00" },
-    });
-    fireEvent.change(screen.getByLabelText("2. tercih saati"), {
-      target: { value: "10:30" },
-    });
-    fireEvent.change(screen.getByLabelText("3. tercih saati"), {
-      target: { value: "14:00" },
-    });
+    fillPreference(1, first, "10:00");
+    fillPreference(2, second, "10:30");
+    fillPreference(3, third, "14:00");
 
     await user.click(screen.getByRole("button", { name: "Talebi gönder" }));
 
     expect(submitMentorshipRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         mentorId: mentorProfile.id,
-        requesterMessage: expect.stringContaining(
-          "Tercih edilen saatler: 10:00, 10:30, 14:00",
+        requesterMessage: expect.stringMatching(
+          /Tercih edilen saatler: .+ · 10:00, .+ · 10:30, .+ · 14:00/,
         ),
       }),
     );

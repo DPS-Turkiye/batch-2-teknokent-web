@@ -29,13 +29,13 @@ describe("fetchMentorRequests", () => {
     );
   });
 
-  it("scopes by requesterId when role is mentee", async () => {
+  it("scopes mentee lists by organization so the whole startup sees the request", async () => {
     await fetchMentorRequests({
-      requesterId: "mentee-1",
+      organizationId: "org-1",
       role: UserRole.Mentee,
     });
     expect(backendRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ params: { requesterId: "mentee-1" } }),
+      expect.objectContaining({ params: { organizationId: "org-1" } }),
     );
   });
 });

@@ -89,6 +89,7 @@ describe("MentorDetailView", () => {
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Nerede takıldık?")).toBeInTheDocument();
+    expect(screen.getByLabelText("1. tercih günü")).toBeInTheDocument();
     expect(screen.getByLabelText("1. tercih saati")).toBeInTheDocument();
     expect(submitMentorshipRequest).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();

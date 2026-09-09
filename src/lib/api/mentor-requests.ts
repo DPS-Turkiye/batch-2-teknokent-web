@@ -31,6 +31,7 @@ export function isMentorRequestAction(
 
 export function fetchMentorRequests(options: {
   requesterId?: string;
+  organizationId?: string;
   role?: UserRole.Mentee | UserRole.Mentor;
 }) {
   return backendRequest({
@@ -39,7 +40,7 @@ export function fetchMentorRequests(options: {
     params:
       options.role === UserRole.Mentor
         ? { mentorId: options.requesterId }
-        : { requesterId: options.requesterId },
+        : { organizationId: options.organizationId },
   });
 }
 
