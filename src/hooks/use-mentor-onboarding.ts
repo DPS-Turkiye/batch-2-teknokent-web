@@ -19,6 +19,7 @@ import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { scrollToTop } from "@/lib/utils";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
 
 function emptyDraft(): MentorOnboardingDraft {
@@ -156,6 +157,12 @@ export function useMentorOnboarding() {
     },
     [],
   );
+
+  // A step is a new page to the applicant, so it should start at its heading
+  // rather than wherever the previous one was scrolled to.
+  useEffect(() => {
+    scrollToTop();
+  }, [step]);
 
   const uploadCv = useCallback(
     (file: { name: string; size: number; file?: File }) => {

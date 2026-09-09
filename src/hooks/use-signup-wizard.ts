@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   BIO_MAX_LENGTH,
@@ -18,6 +18,7 @@ import {
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { scrollToTop } from "@/lib/utils";
 
 function emptyDraft(): SignupDraft {
   return {
@@ -180,6 +181,12 @@ export function useSignupWizard(
     },
     [],
   );
+
+  // A step is a new page to the applicant, so it should start at its heading
+  // rather than wherever the previous one was scrolled to.
+  useEffect(() => {
+    scrollToTop();
+  }, [step]);
 
   const goToStep = useCallback((next: SignupStep) => setStep(next), []);
 
