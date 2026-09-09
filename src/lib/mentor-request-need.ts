@@ -1,0 +1,352 @@
+export const MENTOR_REQUEST_NEED_STEPPER = [
+  "Konu",
+  "Durum",
+  "Hedef",
+  "Özet",
+] as const;
+
+export const MENTOR_REQUEST_NEED_DRAFT_KEY = "mentor-request-need-draft";
+
+export const MENTOR_REQUEST_NEED_TOPICS = [
+  {
+    id: "product",
+    title: "Ürün",
+    description:
+      "Ne yapacağımızı veya nasıl geliştireceğimizi netleştiremiyoruz.",
+    supportArea: "Ürün ve ürün yönetimi",
+  },
+  {
+    id: "customer",
+    title: "Müşteri",
+    description: "Doğru kullanıcıya ulaşıp ulaşmadığımızdan emin değiliz.",
+    supportArea: "Kullanıcı araştırması ve tasarım",
+  },
+  {
+    id: "growth",
+    title: "Büyüme & Satış",
+    description: "Kullanıcı veya müşteri kazanmakta zorlanıyoruz.",
+    supportArea: "Satış ve pazarlama",
+  },
+  {
+    id: "finance",
+    title: "İş Modeli & Finans",
+    description:
+      "Nasıl para kazanacağımızı veya finansal planı netleştiremiyoruz.",
+    supportArea: "İş modeli ve strateji",
+  },
+  {
+    id: "investment",
+    title: "Yatırım",
+    description: "Yatırıma nasıl hazırlanacağımızı bilmiyoruz.",
+    supportArea: "Finans ve yatırım",
+  },
+  {
+    id: "team",
+    title: "Ekip & Operasyon",
+    description: "Ekip, rol veya süreçlerde tıkanıyoruz.",
+    supportArea: "Ekip ve organizasyon",
+  },
+  {
+    id: "other",
+    title: "Başka bir konu",
+    description: "Bunlara uymuyorsa kısa şekilde kendin anlatabilirsin.",
+    supportArea: "Diğer",
+  },
+] as const;
+
+export type MentorRequestNeedTopicId =
+  (typeof MENTOR_REQUEST_NEED_TOPICS)[number]["id"];
+
+export const MENTOR_REQUEST_NEED_SITUATIONS = [
+  {
+    id: "value",
+    title: "Kullanıcı ürünün değerini anlamıyor",
+    description:
+      "Ürünü kullanmaya başlıyor ama neden devam etmesi gerektiği net değil.",
+  },
+  {
+    id: "onboarding",
+    title: "Onboarding sırasında kullanıcı kaybediyoruz",
+    description: "Kullanıcıların önemli bir kısmı ilk adımlarda bırakıyor.",
+  },
+  {
+    id: "focus",
+    title: "Hangi özelliğe odaklanacağımızı bilmiyoruz",
+    description: "Birçok fikir var ama önceliklendiremiyoruz.",
+  },
+  {
+    id: "problem",
+    title: "Doğru problemi çözüp çözmediğimizden emin değiliz",
+    description: "Kullanıcı ihtiyacını yeterince doğrulayamadık.",
+  },
+  {
+    id: "positioning",
+    title: "Konumlandırmamız net değil",
+    description:
+      "Ürünü nasıl anlatacağımızı ve rakiplerden nasıl ayrışacağımızı bilmiyoruz.",
+  },
+  {
+    id: "none",
+    title: "Bunlardan hiçbiri",
+    description: "Kısaca kendim anlatacağım.",
+  },
+] as const;
+
+export type MentorRequestNeedSituationId =
+  (typeof MENTOR_REQUEST_NEED_SITUATIONS)[number]["id"];
+
+export const DEFAULT_NEED_SITUATION_ID: MentorRequestNeedSituationId =
+  "onboarding";
+
+export const MENTOR_REQUEST_NEED_GOALS = [
+  { id: "decision", label: "Bir karar vermek" },
+  { id: "next-steps", label: "Bir sonraki adımları belirlemek" },
+  { id: "evaluate", label: "Mevcut yaklaşımı değerlendirmek" },
+  { id: "options", label: "Yeni seçenekler görmek" },
+  { id: "roadmap", label: "Yol haritası oluşturmak" },
+  { id: "feedback", label: "Bir çalışmaya feedback almak" },
+] as const;
+
+export type MentorRequestNeedGoalId =
+  (typeof MENTOR_REQUEST_NEED_GOALS)[number]["id"];
+
+export const DEFAULT_NEED_GOAL_IDS: MentorRequestNeedGoalId[] = ["next-steps"];
+export const MAX_NEED_GOALS = 2;
+
+export type MentorRequestNeedDraft = {
+  topicId: MentorRequestNeedTopicId;
+  otherSummary: string;
+  situationId?: MentorRequestNeedSituationId;
+  noneSummary?: string;
+  goalIds?: MentorRequestNeedGoalId[];
+  goalNote?: string;
+};
+
+const TOPIC_IDS = new Set<string>(
+  MENTOR_REQUEST_NEED_TOPICS.map((topic) => topic.id),
+);
+
+const SITUATION_IDS = new Set<string>(
+  MENTOR_REQUEST_NEED_SITUATIONS.map((situation) => situation.id),
+);
+
+const GOAL_IDS = new Set<string>(
+  MENTOR_REQUEST_NEED_GOALS.map((goal) => goal.id),
+);
+
+export function isNeedTopicId(
+  value: string,
+): value is MentorRequestNeedTopicId {
+  return TOPIC_IDS.has(value);
+}
+
+export function isNeedSituationId(
+  value: string,
+): value is MentorRequestNeedSituationId {
+  return SITUATION_IDS.has(value);
+}
+
+export function isNeedGoalId(value: string): value is MentorRequestNeedGoalId {
+  return GOAL_IDS.has(value);
+}
+
+export function needTopicById(topicId: string) {
+  return (
+    MENTOR_REQUEST_NEED_TOPICS.find((topic) => topic.id === topicId) ??
+    MENTOR_REQUEST_NEED_TOPICS[0]
+  );
+}
+
+export function supportAreaForNeedTopic(topicId: string) {
+  return needTopicById(topicId).supportArea;
+}
+
+export function summaryForNeedTopic(topicId: string, otherSummary: string) {
+  const topic = needTopicById(topicId);
+  return topic.id === "other" ? otherSummary.trim() : topic.description;
+}
+
+export function canContinueNeedStep(topicId: string, otherSummary: string) {
+  if (!isNeedTopicId(topicId)) return false;
+  if (topicId === "other") return otherSummary.trim().length > 0;
+  return true;
+}
+
+export function needSituationById(situationId: string) {
+  return (
+    MENTOR_REQUEST_NEED_SITUATIONS.find(
+      (situation) => situation.id === situationId,
+    ) ?? MENTOR_REQUEST_NEED_SITUATIONS[1]
+  );
+}
+
+export function summaryForNeedSituation(
+  situationId: string,
+  noneSummary: string,
+) {
+  const situation = needSituationById(situationId);
+  return situation.id === "none" ? noneSummary.trim() : situation.description;
+}
+
+export function summaryForNeed(input: {
+  topicId: string;
+  otherSummary: string;
+  situationId: string;
+  noneSummary: string;
+}) {
+  if (isNeedSituationId(input.situationId)) {
+    return summaryForNeedSituation(input.situationId, input.noneSummary);
+  }
+  return summaryForNeedTopic(input.topicId, input.otherSummary);
+}
+
+export function canContinueSituationStep(
+  situationId: string,
+  noneSummary: string,
+) {
+  if (!isNeedSituationId(situationId)) return false;
+  if (situationId === "none") return noneSummary.trim().length > 0;
+  return true;
+}
+
+export function needGoalById(goalId: string) {
+  return (
+    MENTOR_REQUEST_NEED_GOALS.find((goal) => goal.id === goalId) ??
+    MENTOR_REQUEST_NEED_GOALS[1]
+  );
+}
+
+export function toggleNeedGoal(
+  selected: readonly string[],
+  id: MentorRequestNeedGoalId,
+): MentorRequestNeedGoalId[] {
+  const current = selected.filter((item): item is MentorRequestNeedGoalId =>
+    isNeedGoalId(item),
+  );
+  if (current.includes(id)) return current.filter((item) => item !== id);
+  if (current.length >= MAX_NEED_GOALS) return current;
+  return [...current, id];
+}
+
+export function canContinueGoalStep(goalIds: readonly string[]) {
+  const valid = goalIds.filter((id) => isNeedGoalId(id));
+  return valid.length >= 1 && valid.length <= MAX_NEED_GOALS;
+}
+
+export function messageForNeedGoals(
+  goalIds: readonly string[],
+  goalNote: string,
+) {
+  const labels = goalIds
+    .filter((id) => isNeedGoalId(id))
+    .map((id) => needGoalById(id).label);
+  const note = goalNote.trim();
+  return [labels.join(", "), note].filter(Boolean).join("\n");
+}
+
+const EXPERTISE_BY_SITUATION: Record<MentorRequestNeedSituationId, string[]> = {
+  value: ["Value Proposition", "UX Strategy", "User Research"],
+  onboarding: [
+    "Onboarding",
+    "UX Strategy",
+    "User Research",
+    "Value Proposition",
+  ],
+  focus: ["Product Strategy", "Prioritization", "UX Strategy"],
+  problem: ["User Research", "Problem Discovery", "UX Strategy"],
+  positioning: ["Positioning", "Value Proposition", "Messaging"],
+  none: ["Strategy", "Mentorship"],
+};
+
+export function expertiseForNeed(situationId: string) {
+  if (!isNeedSituationId(situationId)) {
+    return EXPERTISE_BY_SITUATION.onboarding;
+  }
+  return EXPERTISE_BY_SITUATION[situationId];
+}
+
+export function needTitleForSummary(topicId: string, otherSummary: string) {
+  const topic = needTopicById(topicId);
+  if (topic.id === "other") {
+    return otherSummary.trim() || topic.title;
+  }
+  return topic.title;
+}
+
+export function startupContextLine(parts: Array<string | undefined>) {
+  return parts
+    .map((part) => part?.trim())
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export function parseNeedDraft(
+  raw: string | null,
+): MentorRequestNeedDraft | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as {
+      topicId?: unknown;
+      otherSummary?: unknown;
+      situationId?: unknown;
+      noneSummary?: unknown;
+      goalIds?: unknown;
+      goalNote?: unknown;
+    };
+    if (typeof parsed.topicId !== "string" || !isNeedTopicId(parsed.topicId)) {
+      return null;
+    }
+    return {
+      topicId: parsed.topicId,
+      otherSummary:
+        typeof parsed.otherSummary === "string" ? parsed.otherSummary : "",
+      situationId:
+        typeof parsed.situationId === "string" &&
+        isNeedSituationId(parsed.situationId)
+          ? parsed.situationId
+          : undefined,
+      noneSummary:
+        typeof parsed.noneSummary === "string" ? parsed.noneSummary : "",
+      goalIds: Array.isArray(parsed.goalIds)
+        ? parsed.goalIds.filter(
+            (id): id is MentorRequestNeedGoalId =>
+              typeof id === "string" && isNeedGoalId(id),
+          )
+        : undefined,
+      goalNote: typeof parsed.goalNote === "string" ? parsed.goalNote : "",
+    };
+  } catch {
+    return null;
+  }
+}
+
+let cachedNeedDraftRaw: string | null | undefined;
+let cachedNeedDraft: MentorRequestNeedDraft | null = null;
+
+export function readNeedDraft(): MentorRequestNeedDraft | null {
+  try {
+    const raw = sessionStorage.getItem(MENTOR_REQUEST_NEED_DRAFT_KEY);
+    if (raw === cachedNeedDraftRaw) return cachedNeedDraft;
+    cachedNeedDraftRaw = raw;
+    cachedNeedDraft = parseNeedDraft(raw);
+    return cachedNeedDraft;
+  } catch {
+    return null;
+  }
+}
+
+export function writeNeedDraft(draft: MentorRequestNeedDraft) {
+  try {
+    const raw = JSON.stringify(draft);
+    sessionStorage.setItem(MENTOR_REQUEST_NEED_DRAFT_KEY, raw);
+    cachedNeedDraftRaw = raw;
+    cachedNeedDraft = draft;
+  } catch {
+    // Private mode / blocked storage should not block leaving the step.
+  }
+}
+
+export function subscribeNeedDraft(onStoreChange: () => void) {
+  window.addEventListener("storage", onStoreChange);
+  return () => window.removeEventListener("storage", onStoreChange);
+}

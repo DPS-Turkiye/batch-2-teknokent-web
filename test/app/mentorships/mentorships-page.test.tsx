@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorshipsPage from "@/app/mentorships/page";
+import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import type { MentorProfile } from "@/interfaces/mentor";
@@ -29,6 +30,10 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 
 vi.mock("@/hooks/use-mentors", () => ({
   useMentors: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-meetings", () => ({
+  useMeetings: vi.fn(),
 }));
 
 function request(
@@ -78,6 +83,11 @@ function mockMentors(
 describe("MentorshipsPage", () => {
   beforeEach(() => {
     mockMentors([]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+    } as never);
   });
 
   it("lists every mentorship request, not just the dashboard's first two", () => {
@@ -104,14 +114,17 @@ describe("MentorshipsPage", () => {
     ).toHaveAttribute("href", "/mentor-request/status?id=req-42");
   });
 
-  it("shows an empty state when there are no requests", () => {
+  it("shows an empty state when there are no active mentorships", () => {
     mockRequests([]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(
-      screen.getByText("Henüz bir mentorluk talebiniz yok."),
+      screen.getByText("Aktif Mentörlüğünüz Bulunmamaktadır"),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText(/Mentor, uzmanlık veya konu ara/),
+    ).not.toBeInTheDocument();
   });
 
   it("shows a loading state while the query is in flight", () => {
@@ -151,5 +164,39 @@ describe("MentorshipsPage", () => {
       screen.getByRole("link", { name: /Dr. Kemal Arslan/ }),
     ).toHaveAttribute("href", `/mentors/${mentorProfile.id}`);
     expect(screen.queryByText(/Maks\./)).not.toBeInTheDocument();
+  });
+
+  it("keeps recently completed mentorships on the Geçmiş tab", async () => {
+    const user = userEvent.setup();
+    mockRequests([
+      request({
+        id: "active-1",
+        mentorName: "Nihan Öztürk",
+        supportArea: "UX/UI & Ürün Konumlandırma",
+      }),
+      request({
+        id: "past-1",
+        mentorName: "Deniz Aksoy",
+        supportArea: "Büyüme Stratejisi",
+        status: MentorshipRequestStatus.Withdrawn,
+      }),
+    ]);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(screen.getByText("Nihan Öztürk")).toBeInTheDocument();
+    expect(screen.getByText("Mentorluğa git →")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Yakın zamanda tamamlanan"),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Deniz Aksoy/)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("tab", { name: "Geçmiş" }));
+
+    expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Deniz Aksoy · Büyüme Stratejisi/ }),
+    ).toHaveAttribute("href", "/mentor-request/status?id=past-1");
+    expect(screen.queryByText("Nihan Öztürk")).not.toBeInTheDocument();
   });
 });

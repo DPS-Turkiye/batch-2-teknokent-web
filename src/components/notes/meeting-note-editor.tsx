@@ -70,7 +70,7 @@ export function MeetingNoteEditor({
     editorProps: {
       attributes: {
         class:
-          "h-full min-h-full w-full rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none focus:border-[#4f39f6]",
+          "min-h-[22rem] w-full rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none focus:border-[#4f39f6]",
       },
     },
     onUpdate: () => {
@@ -167,7 +167,7 @@ export function MeetingNoteEditor({
       : "Yedeklendi";
 
   return (
-    <section className="flex min-h-[70vh] flex-col rounded-xl border border-[#e5e7eb] bg-white p-4 lg:h-full lg:min-h-0">
+    <section className="flex min-h-[28rem] flex-col rounded-xl border border-[#e5e7eb] bg-white p-4">
       <div className="mb-3 flex shrink-0 items-center gap-3">
         <h2 className="text-sm font-semibold text-[#171717]">Not defteri</h2>
         <span className="text-xs text-[#8a8a8a]">
@@ -184,7 +184,7 @@ export function MeetingNoteEditor({
       ) : (
         <EditorContent
           editor={editor}
-          className="min-h-0 flex-1 overflow-y-auto [&_.tiptap]:h-full [&_.ProseMirror]:min-h-full"
+          className="flex-1 [&_.tiptap]:min-h-[22rem] [&_.ProseMirror]:min-h-[22rem]"
         />
       )}
     </section>
