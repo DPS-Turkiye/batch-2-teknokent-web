@@ -333,7 +333,10 @@ export default function RequestStatusPage() {
                   )}
 
                   {session ? (
-                    <div className="mt-6 border-t border-[#e5e7eb] pt-4">
+                    <div
+                      id="messages"
+                      className="mt-6 scroll-mt-24 border-t border-[#e5e7eb] pt-4"
+                    >
                       <div className="rounded-2xl border border-[#f2b78f] bg-[#fff9f5] p-4">
                         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
                           <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-white text-[#e86f22]">

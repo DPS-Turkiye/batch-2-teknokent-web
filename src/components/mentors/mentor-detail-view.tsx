@@ -13,7 +13,10 @@ import type {
   MentorAvailabilitySlot,
   MentorProfile,
 } from "@/interfaces/mentor";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import {
   availabilityColumns,
   slotTimeLabel,
@@ -31,6 +34,7 @@ export function MentorDetailView({
 }) {
   const router = useRouter();
   const session = useAppSession();
+  const mentorshipsQuery = useMentorshipRequests(UserRole.Mentee);
   const [requestOpen, setRequestOpen] = useState(false);
   const firstName = mentorFirstName(mentor.fullName);
   const columns = availabilityColumns(slots);
@@ -48,6 +52,11 @@ export function MentorDetailView({
     mentor.recommendationReasons[0] ||
     `${mentor.fullName} uzmanlığı, ihtiyacınla örtüşüyor.`;
   const tags = mentor.specialties;
+  const acceptedRequest = mentorshipsQuery.data?.find(
+    (request) =>
+      request.mentorId === mentor.id &&
+      request.status === MentorshipRequestStatus.Accepted,
+  );
 
   function openRequest() {
     if (!session?.fullName) {
@@ -102,7 +111,20 @@ export function MentorDetailView({
               {mentor.availabilityLabel}
             </p>
           ) : null}
-          <SecondaryButton href="/mentorships" className="min-w-[200px] gap-2">
+          <SecondaryButton
+            href={
+              acceptedRequest
+                ? `/mentor-request/status?request=${encodeURIComponent(acceptedRequest.id)}#messages`
+                : undefined
+            }
+            disabled={!acceptedRequest}
+            title={
+              acceptedRequest
+                ? "Mesajlaşmayı aç"
+                : "Mesajlaşma, mentor talebinizi kabul ettiğinde açılır."
+            }
+            className="min-w-[200px] gap-2"
+          >
             <MessageCircle className="size-4" />
             Mesaj gönder
           </SecondaryButton>

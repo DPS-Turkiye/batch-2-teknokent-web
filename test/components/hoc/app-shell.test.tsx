@@ -99,6 +99,25 @@ describe("AppShell navigation", () => {
     );
   });
 
+  it("moves the active mentor message tab to the Figma pill position", () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+    render(
+      <AppShell active={AppArea.Meetings} mentorHome>
+        <p>Mentor messages</p>
+      </AppShell>,
+    );
+
+    expect(screen.getByRole("link", { name: "Mesajlar" })).toHaveClass(
+      "min-[1440px]:left-[685px]",
+      "min-[1440px]:h-[38px]",
+      "min-[1440px]:w-[88px]",
+    );
+    expect(screen.getByRole("link", { name: "Mesajlar" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   beforeEach(() => {
     mockLogout.mockClear();
   });

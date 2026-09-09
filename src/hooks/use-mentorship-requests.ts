@@ -150,12 +150,17 @@ export function useMentorMessageForm(id: string | null) {
   };
 }
 
-export function useRequestFileUpload(id: string | null) {
+export function useRequestFileUpload(
+  id: string | null,
+  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
       const stored = await uploadDocument(file, "pitch-deck");
-      const request = await replyToMentorRequest({
+      const sendFileMessage =
+        role === UserRole.Mentor ? postMentorMessage : replyToMentorRequest;
+      const request = await sendFileMessage({
         id: id as string,
         message: `Dosya paylaşıldı: ${stored.originalFilename}`,
       });
@@ -164,7 +169,7 @@ export function useRequestFileUpload(id: string | null) {
     onSuccess: ({ request }) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
-        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
+        queryKey: mentorshipRequestsQueryKey(role),
       });
     },
   });

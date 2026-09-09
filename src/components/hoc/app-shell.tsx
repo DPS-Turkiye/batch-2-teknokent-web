@@ -47,13 +47,19 @@ type NavigationItem = {
   icon: LucideIcon;
 };
 
-const MENTOR_HOME_NAV_POSITION: Partial<Record<AppArea, string>> = {
-  [AppArea.MentorDashboard]:
-    "min-[1440px]:left-[325px] min-[1440px]:w-24 min-[1440px]:justify-center",
-  [AppArea.Mentorships]: "min-[1440px]:left-[458px]",
-  [AppArea.Calendar]: "min-[1440px]:left-[608px]",
-  [AppArea.Meetings]: "min-[1440px]:left-[703px]",
-};
+function mentorNavigationPosition(area: AppArea, selected: boolean) {
+  if (area === AppArea.MentorDashboard)
+    return selected
+      ? "min-[1440px]:left-[325px] min-[1440px]:w-24 min-[1440px]:justify-center"
+      : "min-[1440px]:left-[343px]";
+  if (area === AppArea.Mentorships) return "min-[1440px]:left-[458px]";
+  if (area === AppArea.Calendar) return "min-[1440px]:left-[608px]";
+  if (area === AppArea.Meetings)
+    return selected
+      ? "min-[1440px]:left-[685px] min-[1440px]:h-[38px] min-[1440px]:w-[88px] min-[1440px]:justify-center"
+      : "min-[1440px]:left-[703px]";
+  return "";
+}
 
 const NOTES_NAV: NavigationItem = {
   id: AppArea.Notes,
@@ -256,7 +262,7 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 ${mentorHome ? `h-9 min-[1440px]:absolute min-[1440px]:top-[13px] min-[1440px]:px-0 ${MENTOR_HOME_NAV_POSITION[item.id] ?? ""}` : "h-10 xl:px-4"} ${selected ? (mentorHome ? "bg-[#e86f22] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 ${mentorHome ? `h-9 min-[1440px]:absolute min-[1440px]:top-[13px] min-[1440px]:px-0 ${mentorNavigationPosition(item.id, selected)}` : "h-10 xl:px-4"} ${selected ? (mentorHome ? "bg-[#e86f22] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   {mentorHome ? null : (
                     <Icon className="size-4" strokeWidth={1.8} aria-hidden />
