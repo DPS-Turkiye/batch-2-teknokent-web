@@ -1,30 +1,49 @@
 import type { NextConfig } from "next";
 
-const allowUnsafeEval = process.env.NODE_ENV === "development";
+// Uploads and CV parsing go from the browser straight to the backend, so its
+// origin has to be reachable. Deployed it is HTTPS and already covered by the
+// blanket source; locally it is plain HTTP on another port, which nothing in
+// the policy allows.
+const LOCAL_BACKEND_ORIGINS = [
+  "http://localhost:8080",
+  "http://127.0.0.1:8080",
+];
 
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  [
+export function buildContentSecurityPolicy(isDevelopment: boolean) {
+  // Development builds evaluate modules for hot reload.
+  const scriptSrc = [
     "script-src 'self' 'unsafe-inline'",
-    allowUnsafeEval ? "'unsafe-eval'" : "",
+    isDevelopment ? "'unsafe-eval'" : "",
     "https://apis.google.com https://www.gstatic.com",
   ]
     .filter(Boolean)
-    .join(" "),
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
-  "font-src 'self' data:",
-  "connect-src 'self' https: wss:",
-  "frame-src https://accounts.google.com https://*.firebaseapp.com",
-  "worker-src 'self' blob:",
-].join("; ");
+    .join(" ");
+  const connectSrc = [
+    "connect-src 'self' https: wss:",
+    ...(isDevelopment ? LOCAL_BACKEND_ORIGINS : []),
+  ].join(" ");
+
+  return [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    "object-src 'none'",
+    scriptSrc,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https:",
+    "font-src 'self' data:",
+    connectSrc,
+    "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    "worker-src 'self' blob:",
+  ].join("; ");
+}
 
 export const securityHeaders = [
-  { key: "Content-Security-Policy", value: contentSecurityPolicy },
+  {
+    key: "Content-Security-Policy",
+    value: buildContentSecurityPolicy(process.env.NODE_ENV === "development"),
+  },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
