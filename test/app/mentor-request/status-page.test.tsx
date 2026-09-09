@@ -236,6 +236,11 @@ describe("RequestStatusPage", () => {
 
     expect(screen.getByText("Uygun zaman yok")).toBeInTheDocument();
     expect(screen.getByText("Aslıhan Koç")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Profili gör" })).toHaveAttribute(
+      "href",
+      "/mentors/mentor-2",
+    );
+    expect(screen.queryByText("Bu Mentoru Seç")).not.toBeInTheDocument();
   });
 
   it("withdraws a pending request", async () => {

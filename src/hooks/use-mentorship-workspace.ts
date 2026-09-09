@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 
+import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
@@ -19,36 +20,41 @@ const historyStatuses = new Set([
 
 export function useMentorshipWorkspace() {
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
+  const meetingsQuery = useMeetings();
   const [tab, setTab] = useState(MentorshipWorkspaceTab.Active);
-  const [query, setQuery] = useState("");
+
+  const allRequests = useMemo(
+    () => requestsQuery.data ?? [],
+    [requestsQuery.data],
+  );
+
+  const activeRequests = useMemo(
+    () => allRequests.filter((request) => activeStatuses.has(request.status)),
+    [allRequests],
+  );
+  const pendingRequests = useMemo(
+    () => allRequests.filter((request) => requestStatuses.has(request.status)),
+    [allRequests],
+  );
+  const historyRequests = useMemo(
+    () => allRequests.filter((request) => historyStatuses.has(request.status)),
+    [allRequests],
+  );
 
   const requests = useMemo(() => {
-    const normalizedQuery = query.trim().toLocaleLowerCase("tr-TR");
-    return (requestsQuery.data ?? []).filter((request) => {
-      const matchesQuery =
-        !normalizedQuery ||
-        (request.mentorName + " " + request.supportArea)
-          .toLocaleLowerCase("tr-TR")
-          .includes(normalizedQuery);
-      if (!matchesQuery) return false;
-      if (tab === MentorshipWorkspaceTab.Active)
-        return activeStatuses.has(request.status);
-      if (tab === MentorshipWorkspaceTab.Requests)
-        return requestStatuses.has(request.status);
-      if (tab === MentorshipWorkspaceTab.History)
-        return historyStatuses.has(request.status);
-      return false;
-    });
-  }, [query, requestsQuery.data, tab]);
+    if (tab === MentorshipWorkspaceTab.Active) return activeRequests;
+    if (tab === MentorshipWorkspaceTab.Requests) return pendingRequests;
+    if (tab === MentorshipWorkspaceTab.History) return historyRequests;
+    return [];
+  }, [activeRequests, historyRequests, pendingRequests, tab]);
 
   return {
     error: requestsQuery.error,
+    historyRequests,
     isLoading: requestsQuery.isLoading,
-    query,
+    meetings: meetingsQuery.data ?? [],
     requests,
-    setQuery,
     setTab,
     tab,
-    totalRequests: requestsQuery.data?.length ?? 0,
   };
 }

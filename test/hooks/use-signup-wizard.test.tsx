@@ -74,6 +74,24 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(false);
   });
 
+  it("returns to the top of the page when the step changes", () => {
+    const scrollTo = vi.fn();
+    vi.stubGlobal("scrollTo", scrollTo);
+
+    const { result } = renderHook(() => useSignupWizard());
+    fillPersonal(result);
+    scrollTo.mockClear();
+
+    act(() => result.current.goNext());
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+    scrollTo.mockClear();
+    act(() => result.current.goBack());
+    expect(scrollTo).toHaveBeenCalledWith(0, 0);
+
+    vi.unstubAllGlobals();
+  });
+
   it("blocks the startup step until name, tagline and website are filled", () => {
     const { result } = renderHook(() => useSignupWizard());
     fillPersonal(result);

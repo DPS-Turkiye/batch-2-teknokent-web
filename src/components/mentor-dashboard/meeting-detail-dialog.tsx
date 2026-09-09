@@ -48,12 +48,15 @@ export function MeetingDetailDialog({
     queryFn: () => getMeetingRoom(meeting.id),
     retry: false,
   });
-  const room =
-    roomQuery.data && roomQuery.data.length > 0
-      ? roomQuery.data
-      : peers.length
-        ? peers
-        : [meeting];
+  const room = useMemo(() => {
+    if (roomQuery.data && roomQuery.data.length > 0) {
+      return roomQuery.data;
+    }
+    if (peers.length) {
+      return peers;
+    }
+    return [meeting];
+  }, [meeting, peers, roomQuery.data]);
   const participants = describeMeetingParticipants(meeting, {
     mentorships,
     programs,
