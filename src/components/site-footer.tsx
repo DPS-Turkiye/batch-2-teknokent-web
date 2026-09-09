@@ -1,9 +1,14 @@
+"use client";
+
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
+import { usePublicSessionDestination } from "@/hooks/use-public-session-destination";
 import { SITE_FOOTER_GROUPS } from "@/lib/const";
 
 export function SiteFooter() {
+  const destination = usePublicSessionDestination();
+
   return (
     <footer id="yardim" className="border-t border-zinc-300 bg-zinc-100">
       <div className="mx-auto grid max-w-[1180px] gap-10 px-4 py-12 sm:px-6 md:grid-cols-[1.3fr_2fr] lg:px-8">
@@ -14,10 +19,10 @@ export function SiteFooter() {
             hizmetleri sunan dijital platform.
           </p>
           <Link
-            href="/login"
+            href={destination.href}
             className="mt-6 block border border-black bg-black px-4 py-2.5 text-center text-xs font-medium text-white"
           >
-            Giriş Yap
+            {destination.label}
           </Link>
         </div>
 
@@ -29,10 +34,14 @@ export function SiteFooter() {
               </h2>
               <ul className="mt-4 space-y-2 text-xs">
                 {group.links.map((link) => (
-                  <li key={link}>
-                    <a href="#" className="hover:underline">
-                      {link}
-                    </a>
+                  <li key={link.label}>
+                    {link.href ? (
+                      <a href={link.href} className="hover:underline">
+                        {link.label}
+                      </a>
+                    ) : (
+                      <span className="text-zinc-400">{link.label}</span>
+                    )}
                   </li>
                 ))}
               </ul>

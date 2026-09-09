@@ -1,9 +1,25 @@
+"use client";
+
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
+import { usePublicSessionDestination } from "@/hooks/use-public-session-destination";
 import { SITE_NAV_ITEMS } from "@/lib/const";
 
 function ActionLinks() {
+  const destination = usePublicSessionDestination();
+
+  if (destination.session) {
+    return (
+      <Link
+        href={destination.href}
+        className="block border border-zinc-950 bg-zinc-950 px-4 py-2 text-center text-xs font-medium text-white transition-colors hover:bg-zinc-800"
+      >
+        {destination.label}
+      </Link>
+    );
+  }
+
   return (
     <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
       <Link

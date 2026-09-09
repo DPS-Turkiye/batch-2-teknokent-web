@@ -173,6 +173,8 @@ export function AppShell({
   title,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [confirmLogout, setConfirmLogout] = useState(false);
   const session = useAppSession();
   const { logout } = useSession();
   const {
@@ -231,28 +233,54 @@ export function AppShell({
                 </span>
               ) : null}
             </Link>
-            <button
-              type="button"
-              onClick={() => void handleLogout()}
-              className="hidden h-10 items-center gap-1.5 rounded-full border border-[#e4e7ea] px-3 text-xs font-medium text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22] sm:flex"
-            >
-              <LogOut className="size-3.5" strokeWidth={1.8} aria-hidden />
-              Çıkış
-            </button>
-            <Link
-              href={profileHref}
-              className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 hover:border-[#e4e7ea]"
-            >
-              <Avatar initials={initials(displayName) || "K"} tone="orange" />
-              <span className="hidden max-w-28 leading-tight sm:block">
-                <strong className="block truncate text-xs font-semibold">
-                  {displayName}
-                </strong>
-                <span className="block truncate text-[10px] text-[#858c96]">
-                  {displayOrganization}
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                aria-expanded={accountOpen}
+                aria-haspopup="menu"
+                onClick={() => setAccountOpen((open) => !open)}
+                className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 text-left hover:border-[#e4e7ea]"
+              >
+                <Avatar initials={initials(displayName) || "K"} tone="orange" />
+                <span className="hidden max-w-28 leading-tight sm:block">
+                  <strong className="block truncate text-xs font-semibold">
+                    {displayName}
+                  </strong>
+                  <span className="block truncate text-[10px] text-[#858c96]">
+                    {displayOrganization}
+                  </span>
                 </span>
-              </span>
-            </Link>
+                <span className="sr-only">Hesap menüsünü aç</span>
+              </button>
+              {accountOpen ? (
+                <div
+                  role="menu"
+                  aria-label="Hesap menüsü"
+                  className="absolute right-0 top-12 w-48 rounded-xl border border-[#e4e7ea] bg-white p-1.5 shadow-lg"
+                >
+                  <Link
+                    href={profileHref}
+                    role="menuitem"
+                    onClick={() => setAccountOpen(false)}
+                    className="block rounded-lg px-3 py-2 text-xs font-medium text-[#515861] hover:bg-[#f8f9fa]"
+                  >
+                    Profilim
+                  </Link>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setAccountOpen(false);
+                      setConfirmLogout(true);
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[#c24135] hover:bg-red-50"
+                  >
+                    <LogOut className="size-3.5" aria-hidden />
+                    Çıkış yap
+                  </button>
+                </div>
+              ) : null}
+            </div>
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
@@ -297,16 +325,69 @@ export function AppShell({
                   {item.label}
                 </Link>
               ))}
+            </nav>
+            <div className="mt-auto border-t border-[#e4e7ea] pt-4">
+              <Link
+                href={profileHref}
+                onClick={() => setMobileOpen(false)}
+                className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#f8f9fa]"
+              >
+                <Avatar initials={initials(displayName) || "K"} tone="orange" />
+                <span className="min-w-0 flex-1">
+                  <strong className="block truncate text-xs">
+                    {displayName}
+                  </strong>
+                  <span className="block truncate text-[10px] text-[#858c96]">
+                    Profilim
+                  </span>
+                </span>
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileOpen(false);
+                  setConfirmLogout(true);
+                }}
+                className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#c24135] hover:bg-red-50"
+              >
+                <LogOut className="size-4" />
+                Çıkış yap
+              </button>
+            </div>
+          </aside>
+        </div>
+      ) : null}
+      {confirmLogout ? (
+        <div className="fixed inset-0 z-[60] grid place-items-center bg-black/35 px-4">
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-dialog-title"
+            className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
+          >
+            <h2 id="logout-dialog-title" className="text-base font-semibold">
+              Çıkış yapmak istiyor musunuz?
+            </h2>
+            <p className="mt-2 text-sm text-[#676e78]">
+              Devam ederseniz yeniden giriş yapmanız gerekir.
+            </p>
+            <div className="mt-6 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setConfirmLogout(false)}
+                className="rounded-lg border border-[#d6dade] px-4 py-2 text-xs font-semibold text-[#515861]"
+              >
+                Vazgeç
+              </button>
               <button
                 type="button"
                 onClick={() => void handleLogout()}
-                className="mt-4 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#fdebdd] hover:text-[#c85816]"
+                className="rounded-lg bg-[#c24135] px-4 py-2 text-xs font-semibold text-white"
               >
-                <LogOut className="size-4" />
-                Çıkış
+                Çıkış yap
               </button>
-            </nav>
-          </aside>
+            </div>
+          </section>
         </div>
       ) : null}
       {title || actions || backHref ? (
