@@ -180,7 +180,7 @@ describe("AssistantPage integration", () => {
       ).toBeGreaterThan(0);
     });
 
-    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
@@ -237,7 +237,7 @@ describe("AssistantPage integration", () => {
       ).toBeGreaterThan(0);
     });
 
-    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
@@ -249,7 +249,9 @@ describe("AssistantPage integration", () => {
       getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
       expect.anything(),
     );
-    expect(screen.getByText(/Stop bot düğmesine basın/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Asistanı durdur düğmesine basın/),
+    ).toBeInTheDocument();
   });
 
   it("stores the stop in the meeting row so a reopened assistant stops polling", async () => {
@@ -288,7 +290,7 @@ describe("AssistantPage integration", () => {
     const first = render(<AssistantPage />);
     expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
     await waitFor(() => {
       expect(httpClient.patch).toHaveBeenCalledWith("/api/meetings/meeting-1", {
         status: "COMPLETED",
@@ -365,7 +367,7 @@ describe("AssistantPage integration", () => {
     render(<AssistantPage />);
     expect((await screen.findAllByText("Canlı")).length).toBeGreaterThan(0);
 
-    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     expect(
       await screen.findByText(/sunucuda bitti olarak işaretlenemedi/),
@@ -508,7 +510,7 @@ describe("AssistantPage integration", () => {
       ).toHaveValue("https://meet.google.com/abc-defg-hij");
     });
     await user.click(screen.getByRole("button", { name: "Bot ekle" }));
-    await user.click(screen.getByRole("button", { name: "Stop bot" }));
+    await user.click(screen.getByRole("button", { name: "Asistanı durdur" }));
 
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(

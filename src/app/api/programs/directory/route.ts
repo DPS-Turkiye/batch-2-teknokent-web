@@ -9,7 +9,7 @@ export async function GET() {
     return backendResponse(await fetchProgramDirectory());
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startups and mentors could not be loaded.",
+      message: "Startup ve mentorlar yüklenemedi.",
     });
   }
 }

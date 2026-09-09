@@ -18,7 +18,7 @@ export function BotStatusRenderer({
   if (status === BotStatus.Err) {
     return (
       <p className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]">
-        {error ?? "Failed to send bot"}
+        {error ?? "Toplantı asistanı gönderilemedi."}
       </p>
     );
   }

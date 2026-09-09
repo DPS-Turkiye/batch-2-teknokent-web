@@ -14,7 +14,7 @@ async function requireFounderSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -31,7 +31,7 @@ export async function GET() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Invite code could not be loaded.",
+      message: "Davet kodu yüklenemedi.",
     });
   }
 }
@@ -45,7 +45,7 @@ export async function POST() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Invite code could not be regenerated.",
+      message: "Davet kodu yenilenemedi.",
     });
   }
 }

@@ -15,7 +15,7 @@ export async function PATCH(
     >;
     if (typeof requestId !== "string") {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "A requestId is required." },
+        { code: "INVALID_REQUEST", message: "Talep kimliği gerekli." },
         { status: 400 },
       );
     }
@@ -23,7 +23,7 @@ export async function PATCH(
     return backendResponse(await updateActionItem(id, requestId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Action item could not be updated.",
+      message: "Aksiyon güncellenemedi.",
     });
   }
 }

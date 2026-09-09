@@ -12,7 +12,7 @@ export async function GET(
     return backendResponse(await fetchMentorRequest(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorship request service is unavailable.",
+      message: "Mentorluk talebi hizmetine ulaşılamıyor.",
     });
   }
 }

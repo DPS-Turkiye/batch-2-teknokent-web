@@ -104,7 +104,7 @@ describe("health lib", () => {
 
       await expect(fetchBackendHealth()).rejects.toMatchObject({
         name: "HealthFetchError",
-        message: "Backend health check request failed",
+        message: "Sunucu sağlık kontrolü başarısız oldu.",
       });
     });
 
@@ -114,7 +114,7 @@ describe("health lib", () => {
       );
 
       await expect(fetchBackendHealth()).rejects.toMatchObject({
-        message: "Backend health response has an invalid shape",
+        message: "Sunucu sağlık yanıtı beklenen biçimde değil.",
       });
     });
 
@@ -158,7 +158,7 @@ describe("health lib", () => {
 
       await expect(fetchHealthClient()).rejects.toMatchObject({
         name: "HealthFetchError",
-        message: "Health API request failed",
+        message: "Sağlık hizmeti isteği başarısız oldu.",
       });
     });
 
@@ -168,7 +168,7 @@ describe("health lib", () => {
       );
 
       await expect(fetchHealthClient()).rejects.toMatchObject({
-        message: "Health API response has an invalid shape",
+        message: "Sağlık hizmeti yanıtı beklenen biçimde değil.",
       });
     });
 

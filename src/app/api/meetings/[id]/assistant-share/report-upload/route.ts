@@ -16,7 +16,7 @@ export async function POST(_request: NextRequest, context: RouteContext) {
     return backendResponse(await createReportUpload(id, auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Report upload URL could not be created.",
+      message: "Rapor yükleme bağlantısı oluşturulamadı.",
     });
   }
 }

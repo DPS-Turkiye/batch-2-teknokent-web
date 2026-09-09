@@ -4,28 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { useToast } from "@/components/providers/toast-provider";
 import { useMeetings, useUpdateMeeting } from "@/hooks/use-meetings";
 import { postMeetingFeedback } from "@/lib/client/meetings";
 import { MEETING_FEEDBACK_QUESTIONS } from "@/lib/const";
-
-const fallbackMeeting: MeetingItem = {
-  id: "preview-meeting",
-  organizationId: "preview-organization",
-  scheduledAt: "2026-09-01T15:00:00+03:00",
-  durationMinutes: 45,
-  agenda: "Financial Planning & Business Model",
-  notes: "Pricing için tek model yerine iki senaryo test edilecek.",
-  outcomes: "İlk finansal model 12 aylık hazırlanacak.",
-  meetLink: "",
-  status: MeetingStatus.Scheduled,
-};
-
-export const MEETING_ACTIONS = [
-  "Aylık sabit giderleri çıkar",
-  "3 pricing senaryosu oluştur",
-  "12 aylık runway hesapla",
-  "Modeli mentorla paylaş",
-] as const;
 
 function chooseMeeting(meetings: MeetingItem[], requestedId: string | null) {
   if (requestedId) {
@@ -35,11 +17,12 @@ function chooseMeeting(meetings: MeetingItem[], requestedId: string | null) {
   return (
     meetings.find((meeting) => meeting.status === MeetingStatus.Scheduled) ??
     meetings[0] ??
-    fallbackMeeting
+    null
   );
 }
 
 export function useMeetingLifecycle() {
+  const { showToast } = useToast();
   const router = useRouter();
   const params = useSearchParams();
   const meetingsQuery = useMeetings();
@@ -47,20 +30,14 @@ export function useMeetingLifecycle() {
     () => chooseMeeting(meetingsQuery.data ?? [], params.get("id")),
     [meetingsQuery.data, params],
   );
-  const isPreviewData = meeting.id === fallbackMeeting.id;
-  const updateMutation = useUpdateMeeting(
-    isPreviewData ? undefined : meeting.id,
-  );
+  const updateMutation = useUpdateMeeting(meeting?.id);
   const [draft, setDraft] = useState(() => ({
-    meetingId: meeting.id,
-    notes: meeting.notes ?? "",
-    outcomes: meeting.outcomes ?? "",
+    meetingId: meeting?.id ?? "",
+    notes: meeting?.notes ?? "",
+    outcomes: meeting?.outcomes ?? "",
   }));
-  const [completedActions, setCompletedActions] = useState<Set<string>>(
-    () => new Set(),
-  );
 
-  if (draft.meetingId !== meeting.id) {
+  if (meeting && draft.meetingId !== meeting.id) {
     setDraft({
       meetingId: meeting.id,
       notes: meeting.notes ?? "",
@@ -69,47 +46,42 @@ export function useMeetingLifecycle() {
   }
 
   function meetingHref(path: string) {
-    return isPreviewData
-      ? path
-      : `${path}?id=${encodeURIComponent(meeting.id)}`;
+    return meeting ? `${path}?id=${encodeURIComponent(meeting.id)}` : path;
   }
 
   async function saveNotes() {
-    if (!isPreviewData) {
+    if (!meeting) return;
+    try {
       await updateMutation.mutateAsync({
         notes: draft.notes,
         outcomes: draft.outcomes,
       });
+      showToast({ message: "Görüşme notları kaydedildi.", tone: "success" });
+      router.push(meetingHref("/meetings/research/summary"));
+    } catch {
+      showToast({ message: "Görüşme notları kaydedilemedi.", tone: "error" });
     }
-    router.push(meetingHref("/meetings/research/summary"));
   }
 
   async function completeMeeting() {
-    if (!isPreviewData) {
+    if (!meeting) return;
+    try {
       await updateMutation.mutateAsync({
         notes: draft.notes,
         outcomes: draft.outcomes,
         status: MeetingStatus.Completed,
       });
+      showToast({ message: "Görüşme tamamlandı.", tone: "success" });
+      router.push(meetingHref("/meetings/research/feedback"));
+    } catch {
+      showToast({ message: "Görüşme tamamlanamadı.", tone: "error" });
     }
-    router.push(meetingHref("/meetings/research/feedback"));
-  }
-
-  function toggleAction(action: string) {
-    setCompletedActions((current) => {
-      const next = new Set(current);
-      if (next.has(action)) next.delete(action);
-      else next.add(action);
-      return next;
-    });
   }
 
   return {
-    completedActions,
     completeMeeting,
     error: meetingsQuery.error ?? updateMutation.error,
     isLoading: meetingsQuery.isLoading,
-    isPreviewData,
     isSaving: updateMutation.isPending,
     meeting,
     meetingHref,
@@ -119,11 +91,11 @@ export function useMeetingLifecycle() {
     setNotes: (notes: string) => setDraft((current) => ({ ...current, notes })),
     setOutcomes: (outcomes: string) =>
       setDraft((current) => ({ ...current, outcomes })),
-    toggleAction,
   };
 }
 
 export function useMeetingFeedback() {
+  const { showToast } = useToast();
   const searchParams = useSearchParams();
   const meetingId = searchParams.get("id");
   // Ratings track the questions the page renders; 0 means "not answered yet",
@@ -159,10 +131,8 @@ export function useMeetingFeedback() {
 
   async function submit() {
     if (!canSubmit) return;
-    // Without a meeting id there is nothing to attach the evaluation to, so the
-    // preview flow stays local rather than pretending to save.
     if (!meetingId) {
-      setSubmitted(true);
+      setSubmitError("Değerlendirilecek toplantı bulunamadı.");
       return;
     }
     setSubmitError("");
@@ -173,8 +143,13 @@ export function useMeetingFeedback() {
         benefits: [...selectedBenefits],
       });
       setSubmitted(true);
+      showToast({ message: "Değerlendirmen gönderildi.", tone: "success" });
     } catch {
       setSubmitError("Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.");
+      showToast({
+        message: "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.",
+        tone: "error",
+      });
     } finally {
       setSubmitting(false);
     }

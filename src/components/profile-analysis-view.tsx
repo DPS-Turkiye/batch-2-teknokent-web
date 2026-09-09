@@ -187,11 +187,7 @@ export function ProfileAnalysisView() {
       setConsentAccepted(false);
       setShowManualForm(false);
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Could not process the profile.",
-      );
+      setError(reason instanceof Error ? reason.message : "Profil işlenemedi.");
       setShowManualForm(true);
     }
   }
@@ -430,7 +426,7 @@ export function ProfileAnalysisView() {
         )}
         {profileQuery.error ? (
           <p className="rounded-lg border border-[#fecaca] bg-[#fff1f2] p-4 text-sm text-[#b42318]">
-            Saved profile could not be loaded: {profileQuery.error.message}
+            Kaydedilen profil yüklenemedi: {profileQuery.error.message}
           </p>
         ) : null}
 
@@ -576,9 +572,7 @@ function ProfileReview({
       onConfirmed(confirmed);
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Could not save the profile.",
+        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
       );
     }
   }
@@ -675,9 +669,7 @@ function ManualProfileForm({
       onSaved(saved);
     } catch (reason) {
       setError(
-        reason instanceof Error
-          ? reason.message
-          : "Could not save the profile.",
+        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
       );
     }
   }

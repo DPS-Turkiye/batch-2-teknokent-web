@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "platform and nativeMeetingId are required.",
+          message: "Platform ve toplantı kimliği gerekli.",
         },
         { status: 400 },
       );
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting transcript service is unavailable.",
+      message: "Toplantı transkript hizmetine ulaşılamıyor.",
     });
   }
 }

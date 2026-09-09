@@ -13,7 +13,7 @@ export async function POST(
     const { role } = await params;
     if (!isRegisterRole(role)) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Unknown registration role." },
+        { code: "INVALID_REQUEST", message: "Kayıt rolü tanınmıyor." },
         { status: 404 },
       );
     }
@@ -26,7 +26,7 @@ export async function POST(
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "A Firebase ID token is required.",
+          message: "Firebase kimlik anahtarı gerekli.",
         },
         { status: 400 },
       );
@@ -36,7 +36,7 @@ export async function POST(
     return backendResponse(await registerAccount(role, payload, idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Registration could not be completed.",
+      message: "Kayıt tamamlanamadı.",
     });
   }
 }

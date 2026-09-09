@@ -92,17 +92,17 @@ export interface ProgramStage {
 export const PROGRAM_STAGES: ProgramStage[] = [
   {
     id: "explore",
-    label: "Explore",
+    label: "Keşif",
     description: "Problem keşfi ve doğrulama",
   },
   {
     id: "build",
-    label: "Build",
+    label: "Geliştirme",
     description: "Ürün, MVP ve iş modeli geliştirme",
   },
   {
     id: "grow",
-    label: "Grow",
+    label: "Büyüme",
     description: "Büyüme, satış ve yatırım hazırlığı",
   },
 ];

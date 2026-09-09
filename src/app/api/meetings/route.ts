@@ -16,7 +16,7 @@ export async function GET() {
     return backendResponse(await fetchMeetings({ organizationId }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting service is unavailable.",
+      message: "Toplantı hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(created);
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting could not be created.",
+      message: "Toplantı oluşturulamadı.",
     });
   }
 }

@@ -64,7 +64,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return backendResponse(await inviteMeetingGuest(id, guest));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting guest could not be added.",
+      message: "Toplantı katılımcısı eklenemedi.",
     });
   }
 }

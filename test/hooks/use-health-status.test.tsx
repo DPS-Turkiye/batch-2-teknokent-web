@@ -79,7 +79,7 @@ describe("useHealthStatus", () => {
 
   it("exposes error state when fetch fails", async () => {
     vi.mocked(fetchHealthClient).mockRejectedValue(
-      new HealthFetchError("Health API request failed"),
+      new HealthFetchError("Sağlık hizmeti isteği başarısız oldu."),
     );
 
     const { result } = renderHook(() => useHealthStatus(), {
@@ -92,7 +92,7 @@ describe("useHealthStatus", () => {
 
     expect(result.current.health).toBeUndefined();
     expect(result.current.error).toMatchObject({
-      message: "Health API request failed",
+      message: "Sağlık hizmeti isteği başarısız oldu.",
     });
   });
 

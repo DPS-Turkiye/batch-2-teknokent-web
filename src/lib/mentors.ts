@@ -102,7 +102,7 @@ export async function loadMentors(): Promise<{
     const message =
       error instanceof MentorFetchError
         ? error.message
-        : "An unexpected error occurred while loading mentors";
+        : "Mentorlar yüklenirken beklenmedik bir hata oluştu.";
     return { mentors: [], error: message };
   }
 }

@@ -7,7 +7,7 @@ export async function POST() {
     return backendResponse(await issueRealtimeToken(await getSessionIds()));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Realtime token could not be issued.",
+      message: "Gerçek zamanlı bağlantı anahtarı oluşturulamadı.",
     });
   }
 }

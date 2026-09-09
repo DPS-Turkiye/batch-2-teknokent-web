@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
+import { useToast } from "@/components/providers/toast-provider";
 import {
   useActionItems,
   useAddActionItem,
@@ -43,18 +44,17 @@ export function ActionItemsSection({
   ownerName?: string;
 }) {
   const actionItemsQuery = useActionItems(requestId);
+  const { showToast } = useToast();
   const addActionItem = useAddActionItem(requestId);
   const changeStatus = useChangeActionItemStatus(requestId);
 
   const [title, setTitle] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
   const actionItems = actionItemsQuery.data ?? [];
 
   async function handleAdd() {
     if (!title.trim()) return;
-    setError(null);
     try {
       await addActionItem.mutateAsync({
         requestId,
@@ -64,8 +64,12 @@ export function ActionItemsSection({
       });
       setTitle("");
       setDueDate("");
+      showToast({ message: "Aksiyon eklendi.", tone: "success" });
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Aksiyon eklenemedi.");
+      showToast({
+        message: cause instanceof Error ? cause.message : "Aksiyon eklenemedi.",
+        tone: "error",
+      });
     }
   }
 
@@ -116,13 +120,26 @@ export function ActionItemsSection({
               <select
                 value={item.status}
                 disabled={changeStatus.isPending}
-                onChange={(event) =>
-                  void changeStatus.mutateAsync({
-                    id: item.id,
-                    requestId,
-                    status: event.target.value as ActionItemStatus,
-                  })
-                }
+                onChange={(event) => {
+                  const status = event.target.value as ActionItemStatus;
+                  void changeStatus
+                    .mutateAsync({ id: item.id, requestId, status })
+                    .then(() =>
+                      showToast({
+                        message: "Aksiyon durumu güncellendi.",
+                        tone: "success",
+                      }),
+                    )
+                    .catch((cause: unknown) =>
+                      showToast({
+                        message:
+                          cause instanceof Error
+                            ? cause.message
+                            : "Aksiyon durumu güncellenemedi.",
+                        tone: "error",
+                      }),
+                    );
+                }}
                 className="rounded-lg border border-zinc-300 p-1.5 text-[10px] focus:border-zinc-900 focus:outline-none"
               >
                 {Object.values(ActionItemStatus).map((value) => (
@@ -160,7 +177,6 @@ export function ActionItemsSection({
             {addActionItem.isPending ? "Ekleniyor..." : "Ekle"}
           </PrimaryButton>
         </div>
-        {error ? <p className="text-[10px] text-red-600">{error}</p> : null}
       </div>
     </section>
   );

@@ -16,7 +16,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "The startup could not be removed from the program.",
+      message: "Startup programdan çıkarılamadı.",
     });
   }
 }

@@ -8,7 +8,7 @@ export async function GET() {
     return backendResponse(await fetchDashboardSummary(organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Dashboard service is unavailable.",
+      message: "Ana sayfa hizmetine ulaşılamıyor.",
     });
   }
 }

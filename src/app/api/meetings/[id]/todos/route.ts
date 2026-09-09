@@ -16,7 +16,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingTodos(id, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting todo service is unavailable.",
+      message: "Toplantı görev hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = createMeetingTodoBodySchema.safeParse(await request.json());
     if (!body.success) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "title is required." },
+        { code: "INVALID_REQUEST", message: "Görev başlığı gerekli." },
         { status: 400 },
       );
     }
@@ -36,7 +36,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return backendResponse(await createMeetingTodo(id, session, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting todo could not be created.",
+      message: "Toplantı görevi oluşturulamadı.",
     });
   }
 }

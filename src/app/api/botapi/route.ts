@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "meetingUrl is required and must be a valid URL.",
+          message: "Geçerli bir toplantı bağlantısı gerekli.",
         },
         { status: 400 },
       );
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting assistant service is unavailable.",
+      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
     });
   }
 }
@@ -42,7 +42,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "platform and nativeMeetingId are required.",
+          message: "Platform ve toplantı kimliği gerekli.",
         },
         { status: 400 },
       );
@@ -61,7 +61,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(data ?? { ok: true }, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Meeting assistant service is unavailable.",
+      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
     });
   }
 }

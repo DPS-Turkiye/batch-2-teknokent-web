@@ -2,6 +2,7 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/providers/toast-provider";
 
 // Shared by the personal and startup sections on /profile, so both are
 // implemented and tested once: load a record, edit it as a draft, save it back.
@@ -19,6 +20,7 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   isValid: (draft: TDraft) => boolean;
 }) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   const query = useQuery({ queryKey, queryFn: load });
 
   // The draft is derived from the loaded record plus the user's edits rather
@@ -37,7 +39,10 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});
       setSaved(true);
+      showToast({ message: "Değişiklikleriniz kaydedildi.", tone: "success" });
     },
+    onError: () =>
+      showToast({ message: "Değişiklikler kaydedilemedi.", tone: "error" }),
   });
 
   const loaded = query.data;

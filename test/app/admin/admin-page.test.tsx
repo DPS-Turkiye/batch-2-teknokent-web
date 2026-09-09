@@ -72,8 +72,9 @@ describe("AdminPage", () => {
       userId: "founder-1",
       status: UserAccountStatus.Approved,
     });
-    expect(
-      await screen.findByText("Deniz Arslan onaylandı. Davet kodu: ABCD2345"),
-    ).toBeInTheDocument();
+    expect(await screen.findByRole("status")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Deniz Arslan onaylandı. Davet kodu: ABCD2345",
+    );
   });
 });

@@ -12,7 +12,7 @@ async function requireFounderSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "No active session." },
+        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
         { status: 401 },
       ),
     };
@@ -27,7 +27,7 @@ export async function GET() {
     return backendResponse(await fetchOrganization(auth.organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup profile could not be loaded.",
+      message: "Startup profili yüklenemedi.",
     });
   }
 }
@@ -46,7 +46,7 @@ export async function PUT(request: Request) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup profile could not be saved.",
+      message: "Startup profili kaydedilemedi.",
     });
   }
 }

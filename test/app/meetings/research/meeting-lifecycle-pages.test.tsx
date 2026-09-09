@@ -31,7 +31,6 @@ vi.mock("@/hooks/use-meeting-lifecycle", async () => {
 
 const saveNotes = vi.fn();
 const completeMeeting = vi.fn();
-const toggleAction = vi.fn();
 const rate = vi.fn();
 const submit = vi.fn();
 const toggleBenefit = vi.fn();
@@ -39,15 +38,14 @@ const toggleBenefit = vi.fn();
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useMeetingLifecycle).mockReturnValue({
-    completedActions: new Set(),
     completeMeeting,
     error: null,
     isLoading: false,
-    isPreviewData: false,
     isSaving: false,
     meeting: {
       id: "meeting-1",
       organizationId: "org-1",
+      mentorName: "Deniz Kaya",
       scheduledAt: "2026-09-01T15:00:00+03:00",
       durationMinutes: 45,
       agenda: "Financial Planning & Business Model",
@@ -55,13 +53,12 @@ beforeEach(() => {
       outcomes: "12 aylık model hazırlanacak.",
       status: MeetingStatus.Scheduled,
     },
-    meetingHref: vi.fn(),
+    meetingHref: (path: string) => `${path}?id=meeting-1`,
     notes: "Pricing varsayımları konuşuldu.",
     outcomes: "12 aylık model hazırlanacak.",
     saveNotes,
     setNotes: vi.fn(),
     setOutcomes: vi.fn(),
-    toggleAction,
   });
   vi.mocked(useMeetingFeedback).mockReturnValue({
     canSubmit: true,
@@ -82,21 +79,45 @@ describe("meeting lifecycle pages", () => {
     render(<MeetingDetailPage />);
 
     expect(
-      screen.getByText("Çağrı Yılmaz ile Mentorluk Görüşmesi"),
+      screen.getByText("Deniz Kaya ile Mentorluk Görüşmesi"),
     ).toBeInTheDocument();
     await user.click(screen.getByText("Görüşme özetini tamamla"));
     expect(saveNotes).toHaveBeenCalledOnce();
   });
 
-  it("toggles summary actions and completes the meeting", async () => {
+  it("shows persisted notes and completes the meeting", async () => {
     const user = userEvent.setup();
     render(<MeetingSummaryPage />);
 
-    await user.click(screen.getAllByRole("checkbox")[0]);
-    expect(toggleAction).toHaveBeenCalledWith("Aylık sabit giderleri çıkar");
+    expect(
+      screen.getByText("Pricing varsayımları konuşuldu."),
+    ).toBeInTheDocument();
 
     await user.click(screen.getByText("Görüşmeyi tamamla"));
     expect(completeMeeting).toHaveBeenCalledOnce();
+  });
+
+  it("shows an empty state instead of demo data when no meeting exists", () => {
+    vi.mocked(useMeetingLifecycle).mockReturnValue({
+      completeMeeting,
+      error: null,
+      isLoading: false,
+      isSaving: false,
+      meeting: null,
+      meetingHref: (path: string) => path,
+      notes: "",
+      outcomes: "",
+      saveNotes,
+      setNotes: vi.fn(),
+      setOutcomes: vi.fn(),
+    });
+
+    render(<MeetingDetailPage />);
+
+    expect(
+      screen.getByText("Görüntülenecek toplantı bulunamadı."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Çağrı Yılmaz/)).not.toBeInTheDocument();
   });
 
   it("captures a feedback rating and submits the evaluation", async () => {

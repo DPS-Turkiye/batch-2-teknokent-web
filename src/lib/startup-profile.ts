@@ -3,8 +3,6 @@ import "server-only";
 import type { StartupContext } from "@/interfaces/startup";
 import { backendRequest } from "@/lib/server/backend-client";
 
-export const DEMO_ORGANIZATION_ID = "10000000-0000-0000-0000-000000000001";
-
 type OrganizationResponse = {
   id: string;
   name: string;
@@ -41,9 +39,7 @@ function textList(value: unknown): string[] {
     : [];
 }
 
-export async function loadStartupContext(
-  organizationId = DEMO_ORGANIZATION_ID,
-): Promise<{
+export async function loadStartupContext(organizationId: string): Promise<{
   startup: StartupContext;
   error?: string;
 }> {
@@ -93,10 +89,10 @@ export async function loadStartupContext(
       },
       error:
         profileResponse.status === 404
-          ? "No confirmed startup profile was found; using the organization record."
+          ? "Onaylanmış girişim profili bulunamadı; kuruluş bilgileri gösteriliyor."
           : profileResponse.status === 200
             ? undefined
-            : `The profile API returned HTTP ${profileResponse.status}; using the organization record.`,
+            : `Profil hizmeti HTTP ${profileResponse.status} yanıtı verdi; kuruluş bilgileri gösteriliyor.`,
     };
   } catch (error) {
     return {
@@ -112,7 +108,7 @@ export async function loadStartupContext(
       error:
         error instanceof Error
           ? error.message
-          : "Startup details could not be loaded.",
+          : "Girişim bilgileri yüklenemedi.",
     };
   }
 }

@@ -7,8 +7,13 @@ import { CheckCircle2 } from "lucide-react";
 
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
-import { useMeetingFeedback } from "@/hooks/use-meeting-lifecycle";
+import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
+import {
+  useMeetingFeedback,
+  useMeetingLifecycle,
+} from "@/hooks/use-meeting-lifecycle";
 import { MEETING_FEEDBACK_QUESTIONS } from "@/lib/const";
+import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const benefits = [
@@ -19,6 +24,7 @@ const benefits = [
 ];
 
 function MeetingFeedbackContent() {
+  const { error, isLoading, meeting, meetingHref } = useMeetingLifecycle();
   const {
     canSubmit,
     rate,
@@ -31,11 +37,25 @@ function MeetingFeedbackContent() {
     toggleBenefit,
   } = useMeetingFeedback();
 
+  if (!meeting) {
+    return (
+      <AppShell
+        active={AppArea.Meetings}
+        title="Görüşmeyi Değerlendir"
+        backHref="/meetings"
+      >
+        <MeetingUnavailable error={error} isLoading={isLoading} />
+      </AppShell>
+    );
+  }
+
+  const mentorName = meeting.mentorName ?? "Mentor";
+
   return (
     <AppShell
       active={AppArea.Meetings}
       title="Görüşmeyi Değerlendir"
-      backHref="/meetings/research/summary"
+      backHref={meetingHref("/meetings/research/summary")}
     >
       <div className="mx-auto w-full max-w-[880px] px-4 pb-14 pt-8 sm:px-8">
         {submitted ? (
@@ -58,17 +78,17 @@ function MeetingFeedbackContent() {
         ) : (
           <>
             <section className="flex items-center gap-4">
-              <Avatar initials="ÇY" size="lg" tone="orange" />
+              <Avatar initials={initials(mentorName)} size="lg" tone="orange" />
               <div>
                 <h1 className="text-2xl font-semibold tracking-tight">
                   Bu görüşme sana ne kadar yardımcı oldu?
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-[#676e78]">
-                  Çağrı ile yaptığın görüşmenin sana sağladığı netlik ve
+                  {mentorName} ile yaptığın görüşmenin sana sağladığı netlik ve
                   ilerlemeyi değerlendirmek için birkaç kısa soru.
                 </p>
                 <p className="mt-2 text-xs text-[#858c96]">
-                  Çağrı Yılmaz · Financial Planning & Business Model
+                  {mentorName} · {meeting.agenda ?? "Gündem eklenmemiş"}
                 </p>
               </div>
             </section>
@@ -127,13 +147,6 @@ function MeetingFeedbackContent() {
                   </button>
                 ))}
               </div>
-              <label className="mt-7 block text-sm font-medium">
-                Bir sonraki görüşmede farklı olmasını istediğin bir şey var mı?
-                <textarea
-                  placeholder="İsteğe bağlı not…"
-                  className="mt-2 min-h-28 w-full resize-y rounded-xl border border-[#dfe2e6] p-4 text-sm font-normal outline-none"
-                />
-              </label>
               {submitError ? (
                 <p
                   role="alert"

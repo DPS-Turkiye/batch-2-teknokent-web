@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useToast } from "@/components/providers/toast-provider";
 
 import {
   useMentorAvailability,
@@ -20,6 +21,7 @@ const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
 };
 
 export function useDecision() {
+  const { showToast } = useToast();
   const decisionMutation = useMentorRequestDecision();
   const [selectedRequest, setSelectedRequest] =
     useState<MentorshipRequest | null>(null);
@@ -67,16 +69,20 @@ export function useDecision() {
       });
 
       if (decisionMode === MentorDecisionMode.Accept) {
+        showToast({
+          message: "Mentorluk talebi kabul edildi.",
+          tone: "success",
+        });
         setShowAvailabilityStep(true);
       } else {
+        showToast({ message: "Mentorluk talebi yanıtlandı.", tone: "success" });
         closeDecision();
       }
     } catch (error) {
       setActionError(
-        error instanceof Error
-          ? error.message
-          : "The action could not be completed.",
+        error instanceof Error ? error.message : "İşlem tamamlanamadı.",
       );
+      showToast({ message: "Mentorluk talebi yanıtlanamadı.", tone: "error" });
     }
   }
 
