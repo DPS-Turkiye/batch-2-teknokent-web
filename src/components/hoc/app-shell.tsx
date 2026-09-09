@@ -219,7 +219,7 @@ export function AppShell({
       className={`min-h-screen text-[#22262b] ${mentorHome ? "mentor-home bg-white" : "bg-[#f8f9fa]"}`}
     >
       <header
-        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${mentorHome ? "" : "border-b border-[#e4e7ea]"}`}
+        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${mentorHome ? "shadow-[0_4px_4px_0_rgba(0,0,0,0.25)]" : "border-b border-[#e4e7ea]"}`}
       >
         <div
           className={`relative mx-auto flex items-center gap-5 px-4 ${mentorHome ? "h-16 max-w-[1440px] sm:px-[22px]" : "h-[72px] max-w-[1320px] sm:px-8"}`}
