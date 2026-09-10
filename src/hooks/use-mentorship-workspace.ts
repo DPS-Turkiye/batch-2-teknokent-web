@@ -31,7 +31,10 @@ export function useMentorshipWorkspace(
   const meetingsQuery = useMeetings();
   const [tab, setTab] = useState(initialTab);
 
-  const meetings = meetingsQuery.data ?? [];
+  const meetings = useMemo(
+    () => meetingsQuery.data ?? [],
+    [meetingsQuery.data],
+  );
 
   // Mentee list is org-scoped (same startup), so teammates' requests appear too.
   const allRequests = useMemo(

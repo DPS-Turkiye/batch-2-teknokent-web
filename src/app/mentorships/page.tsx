@@ -136,37 +136,37 @@ function MenteeMentorshipsWorkspace() {
             {requests.map((request) => {
               const owner = menteeRequestOwnerLabel(request);
               return (
-              <Link
-                key={request.id}
-                href={requestHref(request.id)}
-                className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <h2 className="truncate text-[17px] font-medium text-[#22262b]">
-                      {request.mentorName}
-                    </h2>
-                    <p className="mt-0.5 truncate text-xs text-[#676e78]">
-                      {request.supportArea}
-                      {owner ? ` · ${owner}` : ""}
-                    </p>
-                    {request.status ===
-                    MentorshipRequestStatus.CounterProposed ? (
-                      <p className="mt-2 text-[13px] font-medium text-[#e86f22]">
-                        Mentör saat önerdi — birini seç
+                <Link
+                  key={request.id}
+                  href={requestHref(request.id)}
+                  className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <h2 className="truncate text-[17px] font-medium text-[#22262b]">
+                        {request.mentorName}
+                      </h2>
+                      <p className="mt-0.5 truncate text-xs text-[#676e78]">
+                        {request.supportArea}
+                        {owner ? ` · ${owner}` : ""}
                       </p>
-                    ) : request.status ===
-                      MentorshipRequestStatus.Accepted ? (
-                      <p className="mt-2 text-[13px] font-medium text-[#676e78]">
-                        Onaylandı — görüşme saati kaydı bekleniyor
-                      </p>
-                    ) : null}
+                      {request.status ===
+                      MentorshipRequestStatus.CounterProposed ? (
+                        <p className="mt-2 text-[13px] font-medium text-[#e86f22]">
+                          Mentör saat önerdi — birini seç
+                        </p>
+                      ) : request.status ===
+                        MentorshipRequestStatus.Accepted ? (
+                        <p className="mt-2 text-[13px] font-medium text-[#676e78]">
+                          Onaylandı — görüşme saati kaydı bekleniyor
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
+                      Süreci aç →
+                    </span>
                   </div>
-                  <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
-                    Süreci aç →
-                  </span>
-                </div>
-              </Link>
+                </Link>
               );
             })}
           </section>

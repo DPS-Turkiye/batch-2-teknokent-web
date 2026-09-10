@@ -11,7 +11,10 @@ import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
 } from "@/lib/const";
-import { requestHasConfirmedMeeting, requestHasOpenMeeting } from "@/lib/mentorship-workspace";
+import {
+  requestHasConfirmedMeeting,
+  requestHasOpenMeeting,
+} from "@/lib/mentorship-workspace";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
 export function useDashboardData() {

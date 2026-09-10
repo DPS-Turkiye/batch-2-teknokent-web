@@ -141,9 +141,9 @@ describe("mentorship workspace helpers", () => {
 
     expect(isMeetingEnded(meeting, during)).toBe(false);
     expect(isMeetingEnded(meeting, after)).toBe(true);
-    expect(isMeetingEnded({ ...meeting, status: MeetingStatus.Completed }, during)).toBe(
-      true,
-    );
+    expect(
+      isMeetingEnded({ ...meeting, status: MeetingStatus.Completed }, during),
+    ).toBe(true);
   });
 
   it("keeps open meetings in Aktif and moves ended ones to Geçmiş helpers", () => {

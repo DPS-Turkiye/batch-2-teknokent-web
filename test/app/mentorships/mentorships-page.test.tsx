@@ -281,19 +281,15 @@ describe("MentorshipsPage", () => {
     await user.click(screen.getByRole("tab", { name: "Geçmiş" }));
 
     expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
-    expect(screen.getByText(/Deniz Aksoy · Büyüme Stratejisi/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Deniz Aksoy · Büyüme Stratejisi/),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
-    ).toHaveAttribute(
-      "href",
-      "/meetings/research/summary?id=ended-meeting",
-    );
+    ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
     expect(
       screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
-    ).toHaveAttribute(
-      "href",
-      "/meetings/research/feedback?id=ended-meeting",
-    );
+    ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");
     expect(screen.getByText(/Ayşe Kara · Satış/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Talebi aç →" })).toHaveAttribute(
       "href",

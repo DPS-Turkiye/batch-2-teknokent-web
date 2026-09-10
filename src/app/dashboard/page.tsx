@@ -181,29 +181,29 @@ export default function DashboardPage() {
                 activeRequests.slice(0, 3).map((request) => {
                   const owner = menteeRequestOwnerLabel(request);
                   return (
-                  <Link
-                    key={request.id}
-                    href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
-                    className="flex items-center gap-4 rounded-2xl border border-[#e4e7ea] bg-white p-4 transition hover:border-[#f2b78f]"
-                  >
-                    <Avatar
-                      initials={initials(request.mentorName) || "MN"}
-                      tone="orange"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <h3 className="truncate text-sm font-semibold">
-                        {request.mentorName}
-                      </h3>
-                      <p className="mt-1 truncate text-xs text-[#676e78]">
-                        {request.supportArea}
-                        {owner ? ` · ${owner}` : ""}
-                      </p>
-                    </div>
-                    <Badge>
-                      {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
-                    </Badge>
-                    <ArrowRight className="size-4 text-[#a4aab2]" />
-                  </Link>
+                    <Link
+                      key={request.id}
+                      href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
+                      className="flex items-center gap-4 rounded-2xl border border-[#e4e7ea] bg-white p-4 transition hover:border-[#f2b78f]"
+                    >
+                      <Avatar
+                        initials={initials(request.mentorName) || "MN"}
+                        tone="orange"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="truncate text-sm font-semibold">
+                          {request.mentorName}
+                        </h3>
+                        <p className="mt-1 truncate text-xs text-[#676e78]">
+                          {request.supportArea}
+                          {owner ? ` · ${owner}` : ""}
+                        </p>
+                      </div>
+                      <Badge>
+                        {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                      </Badge>
+                      <ArrowRight className="size-4 text-[#a4aab2]" />
+                    </Link>
                   );
                 })
               ) : (
@@ -278,30 +278,30 @@ export default function DashboardPage() {
                 {pendingRequests.slice(0, 2).map((request) => {
                   const owner = menteeRequestOwnerLabel(request);
                   return (
-                  <Link
-                    key={request.id}
-                    href={
-                      "/mentor-request/status?id=" +
-                      encodeURIComponent(request.id)
-                    }
-                    className="flex items-center gap-3 rounded-xl border border-[#eef0f2] p-3 hover:border-[#f2b78f]"
-                  >
-                    <Avatar
-                      initials={initials(request.mentorName) || "MN"}
-                      size="sm"
-                      tone="orange"
-                    />
-                    <span className="min-w-0 flex-1">
-                      <strong className="block truncate text-xs">
-                        {request.mentorName}
-                      </strong>
-                      <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
-                        {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
-                        {owner ? ` · ${owner}` : ""}
-                      </small>
-                    </span>
-                    <ArrowRight className="size-4 text-[#a4aab2]" />
-                  </Link>
+                    <Link
+                      key={request.id}
+                      href={
+                        "/mentor-request/status?id=" +
+                        encodeURIComponent(request.id)
+                      }
+                      className="flex items-center gap-3 rounded-xl border border-[#eef0f2] p-3 hover:border-[#f2b78f]"
+                    >
+                      <Avatar
+                        initials={initials(request.mentorName) || "MN"}
+                        size="sm"
+                        tone="orange"
+                      />
+                      <span className="min-w-0 flex-1">
+                        <strong className="block truncate text-xs">
+                          {request.mentorName}
+                        </strong>
+                        <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
+                          {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                          {owner ? ` · ${owner}` : ""}
+                        </small>
+                      </span>
+                      <ArrowRight className="size-4 text-[#a4aab2]" />
+                    </Link>
                   );
                 })}
                 {!pendingRequests.length ? (

@@ -155,16 +155,10 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(screen.getByText(/HubC · Büyüme Stratejisi/)).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
-    ).toHaveAttribute(
-      "href",
-      "/meetings/research/summary?id=ended-meeting",
-    );
+    ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
     expect(
       screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
-    ).toHaveAttribute(
-      "href",
-      "/meetings/research/feedback?id=ended-meeting",
-    );
+    ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");
     expect(
       screen.getByRole("link", { name: "Mentorluk geçmişi →" }),
     ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");

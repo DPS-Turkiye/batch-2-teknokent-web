@@ -126,9 +126,7 @@ export function mentorWorkspacePerson(request: MentorshipRequest) {
 /** Who opened the request inside the startup (teammate-visible list). */
 export function menteeRequestOwnerLabel(request: MentorshipRequest) {
   return (
-    request.requestedForName?.trim() ||
-    request.requesterName?.trim() ||
-    ""
+    request.requestedForName?.trim() || request.requesterName?.trim() || ""
   );
 }
 
