@@ -6,6 +6,8 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
+import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
+import { isOverdueActionItem } from "@/lib/mentor-dashboard";
 import {
   MentorDecisionMode,
   type MentorshipRequest,
@@ -13,6 +15,23 @@ import {
 import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+
+const ACTION_ITEM_LABELS: Record<ActionItemStatus, string> = {
+  [ActionItemStatus.Open]: "Açık",
+  [ActionItemStatus.InProgress]: "Devam ediyor",
+  [ActionItemStatus.Completed]: "Tamamlandı",
+  [ActionItemStatus.Cancelled]: "İptal edildi",
+};
+
+const ACTION_ITEM_TONES: Record<
+  ActionItemStatus,
+  "blue" | "amber" | "gray" | "green"
+> = {
+  [ActionItemStatus.Open]: "amber",
+  [ActionItemStatus.InProgress]: "blue",
+  [ActionItemStatus.Completed]: "green",
+  [ActionItemStatus.Cancelled]: "gray",
+};
 
 const asset = (name: string) => `/mentor-dashboard/revised/${name}.svg`;
 
@@ -125,14 +144,18 @@ function QuickAction({
 
 function ActionRow({
   icon,
+  startup,
   detail,
   chip,
   action,
+  href,
 }: {
   icon: "star" | "paper";
+  startup: string;
   detail: string;
   chip: string;
   action: string;
+  href: string;
 }) {
   return (
     <div className="flex min-h-[67px] items-center justify-between gap-4 rounded-[20px] border border-[#e4e7ea] bg-white px-4 py-[14px]">
@@ -142,7 +165,7 @@ function ActionRow({
         </span>
         <div className="min-w-0">
           <p className="truncate text-[13.5px] font-medium leading-5">
-            Döngü · Gülse
+            {startup}
           </p>
           <p className="truncate text-xs leading-[17px] text-[#676e78]">
             {detail}
@@ -151,7 +174,9 @@ function ActionRow({
       </div>
       <div className="flex shrink-0 items-center gap-[10px]">
         <Chip tone="amber">{chip}</Chip>
-        <PillButton primary>{action}</PillButton>
+        <PillButton primary href={href}>
+          {action}
+        </PillButton>
       </div>
     </div>
   );
@@ -200,31 +225,6 @@ function MeetingCard({
   );
 }
 
-const tasks = [
-  [
-    "Güncellenmiş kullanıcı akışı",
-    "Dosya · Teslim 11 Eyl · Gülse",
-    "Gecikti",
-    "amber",
-  ],
-  [
-    "Revize prototip",
-    "Dosya · Teslim 14 Eyl · Gülse",
-    "İnceleme bekliyor",
-    "blue",
-  ],
-  [
-    "Kullanılabilirlik testi bulguları",
-    "Ödev · Teslim 20 Eyl · Gülse",
-    "Devam ediyor",
-    "gray",
-  ],
-] as const;
-const files = [
-  ["onboarding-v4.fig", "Gülse yükledi · 8,2 MB · dün", "Yüklendi", "green"],
-  ["kullanici-akisi-v2.pdf", "Nihan talep etti · 11 Eyl", "Bekliyor", "amber"],
-] as const;
-
 function DetailRow({
   title,
   detail,
@@ -264,6 +264,8 @@ function StartupCard({
   topic,
   progress,
   meta,
+  href,
+  actionItems,
   expanded,
   onToggle,
 }: {
@@ -271,8 +273,10 @@ function StartupCard({
   initials: string;
   person: string;
   topic: string;
-  progress: number;
+  progress: number | null;
   meta: string;
+  href: string;
+  actionItems: ActionItem[];
   expanded?: boolean;
   onToggle?: () => void;
 }) {
@@ -300,7 +304,7 @@ function StartupCard({
         <span className="flex shrink-0 items-center gap-[10px]">
           <span className="text-right">
             <strong className="block text-[15px] font-semibold leading-[22px]">
-              %{progress}
+              {progress === null ? "—" : `%${progress}`}
             </strong>
             <span className="block text-[11px] leading-4 text-[#858c96]">
               Mentorluk ilerlemesi
@@ -312,15 +316,17 @@ function StartupCard({
           />
         </span>
       </button>
-      <div className="mt-[14px] h-1.5 overflow-hidden rounded-full bg-[#eceef0]">
-        <div
-          className="h-full rounded-full bg-[#26a4ff]"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
+      {progress === null ? null : (
+        <div className="mt-[14px] h-1.5 overflow-hidden rounded-full bg-[#eceef0]">
+          <div
+            className="h-full rounded-full bg-[#26a4ff]"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+      )}
       <div className="mt-[14px] flex flex-wrap items-center justify-between gap-2 text-xs leading-[17px] text-[#676e78]">
         <span>{meta}</span>
-        <Link href="/mentorships" className="font-medium text-[#26a4ff]">
+        <Link href={href} className="font-medium text-[#26a4ff]">
           Mentorluğa git →
         </Link>
       </div>
@@ -328,39 +334,31 @@ function StartupCard({
         <div className="mt-[14px] border-t border-[#eceef0] pt-[14px]">
           <div className="mb-[10px] flex items-center justify-between text-[12.5px] leading-[18px]">
             <h4 className="font-semibold text-[#4a5059]">Atanan işler</h4>
-            <button type="button" className="font-medium text-[#26a4ff]">
+            <Link href={href} className="font-medium text-[#26a4ff]">
               Yeni iş ata
-            </button>
+            </Link>
           </div>
-          <div className="space-y-2">
-            {tasks.map(([title, detail, status, tone]) => (
-              <DetailRow
-                key={title}
-                title={title}
-                detail={detail}
-                status={status}
-                tone={tone}
-              />
-            ))}
-          </div>
-          <div className="my-[14px] border-t border-[#eceef0]" />
-          <div className="mb-[10px] flex items-center justify-between text-[12.5px] leading-[18px]">
-            <h4 className="font-semibold text-[#4a5059]">Dosyalar</h4>
-            <button type="button" className="font-medium text-[#26a4ff]">
-              Dosya iste
-            </button>
-          </div>
-          <div className="space-y-2">
-            {files.map(([title, detail, status, tone]) => (
-              <DetailRow
-                key={title}
-                title={title}
-                detail={detail}
-                status={status}
-                tone={tone}
-              />
-            ))}
-          </div>
+          {actionItems.length === 0 ? (
+            <p className="text-[12px] text-[#858c96]">
+              Bu mentorlukta atanmış iş yok.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {actionItems.map((item) => (
+                <DetailRow
+                  key={item.id}
+                  title={item.title}
+                  detail={
+                    item.dueDate
+                      ? `Teslim ${formatSlotDateTime(item.dueDate)}`
+                      : (item.ownerName ?? "Atanan iş")
+                  }
+                  status={ACTION_ITEM_LABELS[item.status]}
+                  tone={ACTION_ITEM_TONES[item.status]}
+                />
+              ))}
+            </div>
+          )}
           <div className="mt-[18px] flex gap-2">
             <PillButton href="/mentor-dashboard/messages">
               Mesaj gönder
@@ -438,12 +436,14 @@ function ReminderCard({
   meeting,
   time,
   action,
+  href,
 }: {
   title: string;
   startup: string;
   meeting: string;
   time: string;
   action: string;
+  href: string;
 }) {
   return (
     <article className="rounded-[24px] border border-[#f5faff] bg-[#f2f8fc] p-4">
@@ -457,12 +457,12 @@ function ReminderCard({
       <p className="mt-[6px] text-[11.5px] leading-[17px] text-[#676e78]">
         {time}
       </p>
-      <button
-        type="button"
-        className="mt-[10px] min-h-[34px] w-full rounded-full bg-[#26a4ff] px-[14px] text-[12.5px] font-medium text-white"
+      <Link
+        href={href}
+        className="mt-[10px] flex min-h-[34px] w-full items-center justify-center rounded-full bg-[#26a4ff] px-[14px] text-[12.5px] font-medium text-white"
       >
         {action}
-      </button>
+      </Link>
     </article>
   );
 }
@@ -610,14 +610,18 @@ export function MentorDashboardView() {
     firstName,
     pending,
     accepted,
+    mentorships,
+    openActionItems,
+    awaitingReview,
+    isLoadingActionItems,
     upcomingMeetings,
     requestsQuery,
     meetingsQuery,
     decision,
   } = useMentorDashboard();
-  const [expanded, setExpanded] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const selectedRequest = decision.selectedRequest;
-  const detailedState = expanded || Boolean(selectedRequest);
+  const detailedState = Boolean(expandedId) || Boolean(selectedRequest);
 
   async function handleDecide(mode: MentorDecisionMode) {
     if (await decision.submitDecision(mode)) decision.closeDecision();
@@ -669,22 +673,38 @@ export function MentorDashboardView() {
         <div className="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,804px)_400px]">
           <div className="min-w-0 space-y-6">
             <section>
-              <SectionHeading action={<button type="button">Tümü (2)</button>}>
+              <SectionHeading
+                action={
+                  <Link href="/mentorships">
+                    Tümü ({openActionItems.length})
+                  </Link>
+                }
+              >
                 Bugün aksiyon bekleyen
               </SectionHeading>
               <div className="space-y-[10px]">
-                <ActionRow
-                  icon="star"
-                  detail="UX Flow Review görüşmesi · değerlendirme bekliyor"
-                  chip="Değerlendirme"
-                  action="Değerlendir"
-                />
-                <ActionRow
-                  icon="paper"
-                  detail="“Güncellenmiş kullanıcı akışı” dosyası 2 gün gecikti"
-                  chip="Gecikti"
-                  action="Hatırlat"
-                />
+                {isLoadingActionItems ? (
+                  <ListNote>Yükleniyor...</ListNote>
+                ) : openActionItems.length === 0 ? (
+                  <ListNote>Bekleyen bir iş yok.</ListNote>
+                ) : (
+                  openActionItems.slice(0, 4).map((item) => {
+                    const overdue = isOverdueActionItem(item);
+                    return (
+                      <ActionRow
+                        key={item.id}
+                        icon={overdue ? "paper" : "star"}
+                        startup={item.organizationName ?? "Mentorluk"}
+                        detail={item.title}
+                        chip={
+                          overdue ? "Gecikti" : ACTION_ITEM_LABELS[item.status]
+                        }
+                        action="Aç"
+                        href="/mentorships"
+                      />
+                    );
+                  })
+                )}
               </div>
             </section>
             <section>
@@ -727,32 +747,47 @@ export function MentorDashboardView() {
                 Startup çalışmaları
               </SectionHeading>
               <div className="space-y-[10px]">
-                <StartupCard
-                  name="Döngü"
-                  initials="DÖ"
-                  person="Gülse"
-                  topic="Product & UX Design"
-                  progress={68}
-                  meta="3 aktif iş · 2 bekleyen dosya · Sonraki görüşme 14 Eyl · 14:00"
-                  expanded={expanded}
-                  onToggle={() => setExpanded((value) => !value)}
-                />
-                <StartupCard
-                  name="Atlas AI"
-                  initials="AT"
-                  person="Emir"
-                  topic="Product Discovery"
-                  progress={41}
-                  meta="2 aktif iş · 1 bekleyen dosya · Sonraki görüşme 12 Eyl · 15:30"
-                />
-                <StartupCard
-                  name="NovaTech"
-                  initials="NV"
-                  person="Deniz"
-                  topic="Design System kurulumu"
-                  progress={25}
-                  meta="4 aktif iş · 3 bekleyen dosya · Sonraki görüşme 18 Eyl · 11:00"
-                />
+                {requestsQuery.isLoading ? (
+                  <ListNote>Yükleniyor...</ListNote>
+                ) : mentorships.length === 0 ? (
+                  <ListNote>Aktif mentorluk yok.</ListNote>
+                ) : (
+                  mentorships.map(
+                    ({
+                      request,
+                      actionItems,
+                      openCount,
+                      overdueCount,
+                      progress,
+                    }) => {
+                      const startup =
+                        request.organizationName ??
+                        request.requesterName ??
+                        "Startup";
+                      return (
+                        <StartupCard
+                          key={request.id}
+                          name={startup}
+                          initials={toInitials(startup) || "MN"}
+                          person={request.requesterName ?? ""}
+                          topic={request.supportArea}
+                          progress={progress}
+                          actionItems={actionItems}
+                          href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
+                          meta={`${openCount} açık iş${
+                            overdueCount ? ` · ${overdueCount} geciken` : ""
+                          }`}
+                          expanded={expandedId === request.id}
+                          onToggle={() =>
+                            setExpandedId((current) =>
+                              current === request.id ? null : request.id,
+                            )
+                          }
+                        />
+                      );
+                    },
+                  )
+                )}
               </div>
             </section>
           </div>
@@ -796,20 +831,33 @@ export function MentorDashboardView() {
             <section>
               <SectionHeading>Değerlendirme bekleyen görüşmeler</SectionHeading>
               <div className="space-y-[10px]">
-                <ReminderCard
-                  title="Değerlendirme bekliyor"
-                  startup="Döngü · Gülse"
-                  meeting="UX Flow Review"
-                  time="5 Eylül · 14:00 · 45 dk"
-                  action="Değerlendirmeyi tamamla"
-                />
-                <ReminderCard
-                  title="Not eklenmedi"
-                  startup="Atlas AI · Emir"
-                  meeting="Product Discovery"
-                  time="3 Eylül · 15:30 · 45 dk"
-                  action="Görüşme notu ekle"
-                />
+                {meetingsQuery.isLoading ? (
+                  <ListNote>Yükleniyor...</ListNote>
+                ) : awaitingReview.length === 0 ? (
+                  <ListNote>Değerlendirme bekleyen görüşme yok.</ListNote>
+                ) : (
+                  awaitingReview
+                    .slice(0, 4)
+                    .map((meeting) => (
+                      <ReminderCard
+                        key={meeting.id}
+                        title={
+                          meeting.outcomes?.trim()
+                            ? "Not eklenmedi"
+                            : "Değerlendirme bekliyor"
+                        }
+                        startup={meeting.organizationName ?? "Mentorluk"}
+                        meeting={meeting.agenda ?? "Mentorluk görüşmesi"}
+                        time={formatSlotDateTime(meeting.scheduledAt)}
+                        action={
+                          meeting.outcomes?.trim()
+                            ? "Görüşme notu ekle"
+                            : "Değerlendirmeyi tamamla"
+                        }
+                        href="/mentor-dashboard/calendar"
+                      />
+                    ))
+                )}
               </div>
             </section>
           </aside>

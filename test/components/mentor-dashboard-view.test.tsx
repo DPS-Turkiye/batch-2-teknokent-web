@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorDashboardView } from "@/components/mentor-dashboard-view";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
+import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   MentorDecisionMode,
@@ -68,6 +69,22 @@ function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   };
 }
 
+function actionItem(overrides: Partial<ActionItem> = {}): ActionItem {
+  return {
+    id: "action-1",
+    organizationId: "org-1",
+    organizationName: "Döngü",
+    ownerId: "mentee-1",
+    ownerName: "Gülse Buran",
+    title: "Revize prototip",
+    status: ActionItemStatus.Open,
+    dueDate: "2026-09-20T09:00:00.000Z",
+    createdAt: "2026-09-08T09:00:00.000Z",
+    updatedAt: "2026-09-08T09:00:00.000Z",
+    ...overrides,
+  };
+}
+
 const submitDecision = vi.fn<(mode?: MentorDecisionMode) => Promise<boolean>>();
 const selectRequest = vi.fn();
 const closeDecision = vi.fn();
@@ -91,6 +108,30 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
     ],
     upcomingMeetings: [meeting()],
     weekMeetingCount: 1,
+    mentorships: [
+      {
+        request: request({
+          id: "request-2",
+          organizationName: "Atlas AI",
+          requesterName: "Emir Kaplan",
+          supportArea: "Product Discovery",
+          status: MentorshipRequestStatus.Accepted,
+        }),
+        actionItems: [actionItem({ id: "action-2", title: "Kullanıcı testi" })],
+        openCount: 1,
+        overdueCount: 0,
+        progress: 40,
+      },
+    ],
+    openActionItems: [actionItem()],
+    awaitingReview: [
+      meeting({
+        id: "meeting-past",
+        scheduledAt: "2026-09-01T12:30:00.000Z",
+        agenda: "UX Flow Review",
+      }),
+    ],
+    isLoadingActionItems: false,
     requestsQuery: { isLoading: false },
     meetingsQuery: { isLoading: false },
     decision: decisionState(),
@@ -174,7 +215,7 @@ describe("MentorDashboardView", () => {
     });
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getAllByText("Yükleniyor...")).toHaveLength(2);
+    expect(screen.getAllByText("Yükleniyor...")).toHaveLength(4);
   });
 
   it("selects a request when its review button is used", async () => {
@@ -239,6 +280,45 @@ describe("MentorDashboardView", () => {
     expect(closeDecision).not.toHaveBeenCalled();
   });
 
+  it("lists the mentor's open action items", () => {
+    mockDashboard();
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Revize prototip")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tümü (1)" })).toBeInTheDocument();
+  });
+
+  it("notes when nothing is waiting for the mentor", () => {
+    mockDashboard({ openActionItems: [] });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Bekleyen bir iş yok.")).toBeInTheDocument();
+  });
+
+  it("lists meetings that still need a write-up", () => {
+    mockDashboard();
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Değerlendirme bekliyor")).toBeInTheDocument();
+    expect(screen.getByText(/UX Flow Review/)).toBeInTheDocument();
+  });
+
+  it("notes when no meeting awaits review", () => {
+    mockDashboard({ awaitingReview: [] });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(
+      screen.getByText("Değerlendirme bekleyen görüşme yok."),
+    ).toBeInTheDocument();
+  });
+
+  it("notes when the mentor has no active mentorship", () => {
+    mockDashboard({ mentorships: [] });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByText("Aktif mentorluk yok.")).toBeInTheDocument();
+  });
+
   it("keeps the quick actions linked to existing mentor routes", () => {
     mockDashboard();
     renderWithQueryClient(<MentorDashboardView />);
@@ -256,12 +336,13 @@ describe("MentorDashboardView", () => {
     mockDashboard();
     renderWithQueryClient(<MentorDashboardView />);
 
-    const toggle = screen.getByRole("button", { name: /Döngü.*%68/s });
+    const toggle = screen.getByRole("button", { name: /Atlas AI.*%40/s });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Atanan işler")).toBeInTheDocument();
+    expect(screen.getByText("Kullanıcı testi")).toBeInTheDocument();
 
     await user.click(toggle);
     expect(screen.queryByText("Atanan işler")).not.toBeInTheDocument();
