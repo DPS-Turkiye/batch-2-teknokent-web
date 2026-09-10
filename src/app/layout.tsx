@@ -1,10 +1,18 @@
 import type { Metadata } from "next";
+import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin", "latin-ext"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+  variable: "--font-mentor-inter",
+});
 
 export const metadata: Metadata = {
   title: {
@@ -23,7 +31,7 @@ export default function RootLayout({
   return (
     <html
       lang="tr"
-      className="h-full antialiased"
+      className={`h-full antialiased ${inter.variable}`}
       data-scroll-behavior="smooth"
     >
       <body
