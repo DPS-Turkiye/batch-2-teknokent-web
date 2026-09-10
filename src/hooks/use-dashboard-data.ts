@@ -11,6 +11,7 @@ import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
 } from "@/lib/const";
+import { requestHasConfirmedMeeting, requestHasOpenMeeting } from "@/lib/mentorship-workspace";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
 export function useDashboardData() {
@@ -36,13 +37,18 @@ export function useDashboardData() {
   const requests =
     requestsQuery.data ?? (hasError ? DASHBOARD_FALLBACK_REQUESTS : []);
   const activeRequests = requests.filter(
-    (request) => request.status === MentorshipRequestStatus.Accepted,
+    (request) =>
+      request.status === MentorshipRequestStatus.Accepted &&
+      requestHasConfirmedMeeting(meetings, request) &&
+      requestHasOpenMeeting(meetings, request),
   );
   const pendingRequests = requests.filter(
     (request) =>
       request.status === MentorshipRequestStatus.Pending ||
       request.status === MentorshipRequestStatus.MoreInfoRequested ||
-      request.status === MentorshipRequestStatus.CounterProposed,
+      request.status === MentorshipRequestStatus.CounterProposed ||
+      (request.status === MentorshipRequestStatus.Accepted &&
+        !requestHasConfirmedMeeting(meetings, request)),
   );
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
 

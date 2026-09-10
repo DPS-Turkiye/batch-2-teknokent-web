@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowRight, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -12,6 +14,9 @@ import { useMentorshipWorkspace } from "@/hooks/use-mentorship-workspace";
 import { formatMeetingShort } from "@/lib/format";
 import { MENTORSHIPS_TABS } from "@/lib/const";
 import {
+  meetingFeedbackHref,
+  meetingSummaryHref,
+  menteeRequestOwnerLabel,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
@@ -22,18 +27,49 @@ import { MentorshipWorkspaceTab } from "@/types/mentorship";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 
+function tabFromSearchParam(value: string | null): MentorshipWorkspaceTab {
+  if (value === MentorshipWorkspaceTab.Requests) {
+    return MentorshipWorkspaceTab.Requests;
+  }
+  if (value === MentorshipWorkspaceTab.History) {
+    return MentorshipWorkspaceTab.History;
+  }
+  if (value === MentorshipWorkspaceTab.MentorPool) {
+    return MentorshipWorkspaceTab.MentorPool;
+  }
+  return MentorshipWorkspaceTab.Active;
+}
+
 export default function MentorshipsPage() {
   const session = useAppSession();
   if (session?.role === UserRole.Mentor) {
     return <MentorMentorshipsWorkspace />;
   }
 
-  return <MenteeMentorshipsWorkspace />;
+  return (
+    <Suspense
+      fallback={
+        <AppShell active={AppArea.Mentorships}>
+          <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
+            <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
+              Yükleniyor...
+            </div>
+          </div>
+        </AppShell>
+      }
+    >
+      <MenteeMentorshipsWorkspace />
+    </Suspense>
+  );
 }
 
 function MenteeMentorshipsWorkspace() {
+  const searchParams = useSearchParams();
   const { error, historyRequests, isLoading, meetings, requests, setTab, tab } =
-    useMentorshipWorkspace();
+    useMentorshipWorkspace(
+      UserRole.Mentee,
+      tabFromSearchParam(searchParams.get("tab")),
+    );
 
   return (
     <AppShell active={AppArea.Mentorships}>
@@ -92,12 +128,14 @@ function MenteeMentorshipsWorkspace() {
         ) : tab === MentorshipWorkspaceTab.Active ? (
           <ActiveTab requests={requests} meetings={meetings} />
         ) : tab === MentorshipWorkspaceTab.History ? (
-          <HistoryTab requests={historyRequests} />
+          <HistoryTab requests={historyRequests} meetings={meetings} />
         ) : requests.length === 0 ? (
           <EmptyState />
         ) : (
           <section className="mt-5 grid gap-4">
-            {requests.map((request) => (
+            {requests.map((request) => {
+              const owner = menteeRequestOwnerLabel(request);
+              return (
               <Link
                 key={request.id}
                 href={requestHref(request.id)}
@@ -110,11 +148,17 @@ function MenteeMentorshipsWorkspace() {
                     </h2>
                     <p className="mt-0.5 truncate text-xs text-[#676e78]">
                       {request.supportArea}
+                      {owner ? ` · ${owner}` : ""}
                     </p>
                     {request.status ===
                     MentorshipRequestStatus.CounterProposed ? (
                       <p className="mt-2 text-[13px] font-medium text-[#e86f22]">
                         Mentör saat önerdi — birini seç
+                      </p>
+                    ) : request.status ===
+                      MentorshipRequestStatus.Accepted ? (
+                      <p className="mt-2 text-[13px] font-medium text-[#676e78]">
+                        Onaylandı — görüşme saati kaydı bekleniyor
                       </p>
                     ) : null}
                   </div>
@@ -123,7 +167,8 @@ function MenteeMentorshipsWorkspace() {
                   </span>
                 </div>
               </Link>
-            ))}
+              );
+            })}
           </section>
         )}
       </div>
@@ -150,6 +195,7 @@ function ActiveTab({
           {requests.map((request) => {
             const meeting = pickRequestMeeting(meetings, request);
             const progress = requestProgressPercent(meetings, request);
+            const owner = menteeRequestOwnerLabel(request);
             return (
               <article
                 key={request.id}
@@ -162,6 +208,7 @@ function ActiveTab({
                     </h3>
                     <p className="mt-0.5 truncate text-xs text-[#676e78]">
                       {request.supportArea}
+                      {owner ? ` · ${owner}` : ""}
                     </p>
                   </div>
                   <Link
@@ -206,7 +253,13 @@ function ActiveTab({
   );
 }
 
-function HistoryTab({ requests }: { requests: MentorshipRequest[] }) {
+function HistoryTab({
+  requests,
+  meetings,
+}: {
+  requests: MentorshipRequest[];
+  meetings: MeetingItem[];
+}) {
   return (
     <section className="mt-5">
       <h2 className="text-lg font-medium text-[#22262b]">
@@ -216,20 +269,53 @@ function HistoryTab({ requests }: { requests: MentorshipRequest[] }) {
         <EmptyState />
       ) : (
         <div className="mt-[22px] grid gap-[22px]">
-          {requests.map((request) => (
-            <Link
-              key={request.id}
-              href={requestHref(request.id)}
-              className="flex items-center gap-[18px] rounded-[20px] border border-[#e4e7ea] bg-white px-[18px] py-4 transition hover:border-[#f2b78f]"
-            >
-              <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#22262b]">
-                {request.mentorName} · {request.supportArea}
-              </p>
-              <span className="shrink-0 rounded-lg border border-[#e4e7ea] px-4 py-2.5 text-[13px] font-medium text-[#22262b]">
-                Mentorluk geçmişi →
-              </span>
-            </Link>
-          ))}
+          {requests.map((request) => {
+            const owner = menteeRequestOwnerLabel(request);
+            const meeting = pickRequestMeeting(meetings, request);
+            return (
+              <article
+                key={request.id}
+                className="flex flex-col gap-3 rounded-[20px] border border-[#e4e7ea] bg-white px-[18px] py-4 sm:flex-row sm:items-center sm:gap-[18px]"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[#22262b]">
+                    {request.mentorName} · {request.supportArea}
+                    {owner ? ` · ${owner}` : ""}
+                  </p>
+                  {meeting ? (
+                    <p className="mt-1 text-xs text-[#858c96]">
+                      {formatMeetingShort(meeting.scheduledAt)}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {meeting ? (
+                    <>
+                      <Link
+                        href={meetingSummaryHref(meeting.id)}
+                        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[#f2b78f]"
+                      >
+                        Görüşme hakkında bilgi
+                      </Link>
+                      <Link
+                        href={meetingFeedbackHref(meeting.id)}
+                        className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
+                      >
+                        Görüşmeyi değerlendir
+                      </Link>
+                    </>
+                  ) : (
+                    <Link
+                      href={requestHref(request.id)}
+                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b]"
+                    >
+                      Talebi aç →
+                    </Link>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

@@ -62,9 +62,11 @@ beforeEach(() => {
   });
   vi.mocked(useMeetingFeedback).mockReturnValue({
     canSubmit: true,
+    nextMeetingNote: "",
     rate,
-    ratings: [4, 4, 5],
+    ratings: [4, 4, 5, 4],
     selectedBenefits: new Set(["Finansal modeli anlamak"]),
+    setNextMeetingNote: vi.fn(),
     submit,
     submitError: "",
     submitted: false,
@@ -124,8 +126,12 @@ describe("meeting lifecycle pages", () => {
     const user = userEvent.setup();
     render(<MeetingFeedbackPage />);
 
+    expect(
+      screen.getByText("Bu görüşme sana ne kadar yardımcı oldu?"),
+    ).toBeInTheDocument();
+
     const rating = screen.getByRole("button", {
-      name: /Görüşme ihtiyacınıza.*5/i,
+      name: /Görüşme sonunda bir sonraki adımlarım.*5/i,
     });
     await user.click(rating);
     expect(rate).toHaveBeenCalledWith(0, 5);
@@ -137,9 +143,11 @@ describe("meeting lifecycle pages", () => {
   it("will not submit an evaluation until every question is rated", async () => {
     vi.mocked(useMeetingFeedback).mockReturnValue({
       canSubmit: false,
+      nextMeetingNote: "",
       rate,
-      ratings: [4, 0, 0],
+      ratings: [4, 0, 0, 0],
       selectedBenefits: new Set<string>(),
+      setNextMeetingNote: vi.fn(),
       submit,
       submitError: "",
       submitted: false,

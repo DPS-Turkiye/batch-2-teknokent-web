@@ -106,6 +106,7 @@ export function useMeetingFeedback() {
   const [selectedBenefits, setSelectedBenefits] = useState<Set<string>>(
     () => new Set(),
   );
+  const [nextMeetingNote, setNextMeetingNote] = useState("");
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -138,9 +139,12 @@ export function useMeetingFeedback() {
     setSubmitError("");
     setSubmitting(true);
     try {
+      const benefits = [...selectedBenefits];
+      const note = nextMeetingNote.trim();
+      if (note) benefits.push(note);
       await postMeetingFeedback(meetingId, {
         ratings,
-        benefits: [...selectedBenefits],
+        benefits,
       });
       setSubmitted(true);
       showToast({ message: "Değerlendirmen gönderildi.", tone: "success" });
@@ -157,9 +161,11 @@ export function useMeetingFeedback() {
 
   return {
     canSubmit,
+    nextMeetingNote,
     rate,
     ratings,
     selectedBenefits,
+    setNextMeetingNote,
     submit,
     submitError,
     submitted,

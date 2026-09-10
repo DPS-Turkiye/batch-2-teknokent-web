@@ -27,7 +27,7 @@ import {
 import { formatMeetingShort } from "@/lib/format";
 import { normalizeMeetLink } from "@/lib/meet-link";
 import {
-  formatPreferredSlot,
+  preferredSlotMachineValue,
   preferredSlotStartsAt,
   proposedSlotsMessageLines,
   requestOutcomeFromMessage,
@@ -36,6 +36,8 @@ import {
 } from "@/lib/mentor-availability-days";
 import {
   formatRequestSentAt,
+  meetingFeedbackHref,
+  meetingSummaryHref,
   mentorRequestHref,
   mentorWorkspaceName,
   mentorWorkspacePerson,
@@ -68,7 +70,7 @@ export function MentorMentorshipsWorkspace() {
   ) {
     setActionError("");
     const message = slot
-      ? `Görüşme saati: ${slot.label || formatPreferredSlot(slot)}`
+      ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
       : "Talebiniz kabul edildi.";
     const normalizedLink = normalizeMeetLink(meetLink);
     try {
@@ -222,7 +224,7 @@ export function MentorMentorshipsWorkspace() {
             onEditMeetLink={openMeetLinkEditor}
           />
         ) : tab === MentorshipWorkspaceTab.History ? (
-          <HistoryTab requests={historyRequests} />
+          <HistoryTab requests={historyRequests} meetings={meetings} />
         ) : requests.length === 0 ? (
           <EmptyState message="Şu an bekleyen bir talebin yok." />
         ) : (
@@ -324,11 +326,19 @@ function IncomingRequestCard({
               <p className="mt-4 text-[13px] font-medium text-[#e86f22]">
                 Alternatif saatlerin mentee tarafından seçilmesi bekleniyor.
               </p>
+            ) : request.status === MentorshipRequestStatus.Accepted ? (
+              <p className="mt-4 text-[13px] font-medium text-[#676e78]">
+                Onaylandı — görüşme saati kaydı bekleniyor
+              </p>
             ) : null}
           </div>
           {waitingForMentee ? (
             <span className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#676e78]">
               Mentee yanıtı bekleniyor
+            </span>
+          ) : request.status === MentorshipRequestStatus.Accepted ? (
+            <span className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#676e78]">
+              Görüşme kaydı bekleniyor
             </span>
           ) : (
             <button
@@ -431,7 +441,13 @@ function ActiveTab({
   );
 }
 
-function HistoryTab({ requests }: { requests: MentorshipRequest[] }) {
+function HistoryTab({
+  requests,
+  meetings,
+}: {
+  requests: MentorshipRequest[];
+  meetings: MeetingItem[];
+}) {
   return (
     <section className="mt-5">
       <h2 className="text-lg font-medium text-[#22262b]">
@@ -441,20 +457,51 @@ function HistoryTab({ requests }: { requests: MentorshipRequest[] }) {
         <EmptyState message="Henüz tamamlanan bir mentorluk yok." />
       ) : (
         <div className="mt-[22px] grid gap-[22px]">
-          {requests.map((request) => (
-            <Link
-              key={request.id}
-              href={mentorRequestHref(request.id)}
-              className="flex items-center gap-[18px] rounded-[10px] border border-[#e4e7ea] bg-white px-[18px] py-4 transition hover:border-[#f2b78f]"
-            >
-              <p className="min-w-0 flex-1 truncate text-sm font-medium text-[#22262b]">
-                {mentorWorkspaceName(request)} · {request.supportArea}
-              </p>
-              <span className="shrink-0 rounded-lg border border-[#e4e7ea] px-4 py-2.5 text-[13px] font-medium text-[#22262b]">
-                Mentorluk geçmişi →
-              </span>
-            </Link>
-          ))}
+          {requests.map((request) => {
+            const meeting = pickRequestMeeting(meetings, request);
+            return (
+              <article
+                key={request.id}
+                className="flex flex-col gap-3 rounded-[10px] border border-[#e4e7ea] bg-white px-[18px] py-4 sm:flex-row sm:items-center sm:gap-[18px]"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[#22262b]">
+                    {mentorWorkspaceName(request)} · {request.supportArea}
+                  </p>
+                  {meeting ? (
+                    <p className="mt-1 text-xs text-[#858c96]">
+                      {formatMeetingShort(meeting.scheduledAt)}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 flex-wrap gap-2">
+                  {meeting ? (
+                    <>
+                      <Link
+                        href={meetingSummaryHref(meeting.id)}
+                        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[#f2b78f]"
+                      >
+                        Görüşme hakkında bilgi
+                      </Link>
+                      <Link
+                        href={meetingFeedbackHref(meeting.id)}
+                        className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
+                      >
+                        Görüşmeyi değerlendir
+                      </Link>
+                    </>
+                  ) : (
+                    <Link
+                      href={mentorRequestHref(request.id)}
+                      className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b]"
+                    >
+                      Mentorluk geçmişi →
+                    </Link>
+                  )}
+                </div>
+              </article>
+            );
+          })}
         </div>
       )}
     </section>

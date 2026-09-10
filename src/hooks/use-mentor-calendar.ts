@@ -4,7 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import {
+  mentorshipRequestsQueryKey,
+  useMentorshipRequests,
+} from "@/hooks/use-mentorship-requests";
 import { usePrograms } from "@/hooks/use-programs";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
@@ -104,6 +107,9 @@ export function useMentorCalendar() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
       void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
+      void queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+      });
     },
   });
   const inviteGuest = useMutation({
@@ -121,6 +127,9 @@ export function useMentorCalendar() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
       void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
+      void queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+      });
     },
   });
   const removeMeeting = useMutation({
@@ -128,6 +137,9 @@ export function useMentorCalendar() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["meetings"] });
       void queryClient.invalidateQueries({ queryKey: ["meeting-room"] });
+      void queryClient.invalidateQueries({
+        queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+      });
     },
   });
 

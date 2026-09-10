@@ -10,26 +10,92 @@ export function meetingsForRequest(
     (meeting) => meeting.mentorshipRequestId === request.id,
   );
   if (linked.length > 0) return linked;
-  return meetings.filter((meeting) => meeting.mentorId === request.mentorId);
+  // Calendar meetings often have no mentorshipRequestId. Only attach those that
+  // match this mentorship's mentor + startup — never every meeting for the mentor.
+  return meetings.filter(
+    (meeting) =>
+      !meeting.mentorshipRequestId &&
+      meeting.mentorId === request.mentorId &&
+      meeting.organizationId === request.organizationId,
+  );
 }
 
-export function pickRequestMeeting(
+export function isMeetingEnded(meeting: MeetingItem, now = new Date()) {
+  if (String(meeting.status).toUpperCase() === MeetingStatus.Completed) {
+    return true;
+  }
+  const startMs = new Date(meeting.scheduledAt).getTime();
+  if (Number.isNaN(startMs)) return false;
+  const durationMs = Math.max(1, meeting.durationMinutes || 60) * 60_000;
+  return now.getTime() > startMs + durationMs;
+}
+
+export function requestHasConfirmedMeeting(
   meetings: MeetingItem[],
   request: MentorshipRequest,
 ) {
+  return meetingsForRequest(meetings, request).length > 0;
+}
+
+/** Prefer a still-running meeting; otherwise the latest ended one. */
+export function pickRequestMeeting(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+  now = new Date(),
+) {
   const related = meetingsForRequest(meetings, request);
-  const upcoming = pickUpcomingMeetings(related).nextMeeting;
-  if (upcoming) return upcoming;
+  const open = related.filter((meeting) => !isMeetingEnded(meeting, now));
+  if (open.length > 0) {
+    const upcoming = pickUpcomingMeetings(open).nextMeeting;
+    if (upcoming) return upcoming;
+    return (
+      open
+        .slice()
+        .sort(
+          (left, right) =>
+            new Date(left.scheduledAt).getTime() -
+            new Date(right.scheduledAt).getTime(),
+        )[0] ?? null
+    );
+  }
 
   return (
     related
       .slice()
       .sort(
         (left, right) =>
-          new Date(left.scheduledAt).getTime() -
-          new Date(right.scheduledAt).getTime(),
+          new Date(right.scheduledAt).getTime() -
+          new Date(left.scheduledAt).getTime(),
       )[0] ?? null
   );
+}
+
+export function requestHasOpenMeeting(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+  now = new Date(),
+) {
+  return meetingsForRequest(meetings, request).some(
+    (meeting) => !isMeetingEnded(meeting, now),
+  );
+}
+
+export function requestHasEndedMeeting(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+  now = new Date(),
+) {
+  return meetingsForRequest(meetings, request).some((meeting) =>
+    isMeetingEnded(meeting, now),
+  );
+}
+
+export function meetingSummaryHref(meetingId: string) {
+  return `/meetings/research/summary?id=${encodeURIComponent(meetingId)}`;
+}
+
+export function meetingFeedbackHref(meetingId: string) {
+  return `/meetings/research/feedback?id=${encodeURIComponent(meetingId)}`;
 }
 
 export function requestProgressPercent(
@@ -55,6 +121,15 @@ export function mentorWorkspaceName(request: MentorshipRequest) {
 
 export function mentorWorkspacePerson(request: MentorshipRequest) {
   return request.requestedForName || request.requesterName || "";
+}
+
+/** Who opened the request inside the startup (teammate-visible list). */
+export function menteeRequestOwnerLabel(request: MentorshipRequest) {
+  return (
+    request.requestedForName?.trim() ||
+    request.requesterName?.trim() ||
+    ""
+  );
 }
 
 export function mentorRequestHref(id: string) {

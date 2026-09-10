@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
@@ -101,9 +102,39 @@ describe("MentorMentorshipsWorkspace", () => {
         id: "past-1",
         organizationName: "HubC",
         supportArea: "Büyüme Stratejisi",
+        status: MentorshipRequestStatus.Accepted,
+      }),
+      request({
+        id: "withdrawn-1",
+        organizationName: "HubC",
+        supportArea: "Satış",
         status: MentorshipRequestStatus.Withdrawn,
       }),
     ]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        {
+          id: "open-meeting",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "active-1",
+          scheduledAt: "2099-08-30T11:00:00.000Z",
+          durationMinutes: 45,
+          status: MeetingStatus.Scheduled,
+        },
+        {
+          id: "ended-meeting",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "past-1",
+          scheduledAt: "2020-01-01T10:00:00.000Z",
+          durationMinutes: 45,
+          status: MeetingStatus.Completed,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
@@ -121,9 +152,22 @@ describe("MentorMentorshipsWorkspace", () => {
 
     await user.click(screen.getByRole("tab", { name: "Geçmiş" }));
     expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
+    expect(screen.getByText(/HubC · Büyüme Stratejisi/)).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /HubC · Büyüme Stratejisi/ }),
-    ).toHaveAttribute("href", "/mentor-dashboard/mentorship/past-1");
+      screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
+    ).toHaveAttribute(
+      "href",
+      "/meetings/research/summary?id=ended-meeting",
+    );
+    expect(
+      screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
+    ).toHaveAttribute(
+      "href",
+      "/meetings/research/feedback?id=ended-meeting",
+    );
+    expect(
+      screen.getByRole("link", { name: "Mentorluk geçmişi →" }),
+    ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");
   });
 
   it("reviews a request, lets the mentor pick a preferred time, then moves it to Aktif", async () => {
@@ -134,13 +178,29 @@ describe("MentorMentorshipsWorkspace", () => {
       mockRequests([
         request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
       ]);
+      vi.mocked(useMeetings).mockReturnValue({
+        data: [
+          {
+            id: "meeting-1",
+            organizationId: "org-1",
+            mentorId: "mentor-1",
+            mentorshipRequestId: "req-1",
+            scheduledAt: "2099-08-30T11:00:00.000Z",
+            durationMinutes: 45,
+            meetLink: "https://meet.google.com/abc-defg-hij",
+            status: MeetingStatus.Scheduled,
+          },
+        ],
+        isLoading: false,
+        error: null,
+      } as never);
     });
     vi.mocked(logMentorshipMeeting).mockResolvedValue({
       id: "meeting-1",
       mentorshipRequestId: "req-1",
-      scheduledAt: "2026-09-10T10:00:00.000Z",
+      scheduledAt: "2099-08-30T11:00:00.000Z",
       durationMinutes: 45,
-      meetLink: null,
+      meetLink: "https://meet.google.com/abc-defg-hij",
       status: "SCHEDULED",
     });
 
@@ -174,7 +234,7 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(mutateAsync).toHaveBeenCalledWith({
       id: "req-1",
       status: MentorshipRequestStatus.Accepted,
-      message: "Görüşme saati: 10 Eylül Perşembe · 13:00",
+      message: "Görüşme saati: 2026-09-10T13:00",
     });
     expect(logMentorshipMeeting).toHaveBeenCalledWith(
       "req-1",
@@ -248,13 +308,30 @@ describe("MentorMentorshipsWorkspace", () => {
     mockRequests([
       request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
     ]);
-    vi.mocked(logMentorshipMeeting).mockResolvedValue({
-      id: "meeting-2",
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        {
+          id: "meeting-open",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "req-1",
+          scheduledAt: "2099-08-30T11:00:00.000Z",
+          durationMinutes: 45,
+          meetLink: null,
+          status: MeetingStatus.Scheduled,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+    vi.mocked(updateMeeting).mockResolvedValue({
+      id: "meeting-open",
+      organizationId: "org-1",
       mentorshipRequestId: "req-1",
-      scheduledAt: "2026-09-10T10:00:00.000Z",
+      scheduledAt: "2099-08-30T11:00:00.000Z",
       durationMinutes: 45,
       meetLink: "https://meet.google.com/xyz",
-      status: "SCHEDULED",
+      status: MeetingStatus.Scheduled,
     });
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
@@ -266,13 +343,10 @@ describe("MentorMentorshipsWorkspace", () => {
     );
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
 
-    expect(logMentorshipMeeting).toHaveBeenCalledWith(
-      "req-1",
-      expect.objectContaining({
-        meetLink: "https://meet.google.com/xyz",
-        transcribeRequested: false,
-      }),
-    );
+    expect(updateMeeting).toHaveBeenCalledWith("meeting-open", {
+      meetLink: "https://meet.google.com/xyz",
+      transcribeRequested: false,
+    });
   });
 
   it("requests a transcript bot when the mentor checks the box on accept", async () => {
@@ -320,13 +394,31 @@ describe("MentorMentorshipsWorkspace", () => {
     mockRequests([
       request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
     ]);
-    vi.mocked(logMentorshipMeeting).mockResolvedValue({
-      id: "meeting-2",
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        {
+          id: "meeting-open",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "req-1",
+          scheduledAt: "2099-08-30T11:00:00.000Z",
+          durationMinutes: 45,
+          meetLink: null,
+          status: MeetingStatus.Scheduled,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+    vi.mocked(updateMeeting).mockResolvedValue({
+      id: "meeting-open",
+      organizationId: "org-1",
       mentorshipRequestId: "req-1",
-      scheduledAt: "2026-09-10T10:00:00.000Z",
+      scheduledAt: "2099-08-30T11:00:00.000Z",
       durationMinutes: 45,
       meetLink: "https://meet.google.com/xyz",
-      status: "SCHEDULED",
+      transcribeRequested: true,
+      status: MeetingStatus.Scheduled,
     });
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
@@ -343,13 +435,10 @@ describe("MentorMentorshipsWorkspace", () => {
     );
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
 
-    expect(logMentorshipMeeting).toHaveBeenCalledWith(
-      "req-1",
-      expect.objectContaining({
-        meetLink: "https://meet.google.com/xyz",
-        transcribeRequested: true,
-      }),
-    );
+    expect(updateMeeting).toHaveBeenCalledWith("meeting-open", {
+      meetLink: "https://meet.google.com/xyz",
+      transcribeRequested: true,
+    });
   });
 
   it("turns on transcription when editing an existing meet link", async () => {
@@ -362,12 +451,13 @@ describe("MentorMentorshipsWorkspace", () => {
         {
           id: "meeting-1",
           organizationId: "org-1",
+          mentorId: "mentor-1",
           mentorshipRequestId: "req-1",
-          scheduledAt: "2026-09-10T10:00:00.000Z",
+          scheduledAt: "2099-08-30T11:00:00.000Z",
           durationMinutes: 45,
           meetLink: "https://meet.google.com/old-old-old",
           transcribeRequested: false,
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
       ],
       isLoading: false,
@@ -377,11 +467,11 @@ describe("MentorMentorshipsWorkspace", () => {
       id: "meeting-1",
       organizationId: "org-1",
       mentorshipRequestId: "req-1",
-      scheduledAt: "2026-09-10T10:00:00.000Z",
+      scheduledAt: "2099-08-30T11:00:00.000Z",
       durationMinutes: 45,
       meetLink: "https://meet.google.com/xyz",
       transcribeRequested: true,
-      status: "SCHEDULED",
+      status: MeetingStatus.Scheduled,
     });
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);

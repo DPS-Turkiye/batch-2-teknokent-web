@@ -20,6 +20,7 @@ import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { DASHBOARD_REQUEST_STATUS_LABELS } from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
+import { menteeRequestOwnerLabel } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -177,7 +178,9 @@ export default function DashboardPage() {
             </div>
             <div className="space-y-3">
               {activeRequests.length ? (
-                activeRequests.slice(0, 3).map((request) => (
+                activeRequests.slice(0, 3).map((request) => {
+                  const owner = menteeRequestOwnerLabel(request);
+                  return (
                   <Link
                     key={request.id}
                     href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
@@ -193,6 +196,7 @@ export default function DashboardPage() {
                       </h3>
                       <p className="mt-1 truncate text-xs text-[#676e78]">
                         {request.supportArea}
+                        {owner ? ` · ${owner}` : ""}
                       </p>
                     </div>
                     <Badge>
@@ -200,7 +204,8 @@ export default function DashboardPage() {
                     </Badge>
                     <ArrowRight className="size-4 text-[#a4aab2]" />
                   </Link>
-                ))
+                  );
+                })
               ) : (
                 <div className="rounded-2xl border border-dashed border-[#d6dade] bg-white p-8 text-center text-sm text-[#676e78]">
                   Henüz aktif bir mentorluk bulunmuyor.
@@ -270,7 +275,9 @@ export default function DashboardPage() {
                 </span>
               </div>
               <div className="mt-3 space-y-2">
-                {pendingRequests.slice(0, 2).map((request) => (
+                {pendingRequests.slice(0, 2).map((request) => {
+                  const owner = menteeRequestOwnerLabel(request);
+                  return (
                   <Link
                     key={request.id}
                     href={
@@ -290,11 +297,13 @@ export default function DashboardPage() {
                       </strong>
                       <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
                         {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                        {owner ? ` · ${owner}` : ""}
                       </small>
                     </span>
                     <ArrowRight className="size-4 text-[#a4aab2]" />
                   </Link>
-                ))}
+                  );
+                })}
                 {!pendingRequests.length ? (
                   <p className="py-3 text-center text-xs text-[#858c96]">
                     Bekleyen talep yok.
