@@ -1,12 +1,20 @@
 import type { NextConfig } from "next";
 
+const allowUnsafeEval = process.env.NODE_ENV === "development";
+
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "object-src 'none'",
-  "script-src 'self' 'unsafe-inline' https://apis.google.com https://www.gstatic.com",
+  [
+    "script-src 'self' 'unsafe-inline'",
+    allowUnsafeEval ? "'unsafe-eval'" : "",
+    "https://apis.google.com https://www.gstatic.com",
+  ]
+    .filter(Boolean)
+    .join(" "),
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",

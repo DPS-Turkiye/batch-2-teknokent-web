@@ -16,7 +16,7 @@ import {
   availabilityColumns,
   emptyPreferredSlots,
   formatPreferredSlot,
-  hasThreePreferredSlots,
+  hasPreferredSlots,
   isHalfOrFullHour,
   isValidPreferredSlot,
   preferredSlotKey,
@@ -77,7 +77,7 @@ export function MentorRequestDialog({
     (draft
       ? needTitleForSummary(draft.topicId, draft.otherSummary)
       : mentor.specialties[0]) || mentor.professionalTitle;
-  const canSend = hasThreePreferredSlots(preferredSlots);
+  const canSend = hasPreferredSlots(preferredSlots);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const summaryWhen = preferredSlots
@@ -99,7 +99,7 @@ export function MentorRequestDialog({
   async function sendRequest() {
     if (!session?.fullName) return;
     if (!canSend) {
-      setError("Günü ve tam/buçuk saatiyle üç farklı tercih seç.");
+      setError("En az bir tercih için gün ve tam/buçuk saat seç.");
       return;
     }
     setIsSubmitting(true);
@@ -197,8 +197,8 @@ export function MentorRequestDialog({
             <p className="mt-1 text-xs text-[#858c96]">Önümüzdeki 7 gün</p>
             {columns.length === 0 ? (
               <p className="mt-4 text-sm text-[#676e78]">
-                Mentörün açık saati yok. Aşağıdan üç tercih günü ve saati
-                girebilirsin.
+                Mentörün açık saati yok. Aşağıdan en az bir tercih günü ve saati
+                girebilirsin (en fazla üç).
               </p>
             ) : (
               <div className="mt-4 flex gap-2 overflow-x-auto">
@@ -251,11 +251,11 @@ export function MentorRequestDialog({
             </p>
             <div className="mt-4 border-t border-[#e4e7ea] pt-3">
               <p className="text-xs font-medium text-[#22262b]">
-                Üç tercih günü ve saati gir
+                Tercih günü ve saati gir
               </p>
               <p className="mt-1 text-[11px] text-[#858c96]">
-                Her tercih için gün seç. Saatler tam (10:00) veya buçuk (10:30)
-                olmalı.
+                En az bir tercih yeterli; en fazla üç seçebilirsin. Saatler tam
+                (10:00) veya buçuk (10:30) olmalı.
               </p>
               <div className="mt-2 grid gap-2">
                 {preferredSlots.map((slot, index) => (

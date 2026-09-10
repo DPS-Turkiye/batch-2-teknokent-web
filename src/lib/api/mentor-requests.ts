@@ -5,6 +5,7 @@ import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export enum MentorRequestAction {
+  AcceptProposal = "accept-proposal",
   Alternatives = "alternatives",
   Availability = "availability",
   Decision = "decision",
@@ -16,6 +17,7 @@ export enum MentorRequestAction {
 }
 
 const ACTIONS_WITH_REQUESTER = new Set<MentorRequestAction>([
+  MentorRequestAction.AcceptProposal,
   MentorRequestAction.Messages,
   MentorRequestAction.Meeting,
   MentorRequestAction.Withdrawal,

@@ -20,14 +20,19 @@ import {
 import { UserRole } from "@/interfaces/session";
 import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
-import { MENTOR_MENTORSHIPS_TABS } from "@/lib/const";
+import {
+  MENTOR_MENTORSHIPS_TABS,
+  MENTORSHIP_MEETING_DURATION_MINUTES,
+} from "@/lib/const";
 import { formatMeetingShort } from "@/lib/format";
 import { normalizeMeetLink } from "@/lib/meet-link";
 import {
   formatPreferredSlot,
   preferredSlotStartsAt,
+  proposedSlotsMessageLines,
   requestOutcomeFromMessage,
   type ParsedPreferredSlot,
+  type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
   formatRequestSentAt,
@@ -50,6 +55,8 @@ export function MentorMentorshipsWorkspace() {
     null,
   );
   const [meetLinkDraft, setMeetLinkDraft] = useState("");
+  const [transcribeRequestedDraft, setTranscribeRequestedDraft] =
+    useState(false);
   const [linkSaving, setLinkSaving] = useState(false);
   const [actionError, setActionError] = useState("");
 
@@ -57,6 +64,7 @@ export function MentorMentorshipsWorkspace() {
     request: MentorshipRequest,
     slot: ParsedPreferredSlot | null,
     meetLink: string,
+    transcribeRequested: boolean,
   ) {
     setActionError("");
     const message = slot
@@ -79,9 +87,10 @@ export function MentorMentorshipsWorkspace() {
           await logMentorshipMeeting(request.id, {
             mentorId: request.mentorId,
             scheduledAt: startsAt,
-            durationMinutes: 45,
+            durationMinutes: MENTORSHIP_MEETING_DURATION_MINUTES,
             status: MeetingStatus.Scheduled,
             meetLink: normalizedLink || undefined,
+            transcribeRequested,
           });
         } catch {
           // Acceptance already succeeded; the meeting can be logged later.
@@ -99,10 +108,36 @@ export function MentorMentorshipsWorkspace() {
     }
   }
 
+  async function proposeSlots(
+    request: MentorshipRequest,
+    slots: PreferredSlot[],
+  ) {
+    setActionError("");
+    const message = [
+      "Saatlerinizi beğenmedim; alternatif gün ve saat öneriyorum.",
+      ...proposedSlotsMessageLines(slots),
+    ].join("\n");
+    try {
+      await decisionMutation.mutateAsync({
+        id: request.id,
+        status: MentorshipRequestStatus.CounterProposed,
+        message,
+      });
+      setReviewing(null);
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : "Öneriler gönderilemedi. Lütfen tekrar dene.",
+      );
+    }
+  }
+
   function openMeetLinkEditor(request: MentorshipRequest) {
     const meeting = pickRequestMeeting(meetings, request);
     setActionError("");
     setMeetLinkDraft(meeting?.meetLink ?? "");
+    setTranscribeRequestedDraft(Boolean(meeting?.transcribeRequested));
     setEditingLink(request);
   }
 
@@ -114,14 +149,18 @@ export function MentorMentorshipsWorkspace() {
     const meeting = pickRequestMeeting(meetings, editingLink);
     try {
       if (meeting) {
-        await updateMeeting(meeting.id, { meetLink: normalizedLink });
+        await updateMeeting(meeting.id, {
+          meetLink: normalizedLink,
+          transcribeRequested: transcribeRequestedDraft,
+        });
       } else if (normalizedLink) {
         await logMentorshipMeeting(editingLink.id, {
           mentorId: editingLink.mentorId,
           scheduledAt: new Date().toISOString(),
-          durationMinutes: 45,
+          durationMinutes: MENTORSHIP_MEETING_DURATION_MINUTES,
           status: MeetingStatus.Scheduled,
           meetLink: normalizedLink,
+          transcribeRequested: transcribeRequestedDraft,
         });
       }
       await queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY });
@@ -216,9 +255,10 @@ export function MentorMentorshipsWorkspace() {
             setReviewing(null);
             setActionError("");
           }}
-          onAccept={(slot, meetLink) =>
-            void acceptRequest(reviewing, slot, meetLink)
+          onAccept={(slot, meetLink, transcribeRequested) =>
+            void acceptRequest(reviewing, slot, meetLink, transcribeRequested)
           }
+          onPropose={(slots) => void proposeSlots(reviewing, slots)}
         />
       ) : null}
 
@@ -226,9 +266,11 @@ export function MentorMentorshipsWorkspace() {
         <MentorMeetLinkDialog
           request={editingLink}
           meetLink={meetLinkDraft}
+          transcribeRequested={transcribeRequestedDraft}
           isPending={linkSaving}
           error={actionError}
           onMeetLinkChange={setMeetLinkDraft}
+          onTranscribeRequestedChange={setTranscribeRequestedDraft}
           onClose={() => {
             setEditingLink(null);
             setActionError("");
@@ -249,6 +291,8 @@ function IncomingRequestCard({
 }) {
   const person = mentorWorkspacePerson(request);
   const outcome = requestOutcomeFromMessage(request.requesterMessage);
+  const waitingForMentee =
+    request.status === MentorshipRequestStatus.CounterProposed;
 
   return (
     <article className="rounded-[10px] border border-[#e4e7ea] bg-white px-5 py-6">
@@ -276,14 +320,25 @@ function IncomingRequestCard({
                 Beklenen çıktı: {outcome}
               </p>
             ) : null}
+            {waitingForMentee ? (
+              <p className="mt-4 text-[13px] font-medium text-[#e86f22]">
+                Alternatif saatlerin mentee tarafından seçilmesi bekleniyor.
+              </p>
+            ) : null}
           </div>
-          <button
-            type="button"
-            onClick={onReview}
-            className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
-          >
-            Talebi incele
-          </button>
+          {waitingForMentee ? (
+            <span className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#676e78]">
+              Mentee yanıtı bekleniyor
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={onReview}
+              className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
+            >
+              Talebi incele
+            </button>
+          )}
         </div>
       </div>
     </article>

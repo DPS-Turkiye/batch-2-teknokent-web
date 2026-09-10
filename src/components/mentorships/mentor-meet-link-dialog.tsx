@@ -2,6 +2,7 @@
 
 import { X } from "lucide-react";
 
+import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { mentorWorkspaceName } from "@/lib/mentorship-workspace";
@@ -10,17 +11,21 @@ import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 export function MentorMeetLinkDialog({
   request,
   meetLink,
+  transcribeRequested,
   isPending,
   error,
   onMeetLinkChange,
+  onTranscribeRequestedChange,
   onClose,
   onSave,
 }: {
   request: MentorshipRequest;
   meetLink: string;
+  transcribeRequested: boolean;
   isPending: boolean;
   error: string;
   onMeetLinkChange: (value: string) => void;
+  onTranscribeRequestedChange: (value: boolean) => void;
   onClose: () => void;
   onSave: () => void;
 }) {
@@ -67,6 +72,10 @@ export function MentorMeetLinkDialog({
             className="mt-2 min-h-11 w-full rounded-lg border border-[#d4d8dd] px-3.5 text-sm text-[#22262b] outline-none"
           />
         </label>
+        <TranscribeRequestedField
+          checked={transcribeRequested}
+          onChange={onTranscribeRequestedChange}
+        />
         {error ? (
           <p role="alert" className="mt-3 text-xs text-red-700">
             {error}

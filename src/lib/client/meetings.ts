@@ -18,6 +18,7 @@ export type UpdateMeetingPayload = {
   status?: MeetingStatus;
   transcriptBotDispatched?: boolean;
   meetLink?: string;
+  transcribeRequested?: boolean;
 };
 
 export type MeetingFeedbackPayload = {

@@ -150,16 +150,21 @@ export function formatPreferredSlot(slot: PreferredSlot) {
   return `${dayMonth} ${WEEKDAY_LONG[date.getDay()]} · ${slot.time}`;
 }
 
-export function hasThreePreferredSlots(slots: readonly PreferredSlot[]) {
+export function hasPreferredSlots(slots: readonly PreferredSlot[]) {
   const valid = slots.filter(isValidPreferredSlot);
+  const unique = new Set(valid.map(preferredSlotKey)).size;
   return (
-    valid.length === PREFERRED_SLOT_COUNT &&
-    new Set(valid.map(preferredSlotKey)).size === PREFERRED_SLOT_COUNT
+    valid.length >= 1 &&
+    valid.length <= PREFERRED_SLOT_COUNT &&
+    unique === valid.length
   );
 }
 
 export const PREFERRED_TIMES_LINE_PREFIX = "Tercih edilen saatler:";
 export const PREFERRED_SLOTS_LINE_PREFIX = "preferredSlots:";
+export const PROPOSED_TIMES_LINE_PREFIX = "Mentörün önerdiği saatler:";
+export const PROPOSED_SLOTS_LINE_PREFIX = "proposedSlots:";
+export const MAX_PROPOSED_SLOT_COUNT = 8;
 
 export type ParsedPreferredSlot = PreferredSlot & { label: string };
 
@@ -182,6 +187,25 @@ export function preferredSlotsMessageLines(slots: readonly PreferredSlot[]) {
     `${PREFERRED_TIMES_LINE_PREFIX} ${valid.map(formatPreferredSlot).join(", ")}`,
     `${PREFERRED_SLOTS_LINE_PREFIX}${valid.map(preferredSlotMachineValue).join(",")}`,
   ];
+}
+
+export function proposedSlotsMessageLines(slots: readonly PreferredSlot[]) {
+  const valid = slots.filter(isValidPreferredSlot);
+  if (valid.length === 0) return [];
+  return [
+    `${PROPOSED_TIMES_LINE_PREFIX} ${valid.map(formatPreferredSlot).join(", ")}`,
+    `${PROPOSED_SLOTS_LINE_PREFIX}${valid.map(preferredSlotMachineValue).join(",")}`,
+  ];
+}
+
+export function hasProposedSlots(slots: readonly PreferredSlot[]) {
+  const valid = slots.filter(isValidPreferredSlot);
+  const unique = new Set(valid.map(preferredSlotKey)).size;
+  return (
+    valid.length >= 1 &&
+    valid.length <= MAX_PROPOSED_SLOT_COUNT &&
+    unique === valid.length
+  );
 }
 
 export function preferredSlotStartsAt(slot: PreferredSlot) {
@@ -225,6 +249,39 @@ export function parsePreferredSlotsFromMessage(
     });
 }
 
+export function parseProposedSlotsFromMessage(
+  message: string | null | undefined,
+): ParsedPreferredSlot[] {
+  if (!message) return [];
+  const lines = message.split(/\r?\n/);
+  const machine = lines.find((line) =>
+    line.startsWith(PROPOSED_SLOTS_LINE_PREFIX),
+  );
+  if (machine) {
+    return machine
+      .slice(PROPOSED_SLOTS_LINE_PREFIX.length)
+      .split(",")
+      .map(parsePreferredSlotMachineValue)
+      .filter((slot): slot is PreferredSlot => Boolean(slot))
+      .filter(isValidPreferredSlot)
+      .map((slot) => ({ ...slot, label: formatPreferredSlot(slot) }));
+  }
+
+  const human = lines.find((line) =>
+    line.startsWith(PROPOSED_TIMES_LINE_PREFIX),
+  );
+  if (!human) return [];
+  return human
+    .slice(PROPOSED_TIMES_LINE_PREFIX.length)
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((label) => {
+      const time = /(\d{2}:\d{2})$/.exec(label)?.[1] ?? "";
+      return { date: "", time, label };
+    });
+}
+
 export function requestOutcomeFromMessage(message: string | null | undefined) {
   if (!message) return "";
   return message
@@ -232,7 +289,9 @@ export function requestOutcomeFromMessage(message: string | null | undefined) {
     .filter(
       (line) =>
         !line.startsWith(PREFERRED_TIMES_LINE_PREFIX) &&
-        !line.startsWith(PREFERRED_SLOTS_LINE_PREFIX),
+        !line.startsWith(PREFERRED_SLOTS_LINE_PREFIX) &&
+        !line.startsWith(PROPOSED_TIMES_LINE_PREFIX) &&
+        !line.startsWith(PROPOSED_SLOTS_LINE_PREFIX),
     )
     .join("\n")
     .trim();

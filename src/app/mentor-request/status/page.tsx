@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, FileUp, Upload } from "lucide-react";
 
@@ -11,6 +12,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
 import {
+  useAcceptProposedSlot,
   useAlternativeMentors,
   useMentorAvailability,
   useMentorshipRequest,
@@ -20,17 +22,27 @@ import {
   useSlotBooking,
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
+import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestMessageType,
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
+import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
+import {
+  parseProposedSlotsFromMessage,
+  preferredSlotKey,
+  preferredSlotMachineValue,
+  preferredSlotStartsAt,
+} from "@/lib/mentor-availability-days";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { initials } from "@/lib/utils";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.CounterProposed]: "Saat Önerildi",
   [MentorshipRequestStatus.Declined]: "Uygun Değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
   [MentorshipRequestStatus.Pending]: "Yanıt Bekleniyor",
@@ -42,6 +54,7 @@ const statusTones: Record<
   "amber" | "gray" | "green" | "purple"
 > = {
   [MentorshipRequestStatus.Accepted]: "green",
+  [MentorshipRequestStatus.CounterProposed]: "amber",
   [MentorshipRequestStatus.Declined]: "gray",
   [MentorshipRequestStatus.MoreInfoRequested]: "purple",
   [MentorshipRequestStatus.Pending]: "amber",
@@ -86,6 +99,43 @@ export default function RequestStatusPage() {
     error: scheduleError,
   } = useSlotBooking(selectedId);
   const fileUpload = useRequestFileUpload(selectedId);
+  const acceptProposalMutation = useAcceptProposedSlot(selectedId);
+  const [selectedProposalKey, setSelectedProposalKey] = useState("");
+  const [proposalError, setProposalError] = useState("");
+  const proposedSlots = parseProposedSlotsFromMessage(request?.mentorMessage);
+  const selectedProposal = proposedSlots.find(
+    (slot) => (preferredSlotKey(slot) || slot.label) === selectedProposalKey,
+  );
+
+  async function acceptMentorProposal() {
+    if (!request || !selectedProposal) return;
+    setProposalError("");
+    try {
+      await acceptProposalMutation.mutateAsync(
+        preferredSlotMachineValue(selectedProposal),
+      );
+      const startsAt = preferredSlotStartsAt(selectedProposal);
+      if (startsAt) {
+        try {
+          await logMentorshipMeeting(request.id, {
+            mentorId: request.mentorId,
+            scheduledAt: startsAt,
+            durationMinutes: MENTORSHIP_MEETING_DURATION_MINUTES,
+            status: MeetingStatus.Scheduled,
+          });
+        } catch {
+          // Acceptance already succeeded; meeting can be logged later.
+        }
+      }
+      router.push("/mentorships");
+    } catch (caught) {
+      setProposalError(
+        caught instanceof Error
+          ? caught.message
+          : "Saat kabul edilemedi. Lütfen tekrar dene.",
+      );
+    }
+  }
 
   return (
     <AppShell title="Talep Detayı" backHref="/dashboard">
@@ -179,6 +229,61 @@ export default function RequestStatusPage() {
                   {replyError ? (
                     <p role="alert" className="mt-3 text-sm text-red-700">
                       {replyError.message}
+                    </p>
+                  ) : null}
+                </div>
+              ) : null}
+
+              {request.status === MentorshipRequestStatus.CounterProposed ? (
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    Mentör tarafından şu saatler önerildi
+                  </h3>
+                  <p className="mt-2 text-sm text-[#777]">
+                    Birini seçip kabul ettiğinde mentorluk aktif olur.
+                  </p>
+                  {proposedSlots.length === 0 ? (
+                    <p className="mt-4 text-sm text-[#777]">
+                      Önerilen saat bulunamadı.
+                    </p>
+                  ) : (
+                    <div className="mt-4 grid gap-2">
+                      {proposedSlots.map((slot, index) => {
+                        const key = preferredSlotKey(slot) || slot.label;
+                        const selected = key === selectedProposalKey;
+                        return (
+                          <button
+                            key={`${key}-${index}`}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => setSelectedProposalKey(key)}
+                            className={`min-h-11 rounded-lg border px-4 text-left text-sm font-medium ${
+                              selected
+                                ? "border-[#e86f22] bg-[#fdebdd] text-[#e86f22]"
+                                : "border-[#e5e7eb] bg-white text-[#22262b] hover:border-[#f2b78f]"
+                            }`}
+                          >
+                            {slot.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                  <div className="mt-4 flex justify-end">
+                    <PrimaryButton
+                      disabled={
+                        !selectedProposal || acceptProposalMutation.isPending
+                      }
+                      onClick={() => void acceptMentorProposal()}
+                    >
+                      {acceptProposalMutation.isPending
+                        ? "Kabul ediliyor…"
+                        : "Saati kabul et"}
+                    </PrimaryButton>
+                  </div>
+                  {proposalError ? (
+                    <p role="alert" className="mt-3 text-sm text-red-700">
+                      {proposalError}
                     </p>
                   ) : null}
                 </div>
@@ -327,7 +432,8 @@ export default function RequestStatusPage() {
               ) : null}
             </section>
 
-            {request.status === MentorshipRequestStatus.Pending ? (
+            {request.status === MentorshipRequestStatus.Pending ||
+            request.status === MentorshipRequestStatus.CounterProposed ? (
               <div className="mt-5 flex flex-wrap gap-2">
                 <SecondaryButton
                   disabled={withdrawMutation.isPending}

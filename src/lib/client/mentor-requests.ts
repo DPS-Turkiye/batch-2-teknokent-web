@@ -110,6 +110,7 @@ export type LogMeetingPayload = {
   outcomes?: string;
   status: MeetingStatus;
   meetLink?: string;
+  transcribeRequested?: boolean;
 };
 
 export async function logMentorshipMeeting(
@@ -136,6 +137,18 @@ export async function decideMentorRequest(options: {
         status: options.status,
         message: options.message,
       },
+    ),
+  );
+}
+
+export async function acceptProposedMentorSlot(options: {
+  id: string;
+  selectedSlot: string;
+}) {
+  return requireSuccess(
+    await httpClient.patch<MentorshipRequest>(
+      `/api/mentor-requests/${encodeURIComponent(options.id)}/accept-proposal`,
+      { selectedSlot: options.selectedSlot },
     ),
   );
 }

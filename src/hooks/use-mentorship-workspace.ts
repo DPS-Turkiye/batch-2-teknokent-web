@@ -12,6 +12,7 @@ const activeStatuses = new Set([MentorshipRequestStatus.Accepted]);
 const requestStatuses = new Set([
   MentorshipRequestStatus.Pending,
   MentorshipRequestStatus.MoreInfoRequested,
+  MentorshipRequestStatus.CounterProposed,
 ]);
 const historyStatuses = new Set([
   MentorshipRequestStatus.Declined,
