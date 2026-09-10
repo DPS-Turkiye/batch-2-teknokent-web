@@ -21,6 +21,12 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), back: vi.fn() }),
+  usePathname: () => "/mentorships",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => null,
 }));
@@ -96,12 +102,38 @@ describe("MentorshipsPage", () => {
     } as never);
   });
 
+  function openMeeting(
+    requestId: string,
+    overrides: Record<string, unknown> = {},
+  ) {
+    return {
+      id: `meeting-${requestId}`,
+      organizationId: "org-1",
+      mentorId: "mentor-1",
+      mentorshipRequestId: requestId,
+      scheduledAt: "2099-08-30T11:00:00.000Z",
+      durationMinutes: 45,
+      meetLink: null,
+      status: MeetingStatus.Scheduled,
+      ...overrides,
+    };
+  }
+
   it("lists every mentorship request, not just the dashboard's first two", () => {
     mockRequests([
       request({ id: "1", mentorName: "Leyla Aksoy" }),
-      request({ id: "2", mentorName: "Ece Demir" }),
-      request({ id: "3", mentorName: "Burak Yalçın" }),
+      request({ id: "2", mentorName: "Ece Demir", mentorId: "mentor-2" }),
+      request({ id: "3", mentorName: "Burak Yalçın", mentorId: "mentor-3" }),
     ]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        openMeeting("1"),
+        openMeeting("2", { mentorId: "mentor-2" }),
+        openMeeting("3", { mentorId: "mentor-3" }),
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -112,6 +144,11 @@ describe("MentorshipsPage", () => {
 
   it("links each request to its status detail page", () => {
     mockRequests([request({ id: "req-42" })]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [openMeeting("req-42")],
+      isLoading: false,
+      error: null,
+    } as never);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -124,16 +161,10 @@ describe("MentorshipsPage", () => {
     mockRequests([request({ id: "req-42" })]);
     vi.mocked(useMeetings).mockReturnValue({
       data: [
-        {
+        openMeeting("req-42", {
           id: "meeting-1",
-          organizationId: "org-1",
-          mentorId: "mentor-1",
-          mentorshipRequestId: "req-42",
-          scheduledAt: "2026-09-10T10:00:00.000Z",
-          durationMinutes: 45,
           meetLink: "https://meet.google.com/abc-defg-hij",
-          status: MeetingStatus.Scheduled,
-        },
+        }),
       ],
       isLoading: false,
       error: null,
@@ -200,7 +231,7 @@ describe("MentorshipsPage", () => {
     expect(screen.queryByText(/Maks\./)).not.toBeInTheDocument();
   });
 
-  it("keeps recently completed mentorships on the Geçmiş tab", async () => {
+  it("moves ended meetings to Geçmiş with info and evaluate links", async () => {
     const user = userEvent.setup();
     mockRequests([
       request({
@@ -210,11 +241,33 @@ describe("MentorshipsPage", () => {
       }),
       request({
         id: "past-1",
+        mentorId: "mentor-past",
         mentorName: "Deniz Aksoy",
         supportArea: "Büyüme Stratejisi",
+      }),
+      request({
+        id: "withdrawn-1",
+        mentorName: "Ayşe Kara",
+        supportArea: "Satış",
         status: MentorshipRequestStatus.Withdrawn,
       }),
     ]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        openMeeting("active-1"),
+        {
+          id: "ended-meeting",
+          organizationId: "org-1",
+          mentorId: "mentor-past",
+          mentorshipRequestId: "past-1",
+          scheduledAt: "2020-01-01T10:00:00.000Z",
+          durationMinutes: 45,
+          status: MeetingStatus.Completed,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -229,8 +282,19 @@ describe("MentorshipsPage", () => {
 
     expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Deniz Aksoy · Büyüme Stratejisi/ }),
-    ).toHaveAttribute("href", "/mentor-request/status?id=past-1");
+      screen.getByText(/Deniz Aksoy · Büyüme Stratejisi/),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
+    ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
+    expect(
+      screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
+    ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");
+    expect(screen.getByText(/Ayşe Kara · Satış/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Talebi aç →" })).toHaveAttribute(
+      "href",
+      "/mentor-request/status?id=withdrawn-1",
+    );
     expect(screen.queryByText("Nihan Öztürk")).not.toBeInTheDocument();
   });
 });

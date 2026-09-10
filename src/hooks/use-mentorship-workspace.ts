@@ -6,42 +6,75 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import {
+  requestHasConfirmedMeeting,
+  requestHasEndedMeeting,
+  requestHasOpenMeeting,
+} from "@/lib/mentorship-workspace";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
-const activeStatuses = new Set([MentorshipRequestStatus.Accepted]);
 const requestStatuses = new Set([
   MentorshipRequestStatus.Pending,
   MentorshipRequestStatus.MoreInfoRequested,
   MentorshipRequestStatus.CounterProposed,
 ]);
-const historyStatuses = new Set([
+const closedStatuses = new Set([
   MentorshipRequestStatus.Declined,
   MentorshipRequestStatus.Withdrawn,
 ]);
 
 export function useMentorshipWorkspace(
   role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+  initialTab: MentorshipWorkspaceTab = MentorshipWorkspaceTab.Active,
 ) {
   const requestsQuery = useMentorshipRequests(role);
   const meetingsQuery = useMeetings();
-  const [tab, setTab] = useState(MentorshipWorkspaceTab.Active);
+  const [tab, setTab] = useState(initialTab);
 
+  const meetings = useMemo(
+    () => meetingsQuery.data ?? [],
+    [meetingsQuery.data],
+  );
+
+  // Mentee list is org-scoped (same startup), so teammates' requests appear too.
   const allRequests = useMemo(
     () => requestsQuery.data ?? [],
     [requestsQuery.data],
   );
 
   const activeRequests = useMemo(
-    () => allRequests.filter((request) => activeStatuses.has(request.status)),
-    [allRequests],
+    () =>
+      allRequests.filter(
+        (request) =>
+          request.status === MentorshipRequestStatus.Accepted &&
+          requestHasConfirmedMeeting(meetings, request) &&
+          requestHasOpenMeeting(meetings, request),
+      ),
+    [allRequests, meetings],
   );
   const pendingRequests = useMemo(
-    () => allRequests.filter((request) => requestStatuses.has(request.status)),
-    [allRequests],
+    () =>
+      allRequests.filter((request) => {
+        if (requestStatuses.has(request.status)) return true;
+        return (
+          request.status === MentorshipRequestStatus.Accepted &&
+          !requestHasConfirmedMeeting(meetings, request)
+        );
+      }),
+    [allRequests, meetings],
   );
   const historyRequests = useMemo(
-    () => allRequests.filter((request) => historyStatuses.has(request.status)),
-    [allRequests],
+    () =>
+      allRequests.filter((request) => {
+        if (closedStatuses.has(request.status)) return true;
+        return (
+          request.status === MentorshipRequestStatus.Accepted &&
+          requestHasConfirmedMeeting(meetings, request) &&
+          requestHasEndedMeeting(meetings, request) &&
+          !requestHasOpenMeeting(meetings, request)
+        );
+      }),
+    [allRequests, meetings],
   );
 
   const requests = useMemo(() => {
@@ -54,8 +87,8 @@ export function useMentorshipWorkspace(
   return {
     error: requestsQuery.error,
     historyRequests,
-    isLoading: requestsQuery.isLoading,
-    meetings: meetingsQuery.data ?? [],
+    isLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
+    meetings,
     requests,
     setTab,
     tab,

@@ -64,8 +64,8 @@ export default function RequestSentPage() {
           >
             Talep Detaylarını Gör
           </PrimaryButton>
-          <SecondaryButton disabled className="w-full">
-            Alternatif Mentorları İncele
+          <SecondaryButton href="/mentorships?tab=requests" className="w-full">
+            Taleplerime Git
           </SecondaryButton>
           <SecondaryButton
             href="/dashboard"

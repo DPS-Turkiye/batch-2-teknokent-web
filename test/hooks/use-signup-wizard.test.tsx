@@ -19,6 +19,17 @@ vi.mock("@/lib/client/onboarding-draft", () => ({
   clearOnboardingDraft: vi.fn(),
 }));
 
+/** Mount the wizard and flush the async draft-restore effect (setReady). */
+async function renderWizard(options?: Parameters<typeof useSignupWizard>[0]) {
+  const rendered = renderHook(() => useSignupWizard(options));
+  await act(async () => {
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  return rendered;
+}
+
 function fillPersonal(result: { current: ReturnType<typeof useSignupWizard> }) {
   act(() => {
     result.current.updatePersonal("firstName", "Gülse");
@@ -38,8 +49,8 @@ describe("useSignupWizard", () => {
     vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
   });
 
-  it("starts on the personal profile step with an empty draft", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("starts on the personal profile step with an empty draft", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.step).toBe(SignupStep.PersonalProfile);
     expect(result.current.submitted).toBe(false);
@@ -47,8 +58,8 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.documents).toEqual({});
   });
 
-  it("blocks the first step until name, surname and role are filled", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("blocks the first step until name, surname and role are filled", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.canContinue).toBe(false);
 
@@ -62,8 +73,8 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(true);
   });
 
-  it("treats whitespace-only values as unfilled", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("treats whitespace-only values as unfilled", async () => {
+    const { result } = await renderWizard();
 
     act(() => {
       result.current.updatePersonal("firstName", "   ");
@@ -74,11 +85,11 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(false);
   });
 
-  it("returns to the top of the page when the step changes", () => {
+  it("returns to the top of the page when the step changes", async () => {
     const scrollTo = vi.fn();
     vi.stubGlobal("scrollTo", scrollTo);
 
-    const { result } = renderHook(() => useSignupWizard());
+    const { result } = await renderWizard();
     fillPersonal(result);
     scrollTo.mockClear();
 
@@ -92,8 +103,8 @@ describe("useSignupWizard", () => {
     vi.unstubAllGlobals();
   });
 
-  it("blocks the startup step until name, tagline, website and logo are filled", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("blocks the startup step until name, tagline, website and logo are filled", async () => {
+    const { result } = await renderWizard();
     fillPersonal(result);
     act(() => result.current.goNext());
 
@@ -119,8 +130,8 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(true);
   });
 
-  it("moves forward and back through the steps without overrunning either end", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("moves forward and back through the steps without overrunning either end", async () => {
+    const { result } = await renderWizard();
 
     act(() => result.current.goBack());
     expect(result.current.step).toBe(SignupStep.PersonalProfile);
@@ -140,8 +151,8 @@ describe("useSignupWizard", () => {
     expect(result.current.step).toBe(SignupStep.Documents);
   });
 
-  it("jumps straight to a step when a review section is edited", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("jumps straight to a step when a review section is edited", async () => {
+    const { result } = await renderWizard();
 
     act(() => result.current.goToStep(SignupStep.Review));
     expect(result.current.step).toBe(SignupStep.Review);
@@ -150,8 +161,8 @@ describe("useSignupWizard", () => {
     expect(result.current.step).toBe(SignupStep.PersonalProfile);
   });
 
-  it("sets expertise, and toggles support areas and contact preferences", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("sets expertise, and toggles support areas and contact preferences", async () => {
+    const { result } = await renderWizard();
 
     // Expertise is free-form now — the step replaces the whole set rather than
     // toggling entries of a fixed list.
@@ -171,8 +182,8 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.personal.contactPreferences).toEqual(["Mesaj"]);
   });
 
-  it("counts remaining characters for the capped text fields", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("counts remaining characters for the capped text fields", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.bioRemaining).toBe(280);
     expect(result.current.taglineRemaining).toBe(80);
@@ -184,8 +195,8 @@ describe("useSignupWizard", () => {
     expect(result.current.taglineRemaining).toBe(77);
   });
 
-  it("marks checklist entries done as their documents arrive, and undone when removed", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("marks checklist entries done as their documents arrive, and undone when removed", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.checklist.every((item) => !item.done)).toBe(true);
 
@@ -208,8 +219,8 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.documents).toEqual({});
   });
 
-  it("reports profile completion and names what is still missing", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("reports profile completion and names what is still missing", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.completion.percent).toBe(0);
     expect(result.current.completion.missing).toContain("Web sitesi URL'i");
@@ -223,7 +234,7 @@ describe("useSignupWizard", () => {
   });
 
   it("records a draft save without submitting the profile", async () => {
-    const { result } = renderHook(() => useSignupWizard());
+    const { result } = await renderWizard();
 
     expect(result.current.draftSavedAt).toBeNull();
 
@@ -246,7 +257,7 @@ describe("useSignupWizard", () => {
       },
     });
 
-    const { result } = renderHook(() => useSignupWizard());
+    const { result } = await renderWizard();
 
     await waitFor(() =>
       expect(result.current.draft.personal.firstName).toBe("Gülse"),
@@ -255,8 +266,8 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.startup.name).toBe("Döngü");
   });
 
-  it("keeps the new startup fields in the draft", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("keeps the new startup fields in the draft", async () => {
+    const { result } = await renderWizard();
 
     act(() => {
       result.current.updateStartup("solution", "Eşleştirme motoru");
@@ -271,8 +282,8 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.startup.maturity).toBe("Prototip");
   });
 
-  it("no longer tracks the removed Bugünkü durum fields", () => {
-    const { result } = renderHook(() => useSignupWizard());
+  it("no longer tracks the removed Bugünkü durum fields", async () => {
+    const { result } = await renderWizard();
 
     expect(result.current.draft.startup).not.toHaveProperty("teamSize");
     expect(result.current.draft.startup).not.toHaveProperty("productStatus");
@@ -282,7 +293,7 @@ describe("useSignupWizard", () => {
   });
 
   it("flips to the submitted state only when submit is called", async () => {
-    const { result } = renderHook(() => useSignupWizard());
+    const { result } = await renderWizard();
 
     act(() => result.current.goToStep(SignupStep.Review));
     expect(result.current.submitted).toBe(false);
@@ -293,7 +304,7 @@ describe("useSignupWizard", () => {
 
   it("sends the draft to the submit handler before flipping state", async () => {
     const onSubmit = vi.fn().mockResolvedValue(undefined);
-    const { result } = renderHook(() => useSignupWizard({ onSubmit }));
+    const { result } = await renderWizard({ onSubmit });
 
     act(() => result.current.updateStartup("name", "Döngü"));
     await act(() => result.current.submit());
@@ -310,7 +321,7 @@ describe("useSignupWizard", () => {
     const onSubmit = vi
       .fn()
       .mockRejectedValue(new Error("Davet kodu geçersiz"));
-    const { result } = renderHook(() => useSignupWizard({ onSubmit }));
+    const { result } = await renderWizard({ onSubmit });
 
     await act(() => result.current.submit());
 

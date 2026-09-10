@@ -469,9 +469,36 @@ export const MEETING_PREPARE_CHECKLIST = [
 ] as const;
 
 export const MEETING_FEEDBACK_QUESTIONS = [
-  "Görüşme ihtiyacınıza ne kadar yardımcı oldu?",
-  "Mentorun yaklaşımı ve yönlendirmesi nasıldı?",
-  "Bu mentoru başka bir girişimciye önerir misiniz?",
+  {
+    prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
+    low: "1 — Hiç netleşmedi",
+    high: "5 — Tamamen netleşti",
+  },
+  {
+    prompt: "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
+    low: "1 — Hiç uygun değildi",
+    high: "5 — Tamamen uygundu",
+  },
+  {
+    prompt: "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
+    low: "1 — Hiç katılmıyorum",
+    high: "5 — Tamamen katılıyorum",
+  },
+  {
+    prompt:
+      "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
+    low: "1 — Azaldı",
+    high: "5 — Belirgin şekilde arttı",
+  },
+] as const;
+
+export const MEETING_FEEDBACK_BENEFITS = [
+  "Önceliklerimi netleştirmek",
+  "Finansal modeli anlamak",
+  "Varsayımlarımı sorgulamak",
+  "Somut aksiyonlar belirlemek",
+  "Yeni bir bakış açısı kazanmak",
+  "Kaynak / bağlantı önerileri",
 ] as const;
 
 export const SITE_NAV_ITEMS = [

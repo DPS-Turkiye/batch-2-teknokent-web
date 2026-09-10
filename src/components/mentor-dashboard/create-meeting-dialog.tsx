@@ -338,8 +338,9 @@ export function CreateMeetingDialog({
                   role="alert"
                   className="rounded-lg bg-[#fdeaea] px-3 py-2 text-xs text-[#b42318]"
                 >
-                  Otomatik Google Meet oluşturulamadı. {error.message} Linki
-                  kendin oluşturup aşağıya yapıştırabilirsin.
+                  {manualMeetLink.trim()
+                    ? error.message
+                    : `Otomatik Google Meet oluşturulamadı. ${error.message} Linki kendin oluşturup aşağıya yapıştırabilirsin.`}
                 </p>
                 <label className="block text-sm font-semibold text-[#22262b]">
                   Google Meet linki
