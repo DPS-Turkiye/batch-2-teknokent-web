@@ -489,7 +489,8 @@ function RequestDrawer({
     };
   }, [onClose]);
   const snapshot = request.recommendationSnapshot;
-  const startup = request.organizationName ?? request.requesterName ?? "Startup";
+  const startup =
+    request.organizationName ?? request.requesterName ?? "Startup";
   const context = [snapshot?.startupStage, snapshot?.startupSector].filter(
     Boolean,
   );

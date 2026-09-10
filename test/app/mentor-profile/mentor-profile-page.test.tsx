@@ -1,18 +1,8 @@
-import { screen } from "@testing-library/react";
+import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import MentorProfilePage from "@/app/mentor-profile/page";
-import {
-  useAvailabilitySlotForm,
-  useMentorAvailabilitySlots,
-  useMentorProfile,
-  useMentorProfileForm,
-} from "@/hooks/use-mentor-profile";
-import type {
-  MentorAvailabilitySlot,
-  MentorProfile,
-} from "@/interfaces/mentor";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -21,158 +11,93 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
-vi.mock("@/hooks/use-mentor-profile", () => ({
-  useMentorProfile: vi.fn(),
-  useMentorProfileForm: vi.fn(),
-  useMentorAvailabilitySlots: vi.fn(),
-  useAvailabilitySlotForm: vi.fn(),
-}));
-
-function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
-  return {
-    id: "mentor-1",
-    fullName: "Leyla Aksoy",
-    email: "leyla.aksoy@teknokent.demo",
-    initials: "LA",
-    professionalTitle: "ClimateTech Kurucusu",
-    company: "Döngü Labs",
-    availabilityLabel: "İki hafta içinde müsait",
-    responseTimeLabel: "~48 saat",
-    meetingMode: "Online",
-    communicationPreference: "Mesajlaşma açık",
-    mentoringStyle: "İşbirlikçi",
-    fitLabel: "Yüksek",
-    experienceLevel: "İklim teknolojileri",
-    sectorExperience: "ClimateTech",
-    startupStages: "MVP & Büyüme",
-    specialties: ["Sürdürülebilir iş modeli"],
-    recommendationReasons: [],
-    recommendationEvidence: [],
-    ...overrides,
-  };
-}
-
-function slot(
-  overrides: Partial<MentorAvailabilitySlot> = {},
-): MentorAvailabilitySlot {
-  return {
-    id: "slot-1",
-    startsAt: "2026-08-22T07:00:00.000Z",
-    durationMinutes: 60,
-    booked: false,
-    ...overrides,
-  };
-}
-
-function mockProfileForm(overrides: Record<string, unknown> = {}) {
-  vi.mocked(useMentorProfileForm).mockReturnValue({
-    form: profile(),
-    specialtyInput: "",
-    setSpecialtyInput: vi.fn(),
-    saveError: "",
-    saveSuccess: false,
-    isSaving: false,
-    updateField: vi.fn(),
-    addSpecialty: vi.fn(),
-    removeSpecialty: vi.fn(),
-    handleSave: vi.fn(),
-    ...overrides,
-  } as ReturnType<typeof useMentorProfileForm>);
-}
-
-function mockSlotForm(overrides: Record<string, unknown> = {}) {
-  vi.mocked(useAvailabilitySlotForm).mockReturnValue({
-    slotForm: { startsAt: "2026-08-22T10:00", durationMinutes: 60 },
-    setSlotForm: vi.fn(),
-    slotError: "",
-    isCreating: false,
-    isDeleting: false,
-    handleAddSlot: vi.fn(),
-    handleDeleteSlot: vi.fn(),
-    ...overrides,
-  } as ReturnType<typeof useAvailabilitySlotForm>);
-}
-
 describe("MentorProfilePage", () => {
-  it("renders the profile form once the profile loads", () => {
-    vi.mocked(useMentorProfile).mockReturnValue({
-      data: profile(),
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useMentorProfile>);
-    mockProfileForm();
-    vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as ReturnType<typeof useMentorAvailabilitySlots>);
-    mockSlotForm();
-
+  it("renders the mentor identity header", () => {
     renderWithQueryClient(<MentorProfilePage />);
 
-    expect(screen.getByDisplayValue("Döngü Labs")).toBeInTheDocument();
-    expect(screen.getByText("Sürdürülebilir iş modeli")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Nihan Öztürk" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Design / UX Mentor · 12 yıl ürün tasarımı deneyimi"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Mentorluğa açık")).toBeInTheDocument();
   });
 
-  it("calls handleSave when the save button is clicked", async () => {
-    const handleSave = vi.fn();
-    vi.mocked(useMentorProfile).mockReturnValue({
-      data: profile(),
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useMentorProfile>);
-    mockProfileForm({ handleSave });
-    vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as ReturnType<typeof useMentorAvailabilitySlots>);
-    mockSlotForm();
+  it("summarises the mentor's mentorship statistics", () => {
+    renderWithQueryClient(<MentorProfilePage />);
 
+    expect(screen.getByText("Aktif mentorluk")).toBeInTheDocument();
+    expect(screen.getByText("Tamamlanan")).toBeInTheDocument();
+    expect(screen.getByText("Ortalama değerlendirme")).toBeInTheDocument();
+  });
+
+  it("renders the availability, preference and programme cards", () => {
+    renderWithQueryClient(<MentorProfilePage />);
+
+    expect(
+      screen.getByRole("heading", { name: "Müsaitlik" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Görüşme tercihleri" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Programlar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Tekrarlayan haftalık uygunluk"),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the availability editor", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProfilePage />);
 
-    await user.click(screen.getByRole("button", { name: "Profili Kaydet" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
 
-    expect(handleSave).toHaveBeenCalled();
+    await user.click(
+      screen.getByRole("button", { name: "Müsaitliği düzenle" }),
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "Müsaitliği düzenle" });
+    expect(within(dialog).getByText("Haftalık uygunluk")).toBeInTheDocument();
   });
 
-  it("renders availability slots and calls handleDeleteSlot", async () => {
-    const handleDeleteSlot = vi.fn();
-    vi.mocked(useMentorProfile).mockReturnValue({
-      data: profile(),
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useMentorProfile>);
-    mockProfileForm();
-    vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
-      data: [slot()],
-      isLoading: false,
-    } as ReturnType<typeof useMentorAvailabilitySlots>);
-    mockSlotForm({ handleDeleteSlot });
-
+  it("dismisses the availability editor from its close button", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MentorProfilePage />);
 
-    expect(screen.getByText(/60 dk/)).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Kaldır" }));
+    await user.click(
+      screen.getByRole("button", { name: "Müsaitliği düzenle" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Kapat" }));
 
-    expect(handleDeleteSlot).toHaveBeenCalledWith("slot-1");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("disables removing a booked slot", () => {
-    vi.mocked(useMentorProfile).mockReturnValue({
-      data: profile(),
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof useMentorProfile>);
-    mockProfileForm();
-    vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
-      data: [slot({ booked: true })],
-      isLoading: false,
-    } as ReturnType<typeof useMentorAvailabilitySlots>);
-    mockSlotForm();
-
+  it("dismisses the availability editor from Vazgeç", async () => {
+    const user = userEvent.setup();
     renderWithQueryClient(<MentorProfilePage />);
 
-    expect(screen.getByRole("button", { name: "Kaldır" })).toBeDisabled();
+    await user.click(
+      screen.getByRole("button", { name: "Müsaitliği düzenle" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  // The editor is still presentation-only: Kaydet closes the dialog and does
+  // not persist anything until the availability API is wired up.
+  it("closes the availability editor from Kaydet without persisting", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<MentorProfilePage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Müsaitliği düzenle" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 });

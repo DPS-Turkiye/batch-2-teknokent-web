@@ -22,7 +22,9 @@ vi.mock("@/hooks/use-mentor-dashboard", () => ({
   useMentorDashboard: vi.fn(),
 }));
 
-function request(overrides: Partial<MentorshipRequest> = {}): MentorshipRequest {
+function request(
+  overrides: Partial<MentorshipRequest> = {},
+): MentorshipRequest {
   return {
     id: "request-1",
     requesterId: "mentee-1",
