@@ -1,377 +1,355 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-import { FilterPills } from "@/components/calendar/filter-pills";
-import { WeekGridTable } from "@/components/calendar/week-grid-table";
+import { ChevronRight, FileText, X } from "lucide-react";
+import { useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
-import {
-  CreateMeetingDialog,
-  type CreateMeetingBatch,
-} from "@/components/mentor-dashboard/create-meeting-dialog";
-import { MeetingDetailDialog } from "@/components/mentor-dashboard/meeting-detail-dialog";
-import { useSession } from "@/components/providers/session-provider";
-import {
-  CALENDAR_HOURS,
-  CalendarFilter,
-  useMentorCalendar,
-} from "@/hooks/use-mentor-calendar";
-import type { MeetingItem } from "@/interfaces/meeting";
-import { Weekday, WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
-import {
-  hourOf,
-  isSameDay,
-  timeLabel,
-  weekRangeLabel,
-  WEEKDAY_SHORT_LABELS,
-} from "@/lib/calendar";
-import {
-  createGoogleMeetEvent,
-  ensureGoogleCalendarToken,
-  relayGoogleOAuthTokenFromUrl,
-} from "@/lib/google-calendar";
-import { meetingCalendarTitle } from "@/lib/meeting-participants";
-import { meetingRecipient } from "@/lib/meeting-targets";
 import { AppArea } from "@/types/app-area";
 
-export default function MentorCalendarPage() {
-  const calendar = useMentorCalendar();
-  const { session } = useSession();
-  const [showRuleForm, setShowRuleForm] = useState(false);
-  const [meetingAt, setMeetingAt] = useState<Date | null>(null);
-  const [meetingOpen, setMeetingOpen] = useState(false);
-  const [detailMeeting, setDetailMeeting] = useState<MeetingItem | null>(null);
-  const [creatingMeet, setCreatingMeet] = useState(false);
-  const [meetError, setMeetError] = useState<Error | null>(null);
-  const [draft, setDraft] = useState({
-    dayOfWeek: Weekday.Tuesday,
-    startTime: "14:00",
-    endTime: "17:00",
-    slotMinutes: 60,
-  });
+const hours = [
+  "09:00",
+  "10:00",
+  "11:00",
+  "12:00",
+  "13:00",
+  "14:00",
+  "15:00",
+  "16:00",
+  "17:00",
+  "18:00",
+];
+const days = [
+  ["Pzt", "14"],
+  ["Sal", "15"],
+  ["Çar", "16"],
+  ["Per", "17"],
+  ["Cum", "18"],
+];
+type Kind = "meeting" | "available" | "program";
+type Event = {
+  day: number;
+  row: number;
+  span: number;
+  title: string;
+  subtitle?: string;
+  kind: Kind;
+};
+const events: Event[] = [
+  { day: 0, row: 5, span: 1, title: "Döngü · Gülse", kind: "meeting" },
+  {
+    day: 1,
+    row: 5,
+    span: 3,
+    title: "Müsait",
+    subtitle: "3 saat",
+    kind: "available",
+  },
+  { day: 2, row: 1, span: 1, title: "Terra · Mert", kind: "meeting" },
+  {
+    day: 2,
+    row: 2,
+    span: 2,
+    title: "Müsait",
+    subtitle: "2 saat",
+    kind: "available",
+  },
+  {
+    day: 3,
+    row: 7,
+    span: 1,
+    title: "METU Stars",
+    subtitle: "Mentor buluşması",
+    kind: "program",
+  },
+  {
+    day: 4,
+    row: 2,
+    span: 1,
+    title: "NovaTech · Deniz",
+    subtitle: "Design System kickoff",
+    kind: "meeting",
+  },
+  {
+    day: 4,
+    row: 6,
+    span: 3,
+    title: "Müsait",
+    subtitle: "3 saat",
+    kind: "available",
+  },
+];
 
-  const { weekStart, days } = calendar;
-  const rangeEnd = days[days.length - 1];
-  const range = weekRangeLabel(weekStart, rangeEnd);
-
-  useEffect(() => {
-    relayGoogleOAuthTokenFromUrl();
-  }, []);
-
-  function openMeeting(at: Date | null) {
-    setMeetingAt(at);
-    setMeetError(null);
-    setMeetingOpen(true);
-  }
-
-  async function submitMeeting(input: CreateMeetingBatch) {
-    setMeetError(null);
-    setCreatingMeet(true);
-    try {
-      let meetLink = input.meetLink;
-      if (!meetLink) {
-        const { token } = await ensureGoogleCalendarToken();
-        meetLink = await createGoogleMeetEvent({
-          accessToken: token,
-          title: input.agenda,
-          startIso: input.scheduledAt,
-          durationMinutes: input.durationMinutes,
-        });
-      }
-      for (const recipient of input.recipients) {
-        await calendar.addMeeting({
-          ...recipient,
-          scheduledAt: input.scheduledAt,
-          durationMinutes: input.durationMinutes,
-          agenda: input.agenda,
-          meetLink,
-          transcribeRequested: input.transcribeRequested ?? false,
-        });
-      }
-      setMeetingOpen(false);
-    } catch (reason) {
-      setMeetError(
-        reason instanceof Error
-          ? reason
-          : new Error("Google Meet oluşturulamadı."),
-      );
-    } finally {
-      setCreatingMeet(false);
-    }
-  }
-
-  async function submitRule() {
-    await calendar.addRule(draft);
-    setShowRuleForm(false);
-  }
-
+function MeetingModal({ onClose }: { onClose: () => void }) {
   return (
-    <AppShell active={AppArea.Calendar} title="Takvim">
-      <div className="mx-auto w-full max-w-[1180px] px-4 pb-14 pt-8 sm:px-8">
-        <h1 className="text-2xl font-bold text-[#22262b]">Takvim</h1>
-
-        <div className="mt-4">
-          <FilterPills filter={calendar.filter} onChange={calendar.setFilter} />
+    <div
+      className="fixed inset-0 z-50 grid place-items-center bg-[#22262b]/35 px-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="meeting-title"
+    >
+      <section className="w-full max-w-[560px] overflow-hidden rounded-[14px] bg-white shadow-[0_24px_60px_rgba(0,0,0,.22)]">
+        <header className="relative border-b border-[#eef0f3] px-6 pb-4 pt-5">
+          <p className="text-[11px] text-[#858c96]">Döngü · Gülse Buran</p>
+          <h2 id="meeting-title" className="mt-1 text-xl font-semibold">
+            UX Research Review
+          </h2>
+          <button
+            onClick={onClose}
+            aria-label="Kapat"
+            className="absolute right-5 top-8"
+          >
+            <X className="size-5" strokeWidth={1.5} />
+          </button>
+          <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
+            <span className="rounded-full bg-[#eaf6ff] px-2.5 py-1 font-medium text-[#26a4ff]">
+              14 Eylül · 14:00 · 45 dk
+            </span>
+            <span className="rounded-full bg-[#f3f4f6] px-2.5 py-1 text-[#676e78]">
+              Online · Google Meet
+            </span>
+            <span className="rounded-full bg-[#f3f4f6] px-2.5 py-1 text-[#676e78]">
+              4. seans / 6
+            </span>
+          </div>
+        </header>
+        <div className="space-y-5 px-6 py-5 text-xs leading-5 text-[#4a5059]">
+          <section>
+            <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
+              Toplantı amacı
+            </p>
+            <p>
+              Son kullanıcı testlerinin bulgularını birlikte yorumlamak ve
+              onboarding akışının ikinci versiyonuna karar vermek.
+            </p>
+          </section>
+          <section>
+            <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
+              Gündem
+            </p>
+            <ol className="space-y-1">
+              <li>1 · Kullanıcı testi bulguları (15 dk)</li>
+              <li>2 · Onboarding akışı v2 kritiği (20 dk)</li>
+              <li>3 · Sonraki iki haftanın işleri (10 dk)</li>
+            </ol>
+          </section>
+          <section>
+            <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
+              Önceki görüşmeden
+            </p>
+            <div className="rounded-lg bg-[#f2f8fc] px-3 py-2.5">
+              <p className="font-medium text-[#26a4ff]">
+                UX Flow Review · 5 Eylül
+              </p>
+              <p className="mt-1">
+                Değer önerisi mesajı netleşmedi; ilk ekranın hedefi tek cümleyle
+                tanımlanacak.
+              </p>
+            </div>
+          </section>
+          <section>
+            <p className="mb-2 text-[10px] font-semibold uppercase text-[#858c96]">
+              Bu görüşmeye bağlı işler
+            </p>
+            <div className="divide-y divide-[#eef0f3] overflow-hidden rounded-lg border border-[#e4e7ea]">
+              {[
+                ["Güncellenmiş kullanıcı akışı", "Teslim 11 Eyl", "Gecikti"],
+                ["Revize prototip", "Teslim 14 Eyl", "İnceleme bekliyor"],
+              ].map(([title, due, status]) => (
+                <div
+                  key={title}
+                  className="flex items-center gap-3 px-3 py-2.5"
+                >
+                  <FileText className="size-4" strokeWidth={1.5} />
+                  <div className="flex-1">
+                    <p className="font-medium text-[#22262b]">{title}</p>
+                    <p className="text-[11px] text-[#858c96]">{due}</p>
+                  </div>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-[10px] ${status === "Gecikti" ? "border border-[#f2cda9] bg-[#fff8f0] text-[#b65d17]" : "bg-[#eef8ff] text-[#26a4ff]"}`}
+                  >
+                    {status}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
+        <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eef0f3] px-6 py-4 text-xs">
+          <button className="font-medium text-[#26a4ff]">
+            Mentorluğa git →
+          </button>
+          <div className="flex gap-2">
+            <button className="rounded-full border border-[#d4d8dd] px-4 py-2">
+              Yeniden planla
+            </button>
+            <button className="rounded-full bg-[#f2f8fc] px-4 py-2 text-[#26a4ff]">
+              Gülse’ye mesaj
+            </button>
+            <button className="rounded-full bg-[#26a4ff] px-4 py-2 text-white">
+              Toplantıya katıl
+            </button>
+          </div>
+        </footer>
+      </section>
+    </div>
+  );
+}
 
-        <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_320px]">
-          <section className="min-w-0 rounded-2xl border border-[#e4e7ea] bg-white p-4 sm:p-5">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-sm font-bold text-[#22262b]">{range}</h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={calendar.previousWeek}
-                  className="rounded-lg border border-[#e4e7ea] px-3 py-1.5 text-xs font-medium"
-                >
-                  ← Önceki
-                </button>
-                <button
-                  type="button"
-                  onClick={calendar.thisWeek}
-                  className="rounded-lg border border-[#e4e7ea] px-3 py-1.5 text-xs font-medium"
-                >
+export default function MentorCalendarPage() {
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [filter, setFilter] = useState("Tümü");
+  const allowed = (event: Event) =>
+    filter === "Tümü" ||
+    (filter === "Mentorluk" && event.kind === "meeting") ||
+    (filter === "Program" && event.kind === "program") ||
+    (filter === "Müsaitlik" && event.kind === "available");
+  return (
+    <AppShell active={AppArea.Calendar} mentorHome>
+      <main className="mx-auto w-full max-w-[1276px] px-6 pb-[72px] pt-3">
+        <header className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[28px] font-semibold leading-[39px]">Takvim</h1>
+            <p className="mt-1 text-[13px] text-[#676e78]">
+              Bu hafta 3 görüşme · 1 program etkinliği · 8 boş slot
+            </p>
+          </div>
+          <button className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white">
+            Yeni toplantı oluştur
+          </button>
+        </header>
+        <div className="mt-[22px] flex gap-2">
+          {["Tümü", "Mentorluk", "Program", "Müsaitlik"].map((item) => (
+            <button
+              key={item}
+              onClick={() => setFilter(item)}
+              className={`rounded-full border px-3 py-[5px] text-xs font-medium ${filter === item ? "border-[#f5faff] bg-[#f2f8fc] text-[#26a4ff]" : "border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]"}`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+        <div className="mt-4 grid items-start gap-6 xl:grid-cols-[804px_400px]">
+          <section className="overflow-x-auto rounded-xl border border-[#e4e7ea] bg-white px-5 pb-5 pt-[18px]">
+            <div className="flex h-[38px] min-w-[720px] items-center justify-between">
+              <h2 className="text-base font-semibold">14–18 Eylül 2026</h2>
+              <div className="flex items-center gap-2">
+                <button className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]">
                   Bugün
                 </button>
-                <button
-                  type="button"
-                  onClick={calendar.nextWeek}
-                  className="rounded-lg border border-[#e4e7ea] px-3 py-1.5 text-xs font-medium"
-                >
-                  Sonraki →
-                </button>
+                <ChevronRight className="size-[18px]" strokeWidth={1.5} />
               </div>
             </div>
-
-            <WeekGridTable
-              days={days}
-              hours={CALENDAR_HOURS}
-              dayLabels={WEEKDAY_SHORT_LABELS}
-              renderCell={(day, hour) => {
-                const meeting = calendar.meetings.find(
-                  (item) =>
-                    isSameDay(item.scheduledAt, day) &&
-                    hourOf(item.scheduledAt) === hour,
-                );
-                const slot = calendar.slots.find(
-                  (item) =>
-                    isSameDay(item.startsAt, day) &&
-                    hourOf(item.startsAt) === hour,
-                );
-                return meeting ? (
-                  <button
-                    type="button"
-                    onClick={() => setDetailMeeting(meeting)}
-                    aria-label={`${meetingCalendarTitle(meeting)} detayını aç`}
-                    className="flex min-h-[3.25rem] w-fit min-w-[6.5rem] max-w-[9.5rem] flex-col justify-center rounded-lg bg-[#2f7ff0] px-2 py-1.5 text-left text-[11px] leading-snug text-white shadow-[0_1px_2px_rgba(15,23,42,.12)] hover:bg-[#1f6fe0]"
-                  >
-                    <span className="line-clamp-2 font-semibold">
-                      {meetingCalendarTitle(meeting)}
-                    </span>
-                    <span className="mt-0.5 truncate text-[10px] opacity-90">
-                      {timeLabel(meeting.scheduledAt)}
-                    </span>
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const at = new Date(day);
-                      at.setHours(hour, 0, 0, 0);
-                      openMeeting(at);
-                    }}
-                    aria-label={`${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`}
-                    title={slot ? "Müsait" : undefined}
-                    className={`h-full w-full rounded-lg ${
-                      slot
-                        ? "bg-[#dbeafe] hover:bg-[#bfdbfe]"
-                        : "hover:bg-[#f8f9fa]"
-                    }`}
-                  />
-                );
-              }}
-            />
-
-            {calendar.filter === CalendarFilter.Program ? (
-              <p className="mt-4 rounded-xl bg-[#f1f2f4] p-4 text-center text-xs text-[#676e78]">
-                Program etkinlikleri henüz tanımlı değil.
-              </p>
-            ) : null}
-          </section>
-
-          <aside className="space-y-4">
-            <button
-              type="button"
-              onClick={() => openMeeting(null)}
-              className="w-full rounded-xl bg-[#e86f22] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#ce5e19]"
-            >
-              Yeni Toplantı Oluştur
-            </button>
-
-            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
-              <div className="flex items-start justify-between gap-2">
-                <div>
-                  <h2 className="text-sm font-bold text-[#22262b]">
-                    Müsaitliğim
-                  </h2>
-                  <p className="mt-1 text-xs text-[#858c96]">
-                    Tekrarlayan haftalık uygunluk
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowRuleForm((open) => !open)}
-                  className="rounded-lg border border-[#e4e7ea] px-3 py-1.5 text-xs font-medium text-[#676e78]"
+            <div className="mt-[14px] grid min-w-[720px] grid-cols-[52px_repeat(5,1fr)] text-[11px]">
+              <div />
+              {days.map(([day, date]) => (
+                <div
+                  key={day}
+                  className="flex h-[34px] items-center justify-center gap-1.5"
                 >
+                  <span className="text-[#676e78]">{day}</span>
+                  <b className="text-[13px] font-medium">{date}</b>
+                </div>
+              ))}
+              {hours.map((hour, row) => (
+                <div className="contents" key={hour}>
+                  <div className="pr-2 text-right text-[#858c96]">{hour}</div>
+                  {days.map(([day], dayIndex) => (
+                    <div
+                      key={day}
+                      className="relative h-[42px] border-l border-t border-[#eef0f3]"
+                    >
+                      {events
+                        .filter(
+                          (e) =>
+                            e.day === dayIndex && e.row === row && allowed(e),
+                        )
+                        .map((event) => (
+                          <button
+                            key={event.title}
+                            onClick={() =>
+                              event.kind === "meeting" && setDetailOpen(true)
+                            }
+                            style={{ height: `${event.span * 42 - 2}px` }}
+                            className={`absolute left-1 right-1 top-px z-10 overflow-hidden rounded-md px-2 py-1.5 text-left leading-[15px] ${event.kind === "meeting" ? "bg-[#26a4ff] text-white" : event.kind === "available" ? "bg-[#e9f2fa] text-[#26a4ff]" : "border border-[#e4e7ea] bg-[#f3f4f6] text-[#4a5059]"}`}
+                          >
+                            <b className="block text-[11px] font-semibold">
+                              {event.title}
+                            </b>
+                            {event.subtitle ? (
+                              <span className="block text-[10.5px] opacity-80">
+                                {event.subtitle}
+                              </span>
+                            ) : null}
+                          </button>
+                        ))}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </section>
+          <aside className="space-y-4">
+            <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
+              <div className="flex justify-between">
+                <h2 className="text-[15px] font-semibold">Müsaitliğim</h2>
+                <button className="text-[12.5px] font-medium text-[#26a4ff]">
                   Düzenle
                 </button>
               </div>
-
-              {calendar.rules.length === 0 ? (
-                <p className="mt-4 text-xs text-[#676e78]">
-                  Henüz tekrarlayan bir uygunluk eklemediniz.
-                </p>
-              ) : (
-                <ul className="mt-4 space-y-2">
-                  {calendar.rules.map((rule) => (
-                    <li
-                      key={rule.id}
-                      className="flex items-center justify-between gap-2 text-sm"
-                    >
-                      <span className="text-[#22262b]">
-                        {WEEKDAY_LABELS[rule.dayOfWeek]}
-                      </span>
-                      <span className="text-[#676e78]">
-                        {rule.startTime.slice(0, 5)}–{rule.endTime.slice(0, 5)}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => calendar.removeRule(rule.id)}
-                        className="text-xs font-semibold text-[#b42318] hover:underline"
-                      >
-                        Kaldır
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <p className="mt-4 border-t border-[#f1f2f4] pt-3 text-xs text-[#676e78]">
-                Bu hafta kapasite{" "}
-                <span className="font-semibold text-[#1f9d55]">
-                  {calendar.freeSlotCount} boş slot
-                </span>
+              <p className="mt-3 text-xs text-[#676e78]">
+                Tekrarlayan haftalık uygunluk
               </p>
-
-              {calendar.ruleError ? (
-                <p
-                  role="alert"
-                  className="mt-3 rounded-lg bg-[#fdeaea] px-3 py-2 text-xs text-[#b42318]"
-                >
-                  {calendar.ruleError.message}
-                </p>
-              ) : null}
-
-              {showRuleForm ? (
-                <div className="mt-4 space-y-3 border-t border-[#f1f2f4] pt-4">
-                  <label className="block text-xs font-medium text-[#676e78]">
-                    Gün
-                    <select
-                      value={draft.dayOfWeek}
-                      onChange={(event) =>
-                        setDraft({
-                          ...draft,
-                          dayOfWeek: event.target.value as Weekday,
-                        })
-                      }
-                      className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-2 py-1.5 text-sm text-[#22262b]"
-                    >
-                      {WEEKDAY_ORDER.map((day) => (
-                        <option key={day} value={day}>
-                          {WEEKDAY_LABELS[day]}
-                        </option>
-                      ))}
-                    </select>
-                  </label>
-                  <div className="flex gap-2">
-                    <label className="flex-1 text-xs font-medium text-[#676e78]">
-                      Başlangıç
-                      <input
-                        type="time"
-                        value={draft.startTime}
-                        onChange={(event) =>
-                          setDraft({ ...draft, startTime: event.target.value })
-                        }
-                        className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-2 py-1.5 text-sm"
-                      />
-                    </label>
-                    <label className="flex-1 text-xs font-medium text-[#676e78]">
-                      Bitiş
-                      <input
-                        type="time"
-                        value={draft.endTime}
-                        onChange={(event) =>
-                          setDraft({ ...draft, endTime: event.target.value })
-                        }
-                        className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-2 py-1.5 text-sm"
-                      />
-                    </label>
+              <div className="mt-4 space-y-3 text-[12.5px]">
+                {[
+                  ["Salı", "14:00–17:00"],
+                  ["Çarşamba", "10:00–13:00"],
+                  ["Cuma", "15:00–18:00"],
+                ].map(([day, time]) => (
+                  <div key={day} className="flex justify-between">
+                    <span>{day}</span>
+                    <b className="font-medium">{time}</b>
                   </div>
+                ))}
+              </div>
+              <div className="mt-4 flex justify-between rounded-lg bg-[#f2f8fc] px-3 py-2.5 text-xs">
+                <span className="text-[#676e78]">Bu hafta kapasite</span>
+                <b className="font-medium text-[#26a4ff]">2 boş slot</b>
+              </div>
+            </section>
+            <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
+              <h2 className="text-[15px] font-semibold">Sıradaki görüşmeler</h2>
+              <div className="mt-3 space-y-3">
+                {[
+                  ["UX Research Review", "Döngü · Gülse", "Pzt 14 · 14:00"],
+                  ["Kapanış görüşmesi", "Terra · Mert", "Çar 16 · 10:00"],
+                  [
+                    "Design System kickoff",
+                    "NovaTech · Deniz",
+                    "Cum 18 · 11:00",
+                  ],
+                ].map(([title, sub, time]) => (
                   <button
-                    type="button"
-                    onClick={submitRule}
-                    disabled={calendar.isSavingRule}
-                    className="w-full rounded-lg bg-[#e86f22] px-3 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                    onClick={() => setDetailOpen(true)}
+                    key={title}
+                    className="flex w-full items-center justify-between rounded-lg border border-[#e4e7ea] px-3 py-2.5 text-left"
                   >
-                    {calendar.isSavingRule ? "Kaydediliyor..." : "Kaydet"}
+                    <span>
+                      <b className="block text-[13px] font-medium">{title}</b>
+                      <span className="block text-[11.5px] text-[#676e78]">
+                        {sub}
+                      </span>
+                    </span>
+                    <span className="text-[11.5px] font-medium text-[#26a4ff]">
+                      {time}
+                    </span>
                   </button>
-                </div>
-              ) : null}
+                ))}
+              </div>
             </section>
           </aside>
         </div>
-      </div>
-
-      {meetingOpen ? (
-        <CreateMeetingDialog
-          mentorName={session?.fullName ?? ""}
-          mentorships={calendar.mentorships}
-          programs={calendar.programs}
-          startAt={meetingAt}
-          isSaving={calendar.isSavingMeeting || creatingMeet}
-          error={meetError ?? calendar.meetingError}
-          onClose={() => setMeetingOpen(false)}
-          onSubmit={submitMeeting}
-        />
-      ) : null}
-
-      {detailMeeting ? (
-        <MeetingDetailDialog
-          meeting={detailMeeting}
-          mentorships={calendar.mentorships}
-          programs={calendar.programs}
-          isBusy={calendar.isSavingMeeting}
-          error={calendar.meetingError}
-          onClose={() => setDetailMeeting(null)}
-          onAddStartup={async (target) => {
-            await calendar.inviteGuest(
-              detailMeeting.id,
-              meetingRecipient(target),
-            );
-          }}
-          onAddMentor={async (mentorId, organizationIds) => {
-            for (const organizationId of organizationIds) {
-              await calendar.inviteGuest(detailMeeting.id, {
-                mentorId,
-                organizationId,
-              });
-            }
-          }}
-          onDelete={async () => {
-            await calendar.removeMeeting(detailMeeting.id);
-            setDetailMeeting(null);
-          }}
-        />
+      </main>
+      {detailOpen ? (
+        <MeetingModal onClose={() => setDetailOpen(false)} />
       ) : null}
     </AppShell>
   );

@@ -1,329 +1,282 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState } from "react";
-
-import { AppShell } from "@/components/hoc/app-shell";
-import { useMentorMessages } from "@/hooks/use-mentor-messages";
-import type {
-  MentorshipRequest,
-  RequestMessage,
-} from "@/interfaces/mentorship-request";
-import { formatMeetingShort } from "@/lib/format";
 import {
-  mentorRequestHref,
-  mentorWorkspaceName,
-  mentorWorkspacePerson,
-} from "@/lib/mentorship-workspace";
+  ChevronRight,
+  Download,
+  Mail,
+  Paperclip,
+  Search,
+  Upload,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { AppShell } from "@/components/hoc/app-shell";
 import { AppArea } from "@/types/app-area";
 
-const FILE_MESSAGE_PREFIX = "Dosya paylaşıldı:";
+const conversations = [
+  {
+    initials: "GB",
+    name: "Gülse Buran",
+    time: "10:24",
+    context: "Döngü · Product & UX Design",
+    preview: "Yeni prototipi yükledim, matc...",
+    unread: 2,
+  },
+  {
+    initials: "EK",
+    name: "Emir Kaplan",
+    time: "Dün",
+    context: "Atlas AI · Product Discovery",
+    preview: "Research notlarını ekledik, bakabilir...",
+  },
+  {
+    initials: "DA",
+    name: "Deniz Arslan",
+    time: "7 Eyl",
+    context: "NovaTech · Design System",
+    preview: "Token isimlendirmesi için bir sorum...",
+  },
+  {
+    initials: "TY",
+    name: "Türkan Yalçın",
+    time: "5 Eyl",
+    context: "METU Stars · Koordinatör",
+    preview: "Mentor buluşması Cuma günü 16:00.",
+  },
+];
 
-function conversationName(request: MentorshipRequest) {
-  const organization = mentorWorkspaceName(request);
-  const person = mentorWorkspacePerson(request);
-  return person ? `${person} · ${organization}` : organization;
-}
-
-function latestPreview(request: MentorshipRequest) {
+function ConversationList({
+  selected,
+  onSelect,
+}: {
+  selected: string | null;
+  onSelect: (name: string) => void;
+}) {
+  const [search, setSearch] = useState("");
+  const shown = useMemo(
+    () =>
+      conversations.filter((c) =>
+        [c.name, c.context, c.preview]
+          .join(" ")
+          .toLocaleLowerCase("tr-TR")
+          .includes(search.toLocaleLowerCase("tr-TR")),
+      ),
+    [search],
+  );
   return (
-    request.messages.at(-1)?.body || request.summary || request.supportArea
+    <aside className="overflow-hidden rounded-[12px] border border-[#e4e7ea] bg-white">
+      <div className="h-[100px] px-4 pt-4">
+        <h2 className="text-[15px] font-semibold">Konuşmalar</h2>
+        <label className="mt-3 flex h-[37px] items-center gap-2 rounded-lg border border-[#e4e7ea] bg-[#f6f7f9] px-3">
+          <Search className="size-[15px] text-[#676e78]" strokeWidth={1.6} />
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-[#858c96]"
+            placeholder="Mentee veya startup ara"
+          />
+        </label>
+      </div>
+      <ul>
+        {shown.map((c) => (
+          <li key={c.name} className="border-t border-[#eef0f3]">
+            <button
+              onClick={() => onSelect(c.name)}
+              className={`flex h-[85px] w-full gap-3 px-4 py-3 text-left ${selected === c.name ? "bg-[#f2f8fc]" : "hover:bg-[#fafbfc]"}`}
+            >
+              <span
+                className={`grid size-[34px] shrink-0 place-items-center rounded-full text-[10px] font-medium ${selected === c.name ? "bg-[#e7f5ff] text-[#26a4ff]" : "bg-[#f3f4f6] text-[#676e78]"}`}
+              >
+                {c.initials}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span className="flex justify-between">
+                  <b className="text-[13px] font-semibold">{c.name}</b>
+                  <span className="text-[10px] text-[#858c96]">{c.time}</span>
+                </span>
+                <span className="mt-0.5 block truncate text-[10.5px] text-[#676e78]">
+                  {c.context}
+                </span>
+                <span className="mt-1 flex items-center justify-between">
+                  <span className="truncate text-[10.5px] text-[#858c96]">
+                    {c.preview}
+                  </span>
+                  {c.unread ? (
+                    <b className="ml-2 grid size-5 shrink-0 place-items-center rounded-full bg-[#26a4ff] text-[10px] text-white">
+                      {c.unread}
+                    </b>
+                  ) : null}
+                </span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
   );
 }
 
-function sharedFilename(message: RequestMessage) {
-  if (!message.body.startsWith(FILE_MESSAGE_PREFIX)) return null;
-  return message.body.slice(FILE_MESSAGE_PREFIX.length).trim() || null;
+function EmptyConversation({ onSelect }: { onSelect: () => void }) {
+  return (
+    <section className="grid min-h-[341px] place-items-center rounded-[12px] border border-[#e4e7ea] bg-white text-center">
+      <div>
+        <Mail className="mx-auto size-9" strokeWidth={1.3} />
+        <h2 className="mt-3 text-base font-semibold">Bir konuşma seç</h2>
+        <p className="mx-auto mt-3 max-w-[360px] text-[12px] leading-5 text-[#676e78]">
+          Soldaki listeden bir mentee seçtiğinde ilgili mentorluk bağlamı da
+          burada görünür.
+        </p>
+        <div className="mt-4 flex justify-center gap-2">
+          <button
+            onClick={onSelect}
+            className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] text-white"
+          >
+            Yeni mesaj başlat
+          </button>
+          <button className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]">
+            Dosya iste
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
-function MessageBubbles({
-  messages,
-  viewerUserId,
-}: {
-  messages: RequestMessage[];
-  viewerUserId: string;
-}) {
-  const chatMessages = messages.filter((message) => !sharedFilename(message));
-  if (chatMessages.length === 0) {
-    return (
-      <p className="grid min-h-32 place-items-center text-[13px] text-[#676e78]">
-        Henüz mesaj yok. İlk mesajı sen gönderebilirsin.
-      </p>
-    );
-  }
+const messages = [
+  {
+    author: "Gülse",
+    text: "Yeni onboarding akışını ve son test notlarını yükledim. Matching değerini nasıl anlattığımızı konuşmak istiyorum.",
+    time: "09:58",
+    own: false,
+  },
+  {
+    author: "Nihan",
+    text: "Baktım. İki izlenimim var: ilan platformu algısı hâlâ güçlü, ve ilk ekranda kullanıcıya ne vaat ettiğimiz net değil.",
+    time: "10:06",
+    own: true,
+  },
+  {
+    author: "Nihan",
+    text: "Görüşmede ikisini de netleştirelim. Öncesinde revize prototipi paylaşabilir misin?",
+    time: "10:07",
+    own: true,
+  },
+  {
+    author: "Gülse",
+    text: "Tabii, yarın akşama kadar yüklerim.",
+    time: "10:24",
+    own: false,
+  },
+];
+
+function ActiveConversation() {
   return (
-    <ul className="space-y-[30px]" aria-label="Mesaj geçmişi">
-      {chatMessages.map((message) => {
-        const own = message.authorId === viewerUserId;
-        return (
-          <li
-            key={message.id}
-            className={`flex ${own ? "justify-start" : "justify-end"}`}
-          >
+    <section className="overflow-hidden rounded-[12px] border border-[#e4e7ea] bg-white">
+      <header className="flex h-[75px] items-center justify-between px-5">
+        <div className="flex items-center gap-3">
+          <span className="grid size-[38px] place-items-center rounded-full bg-[#e7f5ff] text-[10px] font-medium text-[#26a4ff]">
+            GB
+          </span>
+          <div>
+            <h2 className="text-[15px] font-semibold">Gülse Buran</h2>
+            <p className="mt-0.5 text-[11px] text-[#676e78]">
+              Döngü · Product & UX Design
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]">
+            Dosya iste
+          </button>
+          <button className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]">
+            Toplantı planla
+          </button>
+          <ChevronRight className="size-[18px]" strokeWidth={1.5} />
+        </div>
+      </header>
+      <div className="border-t border-[#eef0f3] px-5 pb-[18px] pt-[18px]">
+        <div className="flex h-[62px] items-center justify-between rounded-lg bg-[#f2f8fc] px-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase text-[#26a4ff]">
+              İlgili mentorluk · Döngü
+            </p>
+            <p className="mt-1 text-[12px] text-[#4a5059]">
+              2 açık iş · 1 bekleyen dosya · Sonraki görüşme 14 Eyl · 14:00
+            </p>
+          </div>
+          <button className="text-[12px] font-medium text-[#26a4ff]">
+            Mentorluk detayına git →
+          </button>
+        </div>
+        <p className="mt-4 text-[10.5px] text-[#858c96]">Bugün</p>
+        <div className="mt-4 space-y-4">
+          {messages.map((message, index) => (
             <article
-              className={`rounded-xl px-3.5 py-2.5 text-[13px] text-[#22262b] ${
-                own
-                  ? "w-full max-w-[550px] bg-[#f6f7f9]"
-                  : "w-full max-w-[498px] bg-[#fff7f2]"
-              }`}
+              key={index}
+              className={`flex flex-col ${message.own ? "items-end" : "items-start"}`}
             >
-              <p className="mb-2 text-[11px] font-medium text-[#676e78]">
-                {message.authorName}
-              </p>
-              <p className="leading-[1.45]">{message.body}</p>
+              <div
+                className={`w-full max-w-[468px] rounded-xl px-3.5 py-3 text-[12px] leading-5 ${message.own ? "bg-[#f2f8fc]" : "border border-[#e4e7ea] bg-[#f6f7f9]"}`}
+              >
+                <p
+                  className={`mb-1 text-[10.5px] font-medium ${message.own ? "text-[#26a4ff]" : "text-[#858c96]"}`}
+                >
+                  {message.author}
+                </p>
+                <p>{message.text}</p>
+              </div>
+              <time className="mt-1 text-[9.5px] text-[#858c96]">
+                {message.time}
+              </time>
             </article>
-          </li>
-        );
-      })}
-    </ul>
+          ))}
+        </div>
+        <div className="mt-4 flex h-[63px] items-center justify-between rounded-lg border border-[#e4e7ea] px-3.5">
+          <div className="flex items-center gap-3">
+            <Paperclip className="size-4" strokeWidth={1.5} />
+            <div>
+              <p className="text-[12px] font-medium">onboarding-v4.fig</p>
+              <p className="mt-0.5 text-[10.5px] text-[#858c96]">
+                Gülse tarafından paylaşıldı · 8,2 MB
+              </p>
+            </div>
+          </div>
+          <Download className="size-4" strokeWidth={1.5} />
+        </div>
+        <div className="mt-3 flex h-[63px] items-center rounded-lg border border-[#e4e7ea] px-3.5">
+          <input
+            className="min-w-0 flex-1 text-[12px] outline-none placeholder:text-[#858c96]"
+            placeholder="Mesaj yaz…"
+          />
+          <Upload className="mr-3 size-[18px]" strokeWidth={1.5} />
+          <button className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] text-white">
+            Gönder
+          </button>
+        </div>
+      </div>
+    </section>
   );
 }
 
 export function MentorMessagesView() {
-  const {
-    active,
-    activeId,
-    activeMeeting,
-    conversations,
-    error,
-    fileUpload,
-    isLoading,
-    messageForm,
-    select,
-    viewerUserId,
-  } = useMentorMessages();
-  const [search, setSearch] = useState("");
-  const filteredConversations = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase("tr-TR");
-    if (!query) return conversations;
-    return conversations.filter((conversation) =>
-      [
-        conversationName(conversation),
-        conversation.supportArea,
-        latestPreview(conversation),
-      ]
-        .join(" ")
-        .toLocaleLowerCase("tr-TR")
-        .includes(query),
-    );
-  }, [conversations, search]);
-  const sharedMessages =
-    active?.messages.filter((message) => sharedFilename(message)) ?? [];
-  const latestSharedMessage = sharedMessages.at(-1);
-  const latestSharedFilename = latestSharedMessage
-    ? sharedFilename(latestSharedMessage)
-    : null;
-
-  function sendMessage() {
-    void messageForm.sendMessage().catch(() => undefined);
-  }
-
+  const [selected, setSelected] = useState<string | null>(null);
   return (
     <AppShell active={AppArea.Meetings} mentorHome>
-      <div className="px-4 pb-16 sm:px-8">
-        <div className="mx-auto w-full max-w-[1200px] pt-10">
-          <header>
-            <h1 className="text-[28px] font-semibold leading-[34px] text-[#22262b]">
-              Mesajlar
-            </h1>
-            <p className="mt-2 text-sm leading-[17px] text-[#676e78]">
-              Mentee ve koordinatörlerle konuşurken ilgili mentorluk bağlamını
-              kaybetme.
-            </p>
-          </header>
-
-          <section
-            aria-label="Mesajlaşma alanı"
-            className="mt-[42px] overflow-hidden rounded-[10px] border border-[#e4e7ea] bg-white lg:grid lg:h-[730px] lg:grid-cols-[350px_minmax(0,1fr)]"
-          >
-            <aside className="border-b border-[#e4e7ea] bg-white p-5 lg:border-b-0 lg:border-r">
-              <h2 className="text-lg font-semibold leading-[22px] text-[#22262b]">
-                Konuşmalar
-              </h2>
-              <input
-                type="search"
-                aria-label="Konuşmalarda ara"
-                placeholder="Ara…"
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                className="mt-4 h-10 w-full rounded-lg border-0 bg-[#f6f7f9] px-3.5 text-[13px] text-[#22262b] placeholder:text-[#676e78]"
-              />
-
-              {isLoading ? (
-                <p className="py-10 text-center text-[13px] text-[#676e78]">
-                  Mesajlar yükleniyor...
-                </p>
-              ) : error ? (
-                <p role="alert" className="py-10 text-[13px] text-red-700">
-                  {error.message}
-                </p>
-              ) : conversations.length === 0 ? (
-                <p className="py-10 text-[13px] leading-5 text-[#676e78]">
-                  Bir mentorluk talebini kabul ettiğinde konuşma burada açılır.
-                </p>
-              ) : filteredConversations.length === 0 ? (
-                <p className="py-10 text-center text-[13px] text-[#676e78]">
-                  Aramana uygun konuşma bulunamadı.
-                </p>
-              ) : (
-                <ul className="mt-[22px] space-y-2.5">
-                  {filteredConversations.map((conversation) => {
-                    const selected = conversation.id === activeId;
-                    return (
-                      <li key={conversation.id}>
-                        <button
-                          type="button"
-                          aria-current={selected ? "true" : undefined}
-                          onClick={() => select(conversation.id)}
-                          className={`h-[92px] w-full rounded-[10px] px-3.5 py-3 text-left transition ${
-                            selected
-                              ? "bg-[#fff7f2]"
-                              : "bg-white hover:bg-[#fafafa]"
-                          }`}
-                        >
-                          <span className="block truncate text-sm font-semibold text-[#22262b]">
-                            {conversationName(conversation)}
-                          </span>
-                          <span className="mt-1.5 block truncate text-xs text-[#676e78]">
-                            {conversation.supportArea}
-                          </span>
-                          <span className="mt-2 block truncate text-xs text-[#22262b]">
-                            {latestPreview(conversation)}
-                          </span>
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </aside>
-
-            <div className="flex min-h-[620px] min-w-0 flex-col bg-white px-[22px] py-5 lg:min-h-0">
-              {active ? (
-                <>
-                  <div>
-                    <h2 className="text-[17px] font-semibold text-[#22262b]">
-                      {conversationName(active)}
-                    </h2>
-                    <p className="mt-1 text-xs text-[#676e78]">
-                      {active.supportArea} · Aktif mentorluk
-                    </p>
-                  </div>
-
-                  <div className="mt-[22px] rounded-[10px] bg-[#f2f7fc] px-3.5 py-3">
-                    <p className="text-[10px] font-semibold uppercase text-[#3870b8]">
-                      İlgili mentorluk
-                    </p>
-                    <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-[#22262b]">
-                          {mentorWorkspaceName(active)} ·{" "}
-                          {active.summary || active.supportArea}
-                        </p>
-                        <p className="mt-1 text-xs text-[#676e78]">
-                          {activeMeeting
-                            ? `Sonraki görüşme ${formatMeetingShort(activeMeeting.scheduledAt)}`
-                            : "Görüşme henüz planlanmadı"}
-                        </p>
-                      </div>
-                      <Link
-                        href={mentorRequestHref(active.id)}
-                        className="shrink-0 text-xs font-medium text-[#3870b8] hover:underline"
-                      >
-                        Mentorluk detayına git →
-                      </Link>
-                    </div>
-                  </div>
-
-                  <div className="min-h-0 flex-1 overflow-y-auto py-7">
-                    <MessageBubbles
-                      messages={active.messages}
-                      viewerUserId={viewerUserId}
-                    />
-                  </div>
-
-                  {latestSharedMessage && latestSharedFilename ? (
-                    <div className="mb-2 rounded-lg border border-[#e4e7ea] px-3.5 py-2.5">
-                      <p className="truncate text-[13px] font-semibold text-[#22262b]">
-                        {latestSharedFilename}
-                      </p>
-                      <p className="mt-1 text-[11px] text-[#676e78]">
-                        {latestSharedMessage.authorName} tarafından paylaşıldı
-                      </p>
-                    </div>
-                  ) : null}
-
-                  <form
-                    className="flex min-h-14 items-center gap-2 rounded-[10px] border border-[#e4e7ea] bg-white p-2"
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      sendMessage();
-                    }}
-                  >
-                    <label className="sr-only" htmlFor="mentor-message">
-                      Mesaj yaz
-                    </label>
-                    <textarea
-                      id="mentor-message"
-                      rows={1}
-                      value={messageForm.message}
-                      onChange={(event) =>
-                        messageForm.setMessage(event.target.value)
-                      }
-                      placeholder="Mesaj yaz…"
-                      className="min-h-9 min-w-0 flex-1 resize-none border-0 px-1.5 py-2 text-[13px] text-[#22262b] outline-none placeholder:text-[#676e78]"
-                    />
-                    <label className="shrink-0 cursor-pointer px-2 text-xs font-medium text-[#676e78] hover:text-[#e86f22]">
-                      {fileUpload.isPending ? "Paylaşılıyor…" : "Dosya paylaş"}
-                      <input
-                        type="file"
-                        accept=".pdf,.docx"
-                        className="sr-only"
-                        disabled={fileUpload.isPending}
-                        aria-label="Mentorluk dosyası paylaş"
-                        onChange={(event) => {
-                          const file = event.target.files?.[0];
-                          if (file)
-                            void fileUpload
-                              .mutateAsync(file)
-                              .catch(() => undefined);
-                          event.target.value = "";
-                        }}
-                      />
-                    </label>
-                    <button
-                      type="submit"
-                      disabled={
-                        !messageForm.message.trim() || messageForm.isSending
-                      }
-                      className="h-[38px] w-[88px] shrink-0 rounded-lg bg-[#e86f22] text-[13px] font-medium text-white hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      {messageForm.isSending ? "Gönderiliyor…" : "Gönder"}
-                    </button>
-                  </form>
-                  {messageForm.error || fileUpload.error ? (
-                    <p role="alert" className="mt-2 text-xs text-red-700">
-                      {messageForm.error?.message ?? fileUpload.error?.message}
-                    </p>
-                  ) : null}
-                </>
-              ) : (
-                <div className="grid flex-1 place-items-center text-center">
-                  <div>
-                    <h2 className="text-base font-semibold text-[#22262b]">
-                      Henüz mesajlaşma yok
-                    </h2>
-                    <p className="mt-2 max-w-sm text-sm text-[#676e78]">
-                      Kabul edilmiş bir mentorluk olduğunda konuşma burada
-                      açılır.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </section>
+      <main className="mx-auto w-full max-w-[1276px] px-6 pb-[72px] pt-3">
+        <header>
+          <h1 className="text-[28px] font-semibold leading-[42px]">Mesajlar</h1>
+          <p className="mt-1 text-[13px] text-[#676e78]">
+            Mentee ve koordinatörlerle konuşurken mentorluk bağlamını kaybetme.
+          </p>
+        </header>
+        <div className="mt-5 grid items-start gap-5 lg:grid-cols-[340px_minmax(0,868px)]">
+          <ConversationList selected={selected} onSelect={setSelected} />
+          {selected ? (
+            <ActiveConversation />
+          ) : (
+            <EmptyConversation onSelect={() => setSelected("Gülse Buran")} />
+          )}
         </div>
-      </div>
+      </main>
     </AppShell>
   );
 }
