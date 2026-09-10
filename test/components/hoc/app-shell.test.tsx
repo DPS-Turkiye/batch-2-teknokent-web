@@ -256,8 +256,8 @@ describe("AppShell navigation", () => {
       within(menteeNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");
     expect(
-      screen.queryByRole("link", { name: /Toplantı Asistanı/ }),
-    ).not.toBeInTheDocument();
+      within(menteeNav).getByRole("link", { name: /Toplantı Asistanı/ }),
+    ).toHaveAttribute("href", "/assistant");
   });
 
   it("opens notifications in place instead of linking to another page", () => {
@@ -437,8 +437,8 @@ describe("AppShell mobile drawer", () => {
       within(drawerNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");
     expect(
-      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
-    ).not.toBeInTheDocument();
+      within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
+    ).toHaveAttribute("href", "/assistant");
 
     await user.click(closeButton);
     expect(

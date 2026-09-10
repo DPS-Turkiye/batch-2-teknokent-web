@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import {
+  Bot,
   CalendarDays,
   ClipboardList,
   FolderKanban,
@@ -51,6 +52,13 @@ const NOTES_NAV: NavigationItem = {
   label: "Not Defterlerim",
   href: "/notes",
   icon: NotebookPen,
+};
+
+const ASSISTANT_NAV: NavigationItem = {
+  id: AppArea.Assistant,
+  label: "Toplantı Asistanı",
+  href: "/assistant",
+  icon: Bot,
 };
 
 const MENTORS_NAV: NavigationItem = {
@@ -132,6 +140,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       icon: MessageCircle,
     },
     NOTES_NAV,
+    ASSISTANT_NAV,
   ];
 }
 

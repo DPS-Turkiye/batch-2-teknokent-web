@@ -5,6 +5,13 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
+import {
+  MentorDecisionMode,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
+import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
+import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const asset = (name: string) => `/mentor-dashboard/revised/${name}.svg`;
@@ -159,7 +166,7 @@ function MeetingCard({
   join = false,
 }: {
   startup: string;
-  person: string;
+  person?: string;
   title: string;
   when: string;
   chip: string;
@@ -170,7 +177,7 @@ function MeetingCard({
       <div className="flex items-center justify-between gap-4">
         <div>
           <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-            {startup} · {person}
+            {[startup, person].filter(Boolean).join(" · ")}
           </p>
           <h3 className="mt-[3px] text-[15px] font-semibold leading-[22px]">
             {title}
@@ -382,7 +389,7 @@ function RequestCard({
   name: string;
   initials: string;
   person: string;
-  role: string;
+  role?: string;
   areas: string;
   message: string;
   time: string;
@@ -401,7 +408,7 @@ function RequestCard({
               {name}
             </h3>
             <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
-              {person} · {role}
+              {[person, role].filter(Boolean).join(" · ")}
             </p>
           </div>
         </div>
@@ -460,7 +467,17 @@ function ReminderCard({
   );
 }
 
-function RequestDrawer({ onClose }: { onClose: () => void }) {
+function RequestDrawer({
+  request,
+  onClose,
+  onDecide,
+  isPending,
+}: {
+  request: MentorshipRequest;
+  onClose: () => void;
+  onDecide: (mode: MentorDecisionMode) => void;
+  isPending: boolean;
+}) {
   useEffect(() => {
     const close = (event: KeyboardEvent) => event.key === "Escape" && onClose();
     const previousOverflow = document.body.style.overflow;
@@ -471,6 +488,19 @@ function RequestDrawer({ onClose }: { onClose: () => void }) {
       window.removeEventListener("keydown", close);
     };
   }, [onClose]);
+  const snapshot = request.recommendationSnapshot;
+  const startup = request.organizationName ?? request.requesterName ?? "Startup";
+  const context = [snapshot?.startupStage, snapshot?.startupSector].filter(
+    Boolean,
+  );
+  const focusAreas = [
+    request.supportArea,
+    ...(snapshot?.startupTechnologies ?? []),
+  ].filter(Boolean);
+  const sections = [
+    ["STARTUP", snapshot?.startupSummary],
+    ["MENTORLUK İHTİYACI", request.summary],
+  ].filter(([, copy]) => Boolean(copy));
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-[#22262b]/35 px-4 py-[92px]"
@@ -501,43 +531,28 @@ function RequestDrawer({ onClose }: { onClose: () => void }) {
           <div className="flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <span className="grid size-11 place-items-center rounded-[10px] bg-[#e6f1f8] text-[13px] font-semibold text-[#26a4ff]">
-                KV
+                {toInitials(startup) || "MN"}
               </span>
               <div>
                 <h3 className="text-[17px] font-semibold leading-[26px]">
-                  Kavun
+                  {startup}
                 </h3>
-                <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-                  Selin Kaya · Ürün Yöneticisi
-                </p>
+                {request.requesterName ? (
+                  <p className="text-[12.5px] leading-[19px] text-[#676e78]">
+                    {request.requesterName}
+                  </p>
+                ) : null}
               </div>
             </div>
             <Chip>Yeni</Chip>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-[#f5faff] bg-[#f2f8fc] px-3 py-[10px] text-xs leading-[18px]">
-            <span className="text-[#4a5059]">
-              Pre-seed · 4 kişilik ekip · B2C
+            <span className="text-[#4a5059]">{context.join(" · ")}</span>
+            <span className="text-[#676e78]">
+              Talep: {formatSlotDateTime(request.createdAt)}
             </span>
-            <span className="text-[#676e78]">Talep: Bugün 10:42</span>
           </div>
-          {[
-            [
-              "STARTUP",
-              "Kavun, günlük alışkanlıkları takip eden bir mobil ürün. 6 aydır yayında, 3.400 aktif kullanıcı. Şu an ilk 7 günde ciddi kullanıcı kaybı yaşıyorlar.",
-            ],
-            [
-              "MENTORLUK İHTİYACI",
-              "Onboarding akışını ve değer önerisini yeniden kurgulamak; hangi metriklerin takip edileceğine karar vermek.",
-            ],
-            [
-              "NEDEN NİHAN?",
-              "“UX stratejisi ve product validation alanındaki deneyiminiz, erken aşama ürünlerde doğru soruyu sormamıza yardımcı olur diye düşündük.”",
-            ],
-            [
-              "BEKLENEN ÇIKTI",
-              "6 haftalık süreçte yeniden kurgulanmış onboarding akışı ve test edilmiş bir değer önerisi.",
-            ],
-          ].map(([label, copy]) => (
+          {sections.map(([label, copy]) => (
             <div key={label}>
               <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
                 {label}
@@ -547,44 +562,31 @@ function RequestDrawer({ onClose }: { onClose: () => void }) {
               </p>
             </div>
           ))}
-          <div>
-            <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
-              ODAK ALANI
-            </h4>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Chip>UX Stratejisi</Chip>
-              <Chip>Product Validation</Chip>
-              <Chip>User Research</Chip>
-            </div>
-          </div>
-          <div>
-            <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
-              EKLENEN DOSYALAR
-            </h4>
-            <div className="mt-2 flex items-center justify-between rounded-lg border border-[#e4e7ea] px-3 py-[10px]">
-              <div className="flex items-center gap-[10px]">
-                <FigmaIcon name="paper" size={16} />
-                <div>
-                  <p className="text-[13px] font-medium leading-5">
-                    kavun-metrikler.pdf
-                  </p>
-                  <p className="text-[11.5px] leading-[17px] text-[#676e78]">
-                    Selin yükledi · 1,4 MB
-                  </p>
-                </div>
+          {focusAreas.length ? (
+            <div>
+              <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
+                ODAK ALANI
+              </h4>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {focusAreas.map((area) => (
+                  <Chip key={area}>{area}</Chip>
+                ))}
               </div>
-              <FigmaIcon name="download" size={16} />
             </div>
-          </div>
+          ) : null}
         </div>
         <footer className="flex gap-[10px] px-7 pb-5 pt-4">
-          <PillButton onClick={onClose}>Reddet</PillButton>
+          <PillButton onClick={() => onDecide(MentorDecisionMode.Decline)}>
+            Reddet
+          </PillButton>
           <PillButton soft href="/mentor-dashboard/messages">
             Mesaj gönder
           </PillButton>
           <button
             type="button"
-            className="min-h-[39px] flex-1 rounded-full bg-[#26a4ff] px-4 text-[12.5px] font-medium text-white"
+            disabled={isPending}
+            onClick={() => onDecide(MentorDecisionMode.Accept)}
+            className="min-h-[39px] flex-1 rounded-full bg-[#26a4ff] px-4 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
           >
             Mentorluğu kabul et
           </button>
@@ -594,10 +596,32 @@ function RequestDrawer({ onClose }: { onClose: () => void }) {
   );
 }
 
+function ListNote({ children }: { children: ReactNode }) {
+  return (
+    <p className="rounded-[20px] border border-[#e4e7ea] bg-white px-[18px] py-5 text-center text-xs leading-[18px] text-[#858c96]">
+      {children}
+    </p>
+  );
+}
+
 export function MentorDashboardView() {
+  const {
+    firstName,
+    pending,
+    accepted,
+    upcomingMeetings,
+    requestsQuery,
+    meetingsQuery,
+    decision,
+  } = useMentorDashboard();
   const [expanded, setExpanded] = useState(false);
-  const [requestOpen, setRequestOpen] = useState(false);
-  const detailedState = expanded || requestOpen;
+  const selectedRequest = decision.selectedRequest;
+  const detailedState = expanded || Boolean(selectedRequest);
+
+  async function handleDecide(mode: MentorDecisionMode) {
+    if (await decision.submitDecision(mode)) decision.closeDecision();
+  }
+
   return (
     <AppShell active={AppArea.MentorDashboard} mentorHome>
       <div className="mx-auto w-full max-w-[1228px] px-4 pb-[72px] pt-3 sm:px-6 xl:px-0">
@@ -606,12 +630,11 @@ export function MentorDashboardView() {
         >
           <div>
             <h1 className="text-[28px] font-semibold leading-[41px] text-[#22262b]">
-              Günaydın, Nihan
+              Günaydın, {firstName}
             </h1>
             {detailedState ? (
               <p className="mt-1 text-[13px] leading-[19px] text-[#676e78]">
-                Bugün 2 iş aksiyonunu bekliyor · 3 aktif mentorluk · 2 yeni
-                talep
+                {accepted.length} aktif mentorluk · {pending.length} yeni talep
               </p>
             ) : null}
           </div>
@@ -674,21 +697,26 @@ export function MentorDashboardView() {
                 Yaklaşan görüşmeler
               </SectionHeading>
               <div className="space-y-[10px]">
-                <MeetingCard
-                  startup="Döngü"
-                  person="Gülse"
-                  title="UX Research Review"
-                  when="Yarın · 14:00 · 45 dk · Online"
-                  chip="Yarın"
-                  join
-                />
-                <MeetingCard
-                  startup="Atlas AI"
-                  person="Emir"
-                  title="Product Discovery"
-                  when="12 Eylül · 15:30 · 45 dk · Online"
-                  chip="Planlandı"
-                />
+                {meetingsQuery.isLoading ? (
+                  <ListNote>Yükleniyor...</ListNote>
+                ) : upcomingMeetings.length === 0 ? (
+                  <ListNote>Yaklaşan görüşme bulunmuyor.</ListNote>
+                ) : (
+                  upcomingMeetings.map((meeting) => (
+                    <MeetingCard
+                      key={meeting.id}
+                      startup={meeting.organizationName ?? "Mentorluk"}
+                      title={meeting.agenda ?? "Mentorluk görüşmesi"}
+                      when={`${formatMeetingShort(meeting.scheduledAt)}${
+                        meeting.durationMinutes
+                          ? ` · ${meeting.durationMinutes} dk`
+                          : ""
+                      }`}
+                      chip="Planlandı"
+                      join={Boolean(meeting.meetLink)}
+                    />
+                  ))
+                )}
               </div>
             </section>
             <section>
@@ -730,32 +758,38 @@ export function MentorDashboardView() {
           <aside className="min-w-0 space-y-6">
             <section>
               <SectionHeading
-                action={<button type="button">Tümü (4) →</button>}
+                action={
+                  <button type="button">Tümü ({pending.length}) →</button>
+                }
               >
                 Mentorluk talepleri
               </SectionHeading>
               <div className="space-y-[10px]">
-                <RequestCard
-                  name="Kavun"
-                  initials="KV"
-                  person="Selin Kaya"
-                  role="Ürün Yöneticisi"
-                  areas="UX Stratejisi · Product Validation"
-                  message="Erken kullanıcı testlerinden sonra ürün yönümüzü netleştirmek istiyoruz."
-                  time="Bugün · 10:42"
-                  fresh
-                  onReview={() => setRequestOpen(true)}
-                />
-                <RequestCard
-                  name="Terra"
-                  initials="TR"
-                  person="Mert Aydın"
-                  role="Kurucu"
-                  areas="Design Systems · UX/UI Review"
-                  message="Tasarım sistemimizi kurarken ekipler arasında tutarlılık sorunu yaşıyoruz."
-                  time="Dün · 16:20"
-                  onReview={() => setRequestOpen(true)}
-                />
+                {requestsQuery.isLoading ? (
+                  <ListNote>Yükleniyor...</ListNote>
+                ) : pending.length === 0 ? (
+                  <ListNote>Bekleyen mentorluk talebi yok.</ListNote>
+                ) : (
+                  pending.map((request) => {
+                    const startup =
+                      request.organizationName ??
+                      request.requesterName ??
+                      "Startup";
+                    return (
+                      <RequestCard
+                        key={request.id}
+                        name={startup}
+                        initials={toInitials(startup) || "MN"}
+                        person={request.requesterName ?? ""}
+                        areas={request.supportArea}
+                        message={request.summary ?? ""}
+                        time={formatSlotDateTime(request.createdAt)}
+                        fresh
+                        onReview={() => decision.selectRequest(request)}
+                      />
+                    );
+                  })
+                )}
               </div>
             </section>
             <section>
@@ -780,8 +814,13 @@ export function MentorDashboardView() {
           </aside>
         </div>
       </div>
-      {requestOpen ? (
-        <RequestDrawer onClose={() => setRequestOpen(false)} />
+      {selectedRequest ? (
+        <RequestDrawer
+          request={selectedRequest}
+          onClose={decision.closeDecision}
+          onDecide={handleDecide}
+          isPending={decision.isPending}
+        />
       ) : null}
     </AppShell>
   );
