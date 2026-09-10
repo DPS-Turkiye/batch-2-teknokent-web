@@ -1,5 +1,4 @@
 import type {
-  DashboardNotification,
   LandingAnnouncement,
   LandingFaq,
   LandingMentorStep,
@@ -325,8 +324,6 @@ export const LANDING_FAQS: LandingFaq[] = [
       "Bilgileriniz yalnızca rolünüz ve dahil olduğunuz programlar kapsamında yetkilendirilmiş kişilerle paylaşılır.",
   },
 ];
-
-export const DASHBOARD_NOTIFICATIONS: DashboardNotification[] = [];
 
 export const DASHBOARD_REQUEST_STATUS_LABELS = {
   [MentorshipRequestStatus.Accepted]: "Aktif",

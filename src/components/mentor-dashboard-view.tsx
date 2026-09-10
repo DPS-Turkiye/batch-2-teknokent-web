@@ -228,14 +228,14 @@ export function MentorDashboardView() {
             <div className="rounded-lg border border-[#e5e7eb] bg-white px-3">
               {notifications.map((notification) => (
                 <div
-                  key={notification.title}
+                  key={notification.id}
                   className="flex gap-2 border-b border-[#e5e7eb] py-3 last:border-0"
                 >
                   <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#999]" />
                   <div>
                     <p className="text-xs text-[#555]">{notification.title}</p>
                     <p className="mt-1 text-xs text-[#aaa]">
-                      {notification.time}
+                      {new Date(notification.createdAt).toLocaleString("tr-TR")}
                     </p>
                   </div>
                 </div>
