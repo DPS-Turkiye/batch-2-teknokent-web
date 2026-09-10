@@ -1,8 +1,12 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
+import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { Weekday } from "@/interfaces/mentor";
+import { CalendarFilter } from "@/lib/calendar";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -10,186 +14,269 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
-function weekGrid() {
-  return screen
-    .getByRole("heading", { name: "14–18 Eylül 2026" })
-    .closest("section") as HTMLElement;
+vi.mock("@/components/mentor-dashboard/create-meeting-dialog", () => ({
+  CreateMeetingDialog: () => <div data-testid="create-meeting-dialog" />,
+}));
+
+vi.mock("@/hooks/use-mentor-calendar", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/hooks/use-mentor-calendar")>();
+  return { ...actual, useMentorCalendar: vi.fn() };
+});
+
+const WEEK = [14, 15, 16, 17, 18].map((d) => new Date(`2026-09-${d}T00:00:00`));
+
+function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
+  return {
+    id: "meeting-1",
+    organizationId: "org-1",
+    organizationName: "Döngü",
+    scheduledAt: "2026-09-14T14:00:00",
+    durationMinutes: 45,
+    agenda: "UX Research Review",
+    status: MeetingStatus.Scheduled,
+    meetLink: "https://meet.example/abc",
+    ...overrides,
+  };
 }
 
-function upcomingPanel() {
-  return screen
-    .getByRole("heading", { name: "Sıradaki görüşmeler" })
-    .closest("section") as HTMLElement;
+const setFilter = vi.fn();
+const nextWeek = vi.fn();
+const previousWeek = vi.fn();
+const thisWeek = vi.fn();
+const removeMeeting = vi.fn().mockResolvedValue(undefined);
+
+function mockCalendar(overrides: Record<string, unknown> = {}) {
+  const value = {
+    days: WEEK,
+    meetings: [meeting()],
+    slots: [
+      {
+        id: "slot-1",
+        startsAt: "2026-09-15T11:00:00",
+        durationMinutes: 60,
+        booked: false,
+      },
+    ],
+    rules: [
+      {
+        id: "rule-1",
+        dayOfWeek: Weekday.Monday,
+        startTime: "09:00",
+        endTime: "12:00",
+        slotMinutes: 60,
+      },
+    ],
+    programs: [{ id: "p1", name: "METU Stars 2026" }],
+    mentorships: [],
+    freeSlotCount: 3,
+    filter: CalendarFilter.All,
+    setFilter,
+    isLoading: false,
+    isSavingMeeting: false,
+    meetingError: null,
+    nextWeek,
+    previousWeek,
+    thisWeek,
+    removeMeeting,
+    addMeeting: vi.fn(),
+    ...overrides,
+  };
+  vi.mocked(useMentorCalendar).mockReturnValue(
+    value as unknown as ReturnType<typeof useMentorCalendar>,
+  );
+  return value;
 }
 
-async function applyFilter(
-  user: ReturnType<typeof userEvent.setup>,
-  name: string,
-) {
-  await user.click(screen.getByRole("button", { name }));
+function grid() {
+  return screen
+    .getByRole("heading", { name: "14–18 Eylül" })
+    .closest("section") as HTMLElement;
 }
 
 describe("MentorCalendarPage", () => {
-  it("shows the calendar heading and its weekly summary", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("summarises the week from real counts", () => {
+    mockCalendar();
     render(<MentorCalendarPage />);
 
     expect(screen.getByRole("heading", { name: "Takvim" })).toBeInTheDocument();
     expect(
-      screen.getByText("Bu hafta 3 görüşme · 1 program etkinliği · 8 boş slot"),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Yeni toplantı oluştur" }),
+      screen.getByText("Bu hafta 1 görüşme · 1 program · 3 boş slot"),
     ).toBeInTheDocument();
   });
 
-  it("renders the working week and its hour rows", () => {
+  it("labels the browsed week and its days", () => {
+    mockCalendar();
     render(<MentorCalendarPage />);
 
-    const grid = weekGrid();
-    expect(within(grid).getByText("Pzt")).toBeInTheDocument();
-    expect(within(grid).getByText("Cum")).toBeInTheDocument();
-    expect(within(grid).getByText("09:00")).toBeInTheDocument();
-    expect(within(grid).getByText("18:00")).toBeInTheDocument();
+    const week = grid();
+    expect(within(week).getByText("Pzt")).toBeInTheDocument();
+    expect(within(week).getByText("Cum")).toBeInTheDocument();
+    expect(within(week).getByText("14")).toBeInTheDocument();
   });
 
-  it("offers the four calendar filters", () => {
+  it("places a booked meeting in its hour cell", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    expect(
+      within(grid()).getByRole("button", { name: /Döngü/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows an availability slot with its duration", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    const week = grid();
+    expect(within(week).getByText("Müsait")).toBeInTheDocument();
+    expect(within(week).getByText("60 dk")).toBeInTheDocument();
+  });
+
+  it("reports loading while the calendar queries run", () => {
+    mockCalendar({ isLoading: true });
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+  });
+
+  it("offers every calendar filter and forwards the choice", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
     render(<MentorCalendarPage />);
 
     for (const name of ["Tümü", "Mentorluk", "Program", "Müsaitlik"]) {
       expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
+
+    await user.click(screen.getByRole("button", { name: "Müsaitlik" }));
+    expect(setFilter).toHaveBeenCalledWith(CalendarFilter.Availability);
   });
 
-  it("shows meetings, availability and programme events by default", () => {
+  it("lists the mentor's programmes under the Program filter", () => {
+    mockCalendar({ filter: CalendarFilter.Program, meetings: [], slots: [] });
     render(<MentorCalendarPage />);
 
-    const grid = weekGrid();
-    expect(within(grid).getByText("Döngü · Gülse")).toBeInTheDocument();
-    expect(within(grid).getAllByText("Müsait")).toHaveLength(3);
-    expect(within(grid).getByText("METU Stars")).toBeInTheDocument();
-  });
-
-  it("narrows the grid to mentorship meetings", async () => {
-    const user = userEvent.setup();
-    render(<MentorCalendarPage />);
-
-    await applyFilter(user, "Mentorluk");
-
-    const grid = weekGrid();
-    expect(within(grid).getByText("Döngü · Gülse")).toBeInTheDocument();
-    expect(within(grid).queryAllByText("Müsait")).toHaveLength(0);
-    expect(within(grid).queryByText("METU Stars")).not.toBeInTheDocument();
-  });
-
-  it("narrows the grid to programme events", async () => {
-    const user = userEvent.setup();
-    render(<MentorCalendarPage />);
-
-    await applyFilter(user, "Program");
-
-    const grid = weekGrid();
-    expect(within(grid).getByText("METU Stars")).toBeInTheDocument();
-    expect(within(grid).queryByText("Döngü · Gülse")).not.toBeInTheDocument();
-    expect(within(grid).queryAllByText("Müsait")).toHaveLength(0);
-  });
-
-  it("narrows the grid to open availability", async () => {
-    const user = userEvent.setup();
-    render(<MentorCalendarPage />);
-
-    await applyFilter(user, "Müsaitlik");
-
-    const grid = weekGrid();
-    expect(within(grid).getAllByText("Müsait")).toHaveLength(3);
-    expect(within(grid).queryByText("Döngü · Gülse")).not.toBeInTheDocument();
-    expect(within(grid).queryByText("METU Stars")).not.toBeInTheDocument();
-  });
-
-  it("restores every event when Tümü is reselected", async () => {
-    const user = userEvent.setup();
-    render(<MentorCalendarPage />);
-
-    await applyFilter(user, "Program");
-    await applyFilter(user, "Tümü");
-
-    const grid = weekGrid();
-    expect(within(grid).getByText("Döngü · Gülse")).toBeInTheDocument();
-    expect(within(grid).getAllByText("Müsait")).toHaveLength(3);
-    expect(within(grid).getByText("METU Stars")).toBeInTheDocument();
-  });
-
-  it("opens the meeting detail from a booked slot", async () => {
-    const user = userEvent.setup();
-    render(<MentorCalendarPage />);
-
-    await user.click(
-      within(weekGrid()).getByRole("button", { name: /Döngü · Gülse/ }),
-    );
-
-    const dialog = screen.getByRole("dialog", { name: "UX Research Review" });
-    expect(within(dialog).getByText("Döngü · Gülse Buran")).toBeInTheDocument();
     expect(
-      within(dialog).getByText("14 Eylül · 14:00 · 45 dk"),
+      screen.getByText(/1 programa katılıyorsunuz: METU Stars 2026/),
     ).toBeInTheDocument();
   });
 
-  it("keeps availability blocks non-interactive", async () => {
+  it("browses between weeks", async () => {
     const user = userEvent.setup();
+    mockCalendar();
     render(<MentorCalendarPage />);
 
-    await user.click(
-      within(weekGrid()).getAllByRole("button", { name: /Müsait/ })[0],
-    );
+    await user.click(screen.getByRole("button", { name: "Sonraki hafta" }));
+    await user.click(screen.getByRole("button", { name: "Önceki hafta" }));
+    await user.click(screen.getByRole("button", { name: "Bugün" }));
 
+    expect(nextWeek).toHaveBeenCalled();
+    expect(previousWeek).toHaveBeenCalled();
+    expect(thisWeek).toHaveBeenCalled();
+  });
+
+  it("opens a meeting with its own detail", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "UX Research Review" });
+    expect(within(dialog).getByText("Döngü")).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("link", { name: "Toplantıya katıl" }),
+    ).toHaveAttribute("href", "https://meet.example/abc");
+  });
+
+  it("says when a meeting has no notes yet", async () => {
+    const user = userEvent.setup();
+    mockCalendar({
+      meetings: [meeting({ agenda: undefined, meetLink: undefined })],
+    });
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    expect(
+      screen.getByText("Bu görüşme için henüz not eklenmedi."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Toplantı bağlantısı yok")).toBeInTheDocument();
+  });
+
+  it("deletes the opened meeting", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+    await user.click(screen.getByRole("button", { name: "Görüşmeyi sil" }));
+
+    expect(removeMeeting).toHaveBeenCalledWith("meeting-1");
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("closes the meeting detail again", async () => {
+  it("closes the meeting detail", async () => {
     const user = userEvent.setup();
+    mockCalendar();
     render(<MentorCalendarPage />);
 
-    await user.click(
-      within(weekGrid()).getByRole("button", { name: /Döngü · Gülse/ }),
-    );
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
     await user.click(screen.getByRole("button", { name: "Kapat" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("lists the next meetings with their slots", () => {
+  it("lists the recurring availability rules", () => {
+    mockCalendar();
     render(<MentorCalendarPage />);
 
-    const panel = upcomingPanel();
-    expect(within(panel).getAllByRole("button")).toHaveLength(3);
-    expect(within(panel).getByText("UX Research Review")).toBeInTheDocument();
-    expect(within(panel).getByText("Pzt 14 · 14:00")).toBeInTheDocument();
+    expect(screen.getByText("09:00–12:00")).toBeInTheDocument();
+    expect(screen.getByText("3 boş slot")).toBeInTheDocument();
   });
 
-  // The detail modal is still presentation-only: every meeting opens the same
-  // sample record until the calendar is connected to the meetings API.
-  it("opens the meeting detail from the next-meetings list", async () => {
+  it("notes when no availability rule is defined", () => {
+    mockCalendar({ rules: [] });
+    render(<MentorCalendarPage />);
+
+    expect(
+      screen.getByText("Tanımlı bir uygunluk kuralı yok."),
+    ).toBeInTheDocument();
+  });
+
+  it("lists the week's meetings in the side panel", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    const panel = screen
+      .getByRole("heading", { name: "Sıradaki görüşmeler" })
+      .closest("section") as HTMLElement;
+    expect(
+      within(panel).getByRole("button", { name: /UX Research Review/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("notes when the week has no meetings", () => {
+    mockCalendar({ meetings: [] });
+    render(<MentorCalendarPage />);
+
+    expect(
+      screen.getByText("Bu hafta planlanmış görüşme yok."),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the create-meeting dialog", async () => {
     const user = userEvent.setup();
+    mockCalendar();
     render(<MentorCalendarPage />);
 
     await user.click(
-      within(upcomingPanel()).getByRole("button", {
-        name: /Design System kickoff/,
-      }),
+      screen.getByRole("button", { name: "Yeni toplantı oluştur" }),
     );
 
-    expect(
-      screen.getByRole("dialog", { name: "UX Research Review" }),
-    ).toBeInTheDocument();
-  });
-
-  it("summarises recurring availability", () => {
-    render(<MentorCalendarPage />);
-
-    expect(
-      screen.getByRole("heading", { name: "Müsaitliğim" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Tekrarlayan haftalık uygunluk"),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("create-meeting-dialog")).toBeInTheDocument();
   });
 });
