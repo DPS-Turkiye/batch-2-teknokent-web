@@ -15,6 +15,7 @@ import {
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
@@ -110,6 +111,12 @@ function MenteeMentorshipsWorkspace() {
                     <p className="mt-0.5 truncate text-xs text-[#676e78]">
                       {request.supportArea}
                     </p>
+                    {request.status ===
+                    MentorshipRequestStatus.CounterProposed ? (
+                      <p className="mt-2 text-[13px] font-medium text-[#e86f22]">
+                        Mentör saat önerdi — birini seç
+                      </p>
+                    ) : null}
                   </div>
                   <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
                     Süreci aç →

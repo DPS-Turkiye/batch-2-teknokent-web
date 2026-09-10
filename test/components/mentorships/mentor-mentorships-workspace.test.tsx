@@ -9,7 +9,9 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
+import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -80,6 +82,7 @@ describe("MentorMentorshipsWorkspace", () => {
   beforeEach(() => {
     mutateAsync.mockReset();
     vi.mocked(logMentorshipMeeting).mockReset();
+    vi.mocked(updateMeeting).mockReset();
     vi.mocked(useMeetings).mockReturnValue({
       data: [],
       isLoading: false,
@@ -179,6 +182,7 @@ describe("MentorMentorshipsWorkspace", () => {
         mentorId: "mentor-1",
         durationMinutes: 45,
         meetLink: "https://meet.google.com/abc-defg-hij",
+        transcribeRequested: false,
       }),
     );
     expect(screen.getByRole("tab", { name: "Aktif" })).toHaveAttribute(
@@ -187,6 +191,56 @@ describe("MentorMentorshipsWorkspace", () => {
     );
     expect(screen.getByText("Döngü")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("lets the mentor propose alternative times instead of accepting mentee slots", async () => {
+    const user = userEvent.setup();
+    mockRequests([request()]);
+    mutateAsync.mockResolvedValue(
+      request({ status: MentorshipRequestStatus.CounterProposed }),
+    );
+    const day = upcomingPreferenceDays()[0]?.value;
+    expect(day).toBeTruthy();
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    await user.click(screen.getByRole("button", { name: "Talebi incele" }));
+    await user.click(
+      screen.getByRole("button", { name: "Kendi saatimi öner" }),
+    );
+
+    await user.selectOptions(screen.getByLabelText("1. öneri günü"), day!);
+    const timeInput = screen.getByLabelText("1. öneri saati");
+    await user.clear(timeInput);
+    await user.type(timeInput, "15:00");
+    await user.click(screen.getByRole("button", { name: "Önerileri gönder" }));
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id: "req-1",
+      status: MentorshipRequestStatus.CounterProposed,
+      message: expect.stringContaining(`proposedSlots:${day}T15:00`),
+    });
+    expect(logMentorshipMeeting).not.toHaveBeenCalled();
+  });
+
+  it("shows waiting state when mentor already proposed alternative times", async () => {
+    const user = userEvent.setup();
+    mockRequests([
+      request({
+        status: MentorshipRequestStatus.CounterProposed,
+        mentorMessage:
+          "proposedSlots:2026-09-12T15:00\nMentörün önerdiği saatler: 12 Eylül Cumartesi · 15:00",
+      }),
+    ]);
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    expect(screen.getByText("Mentee yanıtı bekleniyor")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Talebi incele" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lets the mentor add a meet link later from Aktif", async () => {
@@ -216,7 +270,135 @@ describe("MentorMentorshipsWorkspace", () => {
       "req-1",
       expect.objectContaining({
         meetLink: "https://meet.google.com/xyz",
+        transcribeRequested: false,
       }),
     );
+  });
+
+  it("requests a transcript bot when the mentor checks the box on accept", async () => {
+    const user = userEvent.setup();
+    mockRequests([request()]);
+    mutateAsync.mockResolvedValue({});
+    vi.mocked(logMentorshipMeeting).mockResolvedValue({
+      id: "meeting-1",
+      mentorshipRequestId: "req-1",
+      scheduledAt: "2026-09-10T13:00:00.000Z",
+      durationMinutes: 45,
+      meetLink: "https://meet.google.com/abc-defg-hij",
+      status: "SCHEDULED",
+    });
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    await user.click(screen.getByRole("button", { name: "Talebi incele" }));
+    await user.click(
+      screen.getByRole("button", { name: "10 Eylül Perşembe · 13:00" }),
+    );
+    await user.type(
+      screen.getByPlaceholderText("https://meet.google.com/..."),
+      "https://meet.google.com/abc-defg-hij",
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Kabul et" }));
+
+    expect(logMentorshipMeeting).toHaveBeenCalledWith(
+      "req-1",
+      expect.objectContaining({
+        meetLink: "https://meet.google.com/abc-defg-hij",
+        transcribeRequested: true,
+      }),
+    );
+  });
+
+  it("requests a transcript bot when the mentor checks the box while adding a meet link", async () => {
+    const user = userEvent.setup();
+    mockRequests([
+      request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
+    ]);
+    vi.mocked(logMentorshipMeeting).mockResolvedValue({
+      id: "meeting-2",
+      mentorshipRequestId: "req-1",
+      scheduledAt: "2026-09-10T10:00:00.000Z",
+      durationMinutes: 45,
+      meetLink: "https://meet.google.com/xyz",
+      status: "SCHEDULED",
+    });
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("button", { name: "Meet linki ekle" }));
+    await user.type(
+      screen.getByPlaceholderText("https://meet.google.com/..."),
+      "https://meet.google.com/xyz",
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    expect(logMentorshipMeeting).toHaveBeenCalledWith(
+      "req-1",
+      expect.objectContaining({
+        meetLink: "https://meet.google.com/xyz",
+        transcribeRequested: true,
+      }),
+    );
+  });
+
+  it("turns on transcription when editing an existing meet link", async () => {
+    const user = userEvent.setup();
+    mockRequests([
+      request({ id: "req-1", status: MentorshipRequestStatus.Accepted }),
+    ]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        {
+          id: "meeting-1",
+          organizationId: "org-1",
+          mentorshipRequestId: "req-1",
+          scheduledAt: "2026-09-10T10:00:00.000Z",
+          durationMinutes: 45,
+          meetLink: "https://meet.google.com/old-old-old",
+          transcribeRequested: false,
+          status: "SCHEDULED",
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+    vi.mocked(updateMeeting).mockResolvedValue({
+      id: "meeting-1",
+      organizationId: "org-1",
+      mentorshipRequestId: "req-1",
+      scheduledAt: "2026-09-10T10:00:00.000Z",
+      durationMinutes: 45,
+      meetLink: "https://meet.google.com/xyz",
+      transcribeRequested: true,
+      status: "SCHEDULED",
+    });
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Meet linkini düzenle" }),
+    );
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
+      }),
+    );
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+
+    expect(updateMeeting).toHaveBeenCalledWith("meeting-1", {
+      meetLink: "https://meet.google.com/old-old-old",
+      transcribeRequested: true,
+    });
   });
 });

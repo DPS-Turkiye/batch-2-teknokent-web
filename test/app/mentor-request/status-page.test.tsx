@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import RequestStatusPage from "@/app/mentor-request/status/page";
 import {
+  useAcceptProposedSlot,
   useAlternativeMentors,
   useMentorAvailability,
   useMentorshipRequest,
@@ -14,6 +15,7 @@ import {
   useWithdrawMentorRequest,
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
@@ -35,6 +37,10 @@ vi.mock("@/components/providers/session-provider", () => ({
   }),
 }));
 
+vi.mock("@/lib/client/mentor-requests", () => ({
+  logMentorshipMeeting: vi.fn(),
+}));
+
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
   useMentorshipRequest: vi.fn(),
@@ -44,6 +50,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useRequestFileUpload: vi.fn(),
   useSlotBooking: vi.fn(),
   useWithdrawMentorRequest: vi.fn(),
+  useAcceptProposedSlot: vi.fn(),
 }));
 
 const requestFixture = {
@@ -67,6 +74,7 @@ describe("RequestStatusPage", () => {
   const bookSlot = vi.fn();
   const mutateAsync = vi.fn();
   const uploadFile = vi.fn();
+  const acceptProposal = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -108,6 +116,10 @@ describe("RequestStatusPage", () => {
       isPending: false,
       mutateAsync: uploadFile,
     } as unknown as ReturnType<typeof useRequestFileUpload>);
+    vi.mocked(useAcceptProposedSlot).mockReturnValue({
+      mutateAsync: acceptProposal,
+      isPending: false,
+    } as unknown as ReturnType<typeof useAcceptProposedSlot>);
   });
 
   it("shows the mentor's question and lets the mentee type a reply", async () => {
@@ -254,5 +266,45 @@ describe("RequestStatusPage", () => {
 
     await user.click(screen.getByText("Talebi Geri Çek"));
     expect(mutateAsync).toHaveBeenCalled();
+  });
+
+  it("lets the mentee accept a mentor-proposed time", async () => {
+    acceptProposal.mockResolvedValue({
+      ...requestFixture,
+      status: MentorshipRequestStatus.Accepted,
+    });
+    vi.mocked(logMentorshipMeeting).mockResolvedValue({
+      id: "meeting-1",
+    } as never);
+    vi.mocked(useMentorshipRequest).mockReturnValue({
+      data: {
+        ...requestFixture,
+        status: MentorshipRequestStatus.CounterProposed,
+        mentorMessage:
+          "Mentörün önerdiği saatler: 12 Eylül Cumartesi · 15:00\nproposedSlots:2026-09-12T15:00",
+      },
+      error: null,
+    } as ReturnType<typeof useMentorshipRequest>);
+
+    const user = userEvent.setup();
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(
+      screen.getByText("Mentör tarafından şu saatler önerildi"),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "12 Eylül Cumartesi · 15:00" }),
+    );
+    await user.click(screen.getByRole("button", { name: "Saati kabul et" }));
+
+    expect(acceptProposal).toHaveBeenCalledWith("2026-09-12T15:00");
+    expect(logMentorshipMeeting).toHaveBeenCalledWith(
+      "request-1",
+      expect.objectContaining({
+        mentorId: "mentor-1",
+        durationMinutes: 45,
+      }),
+    );
+    expect(push).toHaveBeenCalledWith("/mentorships");
   });
 });

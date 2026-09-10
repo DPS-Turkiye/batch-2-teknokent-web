@@ -80,6 +80,8 @@ export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
 export const TRANSCRIPT_BOT_LEAD_MS = 60_000;
 export const TRANSCRIPT_BOT_MAX_TIMER_MS = 86_400_000;
 export const TRANSCRIPT_POLL_MS = 5_000;
+export const CALENDAR_MEETING_DURATION_MINUTES = 60;
+export const MENTORSHIP_MEETING_DURATION_MINUTES = 45;
 
 export const BOT_API_PATH = "/api/botapi";
 export const TRANSCRIPT_API_PATH = "/api/transcriptapi";
@@ -325,6 +327,7 @@ export const LANDING_FAQS: LandingFaq[] = [
 
 export const DASHBOARD_REQUEST_STATUS_LABELS = {
   [MentorshipRequestStatus.Accepted]: "Aktif",
+  [MentorshipRequestStatus.CounterProposed]: "Saat önerisi",
   [MentorshipRequestStatus.Declined]: "Uygun değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Bilgi bekliyor",
   [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
@@ -333,6 +336,7 @@ export const DASHBOARD_REQUEST_STATUS_LABELS = {
 
 export const MENTORSHIPS_REQUEST_STATUS_LABELS = {
   [MentorshipRequestStatus.Accepted]: "Aktif mentorluk",
+  [MentorshipRequestStatus.CounterProposed]: "Mentör saat önerdi",
   [MentorshipRequestStatus.Declined]: "Uygun değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
   [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",

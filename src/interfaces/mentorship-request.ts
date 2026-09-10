@@ -1,5 +1,6 @@
 export enum MentorshipRequestStatus {
   Accepted = "ACCEPTED",
+  CounterProposed = "COUNTER_PROPOSED",
   Declined = "DECLINED",
   MoreInfoRequested = "MORE_INFO_REQUESTED",
   Pending = "PENDING",

@@ -6,7 +6,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { uploadDocument } from "@/lib/client/documents";
+import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
+  acceptProposedMentorSlot,
   decideMentorRequest,
   getAlternativeMentors,
   getMentorAvailability,
@@ -203,5 +205,22 @@ export function useMentorRequestDecision() {
       queryClient.invalidateQueries({
         queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
       }),
+  });
+}
+
+export function useAcceptProposedSlot(id: string | null) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (selectedSlot: string) =>
+      acceptProposedMentorSlot({ id: id as string, selectedSlot }),
+    onSuccess: (request) => {
+      queryClient.setQueryData(["mentorship-request", id], request);
+      return Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
+        }),
+        queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY }),
+      ]);
+    },
   });
 }

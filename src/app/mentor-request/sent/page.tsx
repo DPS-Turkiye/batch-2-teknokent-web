@@ -10,6 +10,7 @@ import { useSearchParams } from "next/navigation";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul edildi",
+  [MentorshipRequestStatus.CounterProposed]: "Saat önerildi",
   [MentorshipRequestStatus.Declined]: "Uygun değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
   [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",

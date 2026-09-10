@@ -24,6 +24,7 @@ type Props = {
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.CounterProposed]: "Saat Önerildi",
   [MentorshipRequestStatus.Declined]: "Uygun Değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
   [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",

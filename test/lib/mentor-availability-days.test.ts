@@ -4,11 +4,14 @@ import {
   assignPreferredSlot,
   availabilityColumns,
   formatPreferredSlot,
-  hasThreePreferredSlots,
+  hasPreferredSlots,
+  hasProposedSlots,
   isHalfOrFullHour,
   isValidPreferredSlot,
   parsePreferredSlotsFromMessage,
+  parseProposedSlotsFromMessage,
   preferredSlotsMessageLines,
+  proposedSlotsMessageLines,
   requestOutcomeFromMessage,
   slotDayLabel,
   slotFromStartsAt,
@@ -73,33 +76,47 @@ describe("preferred day and time slots", () => {
     );
   });
 
-  it("requires three distinct day-and-time preferences", () => {
+  it("accepts one to three distinct day-and-time preferences", () => {
     expect(
-      hasThreePreferredSlots([
+      hasPreferredSlots([
+        { date: "2026-09-10", time: "10:00" },
+        { date: "", time: "" },
+        { date: "", time: "" },
+      ]),
+    ).toBe(true);
+    expect(
+      hasPreferredSlots([
+        { date: "2026-09-10", time: "10:00" },
+        { date: "2026-09-10", time: "10:30" },
+        { date: "", time: "" },
+      ]),
+    ).toBe(true);
+    expect(
+      hasPreferredSlots([
         { date: "2026-09-10", time: "10:00" },
         { date: "2026-09-10", time: "10:30" },
         { date: "2026-09-11", time: "14:00" },
       ]),
     ).toBe(true);
     expect(
-      hasThreePreferredSlots([
+      hasPreferredSlots([
         { date: "2026-09-10", time: "10:00" },
         { date: "2026-09-10", time: "10:15" },
         { date: "2026-09-11", time: "14:00" },
       ]),
-    ).toBe(false);
+    ).toBe(true);
     expect(
-      hasThreePreferredSlots([
+      hasPreferredSlots([
         { date: "2026-09-10", time: "10:00" },
         { date: "2026-09-10", time: "10:00" },
         { date: "2026-09-11", time: "14:00" },
       ]),
     ).toBe(false);
     expect(
-      hasThreePreferredSlots([
-        { date: "2026-09-10", time: "10:00" },
-        { date: "2026-09-11", time: "10:30" },
-        { date: "", time: "14:00" },
+      hasPreferredSlots([
+        { date: "", time: "" },
+        { date: "", time: "" },
+        { date: "", time: "" },
       ]),
     ).toBe(false);
   });
@@ -180,6 +197,27 @@ describe("preferred day and time slots", () => {
         time: "14:00",
         label: "12 Eylül Cumartesi · 14:00",
       },
+    ]);
+  });
+
+  it("round-trips mentor proposed slots through the mentor message", () => {
+    const slots = [
+      { date: "2026-09-12", time: "15:00" },
+      { date: "2026-09-13", time: "10:30" },
+    ];
+    const message = [
+      "Saatlerinizi beğenmedim; alternatif gün ve saat öneriyorum.",
+      ...proposedSlotsMessageLines(slots),
+    ].join("\n");
+
+    expect(hasProposedSlots(slots)).toBe(true);
+    expect(parseProposedSlotsFromMessage(message)).toEqual([
+      {
+        date: "2026-09-12",
+        time: "15:00",
+        label: "12 Eylül Cumartesi · 15:00",
+      },
+      { date: "2026-09-13", time: "10:30", label: "13 Eylül Pazar · 10:30" },
     ]);
   });
 });

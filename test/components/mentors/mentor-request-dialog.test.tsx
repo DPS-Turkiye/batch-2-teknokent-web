@@ -65,24 +65,45 @@ describe("MentorRequestDialog", () => {
     vi.mocked(submitMentorshipRequest).mockReset();
   });
 
-  it("keeps Talebi gönder disabled until three day-and-time preferences are entered", () => {
+  it("keeps Talebi gönder disabled until at least one valid preference is entered", () => {
     renderDialog();
     const days = upcomingPreferenceDays();
     const first = days[0]?.value ?? "";
-    const second = days[1]?.value ?? "";
-    const third = days[2]?.value ?? "";
 
     const send = screen.getByRole("button", { name: "Talebi gönder" });
     expect(send).toBeDisabled();
     expect(screen.getByLabelText("1. tercih günü")).toBeInTheDocument();
 
     fillPreference(1, first, "10:15");
-    fillPreference(2, second, "10:30");
-    fillPreference(3, third, "14:00");
     expect(send).toBeDisabled();
 
     fillPreference(1, first, "10:00");
     expect(send).toBeEnabled();
+  });
+
+  it("sends the request with a single preferred day and time", async () => {
+    vi.mocked(submitMentorshipRequest).mockResolvedValue({
+      id: "req-1",
+      status: "PENDING",
+    });
+    const user = userEvent.setup();
+    const { onSent } = renderDialog();
+    const days = upcomingPreferenceDays();
+    const first = days[0]?.value ?? "";
+
+    fillPreference(1, first, "10:00");
+
+    await user.click(screen.getByRole("button", { name: "Talebi gönder" }));
+
+    expect(submitMentorshipRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mentorId: mentorProfile.id,
+        requesterMessage: expect.stringMatching(
+          /Tercih edilen saatler: .+ · 10:00/,
+        ),
+      }),
+    );
+    expect(onSent).toHaveBeenCalledWith("req-1");
   });
 
   it("sends the request with three preferred days and times", async () => {

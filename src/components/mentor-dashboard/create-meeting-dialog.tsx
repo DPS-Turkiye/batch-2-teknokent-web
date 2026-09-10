@@ -3,10 +3,14 @@
 import { ChevronDown, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
 import { timeLabel, upcomingHourColumns } from "@/lib/calendar";
-import { CREATE_MEETING_NO_STARTUP_MESSAGE } from "@/lib/const";
+import {
+  CALENDAR_MEETING_DURATION_MINUTES,
+  CREATE_MEETING_NO_STARTUP_MESSAGE,
+} from "@/lib/const";
 import { parseGoogleMeetLink } from "@/lib/google-calendar";
 import {
   groupMeetingTargets,
@@ -150,7 +154,7 @@ export function CreateMeetingDialog({
     if (!scheduledAt) return;
     void onSubmit({
       scheduledAt: scheduledAt.toISOString(),
-      durationMinutes: 60,
+      durationMinutes: CALENDAR_MEETING_DURATION_MINUTES,
       agenda,
       meetLink,
       transcribeRequested,
@@ -356,34 +360,10 @@ export function CreateMeetingDialog({
               </div>
             ) : null}
 
-            <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4e7ea] p-3">
-              <input
-                type="checkbox"
-                checked={transcribeRequested}
-                onChange={(event) =>
-                  setTranscribeRequested(event.target.checked)
-                }
-                className="mt-0.5 size-4 accent-[#e86f22]"
-              />
-              <span>
-                <span className="block text-sm font-semibold text-[#22262b]">
-                  Toplantının transkriptinin çıkarılmasını istiyorum
-                </span>
-                <span className="mt-1 block text-xs leading-5 text-[#676e78]">
-                  İşaretlersen Meet linki Toplantı Asistanı listesine düşer;
-                  toplantı saatinde bot otomatik katılır.
-                </span>
-              </span>
-            </label>
-            {transcribeRequested ? (
-              <p
-                role="status"
-                className="mt-2 rounded-xl bg-[#fff9f5] px-3 py-2 text-xs leading-5 text-[#c85816]"
-              >
-                Toplantı sonrası Toplantı Asistanı&apos;ndan toplantı raporunu
-                ve transkripti menteelerinize gönderebilirsiniz.
-              </p>
-            ) : null}
+            <TranscribeRequestedField
+              checked={transcribeRequested}
+              onChange={setTranscribeRequested}
+            />
 
             <button
               type="button"

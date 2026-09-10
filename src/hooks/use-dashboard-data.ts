@@ -41,7 +41,8 @@ export function useDashboardData() {
   const pendingRequests = requests.filter(
     (request) =>
       request.status === MentorshipRequestStatus.Pending ||
-      request.status === MentorshipRequestStatus.MoreInfoRequested,
+      request.status === MentorshipRequestStatus.MoreInfoRequested ||
+      request.status === MentorshipRequestStatus.CounterProposed,
   );
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
 

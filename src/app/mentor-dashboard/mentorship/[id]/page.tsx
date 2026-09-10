@@ -27,6 +27,7 @@ import { AppArea } from "@/types/app-area";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
+  [MentorshipRequestStatus.CounterProposed]: "Saat Önerildi",
   [MentorshipRequestStatus.Declined]: "Uygun Değil",
   [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
   [MentorshipRequestStatus.Pending]: "Yanıt Bekliyor",
@@ -38,6 +39,7 @@ const statusTones: Record<
   "gray" | "green" | "amber" | "purple"
 > = {
   [MentorshipRequestStatus.Accepted]: "green",
+  [MentorshipRequestStatus.CounterProposed]: "amber",
   [MentorshipRequestStatus.Declined]: "gray",
   [MentorshipRequestStatus.MoreInfoRequested]: "purple",
   [MentorshipRequestStatus.Pending]: "amber",
