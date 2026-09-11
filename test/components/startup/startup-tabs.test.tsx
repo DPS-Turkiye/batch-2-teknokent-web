@@ -19,13 +19,20 @@ describe("StartupTabs", () => {
     expect(profile).toHaveAttribute("href", "/startup");
     expect(profile).toHaveAttribute("aria-current", "page");
     expect(profile).toHaveClass("text-[#e86f22]");
+    expect(screen.getByRole("link", { name: "Süreç" })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 
-  it("leaves every tab unselected on another page", () => {
-    mockPathname.mockReturnValue("/startup/elsewhere");
+  it("selects Süreç on the process page", () => {
+    mockPathname.mockReturnValue("/startup/process");
 
     render(<StartupTabs />);
 
+    expect(screen.getByRole("link", { name: "Süreç" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
     expect(
       screen.getByRole("link", { name: "Startup Profilim" }),
     ).not.toHaveAttribute("aria-current");

@@ -1,5 +1,6 @@
 export enum StartupTab {
   Profile = "profile",
+  Process = "process",
 }
 
 export type StartupTabLink = {
@@ -11,4 +12,5 @@ export type StartupTabLink = {
 /** The Startup'ım tabs, in order. Each tab joins the list with its screen. */
 export const STARTUP_TABS: StartupTabLink[] = [
   { id: StartupTab.Profile, label: "Startup Profilim", href: "/startup" },
+  { id: StartupTab.Process, label: "Süreç", href: "/startup/process" },
 ];
