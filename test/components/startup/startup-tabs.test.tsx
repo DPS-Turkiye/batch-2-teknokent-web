@@ -24,6 +24,17 @@ describe("StartupTabs", () => {
     );
   });
 
+  it("selects Toplantılar on the meetings page", () => {
+    mockPathname.mockReturnValue("/startup/meetings");
+
+    render(<StartupTabs />);
+
+    expect(screen.getByRole("link", { name: "Toplantılar" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   it("selects Süreç on the process page", () => {
     mockPathname.mockReturnValue("/startup/process");
 

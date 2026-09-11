@@ -21,6 +21,7 @@ export async function uploadDocument(
   file: File,
   kind: string,
   idToken?: string,
+  meetingId?: string,
 ) {
   const token = idToken ?? (await currentIdToken());
   if (!token) {
@@ -29,6 +30,7 @@ export async function uploadDocument(
   const data = new FormData();
   data.set("file", file);
   data.set("kind", kind);
+  if (meetingId) data.set("meetingId", meetingId);
   return requireSuccess(
     await httpClient.post<StoredDocument>(
       `${getPublicBackendUrl()}/api/documents`,

@@ -1,6 +1,7 @@
 export enum StartupTab {
   Profile = "profile",
   Process = "process",
+  Meetings = "meetings",
 }
 
 export type StartupTabLink = {
@@ -13,4 +14,5 @@ export type StartupTabLink = {
 export const STARTUP_TABS: StartupTabLink[] = [
   { id: StartupTab.Profile, label: "Startup Profilim", href: "/startup" },
   { id: StartupTab.Process, label: "Süreç", href: "/startup/process" },
+  { id: StartupTab.Meetings, label: "Toplantılar", href: "/startup/meetings" },
 ];
