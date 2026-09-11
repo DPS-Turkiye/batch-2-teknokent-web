@@ -46,6 +46,12 @@ vi.mock("@/lib/client/meetings", () => ({
   updateMeeting: vi.fn(),
 }));
 
+vi.mock("@/lib/client/mentorships", () => ({
+  getRegularMentorships: vi.fn(async () => []),
+  searchOrganizations: vi.fn(async () => []),
+  startRegularMentorship: vi.fn(),
+}));
+
 const mutateAsync = vi.fn();
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({

@@ -4,7 +4,12 @@ import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
-import { CreateMeetingDialog } from "@/components/mentor-dashboard/create-meeting-dialog";
+import {
+  CreateMeetingDialog,
+  type CreateMeetingBatch,
+} from "@/components/mentor-dashboard/create-meeting-dialog";
+import { RegularMentorshipWeekChecksPanel } from "@/components/mentor-dashboard/regular-mentorship-week-checks";
+import { useAppSession } from "@/components/providers/session-provider";
 import {
   CALENDAR_FILTER_LABELS,
   CALENDAR_HOURS,
@@ -19,7 +24,24 @@ import {
   WEEKDAY_SHORT_LABELS,
   weekRangeLabel,
 } from "@/lib/calendar";
+import {
+  createGoogleMeetEvent,
+  ensureGoogleCalendarToken,
+} from "@/lib/google-calendar";
 import { AppArea } from "@/types/app-area";
+
+function toDateKey(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function atHour(day: Date, hour: number) {
+  const next = new Date(day);
+  next.setHours(hour, 0, 0, 0);
+  return next;
+}
 
 function counterpartOf(meeting: MeetingItem) {
   return meeting.organizationName ?? meeting.mentorName ?? "Mentorluk";
@@ -131,8 +153,12 @@ function MeetingModal({
 
 export default function MentorCalendarPage() {
   const calendar = useMentorCalendar();
+  const session = useAppSession();
   const [openMeeting, setOpenMeeting] = useState<MeetingItem | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createStartAt, setCreateStartAt] = useState<Date | null>(null);
+  const [createError, setCreateError] = useState<Error | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
 
   const days = calendar.days;
   const range = days.length
@@ -140,6 +166,52 @@ export default function MentorCalendarPage() {
     : "";
   const programEventCount =
     calendar.filter === CalendarFilter.Program ? calendar.programs.length : 0;
+
+  function openCreateDialog(startAt: Date | null = null) {
+    setCreateError(null);
+    setCreateStartAt(startAt);
+    setCreateOpen(true);
+  }
+
+  function closeCreateDialog() {
+    setCreateOpen(false);
+    setCreateStartAt(null);
+    setCreateError(null);
+  }
+
+  async function submitMeeting(batch: CreateMeetingBatch) {
+    setCreateError(null);
+    setIsCreating(true);
+    try {
+      let meetLink = batch.meetLink;
+      if (!meetLink) {
+        const { token } = await ensureGoogleCalendarToken();
+        meetLink = await createGoogleMeetEvent({
+          accessToken: token,
+          title: batch.agenda,
+          startIso: batch.scheduledAt,
+          durationMinutes: batch.durationMinutes,
+        });
+      }
+      for (const recipient of batch.recipients) {
+        await calendar.addMeeting({
+          ...recipient,
+          scheduledAt: batch.scheduledAt,
+          durationMinutes: batch.durationMinutes,
+          agenda: batch.agenda,
+          meetLink,
+          transcribeRequested: batch.transcribeRequested,
+        });
+      }
+      closeCreateDialog();
+    } catch (error) {
+      setCreateError(
+        error instanceof Error ? error : new Error("Toplantı oluşturulamadı."),
+      );
+    } finally {
+      setIsCreating(false);
+    }
+  }
 
   return (
     <AppShell active={AppArea.Calendar} mentorHome>
@@ -154,7 +226,7 @@ export default function MentorCalendarPage() {
             </p>
           </div>
           <button
-            onClick={() => setCreateOpen(true)}
+            onClick={() => openCreateDialog(null)}
             className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white"
           >
             Yeni toplantı oluştur
@@ -227,6 +299,10 @@ export default function MentorCalendarPage() {
                           isSameDay(item.startsAt, day) &&
                           hourOf(item.startsAt) === hour,
                       );
+                      const slotStart = slot
+                        ? new Date(slot.startsAt)
+                        : atHour(day, hour);
+                      const createLabel = `${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`;
                       return (
                         <div
                           key={`${day.toISOString()}-${hour}`}
@@ -234,6 +310,7 @@ export default function MentorCalendarPage() {
                         >
                           {meeting ? (
                             <button
+                              type="button"
                               onClick={() => setOpenMeeting(meeting)}
                               className="absolute inset-x-1 top-px z-10 h-10 overflow-hidden rounded-md bg-[#26a4ff] px-2 py-1.5 text-left leading-[15px] text-white"
                             >
@@ -247,15 +324,27 @@ export default function MentorCalendarPage() {
                               ) : null}
                             </button>
                           ) : slot ? (
-                            <span className="absolute inset-x-1 top-px z-10 block h-10 overflow-hidden rounded-md bg-[#e9f2fa] px-2 py-1.5 leading-[15px] text-[#26a4ff]">
+                            <button
+                              type="button"
+                              onClick={() => openCreateDialog(slotStart)}
+                              aria-label={createLabel}
+                              className="absolute inset-x-1 top-px z-10 block h-10 overflow-hidden rounded-md bg-[#e9f2fa] px-2 py-1.5 text-left leading-[15px] text-[#26a4ff] hover:bg-[#dceefb]"
+                            >
                               <b className="block text-[11px] font-semibold">
                                 Müsait
                               </b>
                               <span className="block text-[10.5px] opacity-80">
                                 {slot.durationMinutes} dk
                               </span>
-                            </span>
-                          ) : null}
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => openCreateDialog(slotStart)}
+                              aria-label={createLabel}
+                              className="absolute inset-0 z-0 hover:bg-[#f8fafc]"
+                            />
+                          )}
                         </div>
                       );
                     })}
@@ -274,6 +363,9 @@ export default function MentorCalendarPage() {
             ) : null}
           </section>
           <aside className="space-y-4">
+            <RegularMentorshipWeekChecksPanel
+              weekStart={toDateKey(days[0] ?? new Date())}
+            />
             <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
               <div className="flex justify-between">
                 <h2 className="text-[15px] font-semibold">Müsaitliğim</h2>
@@ -368,17 +460,15 @@ export default function MentorCalendarPage() {
       ) : null}
       {createOpen ? (
         <CreateMeetingDialog
-          mentorName=""
+          mentorName={session?.fullName ?? ""}
           mentorships={calendar.mentorships}
           programs={calendar.programs}
-          startAt={null}
-          isSaving={calendar.isSavingMeeting}
-          error={calendar.meetingError}
-          onClose={() => setCreateOpen(false)}
-          onSubmit={async (input) => {
-            await calendar.addMeeting(input);
-            setCreateOpen(false);
-          }}
+          regularMentorships={calendar.regularMentorships}
+          startAt={createStartAt}
+          isSaving={isCreating || calendar.isSavingMeeting}
+          error={createError ?? calendar.meetingError}
+          onClose={closeCreateDialog}
+          onSubmit={submitMeeting}
         />
       ) : null}
     </AppShell>

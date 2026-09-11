@@ -3,4 +3,5 @@ export enum MentorshipWorkspaceTab {
   Active = "active",
   Requests = "requests",
   History = "history",
+  Regular = "regular",
 }

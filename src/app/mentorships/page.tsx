@@ -11,6 +11,7 @@ import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MeetingFeedbackHistoryLink } from "@/components/mentorships/meeting-feedback-history-link";
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
+import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
 import { useAppSession } from "@/components/providers/session-provider";
 import {
   useMentorshipRequestsPage,
@@ -39,6 +40,9 @@ function tabFromSearchParam(value: string | null): MentorshipWorkspaceTab {
   }
   if (value === MentorshipWorkspaceTab.MentorPool) {
     return MentorshipWorkspaceTab.MentorPool;
+  }
+  if (value === MentorshipWorkspaceTab.Regular) {
+    return MentorshipWorkspaceTab.Regular;
   }
   return MentorshipWorkspaceTab.Active;
 }
@@ -90,7 +94,7 @@ function MenteeMentorshipsWorkspace() {
         </section>
 
         <div
-          className="mt-[22px] grid grid-cols-4"
+          className="mt-[22px] grid grid-cols-5"
           role="tablist"
           aria-label="Mentorluk görünümleri"
         >
@@ -117,6 +121,8 @@ function MenteeMentorshipsWorkspace() {
           <div className="mt-5">
             <MentorsDirectory embedded />
           </div>
+        ) : tab === MentorshipWorkspaceTab.Regular ? (
+          <RegularMentorshipsTab role={UserRole.Mentee} />
         ) : meetingsLoading ? (
           <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
             Yükleniyor...

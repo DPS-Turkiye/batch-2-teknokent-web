@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
+import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { timeLabel, upcomingHourColumns } from "@/lib/calendar";
 import {
   CALENDAR_MEETING_DURATION_MINUTES,
@@ -85,6 +86,7 @@ export function CreateMeetingDialog({
   mentorName,
   mentorships,
   programs,
+  regularMentorships = [],
   onClose,
   onSubmit,
   isSaving,
@@ -94,6 +96,7 @@ export function CreateMeetingDialog({
   mentorName: string;
   mentorships: MentorshipRequest[];
   programs: Program[];
+  regularMentorships?: RegularMentorship[];
   onClose: () => void;
   onSubmit: (input: CreateMeetingBatch) => Promise<void>;
   isSaving: boolean;
@@ -101,21 +104,24 @@ export function CreateMeetingDialog({
   startAt: Date | null;
 }) {
   const grouped = useMemo(
-    () => groupMeetingTargets(mentorships, programs),
-    [mentorships, programs],
+    () => groupMeetingTargets(mentorships, programs, regularMentorships),
+    [mentorships, programs, regularMentorships],
   );
   const allTargets = useMemo(
     () => [
-      ...grouped.ungrouped,
       ...grouped.byProgram.flatMap((group) => group.items),
+      ...grouped.regular,
     ],
     [grouped],
   );
   const hasTargets = allTargets.length > 0;
-  const defaultKeys =
-    grouped.ungrouped[0]?.key != null
-      ? [grouped.ungrouped[0].key]
-      : (grouped.byProgram[0]?.items.map((item) => item.key) ?? []);
+  const defaultKeys = (() => {
+    if ((grouped.byProgram[0]?.items.length ?? 0) > 0) {
+      return grouped.byProgram[0].items.map((item) => item.key);
+    }
+    if (grouped.regular[0]) return [grouped.regular[0].key];
+    return [];
+  })();
 
   const [selectedKeys, setSelectedKeys] = useState<string[]>(defaultKeys);
   const [slotIso, setSlotIso] = useState("");
@@ -152,13 +158,21 @@ export function CreateMeetingDialog({
 
   function submitBatch(meetLink?: string) {
     if (!scheduledAt) return;
+    const uniqueRecipients = new Map<string, CreateMeetingRecipient>();
+    for (const target of recipients) {
+      const recipient = meetingRecipient(target);
+      const dedupeKey =
+        recipient.mentorshipRequestId ??
+        `${recipient.programId ?? ""}:${recipient.organizationId ?? ""}`;
+      uniqueRecipients.set(dedupeKey, recipient);
+    }
     void onSubmit({
       scheduledAt: scheduledAt.toISOString(),
       durationMinutes: CALENDAR_MEETING_DURATION_MINUTES,
       agenda,
       meetLink,
       transcribeRequested,
-      recipients: recipients.map(meetingRecipient),
+      recipients: [...uniqueRecipients.values()],
     });
   }
 
@@ -188,7 +202,9 @@ export function CreateMeetingDialog({
     >
       <div className="max-h-[94vh] w-full max-w-[720px] overflow-y-auto rounded-2xl bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-base font-bold text-[#22262b]">Start up seç</h2>
+          <h2 className="text-base font-bold text-[#22262b]">
+            Toplantı hedefi seç
+          </h2>
           <button
             type="button"
             onClick={onClose}
@@ -205,74 +221,86 @@ export function CreateMeetingDialog({
           </p>
         ) : (
           <>
-            <div className="mt-3 grid grid-cols-3 gap-2">
-              {grouped.ungrouped.map((target) => (
-                <StartupCard
-                  key={target.key}
-                  target={target}
-                  selected={selectedKeys.includes(target.key)}
-                  onSelect={() => toggleStartup(target.key)}
-                />
-              ))}
-            </div>
-
             {grouped.byProgram.length > 0 ? (
-              <div className="mt-4">
-                {grouped.byProgram.map((group) => {
-                  const keys = group.items.map((item) => item.key);
-                  const open = openProgramId === group.program.id;
-                  const selected =
-                    keys.length > 0 &&
-                    keys.every((key) => selectedKeys.includes(key));
-                  return (
-                    <div
-                      key={group.program.id}
-                      className="border-b border-[#e4e7ea]"
-                    >
-                      <div className="flex items-center gap-1">
-                        <button
-                          type="button"
-                          aria-pressed={selected}
-                          onClick={() => {
-                            toggleProgram(keys);
-                            setOpenProgramId(group.program.id);
-                          }}
-                          className={`min-w-0 flex-1 py-2.5 text-left text-sm font-semibold ${
-                            selected ? "text-[#e86f22]" : "text-[#22262b]"
-                          }`}
-                        >
-                          {group.program.name}
-                        </button>
-                        <button
-                          type="button"
-                          aria-expanded={open}
-                          aria-label={`${group.program.name} üyelerini göster`}
-                          onClick={() =>
-                            setOpenProgramId(open ? "" : group.program.id)
-                          }
-                          className="grid size-8 shrink-0 place-items-center text-[#858c96]"
-                        >
-                          <ChevronDown
-                            className={`size-4 transition ${open ? "rotate-180" : ""}`}
-                          />
-                        </button>
-                      </div>
-                      {open ? (
-                        <div className="grid grid-cols-3 gap-2 pb-3">
-                          {group.items.map((target) => (
-                            <StartupCard
-                              key={target.key}
-                              target={target}
-                              selected={selectedKeys.includes(target.key)}
-                              onSelect={() => toggleStartup(target.key)}
+              <section className="mt-4">
+                <h3 className="text-sm font-bold text-[#22262b]">
+                  Programlarım:
+                </h3>
+                <div className="mt-2">
+                  {grouped.byProgram.map((group) => {
+                    const keys = group.items.map((item) => item.key);
+                    const open = openProgramId === group.program.id;
+                    const selected =
+                      keys.length > 0 &&
+                      keys.every((key) => selectedKeys.includes(key));
+                    return (
+                      <div
+                        key={group.program.id}
+                        className="border-b border-[#e4e7ea]"
+                      >
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => {
+                              toggleProgram(keys);
+                              setOpenProgramId(group.program.id);
+                            }}
+                            className={`min-w-0 flex-1 py-2.5 text-left text-sm font-semibold ${
+                              selected ? "text-[#e86f22]" : "text-[#22262b]"
+                            }`}
+                          >
+                            {group.program.name}
+                          </button>
+                          <button
+                            type="button"
+                            aria-expanded={open}
+                            aria-label={`${group.program.name} startuplarını göster`}
+                            onClick={() =>
+                              setOpenProgramId(open ? "" : group.program.id)
+                            }
+                            className="grid size-8 shrink-0 place-items-center text-[#858c96]"
+                          >
+                            <ChevronDown
+                              className={`size-4 transition ${open ? "rotate-180" : ""}`}
                             />
-                          ))}
+                          </button>
                         </div>
-                      ) : null}
-                    </div>
-                  );
-                })}
-              </div>
+                        {open ? (
+                          <div className="grid grid-cols-3 gap-2 pb-3">
+                            {group.items.map((target) => (
+                              <StartupCard
+                                key={target.key}
+                                target={target}
+                                selected={selectedKeys.includes(target.key)}
+                                onSelect={() => toggleStartup(target.key)}
+                              />
+                            ))}
+                          </div>
+                        ) : null}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            ) : null}
+
+            {grouped.regular.length > 0 ? (
+              <section className="mt-5">
+                <h3 className="text-sm font-bold text-[#22262b]">
+                  Düzenli mentorlüklerim:
+                </h3>
+                <div className="mt-2 grid grid-cols-3 gap-2">
+                  {grouped.regular.map((target) => (
+                    <StartupCard
+                      key={target.key}
+                      target={target}
+                      selected={selectedKeys.includes(target.key)}
+                      onSelect={() => toggleStartup(target.key)}
+                    />
+                  ))}
+                </div>
+              </section>
             ) : null}
 
             {startAt ? null : (

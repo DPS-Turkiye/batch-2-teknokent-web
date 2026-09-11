@@ -1,4 +1,5 @@
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { ProgramMentorStatus, type Program } from "@/interfaces/program";
 
 export type MeetingTarget = {
@@ -9,6 +10,7 @@ export type MeetingTarget = {
   requesterName?: string;
   mentorshipRequestId?: string;
   programId?: string;
+  regularMentorshipId?: string;
 };
 
 export function programsMentorHasJoined(
@@ -48,8 +50,10 @@ export function meetingRecipient(target: MeetingTarget): {
 export function groupMeetingTargets(
   mentorships: MentorshipRequest[],
   programs: Program[],
+  regularMentorships: RegularMentorship[] = [],
 ): {
   byProgram: { program: Program; items: MeetingTarget[] }[];
+  regular: MeetingTarget[];
   ungrouped: MeetingTarget[];
 } {
   const byProgram = programs
@@ -78,6 +82,18 @@ export function groupMeetingTargets(
     ),
   );
 
+  const regular: MeetingTarget[] = regularMentorships.map((item) => ({
+    key: `regular:${item.id}`,
+    organizationId: item.organizationId,
+    organizationName: item.organizationName,
+    subtitle: `Haftada ${item.daysPerWeek} gün · Düzenli`,
+    regularMentorshipId: item.id,
+  }));
+
+  for (const item of regular) {
+    claimed.add(item.organizationId);
+  }
+
   const ungrouped: MeetingTarget[] = mentorships
     .filter((mentorship) => !claimed.has(mentorship.organizationId))
     .map((mentorship) => ({
@@ -89,7 +105,7 @@ export function groupMeetingTargets(
       mentorshipRequestId: mentorship.id,
     }));
 
-  return { byProgram, ungrouped };
+  return { byProgram, regular, ungrouped };
 }
 
 export function unusedMeetingTargets(
