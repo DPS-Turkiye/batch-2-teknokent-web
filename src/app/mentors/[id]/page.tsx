@@ -63,7 +63,7 @@ export default async function MentorDetailPage({
   ]);
 
   return (
-    <AppShell active={AppArea.Mentorships}>
+    <AppShell active={AppArea.Mentorships} menteeHome>
       <MentorDetailView
         mentor={mentor}
         slots={slots}
