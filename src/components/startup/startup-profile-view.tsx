@@ -194,7 +194,7 @@ export function StartupProfileView() {
               Ekip
             </h2>
             <Link
-              href="/team"
+              href="/startup/team"
               className="rounded-full border border-[#fff4ec] px-3.5 py-1.5 text-[13px] text-[#e86f22] transition hover:border-[#e86f22]"
             >
               Ekibi Görüntüle →
@@ -233,9 +233,17 @@ export function StartupProfileView() {
           aria-labelledby="startup-shared"
           className={`${cardClass} space-y-4`}
         >
-          <h2 id="startup-shared" className={headingClass}>
-            Mentorlarla Paylaşılan Dosyalar
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <h2 id="startup-shared" className={headingClass}>
+              Mentorlarla Paylaşılan Dosyalar
+            </h2>
+            <Link
+              href="/startup/files"
+              className="shrink-0 rounded-full border border-[#fff4ec] px-3.5 py-1.5 text-[13px] text-[#e86f22] transition hover:border-[#e86f22]"
+            >
+              Tümünü Gör →
+            </Link>
+          </div>
           {overview.documentsLoading ? (
             <p className={mutedClass}>Dosyalar yükleniyor…</p>
           ) : overview.sharedDocuments.length === 0 ? (

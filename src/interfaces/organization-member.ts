@@ -9,3 +9,14 @@ export type OrganizationMember = {
   founder?: boolean;
   joinedAt?: string | null;
 };
+
+export type OrganizationMemberInput = {
+  fullName: string;
+  email: string;
+  jobTitle?: string;
+};
+
+export type OrganizationMemberUpdate = {
+  fullName: string;
+  jobTitle?: string;
+};

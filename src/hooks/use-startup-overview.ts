@@ -14,6 +14,7 @@ import {
   type StartupDocument,
 } from "@/interfaces/startup-document";
 import { getStartupProfile } from "@/lib/client/organization";
+import { foundersFirst } from "@/lib/startup-team";
 
 const TEAM_PREVIEW_LIMIT = 3;
 const SHARED_PREVIEW_LIMIT = 5;
@@ -53,13 +54,7 @@ export function useStartupOverview() {
     [documents],
   );
   const team = useMemo(
-    () =>
-      [...(membersQuery.data ?? [])]
-        .sort(
-          (left, right) =>
-            Number(Boolean(right.founder)) - Number(Boolean(left.founder)),
-        )
-        .slice(0, TEAM_PREVIEW_LIMIT),
+    () => foundersFirst(membersQuery.data ?? []).slice(0, TEAM_PREVIEW_LIMIT),
     [membersQuery.data],
   );
 

@@ -1,6 +1,8 @@
 "use client";
 
+import { DangerButton } from "@/components/common/danger-button";
 import { fieldClass, labelClass } from "@/components/common/form-field";
+import { ModalDialog } from "@/components/common/modal-dialog";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import type { useFileUploadForm } from "@/hooks/use-file-upload-form";
@@ -13,31 +15,10 @@ import { DOCUMENT_KIND_LABELS, UPLOADABLE_KINDS } from "@/lib/startup-files";
 
 type UploadForm = ReturnType<typeof useFileUploadForm>;
 
-function Dialog({
-  children,
-  labelledBy,
-}: {
-  children: React.ReactNode;
-  labelledBy: string;
-}) {
-  return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/35 px-4">
-      <section
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={labelledBy}
-        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-2xl"
-      >
-        {children}
-      </section>
-    </div>
-  );
-}
-
 export function FileUploadDialog({ form }: { form: UploadForm }) {
   if (!form.isOpen) return null;
   return (
-    <Dialog labelledBy="file-upload-title">
+    <ModalDialog labelledBy="file-upload-title">
       <h2 id="file-upload-title" className="text-base font-semibold">
         Dosya yükle
       </h2>
@@ -70,7 +51,7 @@ export function FileUploadDialog({ form }: { form: UploadForm }) {
           {form.isUploading ? "Yükleniyor…" : "Yükle"}
         </PrimaryButton>
       </div>
-    </Dialog>
+    </ModalDialog>
   );
 }
 
@@ -92,7 +73,7 @@ export function ShareDocumentDialog({
   if (!document) return null;
   const sharedWith = new Set(document.shares.map((share) => share.mentorId));
   return (
-    <Dialog labelledBy="file-share-title">
+    <ModalDialog labelledBy="file-share-title">
       <div>
         <h2 id="file-share-title" className="text-base font-semibold">
           Mentorla paylaş
@@ -136,7 +117,7 @@ export function ShareDocumentDialog({
       <div className="flex justify-end">
         <SecondaryButton onClick={onClose}>Kapat</SecondaryButton>
       </div>
-    </Dialog>
+    </ModalDialog>
   );
 }
 
@@ -153,7 +134,7 @@ export function DeleteDocumentDialog({
 }) {
   if (!document) return null;
   return (
-    <Dialog labelledBy="file-delete-title">
+    <ModalDialog labelledBy="file-delete-title">
       <h2 id="file-delete-title" className="text-base font-semibold">
         Dosyayı silmek istiyor musun?
       </h2>
@@ -163,15 +144,10 @@ export function DeleteDocumentDialog({
       </p>
       <div className="flex justify-end gap-2">
         <SecondaryButton onClick={onCancel}>Vazgeç</SecondaryButton>
-        <button
-          type="button"
-          disabled={isDeleting}
-          onClick={onConfirm}
-          className="rounded-lg bg-[#c24135] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
-        >
+        <DangerButton disabled={isDeleting} onClick={onConfirm}>
           {isDeleting ? "Siliniyor…" : "Sil"}
-        </button>
+        </DangerButton>
       </div>
-    </Dialog>
+    </ModalDialog>
   );
 }

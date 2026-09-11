@@ -115,6 +115,18 @@ describe("StartupProfileView", () => {
     vi.mocked(useStartupOverview).mockReturnValue(overview());
   });
 
+  it("links the team and shared files to their tabs", () => {
+    renderWithQueryClient(<StartupProfileView />);
+
+    expect(
+      screen.getByRole("link", { name: "Ekibi Görüntüle →" }),
+    ).toHaveAttribute("href", "/startup/team");
+    expect(screen.getByRole("link", { name: "Tümünü Gör →" })).toHaveAttribute(
+      "href",
+      "/startup/files",
+    );
+  });
+
   it("shows the startup with its status and progress", () => {
     renderWithQueryClient(<StartupProfileView />);
 

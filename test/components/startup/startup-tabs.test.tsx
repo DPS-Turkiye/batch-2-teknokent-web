@@ -46,6 +46,17 @@ describe("StartupTabs", () => {
     );
   });
 
+  it("selects Ekip on the team page", () => {
+    mockPathname.mockReturnValue("/startup/team");
+
+    render(<StartupTabs />);
+
+    expect(screen.getByRole("link", { name: "Ekip" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   it("selects Süreç on the process page", () => {
     mockPathname.mockReturnValue("/startup/process");
 
