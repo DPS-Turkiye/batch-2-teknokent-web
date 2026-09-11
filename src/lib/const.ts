@@ -347,12 +347,14 @@ export const MENTORSHIPS_TABS = [
   [MentorshipWorkspaceTab.MentorPool, "Mentor Havuzu"],
   [MentorshipWorkspaceTab.Active, "Aktif"],
   [MentorshipWorkspaceTab.Requests, "Talepler"],
+  [MentorshipWorkspaceTab.Regular, "Düzenli"],
   [MentorshipWorkspaceTab.History, "Geçmiş"],
 ] as const;
 
 export const MENTOR_MENTORSHIPS_TABS = [
   [MentorshipWorkspaceTab.Requests, "Talepler"],
   [MentorshipWorkspaceTab.Active, "Aktif"],
+  [MentorshipWorkspaceTab.Regular, "Düzenli"],
   [MentorshipWorkspaceTab.History, "Geçmiş"],
 ] as const;
 

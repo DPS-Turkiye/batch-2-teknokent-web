@@ -27,6 +27,7 @@ import {
   postMeetingGuest,
   deleteMeeting,
 } from "@/lib/client/meetings";
+import { getRegularMentorships } from "@/lib/client/mentorships";
 import {
   createAvailabilityRule,
   deleteAvailabilityRule,
@@ -40,6 +41,7 @@ import {
   startOfWeek,
   weekDays,
 } from "@/lib/calendar";
+import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 
 // Re-exported for existing importers; the canonical definition moved to
 // lib/calendar so the mentee calendar can share it without depending on a
@@ -86,6 +88,10 @@ export function useMentorCalendar() {
 
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const programsQuery = usePrograms();
+  const regularMentorshipsQuery = useQuery({
+    queryKey: [...REGULAR_MENTORSHIPS_QUERY_KEY, UserRole.Mentor],
+    queryFn: () => getRegularMentorships(UserRole.Mentor),
+  });
 
   const programs = useMemo(
     () => programsMentorHasJoined(programsQuery.data ?? [], session?.userId),
@@ -101,6 +107,8 @@ export function useMentorCalendar() {
       ),
     [requestsQuery.data],
   );
+
+  const regularMentorships = regularMentorshipsQuery.data ?? [];
 
   const createMeeting = useMutation({
     mutationFn: postMeeting,
@@ -231,6 +239,7 @@ export function useMentorCalendar() {
     meetingError:
       createMeeting.error ?? inviteGuest.error ?? removeMeeting.error,
     mentorships,
+    regularMentorships,
     addRule: (input: {
       dayOfWeek: Weekday;
       startTime: string;

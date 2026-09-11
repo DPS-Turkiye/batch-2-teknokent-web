@@ -10,6 +10,7 @@ import { ListPagination } from "@/components/common/list-pagination";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MentorMeetLinkDialog } from "@/components/mentorships/mentor-meet-link-dialog";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
+import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
   useMentorshipRequestsPage,
@@ -189,7 +190,7 @@ export function MentorMentorshipsWorkspace() {
         </h1>
 
         <div
-          className="mt-[22px] grid grid-cols-3"
+          className="mt-[22px] grid grid-cols-4"
           role="tablist"
           aria-label="Mentorluk görünümleri"
         >
@@ -212,11 +213,11 @@ export function MentorMentorshipsWorkspace() {
           ))}
         </div>
 
-        {meetingsLoading ? (
+        {meetingsLoading && tab !== MentorshipWorkspaceTab.Regular ? (
           <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
             Yükleniyor...
           </div>
-        ) : meetingsError ? (
+        ) : meetingsError && tab !== MentorshipWorkspaceTab.Regular ? (
           <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
             {meetingsError.message}
           </div>
@@ -224,6 +225,8 @@ export function MentorMentorshipsWorkspace() {
           <ActiveTab meetings={meetings} onEditMeetLink={openMeetLinkEditor} />
         ) : tab === MentorshipWorkspaceTab.History ? (
           <HistoryTab meetings={meetings} />
+        ) : tab === MentorshipWorkspaceTab.Regular ? (
+          <RegularMentorshipsTab role={UserRole.Mentor} canStart />
         ) : (
           <RequestsTab
             onReview={(request) => {

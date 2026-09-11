@@ -1,10 +1,17 @@
 import { NextResponse } from "next/server";
 
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus, type Program } from "@/interfaces/program";
+import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { fetchMeetings } from "@/lib/api/meetings";
-import { fetchMentorRequest } from "@/lib/api/mentor-requests";
+import {
+  fetchMentorRequest,
+  fetchMentorRequests,
+} from "@/lib/api/mentor-requests";
+import { fetchRegularMentorships } from "@/lib/api/mentorships";
 import { fetchPrograms } from "@/lib/api/programs";
 import { backendResponse } from "@/lib/server/api-response";
+import { UserRole } from "@/interfaces/session";
 
 export async function resolveMentorMeetingOrganization(
   payload: Record<string, unknown>,
@@ -25,6 +32,53 @@ export async function resolveMentorMeetingOrganization(
 
   const programId = payload.programId;
   const organizationId = payload.organizationId;
+
+  if (
+    typeof organizationId === "string" &&
+    organizationId &&
+    (typeof programId !== "string" || !programId)
+  ) {
+    const regular = await fetchRegularMentorships({ mentorId });
+    if (regular.status === 200) {
+      const ownsRegular = ((regular.data ?? []) as RegularMentorship[]).some(
+        (item) => item.organizationId === organizationId,
+      );
+      if (ownsRegular) {
+        return { organizationId, otherMentorIds: [] as string[] };
+      }
+    }
+
+    const requests = await fetchMentorRequests({
+      requesterId: mentorId,
+      role: UserRole.Mentor,
+    });
+    if (requests.status === 200) {
+      const ownsAccepted = (
+        (requests.data ?? []) as {
+          organizationId: string;
+          status: MentorshipRequestStatus;
+        }[]
+      ).some(
+        (item) =>
+          item.organizationId === organizationId &&
+          item.status === MentorshipRequestStatus.Accepted,
+      );
+      if (ownsAccepted) {
+        return { organizationId, otherMentorIds: [] as string[] };
+      }
+    }
+
+    return {
+      error: NextResponse.json(
+        {
+          code: "FORBIDDEN",
+          message: "Bu startup ile aktif bir mentorlüğünüz yok.",
+        },
+        { status: 403 },
+      ),
+    };
+  }
+
   if (
     typeof programId !== "string" ||
     !programId ||

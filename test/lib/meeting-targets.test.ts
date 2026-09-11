@@ -92,6 +92,40 @@ describe("groupMeetingTargets", () => {
       requesterName: "Gülse",
     });
     expect(grouped.ungrouped).toEqual([]);
+    expect(grouped.regular).toEqual([]);
+  });
+
+  it("lists regular mentorships in their own section", () => {
+    const grouped = groupMeetingTargets(
+      [],
+      [],
+      [
+        {
+          id: "reg-1",
+          mentorId: "mentor-1",
+          mentorName: "Leyla",
+          organizationId: "org-9",
+          organizationName: "Orbit",
+          status: "ACTIVE",
+          startDate: "2026-09-01",
+          endDate: "2026-12-20",
+          daysPerWeek: 1,
+          goals: null,
+          goalItems: [],
+          progressPercent: 0,
+        },
+      ],
+    );
+
+    expect(grouped.regular).toHaveLength(1);
+    expect(grouped.regular[0]).toMatchObject({
+      key: "regular:reg-1",
+      organizationId: "org-9",
+      organizationName: "Orbit",
+    });
+    expect(meetingRecipient(grouped.regular[0])).toEqual({
+      organizationId: "org-9",
+    });
   });
 });
 

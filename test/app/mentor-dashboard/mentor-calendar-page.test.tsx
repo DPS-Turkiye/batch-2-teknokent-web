@@ -14,8 +14,29 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: () => ({
+    userId: "mentor-1",
+    fullName: "Leyla Aksoy",
+    role: "MENTOR",
+  }),
+}));
+
+vi.mock("@/lib/google-calendar", () => ({
+  ensureGoogleCalendarToken: vi.fn(async () => ({ token: "ya29.test" })),
+  createGoogleMeetEvent: vi.fn(
+    async () => "https://meet.google.com/abc-defg-hij",
+  ),
+}));
+
 vi.mock("@/components/mentor-dashboard/create-meeting-dialog", () => ({
   CreateMeetingDialog: () => <div data-testid="create-meeting-dialog" />,
+}));
+
+vi.mock("@/components/mentor-dashboard/regular-mentorship-week-checks", () => ({
+  RegularMentorshipWeekChecksPanel: () => (
+    <div data-testid="regular-week-checks" />
+  ),
 }));
 
 vi.mock("@/hooks/use-mentor-calendar", async (importOriginal) => {
@@ -69,6 +90,7 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
     ],
     programs: [{ id: "p1", name: "METU Stars 2026" }],
     mentorships: [],
+    regularMentorships: [],
     freeSlotCount: 3,
     filter: CalendarFilter.All,
     setFilter,
@@ -275,6 +297,20 @@ describe("MentorCalendarPage", () => {
 
     await user.click(
       screen.getByRole("button", { name: "Yeni toplantı oluştur" }),
+    );
+
+    expect(screen.getByTestId("create-meeting-dialog")).toBeInTheDocument();
+  });
+
+  it("opens the create-meeting dialog from a free availability slot", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: /15 11:00 için toplantı oluştur/,
+      }),
     );
 
     expect(screen.getByTestId("create-meeting-dialog")).toBeInTheDocument();

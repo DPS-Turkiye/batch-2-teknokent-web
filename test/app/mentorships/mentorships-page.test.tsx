@@ -64,6 +64,10 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   ),
 }));
 
+vi.mock("@/lib/client/mentorships", () => ({
+  getRegularMentorships: vi.fn(async () => []),
+}));
+
 function request(
   overrides: Partial<MentorshipRequest> = {},
 ): MentorshipRequest {
