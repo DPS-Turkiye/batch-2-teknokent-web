@@ -1,33 +1,29 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { useMeetings } from "@/hooks/use-meetings";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { getMentorRequestsPage } from "@/lib/client/mentor-requests";
+import { MENTORSHIP_LIST_PAGE_SIZE } from "@/lib/const";
 import { UserRole } from "@/interfaces/session";
-import {
-  requestHasConfirmedMeeting,
-  requestHasEndedMeeting,
-  requestHasOpenMeeting,
-} from "@/lib/mentorship-workspace";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
-const requestStatuses = new Set([
-  MentorshipRequestStatus.Pending,
-  MentorshipRequestStatus.MoreInfoRequested,
-  MentorshipRequestStatus.CounterProposed,
-]);
-const closedStatuses = new Set([
-  MentorshipRequestStatus.Declined,
-  MentorshipRequestStatus.Withdrawn,
-]);
+export type MentorshipListTab =
+  | MentorshipWorkspaceTab.Active
+  | MentorshipWorkspaceTab.Requests
+  | MentorshipWorkspaceTab.History;
+
+export const mentorshipRequestsPageQueryKey = (
+  role: UserRole.Mentee | UserRole.Mentor,
+  tab: MentorshipListTab,
+  page: number,
+  size: number,
+) => ["mentorship-requests", role, tab, page, size] as const;
 
 export function useMentorshipWorkspace(
-  role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
   initialTab: MentorshipWorkspaceTab = MentorshipWorkspaceTab.Active,
 ) {
-  const requestsQuery = useMentorshipRequests(role);
   const meetingsQuery = useMeetings();
   const [tab, setTab] = useState(initialTab);
 
@@ -36,61 +32,39 @@ export function useMentorshipWorkspace(
     [meetingsQuery.data],
   );
 
-  // Mentee list is org-scoped (same startup), so teammates' requests appear too.
-  const allRequests = useMemo(
-    () => requestsQuery.data ?? [],
-    [requestsQuery.data],
-  );
-
-  const activeRequests = useMemo(
-    () =>
-      allRequests.filter(
-        (request) =>
-          request.status === MentorshipRequestStatus.Accepted &&
-          requestHasConfirmedMeeting(meetings, request) &&
-          requestHasOpenMeeting(meetings, request),
-      ),
-    [allRequests, meetings],
-  );
-  const pendingRequests = useMemo(
-    () =>
-      allRequests.filter((request) => {
-        if (requestStatuses.has(request.status)) return true;
-        return (
-          request.status === MentorshipRequestStatus.Accepted &&
-          !requestHasConfirmedMeeting(meetings, request)
-        );
-      }),
-    [allRequests, meetings],
-  );
-  const historyRequests = useMemo(
-    () =>
-      allRequests.filter((request) => {
-        if (closedStatuses.has(request.status)) return true;
-        return (
-          request.status === MentorshipRequestStatus.Accepted &&
-          requestHasConfirmedMeeting(meetings, request) &&
-          requestHasEndedMeeting(meetings, request) &&
-          !requestHasOpenMeeting(meetings, request)
-        );
-      }),
-    [allRequests, meetings],
-  );
-
-  const requests = useMemo(() => {
-    if (tab === MentorshipWorkspaceTab.Active) return activeRequests;
-    if (tab === MentorshipWorkspaceTab.Requests) return pendingRequests;
-    if (tab === MentorshipWorkspaceTab.History) return historyRequests;
-    return [];
-  }, [activeRequests, historyRequests, pendingRequests, tab]);
-
   return {
-    error: requestsQuery.error,
-    historyRequests,
-    isLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
     meetings,
-    requests,
+    meetingsError: meetingsQuery.error,
+    meetingsLoading: meetingsQuery.isLoading,
     setTab,
     tab,
+  };
+}
+
+export function useMentorshipRequestsPage(
+  role: UserRole.Mentee | UserRole.Mentor,
+  tab: MentorshipListTab,
+  uiPage: number,
+  size: number = MENTORSHIP_LIST_PAGE_SIZE,
+) {
+  const apiPage = Math.max(0, uiPage - 1);
+  const query = useQuery({
+    queryKey: mentorshipRequestsPageQueryKey(role, tab, apiPage, size),
+    queryFn: () =>
+      getMentorRequestsPage({
+        role,
+        tab,
+        page: apiPage,
+        size,
+      }),
+  });
+
+  return {
+    error: query.error,
+    isLoading: query.isLoading,
+    page: uiPage,
+    requests: query.data?.content ?? [],
+    totalElements: query.data?.totalElements ?? 0,
+    totalPages: Math.max(1, query.data?.totalPages ?? 1),
   };
 }

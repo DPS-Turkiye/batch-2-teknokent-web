@@ -38,6 +38,14 @@ export function submitMeetingFeedback(
   });
 }
 
+export function fetchMeetingFeedback(meetingId: string, authorId: string) {
+  return backendRequest({
+    method: "GET",
+    url: `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
+    params: { authorId },
+  });
+}
+
 export function updateMeeting(id: string, payload: Record<string, unknown>) {
   return backendRequest({
     method: "PATCH",

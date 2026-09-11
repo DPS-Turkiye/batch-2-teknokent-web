@@ -26,6 +26,23 @@ export type MeetingFeedbackPayload = {
   benefits: string[];
 };
 
+export type MeetingFeedbackItem = {
+  id: string;
+  meetingId: string;
+  authorId: string;
+  ratings: number[];
+  benefits: string[];
+  createdAt: string;
+};
+
+export async function getMeetingFeedback(meetingId: string) {
+  const response = await httpClient.get<MeetingFeedbackItem>(
+    `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
+  );
+  if (response.status === 404) return null;
+  return requireSuccess(response);
+}
+
 export async function postMeetingFeedback(
   meetingId: string,
   payload: MeetingFeedbackPayload,

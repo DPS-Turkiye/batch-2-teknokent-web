@@ -24,7 +24,7 @@ export function MeetingNoteSnapshotView({
       editorProps: {
         attributes: {
           class:
-            "min-h-full w-full rounded-lg border border-[#e5e7eb] bg-[#fafafa] px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none",
+            "min-h-[28rem] w-full rounded-lg border border-[#e5e7eb] bg-[#fafafa] px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none",
         },
       },
     },
@@ -51,7 +51,7 @@ export function MeetingNoteSnapshotView({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EditorContent
             editor={editor}
-            className="min-h-full [&_.tiptap]:min-h-full [&_.ProseMirror]:min-h-full"
+            className="[&_.tiptap]:min-h-[28rem] [&_.ProseMirror]:min-h-[28rem]"
           />
         </div>
       )}
