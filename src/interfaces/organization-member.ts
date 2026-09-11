@@ -6,4 +6,6 @@ export type OrganizationMember = {
   organizationId?: string;
   organizationName?: string;
   jobTitle?: string;
+  founder?: boolean;
+  joinedAt?: string | null;
 };

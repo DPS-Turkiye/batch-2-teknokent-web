@@ -132,7 +132,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       href: "/calendar",
       icon: CalendarDays,
     },
-    { id: AppArea.Startup, label: "Startup’ım", href: "/profile", icon: Star },
+    { id: AppArea.Startup, label: "Startup’ım", href: "/startup", icon: Star },
     {
       id: AppArea.Meetings,
       label: "Mesajlar",

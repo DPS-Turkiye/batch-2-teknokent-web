@@ -298,7 +298,7 @@ describe("AppShell navigation", () => {
     const primaryNav = screen.getByRole("navigation", { name: "Ana menü" });
     expect(
       within(primaryNav).getByRole("link", { name: /Startup’ım/ }),
-    ).toHaveAttribute("href", "/profile");
+    ).toHaveAttribute("href", "/startup");
 
     unmount();
     mockuseAppSession.mockReturnValue(mentorSession());
@@ -432,7 +432,7 @@ describe("AppShell mobile drawer", () => {
     ).toHaveAttribute("href", "/mentors");
     expect(
       within(drawerNav).getByRole("link", { name: /Startup’ım/ }),
-    ).toHaveAttribute("href", "/profile");
+    ).toHaveAttribute("href", "/startup");
     expect(
       within(drawerNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");

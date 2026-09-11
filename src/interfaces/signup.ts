@@ -1,3 +1,5 @@
+import { DocumentKind } from "@/interfaces/startup-document";
+
 export enum SignupStep {
   PersonalProfile = 1,
   StartupProfile = 2,
@@ -69,11 +71,12 @@ export const MATURITY_OPTIONS = [
   "Gelir elde ediyor",
 ] as const;
 
+/** The four documents the signup wizard asks a startup for. */
 export enum StartupDocumentKind {
-  Canvas = "canvas",
-  PitchDeck = "pitch-deck",
-  Mvp = "mvp",
-  Validation = "validation",
+  Canvas = DocumentKind.Canvas,
+  PitchDeck = DocumentKind.PitchDeck,
+  Mvp = DocumentKind.Mvp,
+  Validation = DocumentKind.Validation,
 }
 
 export interface StartupDocumentSpec {

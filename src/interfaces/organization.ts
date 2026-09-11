@@ -12,12 +12,21 @@ export interface StartupProfile {
   maturity: string | null;
   programLevel: string | null;
   supportAreas: string[];
+  statusVersion: string | null;
+  statusSummary: string | null;
+  completionPercent: number | null;
   createdAt: string;
   updatedAt: string;
 }
 
-/** The editable half. Identity and timestamps are the server's to set. */
+/** The "Durum" card. Saved on its own so the profile form can never wipe it. */
+export type StartupStatusInput = Pick<
+  StartupProfile,
+  "statusVersion" | "statusSummary" | "completionPercent"
+>;
+
+/** The editable half. Identity, timestamps and the status are saved elsewhere. */
 export type StartupProfileInput = Omit<
   StartupProfile,
-  "id" | "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt" | keyof StartupStatusInput
 >;
