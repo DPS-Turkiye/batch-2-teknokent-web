@@ -17,8 +17,10 @@ function notificationTime(value: string) {
 
 export function NotificationMenu({
   showBadge = true,
+  minimal = false,
 }: {
   showBadge?: boolean;
+  minimal?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -55,10 +57,17 @@ export function NotificationMenu({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}
-        className="relative grid size-10 place-items-center rounded-full border border-[#e4e7ea] text-[#676e78] hover:border-[#e86f22] hover:text-[#e86f22]"
+        className={`relative grid place-items-center rounded-lg text-[#676e78] hover:bg-[#fff7f2] hover:text-[#e86f22] ${minimal ? "size-9" : "size-10 rounded-full border border-[#e4e7ea]"}`}
       >
-        <Bell className="size-[18px]" strokeWidth={1.8} aria-hidden />
-        {showBadge && unreadCount > 0 ? (
+        {minimal ? (
+          <span
+            aria-hidden
+            className={`size-1.5 rounded-full ${unreadCount > 0 ? "bg-[#e86f22]" : "bg-[#858c96]"}`}
+          />
+        ) : (
+          <Bell className="size-[18px]" strokeWidth={1.8} aria-hidden />
+        )}
+        {!minimal && showBadge && unreadCount > 0 ? (
           <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>

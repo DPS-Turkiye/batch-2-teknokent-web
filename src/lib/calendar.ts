@@ -4,12 +4,14 @@ export enum CalendarFilter {
   All = "all",
   Mentorship = "mentorship",
   Program = "program",
+  Availability = "availability",
 }
 
 export const CALENDAR_FILTER_LABELS: Record<CalendarFilter, string> = {
   [CalendarFilter.All]: "Tümü",
   [CalendarFilter.Mentorship]: "Mentorluk",
   [CalendarFilter.Program]: "Program",
+  [CalendarFilter.Availability]: "Müsaitlik",
 };
 
 export const DAY_SHORT_LABELS = [

@@ -9,6 +9,7 @@ import {
   useReplyForm,
   useSlotBooking,
 } from "@/hooks/use-mentorship-requests";
+import { UserRole } from "@/interfaces/session";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   postMentorMessage,
@@ -257,5 +258,35 @@ describe("useRequestFileUpload", () => {
       id: "request-1",
       message: "Dosya paylaşıldı: financial-model.pdf",
     });
+  });
+
+  it("posts an uploaded document as a mentor message for mentor threads", async () => {
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "document-2",
+      kind: "pitch-deck",
+      originalFilename: "research-notes.docx",
+      sizeBytes: 24,
+    });
+    vi.mocked(postMentorMessage).mockResolvedValue({
+      id: "request-1",
+    } as never);
+    const file = new File(["notes"], "research-notes.docx", {
+      type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    });
+    const { result } = renderHook(
+      () => useRequestFileUpload("request-1", UserRole.Mentor),
+      { wrapper: wrapperFor(createTestQueryClient()) },
+    );
+
+    await act(async () => {
+      await result.current.mutateAsync(file);
+    });
+
+    expect(uploadDocument).toHaveBeenCalledWith(file, "pitch-deck");
+    expect(postMentorMessage).toHaveBeenCalledWith({
+      id: "request-1",
+      message: "Dosya paylaşıldı: research-notes.docx",
+    });
+    expect(replyToMentorRequest).not.toHaveBeenCalled();
   });
 });

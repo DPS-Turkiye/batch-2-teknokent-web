@@ -53,22 +53,23 @@ export function useDecision() {
     setShowAvailabilityStep(false);
   }
 
-  async function submitDecision() {
-    if (!selectedRequest || !decisionMode) return;
+  async function submitDecision(mode?: MentorDecisionMode) {
+    const activeMode = mode ?? decisionMode;
+    if (!selectedRequest || !activeMode) return false;
     setActionError("");
 
     try {
       await decisionMutation.mutateAsync({
         id: selectedRequest.id,
-        status: decisionStatuses[decisionMode],
+        status: decisionStatuses[activeMode],
         message:
           decisionMessage ||
-          (decisionMode === MentorDecisionMode.Accept
+          (activeMode === MentorDecisionMode.Accept
             ? "Talebiniz kabul edildi."
             : "Detaylı bilgi rica ederim."),
       });
 
-      if (decisionMode === MentorDecisionMode.Accept) {
+      if (activeMode === MentorDecisionMode.Accept) {
         showToast({
           message: "Mentorluk talebi kabul edildi.",
           tone: "success",
@@ -78,11 +79,13 @@ export function useDecision() {
         showToast({ message: "Mentorluk talebi yanıtlandı.", tone: "success" });
         closeDecision();
       }
+      return true;
     } catch (error) {
       setActionError(
         error instanceof Error ? error.message : "İşlem tamamlanamadı.",
       );
       showToast({ message: "Mentorluk talebi yanıtlanamadı.", tone: "error" });
+      return false;
     }
   }
 

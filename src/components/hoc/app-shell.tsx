@@ -8,6 +8,7 @@ import {
   FolderKanban,
   GraduationCap,
   Home,
+  Lightbulb,
   LogOut,
   Menu,
   MessageCircle,
@@ -31,6 +32,7 @@ import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
+  mentorHome?: boolean;
   active?: AppArea;
   actions?: ReactNode;
   backHref?: string;
@@ -92,16 +94,15 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
     return [
       {
         id: AppArea.MentorDashboard,
-        label: "Ana Sayfa",
+        label: "Anasayfa",
         href: "/mentor-dashboard",
         icon: Home,
       },
-      MENTORS_NAV,
       {
         id: AppArea.Mentorships,
-        label: "Mentorluklarım",
+        label: "Mentorlüklerim",
         href: "/mentorships",
-        icon: Users,
+        icon: Lightbulb,
       },
       {
         id: AppArea.Calendar,
@@ -115,7 +116,6 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
-      ASSISTANT_NAV,
     ];
   return [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
@@ -140,30 +140,48 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       icon: MessageCircle,
     },
     NOTES_NAV,
+    ASSISTANT_NAV,
   ];
 }
 
-function BrandBlock({ href }: { href: string }) {
+function BrandBlock({
+  href,
+  mentor = false,
+}: {
+  href: string;
+  mentor?: boolean;
+}) {
   return (
     <Link
       href={href}
       className="flex items-center gap-2"
       aria-label="metual ana sayfa"
     >
-      <span className="text-[22px] font-black tracking-[-0.08em] text-[#e5701d]">
-        metual
+      <span
+        className={
+          mentor
+            ? "text-[32px] font-bold tracking-[0.04em] text-[#898989]"
+            : "text-[22px] font-black tracking-[-0.08em] text-[#e5701d]"
+        }
+      >
+        {mentor ? "menton" : "metual"}
       </span>
-      <span className="hidden h-4 w-px bg-[#e4e7ea] sm:block" />
-      <span className="hidden text-[10px] font-medium leading-tight text-[#858c96] sm:block">
-        ODTÜ Teknokent
-        <br />
-        Mentorluk Platformu
-      </span>
+      {!mentor ? (
+        <>
+          <span className="hidden h-4 w-px bg-[#e4e7ea] sm:block" />
+          <span className="hidden text-[10px] font-medium leading-tight text-[#858c96] sm:block">
+            ODTÜ Teknokent
+            <br />
+            Mentorluk Platformu
+          </span>
+        </>
+      ) : null}
     </Link>
   );
 }
 
 export function AppShell({
+  mentorHome = false,
   active,
   actions,
   backHref,
@@ -183,7 +201,10 @@ export function AppShell({
     showNotificationBadge,
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
-  const navigation = buildNavigation(session?.role);
+  const isMentor = session?.role === UserRole.Mentor || mentorHome;
+  const navigation = buildNavigation(
+    isMentor ? UserRole.Mentor : session?.role,
+  );
   const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -195,12 +216,20 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] text-[#22262b]">
-      <header className="sticky top-0 z-40 border-b border-[#e4e7ea] bg-white/95 backdrop-blur">
-        <div className="mx-auto flex h-[72px] max-w-[1320px] items-center gap-5 px-4 sm:px-8">
-          <BrandBlock href={homeHref} />
+    <div
+      className={`min-h-screen text-[#22262b] ${mentorHome ? "bg-white" : "bg-[#f8f9fa]"}`}
+    >
+      <header
+        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${isMentor ? "mentor-nav" : "border-b border-[#e4e7ea]"}`}
+      >
+        <div
+          className={`mx-auto flex items-center gap-5 px-4 sm:px-8 ${isMentor ? "h-[106px] max-w-[1440px] justify-between sm:px-6" : "h-[72px] max-w-[1320px]"}`}
+        >
+          <div className={isMentor ? "lg:w-[200px]" : undefined}>
+            <BrandBlock href={homeHref} mentor={isMentor} />
+          </div>
           <nav
-            className="mx-auto hidden items-center rounded-full border border-[#e4e7ea] bg-[#fcfcfd] p-1 lg:flex"
+            className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${isMentor ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
             aria-label="Ana menü"
           >
             {navigation.map((item) => {
@@ -210,7 +239,8 @@ export function AppShell({
                 <Link
                   key={`${item.label}-${item.href}`}
                   href={item.href}
-                  className={`flex h-10 items-center gap-1.5 rounded-full px-3 text-[13px] font-medium transition xl:gap-2 xl:px-4 ${selected ? "bg-[#fdebdd] text-[#c85816]" : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  aria-current={selected ? "page" : undefined}
+                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${isMentor ? "h-[42px] w-[160px] px-3" : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
                   {item.label}
@@ -218,7 +248,9 @@ export function AppShell({
               );
             })}
           </nav>
-          <div className="ml-auto flex items-center gap-2 lg:ml-0">
+          <div
+            className={`ml-auto flex items-center gap-2 lg:ml-0 ${isMentor ? "lg:w-[200px] lg:justify-end" : ""}`}
+          >
             <NotificationMenu showBadge={showNotificationBadge} />
             <div className="relative hidden sm:block">
               <button
@@ -226,10 +258,12 @@ export function AppShell({
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
                 onClick={() => setAccountOpen((open) => !open)}
-                className="flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 text-left hover:border-[#e4e7ea]"
+                className={`flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 text-left hover:border-[#e4e7ea] ${isMentor ? "ml-2" : ""}`}
               >
                 <Avatar initials={initials(displayName) || "K"} tone="orange" />
-                <span className="hidden max-w-28 leading-tight sm:block">
+                <span
+                  className={`hidden max-w-28 leading-tight ${isMentor ? "" : "sm:block"}`}
+                >
                   <strong className="block truncate text-xs font-semibold">
                     {displayName}
                   </strong>
@@ -290,7 +324,7 @@ export function AppShell({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <BrandBlock href={homeHref} />
+              <BrandBlock href={homeHref} mentor={isMentor} />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
@@ -403,7 +437,7 @@ export function AppShell({
           </div>
         </div>
       ) : null}
-      <main>{children}</main>
+      <main className={mentorHome ? "mentor-home" : undefined}>{children}</main>
     </div>
   );
 }

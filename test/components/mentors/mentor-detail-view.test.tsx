@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { MentorDetailView } from "@/components/mentors/mentor-detail-view";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
@@ -30,6 +32,10 @@ vi.mock("@/lib/mentorship-requests", () => ({
   submitMentorshipRequest: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-mentorship-requests", () => ({
+  useMentorshipRequests: vi.fn(),
+}));
+
 const startup = {
   organizationId: "org-1",
   name: "Team TNT",
@@ -42,6 +48,10 @@ const startup = {
 
 describe("MentorDetailView", () => {
   it("opens the Figma mentorship request dialog from the profile CTA", async () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
     const user = userEvent.setup();
     const slotDate = new Date();
     slotDate.setDate(slotDate.getDate() + 1);
@@ -78,6 +88,7 @@ describe("MentorDetailView", () => {
       screen.queryByText("Mentorluk talebi oluştur"),
     ).not.toBeInTheDocument();
     expect(screen.queryByText("Mentörlere dön")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Mesaj gönder" })).toBeDisabled();
 
     await user.click(
       screen.getByRole("button", { name: "Mentorluk talebi gönder" }),
@@ -93,5 +104,27 @@ describe("MentorDetailView", () => {
     expect(screen.getByLabelText("1. tercih saati")).toBeInTheDocument();
     expect(submitMentorshipRequest).not.toHaveBeenCalled();
     expect(push).not.toHaveBeenCalled();
+  });
+
+  it("opens the accepted request conversation for the selected mentor", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [
+        {
+          id: "request-accepted",
+          mentorId: mentorProfile.id,
+          status: MentorshipRequestStatus.Accepted,
+        },
+      ],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+
+    renderWithQueryClient(
+      <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />,
+    );
+
+    expect(screen.getByRole("link", { name: "Mesaj gönder" })).toHaveAttribute(
+      "href",
+      "/mentor-request/status?request=request-accepted#messages",
+    );
   });
 });

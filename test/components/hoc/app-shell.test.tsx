@@ -63,6 +63,59 @@ function adminSession(): AppSession {
 }
 
 describe("AppShell navigation", () => {
+  it("uses the revised blue mentor navbar on the mentor home", async () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+    const user = userEvent.setup();
+    render(
+      <AppShell active={AppArea.MentorDashboard} mentorHome>
+        <p>Mentor home</p>
+      </AppShell>,
+    );
+    const nav = within(screen.getByRole("navigation", { name: "Ana menü" }));
+    expect(screen.getByRole("banner").closest(".mentor-home")).toBeNull();
+    expect(screen.getByRole("main")).toHaveClass("mentor-home");
+    expect(screen.getByRole("banner")).not.toHaveClass("border-b");
+    expect(nav.getAllByRole("link")).toHaveLength(4);
+    expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(nav.getByRole("link", { name: "Mentorlüklerim" })).toHaveAttribute(
+      "href",
+      "/mentorships",
+    );
+    expect(nav.getByRole("link", { name: "Anasayfa" })).toHaveClass(
+      "bg-[#26a4ff]",
+      "text-white",
+    );
+    await user.click(screen.getByRole("button", { name: "Bildirimler" }));
+    expect(
+      screen.getByRole("dialog", { name: "Bildirimler" }),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Bildirimleri kapat" }),
+    );
+    await user.click(screen.getByRole("button", { name: /Hesap menüsünü aç/ }));
+    expect(screen.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
+      "href",
+      "/mentor-profile",
+    );
+  });
+
+  it("uses the revised active pill on the mentor messages page", () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+    render(
+      <AppShell active={AppArea.Meetings} mentorHome>
+        <p>Mentor messages</p>
+      </AppShell>,
+    );
+
+    const messages = screen.getByRole("link", { name: "Mesajlar" });
+    expect(messages).toHaveClass("bg-[#26a4ff]", "text-white");
+    expect(messages).not.toHaveClass("min-[1440px]:absolute");
+    expect(messages).toHaveAttribute("aria-current", "page");
+  });
+
   beforeEach(() => {
     mockLogout.mockClear();
   });
@@ -149,15 +202,11 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
+    const homeLinks = screen.getAllByRole("link", { name: /Anasayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/mentor-dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Mentörler/ })).toHaveAttribute(
-      "href",
-      "/mentors",
-    );
     expect(
-      screen.getByRole("link", { name: /Mentorluklarım/ }),
+      screen.getByRole("link", { name: /Mentorlüklerim/ }),
     ).toHaveAttribute("href", "/mentorships");
     expect(screen.getByRole("link", { name: /Takvim/ })).toHaveAttribute(
       "href",
@@ -173,9 +222,7 @@ describe("AppShell navigation", () => {
       "dialog",
     );
     const mentorNav = screen.getByRole("navigation", { name: "Ana menü" });
-    expect(
-      within(mentorNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
+    expect(within(mentorNav).getAllByRole("link")).toHaveLength(4);
     expect(
       screen.queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();
@@ -209,8 +256,8 @@ describe("AppShell navigation", () => {
       within(menteeNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");
     expect(
-      screen.queryByRole("link", { name: /Toplantı Asistanı/ }),
-    ).not.toBeInTheDocument();
+      within(menteeNav).getByRole("link", { name: /Toplantı Asistanı/ }),
+    ).toHaveAttribute("href", "/assistant");
   });
 
   it("opens notifications in place instead of linking to another page", () => {
@@ -390,8 +437,8 @@ describe("AppShell mobile drawer", () => {
       within(drawerNav).getByRole("link", { name: /Not Defterlerim/ }),
     ).toHaveAttribute("href", "/notes");
     expect(
-      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
-    ).not.toBeInTheDocument();
+      within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
+    ).toHaveAttribute("href", "/assistant");
 
     await user.click(closeButton);
     expect(
@@ -421,7 +468,7 @@ describe("AppShell mobile drawer", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("gives mentors the meeting assistant in the drawer", async () => {
+  it("uses the four revised mentor destinations in the drawer", async () => {
     const user = userEvent.setup();
     mockuseAppSession.mockReturnValue(mentorSession());
 
@@ -437,12 +484,13 @@ describe("AppShell mobile drawer", () => {
       .closest("aside") as HTMLElement;
     const drawerNav = within(drawer).getByRole("navigation");
 
+    expect(within(drawerNav).getAllByRole("link")).toHaveLength(4);
     expect(
-      within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
+      within(drawerNav).getByRole("link", { name: /Mentorlüklerim/ }),
+    ).toHaveAttribute("href", "/mentorships");
     expect(
-      within(drawerNav).getByRole("link", { name: /Mentörler/ }),
-    ).toHaveAttribute("href", "/mentors");
+      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
+    ).not.toBeInTheDocument();
     expect(
       within(drawerNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();

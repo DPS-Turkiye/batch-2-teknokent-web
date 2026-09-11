@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+.mentor-home {
+  font-family: var(--font-mentor-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.mentor-home button:focus-visible,
+.mentor-home a:focus-visible {
+  outline-color: #26a4ff;
+}
+
 :root {
   --ink: #111111;
   --muted: #626262;

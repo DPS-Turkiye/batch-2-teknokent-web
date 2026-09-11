@@ -162,6 +162,7 @@ export function useMentorCalendar() {
   // definition rather than by filtering.
   const meetings = useMemo<MeetingItem[]>(() => {
     if (filter === CalendarFilter.Program) return [];
+    if (filter === CalendarFilter.Availability) return [];
     return (meetingsQuery.data ?? []).filter((meeting) => {
       const at = new Date(meeting.scheduledAt);
       return at >= weekStart && at < weekEnd;
@@ -170,11 +171,13 @@ export function useMentorCalendar() {
 
   const slots = useMemo<MentorAvailabilitySlot[]>(
     () =>
-      (slotsQuery.data ?? []).filter((slot) => {
-        const at = new Date(slot.startsAt);
-        return !slot.booked && at >= weekStart && at < weekEnd;
-      }),
-    [slotsQuery.data, weekStart, weekEnd],
+      filter === CalendarFilter.Mentorship || filter === CalendarFilter.Program
+        ? []
+        : (slotsQuery.data ?? []).filter((slot) => {
+            const at = new Date(slot.startsAt);
+            return !slot.booked && at >= weekStart && at < weekEnd;
+          }),
+    [slotsQuery.data, filter, weekStart, weekEnd],
   );
 
   /** The "next 7 days" strip in the meeting dialog ignores the browsed week. */

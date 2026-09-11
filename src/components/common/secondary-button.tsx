@@ -8,6 +8,7 @@ export function SecondaryButton({
   onClick,
   disabled = false,
   className = "",
+  title,
 }: {
   children: ReactNode;
   href?: string;
@@ -15,6 +16,7 @@ export function SecondaryButton({
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
+  title?: string;
 }) {
   const styles = `inline-flex min-h-10 items-center justify-center rounded-lg border border-[#e4e7ea] bg-white px-4 text-sm font-semibold text-[#3c424a] transition hover:border-[#e86f22] hover:bg-[#fff9f5] hover:text-[#c85816] disabled:cursor-not-allowed disabled:text-[#aaa] disabled:hover:bg-white ${className}`;
   if (href && !disabled) {
@@ -24,6 +26,7 @@ export function SecondaryButton({
         target={target}
         rel={target === "_blank" ? "noopener noreferrer" : undefined}
         className={styles}
+        title={title}
       >
         {children}
       </Link>
@@ -35,6 +38,7 @@ export function SecondaryButton({
       onClick={onClick}
       disabled={disabled}
       className={styles}
+      title={title}
     >
       {children}
     </button>

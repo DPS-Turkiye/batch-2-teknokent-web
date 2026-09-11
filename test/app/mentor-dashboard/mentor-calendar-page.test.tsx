@@ -1,19 +1,12 @@
-import { screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
-import { CalendarFilter, useMentorCalendar } from "@/hooks/use-mentor-calendar";
+import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { Weekday } from "@/interfaces/mentor";
-import {
-  createGoogleMeetEvent,
-  ensureGoogleCalendarToken,
-} from "@/lib/google-calendar";
-import { renderWithQueryClient } from "@test/test-utils";
-
-vi.mock("@/components/providers/session-provider", () => ({
-  useSession: () => ({ session: { fullName: "Nihan Öztürk" } }),
-}));
+import { CalendarFilter } from "@/lib/calendar";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -21,584 +14,269 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
-vi.mock("@/hooks/use-mentor-calendar", async () => {
-  const actual = await vi.importActual<
-    typeof import("@/hooks/use-mentor-calendar")
-  >("@/hooks/use-mentor-calendar");
+vi.mock("@/components/mentor-dashboard/create-meeting-dialog", () => ({
+  CreateMeetingDialog: () => <div data-testid="create-meeting-dialog" />,
+}));
+
+vi.mock("@/hooks/use-mentor-calendar", async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import("@/hooks/use-mentor-calendar")>();
   return { ...actual, useMentorCalendar: vi.fn() };
 });
 
-vi.mock("@/lib/client/meetings", () => ({
-  getMeetingRoom: vi.fn(async () => []),
-}));
+const WEEK = [14, 15, 16, 17, 18].map((d) => new Date(`2026-09-${d}T00:00:00`));
 
-vi.mock("@/lib/google-calendar", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/google-calendar")>(
-    "@/lib/google-calendar",
-  );
+function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   return {
-    ...actual,
-    relayGoogleOAuthTokenFromUrl: vi.fn(() => false),
-    ensureGoogleCalendarToken: vi.fn(),
-    createGoogleMeetEvent: vi.fn(),
+    id: "meeting-1",
+    organizationId: "org-1",
+    organizationName: "Döngü",
+    scheduledAt: "2026-09-14T14:00:00",
+    durationMinutes: 45,
+    agenda: "UX Research Review",
+    status: MeetingStatus.Scheduled,
+    meetLink: "https://meet.example/abc",
+    ...overrides,
   };
-});
+}
 
-const addRule = vi.fn();
-const addMeeting = vi.fn();
-const inviteGuest = vi.fn();
-const removeMeeting = vi.fn();
-const removeRule = vi.fn();
 const setFilter = vi.fn();
 const nextWeek = vi.fn();
+const previousWeek = vi.fn();
+const thisWeek = vi.fn();
+const removeMeeting = vi.fn().mockResolvedValue(undefined);
 
-const monday = new Date("2026-08-24T00:00:00");
-
-/** A free slot two days out, so the "next 7 days" strip has something to show. */
-const upcomingSlotStart = new Date("2026-08-26T10:00:00");
-
-function mock(overrides: Record<string, unknown> = {}) {
-  vi.mocked(useMentorCalendar).mockReturnValue({
-    addMeeting,
-    inviteGuest,
-    removeMeeting,
-    addRule,
-    isSavingMeeting: false,
-    meetingError: null,
-    programs: [],
-    upcomingSlots: [
+function mockCalendar(overrides: Record<string, unknown> = {}) {
+  const value = {
+    days: WEEK,
+    meetings: [meeting()],
+    slots: [
       {
         id: "slot-1",
-        startsAt: upcomingSlotStart.toISOString(),
-        durationMinutes: 45,
+        startsAt: "2026-09-15T11:00:00",
+        durationMinutes: 60,
         booked: false,
       },
     ],
-    mentorships: [
+    rules: [
       {
-        id: "req-1",
-        organizationId: "org-1",
-        organizationName: "Döngü",
-        requesterName: "Gülse",
-        supportArea: "UX/UI Mentorluk",
+        id: "rule-1",
+        dayOfWeek: Weekday.Monday,
+        startTime: "09:00",
+        endTime: "12:00",
+        slotMinutes: 60,
       },
     ],
-    days: Array.from({ length: 5 }, (_, i) => {
-      const d = new Date(monday);
-      d.setDate(d.getDate() + i);
-      return d;
-    }),
+    programs: [{ id: "p1", name: "METU Stars 2026" }],
+    mentorships: [],
+    freeSlotCount: 3,
     filter: CalendarFilter.All,
-    freeSlotCount: 2,
-    isLoading: false,
-    isSavingRule: false,
-    meetings: [],
-    nextWeek,
-    previousWeek: vi.fn(),
-    removeRule,
-    ruleError: null,
-    rules: [],
     setFilter,
-    slots: [],
-    thisWeek: vi.fn(),
-    weekStart: monday,
+    isLoading: false,
+    isSavingMeeting: false,
+    meetingError: null,
+    nextWeek,
+    previousWeek,
+    thisWeek,
+    removeMeeting,
+    addMeeting: vi.fn(),
     ...overrides,
-  } as unknown as ReturnType<typeof useMentorCalendar>);
+  };
+  vi.mocked(useMentorCalendar).mockReturnValue(
+    value as unknown as ReturnType<typeof useMentorCalendar>,
+  );
+  return value;
 }
 
-beforeEach(() => {
-  vi.clearAllMocks();
-  vi.mocked(ensureGoogleCalendarToken).mockResolvedValue({
-    token: "ya29.test",
-  });
-  vi.mocked(createGoogleMeetEvent).mockResolvedValue(
-    "https://meet.google.com/abc-defg-hij",
-  );
-});
+function grid() {
+  return screen
+    .getByRole("heading", { name: "14–18 Eylül" })
+    .closest("section") as HTMLElement;
+}
 
 describe("MentorCalendarPage", () => {
-  it("shows the week range and the three filters", () => {
-    mock();
-    renderWithQueryClient(<MentorCalendarPage />);
+  beforeEach(() => vi.clearAllMocks());
 
-    expect(screen.getByText("24–28 Ağustos")).toBeInTheDocument();
-    for (const label of ["Tümü", "Mentorluk", "Program"]) {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+  it("summarises the week from real counts", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByRole("heading", { name: "Takvim" })).toBeInTheDocument();
+    expect(
+      screen.getByText("Bu hafta 1 görüşme · 1 program · 3 boş slot"),
+    ).toBeInTheDocument();
+  });
+
+  it("labels the browsed week and its days", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    const week = grid();
+    expect(within(week).getByText("Pzt")).toBeInTheDocument();
+    expect(within(week).getByText("Cum")).toBeInTheDocument();
+    expect(within(week).getByText("14")).toBeInTheDocument();
+  });
+
+  it("places a booked meeting in its hour cell", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    expect(
+      within(grid()).getByRole("button", { name: /Döngü/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows an availability slot with its duration", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    const week = grid();
+    expect(within(week).getByText("Müsait")).toBeInTheDocument();
+    expect(within(week).getByText("60 dk")).toBeInTheDocument();
+  });
+
+  it("reports loading while the calendar queries run", () => {
+    mockCalendar({ isLoading: true });
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+  });
+
+  it("offers every calendar filter and forwards the choice", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    for (const name of ["Tümü", "Mentorluk", "Program", "Müsaitlik"]) {
+      expect(screen.getByRole("button", { name })).toBeInTheDocument();
     }
+
+    await user.click(screen.getByRole("button", { name: "Müsaitlik" }));
+    expect(setFilter).toHaveBeenCalledWith(CalendarFilter.Availability);
   });
 
-  it("lets the calendar grid shrink to the mobile viewport", () => {
-    mock();
-    renderWithQueryClient(<MentorCalendarPage />);
+  it("lists the mentor's programmes under the Program filter", () => {
+    mockCalendar({ filter: CalendarFilter.Program, meetings: [], slots: [] });
+    render(<MentorCalendarPage />);
 
-    expect(screen.getByRole("table").closest("section")).toHaveClass("min-w-0");
+    expect(
+      screen.getByText(/1 programa katılıyorsunuz: METU Stars 2026/),
+    ).toBeInTheDocument();
   });
 
-  it("renders recurring availability and this week's capacity", () => {
-    mock({
-      rules: [
-        {
-          id: "r1",
-          dayOfWeek: Weekday.Tuesday,
-          startTime: "14:00:00",
-          endTime: "17:00:00",
-          slotMinutes: 60,
-        },
-      ],
-      freeSlotCount: 3,
+  it("browses between weeks", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(screen.getByRole("button", { name: "Sonraki hafta" }));
+    await user.click(screen.getByRole("button", { name: "Önceki hafta" }));
+    await user.click(screen.getByRole("button", { name: "Bugün" }));
+
+    expect(nextWeek).toHaveBeenCalled();
+    expect(previousWeek).toHaveBeenCalled();
+    expect(thisWeek).toHaveBeenCalled();
+  });
+
+  it("opens a meeting with its own detail", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    const dialog = screen.getByRole("dialog", { name: "UX Research Review" });
+    expect(within(dialog).getByText("Döngü")).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("link", { name: "Toplantıya katıl" }),
+    ).toHaveAttribute("href", "https://meet.example/abc");
+  });
+
+  it("says when a meeting has no notes yet", async () => {
+    const user = userEvent.setup();
+    mockCalendar({
+      meetings: [meeting({ agenda: undefined, meetLink: undefined })],
     });
-    renderWithQueryClient(<MentorCalendarPage />);
+    render(<MentorCalendarPage />);
 
-    expect(screen.getByText("Salı")).toBeInTheDocument();
-    expect(screen.getByText("14:00–17:00")).toBeInTheDocument();
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+
+    expect(
+      screen.getByText("Bu görüşme için henüz not eklenmedi."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Toplantı bağlantısı yok")).toBeInTheDocument();
+  });
+
+  it("deletes the opened meeting", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+    await user.click(screen.getByRole("button", { name: "Görüşmeyi sil" }));
+
+    expect(removeMeeting).toHaveBeenCalledWith("meeting-1");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes the meeting detail", async () => {
+    const user = userEvent.setup();
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
+    await user.click(screen.getByRole("button", { name: "Kapat" }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("lists the recurring availability rules", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByText("09:00–12:00")).toBeInTheDocument();
     expect(screen.getByText("3 boş slot")).toBeInTheDocument();
   });
 
-  it("places a meeting in its hour cell", () => {
-    const at = new Date(monday);
-    at.setDate(at.getDate() + 2);
-    at.setHours(11, 0, 0, 0);
-    mock({
-      meetings: [
-        {
-          id: "m1",
-          scheduledAt: at.toISOString(),
-          durationMinutes: 60,
-          agenda: "UX/UI Mentorluk",
-          status: "SCHEDULED",
-          organizationId: "o1",
-        },
-      ],
-    });
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    expect(screen.getByText("UX/UI Mentorluk")).toBeInTheDocument();
-  });
-
-  it("opens a booked meeting and offers its Meet link", async () => {
-    const at = new Date(monday);
-    at.setDate(at.getDate() + 2);
-    at.setHours(11, 0, 0, 0);
-    mock({
-      meetings: [
-        {
-          id: "m1",
-          scheduledAt: at.toISOString(),
-          durationMinutes: 60,
-          agenda: "Mentor: Nihan Öztürk",
-          meetLink: "https://meet.google.com/abc-defg-hij",
-          status: "SCHEDULED",
-          organizationId: "org-1",
-          organizationName: "Döngü",
-          mentorName: "Nihan Öztürk",
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(screen.getByRole("button", { name: /Döngü detayını aç/ }));
-
-    expect(screen.getByText("Katılımcılar")).toBeInTheDocument();
-    expect(screen.getByText("Startup")).toBeInTheDocument();
-    expect(screen.getAllByText("Döngü").length).toBeGreaterThan(0);
-    expect(screen.getByText("Mentee")).toBeInTheDocument();
-    expect(screen.getByText("Gülse")).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Google Meet’e katıl/ }),
-    ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
-    expect(
-      screen.getByRole("link", {
-        name: "https://meet.google.com/abc-defg-hij",
-      }),
-    ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
-  });
-
-  it("lets the mentor delete the opened meeting", async () => {
-    const at = new Date(monday);
-    at.setDate(at.getDate() + 2);
-    at.setHours(11, 0, 0, 0);
-    removeMeeting.mockResolvedValue(undefined);
-    mock({
-      meetings: [
-        {
-          id: "m1",
-          scheduledAt: at.toISOString(),
-          durationMinutes: 60,
-          agenda: "Mentor: Nihan Öztürk",
-          meetLink: "https://meet.google.com/abc-defg-hij",
-          status: "SCHEDULED",
-          organizationId: "org-1",
-          organizationName: "Döngü",
-        },
-      ],
-    });
-    vi.spyOn(window, "confirm").mockReturnValue(true);
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(screen.getByRole("button", { name: /Döngü detayını aç/ }));
-    await user.click(screen.getByRole("button", { name: "Toplantıyı sil" }));
-
-    expect(removeMeeting).toHaveBeenCalledWith("m1");
-  });
-
-  it("says a booked meeting has no link yet when none was saved", async () => {
-    const at = new Date(monday);
-    at.setDate(at.getDate() + 2);
-    at.setHours(11, 0, 0, 0);
-    mock({
-      meetings: [
-        {
-          id: "m1",
-          scheduledAt: at.toISOString(),
-          durationMinutes: 60,
-          agenda: "UX/UI Mentorluk",
-          status: "SCHEDULED",
-          organizationId: "o1",
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /UX\/UI Mentorluk detayını aç/ }),
-    );
+  it("notes when no availability rule is defined", () => {
+    mockCalendar({ rules: [] });
+    render(<MentorCalendarPage />);
 
     expect(
-      screen.getByText(/henüz bir görüşme bağlantısı yok/),
+      screen.getByText("Tanımlı bir uygunluk kuralı yok."),
     ).toBeInTheDocument();
   });
 
-  it("says the Program tab has nothing in it yet", () => {
-    mock({ filter: CalendarFilter.Program });
-    renderWithQueryClient(<MentorCalendarPage />);
+  it("lists the week's meetings in the side panel", () => {
+    mockCalendar();
+    render(<MentorCalendarPage />);
 
+    const panel = screen
+      .getByRole("heading", { name: "Sıradaki görüşmeler" })
+      .closest("section") as HTMLElement;
     expect(
-      screen.getByText("Program etkinlikleri henüz tanımlı değil."),
+      within(panel).getByRole("button", { name: /UX Research Review/ }),
     ).toBeInTheDocument();
   });
 
-  it("creates a recurring availability rule", async () => {
-    addRule.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
+  it("notes when the week has no meetings", () => {
+    mockCalendar({ meetings: [] });
+    render(<MentorCalendarPage />);
 
-    await user.click(screen.getByRole("button", { name: "Düzenle" }));
-    await user.click(screen.getByRole("button", { name: "Kaydet" }));
-
-    expect(addRule).toHaveBeenCalledWith({
-      dayOfWeek: Weekday.Tuesday,
-      startTime: "14:00",
-      endTime: "17:00",
-      slotMinutes: 60,
-    });
-  });
-
-  it("removes a rule", async () => {
-    mock({
-      rules: [
-        {
-          id: "r1",
-          dayOfWeek: Weekday.Friday,
-          startTime: "15:00:00",
-          endTime: "18:00:00",
-          slotMinutes: 60,
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(screen.getByRole("button", { name: "Kaldır" }));
-
-    expect(removeRule).toHaveBeenCalledWith("r1");
-  });
-
-  it("asks for a date when the dialog is opened without a slot", async () => {
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
-    );
-
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText("Start up seç")).toBeInTheDocument();
-    expect(screen.getByText("Tarih Seç")).toBeInTheDocument();
-    expect(screen.getByText("Önümüzdeki 7 gün")).toBeInTheDocument();
     expect(
-      screen.getAllByRole("button", { name: "10:00" }).length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getByDisplayValue("Mentor: Nihan Öztürk"),
+      screen.getByText("Bu hafta planlanmış görüşme yok."),
     ).toBeInTheDocument();
   });
 
-  it("skips the date picker when an empty calendar cell is clicked", async () => {
-    mock();
+  it("opens the create-meeting dialog", async () => {
     const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
+    mockCalendar();
+    render(<MentorCalendarPage />);
 
     await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
+      screen.getByRole("button", { name: "Yeni toplantı oluştur" }),
     );
 
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText("Start up seç")).toBeInTheDocument();
-    expect(screen.queryByText("Tarih Seç")).not.toBeInTheDocument();
-  });
-
-  it("creates the meeting at the clicked cell", async () => {
-    addMeeting.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    const clicked = new Date(monday);
-    clicked.setDate(clicked.getDate() + 1);
-    clicked.setHours(11, 0, 0, 0);
-    expect(addMeeting).toHaveBeenCalledWith(
-      expect.objectContaining({
-        mentorshipRequestId: "req-1",
-        scheduledAt: clicked.toISOString(),
-        durationMinutes: 60,
-        agenda: "Mentor: Nihan Öztürk",
-        meetLink: "https://meet.google.com/abc-defg-hij",
-        transcribeRequested: false,
-      }),
-    );
-  });
-
-  it("sends a transcript bot when the mentor checks the box", async () => {
-    addMeeting.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-
-    expect(
-      screen.getByRole("checkbox", {
-        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
-      }),
-    ).not.toBeChecked();
-    expect(screen.queryByRole("status")).not.toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("checkbox", {
-        name: /Toplantının transkriptinin çıkarılmasını istiyorum/,
-      }),
-    );
-    expect(screen.getByRole("status")).toHaveTextContent(
-      /toplantı raporunu ve transkripti menteelerinize gönderebilirsiniz/i,
-    );
-
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(addMeeting).toHaveBeenCalledWith(
-      expect.objectContaining({
-        transcribeRequested: true,
-        meetLink: "https://meet.google.com/abc-defg-hij",
-      }),
-    );
-  });
-
-  it("creates the meeting at a picked hour from the next days", async () => {
-    addMeeting.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
-    );
-    await user.click(screen.getAllByRole("button", { name: "10:00" })[0]);
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(addMeeting).toHaveBeenCalledWith(
-      expect.objectContaining({
-        mentorshipRequestId: "req-1",
-        durationMinutes: 60,
-        meetLink: "https://meet.google.com/abc-defg-hij",
-      }),
-    );
-    const scheduledAt = new Date(addMeeting.mock.calls[0][0].scheduledAt);
-    expect(scheduledAt.getHours()).toBe(10);
-  });
-
-  it("does not save the meeting when Google Meet cannot be created", async () => {
-    vi.mocked(createGoogleMeetEvent).mockRejectedValue(
-      new Error("Google Meet oluşturulamadı."),
-    );
-    addMeeting.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      /Otomatik Google Meet oluşturulamadı/,
-    );
-    expect(addMeeting).not.toHaveBeenCalled();
-    expect(screen.getByLabelText("Google Meet linki")).toBeInTheDocument();
-  });
-
-  it("saves a pasted Meet link after automatic creation fails", async () => {
-    vi.mocked(createGoogleMeetEvent).mockRejectedValue(
-      new Error("Google Meet oluşturulamadı."),
-    );
-    addMeeting.mockResolvedValue(undefined);
-    mock();
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-    await screen.findByLabelText("Google Meet linki");
-    await user.type(
-      screen.getByLabelText("Google Meet linki"),
-      "https://meet.google.com/aaa-bbbb-ccc",
-    );
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(addMeeting).toHaveBeenCalledWith(
-      expect.objectContaining({
-        meetLink: "https://meet.google.com/aaa-bbbb-ccc",
-      }),
-    );
-    expect(createGoogleMeetEvent).toHaveBeenCalledTimes(1);
-  });
-
-  it("groups a startup under its program", async () => {
-    mock({
-      programs: [
-        {
-          id: "prog-1",
-          name: "Metu Stars",
-          startups: [{ id: "org-1", name: "Döngü" }],
-          mentors: [],
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
-    );
-
-    expect(
-      screen.getByRole("button", { name: "Metu Stars" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Döngü · Gülse")).toBeInTheDocument();
-  });
-
-  it("lets a program mentor invite every startup in a selected program", async () => {
-    addMeeting.mockResolvedValue(undefined);
-    mock({
-      mentorships: [],
-      programs: [
-        {
-          id: "prog-1",
-          name: "Metu Stars",
-          startups: [
-            { id: "org-9", name: "NovaMed" },
-            { id: "org-8", name: "GreenLoop" },
-          ],
-          mentors: [],
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-
-    expect(screen.getByText("NovaMed")).toBeInTheDocument();
-    expect(screen.getByText("GreenLoop")).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(createGoogleMeetEvent).toHaveBeenCalledTimes(1);
-    expect(addMeeting).toHaveBeenCalledTimes(2);
-    expect(addMeeting).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        programId: "prog-1",
-        organizationId: "org-9",
-        meetLink: "https://meet.google.com/abc-defg-hij",
-      }),
-    );
-    expect(addMeeting).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        programId: "prog-1",
-        organizationId: "org-8",
-        meetLink: "https://meet.google.com/abc-defg-hij",
-      }),
-    );
-  });
-
-  it("lets the mentor drop a startup from a selected program", async () => {
-    addMeeting.mockResolvedValue(undefined);
-    mock({
-      mentorships: [],
-      programs: [
-        {
-          id: "prog-1",
-          name: "Metu Stars",
-          startups: [
-            { id: "org-9", name: "NovaMed" },
-            { id: "org-8", name: "GreenLoop" },
-          ],
-          mentors: [],
-        },
-      ],
-    });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: /25 11:00 için toplantı oluştur/ }),
-    );
-    await user.click(screen.getByText("GreenLoop"));
-    await user.click(screen.getByRole("button", { name: "Gönder" }));
-
-    expect(addMeeting).toHaveBeenCalledTimes(1);
-    expect(addMeeting).toHaveBeenCalledWith(
-      expect.objectContaining({ organizationId: "org-9" }),
-    );
-  });
-
-  it("explains that a meeting needs a mentorship or program startup first", async () => {
-    mock({ mentorships: [] });
-    const user = userEvent.setup();
-    renderWithQueryClient(<MentorCalendarPage />);
-
-    await user.click(
-      screen.getByRole("button", { name: "Yeni Toplantı Oluştur" }),
-    );
-
-    expect(
-      screen.getByText(/katıldığınız programdaki bir startup gerekir/),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("create-meeting-dialog")).toBeInTheDocument();
   });
 });
