@@ -18,3 +18,35 @@ export function fetchDocumentDownloadUrl(documentId: string, actorId: string) {
     params: { actorId },
   });
 }
+
+export function shareStartupDocument(
+  documentId: string,
+  actorId: string,
+  mentorId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Post,
+    url: `/api/documents/${encodeURIComponent(documentId)}/shares`,
+    data: { actorId, mentorId },
+  });
+}
+
+export function unshareStartupDocument(
+  documentId: string,
+  mentorId: string,
+  actorId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Delete,
+    url: `/api/documents/${encodeURIComponent(documentId)}/shares/${encodeURIComponent(mentorId)}`,
+    params: { actorId },
+  });
+}
+
+export function deleteStartupDocument(documentId: string, actorId: string) {
+  return backendRequest({
+    method: HttpMethod.Delete,
+    url: `/api/documents/${encodeURIComponent(documentId)}`,
+    params: { actorId },
+  });
+}

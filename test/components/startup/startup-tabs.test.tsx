@@ -35,6 +35,17 @@ describe("StartupTabs", () => {
     );
   });
 
+  it("selects Dosyalar on the files page", () => {
+    mockPathname.mockReturnValue("/startup/files");
+
+    render(<StartupTabs />);
+
+    expect(screen.getByRole("link", { name: "Dosyalar" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+  });
+
   it("selects Süreç on the process page", () => {
     mockPathname.mockReturnValue("/startup/process");
 

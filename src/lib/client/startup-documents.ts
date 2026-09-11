@@ -18,3 +18,28 @@ export async function getDocumentDownloadUrl(documentId: string) {
     ),
   );
 }
+
+function documentUrl(documentId: string) {
+  return `/api/startup/documents/${encodeURIComponent(documentId)}`;
+}
+
+export async function shareDocument(documentId: string, mentorId: string) {
+  return requireSuccess(
+    await httpClient.post<StartupDocument>(
+      `${documentUrl(documentId)}/shares`,
+      { mentorId },
+    ),
+  );
+}
+
+export async function unshareDocument(documentId: string, mentorId: string) {
+  return requireSuccess(
+    await httpClient.delete<StartupDocument>(
+      `${documentUrl(documentId)}/shares/${encodeURIComponent(mentorId)}`,
+    ),
+  );
+}
+
+export async function deleteDocument(documentId: string) {
+  return requireSuccess(await httpClient.delete(documentUrl(documentId)));
+}

@@ -14,6 +14,13 @@ export function formatLongDate(value: string) {
   }).format(new Date(value));
 }
 
+/** "12 Eyl 2026" */
+export function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(
+    new Date(value),
+  );
+}
+
 export function toDateTimeLocalValue(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
