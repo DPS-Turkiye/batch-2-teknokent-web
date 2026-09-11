@@ -1,348 +1,345 @@
-﻿"use client";
+"use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowRight,
-  CheckCircle2,
-  Clock3,
-  FileUp,
-  Plus,
-  Sparkles,
+  CalendarDays,
+  ClipboardList,
+  Search,
+  Target,
+  Upload,
+  Video,
 } from "lucide-react";
-
-import { ActiveProgramPicker } from "@/components/dashboard/active-program-picker";
-import { AppShell } from "@/components/hoc/app-shell";
-import { SecondaryButton } from "@/components/common/secondary-button";
-import { Badge } from "@/components/common/badge";
 import { Avatar } from "@/components/common/avatar";
-import { UpcomingMeetingsList } from "@/components/upcoming-meetings-list";
-import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
+import { AppShell } from "@/components/hoc/app-shell";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { DASHBOARD_REQUEST_STATUS_LABELS } from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
-import { menteeRequestOwnerLabel } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
+const actions = [
+  ["Mentor bul", "Yeni ihtiyaç tanımla", "/mentor-request", "quick-mentor.png"],
+  ["Toplantı planla", "Görüşme oluştur", "/calendar", "quick-calendar.png"],
+  ["Dosya yükle", "Belge paylaş", "/mentorships", "quick-upload.png"],
+  ["Mesaj gönder", "Mentorla konuş", "/messages", "quick-message.png"],
+  ["Görevlerim", "Tümünü gör", "/mentorships", "quick-tasks.png"],
+] as const;
+
+const dateLabel = (value?: string | null) =>
+  value
+    ? new Intl.DateTimeFormat("tr-TR", {
+        day: "numeric",
+        month: "long",
+      }).format(new Date(value))
+    : "Tarih yok";
+
 export default function DashboardPage() {
-  const { notifications } = useDashboardNotifications();
-  const {
-    activeRequests,
-    displayName,
-    isFallback,
-    isLoading,
-    nextMeeting,
-    organizationName,
-    pendingRequests,
-    upcomingMeetings,
-  } = useDashboardData();
-
+  const data = useDashboardData();
+  const expectedCount =
+    data.pendingRequests.length + data.openActionItems.length;
   return (
-    <AppShell active={AppArea.Home}>
-      <div className="mx-auto w-full max-w-[1240px] space-y-8 px-4 pb-14 pt-8 sm:px-8 sm:pt-10">
-        <div>
-          <p className="text-sm font-medium text-[#e86f22]">
-            Günaydın, {displayName}
-          </p>
-          <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-[30px]">
-            Bugünkü mentorluk akışın
-          </h1>
-          <p className="mt-2 text-sm text-[#676e78]">
-            {organizationName} için sıradaki adımları ve aktif süreçleri buradan
-            yönet.
-          </p>
-        </div>
-
-        {isFallback ? (
+    <AppShell active={AppArea.Home} menteeHome>
+      <main className="mx-auto w-full max-w-[1180px] space-y-8 px-4 pb-16 pt-2 sm:px-8">
+        {data.isFallback && (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
             Veriler yüklenemedi. Daha sonra yeniden dene.
           </p>
-        ) : null}
-
-        <section className="overflow-hidden rounded-3xl bg-[#e86f22] text-white shadow-[0_16px_40px_rgba(232,111,34,.18)]">
-          <div className="grid gap-6 p-6 sm:p-8 lg:grid-cols-[1fr_auto] lg:items-center">
+        )}
+        <section className="relative min-h-[257px] overflow-hidden rounded-[32px] bg-[#fbf2ed] px-6 py-8 sm:px-9 sm:py-9">
+          <Image
+            src="/mentee-dashboard/revised/hero-background.png"
+            alt=""
+            fill
+            priority
+            className="object-cover object-center"
+          />
+          <div className="relative z-10 flex min-h-[185px] flex-col items-start justify-between">
             <div>
-              <div className="flex items-center gap-2 text-xs font-semibold text-white/80">
-                <span className="size-2 animate-pulse rounded-full bg-white" />
-                {isLoading ? "Toplantı yükleniyor" : "SIRADAKİ TOPLANTI"}
-              </div>
-              <h2 className="mt-3 text-2xl font-semibold">
-                {nextMeeting?.agenda ?? "Yeni toplantını planla"}
-              </h2>
-              <p className="mt-2 text-sm text-white/85">
-                {nextMeeting
-                  ? `${formatSlotDateTime(nextMeeting.scheduledAt)} · ${nextMeeting.durationMinutes} dk`
-                  : "Planlanmış toplantı bulunmuyor."}
+              <h1 className="text-[26px] font-semibold leading-[1.25] text-[#1e1f22]">
+                Mentorluk Yolculuğuna Hazır Mısın?
+              </h1>
+              <p className="mt-1.5 text-[13px] text-[#3f3f3fd9]">
+                İhtiyacını tanımla ve mentorunla eşleş!
               </p>
-              {nextMeeting?.meetLink ? (
-                <a
-                  href={nextMeeting.meetLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-block text-sm font-semibold text-white underline underline-offset-2"
-                >
-                  Google Meet
-                </a>
-              ) : nextMeeting ? (
-                <p className="mt-2 text-sm text-white/85">
-                  Görüşme biçimi belirtilmedi
-                </p>
-              ) : null}
-              <div className="mt-5 flex flex-wrap gap-4 text-xs text-white/85">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="size-4" />
-                  Gündemi gözden geçir
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <FileUp className="size-4" />2 dosya yüklenmeli
-                </span>
-              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <SecondaryButton
-                href="/meetings/research/prepare"
-                className="border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
-              >
-                Hazırlan
-              </SecondaryButton>
-              {nextMeeting?.meetLink ? (
-                <a
-                  href={nextMeeting.meetLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#c85816]"
-                >
-                  Toplantıya git <ArrowRight className="size-4" />
-                </a>
-              ) : (
-                <Link
-                  href="/meetings/research"
-                  className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-white px-4 text-sm font-semibold text-[#c85816]"
-                >
-                  Toplantıya git <ArrowRight className="size-4" />
-                </Link>
-              )}
-            </div>
+            <Link
+              href="/mentor-request"
+              className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#e86f22] px-4 text-[13.5px] font-semibold text-white shadow-sm hover:bg-[#d9631c]"
+            >
+              Doğru mentor ile buluş <ArrowRight className="size-4" />
+            </Link>
           </div>
         </section>
 
         <section>
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-base font-semibold">Hızlı işlemler</h2>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-base font-semibold text-[#2b303a]">
+              Hızlı İşlemler
+            </h2>
+            <div className="flex h-9 w-full items-center gap-2 rounded-xl border border-[#e4e7ea] bg-white px-3 sm:w-[280px]">
+              <Search className="size-4 text-[#8d97a3]" />
+              <span className="text-sm text-[#8d97a3]">
+                Ne yapmak istiyorsun?
+              </span>
+            </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              ["Mentor bul", "Yeni bir uzmanla eşleş", "/mentor-request", Plus],
-              [
-                "Toplantıya hazırlan",
-                "Gündem ve notlarını düzenle",
-                "/meetings/research/prepare",
-                Sparkles,
-              ],
-              [
-                "Mentorluk taleplerim",
-                "Taleplerinin durumunu izle",
-                "/mentorships",
-                FileUp,
-              ],
-            ].map(([label, description, href, Icon]) => (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {actions.map(([title, subtitle, href, asset], index) => (
               <Link
-                key={label as string}
-                href={href as string}
-                className="group rounded-2xl border border-[#e4e7ea] bg-white p-4 transition hover:-translate-y-0.5 hover:border-[#f2b78f] hover:shadow-md"
+                key={title}
+                href={href}
+                className={`flex min-h-[89px] items-center gap-3 rounded-[20px] border p-4 transition hover:-translate-y-0.5 hover:shadow-sm ${index === 0 ? "border-[#0067b1] bg-[#fff4ec]" : "border-[#e4e7ea] bg-white"}`}
               >
-                <span className="grid size-10 place-items-center rounded-xl bg-[#fdebdd] text-[#e86f22]">
-                  <Icon className="size-5" />
+                <Image
+                  src={`/mentee-dashboard/revised/${asset}`}
+                  alt=""
+                  width={56}
+                  height={56}
+                  className="size-14 shrink-0 object-contain"
+                />
+                <span>
+                  <strong className="block text-[13.5px] font-semibold leading-5">
+                    {title}
+                  </strong>
+                  <small className="block text-xs leading-[18px] text-[#838c99]">
+                    {subtitle}
+                  </small>
                 </span>
-                <h3 className="mt-4 text-sm font-semibold">
-                  {label as string}
-                </h3>
-                <p className="mt-1 text-xs leading-5 text-[#676e78]">
-                  {description as string}
-                </p>
               </Link>
             ))}
           </div>
         </section>
 
-        <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <section>
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Aktif mentorluklar</h2>
-              <Link
-                href="/mentorships"
-                className="text-xs font-semibold text-[#e86f22]"
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.7fr)_minmax(320px,1fr)]">
+          <div className="space-y-8">
+            <section>
+              <Title title="Senden Beklenenler" count={expectedCount} />
+              <Panel
+                empty={
+                  !expectedCount &&
+                  !data.isLoading &&
+                  !data.isLoadingActionItems
+                }
+                emptyText="Şu anda bekleyen bir görevin yok."
               >
-                Tümünü gör →
-              </Link>
-            </div>
-            <div className="space-y-3">
-              {activeRequests.length ? (
-                activeRequests.slice(0, 3).map((request) => {
-                  const owner = menteeRequestOwnerLabel(request);
-                  return (
-                    <Link
-                      key={request.id}
-                      href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
-                      className="flex items-center gap-4 rounded-2xl border border-[#e4e7ea] bg-white p-4 transition hover:border-[#f2b78f]"
-                    >
-                      <Avatar
-                        initials={initials(request.mentorName) || "MN"}
-                        tone="orange"
-                      />
-                      <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-semibold">
-                          {request.mentorName}
-                        </h3>
-                        <p className="mt-1 truncate text-xs text-[#676e78]">
-                          {request.supportArea}
-                          {owner ? ` · ${owner}` : ""}
-                        </p>
-                      </div>
-                      <Badge>
-                        {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
-                      </Badge>
-                      <ArrowRight className="size-4 text-[#a4aab2]" />
-                    </Link>
-                  );
-                })
-              ) : (
-                <div className="rounded-2xl border border-dashed border-[#d6dade] bg-white p-8 text-center text-sm text-[#676e78]">
-                  Henüz aktif bir mentorluk bulunmuyor.
-                </div>
-              )}
-            </div>
-            <div className="mb-4 mt-7 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Yaklaşanlar</h2>
-              <Link
+                {data.pendingRequests.slice(0, 2).map((request) => (
+                  <Row
+                    key={request.id}
+                    href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
+                    icon={<Target />}
+                    title="Mentor talebini takip et"
+                    subtitle={`${request.mentorName} · ${request.supportArea}`}
+                    badge={DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                  />
+                ))}
+                {data.openActionItems.slice(0, 4).map((item) => (
+                  <Row
+                    key={item.id}
+                    href="/mentorships"
+                    icon={<Upload />}
+                    title={item.title}
+                    subtitle={
+                      item.organizationName ||
+                      item.ownerName ||
+                      "Mentorluk görevi"
+                    }
+                    badge={dateLabel(item.dueDate)}
+                  />
+                ))}
+              </Panel>
+            </section>
+            <section>
+              <Title
+                title="Yaklaşanlar"
                 href="/calendar"
-                className="text-xs font-semibold text-[#e86f22]"
+                linkText="Takvimi aç"
+              />
+              <Panel
+                empty={!data.upcomingMeetings.length && !data.isLoading}
+                emptyText="Yaklaşan görüşme bulunmuyor."
               >
-                Takvim →
-              </Link>
-            </div>
-            <UpcomingMeetingsList
-              meetings={
-                upcomingMeetings.length
-                  ? upcomingMeetings
-                  : nextMeeting
-                    ? [nextMeeting]
-                    : []
-              }
-              emptyLabel="Yaklaşan etkinlik bulunmuyor."
-              counterpartOf={(meeting) => meeting.mentorName}
-            />
-          </section>
-          <aside className="space-y-5">
-            <ActiveProgramPicker />
-            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">Bugünkü görevler</h2>
-                <span className="rounded-full bg-[#fdebdd] px-2 py-1 text-[10px] font-semibold text-[#c85816]">
-                  3 görev
-                </span>
-              </div>
-              <div className="mt-4 space-y-3">
-                {[
-                  "Toplantı gündemini tamamla",
-                  "Ürün sunumunu yükle",
-                  "Mentor sorusunu yanıtla",
-                ].map((task, index) => (
-                  <div key={task} className="flex items-start gap-3">
-                    <span
-                      className={`mt-0.5 grid size-5 place-items-center rounded-full border ${index === 0 ? "border-[#e86f22] bg-[#fdebdd] text-[#e86f22]" : "border-[#d6dade]"}`}
-                    >
-                      {index === 0 ? <CheckCircle2 className="size-3" /> : null}
+                {data.upcomingMeetings.slice(0, 3).map((meeting) => (
+                  <div
+                    key={meeting.id}
+                    className="flex items-center gap-3 border-b border-[#eef0f3] px-4 py-3.5 last:border-0"
+                  >
+                    <IconBox>
+                      <CalendarDays />
+                    </IconBox>
+                    <span className="min-w-0 flex-1">
+                      <strong className="block truncate text-sm font-medium">
+                        {meeting.agenda || "Mentorluk görüşmesi"}
+                      </strong>
+                      <small className="text-xs text-[#566477]">
+                        {formatSlotDateTime(meeting.scheduledAt)} ·{" "}
+                        {meeting.mentorName}
+                      </small>
                     </span>
-                    <div>
-                      <p className="text-xs font-medium">{task}</p>
-                      <p className="mt-0.5 flex items-center gap-1 text-[10px] text-[#858c96]">
-                        <Clock3 className="size-3" />
-                        Bugün
-                      </p>
-                    </div>
+                    {meeting.meetLink && (
+                      <a
+                        href={meeting.meetLink}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex h-8 items-center gap-1 rounded-lg bg-[#e5701d] px-3 text-xs font-semibold text-white"
+                      >
+                        <Video className="size-3.5" /> Katıl
+                      </a>
+                    )}
                   </div>
                 ))}
-              </div>
+              </Panel>
             </section>
-            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
-              <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold">
-                  Bekleyen mentorluk talepleri
-                </h2>
-                <span className="rounded-full bg-[#fdebdd] px-2 py-1 text-[10px] font-semibold text-[#c85816]">
-                  {pendingRequests.length}
-                </span>
-              </div>
-              <div className="mt-3 space-y-2">
-                {pendingRequests.slice(0, 2).map((request) => {
-                  const owner = menteeRequestOwnerLabel(request);
-                  return (
-                    <Link
-                      key={request.id}
-                      href={
-                        "/mentor-request/status?id=" +
-                        encodeURIComponent(request.id)
-                      }
-                      className="flex items-center gap-3 rounded-xl border border-[#eef0f2] p-3 hover:border-[#f2b78f]"
-                    >
-                      <Avatar
-                        initials={initials(request.mentorName) || "MN"}
-                        size="sm"
-                        tone="orange"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <strong className="block truncate text-xs">
-                          {request.mentorName}
-                        </strong>
-                        <small className="mt-0.5 block truncate text-[10px] text-[#858c96]">
-                          {DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
-                          {owner ? ` · ${owner}` : ""}
-                        </small>
-                      </span>
-                      <ArrowRight className="size-4 text-[#a4aab2]" />
-                    </Link>
-                  );
-                })}
-                {!pendingRequests.length ? (
-                  <p className="py-3 text-center text-xs text-[#858c96]">
-                    Bekleyen talep yok.
-                  </p>
-                ) : null}
-              </div>
+          </div>
+          <aside className="space-y-8">
+            <section>
+              <Title
+                title="Aktif Mentorluklar"
+                href="/mentorships"
+                linkText="Tümünü gör"
+              />
+              <Panel
+                empty={!data.activeRequests.length && !data.isLoading}
+                emptyText="Henüz aktif mentorluk yok."
+              >
+                {data.activeRequests.slice(0, 3).map((request) => (
+                  <Link
+                    key={request.id}
+                    href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
+                    className="flex items-center gap-3 border-b border-[#eef0f3] p-4 last:border-0 hover:bg-[#fcfcfd]"
+                  >
+                    <Avatar
+                      initials={initials(request.mentorName) || "MN"}
+                      tone="orange"
+                    />
+                    <span className="min-w-0 flex-1">
+                      <strong className="block truncate text-sm font-medium">
+                        {request.mentorName}
+                      </strong>
+                      <small className="block truncate text-xs text-[#566477]">
+                        {request.supportArea}
+                      </small>
+                    </span>
+                    <ArrowRight className="size-4 text-[#7a828d]" />
+                  </Link>
+                ))}
+              </Panel>
             </section>
-            <section
-              id="notifications"
-              className="rounded-2xl border border-[#e4e7ea] bg-white p-5"
-            >
-              <h2 className="text-sm font-semibold">Bildirimler</h2>
-              <div className="mt-3 divide-y divide-[#eef0f2]">
-                {notifications.length ? (
-                  notifications.slice(0, 3).map((notification) => (
-                    <div key={notification.id} className="flex gap-3 py-3">
-                      <span className="mt-1.5 size-2 shrink-0 rounded-full bg-[#e86f22]" />
-                      <div>
-                        <p className="text-xs leading-5">
-                          {notification.title}
-                        </p>
-                        <p className="mt-0.5 text-[10px] text-[#858c96]">
-                          {new Date(notification.createdAt).toLocaleString(
-                            "tr-TR",
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="py-3 text-center text-xs text-[#858c96]">
-                    Henüz bildiriminiz yok.
-                  </p>
-                )}
-              </div>
+            <section>
+              <Title
+                title="Bekleyen Mentorluk Talepleri"
+                count={data.pendingRequests.length}
+              />
+              <Panel
+                empty={!data.pendingRequests.length && !data.isLoading}
+                emptyText="Bekleyen talep yok."
+              >
+                {data.pendingRequests.slice(0, 3).map((request) => (
+                  <Row
+                    key={request.id}
+                    href={`/mentor-request/status?id=${encodeURIComponent(request.id)}`}
+                    icon={<ClipboardList />}
+                    title={request.mentorName}
+                    subtitle={DASHBOARD_REQUEST_STATUS_LABELS[request.status]}
+                  />
+                ))}
+              </Panel>
             </section>
           </aside>
         </div>
-      </div>
+      </main>
     </AppShell>
+  );
+}
+
+function Title({
+  title,
+  count,
+  href,
+  linkText,
+}: {
+  title: string;
+  count?: number;
+  href?: string;
+  linkText?: string;
+}) {
+  return (
+    <div className="mb-4 flex items-center justify-between">
+      <div className="flex items-center gap-2.5">
+        <h2 className="text-base font-semibold text-[#2b303a]">{title}</h2>
+        {count !== undefined && (
+          <span className="rounded-full bg-[#fdf3ec] px-2.5 py-1 text-xs text-[#c95c18]">
+            {count}
+          </span>
+        )}
+      </div>
+      {href && (
+        <Link href={href} className="text-xs font-medium text-[#0067b1]">
+          {linkText}
+        </Link>
+      )}
+    </div>
+  );
+}
+function Panel({
+  children,
+  empty,
+  emptyText,
+}: {
+  children: React.ReactNode;
+  empty: boolean;
+  emptyText: string;
+}) {
+  return (
+    <div className="overflow-hidden rounded-[20px] border border-[#e4e7ea] bg-white">
+      {children}
+      {empty && (
+        <p className="p-7 text-center text-sm text-[#838c99]">{emptyText}</p>
+      )}
+    </div>
+  );
+}
+function IconBox({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-[#fff7f1] text-[#e5701d] [&_svg]:size-[18px]">
+      {children}
+    </span>
+  );
+}
+function Row({
+  href,
+  icon,
+  title,
+  subtitle,
+  badge,
+}: {
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
+  badge?: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 border-b border-[#eef0f3] px-4 py-3.5 last:border-0 hover:bg-[#fcfcfd]"
+    >
+      <IconBox>{icon}</IconBox>
+      <span className="min-w-0 flex-1">
+        <strong className="block truncate text-sm font-medium text-[#2b303a]">
+          {title}
+        </strong>
+        <small className="mt-0.5 block truncate text-xs text-[#566477]">
+          {subtitle}
+        </small>
+      </span>
+      {badge && (
+        <span className="hidden rounded-full bg-[#fdf3ec] px-2.5 py-1 text-xs text-[#c95c18] sm:block">
+          {badge}
+        </span>
+      )}
+      <ArrowRight className="size-4 text-[#4f515d]" />
+    </Link>
   );
 }

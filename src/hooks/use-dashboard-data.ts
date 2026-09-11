@@ -1,12 +1,16 @@
 "use client";
 
-import { useEffect } from "react";
+import { useQueries } from "@tanstack/react-query";
+import { useEffect, useMemo } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { getActionItems } from "@/lib/client/action-items";
+import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
@@ -54,6 +58,23 @@ export function useDashboardData() {
         !requestHasConfirmedMeeting(meetings, request)),
   );
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
+  const { actionItems, isLoadingActionItems } = useQueries({
+    queries: activeRequests.map((request) => ({
+      queryKey: actionItemsQueryKey(request.id),
+      queryFn: () => getActionItems(request.id),
+    })),
+    combine: (results) => ({
+      actionItems: results.flatMap((result) => result.data ?? []),
+      isLoadingActionItems: results.some((result) => result.isLoading),
+    }),
+  });
+  const openActionItems = useMemo(
+    () =>
+      actionItems
+        .filter(isOpenActionItem)
+        .sort((a, b) => (a.dueDate ?? "").localeCompare(b.dueDate ?? "")),
+    [actionItems],
+  );
 
   return {
     activeRequests,
@@ -62,6 +83,8 @@ export function useDashboardData() {
     isFallback: hasError,
     isLoading: meetingsQuery.isLoading || requestsQuery.isLoading,
     nextMeeting,
+    openActionItems,
+    isLoadingActionItems,
     pendingRequests,
     requests,
     upcomingMeetings,
