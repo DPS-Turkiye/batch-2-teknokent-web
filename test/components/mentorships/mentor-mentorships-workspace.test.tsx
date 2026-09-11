@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { useMeetings } from "@/hooks/use-meetings";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
@@ -15,6 +14,12 @@ import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
 import { renderWithQueryClient } from "@test/test-utils";
 
+const pagesByTab = vi.hoisted(() => ({
+  active: [] as MentorshipRequest[],
+  requests: [] as MentorshipRequest[],
+  history: [] as MentorshipRequest[],
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -23,6 +28,18 @@ vi.mock("@/components/hoc/app-shell", () => ({
 
 vi.mock("@/lib/client/mentor-requests", () => ({
   logMentorshipMeeting: vi.fn(),
+  getMentorRequestsPage: vi.fn(
+    async ({ tab }: { tab: keyof typeof pagesByTab }) => {
+      const content = pagesByTab[tab] ?? [];
+      return {
+        content,
+        page: 0,
+        size: 7,
+        totalElements: content.length,
+        totalPages: Math.max(1, Math.ceil(content.length / 7) || 1),
+      };
+    },
+  ),
 }));
 
 vi.mock("@/lib/client/meetings", () => ({
@@ -32,7 +49,6 @@ vi.mock("@/lib/client/meetings", () => ({
 const mutateAsync = vi.fn();
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
-  useMentorshipRequests: vi.fn(),
   useMentorRequestDecision: () => ({
     mutateAsync,
     isPending: false,
@@ -71,12 +87,32 @@ function request(
   };
 }
 
+function mockPage(tab: keyof typeof pagesByTab, data: MentorshipRequest[]) {
+  pagesByTab[tab] = data;
+}
+
 function mockRequests(data: MentorshipRequest[]) {
-  vi.mocked(useMentorshipRequests).mockReturnValue({
-    data,
-    isLoading: false,
-    error: null,
-  } as unknown as ReturnType<typeof useMentorshipRequests>);
+  const pendingish = new Set([
+    MentorshipRequestStatus.Pending,
+    MentorshipRequestStatus.MoreInfoRequested,
+    MentorshipRequestStatus.CounterProposed,
+  ]);
+  const closed = new Set([
+    MentorshipRequestStatus.Declined,
+    MentorshipRequestStatus.Withdrawn,
+  ]);
+  mockPage(
+    "requests",
+    data.filter((item) => pendingish.has(item.status)),
+  );
+  mockPage(
+    "active",
+    data.filter((item) => item.status === MentorshipRequestStatus.Accepted),
+  );
+  mockPage(
+    "history",
+    data.filter((item) => closed.has(item.status)),
+  );
 }
 
 describe("MentorMentorshipsWorkspace", () => {
@@ -84,6 +120,9 @@ describe("MentorMentorshipsWorkspace", () => {
     mutateAsync.mockReset();
     vi.mocked(logMentorshipMeeting).mockReset();
     vi.mocked(updateMeeting).mockReset();
+    mockPage("active", []);
+    mockPage("requests", []);
+    mockPage("history", []);
     vi.mocked(useMeetings).mockReturnValue({
       data: [],
       isLoading: false,
@@ -93,11 +132,13 @@ describe("MentorMentorshipsWorkspace", () => {
 
   it("hides capacity and create actions, and keeps completed mentorships on Geçmiş", async () => {
     const user = userEvent.setup();
-    mockRequests([
+    mockPage("active", [
       request({
         id: "active-1",
         status: MentorshipRequestStatus.Accepted,
       }),
+    ]);
+    mockPage("history", [
       request({
         id: "past-1",
         organizationName: "HubC",
@@ -145,20 +186,22 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(
       screen.queryByRole("tab", { name: "Mentor Havuzu" }),
     ).not.toBeInTheDocument();
-    expect(screen.getByText("Döngü")).toBeInTheDocument();
+    expect(await screen.findByText("Döngü")).toBeInTheDocument();
     expect(
       screen.queryByText("Yakın zamanda tamamlanan"),
     ).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Geçmiş" }));
     expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
-    expect(screen.getByText(/HubC · Büyüme Stratejisi/)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/HubC · Büyüme Stratejisi/),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
     ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
     expect(
-      screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
-    ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");
+      screen.queryByRole("link", { name: "Görüşmeyi değerlendir" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Mentorluk geçmişi →" }),
     ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");
@@ -201,12 +244,12 @@ describe("MentorMentorshipsWorkspace", () => {
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
     await user.click(screen.getByRole("tab", { name: "Talepler" }));
-    expect(screen.getByText("Yeni talepler")).toBeInTheDocument();
+    expect(await screen.findByText("Yeni talepler")).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Kabul et" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Talebi incele" }),
+      await screen.findByRole("button", { name: "Talebi incele" }),
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Talebi incele" }));
@@ -243,7 +286,7 @@ describe("MentorMentorshipsWorkspace", () => {
       "aria-selected",
       "true",
     );
-    expect(screen.getByText("Döngü")).toBeInTheDocument();
+    expect(await screen.findByText("Döngü")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
@@ -330,7 +373,9 @@ describe("MentorMentorshipsWorkspace", () => {
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
-    await user.click(screen.getByRole("button", { name: "Meet linki ekle" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Meet linki ekle" }),
+    );
     await user.type(
       screen.getByPlaceholderText("https://meet.google.com/..."),
       "https://meet.google.com/xyz",
@@ -417,7 +462,9 @@ describe("MentorMentorshipsWorkspace", () => {
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
-    await user.click(screen.getByRole("button", { name: "Meet linki ekle" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Meet linki ekle" }),
+    );
     await user.type(
       screen.getByPlaceholderText("https://meet.google.com/..."),
       "https://meet.google.com/xyz",
@@ -471,7 +518,7 @@ describe("MentorMentorshipsWorkspace", () => {
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
 
     await user.click(
-      screen.getByRole("button", { name: "Meet linkini düzenle" }),
+      await screen.findByRole("button", { name: "Meet linkini düzenle" }),
     );
     await user.click(
       screen.getByRole("checkbox", {

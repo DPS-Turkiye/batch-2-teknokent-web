@@ -70,7 +70,7 @@ export function MeetingNoteEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-full w-full rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none focus:border-[#4f39f6]",
+          "min-h-[31rem] w-full rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none focus:border-[#4f39f6]",
       },
     },
     onUpdate: () => {
@@ -185,7 +185,7 @@ export function MeetingNoteEditor({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EditorContent
             editor={editor}
-            className="min-h-full [&_.tiptap]:min-h-full [&_.ProseMirror]:min-h-full"
+            className="[&_.tiptap]:min-h-[31rem] [&_.ProseMirror]:min-h-[31rem]"
           />
         </div>
       )}

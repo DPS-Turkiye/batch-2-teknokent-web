@@ -356,6 +356,9 @@ export const MENTOR_MENTORSHIPS_TABS = [
   [MentorshipWorkspaceTab.History, "Geçmiş"],
 ] as const;
 
+/** Cards per page on Mentorships Active / Requests / History tabs. */
+export const MENTORSHIP_LIST_PAGE_SIZE = 7;
+
 export const MENTOR_DASHBOARD_FILTER_STATUSES: Record<
   Exclude<MentorRequestFilter, MentorRequestFilter.All>,
   MentorshipRequestStatus

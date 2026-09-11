@@ -1,5 +1,6 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import type { PageResponse } from "@/interfaces/page-response";
 import type {
   MentorAvailabilitySlot,
   MentorProfile,
@@ -7,6 +8,7 @@ import type {
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
+import type { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export async function getMentorRequests(
   role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
@@ -15,6 +17,30 @@ export async function getMentorRequests(
     await httpClient.get<MentorshipRequest[]>("/api/mentor-requests", {
       params: role === UserRole.Mentor ? { role } : undefined,
     }),
+  );
+}
+
+export async function getMentorRequestsPage(options: {
+  role?: UserRole.Mentee | UserRole.Mentor;
+  tab:
+    | MentorshipWorkspaceTab.Active
+    | MentorshipWorkspaceTab.Requests
+    | MentorshipWorkspaceTab.History;
+  page: number;
+  size: number;
+}) {
+  return requireSuccess(
+    await httpClient.get<PageResponse<MentorshipRequest>>(
+      "/api/mentor-requests",
+      {
+        params: {
+          ...(options.role === UserRole.Mentor ? { role: options.role } : {}),
+          tab: options.tab,
+          page: options.page,
+          size: options.size,
+        },
+      },
+    ),
   );
 }
 

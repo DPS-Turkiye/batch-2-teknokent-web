@@ -46,6 +46,30 @@ export function fetchMentorRequests(options: {
   });
 }
 
+export function fetchMentorRequestsPage(options: {
+  requesterId?: string;
+  organizationId?: string;
+  role?: UserRole.Mentee | UserRole.Mentor;
+  tab: string;
+  page: number;
+  size: number;
+}) {
+  const scope =
+    options.role === UserRole.Mentor
+      ? { mentorId: options.requesterId }
+      : { organizationId: options.organizationId };
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: "/api/mentorship-requests",
+    params: {
+      ...scope,
+      tab: options.tab,
+      page: options.page,
+      size: options.size,
+    },
+  });
+}
+
 export function fetchMentorRequest(id: string) {
   return backendRequest({
     method: HttpMethod.Get,

@@ -1,11 +1,10 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorshipsPage from "@/app/mentorships/page";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
@@ -14,6 +13,12 @@ import {
 } from "@/interfaces/mentorship-request";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { renderWithQueryClient } from "@test/test-utils";
+
+const pagesByTab = vi.hoisted(() => ({
+  active: [] as MentorshipRequest[],
+  requests: [] as MentorshipRequest[],
+  history: [] as MentorshipRequest[],
+}));
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -31,14 +36,6 @@ vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => null,
 }));
 
-vi.mock("@/hooks/use-mentorship-requests", () => ({
-  useMentorshipRequests: vi.fn(),
-  useMentorRequestDecision: () => ({
-    mutateAsync: vi.fn(),
-    isPending: false,
-  }),
-}));
-
 vi.mock("@/hooks/use-mentors", () => ({
   useMentors: vi.fn(),
 }));
@@ -46,6 +43,25 @@ vi.mock("@/hooks/use-mentors", () => ({
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
   MEETINGS_QUERY_KEY: ["meetings"],
+}));
+
+vi.mock("@/lib/client/meetings", () => ({
+  getMeetingFeedback: vi.fn().mockResolvedValue(null),
+}));
+
+vi.mock("@/lib/client/mentor-requests", () => ({
+  getMentorRequestsPage: vi.fn(
+    async ({ tab }: { tab: keyof typeof pagesByTab }) => {
+      const content = pagesByTab[tab] ?? [];
+      return {
+        content,
+        page: 0,
+        size: 7,
+        totalElements: content.length,
+        totalPages: Math.max(1, Math.ceil(content.length / 7) || 1),
+      };
+    },
+  ),
 }));
 
 function request(
@@ -68,16 +84,8 @@ function request(
   };
 }
 
-function mockRequests(
-  data: MentorshipRequest[],
-  overrides: Partial<ReturnType<typeof useMentorshipRequests>> = {},
-) {
-  vi.mocked(useMentorshipRequests).mockReturnValue({
-    data,
-    isLoading: false,
-    error: null,
-    ...overrides,
-  } as unknown as ReturnType<typeof useMentorshipRequests>);
+function mockPage(tab: keyof typeof pagesByTab, data: MentorshipRequest[]) {
+  pagesByTab[tab] = data;
 }
 
 function mockMentors(
@@ -95,6 +103,9 @@ function mockMentors(
 describe("MentorshipsPage", () => {
   beforeEach(() => {
     mockMentors([]);
+    mockPage("active", []);
+    mockPage("requests", []);
+    mockPage("history", []);
     vi.mocked(useMeetings).mockReturnValue({
       data: [],
       isLoading: false,
@@ -119,8 +130,8 @@ describe("MentorshipsPage", () => {
     };
   }
 
-  it("lists every mentorship request, not just the dashboard's first two", () => {
-    mockRequests([
+  it("lists every mentorship request, not just the dashboard's first two", async () => {
+    mockPage("active", [
       request({ id: "1", mentorName: "Leyla Aksoy" }),
       request({ id: "2", mentorName: "Ece Demir", mentorId: "mentor-2" }),
       request({ id: "3", mentorName: "Burak Yalçın", mentorId: "mentor-3" }),
@@ -137,13 +148,15 @@ describe("MentorshipsPage", () => {
 
     renderWithQueryClient(<MentorshipsPage />);
 
-    expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
+    });
     expect(screen.getByText("Ece Demir")).toBeInTheDocument();
     expect(screen.getByText("Burak Yalçın")).toBeInTheDocument();
   });
 
-  it("links each request to its status detail page", () => {
-    mockRequests([request({ id: "req-42" })]);
+  it("links each request to its status detail page", async () => {
+    mockPage("active", [request({ id: "req-42" })]);
     vi.mocked(useMeetings).mockReturnValue({
       data: [openMeeting("req-42")],
       isLoading: false,
@@ -153,12 +166,12 @@ describe("MentorshipsPage", () => {
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(
-      screen.getByRole("link", { name: "Mentorluğa git →" }),
+      await screen.findByRole("link", { name: "Mentorluğa git →" }),
     ).toHaveAttribute("href", "/mentor-request/status?id=req-42");
   });
 
-  it("shows the meeting link on the Aktif tab for the whole startup", () => {
-    mockRequests([request({ id: "req-42" })]);
+  it("shows the meeting link on the Aktif tab for the whole startup", async () => {
+    mockPage("active", [request({ id: "req-42" })]);
     vi.mocked(useMeetings).mockReturnValue({
       data: [
         openMeeting("req-42", {
@@ -173,19 +186,19 @@ describe("MentorshipsPage", () => {
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(
-      screen.getByRole("link", {
+      await screen.findByRole("link", {
         name: "https://meet.google.com/abc-defg-hij",
       }),
     ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
 
-  it("shows an empty state when there are no active mentorships", () => {
-    mockRequests([]);
+  it("shows an empty state when there are no active mentorships", async () => {
+    mockPage("active", []);
 
     renderWithQueryClient(<MentorshipsPage />);
 
     expect(
-      screen.getByText("Aktif Mentörlüğünüz Bulunmamaktadır"),
+      await screen.findByText("Aktif Mentörlüğünüz Bulunmamaktadır"),
     ).toBeInTheDocument();
     expect(
       screen.queryByPlaceholderText(/Mentor, uzmanlık veya konu ara/),
@@ -193,7 +206,11 @@ describe("MentorshipsPage", () => {
   });
 
   it("shows a loading state while the query is in flight", () => {
-    mockRequests([], { isLoading: true });
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [],
+      isLoading: true,
+      error: null,
+    } as never);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -202,7 +219,8 @@ describe("MentorshipsPage", () => {
 
   it("separates pending requests into the Talepler tab", async () => {
     const user = userEvent.setup();
-    mockRequests([
+    mockPage("active", []);
+    mockPage("requests", [
       request({
         id: "pending-1",
         mentorName: "Ece Demir",
@@ -214,13 +232,12 @@ describe("MentorshipsPage", () => {
     expect(screen.queryByText("Ece Demir")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Talepler" }));
-    expect(screen.getByText("Ece Demir")).toBeInTheDocument();
+    expect(await screen.findByText("Ece Demir")).toBeInTheDocument();
   });
 
   it("lists backend mentors on the Mentor Havuzu tab", async () => {
     mockMentors([mentorProfile]);
     const user = userEvent.setup();
-    mockRequests([]);
 
     renderWithQueryClient(<MentorshipsPage />);
     await user.click(screen.getByRole("tab", { name: "Mentor Havuzu" }));
@@ -233,12 +250,14 @@ describe("MentorshipsPage", () => {
 
   it("moves ended meetings to Geçmiş with info and evaluate links", async () => {
     const user = userEvent.setup();
-    mockRequests([
+    mockPage("active", [
       request({
         id: "active-1",
         mentorName: "Nihan Öztürk",
         supportArea: "UX/UI & Ürün Konumlandırma",
       }),
+    ]);
+    mockPage("history", [
       request({
         id: "past-1",
         mentorId: "mentor-past",
@@ -271,7 +290,7 @@ describe("MentorshipsPage", () => {
 
     renderWithQueryClient(<MentorshipsPage />);
 
-    expect(screen.getByText("Nihan Öztürk")).toBeInTheDocument();
+    expect(await screen.findByText("Nihan Öztürk")).toBeInTheDocument();
     expect(screen.getByText("Mentorluğa git →")).toBeInTheDocument();
     expect(
       screen.queryByText("Yakın zamanda tamamlanan"),
@@ -282,13 +301,13 @@ describe("MentorshipsPage", () => {
 
     expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
     expect(
-      screen.getByText(/Deniz Aksoy · Büyüme Stratejisi/),
+      await screen.findByText(/Deniz Aksoy · Büyüme Stratejisi/),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
     ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
     expect(
-      screen.getByRole("link", { name: "Görüşmeyi değerlendir" }),
+      await screen.findByRole("link", { name: "Görüşmeyi değerlendir" }),
     ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");
     expect(screen.getByText(/Ayşe Kara · Satış/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Talebi aç →" })).toHaveAttribute(

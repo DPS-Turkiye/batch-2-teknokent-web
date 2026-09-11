@@ -2,12 +2,16 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { useToast } from "@/components/providers/toast-provider";
 import { useMeetings, useUpdateMeeting } from "@/hooks/use-meetings";
-import { postMeetingFeedback } from "@/lib/client/meetings";
-import { MEETING_FEEDBACK_QUESTIONS } from "@/lib/const";
+import { getMeetingFeedback, postMeetingFeedback } from "@/lib/client/meetings";
+import {
+  MEETING_FEEDBACK_BENEFITS,
+  MEETING_FEEDBACK_QUESTIONS,
+} from "@/lib/const";
 
 function chooseMeeting(meetings: MeetingItem[], requestedId: string | null) {
   if (requestedId) {
@@ -19,6 +23,18 @@ function chooseMeeting(meetings: MeetingItem[], requestedId: string | null) {
     meetings[0] ??
     null
   );
+}
+
+const KNOWN_FEEDBACK_BENEFITS = new Set<string>(MEETING_FEEDBACK_BENEFITS);
+
+function splitFeedbackBenefits(benefits: string[]) {
+  const selected = benefits.filter((benefit) =>
+    KNOWN_FEEDBACK_BENEFITS.has(benefit),
+  );
+  const nextMeetingNote = benefits
+    .filter((benefit) => !KNOWN_FEEDBACK_BENEFITS.has(benefit))
+    .join("\n");
+  return { nextMeetingNote, selected };
 }
 
 export function useMeetingLifecycle() {
@@ -96,23 +112,50 @@ export function useMeetingLifecycle() {
 
 export function useMeetingFeedback() {
   const { showToast } = useToast();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const meetingId = searchParams.get("id");
-  // Ratings track the questions the page renders; 0 means "not answered yet",
-  // so nothing is submitted on the user's behalf.
-  const [ratings, setRatings] = useState<number[]>(() =>
+  const [draftRatings, setDraftRatings] = useState<number[]>(() =>
     MEETING_FEEDBACK_QUESTIONS.map(() => 0),
   );
-  const [selectedBenefits, setSelectedBenefits] = useState<Set<string>>(
+  const [draftBenefits, setDraftBenefits] = useState<Set<string>>(
     () => new Set(),
   );
-  const [nextMeetingNote, setNextMeetingNote] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [draftNote, setDraftNote] = useState("");
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
 
+  const existingFeedbackQuery = useQuery({
+    queryKey: ["meeting-feedback", meetingId],
+    queryFn: () => getMeetingFeedback(meetingId!),
+    enabled: Boolean(meetingId),
+  });
+
+  const existing = existingFeedbackQuery.data;
+  const existingView = useMemo(() => {
+    if (!existing) return null;
+    const { nextMeetingNote, selected } = splitFeedbackBenefits(
+      existing.benefits,
+    );
+    return {
+      nextMeetingNote,
+      ratings: MEETING_FEEDBACK_QUESTIONS.map(
+        (_, index) => existing.ratings[index] ?? 0,
+      ),
+      selectedBenefits: new Set(selected),
+    };
+  }, [existing]);
+
+  const hasExistingFeedback = Boolean(existing);
+  const locked = hasExistingFeedback || justSubmitted;
+  const ratings = existingView?.ratings ?? draftRatings;
+  const selectedBenefits = existingView?.selectedBenefits ?? draftBenefits;
+  const nextMeetingNote = existingView?.nextMeetingNote ?? draftNote;
+
   function rate(questionIndex: number, value: number) {
-    setRatings((current) =>
+    if (locked) return;
+    setDraftRatings((current) =>
       current.map((rating, index) =>
         index === questionIndex ? value : rating,
       ),
@@ -120,7 +163,8 @@ export function useMeetingFeedback() {
   }
 
   function toggleBenefit(benefit: string) {
-    setSelectedBenefits((current) => {
+    if (locked) return;
+    setDraftBenefits((current) => {
       const next = new Set(current);
       if (next.has(benefit)) next.delete(benefit);
       else next.add(benefit);
@@ -128,7 +172,8 @@ export function useMeetingFeedback() {
     });
   }
 
-  const canSubmit = ratings.every((rating) => rating > 0) && !submitting;
+  const canSubmit =
+    !locked && ratings.every((rating) => rating > 0) && !submitting;
 
   async function submit() {
     if (!canSubmit) return;
@@ -146,7 +191,10 @@ export function useMeetingFeedback() {
         ratings,
         benefits,
       });
-      setSubmitted(true);
+      setJustSubmitted(true);
+      await queryClient.invalidateQueries({
+        queryKey: ["meeting-feedback", meetingId],
+      });
       showToast({ message: "Değerlendirmen gönderildi.", tone: "success" });
     } catch {
       setSubmitError("Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.");
@@ -161,14 +209,19 @@ export function useMeetingFeedback() {
 
   return {
     canSubmit,
+    isFeedbackLoading: existingFeedbackQuery.isPending,
     nextMeetingNote,
     rate,
     ratings,
+    readOnly: hasExistingFeedback,
     selectedBenefits,
-    setNextMeetingNote,
+    setNextMeetingNote: (value: string) => {
+      if (locked) return;
+      setDraftNote(value);
+    },
     submit,
     submitError,
-    submitted,
+    submitted: justSubmitted,
     submitting,
     toggleBenefit,
   };
