@@ -16,7 +16,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { DASHBOARD_REQUEST_STATUS_LABELS } from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
-import { initials } from "@/lib/utils";
+import { calendarDay, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 const actions = [
@@ -32,7 +32,7 @@ const dateLabel = (value?: string | null) =>
     ? new Intl.DateTimeFormat("tr-TR", {
         day: "numeric",
         month: "long",
-      }).format(new Date(value))
+      }).format(calendarDay(value))
     : "Tarih yok";
 
 export default function DashboardPage() {
