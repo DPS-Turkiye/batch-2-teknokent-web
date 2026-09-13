@@ -22,6 +22,7 @@ import {
   isSameDay,
   timeLabel,
   WEEKDAY_SHORT_LABELS,
+  MENTOR_CALENDAR_FILTERS,
   weekRangeLabel,
 } from "@/lib/calendar";
 import {
@@ -233,7 +234,7 @@ export default function MentorCalendarPage() {
           </button>
         </header>
         <div className="mt-[22px] flex gap-2">
-          {Object.values(CalendarFilter).map((item) => (
+          {MENTOR_CALENDAR_FILTERS.map((item) => (
             <button
               key={item}
               onClick={() => calendar.setFilter(item)}

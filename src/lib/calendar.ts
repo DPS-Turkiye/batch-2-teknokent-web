@@ -5,6 +5,7 @@ export enum CalendarFilter {
   Mentorship = "mentorship",
   Program = "program",
   Availability = "availability",
+  Deliverable = "deliverable",
 }
 
 export const CALENDAR_FILTER_LABELS: Record<CalendarFilter, string> = {
@@ -12,7 +13,15 @@ export const CALENDAR_FILTER_LABELS: Record<CalendarFilter, string> = {
   [CalendarFilter.Mentorship]: "Mentorluk",
   [CalendarFilter.Program]: "Program",
   [CalendarFilter.Availability]: "Müsaitlik",
+  [CalendarFilter.Deliverable]: "Teslim",
 };
+
+export const MENTOR_CALENDAR_FILTERS = [
+  CalendarFilter.All,
+  CalendarFilter.Mentorship,
+  CalendarFilter.Program,
+  CalendarFilter.Availability,
+];
 
 export const DAY_SHORT_LABELS = [
   "Pzt",
@@ -62,11 +71,8 @@ export function weekRangeLabel(start: Date, end: Date) {
   return `${start.getDate()}–${end.getDate()} ${MONTH_LABELS[end.getMonth()]}`;
 }
 
-/** The mentee grid runs 09:00–21:00 and Monday–Sunday, per the design. */
-export const MENTEE_CALENDAR_HOURS = Array.from(
-  { length: 13 },
-  (_, i) => 9 + i,
-);
+/** The mentee week grid runs 09:00–18:00, Monday to Friday. */
+export const MENTEE_WEEK_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
 
 export function startOfWeek(date: Date) {
   const copy = new Date(date);

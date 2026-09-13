@@ -1,9 +1,15 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CalendarView } from "@/components/calendar-view";
-import type { MeetingItem } from "@/interfaces/meeting";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { ActionItemStatus } from "@/interfaces/action-item";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { getActionItems } from "@/lib/client/action-items";
+import { getStartupProcess } from "@/lib/client/startup-process";
+import { renderWithQueryClient } from "@test/test-utils";
 
 const mockUseMeetings = vi.fn();
 const mockCreateMeeting = vi.fn();
@@ -15,13 +21,16 @@ vi.mock("@/hooks/use-meetings", () => ({
     isPending: false,
   }),
 }));
-
+vi.mock("@/hooks/use-mentorship-requests", () => ({
+  useMentorshipRequests: vi.fn(),
+}));
+vi.mock("@/lib/client/action-items", () => ({ getActionItems: vi.fn() }));
+vi.mock("@/lib/client/startup-process", () => ({ getStartupProcess: vi.fn() }));
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
 }));
-
 vi.mock("@/lib/google-calendar", () => ({
   authenticateWithGoogle: vi.fn(),
   fetchGoogleCalendarEvents: vi.fn(),
@@ -30,18 +39,18 @@ vi.mock("@/lib/google-calendar", () => ({
 }));
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
-  const scheduledAt = new Date();
-  scheduledAt.setHours(11, 0, 0, 0);
   return {
     id: "meeting-1",
     organizationId: "org-1",
-    agenda: "Finansal model görüşmesi",
-    scheduledAt: scheduledAt.toISOString(),
+    mentorName: "Nihan Öztürk",
+    mentorshipRequestId: "req-1",
+    agenda: "Ürün konumlandırma kararları",
+    scheduledAt: new Date(2026, 7, 28, 14, 0).toISOString(),
     durationMinutes: 45,
     meetLink: "https://meet.example.com/abc",
-    status: "SCHEDULED",
+    status: MeetingStatus.Scheduled,
     ...overrides,
-  } as MeetingItem;
+  };
 }
 
 function meetingsResult(overrides: Record<string, unknown> = {}) {
@@ -54,15 +63,26 @@ function meetingsResult(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(new Date(2026, 7, 26, 9, 0));
   mockUseMeetings.mockReset();
   mockCreateMeeting.mockReset();
+  vi.mocked(useMentorshipRequests).mockReturnValue({
+    data: [{ id: "req-1", status: MentorshipRequestStatus.Accepted }],
+  } as never);
+  vi.mocked(getActionItems).mockResolvedValue([]);
+  vi.mocked(getStartupProcess).mockResolvedValue({ assignments: [] } as never);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
 });
 
 describe("CalendarView", () => {
   it("shows a loading placeholder instead of a grid while meetings load", () => {
     mockUseMeetings.mockReturnValue(meetingsResult({ isLoading: true }));
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
 
     expect(screen.getByText("Takvim yükleniyor…")).toBeInTheDocument();
   });
@@ -72,40 +92,35 @@ describe("CalendarView", () => {
       meetingsResult({ error: new Error("boom") }),
     );
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
 
-    expect(screen.getByText(/Takvim yüklenemedi: boom/)).toBeInTheDocument();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Takvim yüklenemedi: boom",
+    );
   });
 
-  it("offers Hafta and Ay, starting on Hafta", () => {
-    mockUseMeetings.mockReturnValue(meetingsResult());
+  it("summarises the week and offers to request a meeting", () => {
+    mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
 
-    const weekButton = screen.getByRole("button", { name: "Hafta" });
-    expect(weekButton).toHaveAttribute("aria-pressed", "true");
-    expect(screen.getByRole("button", { name: "Ay" })).toBeInTheDocument();
-    // Dropped per the 09-03 decision: only Ajanda goes, Ay stays.
+    expect(screen.getByRole("heading", { name: "Takvim" })).toBeInTheDocument();
     expect(
-      screen.queryByRole("button", { name: /Ajanda/ }),
-    ).not.toBeInTheDocument();
+      screen.getByText("Bu hafta 1 mentorluk görüşmesi · 0 teslim"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Görüşme talep et" }),
+    ).toHaveAttribute("href", "/mentor-request");
   });
 
-  it("shows the three filters, matching the mentor calendar", () => {
-    mockUseMeetings.mockReturnValue(meetingsResult());
-
-    render(<CalendarView />);
-
-    for (const label of ["Tümü", "Mentorluk", "Program"]) {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
-    }
-  });
-
-  it("says the Program tab has nothing in it yet, mirroring the mentor calendar", async () => {
+  it("shows the four filters and an honest empty state for Program", async () => {
     const user = userEvent.setup();
     mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
+    for (const label of ["Tümü", "Mentorluk", "Program", "Teslim"]) {
+      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
+    }
     await user.click(screen.getByRole("button", { name: "Program" }));
 
     expect(
@@ -113,39 +128,33 @@ describe("CalendarView", () => {
     ).toBeInTheDocument();
   });
 
-  it("places a meeting in its hour cell on the week grid", () => {
-    mockUseMeetings.mockReturnValue(
-      meetingsResult({ data: [meeting({ agenda: "Pazarlama görüşmesi" })] }),
-    );
-
-    render(<CalendarView />);
-
-    expect(screen.getByText("Pazarlama görüşmesi")).toBeInTheDocument();
-  });
-
-  it("switches to the month grid when Ay is chosen", async () => {
+  it("puts a meeting on the Monday–Friday grid under its mentor's name and moves between weeks", async () => {
     const user = userEvent.setup();
-    mockUseMeetings.mockReturnValue(
-      meetingsResult({ data: [meeting({ agenda: "Pazarlama görüşmesi" })] }),
-    );
+    mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
 
-    render(<CalendarView />);
-    await user.click(screen.getByRole("button", { name: "Ay" }));
+    renderWithQueryClient(<CalendarView />);
+    const week = screen.getByRole("region", { name: "24–28 Ağustos 2026" });
 
     expect(
-      screen.getByRole("button", { name: /Pazarlama görüşmesi detayını aç/ }),
+      within(week).getByRole("button", {
+        name: "Ürün konumlandırma kararları detayını aç",
+      }),
+    ).toHaveTextContent("Nihan Öztürk");
+    await user.click(screen.getByRole("button", { name: "Sonraki hafta" }));
+    expect(
+      screen.getByRole("heading", { name: "31–4 Eylül 2026" }),
     ).toBeInTheDocument();
   });
 
   it("opens a meeting and offers Toplantıya hazırlan and sync actions", async () => {
     const user = userEvent.setup();
-    mockUseMeetings.mockReturnValue(
-      meetingsResult({ data: [meeting({ agenda: "Pazarlama görüşmesi" })] }),
-    );
+    mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
     await user.click(
-      screen.getByRole("button", { name: /Pazarlama görüşmesi detayını aç/ }),
+      screen.getByRole("button", {
+        name: "Ürün konumlandırma kararları detayını aç",
+      }),
     );
 
     expect(
@@ -159,11 +168,50 @@ describe("CalendarView", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows what to prepare for the next meeting and what is coming up", async () => {
+    mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
+    vi.mocked(getActionItems).mockResolvedValue([
+      {
+        id: "ai-1",
+        organizationId: "org-1",
+        ownerId: "u-1",
+        title: "User Flow dosyasını yükle",
+        status: ActionItemStatus.Open,
+        dueDate: "2026-08-25",
+        createdAt: "2026-08-20T09:00:00Z",
+        updatedAt: "2026-08-20T09:00:00Z",
+      },
+    ]);
+
+    renderWithQueryClient(<CalendarView />);
+
+    const prep = await screen.findByRole("region", {
+      name: "Hazırlık bekleyen",
+    });
+    await waitFor(() =>
+      expect(
+        within(prep).getByText("User Flow dosyasını yükle"),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      within(prep).getByText("Cuma 28 Ağustos · Nihan Öztürk görüşmesi"),
+    ).toBeInTheDocument();
+    expect(within(prep).getByText("Gecikti")).toBeInTheDocument();
+    expect(
+      within(prep).getByRole("link", { name: "Hazırlığı tamamla" }),
+    ).toBeInTheDocument();
+
+    const upcoming = screen.getByRole("region", {
+      name: "Sıradaki etkinlikler",
+    });
+    expect(within(upcoming).getByText("Cum 28 · 14:00")).toBeInTheDocument();
+  });
+
   it("says the Google integration is not configured rather than faking a sync", async () => {
     const user = userEvent.setup();
     mockUseMeetings.mockReturnValue(meetingsResult());
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
     await user.click(
       screen.getByRole("button", { name: "Google Takvimden Aktar" }),
     );
@@ -184,7 +232,7 @@ describe("CalendarView", () => {
     mockCreateMeeting.mockResolvedValue(meeting());
     const user = userEvent.setup();
 
-    render(<CalendarView />);
+    renderWithQueryClient(<CalendarView />);
     await user.click(
       screen.getByRole("button", { name: "Google Takvimden Aktar" }),
     );
@@ -199,7 +247,6 @@ describe("CalendarView", () => {
       "END:VCALENDAR",
     ].join("\r\n");
     const file = new File([ics], "export.ics", { type: "text/calendar" });
-
     const input = document.querySelector(
       'input[type="file"]',
     ) as HTMLInputElement;
