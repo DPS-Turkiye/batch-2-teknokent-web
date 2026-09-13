@@ -4,8 +4,8 @@ import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
   try {
-    const { organizationId } = await getSessionIds();
-    return backendResponse(await fetchStartupProcess(organizationId));
+    const { organizationId, userId } = await getSessionIds();
+    return backendResponse(await fetchStartupProcess(organizationId, userId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Startup süreci yüklenemedi.",

@@ -7,10 +7,11 @@ function processUrl(organizationId: string) {
   return `/api/organizations/${encodeURIComponent(organizationId)}/process`;
 }
 
-export function fetchStartupProcess(organizationId: string) {
+export function fetchStartupProcess(organizationId: string, actorId: string) {
   return backendRequest({
     method: HttpMethod.Get,
     url: processUrl(organizationId),
+    params: { actorId },
   });
 }
 

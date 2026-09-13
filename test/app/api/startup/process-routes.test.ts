@@ -35,7 +35,7 @@ describe("startup process routes", () => {
 
     const response = await GET();
 
-    expect(fetchStartupProcess).toHaveBeenCalledWith("org-1");
+    expect(fetchStartupProcess).toHaveBeenCalledWith("org-1", "user-1");
     expect(response.status).toBe(200);
   });
 
