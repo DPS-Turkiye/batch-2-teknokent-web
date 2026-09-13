@@ -94,3 +94,15 @@ describe("RemoveMemberDialog", () => {
     expect(onConfirm).toHaveBeenCalled();
   });
 });
+
+describe("MemberFormDialog keyboard", () => {
+  it("submits when Enter is pressed in a field", async () => {
+    const user = userEvent.setup();
+    const form = team();
+    render(<MemberFormDialog team={form} />);
+
+    await user.type(screen.getByLabelText("Ad soyad"), "E{Enter}");
+
+    expect(form.submitForm).toHaveBeenCalled();
+  });
+});

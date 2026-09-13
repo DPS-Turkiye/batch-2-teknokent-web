@@ -18,7 +18,7 @@ type UploadForm = ReturnType<typeof useFileUploadForm>;
 export function FileUploadDialog({ form }: { form: UploadForm }) {
   if (!form.isOpen) return null;
   return (
-    <ModalDialog labelledBy="file-upload-title">
+    <ModalDialog labelledBy="file-upload-title" onClose={form.close}>
       <h2 id="file-upload-title" className="text-base font-semibold">
         Dosya yükle
       </h2>
@@ -73,7 +73,7 @@ export function ShareDocumentDialog({
   if (!document) return null;
   const sharedWith = new Set(document.shares.map((share) => share.mentorId));
   return (
-    <ModalDialog labelledBy="file-share-title">
+    <ModalDialog labelledBy="file-share-title" onClose={onClose}>
       <div>
         <h2 id="file-share-title" className="text-base font-semibold">
           Mentorla paylaş
@@ -134,7 +134,7 @@ export function DeleteDocumentDialog({
 }) {
   if (!document) return null;
   return (
-    <ModalDialog labelledBy="file-delete-title">
+    <ModalDialog labelledBy="file-delete-title" onClose={onCancel}>
       <h2 id="file-delete-title" className="text-base font-semibold">
         Dosyayı silmek istiyor musun?
       </h2>

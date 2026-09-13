@@ -86,4 +86,30 @@ describe("/api/organization-members/[memberId]", () => {
 
     expect(response.status).toBe(400);
   });
+
+  it("forwards only the fields a member edit may change", async () => {
+    vi.mocked(updateOrganizationMember).mockResolvedValue({
+      status: 200,
+      data: { id: "cto" },
+      headers: {},
+    } as never);
+
+    await PATCH(
+      new NextRequest(url, {
+        method: "PATCH",
+        body: JSON.stringify({
+          fullName: "Kerem",
+          jobTitle: "CTO",
+          role: "ADMIN",
+          founder: true,
+        }),
+      }),
+      context,
+    );
+
+    expect(vi.mocked(updateOrganizationMember).mock.calls[0][3]).toEqual({
+      fullName: "Kerem",
+      jobTitle: "CTO",
+    });
+  });
 });

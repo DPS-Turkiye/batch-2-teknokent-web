@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import type { OrganizationMemberUpdate } from "@/interfaces/organization-member";
+
 import {
   removeOrganizationMember,
   updateOrganizationMember,
@@ -13,9 +15,13 @@ export async function PATCH(request: NextRequest, { params }: Context) {
   try {
     const { memberId } = await params;
     const { organizationId, userId } = await getSessionIds();
-    const payload = (await request.json()) as Record<string, unknown>;
+    const { fullName, jobTitle } =
+      (await request.json()) as OrganizationMemberUpdate;
     return backendResponse(
-      await updateOrganizationMember(organizationId, memberId, userId, payload),
+      await updateOrganizationMember(organizationId, memberId, userId, {
+        fullName,
+        jobTitle,
+      }),
     );
   } catch (error) {
     return apiErrorResponse(error, { message: "Ekip üyesi güncellenemedi." });
