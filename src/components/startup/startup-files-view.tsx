@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   DeleteDocumentDialog,
@@ -42,6 +42,24 @@ function FileMenu({
   onShare: () => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    function close(event: MouseEvent | KeyboardEvent) {
+      const leave =
+        event instanceof KeyboardEvent
+          ? event.key === "Escape"
+          : !menuRef.current?.contains(event.target as Node);
+      if (leave) setIsOpen(false);
+    }
+    window.document.addEventListener("mousedown", close);
+    window.document.addEventListener("keydown", close);
+    return () => {
+      window.document.removeEventListener("mousedown", close);
+      window.document.removeEventListener("keydown", close);
+    };
+  }, [isOpen]);
   const item =
     "block w-full rounded-lg px-3 py-2 text-left text-xs font-medium hover:bg-[#f8f9fa]";
   const choose = (action: () => void) => () => {
@@ -49,7 +67,7 @@ function FileMenu({
     action();
   };
   return (
-    <div className="relative">
+    <div ref={menuRef} className="relative">
       <button
         type="button"
         aria-haspopup="menu"

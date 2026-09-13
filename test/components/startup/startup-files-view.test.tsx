@@ -170,4 +170,23 @@ describe("StartupFilesView", () => {
       screen.getByText("Henüz bir toplantı dosyası yok."),
     ).toBeInTheDocument();
   });
+
+  it("closes a file menu on Escape and on a click outside", async () => {
+    const user = userEvent.setup();
+    vi.mocked(useStartupFiles).mockReturnValue(state());
+    renderWithQueryClient(<StartupFilesView />);
+    const trigger = screen.getByRole("button", {
+      name: "Pitch_Deck_v3.pdf işlemleri",
+    });
+
+    await user.click(trigger);
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+
+    await user.click(trigger);
+    await user.click(
+      screen.getByRole("heading", { name: "Startup Dosyalarım" }),
+    );
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
 });

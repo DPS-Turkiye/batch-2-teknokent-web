@@ -1,4 +1,5 @@
 import { StartupStage } from "@/interfaces/startup-process";
+import { calendarDay } from "@/lib/utils";
 
 export const STARTUP_STAGE_LABELS: Record<StartupStage, string> = {
   [StartupStage.Problem]: "Problem",
@@ -9,12 +10,6 @@ export const STARTUP_STAGE_LABELS: Record<StartupStage, string> = {
   [StartupStage.Finance]: "Finans",
   [StartupStage.Pitch]: "Pitch",
 };
-
-// Round dates arrive as calendar days ("2026-08-02"); reading them as local
-// midnight keeps them on the same day in every time zone.
-function calendarDay(value: string) {
-  return new Date(`${value}T00:00:00`);
-}
 
 function dayAndShortMonth(date: Date) {
   return new Intl.DateTimeFormat("tr-TR", {
