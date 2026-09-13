@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueries, useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { actionItemsQueryKey } from "@/hooks/use-action-items";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -18,6 +18,7 @@ import {
   weekRangeLabel,
 } from "@/lib/calendar";
 import { getActionItems } from "@/lib/client/action-items";
+import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import {
   CalendarEntryKind,
@@ -33,6 +34,7 @@ import {
 
 const UPCOMING_LIMIT = 3;
 const PREP_LIMIT = 3;
+const NOW_REFRESH_MS = 60_000;
 
 /**
  * The mentee's week: mentorship meetings, and deliverables from mentorship
@@ -52,6 +54,11 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   const [cursor, setCursor] = useState(() => new Date());
   const [now, setNow] = useState(() => new Date());
 
+  useEffect(() => {
+    const timer = window.setInterval(() => setNow(new Date()), NOW_REFRESH_MS);
+    return () => window.clearInterval(timer);
+  }, []);
+
   const requestIds = useMemo(
     () =>
       (requestsQuery.data ?? [])
@@ -61,12 +68,16 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
         .map((request) => request.id),
     [requestsQuery.data],
   );
-  const actionItemsByRequest = useQueries({
+  const actionItems = useQueries({
     queries: requestIds.map((id) => ({
       queryKey: actionItemsQueryKey(id),
       queryFn: () => getActionItems(id),
     })),
-    combine: (results) => results.map((result) => result.data ?? []),
+    combine: (results) => ({
+      byRequest: results.map((result) => result.data ?? []),
+      isLoading: results.some((result) => result.isLoading),
+      isError: results.some((result) => result.isError),
+    }),
   });
 
   const weekStart = useMemo(() => startOfWeek(cursor), [cursor]);
@@ -89,12 +100,12 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   const entries = [
     ...meetingEntries(meetings),
     ...deliverableEntries([
-      ...actionItemsByRequest.flat(),
+      ...actionItems.byRequest.flat(),
       ...(processQuery.data?.assignments ?? []),
     ]),
   ];
   const weekEnd = new Date(weekStart);
-  weekEnd.setDate(weekEnd.getDate() + 7);
+  weekEnd.setDate(weekEnd.getDate() + MENTEE_WEEK_DAY_COUNT);
   const weekEntries = entries.filter(
     (entry) => entry.startsAt >= weekStart && entry.startsAt < weekEnd,
   );
@@ -109,7 +120,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   const requestIndex = nextMeeting?.mentorshipRequestId
     ? requestIds.indexOf(nextMeeting.mentorshipRequestId)
     : -1;
-  const prepItems = (actionItemsByRequest[requestIndex] ?? [])
+  const prepItems = (actionItems.byRequest[requestIndex] ?? [])
     .filter(isOpenDeliverable)
     .sort((left, right) =>
       (left.dueDate ?? "9999").localeCompare(right.dueDate ?? "9999"),
@@ -125,6 +136,13 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   }
 
   const lastDay = days[days.length - 1];
+  // No startup means no process (the proxy answers 401); anything else is a real failure.
+  const processFailed =
+    processQuery.isError &&
+    !(
+      processQuery.error instanceof ClientApiError &&
+      processQuery.error.status === 401
+    );
 
   return {
     filter,
@@ -145,6 +163,11 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     upcoming: upcomingEntries(entries, now, UPCOMING_LIMIT),
     prep: nextMeeting ? { meeting: nextMeeting, items: prepItems } : null,
     isLoading: meetingsQuery.isLoading,
+    sidebarLoading:
+      requestsQuery.isLoading ||
+      actionItems.isLoading ||
+      processQuery.isLoading,
+    sidebarError: actionItems.isError || processFailed,
     loadError: meetingsQuery.error,
   };
 }

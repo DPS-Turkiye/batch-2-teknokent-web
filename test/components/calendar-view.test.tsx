@@ -257,4 +257,23 @@ describe("CalendarView", () => {
       expect.objectContaining({ agenda: "Dış Toplantı" }),
     );
   });
+
+  it("does not turn a meeting link that is not a web address into a link", async () => {
+    const user = userEvent.setup();
+    mockUseMeetings.mockReturnValue(
+      meetingsResult({ data: [meeting({ meetLink: "javascript:alert(1)" })] }),
+    );
+
+    renderWithQueryClient(<CalendarView />);
+    await user.click(
+      screen.getByRole("button", {
+        name: "Ürün konumlandırma kararları detayını aç",
+      }),
+    );
+
+    expect(screen.queryByText("javascript:alert(1)")).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Bu toplantı için henüz bir görüşme bağlantısı yok."),
+    ).toBeInTheDocument();
+  });
 });

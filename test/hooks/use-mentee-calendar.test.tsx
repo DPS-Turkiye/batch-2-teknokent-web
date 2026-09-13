@@ -11,6 +11,7 @@ import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { CalendarFilter } from "@/lib/calendar";
 import { getActionItems } from "@/lib/client/action-items";
+import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -121,5 +122,52 @@ describe("useMenteeCalendar", () => {
       "User Flow dosyasını yükle",
       "Ürün konumlandırma kararları",
     ]);
+  });
+
+  it("counts only what the Monday–Friday grid can show", async () => {
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        meeting,
+        {
+          ...meeting,
+          id: "m-2",
+          scheduledAt: new Date(2026, 7, 29, 11, 0).toISOString(),
+        },
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+    const { result } = renderHook(() => useMenteeCalendar(), { wrapper });
+
+    await waitFor(() =>
+      expect(result.current.summary).toBe(
+        "Bu hafta 1 mentorluk görüşmesi · 2 teslim",
+      ),
+    );
+  });
+
+  it("keeps the side panel loading until action items and the process arrive", async () => {
+    const { result } = renderHook(() => useMenteeCalendar(), { wrapper });
+
+    expect(result.current.sidebarLoading).toBe(true);
+    await waitFor(() => expect(result.current.sidebarLoading).toBe(false));
+    expect(result.current.sidebarError).toBe(false);
+  });
+
+  it("treats a 401 on the process as no startup, and anything else as a failure", async () => {
+    vi.mocked(getStartupProcess).mockRejectedValueOnce(
+      new ClientApiError("Oturum yok", 401),
+    );
+    const first = renderHook(() => useMenteeCalendar(), { wrapper });
+    await waitFor(() =>
+      expect(first.result.current.sidebarLoading).toBe(false),
+    );
+    expect(first.result.current.sidebarError).toBe(false);
+
+    vi.mocked(getStartupProcess).mockRejectedValueOnce(
+      new ClientApiError("Sunucu hatası", 500),
+    );
+    const second = renderHook(() => useMenteeCalendar(), { wrapper });
+    await waitFor(() => expect(second.result.current.sidebarError).toBe(true));
   });
 });

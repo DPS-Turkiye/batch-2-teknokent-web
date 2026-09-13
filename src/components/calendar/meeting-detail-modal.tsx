@@ -14,6 +14,11 @@ export function MeetingDetailModal({
   meeting: MeetingItem;
   onClose: () => void;
 }) {
+  const meetLink =
+    meeting.meetLink && /^https?:\/\//i.test(meeting.meetLink)
+      ? meeting.meetLink
+      : null;
+
   return (
     <ModalDialog labelledBy="meeting-detail-title" onClose={onClose}>
       <div className="flex items-start justify-between gap-3">
@@ -53,14 +58,14 @@ export function MeetingDetailModal({
         ) : null}
       </div>
 
-      {meeting.meetLink ? (
+      {meetLink ? (
         <a
-          href={meeting.meetLink}
+          href={meetLink}
           target="_blank"
           rel="noreferrer"
           className="block truncate rounded-lg border border-[#e4e7ea] bg-[#f8f9fa] p-2.5 font-mono text-xs text-[#2f7ff0] underline"
         >
-          {meeting.meetLink}
+          {meetLink}
         </a>
       ) : (
         <p className="text-xs text-[#676e78]">

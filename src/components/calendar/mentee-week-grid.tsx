@@ -6,7 +6,7 @@ import {
   type CalendarEntry,
   CalendarEntryKind,
   DAY_HEADER_HEIGHT,
-  eventBox,
+  layoutDay,
   HOUR_ROW_HEIGHT,
 } from "@/lib/mentee-calendar";
 
@@ -78,46 +78,58 @@ export function MenteeWeekGrid({
                 />
               ))}
 
-              {entriesByDay[index].map((entry) => {
-                const box = eventBox(entry);
-                if (!box) return null;
-                const className = `absolute inset-x-1 overflow-hidden rounded-[6px] px-2 py-1.5 text-left text-[11px] leading-[15px] ${EVENT_STYLES[entry.kind]}`;
-                const style = { top: box.top, height: box.height };
-                const meeting = entry.meeting;
-                if (meeting) {
+              {layoutDay(entriesByDay[index]).map(
+                ({ entry, top, height, lane, lanes }) => {
+                  const className = `absolute overflow-hidden rounded-[6px] px-2 py-1.5 text-left text-[11px] leading-[15px] ${EVENT_STYLES[entry.kind]}`;
+                  const style = {
+                    top,
+                    height,
+                    left: `calc(${(lane / lanes) * 100}% + 4px)`,
+                    width: `calc(${100 / lanes}% - 8px)`,
+                  };
+                  const meeting = entry.meeting;
+                  if (meeting) {
+                    return (
+                      <button
+                        key={entry.id}
+                        type="button"
+                        onClick={() => onSelectMeeting(meeting)}
+                        aria-label={`${entry.title} detayını aç`}
+                        className={className}
+                        style={style}
+                      >
+                        <span className="block truncate font-semibold">
+                          {entry.gridLabel}
+                        </span>
+                      </button>
+                    );
+                  }
                   return (
-                    <button
+                    <div
                       key={entry.id}
-                      type="button"
-                      onClick={() => onSelectMeeting(meeting)}
-                      aria-label={`${entry.title} detayını aç`}
+                      title={entry.title}
                       className={className}
                       style={style}
                     >
-                      <span className="block truncate font-semibold">
+                      <span className="sr-only">{`${entry.gridLabel}: ${entry.title}`}</span>
+                      <span
+                        aria-hidden
+                        className="block truncate font-semibold"
+                      >
                         {entry.gridLabel}
                       </span>
-                    </button>
+                      {entry.kind === CalendarEntryKind.Program ? (
+                        <span
+                          aria-hidden
+                          className="block truncate text-[10.5px] text-[#676e78]"
+                        >
+                          {entry.title}
+                        </span>
+                      ) : null}
+                    </div>
                   );
-                }
-                return (
-                  <div
-                    key={entry.id}
-                    title={entry.title}
-                    className={className}
-                    style={style}
-                  >
-                    <span className="block truncate font-semibold">
-                      {entry.gridLabel}
-                    </span>
-                    {entry.kind === CalendarEntryKind.Program ? (
-                      <span className="block truncate text-[10.5px] text-[#676e78]">
-                        {entry.title}
-                      </span>
-                    ) : null}
-                  </div>
-                );
-              })}
+                },
+              )}
             </div>
           );
         })}

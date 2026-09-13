@@ -10,6 +10,7 @@ import {
   entryWhenLabel,
   eventBox,
   filterEntries,
+  layoutDay,
   HOUR_ROW_HEIGHT,
   meetingEntries,
   prepHeading,
@@ -83,17 +84,54 @@ describe("mentee calendar entries", () => {
     expect(filterEntries(entries, CalendarFilter.Program)).toEqual([]);
   });
 
-  it("places an event by its start time and length, and hides ones outside 09–19", () => {
+  it("places an event by its start time and length, pinning out-of-hours ones to the edge", () => {
     const [entry] = meetingEntries([meeting()]);
 
     expect(eventBox(entry)).toEqual({
       top: DAY_HEADER_HEIGHT + 5 * HOUR_ROW_HEIGHT,
       height: 0.75 * HOUR_ROW_HEIGHT,
     });
+    const [early] = meetingEntries([
+      meeting({ scheduledAt: new Date(2026, 7, 28, 7, 30).toISOString() }),
+    ]);
     const [late] = meetingEntries([
       meeting({ scheduledAt: new Date(2026, 7, 28, 20, 0).toISOString() }),
     ]);
-    expect(eventBox(late)).toBeNull();
+    expect(eventBox(early).top).toBe(DAY_HEADER_HEIGHT);
+    const gridBottom = DAY_HEADER_HEIGHT + 10 * HOUR_ROW_HEIGHT;
+    expect(eventBox(late).top + eventBox(late).height).toBeLessThanOrEqual(
+      gridBottom,
+    );
+  });
+
+  it("splits the column between overlapping entries only", () => {
+    const entries = meetingEntries([
+      meeting({
+        id: "a",
+        scheduledAt: new Date(2026, 7, 28, 14, 0).toISOString(),
+      }),
+      meeting({
+        id: "b",
+        scheduledAt: new Date(2026, 7, 28, 14, 30).toISOString(),
+        durationMinutes: 60,
+      }),
+      meeting({
+        id: "c",
+        scheduledAt: new Date(2026, 7, 28, 16, 0).toISOString(),
+      }),
+    ]);
+
+    const laid = layoutDay(entries).map(({ entry, lane, lanes }) => [
+      entry.id,
+      lane,
+      lanes,
+    ]);
+
+    expect(laid).toEqual([
+      ["meeting:a", 0, 2],
+      ["meeting:b", 1, 2],
+      ["meeting:c", 0, 1],
+    ]);
   });
 
   it("summarises the week and leaves program events out until there are some", () => {

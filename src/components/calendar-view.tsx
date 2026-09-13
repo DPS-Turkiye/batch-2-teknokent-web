@@ -16,9 +16,8 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { useCalendarImport } from "@/hooks/use-calendar-import";
 import { useMenteeCalendar } from "@/hooks/use-mentee-calendar";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { CalendarFilter } from "@/lib/calendar";
+import { CalendarFilter, MENTEE_CALENDAR_FILTERS } from "@/lib/calendar";
 import { relayGoogleOAuthTokenFromUrl } from "@/lib/google-calendar";
-import { MENTEE_CALENDAR_FILTERS } from "@/lib/mentee-calendar";
 import { AppArea } from "@/types/app-area";
 
 const pillButton =
@@ -156,9 +155,14 @@ export function CalendarView() {
                 meeting={calendar.prep.meeting}
                 items={calendar.prep.items}
                 now={calendar.now}
+                isLoading={calendar.sidebarLoading}
               />
             ) : null}
-            <UpcomingCard entries={calendar.upcoming} />
+            <UpcomingCard
+              entries={calendar.upcoming}
+              isLoading={calendar.sidebarLoading}
+              hasError={calendar.sidebarError}
+            />
           </aside>
         </div>
       </div>

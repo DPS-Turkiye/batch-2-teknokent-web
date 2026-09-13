@@ -25,14 +25,18 @@ const PREP_CHIPS: Record<PrepStatus, string> = {
 
 const cardHeading = "text-[15px] font-semibold leading-[21px] text-[#22262b]";
 
+const mutedText = "text-[12.5px] leading-[18px] text-[#676e78]";
+
 export function PrepCard({
   meeting,
   items,
   now,
+  isLoading,
 }: {
   meeting: MeetingItem;
   items: ActionItem[];
   now: Date;
+  isLoading: boolean;
 }) {
   return (
     <section
@@ -45,10 +49,10 @@ export function PrepCard({
       <p className="text-[12.5px] leading-[18px] text-[#4a5059]">
         {prepHeading(meeting)}
       </p>
-      {items.length === 0 ? (
-        <p className="text-[12.5px] leading-[18px] text-[#676e78]">
-          Bu görüşme için bekleyen bir hazırlık yok.
-        </p>
+      {isLoading ? (
+        <p className={mutedText}>Hazırlık yükleniyor…</p>
+      ) : items.length === 0 ? (
+        <p className={mutedText}>Bu görüşme için bekleyen bir hazırlık yok.</p>
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {
@@ -81,7 +85,15 @@ export function PrepCard({
   );
 }
 
-export function UpcomingCard({ entries }: { entries: CalendarEntry[] }) {
+export function UpcomingCard({
+  entries,
+  isLoading,
+  hasError,
+}: {
+  entries: CalendarEntry[];
+  isLoading: boolean;
+  hasError: boolean;
+}) {
   return (
     <section
       aria-labelledby="calendar-upcoming"
@@ -90,10 +102,15 @@ export function UpcomingCard({ entries }: { entries: CalendarEntry[] }) {
       <h2 id="calendar-upcoming" className={cardHeading}>
         Sıradaki etkinlikler
       </h2>
-      {entries.length === 0 ? (
-        <p className="text-[12.5px] leading-[18px] text-[#676e78]">
-          Yaklaşan bir etkinlik yok.
+      {hasError ? (
+        <p role="alert" className="text-[12.5px] leading-[18px] text-[#a65a15]">
+          Teslimler yüklenemedi; liste eksik olabilir.
         </p>
+      ) : null}
+      {isLoading ? (
+        <p className={mutedText}>Etkinlikler yükleniyor…</p>
+      ) : entries.length === 0 ? (
+        <p className={mutedText}>Yaklaşan bir etkinlik yok.</p>
       ) : (
         <ul className="space-y-3">
           {entries.map((entry) => (

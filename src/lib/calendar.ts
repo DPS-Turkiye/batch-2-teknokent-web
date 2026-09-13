@@ -23,6 +23,13 @@ export const MENTOR_CALENDAR_FILTERS = [
   CalendarFilter.Availability,
 ];
 
+export const MENTEE_CALENDAR_FILTERS = [
+  CalendarFilter.All,
+  CalendarFilter.Mentorship,
+  CalendarFilter.Program,
+  CalendarFilter.Deliverable,
+];
+
 export const DAY_SHORT_LABELS = [
   "Pzt",
   "Sal",

@@ -25,13 +25,6 @@ export const PREP_STATUS_LABELS: Record<PrepStatus, string> = {
   [PrepStatus.InProgress]: "Devam ediyor",
 };
 
-export const MENTEE_CALENDAR_FILTERS = [
-  CalendarFilter.All,
-  CalendarFilter.Mentorship,
-  CalendarFilter.Program,
-  CalendarFilter.Deliverable,
-];
-
 export const MENTEE_WEEK_DAY_COUNT = 5;
 export const HOUR_ROW_HEIGHT = 42;
 export const DAY_HEADER_HEIGHT = 34;
@@ -132,19 +125,68 @@ export function entriesOnDay(entries: CalendarEntry[], day: Date) {
     .sort(byStart);
 }
 
-/** Where an entry sits in its day column, or null when it falls outside 09:00–19:00. */
+/**
+ * Where an entry sits in its day column. Outside working hours it is pinned to
+ * the nearest edge rather than dropped, so nothing the summary counts goes missing.
+ */
 export function eventBox(entry: CalendarEntry) {
   const firstHour = MENTEE_WEEK_HOURS[0];
   const endHour = MENTEE_WEEK_HOURS[MENTEE_WEEK_HOURS.length - 1] + 1;
+  const gridBottom =
+    DAY_HEADER_HEIGHT + (endHour - firstHour) * HOUR_ROW_HEIGHT;
   const hours = entry.startsAt.getHours() + entry.startsAt.getMinutes() / 60;
-  if (hours < firstHour || hours >= endHour) return null;
-  const top = DAY_HEADER_HEIGHT + (hours - firstHour) * HOUR_ROW_HEIGHT;
-  const bottom = DAY_HEADER_HEIGHT + (endHour - firstHour) * HOUR_ROW_HEIGHT;
+  const top = Math.min(
+    Math.max(
+      DAY_HEADER_HEIGHT + (hours - firstHour) * HOUR_ROW_HEIGHT,
+      DAY_HEADER_HEIGHT,
+    ),
+    gridBottom - MIN_EVENT_HEIGHT,
+  );
   const height = Math.max(
     MIN_EVENT_HEIGHT,
     (entry.durationMinutes / 60) * HOUR_ROW_HEIGHT,
   );
-  return { top, height: Math.min(height, bottom - top) };
+  return { top, height: Math.min(height, gridBottom - top) };
+}
+
+export type PositionedEntry = {
+  entry: CalendarEntry;
+  top: number;
+  height: number;
+  lane: number;
+  lanes: number;
+};
+
+/** A day's entries with their boxes, sharing the column width wherever they overlap. */
+export function layoutDay(entries: CalendarEntry[]): PositionedEntry[] {
+  const placed = entries
+    .map((entry) => ({ entry, ...eventBox(entry), lane: 0, lanes: 1 }))
+    .sort((left, right) => left.top - right.top);
+  let cluster: PositionedEntry[] = [];
+  let clusterBottom = -Infinity;
+  let laneBottoms: number[] = [];
+  const closeCluster = () => {
+    for (const item of cluster) item.lanes = laneBottoms.length;
+  };
+  for (const item of placed) {
+    if (item.top >= clusterBottom) {
+      closeCluster();
+      cluster = [];
+      laneBottoms = [];
+      clusterBottom = -Infinity;
+    }
+    let lane = laneBottoms.findIndex((bottom) => bottom <= item.top);
+    if (lane === -1) {
+      lane = laneBottoms.length;
+      laneBottoms.push(0);
+    }
+    laneBottoms[lane] = item.top + item.height;
+    item.lane = lane;
+    cluster.push(item);
+    clusterBottom = Math.max(clusterBottom, item.top + item.height);
+  }
+  closeCluster();
+  return placed;
 }
 
 /** "Bu hafta 2 mentorluk görüşmesi · 1 teslim" — program events only once there are some. */
