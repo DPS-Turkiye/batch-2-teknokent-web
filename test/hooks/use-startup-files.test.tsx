@@ -5,11 +5,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { useStartupDocuments } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
+import { useStartupHeader } from "@/hooks/use-startup-header";
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   deleteDocument,
+  getStartupDocumentRequests,
   shareDocument,
   unshareDocument,
 } from "@/lib/client/startup-documents";
@@ -24,8 +28,15 @@ vi.mock("@/hooks/use-startup-documents", async (importOriginal) => ({
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
 }));
+vi.mock("@/hooks/use-organization-members", () => ({
+  useOrganizationMembers: vi.fn(),
+}));
+vi.mock("@/hooks/use-startup-header", () => ({
+  useStartupHeader: vi.fn(),
+}));
 vi.mock("@/lib/client/startup-documents", () => ({
   deleteDocument: vi.fn(),
+  getStartupDocumentRequests: vi.fn(),
   shareDocument: vi.fn(),
   unshareDocument: vi.fn(),
 }));
@@ -50,21 +61,39 @@ function request(
   return { id: `req-${mentorId}-${status}`, mentorId, mentorName, status };
 }
 
-const deck = documentFixture("deck", {
-  shares: [
-    {
-      mentorId: "m-1",
-      mentorName: "Nihan Öztürk",
-      sharedAt: "2026-09-05T09:00:00Z",
-    },
-  ],
+const deck = documentFixture("deck");
+const mentorNotes = documentFixture("notes", {
+  uploadedById: "mentor-9",
+  uploadedByName: "Nihan Öztürk",
+  createdAt: "2026-08-16T09:00:00Z",
 });
-const meetingFile = documentFixture("notes", { meetingId: "meeting-1" });
+const programRequest: DocumentRequestItem = {
+  id: "deck-request",
+  title: "pitch-deck-v3.pdf",
+  sortOrder: 0,
+  dueDate: "2026-08-28",
+  organizationId: "org-1",
+  mentorshipRequestId: null,
+  meetingId: null,
+  mentorshipId: null,
+  programId: "program-1",
+  createdById: "coordinator-1",
+  createdByName: "METU Stars",
+  createdAt: "2026-08-20T09:00:00Z",
+  uploads: [],
+};
 
 describe("useStartupFiles", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useStartupDocuments).mockReturnValue(query([deck, meetingFile]));
+    vi.mocked(useStartupDocuments).mockReturnValue(query([deck, mentorNotes]));
+    vi.mocked(useOrganizationMembers).mockReturnValue(
+      query([{ id: "user-1", fullName: "Gülse Buran" }]),
+    );
+    vi.mocked(useStartupHeader).mockReturnValue({
+      programName: "METU Stars 2026",
+    } as never);
+    vi.mocked(getStartupDocumentRequests).mockResolvedValue([programRequest]);
     vi.mocked(useMentorshipRequests).mockReturnValue(
       query([
         request("m-1", "Nihan Öztürk", MentorshipRequestStatus.Accepted),
@@ -74,13 +103,40 @@ describe("useStartupFiles", () => {
     );
   });
 
-  it("splits the documents into the three lists", () => {
+  it("lists the files with what was asked for, and narrows them by filter", async () => {
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.filter).toBe(StartupFileFilter.All);
-    expect(result.current.sections.startup).toEqual([deck]);
-    expect(result.current.sections.meeting).toEqual([meetingFile]);
-    expect(result.current.sections.shared).toHaveLength(1);
+    expect(result.current.rows.map((row) => row.key)).toEqual([
+      "document:deck",
+      "request:deck-request",
+      "document:notes",
+    ]);
+    expect(result.current.counts[StartupFileFilter.Pending]).toBe(1);
+    expect(result.current.pendingNotice).toBe(
+      "“pitch-deck-v3.pdf” METU Stars tarafından talep edildi, henüz yüklenmedi. Son tarih 28 Ağustos 2026.",
+    );
+
+    act(() => result.current.setFilter(StartupFileFilter.Pending));
+
+    expect(result.current.rows.map((row) => row.key)).toEqual([
+      "request:deck-request",
+    ]);
+  });
+
+  it("reports document requests that could not be loaded", async () => {
+    vi.mocked(getStartupDocumentRequests).mockRejectedValue(
+      new Error("İstenen belgeler yüklenemedi."),
+    );
+
+    const { result } = renderHook(() => useStartupFiles(), { wrapper });
+
+    await waitFor(() =>
+      expect(result.current.error?.message).toBe(
+        "İstenen belgeler yüklenemedi.",
+      ),
+    );
   });
 
   it("offers each accepted mentor once, and only accepted ones", () => {

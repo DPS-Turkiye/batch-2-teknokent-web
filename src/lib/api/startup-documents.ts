@@ -11,6 +11,17 @@ export function fetchStartupDocuments(organizationId: string, actorId: string) {
   });
 }
 
+export function fetchStartupDocumentRequests(
+  organizationId: string,
+  actorId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: `/api/organizations/${encodeURIComponent(organizationId)}/document-requests`,
+    params: { actorId },
+  });
+}
+
 export function fetchDocumentDownloadUrl(documentId: string, actorId: string) {
   return backendRequest({
     method: HttpMethod.Get,

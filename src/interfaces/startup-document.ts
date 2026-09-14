@@ -32,6 +32,9 @@ export interface StartupDocument {
   meetingId: string | null;
   meetingAgenda: string | null;
   meetingScheduledAt: string | null;
+  reviewedAt: string | null;
+  reviewedById: string | null;
+  reviewedByName: string | null;
   shares: DocumentShare[];
 }
 

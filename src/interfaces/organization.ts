@@ -1,4 +1,13 @@
 // Distinct from StartupContext in startup.ts, which is parsed from a CV/deck.
+/** Mirrors the backend's StartupFundingStage, which sends these labels as its values. */
+export enum StartupFundingStage {
+  Bootstrapped = "Kendi kaynaklarıyla",
+  PreSeed = "Pre-seed",
+  Seed = "Seed",
+  SeriesA = "Seri A",
+  SeriesBPlus = "Seri B ve sonrası",
+}
+
 export interface StartupProfile {
   id: string;
   name: string;
@@ -15,6 +24,8 @@ export interface StartupProfile {
   statusVersion: string | null;
   statusSummary: string | null;
   completionPercent: number | null;
+  fundingStage: StartupFundingStage | null;
+  foundedYear: number | null;
   createdAt: string;
   updatedAt: string;
 }

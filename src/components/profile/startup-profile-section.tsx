@@ -7,6 +7,8 @@ import {
   EditableInfoField,
 } from "@/components/profile/editable-info-field";
 import { useStartupProfile } from "@/hooks/use-startup-profile";
+import { StartupFundingStage } from "@/interfaces/organization";
+import { toFoundedYear, toFundingStage } from "@/lib/profile-validation";
 
 /**
  * The signup wizard's second step, reopened after signup. Grouped the way that
@@ -153,6 +155,47 @@ export function StartupProfileSection() {
             maxLength={255}
             onChange={(value) => setField("maturity", value)}
           />
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <EditableInfoField
+            id="startup-founded-year"
+            label="Kuruluş yılı"
+            placeholder="2026"
+            inputMode="numeric"
+            value={draft.foundedYear != null ? String(draft.foundedYear) : ""}
+            error={fieldErrors.foundedYear}
+            maxLength={4}
+            onChange={(value) => setField("foundedYear", toFoundedYear(value))}
+          />
+          <div className="rounded-xl border border-[#edf0f2] bg-[#fcfcfd] p-3.5">
+            <label
+              htmlFor="startup-funding-stage"
+              className="block text-xs font-medium text-[#676e78]"
+            >
+              Yatırım aşaması
+            </label>
+            <select
+              id="startup-funding-stage"
+              value={draft.fundingStage ?? ""}
+              onChange={(event) =>
+                setField("fundingStage", toFundingStage(event.target.value))
+              }
+              className="mt-1.5 w-full rounded-lg border border-[#e4e7ea] bg-white px-2.5 py-2 text-sm text-[#22262b] focus:border-[#e86f22] focus:outline-none"
+            >
+              <option value="">Belirtilmedi</option>
+              {Object.values(StartupFundingStage).map((stage) => (
+                <option key={stage} value={stage}>
+                  {stage}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.fundingStage ? (
+              <p className="mt-1 text-xs text-[#b91c1c]">
+                {fieldErrors.fundingStage}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <EditableInfoField

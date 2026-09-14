@@ -1,4 +1,5 @@
 import type { ActionItemStatus } from "@/interfaces/action-item";
+import type { UserRole } from "@/interfaces/session";
 
 /** Mirrors the backend's StartupStage; declaration order is the journey. */
 export enum StartupStage {
@@ -43,6 +44,8 @@ export interface ProcessAssignment {
   dueDate: string | null;
   submissionDocumentId: string | null;
   submissionFilename: string | null;
+  createdByName: string | null;
+  createdByRole: UserRole | null;
   createdAt: string;
 }
 

@@ -5,33 +5,45 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
-import type { StartupProfile } from "@/interfaces/organization";
+import { MeetingStatus } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  DocumentKind,
-  type StartupDocument,
-} from "@/interfaces/startup-document";
+  type StartupProfile,
+  StartupFundingStage,
+} from "@/interfaces/organization";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { StartupStage, StartupStageState } from "@/interfaces/startup-process";
+import { getMeetings } from "@/lib/client/meetings";
+import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getStartupProfile } from "@/lib/client/organization";
 import { getOrganizationMembers } from "@/lib/client/organization-members";
-import {
-  getDocumentDownloadUrl,
-  getStartupDocuments,
-} from "@/lib/client/startup-documents";
+import { getOrganizationPrograms } from "@/lib/client/programs";
+import { getStartupDocuments } from "@/lib/client/startup-documents";
+import { getStartupProcess } from "@/lib/client/startup-process";
+import { documentFixture } from "@test/fixtures/startup-files";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/organization", () => ({
   getStartupProfile: vi.fn(),
-  saveStartupProfile: vi.fn(),
-  saveStartupStatus: vi.fn(),
 }));
-
 vi.mock("@/lib/client/organization-members", () => ({
   getOrganizationMembers: vi.fn(),
-  addOrganizationMember: vi.fn(),
 }));
-
 vi.mock("@/lib/client/startup-documents", () => ({
   getStartupDocuments: vi.fn(),
   getDocumentDownloadUrl: vi.fn(),
+}));
+vi.mock("@/lib/client/mentor-requests", () => ({
+  getMentorRequests: vi.fn(),
+}));
+vi.mock("@/lib/client/meetings", () => ({
+  getMeetings: vi.fn(),
+}));
+vi.mock("@/lib/client/programs", () => ({
+  getOrganizationPrograms: vi.fn(),
+}));
+vi.mock("@/lib/client/startup-process", () => ({
+  getStartupProcess: vi.fn(),
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -46,62 +58,29 @@ const profile: StartupProfile = {
   id: "org-1",
   name: "Döngü",
   description: "Gönüllülerle sosyal girişimleri buluşturur.",
-  website: null,
+  website: "dongu.app",
   problem: null,
   solution: null,
   currentSolution: null,
   targetUser: null,
-  sector: null,
-  maturity: "MVP yayında",
+  sector: "Sosyal etki",
+  maturity: "MVP Hazır",
   programLevel: null,
   supportAreas: [],
   statusVersion: "v0.9.2",
   statusSummary: "Öğretmen modülü geliştirme aşamasında.",
   completionPercent: 72,
+  fundingStage: StartupFundingStage.PreSeed,
+  foundedYear: 2026,
   createdAt: "2026-06-12T09:00:00Z",
   updatedAt: "2026-09-02T09:00:00Z",
 };
-
-function document(
-  id: string,
-  kind: DocumentKind,
-  shared = false,
-): StartupDocument {
-  return {
-    id,
-    kind,
-    originalFilename: `${id}.pdf`,
-    contentType: "application/pdf",
-    sizeBytes: 1024,
-    createdAt: "2026-09-02T09:00:00Z",
-    uploadedById: "user-1",
-    uploadedByName: "Gülse Buran",
-    meetingId: null,
-    meetingAgenda: null,
-    meetingScheduledAt: null,
-    shares: shared
-      ? [
-          {
-            mentorId: "mentor-1",
-            mentorName: "Nihan Öztürk",
-            sharedAt: "2026-09-05T10:00:00Z",
-          },
-        ]
-      : [],
-  };
-}
 
 describe("useStartupOverview", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getStartupProfile).mockResolvedValue(profile);
     vi.mocked(getOrganizationMembers).mockResolvedValue([
-      {
-        id: "u-2",
-        email: "sude@dongu.app",
-        fullName: "Sude Arya",
-        role: "MENTEE",
-      },
       {
         id: "u-1",
         email: "gulse@dongu.app",
@@ -110,63 +89,96 @@ describe("useStartupOverview", () => {
         founder: true,
       },
       {
-        id: "u-3",
-        email: "doga@dongu.app",
-        fullName: "Doğa Çağrı",
-        role: "MENTEE",
-      },
-      {
-        id: "u-4",
-        email: "mert@dongu.app",
-        fullName: "Mert Can",
+        id: "u-2",
+        email: "sude@dongu.app",
+        fullName: "Sude Arya",
         role: "MENTEE",
       },
     ]);
     vi.mocked(getStartupDocuments).mockResolvedValue([
-      document("canvas-new", DocumentKind.Canvas, true),
-      document("logo-1", DocumentKind.Logo),
-      document("canvas-old", DocumentKind.Canvas),
-      document("deck", DocumentKind.PitchDeck, true),
+      documentFixture("canvas-new", { kind: DocumentKind.Canvas }),
+      documentFixture("deck"),
+      documentFixture("canvas-old", { kind: DocumentKind.Canvas }),
     ]);
-    vi.mocked(getDocumentDownloadUrl).mockResolvedValue({
-      url: "https://bucket.s3/logo.png?sig",
-      filename: "logo.png",
-      contentType: "image/png",
+    vi.mocked(getOrganizationPrograms).mockResolvedValue({
+      programs: [
+        { id: "p-0", name: "Eski program", coordinatorName: "Ece" },
+        { id: "p-1", name: "METU Stars 2026", coordinatorName: "Ece" },
+      ],
+      activeProgramId: "p-1",
     });
+    vi.mocked(getStartupProcess).mockResolvedValue({
+      organizationId: "org-1",
+      currentStage: StartupStage.Mvp,
+      stages: [{ stage: StartupStage.Mvp, state: StartupStageState.Current }],
+      currentRound: null,
+      rounds: [],
+      assignments: [],
+    });
+    vi.mocked(getMentorRequests).mockResolvedValue([
+      {
+        id: "r-1",
+        requesterId: "u-1",
+        organizationId: "org-1",
+        mentorId: "mentor-1",
+        mentorName: "Nihan Öztürk",
+        supportArea: "Ürün konumlandırma",
+        status: MentorshipRequestStatus.Accepted,
+        mentorMessage: null,
+        rejectionReason: null,
+        createdAt: "2026-08-01T09:00:00Z",
+        messages: [],
+        recommendationSnapshot: null,
+        plannedSessionCount: 6,
+      },
+    ]);
+    vi.mocked(getMeetings).mockResolvedValue([
+      {
+        id: "m-1",
+        organizationId: "org-1",
+        mentorshipRequestId: "r-1",
+        scheduledAt: "2026-08-10T09:00:00Z",
+        durationMinutes: 45,
+        status: MeetingStatus.Completed,
+      },
+    ]);
   });
 
-  it("shows the latest canvas, the logo and only shared files", async () => {
+  it("combines the profile with the latest canvas, the team size, the program and the stage", async () => {
     const { result } = renderHook(() => useStartupOverview(), { wrapper });
 
     await waitFor(() => expect(result.current.profile?.name).toBe("Döngü"));
+    await waitFor(() => expect(result.current.teamSize).toBe(2));
     await waitFor(() =>
-      expect(result.current.logoUrl).toBe("https://bucket.s3/logo.png?sig"),
+      expect(result.current.programName).toBe("METU Stars 2026"),
     );
+    await waitFor(() => expect(result.current.stageName).toBe("MVP"));
     expect(result.current.canvas?.id).toBe("canvas-new");
-    expect(result.current.sharedDocuments.map((doc) => doc.id)).toEqual([
-      "canvas-new",
-      "deck",
-    ]);
-    expect(getDocumentDownloadUrl).toHaveBeenCalledWith("logo-1");
   });
 
-  it("previews the team with the founder first", async () => {
+  it("summarizes each accepted mentorship's sessions", async () => {
     const { result } = renderHook(() => useStartupOverview(), { wrapper });
 
-    await waitFor(() => expect(result.current.team).toHaveLength(3));
-    expect(result.current.team[0].fullName).toBe("Gülse Buran");
+    await waitFor(() => expect(result.current.mentorships).toHaveLength(1));
+    await waitFor(() =>
+      expect(result.current.mentorships[0].heldSessions).toBe(1),
+    );
+    expect(result.current.mentorships[0]).toEqual({
+      id: "r-1",
+      mentorName: "Nihan Öztürk",
+      supportArea: "Ürün konumlandırma",
+      heldSessions: 1,
+      plannedSessions: 6,
+      nextMeetingAt: null,
+    });
   });
 
-  it("has no logo link when the startup has not uploaded a logo", async () => {
-    vi.mocked(getStartupDocuments).mockResolvedValue([
-      document("deck", DocumentKind.PitchDeck),
-    ]);
+  it("has no canvas when none was uploaded", async () => {
+    vi.mocked(getStartupDocuments).mockResolvedValue([documentFixture("deck")]);
 
     const { result } = renderHook(() => useStartupOverview(), { wrapper });
 
     await waitFor(() => expect(result.current.documentsLoading).toBe(false));
-    expect(result.current.logoUrl).toBeNull();
     expect(result.current.canvas).toBeNull();
-    expect(getDocumentDownloadUrl).not.toHaveBeenCalled();
   });
 });

@@ -1,10 +1,26 @@
 import { z } from "zod";
 
-import type { StartupProfileInput } from "@/interfaces/organization";
+import {
+  StartupFundingStage,
+  type StartupProfileInput,
+} from "@/interfaces/organization";
 import type { UserProfileInput } from "@/interfaces/user-profile";
 import { phoneNumberError } from "@/lib/phone";
 
 type FieldErrors<T extends object> = Partial<Record<keyof T, string>>;
+
+/** The founding year as typed: digits only, and an empty field clears it. */
+export function toFoundedYear(value: string) {
+  const digits = value.replace(/\D/g, "");
+  return digits ? Number(digits) : null;
+}
+
+/** The funding stage a select sends back; its empty option clears it. */
+export function toFundingStage(value: string) {
+  return (
+    Object.values(StartupFundingStage).find((stage) => stage === value) ?? null
+  );
+}
 
 const optionalText = (label: string, max: number) =>
   z.string().max(max, `${label} en fazla ${max} karakter olabilir.`).nullable();
@@ -45,6 +61,13 @@ const startupProfileSchema = z.object({
   supportAreas: z.array(
     z.string().max(255, "Destek alanı en fazla 255 karakter olabilir."),
   ),
+  fundingStage: z.enum(StartupFundingStage).nullable(),
+  foundedYear: z
+    .number()
+    .int("Kuruluş yılı tam sayı olmalıdır.")
+    .min(1900, "Kuruluş yılı 1900 ile 2100 arasında olmalıdır.")
+    .max(2100, "Kuruluş yılı 1900 ile 2100 arasında olmalıdır.")
+    .nullable(),
 });
 
 function fieldErrors<T extends object>(result: z.ZodSafeParseResult<T>) {

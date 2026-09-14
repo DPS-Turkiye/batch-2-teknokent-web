@@ -1,5 +1,6 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupTeamView } from "@/components/startup/startup-team-view";
@@ -7,6 +8,22 @@ import { useStartupTeam } from "@/hooks/use-startup-team";
 import { memberFixture } from "@test/fixtures/startup-team";
 import { renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("@/components/startup/startup-page-frame", () => ({
+  StartupPageFrame: ({
+    action,
+    children,
+  }: {
+    action?: ReactNode;
+    children: ReactNode;
+  }) => (
+    <div>
+      {action}
+      {children}
+    </div>
+  ),
+  startupPrimaryActionClass: "",
+  startupSecondaryActionClass: "",
+}));
 vi.mock("@/hooks/use-startup-team", () => ({ useStartupTeam: vi.fn() }));
 
 const founder = memberFixture("founder", {
@@ -45,19 +62,16 @@ function state(overrides: Partial<Team> = {}): Team {
 describe("StartupTeamView", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("lists the members with their details", () => {
+  it("lists the members with their email, join date and role", () => {
     vi.mocked(useStartupTeam).mockReturnValue(state());
     renderWithQueryClient(<StartupTeamView />);
 
-    expect(screen.getByText("2 ekip üyesi")).toBeInTheDocument();
     const [first, second] = screen.getAllByRole("listitem");
-    expect(within(first).getByText("Kurucu")).toBeInTheDocument();
-    expect(
-      within(first).getByText("CEO · founder@dongu.co"),
-    ).toBeInTheDocument();
-    expect(
-      within(first).getByText("Katılım: 12 Haziran 2026"),
-    ).toBeInTheDocument();
+    expect(within(first).getByText("CEO · Kurucu")).toBeInTheDocument();
+    expect(within(first).getByText("founder@dongu.co")).toBeInTheDocument();
+    expect(within(first).getByText("Katılım: 12 Haz 2026")).toBeInTheDocument();
+    expect(within(first).getByText("Yönetici")).toBeInTheDocument();
+    expect(within(second).getByText("Üye")).toBeInTheDocument();
     expect(within(second).queryByText(/Katılım/)).not.toBeInTheDocument();
   });
 
@@ -88,7 +102,7 @@ describe("StartupTeamView", () => {
     await user.click(
       screen.getByRole("button", { name: "Kerem Aksoy düzenle" }),
     );
-    await user.click(screen.getByRole("button", { name: "Ekip Üyesi Ekle" }));
+    await user.click(screen.getByRole("button", { name: "Ekip üyesi ekle" }));
 
     expect(team.openEdit).toHaveBeenCalledWith(cto);
     expect(team.openAdd).toHaveBeenCalled();
@@ -98,7 +112,15 @@ describe("StartupTeamView", () => {
     vi.mocked(useStartupTeam).mockReturnValue(state({ members: [] }));
     renderWithQueryClient(<StartupTeamView />);
 
-    expect(screen.getByText("0 ekip üyesi")).toBeInTheDocument();
     expect(screen.getByText("Henüz ekip üyesi eklenmedi.")).toBeInTheDocument();
+  });
+
+  it("reports a team that could not be loaded", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(
+      state({ error: new Error("Ekip yüklenemedi.") }),
+    );
+    renderWithQueryClient(<StartupTeamView />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("Ekip yüklenemedi.");
   });
 });

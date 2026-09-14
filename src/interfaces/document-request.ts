@@ -13,11 +13,14 @@ export type DocumentRequestItem = {
   id: string;
   title: string;
   sortOrder: number;
+  dueDate: string | null;
   organizationId: string;
   mentorshipRequestId: string | null;
   meetingId: string | null;
   mentorshipId: string | null;
+  programId: string | null;
   createdById: string;
+  createdByName: string;
   createdAt: string;
   uploads: DocumentRequestUpload[];
 };
