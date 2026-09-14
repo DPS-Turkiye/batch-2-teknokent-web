@@ -1,136 +1,278 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, Video } from "lucide-react";
+import type { ReactNode } from "react";
+import Link from "next/link";
 import { Suspense } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
+import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
+import { useMeetings } from "@/hooks/use-meetings";
+import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
+import {
+  ORGANIZATION_PROGRAMS_QUERY_KEY,
+  PROGRAMS_QUERY_KEY,
+} from "@/hooks/use-programs";
+import { UserRole } from "@/interfaces/session";
+import { getOrganizationPrograms, getPrograms } from "@/lib/client/programs";
+import { CALENDAR_SUPPORT_AREA } from "@/lib/const";
+import {
+  isFirstMeetingWithMentor,
+  isProfileOriginRequest,
+  meetingCounterpartName,
+  meetingScheduleLabel,
+  programsForOrganization,
+  requestAgendaLines,
+  requestExpectedOutcome,
+} from "@/lib/meeting-context";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
+function ContextCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[10px] border border-[#e4e7ea] bg-white px-6 py-5">
+      <h2 className="text-base font-semibold text-[#1a1a1a]">{title}</h2>
+      <div className="mt-3 text-sm text-[#666b75]">{children}</div>
+    </section>
+  );
+}
+
 function MeetingDetailContent() {
-  const {
-    error,
-    isLoading,
-    isSaving,
-    meeting,
-    notes,
-    outcomes,
-    saveNotes,
-    setNotes,
-    setOutcomes,
-  } = useMeetingLifecycle();
+  const session = useAppSession();
+  const isMentor = session?.role === UserRole.Mentor;
+  const { error, isLoading, meeting } = useMeetingLifecycle();
+  const meetingsQuery = useMeetings();
+  const requestQuery = useMentorshipRequest(
+    meeting?.mentorshipRequestId ?? null,
+  );
+  const request = requestQuery.data ?? null;
+  const profileMode = isProfileOriginRequest(request);
+  const mentorProgramsQuery = useQuery({
+    queryKey: PROGRAMS_QUERY_KEY,
+    queryFn: getPrograms,
+    enabled: Boolean(isMentor) && Boolean(meeting) && !profileMode,
+  });
+  const orgProgramsQuery = useQuery({
+    queryKey: ORGANIZATION_PROGRAMS_QUERY_KEY,
+    queryFn: getOrganizationPrograms,
+    enabled: !isMentor && Boolean(meeting) && !profileMode,
+  });
 
   if (!meeting) {
     return (
       <AppShell
-        active={AppArea.Meetings}
+        active={AppArea.Mentorships}
+        mentorHome={isMentor}
         title="Mentorluk Görüşmesi"
-        backHref="/dashboard"
+        backHref="/mentorships?tab=active"
       >
         <MeetingUnavailable error={error} isLoading={isLoading} />
       </AppShell>
     );
   }
 
-  const mentorName = meeting.mentorName ?? "Mentor";
+  const counterpart = meetingCounterpartName(
+    meeting,
+    request,
+    Boolean(isMentor),
+  );
+  const schedule = meetingScheduleLabel(meeting);
+  const agendaLines = profileMode
+    ? requestAgendaLines(request, meeting)
+    : requestAgendaLines(null, meeting);
+  const expectedOutcome = requestExpectedOutcome(request);
+  const relatedPrograms = isMentor
+    ? programsForOrganization(
+        mentorProgramsQuery.data,
+        meeting.organizationId,
+      ).map((program) => ({ id: program.id, name: program.name }))
+    : (orgProgramsQuery.data?.programs ?? []).map((program) => ({
+        id: program.id,
+        name: program.name,
+      }));
+  const firstMeeting = isFirstMeetingWithMentor(
+    meetingsQuery.data ?? [],
+    meeting,
+  );
+  const mentorLabel = meeting.mentorName || request?.mentorName || "Mentor";
+  const ownerLabel = request?.requestedForName || request?.requesterName || "";
 
   return (
     <AppShell
-      active={AppArea.Meetings}
+      active={AppArea.Mentorships}
+      mentorHome={isMentor}
       title="Mentorluk Görüşmesi"
-      backHref="/dashboard"
+      backHref="/mentorships?tab=active"
     >
-      <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
-        <section className="flex flex-col gap-5 rounded-3xl border border-[#e4e7ea] bg-white p-6 shadow-sm sm:flex-row sm:items-center">
-          <Avatar initials={initials(mentorName)} size="lg" tone="orange" />
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-[#e86f22]">
-              {isLoading ? "Toplantı yükleniyor" : "Görüşme başladı"}
-            </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#22262b]">
-              {mentorName} ile Mentorluk Görüşmesi
-            </h1>
-            <p className="mt-1 text-sm text-[#676e78]">
-              {meeting.agenda ?? "Bu görüşme için gündem eklenmemiş."}
-            </p>
-            <p className="mt-2 text-xs text-[#858c96]">
-              {new Intl.DateTimeFormat("tr-TR", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              }).format(new Date(meeting.scheduledAt))}{" "}
-              · {meeting.durationMinutes} dk
-            </p>
+      <div className="mx-auto w-full max-w-[1116px] px-4 pb-14 pt-6 sm:px-8">
+        <nav className="flex items-center gap-1.5 text-[13px]">
+          <Link
+            href="/mentorships?tab=active"
+            className="text-[#858c96] hover:text-[#22262b]"
+          >
+            Mentorluklarım
+          </Link>
+          <span className="text-[#858c96]">›</span>
+          <span className="font-medium text-[#22262b]">{counterpart}</span>
+        </nav>
+
+        <section className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 flex-1 gap-[22px]">
+            <Avatar initials={initials(counterpart)} size="lg" tone="orange" />
+            <div className="min-w-0">
+              <h1 className="text-[28px] font-medium leading-tight text-[#22262b]">
+                {counterpart} ile Mentorluk Görüşmesi
+              </h1>
+              <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
+                {profileMode
+                  ? (request?.supportArea ?? meeting.agenda ?? "Mentorluk")
+                  : (meeting.agenda ??
+                    request?.supportArea ??
+                    CALENDAR_SUPPORT_AREA)}
+              </p>
+              {schedule ? (
+                <p className="mt-1 text-[13px] text-[#858c96]">{schedule}</p>
+              ) : null}
+            </div>
           </div>
-          {meeting.meetLink ? (
-            <a
-              href={meeting.meetLink}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white hover:bg-[#ce5e19]"
-            >
-              <Video className="size-4" /> Google Meet’e katıl
-            </a>
-          ) : (
-            <span className="inline-flex min-h-11 items-center rounded-xl border border-[#e4e7ea] px-5 text-xs text-[#858c96]">
-              Görüşme bağlantısı bekleniyor
-            </span>
-          )}
+          <div className="w-full max-w-[325px] shrink-0 sm:pt-10">
+            <p className="text-[11px] text-[#858c96]">Meet linki</p>
+            <MeetLinkDisplay meetLink={meeting.meetLink} className="mt-1" />
+          </div>
         </section>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
-          <div className="space-y-5">
-            <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5">
-              <h2 className="text-base font-semibold">Bugünkü gündem</h2>
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#676e78]">
-                {meeting.agenda ?? "Bu görüşme için gündem eklenmemiş."}
-              </p>
-            </section>
-          </div>
-
-          <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <h2 className="text-base font-semibold">Görüşme notları</h2>
-                <p className="mt-1 text-xs text-[#858c96]">
-                  Toplantı sırasında önemli noktaları kaydet.
+        {profileMode ? (
+          <div className="mt-6 grid gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+            <div className="space-y-[18px]">
+              <ContextCard title="Bugünkü gündem">
+                {agendaLines.length === 0 ? (
+                  <p>Bu görüşme için talep özeti bulunmuyor.</p>
+                ) : agendaLines.length === 1 ? (
+                  <p className="whitespace-pre-wrap leading-6">
+                    {agendaLines[0]}
+                  </p>
+                ) : (
+                  <ol className="space-y-2">
+                    {agendaLines.map((line, index) => (
+                      <li key={`${index}-${line}`} className="flex gap-2.5">
+                        <span className="font-semibold text-[#e86f22]">
+                          {index + 1}.
+                        </span>
+                        <span className="text-[#1a1a1a]">{line}</span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </ContextCard>
+              <ContextCard title="Beklenen çıktı">
+                <p className="whitespace-pre-wrap leading-6">
+                  {expectedOutcome || "Beklenen çıktı belirtilmemiş."}
                 </p>
-              </div>
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#edf8f1] px-3 py-1.5 text-[11px] font-semibold text-[#23824b]">
-                <CheckCircle2 className="size-3.5" /> Canlı
-              </span>
+              </ContextCard>
+              <ContextCard title="Konu / destek alanı">
+                <p>{request?.supportArea ?? "—"}</p>
+              </ContextCard>
             </div>
-            <label className="mt-5 block text-xs font-semibold text-[#515861]">
-              Konuşulan önemli noktalar
-              <textarea
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                className="mt-2 min-h-40 w-full resize-y rounded-xl border border-[#dfe2e6] bg-[#fcfcfd] p-4 text-sm font-normal leading-6 outline-none"
-                placeholder="Görüşme notlarını buraya yaz…"
-              />
-            </label>
-            <label className="mt-4 block text-xs font-semibold text-[#515861]">
-              Kararlar ve beklenen sonuçlar
-              <textarea
-                value={outcomes}
-                onChange={(event) => setOutcomes(event.target.value)}
-                className="mt-2 min-h-28 w-full resize-y rounded-xl border border-[#dfe2e6] bg-[#fcfcfd] p-4 text-sm font-normal leading-6 outline-none"
-                placeholder="Alınan kararları yaz…"
-              />
-            </label>
-            <button
-              type="button"
-              disabled={isSaving}
-              onClick={() => void saveNotes()}
-              className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white hover:bg-[#ce5e19] disabled:opacity-60"
-            >
-              {isSaving ? "Kaydediliyor…" : "Görüşme özetini tamamla"}{" "}
-              <ArrowRight className="size-4" />
-            </button>
-          </section>
-        </div>
+            <div className="space-y-[18px]">
+              <ContextCard title="Talep bilgileri">
+                <dl className="space-y-3 text-[13px]">
+                  <div>
+                    <dt className="text-[#858c96]">Talep eden</dt>
+                    <dd className="mt-0.5 font-medium text-[#22262b]">
+                      {ownerLabel || "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#858c96]">Startup</dt>
+                    <dd className="mt-0.5 font-medium text-[#22262b]">
+                      {request?.organizationName ||
+                        meeting.organizationName ||
+                        "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-[#858c96]">Mentor</dt>
+                    <dd className="mt-0.5 font-medium text-[#22262b]">
+                      {mentorLabel}
+                    </dd>
+                  </div>
+                </dl>
+              </ContextCard>
+              <ContextCard title="Önceki bağlam">
+                <p>
+                  {firstMeeting
+                    ? `Bu, ${mentorLabel} ile ilk görüşmeniz.`
+                    : `${mentorLabel} ile daha önce görüşme yapılmış.`}
+                </p>
+              </ContextCard>
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 grid gap-[18px] lg:grid-cols-2">
+            <ContextCard title="Toplantı zamanı">
+              <dl className="space-y-3 text-[13px]">
+                <div>
+                  <dt className="text-[#858c96]">Zaman</dt>
+                  <dd className="mt-0.5 font-medium text-[#22262b]">
+                    {schedule || "—"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="text-[#858c96]">Süre</dt>
+                  <dd className="mt-0.5 font-medium text-[#22262b]">
+                    {meeting.durationMinutes} dk
+                  </dd>
+                </div>
+              </dl>
+            </ContextCard>
+            <ContextCard title="Katılımcılar">
+              <ul className="space-y-2 text-[13px] text-[#22262b]">
+                <li>
+                  <span className="text-[#858c96]">Mentor: </span>
+                  {mentorLabel}
+                </li>
+                <li>
+                  <span className="text-[#858c96]">Startup: </span>
+                  {meeting.organizationName || request?.organizationName || "—"}
+                </li>
+                {ownerLabel ? (
+                  <li>
+                    <span className="text-[#858c96]">Kişi: </span>
+                    {ownerLabel}
+                  </li>
+                ) : null}
+              </ul>
+            </ContextCard>
+            <ContextCard title="Gündem">
+              <p className="whitespace-pre-wrap leading-6">
+                {meeting.agenda?.trim() ||
+                  request?.summary?.trim() ||
+                  "Bu görüşme için gündem eklenmemiş."}
+              </p>
+            </ContextCard>
+            <ContextCard title="Programlar">
+              {relatedPrograms.length === 0 ? (
+                <p>Bu startup için eşleşen program bulunamadı.</p>
+              ) : (
+                <ul className="list-disc space-y-1 pl-5 text-[#22262b]">
+                  {relatedPrograms.map((program) => (
+                    <li key={program.id}>{program.name}</li>
+                  ))}
+                </ul>
+              )}
+            </ContextCard>
+          </div>
+        )}
       </div>
     </AppShell>
   );

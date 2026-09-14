@@ -20,7 +20,8 @@ import {
 import { formatMeetingShort } from "@/lib/format";
 import { MENTORSHIPS_TABS } from "@/lib/const";
 import {
-  meetingSummaryHref,
+  meetingAboutHref,
+  meetingCallHref,
   menteeRequestOwnerLabel,
   pickRequestMeeting,
   requestProgressPercent,
@@ -290,11 +291,18 @@ function ActiveTab({ meetings }: { meetings: MeetingItem[] }) {
                     <p className="text-[11px] text-[#858c96]">
                       {meeting ? "İlk görüşme" : "Görüşme"}
                     </p>
-                    <p className="mt-0.5 text-[13px] font-medium text-[#22262b]">
-                      {meeting
-                        ? formatMeetingShort(meeting.scheduledAt)
-                        : "Henüz planlanmadı"}
-                    </p>
+                    {meeting ? (
+                      <Link
+                        href={meetingCallHref(meeting.id)}
+                        className="mt-0.5 block text-[13px] font-medium text-[#22262b] hover:text-[#e86f22]"
+                      >
+                        {formatMeetingShort(meeting.scheduledAt)}
+                      </Link>
+                    ) : (
+                      <p className="mt-0.5 text-[13px] font-medium text-[#22262b]">
+                        Henüz planlanmadı
+                      </p>
+                    )}
                   </div>
                   <div className="mt-3">
                     <p className="text-[11px] text-[#858c96]">Meet linki</p>
@@ -375,7 +383,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
                     {meeting ? (
                       <>
                         <Link
-                          href={meetingSummaryHref(meeting.id)}
+                          href={meetingAboutHref(meeting.id)}
                           className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[#f2b78f]"
                         >
                           Görüşme hakkında bilgi

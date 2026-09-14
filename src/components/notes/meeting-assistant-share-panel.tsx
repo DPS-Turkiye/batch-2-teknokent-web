@@ -31,7 +31,7 @@ function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
   );
 }
 
-function ReportBlock({ report }: { report: MeetingReport }) {
+export function ReportBlock({ report }: { report: MeetingReport }) {
   const topics = report.topicsDiscussed ?? [];
   const decisions = report.decisions ?? [];
   const actions = report.actionItems ?? [];

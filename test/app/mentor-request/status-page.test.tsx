@@ -61,11 +61,14 @@ const requestFixture = {
   mentorId: "mentor-1",
   mentorName: "Leyla Aksoy",
   supportArea: "İş modeli ve strateji",
+  summary: "fs",
+  requesterMessage: "sfs",
   status: MentorshipRequestStatus.MoreInfoRequested,
   mentorMessage: null,
   rejectionReason: null,
   createdAt: "2026-08-17T09:49:54.374504Z",
   messages: [],
+  recommendationSnapshot: null,
 };
 
 describe("RequestStatusPage", () => {
@@ -81,31 +84,31 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequests).mockReturnValue({
       data: [requestFixture],
       error: null,
-    } as ReturnType<typeof useMentorshipRequests>);
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: requestFixture,
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
     vi.mocked(useMentorAvailability).mockReturnValue({
       data: [],
       isLoading: false,
-    } as ReturnType<typeof useMentorAvailability>);
+    } as unknown as ReturnType<typeof useMentorAvailability>);
     vi.mocked(useAlternativeMentors).mockReturnValue({
       data: [],
-    } as ReturnType<typeof useAlternativeMentors>);
+    } as unknown as ReturnType<typeof useAlternativeMentors>);
     vi.mocked(useReplyForm).mockReturnValue({
       reply: "",
       setReply,
       sendReply,
       isSending: false,
       error: null,
-    } as ReturnType<typeof useReplyForm>);
+    } as unknown as ReturnType<typeof useReplyForm>);
     vi.mocked(useSlotBooking).mockReturnValue({
       scheduledSlotId: null,
       bookSlot,
       isBooking: false,
       error: null,
-    } as ReturnType<typeof useSlotBooking>);
+    } as unknown as ReturnType<typeof useSlotBooking>);
     vi.mocked(useWithdrawMentorRequest).mockReturnValue({
       mutateAsync,
       isPending: false,
@@ -120,6 +123,20 @@ describe("RequestStatusPage", () => {
       mutateAsync: acceptProposal,
       isPending: false,
     } as unknown as ReturnType<typeof useAcceptProposedSlot>);
+  });
+
+  it("shows request details and hides status filter chips", () => {
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(screen.getByText("Talep bilgileri")).toBeInTheDocument();
+    expect(screen.getByText("Nerede takıldık?")).toBeInTheDocument();
+    expect(screen.getByText("fs")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Kabul Edildi" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Yanıt Bekleniyor" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the mentor's question and lets the mentee type a reply", async () => {
@@ -140,7 +157,7 @@ describe("RequestStatusPage", () => {
       sendReply,
       isSending: false,
       error: null,
-    } as ReturnType<typeof useReplyForm>);
+    } as unknown as ReturnType<typeof useReplyForm>);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -153,7 +170,7 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
     vi.mocked(useMentorAvailability).mockReturnValue({
       data: [
         {
@@ -164,7 +181,7 @@ describe("RequestStatusPage", () => {
         },
       ],
       isLoading: false,
-    } as ReturnType<typeof useMentorAvailability>);
+    } as unknown as ReturnType<typeof useMentorAvailability>);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -177,13 +194,13 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
     vi.mocked(useSlotBooking).mockReturnValue({
       scheduledSlotId: "slot-1",
       bookSlot,
       isBooking: false,
       error: null,
-    } as ReturnType<typeof useSlotBooking>);
+    } as unknown as ReturnType<typeof useSlotBooking>);
 
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -194,7 +211,7 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -211,7 +228,7 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: { ...requestFixture, status: MentorshipRequestStatus.Accepted },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -231,7 +248,7 @@ describe("RequestStatusPage", () => {
         rejectionReason: "Uygun zaman yok",
       },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
     vi.mocked(useAlternativeMentors).mockReturnValue({
       data: [
         {
@@ -242,7 +259,7 @@ describe("RequestStatusPage", () => {
           company: "Teknokent",
         },
       ],
-    } as ReturnType<typeof useAlternativeMentors>);
+    } as unknown as ReturnType<typeof useAlternativeMentors>);
 
     renderWithQueryClient(<RequestStatusPage />);
 
@@ -259,7 +276,7 @@ describe("RequestStatusPage", () => {
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: { ...requestFixture, status: MentorshipRequestStatus.Pending },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);
@@ -284,7 +301,7 @@ describe("RequestStatusPage", () => {
           "Mentörün önerdiği saatler: 12 Eylül Cumartesi · 15:00\nproposedSlots:2026-09-12T15:00",
       },
       error: null,
-    } as ReturnType<typeof useMentorshipRequest>);
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
 
     const user = userEvent.setup();
     renderWithQueryClient(<RequestStatusPage />);

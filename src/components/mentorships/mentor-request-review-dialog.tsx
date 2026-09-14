@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
   emptyPreferredSlot,
@@ -15,13 +16,11 @@ import {
   MAX_PROPOSED_SLOT_COUNT,
   parsePreferredSlotsFromMessage,
   preferredSlotKey,
-  requestOutcomeFromMessage,
   upcomingPreferenceDays,
   type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
-  formatRequestSentAt,
   mentorWorkspaceName,
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
@@ -59,7 +58,6 @@ export function MentorRequestReviewDialog({
   const selected = slots.find(
     (slot) => (preferredSlotKey(slot) || slot.label) === selectedKey,
   );
-  const outcome = requestOutcomeFromMessage(request.requesterMessage);
   const person = mentorWorkspacePerson(request);
   const canAccept = slots.length === 0 || Boolean(selected);
   const canPropose = hasProposedSlots(proposedSlots);
@@ -109,23 +107,8 @@ export function MentorRequestReviewDialog({
           </button>
         </div>
 
-        <div className="mt-5 space-y-3 text-sm text-[#676e78]">
-          <p className="rounded-[10px] border border-[#e4e7ea] px-3.5 py-3">
-            Konu: {request.supportArea}
-          </p>
-          <p className="rounded-[10px] border border-[#e4e7ea] px-3.5 py-3">
-            Talep gönderildi: {formatRequestSentAt(request.createdAt)}
-          </p>
-          {request.summary ? (
-            <p className="rounded-[20px] border border-[#e86f22] px-6 py-6 text-[#22262b]">
-              “{request.summary}”
-            </p>
-          ) : null}
-          {outcome ? (
-            <p className="rounded-[10px] border border-[#e4e7ea] px-3.5 py-3">
-              Beklenen çıktı: {outcome}
-            </p>
-          ) : null}
+        <div className="mt-5">
+          <RequestDetailsPanel request={request} showPreferredSlots={false} />
         </div>
 
         <div className="mt-5">

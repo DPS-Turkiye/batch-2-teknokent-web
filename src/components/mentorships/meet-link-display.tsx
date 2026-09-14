@@ -1,5 +1,6 @@
 "use client";
 
+import { MEET_LINK_MISSING_MESSAGE } from "@/lib/const";
 import { meetLinkHref } from "@/lib/meet-link";
 
 export function MeetLinkDisplay({
@@ -12,7 +13,7 @@ export function MeetLinkDisplay({
   if (!meetLink) {
     return (
       <p className={`text-[13px] text-[#858c96] ${className}`}>
-        Meet linki henüz eklenmedi
+        {MEET_LINK_MISSING_MESSAGE}
       </p>
     );
   }

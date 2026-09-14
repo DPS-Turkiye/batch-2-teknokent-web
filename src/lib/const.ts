@@ -358,8 +358,43 @@ export const MENTOR_MENTORSHIPS_TABS = [
   [MentorshipWorkspaceTab.History, "Geçmiş"],
 ] as const;
 
-/** Cards per page on Mentorships Active / Requests / History tabs. */
 export const MENTORSHIP_LIST_PAGE_SIZE = 7;
+
+export const CALENDAR_SUPPORT_AREA = "Takvim toplantısı";
+
+export const MEET_LINK_MISSING_MESSAGE = "Meet linki henüz koyulmadı";
+
+export const REQUEST_DETAIL_LABELS = {
+  needTopic: "İhtiyacın",
+  needProblem: "Temel problem",
+  needOutcome: "Görüşmeden beklediğin",
+  supportArea: "Destek alanı",
+  profileTopic: "Konu",
+  profileStuck: "Nerede takıldık?",
+  profileOutcome: "Bu görüşmeden neyle ayrılmak istiyorsun?",
+  preferredSlots: "Tercih edilen saatler",
+} as const;
+
+export const REQUEST_DETAIL_HIGHLIGHT_LABELS = [
+  REQUEST_DETAIL_LABELS.needProblem,
+  REQUEST_DETAIL_LABELS.profileStuck,
+] as const;
+
+export const MEETING_CONTEXT_DAY_TODAY = "Bugün";
+
+export const MEETING_CONTEXT_STATUS_LABELS = {
+  completed: "Tamamlandı",
+  cancelled: "İptal edildi",
+  started: "Görüşme başladı",
+  planned: "Planlandı",
+  expired: "Süre doldu",
+} as const;
+
+export const MEETING_CONTEXT_FALLBACKS = {
+  organization: "Girişim",
+  mentor: "Mentor",
+  startup: "Startup",
+} as const;
 
 export const MENTOR_DASHBOARD_FILTER_STATUSES: Record<
   Exclude<MentorRequestFilter, MentorRequestFilter.All>,

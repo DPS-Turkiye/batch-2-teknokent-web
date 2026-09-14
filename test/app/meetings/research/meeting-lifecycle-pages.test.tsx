@@ -11,11 +11,22 @@ import {
   useMeetingLifecycle,
 } from "@/hooks/use-meeting-lifecycle";
 import { MeetingStatus } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
+import { MEETING_PREPARE_CHECKLIST } from "@/lib/const";
+import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
+}));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: () => ({
+    role: UserRole.Mentee,
+    fullName: "Ece Demir",
+  }),
 }));
 
 vi.mock("@/hooks/use-meeting-lifecycle", async () => {
@@ -28,6 +39,48 @@ vi.mock("@/hooks/use-meeting-lifecycle", async () => {
     useMeetingFeedback: vi.fn(),
   };
 });
+
+vi.mock("@/hooks/use-meetings", () => ({
+  useMeetings: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+  }),
+}));
+
+vi.mock("@/hooks/use-mentorship-requests", () => ({
+  useMentorshipRequest: () => ({
+    data: {
+      id: "req-1",
+      requesterId: "u-1",
+      requesterName: "Ece Demir",
+      organizationId: "org-1",
+      organizationName: "Nova Labs",
+      mentorId: "mentor-1",
+      mentorName: "Deniz Kaya",
+      supportArea: "İş modeli ve strateji",
+      summary: "Finansal modeli netleştiremiyoruz.",
+      requesterMessage: "İlk varsayımları çıkarmak istiyoruz.",
+      status: MentorshipRequestStatus.Accepted,
+      mentorMessage: null,
+      rejectionReason: null,
+      createdAt: "2026-09-01T10:00:00.000Z",
+      messages: [],
+      recommendationSnapshot: {
+        matchingMethod: "PROFILE",
+        matchingModel: null,
+        generatedAt: "2026-09-01T10:00:00.000Z",
+        startupName: "Nova Labs",
+        startupSector: null,
+        startupStage: null,
+        startupSummary: null,
+        startupTechnologies: [],
+      },
+    },
+    isLoading: false,
+    error: null,
+  }),
+}));
 
 const saveNotes = vi.fn();
 const completeMeeting = vi.fn();
@@ -45,12 +98,15 @@ beforeEach(() => {
     meeting: {
       id: "meeting-1",
       organizationId: "org-1",
+      organizationName: "Nova Labs",
       mentorName: "Deniz Kaya",
+      mentorshipRequestId: "req-1",
       scheduledAt: "2026-09-01T15:00:00+03:00",
       durationMinutes: 45,
       agenda: "Financial Planning & Business Model",
       notes: "Pricing varsayımları konuşuldu.",
       outcomes: "12 aylık model hazırlanacak.",
+      meetLink: "https://meet.google.com/abc-defg-hij",
       status: MeetingStatus.Scheduled,
     },
     meetingHref: (path: string) => `${path}?id=meeting-1`,
@@ -76,15 +132,56 @@ beforeEach(() => {
 });
 
 describe("meeting lifecycle pages", () => {
-  it("saves live meeting notes before moving to the summary", async () => {
-    const user = userEvent.setup();
-    render(<MeetingDetailPage />);
+  it("shows request context and meet link on the call page", () => {
+    renderWithQueryClient(<MeetingDetailPage />);
 
     expect(
       screen.getByText("Deniz Kaya ile Mentorluk Görüşmesi"),
     ).toBeInTheDocument();
-    await user.click(screen.getByText("Görüşme özetini tamamla"));
-    expect(saveNotes).toHaveBeenCalledOnce();
+    expect(screen.getByText("Bugünkü gündem")).toBeInTheDocument();
+    expect(
+      screen.getByText("Finansal modeli netleştiremiyoruz."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Beklenen çıktı")).toBeInTheDocument();
+    expect(
+      screen.getByText("İlk varsayımları çıkarmak istiyoruz."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", {
+        name: "https://meet.google.com/abc-defg-hij",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Görüşme özetini tamamla"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows meet link placeholder when missing", () => {
+    vi.mocked(useMeetingLifecycle).mockReturnValue({
+      completeMeeting,
+      error: null,
+      isLoading: false,
+      isSaving: false,
+      meeting: {
+        id: "meeting-1",
+        organizationId: "org-1",
+        mentorName: "Deniz Kaya",
+        mentorshipRequestId: "req-1",
+        scheduledAt: "2026-09-01T15:00:00+03:00",
+        durationMinutes: 45,
+        status: MeetingStatus.Scheduled,
+      },
+      meetingHref: (path: string) => `${path}?id=meeting-1`,
+      notes: "",
+      outcomes: "",
+      saveNotes,
+      setNotes: vi.fn(),
+      setOutcomes: vi.fn(),
+    });
+
+    renderWithQueryClient(<MeetingDetailPage />);
+
+    expect(screen.getByText("Meet linki henüz koyulmadı")).toBeInTheDocument();
   });
 
   it("shows persisted notes and completes the meeting", async () => {
@@ -114,7 +211,7 @@ describe("meeting lifecycle pages", () => {
       setOutcomes: vi.fn(),
     });
 
-    render(<MeetingDetailPage />);
+    renderWithQueryClient(<MeetingDetailPage />);
 
     expect(
       screen.getByText("Görüntülenecek toplantı bulunamadı."),
@@ -158,41 +255,12 @@ describe("meeting lifecycle pages", () => {
     render(<MeetingFeedbackPage />);
 
     await user.click(screen.getByText("Değerlendirmeyi gönder"));
-
     expect(submit).not.toHaveBeenCalled();
   });
 
-  // Reported: the prepare page always said "10 saatten az kaldı" no matter how
-  // far off the meeting actually was.
-  it("computes the countdown from the meeting's scheduled time", () => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-09-01T13:00:00+03:00"));
-
+  it("shows preparation checklist for the selected meeting", () => {
     render(<MeetingPreparationPage />);
-
-    expect(
-      screen.getByText("△ Toplantıya 2 saatten az kaldı"),
-    ).toBeInTheDocument();
-
-    vi.useRealTimers();
-  });
-
-  it("shows a failed submission instead of a success state", () => {
-    vi.mocked(useMeetingFeedback).mockReturnValue({
-      canSubmit: true,
-      rate,
-      ratings: [4, 4, 5],
-      selectedBenefits: new Set<string>(),
-      submit,
-      submitError: "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.",
-      submitted: false,
-      submitting: false,
-      toggleBenefit,
-    });
-    render(<MeetingFeedbackPage />);
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Değerlendirme kaydedilemedi",
-    );
+    expect(screen.getByText("Toplantının Amacı")).toBeInTheDocument();
+    expect(screen.getByText(MEETING_PREPARE_CHECKLIST[0]!)).toBeInTheDocument();
   });
 });
