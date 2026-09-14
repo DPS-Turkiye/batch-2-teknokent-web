@@ -3,7 +3,7 @@ import {
   DocumentKind,
   type StartupDocument,
 } from "@/interfaces/startup-document";
-import { formatDayMonth, formatLongDate } from "@/lib/utils";
+import { calendarDay, formatDayMonth, formatLongDate } from "@/lib/utils";
 
 export enum StartupFileFilter {
   All = "all",
@@ -165,8 +165,9 @@ export function buildStartupFileRows({
       continue;
     }
     const name = document.uploadedByName ?? "Bilinmeyen kişi";
+    // This is the startup's own list, so a file with no recorded uploader is theirs.
     const fromTeam =
-      document.uploadedById != null && teamMemberIds.has(document.uploadedById);
+      document.uploadedById == null || teamMemberIds.has(document.uploadedById);
     const base = {
       key: `document:${document.id}`,
       title: document.originalFilename,
@@ -238,7 +239,7 @@ export function pendingRequestNotice(requests: DocumentRequestItem[]) {
     );
   if (!first) return null;
   const due = first.dueDate
-    ? ` Son tarih ${formatLongDate(`${first.dueDate}T00:00:00`)}.`
+    ? ` Son tarih ${formatLongDate(calendarDay(first.dueDate).toISOString())}.`
     : "";
   return `“${first.title}” ${first.createdByName} tarafından talep edildi, henüz yüklenmedi.${due}`;
 }

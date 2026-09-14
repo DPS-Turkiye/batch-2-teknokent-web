@@ -211,7 +211,7 @@ export function StartupProcessView() {
                     height={14}
                   />
                   <span
-                    className={`text-xs leading-5 ${state === StartupStageState.Completed ? "text-[#858c96]" : "text-[#e86f22]"}`}
+                    className={`text-xs leading-5 ${state === StartupStageState.Completed ? "text-[#858c96]" : "text-[#9e4400]"}`}
                   >
                     {STARTUP_STAGE_LABELS[stage]}
                   </span>
@@ -236,7 +236,7 @@ export function StartupProcessView() {
                 type="button"
                 onClick={process.toggleShowAll}
                 aria-pressed={process.showAll}
-                className="shrink-0 text-[12.5px] font-medium leading-[19px] text-[#c95c18] hover:underline"
+                className="shrink-0 text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline"
               >
                 {process.showAll
                   ? "Bu tur →"

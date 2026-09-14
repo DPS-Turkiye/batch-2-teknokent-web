@@ -158,7 +158,9 @@ export function useStartupFiles() {
     counts,
     deletingDocument:
       documents.find((document) => document.id === deletingId) ?? null,
-    error: documentsQuery.error ?? documentRequestsQuery.error,
+    // Without the team, the startup's own files would read as a mentor's.
+    error:
+      documentsQuery.error ?? documentRequestsQuery.error ?? membersQuery.error,
     filter,
     isDeleting: remove.isPending,
     isLoading:

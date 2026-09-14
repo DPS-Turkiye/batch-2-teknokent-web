@@ -139,6 +139,18 @@ describe("useStartupFiles", () => {
     );
   });
 
+  it("reports a team that could not be loaded instead of mislabelling the files", () => {
+    vi.mocked(useOrganizationMembers).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: new Error("Ekip yüklenemedi."),
+    } as never);
+
+    const { result } = renderHook(() => useStartupFiles(), { wrapper });
+
+    expect(result.current.error?.message).toBe("Ekip yüklenemedi.");
+  });
+
   it("offers each accepted mentor once, and only accepted ones", () => {
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 

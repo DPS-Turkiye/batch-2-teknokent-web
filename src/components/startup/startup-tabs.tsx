@@ -17,7 +17,7 @@ export function StartupTabs() {
             key={tab.id}
             href={tab.href}
             aria-current={selected ? "page" : undefined}
-            className={`flex min-w-[96px] flex-1 flex-col items-center gap-2.5 whitespace-nowrap text-[13px] leading-5 transition ${selected ? "font-semibold text-[#c95c18]" : "text-[#676e78] hover:text-[#22262b]"}`}
+            className={`flex min-w-[96px] flex-1 flex-col items-center gap-2.5 whitespace-nowrap text-[13px] leading-5 transition ${selected ? "font-semibold text-[#9e4400]" : "text-[#676e78] hover:text-[#22262b]"}`}
           >
             {tab.label}
             <span

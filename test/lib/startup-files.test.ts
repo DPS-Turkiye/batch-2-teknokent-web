@@ -159,6 +159,27 @@ describe("buildStartupFileRows", () => {
       ownDocument: null,
     });
   });
+
+  it("counts a file with no recorded uploader as the startup's own", () => {
+    const legacy = documentFixture("legacy", {
+      uploadedById: null,
+      uploadedByName: null,
+    });
+
+    const [row] = buildStartupFileRows({
+      documents: [legacy],
+      requests: [],
+      teamMemberIds: TEAM,
+      programName: null,
+    });
+
+    expect(row).toMatchObject({
+      source: "Bilinmeyen kişi yükledi",
+      status: StartupFileStatus.Current,
+      filters: [StartupFileFilter.Startup],
+      ownDocument: legacy,
+    });
+  });
 });
 
 describe("filtering the table", () => {

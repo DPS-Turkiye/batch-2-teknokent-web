@@ -38,7 +38,7 @@ const STATUS_TONES: Record<StartupFileStatus, string> = {
 };
 
 function filterChipClass(filter: StartupFileFilter, selected: boolean) {
-  if (selected) return "border-[#f6c9a5] bg-[#fff4ec] text-[#c95c18]";
+  if (selected) return "border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]";
   if (filter === StartupFileFilter.Pending) {
     return "border-[#f2ddbe] bg-[#fef6ec] text-[#a65a15] hover:border-[#e8c79a]";
   }

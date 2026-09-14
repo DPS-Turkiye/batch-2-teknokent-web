@@ -78,7 +78,7 @@ export function StartupTeamView() {
                 <div className="flex min-w-0 items-center gap-3">
                   <span
                     aria-hidden
-                    className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-xs font-semibold text-[#c95c18]"
+                    className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-xs font-semibold text-[#9e4400]"
                   >
                     {initials(member.fullName) || "?"}
                   </span>
@@ -104,7 +104,7 @@ export function StartupTeamView() {
                   </span>
                   {member.founder ? (
                     <span
-                      className={`${chipClass} bg-[#fff4ec] text-[#c95c18]`}
+                      className={`${chipClass} bg-[#fff4ec] text-[#9e4400]`}
                     >
                       Yönetici
                     </span>

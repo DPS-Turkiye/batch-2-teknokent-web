@@ -34,14 +34,11 @@ export function useStartupOverview() {
       ) ?? null,
     [documentsQuery.data],
   );
-  const mentorships = useMemo(
-    () =>
-      activeMentorships(
-        requestsQuery.data ?? [],
-        meetingsQuery.data ?? [],
-        new Date(),
-      ),
-    [requestsQuery.data, meetingsQuery.data],
+  // Not memoized: which meeting is next depends on the clock, not only on the data.
+  const mentorships = activeMentorships(
+    requestsQuery.data ?? [],
+    meetingsQuery.data ?? [],
+    new Date(),
   );
 
   return {

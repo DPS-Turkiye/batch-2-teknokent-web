@@ -54,7 +54,7 @@ export function StartupPageFrame({
               ) : null}
               {header.stageName ? (
                 <span
-                  className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#c95c18]`}
+                  className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
                 >
                   {header.stageName} aşaması
                 </span>

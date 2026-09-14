@@ -21,7 +21,7 @@ describe("StartupTabs", () => {
     const profile = screen.getByRole("link", { name: "Profil" });
     expect(profile).toHaveAttribute("href", "/startup");
     expect(profile).toHaveAttribute("aria-current", "page");
-    expect(profile).toHaveClass("text-[#c95c18]");
+    expect(profile).toHaveClass("text-[#9e4400]");
     expect(screen.getByRole("link", { name: "Süreç" })).not.toHaveAttribute(
       "aria-current",
     );

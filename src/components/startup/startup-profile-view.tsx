@@ -21,7 +21,7 @@ const cardTitleClass =
   "text-[15px] font-semibold leading-[23px] text-[#22262b]";
 const cardHintClass = "text-[12.5px] leading-[19px] text-[#676e78]";
 const cardLinkClass =
-  "shrink-0 text-[12.5px] font-medium leading-[19px] text-[#c95c18] hover:underline";
+  "shrink-0 text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline";
 const bodyClass = "text-[13px] leading-5 text-[#4a5059]";
 const chipClass =
   "rounded-full border px-2.5 py-1 text-[11.5px] font-medium leading-[17px]";
@@ -151,7 +151,7 @@ export function StartupProfileView() {
           >
             <div className="flex flex-wrap items-center gap-2.5">
               <span
-                className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#c95c18]`}
+                className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
               >
                 {profile.maturity ?? "Aşama belirtilmedi"}
               </span>
@@ -187,7 +187,7 @@ export function StartupProfileView() {
                   <span className="text-xs leading-[18px] text-[#676e78]">
                     Tamamlanma
                   </span>
-                  <span className="text-[12.5px] font-medium leading-[19px] text-[#c95c18]">
+                  <span className="text-[12.5px] font-medium leading-[19px] text-[#9e4400]">
                     %{percent}
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export function StartupProfileView() {
                   >
                     <span
                       aria-hidden
-                      className="grid size-8 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[11px] font-semibold text-[#c95c18]"
+                      className="grid size-8 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[11px] font-semibold text-[#9e4400]"
                     >
                       {initials(row.mentorName)}
                     </span>
