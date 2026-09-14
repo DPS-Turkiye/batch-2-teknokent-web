@@ -147,6 +147,9 @@ function StartRegularMentorshipDialog({
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [organizationId, setOrganizationId] = useState("");
+  const [startDate, setStartDate] = useState(() =>
+    new Date().toISOString().slice(0, 10),
+  );
   const [endDate, setEndDate] = useState("");
   const [daysPerWeek, setDaysPerWeek] = useState(1);
   const [error, setError] = useState("");
@@ -176,8 +179,6 @@ function StartRegularMentorshipDialog({
     },
   });
 
-  const startDate = new Date().toISOString().slice(0, 10);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div
@@ -193,7 +194,8 @@ function StartRegularMentorshipDialog({
           Düzenli mentorlük başlat
         </h2>
         <p className="mt-1 text-sm text-[#676e78]">
-          Startup seç, bitiş tarihini ve haftalık gün sayısını belirle.
+          Startup seç, başlangıç–bitiş tarihlerini ve haftalık gün sayısını
+          belirle. Takvimde checkbox’lar bu aralıkta görünür.
         </p>
 
         <label className="mt-5 block text-xs font-medium text-[#515861]">
@@ -230,15 +232,32 @@ function StartRegularMentorshipDialog({
           )}
         </div>
 
-        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <label className="block text-xs font-medium text-[#515861]">
+            Başlangıç tarihi
+            <input
+              type="date"
+              value={startDate}
+              onChange={(event) => {
+                const next = event.target.value;
+                setStartDate(next);
+                if (endDate && next && endDate < next) {
+                  setEndDate("");
+                }
+              }}
+              className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm"
+              required
+            />
+          </label>
           <label className="block text-xs font-medium text-[#515861]">
             Bitiş tarihi
             <input
               type="date"
               value={endDate}
-              min={startDate}
+              min={startDate || undefined}
               onChange={(event) => setEndDate(event.target.value)}
               className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm"
+              required
             />
           </label>
           <label className="block text-xs font-medium text-[#515861]">
@@ -274,8 +293,14 @@ function StartRegularMentorshipDialog({
           </button>
           <button
             type="button"
-            disabled={mutation.isPending || !organizationId || !endDate}
+            disabled={
+              mutation.isPending || !organizationId || !startDate || !endDate
+            }
             onClick={() => {
+              if (endDate < startDate) {
+                setError("Bitiş tarihi başlangıçtan önce olamaz.");
+                return;
+              }
               setError("");
               mutation.mutate({
                 organizationId,

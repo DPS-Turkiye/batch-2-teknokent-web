@@ -9,6 +9,7 @@ import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
 import {
@@ -39,6 +40,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { initials } from "@/lib/utils";
+import { AppArea } from "@/types/app-area";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
@@ -123,9 +125,7 @@ export default function RequestStatusPage() {
             durationMinutes: MENTORSHIP_MEETING_DURATION_MINUTES,
             status: MeetingStatus.Scheduled,
           });
-        } catch {
-          // Acceptance already succeeded; meeting can be logged later.
-        }
+        } catch {}
       }
       router.push("/mentorships");
     } catch (caught) {
@@ -138,26 +138,12 @@ export default function RequestStatusPage() {
   }
 
   return (
-    <AppShell title="Talep Detayı" backHref="/dashboard">
+    <AppShell
+      active={AppArea.Mentorships}
+      title="Talep Detayı"
+      backHref="/mentorships?tab=requests"
+    >
       <div className="mx-auto max-w-[960px] px-4 py-6 sm:px-8">
-        <div className="flex gap-2 overflow-x-auto">
-          {Object.values(MentorshipRequestStatus)
-            .filter((status) => status !== MentorshipRequestStatus.Withdrawn)
-            .map((status) => (
-              <button
-                type="button"
-                key={status}
-                aria-pressed={request?.status === status}
-                onClick={() =>
-                  router.push(`/mentor-request/status?state=${status}`)
-                }
-                className={`shrink-0 rounded-full border px-3 py-2 text-xs ${request?.status === status ? "border-[#555] bg-[#555] font-medium text-white" : "border-[#e5e7eb] bg-white text-[#555]"}`}
-              >
-                {statusLabels[status]}
-              </button>
-            ))}
-        </div>
-
         {requestsQuery.error || requestQuery.error ? (
           <p role="alert" className="mt-4 text-sm text-red-700">
             {requestsQuery.error?.message ?? requestQuery.error?.message}
@@ -187,6 +173,17 @@ export default function RequestStatusPage() {
                   {statusLabels[request.status]}
                 </Badge>
               </div>
+            </section>
+
+            <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
+              <h3 className="text-base font-semibold text-[#22262b]">
+                Talep bilgileri
+              </h3>
+              <RequestDetailsPanel
+                request={request}
+                showSentAt={false}
+                className="mt-4"
+              />
             </section>
 
             <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">

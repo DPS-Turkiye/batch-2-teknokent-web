@@ -204,7 +204,7 @@ describe("MentorMentorshipsWorkspace", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
-    ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
+    ).toHaveAttribute("href", "/meetings/research/about?id=ended-meeting");
     expect(
       screen.queryByRole("link", { name: "Görüşmeyi değerlendir" }),
     ).not.toBeInTheDocument();

@@ -83,4 +83,37 @@ describe("RegularMentorshipsTab", () => {
     expect(within(dialog).getByText("Orbit AI")).toBeInTheDocument();
     expect(within(dialog).queryByText("Nova Labs")).not.toBeInTheDocument();
   });
+
+  it("submits selected start and end dates", async () => {
+    const user = userEvent.setup();
+    startRegularMentorship.mockResolvedValue(mentorship());
+    renderWithQueryClient(
+      <RegularMentorshipsTab role={UserRole.Mentor} canStart />,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Düzenli mentorlük başlat" }),
+    );
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByText("Nova Labs"));
+
+    const startInput = within(dialog).getByLabelText("Başlangıç tarihi");
+    const endInput = within(dialog).getByLabelText("Bitiş tarihi");
+    await user.clear(startInput);
+    await user.type(startInput, "2026-10-01");
+    await user.clear(endInput);
+    await user.type(endInput, "2026-12-15");
+
+    await user.click(within(dialog).getByRole("button", { name: "Başlat" }));
+
+    expect(startRegularMentorship).toHaveBeenCalledWith(
+      {
+        organizationId: "org-2",
+        startDate: "2026-10-01",
+        endDate: "2026-12-15",
+        daysPerWeek: 1,
+      },
+      expect.anything(),
+    );
+  });
 });

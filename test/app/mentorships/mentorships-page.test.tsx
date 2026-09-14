@@ -196,6 +196,27 @@ describe("MentorshipsPage", () => {
     ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
   });
 
+  it("links the active meeting time to the call context page", async () => {
+    mockPage("active", [request({ id: "req-42" })]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [
+        openMeeting("req-42", {
+          id: "meeting-9",
+          scheduledAt: "2099-08-30T11:00:00.000Z",
+        }),
+      ],
+      isLoading: false,
+      error: null,
+    } as never);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(await screen.findByRole("link", { name: /·/ })).toHaveAttribute(
+      "href",
+      "/meetings/research?id=meeting-9",
+    );
+  });
+
   it("shows an empty state when there are no active mentorships", async () => {
     mockPage("active", []);
 
@@ -309,7 +330,7 @@ describe("MentorshipsPage", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
-    ).toHaveAttribute("href", "/meetings/research/summary?id=ended-meeting");
+    ).toHaveAttribute("href", "/meetings/research/about?id=ended-meeting");
     expect(
       await screen.findByRole("link", { name: "Görüşmeyi değerlendir" }),
     ).toHaveAttribute("href", "/meetings/research/feedback?id=ended-meeting");

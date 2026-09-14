@@ -8,6 +8,8 @@ import {
 import {
   formatRequestSentAt,
   isMeetingEnded,
+  meetingAboutHref,
+  meetingCallHref,
   meetingFeedbackHref,
   meetingSummaryHref,
   pickRequestMeeting,
@@ -179,6 +181,12 @@ describe("mentorship workspace helpers", () => {
     );
     expect(meetingFeedbackHref("meeting-9")).toBe(
       "/meetings/research/feedback?id=meeting-9",
+    );
+    expect(meetingCallHref("meeting-9")).toBe(
+      "/meetings/research?id=meeting-9",
+    );
+    expect(meetingAboutHref("meeting-9")).toBe(
+      "/meetings/research/about?id=meeting-9",
     );
   });
 });

@@ -10,8 +10,6 @@ export function meetingsForRequest(
     (meeting) => meeting.mentorshipRequestId === request.id,
   );
   if (linked.length > 0) return linked;
-  // Calendar meetings often have no mentorshipRequestId. Only attach those that
-  // match this mentorship's mentor + startup — never every meeting for the mentor.
   return meetings.filter(
     (meeting) =>
       !meeting.mentorshipRequestId &&
@@ -37,7 +35,6 @@ export function requestHasConfirmedMeeting(
   return meetingsForRequest(meetings, request).length > 0;
 }
 
-/** Prefer a still-running meeting; otherwise the latest ended one. */
 export function pickRequestMeeting(
   meetings: MeetingItem[],
   request: MentorshipRequest,
@@ -90,6 +87,14 @@ export function requestHasEndedMeeting(
   );
 }
 
+export function meetingCallHref(meetingId: string) {
+  return `/meetings/research?id=${encodeURIComponent(meetingId)}`;
+}
+
+export function meetingAboutHref(meetingId: string) {
+  return `/meetings/research/about?id=${encodeURIComponent(meetingId)}`;
+}
+
 export function meetingSummaryHref(meetingId: string) {
   return `/meetings/research/summary?id=${encodeURIComponent(meetingId)}`;
 }
@@ -123,7 +128,6 @@ export function mentorWorkspacePerson(request: MentorshipRequest) {
   return request.requestedForName || request.requesterName || "";
 }
 
-/** Who opened the request inside the startup (teammate-visible list). */
 export function menteeRequestOwnerLabel(request: MentorshipRequest) {
   return (
     request.requestedForName?.trim() || request.requesterName?.trim() || ""
