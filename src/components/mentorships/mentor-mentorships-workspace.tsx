@@ -10,6 +10,7 @@ import { ListPagination } from "@/components/common/list-pagination";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MentorMeetLinkDialog } from "@/components/mentorships/mentor-meet-link-dialog";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
+import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
@@ -40,6 +41,7 @@ import {
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
+  activeMentorshipHref,
   formatRequestSentAt,
   meetingAboutHref,
   meetingCallHref,
@@ -72,17 +74,20 @@ export function MentorMentorshipsWorkspace() {
     slot: ParsedPreferredSlot | null,
     meetLink: string,
     transcribeRequested: boolean,
+    requestedDocuments: string[],
   ) {
     setActionError("");
     const message = slot
       ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
       : "Talebiniz kabul edildi.";
     const normalizedLink = normalizeMeetLink(meetLink);
+    const documents = normalizeDocumentTitles(requestedDocuments);
     try {
       await decisionMutation.mutateAsync({
         id: request.id,
         status: MentorshipRequestStatus.Accepted,
         message,
+        requestedDocuments: documents,
       });
       const startsAt = slot
         ? preferredSlotStartsAt(slot)
@@ -116,6 +121,7 @@ export function MentorMentorshipsWorkspace() {
   async function proposeSlots(
     request: MentorshipRequest,
     slots: PreferredSlot[],
+    requestedDocuments: string[],
   ) {
     setActionError("");
     const message = [
@@ -127,6 +133,7 @@ export function MentorMentorshipsWorkspace() {
         id: request.id,
         status: MentorshipRequestStatus.CounterProposed,
         message,
+        requestedDocuments: normalizeDocumentTitles(requestedDocuments),
       });
       setReviewing(null);
     } catch (caught) {
@@ -245,10 +252,18 @@ export function MentorMentorshipsWorkspace() {
             setReviewing(null);
             setActionError("");
           }}
-          onAccept={(slot, meetLink, transcribeRequested) =>
-            void acceptRequest(reviewing, slot, meetLink, transcribeRequested)
+          onAccept={(slot, meetLink, transcribeRequested, requestedDocuments) =>
+            void acceptRequest(
+              reviewing,
+              slot,
+              meetLink,
+              transcribeRequested,
+              requestedDocuments,
+            )
           }
-          onPropose={(slots) => void proposeSlots(reviewing, slots)}
+          onPropose={(slots, requestedDocuments) =>
+            void proposeSlots(reviewing, slots, requestedDocuments)
+          }
         />
       ) : null}
 
@@ -452,7 +467,7 @@ function ActiveTab({
                       </p>
                     </div>
                     <Link
-                      href={mentorRequestHref(request.id)}
+                      href={activeMentorshipHref(request, meeting, true)}
                       className="shrink-0 text-[13px] font-medium text-[#e86f22]"
                     >
                       Mentorluğa git →

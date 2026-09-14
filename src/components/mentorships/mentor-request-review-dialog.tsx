@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { DocumentRequestTitleEditor } from "@/components/mentorships/document-request-title-editor";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
@@ -43,8 +44,9 @@ export function MentorRequestReviewDialog({
     slot: ParsedPreferredSlot | null,
     meetLink: string,
     transcribeRequested: boolean,
+    requestedDocuments: string[],
   ) => void;
-  onPropose: (slots: PreferredSlot[]) => void;
+  onPropose: (slots: PreferredSlot[], requestedDocuments: string[]) => void;
 }) {
   const slots = parsePreferredSlotsFromMessage(request.requesterMessage);
   const dayOptions = upcomingPreferenceDays();
@@ -52,6 +54,7 @@ export function MentorRequestReviewDialog({
   const [selectedKey, setSelectedKey] = useState("");
   const [meetLink, setMeetLink] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
+  const [documentTitles, setDocumentTitles] = useState<string[]>([]);
   const [proposedSlots, setProposedSlots] = useState<PreferredSlot[]>([
     emptyPreferredSlot(),
   ]);
@@ -249,6 +252,12 @@ export function MentorRequestReviewDialog({
           </>
         ) : null}
 
+        <DocumentRequestTitleEditor
+          titles={documentTitles}
+          onChange={setDocumentTitles}
+          disabled={isPending}
+        />
+
         {error ? (
           <p role="alert" className="mt-4 text-xs text-red-700">
             {error}
@@ -261,7 +270,10 @@ export function MentorRequestReviewDialog({
             <PrimaryButton
               disabled={isPending || !canPropose}
               onClick={() =>
-                onPropose(proposedSlots.filter(isValidPreferredSlot))
+                onPropose(
+                  proposedSlots.filter(isValidPreferredSlot),
+                  documentTitles,
+                )
               }
             >
               {isPending ? "Gönderiliyor…" : "Önerileri gönder"}
@@ -270,7 +282,12 @@ export function MentorRequestReviewDialog({
             <PrimaryButton
               disabled={isPending || !canAccept}
               onClick={() =>
-                onAccept(selected ?? null, meetLink, transcribeRequested)
+                onAccept(
+                  selected ?? null,
+                  meetLink,
+                  transcribeRequested,
+                  documentTitles,
+                )
               }
             >
               {isPending ? "Kabul ediliyor…" : "Kabul et"}

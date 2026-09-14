@@ -98,8 +98,6 @@ export function useMentorCalendar() {
     [programsQuery.data, session?.userId],
   );
 
-  // Meetings can be booked against an accepted 1:1 mentorship or a startup
-  // in a program this mentor has joined. The proxy resolves the organization.
   const mentorships = useMemo<MentorshipRequest[]>(
     () =>
       (requestsQuery.data ?? []).filter(
@@ -222,6 +220,7 @@ export function useMentorCalendar() {
       agenda: string;
       meetLink?: string;
       transcribeRequested?: boolean;
+      requestedDocuments?: string[];
     }) => createMeeting.mutateAsync({ ...input, status: "SCHEDULED" }),
     inviteGuest: (
       meetingId: string,

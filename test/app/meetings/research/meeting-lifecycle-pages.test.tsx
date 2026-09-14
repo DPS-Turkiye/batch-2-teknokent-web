@@ -138,11 +138,14 @@ describe("meeting lifecycle pages", () => {
     expect(
       screen.getByText("Deniz Kaya ile Mentorluk Görüşmesi"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Bugünkü gündem")).toBeInTheDocument();
+    expect(screen.getByText("Talep özeti")).toBeInTheDocument();
+    expect(screen.getByText("Nerede takıldık?")).toBeInTheDocument();
     expect(
       screen.getByText("Finansal modeli netleştiremiyoruz."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Beklenen çıktı")).toBeInTheDocument();
+    expect(
+      screen.getByText("Bu görüşmeden neyle ayrılmak istiyorsun?"),
+    ).toBeInTheDocument();
     expect(
       screen.getByText("İlk varsayımları çıkarmak istiyoruz."),
     ).toBeInTheDocument();

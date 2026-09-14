@@ -1,5 +1,9 @@
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  isCalendarOriginRequest,
+  meetingCallHref as callHref,
+} from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
 export function meetingsForRequest(
@@ -88,7 +92,24 @@ export function requestHasEndedMeeting(
 }
 
 export function meetingCallHref(meetingId: string) {
-  return `/meetings/research?id=${encodeURIComponent(meetingId)}`;
+  return callHref(meetingId);
+}
+
+export function menteeRequestStatusHref(id: string) {
+  return `/mentor-request/status?id=${encodeURIComponent(id)}`;
+}
+
+export function activeMentorshipHref(
+  request: MentorshipRequest,
+  meeting: MeetingItem | null | undefined,
+  viewerIsMentor: boolean,
+) {
+  if (meeting && isCalendarOriginRequest(request)) {
+    return meetingCallHref(meeting.id);
+  }
+  return viewerIsMentor
+    ? mentorRequestHref(request.id)
+    : menteeRequestStatusHref(request.id);
 }
 
 export function meetingAboutHref(meetingId: string) {

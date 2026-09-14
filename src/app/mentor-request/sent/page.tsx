@@ -1,12 +1,16 @@
 ﻿"use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { Info } from "@/components/product-view-shared";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { useSearchParams } from "next/navigation";
+import { buildRequestDetailContent } from "@/lib/request-detail-content";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul edildi",
@@ -17,10 +21,12 @@ const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
 };
 
-export default function RequestSentPage() {
+function RequestSentContent() {
   const id = useSearchParams().get("request");
   const requestQuery = useMentorshipRequest(id);
   const request = requestQuery.data;
+  const detail = request ? buildRequestDetailContent(request) : null;
+
   return (
     <AppShell>
       <div className="mx-auto flex min-h-[calc(100vh-56px)] max-w-xl flex-col items-center px-4 py-16 text-center">
@@ -34,18 +40,33 @@ export default function RequestSentPage() {
           Mentor talebinizi değerlendirdiğinde size bildirim göndereceğiz.
         </p>
         {request ? (
-          <dl className="mt-7 grid w-full grid-cols-2 gap-5 rounded-lg border border-[#e5e7eb] bg-white p-5 text-left text-sm">
-            <Info label="Mentor" value={request.mentorName} />
-            <Info label="Talep konusu" value={request.supportArea} />
-            <Info
-              label="Gönderilme tarihi"
-              value={new Intl.DateTimeFormat("tr-TR", {
-                dateStyle: "long",
-              }).format(new Date(request.createdAt))}
-            />
-            <Info label="Beklenen yanıt süresi" value="~24 saat" />
-            <Info label="Talep durumu" value={statusLabels[request.status]} />
-          </dl>
+          <div className="mt-7 w-full space-y-4 text-left">
+            <dl className="grid w-full grid-cols-2 gap-5 rounded-lg border border-[#e5e7eb] bg-white p-5 text-sm">
+              <Info label="Mentor" value={request.mentorName} />
+              <Info
+                label="Talep konusu"
+                value={detail?.topic || request.supportArea}
+              />
+              <Info
+                label="Gönderilme tarihi"
+                value={new Intl.DateTimeFormat("tr-TR", {
+                  dateStyle: "long",
+                }).format(new Date(request.createdAt))}
+              />
+              <Info label="Beklenen yanıt süresi" value="~24 saat" />
+              <Info label="Talep durumu" value={statusLabels[request.status]} />
+            </dl>
+            <section className="rounded-lg border border-[#e5e7eb] bg-white p-5">
+              <h2 className="text-sm font-semibold text-[#171717]">
+                Talep özeti
+              </h2>
+              <RequestDetailsPanel
+                request={request}
+                showSentAt={false}
+                className="mt-3"
+              />
+            </section>
+          </div>
         ) : requestQuery.error ? (
           <p role="alert" className="mt-7 text-sm text-red-700">
             {requestQuery.error.message}
@@ -80,5 +101,19 @@ export default function RequestSentPage() {
         </button>
       </div>
     </AppShell>
+  );
+}
+
+export default function RequestSentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="grid min-h-screen place-items-center text-sm text-[#777]">
+          Talep yükleniyor…
+        </div>
+      }
+    >
+      <RequestSentContent />
+    </Suspense>
   );
 }

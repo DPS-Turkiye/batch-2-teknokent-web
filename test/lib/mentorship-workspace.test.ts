@@ -8,10 +8,13 @@ import {
 import {
   formatRequestSentAt,
   isMeetingEnded,
+  activeMentorshipHref,
   meetingAboutHref,
   meetingCallHref,
   meetingFeedbackHref,
   meetingSummaryHref,
+  menteeRequestStatusHref,
+  mentorRequestHref,
   pickRequestMeeting,
   requestHasConfirmedMeeting,
   requestHasEndedMeeting,
@@ -187,6 +190,34 @@ describe("mentorship workspace helpers", () => {
     );
     expect(meetingAboutHref("meeting-9")).toBe(
       "/meetings/research/about?id=meeting-9",
+    );
+  });
+
+  it("routes calendar-origin active cards to the meeting context page", () => {
+    const meeting = {
+      id: "meeting-cal",
+      organizationId: "org-1",
+      mentorId: "mentor-1",
+      mentorshipRequestId: "req-1",
+      scheduledAt: "2026-09-20T10:00:00.000Z",
+      durationMinutes: 60,
+      status: MeetingStatus.Scheduled,
+    };
+    const calendarRequest: MentorshipRequest = {
+      ...request,
+      supportArea: "Takvim toplantısı",
+      summary: "Takvim toplantısı",
+      mentorMessage: "Takvimden oluşturuldu",
+    };
+
+    expect(activeMentorshipHref(calendarRequest, meeting, true)).toBe(
+      "/meetings/research?id=meeting-cal",
+    );
+    expect(activeMentorshipHref(request, meeting, false)).toBe(
+      menteeRequestStatusHref(request.id),
+    );
+    expect(activeMentorshipHref(request, null, true)).toBe(
+      mentorRequestHref(request.id),
     );
   });
 });

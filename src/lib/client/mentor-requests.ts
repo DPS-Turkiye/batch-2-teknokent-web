@@ -155,6 +155,7 @@ export async function decideMentorRequest(options: {
   id: string;
   message: string;
   status: MentorshipRequest["status"];
+  requestedDocuments?: string[];
 }) {
   return requireSuccess(
     await httpClient.patch<MentorshipRequest>(
@@ -162,6 +163,7 @@ export async function decideMentorRequest(options: {
       {
         status: options.status,
         message: options.message,
+        requestedDocuments: options.requestedDocuments,
       },
     ),
   );

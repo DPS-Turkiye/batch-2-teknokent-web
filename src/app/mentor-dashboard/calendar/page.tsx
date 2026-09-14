@@ -201,6 +201,7 @@ export default function MentorCalendarPage() {
           agenda: batch.agenda,
           meetLink,
           transcribeRequested: batch.transcribeRequested,
+          requestedDocuments: batch.requestedDocuments,
         });
       }
       closeCreateDialog();

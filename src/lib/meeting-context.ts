@@ -13,20 +13,26 @@ export function meetingCallHref(meetingId: string) {
   return `/meetings/research?id=${encodeURIComponent(meetingId)}`;
 }
 
+export function isCalendarOriginRequest(
+  request: MentorshipRequest | null | undefined,
+) {
+  if (!request) return true;
+  if (request.mentorMessage?.trim() === "Takvimden oluşturuldu") return true;
+  const area = request.supportArea?.trim() ?? "";
+  if (!area || area === CALENDAR_SUPPORT_AREA) return true;
+  if (request.recommendationSnapshot?.matchingMethod === "PROFILE") {
+    return false;
+  }
+  const summary = request.summary?.trim() ?? "";
+  if (summary === `${area} — Mentorluk Görüşmesi`) return true;
+  return Boolean(summary) && summary === area;
+}
+
 export function isProfileOriginRequest(
   request: MentorshipRequest | null | undefined,
 ) {
   if (!request) return false;
-  if (request.recommendationSnapshot?.matchingMethod === "PROFILE") {
-    return true;
-  }
-  const area = request.supportArea?.trim() ?? "";
-  if (!area || area === CALENDAR_SUPPORT_AREA) return false;
-  const summary = request.summary?.trim() ?? "";
-  if (!summary) return false;
-  if (summary === area) return false;
-  if (summary === `${area} — Mentorluk Görüşmesi`) return false;
-  return true;
+  return !isCalendarOriginRequest(request);
 }
 
 export function splitContextLines(value: string | null | undefined) {
