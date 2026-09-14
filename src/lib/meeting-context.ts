@@ -37,24 +37,32 @@ export function splitContextLines(value: string | null | undefined) {
     .filter(Boolean);
 }
 
+function istanbulDayKey(value: Date) {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(value);
+}
+
 export function meetingScheduleLabel(meeting: MeetingItem, now = new Date()) {
   const start = new Date(meeting.scheduledAt);
   if (Number.isNaN(start.getTime())) return "";
   const end = new Date(
     start.getTime() + Math.max(1, meeting.durationMinutes || 60) * 60_000,
   );
-  const sameDay =
-    start.getFullYear() === now.getFullYear() &&
-    start.getMonth() === now.getMonth() &&
-    start.getDate() === now.getDate();
+  const sameDay = istanbulDayKey(start) === istanbulDayKey(now);
   const dayLabel = sameDay
     ? MEETING_CONTEXT_DAY_TODAY
     : new Intl.DateTimeFormat("tr-TR", {
+        timeZone: "Europe/Istanbul",
         day: "numeric",
         month: "short",
         year: "numeric",
       }).format(start);
   const time = new Intl.DateTimeFormat("tr-TR", {
+    timeZone: "Europe/Istanbul",
     hour: "2-digit",
     minute: "2-digit",
   });
