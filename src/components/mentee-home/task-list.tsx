@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
+import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 
@@ -97,10 +98,12 @@ export function TaskList({
             </div>
           );
         })}
-        {!loading && tasks.length === 0 && (
-          <p className="p-7 text-center text-sm text-[#838c99]">
-            Şu anda yapılacak bir işin yok.
-          </p>
+        {tasks.length === 0 && (
+          <SectionPlaceholder
+            loading={loading}
+            emptyText="Şu anda yapılacak bir işin yok."
+            framed={false}
+          />
         )}
       </div>
     </section>

@@ -2,11 +2,9 @@ import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import DashboardPage from "@/app/dashboard/page";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 
 type DashboardData = ReturnType<
   typeof import("@/hooks/use-dashboard-data").useDashboardData
@@ -40,7 +38,7 @@ function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
     noteMeetings: [],
     openActionCountByRequest: {},
     openActionItems: [],
-    openTodoCounts: new Map(),
+    openTodoCounts: new Map<string, number>(),
     otherUpcomingMeetings: [],
     pendingRequests: [],
     requests: [],
@@ -48,7 +46,7 @@ function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
     sentRequests: [],
     upcomingMeetings: [],
     ...overrides,
-  } as DashboardData;
+  };
 }
 
 function section(heading: string) {
@@ -130,12 +128,10 @@ describe("Mentee dashboard", () => {
   });
 
   it("passes the hook's tasks and requests to their sections", () => {
-    const request = {
+    const request = menteeRequestFixture({
       id: "req-1",
-      mentorName: "Barış Öztürk",
-      supportArea: "Teknik ekip kurulumu",
       status: MentorshipRequestStatus.MoreInfoRequested,
-    } as MentorshipRequest;
+    });
     mockUseDashboardData.mockReturnValue(
       dashboardData({
         homeTasks: [

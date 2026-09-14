@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";
+import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { activeMentorshipFooter, requestStatusHref } from "@/lib/mentee-home";
@@ -80,10 +81,11 @@ export function ActiveMentorships({
           </article>
         );
       })}
-      {!loading && requests.length === 0 && (
-        <p className="rounded-[20px] border border-[#e4e7ea] bg-white p-7 text-center text-sm text-[#838c99]">
-          Henüz aktif mentorluk yok.
-        </p>
+      {requests.length === 0 && (
+        <SectionPlaceholder
+          loading={loading}
+          emptyText="Henüz aktif mentorluk yok."
+        />
       )}
     </section>
   );

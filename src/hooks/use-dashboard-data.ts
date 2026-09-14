@@ -23,6 +23,7 @@ import {
 import {
   buildHomeTasks,
   dayGreeting,
+  requestNeedsMenteeAction,
   sentRequestState,
 } from "@/lib/mentee-home";
 import {
@@ -69,10 +70,7 @@ export function useDashboardData() {
   const pendingRequests = requests.filter(
     (request) =>
       request.status === MentorshipRequestStatus.Pending ||
-      request.status === MentorshipRequestStatus.MoreInfoRequested ||
-      request.status === MentorshipRequestStatus.CounterProposed ||
-      (request.status === MentorshipRequestStatus.Accepted &&
-        !requestHasConfirmedMeeting(meetings, request)),
+      requestNeedsMenteeAction(request, meetings),
   );
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
   const { actionItems, actionItemRequestIds, isLoadingActionItems } =

@@ -3,31 +3,28 @@ import { describe, expect, it } from "vitest";
 
 import { UpcomingMeetings } from "@/components/mentee-home/upcoming-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+  menteeMeetingFixture,
+  menteeRequestFixture,
+} from "@test/fixtures/mentee-home";
 
-function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
-  return {
+function meeting(overrides: Partial<MeetingItem> = {}) {
+  return menteeMeetingFixture({
     id: "m-2",
-    organizationId: "org-1",
     mentorName: "Kerem Yıldırım",
     mentorshipRequestId: "r-2",
     agenda: "Growth Strategy görüşmesi",
-    scheduledAt: "2026-09-22T11:00:00.000Z",
-    durationMinutes: 45,
-    status: "SCHEDULED",
     ...overrides,
-  };
+  });
 }
 
-const request = {
+const request = menteeRequestFixture({
   id: "r-2",
   mentorName: "Kerem Yıldırım",
   supportArea: "Growth Mentorluğu",
   status: MentorshipRequestStatus.Accepted,
-} as MentorshipRequest;
+});
 
 describe("UpcomingMeetings", () => {
   it("shows each meeting with its mentorship, status and actions", () => {
@@ -73,10 +70,11 @@ describe("UpcomingMeetings", () => {
     ).toHaveLength(2);
   });
 
-  it("shows the empty state only once loading has finished", () => {
+  it("says it is loading, then shows the empty state", () => {
     const { rerender } = render(
       <UpcomingMeetings meetings={[]} requestsById={{}} loading />,
     );
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
     expect(
       screen.queryByText("Başka yaklaşan görüşmen yok."),
     ).not.toBeInTheDocument();

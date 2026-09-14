@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
-import type { MeetingItem } from "@/interfaces/meeting";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
@@ -17,53 +12,13 @@ import {
   sentRequestState,
 } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
+import {
+  menteeActionItemFixture as actionItem,
+  menteeMeetingFixture as meeting,
+  menteeRequestFixture as request,
+} from "@test/fixtures/mentee-home";
 
 const now = new Date(2026, 8, 14, 10, 0);
-
-function request(
-  overrides: Partial<MentorshipRequest> = {},
-): MentorshipRequest {
-  return {
-    id: "r1",
-    requesterId: "mentee-1",
-    organizationId: "org-1",
-    mentorId: "mentor-1",
-    mentorName: "Barış Öztürk",
-    supportArea: "Teknik ekip kurulumu",
-    status: MentorshipRequestStatus.Pending,
-    mentorMessage: null,
-    rejectionReason: null,
-    createdAt: "2026-09-01T10:00:00Z",
-    messages: [],
-    recommendationSnapshot: null,
-    ...overrides,
-  };
-}
-
-function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
-  return {
-    id: "m1",
-    organizationId: "org-1",
-    scheduledAt: new Date(2026, 8, 15, 14, 0).toISOString(),
-    durationMinutes: 45,
-    status: "SCHEDULED",
-    ...overrides,
-  };
-}
-
-function actionItem(overrides: Partial<ActionItem> = {}): ActionItem {
-  return {
-    id: "a1",
-    organizationId: "org-1",
-    ownerId: "mentor-1",
-    title: "KPI dosyasını paylaş",
-    status: ActionItemStatus.Open,
-    dueDate: "2026-09-18",
-    createdAt: "2026-09-01T10:00:00Z",
-    updatedAt: "2026-09-01T10:00:00Z",
-    ...overrides,
-  };
-}
 
 describe("dayGreeting", () => {
   it("follows the time of day", () => {
@@ -96,6 +51,16 @@ describe("dueState", () => {
   it("treats a missing or unreadable date as undated", () => {
     expect(dueState(null, now).tone).toBe(DueTone.None);
     expect(dueState("not-a-date", now).tone).toBe(DueTone.None);
+  });
+
+  it("reads a full timestamp in the viewer's own day", () => {
+    expect(dueState(new Date(2026, 8, 14, 23, 30).toISOString(), now)).toEqual({
+      tone: DueTone.Today,
+      label: "Bugün",
+    });
+    expect(
+      dueState(new Date(2026, 8, 15, 0, 30).toISOString(), now).label,
+    ).toBe("15 Eylül");
   });
 });
 
@@ -242,6 +207,23 @@ describe("buildHomeTasks", () => {
       dueTone: DueTone.None,
       href: "/mentorships",
     });
+  });
+});
+
+describe("buildHomeTasks on a shared day", () => {
+  it("lists a reply ahead of an action item due that day", () => {
+    const tasks = buildHomeTasks({
+      requests: [request({ status: MentorshipRequestStatus.CounterProposed })],
+      meetings: [],
+      actionItems: [actionItem({ dueDate: "2026-09-14" })],
+      actionItemRequestIds: {},
+      now,
+    });
+
+    expect(tasks.map((task) => task.kind)).toEqual([
+      HomeTaskKind.RequestReply,
+      HomeTaskKind.ActionItem,
+    ]);
   });
 });
 

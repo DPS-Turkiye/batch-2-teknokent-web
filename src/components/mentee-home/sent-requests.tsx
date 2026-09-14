@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";
+import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
   requestStatusHref,
@@ -82,10 +83,11 @@ export function SentRequests({
           </article>
         );
       })}
-      {!loading && requests.length === 0 && (
-        <p className="rounded-[20px] border border-[#e4e7ea] bg-white p-7 text-center text-sm text-[#838c99]">
-          Bekleyen talebin yok.
-        </p>
+      {requests.length === 0 && (
+        <SectionPlaceholder
+          loading={loading}
+          emptyText="Bekleyen talebin yok."
+        />
       )}
     </section>
   );

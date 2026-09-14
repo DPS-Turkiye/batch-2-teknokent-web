@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
+import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { meetingWhenLabel } from "@/lib/mentee-home";
@@ -72,10 +73,11 @@ export function UpcomingMeetings({
           </article>
         );
       })}
-      {!loading && meetings.length === 0 && (
-        <p className="rounded-[20px] border border-[#e4e7ea] bg-white p-7 text-center text-sm text-[#838c99]">
-          Başka yaklaşan görüşmen yok.
-        </p>
+      {meetings.length === 0 && (
+        <SectionPlaceholder
+          loading={loading}
+          emptyText="Başka yaklaşan görüşmen yok."
+        />
       )}
     </section>
   );

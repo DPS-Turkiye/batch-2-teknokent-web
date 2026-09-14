@@ -3,24 +3,24 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingNotes } from "@/components/mentee-home/meeting-notes";
 import type { MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  menteeMeetingFixture,
+  menteeRequestFixture,
+} from "@test/fixtures/mentee-home";
 
-function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
-  return {
+function meeting(overrides: Partial<MeetingItem> = {}) {
+  return menteeMeetingFixture({
     id: "held-1",
-    organizationId: "org-1",
     mentorName: "Nihan Öztürk",
     mentorshipRequestId: "r-1",
     agenda: "Finansal Model ve Sürdürülebilirlik",
     scheduledAt: "2026-08-18T10:00:00.000Z",
-    durationMinutes: 45,
-    status: "SCHEDULED",
     ...overrides,
-  };
+  });
 }
 
 const requestsById = {
-  "r-1": { id: "r-1", supportArea: "UX/UI Mentorluğu" } as MentorshipRequest,
+  "r-1": menteeRequestFixture({ id: "r-1", supportArea: "UX/UI Mentorluğu" }),
 };
 
 describe("MeetingNotes", () => {
@@ -56,7 +56,7 @@ describe("MeetingNotes", () => {
     expect(screen.getByText("Görevler tamamlandı")).toBeInTheDocument();
   });
 
-  it("shows the empty state only once loading has finished", () => {
+  it("says it is loading, then shows the empty state", () => {
     const props = {
       meetings: [],
       totalCount: 0,
@@ -64,6 +64,7 @@ describe("MeetingNotes", () => {
       requestsById: {},
     };
     const { rerender } = render(<MeetingNotes {...props} loading />);
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
     expect(
       screen.queryByText("Henüz gerçekleşen bir görüşmen yok."),
     ).not.toBeInTheDocument();

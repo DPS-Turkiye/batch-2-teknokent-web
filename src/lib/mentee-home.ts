@@ -10,7 +10,7 @@ import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 
 const DAY_MS = 86_400_000;
 
-export const DUE_TONE_LABELS = {
+const DUE_TONE_LABELS = {
   [DueTone.Overdue]: "Gecikti",
   [DueTone.Today]: "Bugün",
   [DueTone.None]: "Tarih yok",
@@ -59,6 +59,11 @@ function dayOffset(date: Date, now: Date) {
   );
 }
 
+// A bare date is a calendar day; a full timestamp is read in the viewer's own day.
+function dueDay(value: string) {
+  return value.length > 10 ? startOfDay(new Date(value)) : calendarDay(value);
+}
+
 export function dayGreeting(now = new Date()) {
   const hour = now.getHours();
   if (hour >= 5 && hour < 12) return "Günaydın";
@@ -67,7 +72,7 @@ export function dayGreeting(now = new Date()) {
 }
 
 export function dueState(dueDate: string | null | undefined, now = new Date()) {
-  const day = dueDate ? calendarDay(dueDate.slice(0, 10)) : null;
+  const day = dueDate ? dueDay(dueDate) : null;
   if (!day || Number.isNaN(day.getTime())) {
     return { tone: DueTone.None, label: DUE_TONE_LABELS[DueTone.None] };
   }
@@ -156,7 +161,8 @@ export function buildHomeTasks({
   const replies = requests
     .filter((request) => requestNeedsMenteeAction(request, meetings))
     .map((request) => ({
-      sortKey: request.createdAt,
+      // An empty key puts a reply ahead of action items due the same day.
+      sortKey: "",
       task: {
         id: `request-${request.id}`,
         kind: HomeTaskKind.RequestReply,

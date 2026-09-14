@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { ActionItemStatus } from "@/interfaces/action-item";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { getActionItems } from "@/lib/client/action-items";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -129,7 +130,7 @@ describe("useDashboardData", () => {
           durationMinutes: 30,
           agenda: "Gerçek toplantı",
           meetLink: "https://meet.google.com/abc-defg-hij",
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
       ],
       error: null,
@@ -180,7 +181,7 @@ describe("useDashboardData", () => {
           mentorshipRequestId: "r1",
           scheduledAt: new Date(Date.now() + 2 * day).toISOString(),
           durationMinutes: 45,
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
         {
           id: "held",
@@ -189,7 +190,7 @@ describe("useDashboardData", () => {
           mentorshipRequestId: "r1",
           scheduledAt: new Date(Date.now() - 3 * day).toISOString(),
           durationMinutes: 45,
-          status: "SCHEDULED",
+          status: MeetingStatus.Scheduled,
         },
       ],
       error: null,

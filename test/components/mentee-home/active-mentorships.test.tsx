@@ -2,28 +2,24 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { ActiveMentorships } from "@/components/mentee-home/active-mentorships";
-import type { MeetingItem } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+  menteeMeetingFixture,
+  menteeRequestFixture,
+} from "@test/fixtures/mentee-home";
 
-function request(id: string, mentorName: string): MentorshipRequest {
-  return {
+function request(id: string, mentorName: string) {
+  return menteeRequestFixture({
     id,
     mentorName,
     supportArea: "Yatırım turu hazırlığı",
     status: MentorshipRequestStatus.Accepted,
-  } as MentorshipRequest;
+  });
 }
 
-const nextMeeting = {
-  id: "m-1",
-  organizationId: "org-1",
+const nextMeeting = menteeMeetingFixture({
   scheduledAt: "2026-08-30T10:00:00.000Z",
-  durationMinutes: 45,
-  status: "SCHEDULED",
-} as MeetingItem;
+});
 
 describe("ActiveMentorships", () => {
   it("shows open actions first, else the next meeting, with a link to each mentorship", () => {
@@ -50,13 +46,14 @@ describe("ActiveMentorships", () => {
     ).toHaveAttribute("href", "/mentor-request/status?id=r-1");
   });
 
-  it("shows the empty state only once loading has finished", () => {
+  it("says it is loading, then shows the empty state", () => {
     const props = {
       requests: [],
       openActionCountByRequest: {},
       nextMeetingByRequest: {},
     };
     const { rerender } = render(<ActiveMentorships {...props} loading />);
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
     expect(
       screen.queryByText("Henüz aktif mentorluk yok."),
     ).not.toBeInTheDocument();

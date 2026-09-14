@@ -2,17 +2,14 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
 import { NextMeetingHero } from "@/components/mentee-home/next-meeting-hero";
+import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 
-const meeting = {
+const meeting = menteeMeetingFixture({
   id: "m-1",
-  organizationId: "org-1",
   mentorName: "Nihan Öztürk",
   agenda: "Ürün konumlandırma kararları",
-  scheduledAt: "2026-09-20T11:00:00.000Z",
-  durationMinutes: 45,
   meetLink: "https://meet.google.com/abc-defg-hij",
-  status: "SCHEDULED",
-};
+});
 
 describe("NextMeetingHero", () => {
   it("shows the next meeting with its mentor and ways to act on it", () => {
