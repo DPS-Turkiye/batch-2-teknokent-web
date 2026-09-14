@@ -72,6 +72,16 @@ describe("meeting-context helpers", () => {
         }),
       ),
     ).toBe(false);
+    expect(
+      isProfileOriginRequest(
+        request({
+          supportArea: "Haftalık check-in",
+          summary: "Haftalık check-in",
+          mentorMessage: "Takvimden oluşturuldu",
+          recommendationSnapshot: null,
+        }),
+      ),
+    ).toBe(false);
   });
 
   it("splits agenda lines from the request summary", () => {

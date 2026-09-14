@@ -240,11 +240,12 @@ describe("MentorMentorshipsWorkspace", () => {
     });
     vi.mocked(logMentorshipMeeting).mockResolvedValue({
       id: "meeting-1",
+      organizationId: "org-1",
       mentorshipRequestId: "req-1",
       scheduledAt: "2099-08-30T11:00:00.000Z",
       durationMinutes: 45,
       meetLink: "https://meet.google.com/abc-defg-hij",
-      status: "SCHEDULED",
+      status: MeetingStatus.Scheduled,
     });
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);
@@ -278,6 +279,7 @@ describe("MentorMentorshipsWorkspace", () => {
       id: "req-1",
       status: MentorshipRequestStatus.Accepted,
       message: "Görüşme saati: 2026-09-10T13:00",
+      requestedDocuments: [],
     });
     expect(logMentorshipMeeting).toHaveBeenCalledWith(
       "req-1",
@@ -323,6 +325,7 @@ describe("MentorMentorshipsWorkspace", () => {
       id: "req-1",
       status: MentorshipRequestStatus.CounterProposed,
       message: expect.stringContaining(`proposedSlots:${day}T15:00`),
+      requestedDocuments: [],
     });
     expect(logMentorshipMeeting).not.toHaveBeenCalled();
   });
@@ -400,11 +403,12 @@ describe("MentorMentorshipsWorkspace", () => {
     mutateAsync.mockResolvedValue({});
     vi.mocked(logMentorshipMeeting).mockResolvedValue({
       id: "meeting-1",
+      organizationId: "org-1",
       mentorshipRequestId: "req-1",
       scheduledAt: "2026-09-10T13:00:00.000Z",
       durationMinutes: 45,
       meetLink: "https://meet.google.com/abc-defg-hij",
-      status: "SCHEDULED",
+      status: MeetingStatus.Scheduled,
     });
 
     renderWithQueryClient(<MentorMentorshipsWorkspace />);

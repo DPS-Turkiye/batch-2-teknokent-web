@@ -49,12 +49,15 @@ export function isNeedOriginRequest(request: MentorshipRequest) {
   }
   const outcome = requestOutcomeFromMessage(request.requesterMessage);
   if (
-    outcome &&
-    MENTOR_REQUEST_NEED_GOALS.some((goal) => outcome.includes(goal.label))
+    !outcome ||
+    !MENTOR_REQUEST_NEED_GOALS.some((goal) => outcome.includes(goal.label))
   ) {
-    return true;
+    return false;
   }
-  return false;
+  return MENTOR_REQUEST_NEED_TOPICS.some(
+    (topic) =>
+      topic.id !== "other" && topic.supportArea === request.supportArea,
+  );
 }
 
 export function buildRequestDetailContent(

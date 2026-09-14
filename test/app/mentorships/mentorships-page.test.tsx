@@ -160,7 +160,22 @@ describe("MentorshipsPage", () => {
   });
 
   it("links each request to its status detail page", async () => {
-    mockPage("active", [request({ id: "req-42" })]);
+    mockPage("active", [
+      request({
+        id: "req-42",
+        summary: "Finansal modeli netleştiremiyoruz.",
+        recommendationSnapshot: {
+          matchingMethod: "PROFILE",
+          matchingModel: null,
+          generatedAt: "2026-09-01T10:00:00.000Z",
+          startupName: "Nova",
+          startupSector: null,
+          startupStage: null,
+          startupSummary: null,
+          startupTechnologies: [],
+        },
+      }),
+    ]);
     vi.mocked(useMeetings).mockReturnValue({
       data: [openMeeting("req-42")],
       isLoading: false,
@@ -172,6 +187,28 @@ describe("MentorshipsPage", () => {
     expect(
       await screen.findByRole("link", { name: "Mentorluğa git →" }),
     ).toHaveAttribute("href", "/mentor-request/status?id=req-42");
+  });
+
+  it("links calendar-origin active cards to the meeting context page", async () => {
+    mockPage("active", [
+      request({
+        id: "req-cal",
+        supportArea: "Takvim toplantısı",
+        summary: "Takvim toplantısı",
+        mentorMessage: "Takvimden oluşturuldu",
+      }),
+    ]);
+    vi.mocked(useMeetings).mockReturnValue({
+      data: [openMeeting("req-cal", { id: "meeting-cal" })],
+      isLoading: false,
+      error: null,
+    } as never);
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(
+      await screen.findByRole("link", { name: "Mentorluğa git →" }),
+    ).toHaveAttribute("href", "/meetings/research?id=meeting-cal");
   });
 
   it("shows the meeting link on the Aktif tab for the whole startup", async () => {

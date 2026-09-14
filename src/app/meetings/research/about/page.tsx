@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
+import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { ReportBlock } from "@/components/notes/meeting-assistant-share-panel";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
@@ -16,13 +18,12 @@ import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import { UserRole } from "@/interfaces/session";
 import { getMeetingRoom } from "@/lib/client/meetings";
 import {
-  isProfileOriginRequest,
+  isCalendarOriginRequest,
   meetingCounterpartName,
   meetingInviteeLabels,
   meetingScheduleLabel,
-  requestAgendaLines,
-  requestExpectedOutcome,
 } from "@/lib/meeting-context";
+import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -55,7 +56,9 @@ function MeetingAboutContent() {
   });
   const shareQuery = useAssistantShare(meeting?.id ?? "");
   const request = requestQuery.data ?? null;
-  const profileMode = isProfileOriginRequest(request);
+  const calendarMode = isCalendarOriginRequest(request);
+  const requestDetail =
+    request && !calendarMode ? buildRequestDetailContent(request) : null;
 
   if (!meeting) {
     return (
@@ -77,10 +80,13 @@ function MeetingAboutContent() {
   );
   const schedule = meetingScheduleLabel(meeting);
   const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
-  const agendaLines = profileMode ? requestAgendaLines(request, meeting) : [];
-  const expectedOutcome = requestExpectedOutcome(request);
   const report = shareQuery.data?.report ?? null;
   const hasNotes = Boolean(meeting.notes?.trim() || meeting.outcomes?.trim());
+  const requestTopic =
+    requestDetail?.topic ||
+    request?.supportArea ||
+    meeting.agenda ||
+    "Mentorluk görüşmesi";
 
   return (
     <AppShell
@@ -108,7 +114,7 @@ function MeetingAboutContent() {
               {counterpart} ile Mentorluk Görüşmesi
             </h1>
             <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
-              {request?.supportArea ?? meeting.agenda ?? "Mentorluk görüşmesi"}
+              {requestTopic}
             </p>
             {schedule ? (
               <p className="mt-1 text-[13px] text-[#858c96]">{schedule}</p>
@@ -134,34 +140,13 @@ function MeetingAboutContent() {
             )}
           </ContextCard>
 
-          {profileMode ? (
-            <ContextCard title="Talep bilgileri">
-              <dl className="space-y-3 text-[13px]">
-                <div>
-                  <dt className="text-[#858c96]">Konu</dt>
-                  <dd className="mt-0.5 font-medium text-[#22262b]">
-                    {request?.supportArea ?? "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[#858c96]">Özet</dt>
-                  <dd className="mt-0.5 whitespace-pre-wrap text-[#22262b]">
-                    {agendaLines.length > 0 ? agendaLines.join("\n") : "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[#858c96]">Beklenen çıktı</dt>
-                  <dd className="mt-0.5 whitespace-pre-wrap text-[#22262b]">
-                    {expectedOutcome || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-[#858c96]">Talep eden</dt>
-                  <dd className="mt-0.5 font-medium text-[#22262b]">
-                    {request?.requestedForName || request?.requesterName || "—"}
-                  </dd>
-                </div>
-              </dl>
+          {request && !calendarMode ? (
+            <ContextCard title="Talep özeti">
+              <RequestDetailsPanel
+                request={request}
+                showSentAt={false}
+                showPreferredSlots={false}
+              />
             </ContextCard>
           ) : (
             <ContextCard title="Talep bilgileri">
@@ -193,6 +178,14 @@ function MeetingAboutContent() {
               ) : null}
             </ContextCard>
           ) : null}
+        </div>
+
+        <div className="mt-[18px]">
+          <DocumentRequestChecklist
+            scope={{ meetingId: meeting.id }}
+            canManage={session?.role === UserRole.Mentor}
+            canUpload={session?.role !== UserRole.Mentor}
+          />
         </div>
 
         <div className="mt-[18px]">

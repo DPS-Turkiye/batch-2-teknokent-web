@@ -4,6 +4,10 @@ import { ChevronDown, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
+import {
+  DocumentRequestTitleEditor,
+  normalizeDocumentTitles,
+} from "@/components/mentorships/document-request-title-editor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
@@ -71,6 +75,7 @@ export type CreateMeetingInput = CreateMeetingRecipient & {
   agenda: string;
   meetLink?: string;
   transcribeRequested?: boolean;
+  requestedDocuments?: string[];
 };
 
 export type CreateMeetingBatch = {
@@ -79,6 +84,7 @@ export type CreateMeetingBatch = {
   agenda: string;
   meetLink?: string;
   transcribeRequested?: boolean;
+  requestedDocuments?: string[];
   recipients: CreateMeetingRecipient[];
 };
 
@@ -132,6 +138,7 @@ export function CreateMeetingDialog({
   const [manualMeetLink, setManualMeetLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
+  const [documentTitles, setDocumentTitles] = useState<string[]>([]);
 
   const columns = useMemo(() => upcomingHourColumns(), []);
   const scheduledAt = startAt ?? (slotIso ? new Date(slotIso) : null);
@@ -172,6 +179,7 @@ export function CreateMeetingDialog({
       agenda,
       meetLink,
       transcribeRequested,
+      requestedDocuments: normalizeDocumentTitles(documentTitles),
       recipients: [...uniqueRecipients.values()],
     });
   }
@@ -392,6 +400,12 @@ export function CreateMeetingDialog({
             <TranscribeRequestedField
               checked={transcribeRequested}
               onChange={setTranscribeRequested}
+            />
+
+            <DocumentRequestTitleEditor
+              titles={documentTitles}
+              onChange={setDocumentTitles}
+              disabled={isSaving}
             />
 
             <button

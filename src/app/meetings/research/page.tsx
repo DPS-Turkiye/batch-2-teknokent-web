@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
+import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
@@ -18,17 +20,18 @@ import {
   PROGRAMS_QUERY_KEY,
 } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
+import { getMeetingRoom } from "@/lib/client/meetings";
 import { getOrganizationPrograms, getPrograms } from "@/lib/client/programs";
 import { CALENDAR_SUPPORT_AREA } from "@/lib/const";
 import {
+  isCalendarOriginRequest,
   isFirstMeetingWithMentor,
-  isProfileOriginRequest,
   meetingCounterpartName,
+  meetingInviteeLabels,
   meetingScheduleLabel,
   programsForOrganization,
-  requestAgendaLines,
-  requestExpectedOutcome,
 } from "@/lib/meeting-context";
+import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -56,16 +59,23 @@ function MeetingDetailContent() {
     meeting?.mentorshipRequestId ?? null,
   );
   const request = requestQuery.data ?? null;
-  const profileMode = isProfileOriginRequest(request);
+  const calendarMode = isCalendarOriginRequest(request);
+  const requestDetail =
+    request && !calendarMode ? buildRequestDetailContent(request) : null;
+  const roomQuery = useQuery({
+    queryKey: ["meeting-room", meeting?.id],
+    queryFn: () => getMeetingRoom(meeting!.id),
+    enabled: Boolean(meeting?.id) && calendarMode,
+  });
   const mentorProgramsQuery = useQuery({
     queryKey: PROGRAMS_QUERY_KEY,
     queryFn: getPrograms,
-    enabled: Boolean(isMentor) && Boolean(meeting) && !profileMode,
+    enabled: Boolean(isMentor) && Boolean(meeting) && calendarMode,
   });
   const orgProgramsQuery = useQuery({
     queryKey: ORGANIZATION_PROGRAMS_QUERY_KEY,
     queryFn: getOrganizationPrograms,
-    enabled: !isMentor && Boolean(meeting) && !profileMode,
+    enabled: !isMentor && Boolean(meeting) && calendarMode,
   });
 
   if (!meeting) {
@@ -87,10 +97,6 @@ function MeetingDetailContent() {
     Boolean(isMentor),
   );
   const schedule = meetingScheduleLabel(meeting);
-  const agendaLines = profileMode
-    ? requestAgendaLines(request, meeting)
-    : requestAgendaLines(null, meeting);
-  const expectedOutcome = requestExpectedOutcome(request);
   const relatedPrograms = isMentor
     ? programsForOrganization(
         mentorProgramsQuery.data,
@@ -106,6 +112,18 @@ function MeetingDetailContent() {
   );
   const mentorLabel = meeting.mentorName || request?.mentorName || "Mentor";
   const ownerLabel = request?.requestedForName || request?.requesterName || "";
+  const startupLabel =
+    meeting.organizationName || request?.organizationName || "—";
+  const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
+  const calendarTopic =
+    meeting.agenda?.trim() ||
+    request?.supportArea?.trim() ||
+    CALENDAR_SUPPORT_AREA;
+  const requestTopic =
+    requestDetail?.topic ||
+    request?.supportArea ||
+    meeting.agenda ||
+    "Mentorluk";
 
   return (
     <AppShell
@@ -134,11 +152,7 @@ function MeetingDetailContent() {
                 {counterpart} ile Mentorluk Görüşmesi
               </h1>
               <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
-                {profileMode
-                  ? (request?.supportArea ?? meeting.agenda ?? "Mentorluk")
-                  : (meeting.agenda ??
-                    request?.supportArea ??
-                    CALENDAR_SUPPORT_AREA)}
+                {calendarMode ? calendarTopic : requestTopic}
               </p>
               {schedule ? (
                 <p className="mt-1 text-[13px] text-[#858c96]">{schedule}</p>
@@ -151,36 +165,15 @@ function MeetingDetailContent() {
           </div>
         </section>
 
-        {profileMode ? (
+        {!calendarMode && request ? (
           <div className="mt-6 grid gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
             <div className="space-y-[18px]">
-              <ContextCard title="Bugünkü gündem">
-                {agendaLines.length === 0 ? (
-                  <p>Bu görüşme için talep özeti bulunmuyor.</p>
-                ) : agendaLines.length === 1 ? (
-                  <p className="whitespace-pre-wrap leading-6">
-                    {agendaLines[0]}
-                  </p>
-                ) : (
-                  <ol className="space-y-2">
-                    {agendaLines.map((line, index) => (
-                      <li key={`${index}-${line}`} className="flex gap-2.5">
-                        <span className="font-semibold text-[#e86f22]">
-                          {index + 1}.
-                        </span>
-                        <span className="text-[#1a1a1a]">{line}</span>
-                      </li>
-                    ))}
-                  </ol>
-                )}
-              </ContextCard>
-              <ContextCard title="Beklenen çıktı">
-                <p className="whitespace-pre-wrap leading-6">
-                  {expectedOutcome || "Beklenen çıktı belirtilmemiş."}
-                </p>
-              </ContextCard>
-              <ContextCard title="Konu / destek alanı">
-                <p>{request?.supportArea ?? "—"}</p>
+              <ContextCard title="Talep özeti">
+                <RequestDetailsPanel
+                  request={request}
+                  showSentAt={false}
+                  showPreferredSlots={false}
+                />
               </ContextCard>
             </div>
             <div className="space-y-[18px]">
@@ -195,9 +188,7 @@ function MeetingDetailContent() {
                   <div>
                     <dt className="text-[#858c96]">Startup</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
-                      {request?.organizationName ||
-                        meeting.organizationName ||
-                        "—"}
+                      {startupLabel}
                     </dd>
                   </div>
                   <div>
@@ -219,6 +210,9 @@ function MeetingDetailContent() {
           </div>
         ) : (
           <div className="mt-6 grid gap-[18px] lg:grid-cols-2">
+            <ContextCard title="Meet linki">
+              <MeetLinkDisplay meetLink={meeting.meetLink} />
+            </ContextCard>
             <ContextCard title="Toplantı zamanı">
               <dl className="space-y-3 text-[13px]">
                 <div>
@@ -233,25 +227,49 @@ function MeetingDetailContent() {
                     {meeting.durationMinutes} dk
                   </dd>
                 </div>
+                <div>
+                  <dt className="text-[#858c96]">Konu</dt>
+                  <dd className="mt-0.5 font-medium text-[#22262b]">
+                    {calendarTopic}
+                  </dd>
+                </div>
               </dl>
             </ContextCard>
-            <ContextCard title="Katılımcılar">
-              <ul className="space-y-2 text-[13px] text-[#22262b]">
-                <li>
-                  <span className="text-[#858c96]">Mentor: </span>
-                  {mentorLabel}
-                </li>
-                <li>
-                  <span className="text-[#858c96]">Startup: </span>
-                  {meeting.organizationName || request?.organizationName || "—"}
-                </li>
-                {ownerLabel ? (
+            <ContextCard title="Kimler katılıyor?">
+              {invitees.length === 0 ? (
+                <ul className="space-y-2 text-[13px] text-[#22262b]">
                   <li>
-                    <span className="text-[#858c96]">Kişi: </span>
-                    {ownerLabel}
+                    <span className="text-[#858c96]">Mentor: </span>
+                    {mentorLabel}
                   </li>
-                ) : null}
-              </ul>
+                  <li>
+                    <span className="text-[#858c96]">Startup: </span>
+                    {startupLabel}
+                  </li>
+                  {ownerLabel ? (
+                    <li>
+                      <span className="text-[#858c96]">Kişi: </span>
+                      {ownerLabel}
+                    </li>
+                  ) : null}
+                </ul>
+              ) : (
+                <ul className="space-y-2.5">
+                  {invitees.map((label) => (
+                    <li
+                      key={label}
+                      className="flex items-center gap-3 text-[13px] text-[#22262b]"
+                    >
+                      <Avatar
+                        initials={initials(label.split(" · ")[0] ?? label)}
+                        size="sm"
+                        tone="orange"
+                      />
+                      <span>{label}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </ContextCard>
             <ContextCard title="Gündem">
               <p className="whitespace-pre-wrap leading-6">
@@ -259,6 +277,30 @@ function MeetingDetailContent() {
                   request?.summary?.trim() ||
                   "Bu görüşme için gündem eklenmemiş."}
               </p>
+            </ContextCard>
+            <ContextCard title="Startup">
+              <dl className="space-y-3 text-[13px]">
+                <div>
+                  <dt className="text-[#858c96]">Ad</dt>
+                  <dd className="mt-0.5 font-medium text-[#22262b]">
+                    {startupLabel}
+                  </dd>
+                </div>
+                {ownerLabel ? (
+                  <div>
+                    <dt className="text-[#858c96]">İlgili kişi</dt>
+                    <dd className="mt-0.5 font-medium text-[#22262b]">
+                      {ownerLabel}
+                    </dd>
+                  </div>
+                ) : null}
+                <div>
+                  <dt className="text-[#858c96]">Mentor</dt>
+                  <dd className="mt-0.5 font-medium text-[#22262b]">
+                    {mentorLabel}
+                  </dd>
+                </div>
+              </dl>
             </ContextCard>
             <ContextCard title="Programlar">
               {relatedPrograms.length === 0 ? (
@@ -273,6 +315,14 @@ function MeetingDetailContent() {
             </ContextCard>
           </div>
         )}
+
+        <div className="mt-6">
+          <DocumentRequestChecklist
+            scope={{ meetingId: meeting.id }}
+            canManage={Boolean(isMentor)}
+            canUpload={!isMentor}
+          />
+        </div>
       </div>
     </AppShell>
   );

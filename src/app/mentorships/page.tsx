@@ -20,6 +20,7 @@ import {
 import { formatMeetingShort } from "@/lib/format";
 import { MENTORSHIPS_TABS } from "@/lib/const";
 import {
+  activeMentorshipHref,
   meetingAboutHref,
   meetingCallHref,
   menteeRequestOwnerLabel,
@@ -272,7 +273,7 @@ function ActiveTab({ meetings }: { meetings: MeetingItem[] }) {
                       </p>
                     </div>
                     <Link
-                      href={requestHref(request.id)}
+                      href={activeMentorshipHref(request, meeting, false)}
                       className="shrink-0 text-[13px] font-medium text-[#e86f22]"
                     >
                       Mentorluğa git →

@@ -131,7 +131,7 @@ describe("MeetingAboutPage", () => {
     expect(
       await screen.findByText("Deniz Kaya · Nova Labs"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Talep bilgileri")).toBeInTheDocument();
+    expect(screen.getByText("Talep özeti")).toBeInTheDocument();
     expect(
       screen.getByText("Finansal modeli netleştiremiyoruz."),
     ).toBeInTheDocument();

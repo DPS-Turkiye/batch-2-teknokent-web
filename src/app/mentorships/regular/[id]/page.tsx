@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 import { useAppSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
@@ -260,6 +261,14 @@ export default function RegularMentorshipDetailPage() {
                   }}
                 />
               </div>
+            </div>
+
+            <div className="mt-8">
+              <DocumentRequestChecklist
+                scope={{ mentorshipId: mentorship.id }}
+                canManage={isMentor}
+                canUpload={!isMentor}
+              />
             </div>
 
             <section className="mt-8">
