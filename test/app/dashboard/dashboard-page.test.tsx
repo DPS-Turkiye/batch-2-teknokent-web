@@ -2,8 +2,11 @@ import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import DashboardPage from "@/app/dashboard/page";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { DASHBOARD_REQUEST_STATUS_LABELS } from "@/lib/const";
+import {
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
+import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 
 type DashboardData = ReturnType<
   typeof import("@/hooks/use-dashboard-data").useDashboardData
@@ -15,16 +18,6 @@ vi.mock("@/hooks/use-dashboard-data", () => ({
   useDashboardData: () => mockUseDashboardData(),
 }));
 
-vi.mock("@/hooks/use-dashboard-notifications", () => ({
-  useDashboardNotifications: () => ({ notifications: [] }),
-}));
-
-// The dashboard now renders the program picker, which has its own tests. Stub it
-// here so these assertions stay about the dashboard.
-vi.mock("@/components/dashboard/active-program-picker", () => ({
-  ActiveProgramPicker: () => null,
-}));
-
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -32,30 +25,31 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
-  const requests = overrides.requests ?? [];
   return {
-    activeRequests: requests.filter(
-      (request) => request.status === MentorshipRequestStatus.Accepted,
-    ),
-    displayName: "Deniz",
+    activeRequests: [],
+    displayName: "Gülse",
+    greeting: "Günaydın",
+    heldMeetingCount: 0,
+    homeTasks: [],
     organizationName: "GreenLoop",
     isFallback: false,
-    isLoadingActionItems: false,
-    openActionItems: [],
     isLoading: false,
+    isLoadingActionItems: false,
     nextMeeting: null,
-    pendingRequests: requests.filter(
-      (request) => request.status === MentorshipRequestStatus.Pending,
-    ),
-    requests,
+    nextMeetingByRequest: {},
+    noteMeetings: [],
+    openActionCountByRequest: {},
+    openActionItems: [],
+    openTodoCounts: new Map(),
+    otherUpcomingMeetings: [],
+    pendingRequests: [],
+    requests: [],
+    requestsById: {},
+    sentRequests: [],
     upcomingMeetings: [],
     ...overrides,
   } as DashboardData;
 }
-
-beforeEach(() => {
-  mockUseDashboardData.mockReset();
-});
 
 function section(heading: string) {
   return within(
@@ -65,34 +59,19 @@ function section(heading: string) {
   );
 }
 
-const pendingRequest = {
-  id: "req-2",
-  mentorName: "Ahmet Yılmaz",
-  supportArea: "Finans",
-  status: MentorshipRequestStatus.Pending,
-};
-
-const activeRequest = {
-  id: "req-1",
-  mentorName: "Leyla Aksoy",
-  supportArea: "İş modeli ve strateji",
-  status: MentorshipRequestStatus.Accepted,
-};
+beforeEach(() => {
+  mockUseDashboardData.mockReset();
+});
 
 describe("Mentee dashboard", () => {
-  it("invites the mentee to find a mentor", () => {
+  it("greets the mentee by first name", () => {
     mockUseDashboardData.mockReturnValue(dashboardData());
 
     render(<DashboardPage />);
 
     expect(
-      screen.getByRole("heading", {
-        name: "Mentorluk Yolculuğuna Hazır Mısın?",
-      }),
+      screen.getByRole("heading", { level: 1, name: "Günaydın, Gülse" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Doğru mentor ile buluş/ }),
-    ).toHaveAttribute("href", "/mentor-request");
   });
 
   it("warns only when the queries actually failed, never while loading", () => {
@@ -108,123 +87,84 @@ describe("Mentee dashboard", () => {
     expect(screen.getByText(warning)).toBeInTheDocument();
   });
 
-  it("offers five quick actions, each with its destination", () => {
+  it("lays out every section of the design", () => {
     mockUseDashboardData.mockReturnValue(dashboardData());
 
     render(<DashboardPage />);
 
-    const quickActions = section("Hızlı İşlemler");
-    expect(quickActions.getAllByRole("link")).toHaveLength(5);
     expect(
-      quickActions.getByRole("link", { name: /Mentor bul/ }),
-    ).toHaveAttribute("href", "/mentor-request");
-    expect(
-      quickActions.getByRole("link", { name: /Toplantı planla/ }),
-    ).toHaveAttribute("href", "/calendar");
-    expect(
-      quickActions.getByRole("link", { name: /Mesaj gönder/ }),
-    ).toHaveAttribute("href", "/messages");
-  });
-
-  it("lists pending requests and open tasks under Senden Beklenenler", () => {
-    mockUseDashboardData.mockReturnValue(
-      dashboardData({
-        requests: [pendingRequest],
-        openActionItems: [
-          {
-            id: "task-1",
-            title: "Pitch deck'i güncelle",
-            dueDate: "2026-09-18",
-            organizationName: "GreenLoop",
-          },
-        ],
-      } as Partial<DashboardData>),
-    );
-
-    render(<DashboardPage />);
-
-    const expected = section("Senden Beklenenler");
-    expect(expected.getByText("2")).toBeInTheDocument();
-    expect(
-      expected.getByRole("link", { name: /Mentor talebini takip et/ }),
-    ).toHaveAttribute("href", "/mentor-request/status?id=req-2");
-    expect(
-      expected.getByText(
-        DASHBOARD_REQUEST_STATUS_LABELS[pendingRequest.status],
-      ),
+      screen.getByRole("region", { name: "Sıradaki görüşme" }),
     ).toBeInTheDocument();
     expect(
-      expected.getByRole("link", { name: /Pitch deck'i güncelle/ }),
-    ).toHaveAttribute("href", "/mentorships");
-    expect(expected.getByText("18 Eylül")).toBeInTheDocument();
+      screen.getByRole("region", { name: "Hızlı işlemler" }),
+    ).toBeInTheDocument();
+    for (const heading of [
+      "Yapılacaklar",
+      "Yaklaşan görüşmeler",
+      "Toplantı Notların",
+      "Gönderdiğin talepler",
+      "Aktif Mentorluklar",
+    ]) {
+      expect(
+        screen.getByRole("heading", { name: heading }),
+      ).toBeInTheDocument();
+    }
   });
 
   it("shows empty states only once loading has finished", () => {
     mockUseDashboardData.mockReturnValue(dashboardData({ isLoading: true }));
     const { unmount } = render(<DashboardPage />);
     expect(
-      screen.queryByText("Şu anda bekleyen bir görevin yok."),
+      screen.queryByText("Şu anda yapılacak bir işin yok."),
     ).not.toBeInTheDocument();
+    expect(screen.queryByText("Bekleyen talebin yok.")).not.toBeInTheDocument();
     unmount();
 
     mockUseDashboardData.mockReturnValue(dashboardData());
     render(<DashboardPage />);
     expect(
-      screen.getByText("Şu anda bekleyen bir görevin yok."),
+      screen.getByText("Şu anda yapılacak bir işin yok."),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Yaklaşan görüşme bulunmuyor."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Bekleyen talebin yok.")).toBeInTheDocument();
     expect(screen.getByText("Henüz aktif mentorluk yok.")).toBeInTheDocument();
-    expect(screen.getByText("Bekleyen talep yok.")).toBeInTheDocument();
   });
 
-  it("shows upcoming meeting time and a join link in Yaklaşanlar", () => {
+  it("passes the hook's tasks and requests to their sections", () => {
+    const request = {
+      id: "req-1",
+      mentorName: "Barış Öztürk",
+      supportArea: "Teknik ekip kurulumu",
+      status: MentorshipRequestStatus.MoreInfoRequested,
+    } as MentorshipRequest;
     mockUseDashboardData.mockReturnValue(
       dashboardData({
-        upcomingMeetings: [
+        homeTasks: [
           {
-            id: "meeting-1",
-            organizationId: "org-1",
-            mentorName: "Leyla Aksoy",
-            agenda: "Finansal model görüşmesi",
-            scheduledAt: "2026-09-10T10:00:00.000Z",
-            durationMinutes: 45,
-            meetLink: "https://meet.google.com/abc-defg-hij",
-            status: "SCHEDULED",
+            id: "request-req-1",
+            kind: HomeTaskKind.RequestReply,
+            title: "Mentor talebini yanıtla",
+            subtitle: "Barış Öztürk · Teknik ekip kurulumu",
+            dueTone: DueTone.Today,
+            dueLabel: "Bilgi bekliyor",
+            actionLabel: "Yanıtla",
+            href: "/mentor-request/status?id=req-1",
           },
         ],
-      } as Partial<DashboardData>),
-    );
-
-    render(<DashboardPage />);
-
-    const upcoming = section("Yaklaşanlar");
-    expect(upcoming.getByText("Finansal model görüşmesi")).toBeInTheDocument();
-    expect(upcoming.getByText(/Leyla Aksoy/)).toBeInTheDocument();
-    expect(upcoming.getByRole("link", { name: "Katıl" })).toHaveAttribute(
-      "href",
-      "https://meet.google.com/abc-defg-hij",
-    );
-  });
-
-  it("links each active mentorship to its own status page", () => {
-    mockUseDashboardData.mockReturnValue(
-      dashboardData({
-        requests: [activeRequest, pendingRequest],
-      } as Partial<DashboardData>),
+        sentRequests: [{ request, state: SentRequestState.ActionNeeded }],
+      }),
     );
 
     render(<DashboardPage />);
 
     expect(
-      section("Aktif Mentorluklar").getByRole("link", { name: /Leyla Aksoy/ }),
+      section("Yapılacaklar").getByRole("link", {
+        name: "Yanıtla: Mentor talebini yanıtla",
+      }),
     ).toHaveAttribute("href", "/mentor-request/status?id=req-1");
-    const pending = section("Bekleyen Mentorluk Talepleri");
-    expect(pending.getByText("1")).toBeInTheDocument();
-    expect(pending.getByRole("link", { name: /Ahmet Yılmaz/ })).toHaveAttribute(
-      "href",
-      "/mentor-request/status?id=req-2",
-    );
+    expect(
+      section("Gönderdiğin talepler").getByRole("link", {
+        name: "Talebi yanıtla",
+      }),
+    ).toHaveAttribute("href", "/mentor-request/status?id=req-1");
   });
 });

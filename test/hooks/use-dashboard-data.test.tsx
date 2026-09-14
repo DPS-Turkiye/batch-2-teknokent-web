@@ -1,9 +1,12 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { renderHook } from "@testing-library/react";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { ActionItemStatus } from "@/interfaces/action-item";
+import { getActionItems } from "@/lib/client/action-items";
+import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { createTestQueryClient } from "@test/test-utils";
@@ -26,6 +29,10 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 
 vi.mock("@/lib/client/action-items", () => ({
   getActionItems: vi.fn().mockResolvedValue([]),
+}));
+
+vi.mock("@/lib/client/meeting-notes", () => ({
+  getMeetingTodos: vi.fn().mockResolvedValue([]),
 }));
 
 function wrapper({ children }: { children: ReactNode }) {
@@ -159,5 +166,94 @@ describe("useDashboardData", () => {
       "https://meet.google.com/abc-defg-hij",
     );
     expect(result.current.upcomingMeetings).toHaveLength(1);
+  });
+
+  it("ties open action items and held meetings back to their mentorship", async () => {
+    const day = 24 * 60 * 60 * 1000;
+    mockUseSession.mockReturnValue({ session: denizSession() });
+    mockUseMeetings.mockReturnValue({
+      data: [
+        {
+          id: "next",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "r1",
+          scheduledAt: new Date(Date.now() + 2 * day).toISOString(),
+          durationMinutes: 45,
+          status: "SCHEDULED",
+        },
+        {
+          id: "held",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorshipRequestId: "r1",
+          scheduledAt: new Date(Date.now() - 3 * day).toISOString(),
+          durationMinutes: 45,
+          status: "SCHEDULED",
+        },
+      ],
+      error: null,
+      isLoading: false,
+    });
+    mockUseMentorshipRequests.mockReturnValue({
+      data: [
+        {
+          id: "r1",
+          requesterId: "mentee-1",
+          organizationId: "org-1",
+          mentorId: "mentor-1",
+          mentorName: "Selin Kaya",
+          supportArea: "Finans",
+          status: MentorshipRequestStatus.Accepted,
+          mentorMessage: null,
+          rejectionReason: null,
+          createdAt: "2026-08-01T10:00:00+03:00",
+          messages: [],
+          recommendationSnapshot: null,
+        },
+      ],
+      error: null,
+      isLoading: false,
+    });
+    vi.mocked(getActionItems).mockResolvedValueOnce([
+      {
+        id: "a1",
+        organizationId: "org-1",
+        ownerId: "mentor-1",
+        title: "KPI dosyasını paylaş",
+        status: ActionItemStatus.Open,
+        dueDate: "2026-01-01",
+        createdAt: "2026-08-01T10:00:00Z",
+        updatedAt: "2026-08-01T10:00:00Z",
+      },
+    ]);
+    vi.mocked(getMeetingTodos).mockResolvedValueOnce([
+      {
+        id: "t1",
+        meetingId: "held",
+        title: "Nakit akışını çıkar",
+        done: false,
+        displayOrder: 0,
+      },
+    ]);
+
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
+
+    await waitFor(() => expect(result.current.homeTasks).toHaveLength(1));
+    expect(result.current.homeTasks[0]).toMatchObject({
+      title: "KPI dosyasını paylaş",
+      subtitle: "Selin Kaya · Finans",
+      href: "/mentor-request/status?id=r1",
+    });
+    expect(result.current.openActionCountByRequest).toEqual({ r1: 1 });
+    expect(result.current.nextMeetingByRequest.r1?.id).toBe("next");
+    expect(result.current.otherUpcomingMeetings).toEqual([]);
+    expect(result.current.noteMeetings.map((meeting) => meeting.id)).toEqual([
+      "held",
+    ]);
+    expect(result.current.heldMeetingCount).toBe(1);
+    await waitFor(() =>
+      expect(result.current.openTodoCounts.get("held")).toBe(1),
+    );
   });
 });
