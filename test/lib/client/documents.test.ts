@@ -64,6 +64,24 @@ describe("uploadDocument", () => {
     });
   });
 
+  it("attaches the upload to a meeting when given one", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      status: 201,
+      data: {
+        id: "doc-2",
+        kind: "meeting-file",
+        originalFilename: "cv.pdf",
+        sizeBytes: 2,
+      },
+    } as never);
+
+    await uploadDocument(file, "meeting-file", "id-token", "meeting-1");
+
+    const [, body] = vi.mocked(httpClient.post).mock.calls[0];
+    expect((body as FormData).get("meetingId")).toBe("meeting-1");
+    expect((body as FormData).get("kind")).toBe("meeting-file");
+  });
+
   it("fails clearly instead of uploading unauthenticated", async () => {
     vi.mocked(currentIdToken).mockResolvedValue(null);
 

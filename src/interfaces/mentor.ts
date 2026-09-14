@@ -6,6 +6,21 @@ export interface MentorEvidence {
   profileVersion: string;
 }
 
+export interface MentorExperience {
+  title: string;
+  organization: string | null;
+  period: string | null;
+  summary: string | null;
+}
+
+/** An editable past role; blanks are sent as empty strings and stored as null. */
+export type MentorExperienceInput = {
+  title: string;
+  organization: string;
+  period: string;
+  summary: string;
+};
+
 export interface MentorProfile {
   id: string;
   fullName: string;
@@ -25,6 +40,11 @@ export interface MentorProfile {
   specialties: string[];
   recommendationReasons: string[];
   recommendationEvidence: MentorEvidence[];
+  menteeCapacity?: number | null;
+  activeMenteeCount?: number;
+  completedMentorshipCount?: number;
+  programNames?: string[];
+  experiences?: MentorExperience[];
 }
 
 export type UpdateMentorProfilePayload = Pick<
@@ -41,7 +61,11 @@ export type UpdateMentorProfilePayload = Pick<
   | "sectorExperience"
   | "startupStages"
   | "specialties"
->;
+> & {
+  // Left out, the backend keeps what the mentor saved before.
+  menteeCapacity?: number | null;
+  experiences?: MentorExperienceInput[];
+};
 
 export enum Weekday {
   Monday = "MONDAY",

@@ -1,8 +1,29 @@
+/** A calendar-day string ("2026-09-15") at local midnight, so it never shows as the day before. */
+export function calendarDay(value: string) {
+  return new Date(`${value}T00:00:00`);
+}
+
 export function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("tr-TR", {
     dateStyle: "long",
     timeStyle: "short",
   }).format(new Date(value));
+}
+
+/** "2 Eylül 2026" */
+export function formatLongDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
+/** "12 Eyl 2026" */
+export function formatShortDate(value: string) {
+  return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(
+    new Date(value),
+  );
 }
 
 export function toDateTimeLocalValue(date: Date) {

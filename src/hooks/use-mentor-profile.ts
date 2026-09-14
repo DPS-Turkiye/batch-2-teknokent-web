@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/providers/toast-provider";
 
 import type {
+  MentorExperienceInput,
   MentorProfile,
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
@@ -69,7 +70,9 @@ export function useDeleteAvailabilitySlot() {
   });
 }
 
-function toEditablePayload(profile: MentorProfile): UpdateMentorProfilePayload {
+type MentorProfileForm = Required<UpdateMentorProfilePayload>;
+
+function toEditablePayload(profile: MentorProfile): MentorProfileForm {
   return {
     professionalTitle: profile.professionalTitle,
     company: profile.company,
@@ -83,13 +86,52 @@ function toEditablePayload(profile: MentorProfile): UpdateMentorProfilePayload {
     sectorExperience: profile.sectorExperience,
     startupStages: profile.startupStages,
     specialties: profile.specialties,
+    menteeCapacity: profile.menteeCapacity ?? null,
+    experiences: (profile.experiences ?? []).map((experience) => ({
+      title: experience.title,
+      organization: experience.organization ?? "",
+      period: experience.period ?? "",
+      summary: experience.summary ?? "",
+    })),
   };
+}
+
+const MAX_EXPERIENCES = 10;
+const EMPTY_EXPERIENCE: MentorExperienceInput = {
+  title: "",
+  organization: "",
+  period: "",
+  summary: "",
+};
+
+function isBlankExperience(experience: MentorExperienceInput) {
+  return Object.values(experience).every((value) => !value.trim());
+}
+
+/** The first problem that would make the backend refuse the save, or "". */
+export function mentorProfileFormError(form: MentorProfileForm) {
+  const capacity = form.menteeCapacity;
+  if (
+    capacity !== null &&
+    (!Number.isInteger(capacity) || capacity < 1 || capacity > 50)
+  ) {
+    return "Mentee kapasitesi 1 ile 50 arasında olmalı.";
+  }
+  if (
+    form.experiences.some(
+      (experience) =>
+        !isBlankExperience(experience) && !experience.title.trim(),
+    )
+  ) {
+    return "Her deneyim için bir ünvan gir.";
+  }
+  return "";
 }
 
 export function useMentorProfileForm(profile: MentorProfile) {
   const { showToast } = useToast();
   const updateProfileMutation = useUpdateMentorProfile();
-  const [form, setForm] = useState<UpdateMentorProfilePayload>(() =>
+  const [form, setForm] = useState<MentorProfileForm>(() =>
     toEditablePayload(profile),
   );
   const [specialtyInput, setSpecialtyInput] = useState("");
@@ -97,10 +139,53 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const updateField = (
-    key: keyof UpdateMentorProfilePayload,
+    key: Exclude<
+      keyof UpdateMentorProfilePayload,
+      "specialties" | "menteeCapacity" | "experiences"
+    >,
     value: string,
   ) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const updateCapacity = (value: string) => {
+    setForm((previous) => ({
+      ...previous,
+      menteeCapacity: value.trim() ? Number(value) : null,
+    }));
+  };
+
+  const addExperience = () => {
+    setForm((previous) =>
+      previous.experiences.length >= MAX_EXPERIENCES
+        ? previous
+        : {
+            ...previous,
+            experiences: [...previous.experiences, EMPTY_EXPERIENCE],
+          },
+    );
+  };
+
+  const updateExperience = (
+    index: number,
+    field: keyof MentorExperienceInput,
+    value: string,
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      experiences: previous.experiences.map((experience, position) =>
+        position === index ? { ...experience, [field]: value } : experience,
+      ),
+    }));
+  };
+
+  const removeExperience = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      experiences: previous.experiences.filter(
+        (_, position) => position !== index,
+      ),
+    }));
   };
 
   const addSpecialty = () => {
@@ -123,8 +208,18 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const handleSave = async () => {
     setSaveError("");
     setSaveSuccess(false);
+    const problem = mentorProfileFormError(form);
+    if (problem) {
+      setSaveError(problem);
+      return;
+    }
     try {
-      await updateProfileMutation.mutateAsync(form);
+      await updateProfileMutation.mutateAsync({
+        ...form,
+        experiences: form.experiences.filter(
+          (experience) => !isBlankExperience(experience),
+        ),
+      });
       setSaveSuccess(true);
       showToast({ message: "Mentor profiliniz kaydedildi.", tone: "success" });
     } catch (error) {
@@ -143,6 +238,11 @@ export function useMentorProfileForm(profile: MentorProfile) {
     saveSuccess,
     isSaving: updateProfileMutation.isPending,
     updateField,
+    updateCapacity,
+    addExperience,
+    updateExperience,
+    removeExperience,
+    canAddExperience: form.experiences.length < MAX_EXPERIENCES,
     addSpecialty,
     removeSpecialty,
     handleSave,

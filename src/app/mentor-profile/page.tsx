@@ -297,6 +297,69 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 />
               </label>
             </Card>
+            <Card title="Kapasite ve deneyim">
+              <label className="block text-[11.5px] text-[#676e78]">
+                Aynı anda en fazla kaç mentee
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={form.form.menteeCapacity ?? ""}
+                  onChange={(event) => form.updateCapacity(event.target.value)}
+                  className="mt-1 block w-32 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]"
+                />
+              </label>
+              <div className="mt-4 space-y-3">
+                {form.form.experiences.map((experience, index) => (
+                  <fieldset
+                    key={index}
+                    className="grid gap-2 rounded-lg border border-[#e4e7ea] p-3 sm:grid-cols-2"
+                  >
+                    <legend className="sr-only">{index + 1}. deneyim</legend>
+                    {(
+                      [
+                        ["title", "Ünvan"],
+                        ["organization", "Kurum"],
+                        ["period", "Dönem"],
+                        ["summary", "Açıklama"],
+                      ] as const
+                    ).map(([field, label]) => (
+                      <label
+                        key={field}
+                        className="block text-[11.5px] text-[#676e78]"
+                      >
+                        {label}
+                        <input
+                          value={experience[field]}
+                          onChange={(event) =>
+                            form.updateExperience(
+                              index,
+                              field,
+                              event.target.value,
+                            )
+                          }
+                          className="mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]"
+                        />
+                      </label>
+                    ))}
+                    <button
+                      onClick={() => form.removeExperience(index)}
+                      className="justify-self-start text-xs text-[#a65a15]"
+                    >
+                      Deneyimi kaldır
+                    </button>
+                  </fieldset>
+                ))}
+                {form.canAddExperience ? (
+                  <button
+                    onClick={form.addExperience}
+                    className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
+                  >
+                    Deneyim ekle
+                  </button>
+                ) : null}
+              </div>
+            </Card>
             <Card title="Mentorluk konuları">
               <div className="flex flex-wrap gap-2">
                 {form.form.specialties.length === 0 ? (

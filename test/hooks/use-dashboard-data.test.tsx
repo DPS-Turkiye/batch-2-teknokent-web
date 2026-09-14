@@ -1,9 +1,12 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { renderHook } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { createTestQueryClient } from "@test/test-utils";
 
 const mockUseSession = vi.fn();
 const mockUseMeetings = vi.fn();
@@ -20,6 +23,18 @@ vi.mock("@/hooks/use-meetings", () => ({
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: () => mockUseMentorshipRequests(),
 }));
+
+vi.mock("@/lib/client/action-items", () => ({
+  getActionItems: vi.fn().mockResolvedValue([]),
+}));
+
+function wrapper({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={createTestQueryClient()}>
+      {children}
+    </QueryClientProvider>
+  );
+}
 
 function denizSession(): AppSession {
   return {
@@ -47,7 +62,7 @@ describe("useDashboardData", () => {
       isLoading: true,
     });
 
-    const { result } = renderHook(() => useDashboardData());
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
 
     expect(result.current.displayName).toBe("Deniz");
     expect(result.current.organizationName).toBe("GreenLoop");
@@ -69,7 +84,7 @@ describe("useDashboardData", () => {
       isLoading: true,
     });
 
-    const { result } = renderHook(() => useDashboardData());
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
 
     expect(result.current.displayName).toBe("");
     expect(result.current.organizationName).toBe("");
@@ -89,7 +104,7 @@ describe("useDashboardData", () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useDashboardData());
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
 
     expect(result.current.isFallback).toBe(true);
     expect(result.current.requests).toEqual([]);
@@ -134,7 +149,7 @@ describe("useDashboardData", () => {
       isLoading: false,
     });
 
-    const { result } = renderHook(() => useDashboardData());
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
 
     expect(result.current.isFallback).toBe(false);
     expect(result.current.requests).toHaveLength(1);

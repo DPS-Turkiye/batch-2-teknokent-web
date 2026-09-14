@@ -95,6 +95,10 @@ const updateField = vi.fn();
 const addSpecialty = vi.fn();
 const removeSpecialty = vi.fn();
 const setSpecialtyInput = vi.fn();
+const updateCapacity = vi.fn();
+const addExperience = vi.fn();
+const updateExperience = vi.fn();
+const removeExperience = vi.fn();
 const handleDeleteSlot = vi.fn();
 const handleAddSlot = vi.fn();
 const setSlotForm = vi.fn();
@@ -123,7 +127,18 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     o.profileQuery as unknown as ReturnType<typeof useMentorProfile>,
   );
   vi.mocked(useMentorProfileForm).mockReturnValue({
-    form: profile(),
+    form: {
+      ...profile(),
+      menteeCapacity: 6,
+      experiences: [
+        {
+          title: "METU Stars Mentoru",
+          organization: "",
+          period: "",
+          summary: "",
+        },
+      ],
+    },
     specialtyInput: "",
     setSpecialtyInput,
     saveError: "",
@@ -133,6 +148,11 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     addSpecialty,
     removeSpecialty,
     handleSave,
+    updateCapacity,
+    addExperience,
+    updateExperience,
+    removeExperience,
+    canAddExperience: true,
     ...(o.form as object),
   } as unknown as ReturnType<typeof useMentorProfileForm>);
   vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
@@ -338,5 +358,22 @@ describe("MentorProfilePage", () => {
     await user.click(screen.getByRole("button", { name: "Kapat" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("edits capacity and past roles through the form hook", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    render(<MentorProfilePage />);
+
+    const capacity = screen.getByLabelText("Aynı anda en fazla kaç mentee");
+    expect(capacity).toHaveValue(6);
+    expect(screen.getByDisplayValue("METU Stars Mentoru")).toBeInTheDocument();
+
+    await user.type(capacity, "0");
+    expect(updateCapacity).toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Deneyim ekle" }));
+    expect(addExperience).toHaveBeenCalled();
+    await user.click(screen.getByRole("button", { name: "Deneyimi kaldır" }));
+    expect(removeExperience).toHaveBeenCalledWith(0);
   });
 });

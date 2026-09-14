@@ -127,4 +127,60 @@ describe("MentorDetailView", () => {
       "/mentor-request/status?request=request-accepted#messages",
     );
   });
+
+  it("shows mentee load, stats, programs and past roles when the backend sends them", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+
+    renderWithQueryClient(
+      <MentorDetailView
+        mentor={{
+          ...mentorProfile,
+          menteeCapacity: 6,
+          activeMenteeCount: 4,
+          completedMentorshipCount: 28,
+          programNames: ["METU Stars"],
+          experiences: [
+            {
+              title: "Head of Product Design",
+              organization: "Looply",
+              period: "2022–2026",
+              summary: "B2B SaaS",
+            },
+          ],
+        }}
+        slots={[]}
+        startup={startup}
+      />,
+    );
+
+    expect(screen.getByText("4 / 6")).toBeInTheDocument();
+    expect(screen.getByText("28")).toBeInTheDocument();
+    expect(screen.getByText("tamamlanan mentorluk")).toBeInTheDocument();
+    expect(screen.getByText("Program · METU Stars")).toBeInTheDocument();
+    expect(
+      screen.getByText("Head of Product Design · Looply"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("2022–2026 · B2B SaaS")).toBeInTheDocument();
+    expect(screen.queryByText("Bu hafta müsait")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the title and availability when there are no stats", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+
+    renderWithQueryClient(
+      <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />,
+    );
+
+    expect(screen.getByText("Bu hafta müsait")).toBeInTheDocument();
+    expect(screen.queryByText("tamamlanan mentorluk")).not.toBeInTheDocument();
+    expect(
+      screen.getAllByText("Ürün & Araştırma Direktörü · Trendyol"),
+    ).not.toHaveLength(0);
+  });
 });

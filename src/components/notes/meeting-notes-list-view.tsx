@@ -6,6 +6,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { useMeetings } from "@/hooks/use-meetings";
 import { formatSlotDateTime } from "@/lib/format";
 import { AppArea } from "@/types/app-area";
+import { meetingNotebookHref } from "@/lib/startup-meetings";
 
 export function MeetingNotesListView() {
   const meetingsQuery = useMeetings();
@@ -33,7 +34,7 @@ export function MeetingNotesListView() {
             {meetings.map((meeting) => (
               <li key={meeting.id}>
                 <Link
-                  href={`/notes/${meeting.id}`}
+                  href={meetingNotebookHref(meeting.id)}
                   className="flex items-center gap-4 rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 hover:border-[#c7c2f7]"
                 >
                   <span className="min-w-0 flex-1">

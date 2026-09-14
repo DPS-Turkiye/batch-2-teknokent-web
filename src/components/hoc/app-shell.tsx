@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   Bot,
   CalendarDays,
@@ -32,6 +33,7 @@ import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
 interface AppShellProps {
+  menteeHome?: boolean;
   mentorHome?: boolean;
   active?: AppArea;
   actions?: ReactNode;
@@ -68,7 +70,10 @@ const MENTORS_NAV: NavigationItem = {
   icon: GraduationCap,
 };
 
-function buildNavigation(role?: UserRole): NavigationItem[] {
+function buildNavigation(
+  role?: UserRole,
+  menteeHome = false,
+): NavigationItem[] {
   if (role === UserRole.Admin) {
     return [
       {
@@ -117,7 +122,7 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
         icon: MessageCircle,
       },
     ];
-  return [
+  const menteeNavigation = [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
     MENTORS_NAV,
     {
@@ -132,24 +137,35 @@ function buildNavigation(role?: UserRole): NavigationItem[] {
       href: "/calendar",
       icon: CalendarDays,
     },
-    { id: AppArea.Startup, label: "Startup’ım", href: "/profile", icon: Star },
+    { id: AppArea.Startup, label: "Startup’ım", href: "/startup", icon: Star },
     {
       id: AppArea.Meetings,
       label: "Mesajlar",
-      href: "/mentor-request/status",
+      href: "/messages",
       icon: MessageCircle,
     },
     NOTES_NAV,
     ASSISTANT_NAV,
   ];
+  return menteeHome
+    ? [
+        { ...menteeNavigation[0], label: "Anasayfa" },
+        menteeNavigation[2],
+        menteeNavigation[3],
+        menteeNavigation[4],
+        menteeNavigation[5],
+      ]
+    : menteeNavigation;
 }
 
 function BrandBlock({
   href,
   mentor = false,
+  menteeHome = false,
 }: {
   href: string;
   mentor?: boolean;
+  menteeHome?: boolean;
 }) {
   return (
     <Link
@@ -157,6 +173,24 @@ function BrandBlock({
       className="flex items-center gap-2"
       aria-label="metual ana sayfa"
     >
+      {menteeHome ? (
+        <span className="relative h-[29px] w-14 shrink-0" aria-hidden>
+          <Image
+            src="/mentee-dashboard/revised/logo-blue.svg"
+            alt=""
+            width={56}
+            height={29}
+            className="absolute inset-0 size-full"
+          />
+          <Image
+            src="/mentee-dashboard/revised/logo-orange.svg"
+            alt=""
+            width={30}
+            height={29}
+            className="absolute left-[13px] top-0 h-[29px] w-[30px]"
+          />
+        </span>
+      ) : null}
       <span
         className={
           mentor
@@ -164,9 +198,9 @@ function BrandBlock({
             : "text-[22px] font-black tracking-[-0.08em] text-[#e5701d]"
         }
       >
-        {mentor ? "menton" : "metual"}
+        {mentor || menteeHome ? "menton" : "metual"}
       </span>
-      {!mentor ? (
+      {!mentor && !menteeHome ? (
         <>
           <span className="hidden h-4 w-px bg-[#e4e7ea] sm:block" />
           <span className="hidden text-[10px] font-medium leading-tight text-[#858c96] sm:block">
@@ -181,6 +215,7 @@ function BrandBlock({
 }
 
 export function AppShell({
+  menteeHome = false,
   mentorHome = false,
   active,
   actions,
@@ -204,7 +239,9 @@ export function AppShell({
   const isMentor = session?.role === UserRole.Mentor || mentorHome;
   const navigation = buildNavigation(
     isMentor ? UserRole.Mentor : session?.role,
+    menteeHome,
   );
+  const usesRevisedNav = isMentor || menteeHome;
   const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -217,19 +254,23 @@ export function AppShell({
 
   return (
     <div
-      className={`min-h-screen text-[#22262b] ${mentorHome ? "bg-white" : "bg-[#f8f9fa]"}`}
+      className={`min-h-screen text-[#22262b] ${mentorHome || menteeHome ? "bg-white" : "bg-[#f8f9fa]"}`}
     >
       <header
-        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${isMentor ? "mentor-nav" : "border-b border-[#e4e7ea]"}`}
+        className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${usesRevisedNav ? "mentor-nav" : "border-b border-[#e4e7ea]"}`}
       >
         <div
-          className={`mx-auto flex items-center gap-5 px-4 sm:px-8 ${isMentor ? "h-[106px] max-w-[1440px] justify-between sm:px-6" : "h-[72px] max-w-[1320px]"}`}
+          className={`mx-auto flex items-center gap-5 px-4 sm:px-8 ${usesRevisedNav ? "h-[106px] max-w-[1440px] justify-between sm:px-6" : "h-[72px] max-w-[1320px]"}`}
         >
-          <div className={isMentor ? "lg:w-[200px]" : undefined}>
-            <BrandBlock href={homeHref} mentor={isMentor} />
+          <div className={usesRevisedNav ? "lg:w-[200px]" : undefined}>
+            <BrandBlock
+              href={homeHref}
+              mentor={isMentor}
+              menteeHome={menteeHome}
+            />
           </div>
           <nav
-            className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${isMentor ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
+            className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${usesRevisedNav ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
             aria-label="Ana menü"
           >
             {navigation.map((item) => {
@@ -240,7 +281,7 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${isMentor ? "h-[42px] w-[160px] px-3" : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? "h-[42px] w-[160px] px-3" : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeHome ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
                   {item.label}
@@ -249,7 +290,7 @@ export function AppShell({
             })}
           </nav>
           <div
-            className={`ml-auto flex items-center gap-2 lg:ml-0 ${isMentor ? "lg:w-[200px] lg:justify-end" : ""}`}
+            className={`ml-auto flex items-center gap-2 lg:ml-0 ${usesRevisedNav ? "lg:w-[200px] lg:justify-end" : ""}`}
           >
             <NotificationMenu showBadge={showNotificationBadge} />
             <div className="relative hidden sm:block">
@@ -324,7 +365,11 @@ export function AppShell({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <BrandBlock href={homeHref} mentor={isMentor} />
+              <BrandBlock
+                href={homeHref}
+                mentor={isMentor}
+                menteeHome={menteeHome}
+              />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
