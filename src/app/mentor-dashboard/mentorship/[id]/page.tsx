@@ -8,6 +8,7 @@ import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { ActionItemsSection } from "@/components/mentorship/action-items-section";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
@@ -23,6 +24,7 @@ import {
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { formatDateTime } from "@/lib/utils";
+import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import { AppArea } from "@/types/app-area";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
@@ -177,7 +179,13 @@ export default function MentorshipTimelinePage() {
               />
               <div className="flex-1">
                 <h2 className="text-base font-bold text-zinc-900">
-                  {request.organizationName ?? "Girişim"}
+                  {request.organizationId ? (
+                    <StartupNameLink organizationId={request.organizationId}>
+                      {request.organizationName ?? "Girişim"}
+                    </StartupNameLink>
+                  ) : (
+                    (request.organizationName ?? "Girişim")
+                  )}
                 </h2>
                 <p className="mt-1 text-sm text-zinc-500">
                   {request.supportArea}
@@ -188,8 +196,11 @@ export default function MentorshipTimelinePage() {
               </Badge>
             </section>
 
-            {request.status === MentorshipRequestStatus.Accepted && session ? (
-              <section className="rounded-xl border border-zinc-200 bg-white p-5">
+            {mentorshipRequestAllowsMessaging(request.status) && session ? (
+              <section
+                id="messages"
+                className="rounded-xl border border-zinc-200 bg-white p-5"
+              >
                 <h3 className="text-sm font-bold text-zinc-900">Mesajlaşma</h3>
                 <div className="mt-4">
                   <ConversationThread

@@ -12,14 +12,22 @@ type DashboardData = ReturnType<
 
 const mockUseDashboardData = vi.fn<() => DashboardData>();
 
-vi.mock("@/hooks/use-dashboard-data", () => ({
-  useDashboardData: () => mockUseDashboardData(),
-}));
-
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
   ),
+}));
+
+vi.mock("@/components/dashboard/my-programs-panel", () => ({
+  MyProgramsPanel: () => (
+    <section aria-labelledby="home-programs-title">
+      <h2 id="home-programs-title">Programlarım</h2>
+    </section>
+  ),
+}));
+
+vi.mock("@/hooks/use-dashboard-data", () => ({
+  useDashboardData: () => mockUseDashboardData(),
 }));
 
 function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {

@@ -22,6 +22,7 @@ import {
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 import {
+  mentorRequestStartupHref,
   mentorWorkspaceName,
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
@@ -264,7 +265,10 @@ export function MentorRequestReviewDialog({
           </p>
         ) : null}
 
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mt-5 flex flex-wrap justify-end gap-2">
+          <SecondaryButton href={mentorRequestStartupHref(request.id)}>
+            Startup’ı görüntüle
+          </SecondaryButton>
           <SecondaryButton onClick={onClose}>Vazgeç</SecondaryButton>
           {mode === "propose" ? (
             <PrimaryButton

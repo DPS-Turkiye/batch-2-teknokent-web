@@ -1,9 +1,9 @@
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
-  isCalendarOriginRequest,
-  meetingCallHref as callHref,
-} from "@/lib/meeting-context";
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
+import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
 export function meetingsForRequest(
@@ -104,7 +104,7 @@ export function activeMentorshipHref(
   meeting: MeetingItem | null | undefined,
   viewerIsMentor: boolean,
 ) {
-  if (meeting && isCalendarOriginRequest(request)) {
+  if (meeting) {
     return meetingCallHref(meeting.id);
   }
   return viewerIsMentor
@@ -157,6 +157,25 @@ export function menteeRequestOwnerLabel(request: MentorshipRequest) {
 
 export function mentorRequestHref(id: string) {
   return `/mentor-dashboard/mentorship/${encodeURIComponent(id)}`;
+}
+
+export function mentorRequestMessagesHref(id: string) {
+  return `/mentor-dashboard/messages?request=${encodeURIComponent(id)}`;
+}
+
+export function mentorshipRequestAllowsMessaging(
+  status: MentorshipRequestStatus,
+) {
+  return (
+    status === MentorshipRequestStatus.Pending ||
+    status === MentorshipRequestStatus.MoreInfoRequested ||
+    status === MentorshipRequestStatus.CounterProposed ||
+    status === MentorshipRequestStatus.Accepted
+  );
+}
+
+export function mentorRequestStartupHref(id: string) {
+  return `/mentorships/requests/${encodeURIComponent(id)}`;
 }
 
 export function formatRequestSentAt(createdAt: string, now = new Date()) {

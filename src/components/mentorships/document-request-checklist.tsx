@@ -5,7 +5,10 @@ import { useRef, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
-import type { DocumentRequestScope } from "@/interfaces/document-request";
+import type {
+  DocumentRequestItem,
+  DocumentRequestScope,
+} from "@/interfaces/document-request";
 import {
   attachDocumentRequestUpload,
   deleteDocumentRequestUpload,
@@ -24,6 +27,50 @@ function formatBytes(size: number) {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${Math.round(size / 1024)} KB`;
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function primaryScope(
+  scope: DocumentRequestScope,
+): DocumentRequestScope | null {
+  if (scope.meetingId) return { meetingId: scope.meetingId };
+  if (scope.mentorshipRequestId) {
+    return { mentorshipRequestId: scope.mentorshipRequestId };
+  }
+  if (scope.mentorshipId) return { mentorshipId: scope.mentorshipId };
+  return null;
+}
+
+async function resolveChecklist(scope: DocumentRequestScope): Promise<{
+  items: DocumentRequestItem[];
+  activeScope: DocumentRequestScope;
+}> {
+  if (scope.meetingId) {
+    const meetingItems = await listDocumentRequests({
+      meetingId: scope.meetingId,
+    });
+    if (meetingItems.length > 0 || !scope.mentorshipRequestId) {
+      return {
+        items: meetingItems,
+        activeScope: { meetingId: scope.meetingId },
+      };
+    }
+  }
+  if (scope.mentorshipRequestId) {
+    return {
+      items: await listDocumentRequests({
+        mentorshipRequestId: scope.mentorshipRequestId,
+      }),
+      activeScope: { mentorshipRequestId: scope.mentorshipRequestId },
+    };
+  }
+  if (scope.mentorshipId) {
+    return {
+      items: await listDocumentRequests({ mentorshipId: scope.mentorshipId }),
+      activeScope: { mentorshipId: scope.mentorshipId },
+    };
+  }
+  const fallback = primaryScope(scope);
+  return { items: [], activeScope: fallback ?? {} };
 }
 
 export function DocumentRequestChecklist({
@@ -48,14 +95,18 @@ export function DocumentRequestChecklist({
   const queryKey = [...DOCUMENT_REQUESTS_QUERY_KEY, scope];
   const query = useQuery({
     queryKey,
-    queryFn: () => listDocumentRequests(scope),
+    queryFn: () => resolveChecklist(scope),
     enabled: Boolean(
       scope.meetingId || scope.mentorshipRequestId || scope.mentorshipId,
     ),
   });
 
+  const activeScope = query.data?.activeScope ?? primaryScope(scope) ?? scope;
+  const items = query.data?.items ?? [];
+
   const saveMutation = useMutation({
-    mutationFn: (titles: string[]) => replaceDocumentRequests(scope, titles),
+    mutationFn: (titles: string[]) =>
+      replaceDocumentRequests(activeScope, titles),
     onSuccess: async () => {
       setEditing(false);
       setError("");
@@ -66,7 +117,12 @@ export function DocumentRequestChecklist({
 
   const uploadMutation = useMutation({
     mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
-      const stored = await uploadDocument(file, "requested-doc");
+      const stored = await uploadDocument(
+        file,
+        "requested-doc",
+        undefined,
+        scope.meetingId,
+      );
       return attachDocumentRequestUpload(itemId, stored.id);
     },
     onSuccess: async () => {
@@ -86,7 +142,6 @@ export function DocumentRequestChecklist({
     onError: (caught: Error) => setError(caught.message),
   });
 
-  const items = query.data ?? [];
   const isMentor = session?.role === UserRole.Mentor;
 
   if (query.isLoading) {

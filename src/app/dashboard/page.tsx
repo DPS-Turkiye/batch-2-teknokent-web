@@ -1,6 +1,7 @@
 "use client";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { ActiveMentorships } from "@/components/mentee-home/active-mentorships";
 import { MeetingNotes } from "@/components/mentee-home/meeting-notes";
 import { NextMeetingHero } from "@/components/mentee-home/next-meeting-hero";
@@ -48,6 +49,7 @@ export default function DashboardPage() {
             />
           </div>
           <aside className="flex min-w-0 flex-col gap-6">
+            <MyProgramsPanel variant="mentee" />
             <SentRequests
               requests={data.sentRequests}
               loading={data.isLoading}

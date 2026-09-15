@@ -2,18 +2,43 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
-// jsdom has no layout, so its scrollTo logs "Not implemented" on every wizard
-// step change. Tests that assert on scrolling stub this with vi.stubGlobal.
 window.scrollTo = () => {};
+
+const originalGetComputedStyle = window.getComputedStyle.bind(window);
+
+function fallbackComputedStyle(): CSSStyleDeclaration {
+  return {
+    getPropertyValue(property: string) {
+      switch (property) {
+        case "font":
+          return "16px sans-serif";
+        case "font-size":
+          return "16px";
+        case "display":
+          return "block";
+        case "visibility":
+          return "visible";
+        case "content":
+          return "none";
+        default:
+          return "";
+      }
+    },
+  } as CSSStyleDeclaration;
+}
+
+window.getComputedStyle = ((element: Element, pseudoElt?: string | null) => {
+  try {
+    return originalGetComputedStyle(element, pseudoElt);
+  } catch {
+    return fallbackComputedStyle();
+  }
+}) as typeof window.getComputedStyle;
 
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
-  // Login persistence, Google Calendar tokens and the transcript-bot-sent
-  // flag still live in sessionStorage, which jsdom shares across tests.
   try {
     sessionStorage.clear();
-  } catch {
-    // Not every environment exposes storage; nothing to clear.
-  }
+  } catch {}
 });

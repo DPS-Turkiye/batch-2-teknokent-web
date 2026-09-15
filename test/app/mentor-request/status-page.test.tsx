@@ -31,9 +31,22 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/components/mentorships/document-request-checklist", () => ({
+  DocumentRequestChecklist: () => null,
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({
-    session: { userId: "requester-1", email: "mentee@teknokent.demo" },
+    session: {
+      userId: "requester-1",
+      email: "mentee@teknokent.demo",
+      role: "MENTEE",
+    },
+  }),
+  useAppSession: () => ({
+    userId: "requester-1",
+    email: "mentee@teknokent.demo",
+    role: "MENTEE",
   }),
 }));
 

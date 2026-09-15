@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
 
-import { listStoredDocuments } from "@/lib/api/documents";
+import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
@@ -14,10 +14,8 @@ function bearerToken(request: NextRequest) {
 }
 
 /**
- * Read-only. The upload that used to sit beside this now goes straight from the
- * browser to the backend, because this app's own edge blocks request bodies over
- * ~8KB. Listing is small JSON, so it still proxies — and a brand-new signup has
- * no session cookie yet, hence the bearer path alongside it.
+ * Read-only list still proxies. Upload prefers a direct browser→backend call
+ * (Amplify body limits); this POST is the local/network fallback.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -31,6 +29,24 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Belgeler yüklenemedi.",
+    });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const idToken = bearerToken(request);
+    if (!idToken) {
+      return Response.json(
+        { code: "UNAUTHORIZED", message: "Oturum gerekli." },
+        { status: 401 },
+      );
+    }
+    const formData = await request.formData();
+    return backendResponse(await uploadStoredDocument({ formData, idToken }));
+  } catch (error) {
+    return apiErrorResponse(error, {
+      message: "Belge yüklenemedi.",
     });
   }
 }

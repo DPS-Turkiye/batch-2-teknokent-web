@@ -12,6 +12,14 @@ export async function getOrganizationMembers() {
   );
 }
 
+export async function getOrganizationMembersById(organizationId: string) {
+  return requireSuccess(
+    await httpClient.get<OrganizationMember[]>(
+      `/api/organizations/${encodeURIComponent(organizationId)}/members`,
+    ),
+  );
+}
+
 export async function addOrganizationMember(input: OrganizationMemberInput) {
   return requireSuccess(
     await httpClient.post<OrganizationMember>(
