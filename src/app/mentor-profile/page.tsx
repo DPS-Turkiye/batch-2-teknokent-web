@@ -712,15 +712,10 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
 export default function MentorProfilePage() {
   const profileQuery = useMentorProfile();
-  const session = useAppSession();
 
   return (
     <AppShell mentorHome>
-      {session?.role && session.role !== UserRole.Mentor ? (
-        <p className="p-10 text-center text-sm text-[#a65a15]">
-          Bu sayfa yalnızca mentorlar içindir.
-        </p>
-      ) : profileQuery.isLoading ? (
+      {profileQuery.isLoading ? (
         <p className="p-10 text-center text-sm text-[#858c96]">Yükleniyor...</p>
       ) : profileQuery.error || !profileQuery.data ? (
         <p className="p-10 text-center text-sm text-[#a65a15]">
