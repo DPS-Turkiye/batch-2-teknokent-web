@@ -16,7 +16,7 @@ export const STARTUP_PROFILE_QUERY_KEY = ["startup-profile"] as const;
 /** The free-text fields, so the form can drive them all through one setter. */
 export type StartupProfileField = Exclude<
   keyof StartupProfileInput,
-  "supportAreas"
+  "supportAreas" | "fundingStage" | "foundedYear"
 >;
 
 function toDraft(profile: StartupProfile): StartupProfileInput {
@@ -32,6 +32,8 @@ function toDraft(profile: StartupProfile): StartupProfileInput {
     maturity: profile.maturity,
     programLevel: profile.programLevel,
     supportAreas: profile.supportAreas,
+    fundingStage: profile.fundingStage,
+    foundedYear: profile.foundedYear,
   };
 }
 

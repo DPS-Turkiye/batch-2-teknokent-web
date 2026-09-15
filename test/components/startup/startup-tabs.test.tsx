@@ -10,64 +10,51 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("StartupTabs", () => {
-  it("marks the tab for the current page", () => {
+  it("shows the four tabs in order and marks the current page", () => {
     mockPathname.mockReturnValue("/startup");
 
     render(<StartupTabs />);
 
-    const profile = screen.getByRole("link", { name: "Startup Profilim" });
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
+      ["Profil", "Süreç", "Dosyalar", "Ekip"],
+    );
+    const profile = screen.getByRole("link", { name: "Profil" });
     expect(profile).toHaveAttribute("href", "/startup");
     expect(profile).toHaveAttribute("aria-current", "page");
-    expect(profile).toHaveClass("text-[#e86f22]");
+    expect(profile).toHaveClass("text-[#9e4400]");
     expect(screen.getByRole("link", { name: "Süreç" })).not.toHaveAttribute(
       "aria-current",
     );
   });
 
-  it("selects Toplantılar on the meetings page", () => {
+  it("leaves Toplantılar out of the bar", () => {
     mockPathname.mockReturnValue("/startup/meetings");
 
     render(<StartupTabs />);
 
-    expect(screen.getByRole("link", { name: "Toplantılar" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-  });
-
-  it("selects Dosyalar on the files page", () => {
-    mockPathname.mockReturnValue("/startup/files");
-
-    render(<StartupTabs />);
-
-    expect(screen.getByRole("link", { name: "Dosyalar" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-  });
-
-  it("selects Ekip on the team page", () => {
-    mockPathname.mockReturnValue("/startup/team");
-
-    render(<StartupTabs />);
-
-    expect(screen.getByRole("link", { name: "Ekip" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
-  });
-
-  it("selects Süreç on the process page", () => {
-    mockPathname.mockReturnValue("/startup/process");
-
-    render(<StartupTabs />);
-
-    expect(screen.getByRole("link", { name: "Süreç" })).toHaveAttribute(
-      "aria-current",
-      "page",
-    );
     expect(
-      screen.getByRole("link", { name: "Startup Profilim" }),
-    ).not.toHaveAttribute("aria-current");
+      screen.queryByRole("link", { name: "Toplantılar" }),
+    ).not.toBeInTheDocument();
+    for (const link of screen.getAllByRole("link")) {
+      expect(link).not.toHaveAttribute("aria-current");
+    }
+  });
+
+  it.each([
+    ["/startup/process", "Süreç"],
+    ["/startup/files", "Dosyalar"],
+    ["/startup/team", "Ekip"],
+  ])("selects the tab for %s", (pathname, label) => {
+    mockPathname.mockReturnValue(pathname);
+
+    render(<StartupTabs />);
+
+    expect(screen.getByRole("link", { name: label })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("link", { name: "Profil" })).not.toHaveAttribute(
+      "aria-current",
+    );
   });
 });

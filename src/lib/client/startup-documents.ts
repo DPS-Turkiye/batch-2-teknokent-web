@@ -1,3 +1,4 @@
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import type {
   DocumentDownload,
   StartupDocument,
@@ -8,6 +9,14 @@ import { httpClient } from "@/lib/http-client";
 export async function getStartupDocuments() {
   return requireSuccess(
     await httpClient.get<StartupDocument[]>("/api/startup/documents"),
+  );
+}
+
+export async function getStartupDocumentRequests() {
+  return requireSuccess(
+    await httpClient.get<DocumentRequestItem[]>(
+      "/api/startup/document-requests",
+    ),
   );
 }
 

@@ -1,108 +1,126 @@
 "use client";
 
-import Image from "next/image";
-
-import { Avatar } from "@/components/common/avatar";
+import {
+  StartupPageFrame,
+  startupPrimaryActionClass,
+} from "@/components/startup/startup-page-frame";
 import {
   MemberFormDialog,
   RemoveMemberDialog,
 } from "@/components/startup/startup-team-dialogs";
 import { useStartupTeam } from "@/hooks/use-startup-team";
-import { formatLongDate, initials } from "@/lib/utils";
+import { formatShortDate, initials } from "@/lib/utils";
 
-const AVATAR_TONES = ["orange", "teal", "purple"] as const;
+const chipClass =
+  "rounded-full px-2.5 py-1 text-[11.5px] font-medium leading-[17px]";
+const rowLinkClass = "text-xs font-medium leading-[18px] hover:underline";
 
 export function StartupTeamView() {
   const team = useStartupTeam();
 
+  const addAction = (
+    <button
+      type="button"
+      onClick={team.openAdd}
+      className={startupPrimaryActionClass}
+    >
+      Ekip üyesi ekle
+    </button>
+  );
+
   if (team.isLoading) {
-    return <p className="py-10 text-sm text-[#858c96]">Ekip yükleniyor…</p>;
+    return (
+      <StartupPageFrame action={addAction}>
+        <p className="py-10 text-sm text-[#858c96]">Ekip yükleniyor…</p>
+      </StartupPageFrame>
+    );
   }
   if (team.error) {
     return (
-      <p
-        role="alert"
-        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-      >
-        {team.error.message}
-      </p>
+      <StartupPageFrame>
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {team.error.message}
+        </p>
+      </StartupPageFrame>
     );
   }
 
   return (
-    <div className="space-y-4 py-3">
+    <StartupPageFrame action={addAction}>
       <section
         aria-labelledby="startup-team-title"
-        className="space-y-4 rounded-[24px] bg-[#fff4ec] p-6"
+        className="space-y-3.5 rounded-xl border border-[#e4e7ea] bg-white px-[22px] py-5"
       >
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h2
-              id="startup-team-title"
-              className="text-2xl leading-8 text-[#22262b]"
-            >
-              Ekip
-            </h2>
-            <p className="text-sm text-[#858c96]">
-              {team.members.length} ekip üyesi
-            </p>
-          </div>
-          <button
-            type="button"
-            onClick={team.openAdd}
-            className="flex items-center gap-1.5 rounded-full bg-[#e86f22] px-4 py-2 text-sm text-white hover:bg-[#ce5e19]"
+        <div className="space-y-1">
+          <h2
+            id="startup-team-title"
+            className="text-[15px] font-semibold leading-[23px] text-[#22262b]"
           >
-            <Image src="/startup/plus-alt.svg" alt="" width={14} height={14} />
-            Ekip Üyesi Ekle
-          </button>
+            Ekip üyeleri
+          </h2>
+          <p className="text-[12.5px] leading-[19px] text-[#676e78]">
+            Ekip üyeleri startup profilinde ve mentorluk görüşmelerinde görünür.
+          </p>
         </div>
 
         {team.members.length === 0 ? (
           <p className="text-sm text-[#858c96]">Henüz ekip üyesi eklenmedi.</p>
         ) : (
-          <ul className="space-y-3">
-            {team.members.map((member, index) => (
+          <ul className="space-y-3.5">
+            {team.members.map((member) => (
               <li
                 key={member.id}
-                className="flex flex-wrap items-center gap-3 rounded-[24px] bg-white px-4 py-3"
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[#e4e7ea] px-4 py-3.5"
               >
-                <Avatar
-                  initials={initials(member.fullName) || "?"}
-                  tone={AVATAR_TONES[index % AVATAR_TONES.length]}
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="flex items-center gap-2 truncate text-sm text-[#22262b]">
-                    {member.fullName}
-                    {member.founder ? (
-                      <span className="rounded-full border border-[#fbe2d0] px-2 py-px text-[11px] text-[#e86f22]">
-                        Kurucu
-                      </span>
-                    ) : null}
-                  </p>
-                  <p className="truncate text-xs text-[#858c96]">
-                    {[member.jobTitle, member.email]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                </div>
-                {member.joinedAt ? (
-                  <span className="flex shrink-0 items-center gap-1 text-xs text-[#aeb4bc]">
-                    <Image
-                      src="/startup/calendar-bright.svg"
-                      alt=""
-                      width={14}
-                      height={14}
-                    />
-                    Katılım: {formatLongDate(member.joinedAt)}
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    aria-hidden
+                    className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-xs font-semibold text-[#9e4400]"
+                  >
+                    {initials(member.fullName) || "?"}
                   </span>
-                ) : null}
-                <div className="flex shrink-0 items-center gap-1">
+                  <div className="min-w-0">
+                    <p className="truncate text-[13.5px] font-medium leading-5 text-[#22262b]">
+                      {member.fullName}
+                    </p>
+                    <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
+                      {[member.jobTitle, member.founder ? "Kurucu" : null]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  <span className="w-[160px] truncate text-xs leading-[18px] text-[#858c96]">
+                    {member.email}
+                  </span>
+                  <span className="w-[150px] text-xs leading-[18px] text-[#858c96]">
+                    {member.joinedAt
+                      ? `Katılım: ${formatShortDate(member.joinedAt)}`
+                      : null}
+                  </span>
+                  {member.founder ? (
+                    <span
+                      className={`${chipClass} bg-[#fff4ec] text-[#9e4400]`}
+                    >
+                      Yönetici
+                    </span>
+                  ) : (
+                    <span
+                      className={`${chipClass} bg-[#f3f4f6] text-[#676e78]`}
+                    >
+                      Üye
+                    </span>
+                  )}
                   {team.canEdit(member) ? (
                     <button
                       type="button"
                       onClick={() => team.openEdit(member)}
                       aria-label={`${member.fullName} düzenle`}
-                      className="rounded-full border border-[#fff4ec] px-3 py-[5px] text-xs text-[#e86f22] transition hover:border-[#e86f22]"
+                      className={`${rowLinkClass} text-[#676e78]`}
                     >
                       Düzenle
                     </button>
@@ -112,14 +130,9 @@ export function StartupTeamView() {
                       type="button"
                       onClick={() => team.askRemove(member.id)}
                       aria-label={`${member.fullName} ekipten çıkar`}
-                      className="grid size-7 place-items-center rounded-md hover:bg-[#f8f9fa]"
+                      className={`${rowLinkClass} text-[#c24135]`}
                     >
-                      <Image
-                        src="/startup/trash.svg"
-                        alt=""
-                        width={16}
-                        height={16}
-                      />
+                      Çıkar
                     </button>
                   ) : null}
                 </div>
@@ -136,6 +149,6 @@ export function StartupTeamView() {
         onCancel={team.cancelRemove}
         onConfirm={team.confirmRemove}
       />
-    </div>
+    </StartupPageFrame>
   );
 }

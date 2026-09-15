@@ -19,6 +19,9 @@ export function documentFixture(
     meetingId: null,
     meetingAgenda: null,
     meetingScheduledAt: null,
+    reviewedAt: null,
+    reviewedById: null,
+    reviewedByName: null,
     shares: [],
     ...overrides,
   };

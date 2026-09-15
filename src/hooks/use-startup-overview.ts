@@ -3,28 +3,18 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 
+import { useMeetings } from "@/hooks/use-meetings";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
-import {
-  useDocumentUrl,
-  useStartupDocuments,
-} from "@/hooks/use-startup-documents";
+import { useStartupDocuments } from "@/hooks/use-startup-documents";
+import { useStartupHeader } from "@/hooks/use-startup-header";
 import { STARTUP_PROFILE_QUERY_KEY } from "@/hooks/use-startup-profile";
-import {
-  DocumentKind,
-  type StartupDocument,
-} from "@/interfaces/startup-document";
+import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { getStartupProfile } from "@/lib/client/organization";
-import { foundersFirst } from "@/lib/startup-team";
+import { activeMentorships } from "@/lib/startup-overview";
 
-const TEAM_PREVIEW_LIMIT = 3;
-const SHARED_PREVIEW_LIMIT = 5;
-
-// The backend lists documents newest first, so the first match is the latest.
-function latestOfKind(documents: StartupDocument[], kind: DocumentKind) {
-  return documents.find((document) => document.kind === kind) ?? null;
-}
-
-/** Everything the Startup Profilim tab shows, derived from live data. */
+/** Everything the Profil tab shows, derived from live data. */
 export function useStartupOverview() {
   const profileQuery = useQuery({
     queryKey: STARTUP_PROFILE_QUERY_KEY,
@@ -32,30 +22,23 @@ export function useStartupOverview() {
   });
   const membersQuery = useOrganizationMembers();
   const documentsQuery = useStartupDocuments();
+  const requestsQuery = useMentorshipRequests(UserRole.Mentee);
+  const meetingsQuery = useMeetings();
+  const header = useStartupHeader();
 
-  const documents = useMemo(
-    () => documentsQuery.data ?? [],
+  // The backend lists documents newest first, so the first canvas is the latest.
+  const canvas = useMemo(
+    () =>
+      (documentsQuery.data ?? []).find(
+        (document) => document.kind === DocumentKind.Canvas,
+      ) ?? null,
     [documentsQuery.data],
   );
-  const canvas = useMemo(
-    () => latestOfKind(documents, DocumentKind.Canvas),
-    [documents],
-  );
-  const logo = useMemo(
-    () => latestOfKind(documents, DocumentKind.Logo),
-    [documents],
-  );
-  const logoQuery = useDocumentUrl(logo?.id);
-  const sharedDocuments = useMemo(
-    () =>
-      documents
-        .filter((document) => document.shares.length > 0)
-        .slice(0, SHARED_PREVIEW_LIMIT),
-    [documents],
-  );
-  const team = useMemo(
-    () => foundersFirst(membersQuery.data ?? []).slice(0, TEAM_PREVIEW_LIMIT),
-    [membersQuery.data],
+  // Not memoized: which meeting is next depends on the clock, not only on the data.
+  const mentorships = activeMentorships(
+    requestsQuery.data ?? [],
+    meetingsQuery.data ?? [],
+    new Date(),
   );
 
   return {
@@ -63,10 +46,11 @@ export function useStartupOverview() {
     documentsLoading: documentsQuery.isLoading,
     error: profileQuery.error,
     isLoading: profileQuery.isLoading,
-    logoUrl: logoQuery.data?.url ?? null,
+    mentorships,
+    mentorshipsLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
     profile: profileQuery.data ?? null,
-    sharedDocuments,
-    team,
-    teamLoading: membersQuery.isLoading,
+    programName: header.programName,
+    stageName: header.stageName,
+    teamSize: membersQuery.data?.length ?? null,
   };
 }

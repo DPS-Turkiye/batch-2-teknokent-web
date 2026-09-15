@@ -1,17 +1,36 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProfileView } from "@/components/startup/startup-profile-view";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
-import type { StartupProfile } from "@/interfaces/organization";
 import {
-  DocumentKind,
-  type StartupDocument,
-} from "@/interfaces/startup-document";
+  type StartupProfile,
+  StartupFundingStage,
+} from "@/interfaces/organization";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { documentFixture } from "@test/fixtures/startup-files";
 import { renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("@/components/startup/startup-page-frame", () => ({
+  StartupPageFrame: ({
+    action,
+    children,
+  }: {
+    action?: ReactNode;
+    children: ReactNode;
+  }) => (
+    <div>
+      {action}
+      {children}
+    </div>
+  ),
+  startupPrimaryActionClass: "",
+  startupSecondaryActionClass: "",
+}));
 
 vi.mock("@/hooks/use-startup-overview", () => ({
   useStartupOverview: vi.fn(),
@@ -32,68 +51,59 @@ const profile: StartupProfile = {
   id: "org-1",
   name: "Döngü",
   description: "Gönüllülerle sosyal girişimleri buluşturur.",
-  website: null,
+  website: "dongu.app",
   problem: null,
   solution: null,
   currentSolution: null,
   targetUser: null,
-  sector: null,
-  maturity: "MVP yayında",
+  sector: "Sosyal etki · Gönüllülük",
+  maturity: "MVP Hazır",
   programLevel: null,
   supportAreas: [],
   statusVersion: "v0.9.2",
   statusSummary: "Öğretmen modülü geliştirme aşamasında.",
   completionPercent: 72,
+  fundingStage: StartupFundingStage.PreSeed,
+  foundedYear: 2026,
   createdAt: "2026-06-12T09:00:00Z",
   updatedAt: "2026-09-02T09:00:00Z",
 };
-
-function document(id: string, kind: DocumentKind): StartupDocument {
-  return {
-    id,
-    kind,
-    originalFilename: `${id}.pdf`,
-    contentType: "application/pdf",
-    sizeBytes: 1024,
-    createdAt: "2026-09-02T12:00:00Z",
-    uploadedById: "user-1",
-    uploadedByName: "Gülse Buran",
-    meetingId: null,
-    meetingAgenda: null,
-    meetingScheduledAt: null,
-    shares: [],
-  };
-}
 
 type Overview = ReturnType<typeof useStartupOverview>;
 
 function overview(overrides: Partial<Overview> = {}): Overview {
   return {
-    canvas: document("canvas-1", DocumentKind.Canvas),
+    canvas: documentFixture("canvas-1", {
+      kind: DocumentKind.Canvas,
+      originalFilename: "dongu-canvas-v2.pdf",
+      createdAt: "2026-09-02T12:00:00Z",
+    }),
     documentsLoading: false,
     error: null,
     isLoading: false,
-    logoUrl: null,
-    profile,
-    sharedDocuments: [document("pitch-deck", DocumentKind.PitchDeck)],
-    team: [
+    mentorships: [
       {
-        id: "u-1",
-        email: "gulse@dongu.app",
-        fullName: "Gülse Buran",
-        role: "MENTEE",
-        jobTitle: "Product Designer",
-        founder: true,
+        id: "r-1",
+        mentorName: "Nihan Öztürk",
+        supportArea: "Ürün konumlandırma",
+        heldSessions: 3,
+        plannedSessions: 6,
+        nextMeetingAt: "2026-08-30T09:00:00Z",
       },
       {
-        id: "u-2",
-        email: "sude@dongu.app",
-        fullName: "Sude Arya",
-        role: "MENTEE",
-        jobTitle: "Developer",
+        id: "r-2",
+        mentorName: "Selin Kaya",
+        supportArea: "Yatırım turu hazırlığı",
+        heldSessions: 2,
+        plannedSessions: null,
+        nextMeetingAt: null,
       },
     ],
-    teamLoading: false,
+    mentorshipsLoading: false,
+    profile,
+    programName: "METU Stars 2026",
+    stageName: "MVP",
+    teamSize: 4,
     ...overrides,
   };
 }
@@ -115,68 +125,75 @@ describe("StartupProfileView", () => {
     vi.mocked(useStartupOverview).mockReturnValue(overview());
   });
 
-  it("links the team and shared files to their tabs", () => {
+  it("shows the description and the product status with its progress", () => {
     renderWithQueryClient(<StartupProfileView />);
 
     expect(
-      screen.getByRole("link", { name: "Ekibi Görüntüle →" }),
-    ).toHaveAttribute("href", "/startup/team");
-    expect(screen.getByRole("link", { name: "Tümünü Gör →" })).toHaveAttribute(
-      "href",
-      "/startup/files",
-    );
-  });
-
-  it("shows the startup with its status and progress", () => {
-    renderWithQueryClient(<StartupProfileView />);
-
-    expect(screen.getByRole("heading", { name: "Döngü" })).toBeInTheDocument();
+      screen.getByRole("link", { name: "Profili düzenle" }),
+    ).toHaveAttribute("href", "/profile");
+    const about = screen.getByRole("region", { name: "Startup hakkında" });
     expect(
-      screen.getByText("Gönüllülerle sosyal girişimleri buluşturur."),
+      within(about).getByText("Gönüllülerle sosyal girişimleri buluşturur."),
     ).toBeInTheDocument();
-    expect(screen.getByText("MVP yayında")).toBeInTheDocument();
-    expect(screen.getByText("v0.9.2")).toBeInTheDocument();
-    expect(screen.getByText("%72 tamamlandı")).toBeInTheDocument();
-    expect(screen.getByRole("progressbar")).toHaveAttribute(
+    const status = screen.getByRole("region", { name: "Ürün durumu" });
+    expect(within(status).getByText("MVP Hazır")).toBeInTheDocument();
+    expect(
+      within(status).getByText("v0.9.2 · son güncelleme 2 Eylül 2026"),
+    ).toBeInTheDocument();
+    expect(within(status).getByText("%72")).toBeInTheDocument();
+    expect(within(status).getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "72",
     );
-    expect(
-      screen.getByRole("link", { name: /Profili Düzenle/ }),
-    ).toHaveAttribute("href", "/profile");
   });
 
-  it("opens the canvas and shared files through a signed link", async () => {
+  it("fills the Künye from the profile, the program, the stage and the team", () => {
+    renderWithQueryClient(<StartupProfileView />);
+
+    const facts = screen.getByRole("region", { name: "Künye" });
+    const value = (label: string) =>
+      within(facts).getByText(label).nextElementSibling;
+    expect(value("Kuruluş")).toHaveTextContent("2026");
+    expect(value("Aşama")).toHaveTextContent("MVP · Pre-seed");
+    expect(value("Sektör")).toHaveTextContent("Sosyal etki · Gönüllülük");
+    expect(value("Program")).toHaveTextContent("METU Stars 2026");
+    expect(value("Web")).toHaveTextContent("dongu.app");
+    expect(value("Ekip")).toHaveTextContent("4 kişi");
+  });
+
+  it("lists active mentorships with their sessions and next meeting", () => {
+    renderWithQueryClient(<StartupProfileView />);
+
+    const mentorships = screen.getByRole("region", {
+      name: "Aktif mentorlukların",
+    });
+    expect(
+      within(mentorships).getByText(
+        "Ürün konumlandırma · 3 / 6 seans · sonraki 30 Ağu",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(mentorships).getByText("Yatırım turu hazırlığı · 2 seans"),
+    ).toBeInTheDocument();
+    expect(
+      within(mentorships).getByRole("link", { name: "Mentorluklarım →" }),
+    ).toHaveAttribute("href", "/mentorships");
+  });
+
+  it("opens the canvas through a signed link and the status form", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<StartupProfileView />);
 
-    const canvas = screen.getByRole("region", { name: "Canvas" });
+    const canvas = screen.getByRole("region", {
+      name: "Business Model Canvas",
+    });
     expect(
-      within(canvas).getByText(/Son güncelleme: 2 Eylül 2026/),
+      within(canvas).getByText("Son güncelleme 2 Eylül 2026 · Gülse Buran"),
     ).toBeInTheDocument();
     await user.click(within(canvas).getByRole("button", { name: "Görüntüle" }));
-    await user.click(screen.getByRole("button", { name: /pitch-deck\.pdf/ }));
+    await user.click(screen.getByRole("button", { name: "Güncelle" }));
 
-    expect(openDocument).toHaveBeenNthCalledWith(1, "canvas-1");
-    expect(openDocument).toHaveBeenNthCalledWith(2, "pitch-deck");
-  });
-
-  it("labels the founder in the team preview", () => {
-    renderWithQueryClient(<StartupProfileView />);
-
-    const team = screen.getByRole("region", { name: "Ekip" });
-    expect(
-      within(team).getByText("Product Designer · Kurucu"),
-    ).toBeInTheDocument();
-    expect(within(team).getByText("Developer")).toBeInTheDocument();
-  });
-
-  it("opens the status form", async () => {
-    const user = userEvent.setup();
-    renderWithQueryClient(<StartupProfileView />);
-
-    await user.click(screen.getByRole("button", { name: "Durumu güncelle" }));
-
+    expect(openDocument).toHaveBeenCalledWith("canvas-1");
     expect(openStatus).toHaveBeenCalled();
   });
 
@@ -184,44 +201,37 @@ describe("StartupProfileView", () => {
     vi.mocked(useStartupOverview).mockReturnValue(
       overview({
         canvas: null,
+        mentorships: [],
+        programName: null,
+        stageName: null,
+        teamSize: null,
         profile: {
           ...profile,
+          description: null,
           maturity: null,
-          statusVersion: null,
           statusSummary: null,
           completionPercent: null,
+          fundingStage: null,
+          foundedYear: null,
         },
-        sharedDocuments: [],
-        team: [],
       }),
     );
 
     renderWithQueryClient(<StartupProfileView />);
 
-    expect(screen.getByText("Aşama belirtilmedi")).toBeInTheDocument();
     expect(
-      screen.getByText("Henüz bir durum güncellemesi eklenmedi."),
+      screen.getByText("Henüz bir tanıtım yazısı eklenmedi."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Aşama belirtilmedi")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
     expect(
       screen.getByText("Henüz bir kanvas yüklenmedi."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Henüz ekip üyesi eklenmedi.")).toBeInTheDocument();
     expect(
-      screen.getByText("Henüz mentorlarla paylaşılan bir dosya yok."),
+      screen.getByText("Henüz aktif bir mentorluğun yok."),
     ).toBeInTheDocument();
-  });
-
-  it("shows the logo once it is signed", () => {
-    vi.mocked(useStartupOverview).mockReturnValue(
-      overview({ logoUrl: "https://bucket.s3/logo.png?sig" }),
-    );
-
-    renderWithQueryClient(<StartupProfileView />);
-
-    expect(screen.getByRole("img", { name: "Döngü logosu" })).toHaveStyle({
-      backgroundImage: 'url("https://bucket.s3/logo.png?sig")',
-    });
+    const facts = screen.getByRole("region", { name: "Künye" });
+    expect(within(facts).getAllByText("—")).toHaveLength(4);
   });
 
   it("reports a profile that could not be loaded", () => {
@@ -248,7 +258,7 @@ describe("StartupProfileView", () => {
 
     expect(screen.getByText("Startup profili yükleniyor…")).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { name: "Döngü" }),
+      screen.queryByRole("region", { name: "Künye" }),
     ).not.toBeInTheDocument();
   });
 });

@@ -3,7 +3,10 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProfileSection } from "@/components/profile/startup-profile-section";
-import type { StartupProfile } from "@/interfaces/organization";
+import {
+  type StartupProfile,
+  StartupFundingStage,
+} from "@/interfaces/organization";
 import {
   getStartupProfile,
   saveStartupProfile,
@@ -29,6 +32,8 @@ function profile(overrides: Partial<StartupProfile> = {}): StartupProfile {
     maturity: "MVP",
     programLevel: null,
     supportAreas: ["Finans"],
+    fundingStage: null,
+    foundedYear: null,
     createdAt: "2026-09-01T12:00:00Z",
     updatedAt: "2026-09-03T09:00:00Z",
     ...overrides,
@@ -135,5 +140,34 @@ describe("StartupProfileSection", () => {
       await screen.findByText("Startup profile could not be saved."),
     ).toBeInTheDocument();
     expect(screen.queryByText("Kaydedildi")).not.toBeInTheDocument();
+  });
+
+  it("saves a founding year and a funding stage", async () => {
+    vi.mocked(saveStartupProfile).mockResolvedValue(
+      profile({ foundedYear: 2025, fundingStage: StartupFundingStage.Seed }),
+    );
+    const user = userEvent.setup();
+    render(<StartupProfileSection />);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Kuruluş yılı alanını düzenle",
+      }),
+    );
+    await user.type(screen.getByLabelText("Kuruluş yılı"), "2025");
+    await user.selectOptions(screen.getByLabelText("Yatırım aşaması"), "Seed");
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    );
+
+    await waitFor(() =>
+      expect(vi.mocked(saveStartupProfile)).toHaveBeenCalledWith(
+        expect.objectContaining({
+          foundedYear: 2025,
+          fundingStage: StartupFundingStage.Seed,
+        }),
+        expect.anything(),
+      ),
+    );
   });
 });

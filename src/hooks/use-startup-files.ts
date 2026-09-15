@@ -1,27 +1,35 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import {
   STARTUP_DOCUMENTS_QUERY_KEY,
   useStartupDocuments,
 } from "@/hooks/use-startup-documents";
+import { useStartupHeader } from "@/hooks/use-startup-header";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import {
   deleteDocument,
+  getStartupDocumentRequests,
   shareDocument,
   unshareDocument,
 } from "@/lib/client/startup-documents";
 import {
-  meetingFiles,
-  sharedFileRows,
+  buildStartupFileRows,
+  countRowsByFilter,
+  pendingRequestNotice,
+  rowsForFilter,
   StartupFileFilter,
-  startupFiles,
 } from "@/lib/startup-files";
+
+export const STARTUP_DOCUMENT_REQUESTS_QUERY_KEY = [
+  "startup-document-requests",
+] as const;
 
 export type ShareableMentor = { id: string; name: string };
 
@@ -29,12 +37,18 @@ function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
 
-/** The Dosyalar tab: its three lists, the filter, sharing and deleting. */
+/** The Dosyalar tab: the file table, its filters, sharing and deleting. */
 export function useStartupFiles() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const documentsQuery = useStartupDocuments();
-  const requestsQuery = useMentorshipRequests(UserRole.Mentee);
+  const documentRequestsQuery = useQuery({
+    queryKey: STARTUP_DOCUMENT_REQUESTS_QUERY_KEY,
+    queryFn: getStartupDocumentRequests,
+  });
+  const membersQuery = useOrganizationMembers();
+  const mentorshipRequestsQuery = useMentorshipRequests(UserRole.Mentee);
+  const { programName } = useStartupHeader();
   const [filter, setFilter] = useState(StartupFileFilter.All);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -43,18 +57,32 @@ export function useStartupFiles() {
     () => documentsQuery.data ?? [],
     [documentsQuery.data],
   );
-  const sections = useMemo(
-    () => ({
-      meeting: meetingFiles(documents),
-      shared: sharedFileRows(documents),
-      startup: startupFiles(documents),
-    }),
-    [documents],
+  const documentRequests = useMemo(
+    () => documentRequestsQuery.data ?? [],
+    [documentRequestsQuery.data],
+  );
+  const allRows = useMemo(
+    () =>
+      buildStartupFileRows({
+        documents,
+        requests: documentRequests,
+        teamMemberIds: new Set(
+          (membersQuery.data ?? []).map((member) => member.id),
+        ),
+        programName,
+      }),
+    [documents, documentRequests, membersQuery.data, programName],
+  );
+  const rows = useMemo(() => rowsForFilter(allRows, filter), [allRows, filter]);
+  const counts = useMemo(() => countRowsByFilter(allRows), [allRows]);
+  const pendingNotice = useMemo(
+    () => pendingRequestNotice(documentRequests),
+    [documentRequests],
   );
   // Only mentors the startup is working with can be sent a file.
   const mentors = useMemo(() => {
     const accepted = new Map<string, string>();
-    for (const request of requestsQuery.data ?? []) {
+    for (const request of mentorshipRequestsQuery.data ?? []) {
       if (request.status === MentorshipRequestStatus.Accepted) {
         accepted.set(request.mentorId, request.mentorName);
       }
@@ -63,7 +91,7 @@ export function useStartupFiles() {
       id,
       name,
     }));
-  }, [requestsQuery.data]);
+  }, [mentorshipRequestsQuery.data]);
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: STARTUP_DOCUMENTS_QUERY_KEY });
@@ -127,16 +155,23 @@ export function useStartupFiles() {
     confirmDelete: () => {
       if (deletingId) remove.mutate(deletingId);
     },
+    counts,
     deletingDocument:
       documents.find((document) => document.id === deletingId) ?? null,
-    error: documentsQuery.error,
+    // Without the team, the startup's own files would read as a mentor's.
+    error:
+      documentsQuery.error ?? documentRequestsQuery.error ?? membersQuery.error,
     filter,
     isDeleting: remove.isPending,
-    isLoading: documentsQuery.isLoading,
+    isLoading:
+      documentsQuery.isLoading ||
+      documentRequestsQuery.isLoading ||
+      membersQuery.isLoading,
     isSharing: share.isPending || unshare.isPending,
     mentors,
     openShare: setSharingId,
-    sections,
+    pendingNotice,
+    rows,
     setFilter,
     shareWith: (mentorId: string) => {
       if (sharingId) share.mutate({ documentId: sharingId, mentorId });

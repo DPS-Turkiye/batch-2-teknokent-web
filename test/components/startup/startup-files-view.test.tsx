@@ -1,41 +1,80 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupFilesView } from "@/components/startup/startup-files-view";
 import { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
-import { DocumentKind } from "@/interfaces/startup-document";
 import {
-  meetingFiles,
-  sharedFileRows,
   StartupFileFilter,
-  startupFiles,
+  type StartupFileRow,
+  StartupFileStatus,
 } from "@/lib/startup-files";
 import { documentFixture } from "@test/fixtures/startup-files";
 import { renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("@/components/startup/startup-page-frame", () => ({
+  StartupPageFrame: ({
+    action,
+    children,
+  }: {
+    action?: ReactNode;
+    children: ReactNode;
+  }) => (
+    <div>
+      {action}
+      {children}
+    </div>
+  ),
+  startupPrimaryActionClass: "",
+  startupSecondaryActionClass: "",
+}));
 vi.mock("@/hooks/use-startup-files", () => ({ useStartupFiles: vi.fn() }));
 vi.mock("@/hooks/use-file-upload-form", () => ({ useFileUploadForm: vi.fn() }));
 vi.mock("@/hooks/use-startup-documents", () => ({ useOpenDocument: vi.fn() }));
 
-const deck = documentFixture("Pitch_Deck_v3", {
-  shares: [
-    {
-      mentorId: "m-1",
-      mentorName: "Nihan Öztürk",
-      sharedAt: "2026-09-05T09:00:00Z",
-    },
-  ],
-});
-const meetingFile = documentFixture("mvp-notes", {
-  kind: DocumentKind.MeetingFile,
-  meetingId: "meeting-1",
-  meetingAgenda: "MVP Scope & User Flow",
-  meetingScheduledAt: "2026-08-18T09:00:00Z",
-});
-const documents = [deck, meetingFile];
+const deck = documentFixture("Pitch_Deck_v3");
+
+const rows: StartupFileRow[] = [
+  {
+    key: "document:Pitch_Deck_v3",
+    filters: [StartupFileFilter.Startup],
+    title: "Pitch_Deck_v3.pdf",
+    sizeBytes: 2_400_000,
+    documentId: "Pitch_Deck_v3",
+    source: "Gülse Buran yükledi",
+    related: "Startup dokümanı",
+    date: "2026-09-12T12:00:00Z",
+    status: StartupFileStatus.Current,
+    ownDocument: deck,
+  },
+  {
+    key: "request:deck",
+    filters: [StartupFileFilter.Program, StartupFileFilter.Pending],
+    title: "pitch-deck-v3.pdf",
+    sizeBytes: null,
+    documentId: null,
+    source: "METU Stars istedi",
+    related: "Demo Day hazırlığı",
+    date: "2026-08-20T09:00:00Z",
+    status: StartupFileStatus.Waiting,
+    ownDocument: null,
+  },
+  {
+    key: "document:notes",
+    filters: [StartupFileFilter.Mentorship],
+    title: "arastirma-notlari.pdf",
+    sizeBytes: 820_000,
+    documentId: "notes",
+    source: "Nihan Öztürk paylaştı",
+    related: "Ürün konumlandırma · 16 Ağu görüşmesi",
+    date: "2026-08-16T09:00:00Z",
+    status: StartupFileStatus.FromMentor,
+    ownDocument: null,
+  },
+];
 
 type Files = ReturnType<typeof useStartupFiles>;
 
@@ -45,6 +84,13 @@ function state(overrides: Partial<Files> = {}): Files {
     cancelDelete: vi.fn(),
     closeShare: vi.fn(),
     confirmDelete: vi.fn(),
+    counts: {
+      [StartupFileFilter.All]: 3,
+      [StartupFileFilter.Mentorship]: 1,
+      [StartupFileFilter.Program]: 1,
+      [StartupFileFilter.Startup]: 1,
+      [StartupFileFilter.Pending]: 1,
+    },
     deletingDocument: null,
     error: null,
     filter: StartupFileFilter.All,
@@ -53,11 +99,9 @@ function state(overrides: Partial<Files> = {}): Files {
     isSharing: false,
     mentors: [],
     openShare: vi.fn(),
-    sections: {
-      meeting: meetingFiles(documents),
-      shared: sharedFileRows(documents),
-      startup: startupFiles(documents),
-    },
+    pendingNotice:
+      "“pitch-deck-v3.pdf” METU Stars tarafından talep edildi, henüz yüklenmedi. Son tarih 28 Ağustos 2026.",
+    rows,
     setFilter: vi.fn(),
     shareWith: vi.fn(),
     sharingDocument: null,
@@ -77,58 +121,67 @@ describe("StartupFilesView", () => {
     vi.clearAllMocks();
     vi.mocked(useOpenDocument).mockReturnValue(openDocument);
     vi.mocked(useFileUploadForm).mockReturnValue(uploadForm);
-  });
-
-  it("shows the three lists with their details", () => {
     vi.mocked(useStartupFiles).mockReturnValue(state());
+  });
+
+  it("shows every file with its source, context, date and status", () => {
     renderWithQueryClient(<StartupFilesView />);
 
-    const own = screen.getByRole("region", { name: "Startup Dosyalarım" });
+    const [, own, pending, fromMentor] = screen.getAllByRole("row");
     expect(within(own).getByText("Pitch_Deck_v3.pdf")).toBeInTheDocument();
-    expect(
-      within(own).getByText("PDF · 2.3 MB · 12 Eyl 2026"),
-    ).toBeInTheDocument();
-
-    const shared = screen.getByRole("region", {
-      name: "Mentorlarla Paylaşılan Dosyalar",
-    });
-    expect(within(shared).getByText(/Nihan Öztürk/)).toBeInTheDocument();
-    expect(within(shared).getByText("Paylaşıldı")).toBeInTheDocument();
-
-    const meetings = screen.getByRole("region", { name: "Toplantı Dosyaları" });
-    expect(
-      within(meetings).getByText("MVP Scope & User Flow"),
-    ).toBeInTheDocument();
-    expect(within(meetings).getByText("18 Ağustos 2026")).toBeInTheDocument();
-  });
-
-  it("shows only the chosen list and changes the filter", async () => {
-    const user = userEvent.setup();
-    const files = state({ filter: StartupFileFilter.Meeting });
-    vi.mocked(useStartupFiles).mockReturnValue(files);
-    renderWithQueryClient(<StartupFilesView />);
-
-    expect(screen.getByRole("button", { name: "Toplantı" })).toHaveAttribute(
-      "aria-pressed",
-      "true",
+    expect(within(own).getByText("2.3 MB")).toBeInTheDocument();
+    expect(within(own).getByText("Gülse Buran yükledi")).toBeInTheDocument();
+    expect(within(own).getByText("Startup dokümanı")).toBeInTheDocument();
+    expect(within(own).getByText("12 Eyl")).toBeInTheDocument();
+    expect(within(own).getByText("Güncel")).toBeInTheDocument();
+    expect(within(pending).getByText("Henüz yüklenmedi")).toBeInTheDocument();
+    expect(within(pending).getByText("Bekliyor")).toBeInTheDocument();
+    expect(within(fromMentor).getByText("Mentordan geldi")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Son tarih 28 Ağustos 2026.",
     );
-    expect(
-      screen.queryByRole("region", { name: "Startup Dosyalarım" }),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getByRole("region", { name: "Toplantı Dosyaları" }),
-    ).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: "Profil" }));
-    expect(files.setFilter).toHaveBeenCalledWith(StartupFileFilter.Profile);
   });
 
-  it("opens, shares and deletes from a file's menu", async () => {
+  it("marks the chosen filter with its count and changes it", async () => {
     const user = userEvent.setup();
     const files = state();
     vi.mocked(useStartupFiles).mockReturnValue(files);
     renderWithQueryClient(<StartupFilesView />);
 
+    expect(screen.getByRole("button", { name: "Tümü (3)" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Bekleyen talep (1)" }),
+    );
+
+    expect(files.setFilter).toHaveBeenCalledWith(StartupFileFilter.Pending);
+  });
+
+  it("opens an uploaded file from its name but not a file still to come", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<StartupFilesView />);
+
+    await user.click(
+      screen.getByRole("button", { name: "arastirma-notlari.pdf" }),
+    );
+
+    expect(openDocument).toHaveBeenCalledWith("notes");
+    expect(
+      screen.queryByRole("button", { name: "pitch-deck-v3.pdf" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("opens, shares and deletes only the startup's own files from their menu", async () => {
+    const user = userEvent.setup();
+    const files = state();
+    vi.mocked(useStartupFiles).mockReturnValue(files);
+    renderWithQueryClient(<StartupFilesView />);
+
+    expect(screen.getAllByRole("button", { name: /işlemleri$/ })).toHaveLength(
+      1,
+    );
     const menu = screen.getByRole("button", {
       name: "Pitch_Deck_v3.pdf işlemleri",
     });
@@ -147,33 +200,26 @@ describe("StartupFilesView", () => {
 
   it("opens the upload dialog", async () => {
     const user = userEvent.setup();
-    vi.mocked(useStartupFiles).mockReturnValue(state());
     renderWithQueryClient(<StartupFilesView />);
 
-    await user.click(screen.getByRole("button", { name: "Dosya Yükle" }));
+    await user.click(screen.getByRole("button", { name: "Dosya yükle" }));
+
     expect(uploadForm.open).toHaveBeenCalled();
   });
 
-  it("says so when there are no files yet", () => {
+  it("says so when a filter has no files and nothing is pending", () => {
     vi.mocked(useStartupFiles).mockReturnValue(
-      state({ sections: { meeting: [], shared: [], startup: [] } }),
+      state({ rows: [], pendingNotice: null }),
     );
+
     renderWithQueryClient(<StartupFilesView />);
 
-    expect(
-      screen.getByText("Henüz bir startup dosyası yüklenmedi."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Henüz mentorlarla paylaşılan bir dosya yok."),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Henüz bir toplantı dosyası yok."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Bu filtrede dosya yok.")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 
   it("closes a file menu on Escape and on a click outside", async () => {
     const user = userEvent.setup();
-    vi.mocked(useStartupFiles).mockReturnValue(state());
     renderWithQueryClient(<StartupFilesView />);
     const trigger = screen.getByRole("button", {
       name: "Pitch_Deck_v3.pdf işlemleri",
@@ -184,9 +230,19 @@ describe("StartupFilesView", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 
     await user.click(trigger);
-    await user.click(
-      screen.getByRole("heading", { name: "Startup Dosyalarım" }),
-    );
+    await user.click(screen.getByRole("columnheader", { name: "Dosya" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("reports files that could not be loaded", () => {
+    vi.mocked(useStartupFiles).mockReturnValue(
+      state({ error: new Error("Startup dosyaları yüklenemedi.") }),
+    );
+
+    renderWithQueryClient(<StartupFilesView />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Startup dosyaları yüklenemedi.",
+    );
   });
 });

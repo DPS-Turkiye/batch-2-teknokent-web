@@ -19,6 +19,14 @@ export function formatLongDate(value: string) {
   }).format(new Date(value));
 }
 
+/** "30 Ağu" */
+export function formatDayMonth(date: Date) {
+  return new Intl.DateTimeFormat("tr-TR", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
+}
+
 /** "12 Eyl 2026" */
 export function formatShortDate(value: string) {
   return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(

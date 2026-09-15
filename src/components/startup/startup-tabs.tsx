@@ -9,7 +9,7 @@ export function StartupTabs() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Startup sekmeleri" className="flex gap-1 overflow-x-auto">
+    <nav aria-label="Startup sekmeleri" className="flex overflow-x-auto">
       {STARTUP_TABS.map((tab) => {
         const selected = pathname === tab.href;
         return (
@@ -17,9 +17,13 @@ export function StartupTabs() {
             key={tab.id}
             href={tab.href}
             aria-current={selected ? "page" : undefined}
-            className={`min-w-[120px] flex-1 whitespace-nowrap border-b-[3px] p-3 text-center text-base leading-6 transition ${selected ? "border-[#e86f22] text-[#e86f22]" : "border-[#e4e7ea] text-[#676e78] hover:text-[#22262b]"}`}
+            className={`flex min-w-[96px] flex-1 flex-col items-center gap-2.5 whitespace-nowrap text-[13px] leading-5 transition ${selected ? "font-semibold text-[#9e4400]" : "text-[#676e78] hover:text-[#22262b]"}`}
           >
             {tab.label}
+            <span
+              aria-hidden
+              className={`w-full ${selected ? "h-0.5 bg-[#e86f22]" : "h-px bg-[#e4e7ea]"}`}
+            />
           </Link>
         );
       })}

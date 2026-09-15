@@ -1,10 +1,12 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProcessView } from "@/components/startup/startup-process-view";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
+import { UserRole } from "@/interfaces/session";
 import {
   StartupStage,
   StartupStageState,
@@ -12,29 +14,40 @@ import {
 } from "@/interfaces/startup-process";
 import { renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("@/components/startup/startup-page-frame", () => ({
+  StartupPageFrame: ({ children }: { children: ReactNode }) => (
+    <div>{children}</div>
+  ),
+  startupPrimaryActionClass: "",
+  startupSecondaryActionClass: "",
+}));
+
 vi.mock("@/hooks/use-startup-process", () => ({
   useStartupProcess: vi.fn(),
 }));
 
 const uploadAssignment = vi.fn();
+const toggleShowAll = vi.fn();
 
 function assignment(
   id: string,
-  stage: StartupStage,
   title: string,
-  status = ActionItemStatus.Open,
+  overrides: Partial<ProcessAssignment> = {},
 ): ProcessAssignment {
   return {
     id,
     roundId: "round-1",
-    stage,
+    stage: StartupStage.Finance,
     title,
     description: null,
-    status,
+    status: ActionItemStatus.Open,
     dueDate: null,
     submissionDocumentId: null,
     submissionFilename: null,
+    createdByName: "Çağrı Yılmaz",
+    createdByRole: UserRole.Mentor,
     createdAt: "2026-08-10T09:00:00Z",
+    ...overrides,
   };
 }
 
@@ -43,13 +56,22 @@ type Process = ReturnType<typeof useStartupProcess>;
 function state(overrides: Partial<Process> = {}): Process {
   return {
     assignments: [
-      assignment("finance", StartupStage.Finance, "Finansal model"),
-      assignment(
-        "model",
-        StartupStage.BusinessModel,
-        "B2B2C hipotezi",
-        ActionItemStatus.Completed,
-      ),
+      assignment("finance", "Finansal model taslağı", {
+        dueDate: "2026-08-30",
+      }),
+      assignment("model", "B2B2C hipotezi", {
+        stage: StartupStage.BusinessModel,
+        status: ActionItemStatus.Completed,
+        createdByName: "Selin Kaya",
+      }),
+    ],
+    completedStages: [
+      {
+        stage: StartupStage.Problem,
+        startsOn: "2026-06-12",
+        endsOn: "2026-07-08",
+        completedAssignments: 4,
+      },
     ],
     currentRound: {
       id: "round-1",
@@ -61,12 +83,16 @@ function state(overrides: Partial<Process> = {}): Process {
     },
     error: null,
     isLoading: false,
+    roundName: (roundId) => (roundId === "round-1" ? "MVP test turu" : null),
+    showAll: false,
     stages: [
       { stage: StartupStage.Problem, state: StartupStageState.Completed },
       { stage: StartupStage.Solution, state: StartupStageState.Completed },
       { stage: StartupStage.Mvp, state: StartupStageState.Current },
       { stage: StartupStage.BusinessModel, state: StartupStageState.Upcoming },
     ],
+    toggleShowAll,
+    totalAssignments: 7,
     uploadAssignment,
     uploadingAssignmentId: null,
     ...overrides,
@@ -96,41 +122,85 @@ describe("StartupProcessView", () => {
     ).not.toHaveAttribute("aria-current");
   });
 
-  it("uploads an open Ödev and marks a finished one", async () => {
+  it("lists each Ödev with where it came from, its due date and status", () => {
+    renderWithQueryClient(<StartupProcessView />);
+
+    const [open, done] = within(
+      screen.getByRole("region", { name: "Bu aşamadaki ödevlerin" }),
+    ).getAllByRole("listitem");
+    expect(
+      within(open).getByText("Çağrı Yılmaz · mentorluk ödevi · MVP test turu"),
+    ).toBeInTheDocument();
+    expect(within(open).getByText("Teslim 30 Ağu")).toBeInTheDocument();
+    expect(within(open).getByText("Yüklenmedi")).toBeInTheDocument();
+    expect(within(done).getByText("Tamamlandı")).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("B2B2C hipotezi için ödev yükle"),
+    ).not.toBeInTheDocument();
+  });
+
+  it("uploads an open Ödev and shows the upload in progress on its row", async () => {
     const user = userEvent.setup();
     const file = new File(["%PDF-1.4"], "model.pdf", {
       type: "application/pdf",
     });
-    renderWithQueryClient(<StartupProcessView />);
+    const { rerender } = renderWithQueryClient(<StartupProcessView />);
 
-    const [firstUpload] = screen.getAllByLabelText(
-      "Finansal model için ödev yükle",
+    await user.upload(
+      screen.getByLabelText("Finansal model taslağı için ödev yükle"),
+      file,
     );
-    await user.upload(firstUpload, file);
-
     expect(uploadAssignment).toHaveBeenCalledWith("finance", file);
-    expect(screen.getAllByText("Tamamlandı")).toHaveLength(2);
-    expect(screen.getAllByText("B2B2C hipotezi")[0].closest("div")).toHaveClass(
-      "line-through",
-    );
-  });
 
-  it("shows the upload in progress on its row", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
       state({ uploadingAssignmentId: "finance" }),
     );
+    rerender(<StartupProcessView />);
 
-    renderWithQueryClient(<StartupProcessView />);
-
-    expect(screen.getAllByText("Yükleniyor…")).toHaveLength(2);
+    expect(screen.getByText("Yükleniyor…")).toBeInTheDocument();
     expect(
-      screen.getAllByLabelText("Finansal model için ödev yükle")[0],
+      screen.getByLabelText("Finansal model taslağı için ödev yükle"),
     ).toBeDisabled();
   });
 
-  it("says when nothing is planned yet", () => {
+  it("switches between the focus round and every Ödev", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderWithQueryClient(<StartupProcessView />);
+
+    await user.click(screen.getByRole("button", { name: "Tümü (7) →" }));
+    expect(toggleShowAll).toHaveBeenCalled();
+
+    vi.mocked(useStartupProcess).mockReturnValue(state({ showAll: true }));
+    rerender(<StartupProcessView />);
+
+    expect(screen.getByRole("button", { name: "Bu tur →" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("dates the finished stages and counts their Ödevler", () => {
+    renderWithQueryClient(<StartupProcessView />);
+
+    const completed = screen.getByRole("region", {
+      name: "Tamamlanan aşamalar",
+    });
+    expect(
+      within(completed).getByText("12 Haz – 8 Tem 2026"),
+    ).toBeInTheDocument();
+    expect(
+      within(completed).getByText("4 ödev tamamlandı"),
+    ).toBeInTheDocument();
+  });
+
+  it("says when nothing is planned or finished yet", () => {
     vi.mocked(useStartupProcess).mockReturnValue(
-      state({ assignments: [], currentRound: null }),
+      state({
+        assignments: [],
+        completedStages: [],
+        currentRound: null,
+        totalAssignments: 0,
+      }),
     );
 
     renderWithQueryClient(<StartupProcessView />);
@@ -138,8 +208,13 @@ describe("StartupProcessView", () => {
     expect(
       screen.getByText("Henüz bir odak turu planlanmadı."),
     ).toBeInTheDocument();
-    expect(screen.getAllByText("Bu tur için henüz ödev yok.")).toHaveLength(2);
-    expect(screen.getAllByText("Tüm ödevler")).toHaveLength(2);
+    expect(screen.getByText("Bu tur için henüz ödev yok.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Henüz tamamlanan bir aşama yok."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Tümü/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("reports a process that could not be loaded", () => {

@@ -2,28 +2,68 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import type { ReactNode } from "react";
 
-import { Avatar } from "@/components/common/avatar";
+import {
+  StartupPageFrame,
+  startupSecondaryActionClass,
+} from "@/components/startup/startup-page-frame";
 import { StartupStatusDialog } from "@/components/startup/startup-status-dialog";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
-import { formatLongDate, initials } from "@/lib/utils";
+import type { ActiveMentorshipRow } from "@/lib/startup-overview";
+import { formatDayMonth, formatLongDate, initials } from "@/lib/utils";
 
-const cardClass = "rounded-[24px] border border-[#e4e7ea] bg-white p-6";
-const headingClass = "text-base leading-6 text-[#22262b]";
-const mutedClass = "text-sm text-[#858c96]";
-const AVATAR_TONES = ["orange", "teal", "purple"] as const;
+const cardClass =
+  "space-y-3.5 rounded-[24px] border border-[#e4e7ea] bg-white px-[22px] py-5";
+const cardTitleClass =
+  "text-[15px] font-semibold leading-[23px] text-[#22262b]";
+const cardHintClass = "text-[12.5px] leading-[19px] text-[#676e78]";
+const cardLinkClass =
+  "shrink-0 text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline";
+const bodyClass = "text-[13px] leading-5 text-[#4a5059]";
+const chipClass =
+  "rounded-full border px-2.5 py-1 text-[11.5px] font-medium leading-[17px]";
 
-function FileIcon({ orange = false }: { orange?: boolean }) {
+function Card({
+  id,
+  title,
+  hint,
+  action,
+  children,
+}: {
+  id: string;
+  title: string;
+  hint?: string;
+  action?: ReactNode;
+  children: ReactNode;
+}) {
   return (
-    <Image
-      src={orange ? "/startup/file-orange.svg" : "/startup/file-gray.svg"}
-      alt=""
-      width={18}
-      height={18}
-    />
+    <section aria-labelledby={id} className={cardClass}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 space-y-1">
+          <h2 id={id} className={cardTitleClass}>
+            {title}
+          </h2>
+          {hint ? <p className={cardHintClass}>{hint}</p> : null}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
   );
+}
+
+function sessionsLabel(row: ActiveMentorshipRow) {
+  const sessions =
+    row.plannedSessions != null
+      ? `${row.heldSessions} / ${row.plannedSessions} seans`
+      : `${row.heldSessions} seans`;
+  const next = row.nextMeetingAt
+    ? `sonraki ${formatDayMonth(new Date(row.nextMeetingAt))}`
+    : null;
+  return [row.supportArea, sessions, next].filter(Boolean).join(" · ");
 }
 
 export function StartupProfileView() {
@@ -31,247 +71,250 @@ export function StartupProfileView() {
   const statusForm = useStartupStatusForm(overview.profile);
   const openDocument = useOpenDocument();
 
+  const editAction = (
+    <Link href="/profile" className={startupSecondaryActionClass}>
+      Profili düzenle
+    </Link>
+  );
+
   if (overview.isLoading) {
-    return <p className={`py-10 ${mutedClass}`}>Startup profili yükleniyor…</p>;
+    return (
+      <StartupPageFrame action={editAction}>
+        <p className="py-10 text-sm text-[#858c96]">
+          Startup profili yükleniyor…
+        </p>
+      </StartupPageFrame>
+    );
   }
   if (!overview.profile) {
     return (
-      <p
-        role="alert"
-        className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-      >
-        {overview.error?.message ?? "Startup profili bulunamadı."}
-      </p>
+      <StartupPageFrame>
+        <p
+          role="alert"
+          className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        >
+          {overview.error?.message ?? "Startup profili bulunamadı."}
+        </p>
+      </StartupPageFrame>
     );
   }
 
   const { canvas, profile } = overview;
   const percent = profile.completionPercent;
+  const facts: [string, string | null][] = [
+    [
+      "Kuruluş",
+      profile.foundedYear != null ? String(profile.foundedYear) : null,
+    ],
+    [
+      "Aşama",
+      [overview.stageName, profile.fundingStage].filter(Boolean).join(" · ") ||
+        null,
+    ],
+    ["Sektör", profile.sector],
+    ["Program", overview.programName],
+    ["Web", profile.website],
+    ["Ekip", overview.teamSize != null ? `${overview.teamSize} kişi` : null],
+  ];
 
   return (
-    <div className="grid gap-[26px] lg:grid-cols-[minmax(0,656fr)_minmax(0,365fr)]">
-      <div className="min-w-0 space-y-3">
-        <section
-          aria-labelledby="startup-name"
-          className={`${cardClass} flex gap-4`}
-        >
-          {overview.logoUrl ? (
-            <span
-              role="img"
-              aria-label={`${profile.name} logosu`}
-              className="size-12 shrink-0 rounded-lg border border-[#e4e7ea] bg-contain bg-center bg-no-repeat"
-              style={{ backgroundImage: `url("${overview.logoUrl}")` }}
-            />
-          ) : (
-            <span className="grid size-12 shrink-0 place-items-center rounded-lg border border-[#e4e7ea]">
-              <Image
-                src="/startup/logo-placeholder.svg"
-                alt=""
-                width={30}
-                height={35}
-              />
-            </span>
-          )}
-          <div className="min-w-0 flex-1 space-y-3">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <h1
-                id="startup-name"
-                className="text-xl uppercase leading-7 text-[#676e78]"
-              >
-                {profile.name}
-              </h1>
-              <Link
-                href="/profile"
-                className="inline-flex items-center gap-1.5 rounded-full border border-[#fbe2d0] px-3.5 py-[7px] text-[13px] text-[#676e78] transition hover:border-[#e86f22]"
-              >
-                <Image src="/startup/edit.svg" alt="" width={14} height={14} />
-                Profili Düzenle
+    <StartupPageFrame action={editAction}>
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+        <div className="min-w-0 space-y-[18px]">
+          <Card
+            id="startup-about"
+            title="Startup hakkında"
+            hint="Mentorlar seni mentor havuzunda bu metinle görüyor."
+            action={
+              <Link href="/profile" className={cardLinkClass}>
+                Düzenle
               </Link>
-            </div>
-            <p className="text-xs leading-4 text-[#22262b]">
+            }
+          >
+            <p className={bodyClass}>
               {profile.description ?? "Henüz bir tanıtım yazısı eklenmedi."}
             </p>
-          </div>
-        </section>
+          </Card>
 
-        <section
-          aria-labelledby="startup-status"
-          className={`${cardClass} space-y-4`}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="startup-status" className={headingClass}>
-              Durum
-            </h2>
-            <button
-              type="button"
-              onClick={statusForm.open}
-              className="text-xs text-[#e86f22] hover:underline"
-            >
-              Durumu güncelle
-            </button>
-          </div>
-          <div className="space-y-3 rounded-xl border border-[#e86f22] p-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="rounded-full border border-[#e86f22] bg-[#fff4ec] px-2.5 py-[3px] text-[11.5px] text-[#e86f22]">
+          <Card
+            id="startup-status"
+            title="Ürün durumu"
+            action={
+              <button
+                type="button"
+                onClick={statusForm.open}
+                className={cardLinkClass}
+              >
+                Güncelle
+              </button>
+            }
+          >
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span
+                className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
+              >
                 {profile.maturity ?? "Aşama belirtilmedi"}
               </span>
-              {profile.statusVersion ? (
-                <span className="text-xs text-[#aeb4bc]">
-                  {profile.statusVersion}
-                </span>
-              ) : null}
+              <span className={cardHintClass}>
+                {[
+                  profile.statusVersion,
+                  `son güncelleme ${formatLongDate(profile.updatedAt)}`,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
             </div>
-            <p className="text-sm leading-5 text-[#676e78]">
+            <p className={bodyClass}>
               {profile.statusSummary ??
                 "Henüz bir durum güncellemesi eklenmedi."}
             </p>
             {percent != null ? (
-              <div className="space-y-1">
-                <p className="text-right text-xs text-[#aeb4bc]">
-                  %{percent} tamamlandı
-                </p>
+              <>
                 <div
                   role="progressbar"
                   aria-label="Tamamlanma oranı"
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={percent}
-                  className="h-1.5 overflow-hidden rounded-full bg-[#fff4ec]"
+                  className="h-1.5 overflow-hidden rounded-full bg-[#eceef0]"
                 >
                   <div
                     className="h-full rounded-full bg-[#e86f22]"
                     style={{ width: `${percent}%` }}
                   />
                 </div>
-              </div>
-            ) : null}
-          </div>
-        </section>
-
-        <section
-          aria-labelledby="startup-canvas"
-          className={`${cardClass} space-y-4`}
-        >
-          <h2 id="startup-canvas" className={headingClass}>
-            Canvas
-          </h2>
-          {canvas ? (
-            <div className="flex items-center justify-between gap-3 rounded-xl border border-[#e86f22] p-3.5">
-              <div className="flex min-w-0 items-center gap-2.5">
-                <span className="grid size-9 shrink-0 place-items-center rounded-[10px] bg-[#fff4ec]">
-                  <FileIcon orange />
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm text-[#676e78]">
-                    Business Model Canvas
-                  </p>
-                  <p className="text-xs text-[#aeb4bc]">
-                    Son güncelleme: {formatLongDate(canvas.createdAt)}
-                  </p>
+                <div className="flex items-start justify-between">
+                  <span className="text-xs leading-[18px] text-[#676e78]">
+                    Tamamlanma
+                  </span>
+                  <span className="text-[12.5px] font-medium leading-[19px] text-[#9e4400]">
+                    %{percent}
+                  </span>
                 </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => void openDocument(canvas.id)}
-                className="shrink-0 rounded-full border border-[#fff4ec] px-3 py-[5px] text-xs text-[#e86f22] transition hover:border-[#e86f22]"
-              >
-                Görüntüle
-              </button>
-            </div>
-          ) : (
-            <p className={mutedClass}>Henüz bir kanvas yüklenmedi.</p>
-          )}
-        </section>
-      </div>
+              </>
+            ) : null}
+          </Card>
 
-      <div className="min-w-0 space-y-3">
-        <section
-          aria-labelledby="startup-team"
-          className={`${cardClass} space-y-4`}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="startup-team" className={headingClass}>
-              Ekip
-            </h2>
-            <Link
-              href="/startup/team"
-              className="rounded-full border border-[#fff4ec] px-3.5 py-1.5 text-[13px] text-[#e86f22] transition hover:border-[#e86f22]"
-            >
-              Ekibi Görüntüle →
-            </Link>
-          </div>
-          {overview.teamLoading ? (
-            <p className={mutedClass}>Ekip yükleniyor…</p>
-          ) : overview.team.length === 0 ? (
-            <p className={mutedClass}>Henüz ekip üyesi eklenmedi.</p>
-          ) : (
-            <ul className="space-y-2.5 px-2">
-              {overview.team.map((member, index) => (
-                <li key={member.id} className="flex items-center gap-2.5">
-                  <Avatar
-                    initials={initials(member.fullName) || "?"}
-                    tone={AVATAR_TONES[index % AVATAR_TONES.length]}
-                    size="sm"
+          <Card
+            id="startup-canvas"
+            title="Business Model Canvas"
+            hint="İş modelini tek sayfada özetleyen çalışma dosyan."
+            action={
+              canvas ? (
+                <button
+                  type="button"
+                  onClick={() => void openDocument(canvas.id)}
+                  className={cardLinkClass}
+                >
+                  Görüntüle
+                </button>
+              ) : null
+            }
+          >
+            {canvas ? (
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-[#e4e7ea] px-3.5 py-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <Image
+                    src="/startup/paper.svg"
+                    alt=""
+                    width={17}
+                    height={17}
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-sm text-[#676e78]">
-                      {member.fullName}
+                    <p className="truncate text-[13px] font-medium leading-5 text-[#22262b]">
+                      {canvas.originalFilename}
                     </p>
-                    <p className="truncate text-xs text-[#aeb4bc]">
-                      {[member.jobTitle, member.founder ? "Kurucu" : null]
+                    <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
+                      {[
+                        `Son güncelleme ${formatLongDate(canvas.createdAt)}`,
+                        canvas.uploadedByName,
+                      ]
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+                </div>
+                <span
+                  className={`${chipClass} shrink-0 border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]`}
+                >
+                  Güncel
+                </span>
+              </div>
+            ) : (
+              <p className="text-sm text-[#858c96]">
+                {overview.documentsLoading
+                  ? "Dosyalar yükleniyor…"
+                  : "Henüz bir kanvas yüklenmedi."}
+              </p>
+            )}
+          </Card>
+        </div>
 
-        <section
-          aria-labelledby="startup-shared"
-          className={`${cardClass} space-y-4`}
-        >
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="startup-shared" className={headingClass}>
-              Mentorlarla Paylaşılan Dosyalar
-            </h2>
-            <Link
-              href="/startup/files"
-              className="shrink-0 rounded-full border border-[#fff4ec] px-3.5 py-1.5 text-[13px] text-[#e86f22] transition hover:border-[#e86f22]"
-            >
-              Tümünü Gör →
-            </Link>
-          </div>
-          {overview.documentsLoading ? (
-            <p className={mutedClass}>Dosyalar yükleniyor…</p>
-          ) : overview.sharedDocuments.length === 0 ? (
-            <p className={mutedClass}>
-              Henüz mentorlarla paylaşılan bir dosya yok.
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {overview.sharedDocuments.map((document) => (
-                <li key={document.id}>
-                  <button
-                    type="button"
-                    onClick={() => void openDocument(document.id)}
-                    className="flex w-full items-center gap-1 rounded-xl border border-[#e4e7ea] p-3 text-left text-xs text-[#858c96] transition hover:border-[#e86f22]"
-                  >
-                    <FileIcon />
-                    <span className="truncate">
-                      {document.originalFilename}
-                    </span>
-                  </button>
-                </li>
+        <div className="min-w-0 space-y-[18px]">
+          <Card id="startup-facts" title="Künye">
+            <dl className="space-y-3.5">
+              {facts.map(([label, value]) => (
+                <div
+                  key={label}
+                  className="flex items-start justify-between gap-4"
+                >
+                  <dt className="text-xs leading-[18px] text-[#676e78]">
+                    {label}
+                  </dt>
+                  <dd className="text-right text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
+                    {value ?? "—"}
+                  </dd>
+                </div>
               ))}
-            </ul>
-          )}
-        </section>
+            </dl>
+          </Card>
+
+          <Card
+            id="startup-mentorships"
+            title="Aktif mentorlukların"
+            hint="Mentorluk detayları Mentorluklarım altında."
+            action={
+              <Link href="/mentorships" className={cardLinkClass}>
+                Mentorluklarım →
+              </Link>
+            }
+          >
+            {overview.mentorshipsLoading ? (
+              <p className="text-sm text-[#858c96]">Mentorluklar yükleniyor…</p>
+            ) : overview.mentorships.length === 0 ? (
+              <p className="text-sm text-[#858c96]">
+                Henüz aktif bir mentorluğun yok.
+              </p>
+            ) : (
+              <ul className="space-y-3.5">
+                {overview.mentorships.map((row) => (
+                  <li
+                    key={row.id}
+                    className="flex items-center gap-2.5 rounded-lg border border-[#e4e7ea] px-3 py-2.5"
+                  >
+                    <span
+                      aria-hidden
+                      className="grid size-8 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[11px] font-semibold text-[#9e4400]"
+                    >
+                      {initials(row.mentorName)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[13px] font-medium leading-5 text-[#22262b]">
+                        {row.mentorName}
+                      </p>
+                      <p className="text-[11.5px] leading-[17px] text-[#676e78]">
+                        {sessionsLabel(row)}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </Card>
+        </div>
       </div>
 
       <StartupStatusDialog form={statusForm} />
-    </div>
+    </StartupPageFrame>
   );
 }
