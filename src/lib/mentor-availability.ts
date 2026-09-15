@@ -38,16 +38,31 @@ export const EMPTY_EXCEPTION_INPUT: ExceptionInput = {
 
 export const DEFAULT_RANGE = { startTime: "09:00", endTime: "17:00" };
 
+/** Bounds match UpdateMentorAvailabilitySettingsRequest on the backend. */
 export const AVAILABILITY_NUMBER_FIELDS: {
   field: AvailabilityNumberField;
   label: string;
+  min: number;
+  max: number;
 }[] = [
-  { field: "menteeCapacity", label: "Eş zamanlı mentorluk limiti" },
+  {
+    field: "menteeCapacity",
+    label: "Eş zamanlı mentorluk limiti",
+    min: 1,
+    max: 50,
+  },
   {
     field: "defaultMeetingDurationMinutes",
     label: "Varsayılan görüşme süresi (dk)",
+    min: 15,
+    max: 480,
   },
-  { field: "meetingBufferMinutes", label: "İki görüşme arası tampon (dk)" },
+  {
+    field: "meetingBufferMinutes",
+    label: "İki görüşme arası tampon (dk)",
+    min: 0,
+    max: 240,
+  },
 ];
 
 /** The backend sends "09:00:00"; time inputs and labels use "09:00". */
@@ -105,8 +120,15 @@ function wholeNumberBetween(value: string, min: number, max: number) {
   return number >= min && number <= max;
 }
 
-/** The first thing the backend would refuse, in the words the mentor sees, or null. */
-export function availabilityDraftError(draft: AvailabilityDraft) {
+/**
+ * The first thing the backend would refuse, in the words the mentor sees, or null.
+ * An empty capacity means "keep the saved one" to the backend, so once a capacity
+ * is saved, emptying the field is refused rather than reported as a save.
+ */
+export function availabilityDraftError(
+  draft: AvailabilityDraft,
+  { capacityRequired = false }: { capacityRequired?: boolean } = {},
+) {
   for (const day of WEEKDAY_ORDER) {
     const ranges = rangesForDay(draft, day);
     for (const [index, range] of ranges.entries()) {
@@ -127,7 +149,7 @@ export function availabilityDraftError(draft: AvailabilityDraft) {
     return "En fazla 21 saat aralığı ekleyebilirsin.";
   }
   if (
-    draft.menteeCapacity.trim() &&
+    (capacityRequired || draft.menteeCapacity.trim()) &&
     !wholeNumberBetween(draft.menteeCapacity, 1, 50)
   ) {
     return "Eş zamanlı mentorluk limiti 1 ile 50 arasında olmalı.";

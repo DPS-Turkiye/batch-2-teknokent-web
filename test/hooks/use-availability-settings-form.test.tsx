@@ -124,6 +124,7 @@ describe("useAvailabilitySettingsForm", () => {
     const onSaved = vi.fn();
     const { result } = await renderLoaded(onSaved);
 
+    act(() => result.current.addRange(Weekday.Tuesday));
     await act(async () => {
       await result.current.save();
     });
@@ -131,7 +132,38 @@ describe("useAvailabilitySettingsForm", () => {
     expect(result.current.error).toBe(
       "Weekly availability ranges cannot overlap",
     );
+    expect(tuesdayRanges(result)).toHaveLength(2);
     expect(onSaved).not.toHaveBeenCalled();
+  });
+
+  it("does not let a saved capacity be emptied", async () => {
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      ...settings,
+      menteeCapacity: 4,
+    });
+    const { result } = await renderLoaded();
+
+    act(() => result.current.setNumber("menteeCapacity", ""));
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(result.current.error).toBe(
+      "Eş zamanlı mentorluk limiti 1 ile 50 arasında olmalı.",
+    );
+    expect(updateAvailabilitySettings).not.toHaveBeenCalled();
+  });
+
+  it("reports settings that could not be loaded", async () => {
+    vi.mocked(getAvailabilitySettings).mockRejectedValue(new Error("down"));
+    const { result } = renderHook(() => useAvailabilitySettingsForm(vi.fn()), {
+      wrapper: Wrapper,
+    });
+
+    await waitFor(() =>
+      expect(result.current.loadError).toBe("Müsaitlik ayarları yüklenemedi."),
+    );
+    expect(result.current.draft).toBeNull();
   });
 
   it("adds an unavailable day once and refuses it a second time", async () => {

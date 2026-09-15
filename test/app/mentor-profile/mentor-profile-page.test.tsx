@@ -85,6 +85,7 @@ function acceptedRequest(id: string, organizationName: string) {
 const handleSave = vi.fn();
 const saveAndFinish = vi.fn();
 const startEditing = vi.fn();
+const cancelEditing = vi.fn();
 const updateField = vi.fn();
 const addSpecialty = vi.fn();
 const removeSpecialty = vi.fn();
@@ -190,6 +191,7 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     isSaving: false,
     isEditing: false,
     startEditing,
+    cancelEditing,
     saveAndFinish,
     updateField,
     addSpecialty,
@@ -296,6 +298,17 @@ describe("MentorProfilePage", () => {
     await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
 
     expect(startEditing).toHaveBeenCalled();
+    expect(saveAndFinish).not.toHaveBeenCalled();
+  });
+
+  it("discards an edit without saving", async () => {
+    const user = userEvent.setup();
+    mockAll({ form: { isEditing: true } });
+    render(<MentorProfilePage />);
+
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
+
+    expect(cancelEditing).toHaveBeenCalled();
     expect(saveAndFinish).not.toHaveBeenCalled();
   });
 
@@ -467,6 +480,22 @@ describe("MentorProfilePage", () => {
     await user.click(screen.getByRole("button", { name: "Vazgeç" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("closes the availability editor with Escape and returns focus", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    render(<MentorProfilePage />);
+
+    const opener = screen.getByRole("button", { name: "Müsaitliği düzenle" });
+    await openEditor(user);
+    expect(
+      screen.getByRole("button", { name: "Düzenlemeyi kapat" }),
+    ).toHaveFocus();
+    await user.keyboard("{Escape}");
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(opener).toHaveFocus();
   });
 
   it("edits capacity and past roles through the form hook", async () => {

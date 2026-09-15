@@ -129,6 +129,19 @@ describe("availabilityDraftError", () => {
     );
     expect(availabilityDraftError(draft({ menteeCapacity: "" }))).toBeNull();
   });
+
+  it("refuses to empty a capacity that is already saved", () => {
+    expect(
+      availabilityDraftError(draft({ menteeCapacity: "" }), {
+        capacityRequired: true,
+      }),
+    ).toBe("Eş zamanlı mentorluk limiti 1 ile 50 arasında olmalı.");
+    expect(
+      availabilityDraftError(draft({ menteeCapacity: "4" }), {
+        capacityRequired: true,
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("exceptionError", () => {

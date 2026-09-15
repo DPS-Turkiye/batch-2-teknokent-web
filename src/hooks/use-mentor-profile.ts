@@ -287,6 +287,13 @@ export function useMentorProfileForm(profile: MentorProfile) {
     if (await handleSave()) setIsEditing(false);
   };
 
+  const cancelEditing = () => {
+    setForm(toEditablePayload(profile));
+    setSpecialtyInput("");
+    setSaveError("");
+    setIsEditing(false);
+  };
+
   return {
     form,
     specialtyInput,
@@ -296,6 +303,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
     isSaving: updateProfileMutation.isPending,
     isEditing,
     startEditing: () => setIsEditing(true),
+    cancelEditing,
     saveAndFinish,
     updateField,
     updateCapacity,
@@ -389,9 +397,11 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
       return base ? update(base) : current;
     });
   };
+  // Keys are taken in the handler, not inside the state updater, so the updater stays pure.
   const newKey = () => `new-${(nextKey.current += 1)}`;
 
-  const toggleDay = (day: Weekday) =>
+  const toggleDay = (day: Weekday) => {
+    const key = newKey();
     change((current) =>
       current.ranges.some((range) => range.dayOfWeek === day)
         ? {
@@ -402,29 +412,27 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
             ...current,
             ranges: [
               ...current.ranges,
-              {
-                key: newKey(),
-                dayOfWeek: day,
-                ...DEFAULT_RANGE,
-                slotMinutes: null,
-              },
+              { key, dayOfWeek: day, ...DEFAULT_RANGE, slotMinutes: null },
             ],
           },
     );
+  };
 
-  const addRange = (day: Weekday) =>
+  const addRange = (day: Weekday) => {
+    const key = newKey();
     change((current) => ({
       ...current,
       ranges: [
         ...current.ranges,
         {
-          key: newKey(),
+          key,
           dayOfWeek: day,
           ...nextRangeAfter(rangesForDay(current, day)),
           slotMinutes: null,
         },
       ],
     }));
+  };
 
   const removeRange = (key: string) =>
     change((current) => ({
@@ -481,7 +489,9 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
 
   const save = async () => {
     if (!draft) return;
-    const problem = availabilityDraftError(draft);
+    const problem = availabilityDraftError(draft, {
+      capacityRequired: settingsQuery.data?.menteeCapacity != null,
+    });
     if (problem) {
       setError(problem);
       return;

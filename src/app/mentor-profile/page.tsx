@@ -3,6 +3,7 @@
 import { Plus, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
+import { ModalDialog } from "@/components/common/modal-dialog";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -70,244 +71,235 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
   const { draft } = availability;
 
   return (
-    <div
-      className="fixed inset-0 z-50 grid place-items-center bg-[#22262b]/35 px-4"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="availability-title"
+    <ModalDialog
+      labelledBy="availability-title"
+      onClose={onClose}
+      panelClassName="w-full max-w-[620px] overflow-hidden rounded-[14px] bg-white shadow-[0_24px_60px_rgba(0,0,0,.22)] outline-none"
     >
-      <section className="w-full max-w-[620px] overflow-hidden rounded-[14px] bg-white shadow-[0_24px_60px_rgba(0,0,0,.22)]">
-        <header className="relative border-b border-[#eef0f3] px-6 pb-4 pt-5">
-          <h2 id="availability-title" className="text-[20px] font-semibold">
-            Müsaitliği düzenle
-          </h2>
-          <p className="mt-1 text-[11.5px] text-[#676e78]">
-            Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.
+      <header className="relative border-b border-[#eef0f3] px-6 pb-4 pt-5">
+        <h2 id="availability-title" className="text-[20px] font-semibold">
+          Müsaitliği düzenle
+        </h2>
+        <p className="mt-1 text-[11.5px] text-[#676e78]">
+          Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.
+        </p>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Düzenlemeyi kapat"
+          className="absolute right-5 top-7"
+        >
+          <X className="size-5" strokeWidth={1.5} />
+        </button>
+      </header>
+      <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
+        {availability.loadError ? (
+          <p role="alert" className="text-xs text-[#a65a15]">
+            {availability.loadError}
           </p>
+        ) : !draft ? (
+          <p className="text-xs text-[#858c96]">Yükleniyor...</p>
+        ) : (
+          <>
+            <section>
+              <p className={`mb-3 ${sectionLabelClass}`}>Haftalık uygunluk</p>
+              <div className="space-y-2">
+                {availability.days.map(({ day, label, ranges }) => (
+                  <div
+                    key={day}
+                    className="rounded-xl border border-[#e4e7ea] px-3 py-2.5"
+                  >
+                    <div className="flex items-center justify-between">
+                      <label className="flex items-center gap-3 text-[13px]">
+                        <input
+                          type="checkbox"
+                          aria-label={`${label} uygun`}
+                          checked={ranges.length > 0}
+                          onChange={() => availability.toggleDay(day)}
+                        />
+                        {label}
+                      </label>
+                      {ranges.length === 0 ? (
+                        <span className="text-xs text-[#858c96]">Kapalı</span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => availability.addRange(day)}
+                          aria-label={`${label} için saat aralığı ekle`}
+                          className="flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
+                        >
+                          <Plus className="size-3" /> Aralık ekle
+                        </button>
+                      )}
+                    </div>
+                    {ranges.length > 0 ? (
+                      <div className="mt-2 space-y-2">
+                        {ranges.map((range, index) => {
+                          const name = `${label} ${index + 1}. aralık`;
+                          return (
+                            <div
+                              key={range.key}
+                              className="flex items-center justify-end gap-2"
+                            >
+                              <input
+                                type="time"
+                                aria-label={`${name} başlangıç`}
+                                value={range.startTime}
+                                onChange={(event) =>
+                                  availability.updateRange(
+                                    range.key,
+                                    "startTime",
+                                    event.target.value,
+                                  )
+                                }
+                                className={`w-24 ${smallInputClass}`}
+                              />
+                              <span className="text-xs text-[#858c96]">–</span>
+                              <input
+                                type="time"
+                                aria-label={`${name} bitiş`}
+                                value={range.endTime}
+                                onChange={(event) =>
+                                  availability.updateRange(
+                                    range.key,
+                                    "endTime",
+                                    event.target.value,
+                                  )
+                                }
+                                className={`w-24 ${smallInputClass}`}
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  availability.removeRange(range.key)
+                                }
+                                aria-label={`${name} kaldır`}
+                                className="grid size-6 place-items-center rounded-md text-[#858c96] hover:bg-[#f3f4f6]"
+                              >
+                                <X className="size-3.5" />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+            <section className="space-y-3">
+              <p className={sectionLabelClass}>Kapasite ve varsayılanlar</p>
+              {AVAILABILITY_NUMBER_FIELDS.map(({ field, label, min, max }) => (
+                <label
+                  key={field}
+                  className="flex items-center justify-between text-[13px]"
+                >
+                  <span>{label}</span>
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    min={min}
+                    max={max}
+                    value={draft[field]}
+                    onChange={(event) =>
+                      availability.setNumber(field, event.target.value)
+                    }
+                    className="w-24 rounded-lg border border-[#d4d8dd] px-3 py-2 text-right text-xs"
+                  />
+                </label>
+              ))}
+            </section>
+            <section>
+              <p className={`mb-3 ${sectionLabelClass}`}>
+                Uygun olmadığın tarihler
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {draft.exceptions.map((item, index) => {
+                  const text = exceptionLabel(item);
+                  return (
+                    <button
+                      key={`${item.startsOn}-${item.endsOn}`}
+                      type="button"
+                      onClick={() => availability.removeException(index)}
+                      aria-label={`${text} tarihini kaldır`}
+                      className="rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-1.5 text-xs"
+                    >
+                      {text} ×
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                <input
+                  type="date"
+                  aria-label="Başlangıç tarihi"
+                  value={availability.exception.startsOn}
+                  onChange={(event) =>
+                    availability.setExceptionField(
+                      "startsOn",
+                      event.target.value,
+                    )
+                  }
+                  className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                />
+                <input
+                  type="date"
+                  aria-label="Bitiş tarihi"
+                  value={availability.exception.endsOn}
+                  onChange={(event) =>
+                    availability.setExceptionField("endsOn", event.target.value)
+                  }
+                  className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                />
+                <input
+                  aria-label="İstisna nedeni"
+                  value={availability.exception.reason}
+                  onChange={(event) =>
+                    availability.setExceptionField("reason", event.target.value)
+                  }
+                  placeholder="Neden (isteğe bağlı)"
+                  className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={availability.addException}
+                className="mt-2 flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
+              >
+                <Plus className="size-3" /> Tarih ekle
+              </button>
+            </section>
+          </>
+        )}
+        {availability.error ? (
+          <p role="alert" className="text-[12px] text-[#a65a15]">
+            {availability.error}
+          </p>
+        ) : null}
+      </div>
+      <footer className="flex items-center justify-between border-t border-[#eef0f3] px-6 py-4">
+        <p className="text-[11px] text-[#858c96]">
+          Değişiklikler yaklaşan görüşmeleri etkilemez.
+        </p>
+        <div className="flex gap-2">
           <button
             type="button"
             onClick={onClose}
-            aria-label="Düzenlemeyi kapat"
-            className="absolute right-5 top-7"
+            className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
           >
-            <X className="size-5" strokeWidth={1.5} />
+            Vazgeç
           </button>
-        </header>
-        <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
-          {availability.loadError ? (
-            <p role="alert" className="text-xs text-[#a65a15]">
-              {availability.loadError}
-            </p>
-          ) : !draft ? (
-            <p className="text-xs text-[#858c96]">Yükleniyor...</p>
-          ) : (
-            <>
-              <section>
-                <p className={`mb-3 ${sectionLabelClass}`}>Haftalık uygunluk</p>
-                <div className="space-y-2">
-                  {availability.days.map(({ day, label, ranges }) => (
-                    <div
-                      key={day}
-                      className="rounded-xl border border-[#e4e7ea] px-3 py-2.5"
-                    >
-                      <div className="flex items-center justify-between">
-                        <label className="flex items-center gap-3 text-[13px]">
-                          <input
-                            type="checkbox"
-                            aria-label={`${label} uygun`}
-                            checked={ranges.length > 0}
-                            onChange={() => availability.toggleDay(day)}
-                          />
-                          {label}
-                        </label>
-                        {ranges.length === 0 ? (
-                          <span className="text-xs text-[#858c96]">Kapalı</span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => availability.addRange(day)}
-                            aria-label={`${label} için saat aralığı ekle`}
-                            className="flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
-                          >
-                            <Plus className="size-3" /> Aralık ekle
-                          </button>
-                        )}
-                      </div>
-                      {ranges.length > 0 ? (
-                        <div className="mt-2 space-y-2">
-                          {ranges.map((range, index) => {
-                            const name = `${label} ${index + 1}. aralık`;
-                            return (
-                              <div
-                                key={range.key}
-                                className="flex items-center justify-end gap-2"
-                              >
-                                <input
-                                  type="time"
-                                  aria-label={`${name} başlangıç`}
-                                  value={range.startTime}
-                                  onChange={(event) =>
-                                    availability.updateRange(
-                                      range.key,
-                                      "startTime",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={`w-24 ${smallInputClass}`}
-                                />
-                                <span className="text-xs text-[#858c96]">
-                                  –
-                                </span>
-                                <input
-                                  type="time"
-                                  aria-label={`${name} bitiş`}
-                                  value={range.endTime}
-                                  onChange={(event) =>
-                                    availability.updateRange(
-                                      range.key,
-                                      "endTime",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={`w-24 ${smallInputClass}`}
-                                />
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    availability.removeRange(range.key)
-                                  }
-                                  aria-label={`${name} kaldır`}
-                                  className="grid size-6 place-items-center rounded-md text-[#858c96] hover:bg-[#f3f4f6]"
-                                >
-                                  <X className="size-3.5" />
-                                </button>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : null}
-                    </div>
-                  ))}
-                </div>
-              </section>
-              <section className="space-y-3">
-                <p className={sectionLabelClass}>Kapasite ve varsayılanlar</p>
-                {AVAILABILITY_NUMBER_FIELDS.map(({ field, label }) => (
-                  <label
-                    key={field}
-                    className="flex items-center justify-between text-[13px]"
-                  >
-                    <span>{label}</span>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      value={draft[field]}
-                      onChange={(event) =>
-                        availability.setNumber(field, event.target.value)
-                      }
-                      className="w-24 rounded-lg border border-[#d4d8dd] px-3 py-2 text-right text-xs"
-                    />
-                  </label>
-                ))}
-              </section>
-              <section>
-                <p className={`mb-3 ${sectionLabelClass}`}>
-                  Uygun olmadığın tarihler
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {draft.exceptions.map((item, index) => {
-                    const text = exceptionLabel(item);
-                    return (
-                      <button
-                        key={`${item.startsOn}-${item.endsOn}`}
-                        type="button"
-                        onClick={() => availability.removeException(index)}
-                        aria-label={`${text} tarihini kaldır`}
-                        className="rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-1.5 text-xs"
-                      >
-                        {text} ×
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="mt-3 grid gap-2 sm:grid-cols-3">
-                  <input
-                    type="date"
-                    aria-label="Başlangıç tarihi"
-                    value={availability.exception.startsOn}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "startsOn",
-                        event.target.value,
-                      )
-                    }
-                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
-                  />
-                  <input
-                    type="date"
-                    aria-label="Bitiş tarihi"
-                    value={availability.exception.endsOn}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "endsOn",
-                        event.target.value,
-                      )
-                    }
-                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
-                  />
-                  <input
-                    aria-label="İstisna nedeni"
-                    value={availability.exception.reason}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "reason",
-                        event.target.value,
-                      )
-                    }
-                    placeholder="Neden (isteğe bağlı)"
-                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={availability.addException}
-                  className="mt-2 flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
-                >
-                  <Plus className="size-3" /> Tarih ekle
-                </button>
-              </section>
-            </>
-          )}
-          {availability.error ? (
-            <p role="alert" className="text-[12px] text-[#a65a15]">
-              {availability.error}
-            </p>
-          ) : null}
+          <button
+            type="button"
+            onClick={() => void availability.save()}
+            disabled={!draft || availability.isSaving}
+            className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white disabled:opacity-50"
+          >
+            {availability.isSaving ? "Kaydediliyor…" : "Kaydet"}
+          </button>
         </div>
-        <footer className="flex items-center justify-between border-t border-[#eef0f3] px-6 py-4">
-          <p className="text-[11px] text-[#858c96]">
-            Değişiklikler yaklaşan görüşmeleri etkilemez.
-          </p>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
-            >
-              Vazgeç
-            </button>
-            <button
-              type="button"
-              onClick={() => void availability.save()}
-              disabled={!draft || availability.isSaving}
-              className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white disabled:opacity-50"
-            >
-              {availability.isSaving ? "Kaydediliyor…" : "Kaydet"}
-            </button>
-          </div>
-        </footer>
-      </section>
-    </div>
+      </footer>
+    </ModalDialog>
   );
 }
 
@@ -377,6 +369,16 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             >
               Müsaitliği düzenle
             </button>
+            {editing ? (
+              <button
+                type="button"
+                onClick={form.cancelEditing}
+                disabled={form.isSaving}
+                className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] font-medium disabled:opacity-50"
+              >
+                Vazgeç
+              </button>
+            ) : null}
             <button
               type="button"
               onClick={
