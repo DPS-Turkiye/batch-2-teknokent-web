@@ -7,6 +7,7 @@ import {
   exceptionError,
   exceptionLabel,
   nextRangeAfter,
+  stepNumberValue,
   toAvailabilityDraft,
   toAvailabilityPayload,
 } from "@/lib/mentor-availability";
@@ -172,21 +173,50 @@ describe("exceptionError", () => {
 });
 
 describe("exceptionLabel", () => {
-  it("shows a single day once and the reason after it", () => {
+  const now = new Date("2026-09-15T12:00:00");
+
+  it("names the days in Turkish, writes a shared month once and adds the reason", () => {
     expect(
-      exceptionLabel({
-        startsOn: "2026-10-01",
-        endsOn: "2026-10-01",
-        reason: null,
-      }),
-    ).toBe("2026-10-01");
+      exceptionLabel(
+        { startsOn: "2026-10-03", endsOn: "2026-10-03", reason: "Konferans" },
+        now,
+      ),
+    ).toBe("3 Ekim · Konferans");
     expect(
-      exceptionLabel({
-        startsOn: "2026-10-01",
-        endsOn: "2026-10-03",
-        reason: "İzin",
-      }),
-    ).toBe("2026-10-01 – 2026-10-03 · İzin");
+      exceptionLabel(
+        { startsOn: "2026-09-21", endsOn: "2026-09-25", reason: "İzin" },
+        now,
+      ),
+    ).toBe("21–25 Eylül · İzin");
+    expect(
+      exceptionLabel(
+        { startsOn: "2026-09-30", endsOn: "2026-10-02", reason: null },
+        now,
+      ),
+    ).toBe("30 Eylül – 2 Ekim");
+  });
+
+  it("adds the year only when it is not this year", () => {
+    expect(
+      exceptionLabel(
+        { startsOn: "2027-01-04", endsOn: "2027-01-04", reason: null },
+        now,
+      ),
+    ).toBe("4 Ocak 2027");
+  });
+});
+
+describe("stepNumberValue", () => {
+  const bounds = { min: 15, max: 480, step: 15 };
+
+  it("moves by the field's step and stays within its bounds", () => {
+    expect(stepNumberValue("45", bounds, 1)).toBe("60");
+    expect(stepNumberValue("20", bounds, -1)).toBe("15");
+    expect(stepNumberValue("475", bounds, 1)).toBe("480");
+  });
+
+  it("starts an empty field at its minimum", () => {
+    expect(stepNumberValue("", bounds, 1)).toBe("15");
   });
 });
 

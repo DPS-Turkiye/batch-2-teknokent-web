@@ -191,4 +191,30 @@ describe("useAvailabilitySettingsForm", () => {
       { startTime: "09:00", endTime: "17:00" },
     ]);
   });
+
+  it("steps the capacity and defaults within their bounds", async () => {
+    const { result } = await renderLoaded();
+
+    act(() => result.current.stepNumber("defaultMeetingDurationMinutes", 1));
+    act(() => result.current.stepNumber("meetingBufferMinutes", -1));
+    act(() => result.current.stepNumber("menteeCapacity", 1));
+
+    expect(result.current.draft).toMatchObject({
+      defaultMeetingDurationMinutes: "60",
+      meetingBufferMinutes: "10",
+      menteeCapacity: "1",
+    });
+  });
+
+  it("opens the date form and closes it once a date is added", async () => {
+    const { result } = await renderLoaded();
+
+    act(() => result.current.openExceptionForm());
+    expect(result.current.isAddingException).toBe(true);
+    act(() => result.current.setExceptionField("startsOn", "2026-10-05"));
+    act(() => result.current.addException());
+
+    expect(result.current.isAddingException).toBe(false);
+    expect(result.current.draft?.exceptions).toHaveLength(1);
+  });
 });

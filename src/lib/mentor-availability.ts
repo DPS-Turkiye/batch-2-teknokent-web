@@ -5,6 +5,7 @@ import type {
   Weekday,
 } from "@/interfaces/mentor";
 import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
+import { calendarDay } from "@/lib/utils";
 
 /** One weekly time range as the editor holds it; `key` is stable across edits. */
 export type AvailabilityRange = {
@@ -38,30 +39,36 @@ export const EMPTY_EXCEPTION_INPUT: ExceptionInput = {
 
 export const DEFAULT_RANGE = { startTime: "09:00", endTime: "17:00" };
 
+export type NumberFieldBounds = { min: number; max: number; step: number };
+
 /** Bounds match UpdateMentorAvailabilitySettingsRequest on the backend. */
-export const AVAILABILITY_NUMBER_FIELDS: {
+export const AVAILABILITY_NUMBER_FIELDS: ({
   field: AvailabilityNumberField;
   label: string;
-  min: number;
-  max: number;
-}[] = [
+  unit?: string;
+} & NumberFieldBounds)[] = [
   {
     field: "menteeCapacity",
     label: "Eş zamanlı mentorluk limiti",
     min: 1,
     max: 50,
+    step: 1,
   },
   {
     field: "defaultMeetingDurationMinutes",
-    label: "Varsayılan görüşme süresi (dk)",
+    label: "Varsayılan görüşme süresi",
+    unit: "dk",
     min: 15,
     max: 480,
+    step: 15,
   },
   {
     field: "meetingBufferMinutes",
-    label: "İki görüşme arası tampon (dk)",
+    label: "İki görüşme arası tampon",
+    unit: "dk",
     min: 0,
     max: 240,
+    step: 5,
   },
 ];
 
@@ -118,6 +125,16 @@ function wholeNumberBetween(value: string, min: number, max: number) {
   if (!/^\d+$/.test(value.trim())) return false;
   const number = Number(value);
   return number >= min && number <= max;
+}
+
+/** The value one step up or down, kept within bounds; an empty field starts at the minimum. */
+export function stepNumberValue(
+  value: string,
+  { min, max, step }: NumberFieldBounds,
+  direction: 1 | -1,
+) {
+  if (!/^\d+$/.test(value.trim())) return String(min);
+  return String(Math.min(max, Math.max(min, Number(value) + direction * step)));
 }
 
 /**
@@ -187,12 +204,32 @@ export function exceptionError(
   return null;
 }
 
-/** "2026-10-01 – 2026-10-03 · İzin" */
-export function exceptionLabel(exception: MentorAvailabilityException) {
-  const range =
-    exception.endsOn !== exception.startsOn
-      ? `${exception.startsOn} – ${exception.endsOn}`
-      : exception.startsOn;
+const DAY_MONTH = new Intl.DateTimeFormat("tr-TR", {
+  day: "numeric",
+  month: "long",
+});
+
+/** "21–25 Eylül · İzin", "3 Ekim", "30 Eylül – 2 Ekim"; the year only when it isn't this year. */
+export function exceptionLabel(
+  exception: MentorAvailabilityException,
+  now = new Date(),
+) {
+  const start = calendarDay(exception.startsOn);
+  const end = calendarDay(exception.endsOn);
+  let range: string;
+  if (exception.endsOn === exception.startsOn) {
+    range = DAY_MONTH.format(start);
+  } else if (
+    start.getFullYear() === end.getFullYear() &&
+    start.getMonth() === end.getMonth()
+  ) {
+    range = `${start.getDate()}–${DAY_MONTH.format(end)}`;
+  } else {
+    range = `${DAY_MONTH.format(start)} – ${DAY_MONTH.format(end)}`;
+  }
+  if (end.getFullYear() !== now.getFullYear()) {
+    range = `${range} ${end.getFullYear()}`;
+  }
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 

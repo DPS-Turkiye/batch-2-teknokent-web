@@ -22,6 +22,7 @@ import {
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
 import {
+  AVAILABILITY_NUMBER_FIELDS,
   type AvailabilityDraft,
   type AvailabilityNumberField,
   availabilityDraftError,
@@ -31,6 +32,7 @@ import {
   type ExceptionInput,
   nextRangeAfter,
   rangesForDay,
+  stepNumberValue,
   toAvailabilityDraft,
   toAvailabilityPayload,
 } from "@/lib/mentor-availability";
@@ -287,6 +289,14 @@ export function useMentorProfileForm(profile: MentorProfile) {
     if (await handleSave()) setIsEditing(false);
   };
 
+  // Editing starts from the latest profile, so a capacity saved in the
+  // availability editor since this form mounted is not sent back stale.
+  const startEditing = () => {
+    setForm(toEditablePayload(profile));
+    setSaveError("");
+    setIsEditing(true);
+  };
+
   const cancelEditing = () => {
     setForm(toEditablePayload(profile));
     setSpecialtyInput("");
@@ -302,7 +312,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
     saveSuccess,
     isSaving: updateProfileMutation.isPending,
     isEditing,
-    startEditing: () => setIsEditing(true),
+    startEditing,
     cancelEditing,
     saveAndFinish,
     updateField,
@@ -385,6 +395,7 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
     EMPTY_EXCEPTION_INPUT,
   );
   const [error, setError] = useState<string | null>(null);
+  const [isAddingException, setIsAddingException] = useState(false);
   const nextKey = useRef(0);
   const draft = edits ?? loaded;
 
@@ -455,6 +466,25 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
   const setNumber = (field: AvailabilityNumberField, value: string) =>
     change((current) => ({ ...current, [field]: value }));
 
+  const stepNumber = (field: AvailabilityNumberField, direction: 1 | -1) => {
+    const bounds = AVAILABILITY_NUMBER_FIELDS.find(
+      (item) => item.field === field,
+    );
+    if (!bounds) return;
+    change((current) => ({
+      ...current,
+      [field]: stepNumberValue(current[field], bounds, direction),
+    }));
+  };
+
+  const openExceptionForm = () => setIsAddingException(true);
+
+  const closeExceptionForm = () => {
+    setIsAddingException(false);
+    setException(EMPTY_EXCEPTION_INPUT);
+    setError(null);
+  };
+
   const setExceptionField = (field: keyof ExceptionInput, value: string) => {
     setError(null);
     setException((current) => ({ ...current, [field]: value }));
@@ -477,6 +507,7 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
       exceptions: [...current.exceptions, candidate],
     }));
     setException(EMPTY_EXCEPTION_INPUT);
+    setIsAddingException(false);
   };
 
   const removeException = (index: number) =>
@@ -520,6 +551,7 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
   return {
     addException,
     addRange,
+    closeExceptionForm,
     days: draft
       ? WEEKDAY_ORDER.map((day) => ({
           day,
@@ -530,13 +562,16 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
     draft,
     error,
     exception,
+    isAddingException,
     isSaving: updateSettings.isPending,
     loadError: settingsQuery.error ? "Müsaitlik ayarları yüklenemedi." : null,
+    openExceptionForm,
     removeException,
     removeRange,
     save,
     setExceptionField,
     setNumber,
+    stepNumber,
     toggleDay,
     updateRange,
   };
