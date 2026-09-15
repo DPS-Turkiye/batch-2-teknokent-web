@@ -90,7 +90,7 @@ describe("mentorshipDurationLabel", () => {
     ).toBe("2 yıl");
     expect(
       mentorshipDurationLabel([request("a", "2026-01-20T09:00:00Z")], now),
-    ).toBe("8 ay");
+    ).toBe("7 ay");
     expect(
       mentorshipDurationLabel([request("a", "2026-09-02T09:00:00Z")], now),
     ).toBe("1 aydan az");
@@ -98,6 +98,21 @@ describe("mentorshipDurationLabel", () => {
 
   it("has nothing to show without a mentorship", () => {
     expect(mentorshipDurationLabel([], now)).toBeNull();
+  });
+
+  it("does not count a month until its day has come round", () => {
+    expect(
+      mentorshipDurationLabel(
+        [request("a", "2026-08-31T09:00:00Z")],
+        new Date("2026-09-01T12:00:00Z"),
+      ),
+    ).toBe("1 aydan az");
+    expect(
+      mentorshipDurationLabel(
+        [request("a", "2026-08-10T09:00:00Z")],
+        new Date("2026-09-10T12:00:00Z"),
+      ),
+    ).toBe("1 ay");
   });
 });
 

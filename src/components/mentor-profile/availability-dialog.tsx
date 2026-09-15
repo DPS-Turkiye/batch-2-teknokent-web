@@ -84,7 +84,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                         return (
                           <div
                             key={range.key}
-                            className={`flex min-h-9 items-center gap-2 ${first ? "" : "mt-2"}`}
+                            className={`flex min-h-9 flex-wrap items-center gap-2 ${first ? "" : "mt-2"}`}
                           >
                             {first ? (
                               <ToggleSwitch
@@ -98,57 +98,60 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                                 className="w-9 shrink-0"
                               />
                             )}
-                            <span className="ml-1 flex-1 text-[13px] text-[#22262b]">
+                            <span className="ml-1 min-w-[72px] flex-1 text-[13px] text-[#22262b]">
                               {first ? label : null}
                             </span>
-                            <input
-                              type="time"
-                              aria-label={`${name} başlangıç`}
-                              value={range.startTime}
-                              onChange={(event) =>
-                                availability.updateRange(
-                                  range.key,
-                                  "startTime",
-                                  event.target.value,
-                                )
-                              }
-                              className={timeInputClass}
-                            />
-                            <span className="text-xs text-[#858c96]">–</span>
-                            <input
-                              type="time"
-                              aria-label={`${name} bitiş`}
-                              value={range.endTime}
-                              onChange={(event) =>
-                                availability.updateRange(
-                                  range.key,
-                                  "endTime",
-                                  event.target.value,
-                                )
-                              }
-                              className={timeInputClass}
-                            />
-                            {first ? (
-                              <button
-                                type="button"
-                                onClick={() => availability.addRange(day)}
-                                aria-label={`${label} için saat aralığı ekle`}
-                                className="grid size-5 shrink-0 place-items-center rounded-full bg-[#26a4ff] text-white"
-                              >
-                                <Plus className="size-3" strokeWidth={2.5} />
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  availability.removeRange(range.key)
+                            {/* The times and their button wrap together below the day on narrow screens. */}
+                            <div className="ml-auto flex items-center gap-2">
+                              <input
+                                type="time"
+                                aria-label={`${name} başlangıç`}
+                                value={range.startTime}
+                                onChange={(event) =>
+                                  availability.updateRange(
+                                    range.key,
+                                    "startTime",
+                                    event.target.value,
+                                  )
                                 }
-                                aria-label={`${name} kaldır`}
-                                className="grid size-5 shrink-0 place-items-center rounded-full text-[#858c96] hover:bg-[#f3f4f6]"
-                              >
-                                <X className="size-3.5" />
-                              </button>
-                            )}
+                                className={timeInputClass}
+                              />
+                              <span className="text-xs text-[#858c96]">–</span>
+                              <input
+                                type="time"
+                                aria-label={`${name} bitiş`}
+                                value={range.endTime}
+                                onChange={(event) =>
+                                  availability.updateRange(
+                                    range.key,
+                                    "endTime",
+                                    event.target.value,
+                                  )
+                                }
+                                className={timeInputClass}
+                              />
+                              {first ? (
+                                <button
+                                  type="button"
+                                  onClick={() => availability.addRange(day)}
+                                  aria-label={`${label} için saat aralığı ekle`}
+                                  className="grid size-5 shrink-0 place-items-center rounded-full bg-[#26a4ff] text-white"
+                                >
+                                  <Plus className="size-3" strokeWidth={2.5} />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    availability.removeRange(range.key)
+                                  }
+                                  aria-label={`${name} kaldır`}
+                                  className="grid size-5 shrink-0 place-items-center rounded-full text-[#858c96] hover:bg-[#f3f4f6]"
+                                >
+                                  <X className="size-3.5" />
+                                </button>
+                              )}
+                            </div>
                           </div>
                         );
                       })

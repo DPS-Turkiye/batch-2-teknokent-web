@@ -44,10 +44,12 @@ export function mentorshipDurationLabel(
   const start = new Date(
     Math.min(...accepted.map((request) => Date.parse(request.createdAt))),
   );
-  const months =
+  let months =
     (now.getFullYear() - start.getFullYear()) * 12 +
     now.getMonth() -
     start.getMonth();
+  // A month only counts once its day has come round again: Aug 31 → Sep 1 is a day, not a month.
+  if (now.getDate() < start.getDate()) months -= 1;
   if (months < 1) return "1 aydan az";
   if (months < 12) return `${months} ay`;
   return `${Math.floor(months / 12)} yıl`;

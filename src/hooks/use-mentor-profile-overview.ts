@@ -20,6 +20,13 @@ import {
   workingStyleBullets,
 } from "@/lib/mentor-profile-overview";
 
+const LOADING = "…";
+const MISSING = "—";
+
+function countLabel(count: number | undefined) {
+  return count === undefined ? MISSING : String(count);
+}
+
 /** Everything the mentor's own profile page shows besides the editable form. */
 export function useMentorProfileOverview(profile: MentorProfile) {
   const session = useAppSession();
@@ -30,10 +37,11 @@ export function useMentorProfileOverview(profile: MentorProfile) {
 
   const settings = settingsQuery.data;
   const meetings = meetingsQuery.data ?? [];
+  // Accepted requests stay ACCEPTED after a mentorship ends, so they date the
+  // history but never count as active; the active count comes from the backend.
   const accepted = (requestsQuery.data ?? []).filter(
     (request) => request.status === MentorshipRequestStatus.Accepted,
   );
-  const activeCount = profile.activeMenteeCount ?? accepted.length;
 
   return {
     subtitle: profileSubtitle(profile),
@@ -41,31 +49,42 @@ export function useMentorProfileOverview(profile: MentorProfile) {
       programsQuery.data ?? [],
       session?.userId,
     ),
+    isProgramsLoading: programsQuery.isLoading,
     stats: [
-      { label: "Aktif mentorluk", value: String(activeCount) },
+      {
+        label: "Aktif mentorluk",
+        value: countLabel(profile.activeMenteeCount),
+      },
       {
         label: "Tamamlanan",
-        value: String(profile.completedMentorshipCount ?? 0),
+        value: countLabel(profile.completedMentorshipCount),
       },
-      { label: "Toplam seans", value: String(completedSessionCount(meetings)) },
+      {
+        label: "Toplam seans",
+        value: meetingsQuery.isLoading
+          ? LOADING
+          : String(completedSessionCount(meetings)),
+      },
       {
         label: "Ortalama yanıt süresi",
-        value: profile.responseTimeLabel?.trim() || "—",
+        value: profile.responseTimeLabel?.trim() || MISSING,
       },
       {
         label: "Mentorluk süresi",
-        value: mentorshipDurationLabel(accepted) ?? "—",
+        value: requestsQuery.isLoading
+          ? LOADING
+          : (mentorshipDurationLabel(accepted) ?? MISSING),
       },
     ],
     weeklyAvailability: weeklyAvailabilityRows(settings?.rules ?? []),
     capacityLabel: menteeLoadLabel({
       ...profile,
-      activeMenteeCount: activeCount,
       menteeCapacity: settings?.menteeCapacity ?? profile.menteeCapacity,
     }),
     isAvailabilityLoading: settingsQuery.isLoading,
     preferences: meetingPreferenceRows(profile, settings),
     workingStyle: workingStyleBullets(profile),
     history: mentorshipHistory(accepted, meetings),
+    isHistoryLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
   };
 }

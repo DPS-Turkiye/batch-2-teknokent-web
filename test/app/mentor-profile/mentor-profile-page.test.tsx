@@ -134,6 +134,8 @@ const overview = {
   ],
   capacityLabel: "4 / 5",
   isAvailabilityLoading: false,
+  isHistoryLoading: false,
+  isProgramsLoading: false,
   preferences: [
     { label: "Varsayılan süre", value: "45 dk" },
     { label: "Format", value: "Online" },
@@ -213,6 +215,41 @@ async function openEditor(user: ReturnType<typeof userEvent.setup>) {
 
 describe("MentorProfilePage", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("moves focus into the section whose Düzenle was pressed", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    const { rerender } = render(<MentorProfilePage />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Görüşme tercihleri düzenle" }),
+    );
+    mockAll({ form: { isEditing: true } });
+    rerender(<MentorProfilePage />);
+
+    expect(screen.getByLabelText("Format")).toHaveFocus();
+  });
+
+  it("returns focus to the main button when an edit is discarded", async () => {
+    const user = userEvent.setup();
+    mockAll({ form: { isEditing: true } });
+    render(<MentorProfilePage />);
+
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
+
+    expect(formActions.cancelEditing).toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "Kaydet" })).toHaveFocus();
+  });
+
+  it("shows loading text while history and programs load", () => {
+    mockAll({ overview: { isHistoryLoading: true, isProgramsLoading: true } });
+    render(<MentorProfilePage />);
+
+    expect(screen.getAllByText("Yükleniyor...")).toHaveLength(2);
+    expect(
+      screen.queryByText("Henüz kabul edilmiş bir mentorluk yok."),
+    ).not.toBeInTheDocument();
+  });
 
   it("reports while the profile loads, and when it cannot be loaded", () => {
     mockAll({ profileQuery: { data: undefined, isLoading: true } });

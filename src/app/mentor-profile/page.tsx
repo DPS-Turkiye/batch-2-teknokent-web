@@ -1,7 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
@@ -24,12 +24,23 @@ const emptyClass = "text-xs text-[#858c96]";
 function Card({
   title,
   onEdit,
+  focusFirstField = false,
   children,
 }: {
   title: string;
   onEdit?: () => void;
+  focusFirstField?: boolean;
   children: ReactNode;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  // The Düzenle button that was pressed leaves the page in edit mode, so focus
+  // moves to the section's first field instead of falling back to the body.
+  useEffect(() => {
+    if (!focusFirstField) return;
+    contentRef.current?.querySelector<HTMLElement>("input, textarea")?.focus();
+  }, [focusFirstField]);
+
   return (
     <section className="rounded-xl border border-[#e4e7ea] bg-white px-5 py-[18px]">
       <header className="flex items-center justify-between gap-3">
@@ -47,7 +58,9 @@ function Card({
           </button>
         ) : null}
       </header>
-      <div className="mt-3">{children}</div>
+      <div ref={contentRef} className="mt-3">
+        {children}
+      </div>
     </section>
   );
 }
@@ -104,8 +117,17 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const form = useMentorProfileForm(profile);
   const overview = useMentorProfileOverview(profile);
+  const [editedSection, setEditedSection] = useState<string | null>(null);
+  const primaryButtonRef = useRef<HTMLButtonElement>(null);
   const editing = form.isEditing;
-  const editSection = editing ? undefined : form.startEditing;
+  const editSection = (title: string) =>
+    editing
+      ? undefined
+      : () => {
+          setEditedSection(title);
+          form.startEditing();
+        };
+  const focusSection = (title: string) => editing && editedSection === title;
 
   return (
     <>
@@ -152,7 +174,10 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             {editing ? (
               <button
                 type="button"
-                onClick={form.cancelEditing}
+                onClick={() => {
+                  form.cancelEditing();
+                  primaryButtonRef.current?.focus();
+                }}
                 disabled={form.isSaving}
                 className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] font-medium disabled:opacity-50"
               >
@@ -160,9 +185,15 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               </button>
             ) : null}
             <button
+              ref={primaryButtonRef}
               type="button"
               onClick={
-                editing ? () => void form.saveAndFinish() : form.startEditing
+                editing
+                  ? () => void form.saveAndFinish()
+                  : () => {
+                      setEditedSection(null);
+                      form.startEditing();
+                    }
               }
               disabled={form.isSaving}
               className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
@@ -200,7 +231,11 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
         <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="space-y-[18px]">
-            <Card title="Hakkında" onEdit={editSection}>
+            <Card
+              title="Hakkında"
+              onEdit={editSection("Hakkında")}
+              focusFirstField={focusSection("Hakkında")}
+            >
               {editing ? (
                 <div className="space-y-3">
                   <TextInput
@@ -235,7 +270,11 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               )}
             </Card>
 
-            <Card title="Mentorluk konuları" onEdit={editSection}>
+            <Card
+              title="Mentorluk konuları"
+              onEdit={editSection("Mentorluk konuları")}
+              focusFirstField={focusSection("Mentorluk konuları")}
+            >
               <div className="flex flex-wrap gap-2">
                 {form.form.specialties.length === 0 ? (
                   <p className={emptyClass}>Henüz konu eklenmedi.</p>
@@ -281,7 +320,11 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ) : null}
             </Card>
 
-            <Card title="Nasıl çalışıyorum" onEdit={editSection}>
+            <Card
+              title="Nasıl çalışıyorum"
+              onEdit={editSection("Nasıl çalışıyorum")}
+              focusFirstField={focusSection("Nasıl çalışıyorum")}
+            >
               {editing ? (
                 <div className="space-y-3">
                   <TextInput
@@ -381,7 +424,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             ) : null}
 
             <Card title="Mentorluk geçmişi">
-              {overview.history.length === 0 ? (
+              {overview.isHistoryLoading ? (
+                <p className={emptyClass}>Yükleniyor...</p>
+              ) : overview.history.length === 0 ? (
                 <p className={emptyClass}>
                   Henüz kabul edilmiş bir mentorluk yok.
                 </p>
@@ -429,7 +474,11 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ) : null}
             </Card>
 
-            <Card title="Görüşme tercihleri" onEdit={editSection}>
+            <Card
+              title="Görüşme tercihleri"
+              onEdit={editSection("Görüşme tercihleri")}
+              focusFirstField={focusSection("Görüşme tercihleri")}
+            >
               {editing ? (
                 <div className="space-y-3">
                   <TextInput form={form} field="meetingMode" label="Format" />
@@ -452,7 +501,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </Card>
 
             <Card title="Programlar">
-              {overview.programs.length === 0 ? (
+              {overview.isProgramsLoading ? (
+                <p className={emptyClass}>Yükleniyor...</p>
+              ) : overview.programs.length === 0 ? (
                 <p className={emptyClass}>Katıldığınız bir program yok.</p>
               ) : (
                 <ul className="space-y-2">
