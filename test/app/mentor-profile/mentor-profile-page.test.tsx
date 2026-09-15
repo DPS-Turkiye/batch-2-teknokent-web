@@ -5,17 +5,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorProfilePage from "@/app/mentor-profile/page";
 import { useMeetings } from "@/hooks/use-meetings";
 import {
-  useAvailabilitySlotForm,
-  useMentorAvailabilitySlots,
+  useMentorAvailabilitySettings,
   useMentorProfile,
   useMentorProfileForm,
+  useUpdateMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { usePrograms } from "@/hooks/use-programs";
 import type {
-  MentorAvailabilitySlot,
+  MentorAvailabilitySettings,
   MentorProfile,
 } from "@/interfaces/mentor";
+import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus } from "@/interfaces/program";
 
@@ -34,8 +35,8 @@ vi.mock("@/components/providers/session-provider", () => ({
 vi.mock("@/hooks/use-mentor-profile", () => ({
   useMentorProfile: vi.fn(),
   useMentorProfileForm: vi.fn(),
-  useMentorAvailabilitySlots: vi.fn(),
-  useAvailabilitySlotForm: vi.fn(),
+  useMentorAvailabilitySettings: vi.fn(),
+  useUpdateMentorAvailabilitySettings: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
@@ -69,16 +70,6 @@ function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
   };
 }
 
-function slot(overrides: Partial<MentorAvailabilitySlot> = {}) {
-  return {
-    id: "slot-1",
-    startsAt: "2026-09-14T11:00:00.000Z",
-    durationMinutes: 60,
-    booked: false,
-    ...overrides,
-  };
-}
-
 function acceptedRequest(id: string, organizationName: string) {
   return {
     id,
@@ -99,14 +90,26 @@ const updateCapacity = vi.fn();
 const addExperience = vi.fn();
 const updateExperience = vi.fn();
 const removeExperience = vi.fn();
-const handleDeleteSlot = vi.fn();
-const handleAddSlot = vi.fn();
-const setSlotForm = vi.fn();
+const updateAvailabilitySettings = vi.fn();
 
 function mockAll(overrides: Record<string, unknown> = {}) {
   const o = {
     profileQuery: { data: profile(), isLoading: false, error: null },
-    slots: [slot()],
+    availability: {
+      rules: [
+        {
+          id: "rule-1",
+          dayOfWeek: Weekday.Tuesday,
+          startTime: "10:00",
+          endTime: "13:00",
+          slotMinutes: 45,
+        },
+      ],
+      exceptions: [],
+      menteeCapacity: 6,
+      defaultMeetingDurationMinutes: 45,
+      meetingBufferMinutes: 15,
+    } satisfies MentorAvailabilitySettings,
     requests: [acceptedRequest("r1", "Döngü")],
     meetings: [{ id: "m1" }, { id: "m2" }],
     programs: [
@@ -155,19 +158,14 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     canAddExperience: true,
     ...(o.form as object),
   } as unknown as ReturnType<typeof useMentorProfileForm>);
-  vi.mocked(useMentorAvailabilitySlots).mockReturnValue({
-    data: o.slots,
+  vi.mocked(useMentorAvailabilitySettings).mockReturnValue({
+    data: o.availability,
     isLoading: false,
-  } as unknown as ReturnType<typeof useMentorAvailabilitySlots>);
-  vi.mocked(useAvailabilitySlotForm).mockReturnValue({
-    slotForm: { startsAt: "2026-09-20T10:00", durationMinutes: 60 },
-    setSlotForm,
-    slotError: "",
-    isCreating: false,
-    isDeleting: false,
-    handleAddSlot,
-    handleDeleteSlot,
-  } as unknown as ReturnType<typeof useAvailabilitySlotForm>);
+  } as unknown as ReturnType<typeof useMentorAvailabilitySettings>);
+  vi.mocked(useUpdateMentorAvailabilitySettings).mockReturnValue({
+    mutateAsync: updateAvailabilitySettings,
+    isPending: false,
+  } as unknown as ReturnType<typeof useUpdateMentorAvailabilitySettings>);
   vi.mocked(useMentorshipRequests).mockReturnValue({
     data: o.requests,
     isLoading: false,
@@ -240,6 +238,7 @@ describe("MentorProfilePage", () => {
     mockAll();
     render(<MentorProfilePage />);
 
+    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     await user.type(screen.getByDisplayValue("Döngü Labs"), "!");
     expect(updateField).toHaveBeenCalled();
   });
@@ -249,7 +248,8 @@ describe("MentorProfilePage", () => {
     mockAll();
     render(<MentorProfilePage />);
 
-    await user.click(screen.getByRole("button", { name: "Profili Kaydet" }));
+    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
     expect(handleSave).toHaveBeenCalled();
   });
 
@@ -258,6 +258,7 @@ describe("MentorProfilePage", () => {
     mockAll();
     render(<MentorProfilePage />);
 
+    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     expect(screen.getByText("UX Stratejisi")).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "UX Stratejisi konusunu kaldır" }),
@@ -289,11 +290,19 @@ describe("MentorProfilePage", () => {
     mockAll();
     render(<MentorProfilePage />);
 
-    expect(screen.getAllByText("60 dk").length).toBeGreaterThan(0);
+    expect(screen.getByText("Salı")).toBeInTheDocument();
   });
 
   it("notes when no availability is defined", () => {
-    mockAll({ slots: [] });
+    mockAll({
+      availability: {
+        rules: [],
+        exceptions: [],
+        menteeCapacity: 6,
+        defaultMeetingDurationMinutes: 45,
+        meetingBufferMinutes: 15,
+      },
+    });
     render(<MentorProfilePage />);
 
     expect(screen.getByText("Tanımlı açık saat yok.")).toBeInTheDocument();
@@ -316,37 +325,14 @@ describe("MentorProfilePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("removes an availability slot from the editor", async () => {
+  it("saves weekly availability settings from the modal", async () => {
     const user = userEvent.setup();
     mockAll();
     render(<MentorProfilePage />);
 
     const dialog = await openEditor(user);
-    await user.click(within(dialog).getByRole("button", { name: "Kaldır" }));
-
-    expect(handleDeleteSlot).toHaveBeenCalledWith("slot-1");
-  });
-
-  it("will not remove a booked slot", async () => {
-    const user = userEvent.setup();
-    mockAll({ slots: [slot({ booked: true })] });
-    render(<MentorProfilePage />);
-
-    const dialog = await openEditor(user);
-    expect(
-      within(dialog).getByRole("button", { name: "Kaldır" }),
-    ).toBeDisabled();
-  });
-
-  it("adds a new availability slot", async () => {
-    const user = userEvent.setup();
-    mockAll();
-    render(<MentorProfilePage />);
-
-    const dialog = await openEditor(user);
-    await user.click(within(dialog).getByRole("button", { name: /Saat ekle/ }));
-
-    expect(handleAddSlot).toHaveBeenCalled();
+    await user.click(within(dialog).getByRole("button", { name: "Kaydet" }));
+    expect(updateAvailabilitySettings).toHaveBeenCalled();
   });
 
   it("closes the availability editor", async () => {
@@ -355,7 +341,7 @@ describe("MentorProfilePage", () => {
     render(<MentorProfilePage />);
 
     await openEditor(user);
-    await user.click(screen.getByRole("button", { name: "Kapat" }));
+    await user.click(screen.getByRole("button", { name: "Vazgeç" }));
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
@@ -364,6 +350,8 @@ describe("MentorProfilePage", () => {
     const user = userEvent.setup();
     mockAll();
     render(<MentorProfilePage />);
+
+    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
 
     const capacity = screen.getByLabelText("Aynı anda en fazla kaç mentee");
     expect(capacity).toHaveValue(6);

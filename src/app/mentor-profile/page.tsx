@@ -7,17 +7,19 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
 import {
-  useAvailabilitySlotForm,
-  useMentorAvailabilitySlots,
+  useMentorAvailabilitySettings,
   useMentorProfile,
   useMentorProfileForm,
+  useUpdateMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { usePrograms } from "@/hooks/use-programs";
 import type {
-  MentorAvailabilitySlot,
+  MentorAvailabilitySettings,
   MentorProfile,
+  Weekday,
 } from "@/interfaces/mentor";
+import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
@@ -60,14 +62,54 @@ function Facts({ rows }: { rows: [string, string][] }) {
   );
 }
 
-function AvailabilityModal({
-  slots,
-  onClose,
-}: {
-  slots: MentorAvailabilitySlot[];
-  onClose: () => void;
-}) {
-  const slotForm = useAvailabilitySlotForm();
+function AvailabilityModal({ onClose }: { onClose: () => void }) {
+  const settingsQuery = useMentorAvailabilitySettings();
+  const updateSettings = useUpdateMentorAvailabilitySettings();
+  const [draft, setSettings] = useState<MentorAvailabilitySettings | null>(
+    null,
+  );
+  const [exception, setException] = useState({
+    startsOn: "",
+    endsOn: "",
+    reason: "",
+  });
+  const settings = draft ?? settingsQuery.data ?? null;
+
+  const toggleDay = (dayOfWeek: Weekday) =>
+    setSettings((current) => {
+      if (!current) return current;
+      const exists = current.rules.some((rule) => rule.dayOfWeek === dayOfWeek);
+      return {
+        ...current,
+        rules: exists
+          ? current.rules.filter((rule) => rule.dayOfWeek !== dayOfWeek)
+          : [
+              ...current.rules,
+              {
+                id: `new-${dayOfWeek}`,
+                dayOfWeek,
+                startTime: "09:00",
+                endTime: "17:00",
+                slotMinutes: current.defaultMeetingDurationMinutes,
+              },
+            ],
+      };
+    });
+  const save = async () => {
+    if (!settings) return;
+    await updateSettings.mutateAsync({
+      ...settings,
+      rules: settings.rules.map(
+        ({ dayOfWeek, startTime, endTime, slotMinutes }) => ({
+          dayOfWeek,
+          startTime,
+          endTime,
+          slotMinutes,
+        }),
+      ),
+    });
+    onClose();
+  };
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-[#22262b]/35 px-4"
@@ -91,90 +133,212 @@ function AvailabilityModal({
             <X className="size-5" strokeWidth={1.5} />
           </button>
         </header>
-        <div className="px-6 py-5">
-          <p className="mb-3 text-[10px] font-semibold uppercase text-[#858c96]">
-            Açık saatler
-          </p>
-          {slots.length === 0 ? (
-            <p className="text-xs text-[#858c96]">Henüz açık saat eklemedin.</p>
+        <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
+          {!settings ? (
+            <p className="text-xs text-[#858c96]">Yükleniyor...</p>
           ) : (
-            <div className="space-y-2">
-              {slots.map((slot) => (
-                <div
-                  key={slot.id}
-                  className="flex items-center justify-between rounded-lg border border-[#e4e7ea] px-3 py-2.5 text-[12.5px]"
-                >
-                  <span>
-                    {formatSlotDateTime(slot.startsAt)} · {slot.durationMinutes}{" "}
-                    dk
-                    {slot.booked ? " · Dolu" : ""}
-                  </span>
-                  <button
-                    onClick={() => void slotForm.handleDeleteSlot(slot.id)}
-                    disabled={slot.booked || slotForm.isDeleting}
-                    className="rounded-full border border-[#d4d8dd] px-3 py-1.5 text-[11.5px] disabled:opacity-40"
-                  >
-                    Kaldır
-                  </button>
+            <>
+              <section>
+                <p className="mb-3 text-[10px] font-semibold uppercase text-[#858c96]">
+                  Haftalık uygunluk
+                </p>
+                <div className="space-y-2">
+                  {WEEKDAY_ORDER.map((day) => {
+                    const rule = settings.rules.find(
+                      (item) => item.dayOfWeek === day,
+                    );
+                    return (
+                      <div
+                        key={day}
+                        className="flex items-center justify-between rounded-xl border border-[#e4e7ea] px-3 py-2.5"
+                      >
+                        <label className="flex items-center gap-3 text-[13px]">
+                          <input
+                            type="checkbox"
+                            aria-label={`${WEEKDAY_LABELS[day]} uygun`}
+                            checked={Boolean(rule)}
+                            onChange={() => toggleDay(day)}
+                          />
+                          {WEEKDAY_LABELS[day]}
+                        </label>
+                        {rule ? (
+                          <span className="flex gap-2">
+                            <input
+                              type="time"
+                              aria-label={`${WEEKDAY_LABELS[day]} başlangıç`}
+                              value={rule.startTime}
+                              onChange={(event) =>
+                                setSettings({
+                                  ...settings,
+                                  rules: settings.rules.map((item) =>
+                                    item.dayOfWeek === day
+                                      ? {
+                                          ...item,
+                                          startTime: event.target.value,
+                                        }
+                                      : item,
+                                  ),
+                                })
+                              }
+                              className="w-24 rounded-lg border border-[#d4d8dd] px-2 py-1 text-xs"
+                            />
+                            <input
+                              type="time"
+                              aria-label={`${WEEKDAY_LABELS[day]} bitiş`}
+                              value={rule.endTime}
+                              onChange={(event) =>
+                                setSettings({
+                                  ...settings,
+                                  rules: settings.rules.map((item) =>
+                                    item.dayOfWeek === day
+                                      ? { ...item, endTime: event.target.value }
+                                      : item,
+                                  ),
+                                })
+                              }
+                              className="w-24 rounded-lg border border-[#d4d8dd] px-2 py-1 text-xs"
+                            />
+                          </span>
+                        ) : (
+                          <span className="text-xs text-[#858c96]">Kapalı</span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </section>
+              <section className="space-y-3">
+                <p className="text-[10px] font-semibold uppercase text-[#858c96]">
+                  Kapasite ve varsayılanlar
+                </p>
+                {(
+                  [
+                    ["Eş zamanlı mentorluk limiti", "menteeCapacity"],
+                    [
+                      "Varsayılan görüşme süresi (dk)",
+                      "defaultMeetingDurationMinutes",
+                    ],
+                    ["İki görüşme arası tampon (dk)", "meetingBufferMinutes"],
+                  ] as const
+                ).map(([label, key]) => (
+                  <label
+                    key={key}
+                    className="flex items-center justify-between text-[13px]"
+                  >
+                    <span>{label}</span>
+                    <input
+                      type="number"
+                      value={settings[key]}
+                      onChange={(event) =>
+                        setSettings({
+                          ...settings,
+                          [key]: Number(event.target.value),
+                        })
+                      }
+                      className="w-24 rounded-lg border border-[#d4d8dd] px-3 py-2 text-right text-xs"
+                    />
+                  </label>
+                ))}
+              </section>
+              <section>
+                <p className="mb-3 text-[10px] font-semibold uppercase text-[#858c96]">
+                  Uygun olmadığın tarihler
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {settings.exceptions.map((item, index) => (
+                    <button
+                      key={`${item.startsOn}-${index}`}
+                      onClick={() =>
+                        setSettings({
+                          ...settings,
+                          exceptions: settings.exceptions.filter(
+                            (_, position) => position !== index,
+                          ),
+                        })
+                      }
+                      className="rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-1.5 text-xs"
+                    >
+                      {item.startsOn}
+                      {item.endsOn !== item.startsOn ? ` – ${item.endsOn}` : ""}
+                      {item.reason ? ` · ${item.reason}` : ""} ×
+                    </button>
+                  ))}
+                </div>
+                <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                  <input
+                    type="date"
+                    aria-label="Başlangıç tarihi"
+                    value={exception.startsOn}
+                    onChange={(event) =>
+                      setException({
+                        ...exception,
+                        startsOn: event.target.value,
+                      })
+                    }
+                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                  />
+                  <input
+                    type="date"
+                    aria-label="Bitiş tarihi"
+                    value={exception.endsOn}
+                    onChange={(event) =>
+                      setException({ ...exception, endsOn: event.target.value })
+                    }
+                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                  />
+                  <input
+                    aria-label="İstisna nedeni"
+                    value={exception.reason}
+                    onChange={(event) =>
+                      setException({ ...exception, reason: event.target.value })
+                    }
+                    placeholder="Neden (isteğe bağlı)"
+                    className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
+                  />
+                </div>
+                <button
+                  onClick={() => {
+                    if (!exception.startsOn) return;
+                    setSettings({
+                      ...settings,
+                      exceptions: [
+                        ...settings.exceptions,
+                        {
+                          startsOn: exception.startsOn,
+                          endsOn: exception.endsOn || exception.startsOn,
+                          reason: exception.reason || null,
+                        },
+                      ],
+                    });
+                    setException({ startsOn: "", endsOn: "", reason: "" });
+                  }}
+                  className="mt-2 flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
+                >
+                  <Plus className="size-3" /> Tarih ekle
+                </button>
+              </section>
+            </>
           )}
-          <div className="mt-4 flex flex-wrap items-end gap-2">
-            <label className="text-[11.5px] text-[#676e78]">
-              Başlangıç
-              <input
-                type="datetime-local"
-                value={slotForm.slotForm.startsAt}
-                onChange={(event) =>
-                  slotForm.setSlotForm((current) => ({
-                    ...current,
-                    startsAt: event.target.value,
-                  }))
-                }
-                className="mt-1 block rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
-              />
-            </label>
-            <label className="text-[11.5px] text-[#676e78]">
-              Süre (dk)
-              <input
-                type="number"
-                min={15}
-                step={15}
-                value={slotForm.slotForm.durationMinutes}
-                onChange={(event) =>
-                  slotForm.setSlotForm((current) => ({
-                    ...current,
-                    durationMinutes: Number(event.target.value),
-                  }))
-                }
-                className="mt-1 block w-24 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
-              />
-            </label>
-            <button
-              onClick={() => void slotForm.handleAddSlot()}
-              disabled={slotForm.isCreating}
-              className="flex items-center gap-1 rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff] disabled:opacity-50"
-            >
-              <Plus className="size-3" /> Saat ekle
-            </button>
-          </div>
-          {slotForm.slotError ? (
-            <p className="mt-3 text-[11.5px] text-[#a65a15]">
-              {slotForm.slotError}
-            </p>
-          ) : null}
         </div>
         <footer className="flex items-center justify-between border-t border-[#eef0f3] px-6 py-4">
           <p className="text-[11px] text-[#858c96]">
             Değişiklikler yaklaşan görüşmeleri etkilemez.
           </p>
-          <button
-            onClick={onClose}
-            className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white"
-          >
-            Kapat
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
+            >
+              Vazgeç
+            </button>
+            <button
+              onClick={() => void save()}
+              disabled={!settings || updateSettings.isPending}
+              className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white disabled:opacity-50"
+            >
+              Kaydet
+            </button>
+          </div>
         </footer>
       </section>
     </div>
@@ -183,13 +347,14 @@ function AvailabilityModal({
 
 function ProfileBody({ profile }: { profile: MentorProfile }) {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
+  const [profileEditing, setProfileEditing] = useState(false);
   const form = useMentorProfileForm(profile);
-  const slotsQuery = useMentorAvailabilitySlots();
+  const availabilitySettingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
   const programsQuery = usePrograms();
 
-  const slots = slotsQuery.data ?? [];
+  const availability = availabilitySettingsQuery.data;
   const requests = requestsQuery.data ?? [];
   const accepted = requests.filter(
     (request) => request.status === MentorshipRequestStatus.Accepted,
@@ -203,7 +368,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
     programsQuery.data ?? [],
     session?.userId,
   );
-  const openSlots = slots.filter((slot) => !slot.booked);
+  const openSlots = availability?.rules ?? [];
 
   return (
     <>
@@ -247,11 +412,14 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               Müsaitliği düzenle
             </button>
             <button
-              onClick={() => void form.handleSave()}
+              onClick={() => {
+                if (profileEditing) void form.handleSave();
+                setProfileEditing((current) => !current);
+              }}
               disabled={form.isSaving}
               className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
             >
-              Profili Kaydet
+              {profileEditing ? "Kaydet" : "Profili düzenle"}
             </button>
           </div>
         </header>
@@ -276,9 +444,26 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
         <div className="mt-[22px] grid items-start gap-6 lg:grid-cols-[minmax(0,804px)_400px]">
           <div className="space-y-[18px]">
             <Card title="Hakkında">
+              {profileEditing ? (
+                <label className="block text-[11.5px] text-[#676e78]">
+                  Hakkında
+                  <textarea
+                    value={form.form.about}
+                    onChange={(event) =>
+                      form.updateField("about", event.target.value)
+                    }
+                    className="mt-1 block min-h-24 w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]"
+                  />
+                </label>
+              ) : (
+                <p className="text-[13px] leading-5 text-[#4a5059]">
+                  {form.form.about || "Henüz hakkında bilgisi eklenmedi."}
+                </p>
+              )}
               <label className="block text-[11.5px] text-[#676e78]">
                 Ünvan
                 <input
+                  readOnly={!profileEditing}
                   value={form.form.professionalTitle}
                   onChange={(event) =>
                     form.updateField("professionalTitle", event.target.value)
@@ -289,6 +474,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               <label className="mt-3 block text-[11.5px] text-[#676e78]">
                 Şirket
                 <input
+                  readOnly={!profileEditing}
                   value={form.form.company}
                   onChange={(event) =>
                     form.updateField("company", event.target.value)
@@ -330,6 +516,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       >
                         {label}
                         <input
+                          readOnly={!profileEditing}
                           value={experience[field]}
                           onChange={(event) =>
                             form.updateExperience(
@@ -342,15 +529,17 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                         />
                       </label>
                     ))}
-                    <button
-                      onClick={() => form.removeExperience(index)}
-                      className="justify-self-start text-xs text-[#a65a15]"
-                    >
-                      Deneyimi kaldır
-                    </button>
+                    {profileEditing ? (
+                      <button
+                        onClick={() => form.removeExperience(index)}
+                        className="justify-self-start text-xs text-[#a65a15]"
+                      >
+                        Deneyimi kaldır
+                      </button>
+                    ) : null}
                   </fieldset>
                 ))}
-                {form.canAddExperience ? (
+                {profileEditing && form.canAddExperience ? (
                   <button
                     onClick={form.addExperience}
                     className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
@@ -373,32 +562,36 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       className="flex items-center gap-1 rounded-full bg-[#f2f8fc] px-3 py-[5px] text-xs font-medium text-[#26a4ff]"
                     >
                       {topic}
-                      <button
-                        onClick={() => form.removeSpecialty(topic)}
-                        aria-label={`${topic} konusunu kaldır`}
-                      >
-                        <X className="size-3" />
-                      </button>
+                      {profileEditing ? (
+                        <button
+                          onClick={() => form.removeSpecialty(topic)}
+                          aria-label={`${topic} konusunu kaldır`}
+                        >
+                          <X className="size-3" />
+                        </button>
+                      ) : null}
                     </span>
                   ))
                 )}
               </div>
-              <div className="mt-3 flex gap-2">
-                <input
-                  value={form.specialtyInput}
-                  onChange={(event) =>
-                    form.setSpecialtyInput(event.target.value)
-                  }
-                  placeholder="Konu ekle"
-                  className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
-                />
-                <button
-                  onClick={form.addSpecialty}
-                  className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
-                >
-                  Ekle
-                </button>
-              </div>
+              {profileEditing ? (
+                <div className="mt-3 flex gap-2">
+                  <input
+                    value={form.specialtyInput}
+                    onChange={(event) =>
+                      form.setSpecialtyInput(event.target.value)
+                    }
+                    placeholder="Konu ekle"
+                    className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
+                  />
+                  <button
+                    onClick={form.addSpecialty}
+                    className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
+                  >
+                    Ekle
+                  </button>
+                </div>
+              ) : null}
             </Card>
             <Card title="Nasıl çalışıyorum">
               <Facts
@@ -453,29 +646,23 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             >
               <p className="text-xs text-[#676e78]">Açık görüşme saatleri</p>
               <div className="mt-4 space-y-3">
-                {slotsQuery.isLoading ? (
+                {availabilitySettingsQuery.isLoading ? (
                   <p className="text-xs text-[#858c96]">Yükleniyor...</p>
-                ) : slots.length === 0 ? (
+                ) : openSlots.length === 0 ? (
                   <p className="text-xs text-[#858c96]">
                     Tanımlı açık saat yok.
                   </p>
                 ) : (
-                  slots.map((slot) => (
+                  openSlots.map((slot) => (
                     <div
                       key={slot.id}
                       className="flex justify-between text-[12.5px]"
                     >
                       <span className="text-[#4a5059]">
-                        {formatSlotDateTime(slot.startsAt)}
+                        {WEEKDAY_LABELS[slot.dayOfWeek]}
                       </span>
-                      <span
-                        className={
-                          slot.booked
-                            ? "font-medium text-[#858c96]"
-                            : "font-medium"
-                        }
-                      >
-                        {slot.booked ? "Dolu" : `${slot.durationMinutes} dk`}
+                      <span className={"font-medium"}>
+                        {slot.startTime}–{slot.endTime}
                       </span>
                     </div>
                   ))
@@ -517,10 +704,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
         </div>
       </main>
       {availabilityOpen ? (
-        <AvailabilityModal
-          slots={slots}
-          onClose={() => setAvailabilityOpen(false)}
-        />
+        <AvailabilityModal onClose={() => setAvailabilityOpen(false)} />
       ) : null}
     </>
   );
@@ -528,10 +712,15 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
 export default function MentorProfilePage() {
   const profileQuery = useMentorProfile();
+  const session = useAppSession();
 
   return (
     <AppShell mentorHome>
-      {profileQuery.isLoading ? (
+      {session?.role && session.role !== UserRole.Mentor ? (
+        <p className="p-10 text-center text-sm text-[#a65a15]">
+          Bu sayfa yalnızca mentorlar içindir.
+        </p>
+      ) : profileQuery.isLoading ? (
         <p className="p-10 text-center text-sm text-[#858c96]">Yükleniyor...</p>
       ) : profileQuery.error || !profileQuery.data ? (
         <p className="p-10 text-center text-sm text-[#a65a15]">

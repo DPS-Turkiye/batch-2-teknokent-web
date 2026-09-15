@@ -31,6 +31,24 @@ export function fetchMentorAvailabilityRules(mentorId: string) {
   });
 }
 
+export function fetchMentorAvailabilitySettings(mentorId: string) {
+  return backendRequest({
+    method: "GET",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
+  });
+}
+
+export function updateMentorAvailabilitySettings(
+  mentorId: string,
+  payload: Record<string, unknown>,
+) {
+  return backendRequest({
+    method: "PUT",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
+    data: payload,
+  });
+}
+
 export function createMentorAvailabilityRule(
   mentorId: string,
   payload: Record<string, unknown>,

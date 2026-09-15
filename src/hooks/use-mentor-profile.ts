@@ -7,6 +7,7 @@ import { useToast } from "@/components/providers/toast-provider";
 import type {
   MentorExperienceInput,
   MentorProfile,
+  UpdateMentorAvailabilitySettingsPayload,
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
 import {
@@ -15,6 +16,8 @@ import {
   getMentorAvailability,
   getMentorProfile,
   updateMentorProfile,
+  getAvailabilitySettings,
+  updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
 import { toDateTimeLocalValue } from "@/lib/utils";
 
@@ -22,6 +25,10 @@ export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
 export const MENTOR_AVAILABILITY_QUERY_KEY = [
   "mentor-profile",
   "availability",
+] as const;
+export const MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY = [
+  "mentor-profile",
+  "availability-settings",
 ] as const;
 
 export function useMentorProfile() {
@@ -45,6 +52,31 @@ export function useMentorAvailabilitySlots() {
   return useQuery({
     queryKey: MENTOR_AVAILABILITY_QUERY_KEY,
     queryFn: getMentorAvailability,
+  });
+}
+
+export function useMentorAvailabilitySettings() {
+  return useQuery({
+    queryKey: MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
+    queryFn: getAvailabilitySettings,
+  });
+}
+
+export function useUpdateMentorAvailabilitySettings() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: UpdateMentorAvailabilitySettingsPayload) =>
+      updateAvailabilitySettings(payload),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,
+        }),
+        queryClient.invalidateQueries({
+          queryKey: MENTOR_AVAILABILITY_QUERY_KEY,
+        }),
+        queryClient.invalidateQueries({ queryKey: MENTOR_PROFILE_QUERY_KEY }),
+      ]),
   });
 }
 
@@ -93,6 +125,7 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
       period: experience.period ?? "",
       summary: experience.summary ?? "",
     })),
+    about: profile.about ?? "",
   };
 }
 

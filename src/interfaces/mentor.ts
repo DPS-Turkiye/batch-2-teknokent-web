@@ -41,6 +41,9 @@ export interface MentorProfile {
   recommendationReasons: string[];
   recommendationEvidence: MentorEvidence[];
   menteeCapacity?: number | null;
+  about?: string;
+  defaultMeetingDurationMinutes?: number;
+  meetingBufferMinutes?: number;
   activeMenteeCount?: number;
   completedMentorshipCount?: number;
   programNames?: string[];
@@ -65,6 +68,7 @@ export type UpdateMentorProfilePayload = Pick<
   // Left out, the backend keeps what the mentor saved before.
   menteeCapacity?: number | null;
   experiences?: MentorExperienceInput[];
+  about?: string;
 };
 
 export enum Weekday {
@@ -111,3 +115,25 @@ export interface MentorAvailabilitySlot {
   durationMinutes: number;
   booked: boolean;
 }
+
+export interface MentorAvailabilityException {
+  id?: string;
+  startsOn: string;
+  endsOn: string;
+  reason: string | null;
+}
+
+export interface MentorAvailabilitySettings {
+  rules: MentorAvailabilityRule[];
+  exceptions: MentorAvailabilityException[];
+  menteeCapacity: number;
+  defaultMeetingDurationMinutes: number;
+  meetingBufferMinutes: number;
+}
+
+export type UpdateMentorAvailabilitySettingsPayload = Omit<
+  MentorAvailabilitySettings,
+  "rules"
+> & {
+  rules: Omit<MentorAvailabilityRule, "id">[];
+};
