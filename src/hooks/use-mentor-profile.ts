@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/providers/toast-provider";
 
@@ -9,7 +9,9 @@ import type {
   MentorProfile,
   UpdateMentorAvailabilitySettingsPayload,
   UpdateMentorProfilePayload,
+  Weekday,
 } from "@/interfaces/mentor";
+import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -19,6 +21,19 @@ import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
+import {
+  type AvailabilityDraft,
+  type AvailabilityNumberField,
+  availabilityDraftError,
+  DEFAULT_RANGE,
+  EMPTY_EXCEPTION_INPUT,
+  exceptionError,
+  type ExceptionInput,
+  nextRangeAfter,
+  rangesForDay,
+  toAvailabilityDraft,
+  toAvailabilityPayload,
+} from "@/lib/mentor-availability";
 import { toDateTimeLocalValue } from "@/lib/utils";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
@@ -170,6 +185,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const [specialtyInput, setSpecialtyInput] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const updateField = (
     key: Exclude<
@@ -238,13 +254,14 @@ export function useMentorProfileForm(profile: MentorProfile) {
     }));
   };
 
+  /** True once the backend has the profile, so callers can leave edit mode. */
   const handleSave = async () => {
     setSaveError("");
     setSaveSuccess(false);
     const problem = mentorProfileFormError(form);
     if (problem) {
       setSaveError(problem);
-      return;
+      return false;
     }
     try {
       await updateProfileMutation.mutateAsync({
@@ -255,12 +272,19 @@ export function useMentorProfileForm(profile: MentorProfile) {
       });
       setSaveSuccess(true);
       showToast({ message: "Mentor profiliniz kaydedildi.", tone: "success" });
+      return true;
     } catch (error) {
       setSaveError(
         error instanceof Error ? error.message : "Profil kaydedilemedi.",
       );
       showToast({ message: "Mentor profili kaydedilemedi.", tone: "error" });
+      return false;
     }
+  };
+
+  // A failed save keeps the form open, so the mentor can fix what was refused.
+  const saveAndFinish = async () => {
+    if (await handleSave()) setIsEditing(false);
   };
 
   return {
@@ -270,6 +294,9 @@ export function useMentorProfileForm(profile: MentorProfile) {
     saveError,
     saveSuccess,
     isSaving: updateProfileMutation.isPending,
+    isEditing,
+    startEditing: () => setIsEditing(true),
+    saveAndFinish,
     updateField,
     updateCapacity,
     addExperience,
@@ -333,5 +360,174 @@ export function useAvailabilitySlotForm() {
     isDeleting: deleteSlotMutation.isPending,
     handleAddSlot,
     handleDeleteSlot,
+  };
+}
+
+/** The "Müsaitliği düzenle" modal: weekly ranges, defaults and unavailable dates. */
+export function useAvailabilitySettingsForm(onSaved: () => void) {
+  const { showToast } = useToast();
+  const settingsQuery = useMentorAvailabilitySettings();
+  const updateSettings = useUpdateMentorAvailabilitySettings();
+  const loaded = useMemo(
+    () => (settingsQuery.data ? toAvailabilityDraft(settingsQuery.data) : null),
+    [settingsQuery.data],
+  );
+  const [edits, setEdits] = useState<AvailabilityDraft | null>(null);
+  const [exception, setException] = useState<ExceptionInput>(
+    EMPTY_EXCEPTION_INPUT,
+  );
+  const [error, setError] = useState<string | null>(null);
+  const nextKey = useRef(0);
+  const draft = edits ?? loaded;
+
+  const change = (
+    update: (current: AvailabilityDraft) => AvailabilityDraft,
+  ) => {
+    setError(null);
+    setEdits((current) => {
+      const base = current ?? loaded;
+      return base ? update(base) : current;
+    });
+  };
+  const newKey = () => `new-${(nextKey.current += 1)}`;
+
+  const toggleDay = (day: Weekday) =>
+    change((current) =>
+      current.ranges.some((range) => range.dayOfWeek === day)
+        ? {
+            ...current,
+            ranges: current.ranges.filter((range) => range.dayOfWeek !== day),
+          }
+        : {
+            ...current,
+            ranges: [
+              ...current.ranges,
+              {
+                key: newKey(),
+                dayOfWeek: day,
+                ...DEFAULT_RANGE,
+                slotMinutes: null,
+              },
+            ],
+          },
+    );
+
+  const addRange = (day: Weekday) =>
+    change((current) => ({
+      ...current,
+      ranges: [
+        ...current.ranges,
+        {
+          key: newKey(),
+          dayOfWeek: day,
+          ...nextRangeAfter(rangesForDay(current, day)),
+          slotMinutes: null,
+        },
+      ],
+    }));
+
+  const removeRange = (key: string) =>
+    change((current) => ({
+      ...current,
+      ranges: current.ranges.filter((range) => range.key !== key),
+    }));
+
+  const updateRange = (
+    key: string,
+    field: "startTime" | "endTime",
+    value: string,
+  ) =>
+    change((current) => ({
+      ...current,
+      ranges: current.ranges.map((range) =>
+        range.key === key ? { ...range, [field]: value } : range,
+      ),
+    }));
+
+  const setNumber = (field: AvailabilityNumberField, value: string) =>
+    change((current) => ({ ...current, [field]: value }));
+
+  const setExceptionField = (field: keyof ExceptionInput, value: string) => {
+    setError(null);
+    setException((current) => ({ ...current, [field]: value }));
+  };
+
+  const addException = () => {
+    if (!draft) return;
+    const candidate = {
+      startsOn: exception.startsOn,
+      endsOn: exception.endsOn || exception.startsOn,
+      reason: exception.reason.trim() || null,
+    };
+    const problem = exceptionError(candidate, draft.exceptions);
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    change((current) => ({
+      ...current,
+      exceptions: [...current.exceptions, candidate],
+    }));
+    setException(EMPTY_EXCEPTION_INPUT);
+  };
+
+  const removeException = (index: number) =>
+    change((current) => ({
+      ...current,
+      exceptions: current.exceptions.filter(
+        (_, position) => position !== index,
+      ),
+    }));
+
+  const save = async () => {
+    if (!draft) return;
+    const problem = availabilityDraftError(draft);
+    if (problem) {
+      setError(problem);
+      return;
+    }
+    try {
+      await updateSettings.mutateAsync(toAvailabilityPayload(draft));
+      setEdits(null);
+      showToast({
+        message: "Müsaitlik ayarların kaydedildi.",
+        tone: "success",
+      });
+      onSaved();
+    } catch (saveError) {
+      setError(
+        saveError instanceof Error
+          ? saveError.message
+          : "Müsaitlik ayarları kaydedilemedi.",
+      );
+      showToast({
+        message: "Müsaitlik ayarları kaydedilemedi.",
+        tone: "error",
+      });
+    }
+  };
+
+  return {
+    addException,
+    addRange,
+    days: draft
+      ? WEEKDAY_ORDER.map((day) => ({
+          day,
+          label: WEEKDAY_LABELS[day],
+          ranges: rangesForDay(draft, day),
+        }))
+      : [],
+    draft,
+    error,
+    exception,
+    isSaving: updateSettings.isPending,
+    loadError: settingsQuery.error ? "Müsaitlik ayarları yüklenemedi." : null,
+    removeException,
+    removeRange,
+    save,
+    setExceptionField,
+    setNumber,
+    toggleDay,
+    updateRange,
   };
 }

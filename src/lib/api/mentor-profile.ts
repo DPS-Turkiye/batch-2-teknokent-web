@@ -1,10 +1,11 @@
 import "server-only";
 
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchMentorProfile(mentorId: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/mentors/${encodeURIComponent(mentorId)}`,
   });
 }
@@ -16,7 +17,7 @@ export function updateMentorProfile(
 ) {
   return backendRequest(
     {
-      method: "PUT",
+      method: HttpMethod.Put,
       url: `/api/mentors/${encodeURIComponent(mentorId)}`,
       data: payload,
     },
@@ -26,14 +27,14 @@ export function updateMentorProfile(
 
 export function fetchMentorAvailabilityRules(mentorId: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules`,
   });
 }
 
 export function fetchMentorAvailabilitySettings(mentorId: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
   });
 }
@@ -43,7 +44,7 @@ export function updateMentorAvailabilitySettings(
   payload: Record<string, unknown>,
 ) {
   return backendRequest({
-    method: "PUT",
+    method: HttpMethod.Put,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
     data: payload,
   });
@@ -54,7 +55,7 @@ export function createMentorAvailabilityRule(
   payload: Record<string, unknown>,
 ) {
   return backendRequest({
-    method: "POST",
+    method: HttpMethod.Post,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules`,
     data: payload,
   });
@@ -62,14 +63,14 @@ export function createMentorAvailabilityRule(
 
 export function deleteMentorAvailabilityRule(mentorId: string, ruleId: string) {
   return backendRequest({
-    method: "DELETE",
+    method: HttpMethod.Delete,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-rules/${encodeURIComponent(ruleId)}`,
   });
 }
 
 export function fetchMentorAvailability(mentorId: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability`,
   });
 }
@@ -79,7 +80,7 @@ export function createMentorAvailabilitySlot(
   payload: Record<string, unknown>,
 ) {
   return backendRequest({
-    method: "POST",
+    method: HttpMethod.Post,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability`,
     data: payload,
   });
@@ -87,7 +88,7 @@ export function createMentorAvailabilitySlot(
 
 export function deleteMentorAvailabilitySlot(mentorId: string, slotId: string) {
   return backendRequest({
-    method: "DELETE",
+    method: HttpMethod.Delete,
     url: `/api/mentors/${encodeURIComponent(mentorId)}/availability/${encodeURIComponent(slotId)}`,
   });
 }

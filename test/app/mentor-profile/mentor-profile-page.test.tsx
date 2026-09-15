@@ -5,10 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorProfilePage from "@/app/mentor-profile/page";
 import { useMeetings } from "@/hooks/use-meetings";
 import {
+  useAvailabilitySettingsForm,
   useMentorAvailabilitySettings,
   useMentorProfile,
   useMentorProfileForm,
-  useUpdateMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { usePrograms } from "@/hooks/use-programs";
@@ -16,9 +16,10 @@ import type {
   MentorAvailabilitySettings,
   MentorProfile,
 } from "@/interfaces/mentor";
-import { Weekday } from "@/interfaces/mentor";
+import { WEEKDAY_LABELS, WEEKDAY_ORDER, Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus } from "@/interfaces/program";
+import type { AvailabilityDraft } from "@/lib/mentor-availability";
 
 const MENTOR_ID = "mentor-1";
 
@@ -36,7 +37,7 @@ vi.mock("@/hooks/use-mentor-profile", () => ({
   useMentorProfile: vi.fn(),
   useMentorProfileForm: vi.fn(),
   useMentorAvailabilitySettings: vi.fn(),
-  useUpdateMentorAvailabilitySettings: vi.fn(),
+  useAvailabilitySettingsForm: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-mentorship-requests", () => ({
@@ -82,6 +83,8 @@ function acceptedRequest(id: string, organizationName: string) {
 }
 
 const handleSave = vi.fn();
+const saveAndFinish = vi.fn();
+const startEditing = vi.fn();
 const updateField = vi.fn();
 const addSpecialty = vi.fn();
 const removeSpecialty = vi.fn();
@@ -90,7 +93,43 @@ const updateCapacity = vi.fn();
 const addExperience = vi.fn();
 const updateExperience = vi.fn();
 const removeExperience = vi.fn();
-const updateAvailabilitySettings = vi.fn();
+
+const availabilityActions = {
+  addException: vi.fn(),
+  addRange: vi.fn(),
+  removeException: vi.fn(),
+  removeRange: vi.fn(),
+  save: vi.fn(),
+  setExceptionField: vi.fn(),
+  setNumber: vi.fn(),
+  toggleDay: vi.fn(),
+  updateRange: vi.fn(),
+};
+
+const draft: AvailabilityDraft = {
+  ranges: [
+    {
+      key: "rule-1",
+      dayOfWeek: Weekday.Tuesday,
+      startTime: "10:00",
+      endTime: "13:00",
+      slotMinutes: 45,
+    },
+    {
+      key: "rule-2",
+      dayOfWeek: Weekday.Tuesday,
+      startTime: "14:00",
+      endTime: "16:00",
+      slotMinutes: 45,
+    },
+  ],
+  exceptions: [
+    { startsOn: "2026-10-01", endsOn: "2026-10-03", reason: "İzin" },
+  ],
+  menteeCapacity: "6",
+  defaultMeetingDurationMinutes: "45",
+  meetingBufferMinutes: "15",
+};
 
 function mockAll(overrides: Record<string, unknown> = {}) {
   const o = {
@@ -100,8 +139,8 @@ function mockAll(overrides: Record<string, unknown> = {}) {
         {
           id: "rule-1",
           dayOfWeek: Weekday.Tuesday,
-          startTime: "10:00",
-          endTime: "13:00",
+          startTime: "10:00:00",
+          endTime: "13:00:00",
           slotMinutes: 45,
         },
       ],
@@ -110,6 +149,7 @@ function mockAll(overrides: Record<string, unknown> = {}) {
       defaultMeetingDurationMinutes: 45,
       meetingBufferMinutes: 15,
     } satisfies MentorAvailabilitySettings,
+    availabilityForm: {},
     requests: [acceptedRequest("r1", "Döngü")],
     meetings: [{ id: "m1" }, { id: "m2" }],
     programs: [
@@ -132,6 +172,7 @@ function mockAll(overrides: Record<string, unknown> = {}) {
   vi.mocked(useMentorProfileForm).mockReturnValue({
     form: {
       ...profile(),
+      about: "",
       menteeCapacity: 6,
       experiences: [
         {
@@ -147,6 +188,9 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     saveError: "",
     saveSuccess: false,
     isSaving: false,
+    isEditing: false,
+    startEditing,
+    saveAndFinish,
     updateField,
     addSpecialty,
     removeSpecialty,
@@ -162,10 +206,20 @@ function mockAll(overrides: Record<string, unknown> = {}) {
     data: o.availability,
     isLoading: false,
   } as unknown as ReturnType<typeof useMentorAvailabilitySettings>);
-  vi.mocked(useUpdateMentorAvailabilitySettings).mockReturnValue({
-    mutateAsync: updateAvailabilitySettings,
-    isPending: false,
-  } as unknown as ReturnType<typeof useUpdateMentorAvailabilitySettings>);
+  vi.mocked(useAvailabilitySettingsForm).mockReturnValue({
+    ...availabilityActions,
+    days: WEEKDAY_ORDER.map((day) => ({
+      day,
+      label: WEEKDAY_LABELS[day],
+      ranges: draft.ranges.filter((range) => range.dayOfWeek === day),
+    })),
+    draft,
+    error: null,
+    exception: { startsOn: "", endsOn: "", reason: "" },
+    isSaving: false,
+    loadError: null,
+    ...(o.availabilityForm as object),
+  } as unknown as ReturnType<typeof useAvailabilitySettingsForm>);
   vi.mocked(useMentorshipRequests).mockReturnValue({
     data: o.requests,
     isLoading: false,
@@ -224,41 +278,59 @@ describe("MentorProfilePage", () => {
     expect(screen.getAllByText("Mentorluğa açık").length).toBeGreaterThan(0);
   });
 
-  it("counts mentorships, meetings and open slots from real data", () => {
+  it("counts mentorships, meetings and weekly ranges from real data", () => {
     mockAll();
     render(<MentorProfilePage />);
 
     expect(screen.getByText("Aktif mentorluk")).toBeInTheDocument();
     expect(screen.getByText("Toplam görüşme")).toBeInTheDocument();
-    expect(screen.getByText("Açık saat")).toBeInTheDocument();
+    expect(screen.getByText("Haftalık aralık")).toBeInTheDocument();
+  });
+
+  it("starts editing without saving", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    render(<MentorProfilePage />);
+
+    expect(screen.getByDisplayValue("Döngü Labs")).toHaveAttribute("readonly");
+    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
+
+    expect(startEditing).toHaveBeenCalled();
+    expect(saveAndFinish).not.toHaveBeenCalled();
   });
 
   it("edits the profile fields through the form hook", async () => {
     const user = userEvent.setup();
-    mockAll();
+    mockAll({ form: { isEditing: true } });
     render(<MentorProfilePage />);
 
-    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     await user.type(screen.getByDisplayValue("Döngü Labs"), "!");
     expect(updateField).toHaveBeenCalled();
   });
 
-  it("saves the profile", async () => {
+  it("saves the profile and shows why a save was refused", async () => {
     const user = userEvent.setup();
-    mockAll();
+    mockAll({
+      form: {
+        isEditing: true,
+        saveError: "Her deneyim için bir ünvan gir.",
+      },
+    });
     render(<MentorProfilePage />);
 
-    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
-    expect(handleSave).toHaveBeenCalled();
+
+    expect(saveAndFinish).toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Her deneyim için bir ünvan gir.",
+    );
   });
 
   it("adds and removes a mentoring topic", async () => {
     const user = userEvent.setup();
-    mockAll();
+    mockAll({ form: { isEditing: true } });
     render(<MentorProfilePage />);
 
-    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     expect(screen.getByText("UX Stratejisi")).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", { name: "UX Stratejisi konusunu kaldır" }),
@@ -286,26 +358,27 @@ describe("MentorProfilePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows the mentor's real availability slots", () => {
+  it("shows the weekly availability without seconds", () => {
     mockAll();
     render(<MentorProfilePage />);
 
     expect(screen.getByText("Salı")).toBeInTheDocument();
+    expect(screen.getByText("10:00–13:00")).toBeInTheDocument();
   });
 
-  it("notes when no availability is defined", () => {
+  it("notes when no weekly availability is defined", () => {
     mockAll({
       availability: {
         rules: [],
         exceptions: [],
-        menteeCapacity: 6,
+        menteeCapacity: null,
         defaultMeetingDurationMinutes: 45,
         meetingBufferMinutes: 15,
       },
     });
     render(<MentorProfilePage />);
 
-    expect(screen.getByText("Tanımlı açık saat yok.")).toBeInTheDocument();
+    expect(screen.getByText("Tanımlı haftalık saat yok.")).toBeInTheDocument();
   });
 
   it("lists only the programmes the mentor joined", () => {
@@ -325,14 +398,64 @@ describe("MentorProfilePage", () => {
     ).toBeInTheDocument();
   });
 
-  it("saves weekly availability settings from the modal", async () => {
+  it("edits several time ranges on one day", async () => {
     const user = userEvent.setup();
     mockAll();
     render(<MentorProfilePage />);
 
     const dialog = await openEditor(user);
+    expect(
+      within(dialog).getByLabelText("Salı 2. aralık başlangıç"),
+    ).toHaveValue("14:00");
+
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "Salı için saat aralığı ekle",
+      }),
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Salı 1. aralık kaldır" }),
+    );
+    await user.click(within(dialog).getByLabelText("Pazartesi uygun"));
+
+    expect(availabilityActions.addRange).toHaveBeenCalledWith(Weekday.Tuesday);
+    expect(availabilityActions.removeRange).toHaveBeenCalledWith("rule-1");
+    expect(availabilityActions.toggleDay).toHaveBeenCalledWith(Weekday.Monday);
+  });
+
+  it("adds and removes unavailable dates", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    render(<MentorProfilePage />);
+
+    const dialog = await openEditor(user);
+    await user.click(
+      within(dialog).getByRole("button", {
+        name: "2026-10-01 – 2026-10-03 · İzin tarihini kaldır",
+      }),
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Tarih ekle" }),
+    );
+
+    expect(availabilityActions.removeException).toHaveBeenCalledWith(0);
+    expect(availabilityActions.addException).toHaveBeenCalled();
+  });
+
+  it("saves the settings and shows why they were refused", async () => {
+    const user = userEvent.setup();
+    mockAll({
+      availabilityForm: { error: "Salı: saat aralıkları çakışıyor." },
+    });
+    render(<MentorProfilePage />);
+
+    const dialog = await openEditor(user);
     await user.click(within(dialog).getByRole("button", { name: "Kaydet" }));
-    expect(updateAvailabilitySettings).toHaveBeenCalled();
+
+    expect(availabilityActions.save).toHaveBeenCalled();
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      "Salı: saat aralıkları çakışıyor.",
+    );
   });
 
   it("closes the availability editor", async () => {
@@ -348,10 +471,8 @@ describe("MentorProfilePage", () => {
 
   it("edits capacity and past roles through the form hook", async () => {
     const user = userEvent.setup();
-    mockAll();
+    mockAll({ form: { isEditing: true } });
     render(<MentorProfilePage />);
-
-    await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
 
     const capacity = screen.getByLabelText("Aynı anda en fazla kaç mentee");
     expect(capacity).toHaveValue(6);

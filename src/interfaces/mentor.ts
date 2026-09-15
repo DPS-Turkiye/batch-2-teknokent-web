@@ -126,7 +126,8 @@ export interface MentorAvailabilityException {
 export interface MentorAvailabilitySettings {
   rules: MentorAvailabilityRule[];
   exceptions: MentorAvailabilityException[];
-  menteeCapacity: number;
+  /** Null until the mentor sets one; left out of a save, the saved value stays. */
+  menteeCapacity: number | null;
   defaultMeetingDurationMinutes: number;
   meetingBufferMinutes: number;
 }

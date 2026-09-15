@@ -7,24 +7,27 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
 import {
+  useAvailabilitySettingsForm,
   useMentorAvailabilitySettings,
   useMentorProfile,
   useMentorProfileForm,
-  useUpdateMentorAvailabilitySettings,
 } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { usePrograms } from "@/hooks/use-programs";
-import type {
-  MentorAvailabilitySettings,
-  MentorProfile,
-  Weekday,
-} from "@/interfaces/mentor";
-import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
+import { type MentorProfile, WEEKDAY_LABELS } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { formatSlotDateTime } from "@/lib/format";
 import { programsMentorHasJoined } from "@/lib/meeting-targets";
+import {
+  AVAILABILITY_NUMBER_FIELDS,
+  exceptionLabel,
+  toTimeInput,
+} from "@/lib/mentor-availability";
 import { initials as toInitials } from "@/lib/utils";
+
+const smallInputClass = "rounded-lg border border-[#d4d8dd] px-2 py-1 text-xs";
+const sectionLabelClass = "text-[10px] font-semibold uppercase text-[#858c96]";
 
 function Card({
   title,
@@ -63,53 +66,9 @@ function Facts({ rows }: { rows: [string, string][] }) {
 }
 
 function AvailabilityModal({ onClose }: { onClose: () => void }) {
-  const settingsQuery = useMentorAvailabilitySettings();
-  const updateSettings = useUpdateMentorAvailabilitySettings();
-  const [draft, setSettings] = useState<MentorAvailabilitySettings | null>(
-    null,
-  );
-  const [exception, setException] = useState({
-    startsOn: "",
-    endsOn: "",
-    reason: "",
-  });
-  const settings = draft ?? settingsQuery.data ?? null;
+  const availability = useAvailabilitySettingsForm(onClose);
+  const { draft } = availability;
 
-  const toggleDay = (dayOfWeek: Weekday) =>
-    setSettings((current) => {
-      if (!current) return current;
-      const exists = current.rules.some((rule) => rule.dayOfWeek === dayOfWeek);
-      return {
-        ...current,
-        rules: exists
-          ? current.rules.filter((rule) => rule.dayOfWeek !== dayOfWeek)
-          : [
-              ...current.rules,
-              {
-                id: `new-${dayOfWeek}`,
-                dayOfWeek,
-                startTime: "09:00",
-                endTime: "17:00",
-                slotMinutes: current.defaultMeetingDurationMinutes,
-              },
-            ],
-      };
-    });
-  const save = async () => {
-    if (!settings) return;
-    await updateSettings.mutateAsync({
-      ...settings,
-      rules: settings.rules.map(
-        ({ dayOfWeek, startTime, endTime, slotMinutes }) => ({
-          dayOfWeek,
-          startTime,
-          endTime,
-          slotMinutes,
-        }),
-      ),
-    });
-    onClose();
-  };
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-[#22262b]/35 px-4"
@@ -126,6 +85,7 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
             Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.
           </p>
           <button
+            type="button"
             onClick={onClose}
             aria-label="Düzenlemeyi kapat"
             className="absolute right-5 top-7"
@@ -134,106 +94,116 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
           </button>
         </header>
         <div className="max-h-[70vh] space-y-5 overflow-y-auto px-6 py-5">
-          {!settings ? (
+          {availability.loadError ? (
+            <p role="alert" className="text-xs text-[#a65a15]">
+              {availability.loadError}
+            </p>
+          ) : !draft ? (
             <p className="text-xs text-[#858c96]">Yükleniyor...</p>
           ) : (
             <>
               <section>
-                <p className="mb-3 text-[10px] font-semibold uppercase text-[#858c96]">
-                  Haftalık uygunluk
-                </p>
+                <p className={`mb-3 ${sectionLabelClass}`}>Haftalık uygunluk</p>
                 <div className="space-y-2">
-                  {WEEKDAY_ORDER.map((day) => {
-                    const rule = settings.rules.find(
-                      (item) => item.dayOfWeek === day,
-                    );
-                    return (
-                      <div
-                        key={day}
-                        className="flex items-center justify-between rounded-xl border border-[#e4e7ea] px-3 py-2.5"
-                      >
+                  {availability.days.map(({ day, label, ranges }) => (
+                    <div
+                      key={day}
+                      className="rounded-xl border border-[#e4e7ea] px-3 py-2.5"
+                    >
+                      <div className="flex items-center justify-between">
                         <label className="flex items-center gap-3 text-[13px]">
                           <input
                             type="checkbox"
-                            aria-label={`${WEEKDAY_LABELS[day]} uygun`}
-                            checked={Boolean(rule)}
-                            onChange={() => toggleDay(day)}
+                            aria-label={`${label} uygun`}
+                            checked={ranges.length > 0}
+                            onChange={() => availability.toggleDay(day)}
                           />
-                          {WEEKDAY_LABELS[day]}
+                          {label}
                         </label>
-                        {rule ? (
-                          <span className="flex gap-2">
-                            <input
-                              type="time"
-                              aria-label={`${WEEKDAY_LABELS[day]} başlangıç`}
-                              value={rule.startTime}
-                              onChange={(event) =>
-                                setSettings({
-                                  ...settings,
-                                  rules: settings.rules.map((item) =>
-                                    item.dayOfWeek === day
-                                      ? {
-                                          ...item,
-                                          startTime: event.target.value,
-                                        }
-                                      : item,
-                                  ),
-                                })
-                              }
-                              className="w-24 rounded-lg border border-[#d4d8dd] px-2 py-1 text-xs"
-                            />
-                            <input
-                              type="time"
-                              aria-label={`${WEEKDAY_LABELS[day]} bitiş`}
-                              value={rule.endTime}
-                              onChange={(event) =>
-                                setSettings({
-                                  ...settings,
-                                  rules: settings.rules.map((item) =>
-                                    item.dayOfWeek === day
-                                      ? { ...item, endTime: event.target.value }
-                                      : item,
-                                  ),
-                                })
-                              }
-                              className="w-24 rounded-lg border border-[#d4d8dd] px-2 py-1 text-xs"
-                            />
-                          </span>
-                        ) : (
+                        {ranges.length === 0 ? (
                           <span className="text-xs text-[#858c96]">Kapalı</span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => availability.addRange(day)}
+                            aria-label={`${label} için saat aralığı ekle`}
+                            className="flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
+                          >
+                            <Plus className="size-3" /> Aralık ekle
+                          </button>
                         )}
                       </div>
-                    );
-                  })}
+                      {ranges.length > 0 ? (
+                        <div className="mt-2 space-y-2">
+                          {ranges.map((range, index) => {
+                            const name = `${label} ${index + 1}. aralık`;
+                            return (
+                              <div
+                                key={range.key}
+                                className="flex items-center justify-end gap-2"
+                              >
+                                <input
+                                  type="time"
+                                  aria-label={`${name} başlangıç`}
+                                  value={range.startTime}
+                                  onChange={(event) =>
+                                    availability.updateRange(
+                                      range.key,
+                                      "startTime",
+                                      event.target.value,
+                                    )
+                                  }
+                                  className={`w-24 ${smallInputClass}`}
+                                />
+                                <span className="text-xs text-[#858c96]">
+                                  –
+                                </span>
+                                <input
+                                  type="time"
+                                  aria-label={`${name} bitiş`}
+                                  value={range.endTime}
+                                  onChange={(event) =>
+                                    availability.updateRange(
+                                      range.key,
+                                      "endTime",
+                                      event.target.value,
+                                    )
+                                  }
+                                  className={`w-24 ${smallInputClass}`}
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    availability.removeRange(range.key)
+                                  }
+                                  aria-label={`${name} kaldır`}
+                                  className="grid size-6 place-items-center rounded-md text-[#858c96] hover:bg-[#f3f4f6]"
+                                >
+                                  <X className="size-3.5" />
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               </section>
               <section className="space-y-3">
-                <p className="text-[10px] font-semibold uppercase text-[#858c96]">
-                  Kapasite ve varsayılanlar
-                </p>
-                {(
-                  [
-                    ["Eş zamanlı mentorluk limiti", "menteeCapacity"],
-                    [
-                      "Varsayılan görüşme süresi (dk)",
-                      "defaultMeetingDurationMinutes",
-                    ],
-                    ["İki görüşme arası tampon (dk)", "meetingBufferMinutes"],
-                  ] as const
-                ).map(([label, key]) => (
+                <p className={sectionLabelClass}>Kapasite ve varsayılanlar</p>
+                {AVAILABILITY_NUMBER_FIELDS.map(({ field, label }) => (
                   <label
-                    key={key}
+                    key={field}
                     className="flex items-center justify-between text-[13px]"
                   >
                     <span>{label}</span>
                     <input
                       type="number"
-                      value={settings[key]}
+                      inputMode="numeric"
+                      value={draft[field]}
                       onChange={(event) =>
-                        setSettings({
-                          ...settings,
-                          [key]: Number(event.target.value),
-                        })
+                        availability.setNumber(field, event.target.value)
                       }
                       className="w-24 rounded-lg border border-[#d4d8dd] px-3 py-2 text-right text-xs"
                     />
@@ -241,77 +211,66 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
                 ))}
               </section>
               <section>
-                <p className="mb-3 text-[10px] font-semibold uppercase text-[#858c96]">
+                <p className={`mb-3 ${sectionLabelClass}`}>
                   Uygun olmadığın tarihler
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {settings.exceptions.map((item, index) => (
-                    <button
-                      key={`${item.startsOn}-${index}`}
-                      onClick={() =>
-                        setSettings({
-                          ...settings,
-                          exceptions: settings.exceptions.filter(
-                            (_, position) => position !== index,
-                          ),
-                        })
-                      }
-                      className="rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-1.5 text-xs"
-                    >
-                      {item.startsOn}
-                      {item.endsOn !== item.startsOn ? ` – ${item.endsOn}` : ""}
-                      {item.reason ? ` · ${item.reason}` : ""} ×
-                    </button>
-                  ))}
+                  {draft.exceptions.map((item, index) => {
+                    const text = exceptionLabel(item);
+                    return (
+                      <button
+                        key={`${item.startsOn}-${item.endsOn}`}
+                        type="button"
+                        onClick={() => availability.removeException(index)}
+                        aria-label={`${text} tarihini kaldır`}
+                        className="rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-1.5 text-xs"
+                      >
+                        {text} ×
+                      </button>
+                    );
+                  })}
                 </div>
                 <div className="mt-3 grid gap-2 sm:grid-cols-3">
                   <input
                     type="date"
                     aria-label="Başlangıç tarihi"
-                    value={exception.startsOn}
+                    value={availability.exception.startsOn}
                     onChange={(event) =>
-                      setException({
-                        ...exception,
-                        startsOn: event.target.value,
-                      })
+                      availability.setExceptionField(
+                        "startsOn",
+                        event.target.value,
+                      )
                     }
                     className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
                   />
                   <input
                     type="date"
                     aria-label="Bitiş tarihi"
-                    value={exception.endsOn}
+                    value={availability.exception.endsOn}
                     onChange={(event) =>
-                      setException({ ...exception, endsOn: event.target.value })
+                      availability.setExceptionField(
+                        "endsOn",
+                        event.target.value,
+                      )
                     }
                     className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
                   />
                   <input
                     aria-label="İstisna nedeni"
-                    value={exception.reason}
+                    value={availability.exception.reason}
                     onChange={(event) =>
-                      setException({ ...exception, reason: event.target.value })
+                      availability.setExceptionField(
+                        "reason",
+                        event.target.value,
+                      )
                     }
                     placeholder="Neden (isteğe bağlı)"
                     className="rounded-lg border border-[#d4d8dd] px-2 py-2 text-xs"
                   />
                 </div>
                 <button
-                  onClick={() => {
-                    if (!exception.startsOn) return;
-                    setSettings({
-                      ...settings,
-                      exceptions: [
-                        ...settings.exceptions,
-                        {
-                          startsOn: exception.startsOn,
-                          endsOn: exception.endsOn || exception.startsOn,
-                          reason: exception.reason || null,
-                        },
-                      ],
-                    });
-                    setException({ startsOn: "", endsOn: "", reason: "" });
-                  }}
+                  type="button"
+                  onClick={availability.addException}
                   className="mt-2 flex items-center gap-1 text-xs font-medium text-[#26a4ff]"
                 >
                   <Plus className="size-3" /> Tarih ekle
@@ -319,6 +278,11 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
               </section>
             </>
           )}
+          {availability.error ? (
+            <p role="alert" className="text-[12px] text-[#a65a15]">
+              {availability.error}
+            </p>
+          ) : null}
         </div>
         <footer className="flex items-center justify-between border-t border-[#eef0f3] px-6 py-4">
           <p className="text-[11px] text-[#858c96]">
@@ -326,17 +290,19 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
           </p>
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={onClose}
               className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
             >
               Vazgeç
             </button>
             <button
-              onClick={() => void save()}
-              disabled={!settings || updateSettings.isPending}
+              type="button"
+              onClick={() => void availability.save()}
+              disabled={!draft || availability.isSaving}
               className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white disabled:opacity-50"
             >
-              Kaydet
+              {availability.isSaving ? "Kaydediliyor…" : "Kaydet"}
             </button>
           </div>
         </footer>
@@ -347,14 +313,13 @@ function AvailabilityModal({ onClose }: { onClose: () => void }) {
 
 function ProfileBody({ profile }: { profile: MentorProfile }) {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
-  const [profileEditing, setProfileEditing] = useState(false);
   const form = useMentorProfileForm(profile);
   const availabilitySettingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
   const programsQuery = usePrograms();
 
-  const availability = availabilitySettingsQuery.data;
+  const weeklyRanges = availabilitySettingsQuery.data?.rules ?? [];
   const requests = requestsQuery.data ?? [];
   const accepted = requests.filter(
     (request) => request.status === MentorshipRequestStatus.Accepted,
@@ -368,7 +333,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
     programsQuery.data ?? [],
     session?.userId,
   );
-  const openSlots = availability?.rules ?? [];
+  const editing = form.isEditing;
 
   return (
     <>
@@ -406,25 +371,32 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
           </div>
           <div className="flex gap-2.5">
             <button
+              type="button"
               onClick={() => setAvailabilityOpen(true)}
               className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] font-medium"
             >
               Müsaitliği düzenle
             </button>
             <button
-              onClick={() => {
-                if (profileEditing) void form.handleSave();
-                setProfileEditing((current) => !current);
-              }}
+              type="button"
+              onClick={
+                editing ? () => void form.saveAndFinish() : form.startEditing
+              }
               disabled={form.isSaving}
               className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
             >
-              {profileEditing ? "Kaydet" : "Profili düzenle"}
+              {!editing
+                ? "Profili düzenle"
+                : form.isSaving
+                  ? "Kaydediliyor…"
+                  : "Kaydet"}
             </button>
           </div>
         </header>
         {form.saveError ? (
-          <p className="mt-3 text-[12px] text-[#a65a15]">{form.saveError}</p>
+          <p role="alert" className="mt-3 text-[12px] text-[#a65a15]">
+            {form.saveError}
+          </p>
         ) : null}
         <section className="mt-[22px] grid grid-cols-2 gap-4 rounded-xl bg-[#f2f8fc] px-6 py-[18px] md:grid-cols-4">
           {(
@@ -432,7 +404,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ["Aktif mentorluk", accepted.length],
               ["Bekleyen talep", pending.length],
               ["Toplam görüşme", meetings.length],
-              ["Açık saat", openSlots.length],
+              ["Haftalık aralık", weeklyRanges.length],
             ] as [string, number][]
           ).map(([label, value]) => (
             <div key={label}>
@@ -444,7 +416,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
         <div className="mt-[22px] grid items-start gap-6 lg:grid-cols-[minmax(0,804px)_400px]">
           <div className="space-y-[18px]">
             <Card title="Hakkında">
-              {profileEditing ? (
+              {editing ? (
                 <label className="block text-[11.5px] text-[#676e78]">
                   Hakkında
                   <textarea
@@ -460,10 +432,10 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   {form.form.about || "Henüz hakkında bilgisi eklenmedi."}
                 </p>
               )}
-              <label className="block text-[11.5px] text-[#676e78]">
+              <label className="mt-3 block text-[11.5px] text-[#676e78]">
                 Ünvan
                 <input
-                  readOnly={!profileEditing}
+                  readOnly={!editing}
                   value={form.form.professionalTitle}
                   onChange={(event) =>
                     form.updateField("professionalTitle", event.target.value)
@@ -474,7 +446,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               <label className="mt-3 block text-[11.5px] text-[#676e78]">
                 Şirket
                 <input
-                  readOnly={!profileEditing}
+                  readOnly={!editing}
                   value={form.form.company}
                   onChange={(event) =>
                     form.updateField("company", event.target.value)
@@ -490,6 +462,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   type="number"
                   min={1}
                   max={50}
+                  readOnly={!editing}
                   value={form.form.menteeCapacity ?? ""}
                   onChange={(event) => form.updateCapacity(event.target.value)}
                   className="mt-1 block w-32 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]"
@@ -516,7 +489,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       >
                         {label}
                         <input
-                          readOnly={!profileEditing}
+                          readOnly={!editing}
                           value={experience[field]}
                           onChange={(event) =>
                             form.updateExperience(
@@ -529,8 +502,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                         />
                       </label>
                     ))}
-                    {profileEditing ? (
+                    {editing ? (
                       <button
+                        type="button"
                         onClick={() => form.removeExperience(index)}
                         className="justify-self-start text-xs text-[#a65a15]"
                       >
@@ -539,8 +513,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     ) : null}
                   </fieldset>
                 ))}
-                {profileEditing && form.canAddExperience ? (
+                {editing && form.canAddExperience ? (
                   <button
+                    type="button"
                     onClick={form.addExperience}
                     className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
                   >
@@ -562,8 +537,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       className="flex items-center gap-1 rounded-full bg-[#f2f8fc] px-3 py-[5px] text-xs font-medium text-[#26a4ff]"
                     >
                       {topic}
-                      {profileEditing ? (
+                      {editing ? (
                         <button
+                          type="button"
                           onClick={() => form.removeSpecialty(topic)}
                           aria-label={`${topic} konusunu kaldır`}
                         >
@@ -574,7 +550,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   ))
                 )}
               </div>
-              {profileEditing ? (
+              {editing ? (
                 <div className="mt-3 flex gap-2">
                   <input
                     value={form.specialtyInput}
@@ -585,6 +561,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
                   />
                   <button
+                    type="button"
                     onClick={form.addSpecialty}
                     className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
                   >
@@ -637,6 +614,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               title="Müsaitlik"
               action={
                 <button
+                  type="button"
                   onClick={() => setAvailabilityOpen(true)}
                   className="text-[12.5px] font-medium text-[#26a4ff]"
                 >
@@ -644,25 +622,26 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 </button>
               }
             >
-              <p className="text-xs text-[#676e78]">Açık görüşme saatleri</p>
+              <p className="text-xs text-[#676e78]">Haftalık uygunluk</p>
               <div className="mt-4 space-y-3">
                 {availabilitySettingsQuery.isLoading ? (
                   <p className="text-xs text-[#858c96]">Yükleniyor...</p>
-                ) : openSlots.length === 0 ? (
+                ) : weeklyRanges.length === 0 ? (
                   <p className="text-xs text-[#858c96]">
-                    Tanımlı açık saat yok.
+                    Tanımlı haftalık saat yok.
                   </p>
                 ) : (
-                  openSlots.map((slot) => (
+                  weeklyRanges.map((rule) => (
                     <div
-                      key={slot.id}
+                      key={rule.id}
                       className="flex justify-between text-[12.5px]"
                     >
                       <span className="text-[#4a5059]">
-                        {WEEKDAY_LABELS[slot.dayOfWeek]}
+                        {WEEKDAY_LABELS[rule.dayOfWeek]}
                       </span>
-                      <span className={"font-medium"}>
-                        {slot.startTime}–{slot.endTime}
+                      <span className="font-medium">
+                        {toTimeInput(rule.startTime)}–
+                        {toTimeInput(rule.endTime)}
                       </span>
                     </div>
                   ))
