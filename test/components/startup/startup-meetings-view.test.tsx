@@ -9,6 +9,7 @@ import {
   useStartupMeetings,
 } from "@/hooks/use-startup-meetings";
 import {
+  groupMeetingsByMentor,
   groupMeetingsByTopic,
   StartupMeetingView,
 } from "@/lib/startup-meetings";
@@ -27,6 +28,10 @@ vi.mock("@/hooks/use-startup-documents", () => ({
   useOpenDocument: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock("@/components/startup/meeting-notes-panel", () => ({
   MeetingNotesPanel: () => <p>notes panel</p>,
 }));
@@ -37,6 +42,7 @@ type Meetings = ReturnType<typeof useStartupMeetings>;
 
 function state(overrides: Partial<Meetings> = {}): Meetings {
   return {
+    closeTopicStack: vi.fn(),
     details: detailsFixture(),
     error: null,
     expandedMonthKey: "2026-09",
@@ -44,13 +50,13 @@ function state(overrides: Partial<Meetings> = {}): Meetings {
     isLoading: false,
     layout: MeetingLayout.Grid,
     meetingCount: 1,
-    mentorId: "",
-    mentorOptions: [{ id: "mentor-1", name: "Nihan Öztürk" }],
+    mentors: groupMeetingsByMentor([meeting], new Date("2026-09-11T12:00:00Z")),
     openMeetingNotes: vi.fn(),
+    openTopicStack: vi.fn(),
     otherMeetings: [],
     selectedMeeting: meeting,
+    selectedTopic: null,
     setLayout: vi.fn(),
-    setMentorId: vi.fn(),
     setView: vi.fn(),
     toggleMonth: vi.fn(),
     toggleYear: vi.fn(),
@@ -67,7 +73,7 @@ describe("StartupMeetingsView", () => {
     vi.mocked(useOpenDocument).mockReturnValue(vi.fn());
   });
 
-  it("switches views, layout and mentor from the toolbar", async () => {
+  it("switches views and layout from the toolbar", async () => {
     const user = userEvent.setup();
     const meetings = state();
     vi.mocked(useStartupMeetings).mockReturnValue(meetings);
@@ -84,14 +90,14 @@ describe("StartupMeetingsView", () => {
     ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Zaman" }));
     await user.click(screen.getByRole("button", { name: "Liste görünümü" }));
-    await user.selectOptions(
-      screen.getByLabelText("Mentora göre filtrele"),
-      "mentor-1",
-    );
+    await user.click(screen.getByRole("button", { name: "Mentor" }));
 
     expect(meetings.setView).toHaveBeenCalledWith(StartupMeetingView.Time);
     expect(meetings.setLayout).toHaveBeenCalledWith(MeetingLayout.List);
-    expect(meetings.setMentorId).toHaveBeenCalledWith("mentor-1");
+    expect(meetings.setView).toHaveBeenCalledWith(StartupMeetingView.Mentor);
+    expect(
+      screen.queryByLabelText("Mentora göre filtrele"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the notes panel in the notes view", () => {
@@ -116,15 +122,85 @@ describe("StartupMeetingsView", () => {
     ).toHaveAttribute("href", "/calendar");
   });
 
-  it("reports meetings that could not be loaded", () => {
+  it("opens a topic stack from the Konu grid", async () => {
+    const user = userEvent.setup();
+    const meetings = state();
+    vi.mocked(useStartupMeetings).mockReturnValue(meetings);
+    renderWithQueryClient(<StartupMeetingsView />);
+
+    await user.click(
+      screen.getByRole("button", {
+        name: "MVP Scope & User Flow notlarını aç",
+      }),
+    );
+
+    expect(meetings.openTopicStack).toHaveBeenCalledWith("req-mvp");
+  });
+
+  it("shows the topic stack dialog when a topic is selected", () => {
+    const topics = groupMeetingsByTopic(
+      [meeting],
+      new Date("2026-09-11T12:00:00Z"),
+    );
     vi.mocked(useStartupMeetings).mockReturnValue(
-      state({ error: new Error("Toplantı hizmetine ulaşılamıyor.") }),
+      state({ selectedTopic: topics[0] }),
     );
 
     renderWithQueryClient(<StartupMeetingsView />);
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Toplantı hizmetine ulaşılamıyor.",
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      "MVP Scope & User Flow",
     );
+  });
+
+  it("hides the Toplantı Notları chip on the notes hub", () => {
+    vi.mocked(useStartupMeetings).mockReturnValue(state());
+    renderWithQueryClient(<StartupMeetingsView hideNotesChip />);
+
+    expect(
+      screen.queryByRole("button", { name: "Toplantı Notları" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Konu" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Mentor" })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("stacks the same mentor's notes in the Mentor view", () => {
+    const nihan = meetingFixture("nihan-older", "2026-08-01T09:00:00Z");
+    const nihanNext = meetingFixture("nihan-next", "2026-09-18T09:00:00Z");
+    const ahmet = meetingFixture("ahmet", "2026-07-10T09:00:00Z", {
+      mentorId: "mentor-2",
+      mentorName: "Ahmet Yılmaz",
+      mentorshipRequestId: "req-finance",
+      agenda: "Financial Model & Sustainability",
+    });
+    vi.mocked(useStartupMeetings).mockReturnValue(
+      state({
+        meetingCount: 3,
+        mentors: groupMeetingsByMentor(
+          [nihan, nihanNext, ahmet],
+          new Date("2026-09-11T12:00:00Z"),
+        ),
+        view: StartupMeetingView.Mentor,
+      }),
+    );
+
+    renderWithQueryClient(<StartupMeetingsView hideNotesChip />);
+
+    expect(screen.getByRole("button", { name: "Mentor" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByRole("button", { name: "Nihan Öztürk notlarını aç" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Ahmet Yılmaz notlarını aç" }),
+    ).toBeInTheDocument();
   });
 });

@@ -43,4 +43,5 @@ export interface DocumentDownload {
   url: string;
   filename: string;
   contentType: string;
+  id?: string;
 }

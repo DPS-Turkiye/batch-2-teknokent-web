@@ -11,6 +11,7 @@ import {
 function meeting(overrides: Partial<MeetingItem> = {}) {
   return menteeMeetingFixture({
     id: "held-1",
+    mentorId: "mentor-nihan",
     mentorName: "Nihan Öztürk",
     mentorshipRequestId: "r-1",
     agenda: "Finansal Model ve Sürdürülebilirlik",
@@ -20,7 +21,11 @@ function meeting(overrides: Partial<MeetingItem> = {}) {
 }
 
 const requestsById = {
-  "r-1": menteeRequestFixture({ id: "r-1", supportArea: "UX/UI Mentorluğu" }),
+  "r-1": menteeRequestFixture({
+    id: "r-1",
+    mentorId: "mentor-nihan",
+    supportArea: "UX/UI Mentorluğu",
+  }),
 };
 
 describe("MeetingNotes", () => {
@@ -46,8 +51,13 @@ describe("MeetingNotes", () => {
 
     expect(screen.getByRole("link", { name: "Tümü (5) →" })).toHaveAttribute(
       "href",
-      "/startup/meetings",
+      "/notes",
     );
+    expect(
+      screen.getAllByRole("link", {
+        name: /Finansal Model ve Sürdürülebilirlik/,
+      })[0],
+    ).toHaveAttribute("href", "/notes");
     expect(screen.getAllByText("18 Ağustos 2026")).toHaveLength(3);
     expect(screen.getAllByText("Nihan Öztürk · UX/UI Mentorluğu")).toHaveLength(
       3,

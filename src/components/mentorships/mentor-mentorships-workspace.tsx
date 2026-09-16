@@ -8,6 +8,7 @@ import { Sparkles } from "lucide-react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { MentorMeetLinkDialog } from "@/components/mentorships/mentor-meet-link-dialog";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
 import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
@@ -514,6 +515,19 @@ function ActiveTab({
                         ? "Meet linkini düzenle"
                         : "Meet linki ekle"}
                     </button>
+                  </div>
+                  <div className="mt-3 border-t border-[#e4e7ea] pt-3">
+                    <DocumentRequestChecklist
+                      scope={
+                        meeting
+                          ? {
+                              meetingId: meeting.id,
+                              mentorshipRequestId: request.id,
+                            }
+                          : { mentorshipRequestId: request.id }
+                      }
+                      canManage
+                    />
                   </div>
                 </article>
               );

@@ -7,6 +7,8 @@ import type { NextConfig } from "next";
 const LOCAL_BACKEND_ORIGINS = [
   "http://localhost:8080",
   "http://127.0.0.1:8080",
+  "ws://localhost:8080",
+  "ws://127.0.0.1:8080",
 ];
 
 export function buildContentSecurityPolicy(isDevelopment: boolean) {
@@ -34,7 +36,8 @@ export function buildContentSecurityPolicy(isDevelopment: boolean) {
     "img-src 'self' data: blob: https:",
     "font-src 'self' data:",
     connectSrc,
-    "frame-src https://accounts.google.com https://*.firebaseapp.com",
+    // blob: is the in-app document preview (PDF/office fetched same-origin).
+    "frame-src 'self' blob: https://accounts.google.com https://*.firebaseapp.com https://view.officeapps.live.com",
     "worker-src 'self' blob:",
   ].join("; ");
 }

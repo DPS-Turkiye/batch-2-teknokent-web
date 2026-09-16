@@ -40,7 +40,7 @@ export function MeetingTimeline({
   years: MeetingYear[];
 }) {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-7">
       {years.map((year) => {
         if (year.year !== expandedYear) {
           return (
@@ -49,9 +49,11 @@ export function MeetingTimeline({
               type="button"
               aria-expanded={false}
               onClick={() => onToggleYear(year.year)}
-              className="w-full rounded-[24px] border border-[#e4e7ea] bg-white py-9 text-xl text-[#858c96] shadow-[6px_-6px_0_#c9e1f1,12px_-12px_0_#9bc7e4]"
+              className="w-full pt-2 pr-2"
             >
-              {year.year}
+              <span className="flex w-full items-center justify-center rounded-[24px] border border-[#e4e7ea] bg-white px-6 py-9 text-xl text-[#95cdff] shadow-[6px_-6px_0_#c9e1f1,12px_-12px_0_#9bc7e4]">
+                {year.year}
+              </span>
             </button>
           );
         }
@@ -64,7 +66,7 @@ export function MeetingTimeline({
           <section
             key={year.year}
             aria-label={`${year.year} toplantıları`}
-            className="space-y-6"
+            className="flex flex-col gap-6"
           >
             {expanded ? (
               <section
@@ -72,14 +74,14 @@ export function MeetingTimeline({
                 className="space-y-3 rounded-[24px] bg-[#f5faff] p-6"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-xl leading-7 text-[#22262b]">
+                  <h3 className="text-xl leading-7 text-[#007ecc]">
                     {expanded.label}
                   </h3>
                   <button
                     type="button"
                     aria-expanded
                     onClick={() => onToggleMonth(expanded.key)}
-                    className="flex items-center gap-2 text-sm text-[#22262b] underline"
+                    className="flex items-center gap-2 text-sm text-[#007ecc] underline"
                   >
                     {countLabel(expanded)}
                     <Image
@@ -133,12 +135,12 @@ export function MeetingTimeline({
                       type="button"
                       aria-expanded={false}
                       onClick={() => onToggleMonth(month.key)}
-                      className="flex w-full items-center gap-7 rounded-[24px] border border-[#e4e7ea] bg-white px-6 py-9 text-left shadow-[6px_-6px_0_#c9e1f1]"
+                      className="flex w-full items-center justify-center gap-7 rounded-[24px] border border-[#e4e7ea] bg-white px-3 py-9 text-left shadow-[6px_-6px_0_#c9e1f1]"
                     >
-                      <span className="text-xl text-[#858c96]">
+                      <span className="text-xl text-[#95cdff]">
                         {month.label}
                       </span>
-                      <span className="flex items-center gap-2 text-sm text-[#858c96] underline">
+                      <span className="flex items-center gap-2 text-sm text-[#95cdff] underline">
                         {countLabel(month)}
                         <Image
                           src="/startup/expand-muted.svg"

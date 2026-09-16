@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
+import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { UserRole } from "@/interfaces/session";
 import type {
   DocumentRequestItem,
@@ -85,6 +86,7 @@ export function DocumentRequestChecklist({
   title?: string;
 }) {
   const session = useAppSession();
+  const openDocument = useOpenDocument();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
@@ -265,21 +267,38 @@ export function DocumentRequestChecklist({
                       key={upload.id}
                       className="flex items-center justify-between gap-2 text-xs text-[#515861]"
                     >
-                      <span className="min-w-0 truncate">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          void openDocument(upload.storedDocumentId)
+                        }
+                        className="min-w-0 truncate text-left hover:text-[#e86f22] hover:underline"
+                      >
                         {upload.originalFilename} ·{" "}
                         {formatBytes(upload.sizeBytes)} ·{" "}
                         {upload.uploadedByName}
-                      </span>
-                      {canUpload || canManage ? (
+                      </button>
+                      <span className="flex shrink-0 items-center gap-2">
                         <button
                           type="button"
-                          disabled={deleteMutation.isPending}
-                          onClick={() => deleteMutation.mutate(upload.id)}
-                          className="shrink-0 text-[#b42318] hover:underline"
+                          onClick={() =>
+                            void openDocument(upload.storedDocumentId)
+                          }
+                          className="text-[#e86f22] hover:underline"
                         >
-                          Kaldır
+                          Görüntüle
                         </button>
-                      ) : null}
+                        {canUpload || canManage ? (
+                          <button
+                            type="button"
+                            disabled={deleteMutation.isPending}
+                            onClick={() => deleteMutation.mutate(upload.id)}
+                            className="text-[#b42318] hover:underline"
+                          >
+                            Kaldır
+                          </button>
+                        ) : null}
+                      </span>
                     </li>
                   ))}
                 </ul>

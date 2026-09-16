@@ -36,6 +36,11 @@ export async function getDocumentDownloadUrl(documentId: string) {
   );
 }
 
+/** Same-origin bytes for the in-app preview (avoids S3 iframe/CSP blocks). */
+export function documentContentPath(documentId: string) {
+  return `/api/startup/documents/${encodeURIComponent(documentId)}/content`;
+}
+
 function documentUrl(documentId: string) {
   return `/api/startup/documents/${encodeURIComponent(documentId)}`;
 }

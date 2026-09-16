@@ -89,11 +89,21 @@ export function useDeleteMeetingTodo(meetingId: string) {
 export const assistantShareQueryKey = (meetingId: string) =>
   ["assistant-share", meetingId] as const;
 
-export function useAssistantShare(meetingId: string) {
+export function useAssistantShare(
+  meetingId: string,
+  options?: { refetchWhileIncomplete?: boolean },
+) {
   return useQuery({
     queryKey: assistantShareQueryKey(meetingId),
     queryFn: () => getAssistantShare(meetingId),
     enabled: Boolean(meetingId),
+    refetchInterval: options?.refetchWhileIncomplete
+      ? (query) => {
+          const share = query.state.data;
+          if (!share?.transcript?.length || !share.report) return 8_000;
+          return false;
+        }
+      : false,
   });
 }
 

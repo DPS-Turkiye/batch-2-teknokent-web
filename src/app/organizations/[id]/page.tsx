@@ -212,7 +212,7 @@ export function OrganizationStartupDetail({
                               </span>
                             </span>
                             <Image
-                              src="/mentor-dashboard/revised/download.svg"
+                              src="/startup/paper.svg"
                               alt=""
                               width={20}
                               height={20}

@@ -88,18 +88,16 @@ describe("useStartupMeetings", () => {
     expect(result.current.details(meetings[2]).mentorTitle).toBeNull();
   });
 
-  it("narrows every view to one mentor", () => {
+  it("groups meetings by mentor, the one with a meeting ahead first", () => {
     const { result } = renderHook(() => useStartupMeetings());
 
-    expect(result.current.mentorOptions.map((mentor) => mentor.name)).toEqual([
-      "Ahmet Yılmaz",
+    expect(result.current.mentors.map((stack) => stack.title)).toEqual([
       "Nihan Öztürk",
+      "Ahmet Yılmaz",
     ]);
-    act(() => result.current.setMentorId("mentor-2"));
-
-    expect(result.current.meetingCount).toBe(1);
-    expect(result.current.topics.map((topic) => topic.key)).toEqual([
-      "req-finance",
+    expect(result.current.mentors[0].meetings.map((item) => item.id)).toEqual([
+      "mvp-next",
+      "mvp-held",
     ]);
   });
 
@@ -114,6 +112,19 @@ describe("useStartupMeetings", () => {
     expect(result.current.otherMeetings.map((item) => item.id)).toEqual([
       "mvp-next",
     ]);
+  });
+
+  it("opens and closes the topic stack for a mentorship", () => {
+    const { result } = renderHook(() => useStartupMeetings());
+
+    act(() => result.current.openTopicStack("req-finance"));
+    expect(result.current.selectedTopic?.key).toBe("req-finance");
+    expect(result.current.selectedTopic?.meetings.map((m) => m.id)).toEqual([
+      "finance",
+    ]);
+
+    act(() => result.current.closeTopicStack());
+    expect(result.current.selectedTopic).toBeNull();
   });
 
   it("opens the timeline on the next meeting's month and lets it fold", () => {

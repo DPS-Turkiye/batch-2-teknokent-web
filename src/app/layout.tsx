@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
+import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 
 import "./globals.css";
@@ -40,7 +41,9 @@ export default function RootLayout({
       >
         <QueryProvider>
           <ToastProvider>
-            <SessionProvider>{children}</SessionProvider>
+            <DocumentPreviewProvider>
+              <SessionProvider>{children}</SessionProvider>
+            </DocumentPreviewProvider>
           </ToastProvider>
         </QueryProvider>
       </body>

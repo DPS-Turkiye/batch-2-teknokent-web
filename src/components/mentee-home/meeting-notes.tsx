@@ -28,7 +28,7 @@ export function MeetingNotes({
       <SectionHeader
         id="home-notes-title"
         title="Toplantı Notların"
-        href="/startup/meetings"
+        href="/notes"
         linkText={`Tümü (${totalCount})`}
       />
       {meetings.map((meeting) => {
@@ -39,7 +39,7 @@ export function MeetingNotes({
         return (
           <Link
             key={meeting.id}
-            href="/startup/meetings"
+            href="/notes"
             className="flex items-center justify-between gap-3 rounded-[20px] bg-white p-3 hover:bg-[#fcfcfd]"
           >
             <span className="flex min-w-0 items-center gap-3">

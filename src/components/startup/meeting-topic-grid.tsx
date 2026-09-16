@@ -10,17 +10,23 @@ import {
   type MeetingDetails,
 } from "@/hooks/use-startup-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { MeetingTiming, type MeetingTopic } from "@/lib/startup-meetings";
+import {
+  MeetingTiming,
+  meetingTitle,
+  type MeetingTopic,
+} from "@/lib/startup-meetings";
 
 export function MeetingTopicGrid({
   details,
+  kind = "topic",
   layout,
-  onOpen,
+  onOpenTopic,
   topics,
 }: {
   details: (meeting: MeetingItem) => MeetingDetails;
+  kind?: "topic" | "mentor";
   layout: MeetingLayout;
-  onOpen: (meetingId: string) => void;
+  onOpenTopic: (topicKey: string) => void;
   topics: MeetingTopic[];
 }) {
   return (
@@ -48,7 +54,7 @@ export function MeetingTopicGrid({
             ) : null}
             <button
               type="button"
-              onClick={() => onOpen(meeting.id)}
+              onClick={() => onOpenTopic(topic.key)}
               aria-label={`${topic.title} notlarını aç`}
               className={`relative w-full space-y-2.5 rounded-[21px] p-5 text-left transition ${featured ? "bg-[#ffe3d5]" : "border border-[#e4e7ea] bg-white hover:border-[#fbe2d0]"}`}
             >
@@ -60,7 +66,13 @@ export function MeetingTopicGrid({
               <div
                 className={`space-y-2.5 rounded-[10px] bg-white p-2.5 ${featured ? "" : "border border-[#e4e7ea]"}`}
               >
-                <MeetingPerson meeting={meeting} mentorTitle={mentorTitle} />
+                {kind === "mentor" ? (
+                  <p className="text-sm leading-5 text-[#676e78]">
+                    {meetingTitle(meeting)}
+                  </p>
+                ) : (
+                  <MeetingPerson meeting={meeting} mentorTitle={mentorTitle} />
+                )}
                 {summary ? (
                   <p className="text-xs leading-[18px] text-[#676e78]">
                     {summary}
