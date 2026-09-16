@@ -7,7 +7,7 @@ import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 import { PhotoAvatar } from "@/components/common/avatar";
 
 const itemClass =
-  "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[12.5px] leading-[19px] text-[#4a5059] hover:bg-[#f8f9fa] focus-visible:bg-[#f8f9fa] focus-visible:outline-none";
+  "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[12.5px]! font-normal! leading-[19px]! text-[#4a5059] hover:bg-[#f8f9fa] focus-visible:bg-[#f8f9fa] focus-visible:outline-none";
 const MENU_ITEM = '[role="menuitem"]';
 
 function ItemIcon({ src }: { src: string }) {

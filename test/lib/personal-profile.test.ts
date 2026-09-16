@@ -40,6 +40,14 @@ describe("personalRoleLabel and personalSubtitle", () => {
     );
   });
 
+  it("does not repeat Kurucu when the job title already says it", () => {
+    expect(personalRoleLabel("Kurucu", true)).toBe("Kurucu");
+    expect(personalRoleLabel(" founder ", true)).toBe("founder");
+    expect(personalRoleLabel("Kurucu Ortak", true)).toBe(
+      "Kurucu Ortak · Kurucu",
+    );
+  });
+
   it("leaves out what is missing", () => {
     expect(personalRoleLabel(null, true)).toBe("Kurucu");
     expect(personalRoleLabel("  ", false)).toBe("");

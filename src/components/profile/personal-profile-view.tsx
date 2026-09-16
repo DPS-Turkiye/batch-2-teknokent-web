@@ -16,9 +16,12 @@ const CHIP_CLASSES: Record<ProfileChipTone, string> = {
   [ProfileChipTone.Active]: "border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]",
   [ProfileChipTone.Neutral]: "border-[#e4e7ea] bg-[#f3f4f6] text-[#4a5059]",
 };
-const linkClass = "text-[12.5px] font-medium text-[#9e4400]";
+// globals.css gives buttons and form fields `font: inherit` outside any layer,
+// so their type sizes need `!` to take effect.
+const buttonTextClass = "text-[12.5px]! font-medium! leading-[19px]!";
+const linkClass = `text-[#9e4400] ${buttonTextClass}`;
 const inputClass =
-  "mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]";
+  "mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px]! text-[#22262b]";
 const emptyClass = "text-[12.5px] text-[#858c96]";
 const rowClass =
   "flex items-center justify-between gap-4 text-[12.5px] leading-[19px]";
@@ -131,7 +134,7 @@ function Header({ page }: { page: PageData }) {
               type="button"
               onClick={page.cancelEditing}
               disabled={page.isSaving}
-              className="rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[12.5px] font-medium text-[#4a5059] disabled:opacity-50"
+              className={`rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[#4a5059] disabled:opacity-50 ${buttonTextClass}`}
             >
               Vazgeç
             </button>
@@ -139,7 +142,7 @@ function Header({ page }: { page: PageData }) {
               type="button"
               onClick={page.save}
               disabled={!page.canSave}
-              className="rounded-full bg-[#e86f22] px-4 py-2.5 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
+              className={`rounded-full bg-[#e86f22] px-4 py-2.5 text-white disabled:bg-[#c9cdd2] ${buttonTextClass}`}
             >
               {page.isSaving ? "Kaydediliyor…" : "Kaydet"}
             </button>
@@ -149,14 +152,14 @@ function Header({ page }: { page: PageData }) {
             <button
               type="button"
               onClick={page.showComingSoon}
-              className="rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[12.5px] font-medium text-[#4a5059]"
+              className={`rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[#4a5059] ${buttonTextClass}`}
             >
               Hesap ayarları
             </button>
             <button
               type="button"
               onClick={page.startEditing}
-              className="rounded-full bg-[#e86f22] px-4 py-2.5 text-[12.5px] font-medium text-white"
+              className={`rounded-full bg-[#e86f22] px-4 py-2.5 text-white ${buttonTextClass}`}
             >
               Profili düzenle
             </button>
@@ -367,7 +370,7 @@ function AccountCard({ page }: { page: PageData }) {
               type="button"
               onClick={() => void page.sendPasswordReset()}
               disabled={page.isSendingReset || !page.email}
-              className="text-[12px] font-medium text-[#9e4400] disabled:opacity-50"
+              className="text-[12px]! font-medium! leading-[19px]! text-[#9e4400] disabled:opacity-50"
             >
               {page.isSendingReset
                 ? "Gönderiliyor…"

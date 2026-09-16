@@ -17,12 +17,17 @@ export const COMING_SOON_MESSAGE = "Bu bölüm yakında eklenecek.";
 export const PROFILE_PHOTO_TYPES = ["image/png", "image/jpeg", "image/webp"];
 export const PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 
+const FOUNDER_LABEL = "Kurucu";
+
 /** "Product Designer · Kurucu" */
 export function personalRoleLabel(
   jobTitle: string | null | undefined,
   isFounder: boolean,
 ) {
-  return [jobTitle?.trim(), isFounder ? "Kurucu" : null]
+  const title = jobTitle?.trim() ?? "";
+  // A founder whose job title already says so is not labelled twice.
+  const saysFounder = /^(kurucu|founder)$/i.test(title);
+  return [title, isFounder && !saysFounder ? FOUNDER_LABEL : null]
     .filter(Boolean)
     .join(" · ");
 }
