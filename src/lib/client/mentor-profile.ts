@@ -1,6 +1,8 @@
 import type {
   MentorAvailabilityRule,
   MentorAvailabilitySlot,
+  MentorAvailabilitySettings,
+  UpdateMentorAvailabilitySettingsPayload,
   MentorProfile,
   UpdateMentorProfilePayload,
 } from "@/interfaces/mentor";
@@ -30,6 +32,25 @@ export async function getAvailabilityRules() {
   return requireSuccess(
     await httpClient.get<MentorAvailabilityRule[]>(
       "/api/mentor-profile/availability-rules",
+    ),
+  );
+}
+
+export async function getAvailabilitySettings() {
+  return requireSuccess(
+    await httpClient.get<MentorAvailabilitySettings>(
+      "/api/mentor-profile/availability-settings",
+    ),
+  );
+}
+
+export async function updateAvailabilitySettings(
+  payload: UpdateMentorAvailabilitySettingsPayload,
+) {
+  return requireSuccess(
+    await httpClient.put<MentorAvailabilitySettings>(
+      "/api/mentor-profile/availability-settings",
+      payload,
     ),
   );
 }

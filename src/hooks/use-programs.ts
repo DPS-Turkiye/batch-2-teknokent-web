@@ -17,7 +17,14 @@ import {
   removeProgramStartup,
   requestProgramMembership,
   setActiveProgram,
+  setProgramStatus,
 } from "@/lib/client/programs";
+import { useToast } from "@/components/providers/toast-provider";
+import {
+  PROGRAM_STATUS_LABELS,
+  type Program,
+  ProgramStatus,
+} from "@/interfaces/program";
 import { PROGRAM_DETAIL_QUERY_KEY } from "@/lib/const/programs";
 
 export const PROGRAMS_QUERY_KEY = ["programs"] as const;
@@ -87,6 +94,57 @@ export function useCreateProgram() {
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: PROGRAMS_QUERY_KEY }),
   });
+}
+
+export function useSetProgramStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      programId,
+      status,
+    }: {
+      programId: string;
+      status: ProgramStatus;
+    }) => setProgramStatus(programId, status),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: PROGRAMS_QUERY_KEY }),
+  });
+}
+
+/** The coordinator's Aktif / Tamamlandı switch on one program. */
+export function useProgramStatusSwitch(program: Program) {
+  const { showToast } = useToast();
+  const setStatus = useSetProgramStatus();
+  const active = program.status !== ProgramStatus.Completed;
+
+  const toggle = async () => {
+    const status = active ? ProgramStatus.Completed : ProgramStatus.Active;
+    try {
+      await setStatus.mutateAsync({ programId: program.id, status });
+      showToast({
+        message: `${program.name}: ${PROGRAM_STATUS_LABELS[status]}`,
+        tone: "success",
+      });
+    } catch (reason) {
+      showToast({
+        message:
+          reason instanceof Error
+            ? reason.message
+            : "Program durumu güncellenemedi.",
+        tone: "error",
+      });
+    }
+  };
+
+  return {
+    active,
+    label:
+      PROGRAM_STATUS_LABELS[
+        active ? ProgramStatus.Active : ProgramStatus.Completed
+      ],
+    isSaving: setStatus.isPending,
+    toggle,
+  };
 }
 
 export function useAddProgramStartup() {

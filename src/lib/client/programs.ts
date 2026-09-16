@@ -5,6 +5,7 @@ import type {
   ProgramDetail,
   ProgramDirectory,
   ProgramInvitation,
+  ProgramStatus,
 } from "@/interfaces/program";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -56,6 +57,18 @@ export async function getProgramInvitations() {
 export async function createProgram(name: string) {
   return requireSuccess(
     await httpClient.post<Program>("/api/programs", { name }),
+  );
+}
+
+export async function setProgramStatus(
+  programId: string,
+  status: ProgramStatus,
+) {
+  return requireSuccess(
+    await httpClient.put<Program>(
+      `/api/programs/${encodeURIComponent(programId)}/status`,
+      { status },
+    ),
   );
 }
 
