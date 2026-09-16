@@ -57,6 +57,13 @@ export async function uploadDocument(
   }
 }
 
+/** The signed-in person's own files, newest first, through their session. */
+export async function listOwnDocuments() {
+  return requireSuccess(
+    await httpClient.get<StoredDocument[]>("/api/documents"),
+  );
+}
+
 /**
  * A brand-new signup has no account yet, so the backend 401s and that means
  * "nothing stored" rather than an error worth surfacing.

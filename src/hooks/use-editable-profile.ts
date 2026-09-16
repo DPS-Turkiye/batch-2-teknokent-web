@@ -74,6 +74,12 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     [resetSave],
   );
 
+  const discard = useCallback(() => {
+    setEdits({});
+    setSaved(false);
+    resetSave();
+  }, [resetSave]);
+
   const isDirty = useMemo(
     () =>
       Boolean(
@@ -91,6 +97,7 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     draft,
     setField,
     save: submit,
+    discard,
     isDirty,
     saved,
     isLoading: query.isLoading,

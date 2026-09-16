@@ -1,3 +1,35 @@
+/** A person's photo when they have one, otherwise their initials; `className` sets size and text. */
+export function PhotoAvatar({
+  initials,
+  photoUrl,
+  className,
+  label,
+}: {
+  initials: string;
+  photoUrl: string | null;
+  className: string;
+  label?: string;
+}) {
+  if (photoUrl) {
+    return (
+      <span
+        role="img"
+        aria-label={label ?? "Profil fotoğrafı"}
+        className={`block shrink-0 rounded-full bg-[#fbe2d0] bg-cover bg-center ${className}`}
+        style={{ backgroundImage: `url("${photoUrl}")` }}
+      />
+    );
+  }
+  return (
+    <span
+      aria-hidden
+      className={`grid shrink-0 place-items-center rounded-full bg-[#fbe2d0] font-semibold text-[#c95c18] ${className}`}
+    >
+      {initials}
+    </span>
+  );
+}
+
 export function Avatar({
   initials,
   tone = "gray",

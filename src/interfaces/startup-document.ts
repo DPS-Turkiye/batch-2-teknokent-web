@@ -10,6 +10,7 @@ export enum DocumentKind {
   NotePhoto = "note-photo",
   Other = "other",
   Logo = "logo",
+  Avatar = "avatar",
   ProfilePdf = "profile-pdf",
 }
 
