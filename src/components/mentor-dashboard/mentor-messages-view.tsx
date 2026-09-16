@@ -2,6 +2,7 @@
 
 import { ChevronRight, Mail, Search, Upload } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -77,7 +78,7 @@ function ConversationList({
       ) : shown.length === 0 ? (
         <p className="border-t border-[#eef0f3] p-4 text-xs text-[#858c96]">
           {conversations.length === 0
-            ? "Mesajlaşma, bir talebi kabul ettikten sonra açılır."
+            ? "Açık bir mentorluk talebi olunca konuşmalar burada görünür."
             : "Aramanla eşleşen konuşma yok."}
         </p>
       ) : (
@@ -274,7 +275,9 @@ function ActiveConversation({
 }
 
 export function MentorMessagesView() {
-  const messages = useMentorMessages();
+  const params = useSearchParams();
+  const preferredRequestId = params.get("request") ?? params.get("id");
+  const messages = useMentorMessages(preferredRequestId);
   const meetingLabel = messages.activeMeeting
     ? `Sonraki görüşme ${formatMeetingShort(messages.activeMeeting.scheduledAt)}`
     : null;

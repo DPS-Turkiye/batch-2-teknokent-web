@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ClientApiError } from "@/lib/client/api";
 import { uploadDocument } from "@/lib/client/documents";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
@@ -21,8 +22,6 @@ describe("uploadDocument", () => {
     vi.mocked(currentIdToken).mockReset();
   });
 
-  // Reported: the Amplify-hosted proxy's own edge blocks any request body
-  // over ~8KB, so this goes straight to the backend instead.
   it("uploads directly to the backend, not the Next.js proxy", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,
@@ -41,6 +40,27 @@ describe("uploadDocument", () => {
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer id-token" },
     });
+  });
+
+  it("falls back to the Next.js proxy when the public backend is unreachable", async () => {
+    vi.mocked(httpClient.post)
+      .mockRejectedValueOnce(
+        new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
+      )
+      .mockResolvedValueOnce({
+        status: 201,
+        data: {
+          id: "doc-1",
+          kind: "requested-doc",
+          originalFilename: "cv.pdf",
+          sizeBytes: 2,
+        },
+      } as never);
+
+    await uploadDocument(file, "requested-doc", "id-token");
+
+    expect(httpClient.post).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(httpClient.post).mock.calls[1][0]).toBe("/api/documents");
   });
 
   it("resolves a fresh Firebase token when the caller doesn't pass one", async () => {

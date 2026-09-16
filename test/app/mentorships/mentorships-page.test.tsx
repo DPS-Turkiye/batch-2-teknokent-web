@@ -159,7 +159,7 @@ describe("MentorshipsPage", () => {
     expect(screen.getByText("Burak Yalçın")).toBeInTheDocument();
   });
 
-  it("links each request to its status detail page", async () => {
+  it("links each request with a meeting to the meeting context page", async () => {
     mockPage("active", [
       request({
         id: "req-42",
@@ -186,7 +186,7 @@ describe("MentorshipsPage", () => {
 
     expect(
       await screen.findByRole("link", { name: "Mentorluğa git →" }),
-    ).toHaveAttribute("href", "/mentor-request/status?id=req-42");
+    ).toHaveAttribute("href", "/meetings/research?id=meeting-req-42");
   });
 
   it("links calendar-origin active cards to the meeting context page", async () => {

@@ -4,38 +4,48 @@ import { useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import {
   useMentorMessageForm,
   useMentorshipRequests,
   useRequestFileUpload,
 } from "@/hooks/use-mentorship-requests";
-import { pickRequestMeeting } from "@/lib/mentorship-workspace";
+import {
+  mentorshipRequestAllowsMessaging,
+  pickRequestMeeting,
+} from "@/lib/mentorship-workspace";
 
-export function useMentorMessages() {
+export function useMentorMessages(preferredRequestId?: string | null) {
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
+  const preferred = preferredRequestId ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [syncedPreferred, setSyncedPreferred] = useState(preferred);
 
-  // Messaging opens only once a request is accepted; the backend refuses a
-  // mentor message on any other status, so the list mirrors that rule.
+  if (syncedPreferred !== preferred) {
+    setSyncedPreferred(preferred);
+    setSelectedId(null);
+  }
+
   const conversations = useMemo<MentorshipRequest[]>(
     () =>
-      (requestsQuery.data ?? []).filter(
-        (request) => request.status === MentorshipRequestStatus.Accepted,
+      (requestsQuery.data ?? []).filter((request) =>
+        mentorshipRequestAllowsMessaging(request.status),
       ),
     [requestsQuery.data],
   );
 
   const activeId =
-    selectedId && conversations.some((item) => item.id === selectedId)
+    (selectedId && conversations.some((item) => item.id === selectedId)
       ? selectedId
-      : (conversations[0]?.id ?? null);
+      : null) ??
+    (preferred && conversations.some((item) => item.id === preferred)
+      ? preferred
+      : null) ??
+    conversations[0]?.id ??
+    null;
 
   const active = conversations.find((item) => item.id === activeId) ?? null;
   const messageForm = useMentorMessageForm(activeId);

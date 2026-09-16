@@ -19,6 +19,14 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/components/dashboard/my-programs-panel", () => ({
+  MyProgramsPanel: () => (
+    <section aria-labelledby="home-programs-title">
+      <h2 id="home-programs-title">Programlarım</h2>
+    </section>
+  ),
+}));
+
 vi.mock("@/hooks/use-mentor-dashboard", () => ({
   useMentorDashboard: vi.fn(),
 }));

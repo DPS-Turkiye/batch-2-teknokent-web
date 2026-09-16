@@ -8,6 +8,7 @@ import { useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { useAppSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
 import {
@@ -133,7 +134,13 @@ export default function RegularMentorshipDetailPage() {
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <h1 className="text-[28px] font-medium text-[#22262b]">
-                  {mentorship.organizationName}
+                  {isMentor ? (
+                    <StartupNameLink organizationId={mentorship.organizationId}>
+                      {mentorship.organizationName}
+                    </StartupNameLink>
+                  ) : (
+                    mentorship.organizationName
+                  )}
                 </h1>
                 <p className="mt-1 text-sm text-[#676e78]">
                   {mentorship.mentorName} · Haftada {mentorship.daysPerWeek} gün

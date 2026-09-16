@@ -12,6 +12,14 @@ export async function getStartupProfile() {
   );
 }
 
+export async function getOrganizationById(organizationId: string) {
+  return requireSuccess(
+    await httpClient.get<StartupProfile>(
+      `/api/organizations/${encodeURIComponent(organizationId)}`,
+    ),
+  );
+}
+
 export async function saveStartupProfile(profile: StartupProfileInput) {
   return requireSuccess(
     await httpClient.put<StartupProfile>("/api/organizations/profile", profile),

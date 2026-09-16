@@ -2,6 +2,7 @@ import type {
   OrganizationPrograms,
   ProgramName,
   Program,
+  ProgramDetail,
   ProgramDirectory,
   ProgramInvitation,
 } from "@/interfaces/program";
@@ -10,6 +11,14 @@ import { httpClient } from "@/lib/http-client";
 
 export async function getPrograms() {
   return requireSuccess(await httpClient.get<Program[]>("/api/programs"));
+}
+
+export async function getProgramDetail(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramDetail>(
+      `/api/programs/${encodeURIComponent(programId)}`,
+    ),
+  );
 }
 
 export async function getProgramNames() {

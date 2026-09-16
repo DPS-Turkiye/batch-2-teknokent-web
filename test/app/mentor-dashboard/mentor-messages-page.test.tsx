@@ -21,6 +21,10 @@ vi.mock("@/hooks/use-mentor-messages", () => ({
   useMentorMessages: vi.fn(),
 }));
 
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 const VIEWER = "mentor-1";
 
 function conversation(
@@ -138,12 +142,14 @@ describe("MentorMessagesPage", () => {
     ).toBeGreaterThan(0);
   });
 
-  it("explains that messaging opens only after a request is accepted", () => {
+  it("explains when there are no open conversations yet", () => {
     mockMessages({ conversations: [], active: null, activeId: null });
     render(<MentorMessagesPage />);
 
     expect(
-      screen.getByText("Mesajlaşma, bir talebi kabul ettikten sonra açılır."),
+      screen.getByText(
+        "Açık bir mentorluk talebi olunca konuşmalar burada görünür.",
+      ),
     ).toBeInTheDocument();
   });
 

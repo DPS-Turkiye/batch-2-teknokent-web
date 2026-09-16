@@ -10,6 +10,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
@@ -114,6 +115,23 @@ function MeetingDetailContent() {
   const ownerLabel = request?.requestedForName || request?.requesterName || "";
   const startupLabel =
     meeting.organizationName || request?.organizationName || "—";
+  const organizationId = meeting.organizationId || request?.organizationId;
+  const linkedStartupName =
+    isMentor && organizationId ? (
+      <StartupNameLink organizationId={organizationId}>
+        {startupLabel}
+      </StartupNameLink>
+    ) : (
+      startupLabel
+    );
+  const startupTitle =
+    isMentor && organizationId ? (
+      <StartupNameLink organizationId={organizationId}>
+        {counterpart}
+      </StartupNameLink>
+    ) : (
+      counterpart
+    );
   const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
   const calendarTopic =
     meeting.agenda?.trim() ||
@@ -141,7 +159,7 @@ function MeetingDetailContent() {
             Mentorluklarım
           </Link>
           <span className="text-[#858c96]">›</span>
-          <span className="font-medium text-[#22262b]">{counterpart}</span>
+          <span className="font-medium text-[#22262b]">{startupTitle}</span>
         </nav>
 
         <section className="mt-5 flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -149,7 +167,7 @@ function MeetingDetailContent() {
             <Avatar initials={initials(counterpart)} size="lg" tone="orange" />
             <div className="min-w-0">
               <h1 className="text-[28px] font-medium leading-tight text-[#22262b]">
-                {counterpart} ile Mentorluk Görüşmesi
+                {startupTitle} ile Mentorluk Görüşmesi
               </h1>
               <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
                 {calendarMode ? calendarTopic : requestTopic}
@@ -188,7 +206,7 @@ function MeetingDetailContent() {
                   <div>
                     <dt className="text-[#858c96]">Startup</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
-                      {startupLabel}
+                      {linkedStartupName}
                     </dd>
                   </div>
                   <div>
@@ -244,7 +262,7 @@ function MeetingDetailContent() {
                   </li>
                   <li>
                     <span className="text-[#858c96]">Startup: </span>
-                    {startupLabel}
+                    {linkedStartupName}
                   </li>
                   {ownerLabel ? (
                     <li>
@@ -283,7 +301,7 @@ function MeetingDetailContent() {
                 <div>
                   <dt className="text-[#858c96]">Ad</dt>
                   <dd className="mt-0.5 font-medium text-[#22262b]">
-                    {startupLabel}
+                    {linkedStartupName}
                   </dd>
                 </div>
                 {ownerLabel ? (
@@ -318,7 +336,10 @@ function MeetingDetailContent() {
 
         <div className="mt-6">
           <DocumentRequestChecklist
-            scope={{ meetingId: meeting.id }}
+            scope={{
+              meetingId: meeting.id,
+              mentorshipRequestId: meeting.mentorshipRequestId ?? undefined,
+            }}
             canManage={Boolean(isMentor)}
             canUpload={!isMentor}
           />
