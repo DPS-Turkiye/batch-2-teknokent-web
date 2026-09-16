@@ -10,8 +10,10 @@ import {
   useInviteProgramMentor,
   useProgramDirectory,
   usePrograms,
+  useProgramStatusSwitch,
   useRemoveProgramStartup,
 } from "@/hooks/use-programs";
+import { ProgramStatus } from "@/interfaces/program";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -28,11 +30,13 @@ vi.mock("@/hooks/use-programs", () => ({
   useRemoveProgramStartup: vi.fn(),
   useInviteProgramMentor: vi.fn(),
   useDecideProgramMentorRequest: vi.fn(),
+  useProgramStatusSwitch: vi.fn(),
 }));
 
 describe("ProgramsPage", () => {
   const createMutate = vi.fn();
   const addStartupMutate = vi.fn();
+  const toggleStatus = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,8 +60,22 @@ describe("ProgramsPage", () => {
       mutateAsync: vi.fn(),
       isPending: false,
     } as ReturnType<typeof useDecideProgramMentorRequest>);
+    vi.mocked(useProgramStatusSwitch).mockReturnValue({
+      active: true,
+      label: "Aktif",
+      isSaving: false,
+      toggle: toggleStatus,
+    });
     vi.mocked(usePrograms).mockReturnValue({
-      data: [{ id: "program-1", name: "Seed 2026", mentors: [], startups: [] }],
+      data: [
+        {
+          id: "program-1",
+          name: "Seed 2026",
+          status: ProgramStatus.Active,
+          mentors: [],
+          startups: [],
+        },
+      ],
       isLoading: false,
       error: null,
     } as ReturnType<typeof usePrograms>);
@@ -86,6 +104,36 @@ describe("ProgramsPage", () => {
       programId: "program-1",
       organizationId: "org-1",
     });
+  });
+
+  it("shows each program's status and lets the coordinator switch it", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramsPage />);
+
+    const toggle = screen.getByRole("switch", { name: "Seed 2026 aktif" });
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+    expect(screen.getByText("Aktif")).toBeInTheDocument();
+    await user.click(toggle);
+
+    expect(toggleStatus).toHaveBeenCalled();
+    expect(useProgramStatusSwitch).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "program-1" }),
+    );
+  });
+
+  it("disables the switch while the status is saving", () => {
+    vi.mocked(useProgramStatusSwitch).mockReturnValue({
+      active: false,
+      label: "Tamamlandı",
+      isSaving: true,
+      toggle: toggleStatus,
+    });
+    renderWithQueryClient(<ProgramsPage />);
+
+    const toggle = screen.getByRole("switch", { name: "Seed 2026 aktif" });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+    expect(toggle).toBeDisabled();
+    expect(screen.getByText("Tamamlandı")).toBeInTheDocument();
   });
 
   it("filters the startup list by name", async () => {

@@ -5,14 +5,19 @@ import { type ReactNode, useEffect, useRef } from "react";
 const FOCUSABLE =
   'input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), [href], [tabindex]:not([tabindex="-1"])';
 
+const DEFAULT_PANEL_CLASS =
+  "w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-2xl outline-none";
+
 export function ModalDialog({
   children,
   labelledBy,
   onClose,
+  panelClassName = DEFAULT_PANEL_CLASS,
 }: {
   children: ReactNode;
   labelledBy: string;
   onClose: () => void;
+  panelClassName?: string;
 }) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
@@ -60,7 +65,7 @@ export function ModalDialog({
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className="w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-2xl outline-none"
+        className={panelClassName}
       >
         {children}
       </section>

@@ -3,6 +3,7 @@
 import { FormEvent, useMemo, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { ProgramStatusSwitch } from "@/components/programs/program-status-switch";
 import { useToast } from "@/components/providers/toast-provider";
 import {
   useAddProgramStartup,
@@ -209,7 +210,10 @@ export default function ProgramsPage() {
                   key={program.id}
                   className="space-y-4 rounded-xl border border-[#e5e7eb] bg-white p-5"
                 >
-                  <h3 className="text-base font-semibold">{program.name}</h3>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <h3 className="text-base font-semibold">{program.name}</h3>
+                    <ProgramStatusSwitch program={program} />
+                  </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
                       Startup’lar

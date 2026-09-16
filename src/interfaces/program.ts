@@ -9,6 +9,16 @@ export enum ProgramMentorInvitedBy {
   Mentor = "MENTOR",
 }
 
+export enum ProgramStatus {
+  Active = "ACTIVE",
+  Completed = "COMPLETED",
+}
+
+export const PROGRAM_STATUS_LABELS: Record<ProgramStatus, string> = {
+  [ProgramStatus.Active]: "Aktif",
+  [ProgramStatus.Completed]: "Tamamlandı",
+};
+
 export type ProgramStartup = {
   id: string;
   name: string;
@@ -36,6 +46,7 @@ export type ProgramMentor = {
   status: ProgramMentorStatus;
   invitedBy: ProgramMentorInvitedBy;
   createdAt: string;
+  role?: string | null;
 };
 
 export type Program = {
@@ -44,6 +55,7 @@ export type Program = {
   coordinatorId: string;
   coordinatorName: string;
   createdAt: string;
+  status: ProgramStatus;
   startups: ProgramStartup[];
   mentors: ProgramMentor[];
 };
