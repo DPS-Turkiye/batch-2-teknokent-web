@@ -10,6 +10,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { ReportBlock } from "@/components/notes/meeting-assistant-share-panel";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
@@ -78,6 +79,15 @@ function MeetingAboutContent() {
     request,
     Boolean(isMentor),
   );
+  const organizationId = meeting.organizationId || request?.organizationId;
+  const startupTitle =
+    isMentor && organizationId ? (
+      <StartupNameLink organizationId={organizationId}>
+        {counterpart}
+      </StartupNameLink>
+    ) : (
+      counterpart
+    );
   const schedule = meetingScheduleLabel(meeting);
   const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
   const report = shareQuery.data?.report ?? null;
@@ -104,14 +114,14 @@ function MeetingAboutContent() {
             Geçmiş
           </Link>
           <span className="text-[#858c96]">›</span>
-          <span className="font-medium text-[#22262b]">{counterpart}</span>
+          <span className="font-medium text-[#22262b]">{startupTitle}</span>
         </nav>
 
         <section className="mt-5 flex gap-[22px]">
           <Avatar initials={initials(counterpart)} size="lg" tone="orange" />
           <div className="min-w-0">
             <h1 className="text-[28px] font-medium leading-tight text-[#22262b]">
-              {counterpart} ile Mentorluk Görüşmesi
+              {startupTitle} ile Mentorluk Görüşmesi
             </h1>
             <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
               {requestTopic}
@@ -182,7 +192,10 @@ function MeetingAboutContent() {
 
         <div className="mt-[18px]">
           <DocumentRequestChecklist
-            scope={{ meetingId: meeting.id }}
+            scope={{
+              meetingId: meeting.id,
+              mentorshipRequestId: meeting.mentorshipRequestId ?? undefined,
+            }}
             canManage={session?.role === UserRole.Mentor}
             canUpload={session?.role !== UserRole.Mentor}
           />

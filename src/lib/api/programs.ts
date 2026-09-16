@@ -9,6 +9,7 @@ import type {
   OrganizationPrograms,
   ProgramName,
   Program,
+  ProgramDetail,
   ProgramDirectory,
   ProgramInvitation,
   ProgramStartup,
@@ -21,6 +22,14 @@ export function fetchPrograms(actorId: string) {
   return backendRequest<Program[]>({
     method: "GET",
     url: "/api/programs",
+    params: { actorId },
+  });
+}
+
+export function fetchProgramDetail(programId: string, actorId: string) {
+  return backendRequest<ProgramDetail>({
+    method: "GET",
+    url: `/api/programs/${encodeURIComponent(programId)}`,
     params: { actorId },
   });
 }

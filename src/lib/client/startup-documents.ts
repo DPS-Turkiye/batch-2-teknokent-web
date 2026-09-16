@@ -12,6 +12,14 @@ export async function getStartupDocuments() {
   );
 }
 
+export async function getOrganizationDocuments(organizationId: string) {
+  return requireSuccess(
+    await httpClient.get<StartupDocument[]>(
+      `/api/organizations/${encodeURIComponent(organizationId)}/documents`,
+    ),
+  );
+}
+
 export async function getStartupDocumentRequests() {
   return requireSuccess(
     await httpClient.get<DocumentRequestItem[]>(

@@ -25,6 +25,20 @@ export type ProgramStartup = {
   description?: string | null;
 };
 
+export type ProgramMemberSummary = {
+  id: string;
+  fullName: string;
+  jobTitle: string | null;
+  founder: boolean;
+};
+
+export type ProgramStartupRoster = {
+  id: string;
+  name: string;
+  description?: string | null;
+  members: ProgramMemberSummary[];
+};
+
 export type ProgramMentor = {
   mentorId: string;
   fullName: string;
@@ -46,6 +60,16 @@ export type Program = {
   mentors: ProgramMentor[];
 };
 
+export type ProgramDetail = {
+  id: string;
+  name: string;
+  coordinatorId: string;
+  coordinatorName: string;
+  createdAt: string;
+  startups: ProgramStartupRoster[];
+  mentors: ProgramMentor[];
+};
+
 export type ProgramInvitation = {
   programId: string;
   programName: string;
@@ -63,11 +87,6 @@ export type ProgramDirectory = {
   }>;
 };
 
-/**
- * A program the signed-in user's own startup has been assigned to. Narrower than
- * {@link Program} on purpose: the backend does not expose the other startups or
- * the mentor roster of a program a startup merely belongs to.
- */
 export type OrganizationProgram = {
   id: string;
   name: string;
@@ -76,11 +95,9 @@ export type OrganizationProgram = {
 
 export type OrganizationPrograms = {
   programs: OrganizationProgram[];
-  /** Null when the startup has no assignment, or has one but has not chosen. */
   activeProgramId: string | null;
 };
 
-/** Just enough to name a program in the signup picker, before the user has an account. */
 export type ProgramName = {
   id: string;
   name: string;

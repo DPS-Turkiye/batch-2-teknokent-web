@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import { isOverdueActionItem } from "@/lib/mentor-dashboard";
@@ -792,6 +793,7 @@ export function MentorDashboardView() {
             </section>
           </div>
           <aside className="min-w-0 space-y-6">
+            <MyProgramsPanel variant="mentor" />
             <section>
               <SectionHeading
                 action={

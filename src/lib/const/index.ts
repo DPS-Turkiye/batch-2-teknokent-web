@@ -23,6 +23,8 @@ export const DEFAULT_BACKEND_URL = "http://localhost:8080";
 export const BACKEND_HEALTH_PATH = "/api/health";
 export const HEALTH_API_PATH = "/api/health";
 
+export * from "./programs";
+
 function normalizeUrl(url: string): string {
   return url.replace(/\/$/, "");
 }
@@ -44,7 +46,7 @@ export function getBackendUrl(): string {
  * BACKEND_URL at build time so the two cannot drift apart.
  */
 export const PUBLIC_BACKEND_URL = normalizeUrl(
-  process.env.NEXT_PUBLIC_BACKEND_URL ?? DEFAULT_BACKEND_URL,
+  process.env.NEXT_PUBLIC_BACKEND_URL?.trim() || DEFAULT_BACKEND_URL,
 );
 
 export function getPublicBackendUrl(): string {

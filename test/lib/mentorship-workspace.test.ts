@@ -13,8 +13,9 @@ import {
   meetingCallHref,
   meetingFeedbackHref,
   meetingSummaryHref,
-  menteeRequestStatusHref,
   mentorRequestHref,
+  mentorRequestMessagesHref,
+  mentorshipRequestAllowsMessaging,
   pickRequestMeeting,
   requestHasConfirmedMeeting,
   requestHasEndedMeeting,
@@ -214,10 +215,22 @@ describe("mentorship workspace helpers", () => {
       "/meetings/research?id=meeting-cal",
     );
     expect(activeMentorshipHref(request, meeting, false)).toBe(
-      menteeRequestStatusHref(request.id),
+      "/meetings/research?id=meeting-cal",
     );
     expect(activeMentorshipHref(request, null, true)).toBe(
       mentorRequestHref(request.id),
     );
+  });
+
+  it("opens the mentor messages inbox for a request", () => {
+    expect(mentorRequestMessagesHref("req-1")).toBe(
+      "/mentor-dashboard/messages?request=req-1",
+    );
+    expect(
+      mentorshipRequestAllowsMessaging(MentorshipRequestStatus.Pending),
+    ).toBe(true);
+    expect(
+      mentorshipRequestAllowsMessaging(MentorshipRequestStatus.Declined),
+    ).toBe(false);
   });
 });

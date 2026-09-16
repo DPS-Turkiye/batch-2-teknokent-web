@@ -9,6 +9,7 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { MeetingFeedbackHistoryLink } from "@/components/mentorships/meeting-feedback-history-link";
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
@@ -312,6 +313,24 @@ function ActiveTab({ meetings }: { meetings: MeetingItem[] }) {
                       className="mt-1"
                     />
                   </div>
+                  {meeting ? (
+                    <div className="mt-3 border-t border-[#e4e7ea] pt-3">
+                      <DocumentRequestChecklist
+                        scope={{
+                          meetingId: meeting.id,
+                          mentorshipRequestId: request.id,
+                        }}
+                        canUpload
+                      />
+                    </div>
+                  ) : (
+                    <div className="mt-3 border-t border-[#e4e7ea] pt-3">
+                      <DocumentRequestChecklist
+                        scope={{ mentorshipRequestId: request.id }}
+                        canUpload
+                      />
+                    </div>
+                  )}
                 </article>
               );
             })}

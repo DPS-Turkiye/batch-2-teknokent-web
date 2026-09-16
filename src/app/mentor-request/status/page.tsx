@@ -9,6 +9,7 @@ import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
 import { useSession } from "@/components/providers/session-provider";
@@ -185,6 +186,17 @@ export default function RequestStatusPage() {
                 className="mt-4"
               />
             </section>
+
+            <div className="mt-3">
+              <DocumentRequestChecklist
+                scope={{ mentorshipRequestId: request.id }}
+                canUpload={
+                  session?.role === UserRole.Mentee &&
+                  (request.status === MentorshipRequestStatus.Accepted ||
+                    request.status === MentorshipRequestStatus.CounterProposed)
+                }
+              />
+            </div>
 
             <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
               {request.status === MentorshipRequestStatus.Pending ? (
