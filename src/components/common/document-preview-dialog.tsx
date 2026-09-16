@@ -46,8 +46,15 @@ export function DocumentPreviewDialog({
   onClose: () => void;
 }) {
   const close = useCallback(() => onClose(), [onClose]);
+  const fileKey = file.id ?? file.url;
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [previewKey, setPreviewKey] = useState(fileKey);
+  if (previewKey !== fileKey) {
+    setPreviewKey(fileKey);
+    setObjectUrl(null);
+    setError(false);
+  }
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -60,8 +67,6 @@ export function DocumentPreviewDialog({
   useEffect(() => {
     let cancelled = false;
     let created: string | null = null;
-    setObjectUrl(null);
-    setError(false);
 
     async function load() {
       const source = file.id ? documentContentPath(file.id) : file.url;
