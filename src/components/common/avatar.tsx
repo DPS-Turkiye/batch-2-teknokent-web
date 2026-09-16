@@ -4,17 +4,21 @@ export function PhotoAvatar({
   photoUrl,
   className,
   label,
+  decorative = false,
 }: {
   initials: string;
   photoUrl: string | null;
   className: string;
   label?: string;
+  /** Beside a visible or labelled name, the photo adds nothing to announce. */
+  decorative?: boolean;
 }) {
   if (photoUrl) {
     return (
       <span
-        role="img"
-        aria-label={label ?? "Profil fotoğrafı"}
+        role={decorative ? undefined : "img"}
+        aria-label={decorative ? undefined : (label ?? "Profil fotoğrafı")}
+        aria-hidden={decorative || undefined}
         className={`block shrink-0 rounded-full bg-[#fbe2d0] bg-cover bg-center ${className}`}
         style={{ backgroundImage: `url("${photoUrl}")` }}
       />

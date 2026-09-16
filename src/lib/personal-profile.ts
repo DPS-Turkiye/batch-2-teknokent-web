@@ -58,15 +58,19 @@ export function mentorshipSessionLabel(row: ActiveMentorshipRow) {
   return [row.supportArea, sessions].filter(Boolean).join(" · ");
 }
 
-/** The next booked meeting, otherwise the open action items, otherwise nothing. */
+/**
+ * Open action items first, then the next booked meeting, otherwise nothing:
+ * the same order as the home page's `activeMentorshipFooter`, so one mentorship
+ * reads the same on both pages. Only the wording follows this page's design.
+ */
 export function mentorshipRowStatus(
   row: ActiveMentorshipRow,
   openActionCount: number,
 ) {
-  if (row.nextMeetingAt) {
-    return `Sonraki görüşme ${formatDayMonth(new Date(row.nextMeetingAt))}`;
-  }
-  return openActionCount > 0 ? `${openActionCount} açık aksiyon` : null;
+  if (openActionCount > 0) return `${openActionCount} açık aksiyon`;
+  return row.nextMeetingAt
+    ? `Sonraki görüşme ${formatDayMonth(new Date(row.nextMeetingAt))}`
+    : null;
 }
 
 /** The backend lists a user's documents newest first, so the first avatar is the current photo. */

@@ -101,12 +101,46 @@ describe("AccountMenu", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
-  it("shows the photo and, on the older navigation, the name", () => {
-    renderMenu({ photoUrl: "https://files.example/me.png", showName: true });
+  it("moves focus with the arrow, Home and End keys and returns it on Escape", async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    const trigger = screen.getByRole("button", {
+      name: "Gülse Buran · Hesap menüsünü aç",
+    });
+
+    await openMenu(user);
+    const item = (name: string) => screen.getByRole("menuitem", { name });
+    expect(item("Profilim")).toHaveFocus();
+
+    await user.keyboard("{ArrowDown}");
+    expect(item("Hesap ayarları")).toHaveFocus();
+    await user.keyboard("{End}");
+    expect(item("Çıkış yap")).toHaveFocus();
+    await user.keyboard("{ArrowDown}");
+    expect(item("Profilim")).toHaveFocus();
+    await user.keyboard("{ArrowUp}");
+    expect(item("Çıkış yap")).toHaveFocus();
+    await user.keyboard("{Home}");
+    expect(item("Profilim")).toHaveFocus();
+
+    await user.keyboard("{Escape}");
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("shows the photo without announcing it twice, and the name on the older navigation", () => {
+    const { container } = renderMenu({
+      photoUrl: "https://files.example/me.png",
+      showName: true,
+    });
 
     expect(
-      screen.getByRole("img", { name: "Profil fotoğrafı" }),
+      screen.getByRole("button", { name: "Gülse Buran · Hesap menüsünü aç" }),
     ).toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(
+      container.querySelector('[style*="files.example/me.png"]'),
+    ).not.toBeNull();
     expect(screen.getByText("Döngü")).toBeInTheDocument();
   });
 });

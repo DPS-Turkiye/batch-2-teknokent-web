@@ -74,11 +74,11 @@ describe("mentorshipSessionLabel", () => {
 });
 
 describe("mentorshipRowStatus", () => {
-  it("prefers the next meeting, then open actions, then nothing", () => {
-    expect(
-      mentorshipRowStatus(row({ nextMeetingAt: "2026-08-30T10:00:00" }), 2),
-    ).toBe("Sonraki görüşme 30 Ağu");
-    expect(mentorshipRowStatus(row(), 1)).toBe("1 açık aksiyon");
+  it("prefers open actions, then the next meeting, then nothing", () => {
+    const booked = row({ nextMeetingAt: "2026-08-30T10:00:00" });
+
+    expect(mentorshipRowStatus(booked, 2)).toBe("2 açık aksiyon");
+    expect(mentorshipRowStatus(booked, 0)).toBe("Sonraki görüşme 30 Ağu");
     expect(mentorshipRowStatus(row(), 0)).toBeNull();
   });
 });

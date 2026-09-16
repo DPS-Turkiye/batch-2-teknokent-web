@@ -102,7 +102,7 @@ function Header({ page }: { page: PageData }) {
           />
         </div>
         <div className="flex min-w-0 flex-col gap-2">
-          <h1 className="text-[28px] font-semibold leading-[1.5] text-[#22262b]">
+          <h1 className="break-words text-[28px] font-semibold leading-[1.5] text-[#22262b]">
             {page.fullName}
           </h1>
           {page.subtitle ? (

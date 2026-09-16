@@ -10,6 +10,10 @@ import { currentAvatar, profilePhotoError } from "@/lib/personal-profile";
 
 export const OWN_DOCUMENTS_QUERY_KEY = ["own-documents"] as const;
 
+// Every page's top bar asks for the photo; it only changes through this hook,
+// which refetches after an upload, so a page change needn't ask again.
+const OWN_DOCUMENTS_STALE_MS = 5 * 60_000;
+
 /** The signed-in person's profile photo, and a way to replace it. */
 export function useProfilePhoto() {
   const { showToast } = useToast();
@@ -17,6 +21,7 @@ export function useProfilePhoto() {
   const documentsQuery = useQuery({
     queryKey: OWN_DOCUMENTS_QUERY_KEY,
     queryFn: listOwnDocuments,
+    staleTime: OWN_DOCUMENTS_STALE_MS,
   });
   const avatar = currentAvatar(documentsQuery.data ?? []);
   const urlQuery = useDocumentUrl(avatar?.id);
