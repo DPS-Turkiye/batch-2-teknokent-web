@@ -4,14 +4,18 @@ import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/providers/toast-provider";
 
-import type {
-  MentorExperienceInput,
-  MentorProfile,
-  UpdateMentorAvailabilitySettingsPayload,
-  UpdateMentorProfilePayload,
-  Weekday,
+import {
+  type MeetingFrequency,
+  type MentorExperienceInput,
+  MentorLanguage,
+  type MentorProfile,
+  type PrepFileRequirement,
+  type UpdateMentorAvailabilitySettingsPayload,
+  type UpdateMentorProfilePayload,
+  type Weekday,
+  WEEKDAY_LABELS,
+  WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
-import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -143,10 +147,19 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
       summary: experience.summary ?? "",
     })),
     about: profile.about ?? "",
+    meetingFrequency: profile.meetingFrequency ?? null,
+    prepFileRequirement: profile.prepFileRequirement ?? null,
+    languages: profile.languages ?? [],
+    programRoles: (profile.programs ?? []).map((program) => ({
+      programId: program.id,
+      role: program.role ?? "",
+    })),
   };
 }
 
 const MAX_EXPERIENCES = 10;
+const MAX_PROGRAM_ROLE_LENGTH = 80;
+const LANGUAGE_ORDER = Object.values(MentorLanguage);
 const EMPTY_EXPERIENCE: MentorExperienceInput = {
   title: "",
   organization: "",
@@ -175,6 +188,13 @@ export function mentorProfileFormError(form: MentorProfileForm) {
   ) {
     return "Her deneyim için bir ünvan gir.";
   }
+  if (
+    form.programRoles.some(
+      (programRole) => programRole.role.trim().length > MAX_PROGRAM_ROLE_LENGTH,
+    )
+  ) {
+    return `Program rolü en fazla ${MAX_PROGRAM_ROLE_LENGTH} karakter olabilir.`;
+  }
   return "";
 }
 
@@ -192,7 +212,13 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const updateField = (
     key: Exclude<
       keyof UpdateMentorProfilePayload,
-      "specialties" | "menteeCapacity" | "experiences"
+      | "specialties"
+      | "menteeCapacity"
+      | "experiences"
+      | "meetingFrequency"
+      | "prepFileRequirement"
+      | "languages"
+      | "programRoles"
     >,
     value: string,
   ) => {
@@ -203,6 +229,37 @@ export function useMentorProfileForm(profile: MentorProfile) {
     setForm((previous) => ({
       ...previous,
       menteeCapacity: value.trim() ? Number(value) : null,
+    }));
+  };
+
+  const setMeetingFrequency = (value: MeetingFrequency | null) => {
+    setForm((previous) => ({ ...previous, meetingFrequency: value }));
+  };
+
+  const setPrepFileRequirement = (value: PrepFileRequirement | null) => {
+    setForm((previous) => ({ ...previous, prepFileRequirement: value }));
+  };
+
+  const toggleLanguage = (language: MentorLanguage) => {
+    setForm((previous) => {
+      const chosen = previous.languages.includes(language)
+        ? previous.languages.filter((item) => item !== language)
+        : [...previous.languages, language];
+      return {
+        ...previous,
+        languages: LANGUAGE_ORDER.filter((item) => chosen.includes(item)),
+      };
+    });
+  };
+
+  const updateProgramRole = (programId: string, role: string) => {
+    setForm((previous) => ({
+      ...previous,
+      programRoles: previous.programRoles.map((programRole) =>
+        programRole.programId === programId
+          ? { ...programRole, role }
+          : programRole,
+      ),
     }));
   };
 
@@ -317,6 +374,13 @@ export function useMentorProfileForm(profile: MentorProfile) {
     saveAndFinish,
     updateField,
     updateCapacity,
+    setMeetingFrequency,
+    setPrepFileRequirement,
+    toggleLanguage,
+    programRole: (programId: string) =>
+      form.programRoles.find((item) => item.programId === programId)?.role ??
+      "",
+    updateProgramRole,
     addExperience,
     updateExperience,
     removeExperience,

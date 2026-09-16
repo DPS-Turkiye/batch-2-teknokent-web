@@ -1,20 +1,20 @@
 "use client";
 
-import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { usePrograms } from "@/hooks/use-programs";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { ProgramStatus } from "@/interfaces/program";
 import { UserRole } from "@/interfaces/session";
-import { programsMentorHasJoined } from "@/lib/meeting-targets";
 import { menteeLoadLabel } from "@/lib/mentor-detail";
 import {
   completedSessionCount,
+  languagesLabel,
   meetingPreferenceRows,
   mentorshipDurationLabel,
   mentorshipHistory,
+  programDetail,
   profileSubtitle,
   weeklyAvailabilityRows,
   workingStyleBullets,
@@ -29,11 +29,9 @@ function countLabel(count: number | undefined) {
 
 /** Everything the mentor's own profile page shows besides the editable form. */
 export function useMentorProfileOverview(profile: MentorProfile) {
-  const session = useAppSession();
   const settingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
-  const programsQuery = usePrograms();
 
   const settings = settingsQuery.data;
   const meetings = meetingsQuery.data ?? [];
@@ -42,14 +40,22 @@ export function useMentorProfileOverview(profile: MentorProfile) {
   const accepted = (requestsQuery.data ?? []).filter(
     (request) => request.status === MentorshipRequestStatus.Accepted,
   );
+  // Active programs come first, as in the design; the backend orders by name.
+  const programs = (profile.programs ?? [])
+    .map((program) => ({ ...program, detail: programDetail(program) }))
+    .sort(
+      (left, right) =>
+        Number(left.status !== ProgramStatus.Active) -
+        Number(right.status !== ProgramStatus.Active),
+    );
 
   return {
     subtitle: profileSubtitle(profile),
-    programs: programsMentorHasJoined(
-      programsQuery.data ?? [],
-      session?.userId,
+    activePrograms: programs.filter(
+      (program) => program.status === ProgramStatus.Active,
     ),
-    isProgramsLoading: programsQuery.isLoading,
+    programs,
+    languages: languagesLabel(profile.languages),
     stats: [
       {
         label: "Aktif mentorluk",

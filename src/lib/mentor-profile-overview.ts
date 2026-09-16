@@ -1,15 +1,21 @@
 import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import {
+  MEETING_FREQUENCY_LABELS,
+  MENTOR_LANGUAGE_LABELS,
   type MentorAvailabilityRule,
   type MentorAvailabilitySettings,
+  type MentorLanguage,
   type MentorProfile,
+  type MentorProgram,
+  PREP_FILE_REQUIREMENT_LABELS,
   WEEKDAY_LABELS,
   WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { PROGRAM_STATUS_LABELS } from "@/interfaces/program";
 import { toTimeInput } from "@/lib/mentor-availability";
 
-export type LabelValue = { label: string; value: string };
+export type LabelValue = { label: string; value: string; muted?: boolean };
 
 export type MentorshipHistoryRow = {
   id: string;
@@ -111,35 +117,52 @@ export function workingStyleBullets(profile: MentorProfile) {
   return bullets;
 }
 
+/** Varsayılan süre, Format, Görüşme sıklığı, Ön hazırlık dosyası; unset ones are left out. */
 export function meetingPreferenceRows(
   profile: MentorProfile,
   settings: MentorAvailabilitySettings | undefined,
 ): LabelValue[] {
-  const rows: LabelValue[] = settings
-    ? [
-        {
-          label: "Varsayılan süre",
-          value: `${settings.defaultMeetingDurationMinutes} dk`,
-        },
-        {
-          label: "Görüşmeler arası",
-          value: `${settings.meetingBufferMinutes} dk`,
-        },
-      ]
-    : [];
-  rows.push(
+  const rows: LabelValue[] = [
+    {
+      label: "Varsayılan süre",
+      value: settings ? `${settings.defaultMeetingDurationMinutes} dk` : "",
+    },
     { label: "Format", value: profile.meetingMode },
-    { label: "Yanıt süresi", value: profile.responseTimeLabel },
-    { label: "İletişim", value: profile.communicationPreference },
-  );
+    {
+      label: "Görüşme sıklığı",
+      value: profile.meetingFrequency
+        ? MEETING_FREQUENCY_LABELS[profile.meetingFrequency]
+        : "",
+    },
+    {
+      label: "Ön hazırlık dosyası",
+      value: profile.prepFileRequirement
+        ? PREP_FILE_REQUIREMENT_LABELS[profile.prepFileRequirement]
+        : "",
+    },
+  ];
   return rows.filter((row) => Boolean(row.value?.trim()));
+}
+
+/** "Türkçe · İngilizce", or "" when the mentor has not chosen any. */
+export function languagesLabel(languages: MentorLanguage[] | undefined) {
+  return (languages ?? [])
+    .map((language) => MENTOR_LANGUAGE_LABELS[language])
+    .join(" · ");
+}
+
+/** "Aktif · Design mentor", or just the status when the mentor has no role there. */
+export function programDetail(program: MentorProgram) {
+  return [PROGRAM_STATUS_LABELS[program.status], program.role?.trim()]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 /** "Salı 09:00–10:00, 14:00–17:00" per open day, then "Diğer günler Kapalı". */
 export function weeklyAvailabilityRows(
   rules: MentorAvailabilityRule[],
 ): LabelValue[] {
-  const rows = WEEKDAY_ORDER.flatMap((day) => {
+  const rows: LabelValue[] = WEEKDAY_ORDER.flatMap((day) => {
     const ranges = rules
       .filter((rule) => rule.dayOfWeek === day)
       .sort((left, right) => left.startTime.localeCompare(right.startTime))
@@ -151,7 +174,7 @@ export function weeklyAvailabilityRows(
       : [];
   });
   if (rows.length > 0 && rows.length < WEEKDAY_ORDER.length) {
-    rows.push({ label: "Diğer günler", value: "Kapalı" });
+    rows.push({ label: "Diğer günler", value: "Kapalı", muted: true });
   }
   return rows;
 }

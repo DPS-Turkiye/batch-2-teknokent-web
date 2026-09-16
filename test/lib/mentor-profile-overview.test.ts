@@ -1,16 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
-import { type MentorProfile, Weekday } from "@/interfaces/mentor";
+import {
+  MeetingFrequency,
+  MentorLanguage,
+  type MentorProfile,
+  PrepFileRequirement,
+  Weekday,
+} from "@/interfaces/mentor";
 import {
   type MentorshipRequest,
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
+import { ProgramStatus } from "@/interfaces/program";
 import {
   completedSessionCount,
+  languagesLabel,
   meetingPreferenceRows,
   mentorshipDurationLabel,
   mentorshipHistory,
+  programDetail,
   profileSubtitle,
   weeklyAvailabilityRows,
   workingStyleBullets,
@@ -177,14 +186,59 @@ describe("meetingPreferenceRows", () => {
     meetingBufferMinutes: 15,
   };
 
-  it("leads with the availability defaults and skips empty preferences", () => {
-    expect(meetingPreferenceRows(profile(), settings)).toEqual([
+  it("shows the design's four rows in order", () => {
+    expect(
+      meetingPreferenceRows(
+        profile({
+          meetingFrequency: MeetingFrequency.Biweekly,
+          prepFileRequirement: PrepFileRequirement.Required,
+        }),
+        settings,
+      ),
+    ).toEqual([
       { label: "Varsayılan süre", value: "45 dk" },
-      { label: "Görüşmeler arası", value: "15 dk" },
       { label: "Format", value: "Online" },
-      { label: "Yanıt süresi", value: "~48 saat" },
+      { label: "Görüşme sıklığı", value: "2 haftada 1" },
+      { label: "Ön hazırlık dosyası", value: "Zorunlu" },
     ]);
-    expect(meetingPreferenceRows(profile(), undefined)[0].label).toBe("Format");
+  });
+
+  it("leaves out whatever is not set yet", () => {
+    expect(meetingPreferenceRows(profile(), undefined)).toEqual([
+      { label: "Format", value: "Online" },
+    ]);
+  });
+});
+
+describe("languagesLabel", () => {
+  it("joins the chosen languages", () => {
+    expect(
+      languagesLabel([MentorLanguage.Turkish, MentorLanguage.English]),
+    ).toBe("Türkçe · İngilizce");
+    expect(languagesLabel(undefined)).toBe("");
+  });
+});
+
+describe("programDetail", () => {
+  const program = {
+    id: "p1",
+    name: "METU Stars 2026",
+    status: ProgramStatus.Active,
+    role: "Design mentor",
+  };
+
+  it("pairs the status with the mentor's role", () => {
+    expect(programDetail(program)).toBe("Aktif · Design mentor");
+  });
+
+  it("shows only the status without a role", () => {
+    expect(
+      programDetail({
+        ...program,
+        status: ProgramStatus.Completed,
+        role: "  ",
+      }),
+    ).toBe("Tamamlandı");
   });
 });
 
@@ -217,7 +271,7 @@ describe("weeklyAvailabilityRows", () => {
     ).toEqual([
       { label: "Salı", value: "09:00–10:00, 14:00–17:00" },
       { label: "Çarşamba", value: "10:00–13:00" },
-      { label: "Diğer günler", value: "Kapalı" },
+      { label: "Diğer günler", value: "Kapalı", muted: true },
     ]);
   });
 

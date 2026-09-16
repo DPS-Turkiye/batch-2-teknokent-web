@@ -1,9 +1,9 @@
 "use client";
 
-import { Minus, Plus } from "lucide-react";
+import Image from "next/image";
 
 const stepButtonClass =
-  "grid size-5 shrink-0 place-items-center rounded-full bg-[#26a4ff] text-white disabled:bg-[#c9cdd2]";
+  "grid size-[18px] shrink-0 place-items-center rounded-full disabled:opacity-40";
 
 /** A number field with − / + buttons; the value stays a string so it can be emptied while typing. */
 export function NumberStepper({
@@ -27,7 +27,7 @@ export function NumberStepper({
   const number = Number(value);
 
   return (
-    <div className="flex h-9 items-center gap-1.5 rounded-lg border border-[#d4d8dd] px-2">
+    <div className="flex h-[38px] w-[120px] shrink-0 items-center justify-between rounded-lg border border-[#d4d8dd] bg-white px-3">
       <button
         type="button"
         aria-label={`${label} azalt`}
@@ -35,19 +35,21 @@ export function NumberStepper({
         disabled={filled && number <= min}
         className={stepButtonClass}
       >
-        <Minus className="size-3" strokeWidth={2.5} />
+        <Image src="/mentor-profile/remove.svg" alt="" width={18} height={18} />
       </button>
-      <input
-        type="number"
-        inputMode="numeric"
-        aria-label={label}
-        min={min}
-        max={max}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="w-9 bg-transparent text-center text-xs text-[#22262b] outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-      />
-      {unit ? <span className="text-xs text-[#4a5059]">{unit}</span> : null}
+      <span className="flex items-center justify-center gap-1 text-[12.5px] font-medium leading-[19px] text-[#22262b]">
+        <input
+          type="number"
+          inputMode="numeric"
+          aria-label={label}
+          min={min}
+          max={max}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`w-[3ch] bg-transparent outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none ${unit ? "text-right" : "text-center"}`}
+        />
+        {unit ? <span>{unit}</span> : null}
+      </span>
       <button
         type="button"
         aria-label={`${label} artır`}
@@ -55,7 +57,7 @@ export function NumberStepper({
         disabled={filled && number >= max}
         className={stepButtonClass}
       >
-        <Plus className="size-3" strokeWidth={2.5} />
+        <Image src="/mentor-profile/add.svg" alt="" width={18} height={18} />
       </button>
     </div>
   );

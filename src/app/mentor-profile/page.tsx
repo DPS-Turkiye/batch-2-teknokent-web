@@ -10,16 +10,45 @@ import {
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
-import type { MentorProfile } from "@/interfaces/mentor";
+import {
+  MEETING_FREQUENCY_LABELS,
+  MENTOR_LANGUAGE_LABELS,
+  MentorLanguage,
+  type MentorProfile,
+  PREP_FILE_REQUIREMENT_LABELS,
+} from "@/interfaces/mentor";
 import type { LabelValue } from "@/lib/mentor-profile-overview";
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
 type TextField = Parameters<ProfileForm["updateField"]>[0];
+type ChipTone = "blue" | "green" | "grey";
 
+// globals.css gives buttons and form fields `font: inherit` outside any layer,
+// so their type sizes need `!` to take effect.
+const buttonTextClass = "text-[12.5px]! font-medium! leading-[19px]!";
 const inputClass =
-  "mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px] text-[#22262b]";
+  "mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px]! text-[#22262b]";
 const emptyClass = "text-xs text-[#858c96]";
+const labelClass = "block text-[11.5px] text-[#676e78]";
+const outlineButtonClass = `rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[#4a5059] disabled:opacity-50 ${buttonTextClass}`;
+const chipToneClass: Record<ChipTone, string> = {
+  blue: "border-[#f5faff] bg-[#f2f8fc] text-[#26a4ff]",
+  green: "border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]",
+  grey: "border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]",
+};
+const listItemClass =
+  "flex flex-col gap-0.5 rounded-lg border border-[#e4e7ea] bg-white px-3 py-2.5";
+
+function Chip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border px-3 py-[5px] text-xs font-medium leading-[19px] ${chipToneClass[tone]}`}
+    >
+      {children}
+    </span>
+  );
+}
 
 function Card({
   title,
@@ -38,11 +67,13 @@ function Card({
   // moves to the section's first field instead of falling back to the body.
   useEffect(() => {
     if (!focusFirstField) return;
-    contentRef.current?.querySelector<HTMLElement>("input, textarea")?.focus();
+    contentRef.current
+      ?.querySelector<HTMLElement>("input, textarea, select")
+      ?.focus();
   }, [focusFirstField]);
 
   return (
-    <section className="rounded-xl border border-[#e4e7ea] bg-white px-5 py-[18px]">
+    <section className="flex flex-col gap-3 rounded-xl border border-[#e4e7ea] bg-white px-5 py-[18px]">
       <header className="flex items-center justify-between gap-3">
         <h2 className="text-[15px] font-semibold leading-[23px] text-[#22262b]">
           {title}
@@ -52,13 +83,13 @@ function Card({
             type="button"
             onClick={onEdit}
             aria-label={`${title} düzenle`}
-            className="text-[12.5px] font-medium text-[#26a4ff]"
+            className={`text-[#26a4ff] ${buttonTextClass}`}
           >
             Düzenle
           </button>
         ) : null}
       </header>
-      <div ref={contentRef} className="mt-3">
+      <div ref={contentRef} className="flex flex-col gap-3">
         {children}
       </div>
     </section>
@@ -67,14 +98,18 @@ function Card({
 
 function Rows({ rows }: { rows: LabelValue[] }) {
   return (
-    <dl className="space-y-3">
+    <dl className="flex flex-col gap-3">
       {rows.map((row) => (
         <div
           key={row.label}
-          className="flex justify-between gap-4 text-[12.5px]"
+          className="flex justify-between gap-4 text-[12.5px] leading-[19px]"
         >
           <dt className="text-[#4a5059]">{row.label}</dt>
-          <dd className="text-right font-medium text-[#22262b]">{row.value}</dd>
+          <dd
+            className={`text-right font-medium ${row.muted ? "text-[#858c96]" : "text-[#22262b]"}`}
+          >
+            {row.value}
+          </dd>
         </div>
       ))}
     </dl>
@@ -94,7 +129,7 @@ function TextInput({
 }) {
   const value = form.form[field];
   return (
-    <label className="block text-[11.5px] text-[#676e78]">
+    <label className={labelClass}>
       {label}
       {multiline ? (
         <textarea
@@ -109,6 +144,40 @@ function TextInput({
           className={inputClass}
         />
       )}
+    </label>
+  );
+}
+
+function ChoiceInput<T extends string>({
+  label,
+  value,
+  labels,
+  onChange,
+}: {
+  label: string;
+  value: T | null;
+  labels: Record<T, string>;
+  onChange: (value: T) => void;
+}) {
+  return (
+    <label className={labelClass}>
+      {label}
+      <select
+        value={value ?? ""}
+        onChange={(event) => onChange(event.target.value as T)}
+        className={inputClass}
+      >
+        {value === null ? (
+          <option value="" disabled>
+            Seçin
+          </option>
+        ) : null}
+        {(Object.keys(labels) as T[]).map((option) => (
+          <option key={option} value={option}>
+            {labels[option]}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }
@@ -131,34 +200,32 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
   return (
     <>
-      <main className="mx-auto w-full max-w-[1276px] px-4 pb-[72px] pt-3 sm:px-6">
+      <main className="mx-auto flex w-full max-w-[1276px] flex-col gap-[22px] px-4 pb-[72px] pt-3 sm:px-6">
         <header className="flex flex-wrap items-center justify-between gap-6">
           <div className="flex min-w-0 items-center gap-[18px]">
-            <div className="grid size-[88px] shrink-0 place-items-center rounded-full bg-[#e6f1f8] text-[26px] font-semibold text-[#26a4ff]">
+            <div className="grid size-[88px] shrink-0 place-items-center rounded-full bg-[#e6f1f8] text-[26px] font-semibold leading-10 text-[#26a4ff]">
               {profile.initials || toInitials(profile.fullName)}
             </div>
-            <div className="min-w-0">
-              <h1 className="text-[28px] font-semibold leading-[1.4] text-[#22262b]">
+            <div className="flex min-w-0 flex-col gap-2">
+              <h1 className="break-words text-[28px] font-semibold leading-[43px] text-[#22262b]">
                 {profile.fullName}
               </h1>
               {overview.subtitle ? (
-                <p className="text-[13.5px] text-[#676e78]">
+                <p className="text-[13.5px] leading-[21px] text-[#676e78]">
                   {overview.subtitle}
                 </p>
               ) : null}
-              <div className="mt-2 flex flex-wrap gap-2 text-xs font-medium">
-                {overview.programs.map((program) => (
-                  <span
-                    key={program.id}
-                    className="rounded-full bg-[#eaf6ff] px-3 py-[5px] text-[#1a7fd0]"
-                  >
+              <div className="flex flex-wrap gap-2">
+                {overview.activePrograms.map((program) => (
+                  <Chip key={program.id} tone="blue">
                     {program.name}
-                  </span>
+                  </Chip>
                 ))}
                 {profile.availabilityLabel ? (
-                  <span className="rounded-full border border-[#cbebda] bg-[#eefaf3] px-3 py-[5px] text-[#0f7a4d]">
-                    {profile.availabilityLabel}
-                  </span>
+                  <Chip tone="green">{profile.availabilityLabel}</Chip>
+                ) : null}
+                {overview.languages ? (
+                  <Chip tone="grey">{overview.languages}</Chip>
                 ) : null}
               </div>
             </div>
@@ -167,7 +234,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             <button
               type="button"
               onClick={() => setAvailabilityOpen(true)}
-              className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] font-medium"
+              className={outlineButtonClass}
             >
               Müsaitliği düzenle
             </button>
@@ -179,7 +246,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   primaryButtonRef.current?.focus();
                 }}
                 disabled={form.isSaving}
-                className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] font-medium disabled:opacity-50"
+                className={outlineButtonClass}
               >
                 Vazgeç
               </button>
@@ -196,7 +263,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     }
               }
               disabled={form.isSaving}
-              className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white disabled:bg-[#c9cdd2]"
+              className={`rounded-full bg-[#26a4ff] px-4 py-2.5 text-white disabled:bg-[#c9cdd2] ${buttonTextClass}`}
             >
               {!editing
                 ? "Profili düzenle"
@@ -207,37 +274,39 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
           </div>
         </header>
         {form.saveError ? (
-          <p role="alert" className="mt-3 text-[12px] text-[#a65a15]">
+          <p role="alert" className="-mt-2 text-[12px] text-[#a65a15]">
             {form.saveError}
           </p>
         ) : null}
 
         <section
           aria-label="Mentorluk özeti"
-          className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+          className="grid grid-cols-2 gap-6 rounded-xl border border-[#f5faff] px-0.5 py-[18px] sm:grid-cols-3 lg:grid-cols-5"
         >
           {overview.stats.map((stat) => (
             <div
               key={stat.label}
-              className="rounded-xl border border-[#dbe9f4] bg-white px-4 py-3"
+              className="flex h-[90px] flex-col gap-[3px] rounded-[20px] border border-[#b9deff] px-6 py-3"
             >
-              <p className="text-[11px] text-[#858c96]">{stat.label}</p>
-              <p className="mt-1 text-lg font-semibold text-[#22262b]">
+              <p className="text-[11px] leading-[17px] text-[#858c96]">
+                {stat.label}
+              </p>
+              <p className="text-lg font-semibold leading-7 text-[#22262b]">
                 {stat.value}
               </p>
             </div>
           ))}
         </section>
 
-        <div className="mt-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="space-y-[18px]">
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
+          <div className="flex flex-col gap-[18px]">
             <Card
               title="Hakkında"
               onEdit={editSection("Hakkında")}
               focusFirstField={focusSection("Hakkında")}
             >
               {editing ? (
-                <div className="space-y-3">
+                <>
                   <TextInput
                     form={form}
                     field="about"
@@ -262,7 +331,26 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       label="Uygunluk etiketi"
                     />
                   </div>
-                </div>
+                  <fieldset>
+                    <legend className={labelClass}>Diller</legend>
+                    <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
+                      {Object.values(MentorLanguage).map((language) => (
+                        <label
+                          key={language}
+                          className="flex items-center gap-1.5 text-[12.5px] text-[#22262b]"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={form.form.languages.includes(language)}
+                            onChange={() => form.toggleLanguage(language)}
+                            className="size-4 accent-[#26a4ff]"
+                          />
+                          {MENTOR_LANGUAGE_LABELS[language]}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                </>
               ) : (
                 <p className="whitespace-pre-line text-[13px] leading-5 text-[#4a5059]">
                   {form.form.about || "Henüz hakkında bilgisi eklenmedi."}
@@ -270,20 +358,13 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               )}
             </Card>
 
-            <Card
-              title="Mentorluk konuları"
-              onEdit={editSection("Mentorluk konuları")}
-              focusFirstField={focusSection("Mentorluk konuları")}
-            >
+            <Card title="Mentorluk konuları">
               <div className="flex flex-wrap gap-2">
                 {form.form.specialties.length === 0 ? (
                   <p className={emptyClass}>Henüz konu eklenmedi.</p>
                 ) : (
                   form.form.specialties.map((topic) => (
-                    <span
-                      key={topic}
-                      className="flex items-center gap-1 rounded-full bg-[#f2f8fc] px-3 py-[5px] text-xs font-medium text-[#1a7fd0]"
-                    >
+                    <Chip key={topic} tone="blue">
                       {topic}
                       {editing ? (
                         <button
@@ -294,12 +375,12 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                           <X className="size-3" />
                         </button>
                       ) : null}
-                    </span>
+                    </Chip>
                   ))
                 )}
               </div>
               {editing ? (
-                <div className="mt-3 flex gap-2">
+                <div className="flex gap-2">
                   <input
                     aria-label="Yeni konu"
                     value={form.specialtyInput}
@@ -307,12 +388,12 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       form.setSpecialtyInput(event.target.value)
                     }
                     placeholder="Konu ekle"
-                    className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]"
+                    className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]!"
                   />
                   <button
                     type="button"
                     onClick={form.addSpecialty}
-                    className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
+                    className={`rounded-full border border-[#d4d8dd] px-3 py-2 text-[#26a4ff] ${buttonTextClass}`}
                   >
                     Ekle
                   </button>
@@ -320,13 +401,9 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ) : null}
             </Card>
 
-            <Card
-              title="Nasıl çalışıyorum"
-              onEdit={editSection("Nasıl çalışıyorum")}
-              focusFirstField={focusSection("Nasıl çalışıyorum")}
-            >
+            <Card title="Nasıl çalışıyorum">
               {editing ? (
-                <div className="space-y-3">
+                <>
                   <TextInput
                     form={form}
                     field="mentoringStyle"
@@ -345,19 +422,19 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       label="Çalıştığı aşamalar"
                     />
                   </div>
-                </div>
+                </>
               ) : overview.workingStyle.length === 0 ? (
                 <p className={emptyClass}>Henüz bilgi eklenmedi.</p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="flex flex-col gap-3">
                   {overview.workingStyle.map((bullet) => (
                     <li
                       key={bullet}
-                      className="flex gap-2 text-[13px] leading-5 text-[#4a5059]"
+                      className="flex items-start gap-2.5 text-[13px] leading-5 text-[#4a5059]"
                     >
                       <span
                         aria-hidden="true"
-                        className="mt-2 size-1.5 shrink-0 rounded-full bg-[#26a4ff]"
+                        className="size-1.5 shrink-0 rounded-full bg-[#26a4ff]"
                       />
                       {bullet}
                     </li>
@@ -368,58 +445,53 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
             {editing ? (
               <Card title="Geçmiş roller">
-                <div className="space-y-3">
-                  {form.form.experiences.map((experience, index) => (
-                    <fieldset
-                      key={index}
-                      className="grid gap-2 rounded-lg border border-[#e4e7ea] p-3 sm:grid-cols-2"
-                    >
-                      <legend className="sr-only">{index + 1}. deneyim</legend>
-                      {(
-                        [
-                          ["title", "Ünvan"],
-                          ["organization", "Kurum"],
-                          ["period", "Dönem"],
-                          ["summary", "Açıklama"],
-                        ] as const
-                      ).map(([field, label]) => (
-                        <label
-                          key={field}
-                          className="block text-[11.5px] text-[#676e78]"
-                        >
-                          {label}
-                          <input
-                            value={experience[field]}
-                            onChange={(event) =>
-                              form.updateExperience(
-                                index,
-                                field,
-                                event.target.value,
-                              )
-                            }
-                            className={inputClass}
-                          />
-                        </label>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => form.removeExperience(index)}
-                        className="justify-self-start text-xs text-[#a65a15]"
-                      >
-                        Deneyimi kaldır
-                      </button>
-                    </fieldset>
-                  ))}
-                  {form.canAddExperience ? (
+                {form.form.experiences.map((experience, index) => (
+                  <fieldset
+                    key={index}
+                    className="grid gap-2 rounded-lg border border-[#e4e7ea] p-3 sm:grid-cols-2"
+                  >
+                    <legend className="sr-only">{index + 1}. deneyim</legend>
+                    {(
+                      [
+                        ["title", "Ünvan"],
+                        ["organization", "Kurum"],
+                        ["period", "Dönem"],
+                        ["summary", "Açıklama"],
+                      ] as const
+                    ).map(([field, label]) => (
+                      <label key={field} className={labelClass}>
+                        {label}
+                        <input
+                          value={experience[field]}
+                          onChange={(event) =>
+                            form.updateExperience(
+                              index,
+                              field,
+                              event.target.value,
+                            )
+                          }
+                          className={inputClass}
+                        />
+                      </label>
+                    ))}
                     <button
                       type="button"
-                      onClick={form.addExperience}
-                      className="rounded-full border border-[#d4d8dd] px-3 py-2 text-[12.5px] text-[#26a4ff]"
+                      onClick={() => form.removeExperience(index)}
+                      className="justify-self-start text-xs text-[#a65a15]"
                     >
-                      Deneyim ekle
+                      Deneyimi kaldır
                     </button>
-                  ) : null}
-                </div>
+                  </fieldset>
+                ))}
+                {form.canAddExperience ? (
+                  <button
+                    type="button"
+                    onClick={form.addExperience}
+                    className={`self-start rounded-full border border-[#d4d8dd] px-3 py-2 text-[#26a4ff] ${buttonTextClass}`}
+                  >
+                    Deneyim ekle
+                  </button>
+                ) : null}
               </Card>
             ) : null}
 
@@ -431,16 +503,13 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                   Henüz kabul edilmiş bir mentorluk yok.
                 </p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="flex flex-col gap-3">
                   {overview.history.map((row) => (
-                    <li
-                      key={row.id}
-                      className="rounded-lg border border-[#e4e7ea] px-3 py-2.5"
-                    >
-                      <p className="text-[13px] font-medium text-[#22262b]">
+                    <li key={row.id} className={listItemClass}>
+                      <p className="text-[13px] font-medium leading-5 text-[#22262b]">
                         {row.title}
                       </p>
-                      <p className="mt-0.5 text-[11.5px] text-[#676e78]">
+                      <p className="text-[11.5px] leading-[18px] text-[#676e78]">
                         {row.detail}
                       </p>
                     </li>
@@ -450,38 +519,46 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </Card>
           </div>
 
-          <aside className="space-y-[18px]">
+          <aside className="flex flex-col gap-[18px]">
             <Card title="Müsaitlik" onEdit={() => setAvailabilityOpen(true)}>
-              <p className="text-xs text-[#676e78]">
+              <p className="text-xs leading-[19px] text-[#676e78]">
                 Tekrarlayan haftalık uygunluk
               </p>
-              <div className="mt-4">
-                {overview.isAvailabilityLoading ? (
-                  <p className={emptyClass}>Yükleniyor...</p>
-                ) : overview.weeklyAvailability.length === 0 ? (
-                  <p className={emptyClass}>Tanımlı haftalık saat yok.</p>
-                ) : (
-                  <Rows rows={overview.weeklyAvailability} />
-                )}
-              </div>
+              {overview.isAvailabilityLoading ? (
+                <p className={emptyClass}>Yükleniyor...</p>
+              ) : overview.weeklyAvailability.length === 0 ? (
+                <p className={emptyClass}>Tanımlı haftalık saat yok.</p>
+              ) : (
+                <Rows rows={overview.weeklyAvailability} />
+              )}
               {overview.capacityLabel ? (
-                <div className="mt-4 flex items-center justify-between rounded-lg bg-[#f2f8fc] px-3 py-2.5 text-[12.5px]">
-                  <span className="text-[#4a5059]">Eş zamanlı mentorluk</span>
-                  <span className="font-medium text-[#1a7fd0]">
+                <div className="flex items-center justify-between rounded-lg border border-[#f5faff] bg-[#f2f8fc] px-3 py-2.5 leading-[19px]">
+                  <span className="text-xs text-[#676e78]">
+                    Eş zamanlı mentorluk
+                  </span>
+                  <span className="text-[12.5px] font-medium text-[#26a4ff]">
                     {overview.capacityLabel}
                   </span>
                 </div>
               ) : null}
             </Card>
 
-            <Card
-              title="Görüşme tercihleri"
-              onEdit={editSection("Görüşme tercihleri")}
-              focusFirstField={focusSection("Görüşme tercihleri")}
-            >
+            <Card title="Görüşme tercihleri">
               {editing ? (
-                <div className="space-y-3">
+                <>
                   <TextInput form={form} field="meetingMode" label="Format" />
+                  <ChoiceInput
+                    label="Görüşme sıklığı"
+                    value={form.form.meetingFrequency}
+                    labels={MEETING_FREQUENCY_LABELS}
+                    onChange={form.setMeetingFrequency}
+                  />
+                  <ChoiceInput
+                    label="Ön hazırlık dosyası"
+                    value={form.form.prepFileRequirement}
+                    labels={PREP_FILE_REQUIREMENT_LABELS}
+                    onChange={form.setPrepFileRequirement}
+                  />
                   <TextInput
                     form={form}
                     field="responseTimeLabel"
@@ -492,7 +569,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     field="communicationPreference"
                     label="İletişim"
                   />
-                </div>
+                </>
               ) : overview.preferences.length === 0 ? (
                 <p className={emptyClass}>Henüz bilgi eklenmedi.</p>
               ) : (
@@ -501,23 +578,36 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </Card>
 
             <Card title="Programlar">
-              {overview.isProgramsLoading ? (
-                <p className={emptyClass}>Yükleniyor...</p>
-              ) : overview.programs.length === 0 ? (
+              {overview.programs.length === 0 ? (
                 <p className={emptyClass}>Katıldığınız bir program yok.</p>
               ) : (
-                <ul className="space-y-2">
+                <ul className="flex flex-col gap-3">
                   {overview.programs.map((program) => (
-                    <li
-                      key={program.id}
-                      className="rounded-lg border border-[#e4e7ea] px-3 py-2.5"
-                    >
-                      <p className="text-[13px] font-medium text-[#22262b]">
+                    <li key={program.id} className={listItemClass}>
+                      <p className="text-[13px] font-medium leading-5 text-[#22262b]">
                         {program.name}
                       </p>
-                      <p className="mt-0.5 text-[11.5px] text-[#676e78]">
-                        Koordinatör: {program.coordinatorName}
-                      </p>
+                      {editing ? (
+                        <label className={labelClass}>
+                          Bu programdaki rolün
+                          <input
+                            value={form.programRole(program.id)}
+                            maxLength={80}
+                            onChange={(event) =>
+                              form.updateProgramRole(
+                                program.id,
+                                event.target.value,
+                              )
+                            }
+                            placeholder="Örn. Design mentor"
+                            className={inputClass}
+                          />
+                        </label>
+                      ) : (
+                        <p className="text-[11.5px] leading-[18px] text-[#676e78]">
+                          {program.detail}
+                        </p>
+                      )}
                     </li>
                   ))}
                 </ul>

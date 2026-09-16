@@ -5,14 +5,11 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { usePrograms } from "@/hooks/use-programs";
 import { MeetingStatus } from "@/interfaces/meeting";
-import type { MentorProfile } from "@/interfaces/mentor";
+import { MentorLanguage, type MentorProfile } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { ProgramStatus } from "@/interfaces/program";
 
-vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () => ({ userId: "mentor-1" }),
-}));
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
 vi.mock("@/hooks/use-mentor-profile", () => ({
   useMentorAvailabilitySettings: vi.fn(),
@@ -20,7 +17,6 @@ vi.mock("@/hooks/use-mentor-profile", () => ({
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
 }));
-vi.mock("@/hooks/use-programs", () => ({ usePrograms: vi.fn() }));
 
 function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
   return {
@@ -76,10 +72,6 @@ function mockQueries({ loading = false } = {}) {
         })),
     isLoading: loading,
   } as unknown as ReturnType<typeof useMentorshipRequests>);
-  vi.mocked(usePrograms).mockReturnValue({
-    data: loading ? undefined : [],
-    isLoading: loading,
-  } as unknown as ReturnType<typeof usePrograms>);
   vi.mocked(useMentorAvailabilitySettings).mockReturnValue({
     data: {
       rules: [],
@@ -124,6 +116,48 @@ describe("useMentorProfileOverview", () => {
     expect(statValue(result.current.stats, "Mentorluk süresi")).toBe("…");
     expect(result.current.capacityLabel).toBeNull();
     expect(result.current.isHistoryLoading).toBe(true);
-    expect(result.current.isProgramsLoading).toBe(true);
+  });
+
+  it("describes each joined program and keeps only active ones for the header", () => {
+    mockQueries();
+    const { result } = renderHook(() =>
+      useMentorProfileOverview(
+        profile({
+          languages: [MentorLanguage.Turkish, MentorLanguage.English],
+          programs: [
+            {
+              id: "p2",
+              name: "Kuluçka İzmir 2025",
+              status: ProgramStatus.Completed,
+              role: null,
+            },
+            {
+              id: "p1",
+              name: "METU Stars 2026",
+              status: ProgramStatus.Active,
+              role: "Design mentor",
+            },
+          ],
+        }),
+      ),
+    );
+
+    expect(result.current.programs.map((program) => program.detail)).toEqual([
+      "Aktif · Design mentor",
+      "Tamamlandı",
+    ]);
+    expect(
+      result.current.activePrograms.map((program) => program.name),
+    ).toEqual(["METU Stars 2026"]);
+    expect(result.current.languages).toBe("Türkçe · İngilizce");
+  });
+
+  it("has no programs or languages when the profile has none", () => {
+    mockQueries();
+    const { result } = renderHook(() => useMentorProfileOverview(profile()));
+
+    expect(result.current.programs).toEqual([]);
+    expect(result.current.activePrograms).toEqual([]);
+    expect(result.current.languages).toBe("");
   });
 });

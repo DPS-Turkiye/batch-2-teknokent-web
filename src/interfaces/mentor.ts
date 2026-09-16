@@ -1,3 +1,5 @@
+import type { ProgramStatus } from "@/interfaces/program";
+
 export interface MentorEvidence {
   category: string;
   claim: string;
@@ -20,6 +22,63 @@ export type MentorExperienceInput = {
   period: string;
   summary: string;
 };
+
+export enum MeetingFrequency {
+  Weekly = "WEEKLY",
+  Biweekly = "BIWEEKLY",
+  Monthly = "MONTHLY",
+  AsNeeded = "AS_NEEDED",
+}
+
+export const MEETING_FREQUENCY_LABELS: Record<MeetingFrequency, string> = {
+  [MeetingFrequency.Weekly]: "Haftada 1",
+  [MeetingFrequency.Biweekly]: "2 haftada 1",
+  [MeetingFrequency.Monthly]: "Ayda 1",
+  [MeetingFrequency.AsNeeded]: "İhtiyaca göre",
+};
+
+export enum PrepFileRequirement {
+  Required = "REQUIRED",
+  Optional = "OPTIONAL",
+  NotNeeded = "NOT_NEEDED",
+}
+
+export const PREP_FILE_REQUIREMENT_LABELS: Record<PrepFileRequirement, string> =
+  {
+    [PrepFileRequirement.Required]: "Zorunlu",
+    [PrepFileRequirement.Optional]: "İsteğe bağlı",
+    [PrepFileRequirement.NotNeeded]: "Gerekmiyor",
+  };
+
+export enum MentorLanguage {
+  Turkish = "TURKISH",
+  English = "ENGLISH",
+  German = "GERMAN",
+  French = "FRENCH",
+  Spanish = "SPANISH",
+  Arabic = "ARABIC",
+  Russian = "RUSSIAN",
+}
+
+export const MENTOR_LANGUAGE_LABELS: Record<MentorLanguage, string> = {
+  [MentorLanguage.Turkish]: "Türkçe",
+  [MentorLanguage.English]: "İngilizce",
+  [MentorLanguage.German]: "Almanca",
+  [MentorLanguage.French]: "Fransızca",
+  [MentorLanguage.Spanish]: "İspanyolca",
+  [MentorLanguage.Arabic]: "Arapça",
+  [MentorLanguage.Russian]: "Rusça",
+};
+
+/** A program the mentor has joined, with the mentor's own role in it. */
+export interface MentorProgram {
+  id: string;
+  name: string;
+  status: ProgramStatus;
+  role: string | null;
+}
+
+export type MentorProgramRoleInput = { programId: string; role: string };
 
 export interface MentorProfile {
   id: string;
@@ -44,9 +103,13 @@ export interface MentorProfile {
   about?: string;
   defaultMeetingDurationMinutes?: number;
   meetingBufferMinutes?: number;
+  meetingFrequency?: MeetingFrequency | null;
+  prepFileRequirement?: PrepFileRequirement | null;
+  languages?: MentorLanguage[];
   activeMenteeCount?: number;
   completedMentorshipCount?: number;
   programNames?: string[];
+  programs?: MentorProgram[];
   experiences?: MentorExperience[];
 }
 
@@ -69,6 +132,10 @@ export type UpdateMentorProfilePayload = Pick<
   menteeCapacity?: number | null;
   experiences?: MentorExperienceInput[];
   about?: string;
+  meetingFrequency?: MeetingFrequency | null;
+  prepFileRequirement?: PrepFileRequirement | null;
+  languages?: MentorLanguage[];
+  programRoles?: MentorProgramRoleInput[];
 };
 
 export enum Weekday {

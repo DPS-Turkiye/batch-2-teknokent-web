@@ -12,7 +12,9 @@ import type {
   ProgramDirectory,
   ProgramInvitation,
   ProgramStartup,
+  ProgramStatus,
 } from "@/interfaces/program";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchPrograms(actorId: string) {
@@ -59,6 +61,18 @@ export function createProgram(actorId: string, name: string) {
     method: "POST",
     url: "/api/programs",
     data: { actorId, name },
+  });
+}
+
+export function updateProgramStatus(
+  actorId: string,
+  programId: string,
+  status: ProgramStatus,
+) {
+  return backendRequest<Program>({
+    method: HttpMethod.Put,
+    url: `/api/programs/${encodeURIComponent(programId)}/status`,
+    data: { actorId, status },
   });
 }
 

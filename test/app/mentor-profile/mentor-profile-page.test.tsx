@@ -9,8 +9,16 @@ import {
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
-import type { MentorProfile } from "@/interfaces/mentor";
-import { WEEKDAY_LABELS, WEEKDAY_ORDER, Weekday } from "@/interfaces/mentor";
+import {
+  MeetingFrequency,
+  MentorLanguage,
+  type MentorProfile,
+  PrepFileRequirement,
+  WEEKDAY_LABELS,
+  WEEKDAY_ORDER,
+  Weekday,
+} from "@/interfaces/mentor";
+import { ProgramStatus } from "@/interfaces/program";
 import type { AvailabilityDraft } from "@/lib/mentor-availability";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -66,6 +74,11 @@ const formActions = {
   updateCapacity: vi.fn(),
   updateExperience: vi.fn(),
   updateField: vi.fn(),
+  setMeetingFrequency: vi.fn(),
+  setPrepFileRequirement: vi.fn(),
+  toggleLanguage: vi.fn(),
+  updateProgramRole: vi.fn(),
+  programRole: vi.fn(() => "Design mentor"),
 };
 
 const availabilityActions = {
@@ -108,19 +121,28 @@ const draft: AvailabilityDraft = {
   meetingBufferMinutes: "15",
 };
 
+const activeProgram = {
+  id: "p1",
+  name: "METU Stars 2026",
+  status: ProgramStatus.Active,
+  role: "Design mentor",
+  detail: "Aktif · Design mentor",
+};
+
 const overview = {
   subtitle: "Design / UX Mentor · 12 yıl",
+  activePrograms: [activeProgram],
   programs: [
+    activeProgram,
     {
-      id: "p1",
-      name: "METU Stars 2026",
-      coordinatorName: "Türkan Yalçın",
-      coordinatorId: "c1",
-      createdAt: "2026-01-01T00:00:00Z",
-      startups: [],
-      mentors: [],
+      id: "p2",
+      name: "Kuluçka İzmir 2025",
+      status: ProgramStatus.Completed,
+      role: null,
+      detail: "Tamamlandı",
     },
   ],
+  languages: "Türkçe · İngilizce",
   stats: [
     { label: "Aktif mentorluk", value: "4" },
     { label: "Tamamlanan", value: "7" },
@@ -130,15 +152,16 @@ const overview = {
   ],
   weeklyAvailability: [
     { label: "Salı", value: "10:00–13:00, 14:00–16:00" },
-    { label: "Diğer günler", value: "Kapalı" },
+    { label: "Diğer günler", value: "Kapalı", muted: true },
   ],
   capacityLabel: "4 / 5",
   isAvailabilityLoading: false,
   isHistoryLoading: false,
-  isProgramsLoading: false,
   preferences: [
     { label: "Varsayılan süre", value: "45 dk" },
     { label: "Format", value: "Online" },
+    { label: "Görüşme sıklığı", value: "2 haftada 1" },
+    { label: "Ön hazırlık dosyası", value: "Zorunlu" },
   ],
   workingStyle: ["Her mentorluk 5 aşamada ilerler"],
   history: [
@@ -178,6 +201,10 @@ function mockAll(
           summary: "",
         },
       ],
+      meetingFrequency: MeetingFrequency.Biweekly,
+      prepFileRequirement: null,
+      languages: [MentorLanguage.Turkish],
+      programRoles: [{ programId: "p1", role: "Design mentor" }],
     },
     specialtyInput: "",
     saveError: "",
@@ -221,13 +248,22 @@ describe("MentorProfilePage", () => {
     mockAll();
     const { rerender } = render(<MentorProfilePage />);
 
-    await user.click(
-      screen.getByRole("button", { name: "Görüşme tercihleri düzenle" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Hakkında düzenle" }));
     mockAll({ form: { isEditing: true } });
     rerender(<MentorProfilePage />);
 
-    expect(screen.getByLabelText("Format")).toHaveFocus();
+    expect(screen.getByRole("textbox", { name: "Hakkında" })).toHaveFocus();
+  });
+
+  it("offers Düzenle only on the cards the design gives one", () => {
+    mockAll();
+    render(<MentorProfilePage />);
+
+    expect(
+      screen
+        .getAllByRole("button", { name: /düzenle$/ })
+        .map((button) => button.getAttribute("aria-label")),
+    ).toEqual([null, null, "Hakkında düzenle", "Müsaitlik düzenle"]);
   });
 
   it("returns focus to the main button when an edit is discarded", async () => {
@@ -241,11 +277,11 @@ describe("MentorProfilePage", () => {
     expect(screen.getByRole("button", { name: "Kaydet" })).toHaveFocus();
   });
 
-  it("shows loading text while history and programs load", () => {
-    mockAll({ overview: { isHistoryLoading: true, isProgramsLoading: true } });
+  it("shows loading text while the history loads", () => {
+    mockAll({ overview: { isHistoryLoading: true } });
     render(<MentorProfilePage />);
 
-    expect(screen.getAllByText("Yükleniyor...")).toHaveLength(2);
+    expect(screen.getAllByText("Yükleniyor...")).toHaveLength(1);
     expect(
       screen.queryByText("Henüz kabul edilmiş bir mentorluk yok."),
     ).not.toBeInTheDocument();
@@ -270,8 +306,18 @@ describe("MentorProfilePage", () => {
       screen.getByRole("heading", { name: "Nihan Öztürk" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Design / UX Mentor · 12 yıl")).toBeInTheDocument();
+    // Header chip for the active program, then its row under Programlar.
     expect(screen.getAllByText("METU Stars 2026")).toHaveLength(2);
+    expect(screen.getAllByText("Kuluçka İzmir 2025")).toHaveLength(1);
     expect(screen.getByText("Mentorluğa açık")).toBeInTheDocument();
+    expect(screen.getByText("Türkçe · İngilizce")).toBeInTheDocument();
+  });
+
+  it("leaves the languages chip out when none are chosen", () => {
+    mockAll({ overview: { languages: "" } });
+    render(<MentorProfilePage />);
+
+    expect(screen.queryByText("Türkçe · İngilizce")).not.toBeInTheDocument();
   });
 
   it("shows the five summary figures", () => {
@@ -301,8 +347,12 @@ describe("MentorProfilePage", () => {
     expect(screen.getByText("NovaTech · Zeynep Er")).toBeInTheDocument();
     expect(screen.getByText("Mar – Haz 2026 · 8 seans")).toBeInTheDocument();
     expect(screen.getByText("45 dk")).toBeInTheDocument();
-    expect(screen.getByText("Koordinatör: Türkan Yalçın")).toBeInTheDocument();
+    expect(screen.getByText("2 haftada 1")).toBeInTheDocument();
+    expect(screen.getByText("Zorunlu")).toBeInTheDocument();
+    expect(screen.getByText("Aktif · Design mentor")).toBeInTheDocument();
+    expect(screen.getByText("Tamamlandı")).toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
+    expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
   it("lists the weekly availability and the mentee load", () => {
@@ -314,6 +364,10 @@ describe("MentorProfilePage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("10:00–13:00, 14:00–16:00")).toBeInTheDocument();
     expect(screen.getByText("Diğer günler")).toBeInTheDocument();
+    expect(screen.getByText("Kapalı")).toHaveClass("text-[#858c96]");
+    expect(screen.getByText("10:00–13:00, 14:00–16:00")).toHaveClass(
+      "text-[#22262b]",
+    );
     expect(screen.getByText("Eş zamanlı mentorluk")).toBeInTheDocument();
     expect(screen.getByText("4 / 5")).toBeInTheDocument();
   });
@@ -348,11 +402,8 @@ describe("MentorProfilePage", () => {
 
     await user.click(screen.getByRole("button", { name: "Profili düzenle" }));
     await user.click(screen.getByRole("button", { name: "Hakkında düzenle" }));
-    await user.click(
-      screen.getByRole("button", { name: "Görüşme tercihleri düzenle" }),
-    );
 
-    expect(formActions.startEditing).toHaveBeenCalledTimes(3);
+    expect(formActions.startEditing).toHaveBeenCalledTimes(2);
     expect(formActions.saveAndFinish).not.toHaveBeenCalled();
   });
 
@@ -383,6 +434,48 @@ describe("MentorProfilePage", () => {
       "mentoringStyle",
       "İşbirlikçi!",
     );
+  });
+
+  it("edits languages, meeting choices and program roles through the form hook", async () => {
+    const user = userEvent.setup();
+    mockAll({ form: { isEditing: true } });
+    render(<MentorProfilePage />);
+
+    expect(screen.getByRole("checkbox", { name: "Türkçe" })).toBeChecked();
+    await user.click(screen.getByRole("checkbox", { name: "İngilizce" }));
+    expect(screen.getByLabelText("Görüşme sıklığı")).toHaveValue(
+      MeetingFrequency.Biweekly,
+    );
+    await user.selectOptions(
+      screen.getByLabelText("Görüşme sıklığı"),
+      "Ayda 1",
+    );
+    // No prep-file choice is saved yet, so the select starts on its placeholder.
+    expect(screen.getByLabelText("Ön hazırlık dosyası")).toHaveValue("");
+    await user.selectOptions(
+      screen.getByLabelText("Ön hazırlık dosyası"),
+      "Gerekmiyor",
+    );
+    const roles = screen.getAllByLabelText("Bu programdaki rolün");
+    expect(roles).toHaveLength(2);
+    expect(roles[0]).toHaveValue("Design mentor");
+    await user.type(roles[0], "!");
+
+    expect(formActions.toggleLanguage).toHaveBeenCalledWith(
+      MentorLanguage.English,
+    );
+    expect(formActions.setMeetingFrequency).toHaveBeenCalledWith(
+      MeetingFrequency.Monthly,
+    );
+    expect(formActions.setPrepFileRequirement).toHaveBeenCalledWith(
+      PrepFileRequirement.NotNeeded,
+    );
+    expect(formActions.programRole).toHaveBeenCalledWith("p1");
+    expect(formActions.updateProgramRole).toHaveBeenCalledWith(
+      "p1",
+      "Design mentor!",
+    );
+    expect(screen.queryByText("Aktif · Design mentor")).not.toBeInTheDocument();
   });
 
   it("saves or discards the edit, and shows why a save was refused", async () => {
@@ -427,6 +520,16 @@ describe("MentorProfilePage", () => {
     render(<MentorProfilePage />);
 
     const dialog = within(await openEditor(user));
+    for (const section of [
+      "HAFTALIK UYGUNLUK",
+      "KAPASİTE VE VARSAYILANLAR",
+      "UYGUN OLMADIĞIN TARİHLER",
+    ]) {
+      expect(
+        dialog.getByRole("heading", { name: section }),
+      ).toBeInTheDocument();
+    }
+    expect(dialog.getAllByText("Kapalı")).toHaveLength(6);
     expect(dialog.getByRole("switch", { name: "Salı uygun" })).toHaveAttribute(
       "aria-checked",
       "true",
