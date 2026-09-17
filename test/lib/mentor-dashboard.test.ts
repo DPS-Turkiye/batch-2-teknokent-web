@@ -97,21 +97,21 @@ describe("mentorshipTaskRatio", () => {
 });
 
 describe("meetingDayLabel and meetingWhenLabel", () => {
-  const now = new Date("2026-09-11T09:00:00.000Z");
+  // Built in the runtime's own zone, so the labels read the same wherever CI runs.
+  const at = (day: number, hour: number) =>
+    new Date(2026, 8, day, hour, 0, 0).toISOString();
+  const now = new Date(2026, 8, 11, 9, 0, 0);
 
   it("names today and tomorrow, then falls back to the date", () => {
-    expect(meetingDayLabel("2026-09-11T15:00:00.000Z", now)).toBe("Bugün");
-    expect(meetingDayLabel("2026-09-12T15:00:00.000Z", now)).toBe("Yarın");
-    expect(meetingDayLabel("2026-09-20T15:00:00.000Z", now)).toMatch(/Eyl/);
+    expect(meetingDayLabel(at(11, 15), now)).toBe("Bugün");
+    expect(meetingDayLabel(at(12, 15), now)).toBe("Yarın");
+    expect(meetingDayLabel(at(20, 15), now)).toMatch(/Eyl/);
   });
 
   it("reads out the whole slot", () => {
     expect(
       meetingWhenLabel(
-        {
-          ...pastMeeting({ scheduledAt: "2026-09-12T11:00:00.000Z" }),
-          durationMinutes: 45,
-        },
+        { ...pastMeeting({ scheduledAt: at(12, 14) }), durationMinutes: 45 },
         now,
       ),
     ).toBe("Yarın · 14:00 · 45 dk · Online");
