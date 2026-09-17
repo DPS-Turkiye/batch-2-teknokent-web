@@ -23,11 +23,15 @@ import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { NotificationMenu } from "@/components/common/notification-menu";
+import { AccountMenu } from "@/components/hoc/account-menu";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { useToast } from "@/components/providers/toast-provider";
+import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
+import { COMING_SOON_MESSAGE } from "@/lib/personal-profile";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -225,10 +229,11 @@ export function AppShell({
   title,
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [accountOpen, setAccountOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const session = useAppSession();
   const { logout } = useSession();
+  const { showToast } = useToast();
+  const photo = useProfilePhoto();
   const {
     homeHref,
     profileHref,
@@ -293,56 +298,19 @@ export function AppShell({
             className={`ml-auto flex items-center gap-2 lg:ml-0 ${usesRevisedNav ? "lg:w-[200px] lg:justify-end" : ""}`}
           >
             <NotificationMenu showBadge={showNotificationBadge} />
-            <div className="relative hidden sm:block">
-              <button
-                type="button"
-                aria-expanded={accountOpen}
-                aria-haspopup="menu"
-                onClick={() => setAccountOpen((open) => !open)}
-                className={`flex items-center gap-2 rounded-full border border-transparent p-1 pr-2 text-left hover:border-[#e4e7ea] ${isMentor ? "ml-2" : ""}`}
-              >
-                <Avatar initials={initials(displayName) || "K"} tone="orange" />
-                <span
-                  className={`hidden max-w-28 leading-tight ${isMentor ? "" : "sm:block"}`}
-                >
-                  <strong className="block truncate text-xs font-semibold">
-                    {displayName}
-                  </strong>
-                  <span className="block truncate text-[10px] text-[#858c96]">
-                    {displayOrganization}
-                  </span>
-                </span>
-                <span className="sr-only">Hesap menüsünü aç</span>
-              </button>
-              {accountOpen ? (
-                <div
-                  role="menu"
-                  aria-label="Hesap menüsü"
-                  className="absolute right-0 top-12 w-48 rounded-xl border border-[#e4e7ea] bg-white p-1.5 shadow-lg"
-                >
-                  <Link
-                    href={profileHref}
-                    role="menuitem"
-                    onClick={() => setAccountOpen(false)}
-                    className="block rounded-lg px-3 py-2 text-xs font-medium text-[#515861] hover:bg-[#f8f9fa]"
-                  >
-                    Profilim
-                  </Link>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    onClick={() => {
-                      setAccountOpen(false);
-                      setConfirmLogout(true);
-                    }}
-                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium text-[#c24135] hover:bg-red-50"
-                  >
-                    <LogOut className="size-3.5" aria-hidden />
-                    Çıkış yap
-                  </button>
-                </div>
-              ) : null}
-            </div>
+            <AccountMenu
+              displayName={displayName}
+              subtitle={displayOrganization}
+              email={session?.email ?? ""}
+              initials={initials(displayName) || "K"}
+              photoUrl={photo.photoUrl}
+              profileHref={profileHref}
+              showName={!usesRevisedNav}
+              onComingSoon={() =>
+                showToast({ message: COMING_SOON_MESSAGE, tone: "info" })
+              }
+              onLogout={() => setConfirmLogout(true)}
+            />
             <button
               type="button"
               onClick={() => setMobileOpen(true)}

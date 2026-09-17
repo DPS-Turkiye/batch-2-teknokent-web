@@ -48,6 +48,7 @@ export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
   [DocumentKind.NotePhoto]: "Toplantı fotoğrafı",
   [DocumentKind.Other]: "Diğer",
   [DocumentKind.Logo]: "Logo",
+  [DocumentKind.Avatar]: "Profil fotoğrafı",
   [DocumentKind.ProfilePdf]: "Profil PDF'i",
 };
 

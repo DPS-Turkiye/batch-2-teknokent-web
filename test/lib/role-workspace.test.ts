@@ -40,7 +40,7 @@ describe("roleWorkspace", () => {
     });
     expect(roleWorkspace(UserRole.Mentee)).toMatchObject({
       homeHref: "/dashboard",
-      profileHref: "/profile",
+      profileHref: "/profile/personal",
       notificationsHref: "/dashboard#notifications",
       roleLabel: "Girişim Ekibi",
     });
