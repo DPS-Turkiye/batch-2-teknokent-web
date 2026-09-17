@@ -17,6 +17,8 @@ import {
   isOverdueActionItem,
   meetingsAwaitingReview,
   mentorshipProgress,
+  mentorshipTaskRatio,
+  mentorTodayActions,
   mentorWeekMeetingCount,
 } from "@/lib/mentor-dashboard";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
@@ -84,22 +86,28 @@ export function useMentorDashboard() {
           overdueCount: items.filter((item) => isOverdueActionItem(item))
             .length,
           progress: mentorshipProgress(items),
+          ratio: mentorshipTaskRatio(items),
         };
       }),
     [accepted, actionItemsByRequest],
   );
 
+  const awaitingReview = meetingsAwaitingReview(meetings);
+  const upcomingMeetings = pickUpcomingMeetings(meetings).upcomingMeetings;
+
   return {
     firstName: session?.fullName?.trim().split(/\s+/)[0] || "Mentor",
+    nextMeeting: upcomingMeetings[0],
+    todayActions: mentorTodayActions(awaitingReview, openActionItems),
     pending: requests.filter(
       (request) => request.status === MentorshipRequestStatus.Pending,
     ),
     accepted,
     mentorships,
     openActionItems,
-    awaitingReview: meetingsAwaitingReview(meetings),
+    awaitingReview,
     isLoadingActionItems,
-    upcomingMeetings: pickUpcomingMeetings(meetings).upcomingMeetings,
+    upcomingMeetings,
     weekMeetingCount: mentorWeekMeetingCount(meetings),
     requestsQuery,
     meetingsQuery,
