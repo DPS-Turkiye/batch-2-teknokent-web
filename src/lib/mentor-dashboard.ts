@@ -1,5 +1,7 @@
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { formatFileSize, formatShortDate } from "@/lib/utils";
 
 /** Calendar weeks follow the availability service's Istanbul business timezone. */
 export function mentorWeekMeetingCount(
@@ -48,6 +50,120 @@ export function mentorshipProgress(items: ActionItem[]) {
     (item) => item.status === ActionItemStatus.Completed,
   ).length;
   return Math.round((done / counted.length) * 100);
+}
+
+/** Completed action items over the ones that still count, e.g. `{ done: 3, total: 4 }`. */
+export function mentorshipTaskRatio(items: ActionItem[]) {
+  const counted = items.filter(
+    (item) => item.status !== ActionItemStatus.Cancelled,
+  );
+  if (counted.length === 0) return null;
+  return {
+    done: counted.filter((item) => item.status === ActionItemStatus.Completed)
+      .length,
+    total: counted.length,
+  };
+}
+
+const DAY_MS = 86_400_000;
+
+/** "Bugün", "Yarın", or "12 Eyl" for anything further out. */
+export function meetingDayLabel(startsAt: string, now = new Date()) {
+  const startOfToday = new Date(now);
+  startOfToday.setHours(0, 0, 0, 0);
+  const days = Math.floor(
+    (Date.parse(startsAt) - startOfToday.getTime()) / DAY_MS,
+  );
+  if (days === 0) return "Bugün";
+  if (days === 1) return "Yarın";
+  return formatShortDate(startsAt);
+}
+
+/** "Yarın · 14:00 · 45 dk · Online" for the next meeting banner. */
+export function meetingWhenLabel(meeting: MeetingItem, now = new Date()) {
+  const time = new Intl.DateTimeFormat("tr-TR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(meeting.scheduledAt));
+  return [
+    meetingDayLabel(meeting.scheduledAt, now),
+    time,
+    meeting.durationMinutes ? `${meeting.durationMinutes} dk` : null,
+    "Online",
+  ]
+    .filter(Boolean)
+    .join(" · ");
+}
+
+export type MentorTodayAction = {
+  id: string;
+  icon: "star" | "paper";
+  startup: string;
+  detail: string;
+  chip: string | null;
+  action: string;
+  href: string;
+};
+
+/**
+ * The single "Bugün aksiyon bekleyen" list: meetings the mentor still has to
+ * write up, then the open work, with anything overdue flagged.
+ */
+export function mentorTodayActions(
+  awaitingReview: MeetingItem[],
+  openActionItems: ActionItem[],
+  now = new Date(),
+): MentorTodayAction[] {
+  const meetingRows = awaitingReview.map((meeting) => ({
+    id: meeting.id,
+    icon: "star" as const,
+    startup: meeting.organizationName ?? "Mentorluk",
+    detail: `${meeting.agenda ?? "Mentorluk görüşmesi"} · değerlendirme bekliyor`,
+    chip: null,
+    action: "Değerlendir",
+    href: "/mentor-dashboard/calendar",
+  }));
+  const itemRows = openActionItems.map((item) => {
+    const overdue = isOverdueActionItem(item, now);
+    return {
+      id: item.id,
+      icon: "paper" as const,
+      startup: item.organizationName ?? "Mentorluk",
+      detail: item.title,
+      chip: overdue ? "Gecikti" : null,
+      action: overdue ? "Hatırlat" : "Aç",
+      href: "/mentorships",
+    };
+  });
+  return [...meetingRows, ...itemRows];
+}
+
+export type MentorshipFileRow = {
+  id: string;
+  title: string;
+  detail: string;
+  status: "Yüklendi" | "Bekliyor";
+};
+
+/** A requested file, shown as uploaded once the startup has answered it. */
+export function mentorshipFileRow(
+  item: DocumentRequestItem,
+): MentorshipFileRow {
+  const upload = item.uploads.at(-1);
+  if (upload) {
+    return {
+      id: item.id,
+      title: upload.originalFilename,
+      detail: `${upload.uploadedByName} yükledi · ${formatFileSize(upload.sizeBytes)} · ${formatShortDate(upload.createdAt)}`,
+      status: "Yüklendi",
+    };
+  }
+  return {
+    id: item.id,
+    title: item.title,
+    detail: `${item.createdByName} talep etti · ${formatShortDate(item.createdAt)}`,
+    status: "Bekliyor",
+  };
 }
 
 /** A finished meeting with nothing written down still needs the mentor. */
