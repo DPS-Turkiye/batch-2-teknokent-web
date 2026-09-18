@@ -20,6 +20,14 @@ vi.mock("@/hooks/use-dashboard-notifications", () => ({
   }),
 }));
 
+vi.mock("@/hooks/use-profile-photo", () => ({
+  useProfilePhoto: () => ({
+    photoUrl: null,
+    isUploading: false,
+    upload: vi.fn(),
+  }),
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => mockuseAppSession(),
   useSession: () => ({
@@ -145,6 +153,28 @@ describe("AppShell navigation", () => {
     await user.click(screen.getByRole("button", { name: "Vazgeç" }));
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(mockLogout).not.toHaveBeenCalled();
+  });
+
+  it("opens the account dropdown with the person and their personal profile", async () => {
+    const user = userEvent.setup();
+    mockuseAppSession.mockReturnValue(menteeSession());
+
+    render(
+      <AppShell menteeHome>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    await user.click(screen.getByRole("button", { name: /Hesap menüsünü aç/ }));
+    const menu = within(screen.getByRole("menu", { name: "Hesap menüsü" }));
+
+    expect(menu.getByText("ayse.kaya@novamed.demo")).toBeInTheDocument();
+    expect(menu.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
+      "href",
+      "/profile/personal",
+    );
+    await user.click(menu.getByRole("menuitem", { name: "Hesap ayarları" }));
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
   it("gives an admin only the applications inbox", () => {
@@ -407,7 +437,7 @@ describe("AppShell navigation", () => {
     await user.click(screen.getByRole("button", { name: /Ayşe Kaya/ }));
     expect(screen.getByRole("menuitem", { name: "Profilim" })).toHaveAttribute(
       "href",
-      "/profile",
+      "/profile/personal",
     );
     expect(
       screen.queryByRole("menuitem", { name: "Toplantı Notlarım" }),

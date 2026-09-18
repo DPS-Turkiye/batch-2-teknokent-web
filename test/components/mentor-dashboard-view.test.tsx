@@ -129,6 +129,28 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
         openCount: 1,
         overdueCount: 0,
         progress: 40,
+        ratio: { done: 2, total: 5 },
+      },
+    ],
+    nextMeeting: meeting(),
+    todayActions: [
+      {
+        id: "meeting-past",
+        icon: "star" as const,
+        startup: "Döngü",
+        detail: "UX Flow Review · değerlendirme bekliyor",
+        chip: null,
+        action: "Değerlendir",
+        href: "/mentor-dashboard/calendar",
+      },
+      {
+        id: "action-1",
+        icon: "paper" as const,
+        startup: "Döngü",
+        detail: "Revize prototip",
+        chip: "Gecikti",
+        action: "Hatırlat",
+        href: "/mentorships",
       },
     ],
     openActionItems: [actionItem()],
@@ -293,11 +315,26 @@ describe("MentorDashboardView", () => {
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getByText("Revize prototip")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tümü (1)" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tümü (2)" })).toBeInTheDocument();
+  });
+
+  it("gives each waiting row its own action, and flags the late one", () => {
+    mockDashboard();
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByRole("link", { name: "Değerlendir" })).toHaveAttribute(
+      "href",
+      "/mentor-dashboard/calendar",
+    );
+    expect(screen.getByRole("link", { name: "Hatırlat" })).toHaveAttribute(
+      "href",
+      "/mentorships",
+    );
+    expect(screen.getByText("Gecikti")).toBeInTheDocument();
   });
 
   it("notes when nothing is waiting for the mentor", () => {
-    mockDashboard({ openActionItems: [] });
+    mockDashboard({ todayActions: [] });
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getByText("Bekleyen bir iş yok.")).toBeInTheDocument();
@@ -308,7 +345,7 @@ describe("MentorDashboardView", () => {
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getByText("Değerlendirme bekliyor")).toBeInTheDocument();
-    expect(screen.getByText(/UX Flow Review/)).toBeInTheDocument();
+    expect(screen.getAllByText(/UX Flow Review/).length).toBeGreaterThan(0);
   });
 
   it("notes when no meeting awaits review", () => {
@@ -344,15 +381,47 @@ describe("MentorDashboardView", () => {
     mockDashboard();
     renderWithQueryClient(<MentorDashboardView />);
 
-    const toggle = screen.getByRole("button", { name: /Atlas AI.*%40/s });
+    const toggle = screen.getByRole("button", { name: /Atlas AI/s });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(screen.getByText("2/5")).toBeInTheDocument();
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Atanan işler")).toBeInTheDocument();
     expect(screen.getByText("Kullanıcı testi")).toBeInTheDocument();
+    expect(screen.getByText("Dosyalar")).toBeInTheDocument();
+    expect(screen.getByText("Mentorluk ilerlemesi")).toBeInTheDocument();
 
     await user.click(toggle);
     expect(screen.queryByText("Atanan işler")).not.toBeInTheDocument();
+  });
+
+  it("shows the next meeting banner with its link and transcript choice", async () => {
+    const user = userEvent.setup();
+    mockDashboard({
+      nextMeeting: meeting({ meetLink: "https://meet.example/abc" }),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    const banner = within(
+      screen.getByRole("region", { name: "Sıradaki görüşme" }),
+    );
+    expect(banner.getByLabelText("Görüşme linki")).toHaveValue(
+      "https://meet.example/abc",
+    );
+    expect(
+      banner.getByRole("link", { name: "Görüşmeye katıl" }),
+    ).toHaveAttribute("href", "https://meet.example/abc");
+    expect(banner.getByLabelText("Transript gönderilsin")).not.toBeChecked();
+    await user.click(banner.getByLabelText("Transript gönderilsin"));
+  });
+
+  it("leaves the banner out when no meeting is coming up", () => {
+    mockDashboard({ nextMeeting: undefined });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(
+      screen.queryByRole("region", { name: "Sıradaki görüşme" }),
+    ).not.toBeInTheDocument();
   });
 });

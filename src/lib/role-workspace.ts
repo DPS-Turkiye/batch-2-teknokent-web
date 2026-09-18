@@ -41,7 +41,7 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
     default:
       return {
         homeHref: "/dashboard",
-        profileHref: "/profile",
+        profileHref: "/profile/personal",
         notificationsHref: "/dashboard#notifications",
         roleLabel: "Girişim Ekibi",
         showNotificationBadge: true,

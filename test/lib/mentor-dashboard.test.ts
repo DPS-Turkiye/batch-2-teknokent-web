@@ -2,10 +2,16 @@ import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import {
   isOverdueActionItem,
+  meetingDayLabel,
   meetingsAwaitingReview,
+  meetingWhenLabel,
+  mentorshipFileRow,
   mentorshipProgress,
+  mentorshipTaskRatio,
+  mentorTodayActions,
   mentorWeekMeetingCount,
 } from "@/lib/mentor-dashboard";
 
@@ -68,6 +74,162 @@ describe("mentorWeekMeetingCount", () => {
     expect(mentorWeekMeetingCount([], new Date("2026-09-13T21:01:00Z"))).toBe(
       0,
     );
+  });
+});
+
+describe("mentorshipTaskRatio", () => {
+  it("counts finished work against what still counts", () => {
+    expect(
+      mentorshipTaskRatio([
+        item({ id: "a", status: ActionItemStatus.Completed }),
+        item({ id: "b", status: ActionItemStatus.Open }),
+        item({ id: "c", status: ActionItemStatus.Cancelled }),
+      ]),
+    ).toEqual({ done: 1, total: 2 });
+  });
+
+  it("has nothing to show without work", () => {
+    expect(mentorshipTaskRatio([])).toBeNull();
+    expect(
+      mentorshipTaskRatio([item({ status: ActionItemStatus.Cancelled })]),
+    ).toBeNull();
+  });
+});
+
+describe("meetingDayLabel and meetingWhenLabel", () => {
+  // Built in the runtime's own zone, so the labels read the same wherever CI runs.
+  const at = (day: number, hour: number) =>
+    new Date(2026, 8, day, hour, 0, 0).toISOString();
+  const now = new Date(2026, 8, 11, 9, 0, 0);
+
+  it("names today and tomorrow, then falls back to the date", () => {
+    expect(meetingDayLabel(at(11, 15), now)).toBe("Bugün");
+    expect(meetingDayLabel(at(12, 15), now)).toBe("Yarın");
+    expect(meetingDayLabel(at(20, 15), now)).toMatch(/Eyl/);
+  });
+
+  it("reads out the whole slot", () => {
+    expect(
+      meetingWhenLabel(
+        { ...pastMeeting({ scheduledAt: at(12, 14) }), durationMinutes: 45 },
+        now,
+      ),
+    ).toBe("Yarın · 14:00 · 45 dk · Online");
+  });
+});
+
+describe("mentorTodayActions", () => {
+  it("asks for a write-up first, then the open work, flagging what is late", () => {
+    const rows = mentorTodayActions(
+      [
+        pastMeeting({
+          id: "m1",
+          organizationName: "Döngü",
+          agenda: "UX Flow Review",
+        }),
+      ],
+      [
+        item({
+          id: "a1",
+          organizationName: "Döngü",
+          title: "Dosya bekleniyor",
+          dueDate: "2026-09-01T09:00:00.000Z",
+        }),
+      ],
+      new Date("2026-09-11T09:00:00.000Z"),
+    );
+
+    expect(rows).toEqual([
+      {
+        id: "m1",
+        icon: "star",
+        startup: "Döngü",
+        detail: "UX Flow Review · değerlendirme bekliyor",
+        chip: null,
+        action: "Değerlendir",
+        href: "/mentor-dashboard/calendar",
+      },
+      {
+        id: "a1",
+        icon: "paper",
+        startup: "Döngü",
+        detail: "Dosya bekleniyor",
+        chip: "Gecikti",
+        action: "Hatırlat",
+        href: "/mentorships",
+      },
+    ]);
+  });
+
+  it("leaves work that is not late without a chip", () => {
+    const [row] = mentorTodayActions(
+      [],
+      [item({ id: "a2", dueDate: "2026-09-30T09:00:00.000Z" })],
+      new Date("2026-09-11T09:00:00.000Z"),
+    );
+
+    expect(row.chip).toBeNull();
+    expect(row.action).toBe("Aç");
+    expect(row.startup).toBe("Mentorluk");
+  });
+});
+
+describe("mentorshipFileRow", () => {
+  const request: DocumentRequestItem = {
+    id: "req-1",
+    title: "kullanici-akisi-v2.pdf",
+    sortOrder: 0,
+    dueDate: null,
+    organizationId: "org-1",
+    mentorshipRequestId: "request-1",
+    meetingId: null,
+    mentorshipId: null,
+    programId: null,
+    createdById: "mentor-1",
+    createdByName: "Nihan",
+    createdAt: "2026-09-11T09:00:00.000Z",
+    uploads: [],
+  };
+
+  it("reads as waiting until the startup answers", () => {
+    expect(mentorshipFileRow(request)).toEqual({
+      id: "req-1",
+      title: "kullanici-akisi-v2.pdf",
+      detail: expect.stringContaining("Nihan talep etti · "),
+      status: "Bekliyor",
+    });
+  });
+
+  it("switches to the newest upload once one arrives", () => {
+    const row = mentorshipFileRow({
+      ...request,
+      uploads: [
+        {
+          id: "u1",
+          storedDocumentId: "d1",
+          originalFilename: "eski.pdf",
+          contentType: "application/pdf",
+          sizeBytes: 1024,
+          uploadedById: "mentee-1",
+          uploadedByName: "Gülse",
+          createdAt: "2026-09-12T09:00:00.000Z",
+        },
+        {
+          id: "u2",
+          storedDocumentId: "d2",
+          originalFilename: "onboarding-v4.fig",
+          contentType: "application/octet-stream",
+          sizeBytes: 8_600_000,
+          uploadedById: "mentee-1",
+          uploadedByName: "Gülse",
+          createdAt: "2026-09-13T09:00:00.000Z",
+        },
+      ],
+    });
+
+    expect(row.title).toBe("onboarding-v4.fig");
+    expect(row.status).toBe("Yüklendi");
+    expect(row.detail).toContain("Gülse yükledi");
   });
 });
 

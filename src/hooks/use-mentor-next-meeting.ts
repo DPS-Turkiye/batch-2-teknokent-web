@@ -1,0 +1,63 @@
+"use client";
+
+import { useState } from "react";
+
+import { useToast } from "@/components/providers/toast-provider";
+import { useUpdateMeeting } from "@/hooks/use-meetings";
+import type { MeetingItem } from "@/interfaces/meeting";
+
+/**
+ * The next meeting banner: its Meet link and whether a transcript is wanted.
+ * The link is saved when the field is left, the toggle as soon as it changes,
+ * so the banner needs no save button of its own. The caller keys the banner on
+ * the meeting id, so a different meeting starts from that meeting's own link.
+ */
+export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
+  const { showToast } = useToast();
+  const updateMeeting = useUpdateMeeting(meeting?.id);
+  const [link, setLink] = useState(meeting?.meetLink ?? "");
+  const [savedLink, setSavedLink] = useState(meeting?.meetLink ?? "");
+
+  const save = async (payload: {
+    meetLink?: string;
+    transcribeRequested?: boolean;
+  }) => {
+    if (!meeting) return false;
+    try {
+      await updateMeeting.mutateAsync(payload);
+      return true;
+    } catch (error) {
+      showToast({
+        message:
+          error instanceof Error ? error.message : "Görüşme güncellenemedi.",
+        tone: "error",
+      });
+      return false;
+    }
+  };
+
+  const saveLink = async () => {
+    const meetLink = link.trim();
+    if (!meeting || meetLink === savedLink) return;
+    if (await save({ meetLink })) {
+      setSavedLink(meetLink);
+      showToast({ message: "Görüşme linki kaydedildi.", tone: "success" });
+    }
+  };
+
+  const toggleTranscript = async () => {
+    if (!meeting) return;
+    await save({ transcribeRequested: !meeting.transcribeRequested });
+  };
+
+  return {
+    meeting,
+    link,
+    setLink,
+    saveLink,
+    transcribeRequested: meeting?.transcribeRequested ?? false,
+    toggleTranscript,
+    isSaving: updateMeeting.isPending,
+    joinHref: meeting?.meetLink?.trim() || null,
+  };
+}
