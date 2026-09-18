@@ -5,12 +5,14 @@ export enum StartupMeetingView {
   Topic = "topic",
   Time = "time",
   Notes = "notes",
+  Mentor = "mentor",
 }
 
 export const STARTUP_MEETING_VIEW_LABELS: Record<StartupMeetingView, string> = {
   [StartupMeetingView.Topic]: "Konu",
   [StartupMeetingView.Time]: "Zaman",
   [StartupMeetingView.Notes]: "Toplantı Notları",
+  [StartupMeetingView.Mentor]: "Mentor",
 };
 
 export enum MeetingTiming {
@@ -45,6 +47,19 @@ export function visibleMeetings(meetings: MeetingItem[]) {
 
 function newestFirst(left: MeetingItem, right: MeetingItem) {
   return right.scheduledAt.localeCompare(left.scheduledAt);
+}
+
+/** Other meetings this startup had with the same mentor, newest first. */
+export function meetingsWithSameMentor(
+  meetings: MeetingItem[],
+  meeting: MeetingItem,
+) {
+  if (!meeting.mentorId) return [];
+  return meetings
+    .filter(
+      (item) => item.id !== meeting.id && item.mentorId === meeting.mentorId,
+    )
+    .sort(newestFirst);
 }
 
 export type MeetingTopic = {
@@ -86,9 +101,40 @@ export function groupMeetingsByTopic(
     };
   });
 
-  // Topics with a meeting ahead come first, soonest first; then the rest,
-  // most recently met first.
-  return topics.sort((left, right) => {
+  return sortMeetingStacks(topics);
+}
+
+/** One deck per mentor: every meeting this startup had with them. */
+export function groupMeetingsByMentor(
+  meetings: MeetingItem[],
+  now = new Date(),
+): MeetingTopic[] {
+  const groups = new Map<string, MeetingItem[]>();
+  for (const meeting of meetings) {
+    const key = meeting.mentorId ? `mentor:${meeting.mentorId}` : "mentor:none";
+    groups.set(key, [...(groups.get(key) ?? []), meeting]);
+  }
+
+  const stacks = [...groups.entries()].map(([key, items]) => {
+    const sorted = [...items].sort(newestFirst);
+    const ahead = sorted.filter(
+      (meeting) => meetingTiming(meeting, now) === MeetingTiming.Upcoming,
+    );
+    const upcoming = ahead.at(-1) ?? null;
+    return {
+      key,
+      title: (upcoming ?? sorted[0]).mentorName?.trim() || "Mentor",
+      meetings: sorted,
+      latest: sorted[0],
+      upcoming,
+    };
+  });
+
+  return sortMeetingStacks(stacks);
+}
+
+function sortMeetingStacks(stacks: MeetingTopic[]) {
+  return stacks.sort((left, right) => {
     if (left.upcoming && right.upcoming) {
       return left.upcoming.scheduledAt.localeCompare(
         right.upcoming.scheduledAt,

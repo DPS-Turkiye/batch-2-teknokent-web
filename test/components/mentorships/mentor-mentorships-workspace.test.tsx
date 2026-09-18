@@ -26,6 +26,11 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/components/mentorships/document-request-checklist", () => ({
+  DocumentRequestChecklist: () => <div>istenilen belgeler</div>,
+  DOCUMENT_REQUESTS_QUERY_KEY: ["document-requests"],
+}));
+
 vi.mock("@/lib/client/mentor-requests", () => ({
   logMentorshipMeeting: vi.fn(),
   getMentorRequestsPage: vi.fn(

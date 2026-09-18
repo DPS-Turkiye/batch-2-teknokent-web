@@ -10,6 +10,7 @@ import type { MeetingItem } from "@/interfaces/meeting";
 import { UserRole } from "@/interfaces/session";
 import type { StartupDocument } from "@/interfaces/startup-document";
 import {
+  groupMeetingsByMentor,
   groupMeetingsByTopic,
   groupMeetingsByYear,
   MeetingTiming,
@@ -28,8 +29,6 @@ export type MeetingDetails = {
   summary: string | null;
   files: StartupDocument[];
 };
-
-export type MentorOption = { id: string; name: string };
 
 // The meeting worth showing first: the next one ahead, else the last one held.
 function focusMeeting(meetings: MeetingItem[]) {
@@ -65,39 +64,20 @@ export function useStartupMeetings() {
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const documentsQuery = useStartupDocuments();
 
-  const [view, setView] = useState(StartupMeetingView.Topic);
+  const [view, setViewState] = useState(StartupMeetingView.Topic);
   const [layout, setLayout] = useState(MeetingLayout.Grid);
-  const [mentorId, setMentorId] = useState("");
   const [selectedMeetingId, setSelectedMeetingId] = useState<string | null>(
     null,
   );
+  const [selectedTopicKey, setSelectedTopicKey] = useState<string | null>(null);
   // undefined follows the default; null means the reader collapsed it.
   const [yearOverride, setYearOverride] = useState<number | null>();
   const [monthOverride, setMonthOverride] = useState<string | null>();
 
-  const allMeetings = useMemo(
+  const meetings = useMemo(
     () => visibleMeetings(meetingsQuery.data ?? []),
     [meetingsQuery.data],
   );
-  const meetings = useMemo(
-    () =>
-      mentorId
-        ? allMeetings.filter((meeting) => meeting.mentorId === mentorId)
-        : allMeetings,
-    [allMeetings, mentorId],
-  );
-
-  const mentorOptions = useMemo(() => {
-    const options = new Map<string, string>();
-    for (const meeting of allMeetings) {
-      if (meeting.mentorId) {
-        options.set(meeting.mentorId, meeting.mentorName ?? "Mentor");
-      }
-    }
-    return [...options.entries()]
-      .map(([id, name]): MentorOption => ({ id, name }))
-      .sort((left, right) => left.name.localeCompare(right.name, "tr-TR"));
-  }, [allMeetings]);
 
   const details = useMemo(() => {
     const titles = new Map(
@@ -133,6 +113,13 @@ export function useStartupMeetings() {
   }, [mentorsQuery.data, requestsQuery.data, documentsQuery.data]);
 
   const topics = useMemo(() => groupMeetingsByTopic(meetings), [meetings]);
+  const mentors = useMemo(() => groupMeetingsByMentor(meetings), [meetings]);
+  const selectedTopic = useMemo(
+    () =>
+      [...topics, ...mentors].find((stack) => stack.key === selectedTopicKey) ??
+      null,
+    [topics, mentors, selectedTopicKey],
+  );
   const years = useMemo(() => groupMeetingsByYear(meetings), [meetings]);
 
   const defaultMonth = useMemo(() => {
@@ -170,17 +157,22 @@ export function useStartupMeetings() {
     isLoading: meetingsQuery.isLoading,
     layout,
     meetingCount: meetings.length,
-    mentorId,
-    mentorOptions,
+    mentors,
+    closeTopicStack: () => setSelectedTopicKey(null),
     openMeetingNotes: (meetingId: string) => {
+      setSelectedTopicKey(null);
       setSelectedMeetingId(meetingId);
-      setView(StartupMeetingView.Notes);
+      setViewState(StartupMeetingView.Notes);
     },
+    openTopicStack: (topicKey: string) => setSelectedTopicKey(topicKey),
     otherMeetings,
     selectedMeeting,
+    selectedTopic,
     setLayout,
-    setMentorId,
-    setView,
+    setView: (next: StartupMeetingView) => {
+      setSelectedTopicKey(null);
+      setViewState(next);
+    },
     toggleMonth: (key: string) => {
       setYearOverride(Number(key.slice(0, 4)));
       setMonthOverride(expandedMonthKey === key ? null : key);

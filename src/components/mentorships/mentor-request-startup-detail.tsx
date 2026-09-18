@@ -11,6 +11,7 @@ import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { StartupNameLink } from "@/components/common/startup-name-link";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
@@ -509,12 +510,18 @@ export function MentorRequestStartupDetail({
                           key={document.id}
                           document={document}
                           onOpen={() => void openDocument(document.id)}
-                          showDownload
                         />
                       ))}
                     </div>
                   )}
                 </section>
+
+                {request ? (
+                  <DocumentRequestChecklist
+                    scope={{ mentorshipRequestId: request.id }}
+                    canManage
+                  />
+                ) : null}
 
                 <section className={STARTUP_INFO_CARD_CLASS}>
                   <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
@@ -578,11 +585,9 @@ function Metric({ label, value }: { label: string; value: string }) {
 function FileRow({
   document,
   onOpen,
-  showDownload = false,
 }: {
   document: StartupDocument;
   onOpen: () => void;
-  showDownload?: boolean;
 }) {
   const meta = [
     formatFileSize(document.sizeBytes),
@@ -615,15 +620,11 @@ function FileRow({
       <button
         type="button"
         onClick={onOpen}
-        aria-label={`${document.originalFilename} dosyasını aç`}
+        aria-label={`${document.originalFilename} dosyasını görüntüle`}
         className="grid size-8 shrink-0 place-items-center rounded-lg text-[#676e78] hover:bg-[#f7f8f9] hover:text-[#22262b]"
       >
         <Image
-          src={
-            showDownload
-              ? "/mentor-dashboard/revised/download.svg"
-              : "/startup/paper.svg"
-          }
+          src="/startup/paper.svg"
           alt=""
           width={20}
           height={20}

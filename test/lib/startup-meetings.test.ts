@@ -2,11 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
+  groupMeetingsByMentor,
   groupMeetingsByTopic,
   groupMeetingsByYear,
   MeetingTiming,
   meetingTiming,
   meetingNotebookHref,
+  meetingsWithSameMentor,
   meetingTitle,
   notePreview,
   visibleMeetings,
@@ -128,6 +130,61 @@ describe("groupMeetingsByYear", () => {
       "sep-late",
     ]);
     expect(years[1].months[0].label).toBe("Kasım");
+  });
+});
+
+describe("groupMeetingsByMentor", () => {
+  it("stacks one mentor's meetings and puts the one with a meeting ahead first", () => {
+    const stacks = groupMeetingsByMentor(
+      [
+        meeting("held", "2026-08-18T09:00:00Z"),
+        meeting("next", "2026-09-18T09:00:00Z"),
+        meeting("other", "2026-07-10T09:00:00Z", {
+          mentorId: "mentor-2",
+          mentorName: "Ahmet Yılmaz",
+        }),
+      ],
+      NOW,
+    );
+
+    expect(stacks.map((stack) => stack.title)).toEqual([
+      "Nihan Öztürk",
+      "Ahmet Yılmaz",
+    ]);
+    expect(stacks[0].meetings.map((item) => item.id)).toEqual(["next", "held"]);
+    expect(stacks[1].upcoming).toBeNull();
+  });
+});
+
+describe("meetingsWithSameMentor", () => {
+  it("lists this startup's other notes with the same mentor, newest first", () => {
+    const current = meeting("mvp", "2026-08-18T09:00:00Z");
+    const others = meetingsWithSameMentor(
+      [
+        current,
+        meeting("older", "2026-07-01T09:00:00Z"),
+        meeting("newer", "2026-09-01T09:00:00Z"),
+        meeting("other-mentor", "2026-09-02T09:00:00Z", {
+          mentorId: "mentor-2",
+          mentorName: "Ayşe",
+        }),
+      ],
+      current,
+    );
+
+    expect(others.map((item) => item.id)).toEqual(["newer", "older"]);
+  });
+
+  it("returns nothing when the meeting has no mentor", () => {
+    const current = meeting("solo", "2026-08-18T09:00:00Z", {
+      mentorId: undefined,
+    });
+    expect(
+      meetingsWithSameMentor(
+        [current, meeting("kept", "2026-09-01T09:00:00Z")],
+        current,
+      ),
+    ).toEqual([]);
   });
 });
 

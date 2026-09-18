@@ -33,7 +33,7 @@ describe("MeetingTopicGrid", () => {
       <MeetingTopicGrid
         details={detailsFixture()}
         layout={MeetingLayout.Grid}
-        onOpen={vi.fn()}
+        onOpenTopic={vi.fn()}
         topics={topics}
       />,
     );
@@ -54,12 +54,12 @@ describe("MeetingTopicGrid", () => {
 
   it("opens the notes of the topic's meeting", async () => {
     const user = userEvent.setup();
-    const onOpen = vi.fn();
+    const onOpenTopic = vi.fn();
     render(
       <MeetingTopicGrid
         details={detailsFixture()}
         layout={MeetingLayout.List}
-        onOpen={onOpen}
+        onOpenTopic={onOpenTopic}
         topics={topics}
       />,
     );
@@ -70,7 +70,7 @@ describe("MeetingTopicGrid", () => {
       }),
     );
 
-    expect(onOpen).toHaveBeenCalledWith("finance-2");
+    expect(onOpenTopic).toHaveBeenCalledWith("req-finance");
     expect(screen.getByRole("list")).not.toHaveClass("xl:grid-cols-3");
   });
 });

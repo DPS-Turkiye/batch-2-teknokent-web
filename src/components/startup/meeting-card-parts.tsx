@@ -34,14 +34,16 @@ export function MeetingPerson({
 export function MeetingWhen({
   meeting,
   timing,
+  dateOnly = false,
 }: {
   meeting: MeetingItem;
   timing: MeetingTiming;
+  dateOnly?: boolean;
 }) {
   return (
     <span className="flex items-center gap-1 text-xs leading-5 text-[#e86f22]">
       <Image src="/startup/calendar-orange.svg" alt="" width={20} height={20} />
-      {timing === MeetingTiming.Held ? (
+      {!dateOnly && timing === MeetingTiming.Held ? (
         <>
           Son görüşme
           <span aria-hidden className="size-1.5 rounded-full bg-[#e86f22]" />

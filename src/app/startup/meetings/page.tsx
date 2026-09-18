@@ -1,10 +1,6 @@
-import { StartupMeetingsView } from "@/components/startup/startup-meetings-view";
-import { StartupPageFrame } from "@/components/startup/startup-page-frame";
+import { redirect } from "next/navigation";
 
+/** Toplantılar moved under profile → Toplantı Notlarım (`/notes`). */
 export default function StartupMeetingsPage() {
-  return (
-    <StartupPageFrame>
-      <StartupMeetingsView />
-    </StartupPageFrame>
-  );
+  redirect("/notes");
 }

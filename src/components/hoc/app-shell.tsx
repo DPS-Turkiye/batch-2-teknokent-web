@@ -53,13 +53,6 @@ type NavigationItem = {
   icon: LucideIcon;
 };
 
-const NOTES_NAV: NavigationItem = {
-  id: AppArea.Notes,
-  label: "Not Defterlerim",
-  href: "/notes",
-  icon: NotebookPen,
-};
-
 const ASSISTANT_NAV: NavigationItem = {
   id: AppArea.Assistant,
   label: "Toplantı Asistanı",
@@ -72,6 +65,13 @@ const MENTORS_NAV: NavigationItem = {
   label: "Mentörler",
   href: "/mentors",
   icon: GraduationCap,
+};
+
+const NOTES_NAV: NavigationItem = {
+  id: AppArea.Notes,
+  label: "Toplantı Notlarım",
+  href: "/notes",
+  icon: NotebookPen,
 };
 
 function buildNavigation(
@@ -148,8 +148,8 @@ function buildNavigation(
       href: "/messages",
       icon: MessageCircle,
     },
-    NOTES_NAV,
     ASSISTANT_NAV,
+    NOTES_NAV,
   ];
   return menteeHome
     ? [
@@ -158,6 +158,7 @@ function buildNavigation(
         menteeNavigation[3],
         menteeNavigation[4],
         menteeNavigation[5],
+        NOTES_NAV,
       ]
     : menteeNavigation;
 }
@@ -286,7 +287,7 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? "h-[42px] w-[160px] px-3" : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeHome ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeHome ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
                   {item.label}

@@ -4,7 +4,14 @@ import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react";
 import type { Awareness } from "y-protocols/awareness";
 import type * as Y from "yjs";
 
@@ -27,6 +34,7 @@ interface MeetingNoteEditorProps {
   documentStatus: DocumentStatus;
   seedFromSnapshot: boolean;
   persistFullState: () => void;
+  footer?: ReactNode;
 }
 
 export function MeetingNoteEditor({
@@ -36,6 +44,7 @@ export function MeetingNoteEditor({
   documentStatus,
   seedFromSnapshot,
   persistFullState,
+  footer,
 }: MeetingNoteEditorProps) {
   const noteQuery = useMeetingNote(meetingId);
   const saveNote = useSaveMeetingNote(meetingId);
@@ -70,7 +79,7 @@ export function MeetingNoteEditor({
     editorProps: {
       attributes: {
         class:
-          "min-h-[31rem] w-full rounded-lg border border-[#e5e7eb] bg-white px-4 py-3 text-sm leading-relaxed text-[#364153] outline-none focus:border-[#4f39f6]",
+          "min-h-[28rem] w-full bg-transparent px-1 py-1 text-sm leading-relaxed text-[#676e78] outline-none",
       },
     },
     onUpdate: () => {
@@ -167,10 +176,9 @@ export function MeetingNoteEditor({
       : "Yedeklendi";
 
   return (
-    <section className="flex h-[36rem] flex-col rounded-xl border border-[#e5e7eb] bg-white p-4">
-      <div className="mb-3 flex shrink-0 items-center gap-3">
-        <h2 className="text-sm font-semibold text-[#171717]">Not defteri</h2>
-        <span className="text-xs text-[#8a8a8a]">
+    <section className="flex min-h-[36rem] flex-1 flex-col rounded-xl border border-[#e86f22] bg-white p-3">
+      <div className="mb-2 flex shrink-0 items-center justify-between gap-3">
+        <span className="text-xs text-[#aeb4bc]">
           {contributorNames
             ? `${statusLabel} · ${contributorNames}`
             : statusLabel}
@@ -185,10 +193,11 @@ export function MeetingNoteEditor({
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EditorContent
             editor={editor}
-            className="[&_.tiptap]:min-h-[31rem] [&_.ProseMirror]:min-h-[31rem]"
+            className="[&_.tiptap]:min-h-[28rem] [&_.ProseMirror]:min-h-[28rem]"
           />
         </div>
       )}
+      {footer}
     </section>
   );
 }

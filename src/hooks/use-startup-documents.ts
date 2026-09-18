@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
+import { useShowDocumentPreview } from "@/components/providers/document-preview-provider";
 import { useToast } from "@/components/providers/toast-provider";
 import {
   getDocumentDownloadUrl,
@@ -38,26 +39,25 @@ export function useDocumentUrl(documentId: string | undefined) {
 export function useOpenDocument() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const showPreview = useShowDocumentPreview();
 
   return useCallback(
     async (documentId: string) => {
-      // Opened inside the click so pop-up blockers allow it, then pointed at
-      // the file once the link is signed.
-      const tab = window.open("", "_blank");
-      if (tab) tab.opener = null;
       try {
         const link = await queryClient.fetchQuery({
           queryKey: documentUrlQueryKey(documentId),
           queryFn: () => getDocumentDownloadUrl(documentId),
           staleTime: DOCUMENT_URL_STALE_MS,
         });
-        if (tab) tab.location.href = link.url;
-        else window.location.assign(link.url);
+        if (showPreview) {
+          showPreview({ ...link, id: documentId });
+          return;
+        }
+        showToast({ message: "Dosya açılamadı.", tone: "error" });
       } catch {
-        tab?.close();
         showToast({ message: "Dosya açılamadı.", tone: "error" });
       }
     },
-    [queryClient, showToast],
+    [queryClient, showPreview, showToast],
   );
 }

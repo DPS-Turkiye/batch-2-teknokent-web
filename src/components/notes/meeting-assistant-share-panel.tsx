@@ -1,14 +1,41 @@
 "use client";
 
+import Image from "next/image";
+import type { ReactNode } from "react";
+
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
+function ShareFold({
+  icon,
+  title,
+  children,
+}: {
+  icon: string;
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <details className="rounded-xl bg-[#fff4ec] px-3 py-2">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm text-[#858c96] [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-2">
+          <Image src={icon} alt="" width={24} height={24} />
+          {title}
+        </span>
+        <span aria-hidden className="text-[#aeb4bc]">
+          ▾
+        </span>
+      </summary>
+      <div className="mt-3">{children}</div>
+    </details>
+  );
+}
+
 function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
   return (
-    <section className="rounded-xl border border-[#e4e7ea] bg-white p-4">
-      <h2 className="text-sm font-semibold text-[#22262b]">Transkript</h2>
-      <p className="mt-0.5 text-[11px] text-[#858c96]">
-        Mentör not defterinin altına gönderdi · salt okunur
+    <div>
+      <p className="text-[11px] text-[#858c96]">
+        Mentör gönderdi · salt okunur
       </p>
       <ol className="mt-3 space-y-3">
         {lines.map((line) => (
@@ -27,11 +54,17 @@ function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
           </li>
         ))}
       </ol>
-    </section>
+    </div>
   );
 }
 
-export function ReportBlock({ report }: { report: MeetingReport }) {
+export function ReportBlock({
+  report,
+  compact = false,
+}: {
+  report: MeetingReport;
+  compact?: boolean;
+}) {
   const topics = report.topicsDiscussed ?? [];
   const decisions = report.decisions ?? [];
   const actions = report.actionItems ?? [];
@@ -39,11 +72,25 @@ export function ReportBlock({ report }: { report: MeetingReport }) {
   const nextSteps = report.nextSteps ?? [];
 
   return (
-    <section className="rounded-xl border border-[#e4e7ea] bg-white p-4">
-      <h2 className="text-sm font-semibold text-[#22262b]">Toplantı raporu</h2>
-      <p className="mt-0.5 text-[11px] text-[#858c96]">
-        Mentör not defterinin altına gönderdi · salt okunur
-      </p>
+    <section
+      className={
+        compact ? undefined : "rounded-xl border border-[#e4e7ea] bg-white p-4"
+      }
+    >
+      {compact ? (
+        <p className="text-[11px] text-[#858c96]">
+          Mentör gönderdi · salt okunur
+        </p>
+      ) : (
+        <>
+          <h2 className="text-sm font-semibold text-[#22262b]">
+            Toplantı raporu
+          </h2>
+          <p className="mt-0.5 text-[11px] text-[#858c96]">
+            Mentör not defterinin altına gönderdi · salt okunur
+          </p>
+        </>
+      )}
       <h3 className="mt-3 text-sm font-semibold text-[#22262b]">
         {report.title || "Toplantı raporu"}
       </h3>
@@ -110,32 +157,65 @@ export function ReportBlock({ report }: { report: MeetingReport }) {
   );
 }
 
+function ShareBody({
+  isError,
+  isLoading,
+  empty,
+  children,
+}: {
+  isError: boolean;
+  isLoading: boolean;
+  empty: string;
+  children: ReactNode | null;
+}) {
+  if (isError) {
+    return (
+      <p className="text-sm text-[#9b2c2c]">
+        Mentörün gönderdiği içerik şu an yüklenemedi.
+      </p>
+    );
+  }
+  if (isLoading) {
+    return <p className="text-sm text-[#858c96]">Yükleniyor…</p>;
+  }
+  if (!children) {
+    return <p className="text-sm text-[#858c96]">{empty}</p>;
+  }
+  return children;
+}
+
 export function MeetingAssistantSharePanel({
   meetingId,
 }: {
   meetingId: string;
 }) {
-  const shareQuery = useAssistantShare(meetingId);
+  const shareQuery = useAssistantShare(meetingId, {
+    refetchWhileIncomplete: true,
+  });
   const share = shareQuery.data;
   const transcript = share?.transcript ?? null;
   const report = share?.report ?? null;
 
-  if (shareQuery.isError) {
-    return (
-      <p className="rounded-xl border border-[#f1d4d4] bg-[#fff7f7] px-4 py-3 text-sm text-[#9b2c2c]">
-        Mentörün gönderdiği transkript veya rapor şu an yüklenemedi.
-      </p>
-    );
-  }
-
-  if (!transcript?.length && !report) {
-    return null;
-  }
-
   return (
-    <div className="space-y-4">
-      {transcript?.length ? <TranscriptBlock lines={transcript} /> : null}
-      {report ? <ReportBlock report={report} /> : null}
+    <div className="space-y-2">
+      <ShareFold icon="/startup/transcript.svg" title="Toplantı Transkripti">
+        <ShareBody
+          isError={shareQuery.isError}
+          isLoading={shareQuery.isLoading}
+          empty="Mentör henüz transkript göndermedi."
+        >
+          {transcript?.length ? <TranscriptBlock lines={transcript} /> : null}
+        </ShareBody>
+      </ShareFold>
+      <ShareFold icon="/startup/paper.svg" title="Toplantı Raporu">
+        <ShareBody
+          isError={shareQuery.isError}
+          isLoading={shareQuery.isLoading}
+          empty="Mentör henüz rapor göndermedi."
+        >
+          {report ? <ReportBlock report={report} compact /> : null}
+        </ShareBody>
+      </ShareFold>
     </div>
   );
 }
