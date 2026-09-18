@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   parseCv,
   parseStoredCv,
+  readCv,
   uploadProfileAnalysis,
 } from "@/lib/client/profile-analysis";
 import { currentIdToken } from "@/lib/firebase/auth";
@@ -61,6 +62,29 @@ describe("profile analysis uploads", () => {
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer fresh-token" },
     });
+  });
+
+  it("readCv reads a mentor's CV as one, whether new or stored", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      status: 200,
+      data: {},
+    } as never);
+
+    await readCv(file, "mentor");
+    await readCv({ documentId: "cv-1" }, "mentor");
+
+    const [newUrl, newBody] = vi.mocked(httpClient.post).mock.calls[0];
+    const [storedUrl] = vi.mocked(httpClient.post).mock.calls[1];
+    expect(newUrl).toContain("/api/profile-analyses/preview?");
+    expect(newBody).toBeInstanceOf(FormData);
+    expect(storedUrl).toContain(
+      "/api/profile-analyses/preview/documents/cv-1?",
+    );
+    for (const url of [newUrl, storedUrl]) {
+      expect(new URLSearchParams(url.split("?")[1]).get("profileType")).toBe(
+        "mentor",
+      );
+    }
   });
 
   it("uploadProfileAnalysis posts to the backend with its params in the query", async () => {

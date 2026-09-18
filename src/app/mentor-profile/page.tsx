@@ -5,6 +5,8 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
+import { CvFileSection } from "@/components/profile/cv-file-section";
+import { useMentorCv } from "@/hooks/use-mentor-cv";
 import {
   useMentorProfile,
   useMentorProfileForm,
@@ -182,6 +184,20 @@ function ChoiceInput<T extends string>({
   );
 }
 
+function MentorCvCard({ form }: { form: ProfileForm }) {
+  const cv = useMentorCv(form.applyCv);
+  return (
+    <Card title="CV">
+      <CvFileSection
+        cv={cv}
+        accent="blue"
+        whoSees="Sadece sen ve koordinatörler görür."
+        filledMessage="CV okundu. Hakkında, ünvan, şirket, uzmanlıklar ve geçmiş rolleri kontrol edip Kaydet'e bas."
+      />
+    </Card>
+  );
+}
+
 function ProfileBody({ profile }: { profile: MentorProfile }) {
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const form = useMentorProfileForm(profile);
@@ -300,6 +316,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="flex flex-col gap-[18px]">
+            {editing ? <MentorCvCard form={form} /> : null}
             <Card
               title="Hakkında"
               onEdit={editSection("Hakkında")}

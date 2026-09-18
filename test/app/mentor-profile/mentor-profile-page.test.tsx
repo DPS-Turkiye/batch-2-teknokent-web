@@ -8,6 +8,7 @@ import {
   useMentorProfile,
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
+import { useMentorCv } from "@/hooks/use-mentor-cv";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
 import {
   MeetingFrequency,
@@ -37,6 +38,22 @@ vi.mock("@/hooks/use-mentor-profile-overview", () => ({
   useMentorProfileOverview: vi.fn(),
 }));
 
+const fillFromStored = vi.fn();
+vi.mock("@/hooks/use-mentor-cv", () => ({
+  useMentorCv: vi.fn(() => ({
+    selected: null,
+    storedName: "nihan-cv.pdf",
+    storedIsPdf: true,
+    choose: vi.fn(),
+    canFill: true,
+    fillFromStored,
+    isUploading: false,
+    isParsing: false,
+    error: null,
+    filled: false,
+  })),
+}));
+
 function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
   return {
     id: "mentor-1",
@@ -63,6 +80,7 @@ function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
 
 const formActions = {
   addExperience: vi.fn(),
+  applyCv: vi.fn(),
   addSpecialty: vi.fn(),
   cancelEditing: vi.fn(),
   handleSave: vi.fn(),
@@ -405,6 +423,27 @@ describe("MentorProfilePage", () => {
 
     expect(formActions.startEditing).toHaveBeenCalledTimes(2);
     expect(formActions.saveAndFinish).not.toHaveBeenCalled();
+  });
+
+  it("offers the CV only while editing, and reads it into the form", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    const { unmount } = render(<MentorProfilePage />);
+    expect(
+      screen.queryByRole("heading", { name: "CV" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    mockAll({ form: { isEditing: true } });
+    render(<MentorProfilePage />);
+
+    expect(screen.getByRole("heading", { name: "CV" })).toBeInTheDocument();
+    expect(screen.getByText("nihan-cv.pdf")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Profili CV'den doldur" }),
+    );
+    expect(fillFromStored).toHaveBeenCalled();
+    expect(vi.mocked(useMentorCv)).toHaveBeenCalledWith(formActions.applyCv);
   });
 
   it("edits the text sections through the form hook", async () => {

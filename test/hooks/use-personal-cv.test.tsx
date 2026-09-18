@@ -5,17 +5,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
-import { parseCv, parseStoredCv } from "@/lib/client/profile-analysis";
+import { readCv } from "@/lib/client/profile-analysis";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/documents", () => ({
   listDocuments: vi.fn(),
   uploadDocument: vi.fn(),
 }));
-vi.mock("@/lib/client/profile-analysis", () => ({
-  parseCv: vi.fn(),
-  parseStoredCv: vi.fn(),
-}));
+vi.mock("@/lib/client/profile-analysis", () => ({ readCv: vi.fn() }));
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn().mockResolvedValue("token"),
 }));
@@ -52,7 +49,7 @@ describe("usePersonalCv", () => {
 
   it("fills the draft from the CV already on file", async () => {
     vi.mocked(listDocuments).mockResolvedValue([storedCv("gulse-cv.pdf")]);
-    vi.mocked(parseStoredCv).mockResolvedValue(parsedProfile);
+    vi.mocked(readCv).mockResolvedValue(parsedProfile);
     const setField = vi.fn();
     const { result } = renderHook(() => usePersonalCv(draft, setField), {
       wrapper,
@@ -63,7 +60,7 @@ describe("usePersonalCv", () => {
     act(() => result.current.fillFromStored());
 
     await waitFor(() => expect(result.current.filled).toBe(true));
-    expect(parseStoredCv).toHaveBeenCalledWith("cv-1");
+    expect(readCv).toHaveBeenCalledWith({ documentId: "cv-1" });
     expect(setField).toHaveBeenCalledWith("jobTitle", "Product Manager");
     expect(setField).toHaveBeenCalledWith(
       "bio",
@@ -75,7 +72,7 @@ describe("usePersonalCv", () => {
   it("stores a newly chosen CV and then reads it", async () => {
     vi.mocked(listDocuments).mockResolvedValue([]);
     vi.mocked(uploadDocument).mockResolvedValue(storedCv("yeni.pdf"));
-    vi.mocked(parseCv).mockResolvedValue(parsedProfile);
+    vi.mocked(readCv).mockResolvedValue(parsedProfile);
     const setField = vi.fn();
     const file = new File(["%PDF-"], "yeni.pdf", { type: "application/pdf" });
     const { result } = renderHook(() => usePersonalCv(draft, setField), {
@@ -86,7 +83,7 @@ describe("usePersonalCv", () => {
 
     await waitFor(() => expect(result.current.filled).toBe(true));
     expect(uploadDocument).toHaveBeenCalledWith(file, "cv");
-    expect(parseCv).toHaveBeenCalledWith(file);
+    expect(readCv).toHaveBeenCalledWith(file);
     expect(setField).toHaveBeenCalledWith("jobTitle", "Product Manager");
   });
 
@@ -105,7 +102,7 @@ describe("usePersonalCv", () => {
 
   it("says why reading failed and leaves the draft alone", async () => {
     vi.mocked(listDocuments).mockResolvedValue([storedCv("gulse-cv.pdf")]);
-    vi.mocked(parseStoredCv).mockRejectedValue(new Error("CV okunamadı."));
+    vi.mocked(readCv).mockRejectedValue(new Error("CV okunamadı."));
     const setField = vi.fn();
     const { result } = renderHook(() => usePersonalCv(draft, setField), {
       wrapper,

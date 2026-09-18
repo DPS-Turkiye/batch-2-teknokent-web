@@ -1,4 +1,4 @@
-export type ProfileType = "individual_mentee" | "mentee";
+export type ProfileType = "individual_mentee" | "mentee" | "mentor";
 export type OcrMode = "auto" | "force" | "off";
 
 export type ProfileAnalysis = {

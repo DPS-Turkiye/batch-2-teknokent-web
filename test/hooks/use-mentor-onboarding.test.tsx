@@ -10,6 +10,7 @@ import {
 } from "@/interfaces/mentor-onboarding";
 
 import { uploadDocument } from "@/lib/client/documents";
+import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import {
   clearOnboardingDraft,
@@ -19,6 +20,7 @@ import {
 import { currentIdToken } from "@/lib/firebase/auth";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
+vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
 vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn(),
 }));
@@ -228,6 +230,106 @@ describe("useMentorOnboarding", () => {
     expect(result.current.draft.workingStages).toEqual(["MVP"]);
     expect(result.current.draft.sectors).toEqual(["SaaS"]);
     expect(result.current.draft.capacity).toBe("3");
+  });
+});
+
+describe("useMentorOnboarding — reading the CV", () => {
+  const file = new File(["%PDF-"], "nihan-cv.pdf", {
+    type: "application/pdf",
+  });
+
+  beforeEach(() => {
+    vi.useRealTimers();
+    vi.mocked(uploadDocument).mockReset();
+    vi.mocked(parseStoredCv).mockReset();
+    vi.mocked(updateMentorProfile).mockClear();
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "cv-1",
+      kind: "cv",
+      originalFilename: "nihan-cv.pdf",
+      sizeBytes: 5,
+    });
+  });
+
+  it("fills the form from the stored CV, read as a mentor's", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({
+      current_role: "Head of Design",
+      current_company: "Looply",
+      years_of_experience: 12,
+      professional_functions: ["UX"],
+      work_history: [
+        {
+          title: "Senior Designer",
+          organization: "Peak",
+          period: "2016 – 2021",
+          summary: null,
+        },
+      ],
+    });
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(parseStoredCv).toHaveBeenCalledWith("cv-1", "mentor");
+    expect(result.current.draft.profile).toMatchObject({
+      title: "Head of Design",
+      company: "Looply",
+      totalExperience: "12 yıl",
+      inferredAreas: ["UX"],
+    });
+    expect(result.current.areaOptions).toContain("UX");
+    expect(result.current.parseNote).toBe("");
+    expect(result.current.canContinue).toBe(true);
+  });
+
+  it("still opens the form, with a note, when the CV cannot be read", async () => {
+    vi.mocked(parseStoredCv).mockRejectedValue(new Error("okunamadı"));
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(result.current.parseNote).toContain("CV'nizi okuyamadık");
+    expect(result.current.draft.profile.title).toBe("");
+  });
+
+  it("saves the past roles the CV listed", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({
+      current_role: "Head of Design",
+      current_company: "Looply",
+      years_of_experience: 12,
+      work_history: [
+        {
+          title: "Senior Designer",
+          organization: "Peak",
+          period: "2016 – 2021",
+          summary: null,
+        },
+      ],
+    });
+    const { result } = renderHook(() => useMentorOnboarding());
+    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+
+    act(() => result.current.toggleMentoringStyle("Problem çözme"));
+    await act(async () => {
+      await result.current.complete();
+    });
+
+    expect(updateMentorProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        experiences: [
+          {
+            title: "Senior Designer",
+            organization: "Peak",
+            period: "2016 – 2021",
+            summary: "",
+          },
+        ],
+      }),
+      "id-token",
+    );
   });
 });
 
