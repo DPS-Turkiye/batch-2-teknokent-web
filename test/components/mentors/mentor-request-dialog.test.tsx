@@ -106,6 +106,31 @@ describe("MentorRequestDialog", () => {
     expect(onSent).toHaveBeenCalledWith("req-1");
   });
 
+  it("asks where they are stuck when a title-less mentor leaves nothing to fall back on", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <MentorRequestDialog
+        mentor={{
+          ...mentorProfile,
+          professionalTitle: "",
+          recommendationReasons: [],
+        }}
+        slots={[]}
+        startup={startup}
+        onClose={vi.fn()}
+        onSent={vi.fn()}
+      />,
+    );
+
+    fillPreference(1, upcomingPreferenceDays()[0]?.value ?? "", "10:00");
+    await user.click(screen.getByRole("button", { name: "Talebi gönder" }));
+
+    expect(
+      screen.getByText("Nerede takıldığını kısaca yaz."),
+    ).toBeInTheDocument();
+    expect(submitMentorshipRequest).not.toHaveBeenCalled();
+  });
+
   it("sends the request with three preferred days and times", async () => {
     vi.mocked(submitMentorshipRequest).mockResolvedValue({
       id: "req-1",
