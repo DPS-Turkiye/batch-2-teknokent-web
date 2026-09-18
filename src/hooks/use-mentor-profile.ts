@@ -25,6 +25,7 @@ import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
+import { applyMentorCv, type MentorCvResult } from "@/lib/mentor-cv";
 import {
   AVAILABILITY_NUMBER_FIELDS,
   type AvailabilityDraft,
@@ -313,6 +314,10 @@ export function useMentorProfileForm(profile: MentorProfile) {
     }));
   };
 
+  const applyCv = (cv: MentorCvResult) => {
+    setForm((previous) => applyMentorCv(previous, cv, MAX_EXPERIENCES));
+  };
+
   /** True once the backend has the profile, so callers can leave edit mode. */
   const handleSave = async () => {
     setSaveError("");
@@ -387,6 +392,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
     canAddExperience: form.experiences.length < MAX_EXPERIENCES,
     addSpecialty,
     removeSpecialty,
+    applyCv,
     handleSave,
   };
 }

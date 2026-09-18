@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
+  ADDITIONAL_EXPERTISE,
   CAPACITY_OPTIONS,
   CV_PARSE_MS,
   IntroPhase,
@@ -11,6 +12,7 @@ import {
   MentorOnboardingStep,
   PLACEHOLDER_PARSED_PROFILE,
   type MentorOnboardingDraft,
+  SUGGESTED_EXPERTISE,
   type ParsedProfile,
 } from "@/interfaces/mentor-onboarding";
 import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
@@ -18,6 +20,8 @@ import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
 import { uploadDocument } from "@/lib/client/documents";
+import { parseStoredCv } from "@/lib/client/profile-analysis";
+import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
 import { dropDetachedFile } from "@/lib/draft-storage";
 import { scrollToTop } from "@/lib/utils";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
@@ -109,6 +113,16 @@ function toUpdatePayload(
     ),
     startupStages: orFallback(draft.workingStages.join(", "), "Belirtilmedi"),
     specialties: draft.expertise,
+    ...(draft.profile.history.length
+      ? {
+          experiences: draft.profile.history.map((role) => ({
+            title: role.title,
+            organization: role.organization,
+            period: role.period ?? "",
+            summary: role.summary ?? "",
+          })),
+        }
+      : {}),
   };
 }
 
@@ -128,6 +142,7 @@ export function useMentorOnboarding() {
   const [completed, setCompleted] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
+  const [parseNote, setParseNote] = useState("");
   const [saveError, setSaveError] = useState("");
   const parseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -168,6 +183,7 @@ export function useMentorOnboarding() {
     (file: { name: string; size: number; file?: File }) => {
       setDraft((current) => ({ ...current, cv: file }));
       setUploadError("");
+      setParseNote("");
       setPhase(IntroPhase.Parsing);
       const uploaded = file.file;
       if (!uploaded) {
@@ -183,11 +199,22 @@ export function useMentorOnboarding() {
           if (!idToken) {
             throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
           }
-          await uploadDocument(uploaded, "cv", idToken);
-          parseTimer.current = setTimeout(
-            () => setPhase(IntroPhase.Review),
-            CV_PARSE_MS,
-          );
+          const stored = await uploadDocument(uploaded, "cv", idToken);
+          // A CV that cannot be read still leaves the form to fill in by hand.
+          try {
+            const cv = toMentorCvResult(
+              await parseStoredCv(stored.id, "mentor"),
+            );
+            setDraft((current) => ({
+              ...current,
+              profile: fillOnboardingProfile(current.profile, cv),
+            }));
+          } catch {
+            setParseNote(
+              "CV'nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz.",
+            );
+          }
+          setPhase(IntroPhase.Review);
         } catch (error) {
           setUploadError(describeAuthError(error));
           setPhase(IntroPhase.Upload);
@@ -342,8 +369,17 @@ export function useMentorOnboarding() {
     canContinue,
     isSaving,
     uploadError,
+    parseNote,
     saveError,
     droppedFiles,
+    // What the CV named is offered beside the fixed areas, so it can be seen and picked.
+    areaOptions: [
+      ...new Set([
+        ...SUGGESTED_EXPERTISE,
+        ...ADDITIONAL_EXPERTISE,
+        ...draft.profile.inferredAreas,
+      ]),
+    ],
     expertiseLimitReached,
     isFirstStep: step === MentorOnboardingStep.Intro,
     isLastStep: step === MentorOnboardingStep.Preferences,

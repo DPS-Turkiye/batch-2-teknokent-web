@@ -30,6 +30,8 @@ export const CV_PARSE_MS = 1600;
 export interface ParsedExperience {
   title: string;
   organization: string;
+  period?: string;
+  summary?: string;
 }
 
 export interface ParsedProfile {

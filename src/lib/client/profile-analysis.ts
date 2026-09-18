@@ -76,22 +76,50 @@ export async function confirmProfile(input: {
 }
 
 /**
- * The fields the signup step reads out of a parsed CV. The backend returns the
- * whole individual_mentee schema; these are the parts this screen uses.
+ * The fields the profile screens read out of a parsed CV. The backend returns
+ * the whole schema for the requested type; the mentor-only fields stay empty
+ * for a mentee CV.
  */
 export type ParsedCvProfile = {
+  full_name?: string | null;
   current_role?: string | null;
   desired_role?: string | null;
+  current_company?: string | null;
   professional_summary?: string | null;
   professional_functions?: string[] | null;
   technologies?: string[] | null;
   industries?: string[] | null;
+  experience_level?: string | null;
+  years_of_experience?: number | null;
+  work_history?: ParsedCvRole[] | null;
 };
 
+export type ParsedCvRole = {
+  title: string;
+  organization: string | null;
+  period: string | null;
+  summary: string | null;
+};
+
+export type CvSource = File | { documentId: string };
+
+/** A new file is sent along; a stored CV is read where it already is. */
+export function readCv(
+  source: CvSource,
+  profileType: ProfileType = "individual_mentee",
+) {
+  return source instanceof File
+    ? parseCv(source, profileType)
+    : parseStoredCv(source.documentId, profileType);
+}
+
 /** Parses a CV the person already uploaded, so it does not travel again. */
-export async function parseStoredCv(documentId: string) {
+export async function parseStoredCv(
+  documentId: string,
+  profileType: ProfileType = "individual_mentee",
+) {
   const query = new URLSearchParams({
-    profileType: "individual_mentee",
+    profileType,
     consentAccepted: "true",
   });
   return requireSuccess(
@@ -103,11 +131,14 @@ export async function parseStoredCv(documentId: string) {
   );
 }
 
-export async function parseCv(file: File) {
+export async function parseCv(
+  file: File,
+  profileType: ProfileType = "individual_mentee",
+) {
   const data = new FormData();
   data.set("file", file);
   const query = new URLSearchParams({
-    profileType: "individual_mentee",
+    profileType,
     consentAccepted: "true",
   });
   return requireSuccess(

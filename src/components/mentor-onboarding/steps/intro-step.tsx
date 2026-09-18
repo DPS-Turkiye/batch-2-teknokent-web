@@ -6,11 +6,7 @@ import { useRef } from "react";
 import { ChipGroup } from "@/components/common/chip-group";
 import { RequiredHint } from "@/components/common/required-hint";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
-import {
-  ADDITIONAL_EXPERTISE,
-  IntroPhase,
-  SUGGESTED_EXPERTISE,
-} from "@/interfaces/mentor-onboarding";
+import { IntroPhase } from "@/interfaces/mentor-onboarding";
 import { formatFileSize } from "@/lib/utils";
 
 const fieldClass =
@@ -25,6 +21,8 @@ export function IntroStep({ flow }: { flow: MentorOnboarding }) {
     enterManually,
     restartUpload,
     updateProfile,
+    parseNote,
+    areaOptions,
   } = flow;
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -136,6 +134,11 @@ export function IntroStep({ flow }: { flow: MentorOnboarding }) {
         <h1 className="text-[22px] font-semibold tracking-tight">
           Bilgilerinizi kontrol edin
         </h1>
+        {parseNote ? (
+          <p role="status" className="mt-1.5 text-sm text-[#a65a15]">
+            {parseNote}
+          </p>
+        ) : null}
       </header>
 
       <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
@@ -222,7 +225,7 @@ export function IntroStep({ flow }: { flow: MentorOnboarding }) {
         </p>
         <ChipGroup
           label="Belirlenen alanlar"
-          options={[...SUGGESTED_EXPERTISE, ...ADDITIONAL_EXPERTISE]}
+          options={areaOptions}
           selected={draft.profile.inferredAreas}
           onToggle={(value) =>
             updateProfile(
