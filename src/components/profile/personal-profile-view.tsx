@@ -5,7 +5,10 @@ import Link from "next/link";
 import { type ReactNode, useRef } from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
+import { EditableChips } from "@/components/common/editable-chips";
+import { FileDrop } from "@/components/common/file-drop";
 import { AppShell } from "@/components/hoc/app-shell";
+import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
 import { PROFILE_PHOTO_TYPES, ProfileChipTone } from "@/lib/personal-profile";
 
@@ -167,6 +170,67 @@ function Header({ page }: { page: PageData }) {
         )}
       </div>
     </header>
+  );
+}
+
+function CvCard({ page }: { page: PageData }) {
+  const cv = usePersonalCv(page.draft, page.setField);
+  return (
+    <Card title="CV">
+      <p className="text-[12.5px] leading-[19px] text-[#676e78]">
+        Sadece sen ve startup ekibin görür. Yüklediğin CV hemen kaydedilir;
+        profilin Kaydet&apos;e basınca değişir.
+      </p>
+      <FileDrop
+        file={cv.selected}
+        label="CV dosyası seç"
+        onChange={cv.choose}
+        alreadyStored={cv.storedName ? { name: cv.storedName } : null}
+        accept=".pdf"
+        helpText="PDF · En fazla 10 MB"
+      />
+      {cv.storedName && !cv.selected ? (
+        cv.storedIsPdf ? (
+          <button
+            type="button"
+            onClick={cv.fillFromStored}
+            disabled={!cv.canFill}
+            className={`self-start rounded-full border border-[#e86f22] px-4 py-2 text-[#9e4400] disabled:opacity-50 ${buttonTextClass}`}
+          >
+            Profili CV&apos;den doldur
+          </button>
+        ) : (
+          <p className={emptyClass}>
+            Profili doldurmak için CV&apos;ni PDF olarak yükle.
+          </p>
+        )
+      ) : null}
+      {cv.isUploading ? (
+        <p role="status" className={emptyClass}>
+          CV yükleniyor…
+        </p>
+      ) : cv.isParsing ? (
+        <p role="status" className={emptyClass}>
+          CV okunuyor, alanların dolduruluyor…
+        </p>
+      ) : null}
+      {cv.error ? (
+        <p role="alert" className="text-[12px] text-[#b3261e]">
+          {cv.error}
+        </p>
+      ) : null}
+      {cv.filled ? (
+        <p role="status" className="text-[12px] text-[#0f7a4d]">
+          CV okundu. Rol, Hakkımda ve uzmanlık alanlarını kontrol edip
+          Kaydet&apos;e bas.
+        </p>
+      ) : null}
+      <EditableChips
+        label="Uzmanlık alanları"
+        values={cv.expertise}
+        onChange={cv.setExpertise}
+      />
+    </Card>
   );
 }
 
@@ -404,6 +468,7 @@ export function PersonalProfileView() {
           ) : null}
           <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
             <div className="flex flex-col gap-[18px]">
+              {page.isEditing ? <CvCard page={page} /> : null}
               <AboutCard page={page} />
               <StartupCard page={page} />
               <MentorshipsCard page={page} />

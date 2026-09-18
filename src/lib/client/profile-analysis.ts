@@ -88,6 +88,21 @@ export type ParsedCvProfile = {
   industries?: string[] | null;
 };
 
+/** Parses a CV the person already uploaded, so it does not travel again. */
+export async function parseStoredCv(documentId: string) {
+  const query = new URLSearchParams({
+    profileType: "individual_mentee",
+    consentAccepted: "true",
+  });
+  return requireSuccess(
+    await httpClient.post<ParsedCvProfile>(
+      `${getPublicBackendUrl()}/api/profile-analyses/preview/documents/${encodeURIComponent(documentId)}?${query}`,
+      undefined,
+      await uploadConfig(),
+    ),
+  );
+}
+
 export async function parseCv(file: File) {
   const data = new FormData();
   data.set("file", file);

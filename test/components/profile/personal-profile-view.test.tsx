@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PersonalProfileView } from "@/components/profile/personal-profile-view";
+import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
 import { ProfileChipTone } from "@/lib/personal-profile";
 
@@ -15,6 +16,30 @@ vi.mock("@/components/hoc/app-shell", () => ({
 vi.mock("@/hooks/use-personal-profile-page", () => ({
   usePersonalProfilePage: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-personal-cv", () => ({ usePersonalCv: vi.fn() }));
+
+const cvActions = {
+  choose: vi.fn(),
+  fillFromStored: vi.fn(),
+  setExpertise: vi.fn(),
+};
+
+function mockCv(overrides: Record<string, unknown> = {}) {
+  vi.mocked(usePersonalCv).mockReturnValue({
+    ...cvActions,
+    selected: null,
+    storedName: "gulse-cv.pdf",
+    storedIsPdf: true,
+    canFill: true,
+    isUploading: false,
+    isParsing: false,
+    error: null,
+    filled: false,
+    expertise: ["UX Research"],
+    ...overrides,
+  });
+}
 
 const actions = {
   cancelEditing: vi.fn(),
@@ -78,7 +103,10 @@ function mockPage(overrides: Record<string, unknown> = {}) {
 }
 
 describe("PersonalProfileView", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCv();
+  });
 
   it("reports loading and load errors", () => {
     mockPage({ isLoading: true });
@@ -234,5 +262,67 @@ describe("PersonalProfileView", () => {
     render(<PersonalProfileView />);
 
     expect(screen.getByRole("button", { name: "Kaydet" })).toBeDisabled();
+  });
+
+  it("shows the CV only while editing", () => {
+    mockPage();
+    render(<PersonalProfileView />);
+
+    expect(
+      screen.queryByRole("heading", { name: "CV" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Profili CV'den doldur" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("fills the profile from the stored CV and edits the expertise", async () => {
+    const user = userEvent.setup();
+    mockPage({ isEditing: true });
+    mockCv();
+    render(<PersonalProfileView />);
+
+    expect(screen.getByText("gulse-cv.pdf")).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", { name: "Profili CV'den doldur" }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "UX Research alanını kaldır" }),
+    );
+
+    expect(cvActions.fillFromStored).toHaveBeenCalled();
+    expect(cvActions.setExpertise).toHaveBeenCalledWith([]);
+  });
+
+  it("says what the CV is doing and when it is done", () => {
+    mockPage({ isEditing: true });
+    mockCv({ isParsing: true, canFill: false });
+    const { rerender } = render(<PersonalProfileView />);
+
+    expect(screen.getByRole("status")).toHaveTextContent("CV okunuyor");
+    expect(
+      screen.getByRole("button", { name: "Profili CV'den doldur" }),
+    ).toBeDisabled();
+
+    mockCv({ filled: true });
+    rerender(<PersonalProfileView />);
+    expect(screen.getByRole("status")).toHaveTextContent("CV okundu");
+
+    mockCv({ error: "Only a PDF CV can be read into the profile." });
+    rerender(<PersonalProfileView />);
+    expect(screen.getByRole("alert")).toHaveTextContent("Only a PDF CV");
+  });
+
+  it("asks for a PDF when the stored CV cannot be read", () => {
+    mockPage({ isEditing: true });
+    mockCv({ storedName: "gulse-cv.docx", storedIsPdf: false, canFill: false });
+    render(<PersonalProfileView />);
+
+    expect(
+      screen.getByText("Profili doldurmak için CV'ni PDF olarak yükle."),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Profili CV'den doldur" }),
+    ).not.toBeInTheDocument();
   });
 });

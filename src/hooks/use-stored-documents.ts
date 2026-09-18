@@ -10,9 +10,11 @@ import { currentIdToken } from "@/lib/firebase/auth";
  * document kind. A brand-new signup has none yet; a resumed one (after a
  * reload dropped the in-memory File objects) may already have some.
  */
+export const STORED_DOCUMENTS_QUERY_KEY = ["signup-stored-documents"] as const;
+
 export function useStoredDocuments() {
   const query = useQuery({
-    queryKey: ["signup-stored-documents"],
+    queryKey: STORED_DOCUMENTS_QUERY_KEY,
     queryFn: async () => {
       const idToken = await currentIdToken();
       return idToken ? listDocuments(idToken) : [];

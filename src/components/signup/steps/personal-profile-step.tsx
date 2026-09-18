@@ -8,6 +8,7 @@ import { FileDrop } from "@/components/common/file-drop";
 import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
+import { applyCvParse } from "@/lib/cv-suggestions";
 import {
   BIO_MAX_LENGTH,
   CONTACT_PREFERENCE_OPTIONS,
@@ -29,20 +30,13 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
       onSuccess: (parsed) => {
         // Suggestions, not an overwrite: anything the user already typed wins,
         // and every parsed chip can be removed afterwards.
-        if (parsed.role && !personal.role.trim()) {
-          updatePersonal("role", parsed.role);
-        }
-        if (parsed.summary && !personal.bio.trim()) {
-          updatePersonal("bio", parsed.summary.slice(0, BIO_MAX_LENGTH));
-        }
-        if (parsed.expertise.length) {
-          setExpertise([
-            ...personal.expertise,
-            ...parsed.expertise.filter(
-              (value) => !personal.expertise.includes(value),
-            ),
-          ]);
-        }
+        const next = applyCvParse(personal, parsed, {
+          keepFilled: true,
+          bioMaxLength: BIO_MAX_LENGTH,
+        });
+        if (next.role !== personal.role) updatePersonal("role", next.role);
+        if (next.bio !== personal.bio) updatePersonal("bio", next.bio);
+        if (parsed.expertise.length) setExpertise(next.expertise);
       },
     });
   }
