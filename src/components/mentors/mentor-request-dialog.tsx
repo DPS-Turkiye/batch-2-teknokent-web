@@ -102,19 +102,23 @@ export function MentorRequestDialog({
       setError("En az bir tercih için gün ve tam/buçuk saat seç.");
       return;
     }
+    const submission = profileMentorshipSubmission({
+      mentor,
+      startup,
+      requestedForName: session.fullName,
+      problem,
+      outcome,
+      preferredSlots: preferredSlots.filter(isValidPreferredSlot),
+    });
+    // An empty field falls back to the mentor's title, which not every mentor has.
+    if (!submission.summary.trim()) {
+      setError("Nerede takıldığını kısaca yaz.");
+      return;
+    }
     setIsSubmitting(true);
     setError("");
     try {
-      const saved = await submitMentorshipRequest(
-        profileMentorshipSubmission({
-          mentor,
-          startup,
-          requestedForName: session.fullName,
-          problem,
-          outcome,
-          preferredSlots: preferredSlots.filter(isValidPreferredSlot),
-        }),
-      );
+      const saved = await submitMentorshipRequest(submission);
       onSent(saved.id);
     } catch (caught) {
       setError(
