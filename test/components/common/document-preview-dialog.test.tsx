@@ -41,10 +41,33 @@ describe("DocumentPreviewDialog", () => {
     expect(fetch).toHaveBeenCalledWith("/api/startup/documents/doc-1/content");
 
     await waitFor(() => {
-      expect(screen.getByTitle("min.pdf")).toHaveAttribute(
-        "src",
-        `${blobUrl}#toolbar=0&navpanes=0`,
-      );
+      expect(screen.getByTitle("min.pdf")).toHaveAttribute("src", blobUrl);
+    });
+    expect(screen.getByRole("link", { name: "İndir" })).toHaveAttribute(
+      "download",
+      "min.pdf",
+    );
+  });
+
+  it("keeps the original Turkish filename on the download link", async () => {
+    render(
+      <DocumentPreviewDialog
+        file={{
+          id: "doc-1",
+          url: "https://bucket.s3/min.pdf?sig",
+          filename: "Toplantı.pdf",
+          contentType: "application/pdf",
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: "İndir" })).toHaveAttribute(
+      "download",
+      "Toplantı.pdf",
+    );
+    await waitFor(() => {
+      expect(screen.getByTitle("Toplantı.pdf")).toHaveAttribute("src", blobUrl);
     });
   });
 

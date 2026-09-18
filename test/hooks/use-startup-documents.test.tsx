@@ -99,7 +99,11 @@ describe("startup document hooks", () => {
     );
     expect(await screen.findByTitle("canvas.pdf")).toHaveAttribute(
       "src",
-      expect.stringContaining("#toolbar=0"),
+      "blob:http://localhost/preview",
+    );
+    expect(screen.getByRole("link", { name: "İndir" })).toHaveAttribute(
+      "download",
+      "canvas.pdf",
     );
   });
 

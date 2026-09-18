@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 
 import { fetchDocumentDownloadUrl } from "@/lib/api/startup-documents";
+import { contentDispositionHeader } from "@/lib/content-disposition";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
@@ -10,10 +11,6 @@ type SignedFile = {
   filename?: string;
   contentType?: string;
 };
-
-function inlineFilename(filename: string) {
-  return filename.replace(/\\/g, "_").replace(/"/g, "_").replace(/\n/g, "_");
-}
 
 export async function GET(
   _request: NextRequest,
@@ -43,7 +40,6 @@ export async function GET(
       );
     }
 
-    const filename = inlineFilename(file.filename?.trim() || "document");
     const contentType =
       file.contentType?.trim() ||
       upstream.headers.get("content-type") ||
@@ -53,7 +49,10 @@ export async function GET(
       status: 200,
       headers: {
         "Content-Type": contentType,
-        "Content-Disposition": `inline; filename="${filename}"`,
+        "Content-Disposition": contentDispositionHeader(
+          "inline",
+          file.filename?.trim() || "document",
+        ),
         "Cache-Control": "private, no-store",
       },
     });

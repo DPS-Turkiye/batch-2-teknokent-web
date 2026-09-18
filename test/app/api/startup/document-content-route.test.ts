@@ -25,7 +25,10 @@ describe("/api/startup/documents/[id]/content", () => {
       vi.fn().mockResolvedValue({
         ok: true,
         body: new ReadableStream(),
-        headers: new Headers({ "content-type": "application/pdf" }),
+        headers: new Headers({
+          "content-type": "application/pdf",
+          "content-disposition": 'inline; filename="min.pdf"',
+        }),
       }),
     );
   });
@@ -55,7 +58,28 @@ describe("/api/startup/documents/[id]/content", () => {
     expect(response.status).toBe(200);
     expect(response.headers.get("Content-Type")).toBe("application/pdf");
     expect(response.headers.get("Content-Disposition")).toBe(
-      'inline; filename="min.pdf"',
+      "inline; filename=\"min.pdf\"; filename*=UTF-8''min.pdf",
+    );
+  });
+
+  it("encodes Turkish filenames in Content-Disposition", async () => {
+    vi.mocked(fetchDocumentDownloadUrl).mockResolvedValue({
+      status: 200,
+      data: {
+        url: "https://bucket.s3/min.pdf?sig",
+        filename: "Toplantı.pdf",
+        contentType: "application/pdf",
+      },
+      headers: {},
+    } as never);
+
+    const response = await GET(
+      new NextRequest("http://localhost/api/startup/documents/doc-1/content"),
+      { params: Promise.resolve({ id: "doc-1" }) },
+    );
+
+    expect(response.headers.get("Content-Disposition")).toBe(
+      "inline; filename=\"Toplant_.pdf\"; filename*=UTF-8''Toplant%C4%B1.pdf",
     );
   });
 

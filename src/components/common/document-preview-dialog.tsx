@@ -29,9 +29,6 @@ function isOffice(contentType: string, filename: string) {
 }
 
 function previewSrc(file: DocumentDownload, objectUrl: string) {
-  if (isPdf(file.contentType, file.filename)) {
-    return `${objectUrl}#toolbar=0&navpanes=0`;
-  }
   if (isOffice(file.contentType, file.filename)) {
     return `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`;
   }
@@ -92,10 +89,12 @@ export function DocumentPreviewDialog({
   }, [file]);
 
   const office = isOffice(file.contentType, file.filename);
+  const downloadHref =
+    objectUrl ?? (file.id ? documentContentPath(file.id) : file.url);
 
   return (
     <div
-      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 px-4 py-6"
+      className="fixed inset-0 z-[70] flex items-center justify-center bg-black/45 sm:px-4 sm:py-6"
       role="presentation"
       onClick={close}
     >
@@ -103,29 +102,37 @@ export function DocumentPreviewDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby="document-preview-title"
-        className="flex h-[min(90vh,880px)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+        className="flex h-[100dvh] w-full max-w-none flex-col overflow-hidden bg-white shadow-2xl sm:h-[min(90vh,880px)] sm:max-w-4xl sm:rounded-2xl"
         onClick={(event) => event.stopPropagation()}
-        onContextMenu={(event) => event.preventDefault()}
       >
-        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e4e7ea] px-5 py-3">
+        <header className="flex shrink-0 items-center justify-between gap-3 border-b border-[#e4e7ea] px-4 py-3 sm:px-5">
           <h2
             id="document-preview-title"
             className="min-w-0 truncate text-sm font-semibold text-[#22262b]"
           >
             {file.filename}
           </h2>
-          <button
-            type="button"
-            onClick={close}
-            className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#515861] hover:bg-[#f7f8f9]"
-          >
-            Kapat
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            <a
+              href={downloadHref}
+              download={file.filename}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#515861] hover:bg-[#f7f8f9]"
+            >
+              İndir
+            </a>
+            <button
+              type="button"
+              onClick={close}
+              className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#515861] hover:bg-[#f7f8f9]"
+            >
+              Kapat
+            </button>
+          </div>
         </header>
         <div className="min-h-0 flex-1 bg-[#f7f8f9]">
           {error ? (
             <p role="alert" className="p-6 text-sm text-[#676e78]">
-              Dosya önizlenemedi.
+              Dosya önizlenemedi. İndirerek açmayı deneyin.
             </p>
           ) : office ? (
             <iframe
@@ -144,11 +151,21 @@ export function DocumentPreviewDialog({
               className="mx-auto h-full w-full object-contain select-none"
             />
           ) : (
-            <iframe
-              title={file.filename}
-              src={previewSrc(file, objectUrl)}
-              className="h-full w-full border-0 bg-white"
-            />
+            <object
+              data={previewSrc(file, objectUrl)}
+              type={
+                isPdf(file.contentType, file.filename)
+                  ? "application/pdf"
+                  : file.contentType
+              }
+              className="h-full w-full bg-white"
+            >
+              <iframe
+                title={file.filename}
+                src={previewSrc(file, objectUrl)}
+                className="h-full w-full border-0 bg-white"
+              />
+            </object>
           )}
         </div>
       </section>
