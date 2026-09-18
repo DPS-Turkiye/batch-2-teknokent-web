@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { parseCv, uploadProfileAnalysis } from "@/lib/client/profile-analysis";
+import {
+  parseCv,
+  parseStoredCv,
+  uploadProfileAnalysis,
+} from "@/lib/client/profile-analysis";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 
@@ -35,6 +39,27 @@ describe("profile analysis uploads", () => {
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer fresh-token" },
       timeout: 120000,
+    });
+  });
+
+  it("parseStoredCv asks the backend to read the stored CV, sending no file", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      status: 200,
+      data: { current_role: "Ürün Yöneticisi" },
+    } as never);
+
+    await parseStoredCv("cv-1");
+
+    const [url, body, config] = vi.mocked(httpClient.post).mock.calls[0];
+    expect(url).toContain(
+      "http://localhost:8080/api/profile-analyses/preview/documents/cv-1?",
+    );
+    expect(new URLSearchParams(url.split("?")[1]).get("consentAccepted")).toBe(
+      "true",
+    );
+    expect(body).toBeUndefined();
+    expect(config).toMatchObject({
+      headers: { Authorization: "Bearer fresh-token" },
     });
   });
 

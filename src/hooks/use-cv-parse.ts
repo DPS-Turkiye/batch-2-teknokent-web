@@ -2,7 +2,11 @@
 
 import { useMutation } from "@tanstack/react-query";
 
-import { parseCv, type ParsedCvProfile } from "@/lib/client/profile-analysis";
+import {
+  parseCv,
+  parseStoredCv,
+  type ParsedCvProfile,
+} from "@/lib/client/profile-analysis";
 
 export type CvParseResult = {
   role: string;
@@ -47,6 +51,11 @@ export function toCvParseResult(profile: ParsedCvProfile): CvParseResult {
  */
 export function useCvParse() {
   return useMutation({
-    mutationFn: async (file: File) => toCvParseResult(await parseCv(file)),
+    mutationFn: async (source: File | { documentId: string }) =>
+      toCvParseResult(
+        await (source instanceof File
+          ? parseCv(source)
+          : parseStoredCv(source.documentId)),
+      ),
   });
 }
