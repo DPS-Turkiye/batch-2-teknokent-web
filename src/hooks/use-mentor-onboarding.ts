@@ -1,156 +1,133 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
+import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
-  ADDITIONAL_EXPERTISE,
-  CAPACITY_OPTIONS,
-  CV_PARSE_MS,
   IntroPhase,
-  MAX_EXPERTISE_AREAS,
+  MAX_EXPERIENCES,
+  MAX_MENTOR_TOPICS,
+  MAX_OFFERINGS,
   MENTOR_STEP_ORDER,
+  MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
   PLACEHOLDER_PARSED_PROFILE,
+  emptyWeek,
   type MentorOnboardingDraft,
-  SUGGESTED_EXPERTISE,
+  type ParsedExperience,
   type ParsedProfile,
+  type WeeklySlot,
 } from "@/interfaces/mentor-onboarding";
-import type { UpdateMentorProfilePayload } from "@/interfaces/mentor";
-import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
-import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import type { UploadedFile } from "@/interfaces/signup";
 import { uploadDocument } from "@/lib/client/documents";
+import {
+  updateAvailabilitySettings,
+  updateMentorProfile,
+} from "@/lib/client/mentor-profile";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
-import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
+import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { dropDetachedFile } from "@/lib/draft-storage";
-import { scrollToTop } from "@/lib/utils";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
-
-function emptyDraft(): MentorOnboardingDraft {
-  return {
-    cv: null,
-    profile: { ...PLACEHOLDER_PARSED_PROFILE },
-    expertise: [],
-    supportTopics: [],
-    programStages: [],
-    mentoringStyles: [],
-    workingStages: [],
-    sectors: [],
-    capacity: CAPACITY_OPTIONS[0],
-  };
-}
+import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
+import {
+  invalidDays,
+  openDays,
+  toAvailabilityPayload,
+  toMentorProfilePayload,
+} from "@/lib/mentor-onboarding";
+import { scrollToTop } from "@/lib/utils";
 
 const DRAFT_KIND = "mentor-onboarding" as const;
 
-function restoreFromPayload(saved: unknown): {
-  draft: MentorOnboardingDraft;
-  droppedFiles: number;
-  phase: IntroPhase;
-} {
-  if (!saved || typeof saved !== "object") {
-    return { draft: emptyDraft(), droppedFiles: 0, phase: IntroPhase.Upload };
-  }
-  const { introPhase, ...rest } = saved as MentorOnboardingDraft & {
-    introPhase?: string;
-  };
-  const cv = dropDetachedFile(rest.cv ?? null);
+function splitName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { firstName: parts[0] ?? "", lastName: "" };
   return {
-    draft: { ...emptyDraft(), ...rest, cv: cv.value },
-    droppedFiles: cv.dropped,
-    phase: restorePhase(introPhase, cv.value),
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts.at(-1) ?? "",
   };
 }
 
-function restorePhase(
-  introPhase: string | undefined,
-  cv: MentorOnboardingDraft["cv"],
-): IntroPhase {
-  if (introPhase === IntroPhase.Review) return IntroPhase.Review;
-  if (introPhase === IntroPhase.Upload) return IntroPhase.Upload;
-  // Don't resume a fake "parsing" timer after a reload.
-  if (introPhase === IntroPhase.Parsing) {
-    return cv ? IntroPhase.Review : IntroPhase.Upload;
-  }
-  return IntroPhase.Upload;
-}
-
-function filled(value: string) {
-  return value.trim().length > 0;
-}
-
-function orFallback(value: string, fallback: string) {
-  return filled(value) ? value.trim() : fallback;
-}
-
-function hasIntroProfile(profile: ParsedProfile) {
-  return (
-    filled(profile.title) &&
-    filled(profile.company) &&
-    filled(profile.totalExperience)
-  );
-}
-
-function toUpdatePayload(
-  draft: MentorOnboardingDraft,
-): UpdateMentorProfilePayload {
-  const expertise = draft.expertise.join(", ");
+function emptyDraft(fullName = ""): MentorOnboardingDraft {
   return {
-    professionalTitle: orFallback(draft.profile.title, "Mentor"),
-    company: orFallback(draft.profile.company, "Bağımsız"),
-    availabilityLabel: "",
-    responseTimeLabel: "",
-    meetingMode: "",
-    communicationPreference: "",
-    mentoringStyle: draft.mentoringStyles.join(", "),
-    fitLabel: "",
-    experienceLevel: orFallback(
-      draft.profile.totalExperience,
-      expertise || "Mentor",
-    ),
-    sectorExperience: orFallback(
-      draft.sectors.join(", "),
-      expertise || "Genel",
-    ),
-    startupStages: orFallback(draft.workingStages.join(", "), "Belirtilmedi"),
-    specialties: draft.expertise,
-    ...(draft.profile.history.length
-      ? {
-          experiences: draft.profile.history.map((role) => ({
-            title: role.title,
-            organization: role.organization,
-            period: role.period ?? "",
-            summary: role.summary ?? "",
-          })),
-        }
-      : {}),
+    ...splitName(fullName),
+    linkedin: "",
+    about: "",
+    photo: null,
+    cv: null,
+    profile: { ...PLACEHOLDER_PARSED_PROFILE },
+    topics: [],
+    stages: [],
+    offerings: [],
+    week: emptyWeek(),
+    capacity: 3,
+    durationMinutes: 45,
+    bufferMinutes: 15,
+    frequency: MeetingFrequency.Biweekly,
+    format: "Online",
+    responseTime: "1–2 gün",
+    consent: false,
   };
 }
 
-function toggle(list: string[], value: string) {
+function toggle<T>(list: T[], value: T) {
   return list.includes(value)
     ? list.filter((item) => item !== value)
     : [...list, value];
 }
 
-export function useMentorOnboarding() {
+async function requireToken() {
+  const idToken = await currentIdToken();
+  if (!idToken)
+    throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+  return idToken;
+}
+
+export function useMentorOnboarding(
+  account: { fullName: string } = { fullName: "" },
+) {
   const [step, setStep] = useState<MentorOnboardingStep>(
-    MentorOnboardingStep.Intro,
+    MentorOnboardingStep.Profile,
   );
   const [phase, setPhase] = useState<IntroPhase>(IntroPhase.Upload);
-  const [draft, setDraft] = useState<MentorOnboardingDraft>(emptyDraft);
+  const [draft, setDraft] = useState<MentorOnboardingDraft>(() =>
+    emptyDraft(account.fullName),
+  );
+  const [cvUploaded, setCvUploaded] = useState(false);
   const [droppedFiles, setDroppedFiles] = useState(0);
-  const [completed, setCompleted] = useState(false);
+  const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [parseNote, setParseNote] = useState("");
   const [saveError, setSaveError] = useState("");
-  const parseTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [draftSavedAt, setDraftSavedAt] = useState<number | null>(null);
+  const [editingExperience, setEditingExperience] = useState<number | null>(
+    null,
+  );
 
   const onRestore = useCallback((saved: OnboardingDraftRecord) => {
-    const restored = restoreFromPayload(saved.payload);
-    setDraft(restored.draft);
-    setDroppedFiles(restored.droppedFiles);
-    setPhase(restored.phase);
+    const payload = saved.payload as Partial<MentorOnboardingDraft> & {
+      introPhase?: IntroPhase;
+    };
+    if (!payload || typeof payload !== "object") return;
+    const photo = dropDetachedFile(payload.photo ?? null);
+    const cv = dropDetachedFile(payload.cv ?? null);
+    setDraft((current) => ({
+      ...current,
+      ...payload,
+      week: { ...current.week, ...payload.week },
+      photo: photo.value,
+      cv: cv.value,
+      consent: false,
+    }));
+    setDroppedFiles(photo.dropped + cv.dropped);
+    setPhase(
+      payload.introPhase === IntroPhase.Review
+        ? IntroPhase.Review
+        : IntroPhase.Upload,
+    );
     const nextStep = Number(saved.step) as MentorOnboardingStep;
     if (MENTOR_STEP_ORDER.includes(nextStep)) setStep(nextStep);
   }, []);
@@ -159,81 +136,24 @@ export function useMentorOnboarding() {
     () => ({ ...draft, introPhase: phase }),
     [draft, phase],
   );
-  const { clearRemote } = useOnboardingDraftSync({
+  const { saveNow, clearRemote } = useOnboardingDraftSync({
     kind: DRAFT_KIND,
     step,
     payload: remotePayload,
     onRestore,
   });
 
-  useEffect(
-    () => () => {
-      if (parseTimer.current) clearTimeout(parseTimer.current);
-    },
-    [],
-  );
-
-  // A step is a new page to the applicant, so it should start at its heading
-  // rather than wherever the previous one was scrolled to.
   useEffect(() => {
     scrollToTop();
-  }, [step]);
+  }, [step, phase]);
 
-  const uploadCv = useCallback(
-    (file: { name: string; size: number; file?: File }) => {
-      setDraft((current) => ({ ...current, cv: file }));
-      setUploadError("");
-      setParseNote("");
-      setPhase(IntroPhase.Parsing);
-      const uploaded = file.file;
-      if (!uploaded) {
-        parseTimer.current = setTimeout(
-          () => setPhase(IntroPhase.Review),
-          CV_PARSE_MS,
-        );
-        return;
-      }
-      void (async () => {
-        try {
-          const idToken = await currentIdToken();
-          if (!idToken) {
-            throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
-          }
-          const stored = await uploadDocument(uploaded, "cv", idToken);
-          // A CV that cannot be read still leaves the form to fill in by hand.
-          try {
-            const cv = toMentorCvResult(
-              await parseStoredCv(stored.id, "mentor"),
-            );
-            setDraft((current) => ({
-              ...current,
-              profile: fillOnboardingProfile(current.profile, cv),
-            }));
-          } catch {
-            setParseNote(
-              "CV'nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz.",
-            );
-          }
-          setPhase(IntroPhase.Review);
-        } catch (error) {
-          setUploadError(describeAuthError(error));
-          setPhase(IntroPhase.Upload);
-        }
-      })();
-    },
+  const update = useCallback(
+    <K extends keyof MentorOnboardingDraft>(
+      key: K,
+      value: MentorOnboardingDraft[K],
+    ) => setDraft((current) => ({ ...current, [key]: value })),
     [],
   );
-
-  const enterManually = useCallback(() => {
-    if (parseTimer.current) clearTimeout(parseTimer.current);
-    setPhase(IntroPhase.Review);
-  }, []);
-
-  const restartUpload = useCallback(() => {
-    if (parseTimer.current) clearTimeout(parseTimer.current);
-    setDraft((current) => ({ ...current, cv: null }));
-    setPhase(IntroPhase.Upload);
-  }, []);
 
   const updateProfile = useCallback(
     <K extends keyof ParsedProfile>(key: K, value: ParsedProfile[K]) =>
@@ -244,63 +164,142 @@ export function useMentorOnboarding() {
     [],
   );
 
-  const toggleExpertise = useCallback((value: string) => {
+  const uploadCv = useCallback(async (file: UploadedFile) => {
+    setDraft((current) => ({ ...current, cv: file }));
+    setUploadError("");
+    setParseNote("");
+    if (!file.file) {
+      setPhase(IntroPhase.Review);
+      return;
+    }
+    setPhase(IntroPhase.Parsing);
+    try {
+      const idToken = await requireToken();
+      const stored = await uploadDocument(file.file, "cv", idToken);
+      setCvUploaded(true);
+      try {
+        const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
+        setDraft((current) => {
+          const names =
+            current.firstName.trim() || !cv.fullName
+              ? {}
+              : splitName(cv.fullName);
+          return {
+            ...current,
+            ...names,
+            about: current.about.trim() ? current.about : cv.about,
+            profile: fillOnboardingProfile(current.profile, cv),
+          };
+        });
+      } catch {
+        setParseNote(
+          "CV'nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz.",
+        );
+      }
+      setPhase(IntroPhase.Review);
+    } catch (error) {
+      setUploadError(describeAuthError(error));
+      setPhase(IntroPhase.Upload);
+    }
+  }, []);
+
+  const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
+
+  const setCv = useCallback((file: UploadedFile | null) => {
+    setDraft((current) => ({ ...current, cv: file }));
+    setCvUploaded(false);
+  }, []);
+
+  const addExperience = useCallback(() => {
+    setEditingExperience(draft.profile.history.length);
+    setDraft((current) =>
+      current.profile.history.length >= MAX_EXPERIENCES
+        ? current
+        : {
+            ...current,
+            profile: {
+              ...current.profile,
+              history: [
+                ...current.profile.history,
+                { title: "", organization: "", period: "", summary: "" },
+              ],
+            },
+          },
+    );
+  }, [draft.profile.history.length]);
+
+  const updateExperience = useCallback(
+    (index: number, value: ParsedExperience) =>
+      setDraft((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          history: current.profile.history.map((role, i) =>
+            i === index ? value : role,
+          ),
+        },
+      })),
+    [],
+  );
+
+  const removeExperience = useCallback((index: number) => {
+    setEditingExperience(null);
+    setDraft((current) => ({
+      ...current,
+      profile: {
+        ...current.profile,
+        history: current.profile.history.filter((_, i) => i !== index),
+      },
+    }));
+  }, []);
+
+  const toggleTopic = useCallback((topic: string) => {
     setDraft((current) => {
-      const alreadyOn = current.expertise.includes(value);
-      if (!alreadyOn && current.expertise.length >= MAX_EXPERTISE_AREAS) {
+      if (
+        !current.topics.includes(topic) &&
+        current.topics.length >= MAX_MENTOR_TOPICS
+      ) {
         return current;
       }
-      return { ...current, expertise: toggle(current.expertise, value) };
+      return { ...current, topics: toggle(current.topics, topic) };
     });
   }, []);
 
-  const toggleSupportTopic = useCallback(
-    (value: string) =>
+  const toggleStage = useCallback(
+    (stage: string) =>
       setDraft((current) => ({
         ...current,
-        supportTopics: toggle(current.supportTopics, value),
+        stages: toggle(current.stages, stage),
       })),
     [],
   );
 
-  const toggleProgramStage = useCallback(
-    (value: string) =>
+  const addOffering = useCallback((text: string) => {
+    const value = text.trim();
+    if (!value) return;
+    setDraft((current) =>
+      current.offerings.length >= MAX_OFFERINGS ||
+      current.offerings.includes(value)
+        ? current
+        : { ...current, offerings: [...current.offerings, value] },
+    );
+  }, []);
+
+  const removeOffering = useCallback(
+    (index: number) =>
       setDraft((current) => ({
         ...current,
-        programStages: toggle(current.programStages, value),
+        offerings: current.offerings.filter((_, i) => i !== index),
       })),
     [],
   );
 
-  const toggleMentoringStyle = useCallback(
-    (value: string) =>
+  const updateDay = useCallback(
+    (day: Weekday, value: Partial<WeeklySlot>) =>
       setDraft((current) => ({
         ...current,
-        mentoringStyles: toggle(current.mentoringStyles, value),
+        week: { ...current.week, [day]: { ...current.week[day], ...value } },
       })),
-    [],
-  );
-
-  const toggleWorkingStage = useCallback(
-    (value: string) =>
-      setDraft((current) => ({
-        ...current,
-        workingStages: toggle(current.workingStages, value),
-      })),
-    [],
-  );
-
-  const toggleSector = useCallback(
-    (value: string) =>
-      setDraft((current) => ({
-        ...current,
-        sectors: toggle(current.sectors, value),
-      })),
-    [],
-  );
-
-  const setCapacity = useCallback(
-    (value: string) => setDraft((current) => ({ ...current, capacity: value })),
     [],
   );
 
@@ -313,89 +312,132 @@ export function useMentorOnboarding() {
     [],
   );
 
-  const goBack = useCallback(
-    () =>
-      setStep((current) => {
-        const index = MENTOR_STEP_ORDER.indexOf(current);
-        return MENTOR_STEP_ORDER[index - 1] ?? current;
-      }),
+  const goBack = useCallback(() => {
+    if (step === MentorOnboardingStep.Profile && phase === IntroPhase.Review) {
+      setPhase(IntroPhase.Upload);
+      return;
+    }
+    setStep((current) => {
+      const index = MENTOR_STEP_ORDER.indexOf(current);
+      return MENTOR_STEP_ORDER[index - 1] ?? current;
+    });
+  }, [phase, step]);
+
+  const goToStep = useCallback(
+    (next: MentorOnboardingStep) => setStep(next),
     [],
   );
 
-  // Onboarding runs before approval, so the token is forwarded explicitly —
-  // there is no session cookie yet. The five presentation labels this flow does
-  // not ask about are left empty for the mentor profile screen to fill in.
+  const saveDraft = useCallback(async () => {
+    await saveNow();
+    setDraftSavedAt(Date.now());
+  }, [saveNow]);
+
+  // Onboarding runs before approval, so every call carries the token; there is no session yet.
   const complete = useCallback(async () => {
     setSaveError("");
     setIsSaving(true);
     try {
-      const idToken = await currentIdToken();
-      if (!idToken) {
-        throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
-      }
-      const payload = toUpdatePayload(draft);
-      await updateMentorProfile(payload, idToken);
+      const idToken = await requireToken();
+      await updateMentorProfile(toMentorProfilePayload(draft), idToken);
+      await updateAvailabilitySettings(toAvailabilityPayload(draft), idToken);
+      const current = await getUserProfile(idToken);
+      await saveUserProfile(
+        {
+          fullName:
+            `${draft.firstName} ${draft.lastName}`.trim() || current.fullName,
+          jobTitle: draft.profile.title.trim() || current.jobTitle,
+          phone: current.phone,
+          bio: current.bio,
+          linkedinUrl: draft.linkedin.trim() || null,
+          expertise: current.expertise,
+        },
+        idToken,
+      );
+      if (draft.photo?.file)
+        await uploadDocument(draft.photo.file, "avatar", idToken);
+      if (draft.cv?.file && !cvUploaded)
+        await uploadDocument(draft.cv.file, "cv", idToken);
       await clearRemote();
-      setCompleted(true);
+      setSubmittedAt(new Date());
     } catch (error) {
       setSaveError(describeAuthError(error));
     } finally {
       setIsSaving(false);
     }
-  }, [clearRemote, draft]);
-
-  const expertiseLimitReached = draft.expertise.length >= MAX_EXPERTISE_AREAS;
+  }, [clearRemote, cvUploaded, draft]);
 
   const canContinue = useMemo(() => {
-    if (step === MentorOnboardingStep.Intro) {
-      return phase === IntroPhase.Review && hasIntroProfile(draft.profile);
+    if (step === MentorOnboardingStep.Profile) {
+      return (
+        phase === IntroPhase.Review &&
+        Boolean(
+          draft.firstName.trim() &&
+          draft.lastName.trim() &&
+          draft.profile.title.trim() &&
+          draft.profile.totalExperience.trim(),
+        )
+      );
     }
-    if (step === MentorOnboardingStep.Expertise)
-      return draft.expertise.length > 0;
-    if (step === MentorOnboardingStep.Compatibility)
-      return draft.supportTopics.length > 0 && draft.programStages.length > 0;
-    return (
-      draft.mentoringStyles.length > 0 &&
-      draft.workingStages.length > 0 &&
-      draft.sectors.length > 0
-    );
+    if (step === MentorOnboardingStep.Areas) {
+      return draft.topics.length > 0 && draft.stages.length > 0;
+    }
+    if (step === MentorOnboardingStep.Availability) {
+      return (
+        openDays(draft.week).length > 0 && invalidDays(draft.week).length === 0
+      );
+    }
+    return draft.consent;
   }, [draft, phase, step]);
+
+  const topicOptions = useMemo(
+    () => [
+      ...new Set([
+        ...MENTOR_TOPIC_OPTIONS,
+        ...draft.profile.inferredAreas,
+        ...draft.topics,
+      ]),
+    ],
+    [draft.profile.inferredAreas, draft.topics],
+  );
 
   return {
     step,
     phase,
     draft,
-    completed,
-    canContinue,
+    submittedAt,
     isSaving,
     uploadError,
     parseNote,
     saveError,
+    draftSavedAt,
     droppedFiles,
-    // What the CV named is offered beside the fixed areas, so it can be seen and picked.
-    areaOptions: [
-      ...new Set([
-        ...SUGGESTED_EXPERTISE,
-        ...ADDITIONAL_EXPERTISE,
-        ...draft.profile.inferredAreas,
-      ]),
-    ],
-    expertiseLimitReached,
-    isFirstStep: step === MentorOnboardingStep.Intro,
-    isLastStep: step === MentorOnboardingStep.Preferences,
+    canContinue,
+    topicOptions,
+    topicLimitReached: draft.topics.length >= MAX_MENTOR_TOPICS,
+    invalidDays: invalidDays(draft.week),
+    isFirstScreen:
+      step === MentorOnboardingStep.Profile && phase === IntroPhase.Upload,
+    isLastStep: step === MentorOnboardingStep.Review,
+    update,
+    updateProfile,
     uploadCv,
     enterManually,
-    restartUpload,
-    updateProfile,
-    toggleExpertise,
-    toggleSupportTopic,
-    toggleProgramStage,
-    toggleMentoringStyle,
-    toggleWorkingStage,
-    toggleSector,
-    setCapacity,
+    setCv,
+    addExperience,
+    editingExperience,
+    setEditingExperience,
+    updateExperience,
+    removeExperience,
+    toggleTopic,
+    toggleStage,
+    addOffering,
+    removeOffering,
+    updateDay,
     goNext,
     goBack,
+    goToStep,
+    saveDraft,
     complete,
   };
 }

@@ -8,6 +8,7 @@ import {
 } from "@/components/profile/editable-info-field";
 import { useStartupProfile } from "@/hooks/use-startup-profile";
 import { StartupFundingStage } from "@/interfaces/organization";
+import { STARTUP_STAGE_OPTIONS } from "@/interfaces/signup";
 import { toFoundedYear, toFundingStage } from "@/lib/profile-validation";
 
 /**
@@ -147,14 +148,34 @@ export function StartupProfileSection() {
             maxLength={255}
             onChange={(value) => setField("sector", value)}
           />
-          <EditableInfoField
-            id="startup-maturity"
-            label="Olgunluk"
-            value={draft.maturity ?? ""}
-            error={fieldErrors.maturity}
-            maxLength={255}
-            onChange={(value) => setField("maturity", value)}
-          />
+          <div className="rounded-xl border border-[#edf0f2] bg-[#fcfcfd] p-3.5">
+            <label
+              htmlFor="startup-maturity"
+              className="block text-xs font-medium text-[#676e78]"
+            >
+              Aşama
+            </label>
+            <select
+              id="startup-maturity"
+              value={draft.maturity ?? ""}
+              onChange={(event) =>
+                setField("maturity", event.target.value || null)
+              }
+              className="mt-1.5 w-full rounded-lg border border-[#e4e7ea] bg-white px-2.5 py-2 text-sm text-[#22262b] focus:border-[#e86f22] focus:outline-none"
+            >
+              <option value="">Belirtilmedi</option>
+              {STARTUP_STAGE_OPTIONS.map((stage) => (
+                <option key={stage} value={stage}>
+                  {stage}
+                </option>
+              ))}
+            </select>
+            {fieldErrors.maturity ? (
+              <p className="mt-1 text-xs text-[#b91c1c]">
+                {fieldErrors.maturity}
+              </p>
+            ) : null}
+          </div>
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">

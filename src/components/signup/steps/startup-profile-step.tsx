@@ -1,289 +1,324 @@
 "use client";
 
-import { ChipGroup } from "@/components/common/chip-group";
-import { FileDrop } from "@/components/common/file-drop";
-import { ProgramSelect } from "@/components/common/program-select";
+import {
+  OnboardingCard,
+  OnboardingChips,
+  OnboardingCounter,
+  OnboardingField,
+  OnboardingImagePicker,
+  OnboardingListRow,
+  OnboardingNote,
+  OnboardingTextAction,
+  onboardingInputClass,
+} from "@/components/onboarding/onboarding-ui";
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { useTeamMemberForm } from "@/hooks/use-team-member-form";
 import {
-  MATURITY_OPTIONS,
-  PROGRAM_LEVEL_OPTIONS,
-  SECTOR_OPTIONS,
+  MAX_SUPPORT_AREAS,
+  STARTUP_STAGE_DESCRIPTIONS,
+  STARTUP_STAGE_OPTIONS,
   SUPPORT_AREA_OPTIONS,
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
-import { fieldClass, labelClass } from "@/components/common/form-field";
+import { initials } from "@/lib/utils";
 
-function Required() {
-  return <span className="text-[#e86f22]">*</span>;
+const TONE = OnboardingTone.Mentee;
+const theme = ONBOARDING_TONES[TONE];
+const inputClass = `${onboardingInputClass} ${theme.focus}`;
+/** "Bağımsız" is the no-program answer, sent as a null program id. */
+const INDEPENDENT = "Bağımsız";
+
+function Avatar({ name }: { name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="grid size-8 shrink-0 place-items-center rounded-full bg-[#fff4ec] text-[11px] font-semibold leading-[17px] text-[#9e4400]"
+    >
+      {initials(name) || "?"}
+    </span>
+  );
 }
 
-const NO_PROGRAM_LABEL = "Bir programa dahil değilim";
-
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
-  const programsQuery = useProgramNames();
-  const { draft, updateStartup, toggleSupportArea, taglineRemaining } = wizard;
-  const { startup } = draft;
+  const {
+    draft,
+    updateStartup,
+    toggleSupportArea,
+    addTeamMember,
+    removeTeamMember,
+  } = wizard;
+  const { startup, personal } = draft;
+  const programs = useProgramNames();
+  const memberForm = useTeamMemberForm(addTeamMember);
+
+  const programOptions = [
+    ...(programs.data ?? []).map((program) => program.name),
+    INDEPENDENT,
+  ];
+  const selectedProgram =
+    startup.programId === null
+      ? INDEPENDENT
+      : (programs.data?.find((program) => program.id === startup.programId)
+          ?.name ?? "");
+
+  function chooseProgram(name: string) {
+    const match = programs.data?.find((program) => program.name === name);
+    updateStartup("programId", match ? match.id : null);
+  }
+
+  const founderName = `${personal.firstName} ${personal.lastName}`.trim();
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-[22px] font-semibold tracking-tight">
-          Startup profilini oluştur
-        </h1>
-        <p className="mt-1.5 text-sm text-[#676e78]">
-          Koordinatör ve mentorlar bu bilgileri görür.
-        </p>
-      </header>
-
-      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
-          <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-            <h2 className="text-sm font-semibold">Temel bilgiler</h2>
-            <div className="grid gap-4 sm:grid-cols-[220px_1fr]">
-              <div>
-                <span className={labelClass}>
-                  Logo
-                  <Required />
-                </span>
-                <FileDrop
-                  file={startup.logo}
-                  label="Startup logosu seç"
-                  accept=".png,.jpg,.jpeg,.webp"
-                  helpText="PNG, JPG veya WebP · En fazla 5 MB"
-                  maxBytes={5 * 1024 * 1024}
-                  onChange={(file) => updateStartup("logo", file)}
-                />
-              </div>
-              <div className="flex-1">
-                <label className={labelClass} htmlFor="signup-startup-name">
-                  Startup adı
-                  <Required />
-                </label>
-                <input
-                  id="signup-startup-name"
-                  className={fieldClass}
-                  placeholder="Örn. Renk Studio"
-                  value={startup.name}
-                  onChange={(event) =>
-                    updateStartup("name", event.target.value)
-                  }
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className={labelClass} htmlFor="signup-tagline">
-                Tek satırlık tanım
-                <Required />
-              </label>
-              <input
-                id="signup-tagline"
-                className={fieldClass}
-                maxLength={TAGLINE_MAX_LENGTH}
-                placeholder="Ne yapıyorsunuz? Kime? 80 karakterde."
-                value={startup.tagline}
-                onChange={(event) =>
-                  updateStartup("tagline", event.target.value)
-                }
-              />
-              <p className="mt-1 text-[11px] text-[#a4aab2]">
-                {startup.tagline.length}/{TAGLINE_MAX_LENGTH}
-                {taglineRemaining <= 10 ? " · sınıra yaklaşıyorsun" : ""}
-              </p>
-            </div>
-
-            <div>
-              <label className={labelClass} htmlFor="signup-website">
-                Web sitesi / sosyal link
-                <Required />
-              </label>
-              <input
-                id="signup-website"
-                className={fieldClass}
-                placeholder="https://"
-                value={startup.website}
-                onChange={(event) =>
-                  updateStartup("website", event.target.value)
-                }
-              />
-            </div>
-
-            <div>
-              <span className={labelClass}>Dahil olduğun program</span>
-              {programsQuery.isLoading ? (
-                <p className="text-sm text-[#6a7282]">Programlar yükleniyor…</p>
-              ) : programsQuery.error ? (
-                // A failed load must not silently look like "no programs exist".
-                <p className="text-sm text-[#b91c1c]">
-                  {programsQuery.error.message}
-                </p>
-              ) : (
-                <ProgramSelect
-                  id="signup-program"
-                  label="Dahil olduğun program"
-                  options={programsQuery.data ?? []}
-                  value={startup.programId}
-                  onChange={(programId) =>
-                    updateStartup("programId", programId)
-                  }
-                  noProgramLabel={NO_PROGRAM_LABEL}
-                />
-              )}
-            </div>
-          </section>
-
-          <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-            <h2 className="text-sm font-semibold">Girişim hakkında</h2>
-            <div>
-              <label className={labelClass} htmlFor="signup-problem">
-                Hangi problemi çözüyorsunuz?
-              </label>
-              <textarea
-                id="signup-problem"
-                rows={3}
-                className={`${fieldClass} min-h-24 resize-y py-3 leading-relaxed`}
-                placeholder="Kullanıcının yaşadığı asıl sıkıntı nedir?"
-                value={startup.problem}
-                onChange={(event) =>
-                  updateStartup("problem", event.target.value)
-                }
-              />
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-solution">
-                Çözümünüz nedir?
-              </label>
-              <textarea
-                id="signup-solution"
-                rows={3}
-                className={`${fieldClass} min-h-24 resize-y py-3 leading-relaxed`}
-                value={startup.solution}
-                onChange={(event) =>
-                  updateStartup("solution", event.target.value)
-                }
-              />
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-current-solution">
-                Şu anda bunu nasıl çözüyorsunuz?
-              </label>
-              <textarea
-                id="signup-current-solution"
-                rows={3}
-                className={`${fieldClass} min-h-24 resize-y py-3 leading-relaxed`}
-                value={startup.currentSolution}
-                onChange={(event) =>
-                  updateStartup("currentSolution", event.target.value)
-                }
-              />
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-target-user">
-                Hedef kullanıcı / müşteri
-              </label>
-              <input
-                id="signup-target-user"
-                className={fieldClass}
-                placeholder="Örn. KOBİ muhasebe departmanları"
-                value={startup.targetUser}
-                onChange={(event) =>
-                  updateStartup("targetUser", event.target.value)
-                }
-              />
-            </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label className={labelClass} htmlFor="signup-sector">
-                  Sektör
-                </label>
-                <select
-                  id="signup-sector"
-                  className={fieldClass}
-                  value={startup.sector}
-                  onChange={(event) =>
-                    updateStartup("sector", event.target.value)
-                  }
-                >
-                  <option value="">Seç…</option>
-                  {SECTOR_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className={labelClass} htmlFor="signup-maturity">
-                  Olgunluk seviyesi
-                </label>
-                <select
-                  id="signup-maturity"
-                  className={fieldClass}
-                  value={startup.maturity}
-                  onChange={(event) =>
-                    updateStartup("maturity", event.target.value)
-                  }
-                >
-                  <option value="">Seç…</option>
-                  {MATURITY_OPTIONS.map((option) => (
-                    <option key={option} value={option}>
-                      {option}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <aside className="space-y-5">
-          <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-            <h2 className="text-sm font-semibold">Destek alanları</h2>
-            <p className="mb-3 mt-1.5 text-xs text-[#676e78]">
-              Hangi konularda mentor desteğine ihtiyacın var?
-            </p>
-            <ChipGroup
-              label="Destek alanları"
-              options={SUPPORT_AREA_OPTIONS}
-              selected={startup.supportAreas}
-              onToggle={toggleSupportArea}
+    <>
+      <OnboardingCard title="Temel bilgiler">
+        <div className="flex items-center gap-4">
+          <OnboardingImagePicker
+            label="Startup logosu"
+            placeholder="Logo"
+            file={startup.logo}
+            onChange={(file) => updateStartup("logo", file)}
+          />
+          <OnboardingField
+            id="signup-startup-name"
+            label="Startup adı"
+            required
+            tone={TONE}
+          >
+            <input
+              id="signup-startup-name"
+              className={inputClass}
+              value={startup.name}
+              onChange={(event) => updateStartup("name", event.target.value)}
             />
-            {startup.supportAreas.length ? (
-              <p className="mt-3 text-[11px] text-[#858c96]">
-                Seçilen: {startup.supportAreas.join(", ")}
+          </OnboardingField>
+        </div>
+        <OnboardingField
+          id="signup-tagline"
+          label="Tek satırlık tanım"
+          required
+          tone={TONE}
+        >
+          <input
+            id="signup-tagline"
+            className={inputClass}
+            maxLength={TAGLINE_MAX_LENGTH}
+            value={startup.tagline}
+            onChange={(event) => updateStartup("tagline", event.target.value)}
+          />
+        </OnboardingField>
+        <OnboardingCounter
+          hint="Mentor havuzunda startupının altında bu cümle görünür"
+          length={startup.tagline.length}
+          max={TAGLINE_MAX_LENGTH}
+        />
+        <div className="flex flex-col gap-3.5 sm:flex-row">
+          <OnboardingField id="signup-website" label="Web sitesi" tone={TONE}>
+            <input
+              id="signup-website"
+              className={inputClass}
+              placeholder="ornek.com"
+              value={startup.website}
+              onChange={(event) => updateStartup("website", event.target.value)}
+            />
+          </OnboardingField>
+          <OnboardingField
+            id="signup-founded-year"
+            label="Kuruluş yılı"
+            tone={TONE}
+          >
+            <input
+              id="signup-founded-year"
+              className={inputClass}
+              inputMode="numeric"
+              maxLength={4}
+              placeholder="2026"
+              value={startup.foundedYear}
+              onChange={(event) =>
+                updateStartup(
+                  "foundedYear",
+                  event.target.value.replace(/\D/g, ""),
+                )
+              }
+            />
+          </OnboardingField>
+        </div>
+      </OnboardingCard>
+
+      <OnboardingCard
+        title="Program ve aşama"
+        subtitle="Doğru mentorla eşleşmen için en belirleyici iki bilgi."
+      >
+        <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
+          Program
+        </p>
+        {programs.isLoading ? (
+          <p className="text-xs text-[#676e78]">Programlar yükleniyor…</p>
+        ) : (
+          <OnboardingChips
+            tone={TONE}
+            label="Program"
+            options={programOptions}
+            selected={selectedProgram ? [selectedProgram] : []}
+            onToggle={chooseProgram}
+          />
+        )}
+        <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
+          Girişim aşaması
+        </p>
+        <OnboardingChips
+          tone={TONE}
+          label="Girişim aşaması"
+          options={STARTUP_STAGE_OPTIONS}
+          selected={
+            startup.maturity
+              ? [startup.maturity as (typeof STARTUP_STAGE_OPTIONS)[number]]
+              : []
+          }
+          onToggle={(stage) => updateStartup("maturity", stage)}
+        />
+        {startup.maturity ? (
+          <div className="flex flex-col gap-2 rounded-[10px] bg-[#f5faff] px-4 py-3.5">
+            <p className="text-[10.5px] font-semibold uppercase leading-4 text-[#858c96]">
+              {startup.maturity}
+            </p>
+            <p className="text-xs leading-[18px] text-[#4a5059]">
+              {STARTUP_STAGE_DESCRIPTIONS[startup.maturity]}
+            </p>
+          </div>
+        ) : null}
+      </OnboardingCard>
+
+      <OnboardingCard
+        title="Ekip"
+        subtitle="Ekip üyeleri startup profilinde listelenir. Davet koduyla katıldıklarında hesaplarına bağlanır."
+        action={
+          memberForm.open ? null : (
+            <OnboardingTextAction tone={TONE} onClick={memberForm.openForm}>
+              + Üye ekle
+            </OnboardingTextAction>
+          )
+        }
+      >
+        <OnboardingListRow actionLabel="">
+          <Avatar name={founderName} />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate text-[13px] font-medium leading-5 text-[#22262b]">
+              {founderName || "Sen"}
+            </span>
+            <span className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
+              {[personal.role.trim(), "Kurucu"].filter(Boolean).join(" · ")}
+            </span>
+          </span>
+        </OnboardingListRow>
+        {startup.teamMembers.map((member, index) => (
+          <OnboardingListRow
+            key={`${member.fullName}-${index}`}
+            actionLabel="Kaldır"
+            actionAriaLabel={`${member.fullName} üyesini kaldır`}
+            onAction={() => removeTeamMember(index)}
+          >
+            <Avatar name={member.fullName} />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate text-[13px] font-medium leading-5 text-[#22262b]">
+                {member.fullName}
+              </span>
+              <span className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
+                {[member.jobTitle, member.email].filter(Boolean).join(" · ") ||
+                  "Rol belirtilmedi"}
+              </span>
+            </span>
+          </OnboardingListRow>
+        ))}
+        {memberForm.open ? (
+          <div className="flex flex-col gap-3 rounded-lg border border-[#e4e7ea] p-3">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <OnboardingField
+                id="team-member-name"
+                label="Ad soyad"
+                required
+                tone={TONE}
+              >
+                <input
+                  id="team-member-name"
+                  className={inputClass}
+                  value={memberForm.member.fullName}
+                  onChange={(event) =>
+                    memberForm.update("fullName", event.target.value)
+                  }
+                />
+              </OnboardingField>
+              <OnboardingField id="team-member-role" label="Rol" tone={TONE}>
+                <input
+                  id="team-member-role"
+                  className={inputClass}
+                  value={memberForm.member.jobTitle}
+                  onChange={(event) =>
+                    memberForm.update("jobTitle", event.target.value)
+                  }
+                />
+              </OnboardingField>
+            </div>
+            <OnboardingField id="team-member-email" label="E-posta" tone={TONE}>
+              <input
+                id="team-member-email"
+                type="email"
+                className={inputClass}
+                value={memberForm.member.email}
+                onChange={(event) =>
+                  memberForm.update("email", event.target.value)
+                }
+              />
+            </OnboardingField>
+            {memberForm.error ? (
+              <p role="alert" className="text-xs text-[#b42318]">
+                {memberForm.error}
               </p>
             ) : null}
-          </section>
-
-          <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-            <h2 className="mb-3 text-sm font-semibold">Program seviyesi</h2>
-            <div role="radiogroup" aria-label="Program seviyesi">
-              {PROGRAM_LEVEL_OPTIONS.map((option) => (
-                <label
-                  key={option}
-                  className="flex cursor-pointer items-center gap-2.5 py-1.5 text-sm text-[#3c424a]"
-                >
-                  <input
-                    type="radio"
-                    name="program-level"
-                    value={option}
-                    checked={startup.programLevel === option}
-                    onChange={() => updateStartup("programLevel", option)}
-                    className="size-4 accent-[#e86f22]"
-                  />
-                  {option}
-                </label>
-              ))}
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={memberForm.cancel}
+                className="rounded-full px-4 py-2 text-[12.5px] font-medium text-[#4a5059] hover:bg-[#f8f9fa]"
+              >
+                Vazgeç
+              </button>
+              <button
+                type="button"
+                onClick={memberForm.submit}
+                className={`rounded-full px-4 py-2 text-[12.5px] font-medium text-white ${theme.bg} ${theme.bgHover}`}
+              >
+                Ekle
+              </button>
             </div>
-          </section>
+          </div>
+        ) : null}
+      </OnboardingCard>
 
-          <p className="rounded-2xl bg-[#f1f2f4] p-4 text-xs leading-relaxed text-[#676e78]">
-            Taslak olarak kaydedebilirsin. Profil göndermeden önce gözden
-            geçirmen için bir özet ekranı gösterilecek.
-          </p>
-        </aside>
-      </div>
-    </div>
+      <OnboardingCard
+        title="Mentor desteği istediğin alanlar"
+        subtitle={`En fazla ${MAX_SUPPORT_AREAS} alan seç. Mentor önerileri buna göre sıralanır.`}
+      >
+        <OnboardingChips
+          tone={TONE}
+          label="Mentor desteği istediğin alanlar"
+          options={SUPPORT_AREA_OPTIONS}
+          selected={
+            startup.supportAreas as (typeof SUPPORT_AREA_OPTIONS)[number][]
+          }
+          onToggle={toggleSupportArea}
+        />
+        {wizard.supportAreaLimitReached ? (
+          <OnboardingNote>
+            En fazla {MAX_SUPPORT_AREAS} alan seçebilirsin. Değiştirmek için
+            birini kaldır.
+          </OnboardingNote>
+        ) : null}
+      </OnboardingCard>
+    </>
   );
 }

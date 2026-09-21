@@ -9,10 +9,20 @@ import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
 import { currentFirebaseAccount } from "@/lib/firebase/auth";
 
 const searchParams = new URLSearchParams();
+const replace = vi.fn();
+const push = vi.fn();
+const logout = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
+  useRouter: () => ({ replace, push }),
 }));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ logout }),
+}));
+
+const ROLE_HEADING = "menton’a nasıl katılmak istiyorsun?";
 
 vi.mock("@/lib/firebase/auth", () => ({
   createFirebaseAccount: vi.fn(),
@@ -46,13 +56,54 @@ beforeEach(() => {
 });
 
 describe("SignupFlow resume", () => {
-  it("shows the account form normally", () => {
+  it("opens on the role page when no role is chosen yet", () => {
     render(<SignupFlow />);
 
     expect(
-      screen.getByRole("heading", { name: "Startup'ınla METUal'a katıl" }),
+      screen.getByRole("heading", { name: ROLE_HEADING }),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Giriş yap" })).toHaveAttribute(
+      "href",
+      "/login",
+    );
+    expect(
+      screen.getByRole("link", { name: "Kodunla doğrudan devam edebilirsin." }),
+    ).toHaveAttribute("href", "/invite");
+    // Nobody is signed in yet, so there is nothing to sign out of.
+    expect(
+      screen.queryByRole("button", { name: "Çıkış yap" }),
+    ).not.toBeInTheDocument();
     expect(currentFirebaseAccount).not.toHaveBeenCalled();
+  });
+
+  it("moves to the founder account form and records the role in the URL", async () => {
+    render(<SignupFlow />);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Girişimci olarak devam et" }),
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Startup’ınla menton’a katıl" }),
+    ).toBeInTheDocument();
+    expect(replace).toHaveBeenCalledWith("/signup?role=founder");
+  });
+
+  it("opens the mentor account form straight from ?role=mentor", () => {
+    searchParams.set("role", "mentor");
+    render(<SignupFlow />);
+
+    expect(
+      screen.getByRole("heading", { name: "Mentor olarak menton’a katıl" }),
+    ).toBeInTheDocument();
+  });
+
+  it("ignores an unknown role value and shows the role page", () => {
+    searchParams.set("role", "admin");
+    render(<SignupFlow />);
+
+    expect(
+      screen.getByRole("heading", { name: ROLE_HEADING }),
+    ).toBeInTheDocument();
   });
 
   it("waits for Firebase to restore a cold session before showing the resume picker", async () => {
@@ -82,9 +133,10 @@ describe("SignupFlow resume", () => {
     });
 
     expect(
-      await screen.findByRole("heading", {
-        name: "Kaydını nasıl tamamlayacaksın?",
-      }),
+      await screen.findByRole("heading", { name: ROLE_HEADING }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Çıkış yap" }),
     ).toBeInTheDocument();
   });
 
@@ -98,12 +150,13 @@ describe("SignupFlow resume", () => {
 
     render(<SignupFlow />);
     await userEvent.click(
-      await screen.findByRole("button", { name: "Startup olarak devam et" }),
+      await screen.findByRole("button", { name: "Girişimci olarak devam et" }),
     );
 
     expect(await screen.findByTestId("wizard")).toHaveTextContent(
       "gulse@dongu.co",
     );
+    expect(replace).toHaveBeenCalledWith("/signup?role=founder&resume=1");
   });
 
   it("collects missing identity and registers a mentor resumed in another session", async () => {
@@ -178,7 +231,7 @@ describe("SignupFlow resume", () => {
     expect(screen.queryByTestId("wizard")).not.toBeInTheDocument();
   });
 
-  it("returns to the account form after Firebase confirms there is no session", async () => {
+  it("returns to the signed-out role page after Firebase confirms there is no session", async () => {
     searchParams.set("resume", "1");
     vi.mocked(currentFirebaseAccount).mockResolvedValue(null);
 
@@ -186,8 +239,11 @@ describe("SignupFlow resume", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: "Startup'ınla METUal'a katıl" }),
+        screen.getByRole("heading", { name: ROLE_HEADING }),
       ).toBeInTheDocument(),
     );
+    expect(
+      screen.queryByRole("button", { name: "Çıkış yap" }),
+    ).not.toBeInTheDocument();
   });
 });

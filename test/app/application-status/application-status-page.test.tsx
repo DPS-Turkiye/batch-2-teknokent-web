@@ -4,11 +4,29 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import ApplicationStatusPage from "@/app/application-status/page";
 import { buildApplicationTimeline } from "@/components/auth/application-status-timeline";
 import { useAccountStatus } from "@/hooks/use-account-status";
+import { useSubmittedProfile } from "@/hooks/use-submitted-profile";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { ContactPreference } from "@/interfaces/signup";
 
 vi.mock("@/hooks/use-account-status", () => ({
   useAccountStatus: vi.fn(),
 }));
+
+vi.mock("@/hooks/use-submitted-profile", () => ({
+  useSubmittedProfile: vi.fn(),
+}));
+
+function mockSubmitted(
+  overrides: Partial<ReturnType<typeof useSubmittedProfile>> = {},
+) {
+  vi.mocked(useSubmittedProfile).mockReturnValue({
+    profile: null,
+    documents: [],
+    isLoading: false,
+    isError: false,
+    ...overrides,
+  });
+}
 
 const account = {
   id: "u1",
@@ -29,7 +47,10 @@ function mockStatus(overrides: Partial<ReturnType<typeof useAccountStatus>>) {
   } as ReturnType<typeof useAccountStatus>);
 }
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockSubmitted();
+});
 
 describe("buildApplicationTimeline", () => {
   it("marks review as the current step while pending", () => {
@@ -96,6 +117,54 @@ describe("ApplicationStatusPage", () => {
     render(<ApplicationStatusPage />);
     expect(
       screen.getByRole("heading", { name: "Gülse Demir" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows what was sent for review, with the uploaded files", () => {
+    mockStatus({ account });
+    mockSubmitted({
+      profile: {
+        id: "u1",
+        fullName: "Gülse Demir",
+        email: "gulse@dongu.co",
+        jobTitle: "Kurucu ortak",
+        phone: null,
+        bio: "Döngüsel moda platformu kuruyoruz.",
+        linkedinUrl: null,
+        expertise: [],
+        contactPreferences: [
+          ContactPreference.Email,
+          ContactPreference.VideoCall,
+        ],
+      },
+      documents: [
+        {
+          id: "d1",
+          kind: "pitch-deck",
+          originalFilename: "deck.pdf",
+          sizeBytes: 2048,
+        },
+      ],
+    });
+    render(<ApplicationStatusPage />);
+
+    expect(
+      screen.getByRole("heading", { name: "Gönderilen profil" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Kurucu ortak")).toBeInTheDocument();
+    expect(
+      screen.getByText("Döngüsel moda platformu kuruyoruz."),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Pitch Deck/)).toBeInTheDocument();
+    expect(screen.getByText(/deck\.pdf/)).toBeInTheDocument();
+  });
+
+  it("says so when the submitted profile cannot be read", () => {
+    mockStatus({ account });
+    mockSubmitted({ isError: true });
+    render(<ApplicationStatusPage />);
+    expect(
+      screen.getByText("Gönderilen profil şu an okunamadı."),
     ).toBeInTheDocument();
   });
 });

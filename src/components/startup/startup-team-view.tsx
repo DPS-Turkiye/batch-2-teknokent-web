@@ -8,6 +8,7 @@ import {
   MemberFormDialog,
   RemoveMemberDialog,
 } from "@/components/startup/startup-team-dialogs";
+import { usePendingMembers } from "@/hooks/use-pending-members";
 import { useStartupTeam } from "@/hooks/use-startup-team";
 import { formatShortDate, initials } from "@/lib/utils";
 
@@ -17,6 +18,7 @@ const rowLinkClass = "text-xs font-medium leading-[18px] hover:underline";
 
 export function StartupTeamView() {
   const team = useStartupTeam();
+  const pendingMembers = usePendingMembers();
 
   const addAction = (
     <button
@@ -141,6 +143,74 @@ export function StartupTeamView() {
           </ul>
         )}
       </section>
+
+      {pendingMembers.pending.length ? (
+        <section
+          aria-labelledby="startup-pending-title"
+          className="space-y-3.5 rounded-xl border border-[#e4e7ea] bg-white px-[22px] py-5"
+        >
+          <div className="space-y-1">
+            <h2
+              id="startup-pending-title"
+              className="text-[15px] font-semibold leading-[23px] text-[#22262b]"
+            >
+              Katılım bekleyenler
+            </h2>
+            <p className="text-[12.5px] leading-[19px] text-[#676e78]">
+              Kayıtta eklediğin ekip arkadaşların davet koduyla katıldığında
+              ekip üyelerine taşınır.
+            </p>
+          </div>
+          <ul className="space-y-3.5">
+            {pendingMembers.pending.map((member) => (
+              <li
+                key={member.id}
+                className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-dashed border-[#e4e7ea] px-4 py-3.5"
+              >
+                <div className="flex min-w-0 items-center gap-3">
+                  <span
+                    aria-hidden
+                    className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#f3f4f6] text-xs font-semibold text-[#676e78]"
+                  >
+                    {initials(member.fullName) || "?"}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-[13.5px] font-medium leading-5 text-[#22262b]">
+                      {member.fullName}
+                    </p>
+                    {member.jobTitle ? (
+                      <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
+                        {member.jobTitle}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+                  {member.email ? (
+                    <span className="w-[160px] truncate text-xs leading-[18px] text-[#858c96]">
+                      {member.email}
+                    </span>
+                  ) : null}
+                  <span className={`${chipClass} bg-[#fff8e6] text-[#8a5a00]`}>
+                    Katılım bekleniyor
+                  </span>
+                  {team.viewerIsFounder ? (
+                    <button
+                      type="button"
+                      onClick={() => pendingMembers.remove(member.id)}
+                      disabled={pendingMembers.removingId === member.id}
+                      aria-label={`${member.fullName} bekleyenlerden çıkar`}
+                      className={`${rowLinkClass} text-[#c24135] disabled:opacity-60`}
+                    >
+                      Çıkar
+                    </button>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <MemberFormDialog team={team} />
       <RemoveMemberDialog

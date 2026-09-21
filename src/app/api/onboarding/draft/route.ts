@@ -6,17 +6,10 @@ import {
   saveOnboardingDraft,
 } from "@/lib/api/onboarding-draft";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-
-const BEARER_PREFIX = "Bearer ";
-
-function readIdToken(request: NextRequest) {
-  const header = request.headers.get("authorization");
-  if (!header?.startsWith(BEARER_PREFIX)) return null;
-  return header.slice(BEARER_PREFIX.length).trim() || null;
-}
+import { readBearerToken } from "@/lib/server/bearer-token";
 
 function requireIdToken(request: NextRequest) {
-  const idToken = readIdToken(request);
+  const idToken = readBearerToken(request);
   if (idToken) return idToken;
   return NextResponse.json(
     {

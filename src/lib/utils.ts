@@ -70,3 +70,11 @@ export function scrollToTop() {
   if (typeof window.scrollTo !== "function") return;
   window.scrollTo(0, 0);
 }
+
+/** Shortens text for one-line summaries, ending on a word where it can. */
+export function truncate(text: string, max: number) {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${(lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
+}

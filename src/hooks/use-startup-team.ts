@@ -153,5 +153,6 @@ export function useStartupTeam() {
         current ? { ...current, [field]: value } : current,
       ),
     submitForm,
+    viewerIsFounder,
   };
 }

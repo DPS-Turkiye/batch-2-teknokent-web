@@ -1,23 +1,14 @@
 import Image from "next/image";
-import Link from "next/link";
 import { ReactNode } from "react";
+
+import { MentonLogo } from "@/components/onboarding/onboarding-layout";
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 
 export function AuthHeader() {
   return (
     <header className="border-b border-[#dee2e6] bg-white">
       <div className="mx-auto flex h-[60px] max-w-[1376px] items-center px-4 sm:px-8">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5"
-          aria-label="metual ana sayfa"
-        >
-          <span className="grid size-[35px] place-items-center rounded-lg bg-[#e5701d]">
-            <span className="block h-[18px] w-[3px] rounded-sm bg-white" />
-          </span>
-          <span className="text-[28px] font-black leading-none tracking-[-0.06em] text-[#e5701d]">
-            metual
-          </span>
-        </Link>
+        <MentonLogo tone={OnboardingTone.Mentee} />
       </div>
     </header>
   );
@@ -44,7 +35,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <div className="hidden w-[531px] shrink-0 lg:block">
             <Image
               src="/auth-illustration.webp"
-              alt="METUal ile doğru mentörle eşleş"
+              alt="menton ile doğru mentörle eşleş"
               width={1100}
               height={923}
               priority

@@ -1,5 +1,11 @@
 import { DocumentKind } from "@/interfaces/startup-document";
 
+/** The `?role=` value on /signup; the role page sets it. */
+export enum SignupRole {
+  Founder = "founder",
+  Mentor = "mentor",
+}
+
 export enum SignupStep {
   PersonalProfile = 1,
   StartupProfile = 2,
@@ -7,68 +13,81 @@ export enum SignupStep {
   Review = 4,
 }
 
-export const SIGNUP_STEP_LABELS: Record<SignupStep, string> = {
-  [SignupStep.PersonalProfile]: "Kişisel profilini oluştur",
-  [SignupStep.StartupProfile]: "Start up profilini oluştur",
-  [SignupStep.Documents]: "Dosyalarını yükle",
-  [SignupStep.Review]: "Onay gönder",
-};
+export const SIGNUP_STEPS: { step: SignupStep; title: string; hint: string }[] =
+  [
+    {
+      step: SignupStep.PersonalProfile,
+      title: "Kişisel profilin",
+      hint: "Mentorlar seni bu bilgilerle tanır",
+    },
+    {
+      step: SignupStep.StartupProfile,
+      title: "Startup profilin",
+      hint: "Koordinatör ve mentorlar görür",
+    },
+    {
+      step: SignupStep.Documents,
+      title: "Dosyalar",
+      hint: "Kanvas, pitch deck, prototip",
+    },
+    {
+      step: SignupStep.Review,
+      title: "Gözden geçir ve gönder",
+      hint: "Koordinatör onayına gider",
+    },
+  ];
 
-export const SIGNUP_STEP_CTA: Record<SignupStep, string> = {
-  [SignupStep.PersonalProfile]: "Startup'ımı oluştur",
-  [SignupStep.StartupProfile]: "Dosyalarını Ekle →",
-  [SignupStep.Documents]: "Gözden geçir ve gönder →",
-  [SignupStep.Review]: "Koordinatör onayına gönder →",
-};
-
-export const SIGNUP_STEP_ORDER: SignupStep[] = [
-  SignupStep.PersonalProfile,
-  SignupStep.StartupProfile,
-  SignupStep.Documents,
-  SignupStep.Review,
-];
+export const SIGNUP_STEP_ORDER: SignupStep[] = SIGNUP_STEPS.map(
+  (item) => item.step,
+);
 
 export const BIO_MAX_LENGTH = 280;
 export const TAGLINE_MAX_LENGTH = 80;
+export const MAX_SUPPORT_AREAS = 3;
+
+/** Mirrors the backend enum; the labels are what the chips show. */
+export enum ContactPreference {
+  InAppMessage = "IN_APP_MESSAGE",
+  VideoCall = "VIDEO_CALL",
+  Email = "EMAIL",
+  InPerson = "IN_PERSON",
+}
+
+export const CONTACT_PREFERENCE_LABELS: Record<ContactPreference, string> = {
+  [ContactPreference.InAppMessage]: "Uygulama içi mesaj",
+  [ContactPreference.VideoCall]: "Video görüşme",
+  [ContactPreference.Email]: "E-posta",
+  [ContactPreference.InPerson]: "Yüz yüze",
+};
+
+/** Startup stage values, shared by the mentee's own stage and the mentor's preferences. */
+export const STARTUP_STAGE_OPTIONS = [
+  "Fikir",
+  "Prototip",
+  "MVP",
+  "Gelir",
+  "Büyüme",
+] as const;
+
+export const STARTUP_STAGE_DESCRIPTIONS: Record<string, string> = {
+  Fikir: "Problemi ve çözüm fikrini doğruluyorsun.",
+  Prototip: "Çözümün ilk çalışan halini deniyorsun.",
+  MVP: "Ürünün ilk kullanıcılarla yayında.",
+  Gelir: "Ürünün gelir getirmeye başladı.",
+  Büyüme: "Kullanıcı ve gelir büyümesine odaklanıyorsun.",
+};
 
 export const SUPPORT_AREA_OPTIONS = [
+  "Ürün & UX",
+  "Value Proposition",
+  "User Research",
   "Finans",
   "Pazarlama",
   "Büyüme",
-  "UX/UI",
-  "Ürün",
   "Satış",
   "Hukuk",
   "Teknoloji",
   "Yatırım",
-] as const;
-
-export const PROGRAM_LEVEL_OPTIONS = ["MVP", "Prototip"] as const;
-
-export const CONTACT_PREFERENCE_OPTIONS = [
-  "Video görüşme",
-  "Mesaj",
-  "Yüz yüze",
-  "E-posta",
-] as const;
-
-export const SECTOR_OPTIONS = [
-  "SaaS",
-  "E-ticaret",
-  "FinTech",
-  "HealthTech",
-  "EdTech",
-  "Oyun",
-  "Donanım",
-  "Yapay Zekâ",
-  "Diğer",
-] as const;
-
-export const MATURITY_OPTIONS = [
-  "Fikir aşaması",
-  "MVP geliştiriliyor",
-  "MVP yayında",
-  "Gelir elde ediyor",
 ] as const;
 
 /** The four documents the signup wizard asks a startup for. */
@@ -112,16 +131,6 @@ export const STARTUP_DOCUMENTS: StartupDocumentSpec[] = [
   },
 ];
 
-export const DOCUMENT_CHECKLIST: {
-  label: string;
-  kind: StartupDocumentKind;
-}[] = [
-  { label: "Pitch Deck", kind: StartupDocumentKind.PitchDeck },
-  { label: "MVP / Prototype", kind: StartupDocumentKind.Mvp },
-  { label: "Business Model / Lean Canvas", kind: StartupDocumentKind.Canvas },
-  { label: "En az 1 doğrulama çıktısı", kind: StartupDocumentKind.Validation },
-];
-
 export interface UploadedFile {
   name: string;
   size: number;
@@ -134,30 +143,41 @@ export interface PersonalProfileDraft {
   role: string;
   bio: string;
   linkedin: string;
-  expertise: string[];
-  contactPreferences: string[];
+  contactPreferences: ContactPreference[];
   cv: UploadedFile | null;
+}
+
+/** A teammate listed during signup; they join later with the invite code. */
+export interface TeamMemberDraft {
+  fullName: string;
+  jobTitle: string;
+  email: string;
 }
 
 export interface StartupProfileDraft {
   name: string;
   tagline: string;
   website: string;
-  /** Chosen at signup; null is a real answer meaning no program. */
+  foundedYear: string;
+  /** Chosen at signup; null is a real answer meaning no program (Bağımsız). */
   programId: string | null;
-  problem: string;
-  solution: string;
-  currentSolution: string;
-  targetUser: string;
-  sector: string;
   maturity: string;
+  teamMembers: TeamMemberDraft[];
   supportAreas: string[];
-  programLevel: string;
   logo: UploadedFile | null;
 }
+
+/** The three files the revised signup asks for. */
+export const SIGNUP_DOCUMENT_KINDS = [
+  StartupDocumentKind.Canvas,
+  StartupDocumentKind.PitchDeck,
+  StartupDocumentKind.Mvp,
+] as const;
 
 export interface SignupDraft {
   personal: PersonalProfileDraft;
   startup: StartupProfileDraft;
   documents: Partial<Record<StartupDocumentKind, UploadedFile>>;
+  mvpUrl: string;
+  consent: boolean;
 }
