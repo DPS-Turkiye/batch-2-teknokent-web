@@ -22,10 +22,10 @@ import {
 } from "@/lib/const";
 import {
   buildHomeTasks,
-  dayGreeting,
   requestNeedsMenteeAction,
   sentRequestState,
 } from "@/lib/mentee-home";
+import { dayGreeting } from "@/lib/utils";
 import {
   requestHasConfirmedMeeting,
   requestHasOpenMeeting,

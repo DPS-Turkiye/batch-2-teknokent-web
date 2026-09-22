@@ -110,6 +110,7 @@ function decisionState(selectedRequest: MentorshipRequest | null = null) {
 function mockDashboard(overrides: Record<string, unknown> = {}) {
   const value = {
     firstName: "Nihan",
+    greeting: "İyi akşamlar",
     pending: [request()],
     accepted: [
       request({ id: "request-2", status: MentorshipRequestStatus.Accepted }),
@@ -179,11 +180,11 @@ describe("MentorDashboardView", () => {
     submitDecision.mockResolvedValue(true);
   });
 
-  it("greets the signed-in mentor by first name", () => {
+  it("greets the signed-in mentor with the time-of-day greeting", () => {
     mockDashboard();
     renderWithQueryClient(<MentorDashboardView />);
 
-    expect(screen.getByText("Günaydın, Nihan")).toBeInTheDocument();
+    expect(screen.getByText("İyi akşamlar, Nihan")).toBeInTheDocument();
   });
 
   it("renders every dashboard section", () => {

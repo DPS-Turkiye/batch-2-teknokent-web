@@ -1,3 +1,10 @@
+export function dayGreeting(now = new Date()) {
+  const hour = now.getHours();
+  if (hour >= 5 && hour < 12) return "Günaydın";
+  if (hour >= 12 && hour < 18) return "İyi günler";
+  return "İyi akşamlar";
+}
+
 /** A calendar-day string ("2026-09-15") at local midnight, so it never shows as the day before. */
 export function calendarDay(value: string) {
   return new Date(`${value}T00:00:00`);

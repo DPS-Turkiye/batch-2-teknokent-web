@@ -17,8 +17,10 @@ export function MyProgramsPanel({
   variant?: "mentee" | "mentor";
 }) {
   const session = useAppSession();
-  const orgPrograms = useOrganizationPrograms();
-  const mentorPrograms = usePrograms();
+  const orgPrograms = useOrganizationPrograms({
+    enabled: variant === "mentee",
+  });
+  const mentorPrograms = usePrograms({ enabled: variant === "mentor" });
 
   const items = useMemo(() => {
     if (variant === "mentor") {

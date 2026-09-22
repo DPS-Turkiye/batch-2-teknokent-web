@@ -64,13 +64,6 @@ function dueDay(value: string) {
   return value.length > 10 ? startOfDay(new Date(value)) : calendarDay(value);
 }
 
-export function dayGreeting(now = new Date()) {
-  const hour = now.getHours();
-  if (hour >= 5 && hour < 12) return "Günaydın";
-  if (hour >= 12 && hour < 18) return "İyi günler";
-  return "İyi akşamlar";
-}
-
 export function dueState(dueDate: string | null | undefined, now = new Date()) {
   const day = dueDate ? dueDay(dueDate) : null;
   if (!day || Number.isNaN(day.getTime())) {

@@ -42,10 +42,11 @@ export function useProgramNames() {
   });
 }
 
-export function useOrganizationPrograms() {
+export function useOrganizationPrograms({ enabled = true } = {}) {
   return useQuery({
     queryKey: ORGANIZATION_PROGRAMS_QUERY_KEY,
     queryFn: getOrganizationPrograms,
+    enabled,
   });
 }
 
@@ -58,10 +59,11 @@ export function useSetActiveProgram() {
   });
 }
 
-export function usePrograms() {
+export function usePrograms({ enabled = true } = {}) {
   return useQuery({
     queryKey: PROGRAMS_QUERY_KEY,
     queryFn: getPrograms,
+    enabled,
   });
 }
 
