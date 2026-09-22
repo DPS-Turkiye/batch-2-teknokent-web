@@ -1,5 +1,6 @@
 ﻿"use client";
 
+import Link from "next/link";
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -71,8 +72,13 @@ function RequestSentContent() {
           <p role="alert" className="mt-7 text-sm text-red-700">
             {requestQuery.error.message}
           </p>
-        ) : (
+        ) : requestQuery.isLoading ? (
           <p className="mt-7 text-sm text-[#777]">Talep yükleniyor…</p>
+        ) : (
+          <p className="mt-7 text-sm text-[#777]">
+            Talep bilgisi bulunamadı. Gönderdiğin talepleri &quot;Taleplerime
+            Git&quot; ile görebilirsin.
+          </p>
         )}
         <div className="mt-6 grid w-full gap-2">
           <PrimaryButton
@@ -95,10 +101,17 @@ function RequestSentContent() {
             Ana Sayfaya Dön
           </SecondaryButton>
         </div>
-        <button type="button" className="mt-6 text-xs text-[#aaa]">
-          Fikrinizi değiştirdiniz mi?{" "}
-          <span className="text-[#555]">Talebi geri çek</span>
-        </button>
+        {id ? (
+          <p className="mt-6 text-xs text-[#aaa]">
+            Fikrinizi değiştirdiniz mi?{" "}
+            <Link
+              href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
+              className="text-[#555] underline-offset-2 hover:underline"
+            >
+              Talebi geri çek
+            </Link>
+          </p>
+        ) : null}
       </div>
     </AppShell>
   );
