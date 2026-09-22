@@ -6,6 +6,7 @@ import {
   availabilityDraftError,
   exceptionError,
   exceptionLabel,
+  exceptionsInRange,
   nextRangeAfter,
   stepNumberValue,
   toAvailabilityDraft,
@@ -169,6 +170,38 @@ describe("exceptionError", () => {
         existing,
       ),
     ).toBe("Bu tarih aralığı zaten ekli.");
+  });
+});
+
+describe("exceptionsInRange", () => {
+  const monday = new Date(2026, 8, 21);
+  const friday = new Date(2026, 8, 25);
+  const leave = {
+    startsOn: "2026-09-21",
+    endsOn: "2026-09-25",
+    reason: "İzin",
+  };
+  const overlapStart = {
+    startsOn: "2026-09-18",
+    endsOn: "2026-09-21",
+    reason: null,
+  };
+  const overlapEnd = {
+    startsOn: "2026-09-25",
+    endsOn: "2026-09-28",
+    reason: null,
+  };
+  const before = { startsOn: "2026-09-14", endsOn: "2026-09-18", reason: null };
+  const after = { startsOn: "2026-09-26", endsOn: "2026-09-26", reason: null };
+
+  it("keeps ranges that touch the week, including its first and last day", () => {
+    expect(
+      exceptionsInRange(
+        [leave, overlapStart, overlapEnd, before, after],
+        monday,
+        friday,
+      ),
+    ).toEqual([leave, overlapStart, overlapEnd]);
   });
 });
 
