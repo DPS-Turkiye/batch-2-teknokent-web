@@ -33,7 +33,12 @@ export default function DashboardPage() {
           <div className="flex min-w-0 flex-col gap-6">
             <TaskList
               tasks={data.homeTasks}
-              loading={data.isLoading || data.isLoadingActionItems}
+              loading={
+                data.isLoading ||
+                data.isLoadingActionItems ||
+                data.isLoadingFeedback
+              }
+              onDismiss={data.dismissHomeTask}
             />
             <UpcomingMeetings
               meetings={data.otherUpcomingMeetings}

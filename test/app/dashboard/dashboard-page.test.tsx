@@ -41,6 +41,8 @@ function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
     isFallback: false,
     isLoading: false,
     isLoadingActionItems: false,
+    isLoadingFeedback: false,
+    dismissHomeTask: vi.fn(),
     nextMeeting: null,
     nextMeetingByRequest: {},
     noteMeetings: [],

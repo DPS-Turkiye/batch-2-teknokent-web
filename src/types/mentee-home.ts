@@ -8,6 +8,7 @@ export enum DueTone {
 export enum HomeTaskKind {
   RequestReply = "request-reply",
   ActionItem = "action-item",
+  MeetingFeedback = "meeting-feedback",
 }
 
 export enum SentRequestState {

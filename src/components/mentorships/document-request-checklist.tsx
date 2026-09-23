@@ -185,7 +185,7 @@ export function DocumentRequestChecklist({
               setEditing(true);
               setError("");
             }}
-            className="shrink-0 text-[13px] font-medium text-[#e86f22]"
+            className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
           >
             {items.length === 0 ? "Belge iste" : "Düzenle"}
           </button>
@@ -218,7 +218,7 @@ export function DocumentRequestChecklist({
               onClick={() =>
                 saveMutation.mutate(normalizeDocumentTitles(draftTitles))
               }
-              className="rounded-lg bg-[#e86f22] px-3 py-2 text-sm font-medium text-white hover:bg-[#ce5e19] disabled:opacity-60"
+              className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--ms-accent-hover,#ce5e19)] disabled:opacity-60"
             >
               {saveMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
             </button>
@@ -252,7 +252,7 @@ export function DocumentRequestChecklist({
                       setActiveItemId(item.id);
                       fileInputRef.current?.click();
                     }}
-                    className="shrink-0 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-[12px] font-medium text-[#515861] hover:border-[#f2b78f]"
+                    className="shrink-0 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-[12px] font-medium text-[#515861] hover:border-[var(--ms-accent-border,#f2b78f)]"
                   >
                     {uploadMutation.isPending && activeItemId === item.id
                       ? "Yükleniyor…"
@@ -272,7 +272,7 @@ export function DocumentRequestChecklist({
                         onClick={() =>
                           void openDocument(upload.storedDocumentId)
                         }
-                        className="min-w-0 truncate text-left hover:text-[#e86f22] hover:underline"
+                        className="min-w-0 truncate text-left hover:text-[var(--ms-accent,#e86f22)] hover:underline"
                       >
                         {upload.originalFilename} ·{" "}
                         {formatBytes(upload.sizeBytes)} ·{" "}
@@ -284,7 +284,7 @@ export function DocumentRequestChecklist({
                           onClick={() =>
                             void openDocument(upload.storedDocumentId)
                           }
-                          className="text-[#e86f22] hover:underline"
+                          className="text-[var(--ms-accent,#e86f22)] hover:underline"
                         >
                           Görüntüle
                         </button>

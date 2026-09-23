@@ -32,6 +32,10 @@ vi.mock("@/lib/client/action-items", () => ({
   getActionItems: vi.fn().mockResolvedValue([]),
 }));
 
+vi.mock("@/lib/client/meetings", () => ({
+  getMeetingFeedback: vi.fn().mockResolvedValue(null),
+}));
+
 vi.mock("@/lib/client/meeting-notes", () => ({
   getMeetingTodos: vi.fn().mockResolvedValue([]),
 }));
@@ -240,11 +244,16 @@ describe("useDashboardData", () => {
 
     const { result } = renderHook(() => useDashboardData(), { wrapper });
 
-    await waitFor(() => expect(result.current.homeTasks).toHaveLength(1));
+    await waitFor(() => expect(result.current.homeTasks).toHaveLength(2));
     expect(result.current.homeTasks[0]).toMatchObject({
       title: "KPI dosyasını paylaş",
       subtitle: "Selin Kaya · Finans",
       href: "/mentor-request/status?id=r1",
+    });
+    expect(result.current.homeTasks[1]).toMatchObject({
+      title: "Toplantıyı değerlendir",
+      subtitle: "Selin Kaya · Finans",
+      href: "/meetings/research/feedback?id=held",
     });
     expect(result.current.openActionCountByRequest).toEqual({ r1: 1 });
     expect(result.current.nextMeetingByRequest.r1?.id).toBe("next");

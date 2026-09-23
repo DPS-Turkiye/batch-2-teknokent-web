@@ -13,12 +13,15 @@ import { UserRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
 import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
 import { getActionItems } from "@/lib/client/action-items";
+import { getMeetingFeedback } from "@/lib/client/meetings";
 import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
+  HOME_TASK_FEEDBACK_MEETING_LIMIT,
 } from "@/lib/const";
 import {
   buildHomeTasks,
@@ -41,6 +44,9 @@ const NOTE_MEETING_LIMIT = 3;
 
 export function useDashboardData() {
   const { session } = useSession();
+  const { dismissedTaskIds, dismissHomeTask } = useDismissedHomeTasks(
+    session?.userId,
+  );
   const meetingsQuery = useMeetings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
 
@@ -129,9 +135,27 @@ export function useDashboardData() {
   const openTodoCounts = useOpenTodoCounts(
     noteMeetings.map((meeting) => meeting.id),
   );
+  const feedbackCandidates = heldMeetings.slice(
+    0,
+    HOME_TASK_FEEDBACK_MEETING_LIMIT,
+  );
+  const { feedbackMeetings, isLoadingFeedback } = useQueries({
+    queries: feedbackCandidates.map((meeting) => ({
+      queryKey: ["meeting-feedback", meeting.id],
+      queryFn: () => getMeetingFeedback(meeting.id),
+    })),
+    combine: (results) => ({
+      feedbackMeetings: feedbackCandidates.filter((_, index) => {
+        const result = results[index];
+        return Boolean(result && !result.isLoading && !result.data);
+      }),
+      isLoadingFeedback: results.some((result) => result.isLoading),
+    }),
+  });
 
   return {
     activeRequests,
+    dismissHomeTask,
     displayName: session?.fullName.split(" ")[0] ?? "",
     greeting: dayGreeting(),
     heldMeetingCount: heldMeetings.length,
@@ -140,10 +164,13 @@ export function useDashboardData() {
       meetings,
       actionItems: openActionItems,
       actionItemRequestIds,
+      feedbackMeetings,
+      dismissedTaskIds,
     }),
     organizationName: session?.organizationName ?? "",
     isFallback: hasError,
     isLoading: meetingsQuery.isLoading || requestsQuery.isLoading,
+    isLoadingFeedback,
     nextMeeting,
     nextMeetingByRequest,
     noteMeetings,

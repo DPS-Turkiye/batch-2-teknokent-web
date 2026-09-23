@@ -23,3 +23,8 @@ export const PAST_MENTORSHIP_LABELS = {
   transcript: "Toplantı Transkripti",
   history: (name: string) => `${name} mentorluk geçmişi`,
 } as const;
+
+export const MENTORSHIPS_ACTIVE_HREF = "/mentorships?tab=active";
+export const MENTORSHIPS_HISTORY_HREF = "/mentorships?tab=history";
+export const MENTORSHIPS_REGULAR_HREF = "/mentorships?tab=regular";
+export const MENTORSHIPS_BACK_LABEL = "Mentorluklarıma dön";

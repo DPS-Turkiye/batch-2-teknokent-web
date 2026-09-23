@@ -47,7 +47,6 @@ import {
 } from "@/lib/mentor-availability-days";
 import {
   activeMentorshipHref,
-  assistantMeetingHref,
   endedMeetingsForRequest,
   formatRequestSentAt,
   meetingAboutHref,
@@ -694,7 +693,7 @@ function PastMentorshipRow({
           {ended.map((meeting) => (
             <Link
               key={meeting.id}
-              href={assistantMeetingHref(meeting.id)}
+              href={meetingAboutHref(meeting.id)}
               className="flex items-center justify-between gap-3 rounded-xl bg-[#f5faff] p-3 transition hover:bg-[#e9f5ff]"
             >
               <span className="flex min-w-0 items-center gap-1 text-sm leading-5 text-[#26a4ff]">

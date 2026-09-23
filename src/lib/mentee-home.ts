@@ -4,7 +4,14 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { requestHasConfirmedMeeting } from "@/lib/mentorship-workspace";
+import {
+  HOME_TASK_DISMISS_STORAGE_KEY,
+  HOME_TASK_LABELS,
+} from "@/lib/const/mentee-home";
+import {
+  meetingFeedbackHref,
+  requestHasConfirmedMeeting,
+} from "@/lib/mentorship-workspace";
 import { calendarDay } from "@/lib/utils";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 
@@ -133,31 +140,68 @@ export type HomeTask = {
   href: string;
 };
 
-/** Yapılacaklar: requests waiting on the mentee plus open action items, most urgent first. */
+export function homeTaskId(kind: HomeTaskKind, entityId: string) {
+  if (kind === HomeTaskKind.RequestReply) return `request-${entityId}`;
+  if (kind === HomeTaskKind.MeetingFeedback) return `feedback-${entityId}`;
+  return `action-${entityId}`;
+}
+
+function dismissedStorageKey(userId: string) {
+  return `${HOME_TASK_DISMISS_STORAGE_KEY}:${userId}`;
+}
+
+export function readDismissedHomeTasks(userId: string) {
+  if (typeof window === "undefined") return [] as string[];
+  try {
+    const parsed = JSON.parse(
+      window.localStorage.getItem(dismissedStorageKey(userId)) ?? "[]",
+    ) as unknown;
+    return Array.isArray(parsed)
+      ? parsed.filter((id): id is string => typeof id === "string")
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeDismissedHomeTasks(userId: string, ids: string[]) {
+  window.localStorage.setItem(dismissedStorageKey(userId), JSON.stringify(ids));
+}
+
+function meetingEndedAt(meeting: MeetingItem) {
+  const start = new Date(meeting.scheduledAt).getTime();
+  const durationMs = Math.max(1, meeting.durationMinutes || 60) * 60_000;
+  return new Date(start + durationMs).toISOString();
+}
+
 export function buildHomeTasks({
   requests,
   meetings,
   actionItems,
   actionItemRequestIds,
+  feedbackMeetings = [],
+  dismissedTaskIds = [],
   now = new Date(),
 }: {
   requests: MentorshipRequest[];
   meetings: MeetingItem[];
   actionItems: ActionItem[];
   actionItemRequestIds: Record<string, string>;
+  feedbackMeetings?: MeetingItem[];
+  dismissedTaskIds?: string[];
   now?: Date;
 }): HomeTask[] {
   const requestsById = new Map(
     requests.map((request) => [request.id, request]),
   );
+  const hidden = new Set(dismissedTaskIds);
 
   const replies = requests
     .filter((request) => requestNeedsMenteeAction(request, meetings))
     .map((request) => ({
-      // An empty key puts a reply ahead of action items due the same day.
       sortKey: "",
       task: {
-        id: `request-${request.id}`,
+        id: homeTaskId(HomeTaskKind.RequestReply, request.id),
         kind: HomeTaskKind.RequestReply,
         title: "Mentor talebini yanıtla",
         subtitle: `${request.mentorName} · ${request.supportArea}`,
@@ -175,7 +219,7 @@ export function buildHomeTasks({
     return {
       sortKey: item.dueDate ?? "",
       task: {
-        id: `action-${item.id}`,
+        id: homeTaskId(HomeTaskKind.ActionItem, item.id),
         kind: HomeTaskKind.ActionItem,
         title: item.title,
         subtitle: [
@@ -192,7 +236,36 @@ export function buildHomeTasks({
     };
   });
 
-  return [...replies, ...items]
+  const evaluations = feedbackMeetings.map((meeting) => {
+    const request = meeting.mentorshipRequestId
+      ? requestsById.get(meeting.mentorshipRequestId)
+      : undefined;
+    const endedAt = meetingEndedAt(meeting);
+    const due = dueState(endedAt, now);
+    return {
+      sortKey: endedAt,
+      task: {
+        id: homeTaskId(HomeTaskKind.MeetingFeedback, meeting.id),
+        kind: HomeTaskKind.MeetingFeedback,
+        title: HOME_TASK_LABELS.feedbackTitle,
+        subtitle: [
+          meeting.mentorName ?? request?.mentorName,
+          meeting.agenda?.trim() ||
+            request?.supportArea ||
+            "Mentorluk görüşmesi",
+        ]
+          .filter(Boolean)
+          .join(" · "),
+        dueTone: due.tone,
+        dueLabel: due.label,
+        actionLabel: HOME_TASK_LABELS.feedbackAction,
+        href: meetingFeedbackHref(meeting.id),
+      },
+    };
+  });
+
+  return [...replies, ...items, ...evaluations]
+    .filter(({ task }) => !hidden.has(task.id))
     .sort(
       (left, right) =>
         TONE_ORDER[left.task.dueTone] - TONE_ORDER[right.task.dueTone] ||
