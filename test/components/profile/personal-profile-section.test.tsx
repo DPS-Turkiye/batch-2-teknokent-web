@@ -122,14 +122,13 @@ describe("PersonalProfileSection", () => {
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     );
 
+    // Only the draft: a second argument would be sent as the bearer token.
     await waitFor(() =>
       expect(vi.mocked(saveUserProfile)).toHaveBeenCalledWith(
         expect.objectContaining({
           jobTitle: "Kurucu",
           fullName: "Gülse Buran",
         }),
-        // TanStack passes a mutation context as a second argument.
-        expect.anything(),
       ),
     );
     expect(await screen.findByText("Kaydedildi")).toBeInTheDocument();

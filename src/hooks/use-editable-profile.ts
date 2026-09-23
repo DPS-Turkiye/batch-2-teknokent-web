@@ -39,7 +39,8 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     error: saveError,
     reset: resetSave,
   } = useMutation({
-    mutationFn: save,
+    // Same for the mutation context, which would land in saveUserProfile's token.
+    mutationFn: (draft: TDraft) => save(draft),
     onSuccess: (loaded) => {
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});
