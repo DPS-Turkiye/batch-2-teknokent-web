@@ -1,7 +1,9 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
 
 import { TaskList } from "@/components/mentee-home/task-list";
+import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 
@@ -53,10 +55,9 @@ describe("TaskList", () => {
     expect(
       screen.getByRole("link", { name: "Yanıtla: Mentor talebini yanıtla" }),
     ).toHaveAttribute("href", "/mentor-request/status?id=r1");
-    expect(screen.getByRole("link", { name: /Tümünü gör/ })).toHaveAttribute(
-      "href",
-      "/mentorships",
-    );
+    expect(
+      screen.queryByRole("link", { name: /Tümünü gör/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows at most four tasks", () => {
@@ -84,5 +85,32 @@ describe("TaskList", () => {
     expect(
       screen.getByText("Şu anda yapılacak bir işin yok."),
     ).toBeInTheDocument();
+  });
+
+  it("lets the mentee dismiss a task from the list", async () => {
+    const user = userEvent.setup();
+    const onDismiss = vi.fn();
+    render(
+      <TaskList
+        tasks={[
+          task({
+            id: "feedback-ended-1",
+            kind: HomeTaskKind.MeetingFeedback,
+            title: HOME_TASK_LABELS.feedbackTitle,
+            actionLabel: HOME_TASK_LABELS.feedbackAction,
+            href: "/meetings/research/feedback?id=ended-1",
+          }),
+        ]}
+        loading={false}
+        onDismiss={onDismiss}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", {
+        name: `${HOME_TASK_LABELS.dismiss}: ${HOME_TASK_LABELS.feedbackTitle}`,
+      }),
+    );
+    expect(onDismiss).toHaveBeenCalledWith("feedback-ended-1");
   });
 });

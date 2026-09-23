@@ -4,6 +4,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
+import { TRANSCRIPT_SCROLL_CLASS } from "@/lib/const/notes";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
 
 function ShareFold({
@@ -16,7 +17,7 @@ function ShareFold({
   children: ReactNode;
 }) {
   return (
-    <details className="rounded-xl bg-[#fff4ec] px-3 py-2">
+    <details className="rounded-xl bg-[var(--ms-accent-faint,#fff4ec)] px-3 py-2">
       <summary className="flex cursor-pointer list-none items-center justify-between gap-2 text-sm text-[#858c96] [&::-webkit-details-marker]:hidden">
         <span className="flex items-center gap-2">
           <Image src={icon} alt="" width={24} height={24} />
@@ -37,14 +38,14 @@ function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
       <p className="text-[11px] text-[#858c96]">
         Mentör gönderdi · salt okunur
       </p>
-      <ol className="mt-3 space-y-3">
+      <ol className={`mt-3 space-y-3 ${TRANSCRIPT_SCROLL_CLASS}`}>
         {lines.map((line) => (
           <li key={line.id} className="flex gap-3 text-sm">
             <span className="w-10 shrink-0 font-mono text-[11px] text-[#858c96]">
               {line.at}
             </span>
             <div>
-              <div className="text-xs font-medium text-[#e86f22]">
+              <div className="text-xs font-medium text-[var(--ms-accent,#e86f22)]">
                 {line.speaker}
               </div>
               <p className="mt-0.5 leading-relaxed text-[#22262b]">

@@ -40,7 +40,7 @@ export function Avatar({
   size = "md",
 }: {
   initials: string;
-  tone?: "gray" | "purple" | "teal" | "orange";
+  tone?: "gray" | "purple" | "teal" | "orange" | "blue";
   size?: "sm" | "md" | "lg";
 }) {
   const tones = {
@@ -48,6 +48,7 @@ export function Avatar({
     purple: "bg-[#f3e8ff] text-[#8200db]",
     teal: "bg-[#cbfbf1] text-[#00786f]",
     orange: "bg-[#fdebdd] text-[#c85816]",
+    blue: "bg-[#e6f1f8] text-[#1a8ad9]",
   };
   const sizes = {
     sm: "size-7 text-xs",

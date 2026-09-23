@@ -120,7 +120,6 @@ function buildNavigation(
     ];
   const menteeNavigation = [
     { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
-    MENTORS_NAV,
     {
       id: AppArea.Mentorships,
       label: "Mentorluklarım",
@@ -143,14 +142,9 @@ function buildNavigation(
     NOTES_NAV,
   ];
   return menteeHome
-    ? [
-        { ...menteeNavigation[0], label: "Anasayfa" },
-        menteeNavigation[2],
-        menteeNavigation[3],
-        menteeNavigation[4],
-        menteeNavigation[5],
-        NOTES_NAV,
-      ]
+    ? menteeNavigation.map((item, index) =>
+        index === 0 ? { ...item, label: "Anasayfa" } : item,
+      )
     : menteeNavigation;
 }
 

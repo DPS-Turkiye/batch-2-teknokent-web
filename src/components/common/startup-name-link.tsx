@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { organizationStartupHref } from "@/lib/program-links";
 
 const LINK_CLASS =
-  "text-[#e86f22] underline decoration-[#e86f22]/50 underline-offset-[3px] transition-colors hover:text-[#c85816] hover:decoration-[#c85816]";
+  "text-[var(--ms-accent,#e86f22)] underline underline-offset-[3px] transition-colors hover:text-[var(--ms-accent-strong,#c85816)]";
 
 export function StartupNameLink({
   organizationId,

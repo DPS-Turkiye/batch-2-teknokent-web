@@ -24,6 +24,8 @@ export const BACKEND_HEALTH_PATH = "/api/health";
 export const HEALTH_API_PATH = "/api/health";
 
 export * from "./programs";
+export * from "./mentorships";
+export * from "./mentee-home";
 
 function normalizeUrl(url: string): string {
   return url.replace(/\/$/, "");

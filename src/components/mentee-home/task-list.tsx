@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
+import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 
@@ -35,19 +36,15 @@ const TONE_STYLES: Record<DueTone, { bar: string; chip: string; dot: string }> =
 export function TaskList({
   tasks,
   loading,
+  onDismiss,
 }: {
   tasks: HomeTask[];
   loading: boolean;
+  onDismiss?: (taskId: string) => void;
 }) {
   return (
     <section aria-labelledby="home-tasks-title" className="flex flex-col gap-3">
-      <SectionHeader
-        id="home-tasks-title"
-        title="Yapılacaklar"
-        href="/mentorships"
-        linkText="Tümünü gör"
-        chevron
-      />
+      <SectionHeader id="home-tasks-title" title="Yapılacaklar" />
       <div className="rounded-[20px] border-[0.685px] border-[#e4e7ea] bg-white p-2">
         {tasks.slice(0, TASK_LIMIT).map((task) => {
           const tone = TONE_STYLES[task.dueTone];
@@ -95,6 +92,22 @@ export function TaskList({
               >
                 {task.actionLabel}
               </Link>
+              {onDismiss && (
+                <button
+                  type="button"
+                  aria-label={`${HOME_TASK_LABELS.dismiss}: ${task.title}`}
+                  onClick={() => onDismiss(task.id)}
+                  className="grid size-8 shrink-0 place-items-center rounded-full text-[#7a828d] hover:bg-[#f3f4f6] hover:text-[#2b303a]"
+                >
+                  <Image
+                    src="/mentor-profile/close.svg"
+                    alt=""
+                    width={14}
+                    height={14}
+                    className="size-3.5"
+                  />
+                </button>
+              )}
             </div>
           );
         })}

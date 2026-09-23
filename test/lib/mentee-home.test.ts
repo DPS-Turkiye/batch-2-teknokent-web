@@ -1,14 +1,18 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 
+import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
   dueState,
   meetingDayLabel,
   meetingWhenLabel,
+  readDismissedHomeTasks,
   requestStatusHref,
   sentRequestState,
+  writeDismissedHomeTasks,
 } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 import {
@@ -197,6 +201,75 @@ describe("buildHomeTasks", () => {
       dueTone: DueTone.None,
       href: "/mentorships",
     });
+  });
+
+  it("adds an evaluation task for a finished meeting", () => {
+    const [task] = buildHomeTasks({
+      requests: [
+        request({
+          id: "r3",
+          status: MentorshipRequestStatus.Accepted,
+          mentorName: "Selin Kaya",
+          supportArea: "Finans Mentorluğu",
+        }),
+      ],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      feedbackMeetings: [
+        meeting({
+          id: "ended-1",
+          mentorshipRequestId: "r3",
+          mentorName: "Selin Kaya",
+          agenda: "KPI görüşmesi",
+          scheduledAt: new Date(2026, 8, 10, 14, 0).toISOString(),
+          status: MeetingStatus.Completed,
+        }),
+      ],
+      now,
+    });
+
+    expect(task).toMatchObject({
+      id: "feedback-ended-1",
+      kind: HomeTaskKind.MeetingFeedback,
+      title: HOME_TASK_LABELS.feedbackTitle,
+      subtitle: "Selin Kaya · KPI görüşmesi",
+      dueTone: DueTone.Overdue,
+      actionLabel: HOME_TASK_LABELS.feedbackAction,
+      href: "/meetings/research/feedback?id=ended-1",
+    });
+  });
+
+  it("hides a dismissed evaluation from the list", () => {
+    const tasks = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [],
+      actionItemRequestIds: {},
+      feedbackMeetings: [
+        meeting({
+          id: "ended-1",
+          scheduledAt: new Date(2026, 8, 10, 14, 0).toISOString(),
+          status: MeetingStatus.Completed,
+        }),
+      ],
+      dismissedTaskIds: ["feedback-ended-1"],
+      now,
+    });
+
+    expect(tasks).toEqual([]);
+  });
+});
+
+describe("dismissed home tasks", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+  });
+
+  it("stores dismissed ids per user", () => {
+    writeDismissedHomeTasks("mentee-1", ["feedback-ended-1"]);
+    expect(readDismissedHomeTasks("mentee-1")).toEqual(["feedback-ended-1"]);
+    expect(readDismissedHomeTasks("mentee-2")).toEqual([]);
   });
 });
 
