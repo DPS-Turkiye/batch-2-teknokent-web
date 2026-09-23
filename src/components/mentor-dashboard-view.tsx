@@ -17,6 +17,10 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
+import {
+  parsePreferredSlotsFromMessage,
+  requestOutcomeFromMessage,
+} from "@/lib/mentor-availability-days";
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -606,14 +610,20 @@ function RequestDrawer({
   const context = [snapshot?.startupStage, snapshot?.startupSector].filter(
     Boolean,
   );
+  const preferredSlotLabels = parsePreferredSlotsFromMessage(
+    request.requesterMessage,
+  ).map((slot) => slot.label);
   const focusAreas = [
     request.supportArea,
     ...(snapshot?.startupTechnologies ?? []),
   ].filter(Boolean);
+  // requesterMessage carries the machine-written "Tercih edilen saatler:" and
+  // "preferredSlots:" lines, which read as the mentee's own words when shown raw.
   const sections = [
     ["STARTUP", snapshot?.startupSummary],
     ["MENTORLUK İHTİYACI", request.summary],
-    ["NEDEN BEN?", request.requesterMessage],
+    ["NEDEN BEN?", requestOutcomeFromMessage(request.requesterMessage)],
+    ["TERCİH EDİLEN SAATLER", preferredSlotLabels.join(" · ")],
   ].filter(([, copy]) => Boolean(copy));
   return (
     <div

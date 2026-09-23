@@ -275,6 +275,33 @@ describe("MentorDashboardView", () => {
     expect(screen.getByText("Pre-seed · B2C")).toBeInTheDocument();
   });
 
+  it("shows the mentee's own words under NEDEN BEN, not the machine lines", () => {
+    mockDashboard({
+      decision: decisionState(
+        request({
+          requesterMessage: [
+            "Ürün ekibimizi kurarken yön arıyoruz.",
+            "Tercih edilen saatler: 18 Eyl 14:00",
+            "preferredSlots:2026-09-18T14:00",
+          ].join("\n"),
+        }),
+      ),
+    });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    const drawer = within(
+      screen.getByRole("dialog", { name: "Mentorluk talebi" }),
+    );
+    expect(
+      drawer.getByText("Ürün ekibimizi kurarken yön arıyoruz."),
+    ).toBeInTheDocument();
+    expect(drawer.queryByText(/preferredSlots:/)).not.toBeInTheDocument();
+    expect(
+      drawer.queryByText(/Tercih edilen saatler: 18 Eyl/),
+    ).not.toBeInTheDocument();
+    expect(drawer.getByText("TERCİH EDİLEN SAATLER")).toBeInTheDocument();
+  });
+
   it("accepts the selected request", async () => {
     const user = userEvent.setup();
     mockDashboard({ decision: decisionState(request()) });

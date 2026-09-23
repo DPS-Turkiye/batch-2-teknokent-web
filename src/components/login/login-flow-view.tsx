@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { MentonLogo } from "@/components/onboarding/onboarding-layout";
 import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { useLoginFlow } from "@/hooks/use-login-flow";
+import { safeNextPath } from "@/lib/public-paths";
 
 const inputClass =
   "h-11 w-full rounded-[20px] border border-[#e8eaed] bg-white px-3.5 text-sm text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#e86f22] focus:ring-2 focus:ring-[#fde4d3]";
@@ -17,6 +18,7 @@ const labelClass = "text-[13px] font-semibold leading-[19.5px] text-[#374151]";
 
 export function LoginFlowView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     email,
     setEmail,
@@ -33,9 +35,13 @@ export function LoginFlowView() {
     isVerified,
   } = useLoginFlow();
 
+  // The gate sends a signed-out visitor to /login?next=<where they were going>;
+  // ignoring it landed everyone on the dashboard instead.
+  const next = safeNextPath(searchParams.get("next"));
+
   useEffect(() => {
-    if (isVerified) router.push("/workspace");
-  }, [isVerified, router]);
+    if (isVerified) router.push(next ?? "/workspace");
+  }, [isVerified, next, router]);
 
   if (needsEmailVerification) {
     return (
