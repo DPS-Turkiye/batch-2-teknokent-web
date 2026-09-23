@@ -47,7 +47,7 @@ export function DocumentRequestTitleEditor({
               onChange={(event) => updateTitle(index, event.target.value)}
               placeholder={`${index + 1}. belge adı`}
               maxLength={500}
-              className="min-h-10 flex-1 rounded-lg border border-[#d4d8dd] px-3 text-sm text-[#22262b] outline-none focus:border-[#e86f22]"
+              className="min-h-10 flex-1 rounded-lg border border-[#d4d8dd] px-3 text-sm text-[#22262b] outline-none focus:border-[var(--ms-accent,#e86f22)]"
             />
             <button
               type="button"
@@ -65,7 +65,7 @@ export function DocumentRequestTitleEditor({
         type="button"
         disabled={disabled}
         onClick={addTitle}
-        className="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-[#e86f22]"
+        className="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
       >
         <Plus className="size-3.5" />
         Belge ekle

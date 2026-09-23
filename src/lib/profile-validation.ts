@@ -56,7 +56,7 @@ const startupProfileSchema = z.object({
   currentSolution: optionalText("Mevcut çözüm", 5000),
   targetUser: optionalText("Hedef kullanıcı", 5000),
   sector: optionalText("Sektör", 255),
-  maturity: optionalText("Olgunluk", 255),
+  maturity: optionalText("Aşama", 255),
   programLevel: optionalText("Program seviyesi", 255),
   supportAreas: z.array(
     z.string().max(255, "Destek alanı en fazla 255 karakter olabilir."),

@@ -9,15 +9,7 @@ import {
   toSession,
 } from "@/lib/session";
 import { apiErrorResponse } from "@/lib/server/api-response";
-
-const BEARER_PREFIX = "Bearer ";
-
-function readIdToken(request: NextRequest): string | null {
-  const header = request.headers.get("authorization");
-  if (!header?.startsWith(BEARER_PREFIX)) return null;
-  const token = header.slice(BEARER_PREFIX.length).trim();
-  return token || null;
-}
+import { readBearerToken } from "@/lib/server/bearer-token";
 
 async function readRememberMe(request: NextRequest): Promise<boolean> {
   try {
@@ -46,7 +38,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const idToken = readIdToken(request);
+    const idToken = readBearerToken(request);
     if (!idToken) {
       return NextResponse.json(
         {

@@ -16,7 +16,7 @@ export function PrimaryButton({
   className?: string;
   type?: "button" | "submit";
 }) {
-  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg bg-[#e86f22] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2] ${className}`;
+  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 text-sm font-semibold text-white shadow-sm transition hover:bg-[var(--ms-accent-hover,#ce5e19)] disabled:cursor-not-allowed disabled:bg-[#c9cdd2] ${className}`;
   if (href) {
     return (
       <Link href={href} className={styles}>

@@ -1,28 +1,37 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { Weekday } from "@/interfaces/mentor";
 import {
-  CV_PARSE_MS,
   IntroPhase,
-  MAX_EXPERTISE_AREAS,
+  MAX_MENTOR_TOPICS,
+  MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
-
 import { uploadDocument } from "@/lib/client/documents";
-import { parseStoredCv } from "@/lib/client/profile-analysis";
-import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import {
+  updateAvailabilitySettings,
+  updateMentorProfile,
+} from "@/lib/client/mentor-profile";
 import {
   clearOnboardingDraft,
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
+import { parseStoredCv } from "@/lib/client/profile-analysis";
+import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { currentIdToken } from "@/lib/firebase/auth";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
 vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn(),
+  updateAvailabilitySettings: vi.fn(),
+}));
+vi.mock("@/lib/client/user-profile", () => ({
+  getUserProfile: vi.fn(),
+  saveUserProfile: vi.fn(),
 }));
 vi.mock("@/lib/client/onboarding-draft", () => ({
   fetchOnboardingDraft: vi.fn(),
@@ -35,224 +44,196 @@ vi.mock("@/lib/firebase/auth", () => ({
     error instanceof Error ? error.message : "Bir hata oluştu.",
 }));
 
-const CV = { name: "nihan-ozturk-cv.pdf", size: 1_800_000 };
+type Hook = { current: ReturnType<typeof useMentorOnboarding> };
+
+const cvFile = new File(["%PDF-"], "nihan-cv.pdf", { type: "application/pdf" });
+
+let stored: {
+  kind: "mentor-onboarding";
+  step: string;
+  payload: unknown;
+} | null;
 
 beforeEach(() => {
-  vi.useFakeTimers();
+  vi.clearAllMocks();
+  stored = null;
   vi.mocked(currentIdToken).mockResolvedValue("id-token");
   vi.mocked(updateMentorProfile).mockResolvedValue(
     {} as Awaited<ReturnType<typeof updateMentorProfile>>,
   );
-  vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
-  vi.mocked(saveOnboardingDraft).mockResolvedValue({
-    kind: "mentor-onboarding",
-    step: "1",
-    payload: {},
+  vi.mocked(updateAvailabilitySettings).mockResolvedValue(
+    {} as Awaited<ReturnType<typeof updateAvailabilitySettings>>,
+  );
+  vi.mocked(getUserProfile).mockResolvedValue({
+    id: "u1",
+    fullName: "Nihan Öztürk",
+    email: "nihan@mentor.co",
+    jobTitle: null,
+    phone: "+905551112233",
+    bio: "Mevcut biyografi",
+    linkedinUrl: null,
+    expertise: ["UX"],
   });
-  vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
+  vi.mocked(saveUserProfile).mockResolvedValue(
+    {} as Awaited<ReturnType<typeof saveUserProfile>>,
+  );
+  vi.mocked(uploadDocument).mockResolvedValue({
+    id: "cv-1",
+    kind: "cv",
+    originalFilename: "nihan-cv.pdf",
+    sizeBytes: 5,
+  });
+  vi.mocked(fetchOnboardingDraft).mockImplementation(async () => stored);
+  vi.mocked(saveOnboardingDraft).mockImplementation(async (_token, body) => {
+    stored = {
+      kind: "mentor-onboarding",
+      step: body.step,
+      payload: body.payload,
+    };
+    return stored;
+  });
+  vi.mocked(clearOnboardingDraft).mockImplementation(async () => {
+    stored = null;
+  });
 });
-afterEach(() => vi.useRealTimers());
 
-function reachReview(result: {
-  current: ReturnType<typeof useMentorOnboarding>;
-}) {
-  act(() => result.current.uploadCv(CV));
-  act(() => void vi.advanceTimersByTime(CV_PARSE_MS));
-}
-
-function fillIntroProfile(result: {
-  current: ReturnType<typeof useMentorOnboarding>;
-}) {
+function fillProfile(result: Hook) {
   act(() => {
+    result.current.enterManually();
     result.current.updateProfile("title", "Ürün Direktörü");
     result.current.updateProfile("company", "Peak");
     result.current.updateProfile("totalExperience", "9 yıl");
   });
 }
 
-describe("useMentorOnboarding", () => {
-  it("starts on the intro step awaiting a CV", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
+function fillAreas(result: Hook) {
+  act(() => {
+    result.current.toggleTopic("Ürün stratejisi");
+    result.current.toggleStage("MVP");
+  });
+}
 
-    expect(result.current.step).toBe(MentorOnboardingStep.Intro);
+function openTuesday(result: Hook) {
+  act(() =>
+    result.current.updateDay(Weekday.Tuesday, {
+      enabled: true,
+      start: "14:00",
+      end: "17:00",
+    }),
+  );
+}
+
+describe("useMentorOnboarding", () => {
+  it("prefills the name from the account and waits for a CV", () => {
+    const { result } = renderHook(() =>
+      useMentorOnboarding({ fullName: "Nihan Ayşe Öztürk" }),
+    );
+
+    expect(result.current.step).toBe(MentorOnboardingStep.Profile);
     expect(result.current.phase).toBe(IntroPhase.Upload);
-    expect(result.current.draft.cv).toBeNull();
+    expect(result.current.draft.firstName).toBe("Nihan Ayşe");
+    expect(result.current.draft.lastName).toBe("Öztürk");
+    expect(result.current.isFirstScreen).toBe(true);
     expect(result.current.canContinue).toBe(false);
   });
 
-  it("moves through parsing to review after a CV is uploaded", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
+  it("opens the form by hand and asks for title and experience before moving on", () => {
+    const { result } = renderHook(() =>
+      useMentorOnboarding({ fullName: "Nihan Öztürk" }),
+    );
 
-    act(() => result.current.uploadCv(CV));
-    expect(result.current.phase).toBe(IntroPhase.Parsing);
-    expect(result.current.draft.cv).toEqual(CV);
-    expect(result.current.canContinue).toBe(false);
-
-    act(() => void vi.advanceTimersByTime(CV_PARSE_MS));
+    act(() => result.current.enterManually());
     expect(result.current.phase).toBe(IntroPhase.Review);
     expect(result.current.canContinue).toBe(false);
 
-    fillIntroProfile(result);
+    fillProfile(result);
     expect(result.current.canContinue).toBe(true);
   });
 
-  it("skips straight to review for manual entry", () => {
+  it("steps back from the form to the CV upload before leaving step 1", () => {
     const { result } = renderHook(() => useMentorOnboarding());
 
     act(() => result.current.enterManually());
+    act(() => result.current.goBack());
 
-    expect(result.current.phase).toBe(IntroPhase.Review);
-    expect(result.current.draft.cv).toBeNull();
-    expect(result.current.canContinue).toBe(false);
-
-    fillIntroProfile(result);
-    expect(result.current.canContinue).toBe(true);
-  });
-
-  it("returns to upload and forgets the CV when restarted", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
-    reachReview(result);
-
-    act(() => result.current.restartUpload());
-
+    expect(result.current.step).toBe(MentorOnboardingStep.Profile);
     expect(result.current.phase).toBe(IntroPhase.Upload);
-    expect(result.current.draft.cv).toBeNull();
   });
 
-  it("caps expertise selection at the documented maximum", () => {
+  it("needs a topic and a stage on the areas step, and caps topics", () => {
     const { result } = renderHook(() => useMentorOnboarding());
+    act(() => result.current.goToStep(MentorOnboardingStep.Areas));
 
-    const picks = [
-      "Finans",
-      "Yatırım Alma",
-      "Finansal Modelleme",
-      "Strateji",
-      "Birim Ekonomisi",
-      "Fiyatlandırma",
-    ];
-    picks.forEach((area) => act(() => result.current.toggleExpertise(area)));
-
-    expect(result.current.draft.expertise).toHaveLength(MAX_EXPERTISE_AREAS);
-    expect(result.current.expertiseLimitReached).toBe(true);
-
-    act(() => result.current.toggleExpertise("Nakit Akışı"));
-    expect(result.current.draft.expertise).toHaveLength(MAX_EXPERTISE_AREAS);
-    expect(result.current.draft.expertise).not.toContain("Nakit Akışı");
-  });
-
-  it("still allows deselection once the cap is reached", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
-    ["a", "b", "c", "d", "e", "f"].forEach((area) =>
-      act(() => result.current.toggleExpertise(area)),
-    );
-
-    act(() => result.current.toggleExpertise("a"));
-
-    expect(result.current.draft.expertise).toHaveLength(5);
-    expect(result.current.expertiseLimitReached).toBe(false);
-  });
-
-  it("gates the expertise step until at least one area is chosen", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
-    reachReview(result);
-    act(() => result.current.goNext());
-
-    expect(result.current.step).toBe(MentorOnboardingStep.Expertise);
+    act(() => result.current.toggleTopic(MENTOR_TOPIC_OPTIONS[0]));
     expect(result.current.canContinue).toBe(false);
-
-    act(() => result.current.toggleExpertise("Finans"));
+    act(() => result.current.toggleStage("Fikir"));
     expect(result.current.canContinue).toBe(true);
+
+    act(() => {
+      for (const topic of MENTOR_TOPIC_OPTIONS.slice(1))
+        result.current.toggleTopic(topic);
+    });
+    expect(result.current.draft.topics).toHaveLength(MAX_MENTOR_TOPICS);
+    expect(result.current.topicLimitReached).toBe(true);
+
+    act(() => result.current.toggleTopic(MENTOR_TOPIC_OPTIONS[0]));
+    expect(result.current.draft.topics).toHaveLength(MAX_MENTOR_TOPICS - 1);
   });
 
-  it("requires both a topic and a stage on the compatibility step", () => {
+  it("keeps offerings unique and ignores blank ones", () => {
     const { result } = renderHook(() => useMentorOnboarding());
-    reachReview(result);
-    act(() => result.current.goNext());
-    act(() => result.current.toggleExpertise("Finans"));
-    act(() => result.current.goNext());
 
-    expect(result.current.step).toBe(MentorOnboardingStep.Compatibility);
+    act(() => {
+      result.current.addOffering("  Pitch deck incelemesi ");
+      result.current.addOffering("Pitch deck incelemesi");
+      result.current.addOffering("   ");
+    });
+    expect(result.current.draft.offerings).toEqual(["Pitch deck incelemesi"]);
+
+    act(() => result.current.removeOffering(0));
+    expect(result.current.draft.offerings).toEqual([]);
+  });
+
+  it("needs at least one open day, and no day that ends before it starts", () => {
+    const { result } = renderHook(() => useMentorOnboarding());
+    act(() => result.current.goToStep(MentorOnboardingStep.Availability));
     expect(result.current.canContinue).toBe(false);
 
-    act(() => result.current.toggleSupportTopic("Yatırıma hazırlık"));
-    expect(result.current.canContinue).toBe(false);
-
-    act(() => result.current.toggleProgramStage("build"));
+    openTuesday(result);
     expect(result.current.canContinue).toBe(true);
+
+    act(() => result.current.updateDay(Weekday.Tuesday, { end: "13:00" }));
+    expect(result.current.invalidDays).toEqual([Weekday.Tuesday]);
+    expect(result.current.canContinue).toBe(false);
   });
 
-  it("requires a mentoring style before the profile can be completed", async () => {
+  it("only sends once the principles are accepted", () => {
     const { result } = renderHook(() => useMentorOnboarding());
-    reachReview(result);
-    act(() => result.current.goNext());
-    act(() => result.current.toggleExpertise("Finans"));
-    act(() => result.current.goNext());
-    act(() => result.current.toggleSupportTopic("Yatırıma hazırlık"));
-    act(() => result.current.toggleProgramStage("build"));
-    act(() => result.current.goNext());
+    act(() => result.current.goToStep(MentorOnboardingStep.Review));
 
-    expect(result.current.step).toBe(MentorOnboardingStep.Preferences);
     expect(result.current.isLastStep).toBe(true);
     expect(result.current.canContinue).toBe(false);
-
-    act(() => result.current.toggleMentoringStyle("Problem çözme"));
-    expect(result.current.canContinue).toBe(false);
-
-    act(() => result.current.toggleWorkingStage("MVP"));
-    expect(result.current.canContinue).toBe(false);
-
-    act(() => result.current.toggleSector("SaaS"));
+    act(() => result.current.update("consent", true));
     expect(result.current.canContinue).toBe(true);
-
-    await act(async () => {
-      await result.current.complete();
-    });
-    expect(result.current.completed).toBe(true);
   });
 
   it("does not run past either end of the step list", () => {
     const { result } = renderHook(() => useMentorOnboarding());
+    act(() => result.current.goToStep(MentorOnboardingStep.Review));
+    act(() => result.current.goNext());
+    expect(result.current.step).toBe(MentorOnboardingStep.Review);
 
+    act(() => result.current.goToStep(MentorOnboardingStep.Areas));
     act(() => result.current.goBack());
-    expect(result.current.step).toBe(MentorOnboardingStep.Intro);
-
-    MENTOR_STEPS_FORWARD.forEach(() => act(() => result.current.goNext()));
-    expect(result.current.step).toBe(MentorOnboardingStep.Preferences);
-  });
-
-  it("keeps preference selections in the draft", () => {
-    const { result } = renderHook(() => useMentorOnboarding());
-
-    act(() => result.current.toggleWorkingStage("MVP"));
-    act(() => result.current.toggleSector("SaaS"));
-    act(() => result.current.setCapacity("3"));
-
-    expect(result.current.draft.workingStages).toEqual(["MVP"]);
-    expect(result.current.draft.sectors).toEqual(["SaaS"]);
-    expect(result.current.draft.capacity).toBe("3");
+    act(() => result.current.goBack());
+    expect(result.current.step).toBe(MentorOnboardingStep.Profile);
   });
 });
 
 describe("useMentorOnboarding — reading the CV", () => {
-  const file = new File(["%PDF-"], "nihan-cv.pdf", {
-    type: "application/pdf",
-  });
-
-  beforeEach(() => {
-    vi.useRealTimers();
-    vi.mocked(uploadDocument).mockReset();
-    vi.mocked(parseStoredCv).mockReset();
-    vi.mocked(updateMentorProfile).mockClear();
-    vi.mocked(uploadDocument).mockResolvedValue({
-      id: "cv-1",
-      kind: "cv",
-      originalFilename: "nihan-cv.pdf",
-      sizeBytes: 5,
-    });
-  });
-
-  it("fills the form from the stored CV, read as a mentor's", async () => {
+  it("uploads the CV, reads it as a mentor's and fills only the empty fields", async () => {
     vi.mocked(parseStoredCv).mockResolvedValue({
+      full_name: "Nihan Öztürk",
       current_role: "Head of Design",
       current_company: "Looply",
       years_of_experience: 12,
@@ -266,11 +247,22 @@ describe("useMentorOnboarding — reading the CV", () => {
         },
       ],
     });
-    const { result } = renderHook(() => useMentorOnboarding());
+    const { result } = renderHook(() =>
+      useMentorOnboarding({ fullName: "Nihan Öztürk" }),
+    );
 
-    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+    expect(result.current.phase).toBe(IntroPhase.Parsing);
 
     await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(uploadDocument).toHaveBeenCalledWith(cvFile, "cv", "id-token");
     expect(parseStoredCv).toHaveBeenCalledWith("cv-1", "mentor");
     expect(result.current.draft.profile).toMatchObject({
       title: "Head of Design",
@@ -278,246 +270,174 @@ describe("useMentorOnboarding — reading the CV", () => {
       totalExperience: "12 yıl",
       inferredAreas: ["UX"],
     });
-    expect(result.current.areaOptions).toContain("UX");
+    expect(result.current.draft.profile.history).toHaveLength(1);
+    expect(result.current.topicOptions).toContain("UX");
+    expect(result.current.draft.firstName).toBe("Nihan");
     expect(result.current.parseNote).toBe("");
-    expect(result.current.canContinue).toBe(true);
   });
 
   it("still opens the form, with a note, when the CV cannot be read", async () => {
     vi.mocked(parseStoredCv).mockRejectedValue(new Error("okunamadı"));
     const { result } = renderHook(() => useMentorOnboarding());
 
-    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
 
     await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
     expect(result.current.parseNote).toContain("CV'nizi okuyamadık");
     expect(result.current.draft.profile.title).toBe("");
   });
 
-  it("saves the past roles the CV listed", async () => {
-    vi.mocked(parseStoredCv).mockResolvedValue({
-      current_role: "Head of Design",
-      current_company: "Looply",
-      years_of_experience: 12,
-      work_history: [
-        {
-          title: "Senior Designer",
-          organization: "Peak",
-          period: "2016 – 2021",
-          summary: null,
-        },
-      ],
-    });
+  it("goes back to the upload screen when the upload itself fails", async () => {
+    vi.mocked(uploadDocument).mockRejectedValue(
+      new Error("Dosya yüklenemedi."),
+    );
     const { result } = renderHook(() => useMentorOnboarding());
-    act(() => result.current.uploadCv({ name: file.name, size: 5, file }));
-    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
 
-    act(() => result.current.toggleMentoringStyle("Problem çözme"));
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() =>
+      expect(result.current.uploadError).toBe("Dosya yüklenemedi."),
+    );
+    expect(result.current.phase).toBe(IntroPhase.Upload);
+  });
+});
+
+describe("useMentorOnboarding — sending the profile", () => {
+  function readyToSend() {
+    const hook = renderHook(() =>
+      useMentorOnboarding({ fullName: "Nihan Öztürk" }),
+    );
+    fillProfile(hook.result);
+    fillAreas(hook.result);
+    openTuesday(hook.result);
+    act(() => {
+      hook.result.current.update("linkedin", "linkedin.com/in/nihan");
+      hook.result.current.addOffering("Pitch deck incelemesi");
+      hook.result.current.update("consent", true);
+    });
+    return hook;
+  }
+
+  it("saves the mentor profile, the availability and the person's own profile with the token", async () => {
+    const { result } = readyToSend();
+
     await act(async () => {
       await result.current.complete();
     });
 
     expect(updateMentorProfile).toHaveBeenCalledWith(
       expect.objectContaining({
-        experiences: [
-          {
-            title: "Senior Designer",
-            organization: "Peak",
-            period: "2016 – 2021",
-            summary: "",
-          },
+        professionalTitle: "Ürün Direktörü",
+        company: "Peak",
+        experienceLevel: "9 yıl",
+        specialties: ["Ürün stratejisi"],
+        startupStages: "MVP",
+        offerings: ["Pitch deck incelemesi"],
+      }),
+      "id-token",
+    );
+    expect(updateAvailabilitySettings).toHaveBeenCalledWith(
+      expect.objectContaining({
+        rules: [
+          expect.objectContaining({
+            dayOfWeek: Weekday.Tuesday,
+            startTime: "14:00",
+            endTime: "17:00",
+          }),
         ],
       }),
       "id-token",
     );
-  });
-});
-
-const MENTOR_STEPS_FORWARD = [1, 2, 3, 4, 5];
-
-describe("useMentorOnboarding — saving the profile", () => {
-  beforeEach(() => {
-    vi.useRealTimers();
-    vi.mocked(currentIdToken).mockResolvedValue("id-token");
-    vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
-    vi.mocked(saveOnboardingDraft).mockResolvedValue({
-      kind: "mentor-onboarding",
-      step: "1",
-      payload: {},
-    });
-    vi.mocked(clearOnboardingDraft).mockResolvedValue(undefined);
-  });
-
-  it("sends the collected draft to the mentor profile endpoint", async () => {
-    vi.mocked(updateMentorProfile).mockResolvedValue(
-      {} as Awaited<ReturnType<typeof updateMentorProfile>>,
-    );
-    const { result } = renderHook(() => useMentorOnboarding());
-
-    act(() => {
-      result.current.updateProfile("title", "Ürün Direktörü");
-      result.current.updateProfile("company", "Peak");
-    });
-    act(() => {
-      result.current.toggleExpertise("Finans");
-      result.current.toggleSector("SaaS");
-      result.current.toggleSector("Fintech");
-      result.current.toggleWorkingStage("MVP");
-      result.current.toggleMentoringStyle("Problem çözme");
-    });
-    await act(async () => {
-      await result.current.complete();
-    });
-
-    expect(updateMentorProfile).toHaveBeenCalledWith(
-      {
-        professionalTitle: "Ürün Direktörü",
-        company: "Peak",
-        availabilityLabel: "",
-        responseTimeLabel: "",
-        meetingMode: "",
-        communicationPreference: "",
-        mentoringStyle: "Problem çözme",
-        fitLabel: "",
-        experienceLevel: "Finans",
-        sectorExperience: "SaaS, Fintech",
-        startupStages: "MVP",
-        specialties: ["Finans"],
-      },
+    // Phone and bio are not on this form, so they must survive the save.
+    expect(saveUserProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fullName: "Nihan Öztürk",
+        jobTitle: "Ürün Direktörü",
+        linkedinUrl: "linkedin.com/in/nihan",
+        phone: "+905551112233",
+        bio: "Mevcut biyografi",
+      }),
       "id-token",
     );
-    expect(result.current.completed).toBe(true);
+    expect(result.current.submittedAt).toBeInstanceOf(Date);
+    expect(result.current.saveError).toBe("");
   });
 
-  it("surfaces a save failure instead of claiming the profile is done", async () => {
-    vi.mocked(updateMentorProfile).mockRejectedValue(
-      new Error("Profil kaydedilemedi."),
+  it("surfaces a save failure instead of claiming the profile was sent", async () => {
+    vi.mocked(updateAvailabilitySettings).mockRejectedValue(
+      new Error("Müsaitlik kaydedilemedi."),
     );
-    const { result } = renderHook(() => useMentorOnboarding());
+    const { result } = readyToSend();
 
     await act(async () => {
       await result.current.complete();
     });
 
-    expect(result.current.saveError).toBe("Profil kaydedilemedi.");
-    expect(result.current.completed).toBe(false);
+    expect(result.current.saveError).toBe("Müsaitlik kaydedilemedi.");
+    expect(result.current.submittedAt).toBeNull();
     expect(result.current.isSaving).toBe(false);
   });
 
-  it("surfaces a CV upload failure rather than silently resetting", async () => {
-    vi.mocked(uploadDocument).mockRejectedValue(
-      new Error("Yükleme başarısız."),
-    );
-    const { result } = renderHook(() => useMentorOnboarding());
+  it("asks the person to sign in again when the token is gone", async () => {
+    vi.mocked(currentIdToken).mockResolvedValue(null);
+    const { result } = readyToSend();
 
-    act(() => {
-      result.current.uploadCv({
-        name: "cv.pdf",
-        size: 1024,
-        file: new File(["x"], "cv.pdf"),
-      });
+    await act(async () => {
+      await result.current.complete();
     });
 
-    await waitFor(() =>
-      expect(result.current.uploadError).toBe("Yükleme başarısız."),
-    );
-    expect(result.current.phase).toBe(IntroPhase.Upload);
+    expect(result.current.saveError).toContain("Oturumunuz sona erdi");
+    expect(updateMentorProfile).not.toHaveBeenCalled();
   });
 });
 
 describe("useMentorOnboarding — resuming after a refresh", () => {
-  let stored: {
-    kind: "mentor-onboarding";
-    step: string;
-    payload: unknown;
-  } | null;
-
-  beforeEach(() => {
-    vi.useRealTimers();
-    stored = null;
-    vi.mocked(currentIdToken).mockResolvedValue("id-token");
-    vi.mocked(updateMentorProfile).mockResolvedValue(
-      {} as Awaited<ReturnType<typeof updateMentorProfile>>,
-    );
-    vi.mocked(fetchOnboardingDraft).mockImplementation(async () => stored);
-    vi.mocked(saveOnboardingDraft).mockImplementation(async (_token, body) => {
-      stored = {
-        kind: "mentor-onboarding",
-        step: body.step,
-        payload: body.payload,
-      };
-      return stored;
-    });
-    vi.mocked(clearOnboardingDraft).mockImplementation(async () => {
-      stored = null;
-    });
-  });
-
-  it("restores selections made before the page was reloaded", async () => {
+  it("restores the draft, but never the consent", async () => {
     const first = renderHook(() => useMentorOnboarding());
     await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
     act(() => {
-      first.result.current.toggleExpertise("Finans");
+      first.result.current.toggleTopic("Finans");
       first.result.current.updateProfile("company", "Peak");
+      first.result.current.update("consent", true);
+    });
+    await act(async () => {
+      await first.result.current.saveDraft();
     });
     first.unmount();
-    await waitFor(() =>
-      expect(stored?.payload).toEqual(
-        expect.objectContaining({
-          expertise: ["Finans"],
-          profile: expect.objectContaining({ company: "Peak" }),
-        }),
-      ),
-    );
 
     const second = renderHook(() => useMentorOnboarding());
 
     await waitFor(() =>
-      expect(second.result.current.draft.expertise).toEqual(["Finans"]),
+      expect(second.result.current.draft.topics).toEqual(["Finans"]),
     );
     expect(second.result.current.draft.profile.company).toBe("Peak");
+    expect(second.result.current.draft.consent).toBe(false);
     expect(second.result.current.droppedFiles).toBe(0);
   });
 
-  it("reports an attachment that could not survive the reload", async () => {
+  it("forgets the draft once the profile is sent", async () => {
     const first = renderHook(() => useMentorOnboarding());
     await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
-    act(() =>
-      first.result.current.uploadCv({
-        name: "cv.pdf",
-        size: 10,
-        file: new File(["x"], "cv.pdf"),
-      }),
-    );
-    first.unmount();
-    await waitFor(() =>
-      expect(stored?.payload).toEqual(
-        expect.objectContaining({
-          cv: { name: "cv.pdf", size: 10 },
-        }),
-      ),
-    );
-
-    const second = renderHook(() => useMentorOnboarding());
-
-    await waitFor(() => expect(second.result.current.droppedFiles).toBe(1));
-    expect(second.result.current.draft.cv).toBeNull();
-  });
-
-  it("forgets the draft once the profile is saved", async () => {
-    const first = renderHook(() => useMentorOnboarding());
-    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
-    act(() => first.result.current.toggleExpertise("Finans"));
+    act(() => first.result.current.toggleTopic("Finans"));
     await act(async () => {
       await first.result.current.complete();
     });
-    first.unmount();
 
-    const second = renderHook(() => useMentorOnboarding());
-
-    await waitFor(() =>
-      expect(second.result.current.draft.expertise).toEqual([]),
-    );
+    expect(clearOnboardingDraft).toHaveBeenCalled();
     expect(stored).toBeNull();
   });
 });

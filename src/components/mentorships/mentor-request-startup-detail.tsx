@@ -47,6 +47,7 @@ import {
   STARTUP_INFO_CARD_TITLE_CLASS,
 } from "@/lib/const/programs";
 import { normalizeMeetLink } from "@/lib/meet-link";
+import { programPersonHref } from "@/lib/program-links";
 import {
   preferredSlotMachineValue,
   preferredSlotStartsAt,
@@ -640,7 +641,10 @@ function MemberRow({ member }: { member: OrganizationMember }) {
     ? MENTOR_REQUEST_STARTUP_LABELS.manager
     : MENTOR_REQUEST_STARTUP_LABELS.member;
   return (
-    <div className="flex items-center justify-between gap-3">
+    <Link
+      href={programPersonHref({ userId: member.id })}
+      className="flex items-center justify-between gap-3 rounded-lg hover:bg-[#f7f8f9]"
+    >
       <div className="flex min-w-0 items-center gap-2.5">
         <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fdebdd] text-[11px] font-medium text-[#a8480e]">
           {initials(member.fullName)}
@@ -668,6 +672,6 @@ function MemberRow({ member }: { member: OrganizationMember }) {
       >
         {roleLabel}
       </span>
-    </div>
+    </Link>
   );
 }

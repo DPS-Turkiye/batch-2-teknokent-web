@@ -9,11 +9,17 @@ import {
   MeetingWhen,
 } from "@/components/startup/meeting-card-parts";
 import {
+  TodoBlankRows,
+  TodoCheckbox,
+  TodoNotebook,
+} from "@/components/notes/todo-notebook";
+import {
   useOpenTodoCounts,
   useStartupMeetingNotes,
 } from "@/hooks/use-startup-meeting-notes";
 import type { MeetingDetails } from "@/hooks/use-startup-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
+import { TODO_NOTEBOOK_LABELS } from "@/lib/const/notes";
 import {
   meetingNotebookHref,
   meetingTiming,
@@ -133,40 +139,22 @@ export function MeetingNotesPanel({
             </Link>
           </div>
 
-          <section
-            aria-labelledby="meeting-todos-title"
-            className="relative rounded-[24px] bg-white py-6 pl-9 pr-6 shadow-[4px_-4px_0_#d4d8dd,8px_-8px_0_#a8a8a8]"
+          <TodoNotebook
+            titleId="meeting-todos-title"
+            heading="h3"
+            className="h-[389px]"
           >
-            {[80, 212].map((top) => (
-              <Image
-                key={top}
-                src="/startup/notebook-binding.svg"
-                alt=""
-                width={34}
-                height={112}
-                className="absolute -left-3 hidden sm:block"
-                style={{ top }}
-              />
-            ))}
-            <h3
-              id="meeting-todos-title"
-              className="border-b border-[#c2c2c2] p-3 text-xl leading-7 text-[#22262b]"
-            >
-              Yapılacaklar
-            </h3>
             <ul>
               {notes.todos.map((todo) => (
                 <li key={todo.id} className="border-b border-[#c2c2c2] p-3">
                   <label className="flex items-center gap-2 text-base leading-6 text-[#636e7d]">
-                    <input
-                      type="checkbox"
+                    <TodoCheckbox
                       checked={todo.done}
-                      onChange={(event) =>
-                        notes.toggleTodo(todo.id, event.target.checked)
-                      }
-                      className="size-[18px] accent-[#e86f22]"
+                      onChange={(done) => notes.toggleTodo(todo.id, done)}
                     />
-                    <span className={todo.done ? "line-through" : ""}>
+                    <span
+                      className={`min-w-0 break-words ${todo.done ? "line-through" : ""}`}
+                    >
                       {todo.title}
                     </span>
                   </label>
@@ -183,19 +171,20 @@ export function MeetingNotesPanel({
               <label className="flex items-center gap-2">
                 <span
                   aria-hidden
-                  className="size-[18px] shrink-0 rounded border border-[#d4d8dd]"
+                  className="size-[18px] shrink-0 rounded-[4px] border border-[#d4d8dd]"
                 />
                 <input
                   value={notes.todoDraft}
                   onChange={(event) => notes.setTodoDraft(event.target.value)}
-                  placeholder="Görev ekle"
-                  aria-label="Görev ekle"
+                  placeholder={TODO_NOTEBOOK_LABELS.add}
+                  aria-label={TODO_NOTEBOOK_LABELS.add}
                   disabled={notes.isAddingTodo}
                   className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#636e7d] outline-none placeholder:text-[#aeb4bc]"
                 />
               </label>
             </form>
-          </section>
+            <TodoBlankRows used={notes.todos.length + 1} />
+          </TodoNotebook>
         </div>
       </section>
 

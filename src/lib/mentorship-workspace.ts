@@ -3,6 +3,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { MENTORSHIP_PERIOD_FORMAT } from "@/lib/const/mentorships";
 import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
@@ -122,6 +123,53 @@ export function meetingSummaryHref(meetingId: string) {
 
 export function meetingFeedbackHref(meetingId: string) {
   return `/meetings/research/feedback?id=${encodeURIComponent(meetingId)}`;
+}
+
+export function assistantMeetingHref(meetingId: string) {
+  return `/assistant?meetingId=${encodeURIComponent(meetingId)}`;
+}
+
+export function endedMeetingsForRequest(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+  now = new Date(),
+) {
+  return meetingsForRequest(meetings, request)
+    .filter((meeting) => isMeetingEnded(meeting, now))
+    .sort(
+      (left, right) =>
+        new Date(right.scheduledAt).getTime() -
+        new Date(left.scheduledAt).getTime(),
+    );
+}
+
+export function mentorshipPeriodLabel(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+) {
+  const times = meetingsForRequest(meetings, request)
+    .map((meeting) => new Date(meeting.scheduledAt).getTime())
+    .filter((time) => !Number.isNaN(time));
+  if (times.length === 0) {
+    const created = new Date(request.createdAt);
+    return Number.isNaN(created.getTime())
+      ? ""
+      : MENTORSHIP_PERIOD_FORMAT.format(created);
+  }
+  const first = MENTORSHIP_PERIOD_FORMAT.format(new Date(Math.min(...times)));
+  const last = MENTORSHIP_PERIOD_FORMAT.format(new Date(Math.max(...times)));
+  return first === last ? first : `${first} – ${last}`;
+}
+
+export function mentorshipTopics(
+  meetings: MeetingItem[],
+  request: MentorshipRequest,
+) {
+  const agendas = meetingsForRequest(meetings, request)
+    .map((meeting) => meeting.agenda?.trim())
+    .filter((agenda): agenda is string => Boolean(agenda));
+  const unique = [...new Set(agendas)];
+  return unique.length > 0 ? unique.join(", ") : request.supportArea;
 }
 
 export function requestProgressPercent(

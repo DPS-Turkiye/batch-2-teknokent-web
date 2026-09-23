@@ -66,8 +66,8 @@ export function RegisterView({
       <div className="flex flex-col gap-2 py-8">
         <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
           {isMentor
-            ? "Mentor olarak METUal'a katıl"
-            : "Startup'ınla METUal'a katıl"}
+            ? "Mentor olarak menton’a katıl"
+            : "Startup’ınla menton’a katıl"}
         </h1>
 
         <div className="flex flex-col gap-4 pt-7">

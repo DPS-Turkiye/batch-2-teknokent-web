@@ -151,6 +151,7 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
     meetingFrequency: profile.meetingFrequency ?? null,
     prepFileRequirement: profile.prepFileRequirement ?? null,
     languages: profile.languages ?? [],
+    offerings: profile.offerings ?? [],
     programRoles: (profile.programs ?? []).map((program) => ({
       programId: program.id,
       role: program.role ?? "",

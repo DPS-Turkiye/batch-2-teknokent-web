@@ -70,14 +70,15 @@ describe("Login screen", () => {
     await waitUntilLoginReady();
 
     expect(
-      screen.getByRole("heading", { name: "METUal'a hoş geldin" }),
+      screen.getByRole("heading", { name: "Menton’a hoş geldin" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/E-posta/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Şifre/)).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Şifremi unuttum" }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Beni Hatırla")).toBeInTheDocument();
+    // The revised design dropped Beni Hatırla.
+    expect(screen.queryByLabelText("Beni Hatırla")).not.toBeInTheDocument();
   });
 
   it("masks the password field", async () => {
@@ -87,16 +88,15 @@ describe("Login screen", () => {
     expect(screen.getByLabelText(/Şifre/)).toHaveAttribute("type", "password");
   });
 
-  it("offers both join routes and the invite route to new users", async () => {
+  it("sends new users to the role page and keeps the invite route", async () => {
     render(<LoginPage />);
     await waitUntilLoginReady();
 
-    expect(
-      screen.getByRole("link", { name: /Startup'ımla katıl/ }),
-    ).toHaveAttribute("href", "/signup");
-    expect(
-      screen.getByRole("link", { name: /Mentor olmak istiyorum/ }),
-    ).toHaveAttribute("href", "/signup?role=mentor");
+    expect(screen.getByText("Menton’a yeni misin?")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Kayıt Ol" })).toHaveAttribute(
+      "href",
+      "/signup",
+    );
     expect(
       screen.getByRole("link", {
         name: "Bir davet aldın mı? Davet kodunla devam et",
@@ -120,7 +120,7 @@ describe("Login screen", () => {
         false,
       ),
     );
-    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", false));
+    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token"));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
   });
 
@@ -150,26 +150,6 @@ describe("Login screen", () => {
 
     await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
     expect(push).not.toHaveBeenCalledWith("//evil.example/steal");
-  });
-
-  it("passes Beni Hatırla through as the persistence choice", async () => {
-    login.mockResolvedValue(undefined);
-    const user = userEvent.setup();
-    render(<LoginPage />);
-    await waitUntilLoginReady();
-
-    await user.click(screen.getByLabelText("Beni Hatırla"));
-    await fillCredentials(user);
-    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
-
-    await waitFor(() =>
-      expect(signInToFirebase).toHaveBeenCalledWith(
-        "gulse@dongu.co",
-        "sifre1234",
-        true,
-      ),
-    );
-    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", true));
   });
 
   it("surfaces wrong credentials without navigating away", async () => {

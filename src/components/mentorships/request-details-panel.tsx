@@ -28,7 +28,7 @@ export function RequestDetailsPanel({
             (REQUEST_DETAIL_HIGHLIGHT_LABELS as readonly string[]).includes(
               field.label,
             )
-              ? "rounded-[20px] border border-[#e86f22] px-6 py-5 text-[#22262b]"
+              ? "rounded-[20px] border border-[var(--ms-accent,#e86f22)] px-6 py-5 text-[#22262b]"
               : "rounded-[10px] border border-[#e4e7ea] px-3.5 py-3"
           }
         >

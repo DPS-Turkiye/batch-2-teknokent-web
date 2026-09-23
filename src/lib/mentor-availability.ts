@@ -233,6 +233,19 @@ export function exceptionLabel(
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 
+/** Unavailable ranges that touch any day from `first` to `last` (local midnights). */
+export function exceptionsInRange(
+  exceptions: MentorAvailabilityException[],
+  first: Date,
+  last: Date,
+) {
+  return exceptions.filter(
+    (exception) =>
+      calendarDay(exception.startsOn) <= last &&
+      calendarDay(exception.endsOn) >= first,
+  );
+}
+
 export function toAvailabilityPayload(
   draft: AvailabilityDraft,
 ): UpdateMentorAvailabilitySettingsPayload {

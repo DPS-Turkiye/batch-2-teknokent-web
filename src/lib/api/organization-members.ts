@@ -49,3 +49,27 @@ export function removeOrganizationMember(
     params: { actorId },
   });
 }
+
+function pendingUrl(organizationId: string) {
+  return `/api/organizations/${encodeURIComponent(organizationId)}/pending-members`;
+}
+
+export function fetchPendingMembers(organizationId: string, actorId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: pendingUrl(organizationId),
+    params: { actorId },
+  });
+}
+
+export function removePendingMember(
+  organizationId: string,
+  pendingId: string,
+  actorId: string,
+) {
+  return backendRequest({
+    method: HttpMethod.Delete,
+    url: `${pendingUrl(organizationId)}/${encodeURIComponent(pendingId)}`,
+    params: { actorId },
+  });
+}

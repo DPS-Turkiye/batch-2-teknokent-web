@@ -1,3 +1,4 @@
+import type { ContactPreference } from "@/interfaces/signup";
 import type { AppSession, BackendUser } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -24,6 +25,10 @@ export type FounderRegistration = {
   maturity?: string;
   programLevel?: string;
   supportAreas?: string[];
+  contactPreferences?: ContactPreference[];
+  mvpUrl?: string;
+  foundedYear?: number;
+  teamMembers?: { fullName: string; jobTitle?: string; email?: string }[];
 };
 
 export type MentorRegistration = {

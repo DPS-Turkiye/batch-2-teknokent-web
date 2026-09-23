@@ -7,14 +7,7 @@ import {
 } from "@/lib/api/mentor-profile";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
-
-const BEARER_PREFIX = "Bearer ";
-
-function readIdToken(request: NextRequest) {
-  const header = request.headers.get("authorization");
-  if (!header?.startsWith(BEARER_PREFIX)) return null;
-  return header.slice(BEARER_PREFIX.length).trim() || null;
-}
+import { readBearerToken } from "@/lib/server/bearer-token";
 
 export async function GET() {
   try {
@@ -29,7 +22,7 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const idToken = readIdToken(request);
+    const idToken = readBearerToken(request);
     const payload = (await request.json()) as Record<string, unknown>;
 
     if (idToken) {

@@ -1,5 +1,8 @@
 "use client";
 
+import { Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+
 import {
   STATUS_META,
   useMeetingAssistant,
@@ -15,7 +18,16 @@ import { BotStatus, MeetingStatus } from "@/types/assistant";
 import { Calendar } from "lucide-react";
 
 export default function AssistantPage() {
+  return (
+    <Suspense fallback={<AppShell active={AppArea.Assistant}>{null}</AppShell>}>
+      <MeetingAssistantWorkspace />
+    </Suspense>
+  );
+}
+
+function MeetingAssistantWorkspace() {
   const session = useAppSession();
+  const requestedMeetingId = useSearchParams()?.get("meetingId") ?? undefined;
   const {
     meetings,
     selected,
@@ -45,7 +57,7 @@ export default function AssistantPage() {
     shareError,
     sendTranscript,
     sendReport,
-  } = useMeetingAssistant();
+  } = useMeetingAssistant(requestedMeetingId);
 
   return (
     <AppShell active={AppArea.Assistant}>
