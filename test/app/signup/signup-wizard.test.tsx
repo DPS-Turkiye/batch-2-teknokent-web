@@ -1,19 +1,26 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
-import {
-  PROGRAM_LEVEL_OPTIONS,
-  SIGNUP_STEP_CTA,
-  SignupStep,
-} from "@/interfaces/signup";
+import { ContactPreference } from "@/interfaces/signup";
 import { registerFounder } from "@/lib/client/auth";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { renderWithQueryClient as render } from "@test/test-utils";
+
+const logout = vi.fn().mockResolvedValue(undefined);
+const push = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push, replace: vi.fn() }),
+}));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ logout }),
+}));
 
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
@@ -29,8 +36,6 @@ vi.mock("@/lib/client/auth", () => ({
   registerFounder: vi.fn().mockResolvedValue({}),
 }));
 
-// The program picker now loads real programs; the wizard's own assertions are
-// not about that list, so it stays empty here.
 vi.mock("@/lib/client/programs", () => ({
   getProgramNames: vi.fn().mockResolvedValue([]),
 }));
@@ -39,8 +44,6 @@ vi.mock("@/lib/client/profile-analysis", () => ({
   parseCv: vi.fn(),
 }));
 
-// A brand-new signup has nothing stored yet; individual tests override this
-// for the resumed-session case.
 vi.mock("@/lib/client/documents", () => ({
   listDocuments: vi.fn().mockResolvedValue([]),
   uploadDocument: vi.fn().mockResolvedValue({}),
@@ -52,152 +55,55 @@ const ACCOUNT: RegisteredAccount = {
   phone: "+905551112233",
 };
 
-const CTA = {
-  personal: SIGNUP_STEP_CTA[SignupStep.PersonalProfile],
-  startup: SIGNUP_STEP_CTA[SignupStep.StartupProfile],
-  documents: SIGNUP_STEP_CTA[SignupStep.Documents],
-  review: SIGNUP_STEP_CTA[SignupStep.Review],
-};
+type User = ReturnType<typeof userEvent.setup>;
 
-async function fillStartupStep(user: ReturnType<typeof userEvent.setup>) {
-  await user.upload(
-    screen.getByLabelText("Startup logosu seç"),
-    new File(["logo"], "logo.png", { type: "image/png" }),
-  );
+const next = () => screen.getByRole("button", { name: "Devam et" });
+
+async function completePersonalStep(user: User) {
+  await user.type(screen.getByLabelText(/^Ad\*?$/), "Gülse");
+  await user.type(screen.getByLabelText(/^Soyad/), "Buran");
+  await user.type(screen.getByLabelText(/Startup’taki rolün/), "Kurucu ortak");
+}
+
+async function completeStartupStep(user: User) {
   await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
-  await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
   await user.type(
-    screen.getByLabelText(/Web sitesi \/ sosyal link/),
-    "https://dongu.example",
+    screen.getByLabelText(/Tek satırlık tanım/),
+    "Döngüsel moda platformu",
   );
 }
 
-async function completePersonalStep(user: ReturnType<typeof userEvent.setup>) {
-  await user.type(screen.getByLabelText("Ad"), "Gülse");
-  await user.type(screen.getByLabelText("Soyad"), "Buran");
-  await user.type(screen.getByLabelText("Startup'taki rolün"), "Designer");
+async function reachReview(user: User) {
+  await completePersonalStep(user);
+  await user.click(next());
+  await completeStartupStep(user);
+  await user.click(next());
+  await user.click(next());
 }
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(listDocuments).mockResolvedValue([]);
+  vi.mocked(getProgramNames).mockResolvedValue([]);
+});
 
 describe("Signup wizard", () => {
-  it("requires and uploads the startup logo", async () => {
+  it("opens on the personal profile with Devam et shut until the required fields are filled", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
-    await user.type(screen.getByLabelText(/Tek satırlık tanım/), "Kısa tanım");
-    await user.type(
-      screen.getByLabelText(/Web sitesi \/ sosyal link/),
-      "https://dongu.example",
-    );
-    expect(screen.getByRole("button", { name: CTA.startup })).toBeDisabled();
-
-    await user.upload(
-      screen.getByLabelText("Startup logosu seç"),
-      new File([new Uint8Array(5 * 1024 * 1024 + 1)], "large-logo.png", {
-        type: "image/png",
-      }),
-    );
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "Dosya boyutu 5 MB sınırını aşamaz.",
-    );
-    expect(screen.getByRole("button", { name: CTA.startup })).toBeDisabled();
-
-    await user.upload(
-      screen.getByLabelText("Startup logosu seç"),
-      new File(["logo"], "logo.png", { type: "image/png" }),
-    );
-    expect(screen.getByRole("button", { name: CTA.startup })).toBeEnabled();
-
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    await waitFor(() =>
-      expect(vi.mocked(uploadDocument)).toHaveBeenCalledWith(
-        expect.objectContaining({ name: "logo.png" }),
-        "logo",
-        "id-token",
-      ),
-    );
-  });
-
-  it("opens on step 1 with the four setup steps listed", () => {
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    const stepper = screen.getByRole("navigation", {
-      name: "Profil kurulum adımları",
-    });
-    expect(
-      within(stepper).getByText("Kişisel profilini oluştur"),
-    ).toBeInTheDocument();
-    expect(
-      within(stepper).getByText("Start up profilini oluştur"),
-    ).toBeInTheDocument();
-    expect(within(stepper).getByText("Dosyalarını yükle")).toBeInTheDocument();
-    expect(within(stepper).getByText("Onay gönder")).toBeInTheDocument();
 
     expect(
       screen.getByRole("heading", { name: "Kişisel profilini oluştur" }),
     ).toBeInTheDocument();
-  });
-
-  it("keeps Devam et disabled until the required fields are filled", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    const next = screen.getByRole("button", { name: CTA.personal });
-    expect(next).toBeDisabled();
+    expect(screen.getByRole("button", { name: "← Geri" })).toBeDisabled();
+    expect(next()).toBeDisabled();
 
     await completePersonalStep(user);
-    expect(next).toBeEnabled();
+    expect(next()).toBeEnabled();
   });
 
-  it("disables Geri on the first step", () => {
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    expect(screen.getByRole("button", { name: "Geri" })).toBeDisabled();
-  });
-
-  it("counts the bio characters as the mentee types", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    expect(screen.getByText("0/280")).toBeInTheDocument();
-    await user.type(screen.getByLabelText("Kısa tanıtım"), "Merhaba");
-    expect(screen.getByText("7/280")).toBeInTheDocument();
-  });
-
-  // Expertise is free-form now: there is no fixed list to toggle, so the mentee
-  // types their own and can remove any chip.
-  it("adds and removes a free-form expertise chip", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    expect(screen.getByText(/Henüz bir alan eklenmedi/)).toBeInTheDocument();
-
-    await user.type(
-      screen.getByLabelText("Uzmanlık alanları ekle"),
-      "Ürün Yönetimi",
-    );
-    await user.click(screen.getByRole("button", { name: /Ekle/ }));
-
-    expect(screen.getByText("Ürün Yönetimi")).toBeInTheDocument();
-
-    await user.click(
-      screen.getByRole("button", { name: "Ürün Yönetimi alanını kaldır" }),
-    );
-
-    expect(screen.queryByText("Ürün Yönetimi")).not.toBeInTheDocument();
-  });
-
-  it("fills the role and expertise from a parsed CV", async () => {
-    vi.mocked(parseCv).mockResolvedValue({
-      current_role: "Ürün Yöneticisi",
-      professional_functions: ["Ürün Yönetimi"],
-      technologies: ["PyTorch"],
-    });
+  it("fills an empty role from a parsed CV", async () => {
+    vi.mocked(parseCv).mockResolvedValue({ current_role: "Ürün Yöneticisi" });
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
@@ -206,10 +112,10 @@ describe("Signup wizard", () => {
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
     );
 
-    expect(await screen.findByText("Ürün Yönetimi")).toBeInTheDocument();
-    expect(screen.getByText("PyTorch")).toBeInTheDocument();
-    expect(screen.getByLabelText("Startup'taki rolün")).toHaveValue(
-      "Ürün Yöneticisi",
+    await waitFor(() =>
+      expect(screen.getByLabelText(/Startup’taki rolün/)).toHaveValue(
+        "Ürün Yöneticisi",
+      ),
     );
   });
 
@@ -219,17 +125,17 @@ describe("Signup wizard", () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
-    await user.type(screen.getByLabelText("Startup'taki rolün"), "Kurucu");
+    await user.type(screen.getByLabelText(/Startup’taki rolün/), "Kurucu");
     await user.upload(
       screen.getByLabelText(/CV dosyası seç/),
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
     );
 
-    await waitFor(() => expect(vi.mocked(parseCv)).toHaveBeenCalled());
-    expect(screen.getByLabelText("Startup'taki rolün")).toHaveValue("Kurucu");
+    await waitFor(() => expect(parseCv).toHaveBeenCalled());
+    expect(screen.getByLabelText(/Startup’taki rolün/)).toHaveValue("Kurucu");
   });
 
-  it("says so when the CV cannot be read, rather than looking empty", async () => {
+  it("says so when the CV cannot be read", async () => {
     vi.mocked(parseCv).mockRejectedValue(
       new Error("CV okunamadı. Bilgileri elle girebilirsin."),
     );
@@ -241,14 +147,10 @@ describe("Signup wizard", () => {
       new File(["cv"], "cv.pdf", { type: "application/pdf" }),
     );
 
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "CV okunamadı. Bilgileri elle girebilirsin.",
-    );
+    expect(await screen.findByRole("alert")).toHaveTextContent("CV okunamadı");
   });
 
-  // Reported: a resumed session (after a reload dropped the in-memory File
-  // object) showed the CV dropzone as empty even though it was already stored.
-  it("shows an already-uploaded CV instead of an empty dropzone on a resumed session", async () => {
+  it("shows an already-uploaded CV on a resumed session", async () => {
     vi.mocked(listDocuments).mockResolvedValue([
       {
         id: "doc-1",
@@ -257,40 +159,31 @@ describe("Signup wizard", () => {
         sizeBytes: 1024,
       },
     ]);
-
     render(<SignupWizardView account={ACCOUNT} />);
 
     expect(await screen.findByText("gulse-cv.pdf")).toBeInTheDocument();
-    expect(screen.getByText("Zaten yüklendi")).toBeInTheDocument();
+    expect(screen.getByText("Daha önce yüklendi")).toBeInTheDocument();
   });
 
-  it("walks through every step and reaches the review summary", async () => {
+  it("needs only the startup name and tagline on step 2", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await user.click(next());
 
     expect(
       screen.getByRole("heading", { name: "Startup profilini oluştur" }),
     ).toBeInTheDocument();
-
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-
-    expect(
-      screen.getByRole("heading", { name: "Dosyalarını Yükle" }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-
-    expect(
-      screen.getByRole("heading", { name: "Profilini gözden geçir" }),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Gülse Buran")).toBeInTheDocument();
-    expect(screen.getAllByText("Döngü").length).toBeGreaterThan(0);
+    expect(next()).toBeDisabled();
+    await completeStartupStep(user);
+    expect(next()).toBeEnabled();
+    // The revised design dropped these questions.
+    expect(screen.queryByLabelText(/Problem/)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Sektör/)).not.toBeInTheDocument();
   });
 
-  it("offers the coordinator's real programs, not a hardcoded list", async () => {
+  it("offers the coordinator's real programs plus Bağımsız", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
       { id: "prog-1", name: "metustarts 2026" },
       { id: "prog-2", name: "Seed 2026" },
@@ -299,22 +192,36 @@ describe("Signup wizard", () => {
     render(<SignupWizardView account={ACCOUNT} />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await user.click(next());
 
-    const picker = await screen.findByRole("button", {
-      name: /Bir programa dahil değilim/,
-    });
-    await user.click(picker);
-
+    const programs = await screen.findByRole("group", { name: "Program" });
     expect(
-      screen.getByRole("option", { name: /metustarts 2026/ }),
+      within(programs).getByRole("button", { name: "metustarts 2026" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("option", { name: /Seed 2026/ }),
+      within(programs).getByRole("button", { name: "Seed 2026" }),
+    ).toBeInTheDocument();
+    expect(
+      within(programs).getByRole("button", { name: "Bağımsız" }),
     ).toBeInTheDocument();
   });
 
-  it("sends the chosen program id through registration", async () => {
+  it("returns to the matching step when a review section is edited", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await reachReview(user);
+    const personal = screen
+      .getByRole("heading", { name: "Kişisel profil" })
+      .closest("section") as HTMLElement;
+    await user.click(within(personal).getByRole("button", { name: "Düzenle" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Kişisel profilini oluştur" }),
+    ).toBeInTheDocument();
+  });
+
+  it("sends the whole application, then shows the submitted screen", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
       { id: "prog-1", name: "metustarts 2026" },
     ]);
@@ -322,237 +229,77 @@ describe("Signup wizard", () => {
     render(<SignupWizardView account={ACCOUNT} />);
 
     await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
+    await user.click(screen.getByRole("button", { name: "E-posta" }));
+    await user.click(next());
+
+    await completeStartupStep(user);
     await user.click(
-      await screen.findByRole("button", { name: /Bir programa dahil değilim/ }),
+      await screen.findByRole("button", { name: "metustarts 2026" }),
     );
-    await user.click(screen.getByRole("option", { name: /metustarts 2026/ }));
+    await user.click(screen.getByRole("button", { name: "Prototip" }));
+    await user.click(screen.getByRole("button", { name: "+ Üye ekle" }));
+    await user.type(screen.getByLabelText(/Ad soyad/), "Ece Kaya");
+    await user.type(screen.getByLabelText(/^Rol/), "CTO");
+    await user.click(screen.getByRole("button", { name: "Ekle" }));
+    expect(screen.getByText("Ece Kaya")).toBeInTheDocument();
+    await user.click(next());
 
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
+    const deck = new File(["deck"], "deck.pdf", { type: "application/pdf" });
+    await user.upload(screen.getByLabelText("Pitch Deck dosyası seç"), deck);
+    await user.type(screen.getByLabelText(/Bağlantı/), "https://app.dongu.co");
+    await user.click(next());
+
+    const send = screen.getByRole("button", { name: "Koordinatöre gönder" });
+    expect(send).toBeDisabled();
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(send);
 
     await waitFor(() =>
-      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
-        expect.objectContaining({ programId: "prog-1" }),
-        expect.anything(),
-      ),
-    );
-  });
-
-  // The parsed chips used to fill the screen and then vanish at submit, because
-  // registerFounder had nowhere to put them.
-  it("sends the parsed expertise, bio and LinkedIn through registration", async () => {
-    vi.mocked(parseCv).mockResolvedValue({
-      current_role: "Ürün Yöneticisi",
-      professional_summary: "Ürün odaklı kurucu",
-      professional_functions: ["Ürün Yönetimi"],
-      technologies: ["PyTorch"],
-    });
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await user.type(screen.getByLabelText("Ad"), "Gülse");
-    await user.type(screen.getByLabelText("Soyad"), "Buran");
-    await user.type(screen.getByLabelText("LinkedIn"), "linkedin.com/in/gulse");
-    await user.upload(
-      screen.getByLabelText(/CV dosyası seç/),
-      new File(["cv"], "cv.pdf", { type: "application/pdf" }),
-    );
-    expect(await screen.findByText("Ürün Yönetimi")).toBeInTheDocument();
-
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    await waitFor(() =>
-      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          expertise: ["Ürün Yönetimi", "PyTorch"],
-          bio: "Ürün odaklı kurucu",
-          linkedinUrl: "linkedin.com/in/gulse",
+      expect(
+        screen.getByRole("heading", {
+          name: "Döngü profili koordinatöre gönderildi",
         }),
-        expect.anything(),
-      ),
+      ).toBeInTheDocument(),
     );
+    expect(registerFounder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fullName: "Gülse Buran",
+        email: "gulse@dongu.co",
+        organizationName: "Döngü",
+        description: "Döngüsel moda platformu",
+        jobTitle: "Kurucu ortak",
+        programId: "prog-1",
+        maturity: "Prototip",
+        contactPreferences: [ContactPreference.Email],
+        mvpUrl: "https://app.dongu.co",
+        teamMembers: [
+          { fullName: "Ece Kaya", jobTitle: "CTO", email: undefined },
+        ],
+      }),
+      "id-token",
+    );
+    expect(uploadDocument).toHaveBeenCalledWith(deck, "pitch-deck", "id-token");
+    expect(
+      screen.getByRole("link", { name: "Gönderilen profili görüntüle" }),
+    ).toHaveAttribute("href", "/application-status");
   });
 
-  // The same defect as the parsed chips above, one level up: the startup step's
-  // fields filled the screen and the review page, then vanished at submit
-  // because registerFounder sent only the organization name and description.
-  it("sends the startup step's fields through registration", async () => {
+  it("keeps the wizard open and explains a failed submission", async () => {
+    vi.mocked(registerFounder).mockRejectedValueOnce(
+      new Error("Kayıt tamamlanamadı."),
+    );
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-
-    await fillStartupStep(user);
-    await user.type(
-      screen.getByLabelText("Hangi problemi çözüyorsunuz?"),
-      "Gönüllüler bulunamıyor",
-    );
-    await user.selectOptions(screen.getByLabelText("Sektör"), "SaaS");
-
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    await waitFor(() =>
-      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
-        expect.objectContaining({
-          website: "https://dongu.example",
-          problem: "Gönüllüler bulunamıyor",
-          sector: "SaaS",
-        }),
-        expect.anything(),
-      ),
-    );
-  });
-
-  // Reported: the page sits on "Gönderiliyor…" while a draft can still be saved,
-  // so a second write races the submission already in flight.
-  it("disables the draft and back actions while submitting", async () => {
-    let settle: ((value: unknown) => void) | undefined;
-    vi.mocked(registerFounder).mockReturnValue(
-      new Promise((resolve) => {
-        settle = resolve;
-      }) as ReturnType<typeof registerFounder>,
-    );
-
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    const draft = await screen.findByRole("button", {
-      name: "Taslak olarak kaydet",
-    });
-    await waitFor(() => expect(draft).toBeDisabled());
-    expect(screen.getByRole("button", { name: "Geri" })).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Gönderiliyor…" }),
-    ).toBeDisabled();
-
-    settle?.({});
-  });
-
-  it("no longer asks for Bugünkü durum on the startup step or the summary", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-
-    expect(
-      screen.getByRole("heading", { name: "Startup profilini oluştur" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Bugünkü durum")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText("Ekip büyüklüğü")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/Ürün durumu/)).not.toBeInTheDocument();
-    expect(
-      screen.queryByLabelText(/Mevcut kullanıcı \/ müşteri kanıtı/),
-    ).not.toBeInTheDocument();
-
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-
-    expect(
-      screen.getByRole("heading", { name: "Profilini gözden geçir" }),
-    ).toBeInTheDocument();
-    expect(screen.queryByText("Bugünkü durum")).not.toBeInTheDocument();
-  });
-
-  it("returns to the matching step when a review section is edited", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-
-    const personalSection = screen
-      .getByText("Kişisel bilgiler")
-      .closest("section") as HTMLElement;
+    await reachReview(user);
+    await user.click(screen.getByRole("checkbox"));
     await user.click(
-      within(personalSection).getByRole("button", { name: "Düzenle" }),
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
     );
 
+    expect(await screen.findByText("Kayıt tamamlanamadı.")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Kişisel profilini oluştur" }),
+      screen.getByRole("heading", { name: "Gözden geçir ve gönder" }),
     ).toBeInTheDocument();
-  });
-
-  it("shows the coordinator review status after submitting", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    await waitFor(() =>
-      expect(screen.getByText("Koordinatör incelemesinde")).toBeInTheDocument(),
-    );
-    expect(screen.getByText("Profil tamamlandı")).toBeInTheDocument();
-    expect(screen.getByText("Startup aktif olacak")).toBeInTheDocument();
-    expect(
-      screen.queryByRole("navigation", { name: "Profil kurulum adımları" }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("registers the founder with the startup name collected in the wizard", async () => {
-    const user = userEvent.setup();
-    render(<SignupWizardView account={ACCOUNT} />);
-
-    await completePersonalStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.personal }));
-    await fillStartupStep(user);
-    await user.click(screen.getByRole("button", { name: CTA.startup }));
-    await user.click(screen.getByRole("button", { name: CTA.documents }));
-    await user.click(screen.getByRole("button", { name: CTA.review }));
-
-    await waitFor(() =>
-      expect(vi.mocked(registerFounder)).toHaveBeenCalledWith(
-        {
-          fullName: "Gülse Buran",
-          email: "gulse@dongu.co",
-          phone: "+905551112233",
-          organizationName: "Döngü",
-          description: "Kısa tanım",
-          jobTitle: "Designer",
-          // No program chosen is a real answer and is sent, not omitted.
-          programId: null,
-          expertise: [],
-          // Blank startup fields are sent as undefined rather than "", so the
-          // backend stores null instead of an empty string.
-          website: "https://dongu.example",
-          problem: undefined,
-          solution: undefined,
-          currentSolution: undefined,
-          targetUser: undefined,
-          sector: undefined,
-          maturity: undefined,
-          programLevel: PROGRAM_LEVEL_OPTIONS[0],
-          supportAreas: [],
-        },
-        "id-token",
-      ),
-    );
   });
 });

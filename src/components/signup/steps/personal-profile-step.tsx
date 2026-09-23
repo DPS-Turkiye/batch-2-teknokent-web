@@ -1,24 +1,34 @@
 "use client";
 
-import { Plus, User } from "lucide-react";
-
-import { ChipGroup } from "@/components/common/chip-group";
-import { EditableChips } from "@/components/common/editable-chips";
-import { FileDrop } from "@/components/common/file-drop";
+import {
+  OnboardingCard,
+  OnboardingChips,
+  OnboardingCounter,
+  OnboardingField,
+  OnboardingFileField,
+  onboardingInputClass,
+} from "@/components/onboarding/onboarding-ui";
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
-import { applyCvParse } from "@/lib/cv-suggestions";
 import {
   BIO_MAX_LENGTH,
-  CONTACT_PREFERENCE_OPTIONS,
+  CONTACT_PREFERENCE_LABELS,
+  ContactPreference,
   type UploadedFile,
 } from "@/interfaces/signup";
-import { fieldClass, labelClass } from "@/components/common/form-field";
+import { applyCvParse } from "@/lib/cv-suggestions";
+
+const TONE = OnboardingTone.Mentee;
+const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
+const CONTACT_OPTIONS = Object.values(ContactPreference);
 
 export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
-  const { draft, updatePersonal, setExpertise, toggleContactPreference } =
-    wizard;
+  const { draft, updatePersonal, toggleContactPreference } = wizard;
   const { personal } = draft;
   const cvParse = useCvParse();
   const storedCv = useStoredDocuments().byKind("cv");
@@ -28,169 +38,133 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
     if (!file?.file) return;
     cvParse.mutate(file.file, {
       onSuccess: (parsed) => {
-        // Suggestions, not an overwrite: anything the user already typed wins,
-        // and every parsed chip can be removed afterwards.
-        const next = applyCvParse(personal, parsed, {
-          keepFilled: true,
-          bioMaxLength: BIO_MAX_LENGTH,
-        });
+        // Suggestions, not an overwrite: anything already typed wins.
+        const next = applyCvParse(
+          { role: personal.role, bio: personal.bio, expertise: [] },
+          parsed,
+          { keepFilled: true, bioMaxLength: BIO_MAX_LENGTH },
+        );
         if (next.role !== personal.role) updatePersonal("role", next.role);
         if (next.bio !== personal.bio) updatePersonal("bio", next.bio);
-        if (parsed.expertise.length) setExpertise(next.expertise);
       },
     });
   }
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-[22px] font-semibold tracking-tight">
-          Kişisel profilini oluştur
-        </h1>
-        <p className="mt-1.5 text-sm text-[#676e78]">
-          Mentorların seni tanısın. Startup ekibini daha iyi anlasın.
-        </p>
-      </header>
-
-      <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <div className="flex flex-col gap-5 sm:flex-row">
-          <div className="relative size-20 shrink-0 self-start">
-            <div className="grid size-20 place-items-center rounded-full border border-dashed border-[#d6dade] bg-[#f8f9fa] text-[#a4aab2]">
-              <User className="size-7" strokeWidth={1.5} />
-            </div>
-            <span className="absolute bottom-0 right-0 grid size-6 place-items-center rounded-full border-2 border-white bg-[#e86f22] text-white">
-              <Plus className="size-3" />
-            </span>
-          </div>
-          <div className="grid flex-1 gap-4 sm:grid-cols-2">
-            <div>
-              <label className={labelClass} htmlFor="signup-first-name">
-                Ad
-              </label>
-              <input
-                id="signup-first-name"
-                className={fieldClass}
-                value={personal.firstName}
-                onChange={(event) =>
-                  updatePersonal("firstName", event.target.value)
-                }
-              />
-            </div>
-            <div>
-              <label className={labelClass} htmlFor="signup-last-name">
-                Soyad
-              </label>
-              <input
-                id="signup-last-name"
-                className={fieldClass}
-                value={personal.lastName}
-                onChange={(event) =>
-                  updatePersonal("lastName", event.target.value)
-                }
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <label className={labelClass} htmlFor="signup-role">
-                Startup&apos;taki rolün
-              </label>
-              <input
-                id="signup-role"
-                className={fieldClass}
-                value={personal.role}
-                onChange={(event) => updatePersonal("role", event.target.value)}
-              />
-            </div>
-          </div>
+    <>
+      <OnboardingCard title="Temel bilgiler">
+        <div className="flex flex-col gap-3.5 sm:flex-row">
+          <OnboardingField
+            id="signup-first-name"
+            label="Ad"
+            required
+            tone={TONE}
+          >
+            <input
+              id="signup-first-name"
+              className={inputClass}
+              value={personal.firstName}
+              onChange={(event) =>
+                updatePersonal("firstName", event.target.value)
+              }
+            />
+          </OnboardingField>
+          <OnboardingField
+            id="signup-last-name"
+            label="Soyad"
+            required
+            tone={TONE}
+          >
+            <input
+              id="signup-last-name"
+              className={inputClass}
+              value={personal.lastName}
+              onChange={(event) =>
+                updatePersonal("lastName", event.target.value)
+              }
+            />
+          </OnboardingField>
         </div>
-      </section>
-
-      <section className="space-y-4 rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <div>
-          <label className={labelClass} htmlFor="signup-bio">
-            Kısa tanıtım
-          </label>
-          <textarea
-            id="signup-bio"
-            rows={4}
-            maxLength={BIO_MAX_LENGTH}
-            className={`${fieldClass} min-h-28 resize-y py-3 leading-relaxed`}
-            value={personal.bio}
-            onChange={(event) => updatePersonal("bio", event.target.value)}
+        <OnboardingField
+          id="signup-role"
+          label="Startup’taki rolün"
+          required
+          tone={TONE}
+        >
+          <input
+            id="signup-role"
+            className={inputClass}
+            placeholder="Örn. Product Designer · Kurucu ortak"
+            value={personal.role}
+            onChange={(event) => updatePersonal("role", event.target.value)}
           />
-          <p className="mt-1 text-[11px] text-[#a4aab2]">
-            {personal.bio.length}/{BIO_MAX_LENGTH}
-          </p>
-        </div>
-
-        <div>
-          <label className={labelClass} htmlFor="signup-linkedin">
-            LinkedIn
-          </label>
+        </OnboardingField>
+        <OnboardingField id="signup-linkedin" label="LinkedIn" tone={TONE}>
           <input
             id="signup-linkedin"
-            className={fieldClass}
-            placeholder="linkedin.com/in/kullanici"
+            className={inputClass}
+            placeholder="linkedin.com/in/kullanici-adi"
             value={personal.linkedin}
             onChange={(event) => updatePersonal("linkedin", event.target.value)}
           />
-        </div>
+        </OnboardingField>
+      </OnboardingCard>
 
-        <div>
-          <h2 className="text-sm font-semibold">CV yükle</h2>
-          <p className="mb-3 mt-1 text-xs text-[#676e78]">
-            PDF veya DOCX formatındaki CV&apos;nizi kullanarak profilinizi
-            hazırlayın.
-          </p>
-          <FileDrop
-            file={personal.cv}
-            label="CV dosyası seç"
-            onChange={onCvSelected}
-            alreadyStored={
-              storedCv ? { name: storedCv.originalFilename } : null
-            }
-          />
-          {cvParse.isPending ? (
-            <p className="mt-2 text-xs text-[#676e78]" role="status">
-              CV okunuyor, alanların dolduruluyor…
-            </p>
-          ) : null}
-          {cvParse.error ? (
-            // A failed parse must say so rather than looking like an empty CV.
-            <p className="mt-2 text-xs text-[#b91c1c]" role="alert">
-              {cvParse.error.message}
-            </p>
-          ) : null}
-          {cvParse.isSuccess && !cvParse.isPending ? (
-            <p className="mt-2 text-xs text-[#0f7b4f]" role="status">
-              CV okundu. Aşağıdaki alanları kontrol edip düzenleyebilirsin.
-            </p>
-          ) : null}
-        </div>
-      </section>
-
-      <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <h2 className="mb-1 text-sm font-semibold">Uzmanlık alanları</h2>
-        <p className="mb-3 text-xs text-[#676e78]">
-          CV yüklediğinde otomatik doldurulur. İstediğini kaldırabilir, kendin
-          ekleyebilirsin.
-        </p>
-        <EditableChips
-          label="Uzmanlık alanları"
-          values={personal.expertise}
-          onChange={setExpertise}
-          placeholder="Örn. Ürün Yönetimi"
+      <OnboardingCard
+        title="Kısa tanıtım"
+        subtitle="Mentorun seninle ilk görüşmeden önce okuyacağı iki cümle."
+      >
+        <textarea
+          aria-label="Kısa tanıtım"
+          rows={3}
+          maxLength={BIO_MAX_LENGTH}
+          className={`${inputClass} min-h-20 resize-y py-3`}
+          value={personal.bio}
+          onChange={(event) => updatePersonal("bio", event.target.value)}
         />
-      </section>
+        <OnboardingCounter
+          hint="Mentorlar bu metni arama sonuçlarında görür"
+          length={personal.bio.length}
+          max={BIO_MAX_LENGTH}
+        />
+      </OnboardingCard>
 
-      <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
-        <h2 className="mb-3 text-sm font-semibold">İletişim tercihi</h2>
-        <ChipGroup
-          label="İletişim tercihi"
-          options={CONTACT_PREFERENCE_OPTIONS}
+      <OnboardingCard
+        title="CV (isteğe bağlı)"
+        subtitle="Yüklersen mentorun geçmişini hızlıca görür. Zorunlu değil."
+      >
+        <OnboardingFileField
+          label="CV dosyası seç"
+          file={personal.cv}
+          onChange={onCvSelected}
+          accept=".pdf,.docx"
+          storedName={storedCv?.originalFilename ?? null}
+        />
+        {cvParse.isPending ? (
+          <p className="text-xs text-[#676e78]" role="status">
+            CV okunuyor, boş alanların dolduruluyor…
+          </p>
+        ) : null}
+        {cvParse.error ? (
+          <p className="text-xs text-[#b42318]" role="alert">
+            {cvParse.error.message}
+          </p>
+        ) : null}
+      </OnboardingCard>
+
+      <OnboardingCard
+        title="İletişim tercihin"
+        subtitle="Mentorunla nasıl iletişim kurmayı tercih edersin?"
+      >
+        <OnboardingChips
+          tone={TONE}
+          label="İletişim tercihin"
+          options={CONTACT_OPTIONS}
           selected={personal.contactPreferences}
           onToggle={toggleContactPreference}
+          labelFor={(value) => CONTACT_PREFERENCE_LABELS[value]}
         />
-      </section>
-    </div>
+      </OnboardingCard>
+    </>
   );
 }

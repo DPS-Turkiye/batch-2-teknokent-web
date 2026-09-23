@@ -3,15 +3,7 @@ import { NextRequest } from "next/server";
 import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
-
-const BEARER_PREFIX = "Bearer ";
-
-function bearerToken(request: NextRequest) {
-  const header = request.headers.get("authorization");
-  return header?.startsWith(BEARER_PREFIX)
-    ? header.slice(BEARER_PREFIX.length).trim()
-    : null;
-}
+import { readBearerToken } from "@/lib/server/bearer-token";
 
 /**
  * Read-only list still proxies. Upload prefers a direct browser→backend call
@@ -19,7 +11,7 @@ function bearerToken(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const idToken = bearerToken(request);
+    const idToken = readBearerToken(request);
     if (idToken) {
       return backendResponse(await listStoredDocuments({ idToken }));
     }
@@ -35,7 +27,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const idToken = bearerToken(request);
+    const idToken = readBearerToken(request);
     if (!idToken) {
       return Response.json(
         { code: "UNAUTHORIZED", message: "Oturum gerekli." },

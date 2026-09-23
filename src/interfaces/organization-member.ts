@@ -20,3 +20,12 @@ export type OrganizationMemberUpdate = {
   fullName: string;
   jobTitle?: string;
 };
+
+/** A teammate listed at signup who has not joined with the invite code yet. */
+export type OrganizationPendingMember = {
+  id: string;
+  fullName: string;
+  jobTitle: string | null;
+  email: string | null;
+  createdAt: string;
+};

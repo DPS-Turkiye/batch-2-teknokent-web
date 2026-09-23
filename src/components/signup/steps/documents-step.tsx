@@ -1,78 +1,98 @@
 "use client";
 
-import { Check } from "lucide-react";
-
-import { FileDrop } from "@/components/common/file-drop";
+import {
+  OnboardingCard,
+  OnboardingField,
+  OnboardingFileField,
+  OnboardingNote,
+  onboardingInputClass,
+} from "@/components/onboarding/onboarding-ui";
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
-import { STARTUP_DOCUMENTS } from "@/interfaces/signup";
+import { StartupDocumentKind } from "@/interfaces/signup";
+
+const TONE = OnboardingTone.Mentee;
+const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
+
+const FILE_CARDS: {
+  kind: StartupDocumentKind;
+  title: string;
+  subtitle: string;
+  accept: string;
+  helpText: string;
+}[] = [
+  {
+    kind: StartupDocumentKind.Canvas,
+    title: "Business Model Canvas",
+    subtitle: "İş modelini tek sayfada özetleyen doküman.",
+    accept: ".pdf,.docx",
+    helpText: "PDF veya DOCX · en fazla 10 MB",
+  },
+  {
+    kind: StartupDocumentKind.PitchDeck,
+    title: "Pitch Deck",
+    subtitle: "Sunum dosyan. Mentorun startupını hızlıca anlamasını sağlar.",
+    accept: ".pdf,.pptx",
+    helpText: "PDF veya PPTX · en fazla 10 MB",
+  },
+];
 
 export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
-  const { draft, setDocument, checklist } = wizard;
-  const storedDocuments = useStoredDocuments();
+  const { draft, setDocument, setMvpUrl } = wizard;
+  const stored = useStoredDocuments();
 
   return (
-    <div className="space-y-5">
-      <header>
-        <h1 className="text-[22px] font-semibold tracking-tight">
-          Dosyalarını Yükle
-        </h1>
-        <p className="mt-1.5 text-sm text-[#676e78]">
-          Koordinatörlerin görebilmesi için startup&apos;ının dosyalarını ekle!
-        </p>
-      </header>
+    <>
+      {FILE_CARDS.map((card) => (
+        <OnboardingCard
+          key={card.kind}
+          title={card.title}
+          subtitle={card.subtitle}
+        >
+          <OnboardingFileField
+            label={`${card.title} dosyası seç`}
+            file={draft.documents[card.kind] ?? null}
+            onChange={(file) => setDocument(card.kind, file)}
+            accept={card.accept}
+            helpText={card.helpText}
+            storedName={stored.byKind(card.kind)?.originalFilename ?? null}
+          />
+        </OnboardingCard>
+      ))}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_300px]">
-        <div className="grid gap-5 sm:grid-cols-2">
-          {STARTUP_DOCUMENTS.map((document) => {
-            const stored = storedDocuments.byKind(document.kind);
-            return (
-              <section key={document.kind}>
-                <h2 className="text-sm font-semibold">{document.title}</h2>
-                <p className="mb-3 mt-1 text-xs leading-relaxed text-[#676e78]">
-                  {document.description}
-                </p>
-                <FileDrop
-                  file={draft.documents[document.kind] ?? null}
-                  label={`${document.title} için dosya seç`}
-                  onChange={(file) => setDocument(document.kind, file)}
-                  alreadyStored={
-                    stored ? { name: stored.originalFilename } : null
-                  }
-                />
-              </section>
-            );
-          })}
-        </div>
+      <OnboardingCard
+        title="MVP / Prototip"
+        subtitle="Yayındaki ürünün bağlantısı ya da prototip dosyası."
+      >
+        <OnboardingField id="signup-mvp-url" label="Bağlantı" tone={TONE}>
+          <input
+            id="signup-mvp-url"
+            className={inputClass}
+            placeholder="ornek.app veya Figma prototip linki"
+            value={draft.mvpUrl}
+            onChange={(event) => setMvpUrl(event.target.value)}
+          />
+        </OnboardingField>
+        <OnboardingFileField
+          label="MVP / Prototip dosyası seç"
+          file={draft.documents[StartupDocumentKind.Mvp] ?? null}
+          onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
+          accept=".pdf,.docx,.pptx"
+          helpText="PDF, DOCX veya PPTX · en fazla 10 MB"
+          storedName={
+            stored.byKind(StartupDocumentKind.Mvp)?.originalFilename ?? null
+          }
+        />
+      </OnboardingCard>
 
-        <aside className="h-fit rounded-2xl border border-[#e4e7ea] bg-white p-2">
-          {checklist.map((item) => (
-            <div
-              key={item.kind}
-              className="flex items-center gap-3 border-b border-[#f1f2f4] px-3 py-3.5 last:border-b-0"
-            >
-              <span
-                aria-hidden
-                className={`grid size-4 shrink-0 place-items-center rounded border ${
-                  item.done
-                    ? "border-[#e86f22] bg-[#e86f22] text-white"
-                    : "border-[#d6dade] bg-white"
-                }`}
-              >
-                {item.done ? <Check className="size-3" /> : null}
-              </span>
-              <span
-                className={`text-xs ${item.done ? "text-[#22262b]" : "text-[#676e78]"}`}
-              >
-                {item.label}
-              </span>
-              <span className="sr-only">
-                {item.done ? "yüklendi" : "yüklenmedi"}
-              </span>
-            </div>
-          ))}
-        </aside>
-      </div>
-    </div>
+      <OnboardingNote icon="/onboarding/info-done.svg">
+        Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da
+        dosya ekleyebilirsin.
+      </OnboardingNote>
+    </>
   );
 }

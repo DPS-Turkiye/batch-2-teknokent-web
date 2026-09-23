@@ -46,11 +46,13 @@ export async function getAvailabilitySettings() {
 
 export async function updateAvailabilitySettings(
   payload: UpdateMentorAvailabilitySettingsPayload,
+  idToken?: string,
 ) {
   return requireSuccess(
     await httpClient.put<MentorAvailabilitySettings>(
       "/api/mentor-profile/availability-settings",
       payload,
+      idToken ? { headers: { Authorization: `Bearer ${idToken}` } } : undefined,
     ),
   );
 }
