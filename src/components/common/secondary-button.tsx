@@ -18,7 +18,7 @@ export function SecondaryButton({
   className?: string;
   title?: string;
 }) {
-  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg border border-[#e4e7ea] bg-white px-4 text-sm font-semibold text-[#3c424a] transition hover:border-[#e86f22] hover:bg-[#fff9f5] hover:text-[#c85816] disabled:cursor-not-allowed disabled:text-[#aaa] disabled:hover:bg-white ${className}`;
+  const styles = `inline-flex min-h-10 items-center justify-center rounded-lg border border-[#e4e7ea] bg-white px-4 text-sm font-semibold text-[#3c424a] transition hover:border-[var(--ms-accent,#e86f22)] hover:bg-[var(--ms-accent-faint,#fff9f5)] hover:text-[var(--ms-accent-strong,#c85816)] disabled:cursor-not-allowed disabled:text-[#aaa] disabled:hover:bg-white ${className}`;
   if (href && !disabled) {
     return (
       <Link

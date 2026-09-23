@@ -6,14 +6,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { PersonProfileView } from "@/components/profile/person-profile-view";
 import { useAppSession } from "@/components/providers/session-provider";
 import type { UserProfile } from "@/interfaces/user-profile";
 import type { BackendUser } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
-import { PERSON_PROFILE_LABELS, USER_ROLE_LABELS } from "@/lib/const/programs";
+import { PERSON_PROFILE_LABELS } from "@/lib/const/programs";
 import { httpClient } from "@/lib/http-client";
-import { initials } from "@/lib/utils";
+import { organizationStartupHref } from "@/lib/program-links";
 import { AppArea } from "@/types/app-area";
 
 async function getPerson(userId: string) {
@@ -47,16 +48,28 @@ export default function PersonProfilePage() {
     enabled: Boolean(params.id),
   });
 
+  const isOwnProfile =
+    session?.role === UserRole.Mentee && session.userId === params.id;
+
   useEffect(() => {
     if (userQuery.data?.role === UserRole.Mentor) {
       router.replace(`/mentors/${encodeURIComponent(params.id)}`);
+    } else if (isOwnProfile) {
+      router.replace("/profile/personal");
     }
-  }, [userQuery.data?.role, params.id, router]);
+  }, [userQuery.data?.role, params.id, router, isOwnProfile]);
 
   const homeHref =
     session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
   const user = userQuery.data;
   const profile = profileQuery.data;
+  const startupHref = !user?.organizationId
+    ? null
+    : session?.role === UserRole.Mentor
+      ? organizationStartupHref(user.organizationId)
+      : session?.organizationId === user.organizationId
+        ? "/startup"
+        : null;
 
   return (
     <AppShell
@@ -64,7 +77,7 @@ export default function PersonProfilePage() {
       menteeHome={session?.role === UserRole.Mentee}
       mentorHome={session?.role === UserRole.Mentor}
     >
-      <div className="mx-auto w-full max-w-[720px] px-4 pb-16 pt-3 sm:px-8">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pt-3 sm:px-8 xl:px-[106px]">
         <nav className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-[#676e78]">
           <Link href={homeHref} className="hover:text-[#22262b]">
             {PERSON_PROFILE_LABELS.home}
@@ -86,68 +99,23 @@ export default function PersonProfilePage() {
           >
             {userQuery.error?.message ?? PERSON_PROFILE_LABELS.notFound}
           </p>
-        ) : user.role === UserRole.Mentor ? (
+        ) : user.role === UserRole.Mentor || isOwnProfile ? (
           <p className="mt-10 text-sm text-[#858c96]">
-            {PERSON_PROFILE_LABELS.redirecting}
+            {isOwnProfile
+              ? PERSON_PROFILE_LABELS.redirectingOwn
+              : PERSON_PROFILE_LABELS.redirecting}
           </p>
-        ) : (
-          <article className="mt-6 rounded-[24px] border border-[#e4e7ea] bg-white px-6 py-6">
-            <div className="flex items-center gap-4">
-              <div className="grid size-16 place-items-center rounded-full bg-[#fdebdd] text-base font-semibold text-[#a8480e]">
-                {initials(user.fullName)}
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-[24px] font-semibold text-[#22262b]">
-                  {user.fullName}
-                </h1>
-                <p className="mt-1 text-sm text-[#676e78]">
-                  {[
-                    USER_ROLE_LABELS[user.role],
-                    user.jobTitle,
-                    user.organizationName,
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-              </div>
-            </div>
-
-            {profile?.bio ? (
-              <p className="mt-5 whitespace-pre-wrap text-sm leading-6 text-[#4a5059]">
-                {profile.bio}
-              </p>
-            ) : (
-              <p className="mt-5 text-sm text-[#858c96]">
-                {PERSON_PROFILE_LABELS.noBio}
-              </p>
-            )}
-
-            {profile?.expertise && profile.expertise.length > 0 ? (
-              <div className="mt-5 flex flex-wrap gap-2">
-                {profile.expertise.map((item) => (
-                  <span
-                    key={item}
-                    className="rounded-full border border-[#fdebdd] bg-[#fff4ec] px-2.5 py-1 text-[11.5px] font-medium text-[#9e4400]"
-                  >
-                    {item}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-
-            {profile?.linkedinUrl ? (
-              <a
-                href={profile.linkedinUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-5 inline-flex text-sm font-medium text-[#e86f22] hover:underline"
-              >
-                {PERSON_PROFILE_LABELS.linkedin}
-              </a>
-            ) : null}
-          </article>
-        )}
+        ) : null}
       </div>
+      {user && user.role !== UserRole.Mentor && !isOwnProfile ? (
+        <div className="mt-4">
+          <PersonProfileView
+            user={user}
+            profile={profile ?? null}
+            startupHref={startupHref}
+          />
+        </div>
+      ) : null}
     </AppShell>
   );
 }

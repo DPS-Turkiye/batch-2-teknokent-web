@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   StartupPageFrame,
   startupPrimaryActionClass,
@@ -10,6 +12,7 @@ import {
   RemoveMemberDialog,
 } from "@/components/startup/startup-team-dialogs";
 import { useStartupTeam } from "@/hooks/use-startup-team";
+import { programPersonHref } from "@/lib/program-links";
 import { formatShortDate, initials } from "@/lib/utils";
 
 const chipClass =
@@ -77,7 +80,10 @@ export function StartupTeamView() {
                 key={member.id}
                 className="flex flex-wrap items-center justify-between gap-3 rounded-[10px] border border-[#e4e7ea] px-4 py-3.5"
               >
-                <div className="flex min-w-0 items-center gap-3">
+                <Link
+                  href={programPersonHref({ userId: member.id })}
+                  className="group flex min-w-0 items-center gap-3"
+                >
                   <span
                     aria-hidden
                     className="grid size-[38px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-xs font-semibold text-[#9e4400]"
@@ -85,7 +91,7 @@ export function StartupTeamView() {
                     {initials(member.fullName) || "?"}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate text-[13.5px] font-medium leading-5 text-[#22262b]">
+                    <p className="truncate text-[13.5px] font-medium leading-5 text-[#22262b] group-hover:underline">
                       {member.fullName}
                     </p>
                     <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
@@ -94,7 +100,7 @@ export function StartupTeamView() {
                         .join(" · ")}
                     </p>
                   </div>
-                </div>
+                </Link>
                 <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                   <span className="w-[160px] truncate text-xs leading-[18px] text-[#858c96]">
                     {member.email}

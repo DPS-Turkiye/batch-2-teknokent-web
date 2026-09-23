@@ -220,7 +220,7 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
             <MeetingFiles files={files} onOpen={openDocument} />
           </div>
 
-          <div className="lg:sticky lg:top-[120px] lg:self-stretch">
+          <div className="lg:sticky lg:top-[120px] lg:self-start">
             <MeetingTodoList meetingId={meetingId} />
           </div>
         </div>

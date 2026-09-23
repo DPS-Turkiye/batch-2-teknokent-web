@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import {
-  Bot,
   CalendarDays,
   ClipboardList,
   FolderKanban,
@@ -51,13 +50,6 @@ type NavigationItem = {
   label: string;
   href: string;
   icon: LucideIcon;
-};
-
-const ASSISTANT_NAV: NavigationItem = {
-  id: AppArea.Assistant,
-  label: "Toplantı Asistanı",
-  href: "/assistant",
-  icon: Bot,
 };
 
 const MENTORS_NAV: NavigationItem = {
@@ -148,7 +140,6 @@ function buildNavigation(
       href: "/messages",
       icon: MessageCircle,
     },
-    ASSISTANT_NAV,
     NOTES_NAV,
   ];
   return menteeHome

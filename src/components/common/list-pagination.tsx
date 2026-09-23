@@ -24,7 +24,7 @@ export function ListPagination({
         type="button"
         disabled={page <= 1}
         onClick={() => onPageChange(page - 1)}
-        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[#f2b78f] disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[var(--ms-accent-border,#f2b78f)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         Önceki
       </button>
@@ -35,7 +35,7 @@ export function ListPagination({
         type="button"
         disabled={page >= totalPages}
         onClick={() => onPageChange(page + 1)}
-        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[#f2b78f] disabled:cursor-not-allowed disabled:opacity-40"
+        className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b] hover:border-[var(--ms-accent-border,#f2b78f)] disabled:cursor-not-allowed disabled:opacity-40"
       >
         Sonraki
       </button>
