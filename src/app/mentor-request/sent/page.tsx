@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PrimaryButton } from "@/components/common/primary-button";
@@ -12,6 +12,7 @@ import { Info } from "@/components/product-view-shared";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul edildi",
@@ -27,6 +28,9 @@ function RequestSentContent() {
   const requestQuery = useMentorshipRequest(id);
   const request = requestQuery.data;
   const detail = request ? buildRequestDetailContent(request) : null;
+
+  // The page only confirms a request that was just sent.
+  if (!id) redirect(`/mentorships?tab=${MentorshipWorkspaceTab.Requests}`);
 
   return (
     <AppShell>
@@ -82,16 +86,15 @@ function RequestSentContent() {
         )}
         <div className="mt-6 grid w-full gap-2">
           <PrimaryButton
-            href={
-              id
-                ? `/mentor-request/status?request=${encodeURIComponent(id)}`
-                : "/mentorships?tab=requests"
-            }
+            href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
             className="w-full"
           >
             Talep Detaylarını Gör
           </PrimaryButton>
-          <SecondaryButton href="/mentorships?tab=requests" className="w-full">
+          <SecondaryButton
+            href={`/mentorships?tab=${MentorshipWorkspaceTab.Requests}`}
+            className="w-full"
+          >
             Taleplerime Git
           </SecondaryButton>
           <SecondaryButton
@@ -101,17 +104,15 @@ function RequestSentContent() {
             Ana Sayfaya Dön
           </SecondaryButton>
         </div>
-        {id ? (
-          <p className="mt-6 text-xs text-[#aaa]">
-            Fikrinizi değiştirdiniz mi?{" "}
-            <Link
-              href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
-              className="text-[#555] underline-offset-2 hover:underline"
-            >
-              Talebi geri çek
-            </Link>
-          </p>
-        ) : null}
+        <p className="mt-6 text-xs text-[#aaa]">
+          Fikrinizi değiştirdiniz mi?{" "}
+          <Link
+            href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
+            className="text-[#555] underline-offset-2 hover:underline"
+          >
+            Talebi geri çek
+          </Link>
+        </p>
       </div>
     </AppShell>
   );

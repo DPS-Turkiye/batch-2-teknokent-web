@@ -324,21 +324,6 @@ export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
   },
 ];
 
-export const MEETING_SCHEDULE_DAYS = [
-  ["Pzt 12", "09:00", "10:30", "14:00", "15:30"],
-  ["Sal 13", "10:00", "11:30"],
-  ["Çar 14", "09:00", "14:00", "16:00"],
-  ["Per 15", "11:00", "15:00"],
-  ["Cum 16", "10:00"],
-] as const;
-
-export const MEETING_SCHEDULE_FILTERS = [
-  "Bu hafta",
-  "Gelecek hafta",
-  "Sabah",
-  "Öğleden sonra",
-] as const;
-
 export const MEETING_PREPARE_CHECKLIST = [
   "Pitch deck'i güncelle",
   "Ürün demosunu ekle",

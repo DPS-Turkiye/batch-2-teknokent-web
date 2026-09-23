@@ -5,9 +5,11 @@ import RequestSentPage from "@/app/mentor-request/sent/page";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 
 let search = new URLSearchParams();
+const redirect = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => search,
+  redirect: (url: string) => redirect(url),
 }));
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -35,13 +37,29 @@ describe("RequestSentPage", () => {
     search = new URLSearchParams();
   });
 
-  it("explains a missing request instead of loading forever", () => {
+  // The page only confirms a request that was just sent.
+  it("sends a visit without a request to the sent requests tab", () => {
+    mockQuery({});
+    render(<RequestSentPage />);
+
+    expect(redirect).toHaveBeenCalledWith("/mentorships?tab=requests");
+  });
+
+  it("stays on the page when a request is given", () => {
+    search = new URLSearchParams("request=req-1");
+    mockQuery({ isLoading: true });
+    render(<RequestSentPage />);
+
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("explains a request that could not be found", () => {
+    search = new URLSearchParams("request=missing");
     mockQuery({});
     render(<RequestSentPage />);
 
     expect(screen.queryByText("Talep yükleniyor…")).not.toBeInTheDocument();
     expect(screen.getByText(/Talep bilgisi bulunamadı/)).toBeInTheDocument();
-    expect(screen.queryByText("Talebi geri çek")).not.toBeInTheDocument();
   });
 
   it("shows the loading state only while the request is being fetched", () => {
@@ -60,14 +78,5 @@ describe("RequestSentPage", () => {
     expect(
       screen.getByRole("link", { name: "Talebi geri çek" }),
     ).toHaveAttribute("href", "/mentor-request/status?request=req-1");
-  });
-
-  it("sends the mentee to their requests when no request is known", () => {
-    mockQuery({});
-    render(<RequestSentPage />);
-
-    expect(
-      screen.getByRole("link", { name: "Talep Detaylarını Gör" }),
-    ).toHaveAttribute("href", "/mentorships?tab=requests");
   });
 });
