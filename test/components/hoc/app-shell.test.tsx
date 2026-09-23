@@ -310,12 +310,12 @@ describe("AppShell navigation", () => {
     );
 
     const menteeNav = screen.getByRole("navigation", { name: "Ana menü" });
+    // Mentörler is the item the revised nav drops and the old one keeps, so it
+    // is what tells the two apart. Deliberately not Toplantı Asistanı, which
+    // web #90 removes from both.
     expect(
       within(menteeNav).getByRole("link", { name: /Mentörler/ }),
     ).toHaveAttribute("href", "/mentors");
-    expect(
-      within(menteeNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
     expect(screen.getByText("metual")).toBeInTheDocument();
   });
 
