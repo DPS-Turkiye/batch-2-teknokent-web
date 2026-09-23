@@ -211,7 +211,7 @@ function BrandBlock({
 }
 
 export function AppShell({
-  menteeHome = false,
+  menteeHome,
   mentorHome = false,
   active,
   actions,
@@ -234,11 +234,14 @@ export function AppShell({
     usesRoleSubtitle,
   } = roleWorkspace(session?.role);
   const isMentor = session?.role === UserRole.Mentor || mentorHome;
+  // A page opts out by passing menteeHome={false}; omitting it gives every
+  // mentee the revised frame, so a new page cannot forget to ask for it.
+  const menteeFrame = menteeHome ?? session?.role === UserRole.Mentee;
   const navigation = buildNavigation(
     isMentor ? UserRole.Mentor : session?.role,
-    menteeHome,
+    menteeFrame,
   );
-  const usesRevisedNav = isMentor || menteeHome;
+  const usesRevisedNav = isMentor || menteeFrame;
   const displayName = session?.fullName ?? "Kullanıcı";
   const displayOrganization = usesRoleSubtitle
     ? roleLabel
@@ -251,7 +254,7 @@ export function AppShell({
 
   return (
     <div
-      className={`min-h-screen text-[#22262b] ${mentorHome || menteeHome ? "bg-white" : "bg-[#f8f9fa]"}`}
+      className={`min-h-screen text-[#22262b] ${mentorHome || menteeFrame ? "bg-white" : "bg-[#f8f9fa]"}`}
     >
       <header
         className={`sticky top-0 z-40 bg-white/95 backdrop-blur ${usesRevisedNav ? "mentor-nav" : "border-b border-[#e4e7ea]"}`}
@@ -263,7 +266,7 @@ export function AppShell({
             <BrandBlock
               href={homeHref}
               mentor={isMentor}
-              menteeHome={menteeHome}
+              menteeHome={menteeFrame}
             />
           </div>
           <nav
@@ -278,7 +281,7 @@ export function AppShell({
                   key={`${item.label}-${item.href}`}
                   href={item.href}
                   aria-current={selected ? "page" : undefined}
-                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeHome ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
+                  className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeFrame ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
                   {item.label}
@@ -328,7 +331,7 @@ export function AppShell({
               <BrandBlock
                 href={homeHref}
                 mentor={isMentor}
-                menteeHome={menteeHome}
+                menteeHome={menteeFrame}
               />
               <button
                 type="button"

@@ -1,7 +1,9 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
+import { useToast } from "@/components/providers/toast-provider";
 import {
   getInviteCode,
   rotateInviteCode,
@@ -23,4 +25,39 @@ export function useRotateInviteCode() {
     onSuccess: (invite) =>
       queryClient.setQueryData(ORGANIZATION_INVITE_QUERY_KEY, invite),
   });
+}
+
+export function useInviteCodeCard() {
+  const { showToast } = useToast();
+  const inviteQuery = useOrganizationInvite();
+  const rotate = useRotateInviteCode();
+  const [copied, setCopied] = useState(false);
+
+  return {
+    code: inviteQuery.data?.inviteCode ?? null,
+    copied,
+    error: inviteQuery.error,
+    isLoading: inviteQuery.isLoading,
+    isRotating: rotate.isPending,
+    async copy() {
+      const code = inviteQuery.data?.inviteCode;
+      if (!code) return;
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      showToast({ message: "Davet kodu kopyalandı.", tone: "success" });
+    },
+    async rotate() {
+      setCopied(false);
+      try {
+        await rotate.mutateAsync();
+        showToast({ message: "Yeni davet kodu üretildi.", tone: "success" });
+      } catch (reason) {
+        showToast({
+          message:
+            reason instanceof Error ? reason.message : "Yeni kod üretilemedi.",
+          tone: "error",
+        });
+      }
+    },
+  };
 }

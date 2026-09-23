@@ -20,7 +20,7 @@ export function TeamSummarySection() {
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-base font-semibold text-[#364153]">Ekibim</h2>
         <Link
-          href="/team"
+          href="/startup/team"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c85816] hover:underline"
         >
           Ekibi yönet <ArrowRight className="size-3.5" aria-hidden />
@@ -39,7 +39,7 @@ export function TeamSummarySection() {
             Henüz eklenmiş bir ekip üyesi yok.
           </p>
           <Link
-            href="/team"
+            href="/startup/team"
             className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#e4e7ea] px-3 text-xs font-semibold text-[#3c424a] hover:border-[#f2b78f]"
           >
             <UserPlus className="size-3.5" aria-hidden />

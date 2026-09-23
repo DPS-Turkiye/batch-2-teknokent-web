@@ -41,7 +41,7 @@ describe("TeamSummarySection", () => {
 
     expect(screen.getByRole("link", { name: /Ekibi yönet/ })).toHaveAttribute(
       "href",
-      "/team",
+      "/startup/team",
     );
   });
 
@@ -55,7 +55,7 @@ describe("TeamSummarySection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Ekip üyesi davet et/ }),
-    ).toHaveAttribute("href", "/team");
+    ).toHaveAttribute("href", "/startup/team");
   });
 
   it("lists members with their role and does not show an empty state", () => {

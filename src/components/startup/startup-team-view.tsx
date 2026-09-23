@@ -6,6 +6,7 @@ import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
+import { StartupInviteCode } from "@/components/startup/startup-invite-code";
 import {
   MemberFormDialog,
   RemoveMemberDialog,
@@ -55,6 +56,7 @@ export function StartupTeamView() {
 
   return (
     <StartupPageFrame action={addAction}>
+      {team.viewerIsFounder ? <StartupInviteCode /> : null}
       <section
         aria-labelledby="startup-team-title"
         className="space-y-3.5 rounded-xl border border-[#e4e7ea] bg-white px-[22px] py-5"

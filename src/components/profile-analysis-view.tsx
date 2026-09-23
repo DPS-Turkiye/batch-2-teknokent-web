@@ -271,7 +271,7 @@ export function ProfileAnalysisView() {
                   Henüz eklenmiş bir ekip üyesi yok.{" "}
                   <Link
                     className="font-medium text-[#4f39f6] hover:underline"
-                    href="/team"
+                    href="/startup/team"
                   >
                     Davet kodunu paylaş
                   </Link>

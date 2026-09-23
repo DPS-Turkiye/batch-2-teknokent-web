@@ -26,6 +26,9 @@ vi.mock("@/components/startup/startup-page-frame", () => ({
   startupSecondaryActionClass: "",
 }));
 vi.mock("@/hooks/use-startup-team", () => ({ useStartupTeam: vi.fn() }));
+vi.mock("@/components/startup/startup-invite-code", () => ({
+  StartupInviteCode: () => <section>Davet kodu</section>,
+}));
 vi.mock("@/hooks/use-pending-members", () => ({ usePendingMembers: vi.fn() }));
 
 const pendingEce = {
@@ -85,6 +88,22 @@ describe("StartupTeamView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     pendingState();
+  });
+
+  it("shows the invite code to the founder, who is the only one allowed it", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(state({ viewerIsFounder: true }));
+    renderWithQueryClient(<StartupTeamView />);
+
+    expect(screen.getByText("Davet kodu")).toBeInTheDocument();
+  });
+
+  it("withholds the invite code from a member who is not the founder", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(
+      state({ viewerIsFounder: false }),
+    );
+    renderWithQueryClient(<StartupTeamView />);
+
+    expect(screen.queryByText("Davet kodu")).not.toBeInTheDocument();
   });
 
   it("lists the members with their email, join date and role", () => {
