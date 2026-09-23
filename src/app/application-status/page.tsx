@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { ApplicationStatusTimeline } from "@/components/auth/application-status-timeline";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { SubmittedProfileSummary } from "@/components/auth/submitted-profile-summary";
 import { useAccountStatus } from "@/hooks/use-account-status";
 import { UserAccountStatus } from "@/interfaces/session";
 
@@ -78,6 +79,8 @@ export default function ApplicationStatusPage() {
           </h2>
           <ApplicationStatusTimeline status={status} />
         </section>
+
+        <SubmittedProfileSummary organizationName={account.organizationName} />
 
         {status === UserAccountStatus.Approved ? (
           <Link

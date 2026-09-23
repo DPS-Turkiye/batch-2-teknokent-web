@@ -8,7 +8,6 @@ import { useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useMentorMessages } from "@/hooks/use-mentor-messages";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { formatMeetingShort } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -278,9 +277,7 @@ export function MentorMessagesView() {
   const params = useSearchParams();
   const preferredRequestId = params.get("request") ?? params.get("id");
   const messages = useMentorMessages(preferredRequestId);
-  const meetingLabel = messages.activeMeeting
-    ? `Sonraki görüşme ${formatMeetingShort(messages.activeMeeting.scheduledAt)}`
-    : null;
+  const meetingLabel = messages.meetingLabel;
 
   return (
     <AppShell active={AppArea.Meetings} mentorHome>

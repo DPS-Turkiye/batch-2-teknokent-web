@@ -106,6 +106,7 @@ export interface MentorProfile {
   meetingFrequency?: MeetingFrequency | null;
   prepFileRequirement?: PrepFileRequirement | null;
   languages?: MentorLanguage[];
+  offerings?: string[];
   activeMenteeCount?: number;
   completedMentorshipCount?: number;
   programNames?: string[];
@@ -136,6 +137,7 @@ export type UpdateMentorProfilePayload = Pick<
   prepFileRequirement?: PrepFileRequirement | null;
   languages?: MentorLanguage[];
   programRoles?: MentorProgramRoleInput[];
+  offerings?: string[];
 };
 
 export enum Weekday {

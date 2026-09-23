@@ -110,11 +110,9 @@ export function useMeetingLifecycle() {
   };
 }
 
-export function useMeetingFeedback() {
+export function useMeetingFeedback(meetingId: string | null) {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const searchParams = useSearchParams();
-  const meetingId = searchParams.get("id");
   const [draftRatings, setDraftRatings] = useState<number[]>(() =>
     MEETING_FEEDBACK_QUESTIONS.map(() => 0),
   );
@@ -209,7 +207,7 @@ export function useMeetingFeedback() {
 
   return {
     canSubmit,
-    isFeedbackLoading: existingFeedbackQuery.isPending,
+    isFeedbackLoading: existingFeedbackQuery.isLoading,
     nextMeetingNote,
     rate,
     ratings,

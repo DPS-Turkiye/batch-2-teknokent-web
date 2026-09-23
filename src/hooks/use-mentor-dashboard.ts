@@ -22,6 +22,7 @@ import {
   mentorWeekMeetingCount,
 } from "@/lib/mentor-dashboard";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
+import { dayGreeting } from "@/lib/utils";
 
 export function useMentorDashboard() {
   const session = useAppSession();
@@ -97,6 +98,7 @@ export function useMentorDashboard() {
 
   return {
     firstName: session?.fullName?.trim().split(/\s+/)[0] || "Mentor",
+    greeting: dayGreeting(),
     nextMeeting: upcomingMeetings[0],
     todayActions: mentorTodayActions(awaitingReview, openActionItems),
     pending: requests.filter(

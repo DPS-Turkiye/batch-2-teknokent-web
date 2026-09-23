@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { isRegisterRole, registerAccount } from "@/lib/api/auth";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-
-const BEARER_PREFIX = "Bearer ";
+import { readBearerToken } from "@/lib/server/bearer-token";
 
 export async function POST(
   request: NextRequest,
@@ -18,10 +17,7 @@ export async function POST(
       );
     }
 
-    const header = request.headers.get("authorization");
-    const idToken = header?.startsWith(BEARER_PREFIX)
-      ? header.slice(BEARER_PREFIX.length).trim()
-      : null;
+    const idToken = readBearerToken(request);
     if (!idToken) {
       return NextResponse.json(
         {

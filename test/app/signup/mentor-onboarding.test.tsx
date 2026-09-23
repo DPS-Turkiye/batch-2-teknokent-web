@@ -1,18 +1,28 @@
-import { screen, waitFor, within } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorOnboardingFlow } from "@/components/mentor-onboarding/mentor-onboarding-flow";
 import { SignupFlow } from "@/components/signup/signup-flow";
 import { ClientApiError } from "@/lib/client/api";
-import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
-import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { fetchAccountStatus } from "@/lib/client/auth";
+import {
+  updateAvailabilitySettings,
+  updateMentorProfile,
+} from "@/lib/client/mentor-profile";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
-const searchParams = { get: vi.fn() };
+const searchParams = new URLSearchParams();
+const logout = vi.fn().mockResolvedValue(undefined);
+const push = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
+  useRouter: () => ({ push, replace: vi.fn() }),
+}));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ logout }),
 }));
 
 vi.mock("@/lib/firebase/auth", () => ({
@@ -20,7 +30,8 @@ vi.mock("@/lib/firebase/auth", () => ({
   currentFirebaseAccount: vi.fn().mockResolvedValue(null),
   currentIdToken: vi.fn().mockResolvedValue("id-token"),
   isCurrentEmailVerified: () => true,
-  describeAuthError: () => "Kimlik doğrulama tamamlanamadı.",
+  describeAuthError: (error: unknown) =>
+    error instanceof Error ? error.message : "Kimlik doğrulama tamamlanamadı.",
 }));
 
 vi.mock("@/lib/client/onboarding-draft", () => ({
@@ -37,18 +48,31 @@ vi.mock("@/lib/client/auth", () => ({
 
 vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn().mockResolvedValue({}),
+  updateAvailabilitySettings: vi.fn().mockResolvedValue({}),
 }));
 
-async function fillRequiredIntro(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
-  );
-  await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
-  await user.type(screen.getByLabelText(/Şirket/), "Peak");
-  await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
-}
+vi.mock("@/lib/client/user-profile", () => ({
+  getUserProfile: vi.fn().mockResolvedValue({
+    id: "u1",
+    fullName: "Nihan Öztürk",
+    email: "nihan@peak.co",
+    jobTitle: null,
+    phone: null,
+    bio: null,
+    linkedinUrl: null,
+    expertise: [],
+  }),
+  saveUserProfile: vi.fn().mockResolvedValue({}),
+}));
 
-async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
+vi.mock("@/lib/client/documents", () => ({
+  uploadDocument: vi.fn(),
+  listDocuments: vi.fn().mockResolvedValue([]),
+}));
+
+type User = ReturnType<typeof userEvent.setup>;
+
+async function fillAccount(user: User) {
   await user.type(screen.getByLabelText(/^Ad/), "Nihan");
   await user.type(screen.getByLabelText(/Soyad/), "Öztürk");
   await user.type(screen.getByLabelText(/E-posta/), "nihan@peak.co");
@@ -57,16 +81,28 @@ async function fillAccount(user: ReturnType<typeof userEvent.setup>) {
   await user.type(screen.getByLabelText(/Şifre tekrar/), "Sifre1234!");
 }
 
+async function fillProfileStep(user: User) {
+  await user.click(
+    screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
+  );
+  await user.type(screen.getByLabelText(/Unvanın/), "Ürün Direktörü");
+  await user.type(screen.getByLabelText(/Deneyim/), "9 yıl");
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  searchParams.delete("role");
+  searchParams.delete("resume");
+});
+
 describe("Signup role routing", () => {
-  it("sends a mentee to the startup profile flow", async () => {
-    searchParams.get.mockReturnValue(null);
+  it("sends a founder from the role page through the account form to the startup wizard", async () => {
     const user = userEvent.setup();
     render(<SignupFlow />);
 
-    expect(
-      screen.getByRole("heading", { name: "Startup'ınla METUal'a katıl" }),
-    ).toBeInTheDocument();
-
+    await user.click(
+      screen.getByRole("button", { name: "Girişimci olarak devam et" }),
+    );
     await fillAccount(user);
     await user.click(
       screen.getByRole("button", { name: "Hesap oluştur ve devam et" }),
@@ -80,19 +116,12 @@ describe("Signup role routing", () => {
   });
 
   it("sends a mentor to the mentor onboarding flow", async () => {
-    searchParams.get.mockReturnValue("mentor");
+    searchParams.set("role", "mentor");
     vi.mocked(fetchAccountStatus).mockRejectedValue(
       new ClientApiError("Registration required", 401),
     );
     const user = userEvent.setup();
     render(<SignupFlow />);
-
-    expect(
-      screen.getByRole("heading", { name: "Mentor olarak METUal'a katıl" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("CV'nden mentor profilini oluştur"),
-    ).toBeInTheDocument();
 
     await fillAccount(user);
     await user.click(
@@ -101,156 +130,119 @@ describe("Signup role routing", () => {
 
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: "Sizi tanıyalım" }),
+        screen.getByRole("heading", { name: "Uzmanlık profilini oluştur" }),
       ).toBeInTheDocument(),
     );
-    expect(vi.mocked(registerMentor)).toHaveBeenCalledWith(
-      {
-        fullName: "Nihan Öztürk",
-        email: "nihan@peak.co",
-        phone: "+905551112233",
-      },
-      "id-token",
+    // The name typed on the account form carries into the mentor form.
+    await user.click(
+      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
     );
+    expect(screen.getByLabelText(/^Ad/)).toHaveValue("Nihan");
+    expect(screen.getByLabelText(/Soyad/)).toHaveValue("Öztürk");
   });
 });
 
 describe("Mentor onboarding flow", () => {
-  it("lists the four setup steps", () => {
-    render(<MentorOnboardingFlow />);
+  it("lists the four steps in the rail", () => {
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
 
-    const stepper = screen.getByRole("navigation", {
-      name: "Mentor profil kurulum adımları",
-    });
-    [
-      "Sizi tanıyalım",
-      "Uzmanlıklarınız",
-      "Mentorluk uyumu",
-      "Tercihleriniz",
-    ].forEach((label) =>
-      expect(within(stepper).getByText(label)).toBeInTheDocument(),
-    );
+    for (const title of [
+      "Uzmanlık profilin",
+      "Mentorluk alanların",
+      "Müsaitlik ve kapasite",
+      "Gözden geçir ve gönder",
+    ]) {
+      expect(screen.getAllByText(title).length).toBeGreaterThan(0);
+    }
   });
 
-  it("blocks Devam et until the CV step resolves", async () => {
+  it("keeps Devam et shut until the profile form has its required fields", async () => {
     const user = userEvent.setup();
-    render(<MentorOnboardingFlow />);
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
 
     expect(screen.getByRole("button", { name: "Devam et" })).toBeDisabled();
-
-    await user.click(
-      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
-    );
-
-    expect(
-      screen.getByRole("heading", { name: "Bilgilerinizi kontrol edin" }),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Devam et" })).toBeDisabled();
-    expect(
-      screen.getAllByText("Bu alanı doldurman zorunlu.").length,
-    ).toBeGreaterThan(0);
-
-    await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
-    await user.type(screen.getByLabelText(/Şirket/), "Peak");
-    await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
+    await fillProfileStep(user);
     expect(screen.getByRole("button", { name: "Devam et" })).toBeEnabled();
   });
 
-  it("enforces the six-area expertise cap in the UI", async () => {
+  it("walks all four steps and sends the profile to the coordinator", async () => {
     const user = userEvent.setup();
-    render(<MentorOnboardingFlow />);
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
 
-    await fillRequiredIntro(user);
+    await fillProfileStep(user);
     await user.click(screen.getByRole("button", { name: "Devam et" }));
 
-    for (const area of [
-      "Finans",
-      "Yatırım Alma",
-      "Finansal Modelleme",
-      "Strateji",
-      "Birim Ekonomisi",
-      "Fiyatlandırma",
-    ]) {
-      await user.click(screen.getByRole("button", { name: area }));
-    }
-
-    expect(screen.getByText(/Sınıra ulaştınız/)).toBeInTheDocument();
-
-    const seventh = screen.getByRole("button", { name: "Nakit Akışı" });
-    await user.click(seventh);
-    expect(seventh).toHaveAttribute("aria-pressed", "false");
-  });
-
-  it("walks the whole flow through to the finished profile", async () => {
-    const user = userEvent.setup();
-    render(<MentorOnboardingFlow />);
-
-    await fillRequiredIntro(user);
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-
+    expect(
+      screen.getByRole("heading", {
+        name: "Hangi konularda mentorluk vereceksin?",
+      }),
+    ).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Finans" }));
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-
-    expect(
-      screen.getByRole("heading", {
-        name: "Hangi konularda en çok katkı sağlayabilirsiniz?",
-      }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Yatırıma hazırlık" }));
-    await user.click(screen.getByRole("button", { name: /Geliştirme/ }));
-    await user.click(screen.getByRole("button", { name: "Devam et" }));
-
-    expect(
-      screen.getByRole("heading", {
-        name: "Mentorluk tercihlerinizi belirleyin",
-      }),
-    ).toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: "Problem çözme" }));
     await user.click(screen.getByRole("button", { name: "MVP" }));
-    await user.click(screen.getByRole("button", { name: "SaaS" }));
-    await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
+    await user.click(screen.getByRole("button", { name: "Devam et" }));
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Müsaitliğini ve kapasiteni belirle",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Devam et" })).toBeDisabled();
+    await user.click(screen.getByRole("switch", { name: "Salı uygun" }));
+    await user.click(screen.getByRole("button", { name: "Devam et" }));
+
+    expect(
+      screen.getByRole("heading", { name: "Gözden geçir ve gönder" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Ürün Direktörü")).toBeInTheDocument();
+    const send = screen.getByRole("button", { name: "Koordinatöre gönder" });
+    expect(send).toBeDisabled();
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(send);
 
     await waitFor(() =>
       expect(
         screen.getByRole("heading", {
-          name: "Başvurunuz onay için gönderildi",
+          name: "Mentor profilin koordinatöre gönderildi",
         }),
       ).toBeInTheDocument(),
     );
     expect(updateMentorProfile).toHaveBeenCalledWith(
       expect.objectContaining({
-        specialties: expect.arrayContaining(["Finans"]),
-        mentoringStyle: "Problem çözme",
+        professionalTitle: "Ürün Direktörü",
+        specialties: ["Finans"],
+        startupStages: "MVP",
       }),
       "id-token",
     );
-    expect(screen.getByText("Finans")).toBeInTheDocument();
+    expect(updateAvailabilitySettings).toHaveBeenCalled();
     expect(
-      screen.getByRole("link", { name: "Başvuru durumunu görüntüle" }),
+      screen.getByRole("link", { name: "Gönderilen profili görüntüle" }),
     ).toHaveAttribute("href", "/application-status");
-    expect(
-      screen.queryByRole("link", { name: "Mentor paneline geç" }),
-    ).not.toBeInTheDocument();
   });
 
-  it("lets the mentor step back to a previous step", async () => {
+  it("goes back from the form to the CV upload, then disables Geri on the first screen", async () => {
     const user = userEvent.setup();
-    render(<MentorOnboardingFlow />);
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
 
-    expect(screen.getByRole("button", { name: "Geri" })).toBeDisabled();
-
-    await user.click(
-      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
-    );
-    await user.type(screen.getByLabelText(/Mevcut unvan/), "Ürün Direktörü");
-    await user.type(screen.getByLabelText(/Şirket/), "Peak");
-    await user.type(screen.getByLabelText(/Toplam deneyim/), "9 yıl");
+    expect(screen.getByRole("button", { name: "← Geri" })).toBeDisabled();
+    await fillProfileStep(user);
     await user.click(screen.getByRole("button", { name: "Devam et" }));
-    expect(screen.getByRole("button", { name: "Geri" })).toBeEnabled();
+    await user.click(screen.getByRole("button", { name: "← Geri" }));
 
-    await user.click(screen.getByRole("button", { name: "Geri" }));
+    expect(screen.getByLabelText(/Unvanın/)).toHaveValue("Ürün Direktörü");
+    await user.click(screen.getByRole("button", { name: "← Geri" }));
     expect(
-      screen.getByRole("heading", { name: "Bilgilerinizi kontrol edin" }),
+      screen.getByRole("button", { name: "Bilgilerimi manuel gireceğim" }),
     ).toBeInTheDocument();
+  });
+
+  it("saves the draft and signs out from Kaydet ve çık", async () => {
+    const user = userEvent.setup();
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
+
+    await user.click(screen.getByRole("button", { name: "Kaydet ve çık" }));
+
+    await waitFor(() => expect(logout).toHaveBeenCalled());
+    expect(push).toHaveBeenCalledWith("/");
   });
 });

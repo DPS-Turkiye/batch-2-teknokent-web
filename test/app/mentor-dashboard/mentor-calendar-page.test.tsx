@@ -5,8 +5,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
 import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import { Weekday } from "@/interfaces/mentor";
+import { Weekday, type MentorAvailabilityRule } from "@/interfaces/mentor";
 import { CalendarFilter } from "@/lib/calendar";
+import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -83,11 +84,12 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
       {
         id: "rule-1",
         dayOfWeek: Weekday.Monday,
-        startTime: "09:00",
-        endTime: "12:00",
+        startTime: "09:00:00",
+        endTime: "12:00:00",
         slotMinutes: 60,
       },
     ],
+    weekExceptionLabels: [],
     programs: [{ id: "p1", name: "METU Stars 2026" }],
     mentorships: [],
     regularMentorships: [],
@@ -104,10 +106,16 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
     addMeeting: vi.fn(),
     ...overrides,
   };
+  const withRows = {
+    ...value,
+    availabilityRows: weeklyAvailabilityRows(
+      value.rules as MentorAvailabilityRule[],
+    ),
+  };
   vi.mocked(useMentorCalendar).mockReturnValue(
-    value as unknown as ReturnType<typeof useMentorCalendar>,
+    withRows as unknown as ReturnType<typeof useMentorCalendar>,
   );
-  return value;
+  return withRows;
 }
 
 function grid() {
@@ -252,12 +260,22 @@ describe("MentorCalendarPage", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it("lists the recurring availability rules", () => {
+  it("lists the recurring availability rules in Turkish without seconds", () => {
     mockCalendar();
     render(<MentorCalendarPage />);
 
+    expect(screen.getByText("Pazartesi")).toBeInTheDocument();
     expect(screen.getByText("09:00–12:00")).toBeInTheDocument();
+    expect(screen.queryByText("MONDAY")).not.toBeInTheDocument();
     expect(screen.getByText("3 boş slot")).toBeInTheDocument();
+  });
+
+  it("explains a week the mentor marked as unavailable", () => {
+    mockCalendar({ weekExceptionLabels: ["14–18 Eylül · İzin"] });
+    render(<MentorCalendarPage />);
+
+    expect(screen.getByText("Bu hafta müsait değilsin")).toBeInTheDocument();
+    expect(screen.getByText("14–18 Eylül · İzin")).toBeInTheDocument();
   });
 
   it("notes when no availability rule is defined", () => {

@@ -4,7 +4,6 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
-  dayGreeting,
   dueState,
   meetingDayLabel,
   meetingWhenLabel,
@@ -19,15 +18,6 @@ import {
 } from "@test/fixtures/mentee-home";
 
 const now = new Date(2026, 8, 14, 10, 0);
-
-describe("dayGreeting", () => {
-  it("follows the time of day", () => {
-    expect(dayGreeting(new Date(2026, 8, 14, 9))).toBe("Günaydın");
-    expect(dayGreeting(new Date(2026, 8, 14, 14))).toBe("İyi günler");
-    expect(dayGreeting(new Date(2026, 8, 14, 21))).toBe("İyi akşamlar");
-    expect(dayGreeting(new Date(2026, 8, 14, 3))).toBe("İyi akşamlar");
-  });
-});
 
 describe("dueState", () => {
   it("marks past days overdue and today's date as today", () => {

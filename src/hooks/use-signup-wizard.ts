@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import {
   BIO_MAX_LENGTH,
-  DOCUMENT_CHECKLIST,
-  PROGRAM_LEVEL_OPTIONS,
+  ContactPreference,
+  MAX_SUPPORT_AREAS,
   SIGNUP_STEP_ORDER,
   SignupStep,
   StartupDocumentKind,
@@ -13,6 +13,7 @@ import {
   type PersonalProfileDraft,
   type SignupDraft,
   type StartupProfileDraft,
+  type TeamMemberDraft,
   type UploadedFile,
 } from "@/interfaces/signup";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
@@ -28,7 +29,6 @@ function emptyDraft(): SignupDraft {
       role: "",
       bio: "",
       linkedin: "",
-      expertise: [],
       contactPreferences: [],
       cv: null,
     },
@@ -36,22 +36,20 @@ function emptyDraft(): SignupDraft {
       name: "",
       tagline: "",
       website: "",
+      foundedYear: "",
       programId: null,
-      problem: "",
-      solution: "",
-      currentSolution: "",
-      targetUser: "",
-      sector: "",
       maturity: "",
+      teamMembers: [],
       supportAreas: [],
-      programLevel: PROGRAM_LEVEL_OPTIONS[0],
       logo: null,
     },
     documents: {},
+    mvpUrl: "",
+    consent: false,
   };
 }
 
-function toggle(list: string[], value: string) {
+function toggle<T>(list: T[], value: T) {
   return list.includes(value)
     ? list.filter((item) => item !== value)
     : [...list, value];
@@ -84,6 +82,8 @@ function restoreFromPayload(saved: unknown): {
       personal: { ...base.personal, ...parsed.personal, cv: cv.value },
       startup: { ...base.startup, ...parsed.startup, logo: logo.value },
       documents,
+      mvpUrl: parsed.mvpUrl ?? "",
+      consent: false,
     },
     droppedFiles: dropped,
   };
@@ -141,26 +141,20 @@ export function useSignupWizard(
     [],
   );
 
-  // Expertise is free-form now: values come from the parsed CV or the user's own
-  // typing, so the step replaces the whole set rather than toggling a fixed list.
-  const setExpertise = useCallback((values: string[]) => {
-    setDraft((current) => ({
-      ...current,
-      personal: { ...current.personal, expertise: values },
-    }));
-  }, []);
-
   const toggleSupportArea = useCallback((value: string) => {
-    setDraft((current) => ({
-      ...current,
-      startup: {
-        ...current.startup,
-        supportAreas: toggle(current.startup.supportAreas, value),
-      },
-    }));
+    setDraft((current) => {
+      const selected = current.startup.supportAreas;
+      if (!selected.includes(value) && selected.length >= MAX_SUPPORT_AREAS) {
+        return current;
+      }
+      return {
+        ...current,
+        startup: { ...current.startup, supportAreas: toggle(selected, value) },
+      };
+    });
   }, []);
 
-  const toggleContactPreference = useCallback((value: string) => {
+  const toggleContactPreference = useCallback((value: ContactPreference) => {
     setDraft((current) => ({
       ...current,
       personal: {
@@ -168,6 +162,34 @@ export function useSignupWizard(
         contactPreferences: toggle(current.personal.contactPreferences, value),
       },
     }));
+  }, []);
+
+  const addTeamMember = useCallback((member: TeamMemberDraft) => {
+    setDraft((current) => ({
+      ...current,
+      startup: {
+        ...current.startup,
+        teamMembers: [...current.startup.teamMembers, member],
+      },
+    }));
+  }, []);
+
+  const removeTeamMember = useCallback((index: number) => {
+    setDraft((current) => ({
+      ...current,
+      startup: {
+        ...current.startup,
+        teamMembers: current.startup.teamMembers.filter((_, i) => i !== index),
+      },
+    }));
+  }, []);
+
+  const setMvpUrl = useCallback((mvpUrl: string) => {
+    setDraft((current) => ({ ...current, mvpUrl }));
+  }, []);
+
+  const setConsent = useCallback((consent: boolean) => {
+    setDraft((current) => ({ ...current, consent }));
   }, []);
 
   const setDocument = useCallback(
@@ -235,53 +257,16 @@ export function useSignupWizard(
   const bioRemaining = BIO_MAX_LENGTH - draft.personal.bio.length;
   const taglineRemaining = TAGLINE_MAX_LENGTH - draft.startup.tagline.length;
 
-  const checklist = useMemo(
-    () =>
-      DOCUMENT_CHECKLIST.map((item) => ({
-        ...item,
-        done: Boolean(draft.documents[item.kind]),
-      })),
-    [draft.documents],
-  );
-
-  const completion = useMemo(() => {
-    const { personal, startup, documents } = draft;
-    const checks: { label: string; done: boolean }[] = [
-      { label: "Ad", done: Boolean(personal.firstName.trim()) },
-      { label: "Soyad", done: Boolean(personal.lastName.trim()) },
-      { label: "Rol", done: Boolean(personal.role.trim()) },
-      { label: "Kısa tanıtım", done: Boolean(personal.bio.trim()) },
-      { label: "LinkedIn", done: Boolean(personal.linkedin.trim()) },
-      { label: "CV", done: Boolean(personal.cv) },
-      { label: "Uzmanlık alanları", done: personal.expertise.length > 0 },
-      { label: "Startup adı", done: Boolean(startup.name.trim()) },
-      { label: "Logo", done: Boolean(startup.logo) },
-      { label: "Tek satırlık tanım", done: Boolean(startup.tagline.trim()) },
-      { label: "Web sitesi URL'i", done: Boolean(startup.website.trim()) },
-      { label: "Problem", done: Boolean(startup.problem.trim()) },
-      { label: "Çözüm", done: Boolean(startup.solution.trim()) },
-      { label: "Hedef kullanıcı", done: Boolean(startup.targetUser.trim()) },
-      { label: "Sektör", done: Boolean(startup.sector) },
-      { label: "Olgunluk seviyesi", done: Boolean(startup.maturity) },
-      { label: "Destek alanları", done: startup.supportAreas.length > 0 },
-      { label: "Dosyalar", done: Object.keys(documents).length > 0 },
-    ];
-    const done = checks.filter((c) => c.done).length;
-    return {
-      percent: Math.round((done / checks.length) * 100),
-      missing: checks.filter((c) => !c.done).map((c) => c.label),
-    };
-  }, [draft]);
-
   const canContinue = useMemo(() => {
     if (step === SignupStep.PersonalProfile) {
       const { firstName, lastName, role } = draft.personal;
       return Boolean(firstName.trim() && lastName.trim() && role.trim());
     }
     if (step === SignupStep.StartupProfile) {
-      const { name, tagline, website, logo } = draft.startup;
-      return Boolean(name.trim() && tagline.trim() && website.trim() && logo);
+      const { name, tagline } = draft.startup;
+      return Boolean(name.trim() && tagline.trim());
     }
+    if (step === SignupStep.Review) return draft.consent;
     return true;
   }, [draft, step]);
 
@@ -295,9 +280,9 @@ export function useSignupWizard(
     droppedFiles,
     bioRemaining,
     taglineRemaining,
-    checklist,
-    completion,
     canContinue,
+    supportAreaLimitReached:
+      draft.startup.supportAreas.length >= MAX_SUPPORT_AREAS,
     isFirstStep: step === SignupStep.PersonalProfile,
     isLastStep: step === SignupStep.Review,
     goToStep,
@@ -307,8 +292,11 @@ export function useSignupWizard(
     saveDraft,
     setDocument,
     toggleContactPreference,
-    setExpertise,
     toggleSupportArea,
+    addTeamMember,
+    removeTeamMember,
+    setMvpUrl,
+    setConsent,
     updatePersonal,
     updateStartup,
   };

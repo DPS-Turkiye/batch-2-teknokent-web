@@ -741,6 +741,7 @@ function ListNote({ children }: { children: ReactNode }) {
 export function MentorDashboardView() {
   const {
     firstName,
+    greeting,
     pending,
     accepted,
     mentorships,
@@ -769,7 +770,7 @@ export function MentorDashboardView() {
         >
           <div>
             <h1 className="text-[28px] font-semibold leading-[41px] text-[#22262b]">
-              Günaydın, {firstName}
+              {greeting}, {firstName}
             </h1>
             {detailedState ? (
               <p className="mt-1 text-[13px] leading-[19px] text-[#676e78]">

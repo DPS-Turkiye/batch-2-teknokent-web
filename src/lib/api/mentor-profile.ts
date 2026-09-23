@@ -42,12 +42,16 @@ export function fetchMentorAvailabilitySettings(mentorId: string) {
 export function updateMentorAvailabilitySettings(
   mentorId: string,
   payload: Record<string, unknown>,
+  idToken?: string,
 ) {
-  return backendRequest({
-    method: HttpMethod.Put,
-    url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
-    data: payload,
-  });
+  return backendRequest(
+    {
+      method: HttpMethod.Put,
+      url: `/api/mentors/${encodeURIComponent(mentorId)}/availability-settings`,
+      data: payload,
+    },
+    idToken ? { idToken } : undefined,
+  );
 }
 
 export function createMentorAvailabilityRule(

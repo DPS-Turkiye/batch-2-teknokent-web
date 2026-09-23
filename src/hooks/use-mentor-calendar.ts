@@ -35,6 +35,9 @@ import {
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
 import { programsMentorHasJoined } from "@/lib/meeting-targets";
+import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
+import { exceptionLabel, exceptionsInRange } from "@/lib/mentor-availability";
+import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 import {
   CalendarFilter,
   CALENDAR_FILTER_LABELS,
@@ -80,6 +83,7 @@ export function useMentorCalendar() {
     queryKey: AVAILABILITY_SLOTS_KEY,
     queryFn: getMentorAvailability,
   });
+  const settingsQuery = useMentorAvailabilitySettings();
 
   function invalidateAvailability() {
     void queryClient.invalidateQueries({ queryKey: AVAILABILITY_RULES_KEY });
@@ -210,7 +214,19 @@ export function useMentorCalendar() {
     [rulesQuery.data],
   );
 
+  const weekExceptionLabels = useMemo(
+    () =>
+      exceptionsInRange(
+        settingsQuery.data?.exceptions ?? [],
+        days[0],
+        days[days.length - 1],
+      ).map((exception) => exceptionLabel(exception)),
+    [settingsQuery.data?.exceptions, days],
+  );
+
   return {
+    availabilityRows: weeklyAvailabilityRows(rules),
+    weekExceptionLabels,
     addMeeting: (input: {
       mentorshipRequestId?: string;
       programId?: string;
