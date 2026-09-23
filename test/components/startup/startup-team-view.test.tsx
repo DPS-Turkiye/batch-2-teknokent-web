@@ -25,6 +25,9 @@ vi.mock("@/components/startup/startup-page-frame", () => ({
   startupSecondaryActionClass: "",
 }));
 vi.mock("@/hooks/use-startup-team", () => ({ useStartupTeam: vi.fn() }));
+vi.mock("@/components/startup/startup-invite-code", () => ({
+  StartupInviteCode: () => <section>Davet kodu</section>,
+}));
 
 const founder = memberFixture("founder", {
   fullName: "Gülse Buran",
@@ -46,6 +49,7 @@ function state(overrides: Partial<Team> = {}): Team {
     draft: null,
     error: null,
     formError: null,
+    isFounder: true,
     isLoading: false,
     isRemoving: false,
     isSaving: false,
@@ -61,6 +65,20 @@ function state(overrides: Partial<Team> = {}): Team {
 
 describe("StartupTeamView", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("shows the invite code to the founder, who is the only one allowed it", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(state({ isFounder: true }));
+    renderWithQueryClient(<StartupTeamView />);
+
+    expect(screen.getByText("Davet kodu")).toBeInTheDocument();
+  });
+
+  it("withholds the invite code from a member who is not the founder", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(state({ isFounder: false }));
+    renderWithQueryClient(<StartupTeamView />);
+
+    expect(screen.queryByText("Davet kodu")).not.toBeInTheDocument();
+  });
 
   it("lists the members with their email, join date and role", () => {
     vi.mocked(useStartupTeam).mockReturnValue(state());

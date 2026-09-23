@@ -123,6 +123,8 @@ export function useStartupTeam() {
     draft,
     error: membersQuery.error,
     formError,
+    // Only the founder may read or regenerate the organization's invite code.
+    isFounder: viewerIsFounder,
     isLoading: membersQuery.isLoading,
     isRemoving: remove.isPending,
     isSaving: add.isPending || update.isPending,
