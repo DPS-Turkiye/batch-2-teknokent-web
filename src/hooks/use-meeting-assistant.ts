@@ -127,7 +127,7 @@ function publishableTranscript(lines: TranscriptLine[]) {
     }));
 }
 
-export function useMeetingAssistant() {
+export function useMeetingAssistant(requestedMeetingId?: string) {
   const platformMeetingsQuery = useMeetings();
   const calendarItems = useMemo(
     () => platformMeetingsQuery.data ?? [],
@@ -138,7 +138,12 @@ export function useMeetingAssistant() {
   const reportInFlightRef = useRef<Record<string, Promise<void>>>({});
   const [adHocMeetings, setAdHocMeetings] = useState<Meeting[]>([]);
   const [overlays, setOverlays] = useState<Record<string, MeetingOverlay>>({});
-  const [selectedId, setSelectedId] = useState("");
+  const [selectedId, setSelectedId] = useState(requestedMeetingId ?? "");
+  const [openedFor, setOpenedFor] = useState(requestedMeetingId);
+  if (openedFor !== requestedMeetingId) {
+    setOpenedFor(requestedMeetingId);
+    setSelectedId(requestedMeetingId ?? "");
+  }
   const [meetingUrl, setMeetingUrl] = useState("");
   const [botStatus, setBotStatus] = useState<BotStatus | null>(null);
   const [botError, setBotError] = useState<string | null>(null);
@@ -161,11 +166,14 @@ export function useMeetingAssistant() {
   const [shareError, setShareError] = useState<string | null>(null);
   const calendarMeetings = useMemo(() => {
     return calendarItems
-      .filter(isAssistantCalendarMeeting)
+      .filter(
+        (item) =>
+          isAssistantCalendarMeeting(item) || item.id === requestedMeetingId,
+      )
       .map((item) =>
         withAssistantOverlay(toAssistantMeeting(item), overlays[item.id]),
       );
-  }, [calendarItems, overlays]);
+  }, [calendarItems, overlays, requestedMeetingId]);
 
   const meetings = useMemo(() => {
     const calendarIds = new Set(calendarMeetings.map((item) => item.id));

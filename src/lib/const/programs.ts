@@ -111,6 +111,7 @@ export const PERSON_PROFILE_LABELS = {
   loading: "Profil yükleniyor…",
   notFound: "Kullanıcı bulunamadı.",
   redirecting: "Mentor profiline yönlendiriliyorsun…",
+  redirectingOwn: "Profiline yönlendiriliyorsun…",
   noBio: "Henüz bir biyografi eklenmemiş.",
   linkedin: "LinkedIn profili",
 } as const;

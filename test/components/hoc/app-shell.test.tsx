@@ -287,8 +287,8 @@ describe("AppShell navigation", () => {
       within(menteeNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();
     expect(
-      within(menteeNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
+      within(menteeNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
+    ).not.toBeInTheDocument();
     expect(menteeLinks[menteeLinks.length - 1]).toHaveAttribute(
       "href",
       "/notes",
@@ -509,8 +509,8 @@ describe("AppShell mobile drawer", () => {
       within(drawerNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();
     expect(
-      within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
+      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
+    ).not.toBeInTheDocument();
     const drawerLinks = within(drawerNav).getAllByRole("link");
     expect(drawerLinks[drawerLinks.length - 1]).toHaveAttribute(
       "href",
