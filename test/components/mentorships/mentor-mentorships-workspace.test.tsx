@@ -198,23 +198,28 @@ describe("MentorMentorshipsWorkspace", () => {
       screen.queryByRole("tab", { name: "Mentor Havuzu" }),
     ).not.toBeInTheDocument();
     expect(await screen.findByText("Döngü")).toBeInTheDocument();
-    expect(
-      screen.queryByText("Yakın zamanda tamamlanan"),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText("istenilen belgeler")).not.toBeInTheDocument();
+    expect(screen.queryByText("Toplantı Transkripti")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("tab", { name: "Geçmiş" }));
-    expect(screen.getByText("Yakın zamanda tamamlanan")).toBeInTheDocument();
     expect(
-      await screen.findByText(/HubC · Büyüme Stratejisi/),
+      await screen.findByText("Gülse Buran · Büyüme Stratejisi"),
     ).toBeInTheDocument();
+    expect(screen.getByText("Gülse Buran · Satış")).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: "Görüşme hakkında bilgi" }),
-    ).toHaveAttribute("href", "/meetings/research/about?id=ended-meeting");
+      screen.getByRole("link", { name: /Toplantı Transkripti/ }),
+    ).toHaveAttribute("href", "/assistant?meetingId=ended-meeting");
+    expect(screen.getByRole("link", { name: "Notlar" })).toHaveAttribute(
+      "href",
+      "/meetings/research/about?id=ended-meeting",
+    );
     expect(
-      screen.queryByRole("link", { name: "Görüşmeyi değerlendir" }),
-    ).not.toBeInTheDocument();
+      screen.getAllByRole("link", { name: "Dosyalar" }).map((link) =>
+        link.getAttribute("href"),
+      ),
+    ).toEqual(["/mentorships/requests/past-1", "/mentorships/requests/withdrawn-1"]);
     expect(
-      screen.getByRole("link", { name: "Mentorluk geçmişi →" }),
+      screen.getAllByRole("link", { name: "HubC mentorluk geçmişi" })[1],
     ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");
   });
 

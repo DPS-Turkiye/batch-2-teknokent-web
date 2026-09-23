@@ -14,7 +14,7 @@ export function TranscribeRequestedField({
           type="checkbox"
           checked={checked}
           onChange={(event) => onChange(event.target.checked)}
-          className="mt-0.5 size-4 accent-[#e86f22]"
+          className="mt-0.5 size-4 accent-[var(--ms-accent,#e86f22)]"
         />
         <span>
           <span className="block text-sm font-semibold text-[#22262b]">
@@ -29,7 +29,7 @@ export function TranscribeRequestedField({
       {checked ? (
         <p
           role="status"
-          className="mt-2 rounded-xl bg-[#fff9f5] px-3 py-2 text-xs leading-5 text-[#c85816]"
+          className="mt-2 rounded-xl bg-[var(--ms-accent-faint,#fff9f5)] px-3 py-2 text-xs leading-5 text-[var(--ms-accent-strong,#c85816)]"
         >
           Toplantı sonrası Toplantı Asistanı&apos;ndan toplantı raporunu ve
           transkripti menteelerinize gönderebilirsiniz.

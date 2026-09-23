@@ -140,8 +140,8 @@ export function MentorRequestReviewDialog({
                     }}
                     className={`min-h-11 rounded-lg border px-4 text-left text-sm font-medium ${
                       selectedSlot
-                        ? "border-[#e86f22] bg-[#fdebdd] text-[#e86f22]"
-                        : "border-[#e4e7ea] bg-white text-[#22262b] hover:border-[#f2b78f] disabled:opacity-50"
+                        ? "border-[var(--ms-accent,#e86f22)] bg-[var(--ms-accent-soft,#fdebdd)] text-[var(--ms-accent,#e86f22)]"
+                        : "border-[#e4e7ea] bg-white text-[#22262b] hover:border-[var(--ms-accent-border,#f2b78f)] disabled:opacity-50"
                     }`}
                   >
                     {slot.label}
@@ -166,7 +166,7 @@ export function MentorRequestReviewDialog({
             <button
               type="button"
               onClick={() => setMode(mode === "propose" ? "accept" : "propose")}
-              className="shrink-0 text-[13px] font-medium text-[#e86f22]"
+              className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
             >
               {mode === "propose"
                 ? "Mentee saatlerine dön"
@@ -222,7 +222,7 @@ export function MentorRequestReviewDialog({
                       emptyPreferredSlot(),
                     ])
                   }
-                  className="mt-1 text-left text-[13px] font-medium text-[#e86f22]"
+                  className="mt-1 text-left text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
                 >
                   + Bir tane daha ekle
                 </button>

@@ -65,7 +65,7 @@ export function RegularMentorshipsTab({
           <button
             type="button"
             onClick={() => setStartOpen(true)}
-            className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[#e86f22] px-4 text-[13px] font-medium text-white hover:bg-[#ce5e19]"
+            className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 text-[13px] font-medium text-white hover:bg-[var(--ms-accent-hover,#ce5e19)]"
           >
             Düzenli mentorlük başlat
           </button>
@@ -102,7 +102,7 @@ function RegularMentorshipCard({
   return (
     <Link
       href={`/mentorships/regular/${encodeURIComponent(mentorship.id)}`}
-      className="block rounded-[10px] border border-[#e4e7ea] bg-white px-5 py-5 transition hover:border-[#f2b78f]"
+      className="block rounded-[10px] border border-[#e4e7ea] bg-white px-5 py-5 transition hover:border-[var(--ms-accent-border,#f2b78f)]"
     >
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0">
@@ -117,7 +117,7 @@ function RegularMentorshipCard({
             {formatDate(mentorship.endDate)}
           </p>
         </div>
-        <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
+        <span className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]">
           Hedefleri aç →
         </span>
       </div>
@@ -128,7 +128,7 @@ function RegularMentorshipCard({
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-[#eef1f4]">
           <div
-            className="h-full rounded-full bg-[#e86f22] transition-[width]"
+            className="h-full rounded-full bg-[var(--ms-accent,#e86f22)] transition-[width]"
             style={{ width: `${Math.min(100, mentorship.progressPercent)}%` }}
           />
         </div>
@@ -222,7 +222,7 @@ function StartRegularMentorshipDialog({
                 className={
                   "block w-full border-b border-[#eef1f4] px-3 py-2 text-left text-sm last:border-b-0 " +
                   (organizationId === org.id
-                    ? "bg-[#fff4ec] font-medium text-[#e86f22]"
+                    ? "bg-[var(--ms-accent-faint,#fff4ec)] font-medium text-[var(--ms-accent,#e86f22)]"
                     : "text-[#22262b] hover:bg-[#f8f9fa]")
                 }
               >
@@ -309,7 +309,7 @@ function StartRegularMentorshipDialog({
                 daysPerWeek,
               });
             }}
-            className="rounded-lg bg-[#e86f22] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+            className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
             {mutation.isPending ? "Kaydediliyor..." : "Başlat"}
           </button>

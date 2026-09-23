@@ -23,7 +23,7 @@ export function MeetLinkDisplay({
       href={meetLinkHref(meetLink)}
       target="_blank"
       rel="noopener noreferrer"
-      className={`block truncate text-[13px] font-medium text-[#e86f22] hover:underline ${className}`}
+      className={`block truncate text-[13px] font-medium text-[var(--ms-accent,#e86f22)] hover:underline ${className}`}
       onClick={(event) => event.stopPropagation()}
     >
       {meetLink}

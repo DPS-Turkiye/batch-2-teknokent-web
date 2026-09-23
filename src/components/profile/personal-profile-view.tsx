@@ -2,54 +2,26 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { type ReactNode, useRef } from "react";
+import { useRef } from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
 import { EditableChips } from "@/components/common/editable-chips";
 import { AppShell } from "@/components/hoc/app-shell";
 import { CvFileSection } from "@/components/profile/cv-file-section";
+import { ProfileCard as Card } from "@/components/profile/profile-card";
 import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
-import { PROFILE_PHOTO_TYPES, ProfileChipTone } from "@/lib/personal-profile";
+import {
+  PROFILE_BUTTON_TEXT_CLASS as buttonTextClass,
+  PROFILE_CHIP_CLASSES as CHIP_CLASSES,
+  PROFILE_EMPTY_CLASS as emptyClass,
+  PROFILE_INPUT_CLASS as inputClass,
+  PROFILE_LINK_CLASS as linkClass,
+  PROFILE_ROW_CLASS as rowClass,
+} from "@/lib/const/profile";
+import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
 
 type PageData = ReturnType<typeof usePersonalProfilePage>;
-
-const CHIP_CLASSES: Record<ProfileChipTone, string> = {
-  [ProfileChipTone.Program]: "border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]",
-  [ProfileChipTone.Active]: "border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]",
-  [ProfileChipTone.Neutral]: "border-[#e4e7ea] bg-[#f3f4f6] text-[#4a5059]",
-};
-// globals.css gives buttons and form fields `font: inherit` outside any layer,
-// so their type sizes need `!` to take effect.
-const buttonTextClass = "text-[12.5px]! font-medium! leading-[19px]!";
-const linkClass = `text-[#9e4400] ${buttonTextClass}`;
-const inputClass =
-  "mt-1 block w-full rounded-lg border border-[#d4d8dd] px-3 py-2 text-[13px]! text-[#22262b]";
-const emptyClass = "text-[12.5px] text-[#858c96]";
-const rowClass =
-  "flex items-center justify-between gap-4 text-[12.5px] leading-[19px]";
-
-function Card({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-3 rounded-xl border border-[#e4e7ea] bg-white px-5 py-[18px]">
-      <header className="flex items-center justify-between gap-3">
-        <h2 className="text-[15px] font-semibold leading-[23px] text-[#22262b]">
-          {title}
-        </h2>
-        {action}
-      </header>
-      {children}
-    </section>
-  );
-}
 
 function EditLink({ page, label }: { page: PageData; label: string }) {
   if (page.isEditing) return null;
