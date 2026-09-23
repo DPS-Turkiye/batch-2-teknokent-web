@@ -3,18 +3,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 import type { SessionData } from "@/interfaces/session";
-import { isPublicPath, SESSION_COOKIE } from "@/lib/public-paths";
+import { isPublicPath, safeNextPath, SESSION_COOKIE } from "@/lib/public-paths";
 
 /** Signing in again while already signed in is never what the visitor wants. */
 const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup"]);
-
-/**
- * Only ever an in-app path. An absolute URL, or a protocol-relative "//host",
- * would turn this into an open redirect.
- */
-function safeNextPath(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
-}
 
 /**
  * A cookie that is merely present is not a session: an expired one, or one

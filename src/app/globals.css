@@ -68,14 +68,20 @@ html {
 body {
   background: var(--paper);
   color: var(--ink);
-  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
-button,
-input,
-select,
-textarea {
-  font: inherit;
+/*
+ * Outside a layer this beat every Tailwind text-size utility on these
+ * elements, so a button's size class was silently ignored app-wide.
+ */
+@layer base {
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
 }
 
 button,

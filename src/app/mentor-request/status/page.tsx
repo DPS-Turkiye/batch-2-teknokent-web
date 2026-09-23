@@ -356,8 +356,9 @@ export default function RequestStatusPage() {
                               Görüşme dosyanı paylaş
                             </h3>
                             <p className="mt-1 text-xs text-[#676e78]">
-                              PDF veya DOCX · En fazla 10 MB. Dosya S3’e
-                              yüklenir ve mentora mesaj olarak bildirilir.
+                              PDF veya DOCX · En fazla 10 MB. Dosya güvenli
+                              şekilde yüklenir ve mentora mesaj olarak
+                              bildirilir.
                             </p>
                           </div>
                           <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-4 text-xs font-semibold text-white">

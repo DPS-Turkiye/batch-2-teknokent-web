@@ -13,9 +13,11 @@ import {
 const push = vi.fn();
 const login = vi.fn();
 const logout = vi.fn();
+let searchParams = new URLSearchParams();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
+  useSearchParams: () => searchParams,
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -43,6 +45,7 @@ beforeEach(() => {
   vi.mocked(signInToFirebase).mockResolvedValue("id-token");
   vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
   logout.mockResolvedValue(undefined);
+  searchParams = new URLSearchParams();
 });
 
 async function waitUntilLoginReady() {
@@ -119,6 +122,34 @@ describe("Login screen", () => {
     );
     await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", false));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+  });
+
+  it("continues to where the gate was sending them, not the workspace", async () => {
+    searchParams = new URLSearchParams({ next: "/mentorships" });
+    login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/mentorships"));
+    expect(push).not.toHaveBeenCalledWith("/workspace");
+  });
+
+  it("refuses a next that would send the visitor off the site", async () => {
+    searchParams = new URLSearchParams({ next: "//evil.example/steal" });
+    login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+    expect(push).not.toHaveBeenCalledWith("//evil.example/steal");
   });
 
   it("passes Beni Hatırla through as the persistence choice", async () => {

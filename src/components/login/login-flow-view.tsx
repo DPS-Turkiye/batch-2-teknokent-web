@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { authFieldClass } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { useLoginFlow } from "@/hooks/use-login-flow";
+import { safeNextPath } from "@/lib/public-paths";
 
 const joinRoutes = [
   {
@@ -25,6 +26,7 @@ const joinRoutes = [
 
 export function LoginFlowView() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const {
     email,
     setEmail,
@@ -43,9 +45,13 @@ export function LoginFlowView() {
     isVerified,
   } = useLoginFlow();
 
+  // The gate sends a signed-out visitor to /login?next=<where they were going>;
+  // ignoring it landed everyone on the dashboard instead.
+  const next = safeNextPath(searchParams.get("next"));
+
   useEffect(() => {
-    if (isVerified) router.push("/workspace");
-  }, [isVerified, router]);
+    if (isVerified) router.push(next ?? "/workspace");
+  }, [isVerified, next, router]);
 
   if (needsEmailVerification) {
     return (
