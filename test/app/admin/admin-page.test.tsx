@@ -1,80 +1,38 @@
 import { screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import AdminPage from "@/app/admin/page";
-import {
-  useDecidePendingAccount,
-  usePendingAccounts,
-} from "@/hooks/use-pending-accounts";
-import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { useAdminOverview } from "@/hooks/use-admin-overview";
+import type { AdminOverview } from "@/interfaces/admin-overview";
 import { renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/components/hoc/app-shell", () => ({
-  AppShell: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
+vi.mock("@/hooks/use-admin-overview", () => ({
+  useAdminOverview: vi.fn(),
 }));
 
-vi.mock("@/hooks/use-pending-accounts", () => ({
-  usePendingAccounts: vi.fn(),
-  useDecidePendingAccount: vi.fn(),
-}));
+const emptyOverview: AdminOverview = {
+  programs: [],
+  users: [],
+  mentorships: [],
+  requests: [],
+  bottlenecks: [],
+  meetingsLast8Weeks: 0,
+};
 
 describe("AdminPage", () => {
-  const mutateAsync = vi.fn();
-
   beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(useDecidePendingAccount).mockReturnValue({
-      mutateAsync,
-      isPending: false,
-    } as ReturnType<typeof useDecidePendingAccount>);
-  });
-
-  it("shows an empty state when nothing is waiting", () => {
-    vi.mocked(usePendingAccounts).mockReturnValue({
-      data: [],
+    vi.mocked(useAdminOverview).mockReturnValue({
+      data: emptyOverview,
       isLoading: false,
       error: null,
-    } as ReturnType<typeof usePendingAccounts>);
-
-    renderWithQueryClient(<AdminPage />);
-
-    expect(screen.getByText("Bekleyen başvuru yok.")).toBeInTheDocument();
+    } as ReturnType<typeof useAdminOverview>);
   });
 
-  it("lists a pending founder and posts APPROVED without an actorId", async () => {
-    vi.mocked(usePendingAccounts).mockReturnValue({
-      data: [
-        {
-          id: "founder-1",
-          fullName: "Deniz Arslan",
-          email: "deniz@greenloop.demo",
-          role: UserRole.Mentee,
-          jobTitle: "Kurucu",
-          organizationName: "GreenLoop",
-        },
-      ],
-      isLoading: false,
-      error: null,
-    } as ReturnType<typeof usePendingAccounts>);
-    mutateAsync.mockResolvedValue({
-      user: { fullName: "Deniz Arslan" },
-      inviteCode: "ABCD2345",
-    });
-    const user = userEvent.setup();
-
+  it("shows live queue counts instead of sample programs", () => {
     renderWithQueryClient(<AdminPage />);
-    await user.click(screen.getByRole("button", { name: "Onayla" }));
 
-    expect(mutateAsync).toHaveBeenCalledWith({
-      userId: "founder-1",
-      status: UserAccountStatus.Approved,
-    });
-    expect(await screen.findByRole("status")).toBeInTheDocument();
-    expect(screen.getByRole("status")).toHaveTextContent(
-      "Deniz Arslan onaylandı. Davet kodu: ABCD2345",
-    );
+    expect(screen.getByText("Eşleşme bekleyen takımlar")).toBeInTheDocument();
+    expect(screen.getByText("Henüz program yok.")).toBeInTheDocument();
+    expect(screen.queryByText("METU Stars 2026")).not.toBeInTheDocument();
   });
 });

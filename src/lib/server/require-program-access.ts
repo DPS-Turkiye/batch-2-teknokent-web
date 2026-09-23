@@ -93,7 +93,8 @@ export async function requireCoordinatorOrMentorSession() {
   }
   if (
     session.role !== UserRole.Coordinator &&
-    session.role !== UserRole.Mentor
+    session.role !== UserRole.Mentor &&
+    session.role !== UserRole.Admin
   ) {
     return {
       ok: false as const,

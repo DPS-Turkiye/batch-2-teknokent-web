@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, POST } from "@/app/api/programs/route";
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
 import { requireCoordinatorOrMentorSession } from "@/lib/server/require-program-access";
+import { getSessionUser } from "@/lib/session";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -14,6 +15,10 @@ vi.mock("@/lib/api/programs", () => ({
 vi.mock("@/lib/server/require-program-access", () => ({
   requireCoordinatorOrMentorSession: vi.fn(),
   requireCoordinatorSession: vi.fn(),
+}));
+
+vi.mock("@/lib/session", () => ({
+  getSessionUser: vi.fn(),
 }));
 
 function coordinatorSession(): AppSession {
@@ -70,6 +75,7 @@ describe("POST /api/programs", () => {
   it("creates a program for the coordinator session", async () => {
     const { requireCoordinatorSession } =
       await import("@/lib/server/require-program-access");
+    vi.mocked(getSessionUser).mockResolvedValue(coordinatorSession());
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
       session: coordinatorSession(),

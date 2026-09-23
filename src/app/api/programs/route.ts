@@ -2,10 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { UserRole } from "@/interfaces/session";
 import {
   requireCoordinatorOrMentorSession,
   requireCoordinatorSession,
 } from "@/lib/server/require-program-access";
+import { getSessionUser } from "@/lib/session";
 
 export async function GET() {
   try {
@@ -21,7 +23,11 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const auth = await requireCoordinatorSession();
+    const session = await getSessionUser();
+    const auth =
+      session?.role === UserRole.Admin
+        ? { ok: true as const, session }
+        : await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const body = (await request.json()) as { name?: string };
     const name = body.name?.trim() ?? "";

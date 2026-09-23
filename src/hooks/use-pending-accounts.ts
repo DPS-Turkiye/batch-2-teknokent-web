@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
 import {
   decidePendingAccount,
@@ -27,7 +28,13 @@ export function useDecidePendingAccount() {
       userId: string;
       status: UserAccountStatus.Approved | UserAccountStatus.Rejected;
     }) => decidePendingAccount(userId, status),
-    onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: PENDING_ACCOUNTS_QUERY_KEY }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: PENDING_ACCOUNTS_QUERY_KEY,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+    },
   });
 }

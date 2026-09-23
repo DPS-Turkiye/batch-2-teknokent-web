@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { Bell, Check, Trash2, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -18,9 +19,11 @@ function notificationTime(value: string) {
 export function NotificationMenu({
   showBadge = true,
   minimal = false,
+  appearance = "default",
 }: {
   showBadge?: boolean;
   minimal?: boolean;
+  appearance?: "default" | "admin";
 }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -57,9 +60,17 @@ export function NotificationMenu({
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}
-        className={`relative grid place-items-center rounded-lg text-[#676e78] hover:bg-[#fff7f2] hover:text-[#e86f22] ${minimal ? "size-9" : "size-10 rounded-full border border-[#e4e7ea]"}`}
+        className={`relative grid place-items-center rounded-lg text-[#676e78] hover:bg-[#fff7f2] hover:text-[#e86f22] ${
+          appearance === "admin"
+            ? "size-9"
+            : minimal
+              ? "size-9"
+              : "size-10 rounded-full border border-[#e4e7ea]"
+        }`}
       >
-        {minimal ? (
+        {appearance === "admin" ? (
+          <Image alt="" src="/admin/nav-bell.svg" width={36} height={36} />
+        ) : minimal ? (
           <span
             aria-hidden
             className={`size-1.5 rounded-full ${unreadCount > 0 ? "bg-[#e86f22]" : "bg-[#858c96]"}`}
@@ -67,7 +78,10 @@ export function NotificationMenu({
         ) : (
           <Bell className="size-[18px]" strokeWidth={1.8} aria-hidden />
         )}
-        {!minimal && showBadge && unreadCount > 0 ? (
+        {appearance === "admin" && unreadCount > 0 ? (
+          <span className="absolute top-2 right-1 size-2 rounded-full bg-[#ff6a3d]" />
+        ) : null}
+        {appearance !== "admin" && !minimal && showBadge && unreadCount > 0 ? (
           <span className="absolute -right-1 -top-1 grid min-w-4 place-items-center rounded-full border-2 border-white bg-[#e86f22] px-0.5 text-[9px] font-bold leading-3 text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
