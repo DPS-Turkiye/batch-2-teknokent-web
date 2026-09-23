@@ -258,7 +258,7 @@ describe("AppShell navigation", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("sends a mentee's home link to /dashboard and hides the mentor panel", () => {
+  it("gives a mentee the revised frame on a page that does not opt in", () => {
     mockuseAppSession.mockReturnValue(menteeSession());
 
     render(
@@ -267,13 +267,9 @@ describe("AppShell navigation", () => {
       </AppShell>,
     );
 
-    const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
+    const homeLinks = screen.getAllByRole("link", { name: /Anasayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/dashboard");
     expect(screen.queryByText("Mentor Paneli")).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Mentörler/ })).toHaveAttribute(
-      "href",
-      "/mentors",
-    );
     expect(
       screen.getByRole("link", { name: /Mentorluklarım/ }),
     ).toHaveAttribute("href", "/mentorships");
@@ -281,21 +277,62 @@ describe("AppShell navigation", () => {
       "href",
       "/calendar",
     );
+
     const menteeNav = screen.getByRole("navigation", { name: "Ana menü" });
-    const menteeLinks = within(menteeNav).getAllByRole("link");
     expect(
-      within(menteeNav).queryByRole("link", { name: /Not Defterlerim/ }),
+      within(menteeNav)
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("href")),
+    ).toEqual([
+      "/dashboard",
+      "/mentorships",
+      "/calendar",
+      "/startup",
+      "/messages",
+      "/notes",
+    ]);
+    expect(
+      within(menteeNav).queryByRole("link", { name: /Mentörler/ }),
     ).not.toBeInTheDocument();
+    expect(
+      within(menteeNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("metual")).not.toBeInTheDocument();
+  });
+
+  it("lets a page opt out of the revised frame for a mentee", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+
+    render(
+      <AppShell active={AppArea.Home} menteeHome={false}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    const menteeNav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(
+      within(menteeNav).getByRole("link", { name: /Mentörler/ }),
+    ).toHaveAttribute("href", "/mentors");
     expect(
       within(menteeNav).getByRole("link", { name: /Toplantı Asistanı/ }),
     ).toHaveAttribute("href", "/assistant");
-    expect(menteeLinks[menteeLinks.length - 1]).toHaveAttribute(
-      "href",
-      "/notes",
+    expect(screen.getByText("metual")).toBeInTheDocument();
+  });
+
+  it("leaves a mentor on a page that does not opt in unchanged", () => {
+    mockuseAppSession.mockReturnValue(mentorSession());
+
+    render(
+      <AppShell active={AppArea.MentorDashboard}>
+        <p>content</p>
+      </AppShell>,
     );
-    expect(menteeLinks[menteeLinks.length - 1]).toHaveTextContent(
-      "Toplantı Notlarım",
-    );
+
+    const mentorNav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(within(mentorNav).getAllByRole("link")).toHaveLength(4);
+    expect(
+      within(mentorNav).getByRole("link", { name: /Mentorlüklerim/ }),
+    ).toHaveAttribute("href", "/mentorships");
   });
 
   it("puts Toplantı Notlarım last on the revised mentee navbar", () => {
@@ -421,8 +458,8 @@ describe("AppShell navigation", () => {
       name: /Mentorluklarım/,
     });
 
-    expect(startup.className).toContain("bg-[#fdebdd]");
-    expect(mentorships.className).not.toContain("bg-[#fdebdd]");
+    expect(startup.className).toContain("bg-[#e5701d]");
+    expect(mentorships.className).not.toContain("bg-[#e5701d]");
   });
 
   it("points the account menu at the role-appropriate profile", async () => {
@@ -497,11 +534,8 @@ describe("AppShell mobile drawer", () => {
     const drawerNav = within(drawer as HTMLElement).getByRole("navigation");
 
     expect(
-      within(drawerNav).getByRole("link", { name: /Ana Sayfa/ }),
+      within(drawerNav).getByRole("link", { name: /Anasayfa/ }),
     ).toHaveAttribute("href", "/dashboard");
-    expect(
-      within(drawerNav).getByRole("link", { name: /Mentörler/ }),
-    ).toHaveAttribute("href", "/mentors");
     expect(
       within(drawerNav).getByRole("link", { name: /Startup’ım/ }),
     ).toHaveAttribute("href", "/startup");
@@ -509,8 +543,11 @@ describe("AppShell mobile drawer", () => {
       within(drawerNav).queryByRole("link", { name: /Not Defterlerim/ }),
     ).not.toBeInTheDocument();
     expect(
-      within(drawerNav).getByRole("link", { name: /Toplantı Asistanı/ }),
-    ).toHaveAttribute("href", "/assistant");
+      within(drawerNav).queryByRole("link", { name: /Mentörler/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(drawerNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
+    ).not.toBeInTheDocument();
     const drawerLinks = within(drawerNav).getAllByRole("link");
     expect(drawerLinks[drawerLinks.length - 1]).toHaveAttribute(
       "href",
