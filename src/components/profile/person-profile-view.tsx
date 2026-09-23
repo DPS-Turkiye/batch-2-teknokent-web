@@ -111,7 +111,10 @@ export function PersonProfileView({
                 <dt className="text-[12px] text-[#676e78]">{LABELS.email}</dt>
                 <dd className="min-w-0 truncate text-right font-medium text-[#4a5059]">
                   {user.email ? (
-                    <a href={`mailto:${user.email}`} className="hover:underline">
+                    <a
+                      href={`mailto:${user.email}`}
+                      className="hover:underline"
+                    >
                       {user.email}
                     </a>
                   ) : (

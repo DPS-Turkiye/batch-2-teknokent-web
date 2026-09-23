@@ -202,99 +202,107 @@ export function MentorMentorshipsWorkspace() {
   return (
     <AppShell active={AppArea.Mentorships}>
       <div style={MENTOR_ACCENT_STYLE}>
-      <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
-        <h1 className="text-[28px] font-medium text-[#22262b]">
-          Mentorluklarım
-        </h1>
+        <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
+          <h1 className="text-[28px] font-medium text-[#22262b]">
+            Mentorluklarım
+          </h1>
 
-        <div
-          className="mt-[22px] grid grid-cols-4"
-          role="tablist"
-          aria-label="Mentorluk görünümleri"
-        >
-          {MENTOR_MENTORSHIPS_TABS.map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              role="tab"
-              aria-selected={tab === id}
-              onClick={() => setTab(id)}
-              className={
-                "px-3 py-[9px] text-[13px] transition " +
-                (tab === id
-                  ? "border-b-2 border-[#26a4ff] font-semibold text-[#26a4ff]"
-                  : "border-b border-[#e4e7ea] text-[#676e78] hover:text-[#515861]")
-              }
-            >
-              {label}
-            </button>
-          ))}
+          <div
+            className="mt-[22px] grid grid-cols-4"
+            role="tablist"
+            aria-label="Mentorluk görünümleri"
+          >
+            {MENTOR_MENTORSHIPS_TABS.map(([id, label]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={tab === id}
+                onClick={() => setTab(id)}
+                className={
+                  "px-3 py-[9px] text-[13px] transition " +
+                  (tab === id
+                    ? "border-b-2 border-[#26a4ff] font-semibold text-[#26a4ff]"
+                    : "border-b border-[#e4e7ea] text-[#676e78] hover:text-[#515861]")
+                }
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {meetingsLoading && tab !== MentorshipWorkspaceTab.Regular ? (
+            <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
+              Yükleniyor...
+            </div>
+          ) : meetingsError && tab !== MentorshipWorkspaceTab.Regular ? (
+            <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
+              {meetingsError.message}
+            </div>
+          ) : tab === MentorshipWorkspaceTab.Active ? (
+            <ActiveTab
+              meetings={meetings}
+              onEditMeetLink={openMeetLinkEditor}
+            />
+          ) : tab === MentorshipWorkspaceTab.History ? (
+            <HistoryTab meetings={meetings} />
+          ) : tab === MentorshipWorkspaceTab.Regular ? (
+            <RegularMentorshipsTab role={UserRole.Mentor} canStart />
+          ) : (
+            <RequestsTab
+              onReview={(request) => {
+                setActionError("");
+                setReviewing(request);
+              }}
+            />
+          )}
         </div>
 
-        {meetingsLoading && tab !== MentorshipWorkspaceTab.Regular ? (
-          <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-            Yükleniyor...
-          </div>
-        ) : meetingsError && tab !== MentorshipWorkspaceTab.Regular ? (
-          <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
-            {meetingsError.message}
-          </div>
-        ) : tab === MentorshipWorkspaceTab.Active ? (
-          <ActiveTab meetings={meetings} onEditMeetLink={openMeetLinkEditor} />
-        ) : tab === MentorshipWorkspaceTab.History ? (
-          <HistoryTab meetings={meetings} />
-        ) : tab === MentorshipWorkspaceTab.Regular ? (
-          <RegularMentorshipsTab role={UserRole.Mentor} canStart />
-        ) : (
-          <RequestsTab
-            onReview={(request) => {
+        {reviewing ? (
+          <MentorRequestReviewDialog
+            request={reviewing}
+            isPending={decisionMutation.isPending}
+            error={actionError}
+            onClose={() => {
+              setReviewing(null);
               setActionError("");
-              setReviewing(request);
             }}
-          />
-        )}
-      </div>
-
-      {reviewing ? (
-        <MentorRequestReviewDialog
-          request={reviewing}
-          isPending={decisionMutation.isPending}
-          error={actionError}
-          onClose={() => {
-            setReviewing(null);
-            setActionError("");
-          }}
-          onAccept={(slot, meetLink, transcribeRequested, requestedDocuments) =>
-            void acceptRequest(
-              reviewing,
+            onAccept={(
               slot,
               meetLink,
               transcribeRequested,
               requestedDocuments,
-            )
-          }
-          onPropose={(slots, requestedDocuments) =>
-            void proposeSlots(reviewing, slots, requestedDocuments)
-          }
-        />
-      ) : null}
+            ) =>
+              void acceptRequest(
+                reviewing,
+                slot,
+                meetLink,
+                transcribeRequested,
+                requestedDocuments,
+              )
+            }
+            onPropose={(slots, requestedDocuments) =>
+              void proposeSlots(reviewing, slots, requestedDocuments)
+            }
+          />
+        ) : null}
 
-      {editingLink ? (
-        <MentorMeetLinkDialog
-          request={editingLink}
-          meetLink={meetLinkDraft}
-          transcribeRequested={transcribeRequestedDraft}
-          isPending={linkSaving}
-          error={actionError}
-          onMeetLinkChange={setMeetLinkDraft}
-          onTranscribeRequestedChange={setTranscribeRequestedDraft}
-          onClose={() => {
-            setEditingLink(null);
-            setActionError("");
-          }}
-          onSave={() => void saveMeetLink()}
-        />
-      ) : null}
+        {editingLink ? (
+          <MentorMeetLinkDialog
+            request={editingLink}
+            meetLink={meetLinkDraft}
+            transcribeRequested={transcribeRequestedDraft}
+            isPending={linkSaving}
+            error={actionError}
+            onMeetLinkChange={setMeetLinkDraft}
+            onTranscribeRequestedChange={setTranscribeRequestedDraft}
+            onClose={() => {
+              setEditingLink(null);
+              setActionError("");
+            }}
+            onSave={() => void saveMeetLink()}
+          />
+        ) : null}
       </div>
     </AppShell>
   );
@@ -570,7 +578,12 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
   if (requests.length === 0) {
     return (
       <div className="mt-6 flex flex-col items-center gap-2.5 rounded-[20px] border border-[#e4e7ea] bg-white px-6 py-9 text-center">
-        <Image src="/mentorships/folder-open.svg" alt="" width={28} height={28} />
+        <Image
+          src="/mentorships/folder-open.svg"
+          alt=""
+          width={28}
+          height={28}
+        />
         <p className="text-sm font-medium text-[#4a5059]">
           {PAST_MENTORSHIP_LABELS.empty}
         </p>
@@ -650,7 +663,10 @@ function PastMentorshipRow({
         </div>
         <div className="flex shrink-0 items-center gap-3.5 text-[12.5px] font-medium leading-[18px] text-[#26a4ff]">
           {latest ? (
-            <Link href={meetingAboutHref(latest.id)} className="hover:underline">
+            <Link
+              href={meetingAboutHref(latest.id)}
+              className="hover:underline"
+            >
               {PAST_MENTORSHIP_LABELS.notes}
             </Link>
           ) : null}

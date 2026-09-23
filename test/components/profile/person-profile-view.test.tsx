@@ -42,18 +42,15 @@ describe("PersonProfileView", () => {
     expect(
       screen.getByRole("link", { name: "Startup profiline git →" }),
     ).toHaveAttribute("href", "/organizations/org-1");
-    expect(screen.getByRole("link", { name: "sude@example.com" })).toHaveAttribute(
-      "href",
-      "mailto:sude@example.com",
-    );
+    expect(
+      screen.getByRole("link", { name: "sude@example.com" }),
+    ).toHaveAttribute("href", "mailto:sude@example.com");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
     expect(screen.queryByRole("textbox")).not.toBeInTheDocument();
   });
 
   it("hides the startup link when the viewer cannot open that startup", () => {
-    render(
-      <PersonProfileView user={user} profile={null} startupHref={null} />,
-    );
+    render(<PersonProfileView user={user} profile={null} startupHref={null} />);
 
     expect(screen.getByText("Team TNT")).toBeInTheDocument();
     expect(

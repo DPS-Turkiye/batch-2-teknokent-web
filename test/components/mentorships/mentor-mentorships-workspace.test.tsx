@@ -214,10 +214,13 @@ describe("MentorMentorshipsWorkspace", () => {
       "/meetings/research/about?id=ended-meeting",
     );
     expect(
-      screen.getAllByRole("link", { name: "Dosyalar" }).map((link) =>
-        link.getAttribute("href"),
-      ),
-    ).toEqual(["/mentorships/requests/past-1", "/mentorships/requests/withdrawn-1"]);
+      screen
+        .getAllByRole("link", { name: "Dosyalar" })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual([
+      "/mentorships/requests/past-1",
+      "/mentorships/requests/withdrawn-1",
+    ]);
     expect(
       screen.getAllByRole("link", { name: "HubC mentorluk geçmişi" })[1],
     ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");
