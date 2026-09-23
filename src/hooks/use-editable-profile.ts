@@ -23,7 +23,9 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
 }) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const query = useQuery({ queryKey, queryFn: load });
+  // Wrapped so React Query's context never reaches a loader's optional
+  // arguments: getUserProfile would send it as its bearer token.
+  const query = useQuery({ queryKey, queryFn: () => load() });
 
   // The draft is derived from the loaded record plus the user's edits rather
   // than copied into state by an effect: nothing has to re-sync when the query
@@ -37,7 +39,8 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
     error: saveError,
     reset: resetSave,
   } = useMutation({
-    mutationFn: save,
+    // Same for the mutation context, which would land in saveUserProfile's token.
+    mutationFn: (draft: TDraft) => save(draft),
     onSuccess: (loaded) => {
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});

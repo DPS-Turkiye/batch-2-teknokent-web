@@ -44,6 +44,15 @@ describe("PersonalProfileSection", () => {
     expect(screen.getByText("Gülse Buran")).toBeInTheDocument();
   });
 
+  // The query context used to arrive as getUserProfile's idToken, so every
+  // load sent "Bearer [object Object]" and the page showed a session error.
+  it("loads the profile without passing anything as a bearer token", async () => {
+    render(<PersonalProfileSection />);
+
+    await screen.findByText("Gülse Buran");
+    expect(getUserProfile).toHaveBeenCalledWith();
+  });
+
   it("keeps save disabled until something changes", async () => {
     const user = userEvent.setup();
     render(<PersonalProfileSection />);
@@ -113,14 +122,13 @@ describe("PersonalProfileSection", () => {
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     );
 
+    // Only the draft: a second argument would be sent as the bearer token.
     await waitFor(() =>
       expect(vi.mocked(saveUserProfile)).toHaveBeenCalledWith(
         expect.objectContaining({
           jobTitle: "Kurucu",
           fullName: "Gülse Buran",
         }),
-        // TanStack passes a mutation context as a second argument.
-        expect.anything(),
       ),
     );
     expect(await screen.findByText("Kaydedildi")).toBeInTheDocument();

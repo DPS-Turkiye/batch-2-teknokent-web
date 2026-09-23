@@ -114,8 +114,6 @@ describe("StartupProfileSection", () => {
     await waitFor(() =>
       expect(vi.mocked(saveStartupProfile)).toHaveBeenCalledWith(
         expect.objectContaining({ sector: "HealthTech", name: "Döngü" }),
-        // TanStack passes a mutation context as a second argument.
-        expect.anything(),
       ),
     );
     expect(await screen.findByText("Kaydedildi")).toBeInTheDocument();
@@ -166,7 +164,6 @@ describe("StartupProfileSection", () => {
           foundedYear: 2025,
           fundingStage: StartupFundingStage.Seed,
         }),
-        expect.anything(),
       ),
     );
   });
