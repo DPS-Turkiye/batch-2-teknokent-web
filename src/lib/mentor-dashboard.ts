@@ -1,7 +1,21 @@
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { formatMeetingShort } from "@/lib/format";
+import { isMeetingEnded } from "@/lib/mentorship-workspace";
 import { formatFileSize, formatShortDate } from "@/lib/utils";
+
+/** A past meeting is the last one, not the next one. */
+export function conversationMeetingLabel(
+  meeting: MeetingItem | null,
+  now = new Date(),
+) {
+  if (!meeting) return null;
+  const when = formatMeetingShort(meeting.scheduledAt);
+  return isMeetingEnded(meeting, now)
+    ? `Son görüşme ${when}`
+    : `Sonraki görüşme ${when}`;
+}
 
 /** Calendar weeks follow the availability service's Istanbul business timezone. */
 export function mentorWeekMeetingCount(

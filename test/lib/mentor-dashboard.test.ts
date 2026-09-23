@@ -4,6 +4,7 @@ import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
 import {
+  conversationMeetingLabel,
   isOverdueActionItem,
   meetingDayLabel,
   meetingsAwaitingReview,
@@ -51,6 +52,26 @@ function meeting(
     status,
   };
 }
+describe("conversationMeetingLabel", () => {
+  const now = new Date("2026-09-22T13:00:00.000Z");
+
+  it("calls a past meeting the last one, not the next one", () => {
+    expect(
+      conversationMeetingLabel(meeting("2026-09-11T12:35:00.000Z"), now),
+    ).toMatch(/^Son görüşme /);
+  });
+
+  it("calls an upcoming meeting the next one", () => {
+    expect(
+      conversationMeetingLabel(meeting("2026-09-24T09:00:00.000Z"), now),
+    ).toMatch(/^Sonraki görüşme /);
+  });
+
+  it("returns nothing without a meeting", () => {
+    expect(conversationMeetingLabel(null, now)).toBeNull();
+  });
+});
+
 describe("mentorWeekMeetingCount", () => {
   it("uses Monday-to-Sunday Istanbul boundaries, includes completed meetings, and excludes cancelled ones", () => {
     const meetings = [

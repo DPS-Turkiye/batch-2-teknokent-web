@@ -36,7 +36,7 @@ function MeetingFeedbackContent() {
     submitted,
     submitting,
     toggleBenefit,
-  } = useMeetingFeedback();
+  } = useMeetingFeedback(meeting?.id ?? null);
 
   if (!meeting) {
     return (

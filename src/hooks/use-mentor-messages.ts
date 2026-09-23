@@ -11,6 +11,7 @@ import {
   useMentorshipRequests,
   useRequestFileUpload,
 } from "@/hooks/use-mentorship-requests";
+import { conversationMeetingLabel } from "@/lib/mentor-dashboard";
 import {
   mentorshipRequestAllowsMessaging,
   pickRequestMeeting,
@@ -62,6 +63,7 @@ export function useMentorMessages(preferredRequestId?: string | null) {
     error: requestsQuery.error,
     fileUpload,
     isLoading: requestsQuery.isLoading,
+    meetingLabel: conversationMeetingLabel(activeMeeting),
     messageForm,
     select: setSelectedId,
     viewerUserId: session?.userId ?? "",

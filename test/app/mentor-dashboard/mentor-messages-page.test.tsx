@@ -94,6 +94,7 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
     active: conversations[0],
     activeId: "r1",
     activeMeeting: meeting(),
+    meetingLabel: "Sonraki görüşme 14 Eyl · 14:00",
     conversations,
     error: null,
     fileUpload: { isPending: false, mutateAsync: shareFile },
@@ -215,14 +216,16 @@ describe("MentorMessagesPage", () => {
     render(<MentorMessagesPage />);
 
     expect(screen.getByText(/İlgili mentorluk · Döngü/)).toBeInTheDocument();
-    expect(screen.getByText(/Sonraki görüşme/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Sonraki görüşme 14 Eyl · 14:00"),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Mentorluk detayına git →" }),
     ).toHaveAttribute("href", "/mentor-dashboard/mentorship/r1");
   });
 
   it("notes when the mentorship has no meeting planned", () => {
-    mockMessages({ activeMeeting: null });
+    mockMessages({ activeMeeting: null, meetingLabel: null });
     render(<MentorMessagesPage />);
 
     expect(screen.getByText("Planlanmış görüşme yok")).toBeInTheDocument();

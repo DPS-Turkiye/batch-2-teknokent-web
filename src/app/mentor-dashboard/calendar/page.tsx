@@ -382,24 +382,40 @@ export default function MentorCalendarPage() {
                 Tekrarlayan haftalık uygunluk
               </p>
               <div className="mt-4 space-y-3">
-                {calendar.rules.length === 0 ? (
+                {calendar.availabilityRows.length === 0 ? (
                   <p className="text-xs text-[#858c96]">
                     Tanımlı bir uygunluk kuralı yok.
                   </p>
                 ) : (
-                  calendar.rules.map((rule) => (
+                  calendar.availabilityRows.map((row) => (
                     <div
-                      key={rule.id}
-                      className="flex justify-between text-[12.5px]"
+                      key={row.label}
+                      className="flex justify-between gap-3 text-[12.5px]"
                     >
-                      <span className="text-[#4a5059]">{rule.dayOfWeek}</span>
-                      <span className="font-medium">
-                        {rule.startTime}–{rule.endTime}
+                      <span className="text-[#4a5059]">{row.label}</span>
+                      <span
+                        className={
+                          row.muted
+                            ? "text-[#858c96]"
+                            : "text-right font-medium"
+                        }
+                      >
+                        {row.value}
                       </span>
                     </div>
                   ))
                 )}
               </div>
+              {calendar.weekExceptionLabels.length > 0 ? (
+                <div className="mt-4 rounded-lg border border-[#fde7d4] bg-[#fff8f2] px-3 py-2.5 text-xs text-[#9e4400]">
+                  <p className="font-medium">Bu hafta müsait değilsin</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {calendar.weekExceptionLabels.map((label) => (
+                      <li key={label}>{label}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
               <div className="mt-4 flex justify-between rounded-lg bg-[#f2f8fc] px-3 py-2.5 text-xs">
                 <span className="text-[#676e78]">Bu hafta</span>
                 <b className="font-medium text-[#26a4ff]">

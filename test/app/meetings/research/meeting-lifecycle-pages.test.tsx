@@ -222,6 +222,12 @@ describe("meeting lifecycle pages", () => {
     expect(screen.queryByText(/Çağrı Yılmaz/)).not.toBeInTheDocument();
   });
 
+  it("loads the evaluation for the meeting the page resolved", () => {
+    render(<MeetingFeedbackPage />);
+
+    expect(useMeetingFeedback).toHaveBeenCalledWith("meeting-1");
+  });
+
   it("captures a feedback rating and submits the evaluation", async () => {
     const user = userEvent.setup();
     render(<MeetingFeedbackPage />);
