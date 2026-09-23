@@ -44,6 +44,15 @@ describe("PersonalProfileSection", () => {
     expect(screen.getByText("Gülse Buran")).toBeInTheDocument();
   });
 
+  // The query context used to arrive as getUserProfile's idToken, so every
+  // load sent "Bearer [object Object]" and the page showed a session error.
+  it("loads the profile without passing anything as a bearer token", async () => {
+    render(<PersonalProfileSection />);
+
+    await screen.findByText("Gülse Buran");
+    expect(getUserProfile).toHaveBeenCalledWith();
+  });
+
   it("keeps save disabled until something changes", async () => {
     const user = userEvent.setup();
     render(<PersonalProfileSection />);
