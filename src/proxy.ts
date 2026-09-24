@@ -2,48 +2,93 @@ import { unsealData } from "iron-session";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import type { SessionData } from "@/interfaces/session";
-import { isPublicPath, safeNextPath, SESSION_COOKIE } from "@/lib/public-paths";
+import type { AppSession, SessionData } from "@/interfaces/session";
+import {
+  hasMobileApp,
+  isMobilePath,
+  isPhoneUserAgent,
+  MOBILE_HOME,
+  MOBILE_LOGIN,
+  PHONE_ENTRY_PATHS,
+  PREFER_WEB_COOKIE,
+  PREFER_WEB_PARAM,
+} from "@/lib/mobile";
+import {
+  isPublicPath,
+  loginPathFor,
+  safeNextPath,
+  SESSION_COOKIE,
+} from "@/lib/public-paths";
 
 /** Signing in again while already signed in is never what the visitor wants. */
-const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup"]);
+const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup", MOBILE_LOGIN]);
+
+const PREFER_WEB_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
+type SessionRead = { signedIn: boolean; user?: AppSession };
 
 /**
  * A cookie that is merely present is not a session: an expired one, or one
  * sealed with a rotated password, unseals to nothing. Treating it as signed in
  * rendered the app to a stranger as "Kullanıcı", and sent them away from /login.
  */
-async function hasSession(seal: string | undefined) {
-  if (!seal) return false;
+async function readSession(seal: string | undefined): Promise<SessionRead> {
+  if (!seal) return { signedIn: false };
   const password = process.env.SESSION_PASSWORD;
   // Without the password this cannot tell; the pages still ask /api/session.
-  if (!password) return true;
+  if (!password) return { signedIn: true };
   try {
     const data = await unsealData<SessionData>(seal, { password });
-    return Boolean(data.user);
+    return { signedIn: Boolean(data.user), user: data.user };
   } catch {
-    return false;
+    return { signedIn: false };
   }
 }
 
 export async function proxy(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+  const { pathname, searchParams } = request.nextUrl;
   if (pathname.startsWith("/api/")) {
     return NextResponse.next();
   }
 
   const seal = request.cookies.get(SESSION_COOKIE)?.value;
-  const signedIn = await hasSession(seal);
+  const { signedIn, user } = await readSession(seal);
+  const mobile = isMobilePath(pathname);
+  const asksForWeb = searchParams.get(PREFER_WEB_PARAM) === "1";
+  const prefersWeb =
+    asksForWeb || request.cookies.get(PREFER_WEB_COOKIE)?.value === "1";
+
   const respond = (response: NextResponse) => {
     if (seal && !signedIn) response.cookies.delete(SESSION_COOKIE);
+    if (asksForWeb) {
+      response.cookies.set(PREFER_WEB_COOKIE, "1", {
+        path: "/",
+        sameSite: "lax",
+        maxAge: PREFER_WEB_MAX_AGE_SECONDS,
+      });
+    } else if (mobile) {
+      response.cookies.delete(PREFER_WEB_COOKIE);
+    }
     return response;
   };
+  const redirect = (path: string) =>
+    respond(NextResponse.redirect(new URL(path, request.url)));
+
+  const phoneUser = !user || hasMobileApp(user.role);
+  if (
+    PHONE_ENTRY_PATHS.has(pathname) &&
+    !prefersWeb &&
+    phoneUser &&
+    isPhoneUserAgent(request.headers.get("user-agent"))
+  ) {
+    return redirect(signedIn ? MOBILE_HOME : MOBILE_LOGIN);
+  }
 
   if (signedIn && SIGNED_OUT_ONLY_PATHS.has(pathname)) {
     // /workspace resolves the role and forwards on, so the destination need not
     // be worked out here.
-    const next = safeNextPath(request.nextUrl.searchParams.get("next"));
-    return NextResponse.redirect(new URL(next ?? "/workspace", request.url));
+    const next = safeNextPath(searchParams.get("next"));
+    return redirect(next ?? (mobile ? MOBILE_HOME : "/workspace"));
   }
 
   if (isPublicPath(pathname)) {
@@ -51,12 +96,14 @@ export async function proxy(request: NextRequest) {
   }
 
   if (!signedIn) {
-    const login = new URL("/login", request.url);
-    login.searchParams.set("next", pathname);
-    return respond(NextResponse.redirect(login));
+    return redirect(loginPathFor(pathname));
   }
 
-  return NextResponse.next();
+  if (mobile && !phoneUser) {
+    return redirect(`/workspace?${PREFER_WEB_PARAM}=1`);
+  }
+
+  return respond(NextResponse.next());
 }
 
 export const config = {

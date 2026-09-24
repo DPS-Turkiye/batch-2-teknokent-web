@@ -8,16 +8,21 @@ const FOCUSABLE =
 const DEFAULT_PANEL_CLASS =
   "w-full max-w-md space-y-4 rounded-2xl bg-white p-6 shadow-2xl outline-none";
 
+const DEFAULT_OVERLAY_CLASS =
+  "fixed inset-0 z-[60] grid place-items-center bg-black/35 px-4";
+
 export function ModalDialog({
   children,
   labelledBy,
   onClose,
   panelClassName = DEFAULT_PANEL_CLASS,
+  overlayClassName = DEFAULT_OVERLAY_CLASS,
 }: {
   children: ReactNode;
   labelledBy: string;
   onClose: () => void;
   panelClassName?: string;
+  overlayClassName?: string;
 }) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
@@ -58,7 +63,7 @@ export function ModalDialog({
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[60] grid place-items-center bg-black/35 px-4">
+    <div className={overlayClassName}>
       <section
         ref={dialogRef}
         role="dialog"

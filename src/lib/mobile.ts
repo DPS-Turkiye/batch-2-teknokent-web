@@ -1,0 +1,106 @@
+import { MobileTab, type MobileTabLink } from "@/interfaces/mobile";
+import { UserRole } from "@/interfaces/session";
+
+export const MOBILE_HOME = "/m";
+export const MOBILE_LOGIN = "/m/login";
+
+/** Opening any page with ?web=1 keeps a phone on the web pages until it opens /m again. */
+export const PREFER_WEB_PARAM = "web";
+export const PREFER_WEB_COOKIE = "menton_prefer_web";
+
+/** Where a phone lands instead of the desktop entry pages. Deeper pages stay reachable for "Web'de Aç". */
+export const PHONE_ENTRY_PATHS = new Set([
+  "/",
+  "/login",
+  "/workspace",
+  "/dashboard",
+  "/mentor-dashboard",
+]);
+
+export const MOBILE_NEUTRAL_ACCENT = "#22262b";
+
+const MOBILE_ACCENTS: Partial<Record<UserRole, string>> = {
+  [UserRole.Mentee]: "#e66600",
+  [UserRole.Mentor]: "#26a4ff",
+};
+
+// Tablets get the desktop pages; only phones are sent to /m.
+const PHONE_USER_AGENT = /iPhone|iPod|Android.+Mobile|Windows Phone/i;
+
+export function isPhoneUserAgent(userAgent: string | null) {
+  return Boolean(userAgent && PHONE_USER_AGENT.test(userAgent));
+}
+
+export function isMobilePath(pathname: string) {
+  return pathname === MOBILE_HOME || pathname.startsWith(`${MOBILE_HOME}/`);
+}
+
+/** Coordinators and admins have no phone screens. */
+export function hasMobileApp(role?: UserRole | null) {
+  return role === UserRole.Mentee || role === UserRole.Mentor;
+}
+
+export function mobileAccentFor(role?: UserRole | null) {
+  return (role && MOBILE_ACCENTS[role]) ?? MOBILE_NEUTRAL_ACCENT;
+}
+
+/** A web page opened from the phone app, without being sent back to /m. */
+export function webHref(path: string) {
+  const separator = path.includes("?") ? "&" : "?";
+  return `${path}${separator}${PREFER_WEB_PARAM}=1`;
+}
+
+export const SIGNUP_ON_WEB_HREF = webHref("/signup");
+
+const HOME_TAB: MobileTabLink = {
+  tab: MobileTab.Home,
+  label: "Ana Sayfa",
+  href: MOBILE_HOME,
+  icon: "/mobile/icon-home.svg",
+};
+
+const CALENDAR_TAB: MobileTabLink = {
+  tab: MobileTab.Calendar,
+  label: "Takvim",
+  href: `${MOBILE_HOME}/calendar`,
+  icon: "/mobile/icon-calendar.svg",
+};
+
+const MESSAGES_TAB: MobileTabLink = {
+  tab: MobileTab.Messages,
+  label: "Mesajlar",
+  href: `${MOBILE_HOME}/messages`,
+  icon: "/mobile/icon-messages.svg",
+};
+
+const TASKS_TAB: MobileTabLink = {
+  tab: MobileTab.Tasks,
+  label: "Görevler",
+  href: `${MOBILE_HOME}/tasks`,
+  icon: "/mobile/icon-tasks.svg",
+};
+
+const STARTUPS_TAB: MobileTabLink = {
+  tab: MobileTab.Startups,
+  label: "Startuplar",
+  href: `${MOBILE_HOME}/startups`,
+  icon: "/mobile/icon-startups.svg",
+};
+
+export function mobileTabsFor(role?: UserRole | null): MobileTabLink[] {
+  const thirdTab = role === UserRole.Mentor ? STARTUPS_TAB : TASKS_TAB;
+  return [HOME_TAB, CALENDAR_TAB, thirdTab, MESSAGES_TAB];
+}
+
+/** The tab a path belongs to, so a nested screen keeps its tab highlighted. */
+export function mobileTabForPath(
+  pathname: string,
+  tabs: MobileTabLink[],
+): MobileTabLink | undefined {
+  if (pathname === MOBILE_HOME) return HOME_TAB;
+  return tabs.find(
+    (link) =>
+      link.href !== MOBILE_HOME &&
+      (pathname === link.href || pathname.startsWith(`${link.href}/`)),
+  );
+}

@@ -9,6 +9,12 @@ const PASSWORD = "a-test-session-password-of-32-chars!";
 
 let signedIn = "";
 let empty = "";
+let coordinator = "";
+
+const IPHONE =
+  "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+const IPAD =
+  "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 
 beforeAll(async () => {
   vi.stubEnv("SESSION_PASSWORD", PASSWORD);
@@ -27,12 +33,25 @@ beforeAll(async () => {
     { password: PASSWORD },
   )}`;
   empty = `teknokent_session=${await sealData({}, { password: PASSWORD })}`;
+  coordinator = `teknokent_session=${await sealData(
+    {
+      user: {
+        userId: "user-2",
+        email: "burcu@teknokent.org",
+        fullName: "Burcu Şen",
+        jobTitle: "Koordinatör",
+        role: UserRole.Coordinator,
+      },
+    },
+    { password: PASSWORD },
+  )}`;
 });
 afterAll(() => vi.unstubAllEnvs());
 
-function request(path: string, cookie?: string) {
+function request(path: string, cookie?: string, userAgent?: string) {
   const headers = new Headers();
   if (cookie) headers.set("cookie", cookie);
+  if (userAgent) headers.set("user-agent", userAgent);
   return proxy(
     new NextRequest(new URL(path, "http://localhost:3000"), { headers }),
   );
@@ -137,5 +156,87 @@ describe("proxy", () => {
     const response = await request("/api/session");
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+  });
+});
+
+describe("proxy on a phone", () => {
+  function location(response: Response) {
+    return response.headers.get("location");
+  }
+
+  it("sends a signed-out phone from the landing page and login to the phone login", async () => {
+    for (const path of ["/", "/login"]) {
+      const response = await request(path, undefined, IPHONE);
+      expect(location(response)).toBe("http://localhost:3000/m/login");
+    }
+  });
+
+  it("sends a signed-in mentee's phone from the web home to the phone app", async () => {
+    for (const path of ["/dashboard", "/workspace", "/login"]) {
+      const response = await request(path, signedIn, IPHONE);
+      expect(location(response)).toBe("http://localhost:3000/m");
+    }
+  });
+
+  it("leaves deeper web pages alone, so Web'de Aç still works", async () => {
+    const response = await request("/profile/personal", signedIn, IPHONE);
+    expect(response.status).toBe(200);
+    expect(location(response)).toBeNull();
+  });
+
+  it("keeps tablets and desktops on the web pages", async () => {
+    const tablet = await request("/dashboard", signedIn, IPAD);
+    const desktop = await request("/dashboard", signedIn);
+    expect(location(tablet)).toBeNull();
+    expect(location(desktop)).toBeNull();
+  });
+
+  it("keeps a phone on the web once it asks for it, and remembers that", async () => {
+    const asked = await request("/dashboard?web=1", signedIn, IPHONE);
+    expect(location(asked)).toBeNull();
+    expect(asked.headers.get("set-cookie")).toMatch(/menton_prefer_web=1/);
+
+    const later = await request(
+      "/dashboard",
+      `${signedIn}; menton_prefer_web=1`,
+      IPHONE,
+    );
+    expect(location(later)).toBeNull();
+  });
+
+  it("forgets the web preference once the phone app is opened again", async () => {
+    const response = await request(
+      "/m",
+      `${signedIn}; menton_prefer_web=1`,
+      IPHONE,
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie")).toMatch(/menton_prefer_web=;/);
+  });
+
+  it("never sends a coordinator to the phone app", async () => {
+    const entry = await request("/workspace", coordinator, IPHONE);
+    expect(location(entry)).toBeNull();
+
+    const phonePage = await request("/m", coordinator, IPHONE);
+    expect(location(phonePage)).toBe("http://localhost:3000/workspace?web=1");
+  });
+
+  it("sends a signed-out visitor from a phone page to the phone login", async () => {
+    const response = await request("/m/calendar", undefined, IPHONE);
+    expect(location(response)).toBe(
+      "http://localhost:3000/m/login?next=%2Fm%2Fcalendar",
+    );
+  });
+
+  it("lets a signed-out visitor open the phone login", async () => {
+    const response = await request("/m/login", undefined, IPHONE);
+    expect(response.status).toBe(200);
+    expect(location(response)).toBeNull();
+  });
+
+  it("sends a signed-in visitor away from the phone login to the phone home", async () => {
+    const response = await request("/m/login", signedIn, IPHONE);
+    expect(location(response)).toBe("http://localhost:3000/m");
   });
 });
