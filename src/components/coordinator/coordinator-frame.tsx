@@ -29,7 +29,6 @@ const NAV: RoleNavItem[] = [
     label: "Takvim",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/coordinator/calendar"),
-    disabled: true,
   },
   {
     href: "/coordinator/messages",

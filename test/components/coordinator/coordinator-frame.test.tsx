@@ -56,7 +56,11 @@ describe("CoordinatorFrame", () => {
       "href",
       "/coordinator/mentorships",
     );
-    for (const label of ["Takvim", "Mesajlar"]) {
+    expect(screen.getByRole("link", { name: "Takvim" })).toHaveAttribute(
+      "href",
+      "/coordinator/calendar",
+    );
+    for (const label of ["Mesajlar"]) {
       expect(menu).toHaveTextContent(label);
       expect(
         screen.queryByRole("link", { name: label }),

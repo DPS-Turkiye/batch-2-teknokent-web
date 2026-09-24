@@ -35,3 +35,26 @@ export type CoordinatorProgram = {
   currentWeek: number | null;
   totalWeeks: number | null;
 };
+
+export enum ProgramEventKind {
+  Event = "EVENT",
+  Deadline = "DEADLINE",
+}
+
+export type ProgramEvent = {
+  id: string;
+  programId: string;
+  title: string;
+  kind: ProgramEventKind;
+  startsAt: string;
+  endsAt: string | null;
+  description: string | null;
+};
+
+export type CreateProgramEventInput = {
+  title: string;
+  kind: ProgramEventKind;
+  startsAt: string;
+  endsAt: string | null;
+  description: string | null;
+};
