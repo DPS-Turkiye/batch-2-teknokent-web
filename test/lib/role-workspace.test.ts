@@ -26,9 +26,9 @@ describe("roleWorkspace", () => {
       roleLabel: "Admin",
     });
     expect(roleWorkspace(UserRole.Coordinator)).toMatchObject({
-      homeHref: "/programs",
-      profileHref: "/programs",
-      notificationsHref: "/programs",
+      homeHref: "/coordinator",
+      profileHref: "/coordinator",
+      notificationsHref: "/coordinator",
       roleLabel: "Koordinatör",
       showNotificationBadge: false,
     });

@@ -95,12 +95,12 @@ describe("WorkspacePage routing", () => {
     expect(replace).toHaveBeenCalledWith("/admin");
   });
 
-  it("forwards a coordinator to /programs without asking", () => {
+  it("forwards a coordinator to /coordinator without asking", () => {
     mockuseAppSession.mockReturnValue(coordinatorSession());
 
     render(<WorkspacePage />);
 
-    expect(replace).toHaveBeenCalledWith("/programs");
+    expect(replace).toHaveBeenCalledWith("/coordinator");
   });
 
   it("waits for the session rather than guessing a destination", () => {
