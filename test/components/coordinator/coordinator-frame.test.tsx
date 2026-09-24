@@ -48,7 +48,11 @@ describe("CoordinatorFrame", () => {
       "aria-current",
       "page",
     );
-    for (const label of ["Anasayfa", "Mentorluklar", "Takvim", "Mesajlar"]) {
+    expect(screen.getByRole("link", { name: "Anasayfa" })).toHaveAttribute(
+      "href",
+      "/coordinator",
+    );
+    for (const label of ["Mentorluklar", "Takvim", "Mesajlar"]) {
       expect(menu).toHaveTextContent(label);
       expect(
         screen.queryByRole("link", { name: label }),

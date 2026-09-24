@@ -5,14 +5,13 @@ import type { ReactNode } from "react";
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
 import { UserRole } from "@/interfaces/session";
 
-// Anasayfa, Mentorluklar, Takvim and Mesajlar have designs (01.1, 01.3–01.5) but no page yet.
+// Mentorluklar, Takvim and Mesajlar have designs (01.3–01.5) but no page yet.
 const NAV: RoleNavItem[] = [
   {
     href: "/coordinator",
     label: "Anasayfa",
     icon: "/admin/nav-home.svg",
     match: (path) => path === "/coordinator",
-    disabled: true,
   },
   {
     href: "/coordinator/programs",
