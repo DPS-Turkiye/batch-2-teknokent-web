@@ -22,9 +22,9 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
       };
     case UserRole.Coordinator:
       return {
-        homeHref: "/programs",
-        profileHref: "/programs",
-        notificationsHref: "/programs",
+        homeHref: "/coordinator",
+        profileHref: "/coordinator",
+        notificationsHref: "/coordinator",
         roleLabel: "Koordinatör",
         showNotificationBadge: false,
         usesRoleSubtitle: true,
