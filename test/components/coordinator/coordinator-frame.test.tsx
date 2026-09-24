@@ -60,12 +60,11 @@ describe("CoordinatorFrame", () => {
       "href",
       "/coordinator/calendar",
     );
-    for (const label of ["Mesajlar"]) {
-      expect(menu).toHaveTextContent(label);
-      expect(
-        screen.queryByRole("link", { name: label }),
-      ).not.toBeInTheDocument();
-    }
+    expect(screen.getByRole("link", { name: "Mesajlar" })).toHaveAttribute(
+      "href",
+      "/coordinator/messages",
+    );
+    expect(menu).not.toHaveTextContent("Yakında");
     expect(screen.getByText("Koordinatör")).toBeInTheDocument();
     expect(screen.getByText("Programlar içeriği")).toBeInTheDocument();
   });

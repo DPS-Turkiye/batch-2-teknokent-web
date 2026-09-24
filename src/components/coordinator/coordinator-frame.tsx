@@ -35,7 +35,6 @@ const NAV: RoleNavItem[] = [
     label: "Mesajlar",
     icon: "/admin/nav-mail.svg",
     match: (path) => path.startsWith("/coordinator/messages"),
-    disabled: true,
   },
 ];
 
