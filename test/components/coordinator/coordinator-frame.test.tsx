@@ -34,7 +34,7 @@ function session(role: UserRole): AppSession {
 describe("CoordinatorFrame", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("shows the coordinator menu with Programlarım active and unbuilt items disabled", () => {
+  it("shows the coordinator menu with Programlarım active", () => {
     mockSession.mockReturnValue(session(UserRole.Coordinator));
 
     render(
@@ -52,7 +52,11 @@ describe("CoordinatorFrame", () => {
       "href",
       "/coordinator",
     );
-    for (const label of ["Mentorluklar", "Takvim", "Mesajlar"]) {
+    expect(screen.getByRole("link", { name: "Mentorluklar" })).toHaveAttribute(
+      "href",
+      "/coordinator/mentorships",
+    );
+    for (const label of ["Takvim", "Mesajlar"]) {
       expect(menu).toHaveTextContent(label);
       expect(
         screen.queryByRole("link", { name: label }),
