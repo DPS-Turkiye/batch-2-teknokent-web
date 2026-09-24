@@ -19,10 +19,13 @@ import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
+const { searchParams } = vi.hoisted(() => ({
+  searchParams: { current: new URLSearchParams() },
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => searchParams.current,
 }));
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -94,9 +97,11 @@ describe("RequestStatusPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    searchParams.current = new URLSearchParams("request=request-1");
     vi.mocked(useMentorshipRequests).mockReturnValue({
       data: [requestFixture],
       error: null,
+      isLoading: false,
     } as unknown as ReturnType<typeof useMentorshipRequests>);
     vi.mocked(useMentorshipRequest).mockReturnValue({
       data: requestFixture,
@@ -336,5 +341,39 @@ describe("RequestStatusPage", () => {
       }),
     );
     expect(push).toHaveBeenCalledWith("/mentorships");
+  });
+
+  it("asks the mentee to pick a request when the link names none", () => {
+    searchParams.current = new URLSearchParams();
+    vi.mocked(useMentorshipRequest).mockReturnValue({
+      data: undefined,
+      error: null,
+    } as unknown as ReturnType<typeof useMentorshipRequest>);
+
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(
+      screen.getByText("Görüntülenecek bir talep seçilmedi."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText("Talep bilgileri")).not.toBeInTheDocument();
+    expect(screen.queryByText("Talep yükleniyor…")).not.toBeInTheDocument();
+  });
+
+  it("still finds the request a status link was sent to open", () => {
+    searchParams.current = new URLSearchParams(
+      `state=${MentorshipRequestStatus.Accepted}`,
+    );
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [{ ...requestFixture, status: MentorshipRequestStatus.Accepted }],
+      error: null,
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(screen.getByText("Talep bilgileri")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Görüntülenecek bir talep seçilmedi."),
+    ).not.toBeInTheDocument();
   });
 });

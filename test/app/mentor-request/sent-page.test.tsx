@@ -61,4 +61,13 @@ describe("RequestSentPage", () => {
       screen.getByRole("link", { name: "Talebi geri çek" }),
     ).toHaveAttribute("href", "/mentor-request/status?request=req-1");
   });
+
+  it("sends the mentee to their requests when no request is known", () => {
+    mockQuery({});
+    render(<RequestSentPage />);
+
+    expect(
+      screen.getByRole("link", { name: "Talep Detaylarını Gör" }),
+    ).toHaveAttribute("href", "/mentorships?tab=requests");
+  });
 });
