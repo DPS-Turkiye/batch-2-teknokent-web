@@ -26,16 +26,13 @@ import {
   rowsForFilter,
   StartupFileFilter,
 } from "@/lib/startup-files";
+import { errorMessage } from "@/lib/utils";
 
 export const STARTUP_DOCUMENT_REQUESTS_QUERY_KEY = [
   "startup-document-requests",
 ] as const;
 
 export type ShareableMentor = { id: string; name: string };
-
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
 
 /** The Dosyalar tab: the file table, its filters, sharing and deleting. */
 export function useStartupFiles() {

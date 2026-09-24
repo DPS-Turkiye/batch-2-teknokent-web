@@ -9,6 +9,7 @@ import {
   useAvailabilitySlotForm,
   useCreateAvailabilitySlot,
   useDeleteAvailabilitySlot,
+  useAvailabilitySettingsForm,
   useMentorProfileForm,
   useUpdateMentorProfile,
 } from "@/hooks/use-mentor-profile";
@@ -16,9 +17,17 @@ import type { MentorProfile } from "@/interfaces/mentor";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
+  getAvailabilitySettings,
+  updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
 import { createTestQueryClient } from "@test/test-utils";
+
+const { showToast } = vi.hoisted(() => ({ showToast: vi.fn() }));
+
+vi.mock("@/components/providers/toast-provider", () => ({
+  useToast: () => ({ showToast }),
+}));
 
 vi.mock("@/lib/client/mentor-profile", () => ({
   getMentorProfile: vi.fn(),
@@ -26,6 +35,8 @@ vi.mock("@/lib/client/mentor-profile", () => ({
   getMentorAvailability: vi.fn(),
   createAvailabilitySlot: vi.fn(),
   deleteAvailabilitySlot: vi.fn(),
+  getAvailabilitySettings: vi.fn(),
+  updateAvailabilitySettings: vi.fn(),
 }));
 
 function wrapperFor(queryClient: ReturnType<typeof createTestQueryClient>) {
@@ -253,6 +264,59 @@ describe("useAvailabilitySlotForm", () => {
     expect(deleteAvailabilitySlot).toHaveBeenCalledWith(
       "slot-1",
       expect.anything(),
+    );
+  });
+});
+
+describe("failed saves report the reason the backend gave", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("puts the profile save error in the toast, not a generic string", async () => {
+    vi.mocked(updateMentorProfile).mockRejectedValue(
+      new Error("Uzmanlık alanı en az bir tane olmalı."),
+    );
+    const { result } = renderHook(() => useMentorProfileForm(profile()), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    await act(async () => {
+      await result.current.handleSave();
+    });
+
+    expect(showToast).toHaveBeenCalledWith({
+      message: "Uzmanlık alanı en az bir tane olmalı.",
+      tone: "error",
+    });
+  });
+
+  it("puts the availability save error in the toast, not a generic string", async () => {
+    vi.mocked(getAvailabilitySettings).mockResolvedValue({
+      rules: [],
+      exceptions: [],
+      menteeCapacity: null,
+      defaultMeetingDurationMinutes: 60,
+      meetingBufferMinutes: 15,
+    } as never);
+    vi.mocked(updateAvailabilitySettings).mockRejectedValue(
+      new Error("En fazla 21 saat aralığı kaydedilebilir."),
+    );
+    const { result } = renderHook(() => useAvailabilitySettingsForm(() => {}), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+    await waitFor(() => expect(result.current.draft).not.toBeNull());
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(showToast).toHaveBeenCalledWith({
+      message: "En fazla 21 saat aralığı kaydedilebilir.",
+      tone: "error",
+    });
+    expect(result.current.error).toBe(
+      "En fazla 21 saat aralığı kaydedilebilir.",
     );
   });
 });

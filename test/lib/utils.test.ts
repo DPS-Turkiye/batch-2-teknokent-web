@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   calendarDay,
   dayGreeting,
+  errorMessage,
   formatLongDate,
   formatShortDate,
 } from "@/lib/utils";
@@ -34,5 +35,17 @@ describe("calendarDay", () => {
     expect([day.getFullYear(), day.getMonth(), day.getDate()]).toEqual([
       2026, 8, 15,
     ]);
+  });
+});
+
+describe("errorMessage", () => {
+  it("returns the thrown message when there is one", () => {
+    expect(errorMessage(new Error("Kota doldu."), "fallback")).toBe(
+      "Kota doldu.",
+    );
+  });
+
+  it("falls back when what was thrown is not an Error", () => {
+    expect(errorMessage("boom", "Kaydedilemedi.")).toBe("Kaydedilemedi.");
   });
 });
