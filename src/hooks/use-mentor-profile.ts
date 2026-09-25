@@ -41,7 +41,7 @@ import {
   toAvailabilityDraft,
   toAvailabilityPayload,
 } from "@/lib/mentor-availability";
-import { toDateTimeLocalValue } from "@/lib/utils";
+import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
 export const MENTOR_AVAILABILITY_QUERY_KEY = [
@@ -339,10 +339,9 @@ export function useMentorProfileForm(profile: MentorProfile) {
       showToast({ message: "Mentor profiliniz kaydedildi.", tone: "success" });
       return true;
     } catch (error) {
-      setSaveError(
-        error instanceof Error ? error.message : "Profil kaydedilemedi.",
-      );
-      showToast({ message: "Mentor profili kaydedilemedi.", tone: "error" });
+      const message = errorMessage(error, "Profil kaydedilemedi.");
+      setSaveError(message);
+      showToast({ message, tone: "error" });
       return false;
     }
   };
@@ -425,10 +424,9 @@ export function useAvailabilitySlotForm() {
       });
       showToast({ message: "Müsaitlik saati eklendi.", tone: "success" });
     } catch (error) {
-      setSlotError(
-        error instanceof Error ? error.message : "Müsaitlik saati eklenemedi.",
-      );
-      showToast({ message: "Müsaitlik saati eklenemedi.", tone: "error" });
+      const message = errorMessage(error, "Müsaitlik saati eklenemedi.");
+      setSlotError(message);
+      showToast({ message, tone: "error" });
     }
   };
 
@@ -436,8 +434,11 @@ export function useAvailabilitySlotForm() {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
       showToast({ message: "Müsaitlik saati silindi.", tone: "success" });
-    } catch {
-      showToast({ message: "Müsaitlik saati silinemedi.", tone: "error" });
+    } catch (error) {
+      showToast({
+        message: errorMessage(error, "Müsaitlik saati silinemedi."),
+        tone: "error",
+      });
     }
   };
 
@@ -607,15 +608,12 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
       });
       onSaved();
     } catch (saveError) {
-      setError(
-        saveError instanceof Error
-          ? saveError.message
-          : "Müsaitlik ayarları kaydedilemedi.",
+      const message = errorMessage(
+        saveError,
+        "Müsaitlik ayarları kaydedilemedi.",
       );
-      showToast({
-        message: "Müsaitlik ayarları kaydedilemedi.",
-        tone: "error",
-      });
+      setError(message);
+      showToast({ message, tone: "error" });
     }
   };
 

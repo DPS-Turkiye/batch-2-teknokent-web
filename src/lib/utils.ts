@@ -85,3 +85,8 @@ export function truncate(text: string, max: number) {
   const lastSpace = cut.lastIndexOf(" ");
   return `${(lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut).trimEnd()}…`;
 }
+
+/** The thrown message when there is one; callers pass what to say when there is not. */
+export function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}

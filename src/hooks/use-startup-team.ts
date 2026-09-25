@@ -21,10 +21,7 @@ import {
   memberDraftError,
   MemberFormMode,
 } from "@/lib/startup-team";
-
-function errorMessage(error: unknown, fallback: string) {
-  return error instanceof Error ? error.message : fallback;
-}
+import { errorMessage } from "@/lib/utils";
 
 /** The Ekip tab: the member list, adding, editing and removing members. */
 export function useStartupTeam() {
