@@ -11,6 +11,8 @@ export const MOBILE_CALENDAR = "/m/calendar";
 export const MOBILE_TASKS = "/m/tasks";
 export const MOBILE_MESSAGES = "/m/messages";
 export const MOBILE_NOTIFICATIONS = "/m/notifications";
+export const MOBILE_STARTUPS = "/m/startups";
+export const MOBILE_ACCOUNT = "/m/account";
 
 export function isMobileConversationKind(
   value: string,
@@ -103,7 +105,7 @@ const TASKS_TAB: MobileTabLink = {
 const STARTUPS_TAB: MobileTabLink = {
   tab: MobileTab.Startups,
   label: "Startuplar",
-  href: `${MOBILE_HOME}/startups`,
+  href: MOBILE_STARTUPS,
   icon: "/mobile/icon-startups.svg",
 };
 

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { MobileAccountButton } from "@/components/mobile/mobile-account-button";
 import { MobileScreenHeader } from "@/components/mobile/mobile-app-shell";
 import { MobileButtonLink } from "@/components/mobile/mobile-button";
 import {
@@ -182,23 +183,31 @@ export function MobileHomeView() {
           <h1 className="text-lg leading-[1.35] text-[#858c96]">
             {home.firstName ? `Merhaba, ${home.firstName}` : "Merhaba"}
           </h1>
-          <Link
-            href={MOBILE_NOTIFICATIONS}
-            aria-label={
-              home.hasUnreadNotifications
-                ? "Bildirimler, okunmamış bildirim var"
-                : "Bildirimler"
-            }
-            className="relative flex size-11 items-center justify-center rounded-full bg-[#f5f6f8]"
-          >
-            <Image src="/mobile/icon-bell.svg" alt="" width={22} height={22} />
-            {home.hasUnreadNotifications ? (
-              <span
-                aria-hidden="true"
-                className="absolute top-[9px] right-2 size-[9px] rounded-full border-2 border-white bg-[var(--mobile-accent)]"
+          <div className="flex items-center gap-2">
+            <Link
+              href={MOBILE_NOTIFICATIONS}
+              aria-label={
+                home.hasUnreadNotifications
+                  ? "Bildirimler, okunmamış bildirim var"
+                  : "Bildirimler"
+              }
+              className="relative flex size-11 items-center justify-center rounded-full bg-[#f5f6f8]"
+            >
+              <Image
+                src="/mobile/icon-bell.svg"
+                alt=""
+                width={22}
+                height={22}
               />
-            ) : null}
-          </Link>
+              {home.hasUnreadNotifications ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute top-[9px] right-2 size-[9px] rounded-full border-2 border-white bg-[var(--mobile-accent)]"
+                />
+              ) : null}
+            </Link>
+            <MobileAccountButton />
+          </div>
         </header>
 
         {home.isOnline ? null : (
@@ -265,7 +274,10 @@ export function MobileHomeScreen() {
   if (session?.role === UserRole.Mentor) {
     return (
       <>
-        <MobileScreenHeader title="Ana Sayfa" />
+        <MobileScreenHeader
+          title="Ana Sayfa"
+          action={<MobileAccountButton />}
+        />
         <MobileEmptyState
           title="Ana sayfa hazırlanıyor."
           description="Sıradaki görüşmen ve startupların yakında burada."

@@ -106,6 +106,15 @@ describe("MobileHomeView", () => {
     ).toHaveAttribute("href", "/m/messages/mentorship/r1");
   });
 
+  it("links the avatar to the account screen", () => {
+    render(<MobileHomeView />);
+
+    expect(screen.getByRole("link", { name: "Hesap" })).toHaveAttribute(
+      "href",
+      "/m/account",
+    );
+  });
+
   it("marks the bell when there are unread notifications", () => {
     home = homeState({ hasUnreadNotifications: true });
     render(<MobileHomeView />);
