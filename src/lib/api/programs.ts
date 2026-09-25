@@ -15,6 +15,7 @@ import type {
   ProgramStartup,
   ProgramStatus,
 } from "@/interfaces/program";
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -38,6 +39,17 @@ export function fetchProgramNames() {
   return backendRequest<ProgramName[]>({
     method: "GET",
     url: "/api/programs/names",
+  });
+}
+
+export function fetchMemberProgramEvents(
+  actorId: string,
+  range: { from: string; to: string },
+) {
+  return backendRequest<MemberProgramEvent[]>({
+    method: HttpMethod.Get,
+    url: "/api/programs/events",
+    params: { actorId, from: range.from, to: range.to },
   });
 }
 

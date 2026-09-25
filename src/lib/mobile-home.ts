@@ -67,7 +67,7 @@ export function meetingTimeLine(meeting: MeetingItem) {
   return parts.join(" · ");
 }
 
-function meetingTitle(meeting: MeetingItem) {
+export function meetingTitle(meeting: MeetingItem) {
   const firstLine = meeting.agenda?.split("\n")[0]?.trim();
   return firstLine || DEFAULT_MEETING_TITLE;
 }
