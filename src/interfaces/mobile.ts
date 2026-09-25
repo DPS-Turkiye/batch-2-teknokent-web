@@ -85,3 +85,41 @@ export type MobileChatItem =
       time: string;
       read: boolean;
     };
+
+export enum MobileTaskSource {
+  Mentorship = "mentorship",
+  Process = "process",
+  Program = "program",
+}
+
+export enum MobileTaskTone {
+  Overdue = "overdue",
+  Today = "today",
+  Later = "later",
+}
+
+export type MobileTask = {
+  id: string;
+  source: MobileTaskSource;
+  title: string;
+  description: string | null;
+  dueAt: Date | null;
+  dueLabel: string;
+  tone: MobileTaskTone;
+  /** "Dün · Nihan Öztürk" */
+  meta: string;
+  assignedBy: string | null;
+  assignedOn: string | null;
+  chips: string[];
+  completed: boolean;
+  requestId: string | null;
+  chatHref: string | null;
+  webHref: string | null;
+};
+
+export type MobileTaskGroup = {
+  key: string;
+  label: string;
+  urgent: boolean;
+  tasks: MobileTask[];
+};
