@@ -57,6 +57,7 @@ describe("coordinator program detail routes", () => {
         meetingFrequencyDays: "10",
         staleAfterDays: 20,
         meetingNoteRequired: true,
+        bottleneckFlagDays: "30",
         actorId: "someone-else",
       }),
       params,
@@ -73,6 +74,7 @@ describe("coordinator program detail routes", () => {
         staleAfterDays: 20,
         meetingNoteRequired: true,
         autoMatchSuggestions: false,
+        bottleneckFlagDays: 30,
       },
     );
   });

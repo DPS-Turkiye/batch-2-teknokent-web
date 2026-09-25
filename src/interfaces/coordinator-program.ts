@@ -71,6 +71,9 @@ export type ProgramRules = {
   staleAfterDays: number;
   meetingNoteRequired: boolean;
   autoMatchSuggestions: boolean;
+  defaultMentorCapacity: number;
+  communicationGapDays: number;
+  bottleneckFlagDays: number;
 };
 
 /** One program in full (`GET /api/coordinator/programs/{id}`): Genel Bakış and Program Ayarları. */
@@ -109,10 +112,50 @@ export type UpdateProgramDetailsInput = {
   staleAfterDays: number;
   meetingNoteRequired: boolean;
   autoMatchSuggestions: boolean;
+  /** Omitted keeps the saved value. */
+  defaultMentorCapacity?: number;
+  communicationGapDays?: number;
+  bottleneckFlagDays?: number;
 };
 
 export type ProgramPhaseInput = {
   name: string;
   startDate: string | null;
   endDate: string | null;
+};
+
+/** WAITING: the code was handed out but the team lead has not signed up with it yet. */
+export enum TeamJoinStatus {
+  Waiting = "WAITING",
+  Joined = "JOINED",
+}
+
+/** One row of the program's Takımlar tab (`GET /api/coordinator/programs/{id}/teams`). */
+export type ProgramTeam = {
+  inviteId: string | null;
+  organizationId: string | null;
+  name: string;
+  status: TeamJoinStatus;
+  leadName: string | null;
+  leadEmail: string | null;
+  code: string | null;
+  invitedAt: string | null;
+  joinedAt: string | null;
+  memberCount: number;
+};
+
+export type TeamInviteInput = { teamName: string; leadEmail: string };
+
+/** The "Yeni program" wizard, sent in one request. */
+export type CreateProgramInput = {
+  name: string;
+  description: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  coordinatorIds: string[];
+  defaultMentorCapacity: number;
+  meetingFrequencyDays: number;
+  communicationGapDays: number;
+  bottleneckFlagDays: number;
+  teams: TeamInviteInput[];
 };

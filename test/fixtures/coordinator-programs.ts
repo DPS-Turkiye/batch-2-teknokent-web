@@ -61,6 +61,9 @@ export function coordinatorProgramDetail(
       staleAfterDays: 14,
       meetingNoteRequired: true,
       autoMatchSuggestions: true,
+      defaultMentorCapacity: 4,
+      communicationGapDays: 14,
+      bottleneckFlagDays: 21,
     },
     health: {
       healthy: 48,
