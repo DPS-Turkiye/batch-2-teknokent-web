@@ -47,6 +47,37 @@ function detail(canJoin: boolean): NonNullable<Calendar["detail"]> {
     canJoin,
     isOver: false,
     messageHref: "/m/messages/mentorship/r1",
+    mentor: null,
+  };
+}
+
+const MENTOR_ENTRY = {
+  ...MEETING!,
+  title: "Atlas AI",
+  detail: "Ürün stratejisi · Gamze Kozak · Online",
+  startup: { name: "Atlas AI", initials: "AA" },
+};
+
+function mentorDetail(): NonNullable<Calendar["detail"]> {
+  return {
+    ...detail(true),
+    entry: MENTOR_ENTRY,
+    mentor: {
+      title: "Atlas AI · Ürün stratejisi",
+      startsIn: "5 dk sonra",
+      timeLine: "Bugün · 14:00–15:00",
+      timeHint: "60 dk",
+      startup: {
+        name: "Atlas AI",
+        initials: "AA",
+        people: "Gamze Kozak (yetkili) + 2 üye",
+      },
+      self: { name: "Nihan Öztürk", initials: "NÖ" },
+      topic: {
+        title: "Ürün stratejisi · 4. görüşme",
+        agenda: "Gündem: değer önerisi",
+      },
+    },
   };
 }
 
@@ -64,6 +95,7 @@ function calendarState(overrides: Partial<Calendar> = {}): Calendar {
     detail: null,
     isError: false,
     isLoading: false,
+    isMentor: false,
     month: {
       isOpen: false,
       label: "Eylül 2026",
@@ -182,6 +214,54 @@ describe("MobileCalendarView", () => {
     expect(
       within(sheet).getByRole("link", { name: "Mesaj gönder" }),
     ).toBeInTheDocument();
+  });
+
+  it("shows mentors the startup on each card", () => {
+    calendar = calendarState({
+      isMentor: true,
+      agenda: [
+        {
+          key: "d24",
+          heading: "Bugün · Perşembe 24 Eylül",
+          isToday: true,
+          entries: [MENTOR_ENTRY],
+        },
+      ],
+    });
+    render(<MobileCalendarView />);
+
+    const card = screen.getByRole("button", { name: /Atlas AI/ });
+    expect(within(card).getByText("AA")).toBeInTheDocument();
+    expect(
+      within(card).getByText("Ürün stratejisi · Gamze Kozak · Online"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("Sıradaki · yarın")).toHaveClass(
+      "text-[#1583d6]",
+    );
+  });
+
+  it("gives mentors the startup, themselves and the topic in the sheet", () => {
+    calendar = calendarState({ isMentor: true, detail: mentorDetail() });
+    render(<MobileCalendarView />);
+
+    const sheet = screen.getByRole("dialog");
+    expect(
+      within(sheet).getByRole("heading", {
+        name: "Atlas AI · Ürün stratejisi",
+      }),
+    ).toBeInTheDocument();
+    expect(within(sheet).getByText("5 dk sonra")).toBeInTheDocument();
+    expect(within(sheet).getByText("Bugün · 14:00–15:00")).toBeInTheDocument();
+    expect(
+      within(sheet).getByText("Gamze Kozak (yetkili) + 2 üye"),
+    ).toBeInTheDocument();
+    expect(within(sheet).getByText("Sen · Mentor")).toBeInTheDocument();
+    expect(
+      within(sheet).getByText("Ürün stratejisi · 4. görüşme"),
+    ).toBeInTheDocument();
+    expect(
+      within(sheet).getByRole("link", { name: "Toplantıya katıl" }),
+    ).toHaveAttribute("href", "https://meet.google.com/abc");
   });
 
   it("picks a day in the month sheet", async () => {

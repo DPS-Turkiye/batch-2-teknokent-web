@@ -28,6 +28,7 @@ export type MobileAgendaEntry = {
   detail: string;
   meeting: MeetingItem | null;
   event: MemberProgramEvent | null;
+  startup: { name: string; initials: string } | null;
 };
 
 export type MobileCalendarDay = {
@@ -106,6 +107,7 @@ function meetingEntry(meeting: MeetingItem): MobileAgendaEntry {
     detail: meeting.meetLink ? `${people} · Online` : people,
     meeting,
     event: null,
+    startup: null,
   };
 }
 
@@ -123,6 +125,7 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
       detail: `${event.programName} · son tarih`,
       meeting: null,
       event,
+      startup: null,
     };
   }
   const endsAt = event.endsAt ? new Date(event.endsAt) : startsAt;
@@ -141,6 +144,7 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
     detail: place ? `Program etkinliği · ${place}` : "Program etkinliği",
     meeting: null,
     event,
+    startup: null,
   };
 }
 
@@ -220,17 +224,21 @@ export function nextEntry(entries: MobileAgendaEntry[], now: Date) {
   return entries.find((entry) => entry.endsAt > now) ?? null;
 }
 
-/** "Sıradaki · 2 saat sonra", "… 15 dk sonra", "… şimdi", then "… yarın". */
-export function nextEntryLabel(entry: MobileAgendaEntry, now: Date) {
+/** "2 saat sonra", "15 dk sonra", "şimdi", then "yarın" or "3 gün sonra". */
+export function startsInLabel(entry: MobileAgendaEntry, now: Date) {
   const minutes = Math.round(
     (entry.startsAt.getTime() - now.getTime()) / MINUTE_MS,
   );
-  if (minutes <= 0) return "Sıradaki · şimdi";
-  if (minutes < 60) return `Sıradaki · ${minutes} dk sonra`;
+  if (minutes <= 0) return "şimdi";
+  if (minutes < 60) return `${minutes} dk sonra`;
   const days = dayOffset(entry.startsAt, now);
-  if (days === 0) return `Sıradaki · ${Math.round(minutes / 60)} saat sonra`;
-  if (days === 1) return "Sıradaki · yarın";
-  return `Sıradaki · ${days} gün sonra`;
+  if (days === 0) return `${Math.round(minutes / 60)} saat sonra`;
+  if (days === 1) return "yarın";
+  return `${days} gün sonra`;
+}
+
+export function nextEntryLabel(entry: MobileAgendaEntry, now: Date) {
+  return `Sıradaki · ${startsInLabel(entry, now)}`;
 }
 
 export function canJoin(entry: MobileAgendaEntry, now: Date) {

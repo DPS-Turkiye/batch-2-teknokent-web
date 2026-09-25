@@ -13,10 +13,12 @@ import {
 } from "@/components/mobile/mobile-states";
 import { useMobileCalendar } from "@/hooks/use-mobile-calendar";
 import {
+  JOIN_LEAD_MINUTES,
   MobileAgendaKind,
   MONTH_WEEKDAY_LABELS,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
+import type { MentorEntryDetail } from "@/lib/mobile-mentor-calendar";
 import { initials } from "@/lib/utils";
 
 type Calendar = ReturnType<typeof useMobileCalendar>;
@@ -86,21 +88,36 @@ function WeekStrip({ calendar }: { calendar: Calendar }) {
   );
 }
 
+// Mentees' next card is orange, mentors' is blue.
+const NEXT_TONE = {
+  mentee: {
+    card: "border border-[#ffdccd] bg-[#fff7f3]",
+    chip: "bg-[#fff1ec] text-[#e0522a]",
+  },
+  mentor: {
+    card: "border border-[#cfe9ff] bg-[#eff8ff]",
+    chip: "bg-[#eaf6ff] text-[#1583d6]",
+  },
+};
+
 function AgendaCard({
   entry,
   nextLabel,
+  isMentor,
   onOpen,
 }: {
   entry: MobileAgendaEntry;
   nextLabel: string | null;
+  isMentor: boolean;
   onOpen: () => void;
 }) {
+  const tone = isMentor ? NEXT_TONE.mentor : NEXT_TONE.mentee;
   return (
     <button
       type="button"
       onClick={onOpen}
       className={`flex w-full items-start gap-3.5 rounded-[22px] p-4 text-left ${
-        nextLabel ? "border border-[#ffdccd] bg-[#fff7f3]" : "bg-[#f5f6f8]"
+        nextLabel ? tone.card : "bg-[#f5f6f8]"
       }`}
     >
       <span className="flex w-[52px] shrink-0 flex-col gap-0.5 leading-[1.35]">
@@ -114,12 +131,22 @@ function AgendaCard({
         className={`w-1 shrink-0 self-stretch rounded-[2px] ${BAR_CLASS[entry.kind]}`}
       />
       <span className="flex min-w-0 flex-1 flex-col items-start gap-1 leading-[1.35]">
-        <span className="text-[15.5px] font-semibold text-[#22262b]">
+        <span className="flex items-center gap-2 text-[15.5px] font-semibold text-[#22262b]">
+          {entry.startup ? (
+            <span
+              aria-hidden="true"
+              className="flex size-6 shrink-0 items-center justify-center rounded-lg bg-[#fff1ec] text-[9px] text-[#e0522a]"
+            >
+              {entry.startup.initials}
+            </span>
+          ) : null}
           {entry.title}
         </span>
         <span className="text-[13px] text-[#676e78]">{entry.detail}</span>
         {nextLabel ? (
-          <span className="rounded-full bg-[#fff1ec] px-2.5 py-[5px] text-xs font-medium text-[#e0522a]">
+          <span
+            className={`rounded-full px-2.5 py-[5px] text-xs font-medium ${tone.chip}`}
+          >
             {nextLabel}
           </span>
         ) : null}
@@ -141,16 +168,61 @@ function InfoRow({ icon, children }: { icon: string; children: ReactNode }) {
   );
 }
 
-function EntrySheet({ calendar }: { calendar: Calendar }) {
-  const detail = calendar.detail;
-  if (!detail) return null;
+type EntryDetail = NonNullable<Calendar["detail"]>;
+
+function Person({
+  initials: short,
+  name,
+  role,
+  square,
+}: {
+  initials: string;
+  name: string;
+  role: string;
+  square: boolean;
+}) {
+  return (
+    <p className="flex items-center gap-2.5">
+      <span
+        className={`flex size-8 shrink-0 items-center justify-center text-xs font-semibold ${
+          square
+            ? "rounded-[10px] bg-[#fff1ec] text-[#e0522a]"
+            : "rounded-full bg-[#eaf6ff] text-[#1583d6]"
+        }`}
+      >
+        {short}
+      </span>
+      <span className="flex flex-col gap-px">
+        <span className="text-[14.5px] font-medium text-[#22262b]">{name}</span>
+        {role ? (
+          <span
+            className={`text-[12.5px] ${square ? "text-[#e0522a]" : "text-[#1583d6]"}`}
+          >
+            {role}
+          </span>
+        ) : null}
+      </span>
+    </p>
+  );
+}
+
+function LinkRow({ detail }: { detail: EntryDetail }) {
+  if (!detail.link) return null;
+  return (
+    <InfoRow icon="/mobile/icon-link.svg">
+      <p className="text-[15px] font-medium text-[#22262b]">
+        {detail.link.label}
+      </p>
+      <p className="truncate text-[13px] text-[#858c96]">{detail.link.text}</p>
+    </InfoRow>
+  );
+}
+
+function MenteeRows({ detail }: { detail: EntryDetail }) {
   const { entry } = detail;
   const meeting = entry.meeting;
   return (
-    <BottomSheet
-      labelledBy="calendar-entry-title"
-      onClose={calendar.closeEntry}
-    >
+    <>
       <div className="flex flex-col gap-2 leading-[1.35]">
         <p className="flex items-center gap-2 text-[13px] font-medium text-[#676e78]">
           <Dots kinds={[entry.kind]} />
@@ -172,40 +244,24 @@ function EntrySheet({ calendar }: { calendar: Calendar }) {
       {meeting ? (
         <InfoRow icon="/mobile/icon-people.svg">
           <div className="flex flex-col gap-2.5">
-            <p className="flex items-center gap-2.5">
-              <span className="flex size-8 items-center justify-center rounded-full bg-[#eaf6ff] text-xs font-semibold text-[#1583d6]">
-                {initials(meeting.mentorName ?? "Mentör")}
-              </span>
-              <span className="flex flex-col gap-px">
-                <span className="text-[14.5px] font-medium text-[#22262b]">
-                  {meeting.mentorName ?? "Mentör"}
-                </span>
-                <span className="text-[12.5px] text-[#1583d6]">Mentor</span>
-              </span>
-            </p>
+            <Person
+              initials={initials(meeting.mentorName ?? "Mentör")}
+              name={meeting.mentorName ?? "Mentör"}
+              role="Mentor"
+              square={false}
+            />
             {meeting.organizationName ? (
-              <p className="flex items-center gap-2.5">
-                <span className="flex size-8 items-center justify-center rounded-[10px] bg-[#fff1ec] text-xs font-semibold text-[#e0522a]">
-                  {initials(meeting.organizationName)}
-                </span>
-                <span className="text-[14.5px] font-medium text-[#22262b]">
-                  {meeting.organizationName}
-                </span>
-              </p>
+              <Person
+                initials={initials(meeting.organizationName)}
+                name={meeting.organizationName}
+                role=""
+                square
+              />
             ) : null}
           </div>
         </InfoRow>
       ) : null}
-      {detail.link ? (
-        <InfoRow icon="/mobile/icon-link.svg">
-          <p className="text-[15px] font-medium text-[#22262b]">
-            {detail.link.label}
-          </p>
-          <p className="truncate text-[13px] text-[#858c96]">
-            {detail.link.text}
-          </p>
-        </InfoRow>
-      ) : null}
+      <LinkRow detail={detail} />
       {meeting?.agenda || entry.event?.description ? (
         <InfoRow icon="/mobile/icon-agenda.svg">
           <p className="text-[15px] font-medium text-[#22262b]">
@@ -216,56 +272,144 @@ function EntrySheet({ calendar }: { calendar: Calendar }) {
           </p>
         </InfoRow>
       ) : null}
-      {meeting ? (
-        <div className="flex flex-col items-center gap-2.5 pt-2">
-          {detail.isOver ? null : detail.canJoin && detail.link ? (
-            <a
-              href={detail.link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
-            >
-              <MaskIcon src="/mobile/icon-link-button.svg" size={18} />
-              Toplantıya katıl
-            </a>
-          ) : (
-            <>
-              <button
-                type="button"
-                disabled
-                className="flex w-full items-center justify-center gap-2 rounded-full bg-[#eef0f2] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#aeb4bc]"
-              >
-                <Image
-                  src="/mobile/icon-link-button.svg"
-                  alt=""
-                  width={18}
-                  height={18}
-                />
-                Toplantıya katıl
-              </button>
-              <p className="text-[12.5px] leading-[1.35] text-[#858c96]">
-                {detail.link
-                  ? "Bağlantı görüşmeden 10 dk önce aktif olur"
-                  : "Bu görüşmenin henüz bağlantısı yok"}
-              </p>
-            </>
-          )}
-          {detail.messageHref ? (
-            <Link
-              href={detail.messageHref}
-              className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e9ecef] bg-white px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#22262b]"
-            >
-              <Image
-                src="/mobile/icon-message-button.svg"
-                alt=""
-                width={18}
-                height={18}
+    </>
+  );
+}
+
+function MentorRows({
+  detail,
+  mentor,
+}: {
+  detail: EntryDetail;
+  mentor: MentorEntryDetail;
+}) {
+  return (
+    <>
+      <div className="flex flex-col gap-2 leading-[1.35]">
+        <div className="flex items-center gap-2 text-[13px] font-medium text-[#676e78]">
+          <Dots kinds={[detail.entry.kind]} />
+          {detail.kindLabel}
+          {mentor.startsIn ? (
+            <span className="flex items-center gap-1.5 rounded-full bg-[#eaf6ff] px-2.5 py-[5px] text-xs text-[#1583d6]">
+              <span
+                aria-hidden="true"
+                className="size-1.5 rounded-full bg-[#26a4ff]"
               />
-              Mesaj gönder
-            </Link>
+              {mentor.startsIn}
+            </span>
           ) : null}
         </div>
+        <h2
+          id="calendar-entry-title"
+          className="text-[22px] font-bold text-[#22262b]"
+        >
+          {mentor.title}
+        </h2>
+      </div>
+      <InfoRow icon="/mobile/icon-time.svg">
+        <p className="text-[15px] font-medium text-[#22262b]">
+          {mentor.timeLine}
+        </p>
+        <p className="text-[13px] text-[#858c96]">{mentor.timeHint}</p>
+      </InfoRow>
+      <InfoRow icon="/mobile/icon-people.svg">
+        <div className="flex flex-col gap-2.5">
+          <Person
+            initials={mentor.startup.initials}
+            name={mentor.startup.name}
+            role={mentor.startup.people}
+            square
+          />
+          <Person
+            initials={mentor.self.initials}
+            name={mentor.self.name}
+            role="Sen · Mentor"
+            square={false}
+          />
+        </div>
+      </InfoRow>
+      <LinkRow detail={detail} />
+      <InfoRow icon="/mobile/icon-agenda.svg">
+        <p className="text-[15px] font-medium text-[#22262b]">
+          {mentor.topic.title}
+        </p>
+        {mentor.topic.agenda ? (
+          <p className="text-[13px] whitespace-pre-line text-[#858c96]">
+            {mentor.topic.agenda}
+          </p>
+        ) : null}
+      </InfoRow>
+    </>
+  );
+}
+
+function SheetActions({ detail }: { detail: EntryDetail }) {
+  return (
+    <div className="flex flex-col items-center gap-2.5 pt-2">
+      {detail.isOver ? null : detail.canJoin && detail.link ? (
+        <a
+          href={detail.link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
+        >
+          <MaskIcon src="/mobile/icon-link-button.svg" size={18} />
+          Toplantıya katıl
+        </a>
+      ) : (
+        <>
+          <button
+            type="button"
+            disabled
+            className="flex w-full items-center justify-center gap-2 rounded-full bg-[#eef0f2] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#aeb4bc]"
+          >
+            <Image
+              src="/mobile/icon-link-button.svg"
+              alt=""
+              width={18}
+              height={18}
+            />
+            Toplantıya katıl
+          </button>
+          <p className="text-[12.5px] leading-[1.35] text-[#858c96]">
+            {detail.link
+              ? `Bağlantı görüşmeden ${JOIN_LEAD_MINUTES} dk önce aktif olur`
+              : "Bu görüşmenin henüz bağlantısı yok"}
+          </p>
+        </>
+      )}
+      {detail.messageHref ? (
+        <Link
+          href={detail.messageHref}
+          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e9ecef] bg-white px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#22262b]"
+        >
+          <Image
+            src="/mobile/icon-message-button.svg"
+            alt=""
+            width={18}
+            height={18}
+          />
+          Mesaj gönder
+        </Link>
       ) : null}
+    </div>
+  );
+}
+
+function EntrySheet({ calendar }: { calendar: Calendar }) {
+  const detail = calendar.detail;
+  if (!detail) return null;
+  return (
+    <BottomSheet
+      labelledBy="calendar-entry-title"
+      onClose={calendar.closeEntry}
+    >
+      {detail.mentor ? (
+        <MentorRows detail={detail} mentor={detail.mentor} />
+      ) : (
+        <MenteeRows detail={detail} />
+      )}
+      {detail.entry.meeting ? <SheetActions detail={detail} /> : null}
     </BottomSheet>
   );
 }
@@ -402,6 +546,7 @@ export function MobileCalendarView() {
                 nextLabel={
                   entry.id === calendar.nextId ? calendar.nextLabel : null
                 }
+                isMentor={calendar.isMentor}
                 onOpen={() => calendar.openEntry(entry.id)}
               />
             ))}

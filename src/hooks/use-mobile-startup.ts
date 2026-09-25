@@ -8,6 +8,7 @@ import { actionItemsQueryKey } from "@/hooks/use-action-items";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MENTOR_PROFILE_QUERY_KEY } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
@@ -35,7 +36,7 @@ export function useMobileStartup(organizationId: string) {
     retry: false,
   });
   const members = useQuery({
-    queryKey: ["organization-members", organizationId],
+    queryKey: [...ORGANIZATION_MEMBERS_QUERY_KEY, organizationId],
     queryFn: () => getOrganizationMembersById(organizationId),
     retry: false,
   });
