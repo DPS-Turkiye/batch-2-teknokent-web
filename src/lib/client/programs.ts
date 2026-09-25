@@ -7,6 +7,7 @@ import type {
   ProgramInvitation,
   ProgramStatus,
 } from "@/interfaces/program";
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -25,6 +26,14 @@ export async function getProgramDetail(programId: string) {
 export async function getProgramNames() {
   return requireSuccess(
     await httpClient.get<ProgramName[]>("/api/programs/names"),
+  );
+}
+
+export async function getMemberProgramEvents(range: { from: Date; to: Date }) {
+  return requireSuccess(
+    await httpClient.get<MemberProgramEvent[]>("/api/programs/events", {
+      params: { from: range.from.toISOString(), to: range.to.toISOString() },
+    }),
   );
 }
 

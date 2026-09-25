@@ -51,6 +51,9 @@ export type ProgramEvent = {
   description: string | null;
 };
 
+/** An event as a startup or mentor of the program sees it. */
+export type MemberProgramEvent = ProgramEvent & { programName: string };
+
 export type CreateProgramEventInput = {
   title: string;
   kind: ProgramEventKind;
