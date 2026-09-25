@@ -76,6 +76,15 @@ export async function postMentorMessage(options: {
   );
 }
 
+export async function markMentorRequestRead(id: string) {
+  return requireSuccess(
+    await httpClient.post<MentorshipRequest>(
+      `/api/mentor-requests/${encodeURIComponent(id)}/read`,
+      {},
+    ),
+  );
+}
+
 export async function withdrawMentorRequest(id: string) {
   return requireSuccess(
     await httpClient.patch<MentorshipRequest>(

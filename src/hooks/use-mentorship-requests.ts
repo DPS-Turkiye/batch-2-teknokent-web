@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { uploadDocument } from "@/lib/client/documents";
+import { sharedFileMessage } from "@/lib/mentorship-messages";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
   acceptProposedMentorSlot,
@@ -162,7 +163,7 @@ export function useRequestFileUpload(
         role === UserRole.Mentor ? postMentorMessage : replyToMentorRequest;
       const request = await sendFileMessage({
         id: id as string,
-        message: `Dosya paylaşıldı: ${stored.originalFilename}`,
+        message: sharedFileMessage(stored.originalFilename),
       });
       return { request, stored };
     },

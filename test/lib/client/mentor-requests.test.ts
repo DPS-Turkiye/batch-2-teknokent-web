@@ -5,6 +5,7 @@ import {
   getMentorRequests,
   getMentorshipMeetings,
   logMentorshipMeeting,
+  markMentorRequestRead,
 } from "@/lib/client/mentor-requests";
 import { httpClient } from "@/lib/http-client";
 import { UserRole } from "@/interfaces/session";
@@ -91,6 +92,19 @@ describe("mentor-requests client", () => {
         durationMinutes: 45,
         status: MeetingStatus.Completed,
       },
+    );
+  });
+
+  it("marks a conversation read through the proxy", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createMentorResponse({ id: "req 1" }),
+    );
+
+    await markMentorRequestRead("req 1");
+
+    expect(httpClient.post).toHaveBeenCalledWith(
+      "/api/mentor-requests/req%201/read",
+      {},
     );
   });
 });

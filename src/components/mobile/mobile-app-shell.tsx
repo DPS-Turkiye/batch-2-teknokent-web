@@ -6,8 +6,26 @@ import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileTabBar } from "@/components/mobile/mobile-tab-bar";
 import { useMobileShell } from "@/hooks/use-mobile-shell";
 
-export function MobileAppShell({ children }: { children: ReactNode }) {
-  const { tabs, activeTab, accent, isReady } = useMobileShell();
+export function MobileAppShell({
+  children,
+  bare = false,
+}: {
+  children: ReactNode;
+  /** Full-screen views such as a chat bring their own header and bottom bar. */
+  bare?: boolean;
+}) {
+  const { tabs, activeTab, badges, accent, isReady } = useMobileShell();
+
+  if (bare) {
+    return (
+      <div
+        className="mx-auto min-h-dvh w-full max-w-[480px] bg-white"
+        style={{ "--mobile-accent": accent } as CSSProperties}
+      >
+        {isReady ? children : <MobileListSkeleton />}
+      </div>
+    );
+  }
 
   return (
     <div
@@ -18,7 +36,9 @@ export function MobileAppShell({ children }: { children: ReactNode }) {
       <main className="px-5 pt-[calc(16px+env(safe-area-inset-top))] pb-[calc(110px+env(safe-area-inset-bottom))]">
         {isReady ? children : <MobileListSkeleton />}
       </main>
-      {isReady ? <MobileTabBar tabs={tabs} activeTab={activeTab} /> : null}
+      {isReady ? (
+        <MobileTabBar tabs={tabs} activeTab={activeTab} badges={badges} />
+      ) : null}
     </div>
   );
 }

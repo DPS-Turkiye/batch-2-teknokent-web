@@ -1,14 +1,15 @@
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import type {
-  MobileMeetingSummary,
-  MobileMessagePreview,
-  MobileTaskPreview,
+import {
+  MobileConversationKind,
+  type MobileMeetingSummary,
+  type MobileMessagePreview,
+  type MobileTaskPreview,
 } from "@/interfaces/mobile";
 import { conversationTime } from "@/lib/coordinator-messages";
 import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import type { HomeTask } from "@/lib/mentee-home";
-import { MOBILE_CALENDAR, MOBILE_MESSAGES, MOBILE_TASKS } from "@/lib/mobile";
+import { MOBILE_CALENDAR, MOBILE_TASKS, mobileChatHref } from "@/lib/mobile";
 import { visibleMeetings } from "@/lib/startup-meetings";
 import { initials } from "@/lib/utils";
 
@@ -39,13 +40,19 @@ function dayOffset(date: Date, now: Date) {
   );
 }
 
-/** "Bugün · 14:00", "Yarın · 14:00", then "24 Eylül · 14:00". */
-export function meetingWhenChip(meeting: MeetingItem, now = new Date()) {
+/** "Bugün", "Yarın" or "24 Eylül", and "14:00". */
+export function meetingDayAndTime(meeting: MeetingItem, now = new Date()) {
   const start = new Date(meeting.scheduledAt);
   const offset = dayOffset(start, now);
   const day =
     offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : dayMonth.format(start);
-  return `${day} · ${time.format(start)}`;
+  return { day, time: time.format(start) };
+}
+
+/** "Bugün · 14:00", "Yarın · 14:00", then "24 Eylül · 14:00". */
+export function meetingWhenChip(meeting: MeetingItem, now = new Date()) {
+  const when = meetingDayAndTime(meeting, now);
+  return `${when.day} · ${when.time}`;
 }
 
 /** "Perşembe 24 Eylül · 14:00–15:00 · Online" */
@@ -131,6 +138,6 @@ export function messagePreviews(
       initials: initials(request.mentorName),
       preview: last.body,
       time: conversationTime(last.createdAt, now),
-      href: `${MOBILE_MESSAGES}?conversation=${encodeURIComponent(request.id)}`,
+      href: mobileChatHref(MobileConversationKind.Mentorship, request.id),
     }));
 }

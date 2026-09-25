@@ -16,6 +16,8 @@ export type CoordinatorConversation = {
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   unread: boolean;
+  unreadCount?: number;
+  otherSideReadAt?: string | null;
 };
 
 export type CoordinatorMessage = {

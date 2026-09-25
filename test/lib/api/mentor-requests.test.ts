@@ -110,4 +110,21 @@ describe("mutateMentorRequest", () => {
       expect.objectContaining({ data: undefined }),
     );
   });
+
+  it("sends the signed-in user as the actor when marking a thread read", async () => {
+    await mutateMentorRequest({
+      action: MentorRequestAction.Read,
+      data: {},
+      id: "req-1",
+      method: HttpMethod.Post,
+      requesterId: "user-1",
+    });
+
+    expect(backendRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        url: "/api/mentorship-requests/req-1/read",
+        data: { actorId: "user-1" },
+      }),
+    );
+  });
 });
