@@ -3,6 +3,10 @@ import { UserRole } from "@/interfaces/session";
 
 export const MOBILE_HOME = "/m";
 export const MOBILE_LOGIN = "/m/login";
+export const MOBILE_CALENDAR = "/m/calendar";
+export const MOBILE_TASKS = "/m/tasks";
+export const MOBILE_MESSAGES = "/m/messages";
+export const MOBILE_NOTIFICATIONS = "/m/notifications";
 
 /** Opening any page with ?web=1 keeps a phone on the web pages until it opens /m again. */
 export const PREFER_WEB_PARAM = "web";
@@ -62,21 +66,21 @@ const HOME_TAB: MobileTabLink = {
 const CALENDAR_TAB: MobileTabLink = {
   tab: MobileTab.Calendar,
   label: "Takvim",
-  href: `${MOBILE_HOME}/calendar`,
+  href: MOBILE_CALENDAR,
   icon: "/mobile/icon-calendar.svg",
 };
 
 const MESSAGES_TAB: MobileTabLink = {
   tab: MobileTab.Messages,
   label: "Mesajlar",
-  href: `${MOBILE_HOME}/messages`,
+  href: MOBILE_MESSAGES,
   icon: "/mobile/icon-messages.svg",
 };
 
 const TASKS_TAB: MobileTabLink = {
   tab: MobileTab.Tasks,
   label: "Görevler",
-  href: `${MOBILE_HOME}/tasks`,
+  href: MOBILE_TASKS,
   icon: "/mobile/icon-tasks.svg",
 };
 
