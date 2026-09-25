@@ -20,6 +20,10 @@ vi.mock("@/hooks/use-mobile-home", () => ({
   useMobileHome: () => home,
 }));
 
+vi.mock("@/components/mobile/mobile-mentor-home-view", () => ({
+  MobileMentorHomeView: () => <p>Mentor home</p>,
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ session: { role }, isLoading: false }),
 }));
@@ -168,11 +172,11 @@ describe("MobileHomeView", () => {
 });
 
 describe("MobileHomeScreen", () => {
-  it("keeps the placeholder for mentors until their home lands", () => {
+  it("gives mentors their own home", () => {
     role = UserRole.Mentor;
     render(<MobileHomeScreen />);
 
-    expect(screen.getByText("Ana sayfa hazırlanıyor.")).toBeInTheDocument();
+    expect(screen.getByText("Mentor home")).toBeInTheDocument();
     expect(screen.queryByText("Merhaba, Gamze")).not.toBeInTheDocument();
   });
 });
