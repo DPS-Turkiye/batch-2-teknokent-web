@@ -85,7 +85,7 @@ function RequestSentContent() {
             href={
               id
                 ? `/mentor-request/status?request=${encodeURIComponent(id)}`
-                : "/mentor-request/status"
+                : "/mentorships?tab=requests"
             }
             className="w-full"
           >

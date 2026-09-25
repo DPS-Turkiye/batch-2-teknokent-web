@@ -71,12 +71,15 @@ export default function RequestStatusPage() {
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const requestedStatus = params.get("state") as MentorshipRequestStatus | null;
   const explicitId = params.get("request") ?? params.get("id");
+  // Only an explicit id, or the status this page was sent to find, picks a
+  // request. Falling back to the first one opened a request nobody chose.
   const selectedId =
     explicitId ??
-    requestsQuery.data?.find((request) => request.status === requestedStatus)
-      ?.id ??
-    requestsQuery.data?.[0]?.id ??
-    null;
+    (requestedStatus
+      ? (requestsQuery.data?.find(
+          (request) => request.status === requestedStatus,
+        )?.id ?? null)
+      : null);
   const requestQuery = useMentorshipRequest(selectedId);
   const request = requestQuery.data;
   const withdrawMutation = useWithdrawMentorRequest(selectedId);
@@ -150,8 +153,24 @@ export default function RequestStatusPage() {
             {requestsQuery.error?.message ?? requestQuery.error?.message}
           </p>
         ) : null}
-        {!request && !requestQuery.error ? (
+        {selectedId && !request && !requestQuery.error ? (
           <p className="mt-4 text-sm text-[#777]">Talep yükleniyor…</p>
+        ) : null}
+        {!selectedId && !requestsQuery.isLoading ? (
+          <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-6 text-center">
+            <p className="text-sm font-medium text-[#22262b]">
+              Görüntülenecek bir talep seçilmedi.
+            </p>
+            <p className="mt-1 text-xs text-[#777]">
+              Taleplerinden birini seçerek detayına gidebilirsin.
+            </p>
+            <SecondaryButton
+              href="/mentorships?tab=requests"
+              className="mt-4 inline-flex"
+            >
+              Taleplerime Git
+            </SecondaryButton>
+          </section>
         ) : null}
 
         {request ? (
