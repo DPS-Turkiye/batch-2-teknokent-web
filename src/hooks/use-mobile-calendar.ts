@@ -4,9 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { useSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
+import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
+import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
 import { MobileConversationKind } from "@/interfaces/mobile";
+import { UserRole } from "@/interfaces/session";
 import { monthLabel } from "@/lib/calendar";
+import { getMentorRequests } from "@/lib/client/mentor-requests";
+import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getMemberProgramEvents } from "@/lib/client/programs";
 import { mobileChatHref } from "@/lib/mobile";
 import {
@@ -26,6 +32,10 @@ import {
   startOfDay,
   weekStrip,
 } from "@/lib/mobile-calendar";
+import {
+  mentorAgendaEntries,
+  mentorEntryDetail,
+} from "@/lib/mobile-mentor-calendar";
 
 const NOW_REFRESH_MS = 60_000;
 
@@ -45,17 +55,25 @@ export function useMobileCalendar() {
     return () => window.clearInterval(timer);
   }, []);
 
+  const { session } = useSession();
+  const isMentor = session?.role === UserRole.Mentor;
   const range = useMemo(() => eventRangeFor(month), [month]);
   const meetings = useMeetings();
   const events = useQuery({
     queryKey: [MEMBER_PROGRAM_EVENTS_QUERY_KEY, range],
     queryFn: () => getMemberProgramEvents(range),
   });
+  // Mentors see meetings by startup and topic; without the requests they fall back to the agenda.
+  const requests = useQuery({
+    queryKey: mentorshipRequestsQueryKey(UserRole.Mentor),
+    queryFn: () => getMentorRequests(UserRole.Mentor),
+    enabled: isMentor,
+  });
 
-  const entries = useMemo(
-    () => agendaEntries(meetings.data ?? [], events.data ?? []),
-    [meetings.data, events.data],
-  );
+  const entries = useMemo(() => {
+    const all = agendaEntries(meetings.data ?? [], events.data ?? []);
+    return isMentor ? mentorAgendaEntries(all, requests.data ?? []) : all;
+  }, [meetings.data, events.data, isMentor, requests.data]);
 
   // A link from Home opens that meeting once the meetings have loaded.
   const linked =
@@ -77,6 +95,13 @@ export function useMobileCalendar() {
   const next = nextEntry(entries, now);
   const open = entries.find((entry) => entry.id === openId) ?? null;
   const requestId = open?.meeting?.mentorshipRequestId;
+  const organizationId = open?.meeting?.organizationId ?? "";
+  const members = useQuery({
+    queryKey: [...ORGANIZATION_MEMBERS_QUERY_KEY, organizationId],
+    queryFn: () => getOrganizationMembersById(organizationId),
+    enabled: isMentor && Boolean(organizationId),
+    retry: false,
+  });
 
   return {
     agenda: agendaDays(selected, entries, now),
@@ -99,9 +124,20 @@ export function useMobileCalendar() {
           messageHref: requestId
             ? mobileChatHref(MobileConversationKind.Mentorship, requestId)
             : null,
+          mentor: isMentor
+            ? mentorEntryDetail({
+                entry: open,
+                meetings: meetings.data ?? [],
+                requests: requests.data ?? [],
+                members: members.data ?? [],
+                mentorName: session?.fullName ?? "",
+                now,
+              })
+            : null,
         }
       : null,
     isError: Boolean(meetings.error && events.error),
+    isMentor,
     isLoading: meetings.isLoading,
     month: {
       isOpen: isMonthOpen,
