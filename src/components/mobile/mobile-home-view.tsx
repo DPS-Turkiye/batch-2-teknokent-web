@@ -2,10 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import type { ReactNode } from "react";
 
-import { MobileAccountButton } from "@/components/mobile/mobile-account-button";
-import { MobileScreenHeader } from "@/components/mobile/mobile-app-shell";
+import {
+  HomeHeader,
+  HomeMessageRow,
+  HomeSection,
+  QuietLine,
+} from "@/components/mobile/mobile-home-parts";
+import { MobileMentorHomeView } from "@/components/mobile/mobile-mentor-home-view";
 import { MobileButtonLink } from "@/components/mobile/mobile-button";
 import {
   MobileEmptyState,
@@ -18,15 +22,10 @@ import { useMobileHome } from "@/hooks/use-mobile-home";
 import {
   MobileButtonVariant,
   type MobileMeetingSummary,
-  type MobileMessagePreview,
   type MobileTaskPreview,
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
-import {
-  MOBILE_MESSAGES,
-  MOBILE_NOTIFICATIONS,
-  MOBILE_TASKS,
-} from "@/lib/mobile";
+import { MOBILE_MESSAGES, MOBILE_TASKS } from "@/lib/mobile";
 import { DueTone } from "@/types/mentee-home";
 
 const DUE_CHIP_CLASS: Record<DueTone, string> = {
@@ -35,32 +34,6 @@ const DUE_CHIP_CLASS: Record<DueTone, string> = {
   [DueTone.Upcoming]: "bg-[#f5f6f8] text-[#676e78]",
   [DueTone.None]: "bg-[#f5f6f8] text-[#676e78]",
 };
-
-function Section({
-  title,
-  allHref,
-  children,
-}: {
-  title: string;
-  allHref: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-1.5" aria-label={title}>
-      <div className="flex items-center justify-between leading-[1.35]">
-        <h2 className="text-[17px] font-semibold text-[#22262b]">{title}</h2>
-        <Link
-          href={allHref}
-          className="text-sm font-medium text-[#676e78]"
-          aria-label={`Tüm ${title.toLocaleLowerCase("tr-TR")}`}
-        >
-          Tümü
-        </Link>
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function NextMeetingCard({ meeting }: { meeting: MobileMeetingSummary }) {
   return (
@@ -142,73 +115,16 @@ function TaskRow({ task, last }: { task: MobileTaskPreview; last: boolean }) {
   );
 }
 
-function MessageRow({ message }: { message: MobileMessagePreview }) {
-  return (
-    <li>
-      <Link href={message.href} className="flex items-center gap-3 py-3">
-        <span className="flex size-11 shrink-0 items-center justify-center rounded-full bg-[#eaf6ff] text-base leading-[1.35] font-semibold text-[#1583d6]">
-          {message.initials}
-        </span>
-        <span className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.35] text-[#22262b]">
-          <span className="truncate text-[15px] font-medium">
-            {message.name}
-          </span>
-          <span className="truncate text-[13.5px] text-[#858c96]">
-            {message.preview}
-          </span>
-        </span>
-        <span className="shrink-0 self-start pt-0.5 text-xs leading-[1.35] text-[#858c96]">
-          {message.time}
-        </span>
-      </Link>
-    </li>
-  );
-}
-
-function QuietLine({ children }: { children: ReactNode }) {
-  return (
-    <p className="py-3.5 text-[13.5px] leading-[1.35] text-[#858c96]">
-      {children}
-    </p>
-  );
-}
-
 export function MobileHomeView() {
   const home = useMobileHome();
 
   return (
     <div className="flex flex-col gap-7">
       <div className="flex flex-col gap-3">
-        <header className="flex items-center justify-between">
-          <h1 className="text-lg leading-[1.35] text-[#858c96]">
-            {home.firstName ? `Merhaba, ${home.firstName}` : "Merhaba"}
-          </h1>
-          <div className="flex items-center gap-2">
-            <Link
-              href={MOBILE_NOTIFICATIONS}
-              aria-label={
-                home.hasUnreadNotifications
-                  ? "Bildirimler, okunmamış bildirim var"
-                  : "Bildirimler"
-              }
-              className="relative flex size-11 items-center justify-center rounded-full bg-[#f5f6f8]"
-            >
-              <Image
-                src="/mobile/icon-bell.svg"
-                alt=""
-                width={22}
-                height={22}
-              />
-              {home.hasUnreadNotifications ? (
-                <span
-                  aria-hidden="true"
-                  className="absolute top-[9px] right-2 size-[9px] rounded-full border-2 border-white bg-[var(--mobile-accent)]"
-                />
-              ) : null}
-            </Link>
-            <MobileAccountButton />
-          </div>
-        </header>
+        <HomeHeader
+          firstName={home.firstName}
+          hasUnreadNotifications={home.hasUnreadNotifications}
+        />
 
         {home.isOnline ? null : (
           <MobileOfflineBanner detail="Gösterilenler son kaydedilen bilgiler." />
@@ -233,7 +149,7 @@ export function MobileHomeView() {
 
       {home.isLoading || home.isError ? null : (
         <>
-          <Section title="Yapılacaklar" allHref={MOBILE_TASKS}>
+          <HomeSection title="Yapılacaklar" allHref={MOBILE_TASKS}>
             {home.isLoadingTasks ? (
               <MobileListSkeleton label="Yapılacaklar yükleniyor" />
             ) : home.tasks.length > 0 ? (
@@ -249,41 +165,31 @@ export function MobileHomeView() {
             ) : (
               <QuietLine>Şu an yapılacak bir şey yok.</QuietLine>
             )}
-          </Section>
+          </HomeSection>
 
-          <Section title="Mesajlar" allHref={MOBILE_MESSAGES}>
+          <HomeSection title="Mesajlar" allHref={MOBILE_MESSAGES}>
             {home.messages.length > 0 ? (
               <ul>
                 {home.messages.map((message) => (
-                  <MessageRow key={message.id} message={message} />
+                  <HomeMessageRow key={message.id} message={message} />
                 ))}
               </ul>
             ) : (
               <QuietLine>Henüz mesaj yok.</QuietLine>
             )}
-          </Section>
+          </HomeSection>
         </>
       )}
     </div>
   );
 }
 
-/** The mentor home is its own screen; until it lands mentors keep the placeholder. */
+/** Mentors and mentees share the /m route but see their own home. */
 export function MobileHomeScreen() {
   const { session } = useSession();
-  if (session?.role === UserRole.Mentor) {
-    return (
-      <>
-        <MobileScreenHeader
-          title="Ana Sayfa"
-          action={<MobileAccountButton />}
-        />
-        <MobileEmptyState
-          title="Ana sayfa hazırlanıyor."
-          description="Sıradaki görüşmen ve startupların yakında burada."
-        />
-      </>
-    );
-  }
-  return <MobileHomeView />;
+  return session?.role === UserRole.Mentor ? (
+    <MobileMentorHomeView />
+  ) : (
+    <MobileHomeView />
+  );
 }
