@@ -46,14 +46,14 @@ export type MentorMessagePreview = {
   unreadCount: number;
 };
 
-function endOf(meeting: MeetingItem) {
+export function endOf(meeting: MeetingItem) {
   return (
     new Date(meeting.scheduledAt).getTime() +
     meeting.durationMinutes * MINUTE_MS
   );
 }
 
-function upcomingFor(
+export function upcomingFor(
   meetings: MeetingItem[],
   organizationId: string,
   now: Date,
@@ -105,7 +105,7 @@ export function mentorMeetingSummary(
 }
 
 // The mentor's own programs first; a startup in several programs shows the first it shares.
-function programNameFor(
+export function programNameFor(
   programs: Program[],
   organizationId: string,
   mentorId: string,
@@ -153,7 +153,7 @@ export function mentorStartupRows(
         ? `Sonraki: ${when.day} ${when.time}`
         : "Sonraki görüşme planlanmadı",
       planned: Boolean(next),
-      href: MOBILE_STARTUPS,
+      href: `${MOBILE_STARTUPS}/${encodeURIComponent(request.organizationId)}`,
     };
     return {
       row,
