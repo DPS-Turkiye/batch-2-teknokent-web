@@ -50,11 +50,16 @@ export function toggledPreferences(
 
 /** "Atlas AI · Takım yetkilisi" for a mentee, "Mentor · UX/UI" for a mentor. */
 export function accountChip(session: AppSession) {
-  const parts =
-    session.role === UserRole.Mentor
-      ? ["Mentor", session.jobTitle]
-      : [session.organizationName, session.jobTitle];
-  return parts.filter(Boolean).join(" · ");
+  if (session.role !== UserRole.Mentor) {
+    return [session.organizationName, session.jobTitle]
+      .filter(Boolean)
+      .join(" · ");
+  }
+  // A mentor whose title is just "Mentor" would read "Mentor · Mentor".
+  const title = session.jobTitle?.trim();
+  return title && title.toLocaleLowerCase("tr-TR") !== "mentor"
+    ? `Mentor · ${title}`
+    : "Mentor";
 }
 
 export function accountAvatarClass(role?: UserRole | null) {

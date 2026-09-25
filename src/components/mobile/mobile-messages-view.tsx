@@ -55,13 +55,16 @@ function ConversationRow({
         <span className="flex min-w-0 flex-1 flex-col gap-1 leading-[1.35]">
           <span className="flex min-w-0 items-center gap-1.5">
             <span
-              className={`truncate text-[15.5px] text-[#22262b] ${
+              className={`max-w-full shrink-0 truncate text-[15.5px] text-[#22262b] ${
                 unread ? "font-semibold" : "font-medium"
               }`}
             >
               {conversation.name}
             </span>
-            <span className={`shrink-0 text-[12.5px] ${TAG_CLASS[look]}`}>
+            {/* The name keeps its room; a long tag gives way first. */}
+            <span
+              className={`min-w-0 truncate text-[12.5px] ${TAG_CLASS[look]}`}
+            >
               · {conversation.tag}
             </span>
           </span>

@@ -145,5 +145,8 @@ describe("MobileMessagesView", () => {
       "text-[#e0522a]",
     );
     expect(within(row).getByText("12:00")).toHaveClass("text-[#1583d6]");
+    // A long requester name shortens before the startup name does.
+    expect(within(row).getByText("Atlas AI")).toHaveClass("shrink-0");
+    expect(within(row).getByText("· Gamze Kozak")).toHaveClass("truncate");
   });
 });
