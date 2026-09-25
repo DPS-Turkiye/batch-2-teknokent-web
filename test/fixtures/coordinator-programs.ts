@@ -1,5 +1,7 @@
 import {
   type CoordinatorProgram,
+  type CoordinatorProgramDetail,
+  ProgramEventKind,
   ProgramLifecycle,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
@@ -36,6 +38,55 @@ export function coordinatorProgram(
     phases: [],
     currentWeek: 6,
     totalWeeks: 16,
+    ...overrides,
+  };
+}
+
+export function coordinatorProgramDetail(
+  overrides: Partial<CoordinatorProgramDetail> = {},
+): CoordinatorProgramDetail {
+  return {
+    program: coordinatorProgram({
+      phases: [
+        phase("phase-1", "Başvuru", 0),
+        phase("phase-2", "Mentorluk dönemi", 1),
+        phase("phase-3", "Demo Day", 2),
+      ],
+      currentPhase: phase("phase-2", "Mentorluk dönemi", 1),
+      currentWeek: 6,
+      totalWeeks: 16,
+    }),
+    rules: {
+      meetingFrequencyDays: 14,
+      staleAfterDays: 14,
+      meetingNoteRequired: true,
+      autoMatchSuggestions: true,
+    },
+    health: {
+      healthy: 48,
+      followUp: 10,
+      risky: 6,
+      riskyTopics: [{ title: "Pazarlama stratejisi", teams: 5 }],
+    },
+    awaitingTeams: [{ organizationId: "org-9", name: "Terra", waitingDays: 4 }],
+    upcomingEvents: [
+      {
+        id: "event-1",
+        programId: "program-1",
+        title: "Ara rapor teslimi",
+        kind: ProgramEventKind.Deadline,
+        startsAt: new Date(Date.now() + 3 * 86_400_000).toISOString(),
+        endsAt: null,
+        description: "28/42 takım teslim etti",
+      },
+    ],
+    teams: { mentored: 36, awaitingMatch: 5 },
+    mentors: { withCapacity: 22, full: 4, idle: 2, pending: 5 },
+    coordinators: [
+      { id: "coordinator-1", fullName: "Elif Demir", owner: true },
+      { id: "coordinator-2", fullName: "Burcu Şen", owner: false },
+    ],
+    missingNoteMeetings: 4,
     ...overrides,
   };
 }
