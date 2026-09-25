@@ -61,6 +61,9 @@ describe("accountChip and webEditLinkFor", () => {
     expect(
       accountChip(session({ role: UserRole.Mentor, jobTitle: "UX/UI" })),
     ).toBe("Mentor · UX/UI");
+    expect(
+      accountChip(session({ role: UserRole.Mentor, jobTitle: "Mentor" })),
+    ).toBe("Mentor");
   });
 
   it("sends each role to its own profile on the web", () => {
