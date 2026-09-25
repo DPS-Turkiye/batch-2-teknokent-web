@@ -39,7 +39,7 @@ function homeState(overrides: Partial<Home> = {}): Home {
         initials: "NÖ",
         preview: "Yeni dosyayı inceledim, iki önerim var",
         time: "Dün",
-        href: "/m/messages?conversation=r1",
+        href: "/m/messages/mentorship/r1",
       },
     ],
     nextMeeting: {
@@ -103,7 +103,7 @@ describe("MobileHomeView", () => {
     const messages = screen.getByRole("region", { name: "Mesajlar" });
     expect(
       within(messages).getByRole("link", { name: /Nihan Öztürk/ }),
-    ).toHaveAttribute("href", "/m/messages?conversation=r1");
+    ).toHaveAttribute("href", "/m/messages/mentorship/r1");
   });
 
   it("marks the bell when there are unread notifications", () => {

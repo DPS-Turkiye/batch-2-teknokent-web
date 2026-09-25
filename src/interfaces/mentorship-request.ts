@@ -67,4 +67,6 @@ export type MentorshipRequest = {
   messages: RequestMessage[];
   recommendationSnapshot: RecommendationSnapshot | null;
   plannedSessionCount?: number | null;
+  mentorReadAt?: string | null;
+  menteeReadAt?: string | null;
 };

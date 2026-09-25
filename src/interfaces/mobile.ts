@@ -50,3 +50,38 @@ export type MobileMessagePreview = {
   time: string;
   href: string;
 };
+
+export enum MobileConversationKind {
+  Mentorship = "mentorship",
+  Program = "program",
+}
+
+export type MobileConversation = {
+  id: string;
+  kind: MobileConversationKind;
+  name: string;
+  initials: string;
+  tag: string;
+  lastAt: string;
+  time: string;
+  preview: string;
+  unreadCount: number;
+  href: string;
+};
+
+export enum MobileChatItemKind {
+  Day = "day",
+  Message = "message",
+}
+
+export type MobileChatItem =
+  | { kind: MobileChatItemKind.Day; id: string; label: string }
+  | {
+      kind: MobileChatItemKind.Message;
+      id: string;
+      mine: boolean;
+      body: string;
+      fileName: string | null;
+      time: string;
+      read: boolean;
+    };

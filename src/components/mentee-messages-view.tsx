@@ -9,6 +9,7 @@ import type {
   MentorshipRequest,
   RequestMessage,
 } from "@/interfaces/mentorship-request";
+import { sharedFileName } from "@/lib/mentorship-messages";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -28,13 +29,6 @@ function timeLabel(value: string) {
   yesterday.setDate(now.getDate() - 1);
   if (date.toDateString() === yesterday.toDateString()) return "Dün";
   return date.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
-}
-
-function attachmentName(message: RequestMessage) {
-  const prefix = "Dosya paylaşıldı:";
-  return message.body.startsWith(prefix)
-    ? message.body.slice(prefix.length).trim()
-    : null;
 }
 
 function ConversationList({
@@ -139,7 +133,7 @@ function MessageBubble({
   message: RequestMessage;
   own: boolean;
 }) {
-  const fileName = attachmentName(message);
+  const fileName = sharedFileName(message.body);
   if (fileName) {
     return (
       <article className="flex flex-col items-end">

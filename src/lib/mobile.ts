@@ -1,4 +1,8 @@
-import { MobileTab, type MobileTabLink } from "@/interfaces/mobile";
+import {
+  MobileConversationKind,
+  MobileTab,
+  type MobileTabLink,
+} from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 
 export const MOBILE_HOME = "/m";
@@ -7,6 +11,18 @@ export const MOBILE_CALENDAR = "/m/calendar";
 export const MOBILE_TASKS = "/m/tasks";
 export const MOBILE_MESSAGES = "/m/messages";
 export const MOBILE_NOTIFICATIONS = "/m/notifications";
+
+export function isMobileConversationKind(
+  value: string,
+): value is MobileConversationKind {
+  return Object.values(MobileConversationKind).includes(
+    value as MobileConversationKind,
+  );
+}
+
+export function mobileChatHref(kind: MobileConversationKind, id: string) {
+  return `${MOBILE_MESSAGES}/${kind}/${encodeURIComponent(id)}`;
+}
 
 /** Opening any page with ?web=1 keeps a phone on the web pages until it opens /m again. */
 export const PREFER_WEB_PARAM = "web";

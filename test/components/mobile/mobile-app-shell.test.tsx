@@ -20,6 +20,11 @@ vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => sessionState,
 }));
 
+let unreadTotal = 0;
+vi.mock("@/hooks/use-mobile-messages", () => ({
+  useMobileConversations: () => ({ unreadTotal }),
+}));
+
 function sessionFor(role: AppSession["role"]): AppSession {
   return {
     userId: "user-1",
@@ -41,6 +46,7 @@ function renderShell() {
 beforeEach(() => {
   vi.clearAllMocks();
   pathname = "/m";
+  unreadTotal = 0;
   sessionState = { session: sessionFor(UserRole.Mentee), isLoading: false };
 });
 
@@ -111,5 +117,26 @@ describe("MobileAppShell", () => {
       screen.getByRole("status", { name: "Yükleniyor" }),
     ).toBeInTheDocument();
     expect(screen.queryByText("Ekran içeriği")).not.toBeInTheDocument();
+  });
+
+  it("counts unread messages on the Mesajlar tab", () => {
+    unreadTotal = 3;
+    renderShell();
+
+    const tab = within(
+      screen.getByRole("navigation", { name: "Ana menü" }),
+    ).getByRole("link", { name: /Mesajlar/ });
+    expect(tab).toHaveTextContent("3");
+  });
+
+  it("leaves the tab bar out of a bare screen such as a chat", () => {
+    render(
+      <MobileAppShell bare>
+        <p>Sohbet</p>
+      </MobileAppShell>,
+    );
+
+    expect(screen.getByText("Sohbet")).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
   });
 });

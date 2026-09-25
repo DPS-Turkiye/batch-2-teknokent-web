@@ -170,7 +170,7 @@ describe("messagePreviews", () => {
       initials: "BÖ",
       preview: "Yeni dosyayı inceledim",
       time: "Dün",
-      href: "/m/messages?conversation=recent",
+      href: "/m/messages/mentorship/recent",
     });
   });
 
