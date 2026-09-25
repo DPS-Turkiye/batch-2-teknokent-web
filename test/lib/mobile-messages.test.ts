@@ -136,7 +136,8 @@ describe("mentorshipConversation", () => {
     const conversation = mentorshipConversation(thread(), UserRole.Mentor, NOW);
 
     expect(conversation.name).toBe("Atlas AI");
-    expect(conversation.tag).toBe("Startup");
+    expect(conversation.tag).toBe("Gamze Kozak");
+    expect(conversation.isStartup).toBe(true);
   });
 });
 
@@ -173,6 +174,14 @@ describe("newestFirst and searchConversations", () => {
       ["Barış Öztürk"],
     );
     expect(searchConversations(list, "  ")).toHaveLength(2);
+  });
+
+  it("finds a mentor's startup thread by the person who wrote in, but not by a mentee's tag", () => {
+    const mentor = [mentorshipConversation(thread(), UserRole.Mentor, NOW)];
+    const mentee = [mentorshipConversation(thread(), UserRole.Mentee, NOW)];
+
+    expect(searchConversations(mentor, "gamze")).toHaveLength(1);
+    expect(searchConversations(mentee, "mentor")).toHaveLength(0);
   });
 });
 
@@ -243,6 +252,9 @@ describe("chat header and meeting strip", () => {
     expect(mentorshipChatSubtitle(thread(), UserRole.Mentor)).toBe(
       "Gamze Kozak · Teknik ekip kurulumu",
     );
+    expect(
+      mentorshipChatSubtitle(thread(), UserRole.Mentor, "METU Stars 2026"),
+    ).toBe("METU Stars 2026 · Gamze Kozak");
   });
 
   it("names the day of the next meeting", () => {

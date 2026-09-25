@@ -62,6 +62,8 @@ export type MobileConversation = {
   name: string;
   initials: string;
   tag: string;
+  /** A mentor's thread with a startup: square startup avatar, tag names the person. */
+  isStartup: boolean;
   lastAt: string;
   time: string;
   preview: string;

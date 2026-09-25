@@ -25,6 +25,7 @@ const MENTOR: MobileConversation = {
   name: "Nihan Öztürk",
   initials: "NÖ",
   tag: "Mentor",
+  isStartup: false,
   lastAt: "2026-09-25T09:00:00Z",
   time: "12:00",
   preview: "Yeni dosyayı inceledim",
@@ -38,6 +39,7 @@ const PROGRAM: MobileConversation = {
   name: "METU Stars",
   initials: "MS",
   tag: "Program",
+  isStartup: false,
   lastAt: "2026-09-22T09:00:00Z",
   time: "Pzt",
   preview: "Ara rapor teslimi yaklaşıyor.",
@@ -51,6 +53,8 @@ function messagesState(overrides: Partial<Messages> = {}): Messages {
     shown: [MENTOR, PROGRAM],
     isError: false,
     isLoading: false,
+    isMentor: false,
+    searchLabel: "Kişi ara",
     query: "",
     retry,
     setQuery,
@@ -114,5 +118,32 @@ describe("MobileMessagesView", () => {
     await userEvent.click(screen.getByRole("button", { name: "Tekrar dene" }));
 
     expect(retry).toHaveBeenCalled();
+  });
+
+  it("shows mentors startups with square avatars and the person who wrote", () => {
+    const startup: MobileConversation = {
+      ...MENTOR,
+      name: "Atlas AI",
+      initials: "AA",
+      tag: "Gamze Kozak",
+      isStartup: true,
+    };
+    state = messagesState({
+      conversations: [startup],
+      shown: [startup],
+      isMentor: true,
+      searchLabel: "Startup veya kişi ara",
+    });
+    render(<MobileMessagesView />);
+
+    expect(
+      screen.getByPlaceholderText("Startup veya kişi ara"),
+    ).toBeInTheDocument();
+    const row = screen.getByRole("link", { name: /Atlas AI/ });
+    expect(within(row).getByText("AA")).toHaveClass("rounded-2xl");
+    expect(within(row).getByText("· Gamze Kozak")).toHaveClass(
+      "text-[#e0522a]",
+    );
+    expect(within(row).getByText("12:00")).toHaveClass("text-[#1583d6]");
   });
 });

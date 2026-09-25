@@ -105,14 +105,24 @@ export function MobileChatView({
         </Link>
         {chat.header ? (
           <>
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#eaf6ff] text-sm leading-[1.35] font-semibold text-[#1583d6]">
+            <span
+              className={`flex size-10 shrink-0 items-center justify-center text-sm leading-[1.35] font-semibold ${
+                chat.header.isStartup
+                  ? "rounded-[13px] bg-[#fff1ec] text-[#e0522a]"
+                  : "rounded-full bg-[#eaf6ff] text-[#1583d6]"
+              }`}
+            >
               {chat.header.initials}
             </span>
             <div className="flex min-w-0 flex-1 flex-col gap-px leading-[1.35]">
               <h1 className="truncate text-base font-semibold text-[#22262b]">
                 {chat.header.name}
               </h1>
-              <p className="truncate text-[12.5px] text-[#1583d6]">
+              <p
+                className={`truncate text-[12.5px] ${
+                  chat.header.isStartup ? "text-[#e0522a]" : "text-[#1583d6]"
+                }`}
+              >
                 {chat.header.subtitle}
               </p>
             </div>

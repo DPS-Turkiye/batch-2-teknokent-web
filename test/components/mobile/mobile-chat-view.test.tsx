@@ -32,6 +32,7 @@ function chatState(overrides: Partial<Chat> = {}): Chat {
       name: "Nihan Öztürk",
       initials: "NÖ",
       subtitle: "Mentor · Ürün stratejisi",
+      isStartup: false,
     },
     isError: false,
     isLoading: false,
@@ -164,6 +165,23 @@ describe("MobileChatView", () => {
     renderChat();
 
     expect(screen.getByText("Konuşma bulunamadı.")).toBeInTheDocument();
+  });
+
+  it("heads a mentor's startup thread with a square startup avatar", () => {
+    chat = chatState({
+      header: {
+        name: "Atlas AI",
+        initials: "AA",
+        subtitle: "METU Stars 2026 · Gamze Kozak",
+        isStartup: true,
+      },
+    });
+    renderChat();
+
+    expect(screen.getByText("AA")).toHaveClass("rounded-[13px]");
+    expect(screen.getByText("METU Stars 2026 · Gamze Kozak")).toHaveClass(
+      "text-[#e0522a]",
+    );
   });
 
   it("reports a failed send", () => {

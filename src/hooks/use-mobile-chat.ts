@@ -7,6 +7,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { useMeetings } from "@/hooks/use-meetings";
 import { messagingRoleFor } from "@/hooks/use-mobile-messages";
+import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import {
   mentorshipRequestsQueryKey,
   useRequestFileUpload,
@@ -24,6 +25,7 @@ import {
   postMentorMessage,
   replyToMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { getPrograms } from "@/lib/client/programs";
 import {
   isMeetingEnded,
   mentorshipRequestAllowsMessaging,
@@ -38,6 +40,7 @@ import {
   nextMeetingStrip,
   programChatItems,
 } from "@/lib/mobile-messages";
+import { programNameFor } from "@/lib/mobile-mentor-home";
 import { initials } from "@/lib/utils";
 
 const POLL_MS = 10_000;
@@ -70,6 +73,13 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     queryFn: () => getCoordinatorMessages(id),
     enabled: !isMentorship,
     refetchInterval: POLL_MS,
+  });
+  // Only names the startup's program in a mentor's header; a failure just leaves it out.
+  const startupPrograms = useQuery({
+    queryKey: PROGRAMS_QUERY_KEY,
+    queryFn: getPrograms,
+    enabled: isMentorship && role === UserRole.Mentor,
+    retry: false,
   });
   const meetings = useMeetings();
   const upload = useRequestFileUpload(isMentorship ? id : null, role);
@@ -137,22 +147,38 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
 
   const header = useMemo(() => {
     if (isMentorship && request.data) {
-      const name = mentorshipConversation(request.data, role).name;
+      const conversation = mentorshipConversation(request.data, role);
+      const programName = conversation.isStartup
+        ? programNameFor(
+            startupPrograms.data ?? [],
+            request.data.organizationId,
+            viewerId,
+          )
+        : null;
       return {
-        name,
-        initials: initials(name),
-        subtitle: mentorshipChatSubtitle(request.data, role),
+        name: conversation.name,
+        initials: conversation.initials,
+        isStartup: conversation.isStartup,
+        subtitle: mentorshipChatSubtitle(request.data, role, programName),
       };
     }
     if (!isMentorship && program) {
       return {
         name: program.programName,
         initials: initials(program.programName),
+        isStartup: false,
         subtitle: `Koordinatör · ${program.coordinatorName}`,
       };
     }
     return null;
-  }, [isMentorship, request.data, program, role]);
+  }, [
+    isMentorship,
+    request.data,
+    program,
+    role,
+    startupPrograms.data,
+    viewerId,
+  ]);
 
   const items = useMemo(() => {
     if (isMentorship) {
