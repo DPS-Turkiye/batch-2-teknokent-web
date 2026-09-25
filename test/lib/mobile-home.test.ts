@@ -156,9 +156,9 @@ describe("messagePreviews", () => {
         messages: [message("Merhaba", "2026-09-21T10:00:00Z")],
       }),
       menteeRequestFixture({
-        id: "pending",
-        status: MentorshipRequestStatus.Pending,
-        messages: [message("Bekleyen", "2026-09-23T08:00:00Z")],
+        id: "declined",
+        status: MentorshipRequestStatus.Declined,
+        messages: [message("Kapandı", "2026-09-23T08:00:00Z")],
       }),
     ];
 
@@ -172,6 +172,20 @@ describe("messagePreviews", () => {
       time: "Dün",
       href: "/m/messages?conversation=recent",
     });
+  });
+
+  it("includes a pending request's thread, which can already be written in", () => {
+    const requests = [
+      menteeRequestFixture({
+        id: "pending",
+        status: MentorshipRequestStatus.Pending,
+        messages: [message("hello", "2026-09-23T08:00:00Z")],
+      }),
+    ];
+
+    expect(messagePreviews(requests, NOW).map((preview) => preview.id)).toEqual(
+      ["pending"],
+    );
   });
 
   it("leaves out active conversations without any message", () => {

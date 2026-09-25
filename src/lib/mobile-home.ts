@@ -1,14 +1,12 @@
 import type { MeetingItem } from "@/interfaces/meeting";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type {
   MobileMeetingSummary,
   MobileMessagePreview,
   MobileTaskPreview,
 } from "@/interfaces/mobile";
 import { conversationTime } from "@/lib/coordinator-messages";
+import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import type { HomeTask } from "@/lib/mentee-home";
 import { MOBILE_CALENDAR, MOBILE_MESSAGES, MOBILE_TASKS } from "@/lib/mobile";
 import { visibleMeetings } from "@/lib/startup-meetings";
@@ -106,7 +104,7 @@ export function taskPreviews(tasks: HomeTask[]): MobileTaskPreview[] {
   }));
 }
 
-/** The latest message of each active mentorship, newest conversation first. */
+/** The latest message of each thread that can still be written in, newest first, as Mesajlar lists them. */
 export function messagePreviews(
   requests: MentorshipRequest[],
   now = new Date(),
@@ -114,7 +112,7 @@ export function messagePreviews(
   return requests
     .filter(
       (request) =>
-        request.status === MentorshipRequestStatus.Accepted &&
+        mentorshipRequestAllowsMessaging(request.status) &&
         request.messages.length > 0,
     )
     .map((request) => ({
