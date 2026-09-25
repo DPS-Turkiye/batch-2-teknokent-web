@@ -1,3 +1,5 @@
+import type { NotificationCategory } from "@/interfaces/notification";
+
 export type LandingAnnouncement = {
   category: string;
   date: string;
@@ -48,6 +50,7 @@ export type DashboardNotification = {
   title: string;
   body: string;
   href?: string | null;
+  category?: NotificationCategory;
   readAt?: string | null;
   createdAt: string;
 };

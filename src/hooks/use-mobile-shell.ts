@@ -5,6 +5,7 @@ import { useEffect, useMemo } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { useMobileConversations } from "@/hooks/use-mobile-messages";
+import { usePushSync } from "@/hooks/use-push-device";
 import { MobileTab } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import {
@@ -45,6 +46,7 @@ export function useMobileShell() {
   }, [redirectTo, router]);
 
   const { unreadTotal } = useMobileConversations();
+  usePushSync(role && hasMobileApp(role) ? (session?.userId ?? null) : null);
 
   return {
     session,
