@@ -75,10 +75,10 @@ export function mentorshipConversation(
   role: MessagingRole,
   now = new Date(),
 ): MobileConversation {
-  const name =
-    role === UserRole.Mentor
-      ? (request.organizationName ?? request.requesterName ?? "Startup")
-      : request.mentorName;
+  const isStartup = role === UserRole.Mentor;
+  const name = isStartup
+    ? (request.organizationName ?? request.requesterName ?? "Startup")
+    : request.mentorName;
   const last = latestMessage(request);
   const lastAt = last?.createdAt ?? request.createdAt;
   return {
@@ -86,7 +86,8 @@ export function mentorshipConversation(
     kind: MobileConversationKind.Mentorship,
     name,
     initials: initials(name),
-    tag: role === UserRole.Mentor ? "Startup" : "Mentor",
+    tag: isStartup ? (request.requesterName ?? "Startup") : "Mentor",
+    isStartup,
     lastAt,
     time: conversationTime(lastAt, now),
     // Several requests can share a mentor; the topic tells the empty ones apart.
@@ -106,6 +107,7 @@ export function programConversation(
     name: conversation.programName,
     initials: initials(conversation.programName),
     tag: "Program",
+    isStartup: false,
     lastAt: conversation.lastMessageAt ?? "",
     time: conversationTime(conversation.lastMessageAt, now),
     preview: conversation.lastMessagePreview ?? NO_MESSAGES_YET,
@@ -126,8 +128,11 @@ export function searchConversations(
 ) {
   const needle = query.trim().toLocaleLowerCase("tr-TR");
   if (!needle) return conversations;
+  // A startup thread is also found by the person who wrote in.
   return conversations.filter((conversation) =>
-    conversation.name.toLocaleLowerCase("tr-TR").includes(needle),
+    [conversation.name, conversation.isStartup ? conversation.tag : ""].some(
+      (text) => text.toLocaleLowerCase("tr-TR").includes(needle),
+    ),
   );
 }
 
@@ -190,13 +195,20 @@ export function programChatItems(
   return withDaySeparators(messages, otherSideReadAt, now);
 }
 
+/** Mentors: "METU Stars 2026 · Gamze Kozak", or the topic when no program is known. */
 export function mentorshipChatSubtitle(
   request: MentorshipRequest,
   role: MessagingRole,
+  programName: string | null = null,
 ) {
-  return role === UserRole.Mentor
-    ? [request.requesterName, request.supportArea].filter(Boolean).join(" · ")
-    : `Mentor · ${request.supportArea}`;
+  if (role !== UserRole.Mentor) return `Mentor · ${request.supportArea}`;
+  return [
+    programName,
+    request.requesterName,
+    programName ? null : request.supportArea,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export function nextMeetingStrip(meeting: MeetingItem, now = new Date()) {

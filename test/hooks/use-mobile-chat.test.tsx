@@ -23,6 +23,7 @@ import {
   postMentorMessage,
   replyToMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { getPrograms } from "@/lib/client/programs";
 import {
   menteeMeetingFixture,
   menteeRequestFixture,
@@ -45,6 +46,7 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   postMentorMessage: vi.fn(),
   replyToMentorRequest: vi.fn(),
 }));
+vi.mock("@/lib/client/programs", () => ({ getPrograms: vi.fn() }));
 vi.mock("@/lib/client/coordinator-conversations", () => ({
   getCoordinatorConversations: vi.fn(),
   getCoordinatorMessages: vi.fn(),
@@ -136,6 +138,45 @@ describe("useMobileChat for a mentorship thread", () => {
     );
     await waitFor(() => expect(result.current.draft).toBe(""));
     expect(postMentorMessage).not.toHaveBeenCalled();
+  });
+
+  it("heads a mentor's thread with the startup, its program and the person who wrote", async () => {
+    role = UserRole.Mentor;
+    vi.mocked(getMentorRequest).mockResolvedValue(
+      request({
+        organizationId: "org-1",
+        organizationName: "Atlas AI",
+        requesterName: "Gamze Kozak",
+      }),
+    );
+    vi.mocked(getPrograms).mockResolvedValue([
+      { name: "METU Stars 2026", startups: [{ id: "org-1" }], mentors: [] },
+    ] as never);
+    const { result } = renderHook(
+      () => useMobileChat(MobileConversationKind.Mentorship, "r1"),
+      { wrapper },
+    );
+
+    await waitFor(() =>
+      expect(result.current.header?.subtitle).toBe(
+        "METU Stars 2026 · Gamze Kozak",
+      ),
+    );
+    expect(result.current.header).toMatchObject({
+      name: "Atlas AI",
+      isStartup: true,
+    });
+  });
+
+  it("does not load programs for a mentee's thread", async () => {
+    const { result } = renderHook(
+      () => useMobileChat(MobileConversationKind.Mentorship, "r1"),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.header).not.toBeNull());
+    expect(result.current.header?.isStartup).toBe(false);
+    expect(getPrograms).not.toHaveBeenCalled();
   });
 
   it("sends a mentor's message as a mentor message", async () => {

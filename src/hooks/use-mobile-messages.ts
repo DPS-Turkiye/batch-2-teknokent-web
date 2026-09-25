@@ -74,10 +74,14 @@ export function useMobileConversations() {
 
 export function useMobileMessages() {
   const base = useMobileConversations();
+  const { session } = useSession();
   const [query, setQuery] = useState("");
+  const isMentor = session?.role === UserRole.Mentor;
 
   return {
     ...base,
+    isMentor,
+    searchLabel: isMentor ? "Startup veya kişi ara" : "Kişi ara",
     query,
     setQuery,
     shown: searchConversations(base.conversations, query),

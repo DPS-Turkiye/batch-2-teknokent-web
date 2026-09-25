@@ -15,13 +15,32 @@ import {
   type MobileConversation,
 } from "@/interfaces/mobile";
 
+const AVATAR_CLASS = {
+  program: "rounded-full bg-[#f0f1f3] text-[#676e78]",
+  startup: "rounded-2xl bg-[#fff1ec] text-[#e0522a]",
+  mentor: "rounded-full bg-[#eaf6ff] text-[#1583d6]",
+};
+
+const TAG_CLASS = {
+  program: "text-[#858c96]",
+  startup: "text-[#e0522a]",
+  mentor: "text-[#1583d6]",
+};
+
 function ConversationRow({
   conversation,
+  isMentor,
 }: {
   conversation: MobileConversation;
+  isMentor: boolean;
 }) {
   const unread = conversation.unreadCount > 0;
-  const isProgram = conversation.kind === MobileConversationKind.Program;
+  const look =
+    conversation.kind === MobileConversationKind.Program
+      ? "program"
+      : conversation.isStartup
+        ? "startup"
+        : "mentor";
   return (
     <li className="border-b border-[#f0f2f4] last:border-b-0">
       <Link
@@ -29,11 +48,7 @@ function ConversationRow({
         className="flex items-center gap-3.5 py-3.5"
       >
         <span
-          className={`flex size-[50px] shrink-0 items-center justify-center rounded-full text-lg leading-[1.35] font-semibold ${
-            isProgram
-              ? "bg-[#f0f1f3] text-[#676e78]"
-              : "bg-[#eaf6ff] text-[#1583d6]"
-          }`}
+          className={`flex size-[50px] shrink-0 items-center justify-center text-lg leading-[1.35] font-semibold ${AVATAR_CLASS[look]}`}
         >
           {conversation.initials}
         </span>
@@ -46,11 +61,7 @@ function ConversationRow({
             >
               {conversation.name}
             </span>
-            <span
-              className={`shrink-0 text-[12.5px] ${
-                isProgram ? "text-[#858c96]" : "text-[#1583d6]"
-              }`}
-            >
+            <span className={`shrink-0 text-[12.5px] ${TAG_CLASS[look]}`}>
               · {conversation.tag}
             </span>
           </span>
@@ -65,7 +76,9 @@ function ConversationRow({
         <span className="flex shrink-0 flex-col items-end gap-2 self-start pt-0.5 leading-[1.35]">
           <span
             className={`text-[12.5px] ${
-              unread ? "font-semibold text-[#e0522a]" : "text-[#858c96]"
+              unread
+                ? `font-semibold ${isMentor ? "text-[#1583d6]" : "text-[#e0522a]"}`
+                : "text-[#858c96]"
             }`}
           >
             {conversation.time}
@@ -93,12 +106,12 @@ export function MobileMessagesView() {
       <div className="flex flex-col gap-3.5">
         <label className="flex h-[46px] items-center gap-2.5 rounded-2xl bg-[#f5f6f8] px-4">
           <Image src="/mobile/icon-search.svg" alt="" width={20} height={20} />
-          <span className="sr-only">Kişi ara</span>
+          <span className="sr-only">{messages.searchLabel}</span>
           <input
             type="search"
             value={messages.query}
             onChange={(event) => messages.setQuery(event.target.value)}
-            placeholder="Kişi ara"
+            placeholder={messages.searchLabel}
             className="min-w-0 flex-1 bg-transparent text-[15px] leading-[1.35] text-[#22262b] outline-none placeholder:text-[#858c96] focus-visible:outline-none!"
           />
         </label>
@@ -126,6 +139,7 @@ export function MobileMessagesView() {
               <ConversationRow
                 key={`${conversation.kind}-${conversation.id}`}
                 conversation={conversation}
+                isMentor={messages.isMentor}
               />
             ))}
           </ul>
