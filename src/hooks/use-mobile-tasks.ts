@@ -1,0 +1,164 @@
+"use client";
+
+import {
+  useMutation,
+  useQueries,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { useEffect, useMemo, useState } from "react";
+
+import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { MEMBER_PROGRAM_EVENTS_QUERY_KEY } from "@/hooks/use-mobile-calendar";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
+import { ActionItemStatus } from "@/interfaces/action-item";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { MobileTaskSource, type MobileTask } from "@/interfaces/mobile";
+import { UserRole } from "@/interfaces/session";
+import {
+  changeActionItemStatus,
+  getActionItems,
+} from "@/lib/client/action-items";
+import { getMemberProgramEvents } from "@/lib/client/programs";
+import { getStartupProcess } from "@/lib/client/startup-process";
+import {
+  collectTasks,
+  completedTasks,
+  groupOpenTasks,
+} from "@/lib/mobile-tasks";
+
+export enum MobileTaskTab {
+  Open = "open",
+  Done = "done",
+}
+
+const DEADLINE_WINDOW_DAYS = 60;
+const TOAST_MS = 5_000;
+const ACTION_PREFIX = "action:";
+
+function deadlineWindow() {
+  const from = new Date();
+  from.setHours(0, 0, 0, 0);
+  const to = new Date(from);
+  to.setDate(to.getDate() + DEADLINE_WINDOW_DAYS);
+  return { from, to };
+}
+
+export function useMobileTasks() {
+  const queryClient = useQueryClient();
+  const [tab, setTab] = useState(MobileTaskTab.Open);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [justCompleted, setJustCompleted] = useState<MobileTask | null>(null);
+  const [range] = useState(deadlineWindow);
+
+  const requests = useMentorshipRequests(UserRole.Mentee);
+  const accepted = useMemo(
+    () =>
+      (requests.data ?? []).filter(
+        (request) => request.status === MentorshipRequestStatus.Accepted,
+      ),
+    [requests.data],
+  );
+  const actionItems = useQueries({
+    queries: accepted.map((request) => ({
+      queryKey: actionItemsQueryKey(request.id),
+      queryFn: () => getActionItems(request.id),
+    })),
+    combine: (results) => ({
+      byRequest: results.map((result) => result.data ?? []),
+      isLoading: results.some((result) => result.isLoading),
+    }),
+  });
+  // A mentee outside a startup has no process; that is not an error here.
+  const process = useQuery({
+    queryKey: STARTUP_PROCESS_QUERY_KEY,
+    queryFn: getStartupProcess,
+    retry: false,
+  });
+  const deadlines = useQuery({
+    queryKey: [MEMBER_PROGRAM_EVENTS_QUERY_KEY, range],
+    queryFn: () => getMemberProgramEvents(range),
+  });
+
+  const tasks = useMemo(
+    () =>
+      collectTasks(
+        {
+          actionItemsByRequest: accepted.map((request, index) => ({
+            request,
+            items: actionItems.byRequest[index] ?? [],
+          })),
+          assignments: process.data?.assignments ?? [],
+          deadlines: deadlines.data ?? [],
+        },
+        new Date(),
+      ),
+    [accepted, actionItems.byRequest, process.data, deadlines.data],
+  );
+  const groups = groupOpenTasks(tasks, new Date());
+  const done = completedTasks(tasks);
+
+  const setStatus = useMutation({
+    mutationFn: (input: { task: MobileTask; status: ActionItemStatus }) =>
+      changeActionItemStatus({
+        id: input.task.id.slice(ACTION_PREFIX.length),
+        requestId: input.task.requestId ?? "",
+        status: input.status,
+      }),
+    onSuccess: (_updated, input) =>
+      queryClient.invalidateQueries({
+        queryKey: actionItemsQueryKey(input.task.requestId ?? ""),
+      }),
+  });
+
+  useEffect(() => {
+    if (!justCompleted) return;
+    const timer = window.setTimeout(() => setJustCompleted(null), TOAST_MS);
+    return () => window.clearTimeout(timer);
+  }, [justCompleted]);
+
+  const canTick = (task: MobileTask) =>
+    task.source === MobileTaskSource.Mentorship && Boolean(task.requestId);
+
+  const complete = (task: MobileTask) => {
+    if (!canTick(task)) return;
+    setOpenId(null);
+    setStatus.mutate(
+      { task, status: ActionItemStatus.Completed },
+      { onSuccess: () => setJustCompleted(task) },
+    );
+  };
+
+  const reopen = (task: MobileTask) => {
+    if (!canTick(task)) return;
+    setJustCompleted(null);
+    setStatus.mutate({ task, status: ActionItemStatus.Open });
+  };
+
+  return {
+    canTick,
+    closeTask: () => setOpenId(null),
+    complete,
+    counts: {
+      open: groups.reduce((total, group) => total + group.tasks.length, 0),
+      done: done.length,
+    },
+    done,
+    groups,
+    isError: Boolean(requests.error),
+    isLoading: requests.isLoading || actionItems.isLoading,
+    isSaving: setStatus.isPending,
+    justCompleted,
+    openTask: (id: string) => setOpenId(id),
+    reopen,
+    retry: () => void requests.refetch(),
+    saveFailed: Boolean(setStatus.error),
+    selected: tasks.find((task) => task.id === openId) ?? null,
+    setTab,
+    tab,
+    undo: () => {
+      if (justCompleted) reopen(justCompleted);
+    },
+  };
+}
