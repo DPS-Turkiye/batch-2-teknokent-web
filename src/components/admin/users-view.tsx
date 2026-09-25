@@ -12,7 +12,9 @@ import {
   programsForMentor,
   startupsOf,
 } from "@/components/admin/admin-model";
+import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
+import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import { useToast } from "@/components/providers/toast-provider";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
@@ -69,7 +71,7 @@ export function UsersView({ tab }: { tab: UserTab }) {
           onClick={() => setInviteOpen(true)}
           className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-white"
         >
-          + Kullanıcı davet et
+          + Koordinatör ekle
         </button>
       </div>
       <div className="flex border-b border-[#e9ecef]">
@@ -117,31 +119,7 @@ export function UsersView({ tab }: { tab: UserTab }) {
       {tab === "mentors" ? <MentorsTable data={data} /> : null}
       {tab === "teams" ? <TeamsTable data={data} /> : null}
       {inviteOpen ? (
-        <dialog
-          open
-          className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
-          onClick={() => setInviteOpen(false)}
-        >
-          <div
-            className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-[18px] font-semibold text-[#22262b]">
-              Kullanıcı davet et
-            </h2>
-            <p className="mt-2 text-[13.5px] leading-[1.5] text-[#676e78]">
-              Yeni hesaplar kayıt olduktan sonra bu listede Onay bekliyor olarak
-              görünür. Onay ve ret satırdaki düğmelerden verilir.
-            </p>
-            <button
-              type="button"
-              onClick={() => setInviteOpen(false)}
-              className="mt-5 rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
-            >
-              Tamam
-            </button>
-          </div>
-        </dialog>
+        <AddCoordinatorDialog onClose={() => setInviteOpen(false)} />
       ) : null}
     </div>
   );
@@ -804,9 +782,10 @@ function CoordinatorDrawer({
             <div className="space-y-3">
               <AccessChip status={user.status} />
               <p className="text-[13px] leading-[1.5] text-[#676e78]">
-                Hesap durumu buradan okunur. Ayrı bir yetki şablonu kayıtlı
-                değil; onay ve ret tablodaki düğmelerden verilir.
+                Pasife alınan koordinatör giriş yapamaz; programları ve
+                mesajları olduğu gibi kalır.
               </p>
+              <CoordinatorAccessControl id={user.id} status={user.status} />
             </div>
           ) : null}
           {section === "Aktivite" ? (
