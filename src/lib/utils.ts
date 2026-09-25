@@ -90,3 +90,8 @@ export function truncate(text: string, max: number) {
 export function errorMessage(error: unknown, fallback: string) {
   return error instanceof Error ? error.message : fallback;
 }
+
+/** A loose shape check (something@something.tld); the backend has the last word. */
+export function isEmailAddress(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+}

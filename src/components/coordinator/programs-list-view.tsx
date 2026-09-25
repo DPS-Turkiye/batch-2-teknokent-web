@@ -1,5 +1,6 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -32,12 +33,20 @@ export function ProgramsListView() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <FilterPills value={filter} onChange={setFilter} options={options} />
-        <div className="w-full sm:w-[300px]">
-          <SearchField
-            value={search}
-            onChange={setSearch}
-            placeholder="Program ara"
-          />
+        <div className="flex w-full items-center gap-2 sm:w-auto">
+          <div className="min-w-0 flex-1 sm:w-[300px]">
+            <SearchField
+              value={search}
+              onChange={setSearch}
+              placeholder="Program ara"
+            />
+          </div>
+          <Link
+            href="/coordinator/programs/new"
+            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
+          >
+            <Plus aria-hidden className="size-4" /> Program başlat
+          </Link>
         </div>
       </div>
       <QueryNotice isLoading={query.isLoading} error={query.error} />

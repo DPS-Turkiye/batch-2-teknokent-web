@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Minus, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
   useProgramArchive,
   useProgramCoordinators,
@@ -243,7 +244,7 @@ function SettingsBody({
           note="Bu eşikler Anasayfa’daki “Mentorluk sağlığı” ve “Öncelikli aksiyonlar” hesaplarını belirler."
         >
           <Row>
-            <DayStepper
+            <RuleStepper
               title="Hedef görüşme sıklığı"
               hint="Takımların mentorlarıyla görüşmesi beklenen aralık"
               value={draft.meetingFrequencyDays}
@@ -260,7 +261,7 @@ function SettingsBody({
             />
           </Row>
           <Row>
-            <DayStepper
+            <RuleStepper
               title="“Uzun süredir görüşme yok” eşiği"
               hint="Bu süreyi aşan mentorluklar riskli olarak işaretlenir"
               value={draft.staleAfterDays}
@@ -271,6 +272,58 @@ function SettingsBody({
                     draft.staleAfterDays,
                     delta,
                     RULE_LIMITS.staleAfterDays,
+                  ),
+                })
+              }
+            />
+          </Row>
+          <Row>
+            <RuleStepper
+              title="İletişim kopukluğu uyarısı"
+              hint="Takım ile mentor arasında bu süre boyunca mesaj ya da görüşme olmazsa işaretlenir"
+              value={draft.communicationGapDays}
+              disabled={archived}
+              onChange={(delta) =>
+                settings.update({
+                  communicationGapDays: stepDays(
+                    draft.communicationGapDays,
+                    delta,
+                    RULE_LIMITS.communicationGapDays,
+                  ),
+                })
+              }
+            />
+          </Row>
+          <Row>
+            <RuleStepper
+              title="Çözülmemiş darboğaz uyarısı"
+              hint="Bu süreden uzun açık kalan darboğazlar öne çıkarılır"
+              value={draft.bottleneckFlagDays}
+              disabled={archived}
+              onChange={(delta) =>
+                settings.update({
+                  bottleneckFlagDays: stepDays(
+                    draft.bottleneckFlagDays,
+                    delta,
+                    RULE_LIMITS.bottleneckFlagDays,
+                  ),
+                })
+              }
+            />
+          </Row>
+          <Row>
+            <RuleStepper
+              title="Varsayılan mentor kapasitesi"
+              hint="Bir mentorun aynı anda üstlenebileceği takım sayısı"
+              value={draft.defaultMentorCapacity}
+              unit="takım"
+              disabled={archived}
+              onChange={(delta) =>
+                settings.update({
+                  defaultMentorCapacity: stepDays(
+                    draft.defaultMentorCapacity,
+                    delta,
+                    RULE_LIMITS.defaultMentorCapacity,
                   ),
                 })
               }
@@ -537,49 +590,6 @@ function Row({ children }: { children: ReactNode }) {
   return (
     <div className="border-b border-[#f0f2f4] px-6 py-4 last:border-0">
       {children}
-    </div>
-  );
-}
-
-function DayStepper({
-  title,
-  hint,
-  value,
-  disabled,
-  onChange,
-}: {
-  title: string;
-  hint: string;
-  value: number;
-  disabled: boolean;
-  onChange: (delta: number) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <span>
-        <span className="block text-[13.5px] text-[#22262b]">{title}</span>
-        <span className="block text-[12.5px] text-[#858c96]">{hint}</span>
-      </span>
-      <span className="flex items-center gap-2 rounded-full border border-[#e9ecef] px-3 py-1.5">
-        <span className="min-w-[2ch] text-[14px] font-semibold text-[#22262b]">
-          {value}
-        </span>
-        <span className="text-[12.5px] text-[#858c96]">gün</span>
-        <IconButton
-          label={`${title}: azalt`}
-          disabled={disabled}
-          onClick={() => onChange(-1)}
-        >
-          <Minus className="size-3.5" />
-        </IconButton>
-        <IconButton
-          label={`${title}: artır`}
-          disabled={disabled}
-          onClick={() => onChange(1)}
-        >
-          <Plus className="size-3.5" />
-        </IconButton>
-      </span>
     </div>
   );
 }

@@ -1,4 +1,7 @@
-import { fetchCoordinatorPrograms } from "@/lib/api/coordinator-programs";
+import {
+  createCoordinatorProgram,
+  fetchCoordinatorPrograms,
+} from "@/lib/api/coordinator-programs";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
@@ -11,5 +14,18 @@ export async function GET() {
     return apiErrorResponse(error, {
       message: "Programlar yüklenemedi.",
     });
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireCoordinatorSession();
+    if (!auth.ok) return auth.response;
+    const body = await request.json();
+    return backendResponse(
+      await createCoordinatorProgram(auth.session.userId, body),
+    );
+  } catch (error) {
+    return apiErrorResponse(error, { message: "Program oluşturulamadı." });
   }
 }
