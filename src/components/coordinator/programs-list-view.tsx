@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { FolderKanban } from "lucide-react";
 
 import {
   EmptyNote,
@@ -10,6 +9,7 @@ import {
   SearchField,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { useCoordinatorProgramList } from "@/hooks/use-coordinator-programs";
 import {
   type CoordinatorProgram,
@@ -237,18 +237,5 @@ function Stat({
       <p className="mt-1 text-[22px] font-semibold text-[#22262b]">{value}</p>
       <p className="text-[12px] text-[#858c96]">{note}</p>
     </div>
-  );
-}
-
-function ProgramGlyph({ muted = false }: { muted?: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`grid size-12 place-items-center rounded-2xl ${
-        muted ? "bg-[#f4f5f7] text-[#858c96]" : "bg-[#22262b] text-white"
-      }`}
-    >
-      <FolderKanban className="size-5" />
-    </span>
   );
 }
