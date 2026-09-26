@@ -1,4 +1,5 @@
 import type { OrganizationMember } from "@/interfaces/organization-member";
+import { isEmailAddress } from "@/lib/utils";
 
 export enum MemberFormMode {
   Add = "add",
@@ -20,15 +21,10 @@ export function foundersFirst(members: OrganizationMember[]) {
   );
 }
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 /** The first problem with a draft, or null when it can be sent. */
 export function memberDraftError(draft: MemberDraft) {
   if (!draft.fullName.trim()) return "Ad soyad gerekli.";
-  if (
-    draft.mode === MemberFormMode.Add &&
-    !EMAIL_PATTERN.test(draft.email.trim())
-  ) {
+  if (draft.mode === MemberFormMode.Add && !isEmailAddress(draft.email)) {
     return "Geçerli bir e-posta adresi gir.";
   }
   return null;
