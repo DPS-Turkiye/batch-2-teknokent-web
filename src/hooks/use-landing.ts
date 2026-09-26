@@ -36,6 +36,7 @@ function hasFinePointer() {
  */
 export function useLandingHero(stepCount: number) {
   const sceneRef = useRef<HTMLDivElement>(null);
+  const layerRef = useRef<HTMLDivElement>(null);
   const glassRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(-1);
@@ -91,6 +92,9 @@ export function useLandingHero(stepCount: number) {
     if (!scene || prefersReducedMotion() || !hasFinePointer()) return;
     const x = (event.clientX - scene.left - scene.width / 2) / scene.width;
     const y = (event.clientY - scene.top - scene.height / 2) / scene.height;
+    if (layerRef.current) {
+      layerRef.current.style.transform = `translate(${x * 10}px,${y * 10}px)`;
+    }
     if (glassRef.current) {
       glassRef.current.style.transform = `perspective(900px) rotateY(${x * 6}deg) rotateX(${-y * 6}deg)`;
     }
@@ -98,6 +102,7 @@ export function useLandingHero(stepCount: number) {
 
   return {
     sceneRef,
+    layerRef,
     glassRef,
     stepRefs,
     active,
