@@ -2,6 +2,7 @@ import { Send } from "lucide-react";
 
 import { PrimaryButton } from "@/components/common/primary-button";
 import type { RequestMessage } from "@/interfaces/mentorship-request";
+import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { formatDateTime } from "@/lib/utils";
 
 export function ConversationThread({
@@ -49,7 +50,7 @@ export function ConversationThread({
                     <span>{message.authorName}</span>
                     <span>{formatDateTime(message.createdAt)}</span>
                   </div>
-                  <p>{message.body}</p>
+                  <p>{withoutSlotLines(message.body)}</p>
                 </div>
               </li>
             );

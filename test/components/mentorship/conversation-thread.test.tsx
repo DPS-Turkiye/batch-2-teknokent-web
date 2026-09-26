@@ -61,6 +61,28 @@ describe("ConversationThread", () => {
     expect(screen.getByText("Ayşe Demir")).toBeInTheDocument();
   });
 
+  it("hides the machine-readable slot lines of a counter-proposal", () => {
+    render(
+      <ConversationThread
+        messages={[
+          message({
+            body: "Mentörün önerdiği saatler: 10 Eylül Perşembe · 17:00\nproposedSlots:2026-09-10T17:00",
+          }),
+        ]}
+        viewerUserId="mentor-1"
+        value=""
+        onChange={vi.fn()}
+        onSend={vi.fn()}
+        isSending={false}
+      />,
+    );
+
+    expect(
+      screen.getByText("Mentörün önerdiği saatler: 10 Eylül Perşembe · 17:00"),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/proposedSlots:/)).not.toBeInTheDocument();
+  });
+
   it("calls onChange as the composer is typed into", async () => {
     const onChange = vi.fn();
     const user = userEvent.setup();

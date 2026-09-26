@@ -8,6 +8,7 @@ import { useMemo, useRef, useState } from "react";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useMentorMessages } from "@/hooks/use-mentor-messages";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -110,7 +111,7 @@ function ConversationList({
                       {contextOf(request)}
                     </span>
                     <span className="mt-1 block truncate text-[10.5px] text-[#858c96]">
-                      {last?.body ?? "Henüz mesaj yok"}
+                      {last ? withoutSlotLines(last.body) : "Henüz mesaj yok"}
                     </span>
                   </span>
                 </button>
@@ -225,7 +226,7 @@ function ActiveConversation({
                     >
                       {message.authorName}
                     </p>
-                    <p>{message.body}</p>
+                    <p>{withoutSlotLines(message.body)}</p>
                   </div>
                   <time className="mt-1 text-[9.5px] text-[#858c96]">
                     {clockLabel(message.createdAt)}
