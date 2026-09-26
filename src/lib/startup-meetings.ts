@@ -212,3 +212,9 @@ export function notePreview(content: string) {
           .textContent ?? "");
   return text.replace(/\s+/g, " ").trim();
 }
+
+export function heldMeetingsNewestFirst(meetings: MeetingItem[]) {
+  return visibleMeetings(meetings)
+    .filter((meeting) => meetingTiming(meeting) === MeetingTiming.Held)
+    .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt));
+}

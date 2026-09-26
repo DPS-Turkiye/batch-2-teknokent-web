@@ -155,12 +155,14 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
             Tamamlandı olarak işaretle
           </MobileButton>
         ) : null}
-        {task.source === MobileTaskSource.Process && task.webHref ? (
+        {task.webHref ? (
           <Link
             href={task.webHref}
             className="flex w-full items-center justify-center rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
           >
-            Web’de teslim et
+            {task.source === MobileTaskSource.Feedback
+              ? "Web’de değerlendir"
+              : "Web’de teslim et"}
           </Link>
         ) : null}
         {task.chatHref ? (
