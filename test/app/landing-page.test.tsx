@@ -67,11 +67,15 @@ describe("Landing page", () => {
       screen.getByRole("tablist", { name: "Mentorluk adımları" }),
     ).getAllByRole("tab");
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByText("Mentee / Startup")).toBeInTheDocument();
 
     await user.click(tabs[2]);
     expect(tabs[2]).toHaveAttribute("aria-selected", "true");
     expect(
       screen.getByText("Değer önerisi taslağının kritiği"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Mentor", { selector: "span" }),
     ).toBeInTheDocument();
 
     await user.keyboard("{ArrowDown}");

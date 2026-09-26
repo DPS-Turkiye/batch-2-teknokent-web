@@ -82,6 +82,14 @@ export const LANDING_HOW_STEPS: LandingHowStep[] = [
   },
 ];
 
+/** Whose screen the "Nasıl işler?" stage shows: steps 2 and 3 are the mentor's, 1 and 4 the startup's. */
+export const LANDING_MENTOR_STEPS = new Set([1, 2]);
+
+export const LANDING_STAGE_ROLES = {
+  mentor: { key: "mentor", label: "Mentor" },
+  mentee: { key: "mentee", label: "Mentee / Startup" },
+} as const;
+
 /** How long each "Nasıl işler?" step stays on screen while it plays. */
 export const LANDING_STEP_MS = 3700;
 

@@ -18,7 +18,6 @@ export function LandingHero({
 }) {
   const {
     sceneRef,
-    layerRef,
     glassRef,
     stepRefs,
     active,
@@ -85,11 +84,7 @@ export function LandingHero({
           className={cx("scene", matched && "matched")}
           aria-hidden
         >
-          <div ref={layerRef} className={cx("layer")}>
-            <div className={cx("gp", "blue", "p1")}>
-              <div className={cx("grain")} />
-            </div>
-          </div>
+          <div className={cx("grain")} />
           <div className={cx("toast", matched && "show")}>
             <Image
               className={cx("av")}

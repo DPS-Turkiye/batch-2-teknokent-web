@@ -9,6 +9,8 @@ import {
   LANDING_HOW_STEPS,
   LANDING_MATCH_REASON,
   LANDING_MATCHES,
+  LANDING_MENTOR_STEPS,
+  LANDING_STAGE_ROLES,
   LANDING_STEP_MS,
   LANDING_TASKS,
   LANDING_TOPIC_CHIPS,
@@ -28,6 +30,9 @@ export function LandingHow() {
     togglePlay,
   } = useLandingSteps(LANDING_HOW_STEPS.length);
   const paneClass = (pane: number) => cx("pane", current === pane && "on");
+  const role = LANDING_MENTOR_STEPS.has(current)
+    ? LANDING_STAGE_ROLES.mentor
+    : LANDING_STAGE_ROLES.mentee;
 
   return (
     <section className={cx("how")} id="nasil">
@@ -51,7 +56,7 @@ export function LandingHow() {
             sonraki adımlarınızı netleştirmenizi sağlar.
           </p>
         </div>
-        <div className={cx("how-grid")}>
+        <div className={cx("how-grid")} data-role={role.key}>
           <div
             className={cx("rv")}
             style={{ "--dur": `${LANDING_STEP_MS}ms` } as CSSProperties}
@@ -130,7 +135,13 @@ export function LandingHow() {
             data-s={current}
             style={{ "--d": "150ms" } as CSSProperties}
           >
-            <div className={cx("grain")} style={{ opacity: 0.35 }} />
+            <div className={cx("skin", "o")} />
+            <div className={cx("skin", "b")} />
+            <div className={cx("grain")} style={{ opacity: 0.45 }} />
+            <span className={cx("role")}>
+              <i />
+              <span>{role.label}</span>
+            </span>
 
             <div
               className={paneClass(0)}
