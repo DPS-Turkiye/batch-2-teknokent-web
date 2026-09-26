@@ -1,15 +1,14 @@
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import {
-  MobileConversationKind,
-  type MobileMeetingSummary,
-  type MobileMessagePreview,
-  type MobileTaskPreview,
+import type {
+  MobileMeetingSummary,
+  MobileMessagePreview,
+  MobileTaskPreview,
 } from "@/interfaces/mobile";
-import { conversationTime } from "@/lib/coordinator-messages";
-import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
+import { UserRole } from "@/interfaces/session";
 import type { HomeTask } from "@/lib/mentee-home";
-import { MOBILE_CALENDAR, MOBILE_TASKS, mobileChatHref } from "@/lib/mobile";
+import { MOBILE_CALENDAR, MOBILE_TASKS } from "@/lib/mobile";
+import { groupedMentorshipConversations } from "@/lib/mobile-messages";
 import { visibleMeetings } from "@/lib/startup-meetings";
 import { initials } from "@/lib/utils";
 
@@ -116,28 +115,18 @@ export function messagePreviews(
   requests: MentorshipRequest[],
   now = new Date(),
 ): MobileMessagePreview[] {
-  return requests
-    .filter(
-      (request) =>
-        mentorshipRequestAllowsMessaging(request.status) &&
-        request.messages.length > 0,
-    )
-    .map((request) => ({
-      request,
-      last: request.messages.reduce((latest, message) =>
-        message.createdAt > latest.createdAt ? message : latest,
-      ),
-    }))
-    .sort((left, right) =>
-      right.last.createdAt.localeCompare(left.last.createdAt),
-    )
+  return groupedMentorshipConversations(
+    requests.filter((request) => request.messages.length > 0),
+    UserRole.Mentee,
+    now,
+  )
     .slice(0, HOME_MESSAGE_LIMIT)
-    .map(({ request, last }) => ({
-      id: request.id,
-      name: request.mentorName,
-      initials: initials(request.mentorName),
-      preview: last.body,
-      time: conversationTime(last.createdAt, now),
-      href: mobileChatHref(MobileConversationKind.Mentorship, request.id),
+    .map((conversation) => ({
+      id: conversation.id,
+      name: conversation.name,
+      initials: conversation.initials,
+      preview: conversation.preview,
+      time: conversation.time,
+      href: conversation.href,
     }));
 }

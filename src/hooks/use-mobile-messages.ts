@@ -12,12 +12,11 @@ import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { hasMobileApp } from "@/lib/mobile";
 import {
   type MessagingRole,
-  mentorshipConversation,
+  groupedMentorshipConversations,
   newestFirst,
   programConversation,
   searchConversations,
 } from "@/lib/mobile-messages";
-import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 
 const POLL_MS = 15_000;
 
@@ -46,9 +45,7 @@ export function useMobileConversations() {
   const conversations = useMemo(
     () =>
       newestFirst([
-        ...(requests.data ?? [])
-          .filter((request) => mentorshipRequestAllowsMessaging(request.status))
-          .map((request) => mentorshipConversation(request, role)),
+        ...groupedMentorshipConversations(requests.data ?? [], role),
         ...(programs.data ?? []).map((conversation) =>
           programConversation(conversation),
         ),

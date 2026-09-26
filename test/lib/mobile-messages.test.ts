@@ -21,6 +21,8 @@ import {
   programChatItems,
   programConversation,
   searchConversations,
+  groupedMentorshipConversations,
+  threadTopics,
 } from "@/lib/mobile-messages";
 import {
   menteeMeetingFixture,
@@ -182,6 +184,58 @@ describe("newestFirst and searchConversations", () => {
 
     expect(searchConversations(mentor, "gamze")).toHaveLength(1);
     expect(searchConversations(mentee, "mentor")).toHaveLength(0);
+  });
+});
+
+describe("grouped threads", () => {
+  const older = thread({
+    id: "r-old",
+    supportArea: "Strateji",
+    messages: [message("x", MENTOR, "2026-09-20T09:00:00Z")],
+  });
+  const newer = thread({ id: "r-new", supportArea: "Yatırım" });
+
+  it("shows one row per mentor with the newest thread and every topic's unread", () => {
+    const [row, ...rest] = groupedMentorshipConversations(
+      [older, newer],
+      UserRole.Mentee,
+      NOW,
+    );
+
+    expect(rest).toEqual([]);
+    expect(row).toMatchObject({ id: "r-new", unreadCount: 3 });
+  });
+
+  it("lists the topics with the same mentor, newest first, marking the open one", () => {
+    expect(
+      threadTopics([older, newer], older, UserRole.Mentee).map((topic) => [
+        topic.topic,
+        topic.isCurrent,
+      ]),
+    ).toEqual([
+      ["Yatırım", false],
+      ["Strateji", true],
+    ]);
+  });
+
+  it("hides the machine-readable slot line from previews and bubbles", () => {
+    const proposal = thread({
+      messages: [
+        message(
+          "p",
+          MENTOR,
+          "2026-09-24T09:00:00Z",
+          "Mentörün önerdiği saatler: 10 Eylül · 17:00\nproposedSlots:2026-09-10T17:00",
+        ),
+      ],
+    });
+
+    expect(mentorshipConversation(proposal, UserRole.Mentee, NOW).preview).toBe(
+      "Mentörün önerdiği saatler: 10 Eylül · 17:00",
+    );
+    expect(
+      mentorshipChatItems(proposal, UserRole.Mentee, MENTEE, NOW).at(-1),
+    ).toMatchObject({ body: "Mentörün önerdiği saatler: 10 Eylül · 17:00" });
   });
 });
 
