@@ -47,6 +47,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import {
   activeMentorshipHref,
+  assistantMeetingHref,
   endedMeetingsForRequest,
   formatRequestSentAt,
   meetingAboutHref,
@@ -623,69 +624,66 @@ function PastMentorshipRow({
   const ended = endedMeetingsForRequest(meetings, request);
   const latest = ended[0];
   const period = mentorshipPeriodLabel(meetings, request);
+  const detailHref = latest
+    ? meetingAboutHref(latest.id)
+    : mentorRequestHref(request.id);
 
   return (
     <article className="rounded-[20px] border border-[#e4e7ea] bg-white px-5 py-4">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-center gap-3 lg:w-[280px]">
-          <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-[#f3f4f6] text-xs font-semibold text-[#676e78]">
-            {initials(name) || "G"}
-          </span>
-          <div className="min-w-0">
-            <p className="truncate text-[15px] font-semibold leading-[22px] text-[#4a5059]">
-              {name}
-            </p>
-            <p className="truncate text-xs leading-[17px] text-[#858c96]">
-              {[person, request.supportArea].filter(Boolean).join(" · ")}
-            </p>
-          </div>
-        </div>
-        <div className="flex min-w-0 flex-1 flex-wrap gap-x-9 gap-y-2">
-          {period ? (
+      <div className="relative">
+        <Link
+          href={detailHref}
+          aria-label={PAST_MENTORSHIP_LABELS.history(name)}
+          className="absolute inset-0"
+        />
+        <div className="pointer-events-none flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-center gap-3 lg:w-[280px]">
+            <span className="grid size-10 shrink-0 place-items-center rounded-[10px] bg-[#f3f4f6] text-xs font-semibold text-[#676e78]">
+              {initials(name) || "G"}
+            </span>
             <div className="min-w-0">
-              <p className="text-[11px] leading-4 text-[#858c96]">
-                {PAST_MENTORSHIP_LABELS.period}
+              <p className="truncate text-[15px] font-semibold leading-[22px] text-[#4a5059]">
+                {name}
               </p>
-              <p className="text-[13px] font-medium leading-[19px] text-[#4a5059]">
-                {period}
+              <p className="truncate text-xs leading-[17px] text-[#858c96]">
+                {[person, request.supportArea].filter(Boolean).join(" · ")}
               </p>
             </div>
-          ) : null}
-          <div className="min-w-0">
-            <p className="text-[11px] leading-4 text-[#858c96]">
-              {PAST_MENTORSHIP_LABELS.topics}
-            </p>
-            <p className="truncate text-[13px] font-medium leading-[19px] text-[#4a5059]">
-              {mentorshipTopics(meetings, request)}
-            </p>
           </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-3.5 text-[12.5px] font-medium leading-[18px] text-[#26a4ff]">
-          {latest ? (
+          <div className="flex min-w-0 flex-1 flex-wrap gap-x-9 gap-y-2">
+            {period ? (
+              <div className="min-w-0">
+                <p className="text-[11px] leading-4 text-[#858c96]">
+                  {PAST_MENTORSHIP_LABELS.period}
+                </p>
+                <p className="text-[13px] font-medium leading-[19px] text-[#4a5059]">
+                  {period}
+                </p>
+              </div>
+            ) : null}
+            <div className="min-w-0">
+              <p className="text-[11px] leading-4 text-[#858c96]">
+                {PAST_MENTORSHIP_LABELS.topics}
+              </p>
+              <p className="truncate text-[13px] font-medium leading-[19px] text-[#4a5059]">
+                {mentorshipTopics(meetings, request)}
+              </p>
+            </div>
+          </div>
+          <div className="flex shrink-0 items-center gap-3.5 text-[12.5px] font-medium leading-[18px] text-[#26a4ff]">
             <Link
-              href={meetingAboutHref(latest.id)}
-              className="hover:underline"
+              href={mentorRequestStartupHref(request.id)}
+              className="pointer-events-auto relative z-10 hover:underline"
             >
-              {PAST_MENTORSHIP_LABELS.notes}
+              {PAST_MENTORSHIP_LABELS.files}
             </Link>
-          ) : null}
-          <Link
-            href={mentorRequestStartupHref(request.id)}
-            className="hover:underline"
-          >
-            {PAST_MENTORSHIP_LABELS.files}
-          </Link>
-          <Link
-            href={mentorRequestHref(request.id)}
-            aria-label={PAST_MENTORSHIP_LABELS.history(name)}
-          >
             <Image
               src="/mentorships/expand-right.svg"
               alt=""
               width={16}
               height={16}
             />
-          </Link>
+          </div>
         </div>
       </div>
       {ended.length > 0 ? (
@@ -693,7 +691,7 @@ function PastMentorshipRow({
           {ended.map((meeting) => (
             <Link
               key={meeting.id}
-              href={meetingAboutHref(meeting.id)}
+              href={assistantMeetingHref(meeting.id)}
               className="flex items-center justify-between gap-3 rounded-xl bg-[#f5faff] p-3 transition hover:bg-[#e9f5ff]"
             >
               <span className="flex min-w-0 items-center gap-1 text-sm leading-5 text-[#26a4ff]">
