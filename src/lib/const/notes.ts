@@ -10,4 +10,8 @@ export const TODO_NOTEBOOK_LABELS = {
   error: "Liste şu an açılamıyor.",
   add: "Görev ekle",
   remove: "Maddeyi sil",
+  edit: "Maddeyi düzenle",
+  editInput: "Maddeyi düzenle",
+  aiTag: "AI",
+  aiTagHint: "Toplantı raporundan eklendi",
 } as const;
