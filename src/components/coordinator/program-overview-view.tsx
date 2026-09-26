@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { EmptyNote } from "@/components/admin/admin-ui";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { useProgramTeamsQuery } from "@/hooks/use-program-teams";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
   dateTile,
@@ -19,24 +20,122 @@ import {
   PhaseState,
   phaseStates,
 } from "@/lib/coordinator-programs";
+import { setupSteps } from "@/lib/program-launch";
 
 export function ProgramOverviewView({ programId }: { programId: string }) {
   return (
     <ProgramDetailFrame programId={programId} tab={ProgramTab.Overview}>
       {(detail) => (
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-          <div className="min-w-0 space-y-5">
-            <PhaseCard detail={detail} />
-            <HealthCard detail={detail} />
-            <Actions detail={detail} />
-          </div>
-          <div className="space-y-5">
-            <UpcomingCard detail={detail} />
-            <DistributionCard detail={detail} />
+        <div className="space-y-5">
+          <SetupCard detail={detail} />
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="min-w-0 space-y-5">
+              <PhaseCard detail={detail} />
+              <HealthCard detail={detail} />
+              <Actions detail={detail} />
+            </div>
+            <div className="space-y-5">
+              <UpcomingCard detail={detail} />
+              <DistributionCard detail={detail} />
+            </div>
           </div>
         </div>
       )}
     </ProgramDetailFrame>
+  );
+}
+
+/** "Kurulum n / 4": what a new program still needs before mentoring can start. */
+function SetupCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const teams = useProgramTeamsQuery(detail.program.id);
+  if (!teams.data) return null;
+  const steps = setupSteps(detail, teams.data);
+  if (!steps) return null;
+  const done = steps.filter((step) => step.done).length;
+  const next = steps.find((step) => !step.done);
+  return (
+    <section
+      aria-label="Program kurulumu"
+      className="rounded-[28px] bg-[#f7f8f9] p-6"
+    >
+      <div className="mb-4 flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-[18px] font-semibold text-[#22262b]">
+            Kurulum {done} / {steps.length}
+          </h2>
+          <p className="text-[13px] text-[#676e78]">
+            Program başlamadan önce takımları ve mentor havuzunu hazırlayın.
+          </p>
+        </div>
+        <span
+          aria-hidden
+          className="mt-2 h-1.5 w-40 overflow-hidden rounded-full bg-[#e9ecef]"
+        >
+          <span
+            className="block h-full rounded-full bg-[#22262b]"
+            style={{ width: `${(done / steps.length) * 100}%` }}
+          />
+        </span>
+      </div>
+      <ol className="space-y-2">
+        {steps.map((step) => {
+          const current = step === next;
+          return (
+            <li
+              key={step.key}
+              className={`flex items-center gap-3 rounded-[18px] bg-white px-4 py-3.5 ${
+                current ? "ring-1 ring-[#22262b]" : ""
+              }`}
+            >
+              <span
+                aria-hidden
+                className={`grid size-6 shrink-0 place-items-center rounded-full ${
+                  step.done
+                    ? "bg-[#2f9e6b] text-white"
+                    : "border border-[#e0e3e7]"
+                }`}
+              >
+                {step.done ? <Check className="size-3.5" /> : null}
+              </span>
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`block text-[14px] ${
+                    step.done || current ? "text-[#22262b]" : "text-[#858c96]"
+                  } ${current ? "font-medium" : ""}`}
+                >
+                  {step.title}
+                  {step.done ? (
+                    <span className="sr-only"> (tamamlandı)</span>
+                  ) : null}
+                </span>
+                <span className="block text-[12.5px] text-[#858c96]">
+                  {step.detail}
+                </span>
+              </span>
+              {step.link?.href ? (
+                <Link
+                  href={step.link.href}
+                  className={
+                    current
+                      ? "rounded-full bg-[#22262b] px-3.5 py-1.5 text-[12.5px] text-white"
+                      : "inline-flex items-center gap-1 text-[12.5px] text-[#22262b]"
+                  }
+                >
+                  {step.link.label}
+                  {current ? null : (
+                    <ArrowRight aria-hidden className="size-3.5" />
+                  )}
+                </Link>
+              ) : step.link ? (
+                <span className="rounded-full border border-[#e9ecef] px-3.5 py-1.5 text-[12.5px] text-[#aeb4bc]">
+                  {step.link.label}
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+    </section>
   );
 }
 

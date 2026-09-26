@@ -1,6 +1,7 @@
 import type {
   CoordinatorProgramDetail,
   ProgramPhaseInput,
+  ProgramRules,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import { formatMonthRange } from "@/lib/coordinator-programs";
@@ -27,7 +28,7 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSection, string> = {
   [SettingsSection.Archive]: "Arşiv",
 };
 
-/** Takımlar, Mentor Havuzu and Eşleşmeler arrive with flows 03.1–03.3; until then they have no link. */
+/** Mentor Havuzu and Eşleşmeler arrive with flows 03.1 and 03.2; until then they have no link. */
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
@@ -38,7 +39,7 @@ export function programTabs(
     {
       id: ProgramTab.Teams,
       label: "Takımlar",
-      href: null,
+      href: `${base}/teams`,
       count: detail.program.teamCount,
     },
     {
@@ -158,6 +159,9 @@ export function dateTile(value: string) {
 export const RULE_LIMITS = {
   meetingFrequencyDays: { min: 1, max: 90 },
   staleAfterDays: { min: 1, max: 180 },
+  communicationGapDays: { min: 1, max: 180 },
+  bottleneckFlagDays: { min: 1, max: 365 },
+  defaultMentorCapacity: { min: 1, max: 20 },
 } as const;
 
 export function stepDays(
@@ -170,9 +174,10 @@ export function stepDays(
 
 export type PhaseDraft = ProgramPhaseInput & { key: string };
 
-export type ProgramSettingsDraft = UpdateProgramDetailsInput & {
-  phases: PhaseDraft[];
-};
+export type ProgramSettingsDraft = UpdateProgramDetailsInput &
+  ProgramRules & {
+    phases: PhaseDraft[];
+  };
 
 let phaseKeySeed = 0;
 function phaseKey() {
@@ -243,6 +248,9 @@ export function detailsInput(
     staleAfterDays: draft.staleAfterDays,
     meetingNoteRequired: draft.meetingNoteRequired,
     autoMatchSuggestions: draft.autoMatchSuggestions,
+    defaultMentorCapacity: draft.defaultMentorCapacity,
+    communicationGapDays: draft.communicationGapDays,
+    bottleneckFlagDays: draft.bottleneckFlagDays,
   };
 }
 

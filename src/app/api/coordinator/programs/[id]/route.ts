@@ -20,6 +20,10 @@ export async function GET(_request: Request, { params }: Params) {
   }
 }
 
+function optionalNumber(value: unknown) {
+  return value == null ? undefined : Number(value);
+}
+
 export async function PUT(request: Request, { params }: Params) {
   try {
     const auth = await requireCoordinatorSession();
@@ -36,6 +40,9 @@ export async function PUT(request: Request, { params }: Params) {
         staleAfterDays: Number(body.staleAfterDays),
         meetingNoteRequired: body.meetingNoteRequired === true,
         autoMatchSuggestions: body.autoMatchSuggestions === true,
+        defaultMentorCapacity: optionalNumber(body.defaultMentorCapacity),
+        communicationGapDays: optionalNumber(body.communicationGapDays),
+        bottleneckFlagDays: optionalNumber(body.bottleneckFlagDays),
       }),
     );
   } catch (error) {
