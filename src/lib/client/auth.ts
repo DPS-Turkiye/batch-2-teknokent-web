@@ -36,6 +36,8 @@ export type MentorRegistration = {
   email: string;
   jobTitle?: string;
   phone?: string;
+  /** The code from a program's mentor invite link (flow 03.1). */
+  programInvite?: string;
 };
 
 export type MemberRegistration = {

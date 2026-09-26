@@ -251,7 +251,7 @@ export function setupSteps(
           ? `${detail.program.mentorCount} mentor havuzda`
           : "Henüz mentor yok",
       done: detail.program.mentorCount > 0,
-      link: { label: "Mentor davet et", href: null },
+      link: { label: "Mentor davet et", href: `${base}/mentors` },
     },
     {
       key: "matching",
