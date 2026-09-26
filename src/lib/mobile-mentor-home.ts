@@ -9,8 +9,7 @@ import { UserRole } from "@/interfaces/session";
 import { MOBILE_CALENDAR, MOBILE_STARTUPS } from "@/lib/mobile";
 import { meetingLinkLabel } from "@/lib/mobile-calendar";
 import { meetingDayAndTime, meetingTitle } from "@/lib/mobile-home";
-import { mentorshipConversation } from "@/lib/mobile-messages";
-import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
+import { groupedMentorshipConversations } from "@/lib/mobile-messages";
 import { visibleMeetings } from "@/lib/startup-meetings";
 import { initials } from "@/lib/utils";
 
@@ -171,14 +170,11 @@ export function mentorMessagePreviews(
   requests: MentorshipRequest[],
   now = new Date(),
 ): MentorMessagePreview[] {
-  return requests
-    .filter(
-      (request) =>
-        mentorshipRequestAllowsMessaging(request.status) &&
-        request.messages.length > 0,
-    )
-    .map((request) => mentorshipConversation(request, UserRole.Mentor, now))
-    .sort((left, right) => right.lastAt.localeCompare(left.lastAt))
+  return groupedMentorshipConversations(
+    requests.filter((request) => request.messages.length > 0),
+    UserRole.Mentor,
+    now,
+  )
     .slice(0, MENTOR_HOME_MESSAGE_LIMIT)
     .map((conversation) => ({
       message: {

@@ -34,6 +34,7 @@ function chatState(overrides: Partial<Chat> = {}): Chat {
       subtitle: "Mentor · Ürün stratejisi",
       isStartup: false,
     },
+    topics: [],
     isError: false,
     isLoading: false,
     isSending: false,
@@ -158,6 +159,36 @@ describe("MobileChatView", () => {
       screen.getByText("Bu konuşma kapandı; yeni mesaj gönderilemez."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Gönder" })).toBeNull();
+  });
+
+  it("offers the other topics with the same mentor as tabs", () => {
+    chat = chatState({
+      topics: [
+        {
+          id: "r1",
+          topic: "Ürün stratejisi",
+          unreadCount: 0,
+          href: "/m/messages/mentorship/r1",
+          isCurrent: true,
+        },
+        {
+          id: "r2",
+          topic: "Yatırım",
+          unreadCount: 2,
+          href: "/m/messages/mentorship/r2",
+          isCurrent: false,
+        },
+      ],
+    });
+    renderChat();
+
+    const topics = screen.getByRole("navigation", { name: "Konular" });
+    expect(
+      within(topics).getByRole("link", { name: "Ürün stratejisi" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(topics).getByRole("link", { name: /Yatırım/ }),
+    ).toHaveAttribute("href", "/m/messages/mentorship/r2");
   });
 
   it("says when the thread cannot be found", () => {

@@ -137,12 +137,14 @@ describe("messagePreviews", () => {
       menteeRequestFixture({
         id: "old",
         status: MentorshipRequestStatus.Accepted,
+        mentorId: "m-ayse",
         mentorName: "Ayşe Kaya",
         messages: [message("Eski mesaj", "2026-09-20T10:00:00Z")],
       }),
       menteeRequestFixture({
         id: "recent",
         status: MentorshipRequestStatus.Accepted,
+        mentorId: "m-baris",
         mentorName: "Barış Öztürk",
         messages: [
           message("İlk", "2026-09-22T08:00:00Z"),
@@ -152,6 +154,7 @@ describe("messagePreviews", () => {
       menteeRequestFixture({
         id: "middle",
         status: MentorshipRequestStatus.Accepted,
+        mentorId: "m-can",
         mentorName: "Can Demir",
         messages: [message("Merhaba", "2026-09-21T10:00:00Z")],
       }),

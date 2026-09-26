@@ -216,6 +216,19 @@ export function preferredSlotStartsAt(slot: PreferredSlot) {
   return date.toISOString();
 }
 
+/** The message as people should read it: the machine-readable slot lines are for parsing only. */
+export function withoutSlotLines(message: string) {
+  return message
+    .split(/\r?\n/)
+    .filter(
+      (line) =>
+        !line.startsWith(PREFERRED_SLOTS_LINE_PREFIX) &&
+        !line.startsWith(PROPOSED_SLOTS_LINE_PREFIX),
+    )
+    .join("\n")
+    .trim();
+}
+
 export function parsePreferredSlotsFromMessage(
   message: string | null | undefined,
 ): ParsedPreferredSlot[] {

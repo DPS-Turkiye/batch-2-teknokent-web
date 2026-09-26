@@ -19,7 +19,9 @@ import {
   messageDayLabel,
   messageTime,
 } from "@/lib/coordinator-messages";
+import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
+import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import { mobileChatHref } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
 import { initials } from "@/lib/utils";
@@ -59,7 +61,7 @@ export function mentorshipUnreadCount(
 
 function previewOf(body: string) {
   const fileName = sharedFileName(body);
-  return fileName ? `📎 ${fileName}` : body;
+  return fileName ? `📎 ${fileName}` : withoutSlotLines(body);
 }
 
 function latestMessage(request: MentorshipRequest) {
@@ -95,6 +97,70 @@ export function mentorshipConversation(
     unreadCount: mentorshipUnreadCount(request, role),
     href: mobileChatHref(MobileConversationKind.Mentorship, request.id),
   };
+}
+
+// Mentees see one thread per mentor, mentors one per startup; each request's topic is a tab inside it.
+function threadKey(request: MentorshipRequest, role: MessagingRole) {
+  return role === UserRole.Mentor ? request.organizationId : request.mentorId;
+}
+
+/** One row per mentor or startup: the newest thread, with the unread of all its topics. */
+export function groupedMentorshipConversations(
+  requests: MentorshipRequest[],
+  role: MessagingRole,
+  now = new Date(),
+) {
+  const groups = new Map<string, MobileConversation>();
+  for (const request of requests) {
+    if (!mentorshipRequestAllowsMessaging(request.status)) continue;
+    const conversation = mentorshipConversation(request, role, now);
+    const key = threadKey(request, role);
+    const held = groups.get(key);
+    groups.set(
+      key,
+      !held
+        ? conversation
+        : {
+            ...(conversation.lastAt > held.lastAt ? conversation : held),
+            unreadCount: held.unreadCount + conversation.unreadCount,
+          },
+    );
+  }
+  return newestFirst([...groups.values()]);
+}
+
+export type ThreadTopic = {
+  id: string;
+  topic: string;
+  unreadCount: number;
+  href: string;
+  isCurrent: boolean;
+};
+
+/** The other requests with the same mentor or startup, newest first, to switch between in the chat. */
+export function threadTopics(
+  requests: MentorshipRequest[],
+  current: MentorshipRequest,
+  role: MessagingRole,
+): ThreadTopic[] {
+  const key = threadKey(current, role);
+  return newestFirst(
+    requests
+      .filter(
+        (request) =>
+          threadKey(request, role) === key &&
+          mentorshipRequestAllowsMessaging(request.status),
+      )
+      .map((request) => mentorshipConversation(request, role)),
+  ).map((conversation) => ({
+    id: conversation.id,
+    topic:
+      requests.find((request) => request.id === conversation.id)?.supportArea ??
+      "",
+    unreadCount: conversation.unreadCount,
+    href: conversation.href,
+    isCurrent: conversation.id === current.id,
+  }));
 }
 
 export function programConversation(
@@ -182,7 +248,7 @@ export function mentorshipChatItems(
       id: message.id,
       createdAt: message.createdAt,
       mine: message.authorId === viewerId,
-      body: message.body,
+      body: withoutSlotLines(message.body),
     }));
   return withDaySeparators(lines, otherReadAt, now);
 }

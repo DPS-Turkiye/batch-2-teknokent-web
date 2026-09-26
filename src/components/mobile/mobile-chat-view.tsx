@@ -130,6 +130,37 @@ export function MobileChatView({
         ) : null}
       </header>
 
+      {chat.topics.length > 1 ? (
+        <nav
+          aria-label="Konular"
+          className="flex gap-2 overflow-x-auto border-b border-[#f0f2f4] px-4 py-2.5"
+        >
+          {chat.topics.map((topic) => (
+            <Link
+              key={topic.id}
+              href={topic.href}
+              replace
+              aria-current={topic.isCurrent ? "page" : undefined}
+              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] leading-[1.35] font-medium ${
+                topic.isCurrent
+                  ? "bg-[#22262b] text-white"
+                  : "bg-[#f5f6f8] text-[#676e78]"
+              }`}
+            >
+              {topic.topic}
+              {topic.unreadCount > 0 ? (
+                <span
+                  aria-label={`${topic.unreadCount} okunmamış mesaj`}
+                  className="rounded-full bg-[var(--mobile-accent)] px-1.5 text-[11px] font-semibold text-white"
+                >
+                  {topic.unreadCount}
+                </span>
+              ) : null}
+            </Link>
+          ))}
+        </nav>
+      ) : null}
+
       {chat.strip ? (
         <div className="flex items-center gap-2.5 bg-[#f5f6f8] px-4 py-2.5 text-[13px] leading-[1.35]">
           <Image

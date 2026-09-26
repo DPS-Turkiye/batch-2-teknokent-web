@@ -21,6 +21,7 @@ import {
 } from "@/lib/client/coordinator-conversations";
 import {
   getMentorRequest,
+  getMentorRequests,
   markMentorRequestRead,
   postMentorMessage,
   replyToMentorRequest,
@@ -39,6 +40,7 @@ import {
   mentorshipUnreadCount,
   nextMeetingStrip,
   programChatItems,
+  threadTopics,
 } from "@/lib/mobile-messages";
 import { programNameFor } from "@/lib/mobile-mentor-home";
 import { initials } from "@/lib/utils";
@@ -80,6 +82,12 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     queryFn: getPrograms,
     enabled: isMentorship && role === UserRole.Mentor,
     retry: false,
+  });
+  // The same list Mesajlar shows, so switching topics needs no extra request.
+  const siblings = useQuery({
+    queryKey: mentorshipRequestsQueryKey(role),
+    queryFn: () => getMentorRequests(role),
+    enabled: isMentorship,
   });
   const meetings = useMeetings();
   const upload = useRequestFileUpload(isMentorship ? id : null, role);
@@ -235,6 +243,10 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     attach: (file: File) => upload.mutate(file),
     draft,
     header,
+    topics:
+      isMentorship && request.data
+        ? threadTopics(siblings.data ?? [], request.data, role)
+        : [],
     isError,
     isLoading,
     isSending: send.isPending,
