@@ -525,6 +525,7 @@ describe("AssistantPage integration", () => {
     );
 
     const textInput = await screen.findByDisplayValue("Merhaba");
+    expect(screen.queryByText("00:10")).not.toBeInTheDocument();
     await user.clear(textInput);
     await user.type(textInput, "Düzenlenmiş merhaba");
     await user.click(

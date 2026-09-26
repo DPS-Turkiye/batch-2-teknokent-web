@@ -3,16 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MeetingAssistantSharePanel } from "@/components/notes/meeting-assistant-share-panel";
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
+import type { MeetingAssistantShare } from "@/interfaces/meeting-note";
 
 vi.mock("@/hooks/use-meeting-notes", () => ({
   useAssistantShare: vi.fn(),
 }));
 
-function share(
-  overrides: Partial<
-    NonNullable<ReturnType<typeof useAssistantShare>["data"]>
-  > = {},
-) {
+function share(overrides: Partial<MeetingAssistantShare> = {}) {
   vi.mocked(useAssistantShare).mockReturnValue({
     data: {
       meetingId: "meeting-1",
@@ -59,6 +56,7 @@ describe("MeetingAssistantSharePanel", () => {
     expect(screen.getByText("Toplantı Transkripti")).toBeInTheDocument();
     expect(screen.getByText("Toplantı Raporu")).toBeInTheDocument();
     expect(screen.getByText("Düzenlenmiş merhaba")).toBeInTheDocument();
+    expect(screen.queryByText("00:10")).not.toBeInTheDocument();
     expect(
       screen.getByText("Kapsamı daraltmaya karar verildi."),
     ).toBeInTheDocument();

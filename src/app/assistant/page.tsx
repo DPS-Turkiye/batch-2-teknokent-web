@@ -326,55 +326,48 @@ function MeetingAssistantWorkspace() {
                     ) : (
                       <div className="space-y-4">
                         {visibleTranscript.map((line) => (
-                          <div key={line.id} className="flex gap-3">
-                            <span className="w-10 shrink-0 pt-0.5 font-mono text-[11px] text-[var(--ma-t3)]">
-                              {line.at}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                              {canEditTranscript ? (
-                                <>
-                                  <input
-                                    value={line.speaker}
-                                    onChange={(e) =>
-                                      updateTranscriptLine(line.id, {
-                                        speaker: e.target.value,
-                                      })
-                                    }
-                                    aria-label="Konuşmacı"
-                                    className="w-full rounded-md border border-[var(--ma-line)] bg-white px-2 py-1 text-[12px] font-medium text-[var(--ma-blue)] outline-none focus:border-[var(--ma-accent)]"
-                                  />
-                                  <textarea
-                                    value={line.text}
-                                    onChange={(e) =>
-                                      updateTranscriptLine(line.id, {
-                                        text: e.target.value,
-                                      })
-                                    }
-                                    aria-label="Transkript satırı"
-                                    rows={2}
-                                    className="mt-1 w-full resize-y rounded-md border border-[var(--ma-line)] bg-white px-2 py-1.5 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none focus:border-[var(--ma-accent)]"
-                                  />
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      removeTranscriptLine(line.id)
-                                    }
-                                    className="mt-1 text-[11px] text-[var(--ma-danger)]"
-                                  >
-                                    Satırı sil
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <div className="text-[12px] font-medium text-[var(--ma-blue)]">
-                                    {line.speaker}
-                                  </div>
-                                  <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
-                                    {line.text}
-                                  </p>
-                                </>
-                              )}
-                            </div>
+                          <div key={line.id} className="min-w-0">
+                            {canEditTranscript ? (
+                              <>
+                                <input
+                                  value={line.speaker}
+                                  onChange={(e) =>
+                                    updateTranscriptLine(line.id, {
+                                      speaker: e.target.value,
+                                    })
+                                  }
+                                  aria-label="Konuşmacı"
+                                  className="w-full rounded-md border border-[var(--ma-line)] bg-white px-2 py-1 text-[12px] font-medium text-[var(--ma-blue)] outline-none focus:border-[var(--ma-accent)]"
+                                />
+                                <textarea
+                                  value={line.text}
+                                  onChange={(e) =>
+                                    updateTranscriptLine(line.id, {
+                                      text: e.target.value,
+                                    })
+                                  }
+                                  aria-label="Transkript satırı"
+                                  rows={2}
+                                  className="mt-1 w-full resize-y rounded-md border border-[var(--ma-line)] bg-white px-2 py-1.5 text-[13px] leading-relaxed text-[var(--ma-t1)] outline-none focus:border-[var(--ma-accent)]"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeTranscriptLine(line.id)}
+                                  className="mt-1 text-[11px] text-[var(--ma-danger)]"
+                                >
+                                  Satırı sil
+                                </button>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-[12px] font-medium text-[var(--ma-blue)]">
+                                  {line.speaker}
+                                </div>
+                                <p className="mt-0.5 text-[13px] leading-relaxed text-[var(--ma-t1)]">
+                                  {line.text}
+                                </p>
+                              </>
+                            )}
                           </div>
                         ))}
                       </div>
