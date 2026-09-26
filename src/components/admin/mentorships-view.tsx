@@ -11,7 +11,13 @@ import {
   unmatchedStartups,
 } from "@/components/admin/admin-model";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
+import {
+  InterventionDrawer,
+  NotifyInterventionDialog,
+} from "@/components/admin/intervention-follow";
+import { useAdminInterventions } from "@/hooks/use-admin-interventions";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import { useToast } from "@/components/providers/toast-provider";
 import type {
   AdminMentorship,
   AdminOverview,
@@ -29,9 +35,6 @@ const ALL_PROGRAMS = "Tümü";
 export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
   const query = useAdminOverview();
   const [scope, setScope] = useState(ALL_SCOPE);
-  const [notice, setNotice] = useState<{ title: string; body: string } | null>(
-    null,
-  );
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
@@ -117,45 +120,9 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
       </div>
       {tab === "overview" ? <Overview data={data} programs={programs} /> : null}
       {tab === "interventions" ? (
-        <Interventions data={data} programs={live} onNotice={setNotice} />
+        <Interventions data={data} programs={live} />
       ) : null}
-      {tab === "matching" ? (
-        <Matching data={data} programs={live} onNotice={setNotice} />
-      ) : null}
-      {notice ? (
-        <dialog
-          open
-          className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
-          onClick={() => setNotice(null)}
-        >
-          <div
-            className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2 className="text-[18px] font-semibold text-[#22262b]">
-              {notice.title}
-            </h2>
-            <p className="mt-2 text-[13.5px] leading-[1.5] text-[#676e78]">
-              {notice.body}
-            </p>
-            <div className="mt-5 flex gap-2">
-              <Link
-                href="/admin/users"
-                className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
-              >
-                Koordinatörler
-              </Link>
-              <button
-                type="button"
-                onClick={() => setNotice(null)}
-                className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b]"
-              >
-                Tamam
-              </button>
-            </div>
-          </div>
-        </dialog>
-      ) : null}
+      {tab === "matching" ? <Matching data={data} programs={live} /> : null}
     </div>
   );
 }
@@ -315,37 +282,67 @@ function ProgramHealthRow({
 function Interventions({
   data,
   programs,
-  onNotice,
 }: {
   data: AdminOverview;
   programs: AdminProgram[];
-  onNotice: (notice: { title: string; body: string }) => void;
 }) {
   const params = useSearchParams();
+  const follow = useAdminInterventions();
+  const { showToast } = useToast();
   const [filter, setFilter] = useState(params.get("filter") ?? "Tümü");
   const [program, setProgram] = useState(params.get("program") ?? ALL_PROGRAMS);
   const [search, setSearch] = useState("");
+  const [notifyId, setNotifyId] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
   const rows = interventionRows(data, programs);
+  const openFollow = new Map(
+    (follow.data ?? [])
+      .filter((item) => item.resolvedAt == null)
+      .map((item) => [item.mentorshipId, item]),
+  );
+  const tracked = (row: InterventionRow) =>
+    row.mentorshipId ? openFollow.get(row.mentorshipId) : undefined;
+  const unanswered = (row: InterventionRow) => {
+    const item = tracked(row);
+    return item != null && item.readAt == null;
+  };
   const counts = {
     Tümü: rows.length,
-    Kritik: rows.filter((row) => row.kind === "kritik").length,
-    Darboğaz: rows.filter((row) => row.kind === "darboğaz").length,
-    "Koordinatör yanıtı yok": 0,
+    Kritik: rows.filter((row) => row.kind === "kritik" && !tracked(row)).length,
+    Darboğaz: rows.filter((row) => row.kind === "darboğaz" && !tracked(row))
+      .length,
+    "Koordinatör yanıtı yok": rows.filter(unanswered).length,
+    Atanmış: rows.filter((row) => tracked(row) != null).length,
   };
   const visible = rows.filter((row) => {
-    if (filter === "Kritik" && row.kind !== "kritik") return false;
-    if (filter === "Darboğaz" && row.kind !== "darboğaz") return false;
-    if (filter === "Koordinatör yanıtı yok") return false;
+    if (filter === "Kritik" && (row.kind !== "kritik" || tracked(row))) {
+      return false;
+    }
+    if (filter === "Darboğaz" && (row.kind !== "darboğaz" || tracked(row))) {
+      return false;
+    }
+    if (filter === "Koordinatör yanıtı yok" && !unanswered(row)) return false;
+    if (filter === "Atanmış" && !tracked(row)) return false;
     if (program !== ALL_PROGRAMS && row.programName !== program) return false;
     return `${row.mentorName} ${row.teamName} ${row.programName} ${row.issue}`
       .toLocaleLowerCase("tr")
       .includes(search.toLocaleLowerCase("tr"));
   });
+  const notifyRow = rows.find((row) => row.mentorshipId === notifyId) ?? null;
+  const detail = rows
+    .map((row) => ({ row, item: tracked(row) }))
+    .find((entry) => entry.item?.id === detailId);
 
   return (
     <div className="space-y-4">
       <FilterBar
-        filters={["Tümü", "Kritik", "Darboğaz", "Koordinatör yanıtı yok"]}
+        filters={[
+          "Tümü",
+          "Kritik",
+          "Darboğaz",
+          "Koordinatör yanıtı yok",
+          "Atanmış",
+        ]}
         counts={counts}
         filter={filter}
         onFilter={setFilter}
@@ -371,8 +368,10 @@ function Interventions({
         {visible.length === 0 ? (
           <EmptyNote>
             {filter === "Koordinatör yanıtı yok"
-              ? "Koordinatörün yanıt süresi kayıtlı değil."
-              : "Bu filtrede müdahale yok."}
+              ? "Açılmamış bildirim yok."
+              : filter === "Atanmış"
+                ? "Takipte mentorluk yok."
+                : "Bu filtrede müdahale yok."}
           </EmptyNote>
         ) : (
           visible.map((row) => (
@@ -386,9 +385,13 @@ function Interventions({
                   {row.mentorName} ↔ {row.teamName}
                 </span>
               </span>
-              <StatusPill tone={row.kind === "kritik" ? "red" : "amber"}>
-                {row.kind === "kritik" ? "Kritik" : "Darboğaz"}
-              </StatusPill>
+              {tracked(row) ? (
+                <StatusPill tone="track">Takipte</StatusPill>
+              ) : (
+                <StatusPill tone={row.kind === "kritik" ? "red" : "amber"}>
+                  {row.kind === "kritik" ? "Kritik" : "Darboğaz"}
+                </StatusPill>
+              )}
               <span className="truncate text-[13px] text-[#676e78]">
                 {row.programName}
               </span>
@@ -406,29 +409,85 @@ function Interventions({
                 {row.coordinatorName}
               </span>
               <span className="flex items-center justify-end gap-2">
-                <ActionButton
-                  solid={row.kind === "kritik"}
-                  onClick={() =>
-                    onNotice({
-                      title:
-                        row.kind === "kritik"
-                          ? "Koordinatöre bildir"
-                          : "Takip et",
-                      body: `${row.coordinatorName} bu programın koordinatörü. Bu ekrandan bildirim veya takip kaydı gitmiyor.`,
-                    })
-                  }
-                >
-                  {row.kind === "kritik" ? "Koordinatöre bildir" : "Takip et"}
-                </ActionButton>
+                {tracked(row) ? (
+                  <button
+                    type="button"
+                    onClick={() => setDetailId(tracked(row)?.id ?? null)}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
+                  >
+                    Detay
+                  </button>
+                ) : row.mentorshipId ? (
+                  <button
+                    type="button"
+                    onClick={() => setNotifyId(row.mentorshipId)}
+                    className={`inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[12.5px] font-medium ${
+                      row.kind === "kritik"
+                        ? "bg-[#22262b] text-white"
+                        : "border border-[#e9ecef] bg-white text-[#22262b]"
+                    }`}
+                  >
+                    Koordinatöre bildir
+                  </button>
+                ) : (
+                  <Link
+                    href={coordinatorHref(row.coordinatorId)}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
+                  >
+                    Koordinatöre git
+                  </Link>
+                )}
               </span>
             </div>
           ))
         )}
       </TableShell>
+      <QueryNotice
+        isLoading={false}
+        error={follow.error instanceof Error ? follow.error : null}
+      />
       <p className="rounded-2xl bg-[#f7f8fa] px-4 py-3 text-[12.5px] leading-[1.5] text-[#676e78]">
-        Admin eşleştirmeyi ve yeniden atamayı buradan yapmaz. Liste, 14 gündür
-        görüşmesi olmayan aktif mentorlukları ve açık darboğazları gösterir.
+        Bildir, program koordinatörüne uygulama içi bildirim yazar. Yeniden
+        atama bu ekrandan yapılmaz. Liste, 14 gündür görüşmesi olmayan aktif
+        mentorlukları ve açık darboğazları gösterir.
       </p>
+      {notifyRow?.mentorshipId ? (
+        <NotifyInterventionDialog
+          coordinatorName={notifyRow.coordinatorName}
+          pair={`${notifyRow.mentorName} ↔ ${notifyRow.teamName}`}
+          programName={notifyRow.programName}
+          signals={signalsOf(notifyRow)}
+          mentorshipId={notifyRow.mentorshipId}
+          onClose={() => setNotifyId(null)}
+          onOpened={() => {
+            const name = notifyRow.coordinatorName;
+            const pair = `${notifyRow.mentorName} ↔ ${notifyRow.teamName}`;
+            setNotifyId(null);
+            showToast({
+              title: `${name} bilgilendirildi`,
+              message: `${pair} takibe alındı.`,
+              tone: "success",
+            });
+          }}
+        />
+      ) : null}
+      {detail?.item ? (
+        <InterventionDrawer
+          intervention={detail.item}
+          mentorName={detail.row.mentorName}
+          teamName={detail.row.teamName}
+          programName={detail.row.programName}
+          signals={signalsOf(detail.row)}
+          onClose={() => setDetailId(null)}
+          onResolved={() => {
+            setDetailId(null);
+            showToast({
+              message: "Takip çözüldü olarak kapatıldı.",
+              tone: "success",
+            });
+          }}
+        />
+      ) : null}
     </div>
   );
 }
@@ -436,11 +495,9 @@ function Interventions({
 function Matching({
   data,
   programs,
-  onNotice,
 }: {
   data: AdminOverview;
   programs: AdminProgram[];
-  onNotice: (notice: { title: string; body: string }) => void;
 }) {
   const [filter, setFilter] = useState("Bekleyen");
   const [program, setProgram] = useState(ALL_PROGRAMS);
@@ -604,16 +661,12 @@ function Matching({
               </span>
               <span className="flex justify-end">
                 {filter === "Bekleyen" ? (
-                  <ActionButton
-                    onClick={() =>
-                      onNotice({
-                        title: "Koordinatöre hatırlat",
-                        body: `${item.coordinatorName} bu programın koordinatörü. Hatırlatma gönderen bir kayıt yok; eşleştirme bu ekrandan yapılmaz.`,
-                      })
-                    }
+                  <Link
+                    href={coordinatorHref(item.coordinatorId)}
+                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
                   >
-                    Koordinatöre hatırlat
-                  </ActionButton>
+                    Koordinatöre git
+                  </Link>
                 ) : (
                   <span className="text-[13px] text-[#858c96]">
                     {filter === "Bu hafta" ? "Eşleşti" : "Reddedildi"}
@@ -950,15 +1003,21 @@ function StatusPill({
   tone,
   children,
 }: {
-  tone: "red" | "amber";
+  tone: "red" | "amber" | "track";
   children: string;
 }) {
   const style =
     tone === "red"
       ? "bg-[#fdeeee] text-[#d9464b]"
-      : "bg-[#fff6e5] text-[#b7791f]";
+      : tone === "track"
+        ? "bg-[#eef3fb] text-[#315f91]"
+        : "bg-[#fff6e5] text-[#b7791f]";
   const dot =
-    tone === "red" ? "/admin/dot-critical.svg" : "/admin/dot-warn.svg";
+    tone === "red"
+      ? "/admin/dot-critical.svg"
+      : tone === "track"
+        ? "/admin/dot-info.svg"
+        : "/admin/dot-warn.svg";
   return (
     <span
       className={`inline-flex w-max items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium ${style}`}
@@ -969,28 +1028,35 @@ function StatusPill({
   );
 }
 
-function ActionButton({
-  children,
-  onClick,
-  solid = false,
-}: {
-  children: string;
-  onClick: () => void;
-  solid?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded-full px-3.5 py-2 text-[12.5px] font-medium ${
-        solid
-          ? "bg-[#22262b] text-white"
-          : "border border-[#e9ecef] bg-white text-[#22262b]"
-      }`}
-    >
-      {children}
-    </button>
-  );
+function signalsOf(row: InterventionRow) {
+  const stale = row.days != null && row.days >= 14;
+  const signals: { label: string; value: string; alert?: boolean }[] = [
+    {
+      label: "Son görüşme",
+      value:
+        row.days == null
+          ? "—"
+          : row.issue.includes("Görüşme kaydı yok")
+            ? "Kayıt yok"
+            : `${row.days} gün önce`,
+      alert: stale || row.issue.includes("Görüşme kaydı yok"),
+    },
+  ];
+  if (row.goalTotal != null && row.goalTotal > 0) {
+    signals.push({
+      label: "Görev",
+      value: `${row.goalDone ?? 0} / ${row.goalTotal}`,
+      alert: (row.goalDone ?? 0) === 0,
+    });
+  }
+  signals.push({ label: "Sorun", value: row.issue });
+  return signals;
+}
+
+function coordinatorHref(coordinatorId: string | null) {
+  return coordinatorId
+    ? `/admin/users?user=${encodeURIComponent(coordinatorId)}`
+    : "/admin/users";
 }
 
 function TableShell({
@@ -1018,13 +1084,17 @@ const matchingCols =
 
 type InterventionRow = {
   id: string;
+  mentorshipId: string | null;
   kind: "kritik" | "darboğaz";
   mentorName: string;
   teamName: string;
   programName: string;
   coordinatorName: string;
+  coordinatorId: string | null;
   issue: string;
   days: number | null;
+  goalDone: number | null;
+  goalTotal: number | null;
 };
 
 type MatchRow = {
@@ -1032,6 +1102,7 @@ type MatchRow = {
   teamName: string;
   programName: string;
   coordinatorName: string;
+  coordinatorId: string | null;
   missingAccess: boolean;
   need: string | null;
   waitDays: number | null;
@@ -1091,11 +1162,13 @@ function interventionRows(
     covered.add(item.organizationId);
     rows.push({
       id: item.id,
+      mentorshipId: item.id,
       kind: "kritik",
       mentorName: item.mentorName,
       teamName: item.organizationName,
       programName: program?.name ?? "—",
       coordinatorName: program?.coordinatorName ?? "—",
+      coordinatorId: program?.coordinatorId ?? null,
       issue: [
         item.daysSinceMeeting == null
           ? "Görüşme kaydı yok"
@@ -1103,6 +1176,8 @@ function interventionRows(
         ...blocks.map((block) => block.title),
       ].join(" · "),
       days: item.daysSinceMeeting ?? daysSince(item.startDate),
+      goalDone: item.goalDone ?? null,
+      goalTotal: item.goalTotal ?? null,
     });
   }
   const grouped = new Map<string, typeof data.bottlenecks>();
@@ -1126,13 +1201,17 @@ function interventionRows(
     );
     rows.push({
       id: blocks.map((block) => block.id).join(":"),
+      mentorshipId: mentorship?.id ?? null,
       kind: "darboğaz",
       mentorName: mentorship?.mentorName ?? "Mentor yok",
       teamName: blocks[0].organizationName,
       programName: program?.name ?? "—",
       coordinatorName: program?.coordinatorName ?? "—",
+      coordinatorId: program?.coordinatorId ?? null,
       issue: blocks.map((block) => block.title).join(" · "),
       days: daysSinceInstant(oldest),
+      goalDone: mentorship?.goalDone ?? null,
+      goalTotal: mentorship?.goalTotal ?? null,
     });
   }
   return rows;
@@ -1183,6 +1262,7 @@ function toMatchRow(
     teamName: startup.name,
     programName: startup.programName,
     coordinatorName: program?.coordinatorName ?? "—",
+    coordinatorId: program?.coordinatorId ?? null,
     missingAccess: missingCoordinatorAccess(data, program),
     need: request?.supportArea ?? null,
     waitDays: request ? daysSinceInstant(request.createdAt) : null,
@@ -1199,6 +1279,7 @@ function mentorshipMatchRow(
     teamName: item.organizationName,
     programName: program?.name ?? "—",
     coordinatorName: program?.coordinatorName ?? "—",
+    coordinatorId: program?.coordinatorId ?? null,
     missingAccess: missingCoordinatorAccess(data, program),
     need: null,
     waitDays: null,
@@ -1212,6 +1293,7 @@ function requestMatchRow(data: AdminOverview, item: AdminRequest): MatchRow {
     teamName: item.organizationName,
     programName: program?.name ?? "—",
     coordinatorName: program?.coordinatorName ?? "—",
+    coordinatorId: program?.coordinatorId ?? null,
     missingAccess: missingCoordinatorAccess(data, program),
     need: item.supportArea,
     waitDays: daysSinceInstant(item.createdAt),

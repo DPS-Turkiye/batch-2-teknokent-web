@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
   activeMentorshipFor,
@@ -15,7 +16,12 @@ import {
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
+import {
+  ApproveCoordinatorDialog,
+  CoordinatorApplicationDialog,
+} from "@/components/admin/coordinator-approval";
 import { useToast } from "@/components/providers/toast-provider";
+import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import type {
@@ -25,7 +31,7 @@ import type {
   AdminUser,
 } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
-import { initials } from "@/lib/utils";
+import { errorMessage, initials } from "@/lib/utils";
 
 export type UserTab = "coordinators" | "mentors" | "teams";
 
@@ -35,6 +41,7 @@ type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
 export function UsersView({ tab }: { tab: UserTab }) {
   const query = useAdminOverview();
+  const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
@@ -115,8 +122,12 @@ export function UsersView({ tab }: { tab: UserTab }) {
           );
         })}
       </div>
-      {tab === "coordinators" ? <CoordinatorsTable data={data} /> : null}
-      {tab === "mentors" ? <MentorsTable data={data} /> : null}
+      {tab === "coordinators" ? (
+        <CoordinatorsTable data={data} focusUserId={focusUserId} />
+      ) : null}
+      {tab === "mentors" ? (
+        <MentorsTable data={data} focusUserId={focusUserId} />
+      ) : null}
       {tab === "teams" ? <TeamsTable data={data} /> : null}
       {inviteOpen ? (
         <AddCoordinatorDialog onClose={() => setInviteOpen(false)} />
@@ -125,15 +136,31 @@ export function UsersView({ tab }: { tab: UserTab }) {
   );
 }
 
-function CoordinatorsTable({ data }: { data: AdminOverview }) {
+function CoordinatorsTable({
+  data,
+  focusUserId,
+}: {
+  data: AdminOverview;
+  focusUserId: string | null;
+}) {
   const users = coordinatorsOf(data);
   const decide = useDecidePendingAccount();
+  const access = useCoordinatorAccess();
   const { showToast } = useToast();
   const [filter, setFilter] = useState("Tümü");
   const [program, setProgram] = useState("Tümü");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  const [approveId, setApproveId] = useState<string | null>(null);
+  const [seenFocus, setSeenFocus] = useState(focusUserId);
+  if (focusUserId !== seenFocus) {
+    setSeenFocus(focusUserId);
+    const focused = users.find((item) => item.id === focusUserId);
+    if (focused?.status === "PENDING") setReviewId(focused.id);
+    else if (focused) setSelectedId(focused.id);
+  }
   const counts = {
     Tümü: users.length,
     Aktif: users.filter((user) => user.status === "APPROVED").length,
@@ -162,6 +189,30 @@ function CoordinatorsTable({ data }: { data: AdminOverview }) {
   }, [data, filter, program, search, users]);
   const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
   const selected = users.find((user) => user.id === selectedId) ?? null;
+  const review = users.find((user) => user.id === reviewId) ?? null;
+  const approving = users.find((user) => user.id === approveId) ?? null;
+
+  function reject(user: AdminUser) {
+    void decide
+      .mutateAsync({
+        userId: user.id,
+        status: UserAccountStatus.Rejected,
+      })
+      .then(() => {
+        setReviewId(null);
+        setApproveId(null);
+        showToast({
+          message: `${user.fullName} reddedildi.`,
+          tone: "success",
+        });
+      })
+      .catch((error: unknown) =>
+        showToast({
+          message: errorMessage(error, "Karar kaydedilemedi."),
+          tone: "error",
+        }),
+      );
+  }
 
   return (
     <div className="space-y-4">
@@ -231,37 +282,53 @@ function CoordinatorsTable({ data }: { data: AdminOverview }) {
                 </span>
                 <span className="flex items-center justify-end gap-1">
                   {user.status === "PENDING" ? (
-                    <DecideButtons
-                      busy={decide.isPending}
-                      onDecide={(status) =>
-                        void decide
-                          .mutateAsync({ userId: user.id, status })
-                          .then((result) =>
-                            showToast({
-                              message:
-                                status === UserAccountStatus.Approved
-                                  ? result.inviteCode
-                                    ? `${user.fullName} onaylandı. Davet kodu: ${result.inviteCode}`
-                                    : `${user.fullName} onaylandı.`
-                                  : `${user.fullName} reddedildi.`,
-                              tone: "success",
-                            }),
-                          )
-                          .catch((error: unknown) =>
-                            showToast({
-                              message:
-                                error instanceof Error
-                                  ? error.message
-                                  : "Karar kaydedilemedi.",
-                              tone: "error",
-                            }),
-                          )
-                      }
-                    />
+                    <>
+                      <button
+                        type="button"
+                        disabled={decide.isPending}
+                        onClick={() => reject(user)}
+                        className="rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
+                      >
+                        Reddet
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReviewId(user.id)}
+                        className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
+                      >
+                        Onayla
+                      </button>
+                    </>
                   ) : (
                     <DetailButton onClick={() => setSelectedId(user.id)} />
                   )}
-                  <AdminIcon src="/admin/overflow.svg" width={38} height={32} />
+                  <RowMenu
+                    items={[
+                      {
+                        label: "Detay",
+                        onClick: () =>
+                          user.status === "PENDING"
+                            ? setReviewId(user.id)
+                            : setSelectedId(user.id),
+                      },
+                      ...(user.status === "APPROVED"
+                        ? [
+                            {
+                              label: "Pasife al",
+                              onClick: () => access.setAccess(user.id, false),
+                            },
+                          ]
+                        : []),
+                      ...(user.status === "REJECTED"
+                        ? [
+                            {
+                              label: "Yeniden etkinleştir",
+                              onClick: () => access.setAccess(user.id, true),
+                            },
+                          ]
+                        : []),
+                    ]}
+                  />
                 </span>
               </div>
             );
@@ -281,11 +348,58 @@ function CoordinatorsTable({ data }: { data: AdminOverview }) {
           onClose={() => setSelectedId(null)}
         />
       ) : null}
+      {review ? (
+        <CoordinatorApplicationDialog
+          user={review}
+          programs={programsForCoordinator(data, review.id)}
+          appliedLabel={relativeTime(review.createdAt)?.label ?? null}
+          busy={decide.isPending}
+          onClose={() => setReviewId(null)}
+          onReject={() => reject(review)}
+          onApprove={() => {
+            setReviewId(null);
+            setApproveId(review.id);
+          }}
+        />
+      ) : null}
+      {approving ? (
+        <ApproveCoordinatorDialog
+          user={approving}
+          programs={data.programs}
+          onClose={() => setApproveId(null)}
+          onApproved={(programName, already) => {
+            const name = approving.fullName;
+            const id = approving.id;
+            setApproveId(null);
+            showToast({
+              title: `${name} onaylandı`,
+              message: already
+                ? `Zaten ${programName} programının koordinatörü.`
+                : `${programName} programına atandı.`,
+              tone: "success",
+              action: {
+                label: "Detay",
+                onClick: () => setSelectedId(id),
+              },
+            });
+          }}
+          onFailed={(message) => {
+            setApproveId(null);
+            showToast({ message, tone: "error" });
+          }}
+        />
+      ) : null}
     </div>
   );
 }
 
-function MentorsTable({ data }: { data: AdminOverview }) {
+function MentorsTable({
+  data,
+  focusUserId,
+}: {
+  data: AdminOverview;
+  focusUserId: string | null;
+}) {
   const users = mentorsOf(data);
   const decide = useDecidePendingAccount();
   const { showToast } = useToast();
@@ -294,6 +408,12 @@ function MentorsTable({ data }: { data: AdminOverview }) {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [seenFocus, setSeenFocus] = useState(focusUserId);
+  if (focusUserId !== seenFocus) {
+    setSeenFocus(focusUserId);
+    if (users.some((user) => user.id === focusUserId))
+      setSelectedId(focusUserId);
+  }
   const invited = (user: AdminUser) =>
     data.programs.some((item) =>
       item.mentors.some(
@@ -457,7 +577,14 @@ function MentorsTable({ data }: { data: AdminOverview }) {
                   ) : (
                     <DetailButton onClick={() => setSelectedId(user.id)} />
                   )}
-                  <AdminIcon src="/admin/overflow.svg" width={38} height={32} />
+                  <RowMenu
+                    items={[
+                      {
+                        label: "Detay",
+                        onClick: () => setSelectedId(user.id),
+                      },
+                    ]}
+                  />
                 </span>
               </div>
             );
@@ -1336,7 +1463,7 @@ function StatusPill({
 }) {
   const styles = {
     green: {
-      box: "bg-[#eaf7f0] text-[#a4e901]",
+      box: "bg-[#eaf7f0] text-[#2f9e6b]",
       dot: "/admin/dot-success.svg",
     },
     amber: { box: "bg-[#fff6e5] text-[#b7791f]", dot: "/admin/dot-warn.svg" },
@@ -1369,6 +1496,55 @@ function LoadBar({ count, warning }: { count: number; warning: boolean }) {
       />
       <span className="text-[12.5px] font-medium text-[#22262b]">{count}</span>
     </span>
+  );
+}
+
+function RowMenu({
+  items,
+}: {
+  items: { label: string; onClick: () => void }[];
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointer(event: MouseEvent) {
+      if (!ref.current?.contains(event.target as Node)) setOpen(false);
+    }
+    document.addEventListener("mousedown", onPointer);
+    return () => document.removeEventListener("mousedown", onPointer);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        aria-label="Diğer işlemler"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className="grid size-8 place-items-center"
+      >
+        <AdminIcon src="/admin/overflow.svg" width={38} height={32} />
+      </button>
+      {open ? (
+        <div className="absolute right-0 z-20 mt-1 min-w-[180px] rounded-2xl border border-[#e9ecef] bg-white p-1 shadow-[0_8px_24px_rgba(33,38,43,0.12)]">
+          {items.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                item.onClick();
+              }}
+              className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+            >
+              {item.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

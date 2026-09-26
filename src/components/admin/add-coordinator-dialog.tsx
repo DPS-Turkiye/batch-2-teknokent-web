@@ -1,5 +1,6 @@
 "use client";
 
+import { AdminOverlay } from "@/components/admin/admin-ui";
 import { useAddCoordinatorForm } from "@/hooks/use-admin-coordinators";
 import { candidateMessage, isAssignable } from "@/lib/admin-coordinators";
 
@@ -11,11 +12,7 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
   const candidate = form.candidate;
 
   return (
-    <dialog
-      open
-      className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
-      onClick={onClose}
-    >
+    <AdminOverlay label="Koordinatör ekle" onClose={onClose}>
       <form
         aria-label="Koordinatör ekle"
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
@@ -89,6 +86,6 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
           </button>
         </div>
       </form>
-    </dialog>
+    </AdminOverlay>
   );
 }

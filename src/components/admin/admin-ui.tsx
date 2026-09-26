@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import Image from "next/image";
 import { ChevronDown, Search } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
 
 type AdminIconProps = {
   src: string;
@@ -9,6 +9,38 @@ type AdminIconProps = {
   | { fill: true; width?: never; height?: never }
   | { fill?: false; width: number; height: number }
 );
+
+export function AdminOverlay({
+  label,
+  onClose,
+  className = "z-50",
+  children,
+}: {
+  label: string;
+  onClose: () => void;
+  className?: string;
+  children: ReactNode;
+}) {
+  useEffect(() => {
+    function onKey(event: KeyboardEvent) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={label}
+      className={`fixed inset-0 grid place-items-center bg-black/30 p-4 ${className}`}
+      onClick={onClose}
+    >
+      {children}
+    </div>
+  );
+}
 
 export function AdminIcon(props: AdminIconProps) {
   if (props.fill) {

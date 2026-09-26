@@ -4,13 +4,20 @@ import { describe, expect, it } from "vitest";
 
 import { ToastProvider, useToast } from "@/components/providers/toast-provider";
 
-function ToastTrigger() {
+function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
   const { showToast } = useToast();
   return (
     <button
       type="button"
       onClick={() =>
-        showToast({ message: "Profil kaydedildi.", tone: "success" })
+        withAction
+          ? showToast({
+              title: "Deniz Acar onaylandı",
+              message: "Deneme programına atandı.",
+              tone: "success",
+              action: { label: "Detay", onClick: () => {} },
+            })
+          : showToast({ message: "Profil kaydedildi.", tone: "success" })
       }
     >
       Kaydet
@@ -32,5 +39,24 @@ describe("ToastProvider", () => {
 
     await user.click(screen.getByRole("button", { name: "Bildirimi kapat" }));
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
+  });
+
+  it("shows an approval as a dark bar with Detay on the right", async () => {
+    const user = userEvent.setup();
+    render(
+      <ToastProvider>
+        <ToastTrigger withAction />
+      </ToastProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Kaydet" }));
+    const status = screen.getByRole("status");
+    expect(status).toHaveTextContent("Deniz Acar onaylandı");
+    expect(status).toHaveTextContent("Deneme programına atandı.");
+    expect(status).not.toHaveTextContent("e-posta");
+    expect(screen.getByRole("button", { name: "Detay" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Bildirimi kapat" }),
+    ).not.toBeInTheDocument();
   });
 });

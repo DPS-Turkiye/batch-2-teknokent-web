@@ -598,8 +598,10 @@ function interventionRows(data: AdminOverview): Intervention[] {
         owner: program?.coordinatorName ?? item.mentorName,
         tone: "red" as const,
         label: "Kritik",
-        action: "Koordinatöre bildir",
-        href: "/admin/mentorships/interventions",
+        action: "Koordinatöre git",
+        href: program?.coordinatorId
+          ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
+          : "/admin/users",
         detail: {
           leftTitle: "İlgili takım",
           chips: [item.organizationName],

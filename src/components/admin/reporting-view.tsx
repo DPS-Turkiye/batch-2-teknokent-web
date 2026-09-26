@@ -17,7 +17,12 @@ import {
 } from "recharts";
 
 import { needsAttention } from "@/components/admin/admin-model";
-import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
+import {
+  AdminIcon,
+  AdminOverlay,
+  EmptyNote,
+  QueryNotice,
+} from "@/components/admin/admin-ui";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type {
   AdminMeetingMark,
@@ -110,10 +115,7 @@ export function ReportingView() {
           <button
             type="button"
             onClick={() =>
-              setNotice({
-                title: "Dışa aktar",
-                body: "Bu ekrandan dosya üretilmiyor. Görünen sayılar kayıtlı görüşme, hedef ve darboğaz sayılarından hesaplanır.",
-              })
+              downloadCsv("program-ozeti.csv", programSummaryRows(program))
             }
             className="rounded-full border border-[#e9ecef] bg-white px-4 py-[10px] text-[13px] font-medium text-[#22262b]"
           >
@@ -194,31 +196,19 @@ export function ReportingView() {
               weeks={weeks}
               meetings={data.meetings ?? []}
               program={program}
-              onNotice={setNotice}
             />
           ) : null}
           {tab === "program" ? (
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
               <Flags pairs={pairs} />
-              <Exports
-                onExport={() =>
-                  setNotice({
-                    title: "Dışa aktar",
-                    body: "Hazır rapor dosyası üretilmiyor. Aynı sayılar bu sayfada duruyor.",
-                  })
-                }
-              />
+              <Exports program={program} pairs={pairs} />
             </div>
           ) : null}
         </>
       )}
 
       {notice ? (
-        <dialog
-          open
-          className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
-          onClick={() => setNotice(null)}
-        >
+        <AdminOverlay label={notice.title} onClose={() => setNotice(null)}>
           <div
             className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
             onClick={(event) => event.stopPropagation()}
@@ -237,7 +227,7 @@ export function ReportingView() {
               Tamam
             </button>
           </div>
-        </dialog>
+        </AdminOverlay>
       ) : null}
     </div>
   );
@@ -464,13 +454,11 @@ function PairDetail({
   weeks,
   meetings,
   program,
-  onNotice,
 }: {
   pair: Pair;
   weeks: Date[];
   meetings: AdminMeetingMark[];
   program: AdminProgram | null;
-  onNotice: (notice: { title: string; body: string }) => void;
 }) {
   const gaps = weeks.map((week) => gapAtWeekEnd(pair, week, meetings));
   const completed = cumulative(pair, weeks, meetings, "COMPLETED");
@@ -535,18 +523,16 @@ function PairDetail({
         </dl>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() =>
-            onNotice({
-              title: "Koordinatöre bildir",
-              body: `${program?.coordinatorName ?? "Koordinatör"} bu programın koordinatörü. Bu ekrandan bildirim gitmiyor.`,
-            })
+        <Link
+          href={
+            program
+              ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
+              : "/admin/users"
           }
           className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
         >
-          Koordinatöre bildir
-        </button>
+          Koordinatöre git
+        </Link>
         <Link
           href={`/admin/mentorships/interventions?program=${encodeURIComponent(program?.name ?? "")}`}
           className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
@@ -756,8 +742,30 @@ function Flags({ pairs }: { pairs: Pair[] }) {
   );
 }
 
-function Exports({ onExport }: { onExport: () => void }) {
-  const items = ["Program özeti", "Mentorluk görüşme özeti", "Sayı özeti"];
+function Exports({
+  program,
+  pairs,
+}: {
+  program: AdminProgram | null;
+  pairs: Pair[];
+}) {
+  const items = [
+    {
+      label: "Program özeti",
+      file: "program-ozeti.csv",
+      rows: programSummaryRows(program),
+    },
+    {
+      label: "Mentorluk görüşme özeti",
+      file: "gorusme-ozeti.csv",
+      rows: meetingSummaryRows(pairs),
+    },
+    {
+      label: "Sayı özeti",
+      file: "sayi-ozeti.csv",
+      rows: countSummaryRows(pairs),
+    },
+  ];
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
       <h2 className="text-[15px] font-semibold text-[#22262b]">
@@ -766,13 +774,13 @@ function Exports({ onExport }: { onExport: () => void }) {
       <ul className="mt-4 space-y-2">
         {items.map((item) => (
           <li
-            key={item}
+            key={item.label}
             className="flex items-center justify-between gap-3 rounded-2xl border border-[#f0f2f4] px-4 py-3"
           >
-            <span className="text-[13.5px] text-[#22262b]">{item}</span>
+            <span className="text-[13.5px] text-[#22262b]">{item.label}</span>
             <button
               type="button"
-              onClick={onExport}
+              onClick={() => downloadCsv(item.file, item.rows)}
               className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#22262b]"
             >
               Dışa aktar
@@ -782,6 +790,67 @@ function Exports({ onExport }: { onExport: () => void }) {
       </ul>
     </section>
   );
+}
+
+function programSummaryRows(program: AdminProgram | null): string[][] {
+  return [
+    ["Program", "Koordinatör", "Takım", "Mentor", "Bekleyen davet"],
+    [
+      program?.name ?? "",
+      program?.coordinatorName ?? "",
+      String(program?.startupCount ?? 0),
+      String(program?.acceptedMentorCount ?? 0),
+      String(program?.pendingMentorCount ?? 0),
+    ],
+  ];
+}
+
+function meetingSummaryRows(pairs: Pair[]): string[][] {
+  return [
+    [
+      "Mentor",
+      "Takım",
+      "Son görüşme (gün)",
+      "Hedef tamam",
+      "Hedef toplam",
+      "Açık darboğaz",
+    ],
+    ...pairs.map((pair) => [
+      pair.mentorName,
+      pair.organizationName,
+      pair.daysSinceMeeting == null ? "" : String(pair.daysSinceMeeting),
+      String(pair.goalDone),
+      String(pair.goalTotal),
+      String(pair.bottlenecks),
+    ]),
+  ];
+}
+
+function countSummaryRows(pairs: Pair[]): string[][] {
+  return [
+    ["Aktif eşleşme", "14+ gün görüşme yok", "Açık darboğazı olan"],
+    [
+      String(pairs.length),
+      String(pairs.filter((pair) => pair.stale).length),
+      String(pairs.filter((pair) => pair.bottlenecks > 0).length),
+    ],
+  ];
+}
+
+function downloadCsv(filename: string, rows: string[][]) {
+  const csv = rows
+    .map((row) =>
+      row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","),
+    )
+    .join("\n");
+  const url = URL.createObjectURL(
+    new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }),
+  );
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function Activity({
