@@ -1,32 +1,24 @@
 import type { NotificationCategory } from "@/interfaces/notification";
 
+/** Which little product mock sits on an announcement card. */
+export enum LandingMock {
+  Calendar = "CALENDAR",
+  Training = "TRAINING",
+  Checklist = "CHECKLIST",
+}
+
 export type LandingAnnouncement = {
-  category: string;
+  tag: string;
+  tone: "or" | "bl" | null;
   date: string;
   title: string;
-  description: string;
+  text: string;
+  mock: LandingMock;
 };
 
-export type LandingMentorStep = {
-  number: string;
+export type LandingHowStep = {
   title: string;
   text: string;
-};
-
-export type LandingProgram = {
-  type: string;
-  status: string;
-  title: string;
-  text: string;
-  date: string;
-};
-
-export type LandingTraining = {
-  category: string;
-  format: string;
-  title: string;
-  trainer: string;
-  detail: string;
 };
 
 export type LandingFaq = {
@@ -34,16 +26,7 @@ export type LandingFaq = {
   answer: string;
 };
 
-export type LandingTrainingCategory =
-  | "Tümü"
-  | "Girişimcilik"
-  | "İş Modeli"
-  | "Ürün Geliştirme"
-  | "Kullanıcı Deneyimi"
-  | "Pazarlama ve Satış"
-  | "Finans ve Yatırım"
-  | "Hukuk ve Şirketleşme"
-  | "Teknoloji";
+export type LandingLink = { label: string; href: string };
 
 export type DashboardNotification = {
   id: string;
