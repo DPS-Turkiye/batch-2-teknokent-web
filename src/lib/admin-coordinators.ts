@@ -27,7 +27,7 @@ export function candidateMessage(candidate: CoordinatorCandidate) {
   const name = candidate.fullName ?? candidate.email;
   switch (candidate.status) {
     case CoordinatorCandidateStatus.New:
-      return "Bu e-posta için yeni bir koordinatör hesabı açılacak. Kişi şifresini giriş ekranındaki “Şifremi unuttum” ile belirler.";
+      return "Bu e-posta için yeni bir koordinatör hesabı açılacak ve kişiye şifresini belirlemesi için bir e-posta gönderilecek.";
     case CoordinatorCandidateStatus.Promotable:
       return `${name} şu an ${candidate.role ? ROLE_LABELS[candidate.role] : "kullanıcı"}. Kaydederseniz rolü koordinatör olarak değişir.`;
     case CoordinatorCandidateStatus.Reactivatable:
@@ -50,7 +50,7 @@ export function addedMessage(account: CoordinatorAccount) {
     case CoordinatorCandidateStatus.Reactivatable:
       return `${account.fullName} yeniden etkinleştirildi.`;
     default:
-      return `${account.fullName} eklendi. Giriş için “Şifremi unuttum” ile şifre belirlemesini iletin.`;
+      return `${account.fullName} eklendi. Şifre belirleme e-postası ${account.email} adresine gönderildi.`;
   }
 }
 

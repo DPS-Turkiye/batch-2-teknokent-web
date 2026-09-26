@@ -8,6 +8,7 @@ import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import {
   addCoordinator,
   getCoordinatorCandidate,
+  resendCoordinatorPasswordSetup,
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
 import {
@@ -112,6 +113,28 @@ export function useCoordinatorAccess() {
   });
   return {
     setAccess: (id: string, active: boolean) => mutation.mutate({ id, active }),
+    busy: mutation.isPending,
+  };
+}
+
+/** "Şifre e-postasını tekrar gönder": a fresh password setup link for a coordinator who lost the first one. */
+export function useCoordinatorPasswordSetup() {
+  const { showToast } = useToast();
+  const mutation = useMutation({
+    mutationFn: (id: string) => resendCoordinatorPasswordSetup(id),
+    onSuccess: (account) =>
+      showToast({
+        message: `Şifre belirleme e-postası ${account.email} adresine gönderildi.`,
+        tone: "success",
+      }),
+    onError: (error) =>
+      showToast({
+        message: errorMessage(error, "E-posta gönderilemedi."),
+        tone: "error",
+      }),
+  });
+  return {
+    resend: (id: string) => mutation.mutate(id),
     busy: mutation.isPending,
   };
 }

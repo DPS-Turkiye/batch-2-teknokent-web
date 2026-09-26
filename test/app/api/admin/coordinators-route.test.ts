@@ -2,12 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT } from "@/app/api/admin/coordinators/[id]/access/route";
+import { POST as resendSetup } from "@/app/api/admin/coordinators/[id]/password-setup/route";
 import { GET } from "@/app/api/admin/coordinators/candidate/route";
 import { POST } from "@/app/api/admin/coordinators/route";
 import { type AppSession, UserRole } from "@/interfaces/session";
 import {
   addCoordinator,
   fetchCoordinatorCandidate,
+  resendCoordinatorPasswordSetup,
   setCoordinatorAccess,
 } from "@/lib/api/admin-coordinators";
 import { requireAdminSession } from "@/lib/server/require-admin";
@@ -16,6 +18,7 @@ vi.mock("@/lib/api/admin-coordinators", () => ({
   fetchCoordinatorCandidate: vi.fn(),
   addCoordinator: vi.fn(),
   setCoordinatorAccess: vi.fn(),
+  resendCoordinatorPasswordSetup: vi.fn(),
 }));
 vi.mock("@/lib/server/require-admin", () => ({
   requireAdminSession: vi.fn(),
@@ -72,6 +75,15 @@ describe("admin coordinator routes", () => {
       params: Promise.resolve({ id: "c-1" }),
     });
     expect(setCoordinatorAccess).toHaveBeenCalledWith("admin-1", "c-1", false);
+
+    vi.mocked(resendCoordinatorPasswordSetup).mockResolvedValue(ok);
+    await resendSetup(json("POST", {}), {
+      params: Promise.resolve({ id: "c-1" }),
+    });
+    expect(resendCoordinatorPasswordSetup).toHaveBeenCalledWith(
+      "admin-1",
+      "c-1",
+    );
   });
 
   it("stops anyone who is not an admin", async () => {
