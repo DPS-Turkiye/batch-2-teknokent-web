@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 
 import type {
   MeetingAssistantShare,
@@ -78,6 +79,38 @@ export function useUpdateMeetingTodo(meetingId: string) {
         done: variables.done,
       }),
   );
+}
+
+/** Inline editing of one task's text at a time; an empty or unchanged text leaves the task as it was. */
+export function useMeetingTodoEditor(meetingId: string) {
+  const updateTodo = useUpdateMeetingTodo(meetingId);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+  const [original, setOriginal] = useState("");
+
+  const cancel = () => {
+    setEditingId(null);
+    setDraft("");
+  };
+
+  return {
+    editingId,
+    draft,
+    setDraft,
+    start: (todo: MeetingTodo) => {
+      setEditingId(todo.id);
+      setDraft(todo.title);
+      setOriginal(todo.title);
+    },
+    save: () => {
+      const title = draft.trim();
+      if (editingId && title && title !== original) {
+        updateTodo.mutate({ todoId: editingId, title });
+      }
+      cancel();
+    },
+    cancel,
+  };
 }
 
 export function useDeleteMeetingTodo(meetingId: string) {

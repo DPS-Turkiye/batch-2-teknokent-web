@@ -9,6 +9,12 @@ export type MeetingNote = {
   updatedAt?: string | null;
 };
 
+/** AI: added from the meeting report's action items; editable like any other task. */
+export enum MeetingTodoSource {
+  Manual = "MANUAL",
+  Ai = "AI",
+}
+
 export type MeetingTodo = {
   id: string;
   meetingId: string;
@@ -16,6 +22,7 @@ export type MeetingTodo = {
   done: boolean;
   displayOrder: number;
   createdByName?: string | null;
+  source?: MeetingTodoSource;
   updatedAt?: string | null;
 };
 
