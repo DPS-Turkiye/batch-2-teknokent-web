@@ -4,9 +4,12 @@ import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
+  CreateProgramInput,
   CreateProgramEventInput,
   ProgramEvent,
   ProgramPhaseInput,
+  ProgramTeam,
+  TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import { backendRequest } from "@/lib/server/backend-client";
@@ -110,6 +113,63 @@ export function removeProgramCoordinator(
   return backendRequest<CoordinatorRef[]>({
     method: "DELETE",
     url: `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    params: { actorId },
+  });
+}
+
+export function createCoordinatorProgram(
+  actorId: string,
+  input: CreateProgramInput,
+) {
+  return backendRequest<CoordinatorProgramDetail>({
+    method: "POST",
+    url: "/api/coordinator/programs",
+    data: { ...input, actorId },
+  });
+}
+
+export function fetchProgramTeams(actorId: string, programId: string) {
+  return backendRequest<ProgramTeam[]>({
+    method: "GET",
+    url: `${programUrl(programId)}/teams`,
+    params: { actorId },
+  });
+}
+
+export function addProgramTeams(
+  actorId: string,
+  programId: string,
+  teams: TeamInviteInput[],
+) {
+  return backendRequest<ProgramTeam[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/teams`,
+    data: { actorId, teams },
+  });
+}
+
+export function updateProgramTeam(
+  actorId: string,
+  programId: string,
+  inviteId: string,
+  input: TeamInviteInput,
+) {
+  return backendRequest<ProgramTeam[]>({
+    method: "PUT",
+    url: `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
+    params: { actorId },
+    data: input,
+  });
+}
+
+export function removeProgramTeam(
+  actorId: string,
+  programId: string,
+  inviteId: string,
+) {
+  return backendRequest<ProgramTeam[]>({
+    method: "DELETE",
+    url: `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
     params: { actorId },
   });
 }

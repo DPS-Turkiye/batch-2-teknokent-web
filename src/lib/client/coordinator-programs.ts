@@ -2,9 +2,12 @@ import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
+  CreateProgramInput,
   CreateProgramEventInput,
   ProgramEvent,
   ProgramPhaseInput,
+  ProgramTeam,
+  TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import { requireSuccess } from "@/lib/client/api";
@@ -105,6 +108,53 @@ export async function removeProgramCoordinator(
   return requireSuccess(
     await httpClient.delete<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    ),
+  );
+}
+
+export async function createCoordinatorProgram(input: CreateProgramInput) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorProgramDetail>(
+      "/api/coordinator/programs",
+      input,
+    ),
+  );
+}
+
+export async function getProgramTeams(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramTeam[]>(`${programUrl(programId)}/teams`),
+  );
+}
+
+export async function addProgramTeams(
+  programId: string,
+  teams: TeamInviteInput[],
+) {
+  return requireSuccess(
+    await httpClient.post<ProgramTeam[]>(`${programUrl(programId)}/teams`, {
+      teams,
+    }),
+  );
+}
+
+export async function updateProgramTeam(
+  programId: string,
+  inviteId: string,
+  input: TeamInviteInput,
+) {
+  return requireSuccess(
+    await httpClient.put<ProgramTeam[]>(
+      `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
+      input,
+    ),
+  );
+}
+
+export async function removeProgramTeam(programId: string, inviteId: string) {
+  return requireSuccess(
+    await httpClient.delete<ProgramTeam[]>(
+      `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
     ),
   );
 }

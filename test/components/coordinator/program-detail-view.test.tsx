@@ -9,6 +9,7 @@ import {
   addProgramCoordinator,
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
+  getProgramTeams,
   replaceCoordinatorProgramPhases,
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
@@ -24,6 +25,7 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   getProgramCoordinatorCandidates: vi.fn(),
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
+  getProgramTeams: vi.fn(),
 }));
 
 describe("coordinator program detail", () => {
@@ -32,6 +34,23 @@ describe("coordinator program detail", () => {
     vi.mocked(getCoordinatorProgram).mockResolvedValue(
       coordinatorProgramDetail(),
     );
+    vi.mocked(getProgramTeams).mockResolvedValue([]);
+  });
+
+  it("walks a new program through its setup checklist", async () => {
+    const detail = coordinatorProgramDetail();
+    detail.program.mentorCount = 0;
+    detail.program.activeMentorshipCount = 0;
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+
+    const setup = await screen.findByRole("region", {
+      name: "Program kurulumu",
+    });
+    expect(within(setup).getByText("Kurulum 1 / 4")).toBeInTheDocument();
+    expect(
+      within(setup).getByRole("link", { name: "Takım ekle" }),
+    ).toHaveAttribute("href", "/coordinator/programs/program-1/teams");
   });
 
   it("shows Genel Bakış: phases, health, actions, dates and distribution", async () => {
@@ -57,6 +76,10 @@ describe("coordinator program detail", () => {
       screen.getByRole("tab", { name: /Program Ayarları/ }),
     ).toHaveAttribute("href", "/coordinator/programs/program-1/settings");
     expect(screen.getByRole("tab", { name: /Takımlar/ })).toHaveAttribute(
+      "href",
+      "/coordinator/programs/program-1/teams",
+    );
+    expect(screen.getByRole("tab", { name: /Mentor Havuzu/ })).toHaveAttribute(
       "aria-disabled",
       "true",
     );
@@ -86,6 +109,37 @@ describe("coordinator program detail", () => {
       }),
     );
     expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+  });
+
+  it("lets the coordinator change the launch rules later", async () => {
+    vi.mocked(updateCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail(),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Çözülmemiş darboğaz uyarısı: azalt",
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", {
+        name: "Varsayılan mentor kapasitesi: artır",
+      }),
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    );
+
+    expect(updateCoordinatorProgram).toHaveBeenCalledWith(
+      "program-1",
+      expect.objectContaining({
+        bottleneckFlagDays: 20,
+        defaultMentorCapacity: 5,
+        communicationGapDays: 14,
+      }),
+    );
   });
 
   it("refuses an unnamed phase before saving", async () => {
