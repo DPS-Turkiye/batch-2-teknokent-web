@@ -51,6 +51,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   searchParams.delete("role");
   searchParams.delete("resume");
+  searchParams.delete("programInvite");
   vi.mocked(currentFirebaseAccount).mockResolvedValue(null);
   vi.mocked(registerMentor).mockResolvedValue({} as never);
 });
@@ -190,6 +191,38 @@ describe("SignupFlow resume", () => {
         fullName: "Leyla Aksoy",
         phone: "+905551112233",
       },
+      "id-token",
+    );
+  });
+
+  it("passes a program's invite code on to the mentor registration", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "mentor");
+    searchParams.set("programInvite", "abc123");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "cagri@yilmazfinans.com",
+      fullName: "",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockRejectedValue(
+      new ClientApiError("Registration required", 401),
+    );
+    const user = userEvent.setup();
+
+    render(<SignupFlow />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Mentor hesabını tamamla" }),
+    ).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/Ad soyad/), "Çağrı Yılmaz");
+    await user.type(screen.getByLabelText("Telefon"), "+905551112233");
+    await user.click(
+      screen.getByRole("button", { name: "Mentor profiline devam et" }),
+    );
+
+    expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
+    expect(registerMentor).toHaveBeenCalledWith(
+      expect.objectContaining({ programInvite: "abc123" }),
       "id-token",
     );
   });
