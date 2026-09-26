@@ -4,6 +4,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
+import { useMobileConversations } from "@/hooks/use-mobile-messages";
+import { usePushSync } from "@/hooks/use-push-device";
+import { MobileTab } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import {
   hasMobileApp,
@@ -42,10 +45,14 @@ export function useMobileShell() {
     if (redirectTo) router.replace(redirectTo);
   }, [redirectTo, router]);
 
+  const { unreadTotal } = useMobileConversations();
+  usePushSync(role && hasMobileApp(role) ? (session?.userId ?? null) : null);
+
   return {
     session,
     tabs,
     activeTab,
+    badges: { [MobileTab.Messages]: unreadTotal },
     accent: mobileAccentFor(role),
     isReady: !isLoading && Boolean(session) && !redirectTo,
   };

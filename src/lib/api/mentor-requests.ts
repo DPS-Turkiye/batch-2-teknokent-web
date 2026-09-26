@@ -13,6 +13,7 @@ export enum MentorRequestAction {
   MentorMessages = "mentor-messages",
   Meeting = "meeting",
   Meetings = "meetings",
+  Read = "read",
   Withdrawal = "withdrawal",
 }
 
@@ -103,6 +104,10 @@ export function mutateMentorRequest(options: {
   let data = options.data;
   if (data && ACTIONS_WITH_REQUESTER.has(options.action)) {
     data = { ...data, requesterId: options.requesterId };
+  }
+  // Marking read is allowed for the mentor and the startup's team alike.
+  if (data && options.action === MentorRequestAction.Read) {
+    data = { ...data, actorId: options.requesterId };
   }
   if (
     data &&

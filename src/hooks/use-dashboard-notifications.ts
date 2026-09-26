@@ -10,7 +10,7 @@ import {
 
 export type { DashboardNotification } from "@/types/landing";
 
-const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
+export const NOTIFICATIONS_QUERY_KEY = ["notifications"] as const;
 
 export function useDashboardNotifications() {
   const queryClient = useQueryClient();

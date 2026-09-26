@@ -2,6 +2,7 @@ import {
   getApp,
   getApps,
   initializeApp,
+  type FirebaseApp,
   type FirebaseOptions,
 } from "firebase/app";
 import { getAuth, type Auth } from "firebase/auth";
@@ -27,11 +28,14 @@ function firebaseOptions(): FirebaseOptions {
   };
 }
 
-export function firebaseAuth(): Auth {
-  const app = getApps().some((candidate) => candidate.name === APP_NAME)
+export function firebaseApp(): FirebaseApp {
+  return getApps().some((candidate) => candidate.name === APP_NAME)
     ? getApp(APP_NAME)
     : initializeApp(firebaseOptions(), APP_NAME);
-  return getAuth(app);
+}
+
+export function firebaseAuth(): Auth {
+  return getAuth(firebaseApp());
 }
 
 export function isFirebaseConfigured(): boolean {

@@ -20,6 +20,10 @@ vi.mock("@/hooks/use-mobile-home", () => ({
   useMobileHome: () => home,
 }));
 
+vi.mock("@/components/mobile/mobile-mentor-home-view", () => ({
+  MobileMentorHomeView: () => <p>Mentor home</p>,
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ session: { role }, isLoading: false }),
 }));
@@ -39,7 +43,7 @@ function homeState(overrides: Partial<Home> = {}): Home {
         initials: "NÖ",
         preview: "Yeni dosyayı inceledim, iki önerim var",
         time: "Dün",
-        href: "/m/messages?conversation=r1",
+        href: "/m/messages/mentorship/r1",
       },
     ],
     nextMeeting: {
@@ -103,7 +107,16 @@ describe("MobileHomeView", () => {
     const messages = screen.getByRole("region", { name: "Mesajlar" });
     expect(
       within(messages).getByRole("link", { name: /Nihan Öztürk/ }),
-    ).toHaveAttribute("href", "/m/messages?conversation=r1");
+    ).toHaveAttribute("href", "/m/messages/mentorship/r1");
+  });
+
+  it("links the avatar to the account screen", () => {
+    render(<MobileHomeView />);
+
+    expect(screen.getByRole("link", { name: "Hesap" })).toHaveAttribute(
+      "href",
+      "/m/account",
+    );
   });
 
   it("marks the bell when there are unread notifications", () => {
@@ -159,11 +172,11 @@ describe("MobileHomeView", () => {
 });
 
 describe("MobileHomeScreen", () => {
-  it("keeps the placeholder for mentors until their home lands", () => {
+  it("gives mentors their own home", () => {
     role = UserRole.Mentor;
     render(<MobileHomeScreen />);
 
-    expect(screen.getByText("Ana sayfa hazırlanıyor.")).toBeInTheDocument();
+    expect(screen.getByText("Mentor home")).toBeInTheDocument();
     expect(screen.queryByText("Merhaba, Gamze")).not.toBeInTheDocument();
   });
 });
