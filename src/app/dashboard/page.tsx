@@ -2,6 +2,7 @@
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
+import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { ActiveMentorships } from "@/components/mentee-home/active-mentorships";
 import { MeetingNotes } from "@/components/mentee-home/meeting-notes";
 import { NextMeetingHero } from "@/components/mentee-home/next-meeting-hero";
@@ -27,6 +28,7 @@ export default function DashboardPage() {
             Veriler yüklenemedi. Daha sonra yeniden dene.
           </p>
         )}
+        <MeetingProposalCards />
         <NextMeetingHero meeting={data.nextMeeting} loading={data.isLoading} />
         <QuickActions />
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">

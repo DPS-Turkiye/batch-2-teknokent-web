@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
 import { useMentorNextMeeting } from "@/hooks/use-mentor-next-meeting";
@@ -794,6 +795,9 @@ export function MentorDashboardView() {
             </span>
           </PillButton>
         </header>
+        <div className="mt-7 empty:hidden">
+          <MeetingProposalCards />
+        </div>
         {nextMeeting ? (
           <div className="mt-7">
             <NextMeetingBanner

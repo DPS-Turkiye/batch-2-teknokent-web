@@ -1,0 +1,159 @@
+"use client";
+
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import type { ProposeMeetingInput } from "@/interfaces/meeting-proposal";
+import {
+  acceptMeetingProposal,
+  declineMeetingProposal,
+  getMentorshipMeetingProposals,
+  getMyMeetingProposals,
+  proposeMeeting,
+  remindMeetingProposal,
+  withdrawMeetingProposal,
+} from "@/lib/client/meeting-proposals";
+import {
+  DEFAULT_PROPOSAL_DURATION,
+  defaultProposalStart,
+  lastDeclined,
+  MAX_PROPOSAL_AGENDA,
+  openProposal,
+} from "@/lib/meeting-proposals";
+import { toDateTimeLocalValue } from "@/lib/utils";
+
+export const MEETING_PROPOSALS_QUERY_KEY = ["meeting-proposals"] as const;
+const POLL_MS = 60_000;
+
+/** The mentor's or the team's open coordinator proposals, with accept and decline-with-reason. */
+export function useMeetingProposals() {
+  const queryClient = useQueryClient();
+  const [decliningId, setDecliningId] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const proposals = useQuery({
+    queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "mine"],
+    queryFn: getMyMeetingProposals,
+    refetchInterval: POLL_MS,
+  });
+  const refresh = () => {
+    void queryClient.invalidateQueries({
+      queryKey: MEETING_PROPOSALS_QUERY_KEY,
+    });
+    void queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY });
+  };
+  const accept = useMutation({
+    mutationFn: acceptMeetingProposal,
+    onSuccess: refresh,
+  });
+  const decline = useMutation({
+    mutationFn: ({ id, text }: { id: string; text: string }) =>
+      declineMeetingProposal(id, text),
+    onSuccess: () => {
+      setDecliningId(null);
+      setReason("");
+      refresh();
+    },
+  });
+
+  return {
+    proposals: proposals.data ?? [],
+    isLoading: proposals.isLoading,
+    accept: (id: string) => accept.mutate(id),
+    accepting: accept.isPending ? accept.variables : null,
+    decliningId,
+    startDecline: (id: string) => {
+      decline.reset();
+      setReason("");
+      setDecliningId(id);
+    },
+    cancelDecline: () => setDecliningId(null),
+    reason,
+    setReason: (value: string) =>
+      setReason(value.slice(0, MAX_PROPOSAL_AGENDA)),
+    confirmDecline: () => {
+      if (decliningId) decline.mutate({ id: decliningId, text: reason });
+    },
+    declining: decline.isPending,
+    error: accept.error ?? decline.error,
+  };
+}
+
+/** The coordinator drawer's "Görüşme planla": the mentorship's proposals, the propose form, remind and withdraw. */
+export function useMentorshipMeetingProposals(mentorshipId: string) {
+  const queryClient = useQueryClient();
+  const key = [...MEETING_PROPOSALS_QUERY_KEY, "mentorship", mentorshipId];
+  const [composing, setComposing] = useState(false);
+  const [startsAt, setStartsAt] = useState(() =>
+    toDateTimeLocalValue(defaultProposalStart()),
+  );
+  const [duration, setDuration] = useState(DEFAULT_PROPOSAL_DURATION);
+  const [agenda, setAgenda] = useState("");
+
+  const proposals = useQuery({
+    queryKey: key,
+    queryFn: () => getMentorshipMeetingProposals(mentorshipId),
+  });
+  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
+
+  const propose = useMutation({
+    mutationFn: (input: ProposeMeetingInput) =>
+      proposeMeeting(mentorshipId, input),
+    onSuccess: () => {
+      setComposing(false);
+      setAgenda("");
+      void refresh();
+    },
+  });
+  const remind = useMutation({ mutationFn: remindMeetingProposal });
+  const withdraw = useMutation({
+    mutationFn: withdrawMeetingProposal,
+    onSuccess: () => void refresh(),
+  });
+
+  const list = proposals.data ?? [];
+  const open = openProposal(list);
+
+  return {
+    query: proposals,
+    open,
+    declined: open ? null : lastDeclined(list),
+    composing,
+    openComposer: () => {
+      propose.reset();
+      setComposing(true);
+    },
+    closeComposer: () => setComposing(false),
+    startsAt,
+    setStartsAt,
+    duration,
+    setDuration,
+    agenda,
+    setAgenda: (value: string) =>
+      setAgenda(value.slice(0, MAX_PROPOSAL_AGENDA)),
+    canPropose: !!startsAt && !propose.isPending,
+    propose: () =>
+      propose.mutate({
+        scheduledAt: new Date(startsAt).toISOString(),
+        durationMinutes: duration,
+        agenda: agenda.trim() || null,
+        replacesMeetingId: null,
+      }),
+    proposing: propose.isPending,
+    proposeError: propose.error,
+    remind: () => {
+      if (open) remind.mutate(open.id);
+    },
+    reminding: remind.isPending,
+    reminded: remind.isSuccess,
+    withdraw: () => {
+      if (open) withdraw.mutate(open.id);
+    },
+    withdrawing: withdraw.isPending,
+    actionError: remind.error ?? withdraw.error,
+  };
+}
+
+export type MentorshipMeetingProposals = ReturnType<
+  typeof useMentorshipMeetingProposals
+>;
