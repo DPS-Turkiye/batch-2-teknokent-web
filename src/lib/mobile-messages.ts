@@ -13,6 +13,7 @@ import {
   type MobileChatItem,
   type MobileConversation,
 } from "@/interfaces/mobile";
+import type { AnnouncementThread } from "@/interfaces/program-announcement";
 import { UserRole } from "@/interfaces/session";
 import {
   conversationTime,
@@ -24,6 +25,7 @@ import { sharedFileName } from "@/lib/mentorship-messages";
 import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import { mobileChatHref } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
+import { announcementThreadName } from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
 
 export type MessagingRole = UserRole.Mentee | UserRole.Mentor;
@@ -280,4 +282,38 @@ export function mentorshipChatSubtitle(
 export function nextMeetingStrip(meeting: MeetingItem, now = new Date()) {
   const when = meetingDayAndTime(meeting, now);
   return `Sıradaki görüşme: ${when.day} ${when.time}`;
+}
+
+/** A program's read-only Duyurular thread in the phone's Mesajlar. */
+export function announcementConversation(
+  thread: AnnouncementThread,
+  now = new Date(),
+): MobileConversation {
+  const lastAt = thread.latest?.createdAt ?? "";
+  return {
+    id: thread.programId,
+    kind: MobileConversationKind.Announcement,
+    name: announcementThreadName(thread.programName),
+    initials: initials(thread.programName),
+    tag: "Duyuru",
+    isStartup: false,
+    lastAt,
+    time: conversationTime(lastAt || null, now),
+    preview: thread.latest?.body ?? NO_MESSAGES_YET,
+    unreadCount: 0,
+    href: mobileChatHref(MobileConversationKind.Announcement, thread.programId),
+  };
+}
+
+export function announcementChatItems(
+  thread: AnnouncementThread,
+  now = new Date(),
+) {
+  const lines = [...thread.announcements].reverse().map((announcement) => ({
+    id: announcement.id,
+    createdAt: announcement.createdAt,
+    mine: false,
+    body: announcement.body,
+  }));
+  return withDaySeparators(lines, null, now);
 }

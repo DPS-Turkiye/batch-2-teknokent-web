@@ -7,6 +7,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { useMeetings } from "@/hooks/use-meetings";
 import { messagingRoleFor } from "@/hooks/use-mobile-messages";
+import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import {
   mentorshipRequestsQueryKey,
@@ -26,6 +27,7 @@ import {
   postMentorMessage,
   replyToMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { getMyAnnouncements } from "@/lib/client/program-announcements";
 import { getPrograms } from "@/lib/client/programs";
 import {
   isMeetingEnded,
@@ -34,6 +36,7 @@ import {
 } from "@/lib/mentorship-workspace";
 import { MOBILE_CALENDAR, MOBILE_MESSAGES } from "@/lib/mobile";
 import {
+  announcementChatItems,
   mentorshipChatItems,
   mentorshipChatSubtitle,
   mentorshipConversation,
@@ -43,6 +46,11 @@ import {
   threadTopics,
 } from "@/lib/mobile-messages";
 import { programNameFor } from "@/lib/mobile-mentor-home";
+import {
+  announcementThreadName,
+  announcementThreads,
+  audienceLabel,
+} from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
 
 const POLL_MS = 10_000;
@@ -56,6 +64,8 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   const role = messagingRoleFor(session?.role);
   const viewerId = session?.userId ?? "";
   const isMentorship = kind === MobileConversationKind.Mentorship;
+  const isProgram = kind === MobileConversationKind.Program;
+  const isAnnouncement = kind === MobileConversationKind.Announcement;
   const [draft, setDraft] = useState("");
 
   const request = useQuery({
@@ -67,15 +77,26 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   const programs = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
     queryFn: () => getCoordinatorConversations(),
-    enabled: !isMentorship,
+    enabled: isProgram,
     refetchInterval: POLL_MS,
   });
   const programMessages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", id],
     queryFn: () => getCoordinatorMessages(id),
-    enabled: !isMentorship,
+    enabled: isProgram,
     refetchInterval: POLL_MS,
   });
+  // A Duyurular thread's id is its program's id; the phone reads the same list Mesajlar shows.
+  const announcements = useQuery({
+    queryKey: [...ANNOUNCEMENTS_QUERY_KEY, "mine"],
+    queryFn: getMyAnnouncements,
+    enabled: isAnnouncement,
+    refetchInterval: POLL_MS,
+  });
+  const announcementThread =
+    announcementThreads(announcements.data ?? []).find(
+      (thread) => thread.programId === id,
+    ) ?? null;
   // Only names the startup's program in a mentor's header; a failure just leaves it out.
   const startupPrograms = useQuery({
     queryKey: PROGRAMS_QUERY_KEY,
@@ -170,7 +191,15 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
         subtitle: mentorshipChatSubtitle(request.data, role, programName),
       };
     }
-    if (!isMentorship && program) {
+    if (isAnnouncement && announcementThread) {
+      return {
+        name: announcementThreadName(announcementThread.programName),
+        initials: initials(announcementThread.programName),
+        isStartup: false,
+        subtitle: audienceLabel(announcementThread.latest),
+      };
+    }
+    if (isProgram && program) {
       return {
         name: program.programName,
         initials: initials(program.programName),
@@ -181,6 +210,9 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     return null;
   }, [
     isMentorship,
+    isProgram,
+    isAnnouncement,
+    announcementThread,
     request.data,
     program,
     role,
@@ -189,6 +221,11 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   ]);
 
   const items = useMemo(() => {
+    if (isAnnouncement) {
+      return announcementThread
+        ? announcementChatItems(announcementThread)
+        : [];
+    }
     if (isMentorship) {
       return request.data
         ? mentorshipChatItems(request.data, role, viewerId)
@@ -199,6 +236,8 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
       program?.otherSideReadAt,
     );
   }, [
+    isAnnouncement,
+    announcementThread,
     isMentorship,
     request.data,
     role,
@@ -219,12 +258,16 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
         }
       : null;
 
-  const isLoading = isMentorship
-    ? request.isLoading
-    : programs.isLoading || programMessages.isLoading;
-  const isError = isMentorship
-    ? Boolean(request.error)
-    : Boolean(programMessages.error);
+  const isLoading = isAnnouncement
+    ? announcements.isLoading
+    : isMentorship
+      ? request.isLoading
+      : programs.isLoading || programMessages.isLoading;
+  const isError = isAnnouncement
+    ? Boolean(announcements.error)
+    : isMentorship
+      ? Boolean(request.error)
+      : Boolean(programMessages.error);
 
   const submit = () => {
     const body = draft.trim();
@@ -235,11 +278,14 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   return {
     backHref: MOBILE_MESSAGES,
     canAttach: isMentorship,
+    closedNote: isAnnouncement
+      ? "Duyurular yalnızca okunur; koordinatöre Program konuşmasından yazabilirsin."
+      : "Bu konuşma kapandı; yeni mesaj gönderilemez.",
     canSend: isMentorship
       ? Boolean(
           request.data && mentorshipRequestAllowsMessaging(request.data.status),
         )
-      : true,
+      : isProgram,
     attach: (file: File) => upload.mutate(file),
     draft,
     header,
@@ -256,6 +302,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     retry: () => {
       void request.refetch();
       void programMessages.refetch();
+      void announcements.refetch();
     },
     sendError: Boolean(send.error || upload.error),
     setDraft,

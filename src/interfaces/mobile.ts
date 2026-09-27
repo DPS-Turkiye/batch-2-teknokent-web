@@ -54,6 +54,7 @@ export type MobileMessagePreview = {
 export enum MobileConversationKind {
   Mentorship = "mentorship",
   Program = "program",
+  Announcement = "announcement",
 }
 
 export type MobileConversation = {

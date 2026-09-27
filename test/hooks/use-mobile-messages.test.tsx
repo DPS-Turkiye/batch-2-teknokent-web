@@ -12,7 +12,9 @@ import {
 import { UserRole } from "@/interfaces/session";
 import { getCoordinatorConversations } from "@/lib/client/coordinator-conversations";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
+import { getMyAnnouncements } from "@/lib/client/program-announcements";
 import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import { programAnnouncement } from "@test/fixtures/program-announcements";
 import { createTestQueryClient } from "@test/test-utils";
 
 let role = UserRole.Mentee;
@@ -26,6 +28,9 @@ vi.mock("@/lib/client/mentor-requests", () => ({
 vi.mock("@/lib/client/coordinator-conversations", () => ({
   getCoordinatorConversations: vi.fn(),
 }));
+vi.mock("@/lib/client/program-announcements", () => ({
+  getMyAnnouncements: vi.fn(),
+}));
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
@@ -38,6 +43,7 @@ function wrapper({ children }: { children: ReactNode }) {
 beforeEach(() => {
   vi.clearAllMocks();
   role = UserRole.Mentee;
+  vi.mocked(getMyAnnouncements).mockResolvedValue([]);
   vi.mocked(getMentorRequests).mockResolvedValue([
     menteeRequestFixture({
       id: "open",
@@ -116,5 +122,23 @@ describe("useMobileMessages", () => {
 
     expect(getMentorRequests).not.toHaveBeenCalled();
     expect(getCoordinatorConversations).not.toHaveBeenCalled();
+  });
+
+  it("adds each program's Duyurular as a read-only thread", async () => {
+    vi.mocked(getMyAnnouncements).mockResolvedValue([
+      programAnnouncement({ createdAt: "2026-09-25T10:00:00Z" }),
+    ]);
+    const { result } = renderHook(() => useMobileMessages(), { wrapper });
+
+    await waitFor(() =>
+      expect(result.current.conversations.map((item) => item.name)).toContain(
+        "METU Stars 2026 — Duyuru",
+      ),
+    );
+    const announcement = result.current.conversations.find(
+      (item) => item.tag === "Duyuru",
+    );
+    expect(announcement?.href).toBe("/m/messages/announcement/program-1");
+    expect(announcement?.unreadCount).toBe(0);
   });
 });

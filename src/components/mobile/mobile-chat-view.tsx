@@ -288,7 +288,7 @@ export function MobileChatView({
           </div>
         ) : (
           <p className="py-2 text-center text-[13px] leading-[1.35] text-[#858c96]">
-            Bu konuşma kapandı; yeni mesaj gönderilemez.
+            {chat.closedNote}
           </p>
         )}
       </form>

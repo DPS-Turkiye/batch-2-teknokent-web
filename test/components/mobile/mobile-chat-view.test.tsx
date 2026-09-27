@@ -26,6 +26,7 @@ function chatState(overrides: Partial<Chat> = {}): Chat {
     backHref: "/m/messages",
     canAttach: true,
     canSend: true,
+    closedNote: "Bu konuşma kapandı; yeni mesaj gönderilemez.",
     attach,
     draft: "Merhaba",
     header: {
