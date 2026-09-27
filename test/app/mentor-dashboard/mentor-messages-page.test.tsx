@@ -10,6 +10,11 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import {
+  coordinatorConversation,
+  coordinatorMessage,
+  programThreadsStub,
+} from "@test/fixtures/coordinator-conversations";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -106,6 +111,7 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
       isSending: false,
       error: null,
     },
+    programThreads: programThreadsStub(),
     select,
     viewerUserId: VIEWER,
     ...overrides,
@@ -267,6 +273,27 @@ describe("MentorMessagesPage", () => {
     await user.upload(screen.getByLabelText("Dosya seç"), file);
 
     expect(shareFile).toHaveBeenCalledWith(file);
+  });
+
+  it("lists coordinator threads and opens one in place of the mentorship", () => {
+    const thread = coordinatorConversation();
+    mockMessages({
+      programThreads: programThreadsStub({
+        threads: [thread],
+        openId: thread.id,
+        active: thread,
+        messages: [coordinatorMessage({ body: "Program duyurusu" })],
+      }),
+    });
+    render(<MentorMessagesPage />);
+
+    expect(
+      within(list()).getByRole("button", { name: /METU Stars 2026/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Program duyurusu")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Yeni prototipi yükledim."),
+    ).not.toBeInTheDocument();
   });
 
   it("prompts for a conversation when none is open", () => {
