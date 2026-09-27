@@ -8,6 +8,14 @@ import { httpClient } from "@/lib/http-client";
 const COORDINATOR_BASE = "/api/coordinator/meeting-proposals";
 const BASE = "/api/meeting-proposals";
 
+export async function getCoordinatorMeetingProposals(programId: string | null) {
+  return requireSuccess(
+    await httpClient.get<MeetingProposal[]>(COORDINATOR_BASE, {
+      params: programId ? { programId } : undefined,
+    }),
+  );
+}
+
 export async function getMentorshipMeetingProposals(mentorshipId: string) {
   return requireSuccess(
     await httpClient.get<MeetingProposal[]>(COORDINATOR_BASE, {

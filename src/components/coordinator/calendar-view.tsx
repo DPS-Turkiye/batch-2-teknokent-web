@@ -10,8 +10,10 @@ import {
   QueryNotice,
   SolidButton,
 } from "@/components/admin/admin-ui";
+import { ProposeMeetingDialog } from "@/components/coordinator/meeting-proposal-panel";
 import { PillSelect } from "@/components/coordinator/pill-select";
 import { useCoordinatorCalendar } from "@/hooks/use-coordinator-calendar";
+import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type {
   CoordinatorCalendar,
   CoordinatorCalendarItem,
@@ -49,7 +51,7 @@ export function CoordinatorCalendarView() {
   const calendar = useCoordinatorCalendar();
   const data = calendar.query.data;
   const selected =
-    data?.items.find((item) => item.id === calendar.selectedId) ?? null;
+    calendar.items.find((item) => item.id === calendar.selectedId) ?? null;
 
   return (
     <div className="space-y-5">
@@ -124,7 +126,7 @@ export function CoordinatorCalendarView() {
             {calendar.view === CalendarView.Week ? (
               <WeekGrid
                 days={calendar.days}
-                items={data.items}
+                items={calendar.items}
                 selected={selected}
                 capacity={data.recordingCapacity}
                 onSelect={calendar.select}
@@ -133,13 +135,13 @@ export function CoordinatorCalendarView() {
               <MonthGrid
                 days={calendar.days}
                 month={calendar.days[10].getMonth()}
-                items={data.items}
+                items={calendar.items}
                 onSelect={calendar.select}
               />
             ) : (
               <ListView
                 days={calendar.days}
-                items={data.items}
+                items={calendar.items}
                 capacity={data.recordingCapacity}
                 onSelect={calendar.select}
               />
@@ -154,7 +156,7 @@ export function CoordinatorCalendarView() {
               />
             ) : null}
             <RecordingCapacity data={data} />
-            <Conflicts data={data} />
+            <Conflicts data={data} onReschedule={calendar.startReschedule} />
             <Summary
               data={data}
               period={
@@ -167,6 +169,13 @@ export function CoordinatorCalendarView() {
         </div>
       ) : null}
 
+      {calendar.rescheduling?.mentorshipId ? (
+        <RescheduleDialog
+          meeting={calendar.rescheduling}
+          mentorshipId={calendar.rescheduling.mentorshipId}
+          onDone={calendar.endReschedule}
+        />
+      ) : null}
       {calendar.draft ? (
         <EventForm
           draft={calendar.draft}
@@ -241,11 +250,18 @@ function Legend() {
       <li className="flex items-center gap-1.5">
         <span className="size-2 rounded-full bg-[#d9464b]" /> Çakışma
       </li>
+      <li className="flex items-center gap-1.5">
+        <span className="h-2.5 w-3.5 rounded-[3px] border border-dashed border-[#26a4ff]" />{" "}
+        Önerilen slot
+      </li>
     </ul>
   );
 }
 
 function itemTone(item: CoordinatorCalendarItem) {
+  if (item.proposalId) {
+    return "border-dashed border-[#26a4ff] bg-[#eef7ff] text-[#1a7fcc]";
+  }
   if (item.conflict) return "border-[#d9464b] bg-[#fdeeee] text-[#d9464b]";
   if (item.kind === CoordinatorAgendaKind.Event) {
     return "border-[#22262b] bg-[#22262b] text-white";
@@ -263,6 +279,7 @@ function itemName(item: CoordinatorCalendarItem) {
 
 function itemDetail(item: CoordinatorCalendarItem) {
   const time = timeLabel(item.startsAt);
+  if (item.proposalId) return `${time} · Önerilen slot`;
   if (item.kind === CoordinatorAgendaKind.Meeting) {
     return item.topic ? `${time} · ${item.topic}` : time;
   }
@@ -576,7 +593,11 @@ function ItemCard({
         ) : null}
         <div className="min-w-0 flex-1">
           <p className="text-[14.5px] font-medium text-[#22262b]">
-            {meeting ? "Mentorluk görüşmesi" : item.title}
+            {item.proposalId
+              ? "Önerilen slot"
+              : meeting
+                ? "Mentorluk görüşmesi"
+                : item.title}
           </p>
           <p className="truncate text-[12.5px] text-[#858c96]">
             {meeting ? itemName(item) : item.programName}
@@ -593,7 +614,9 @@ function ItemCard({
       </div>
       <ul className="mt-4 space-y-1.5 text-[12.5px] text-[#22262b]">
         <li>{slotLabel(item)}</li>
-        {meeting ? (
+        {item.proposalId ? (
+          <li>Mentor ve takım yetkilisinin onayı bekleniyor</li>
+        ) : meeting ? (
           <li>{item.meetLink ? "Online · Google Meet" : "Görüşme"}</li>
         ) : null}
         {meeting && facts.length > 0 ? <li>{facts.join(" · ")}</li> : null}
@@ -651,13 +674,24 @@ function RecordingCapacity({ data }: { data: CoordinatorCalendar }) {
   );
 }
 
-function Conflicts({ data }: { data: CoordinatorCalendar }) {
+function Conflicts({
+  data,
+  onReschedule,
+}: {
+  data: CoordinatorCalendar;
+  onReschedule: (meeting: CoordinatorCalendarItem) => void;
+}) {
   return (
     <>
       {data.conflicts.map((conflict) => {
         const summary = conflictSummary(conflict, data.items);
         const first = data.items.find(
           (item) => item.id === conflict.meetingIds[0],
+        );
+        // The later of the overlapping meetings is the one proposed a new time.
+        const later = data.items.find(
+          (item) =>
+            item.id === conflict.meetingIds[conflict.meetingIds.length - 1],
         );
         return (
           <article
@@ -674,17 +708,28 @@ function Conflicts({ data }: { data: CoordinatorCalendar }) {
               </span>
             </p>
             <p className="mt-2 text-[13px] text-[#22262b]">{summary.body}</p>
-            {first ? (
-              <Link
-                href={coordinatorMessageHref(
-                  first.programId,
-                  conflict.mentorId,
-                )}
-                className="mt-3 inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
-              >
-                Mentora sor
-              </Link>
-            ) : null}
+            <div className="mt-3 flex flex-wrap gap-2">
+              {later?.mentorshipId ? (
+                <button
+                  type="button"
+                  onClick={() => onReschedule(later)}
+                  className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
+                >
+                  Yeniden planla
+                </button>
+              ) : null}
+              {first ? (
+                <Link
+                  href={coordinatorMessageHref(
+                    first.programId,
+                    conflict.mentorId,
+                  )}
+                  className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
+                >
+                  Mentora sor
+                </Link>
+              ) : null}
+            </div>
           </article>
         );
       })}
@@ -918,5 +963,24 @@ function EventForm({
         </div>
       </form>
     </div>
+  );
+}
+
+/** "Yeniden planla": proposes a new time for the meeting; both sides confirm before it moves. */
+function RescheduleDialog({
+  meeting,
+  mentorshipId,
+  onDone,
+}: {
+  meeting: CoordinatorCalendarItem;
+  mentorshipId: string;
+  onDone: () => void;
+}) {
+  const proposals = useMentorshipMeetingProposals(mentorshipId, {
+    reschedule: meeting.id,
+    onDone,
+  });
+  return (
+    <ProposeMeetingDialog proposals={proposals} pairLabel={itemName(meeting)} />
   );
 }

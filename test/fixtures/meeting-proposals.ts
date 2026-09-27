@@ -47,6 +47,7 @@ export function mentorshipProposalsStub(
     composing: false,
     openComposer: vi.fn(),
     closeComposer: vi.fn(),
+    rescheduling: false,
     startsAt: "2026-10-01T10:30",
     setStartsAt: vi.fn(),
     duration: 45,

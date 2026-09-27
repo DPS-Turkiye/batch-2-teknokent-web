@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
+import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
 import {
   CalendarView,
   conflictSummary,
@@ -19,12 +20,14 @@ import {
   startOfWeek,
   viewDays,
   viewRange,
+  proposalItems,
 } from "@/lib/coordinator-calendar";
 import {
   at,
   calendarMeeting,
   coordinatorCalendar,
 } from "@test/fixtures/coordinator-calendar";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 
 const WEDNESDAY = new Date(2026, 8, 16, 15, 0);
 
@@ -150,5 +153,29 @@ describe("coordinator calendar", () => {
         }),
       ),
     ).toBe(1);
+  });
+
+  it("turns pending proposals in the range into Önerilen slot meetings", () => {
+    const items = proposalItems(
+      [
+        meetingProposal({ scheduledAt: "2026-09-18T07:30:00Z" }),
+        meetingProposal({
+          id: "confirmed",
+          status: MeetingProposalStatus.Confirmed,
+        }),
+        meetingProposal({ id: "later", scheduledAt: "2026-10-30T07:30:00Z" }),
+      ],
+      { from: "2026-09-14", to: "2026-09-20" },
+    );
+
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({
+      id: "proposal-proposal-1",
+      proposalId: "proposal-1",
+      kind: CoordinatorAgendaKind.Meeting,
+      mentorshipId: "mentorship-1",
+      endsAt: "2026-09-18T08:15:00.000Z",
+      conflict: false,
+    });
   });
 });

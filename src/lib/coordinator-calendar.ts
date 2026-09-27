@@ -4,6 +4,10 @@ import type {
   CoordinatorCalendarItem,
 } from "@/interfaces/coordinator-calendar";
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
+import {
+  type MeetingProposal,
+  MeetingProposalStatus,
+} from "@/interfaces/meeting-proposal";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { formatDayMonth } from "@/lib/utils";
 
@@ -261,4 +265,42 @@ export function fullRecordingCount(data: CoordinatorCalendar) {
   return data.items.filter((item) =>
     isRecordingFull(item, data.recordingCapacity),
   ).length;
+}
+
+/** Pending coordinator proposals inside the visible range, drawn as dashed "Önerilen slot" meetings. */
+export function proposalItems(
+  proposals: MeetingProposal[],
+  range: { from: string; to: string },
+): CoordinatorCalendarItem[] {
+  return proposals
+    .filter(
+      (proposal) =>
+        proposal.status === MeetingProposalStatus.Pending &&
+        isoDay(new Date(proposal.scheduledAt)) >= range.from &&
+        isoDay(new Date(proposal.scheduledAt)) <= range.to,
+    )
+    .map((proposal) => ({
+      id: `proposal-${proposal.id}`,
+      proposalId: proposal.id,
+      kind: CoordinatorAgendaKind.Meeting,
+      title: "Önerilen slot",
+      startsAt: proposal.scheduledAt,
+      endsAt: new Date(
+        new Date(proposal.scheduledAt).getTime() +
+          proposal.durationMinutes * 60_000,
+      ).toISOString(),
+      programId: proposal.programId,
+      programName: proposal.programName ?? "",
+      mentorshipId: proposal.mentorshipId,
+      mentorId: proposal.mentorId,
+      mentorName: proposal.mentorName,
+      organizationId: proposal.organizationId,
+      organizationName: proposal.organizationName,
+      topic: proposal.agenda,
+      sequence: null,
+      meetLink: null,
+      description: null,
+      conflict: false,
+      recordingLoad: null,
+    }));
 }

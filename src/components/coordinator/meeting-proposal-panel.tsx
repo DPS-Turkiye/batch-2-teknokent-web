@@ -108,7 +108,7 @@ export function ProposeMeetingDialog({
       <form
         role="dialog"
         aria-modal="true"
-        aria-label="Görüşme öner"
+        aria-label={proposals.rescheduling ? "Yeni saat öner" : "Görüşme öner"}
         onSubmit={(event) => {
           event.preventDefault();
           proposals.propose();
@@ -116,7 +116,7 @@ export function ProposeMeetingDialog({
         className="w-full max-w-[440px] rounded-[24px] bg-white p-6 shadow-[0_24px_60px_rgba(33,38,43,0.18)]"
       >
         <h3 className="text-[17px] font-semibold text-[#22262b]">
-          Görüşme öner
+          {proposals.rescheduling ? "Yeni saat öner" : "Görüşme öner"}
         </h3>
         <p className="mt-1 text-[12.5px] text-[#858c96]">
           {pairLabel} · mentor ve takım yetkilisi ayrı ayrı onaylar.
