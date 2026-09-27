@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
 import {
   defaultProposalStart,
+  introStep,
+  StepState,
   lastDeclined,
   openProposal,
   proposalWhenLabel,
@@ -43,5 +45,28 @@ describe("meeting proposal helpers", () => {
     expect([start.getDate(), start.getHours(), start.getMinutes()]).toEqual([
       28, 10, 0,
     ]);
+  });
+
+  it("turns the newest proposal into the İlk adımlar meeting step", () => {
+    expect(introStep(null)).toEqual({
+      state: StepState.Todo,
+      detail: "Henüz önerilmedi",
+    });
+    expect(introStep(meetingProposal()).state).toBe(StepState.Waiting);
+    expect(
+      introStep(meetingProposal({ status: MeetingProposalStatus.Confirmed }))
+        .state,
+    ).toBe(StepState.Done);
+    expect(
+      introStep(
+        meetingProposal({
+          status: MeetingProposalStatus.Declined,
+          declineReason: "Seyahatteyim",
+        }),
+      ),
+    ).toEqual({
+      state: StepState.Todo,
+      detail: "1 Ekim Perşembe 10:30 · 45 dk önerisi reddedildi: Seyahatteyim",
+    });
   });
 });

@@ -46,3 +46,31 @@ export function defaultProposalStart(now = new Date()) {
   start.setHours(10, 0, 0, 0);
   return start;
 }
+
+export enum StepState {
+  Done = "DONE",
+  Waiting = "WAITING",
+  Todo = "TODO",
+}
+
+/** The "Tanışma görüşmesi" step of İlk adımlar, from the mentorship's newest proposal. */
+export function introStep(latest: MeetingProposal | null) {
+  if (!latest) return { state: StepState.Todo, detail: "Henüz önerilmedi" };
+  const when = proposalWhenLabel(latest);
+  switch (latest.status) {
+    case MeetingProposalStatus.Confirmed:
+      return { state: StepState.Done, detail: `${when} · iki taraf onayladı` };
+    case MeetingProposalStatus.Pending:
+      return {
+        state: StepState.Waiting,
+        detail: `${when} önerildi · yanıt bekleniyor`,
+      };
+    case MeetingProposalStatus.Declined:
+      return {
+        state: StepState.Todo,
+        detail: `${when} önerisi reddedildi${latest.declineReason ? `: ${latest.declineReason}` : ""}`,
+      };
+    default:
+      return { state: StepState.Todo, detail: "Öneri geri çekildi" };
+  }
+}

@@ -15,7 +15,13 @@ import {
   getMatching,
   getMatchSuggestions,
 } from "@/lib/client/coordinator-programs";
+import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
+import {
+  getMentorshipMeetingProposals,
+  proposeMeeting,
+} from "@/lib/client/meeting-proposals";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
@@ -23,6 +29,15 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   getMatching: vi.fn(),
   getMatchSuggestions: vi.fn(),
   createMatch: vi.fn(),
+}));
+vi.mock("@/lib/client/meeting-proposals", () => ({
+  getMentorshipMeetingProposals: vi.fn(),
+  proposeMeeting: vi.fn(),
+  remindMeetingProposal: vi.fn(),
+  withdrawMeetingProposal: vi.fn(),
+}));
+vi.mock("@/lib/client/coordinator-notes", () => ({
+  addCoordinatorNote: vi.fn(),
 }));
 
 const overview: MatchingOverview = {
@@ -160,5 +175,82 @@ describe("ProgramMatchingView", () => {
       screen.getByRole("button", { name: /Aktif eşleşmeler 1/ }),
     );
     expect(screen.getByText("Vega ↔ Ayşe Demir")).toBeInTheDocument();
+  });
+
+  it("proposes the introduction, saves a note and opens İlk adımlar after a match", async () => {
+    const user = userEvent.setup();
+    vi.mocked(createMatch).mockResolvedValue({
+      ...overview,
+      waiting: overview.waiting.slice(1),
+      active: [
+        ...overview.active,
+        {
+          mentorshipId: "m-new",
+          organizationId: "terra",
+          teamName: "Terra",
+          mentorId: "nihan",
+          mentorName: "Nihan Öztürk",
+          status: MentorshipStatus.Active,
+          startDate: "2026-09-27",
+          endDate: null,
+        },
+      ],
+    });
+    vi.mocked(proposeMeeting).mockResolvedValue(meetingProposal());
+    vi.mocked(addCoordinatorNote).mockResolvedValue({
+      id: "n-1",
+      mentorshipId: "m-new",
+      authorName: "Elif Demir",
+      body: "Pazarlamaya odaklansınlar",
+      createdAt: "2026-09-27T09:00:00Z",
+      mine: true,
+    });
+    vi.mocked(getMentorshipMeetingProposals).mockResolvedValue([
+      meetingProposal({ mentorshipId: "m-new" }),
+    ]);
+    renderWithQueryClient(<ProgramMatchingView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Nihan Öztürk ile eşleştir" }),
+    );
+    const dialog = screen.getByRole("region", { name: "Eşleşmeyi onayla" });
+    await user.click(
+      within(dialog).getByRole("checkbox", {
+        name: "İlk tanışma görüşmesi öner",
+      }),
+    );
+    const when = within(dialog).getByLabelText("Tanışma zamanı");
+    await user.clear(when);
+    await user.type(when, "2026-10-01T15:00");
+    await user.click(
+      within(dialog).getByRole("checkbox", { name: "Koordinatör notu ekle" }),
+    );
+    await user.type(
+      within(dialog).getByLabelText("Koordinatör notu"),
+      "Pazarlamaya odaklansınlar",
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Eşleşmeyi onayla" }),
+    );
+
+    const steps = await screen.findByRole("dialog", { name: "İlk adımlar" });
+    expect(proposeMeeting).toHaveBeenCalledWith("m-new", {
+      scheduledAt: new Date("2026-10-01T15:00").toISOString(),
+      durationMinutes: 30,
+      agenda: "İlk tanışma görüşmesi",
+      replacesMeetingId: null,
+    });
+    expect(addCoordinatorNote).toHaveBeenCalledWith(
+      "m-new",
+      "Pazarlamaya odaklansınlar",
+    );
+    expect(within(steps).getByText("Nihan Öztürk ↔ Terra")).toBeInTheDocument();
+    expect(
+      await within(steps).findByText(/önerildi · yanıt bekleniyor/),
+    ).toBeInTheDocument();
+    expect(within(steps).getByText("İlk adımlar · 2/4")).toBeInTheDocument();
+    expect(
+      within(steps).getByText("Nihan Öztürk, Mert Aydın (yetkili)"),
+    ).toBeInTheDocument();
   });
 });

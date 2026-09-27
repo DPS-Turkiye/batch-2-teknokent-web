@@ -18,7 +18,9 @@ import {
   SearchField,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { FirstStepsDrawer } from "@/components/coordinator/first-steps-drawer";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { MAX_COORDINATOR_NOTE } from "@/hooks/use-coordinator-notes";
 import { useProgramMatching } from "@/hooks/use-program-matching";
 import type {
   MatchCandidate,
@@ -27,6 +29,7 @@ import type {
 } from "@/interfaces/program-matching";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import {
+  INTRO_MEETING_MINUTES,
   isFull,
   loadAfterMatch,
   loadShare,
@@ -88,12 +91,22 @@ function MatchingBody({
             {matching.matched.team} ↔ {matching.matched.mentor} eşleşti
           </b>
           · bildirimler gönderildi
-          <Link
-            href="/coordinator/mentorships"
-            className="ml-auto font-medium underline"
-          >
-            Mentorluğu aç
-          </Link>
+          {matching.hasFirstSteps ? (
+            <button
+              type="button"
+              onClick={matching.openFirstSteps}
+              className="ml-auto font-medium underline"
+            >
+              İlk adımlar
+            </button>
+          ) : (
+            <Link
+              href="/coordinator/mentorships"
+              className="ml-auto font-medium underline"
+            >
+              Mentorluğu aç
+            </Link>
+          )}
         </p>
       ) : null}
       {overview && matching.tab === MatchTab.Waiting ? (
@@ -113,6 +126,13 @@ function MatchingBody({
       ) : null}
       {overview && matching.tab === MatchTab.Past ? (
         <MatchList matches={overview.past} empty="Geçmiş eşleşme yok." />
+      ) : null}
+      {matching.firstSteps ? (
+        <FirstStepsDrawer
+          programId={programId}
+          steps={matching.firstSteps}
+          onClose={matching.closeFirstSteps}
+        />
       ) : null}
       {matching.confirming && matching.team ? (
         <ConfirmDialog
@@ -461,6 +481,54 @@ function ConfirmDialog({
               : `Bu eşleşmeyle ${candidate.fullName}’ın kapasitesi dolacak.`}
           </p>
         ) : null}
+        <fieldset className="mt-5 space-y-3 rounded-2xl border border-[#e9ecef] p-4">
+          <legend className="sr-only">Eşleşmeyle birlikte</legend>
+          <label className="flex items-center gap-2 text-[13.5px] text-[#22262b]">
+            <input
+              type="checkbox"
+              checked={matching.introOn}
+              onChange={(event) => matching.setIntroOn(event.target.checked)}
+              className="size-4 accent-[#22262b]"
+            />
+            İlk tanışma görüşmesi öner
+          </label>
+          {matching.introOn ? (
+            <div className="ml-6 space-y-1">
+              <input
+                type="datetime-local"
+                required
+                aria-label="Tanışma zamanı"
+                value={matching.introAt}
+                onChange={(event) => matching.setIntroAt(event.target.value)}
+                className="h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13px]"
+              />
+              <p className="text-[12px] text-[#858c96]">
+                {INTRO_MEETING_MINUTES} dk · mentor ve takım yetkilisi ayrı ayrı
+                onaylar.
+              </p>
+            </div>
+          ) : null}
+          <label className="flex items-center gap-2 text-[13.5px] text-[#22262b]">
+            <input
+              type="checkbox"
+              checked={matching.noteOn}
+              onChange={(event) => matching.setNoteOn(event.target.checked)}
+              className="size-4 accent-[#22262b]"
+            />
+            Koordinatör notu ekle
+          </label>
+          {matching.noteOn ? (
+            <textarea
+              aria-label="Koordinatör notu"
+              value={matching.note}
+              onChange={(event) => matching.setNote(event.target.value)}
+              maxLength={MAX_COORDINATOR_NOTE}
+              rows={2}
+              placeholder="Yalnızca koordinatörler görür."
+              className="ml-6 w-[calc(100%-1.5rem)] rounded-xl border border-[#e9ecef] px-3 py-2 text-[13px]"
+            />
+          ) : null}
+        </fieldset>
         <div className="mt-6 flex justify-end gap-2">
           <button
             type="button"
