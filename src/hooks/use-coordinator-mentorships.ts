@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
+import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import {
   getCoordinatorMentorship,
   getCoordinatorMentorships,
@@ -81,7 +82,7 @@ export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
   };
 }
 
-/** The drawer for one mentorship: its detail, tabs and the "İki tarafa hatırlat" action. */
+/** The drawer for one mentorship: its detail, tabs, "İki tarafa hatırlat" and "Görüşme planla". */
 export function useCoordinatorMentorshipDrawer(id: string) {
   const [tab, setTab] = useState(MentorshipDrawerTab.Summary);
   const query = useQuery({
@@ -91,9 +92,11 @@ export function useCoordinatorMentorshipDrawer(id: string) {
   const remind = useMutation({
     mutationFn: () => remindCoordinatorMentorship(id),
   });
+  const proposals = useMentorshipMeetingProposals(id);
 
   return {
     query,
+    proposals,
     tab,
     setTab,
     remind: () => remind.mutate(),
