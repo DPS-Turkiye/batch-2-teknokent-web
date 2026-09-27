@@ -28,7 +28,6 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSection, string> = {
   [SettingsSection.Archive]: "Arşiv",
 };
 
-/** Mentor Havuzu and Eşleşmeler arrive with flows 03.1 and 03.2; until then they have no link. */
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
@@ -45,13 +44,13 @@ export function programTabs(
     {
       id: ProgramTab.MentorPool,
       label: "Mentor Havuzu",
-      href: null,
+      href: `${base}/mentors`,
       count: detail.program.mentorCount,
     },
     {
       id: ProgramTab.Matching,
       label: "Eşleşmeler",
-      href: null,
+      href: `${base}/matching`,
       count: detail.program.awaitingMatchCount,
     },
     {
@@ -121,7 +120,10 @@ export function overviewActions(
         ? `en eskisi ${oldest.waitingDays} gün · ${oldest.name}`
         : "mentor ataması yapılmadı",
       tone: "orange",
-      target: { label: "Eşleşmeler", href: null },
+      target: {
+        label: "Eşleşmeler",
+        href: `/coordinator/programs/${encodeURIComponent(detail.program.id)}/matching`,
+      },
     });
   }
   if (detail.mentors.pending > 0) {
@@ -130,7 +132,10 @@ export function overviewActions(
       title: `${detail.mentors.pending} mentor yanıt bekliyor`,
       detail: "program daveti veya katılım isteği",
       tone: "blue",
-      target: { label: "Mentor Havuzu", href: null },
+      target: {
+        label: "Mentor Havuzu",
+        href: `/coordinator/programs/${encodeURIComponent(detail.program.id)}/mentors`,
+      },
     });
   }
   if (detail.missingNoteMeetings > 0) {

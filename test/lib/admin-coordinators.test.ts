@@ -56,7 +56,7 @@ describe("admin coordinators", () => {
   it("explains what saving will do in Turkish", () => {
     expect(
       candidateMessage(candidate(CoordinatorCandidateStatus.New)),
-    ).toContain("Şifremi unuttum");
+    ).toContain("şifresini belirlemesi için bir e-posta");
     expect(
       candidateMessage(
         candidate(CoordinatorCandidateStatus.Promotable, UserRole.Mentor),
@@ -93,7 +93,9 @@ describe("admin coordinators", () => {
       status: UserAccountStatus.Approved,
       outcome: CoordinatorCandidateStatus.New,
     };
-    expect(addedMessage(account)).toContain("Şifremi unuttum");
+    expect(addedMessage(account)).toContain(
+      "Şifre belirleme e-postası elif@teknokent.org adresine gönderildi.",
+    );
     expect(
       addedMessage({
         ...account,

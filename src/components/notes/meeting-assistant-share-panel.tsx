@@ -40,18 +40,11 @@ function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
       </p>
       <ol className={`mt-3 space-y-3 ${TRANSCRIPT_SCROLL_CLASS}`}>
         {lines.map((line) => (
-          <li key={line.id} className="flex gap-3 text-sm">
-            <span className="w-10 shrink-0 font-mono text-[11px] text-[#858c96]">
-              {line.at}
-            </span>
-            <div>
-              <div className="text-xs font-medium text-[var(--ms-accent,#e86f22)]">
-                {line.speaker}
-              </div>
-              <p className="mt-0.5 leading-relaxed text-[#22262b]">
-                {line.text}
-              </p>
+          <li key={line.id} className="text-sm">
+            <div className="text-xs font-medium text-[var(--ms-accent,#e86f22)]">
+              {line.speaker}
             </div>
+            <p className="mt-0.5 leading-relaxed text-[#22262b]">{line.text}</p>
           </li>
         ))}
       </ol>

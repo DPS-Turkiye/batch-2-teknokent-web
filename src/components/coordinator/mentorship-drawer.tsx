@@ -10,7 +10,12 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import {
+  MeetingProposalPanel,
+  ProposeMeetingDialog,
+} from "@/components/coordinator/meeting-proposal-panel";
 import { useCoordinatorMentorshipDrawer } from "@/hooks/use-coordinator-mentorships";
+import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type { CoordinatorMentorshipDetail } from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
@@ -133,6 +138,7 @@ export function MentorshipDrawer({
           {detail && drawer.tab === MentorshipDrawerTab.Summary ? (
             <SummaryTab
               detail={detail}
+              proposals={drawer.proposals}
               onRemind={drawer.remind}
               reminding={drawer.reminding}
               reminded={drawer.reminded}
@@ -169,6 +175,12 @@ export function MentorshipDrawer({
               Mesaj gönder
             </Link>
           </footer>
+        ) : null}
+        {detail ? (
+          <ProposeMeetingDialog
+            proposals={drawer.proposals}
+            pairLabel={`${detail.mentorship.mentorName} ↔ ${detail.mentorship.organizationName}`}
+          />
         ) : null}
       </section>
     </div>
@@ -212,12 +224,14 @@ function Tab({
 
 function SummaryTab({
   detail,
+  proposals,
   onRemind,
   reminding,
   reminded,
   remindError,
 }: {
   detail: CoordinatorMentorshipDetail;
+  proposals: MentorshipMeetingProposals;
   onRemind: () => void;
   reminding: boolean;
   reminded: boolean;
@@ -234,11 +248,20 @@ function SummaryTab({
           </p>
           <p className="mt-2 text-[13px] text-[#22262b]">{alert.body}</p>
           <div className="mt-4 flex flex-wrap gap-2">
+            {proposals.open ? null : (
+              <button
+                type="button"
+                onClick={proposals.openComposer}
+                className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
+              >
+                Görüşme planla
+              </button>
+            )}
             <button
               type="button"
               onClick={onRemind}
               disabled={reminding || reminded}
-              className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white disabled:bg-[#858c96]"
+              className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
             >
               {reminded ? "Hatırlatma gönderildi" : "İki tarafa hatırlat"}
             </button>
@@ -256,6 +279,10 @@ function SummaryTab({
           ) : null}
         </div>
       ) : null}
+
+      <Section title="Görüşme önerisi">
+        <MeetingProposalPanel proposals={proposals} />
+      </Section>
 
       <Section title="Taraflar">
         <div className="grid gap-3 sm:grid-cols-2">

@@ -1,3 +1,6 @@
+import { vi } from "vitest";
+
+import type { ProgramThreads } from "@/hooks/use-program-threads";
 import {
   type CoordinatorConversation,
   CoordinatorConversationCounterpart,
@@ -33,6 +36,27 @@ export function coordinatorMessage(
     mine: false,
     body: "Bu hafta Perşembe 10:30 uygun.",
     createdAt: new Date().toISOString(),
+    ...overrides,
+  };
+}
+
+export function programThreadsStub(
+  overrides: Partial<ProgramThreads> = {},
+): ProgramThreads {
+  return {
+    threads: [],
+    error: null,
+    openId: null,
+    active: null,
+    open: vi.fn(),
+    close: vi.fn(),
+    messages: [],
+    messagesLoading: false,
+    draft: "",
+    setDraft: vi.fn(),
+    canSend: false,
+    send: vi.fn(),
+    sendError: null,
     ...overrides,
   };
 }

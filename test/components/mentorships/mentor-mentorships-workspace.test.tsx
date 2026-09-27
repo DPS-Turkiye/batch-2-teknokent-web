@@ -208,11 +208,10 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(screen.getByText("Gülse Buran · Satış")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: /Toplantı Transkripti/ }),
-    ).toHaveAttribute("href", "/meetings/research/about?id=ended-meeting");
-    expect(screen.getByRole("link", { name: "Notlar" })).toHaveAttribute(
-      "href",
-      "/meetings/research/about?id=ended-meeting",
-    );
+    ).toHaveAttribute("href", "/assistant?meetingId=ended-meeting");
+    expect(
+      screen.queryByRole("link", { name: "Notlar" }),
+    ).not.toBeInTheDocument();
     expect(
       screen
         .getAllByRole("link", { name: "Dosyalar" })
@@ -222,8 +221,13 @@ describe("MentorMentorshipsWorkspace", () => {
       "/mentorships/requests/withdrawn-1",
     ]);
     expect(
-      screen.getAllByRole("link", { name: "HubC mentorluk geçmişi" })[1],
-    ).toHaveAttribute("href", "/mentor-dashboard/mentorship/withdrawn-1");
+      screen
+        .getAllByRole("link", { name: "HubC mentorluk geçmişi" })
+        .map((link) => link.getAttribute("href")),
+    ).toEqual([
+      "/meetings/research/about?id=ended-meeting",
+      "/mentor-dashboard/mentorship/withdrawn-1",
+    ]);
   });
 
   it("reviews a request, lets the mentor pick a preferred time, then moves it to Aktif", async () => {

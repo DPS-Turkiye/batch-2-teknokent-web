@@ -34,6 +34,7 @@ export function useSignupFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const isResuming = searchParams.get("resume") === "1";
+  const programInvite = searchParams.get("programInvite") ?? undefined;
   const [role, setRole] = useState<SignupRole | null>(() =>
     roleFromParam(searchParams.get("role")),
   );
@@ -72,9 +73,10 @@ export function useSignupFlow() {
       setRole(next);
       const params = new URLSearchParams({ role: next });
       if (isResuming) params.set("resume", "1");
+      if (programInvite) params.set("programInvite", programInvite);
       router.replace(`/signup?${params.toString()}`);
     },
-    [isResuming, router],
+    [isResuming, programInvite, router],
   );
 
   const finishAfterEmail = useCallback(async () => {
@@ -104,6 +106,7 @@ export function useSignupFlow() {
             fullName: account.fullName,
             email: account.email,
             phone: account.phone || undefined,
+            programInvite,
           },
           idToken,
         );
@@ -115,7 +118,7 @@ export function useSignupFlow() {
       );
       setMentorRegistration(MentorRegistration.Error);
     }
-  }, [account]);
+  }, [account, programInvite]);
 
   useEffect(() => {
     if (

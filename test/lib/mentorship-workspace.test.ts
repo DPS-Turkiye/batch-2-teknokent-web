@@ -9,6 +9,7 @@ import {
   formatRequestSentAt,
   isMeetingEnded,
   activeMentorshipHref,
+  assistantMeetingHref,
   meetingAboutHref,
   meetingCallHref,
   meetingFeedbackHref,
@@ -191,6 +192,9 @@ describe("mentorship workspace helpers", () => {
     );
     expect(meetingAboutHref("meeting-9")).toBe(
       "/meetings/research/about?id=meeting-9",
+    );
+    expect(assistantMeetingHref("meeting-9")).toBe(
+      "/assistant?meetingId=meeting-9",
     );
   });
 

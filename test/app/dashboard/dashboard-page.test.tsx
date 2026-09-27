@@ -26,6 +26,10 @@ vi.mock("@/components/dashboard/my-programs-panel", () => ({
   ),
 }));
 
+vi.mock("@/components/meeting-proposal-cards", () => ({
+  MeetingProposalCards: () => null,
+}));
+
 vi.mock("@/hooks/use-dashboard-data", () => ({
   useDashboardData: () => mockUseDashboardData(),
 }));

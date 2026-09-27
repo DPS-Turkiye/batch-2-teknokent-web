@@ -6,11 +6,18 @@ import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import {
+  ProgramThreadList,
+  ProgramThreadPane,
+} from "@/components/program-threads";
 import { useMentorMessages } from "@/hooks/use-mentor-messages";
+import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+
+const ACCENT = { strong: "#26a4ff", soft: "#f2f8fc" };
 
 function participantOf(request: MentorshipRequest) {
   return request.requesterName ?? request.organizationName ?? "Mentee";
@@ -40,11 +47,13 @@ function ConversationList({
   activeId,
   isLoading,
   onSelect,
+  programThreads,
 }: {
   conversations: MentorshipRequest[];
   activeId: string | null;
   isLoading: boolean;
   onSelect: (id: string) => void;
+  programThreads: ProgramThreads;
 }) {
   const [search, setSearch] = useState("");
   const shown = useMemo(
@@ -120,6 +129,11 @@ function ConversationList({
           })}
         </ul>
       )}
+      <ProgramThreadList
+        threads={programThreads}
+        accent={ACCENT}
+        onSelect={programThreads.open}
+      />
     </aside>
   );
 }
@@ -297,11 +311,18 @@ export function MentorMessagesView() {
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-[340px_minmax(0,868px)]">
           <ConversationList
             conversations={messages.conversations}
-            activeId={messages.activeId}
+            activeId={messages.programThreads.active ? null : messages.activeId}
             isLoading={messages.isLoading}
             onSelect={messages.select}
+            programThreads={messages.programThreads}
           />
-          {messages.active ? (
+          {messages.programThreads.active ? (
+            <ProgramThreadPane
+              threads={messages.programThreads}
+              accent={ACCENT}
+              className="overflow-hidden rounded-[12px] border border-[#e4e7ea]"
+            />
+          ) : messages.active ? (
             <ActiveConversation
               request={messages.active}
               meetingLabel={meetingLabel}

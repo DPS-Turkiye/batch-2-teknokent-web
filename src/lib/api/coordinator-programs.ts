@@ -12,6 +12,11 @@ import type {
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
+import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
+import type {
+  MatchingOverview,
+  MatchSuggestions,
+} from "@/interfaces/program-matching";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchCoordinatorPrograms(actorId: string) {
@@ -171,5 +176,118 @@ export function removeProgramTeam(
     method: "DELETE",
     url: `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
     params: { actorId },
+  });
+}
+
+export function fetchMentorPool(actorId: string, programId: string) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "GET",
+    url: `${programUrl(programId)}/mentors`,
+    params: { actorId },
+  });
+}
+
+export function inviteProgramMentor(
+  actorId: string,
+  programId: string,
+  email: string,
+) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/mentors`,
+    data: { actorId, email },
+  });
+}
+
+export function withdrawProgramMentorInvite(
+  actorId: string,
+  programId: string,
+  mentorId: string,
+) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "DELETE",
+    url: `${programUrl(programId)}/mentors/${encodeURIComponent(mentorId)}`,
+    params: { actorId },
+  });
+}
+
+export function fetchMentorReview(
+  actorId: string,
+  programId: string,
+  mentorId: string,
+) {
+  return backendRequest<MentorPoolReview>({
+    method: "GET",
+    url: `${programUrl(programId)}/mentors/${encodeURIComponent(mentorId)}/review`,
+    params: { actorId },
+  });
+}
+
+export function decideProgramMentor(
+  actorId: string,
+  programId: string,
+  mentorId: string,
+  accepted: boolean,
+) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/mentors/${encodeURIComponent(mentorId)}/decision`,
+    data: { actorId, accepted },
+  });
+}
+
+export function renewMentorInvite(
+  actorId: string,
+  programId: string,
+  inviteId: string,
+) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/mentor-invites/${encodeURIComponent(inviteId)}/renew`,
+    params: { actorId },
+  });
+}
+
+export function cancelMentorInvite(
+  actorId: string,
+  programId: string,
+  inviteId: string,
+) {
+  return backendRequest<MentorPoolRow[]>({
+    method: "DELETE",
+    url: `${programUrl(programId)}/mentor-invites/${encodeURIComponent(inviteId)}`,
+    params: { actorId },
+  });
+}
+
+export function fetchMatching(actorId: string, programId: string) {
+  return backendRequest<MatchingOverview>({
+    method: "GET",
+    url: `${programUrl(programId)}/matching`,
+    params: { actorId },
+  });
+}
+
+export function fetchMatchSuggestions(
+  actorId: string,
+  programId: string,
+  organizationId: string,
+) {
+  return backendRequest<MatchSuggestions>({
+    method: "GET",
+    url: `${programUrl(programId)}/matching/${encodeURIComponent(organizationId)}/suggestions`,
+    params: { actorId },
+  });
+}
+
+export function createMatch(
+  actorId: string,
+  programId: string,
+  input: { organizationId: string; mentorId: string },
+) {
+  return backendRequest<MatchingOverview>({
+    method: "POST",
+    url: `${programUrl(programId)}/matching`,
+    data: { ...input, actorId },
   });
 }

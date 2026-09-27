@@ -10,6 +10,11 @@ import type {
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
+import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
+import type {
+  MatchingOverview,
+  MatchSuggestions,
+} from "@/interfaces/program-matching";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -155,6 +160,101 @@ export async function removeProgramTeam(programId: string, inviteId: string) {
   return requireSuccess(
     await httpClient.delete<ProgramTeam[]>(
       `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
+    ),
+  );
+}
+
+const mentorUrl = (programId: string, mentorId: string) =>
+  `${programUrl(programId)}/mentors/${encodeURIComponent(mentorId)}`;
+const mentorInviteUrl = (programId: string, inviteId: string) =>
+  `${programUrl(programId)}/mentor-invites/${encodeURIComponent(inviteId)}`;
+
+export async function getMentorPool(programId: string) {
+  return requireSuccess(
+    await httpClient.get<MentorPoolRow[]>(`${programUrl(programId)}/mentors`),
+  );
+}
+
+export async function inviteProgramMentor(programId: string, email: string) {
+  return requireSuccess(
+    await httpClient.post<MentorPoolRow[]>(`${programUrl(programId)}/mentors`, {
+      email,
+    }),
+  );
+}
+
+export async function withdrawProgramMentorInvite(
+  programId: string,
+  mentorId: string,
+) {
+  return requireSuccess(
+    await httpClient.delete<MentorPoolRow[]>(mentorUrl(programId, mentorId)),
+  );
+}
+
+export async function getMentorReview(programId: string, mentorId: string) {
+  return requireSuccess(
+    await httpClient.get<MentorPoolReview>(
+      `${mentorUrl(programId, mentorId)}/review`,
+    ),
+  );
+}
+
+export async function decideProgramMentor(
+  programId: string,
+  mentorId: string,
+  accepted: boolean,
+) {
+  return requireSuccess(
+    await httpClient.post<MentorPoolRow[]>(
+      `${mentorUrl(programId, mentorId)}/decision`,
+      { accepted },
+    ),
+  );
+}
+
+export async function renewMentorInvite(programId: string, inviteId: string) {
+  return requireSuccess(
+    await httpClient.post<MentorPoolRow[]>(
+      `${mentorInviteUrl(programId, inviteId)}/renew`,
+      {},
+    ),
+  );
+}
+
+export async function cancelMentorInvite(programId: string, inviteId: string) {
+  return requireSuccess(
+    await httpClient.delete<MentorPoolRow[]>(
+      mentorInviteUrl(programId, inviteId),
+    ),
+  );
+}
+
+export async function getMatching(programId: string) {
+  return requireSuccess(
+    await httpClient.get<MatchingOverview>(`${programUrl(programId)}/matching`),
+  );
+}
+
+export async function getMatchSuggestions(
+  programId: string,
+  organizationId: string,
+) {
+  return requireSuccess(
+    await httpClient.get<MatchSuggestions>(
+      `${programUrl(programId)}/matching/${encodeURIComponent(organizationId)}/suggestions`,
+    ),
+  );
+}
+
+export async function createMatch(
+  programId: string,
+  input: { organizationId: string; mentorId: string },
+) {
+  return requireSuccess(
+    await httpClient.post<MatchingOverview>(
+      `${programUrl(programId)}/matching`,
+      input,
     ),
   );
 }

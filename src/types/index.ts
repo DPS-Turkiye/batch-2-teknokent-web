@@ -21,10 +21,8 @@ export type {
   DashboardNotification,
   LandingAnnouncement,
   LandingFaq,
-  LandingMentorStep,
-  LandingProgram,
-  LandingTraining,
-  LandingTrainingCategory,
+  LandingHowStep,
+  LandingLink,
 } from "@/types/landing";
 export { MentorRequestStep } from "@/types/mentor-request";
 export { LoginFlowStep, LoginRoleId } from "@/interfaces/login";

@@ -9,6 +9,7 @@ import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   addCoordinator,
   getCoordinatorCandidate,
+  resendCoordinatorPasswordSetup,
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -17,6 +18,7 @@ vi.mock("@/lib/client/admin-coordinators", () => ({
   getCoordinatorCandidate: vi.fn(),
   addCoordinator: vi.fn(),
   setCoordinatorAccess: vi.fn(),
+  resendCoordinatorPasswordSetup: vi.fn(),
 }));
 
 const account = {
@@ -142,6 +144,27 @@ describe("CoordinatorAccessControl", () => {
       screen.getByRole("button", { name: "Yeniden etkinleştir" }),
     );
     expect(setCoordinatorAccess).toHaveBeenLastCalledWith("c-1", true);
+  });
+
+  it("resends the password setup email, only while the coordinator is active", async () => {
+    vi.mocked(resendCoordinatorPasswordSetup).mockResolvedValue(account);
+    const user = userEvent.setup();
+    const { unmount } = renderWithQueryClient(
+      <CoordinatorAccessControl id="c-1" status={UserAccountStatus.Approved} />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Şifre e-postasını tekrar gönder" }),
+    );
+    expect(resendCoordinatorPasswordSetup).toHaveBeenCalledWith("c-1");
+    unmount();
+
+    renderWithQueryClient(
+      <CoordinatorAccessControl id="c-1" status={UserAccountStatus.Rejected} />,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Şifre e-postasını tekrar gönder" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows nothing for an account still waiting for approval", () => {

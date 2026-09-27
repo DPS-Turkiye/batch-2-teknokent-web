@@ -251,14 +251,14 @@ export function setupSteps(
           ? `${detail.program.mentorCount} mentor havuzda`
           : "Henüz mentor yok",
       done: detail.program.mentorCount > 0,
-      link: { label: "Mentor davet et", href: null },
+      link: { label: "Mentor davet et", href: `${base}/mentors` },
     },
     {
       key: "matching",
       title: "Eşleşmeleri başlat",
       detail: "Havuz hazır olunca öneriler açılır",
       done: detail.program.activeMentorshipCount > 0,
-      link: null,
+      link: { label: "Eşleştir", href: `${base}/matching` },
     },
   ];
   return steps.every((step) => step.done) ? null : steps;
