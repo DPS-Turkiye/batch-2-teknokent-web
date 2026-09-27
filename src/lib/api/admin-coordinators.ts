@@ -38,3 +38,11 @@ export function setCoordinatorAccess(
     data: { actorId, active },
   });
 }
+
+export function resendCoordinatorPasswordSetup(actorId: string, id: string) {
+  return backendRequest<CoordinatorAccount>({
+    method: "POST",
+    url: `${BASE}/${encodeURIComponent(id)}/password-setup`,
+    params: { actorId },
+  });
+}

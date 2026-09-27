@@ -30,3 +30,12 @@ export async function setCoordinatorAccess(id: string, active: boolean) {
     ),
   );
 }
+
+export async function resendCoordinatorPasswordSetup(id: string) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorAccount>(
+      `${BASE}/${encodeURIComponent(id)}/password-setup`,
+      {},
+    ),
+  );
+}
