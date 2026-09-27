@@ -295,7 +295,7 @@ function InviteDialog({ pool }: { pool: Pool }) {
   return (
     <dialog
       open
-      className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
+      className="fixed inset-0 z-50 m-0 grid h-dvh max-h-none w-screen max-w-none place-items-center bg-black/30 p-4"
       onClick={pool.closeInvite}
     >
       <form
@@ -372,7 +372,7 @@ function ReviewDialog({
   return (
     <dialog
       open
-      className="fixed inset-0 z-50 grid place-items-center bg-black/30 p-4"
+      className="fixed inset-0 z-50 m-0 grid h-dvh max-h-none w-screen max-w-none place-items-center bg-black/30 p-4"
       onClick={onClose}
     >
       <section

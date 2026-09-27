@@ -11,6 +11,10 @@ import type {
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
+import type {
+  MatchingOverview,
+  MatchSuggestions,
+} from "@/interfaces/program-matching";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -222,6 +226,35 @@ export async function cancelMentorInvite(programId: string, inviteId: string) {
   return requireSuccess(
     await httpClient.delete<MentorPoolRow[]>(
       mentorInviteUrl(programId, inviteId),
+    ),
+  );
+}
+
+export async function getMatching(programId: string) {
+  return requireSuccess(
+    await httpClient.get<MatchingOverview>(`${programUrl(programId)}/matching`),
+  );
+}
+
+export async function getMatchSuggestions(
+  programId: string,
+  organizationId: string,
+) {
+  return requireSuccess(
+    await httpClient.get<MatchSuggestions>(
+      `${programUrl(programId)}/matching/${encodeURIComponent(organizationId)}/suggestions`,
+    ),
+  );
+}
+
+export async function createMatch(
+  programId: string,
+  input: { organizationId: string; mentorId: string },
+) {
+  return requireSuccess(
+    await httpClient.post<MatchingOverview>(
+      `${programUrl(programId)}/matching`,
+      input,
     ),
   );
 }

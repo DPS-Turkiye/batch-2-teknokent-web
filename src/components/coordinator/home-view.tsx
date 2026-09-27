@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
@@ -324,6 +326,8 @@ function ActionsSection({
                   name={team.name}
                   detail={team.programName}
                   days={team.waitingDays}
+                  href={`/coordinator/programs/${encodeURIComponent(team.programId)}/matching?team=${encodeURIComponent(team.organizationId)}`}
+                  action="Eşleştir"
                 />
               ))}
             </ActionRow>
@@ -392,10 +396,14 @@ function ActionItemLine({
   name,
   detail,
   days,
+  href,
+  action,
 }: {
   name: string;
   detail: string;
   days?: number;
+  href?: string;
+  action?: string;
 }) {
   return (
     <li className="flex items-center gap-3 rounded-xl border-b border-[#f0f2f4] px-3 py-2.5 last:border-0">
@@ -411,6 +419,14 @@ function ActionItemLine({
         <StatusChip tone={days >= 4 ? "red" : days >= 2 ? "amber" : "neutral"}>
           {days === 0 ? "bugün" : `${days} gündür bekliyor`}
         </StatusChip>
+      ) : null}
+      {href && action ? (
+        <Link
+          href={href}
+          className="rounded-full bg-[#22262b] px-3 py-1.5 text-[12px] font-medium text-white"
+        >
+          {action}
+        </Link>
       ) : null}
     </li>
   );

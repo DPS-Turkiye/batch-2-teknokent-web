@@ -84,8 +84,8 @@ describe("coordinator program detail", () => {
       "/coordinator/programs/program-1/mentors",
     );
     expect(screen.getByRole("tab", { name: /Eşleşmeler/ })).toHaveAttribute(
-      "aria-disabled",
-      "true",
+      "href",
+      "/coordinator/programs/program-1/matching",
     );
   });
 
