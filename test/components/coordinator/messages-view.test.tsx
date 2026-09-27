@@ -13,6 +13,10 @@ import {
 } from "@/lib/client/coordinator-conversations";
 import { getCoordinatorMentorships } from "@/lib/client/coordinator-mentorships";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
+import {
+  getProgramAnnouncements,
+  postProgramAnnouncement,
+} from "@/lib/client/program-announcements";
 import { getProgramDetail } from "@/lib/client/programs";
 import {
   coordinatorConversation,
@@ -20,6 +24,7 @@ import {
 } from "@test/fixtures/coordinator-conversations";
 import { coordinatorMentorship } from "@test/fixtures/coordinator-mentorships";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
+import { programAnnouncement } from "@test/fixtures/program-announcements";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-conversations", () => ({
@@ -33,6 +38,10 @@ vi.mock("@/lib/client/coordinator-mentorships", () => ({
 }));
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorPrograms: vi.fn(),
+}));
+vi.mock("@/lib/client/program-announcements", () => ({
+  getProgramAnnouncements: vi.fn(),
+  postProgramAnnouncement: vi.fn(),
 }));
 vi.mock("@/lib/client/programs", () => ({
   getProgramDetail: vi.fn(),
@@ -57,6 +66,12 @@ describe("CoordinatorMessagesView", () => {
     ]);
     vi.mocked(getCoordinatorConversations).mockResolvedValue([ayse, lumen]);
     vi.mocked(getCoordinatorMessages).mockResolvedValue([coordinatorMessage()]);
+    vi.mocked(getProgramAnnouncements).mockResolvedValue([
+      programAnnouncement(),
+    ]);
+    vi.mocked(postProgramAnnouncement).mockResolvedValue(
+      programAnnouncement({ id: "announcement-2" }),
+    );
   });
 
   it("lists the threads with the unread and risk summary", async () => {
@@ -202,5 +217,29 @@ describe("CoordinatorMessagesView", () => {
       mentorId: null,
     });
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("posts a program-wide announcement from the Duyurular filter", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<CoordinatorMessagesView link={noLink} />);
+
+    await user.click(await screen.findByRole("button", { name: "Duyurular" }));
+    await user.click(
+      await screen.findByRole("button", { name: /METU Stars 2026 — Duyuru/ }),
+    );
+
+    expect(screen.getAllByText("42 takım · 28 mentor").length).toBeGreaterThan(
+      0,
+    );
+    await user.type(
+      screen.getByLabelText("Duyuru"),
+      "Demo Day 12 Ekim'de yapılacak",
+    );
+    await user.click(screen.getByRole("button", { name: "Duyur" }));
+
+    expect(postProgramAnnouncement).toHaveBeenCalledWith(
+      "program-1",
+      "Demo Day 12 Ekim'de yapılacak",
+    );
   });
 });

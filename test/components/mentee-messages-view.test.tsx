@@ -10,6 +10,10 @@ import {
   coordinatorMessage,
   programThreadsStub,
 } from "@test/fixtures/coordinator-conversations";
+import {
+  myAnnouncementsStub,
+  programAnnouncement,
+} from "@test/fixtures/program-announcements";
 import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -22,6 +26,7 @@ vi.mock("@/hooks/use-mentee-messages", () => ({
 }));
 
 const select = vi.fn();
+const openProgramThread = vi.fn();
 
 function mockMessages(overrides: Record<string, unknown> = {}) {
   const request = menteeRequestFixture({
@@ -44,6 +49,9 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
       isSending: false,
     },
     programThreads: programThreadsStub(),
+    announcements: myAnnouncementsStub(),
+    openProgramThread,
+    openAnnouncements: vi.fn(),
     select,
     viewerUserId: "mentee-1",
     ...overrides,
@@ -66,13 +74,11 @@ describe("MenteeMessagesView", () => {
   it("lists coordinator threads and opens one in place of the mentorship", async () => {
     const user = userEvent.setup();
     const thread = coordinatorConversation();
-    const open = vi.fn();
     mockMessages({
       programThreads: programThreadsStub({
         threads: [thread],
         openId: thread.id,
         active: thread,
-        open,
         messages: [coordinatorMessage({ body: "Demo Day tarihi belli oldu" })],
       }),
     });
@@ -90,11 +96,43 @@ describe("MenteeMessagesView", () => {
     await user.click(
       within(list).getByRole("button", { name: /METU Stars 2026/ }),
     );
-    expect(open).toHaveBeenCalledWith(thread.id);
+    expect(openProgramThread).toHaveBeenCalledWith(thread.id);
 
     await user.click(
       within(list).getByRole("button", { name: /Barış Öztürk/ }),
     );
     expect(select).toHaveBeenCalledWith("r1");
+  });
+
+  it("shows the program's announcements read-only", async () => {
+    const user = userEvent.setup();
+    const openAnnouncements = vi.fn();
+    const announcement = programAnnouncement();
+    const thread = {
+      programId: "program-1",
+      programName: "METU Stars 2026",
+      latest: announcement,
+      announcements: [announcement],
+    };
+    mockMessages({
+      announcements: myAnnouncementsStub({
+        threads: [thread],
+        openProgramId: "program-1",
+        active: thread,
+      }),
+      openAnnouncements,
+    });
+    render(<MenteeMessagesView />);
+
+    expect(
+      screen.getByRole("heading", { name: "METU Stars 2026 — Duyuru" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Duyuru")).not.toBeInTheDocument();
+    await user.click(
+      within(screen.getByRole("complementary")).getByRole("button", {
+        name: /METU Stars 2026 — Duyuru/,
+      }),
+    );
+    expect(openAnnouncements).toHaveBeenCalledWith("program-1");
   });
 });

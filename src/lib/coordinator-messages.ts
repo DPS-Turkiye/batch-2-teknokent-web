@@ -12,6 +12,7 @@ export enum MessageFilter {
   All = "ALL",
   Mentors = "MENTORS",
   Teams = "TEAMS",
+  Announcements = "ANNOUNCEMENTS",
 }
 
 export const COUNTERPART_LABELS: Record<
@@ -23,7 +24,7 @@ export const COUNTERPART_LABELS: Record<
 };
 
 const COUNTERPART_OF_FILTER: Record<
-  Exclude<MessageFilter, MessageFilter.All>,
+  Exclude<MessageFilter, MessageFilter.All | MessageFilter.Announcements>,
   CoordinatorConversationCounterpart
 > = {
   [MessageFilter.Mentors]: CoordinatorConversationCounterpart.Mentor,
@@ -57,6 +58,7 @@ export function messageFilterOptions(
       id: MessageFilter.Teams,
       label: `Takımlar ${unread(CoordinatorConversationCounterpart.Team)}`,
     },
+    { id: MessageFilter.Announcements, label: "Duyurular" },
   ];
 }
 
@@ -68,6 +70,7 @@ export function filterConversations(
     programId,
   }: { filter: MessageFilter; search: string; programId: string | null },
 ) {
+  if (filter === MessageFilter.Announcements) return [];
   const needle = search.trim().toLocaleLowerCase("tr");
   return conversations.filter(
     (item) =>

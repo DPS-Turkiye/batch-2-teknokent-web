@@ -15,6 +15,7 @@ import {
   coordinatorMessage,
   programThreadsStub,
 } from "@test/fixtures/coordinator-conversations";
+import { myAnnouncementsStub } from "@test/fixtures/program-announcements";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -76,6 +77,7 @@ function conversation(
 }
 
 const select = vi.fn();
+const openProgramThread = vi.fn();
 const sendMessage = vi.fn().mockResolvedValue(undefined);
 const setMessage = vi.fn();
 const shareFile = vi.fn().mockResolvedValue(undefined);
@@ -112,6 +114,9 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
       error: null,
     },
     programThreads: programThreadsStub(),
+    announcements: myAnnouncementsStub(),
+    openProgramThread,
+    openAnnouncements: vi.fn(),
     select,
     viewerUserId: VIEWER,
     ...overrides,

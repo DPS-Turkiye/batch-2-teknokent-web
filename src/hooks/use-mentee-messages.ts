@@ -13,6 +13,7 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { useMyAnnouncements } from "@/hooks/use-program-announcements";
 import { useProgramThreads } from "@/hooks/use-program-threads";
 
 export function useMenteeMessages() {
@@ -20,6 +21,7 @@ export function useMenteeMessages() {
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const programThreads = useProgramThreads();
+  const announcements = useMyAnnouncements();
   const conversations = useMemo<MentorshipRequest[]>(
     () =>
       (requestsQuery.data ?? []).filter(
@@ -41,8 +43,18 @@ export function useMenteeMessages() {
     isLoading: requestsQuery.isLoading,
     messageForm: useReplyForm(activeId),
     programThreads,
+    announcements,
+    openProgramThread: (id: string) => {
+      announcements.close();
+      programThreads.open(id);
+    },
+    openAnnouncements: (programId: string) => {
+      programThreads.close();
+      announcements.open(programId);
+    },
     select: (id: string) => {
       programThreads.close();
+      announcements.close();
       setSelectedId(id);
     },
     viewerUserId: session?.userId ?? "",
