@@ -4,7 +4,12 @@ import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import {
+  ProgramThreadList,
+  ProgramThreadPane,
+} from "@/components/program-threads";
 import { useMenteeMessages } from "@/hooks/use-mentee-messages";
+import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type {
   MentorshipRequest,
   RequestMessage,
@@ -12,6 +17,8 @@ import type {
 import { sharedFileName } from "@/lib/mentorship-messages";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+
+const ACCENT = { strong: "#e86f22", soft: "#fdebdd" };
 
 function lastMessage(request: MentorshipRequest) {
   return request.messages.at(-1) ?? null;
@@ -36,11 +43,13 @@ function ConversationList({
   activeId,
   isLoading,
   onSelect,
+  programThreads,
 }: {
   conversations: MentorshipRequest[];
   activeId: string | null;
   isLoading: boolean;
   onSelect: (id: string) => void;
+  programThreads: ProgramThreads;
 }) {
   const [search, setSearch] = useState("");
   const shown = useMemo(() => {
@@ -122,6 +131,11 @@ function ConversationList({
             : "Mesajlaşma, bir mentorluk kabul edildiğinde açılır."}
         </p>
       )}
+      <ProgramThreadList
+        threads={programThreads}
+        accent={ACCENT}
+        onSelect={programThreads.open}
+      />
     </aside>
   );
 }
@@ -174,6 +188,14 @@ function Conversation({
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const active = messages.active;
+  if (messages.programThreads.active)
+    return (
+      <ProgramThreadPane
+        threads={messages.programThreads}
+        accent={ACCENT}
+        className="h-full"
+      />
+    );
   if (!active)
     return (
       <section className="grid h-full place-items-center text-sm text-[#666b75]">
@@ -275,9 +297,10 @@ export function MenteeMessagesView() {
       <main className="mx-auto grid h-[calc(100vh-106px)] min-h-[620px] w-full max-w-[1440px] grid-cols-[360px_minmax(0,1fr)] overflow-hidden border-x border-[#e4e7ea] max-md:grid-cols-1">
         <ConversationList
           conversations={messages.conversations}
-          activeId={messages.activeId}
+          activeId={messages.programThreads.active ? null : messages.activeId}
           isLoading={messages.isLoading}
           onSelect={messages.select}
+          programThreads={messages.programThreads}
         />
         <Conversation messages={messages} />
       </main>

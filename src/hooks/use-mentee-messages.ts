@@ -13,11 +13,13 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { useProgramThreads } from "@/hooks/use-program-threads";
 
 export function useMenteeMessages() {
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const programThreads = useProgramThreads();
   const conversations = useMemo<MentorshipRequest[]>(
     () =>
       (requestsQuery.data ?? []).filter(
@@ -38,7 +40,11 @@ export function useMenteeMessages() {
     fileUpload: useRequestFileUpload(activeId, UserRole.Mentee),
     isLoading: requestsQuery.isLoading,
     messageForm: useReplyForm(activeId),
-    select: setSelectedId,
+    programThreads,
+    select: (id: string) => {
+      programThreads.close();
+      setSelectedId(id);
+    },
     viewerUserId: session?.userId ?? "",
   };
 }
