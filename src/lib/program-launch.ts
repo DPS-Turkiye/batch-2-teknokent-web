@@ -258,7 +258,7 @@ export function setupSteps(
       title: "Eşleşmeleri başlat",
       detail: "Havuz hazır olunca öneriler açılır",
       done: detail.program.activeMentorshipCount > 0,
-      link: null,
+      link: { label: "Eşleştir", href: `${base}/matching` },
     },
   ];
   return steps.every((step) => step.done) ? null : steps;

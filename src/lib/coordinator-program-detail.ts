@@ -28,7 +28,6 @@ export const SETTINGS_SECTION_LABELS: Record<SettingsSection, string> = {
   [SettingsSection.Archive]: "Arşiv",
 };
 
-/** Eşleşmeler arrives with flow 03.2; until then it has no link. */
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
@@ -51,7 +50,7 @@ export function programTabs(
     {
       id: ProgramTab.Matching,
       label: "Eşleşmeler",
-      href: null,
+      href: `${base}/matching`,
       count: detail.program.awaitingMatchCount,
     },
     {
@@ -121,7 +120,10 @@ export function overviewActions(
         ? `en eskisi ${oldest.waitingDays} gün · ${oldest.name}`
         : "mentor ataması yapılmadı",
       tone: "orange",
-      target: { label: "Eşleşmeler", href: null },
+      target: {
+        label: "Eşleşmeler",
+        href: `/coordinator/programs/${encodeURIComponent(detail.program.id)}/matching`,
+      },
     });
   }
   if (detail.mentors.pending > 0) {

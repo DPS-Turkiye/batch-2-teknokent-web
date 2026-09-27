@@ -13,6 +13,10 @@ import type {
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
+import type {
+  MatchingOverview,
+  MatchSuggestions,
+} from "@/interfaces/program-matching";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchCoordinatorPrograms(actorId: string) {
@@ -253,5 +257,37 @@ export function cancelMentorInvite(
     method: "DELETE",
     url: `${programUrl(programId)}/mentor-invites/${encodeURIComponent(inviteId)}`,
     params: { actorId },
+  });
+}
+
+export function fetchMatching(actorId: string, programId: string) {
+  return backendRequest<MatchingOverview>({
+    method: "GET",
+    url: `${programUrl(programId)}/matching`,
+    params: { actorId },
+  });
+}
+
+export function fetchMatchSuggestions(
+  actorId: string,
+  programId: string,
+  organizationId: string,
+) {
+  return backendRequest<MatchSuggestions>({
+    method: "GET",
+    url: `${programUrl(programId)}/matching/${encodeURIComponent(organizationId)}/suggestions`,
+    params: { actorId },
+  });
+}
+
+export function createMatch(
+  actorId: string,
+  programId: string,
+  input: { organizationId: string; mentorId: string },
+) {
+  return backendRequest<MatchingOverview>({
+    method: "POST",
+    url: `${programUrl(programId)}/matching`,
+    data: { ...input, actorId },
   });
 }
