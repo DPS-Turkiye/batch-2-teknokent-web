@@ -4,6 +4,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
+import { useCoordinatorNotes } from "@/hooks/use-coordinator-notes";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import {
   getCoordinatorMentorship,
@@ -93,10 +94,17 @@ export function useCoordinatorMentorshipDrawer(id: string) {
     mutationFn: () => remindCoordinatorMentorship(id),
   });
   const proposals = useMentorshipMeetingProposals(id);
+  const notes = useCoordinatorNotes(id);
 
   return {
     query,
     proposals,
+    notes,
+    /** The footer's "Koordinatör notu ekle": opens the composer on the Özet tab, where the notes live. */
+    addNote: () => {
+      setTab(MentorshipDrawerTab.Summary);
+      notes.openComposer();
+    },
     tab,
     setTab,
     remind: () => remind.mutate(),
