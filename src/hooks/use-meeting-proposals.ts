@@ -127,6 +127,7 @@ export function useMentorshipMeetingProposals(
   return {
     query: proposals,
     open,
+    latest: list[0] ?? null,
     declined: open ? null : lastDeclined(list),
     composing,
     openComposer: () => {

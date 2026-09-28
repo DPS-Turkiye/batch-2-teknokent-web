@@ -5,8 +5,10 @@ import {
   MatchNeedSource,
   type WaitingTeam,
 } from "@/interfaces/program-matching";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import {
   filterPool,
+  findMatch,
   isFull,
   loadAfterMatch,
   needLabel,
@@ -50,5 +52,22 @@ describe("program matching helpers", () => {
     expect(filterPool([candidate], "pazar")).toEqual([candidate]);
     expect(filterPool([candidate], "hukuk")).toEqual([]);
     expect(filterPool([candidate], "  ")).toEqual([]);
+  });
+
+  it("finds the mentorship a match just created", () => {
+    const match = {
+      mentorshipId: "m-new",
+      organizationId: "terra",
+      teamName: "Terra",
+      mentorId: "nihan",
+      mentorName: "Nihan Öztürk",
+      status: MentorshipStatus.Active,
+      startDate: "2026-09-27",
+      endDate: null,
+    };
+    const overview = { waiting: [], active: [match], past: [] };
+
+    expect(findMatch(overview, "terra", "nihan")?.mentorshipId).toBe("m-new");
+    expect(findMatch(overview, "terra", "kerem")).toBeNull();
   });
 });

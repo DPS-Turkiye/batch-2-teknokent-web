@@ -12,15 +12,26 @@ import {
   getMatching,
   getMatchSuggestions,
 } from "@/lib/client/coordinator-programs";
-import { filterPool, MatchTab } from "@/lib/program-matching";
-import { errorMessage } from "@/lib/utils";
+import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
+import { proposeMeeting } from "@/lib/client/meeting-proposals";
+import { defaultProposalStart } from "@/lib/meeting-proposals";
+import {
+  filterPool,
+  findMatch,
+  type FirstSteps,
+  INTRO_AGENDA,
+  INTRO_MEETING_MINUTES,
+  MatchTab,
+} from "@/lib/program-matching";
+import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
 
 export const matchingQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "matching"] as const;
 
 /**
  * Eşleşmeler: pick a waiting team, look at the pool mentors ranked for it (or search the pool by hand), and
- * confirm a match. The team from the Anasayfa link starts selected.
+ * confirm a match, optionally proposing the first meeting and leaving a coordinator note. The team from the
+ * Anasayfa link starts selected; a confirmed match opens its "İlk adımlar" drawer.
  */
 export function useProgramMatching(programId: string, initialTeamId?: string) {
   const queryClient = useQueryClient();
@@ -33,6 +44,14 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
     team: string;
     mentor: string;
   } | null>(null);
+  const [introOn, setIntroOn] = useState(false);
+  const [introAt, setIntroAt] = useState(() =>
+    toDateTimeLocalValue(defaultProposalStart()),
+  );
+  const [noteOn, setNoteOn] = useState(false);
+  const [note, setNote] = useState("");
+  const [firstSteps, setFirstSteps] = useState<FirstSteps | null>(null);
+  const [firstStepsOpen, setFirstStepsOpen] = useState(false);
 
   const overview = useQuery({
     queryKey: matchingQueryKey(programId),
@@ -49,13 +68,60 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
   });
 
   const match = useMutation({
-    mutationFn: (candidate: MatchCandidate) =>
-      createMatch(programId, {
+    mutationFn: async (candidate: MatchCandidate) => {
+      const next = await createMatch(programId, {
         organizationId: team!.organizationId,
         mentorId: candidate.mentorId,
-      }),
-    onSuccess: (next, candidate) => {
+      });
+      const created = findMatch(next, team!.organizationId, candidate.mentorId);
+      const trimmedNote = note.trim();
+      const followUps = created
+        ? await Promise.allSettled([
+            introOn
+              ? proposeMeeting(created.mentorshipId, {
+                  scheduledAt: new Date(introAt).toISOString(),
+                  durationMinutes: INTRO_MEETING_MINUTES,
+                  agenda: INTRO_AGENDA,
+                  replacesMeetingId: null,
+                })
+              : null,
+            noteOn && trimmedNote
+              ? addCoordinatorNote(created.mentorshipId, trimmedNote)
+              : null,
+          ])
+        : [];
+      return {
+        next,
+        mentorshipId: created?.mentorshipId ?? null,
+        followUpFailed: followUps.some(
+          (result) => result.status === "rejected",
+        ),
+      };
+    },
+    onSuccess: ({ next, mentorshipId, followUpFailed }, candidate) => {
       queryClient.setQueryData(matchingQueryKey(programId), next);
+      if (mentorshipId) {
+        setFirstSteps({
+          mentorshipId,
+          teamName: team!.name,
+          leadName: team!.leadName,
+          mentorId: candidate.mentorId,
+          mentorName: candidate.fullName,
+          mentorLoad: `${candidate.activeTeams + 1}/${candidate.capacity} yük`,
+          matchedAt: new Date().toISOString(),
+        });
+        setFirstStepsOpen(true);
+      }
+      setIntroOn(false);
+      setNoteOn(false);
+      setNote("");
+      if (followUpFailed) {
+        showToast({
+          message:
+            "Eşleşme oluşturuldu, ama tanışma önerisi ya da not kaydedilemedi.",
+          tone: "error",
+        });
+      }
       void queryClient.invalidateQueries({
         queryKey: coordinatorProgramQueryKey(programId),
         exact: true,
@@ -100,5 +166,17 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
     confirm: () => confirming && match.mutate(confirming),
     matching: match.isPending,
     matched,
+    introOn,
+    setIntroOn,
+    introAt,
+    setIntroAt,
+    noteOn,
+    setNoteOn,
+    note,
+    setNote,
+    firstSteps: firstStepsOpen ? firstSteps : null,
+    hasFirstSteps: Boolean(firstSteps),
+    openFirstSteps: () => setFirstStepsOpen(true),
+    closeFirstSteps: () => setFirstStepsOpen(false),
   };
 }
