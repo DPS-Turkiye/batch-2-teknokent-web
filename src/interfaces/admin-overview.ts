@@ -3,8 +3,10 @@ export type AdminProgram = {
   name: string;
   status: "ACTIVE" | "COMPLETED";
   createdAt: string;
-  coordinatorId: string;
-  coordinatorName: string;
+  /** The first assigned coordinator; null until one is assigned (an admin who created it doesn't count). */
+  coordinatorId: string | null;
+  /** Every assigned coordinator, comma-separated; null until one is assigned. */
+  coordinatorName: string | null;
   startupCount: number;
   acceptedMentorCount: number;
   pendingMentorCount: number;

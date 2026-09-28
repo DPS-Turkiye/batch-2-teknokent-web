@@ -525,7 +525,7 @@ function PairDetail({
       <div className="mt-5 flex flex-wrap gap-2">
         <Link
           href={
-            program
+            program?.coordinatorId
               ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
               : "/admin/users"
           }

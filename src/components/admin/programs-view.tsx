@@ -21,6 +21,10 @@ import {
 } from "@/hooks/use-admin-overview";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
+import {
+  programCoordinatorLabel,
+  programCoordinatorsHref,
+} from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
@@ -64,7 +68,10 @@ export function ProgramsView() {
       if (filter === "Tamamlanan" && program.status !== "COMPLETED")
         return false;
       if (filter === "Yaklaşan") return false;
-      if (coordinator !== "Tümü" && program.coordinatorName !== coordinator)
+      if (
+        coordinator !== "Tümü" &&
+        programCoordinatorLabel(program) !== coordinator
+      )
         return false;
       return program.name
         .toLocaleLowerCase("tr")
@@ -90,7 +97,9 @@ export function ProgramsView() {
   };
   const coordinators = [
     "Tümü",
-    ...new Set(data.programs.map((program) => program.coordinatorName)),
+    ...new Set(
+      data.programs.map((program) => programCoordinatorLabel(program)),
+    ),
   ];
 
   return (
@@ -233,13 +242,15 @@ function ProgramRow({
         <IssuePill count={issues} />
       </span>
       <span className="flex min-w-0 items-center gap-2">
-        <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-white bg-[#fbe2d0] text-[10px] font-semibold text-[#a8480e]">
-          {initials(program.coordinatorName)}
-        </span>
+        {program.coordinatorName ? (
+          <span className="grid size-7 shrink-0 place-items-center rounded-full border-2 border-white bg-[#fbe2d0] text-[10px] font-semibold text-[#a8480e]">
+            {initials(program.coordinatorName)}
+          </span>
+        ) : null}
         <span
-          className={`truncate text-[13px] leading-[1.3] ${missingAccess ? "text-[#b7791f]" : "text-[#22262b]"}`}
+          className={`truncate text-[13px] leading-[1.3] ${missingAccess || !program.coordinatorName ? "text-[#b7791f]" : "text-[#22262b]"}`}
         >
-          {program.coordinatorName}
+          {programCoordinatorLabel(program)}
         </span>
         {missingAccess ? (
           <span className="shrink-0 rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium text-[#b7791f]">
@@ -266,6 +277,12 @@ function ProgramRow({
         <HealthBar green={health.green} amber={health.amber} red={health.red} />
       </span>
       <span className="flex items-center justify-end gap-1">
+        <Link
+          href={programCoordinatorsHref(program.id)}
+          className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium whitespace-nowrap text-[#22262b]"
+        >
+          {program.coordinatorName ? "Koordinatörler" : "Koordinatör ata"}
+        </Link>
         <Link
           href={`/programs/${program.id}`}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium text-[#22262b]"

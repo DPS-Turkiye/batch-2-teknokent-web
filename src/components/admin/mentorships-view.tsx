@@ -25,6 +25,7 @@ import type {
   AdminRequest,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import { initials } from "@/lib/utils";
 
 export type MentorshipTab = "overview" | "interventions" | "matching";
@@ -972,11 +973,11 @@ function CoordinatorName({
   return (
     <span className="flex min-w-0 items-center gap-2">
       <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[10px] font-semibold text-[#ffab3d]">
-        {initials(program.coordinatorName)}
+        {initials(programCoordinatorLabel(program))}
       </span>
       <span className="min-w-0">
         <span className="block truncate text-[13px] text-[#22262b]">
-          {program.coordinatorName}
+          {programCoordinatorLabel(program)}
         </span>
         {missing ? (
           <span className="block text-[12px] text-[#b7791f]">erişim yok</span>
