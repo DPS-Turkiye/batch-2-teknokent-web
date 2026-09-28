@@ -1,14 +1,13 @@
 import Image from "next/image";
 import { ReactNode } from "react";
 
-import { MentonLogo } from "@/components/onboarding/onboarding-layout";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 
 export function AuthHeader() {
   return (
     <header className="border-b border-[#dee2e6] bg-white">
       <div className="mx-auto flex h-[60px] max-w-[1376px] items-center px-4 sm:px-8">
-        <MentonLogo tone={OnboardingTone.Mentee} />
+        <MentonWordmark />
       </div>
     </header>
   );

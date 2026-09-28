@@ -6,6 +6,7 @@ import { LogOut, Menu, X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AdminIcon } from "@/components/admin/admin-ui";
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
 import {
   useAppSession,
@@ -97,12 +98,7 @@ function RoleShell({
     <div className="min-h-screen bg-white text-[#22262b]">
       <header className="sticky top-0 z-40 border-b border-transparent bg-white/95 backdrop-blur">
         <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:h-[106px] sm:px-8 lg:px-12">
-          <Link
-            href={homeHref}
-            className="text-[28px] font-bold leading-[1.3] tracking-[-0.84px] text-[#898989] sm:text-[32px] sm:tracking-[-0.96px]"
-          >
-            menton
-          </Link>
+          <MentonWordmark href={homeHref} />
           <nav
             aria-label={menuLabel}
             className="hidden items-center gap-1 rounded-full border border-[#f0f2f4] bg-[#fcfcfd] p-2 shadow-[0_8px_24px_rgba(33,38,43,0.06)] lg:flex"

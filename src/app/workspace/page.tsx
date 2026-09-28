@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { Brand } from "@/components/brand";
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { useAppSession } from "@/components/providers/session-provider";
 import { workspaceForSession } from "@/lib/role-workspace";
 
@@ -27,7 +27,7 @@ export default function WorkspacePage() {
     <div className="min-h-screen bg-zinc-100">
       <header className="border-b border-zinc-200 bg-white">
         <div className="mx-auto flex min-h-16 max-w-[1180px] items-center px-4 sm:px-6 lg:px-8">
-          <Brand />
+          <MentonWordmark />
         </div>
       </header>
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1180px] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">

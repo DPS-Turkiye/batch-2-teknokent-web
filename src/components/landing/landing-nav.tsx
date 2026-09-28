@@ -7,7 +7,6 @@ import { LANDING_HERO, LANDING_NAV_LINKS } from "@/lib/const/landing";
 export function LandingLogo({ withTag = false }: { withTag?: boolean }) {
   return (
     <a className={cx("logo")} href="#top" aria-label="menton ana sayfa">
-      <span className={cx("mark")} />
       menton
       {withTag ? <small>{LANDING_HERO.eyebrow}</small> : null}
     </a>

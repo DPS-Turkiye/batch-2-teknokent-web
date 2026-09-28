@@ -237,40 +237,7 @@
   font-weight: 800;
   font-size: 21px;
   letter-spacing: -0.045em;
-}
-.mark {
-  width: 24px;
-  height: 24px;
-  position: relative;
-  display: inline-block;
-  flex: none;
-}
-.mark::before,
-.mark::after {
-  content: "";
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 26px;
-  height: 7.5px;
-  border-radius: 4px;
-}
-.mark::before {
-  background: var(--bl);
-  transform: translate(-50%, -50%) rotate(45deg);
-}
-.mark::after {
-  background: var(--or);
-  transform: translate(-50%, -50%) rotate(-45deg);
-  opacity: 0.92;
-}
-.logo:hover .mark {
-  animation: spin 0.8s var(--ease);
-}
-@keyframes spin {
-  to {
-    transform: rotate(180deg);
-  }
+  color: #898989;
 }
 .logo small {
   font-size: 11px;

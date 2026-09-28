@@ -6,8 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
-import { MentonLogo } from "@/components/onboarding/onboarding-layout";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { safeNextPath } from "@/lib/public-paths";
 
@@ -52,7 +51,7 @@ export function LoginFlowView() {
   return (
     <div className="flex min-h-screen bg-white text-[#111827]">
       <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
-        <MentonLogo tone={OnboardingTone.Mentee} />
+        <MentonWordmark />
         <div className="flex flex-1 items-center justify-center py-8">
           <form
             onSubmit={submitLogin}

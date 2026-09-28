@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 
 import {
   ONBOARDING_HELP_HREF,
@@ -10,45 +11,11 @@ import {
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 
-export function MentonLogo({ tone }: { tone?: OnboardingTone }) {
-  return (
-    <Link
-      href="/"
-      className="flex items-center gap-2"
-      aria-label="menton ana sayfa"
-    >
-      <span className="relative h-[29px] w-14 shrink-0" aria-hidden>
-        <Image
-          src="/mentee-dashboard/revised/logo-blue.svg"
-          alt=""
-          width={56}
-          height={29}
-          className="absolute inset-0 size-full"
-        />
-        <Image
-          src="/mentee-dashboard/revised/logo-orange.svg"
-          alt=""
-          width={30}
-          height={29}
-          className="absolute left-[13px] top-0 h-[29px] w-[30px]"
-        />
-      </span>
-      <span
-        className={`text-[28px] font-bold tracking-[0.04em] ${tone ? ONBOARDING_TONES[tone].text : "text-[#7d8189]"}`}
-      >
-        menton
-      </span>
-    </Link>
-  );
-}
-
 export function OnboardingTopbar({
-  tone,
   exitLabel,
   onExit,
   exiting = false,
 }: {
-  tone?: OnboardingTone;
   exitLabel?: string;
   onExit?: () => void;
   exiting?: boolean;
@@ -56,7 +23,7 @@ export function OnboardingTopbar({
   return (
     <header className="border-b border-[#eceef0] bg-white">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-[14px] sm:px-8 lg:px-[120px]">
-        <MentonLogo tone={tone} />
+        <MentonWordmark />
         <nav className="flex items-center gap-5 text-[13px] leading-5">
           <a
             href={ONBOARDING_HELP_HREF}

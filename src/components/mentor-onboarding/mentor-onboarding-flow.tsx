@@ -87,7 +87,6 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
     <OnboardingLayout
       topbar={
         <OnboardingTopbar
-          tone={TONE}
           exitLabel="Kaydet ve çık"
           onExit={exit}
           exiting={exiting}

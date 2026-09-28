@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="metual">
-  <rect width="32" height="32" rx="8" fill="#e5701d" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="menton">
+  <rect width="32" height="32" rx="8" fill="#898989" />
   <path
     d="M10 22.5V15.5a3 3 0 0 1 6 0v7M16 15.5a3 3 0 0 1 6 0v7"
     fill="none"

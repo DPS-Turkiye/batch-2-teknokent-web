@@ -57,7 +57,6 @@ export function OnboardingSubmittedView({
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#22262b]">
       <OnboardingTopbar
-        tone={tone}
         exitLabel="Çıkış yap"
         onExit={onSignOut}
         exiting={signingOut}
