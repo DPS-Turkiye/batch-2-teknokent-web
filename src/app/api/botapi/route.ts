@@ -8,6 +8,12 @@ import { apiErrorResponse } from "@/lib/server/api-response";
 
 export async function POST(request: NextRequest) {
   try {
+    const idToken = bearerToken(request);
+    if (!idToken)
+      return NextResponse.json(
+        { message: "Authentication is required" },
+        { status: 401 },
+      );
     const body = await request.json();
     const parsed = addBotBodySchema.safeParse(body);
 
@@ -21,7 +27,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, status } = await createMeetingBot(parsed.data);
+    const { data, status } = await createMeetingBot(parsed.data, idToken);
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
@@ -32,27 +38,29 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    const idToken = bearerToken(request);
+    if (!idToken)
+      return NextResponse.json(
+        { message: "Authentication is required" },
+        { status: 401 },
+      );
     const { searchParams } = request.nextUrl;
     const parsed = transcriptQuerySchema.safeParse({
-      platform: searchParams.get("platform"),
-      nativeMeetingId: searchParams.get("nativeMeetingId"),
+      sessionId: searchParams.get("sessionId"),
     });
 
     if (!parsed.success) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: "Assistant session is required.",
         },
         { status: 400 },
       );
     }
 
-    const { platform, nativeMeetingId } = parsed.data;
-    const { data, status } = await stopMeetingBotBackend(
-      platform,
-      nativeMeetingId,
-    );
+    const { sessionId } = parsed.data;
+    const { data, status } = await stopMeetingBotBackend(sessionId, idToken);
 
     if (status === 204) {
       return new NextResponse(null, { status: 204 });
@@ -64,4 +72,9 @@ export async function DELETE(request: NextRequest) {
       message: "Toplantı asistanı hizmetine ulaşılamıyor.",
     });
   }
+}
+
+function bearerToken(request: NextRequest) {
+  const value = request.headers.get("authorization");
+  return value?.match(/^Bearer\s+(.+)$/i)?.[1] ?? null;
 }

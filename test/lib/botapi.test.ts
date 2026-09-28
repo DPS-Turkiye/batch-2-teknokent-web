@@ -24,36 +24,37 @@ describe("assistant server lib", () => {
       status: 201,
     });
 
-    const result = await createMeetingBot({
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    const result = await createMeetingBot(
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      "verified-token",
+    );
 
     expect(backendRequest).toHaveBeenCalledWith(
       {
         method: "POST",
-        url: "/api/assistant/bots",
+        url: "/api/assistant/sessions",
         data: { meetingUrl: "https://meet.google.com/abc-defg-hij" },
       },
-      { authenticated: false },
+      { idToken: "verified-token" },
     );
     expect(result).toEqual({ data: { id: "bot-1" }, status: 201 });
   });
 
-  it("stopMeetingBotBackend URL-encodes route parameters", async () => {
+  it("stopMeetingBotBackend uses the opaque session ID", async () => {
     vi.mocked(backendRequest).mockResolvedValue({
       data: null,
       headers: {},
       status: 204,
     });
 
-    const result = await stopMeetingBotBackend("google meet", "id/with/slash");
+    const result = await stopMeetingBotBackend("session-1", "verified-token");
 
     expect(backendRequest).toHaveBeenCalledWith(
       {
         method: "DELETE",
-        url: "/api/assistant/bots/google%20meet/id%2Fwith%2Fslash",
+        url: "/api/assistant/sessions/session-1",
       },
-      { authenticated: false },
+      { idToken: "verified-token" },
     );
     expect(result).toEqual({ data: null, status: 204 });
   });
@@ -66,38 +67,38 @@ describe("assistant server lib", () => {
     });
 
     const result = await generateMeetingReportBackend(
-      "google_meet",
-      "abc-defg-hij",
+      "session-1",
       { model: "gpt-5.4" },
+      "verified-token",
     );
 
     expect(backendRequest).toHaveBeenCalledWith(
       {
         method: "POST",
-        url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
+        url: "/api/assistant/sessions/session-1/report",
         data: { model: "gpt-5.4" },
         timeout: 120000,
       },
-      { authenticated: false },
+      { idToken: "verified-token" },
     );
     expect(result).toEqual({ data: { title: "Meeting" }, status: 200 });
   });
 
-  it("fetchMeetingTranscript URL-encodes parameters", async () => {
+  it("fetchMeetingTranscript uses the opaque session ID", async () => {
     vi.mocked(backendRequest).mockResolvedValue({
       data: { segments: [] },
       headers: {},
       status: 200,
     });
 
-    const result = await fetchMeetingTranscript("google meet", "abc/def");
+    const result = await fetchMeetingTranscript("session-1", "verified-token");
 
     expect(backendRequest).toHaveBeenCalledWith(
       {
         method: "GET",
-        url: "/api/assistant/transcripts/google%20meet/abc%2Fdef",
+        url: "/api/assistant/sessions/session-1/transcript",
       },
-      { authenticated: false },
+      { idToken: "verified-token" },
     );
     expect(result).toEqual({ data: { segments: [] }, status: 200 });
   });

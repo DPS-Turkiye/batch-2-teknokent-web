@@ -17,6 +17,13 @@ import type {
   TranscriptLine,
   TranscriptSegment,
 } from "@/types/assistant";
+import { currentIdToken } from "@/lib/firebase/auth";
+
+async function authConfig() {
+  const token = await currentIdToken();
+  if (!token) throw new Error("Oturum açmanız gerekiyor.");
+  return { headers: { Authorization: `Bearer ${token}` } };
+}
 
 export type {
   AddBotResult,
@@ -71,7 +78,11 @@ function wrapAssistantError(error: unknown, fallback: string): never {
 export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
     return requireAssistantOk(
-      await httpClient.post<AddBotResult>(getBotApiUrl(), { meetingUrl }),
+      await httpClient.post<AddBotResult>(
+        getBotApiUrl(),
+        { meetingUrl },
+        await authConfig(),
+      ),
       "Toplantı asistanı gönderilemedi.",
     );
   } catch (error) {
@@ -79,13 +90,32 @@ export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   }
 }
 
+export async function fetchScheduledAssistantSession(
+  meetingId: string,
+): Promise<string> {
+  const token = await currentIdToken();
+  if (!token) throw new Error("Oturum açmanız gerekiyor.");
+  try {
+    const response = await httpClient.get<{ assistantSessionId: string }>(
+      `/api/assistant/meetings/${encodeURIComponent(meetingId)}/session`,
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return requireAssistantOk(response, "Toplantı asistanı yüklenemedi.")
+      .assistantSessionId;
+  } catch (error) {
+    wrapAssistantError(error, "Toplantı asistanı yüklenemedi.");
+  }
+}
+
 export async function stopMeetingBot(
-  platform: string,
-  nativeMeetingId: string,
+  assistantSessionId: string,
 ): Promise<void> {
   try {
     requireAssistantOk(
-      await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId)),
+      await httpClient.delete(
+        getStopBotApiUrl(assistantSessionId),
+        await authConfig(),
+      ),
       "Toplantı asistanı durdurulamadı.",
     );
   } catch (error) {
@@ -94,13 +124,13 @@ export async function stopMeetingBot(
 }
 
 export async function fetchTranscript(
-  platform: string,
-  nativeMeetingId: string,
+  assistantSessionId: string,
 ): Promise<TranscriptSegment[]> {
   try {
     const data = requireAssistantOk(
       await httpClient.get<{ segments?: TranscriptSegment[] }>(
-        getTranscriptApiUrl(platform, nativeMeetingId),
+        getTranscriptApiUrl(assistantSessionId),
+        await authConfig(),
       ),
       "Toplantı transkripti alınamadı.",
     );
@@ -111,8 +141,7 @@ export async function fetchTranscript(
 }
 
 export async function generateMeetingReport(
-  platform: string,
-  nativeMeetingId: string,
+  assistantSessionId: string,
   segments: TranscriptLine[],
 ): Promise<MeetingReport> {
   try {
@@ -122,9 +151,9 @@ export async function generateMeetingReport(
         : {};
     return requireAssistantOk(
       await httpClient.post<MeetingReport>(
-        getMeetingReportApiUrl(platform, nativeMeetingId),
+        getMeetingReportApiUrl(assistantSessionId),
         body,
-        { timeout: UPLOAD_TIMEOUT_MS },
+        { timeout: UPLOAD_TIMEOUT_MS, ...(await authConfig()) },
       ),
       "Toplantı raporu oluşturulamadı.",
     );

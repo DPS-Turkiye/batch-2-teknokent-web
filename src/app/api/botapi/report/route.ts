@@ -8,17 +8,24 @@ import { apiErrorResponse } from "@/lib/server/api-response";
 
 export async function POST(request: NextRequest) {
   try {
+    const idToken = request.headers
+      .get("authorization")
+      ?.match(/^Bearer\s+(.+)$/i)?.[1];
+    if (!idToken)
+      return NextResponse.json(
+        { message: "Authentication is required" },
+        { status: 401 },
+      );
     const { searchParams } = request.nextUrl;
     const query = transcriptQuerySchema.safeParse({
-      platform: searchParams.get("platform"),
-      nativeMeetingId: searchParams.get("nativeMeetingId"),
+      sessionId: searchParams.get("sessionId"),
     });
 
     if (!query.success) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: "Assistant session is required.",
         },
         { status: 400 },
       );
@@ -42,11 +49,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { platform, nativeMeetingId } = query.data;
+    const { sessionId } = query.data;
     const { data, status } = await generateMeetingReportBackend(
-      platform,
-      nativeMeetingId,
+      sessionId,
       parsedBody.data,
+      idToken,
     );
 
     return NextResponse.json(data, { status });

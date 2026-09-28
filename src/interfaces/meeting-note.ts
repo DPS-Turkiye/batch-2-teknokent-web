@@ -65,8 +65,7 @@ export type PublishAssistantSharePayload =
     }
   | {
       kind: "PROVIDER_TRANSCRIPT";
-      platform: string;
-      nativeMeetingId: string;
+      assistantSessionId: string;
     }
   | {
       kind: "TRANSCRIPT_S3";

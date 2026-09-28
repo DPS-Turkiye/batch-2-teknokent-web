@@ -3,15 +3,15 @@ import "server-only";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export async function fetchMeetingTranscript(
-  platform: string,
-  nativeMeetingId: string,
+  sessionId: string,
+  idToken: string,
 ): Promise<{ data: unknown; status: number }> {
   const response = await backendRequest(
     {
       method: "GET",
-      url: `/api/assistant/transcripts/${encodeURIComponent(platform)}/${encodeURIComponent(nativeMeetingId)}`,
+      url: `/api/assistant/sessions/${encodeURIComponent(sessionId)}/transcript`,
     },
-    { authenticated: false },
+    { idToken },
   );
   return {
     data: response.data,

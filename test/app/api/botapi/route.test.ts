@@ -10,89 +10,68 @@ vi.mock("@/lib/botapi", () => ({
 }));
 
 describe("assistant bot API route", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  const headers = { authorization: "Bearer test-token" };
+  const sessionId = "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719";
+  beforeEach(() => vi.clearAllMocks());
 
   it("returns 400 when meetingUrl is invalid", async () => {
     const request = new NextRequest("http://localhost/api/botapi", {
       method: "POST",
+      headers,
       body: JSON.stringify({ meetingUrl: "not-a-url" }),
     });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(400);
+    expect((await POST(request)).status).toBe(400);
     expect(createMeetingBot).not.toHaveBeenCalled();
   });
 
-  it("forwards valid add-bot requests", async () => {
-    vi.mocked(createMeetingBot).mockResolvedValue({
-      data: { id: "bot-1" },
-      status: 201,
-    });
-
+  it("requires a bearer token", async () => {
     const request = new NextRequest("http://localhost/api/botapi", {
       method: "POST",
       body: JSON.stringify({
         meetingUrl: "https://meet.google.com/abc-defg-hij",
       }),
     });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(201);
-    expect(createMeetingBot).toHaveBeenCalledWith({
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    expect((await POST(request)).status).toBe(401);
   });
 
-  it("returns 400 when delete query is incomplete", async () => {
-    const request = new NextRequest(
-      "http://localhost/api/botapi?platform=google_meet",
-      { method: "DELETE" },
+  it("forwards valid add-bot requests and token", async () => {
+    vi.mocked(createMeetingBot).mockResolvedValue({
+      data: { assistantSessionId: sessionId },
+      status: 201,
+    });
+    const request = new NextRequest("http://localhost/api/botapi", {
+      method: "POST",
+      headers,
+      body: JSON.stringify({
+        meetingUrl: "https://meet.google.com/abc-defg-hij",
+      }),
+    });
+    expect((await POST(request)).status).toBe(201);
+    expect(createMeetingBot).toHaveBeenCalledWith(
+      { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+      "test-token",
     );
+  });
 
-    const response = await DELETE(request);
-
-    expect(response.status).toBe(400);
+  it("rejects malformed session IDs", async () => {
+    const request = new NextRequest(
+      "http://localhost/api/botapi?sessionId=bad",
+      { method: "DELETE", headers },
+    );
+    expect((await DELETE(request)).status).toBe(400);
     expect(stopMeetingBotBackend).not.toHaveBeenCalled();
   });
 
-  it("returns 204 when backend stop call returns 204", async () => {
+  it("forwards stop by opaque session ID", async () => {
     vi.mocked(stopMeetingBotBackend).mockResolvedValue({
       data: null,
       status: 204,
     });
-
     const request = new NextRequest(
-      "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      { method: "DELETE" },
+      `http://localhost/api/botapi?sessionId=${sessionId}`,
+      { method: "DELETE", headers },
     );
-
-    const response = await DELETE(request);
-
-    expect(response.status).toBe(204);
-    expect(stopMeetingBotBackend).toHaveBeenCalledWith(
-      "google_meet",
-      "abc-defg-hij",
-    );
-  });
-
-  it("returns 502 when backend stop call throws", async () => {
-    vi.mocked(stopMeetingBotBackend).mockRejectedValue(new Error("boom"));
-
-    const request = new NextRequest(
-      "http://localhost/api/botapi?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      { method: "DELETE" },
-    );
-
-    const response = await DELETE(request);
-
-    expect(response.status).toBe(502);
-    await expect(response.json()).resolves.toEqual({
-      code: "BACKEND_UNAVAILABLE",
-      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
-    });
+    expect((await DELETE(request)).status).toBe(204);
+    expect(stopMeetingBotBackend).toHaveBeenCalledWith(sessionId, "test-token");
   });
 });

@@ -63,7 +63,7 @@ export function toAssistantMeeting(
       "Mentorluk görüşmesi",
     platform: platformLabel(parsed?.platform ?? "google_meet"),
     platformKey: parsed?.platform ?? "",
-    nativeMeetingId: parsed?.nativeMeetingId ?? "",
+    assistantSessionId: undefined,
     status: assistantStatusFor(item, now),
     when: formatSlotDateTime(item.scheduledAt),
     participants,
@@ -75,7 +75,7 @@ export function withAssistantOverlay(
   overlay?: Partial<
     Pick<
       Meeting,
-      "status" | "nativeMeetingId" | "platformKey" | "platform" | "title"
+      "status" | "assistantSessionId" | "platformKey" | "platform" | "title"
     >
   >,
 ): Meeting {

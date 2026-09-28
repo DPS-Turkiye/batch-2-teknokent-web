@@ -5,28 +5,32 @@ import { apiErrorResponse } from "@/lib/server/api-response";
 
 export async function GET(request: NextRequest) {
   try {
+    const idToken = request.headers
+      .get("authorization")
+      ?.match(/^Bearer\s+(.+)$/i)?.[1];
+    if (!idToken)
+      return NextResponse.json(
+        { message: "Authentication is required" },
+        { status: 401 },
+      );
     const { searchParams } = request.nextUrl;
 
     const parsed = transcriptQuerySchema.safeParse({
-      platform: searchParams.get("platform"),
-      nativeMeetingId: searchParams.get("nativeMeetingId"),
+      sessionId: searchParams.get("sessionId"),
     });
 
     if (!parsed.success) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: "Assistant session is required.",
         },
         { status: 400 },
       );
     }
 
-    const { platform, nativeMeetingId } = parsed.data;
-    const { data, status } = await fetchMeetingTranscript(
-      platform,
-      nativeMeetingId,
-    );
+    const { sessionId } = parsed.data;
+    const { data, status } = await fetchMeetingTranscript(sessionId, idToken);
 
     return NextResponse.json(data, { status });
   } catch (error) {

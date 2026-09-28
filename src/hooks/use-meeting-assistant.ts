@@ -1,6 +1,7 @@
 import { useMeetings } from "@/hooks/use-meetings";
 import {
   addMeetingBot,
+  fetchScheduledAssistantSession,
   fetchTranscript,
   generateMeetingReport,
   stopMeetingBot,
@@ -53,7 +54,7 @@ export { MEETING_STATUS_META as STATUS_META };
 type MeetingOverlay = Partial<
   Pick<
     Meeting,
-    "status" | "nativeMeetingId" | "platformKey" | "platform" | "title"
+    "status" | "assistantSessionId" | "platformKey" | "platform" | "title"
   >
 >;
 
@@ -206,6 +207,24 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const notebookMeetingId =
     selected && canPersist(selected.id) ? selected.id : targetMeetingId;
 
+  useEffect(() => {
+    if (!selected || selected.assistantSessionId || !canPersist(selected.id))
+      return;
+    let cancelled = false;
+    void fetchScheduledAssistantSession(selected.id)
+      .then((assistantSessionId) => {
+        if (!cancelled)
+          setOverlays((current) => ({
+            ...current,
+            [selected.id]: { ...current[selected.id], assistantSessionId },
+          }));
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [selected, canPersist]);
+
   const selectedMeetLink = selected
     ? (calendarItems
         .find((item) => item.id === selected.id)
@@ -259,8 +278,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
 
   useEffect(() => {
     const parsed = transcriptQuerySchema.safeParse({
-      platform: selected?.platformKey,
-      nativeMeetingId: selected?.nativeMeetingId,
+      sessionId: selected?.assistantSessionId,
     });
     if (!parsed.success || !selected) return;
     if (
@@ -279,12 +297,12 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     }
 
     const meetingId = selected.id;
-    const { platform, nativeMeetingId } = parsed.data;
+    const { sessionId } = parsed.data;
     let cancelled = false;
 
     const load = async () => {
       try {
-        const segments = await fetchTranscript(platform, nativeMeetingId);
+        const segments = await fetchTranscript(sessionId);
         if (cancelled) return;
         const lines = mapSegments(segments);
         setTranscriptByMeeting((prev) => ({
@@ -293,8 +311,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
         }));
       } catch (error) {
         console.error("Failed to fetch transcript", {
-          platform,
-          nativeMeetingId,
+          sessionId,
           error,
         });
       }
@@ -348,7 +365,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
             "Yeni toplantı botu",
           platform: platformLabel(result.platform),
           platformKey: result.platform,
-          nativeMeetingId: result.nativeMeetingId,
+          assistantSessionId: result.assistantSessionId,
           status:
             result.status === "joining"
               ? MeetingStatus.Joining
@@ -363,7 +380,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           setOverlays((prev) => ({
             ...prev,
             [persistId]: {
-              nativeMeetingId: next.nativeMeetingId,
+              assistantSessionId: next.assistantSessionId,
               platformKey: next.platformKey,
               platform: next.platform,
               status: next.status,
@@ -471,7 +488,8 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const requestMeetingReport = useCallback(
     async (lines?: TranscriptLine[], meeting?: Meeting) => {
       const target = meeting ?? selected;
-      if (!target?.platformKey || !target?.nativeMeetingId) return;
+      if (!target?.assistantSessionId) return;
+      const assistantSessionId = target.assistantSessionId;
       const segments = (
         lines ??
         transcriptByMeetingRef.current[target.id] ??
@@ -493,11 +511,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       const run = (async () => {
         try {
           const report = normalizeReport(
-            await generateMeetingReport(
-              target.platformKey,
-              target.nativeMeetingId,
-              segments,
-            ),
+            await generateMeetingReport(assistantSessionId, segments),
           );
           setReportByMeeting((prev) => ({
             ...prev,
@@ -535,7 +549,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
 
   useEffect(() => {
     if (!selected) return;
-    if (!selected.platformKey || !selected.nativeMeetingId) return;
+    if (!selected.assistantSessionId) return;
     if (canPersist(selected.id) && !shareLoadedFor[selected.id]) return;
     if (reportByMeeting[selected.id]) return;
     if (autoReportAttemptedRef.current[selected.id]) return;
@@ -570,20 +584,17 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
 
   const stopBot = async () => {
     const meeting = selected;
-    if (!meeting?.platformKey || !meeting?.nativeMeetingId) return;
+    if (!meeting?.assistantSessionId) return;
     if (botStatus === BotStatus.Sending) return;
 
     setBotStatus(BotStatus.Sending);
     setBotError(null);
 
     try {
-      await stopMeetingBot(meeting.platformKey, meeting.nativeMeetingId);
+      await stopMeetingBot(meeting.assistantSessionId);
       let lines = transcriptByMeeting[meeting.id] ?? [];
       try {
-        const segments = await fetchTranscript(
-          meeting.platformKey,
-          meeting.nativeMeetingId,
-        );
+        const segments = await fetchTranscript(meeting.assistantSessionId);
         lines = mapSegments(segments);
         setTranscriptByMeeting((prev) => ({
           ...prev,

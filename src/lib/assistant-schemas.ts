@@ -5,8 +5,7 @@ export const addBotBodySchema = z.object({
 });
 
 export const transcriptQuerySchema = z.object({
-  platform: z.string().trim().min(1),
-  nativeMeetingId: z.string().trim().min(1),
+  sessionId: z.string().uuid(),
 });
 
 export const generateMeetingReportBodySchema = z.object({

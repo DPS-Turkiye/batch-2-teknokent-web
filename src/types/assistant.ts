@@ -1,7 +1,7 @@
 export type AddBotResult = {
   id: string;
+  assistantSessionId: string;
   platform: string;
-  nativeMeetingId: string;
   status: string;
   title: string;
 };
@@ -57,7 +57,7 @@ export type Meeting = {
   title: string;
   platform: MeetingPlatform;
   platformKey: string;
-  nativeMeetingId: string;
+  assistantSessionId?: string;
   status: MeetingStatus;
   when: string;
   participants: string[];

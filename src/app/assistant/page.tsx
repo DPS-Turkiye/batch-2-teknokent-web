@@ -270,8 +270,7 @@ function MeetingAssistantWorkspace() {
                         onClick={() => void stopBot()}
                         disabled={
                           botStatus === BotStatus.Sending ||
-                          !selected.platformKey ||
-                          !selected.nativeMeetingId
+                          !selected.assistantSessionId
                         }
                         className="rounded-[7px] border border-[var(--ma-danger)] px-2.5 py-1 text-xs font-semibold text-[var(--ma-danger)] disabled:opacity-50"
                       >
@@ -390,8 +389,7 @@ function MeetingAssistantWorkspace() {
                           onClick={() => regenerateReport()}
                           disabled={
                             reportStatus === BotStatus.Sending ||
-                            !selected.platformKey ||
-                            !selected.nativeMeetingId
+                            !selected.assistantSessionId
                           }
                           className="rounded-[7px] border border-[var(--ma-line2)] px-2 py-0.5 text-[11px] font-medium text-[var(--ma-t2)] disabled:opacity-50"
                         >

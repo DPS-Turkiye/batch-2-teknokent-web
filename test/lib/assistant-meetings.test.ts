@@ -56,9 +56,11 @@ describe("assistant calendar meetings", () => {
     expect(toAssistantMeeting(meeting(), now)).toMatchObject({
       id: "meeting-1",
       title: "Ürün roadmap",
-      nativeMeetingId: "aaa-bbbb-ccc",
       status: AssistantStatus.Completed,
     });
+    expect(toAssistantMeeting(meeting(), now)).not.toHaveProperty(
+      "nativeMeetingId",
+    );
   });
 
   it("matches a pasted Meet URL to the calendar row", () => {

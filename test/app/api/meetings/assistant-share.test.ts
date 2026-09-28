@@ -224,10 +224,10 @@ describe("assistant share API route", () => {
     const response = await POST(
       new NextRequest("http://localhost/x", {
         method: "POST",
+        headers: { Authorization: "Bearer verified-token" },
         body: JSON.stringify({
           kind: "PROVIDER_TRANSCRIPT",
-          platform: "google_meet",
-          nativeMeetingId: "abc-defg-hij",
+          assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
         }),
       }),
       { params },
@@ -235,8 +235,8 @@ describe("assistant share API route", () => {
 
     expect(response.status).toBe(200);
     expect(fetchMeetingTranscript).toHaveBeenCalledWith(
-      "google_meet",
-      "abc-defg-hij",
+      "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+      "verified-token",
     );
     expect(publishAssistantShare).toHaveBeenCalledWith(
       "meeting-1",

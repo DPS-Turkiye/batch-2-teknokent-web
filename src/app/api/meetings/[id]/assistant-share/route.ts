@@ -56,9 +56,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     }
     const body = parsed.data;
     if (body.kind === "PROVIDER_TRANSCRIPT") {
+      const idToken = request.headers
+        .get("authorization")
+        ?.match(/^Bearer\s+(.+)$/i)?.[1];
+      if (!idToken)
+        return NextResponse.json(
+          { message: "Authentication is required" },
+          { status: 401 },
+        );
       const transcript = await fetchMeetingTranscript(
-        body.platform,
-        body.nativeMeetingId,
+        body.assistantSessionId,
+        idToken,
       );
       if (transcript.status < 200 || transcript.status >= 300) {
         return NextResponse.json(transcript.data, {

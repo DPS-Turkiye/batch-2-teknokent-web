@@ -13,6 +13,7 @@ import {
   TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { createAxiosResponse } from "@test/fixtures/health";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -38,6 +39,9 @@ vi.mock("@/lib/http-client", () => ({
     patch: vi.fn(),
   },
 }));
+vi.mock("@/lib/firebase/auth", () => ({
+  currentIdToken: vi.fn(async () => "firebase-token"),
+}));
 
 const defaultMeetings = {
   data: [
@@ -60,9 +64,10 @@ const defaultMeetings = {
 describe("AssistantPage integration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    localStorage.clear();
-    sessionStorage.clear();
+    browserStorage(localStorage).clear();
+    browserStorage(sessionStorage).clear();
     vi.mocked(useMeetings).mockReturnValue(defaultMeetings as never);
+    vi.mocked(currentIdToken).mockResolvedValue("firebase-token");
     vi.mocked(httpClient.get).mockResolvedValue(
       createAxiosResponse({ segments: [] }, 200),
     );
@@ -78,9 +83,9 @@ describe("AssistantPage integration", () => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
-            id: "bot-1",
+            id: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+            assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
             platform: "google_meet",
-            nativeMeetingId: "abc-defg-hij",
             status: "scheduled",
             title: "Yeni Test Toplantisi",
           },
@@ -99,9 +104,13 @@ describe("AssistantPage integration", () => {
     await user.click(screen.getByRole("button", { name: "Bot ekle" }));
 
     await waitFor(() => {
-      expect(httpClient.post).toHaveBeenCalledWith(getBotApiUrl(), {
-        meetingUrl: "https://meet.google.com/abc-defg-hij",
-      });
+      expect(httpClient.post).toHaveBeenCalledWith(
+        getBotApiUrl(),
+        {
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+        },
+        { headers: { Authorization: "Bearer firebase-token" } },
+      );
     });
 
     expect(screen.getAllByText("Yeni Test Toplantisi").length).toBeGreaterThan(
@@ -110,7 +119,8 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.get).toHaveBeenCalledWith(
-        getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+        getTranscriptApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+        { headers: { Authorization: "Bearer firebase-token" } },
       );
     });
   });
@@ -129,9 +139,9 @@ describe("AssistantPage integration", () => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
-            id: "bot-1",
+            id: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+            assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
             platform: "google_meet",
-            nativeMeetingId: "abc-defg-hij",
             status: "scheduled",
             title: "Yeni Test Toplantisi",
           },
@@ -139,7 +149,9 @@ describe("AssistantPage integration", () => {
         );
       }
 
-      if (url === getMeetingReportApiUrl("google_meet", "abc-defg-hij")) {
+      if (
+        url === getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719")
+      ) {
         return createAxiosResponse(
           {
             title: "Mentorluk Gorusmesi",
@@ -184,15 +196,19 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
-        getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        getStopBotApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+        { headers: { Authorization: "Bearer firebase-token" } },
       );
     });
 
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
-        getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+        getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
         { segments },
-        { timeout: 120_000 },
+        {
+          timeout: 120_000,
+          headers: { Authorization: "Bearer firebase-token" },
+        },
       );
     });
 
@@ -208,9 +224,9 @@ describe("AssistantPage integration", () => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
-            id: "bot-1",
+            id: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+            assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
             platform: "google_meet",
-            nativeMeetingId: "abc-defg-hij",
             status: "scheduled",
             title: "Yeni Test Toplantisi",
           },
@@ -241,12 +257,13 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.delete).toHaveBeenCalledWith(
-        getStopBotApiUrl("google_meet", "abc-defg-hij"),
+        getStopBotApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+        { headers: { Authorization: "Bearer firebase-token" } },
       );
     });
 
     expect(httpClient.post).not.toHaveBeenCalledWith(
-      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
       expect.anything(),
     );
     expect(
@@ -278,6 +295,12 @@ describe("AssistantPage integration", () => {
       if (String(url).includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
+          200,
+        );
+      }
+      if (String(url).includes("/assistant/meetings/")) {
+        return createAxiosResponse(
+          { assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719" },
           200,
         );
       }
@@ -317,7 +340,8 @@ describe("AssistantPage integration", () => {
         .mocked(httpClient.get)
         .mock.calls.filter(
           ([url]) =>
-            String(url) === getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+            String(url) ===
+            getTranscriptApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
         ).length;
     const before = transcriptCalls();
     vi.useFakeTimers();
@@ -352,6 +376,12 @@ describe("AssistantPage integration", () => {
       if (String(url).includes("assistant-share")) {
         return createAxiosResponse(
           { meetingId: "meeting-1", transcript: null, report: null },
+          200,
+        );
+      }
+      if (String(url).includes("/assistant/meetings/")) {
+        return createAxiosResponse(
+          { assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719" },
           200,
         );
       }
@@ -469,9 +499,9 @@ describe("AssistantPage integration", () => {
       if (url === getBotApiUrl()) {
         return createAxiosResponse(
           {
-            id: "bot-1",
+            id: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+            assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
             platform: "google_meet",
-            nativeMeetingId: "abc-defg-hij",
             status: "scheduled",
             title: "Yeni Test Toplantisi",
           },
@@ -481,7 +511,9 @@ describe("AssistantPage integration", () => {
       if (url === getAssistantShareApiUrl("meeting-1")) {
         return createAxiosResponse({ meetingId: "meeting-1" }, 200);
       }
-      if (url === getMeetingReportApiUrl("google_meet", "abc-defg-hij")) {
+      if (
+        url === getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719")
+      ) {
         return createAxiosResponse(
           {
             title: "Mentorluk Gorusmesi",
@@ -514,9 +546,12 @@ describe("AssistantPage integration", () => {
 
     await waitFor(() => {
       expect(httpClient.post).toHaveBeenCalledWith(
-        getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+        getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
         { segments },
-        { timeout: 120_000 },
+        {
+          timeout: 120_000,
+          headers: { Authorization: "Bearer firebase-token" },
+        },
       );
     });
     expect(httpClient.post).not.toHaveBeenCalledWith(
@@ -550,3 +585,18 @@ describe("AssistantPage integration", () => {
     });
   });
 });
+
+function browserStorage(storage: Storage | undefined) {
+  if (storage) return storage;
+  const values = new Map<string, string>();
+  return {
+    clear: () => values.clear(),
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, String(value)),
+    removeItem: (key: string) => values.delete(key),
+    key: (index: number) => [...values.keys()][index] ?? null,
+    get length() {
+      return values.size;
+    },
+  } as Storage;
+}

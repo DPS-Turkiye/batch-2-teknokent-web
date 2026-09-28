@@ -27,16 +27,14 @@ describe("publishAssistantShareBodySchema", () => {
   it("accepts a provider transcript pointer for Amplify-safe sharing", () => {
     const parsed = publishAssistantShareBodySchema.safeParse({
       kind: "PROVIDER_TRANSCRIPT",
-      platform: "google_meet",
-      nativeMeetingId: "abc-defg-hij",
+      assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
     });
 
     expect(parsed.success).toBe(true);
     if (!parsed.success) return;
     expect(parsed.data).toEqual({
       kind: "PROVIDER_TRANSCRIPT",
-      platform: "google_meet",
-      nativeMeetingId: "abc-defg-hij",
+      assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
     });
   });
 

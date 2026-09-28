@@ -24,6 +24,9 @@ vi.mock("@/lib/http-client", () => ({
     delete: vi.fn(),
   },
 }));
+vi.mock("@/lib/firebase/auth", () => ({
+  currentIdToken: vi.fn(async () => "firebase-token"),
+}));
 
 function createAxiosError<T>(data: T, status: number) {
   return new AxiosError(
@@ -42,9 +45,9 @@ describe("assistant lib", () => {
 
   it("addMeetingBot posts meeting url and returns data", async () => {
     const payload = {
-      id: "bot-1",
+      id: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+      assistantSessionId: "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
       platform: "google_meet",
-      nativeMeetingId: "abc-defg-hij",
       status: "joining",
       title: "Mentor Bot",
     };
@@ -54,9 +57,13 @@ describe("assistant lib", () => {
 
     const result = await addMeetingBot("https://meet.google.com/abc-defg-hij");
 
-    expect(httpClient.post).toHaveBeenCalledWith(getBotApiUrl(), {
-      meetingUrl: "https://meet.google.com/abc-defg-hij",
-    });
+    expect(httpClient.post).toHaveBeenCalledWith(
+      getBotApiUrl(),
+      {
+        meetingUrl: "https://meet.google.com/abc-defg-hij",
+      },
+      { headers: { Authorization: "Bearer firebase-token" } },
+    );
     expect(result).toEqual(payload);
   });
 
@@ -91,10 +98,13 @@ describe("assistant lib", () => {
       createAxiosResponse({ segments }, 200),
     );
 
-    const result = await fetchTranscript("google_meet", "abc-defg-hij");
+    const result = await fetchTranscript(
+      "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+    );
 
     expect(httpClient.get).toHaveBeenCalledWith(
-      getTranscriptApiUrl("google_meet", "abc-defg-hij"),
+      getTranscriptApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+      { headers: { Authorization: "Bearer firebase-token" } },
     );
     expect(result).toEqual(segments);
   });
@@ -105,7 +115,7 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      fetchTranscript("google_meet", "abc-defg-hij"),
+      fetchTranscript("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
     ).rejects.toThrow("missing");
   });
 
@@ -114,19 +124,20 @@ describe("assistant lib", () => {
       createAxiosResponse({}, 204),
     );
 
-    await stopMeetingBot("google_meet", "abc-defg-hij");
+    await stopMeetingBot("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719");
 
     expect(httpClient.delete).toHaveBeenCalledWith(
-      getStopBotApiUrl("google_meet", "abc-defg-hij"),
+      getStopBotApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+      { headers: { Authorization: "Bearer firebase-token" } },
     );
   });
 
   it("stopMeetingBot uses fallback message on network failures", async () => {
     vi.mocked(httpClient.delete).mockRejectedValue(new AxiosError("Network"));
 
-    await expect(stopMeetingBot("google_meet", "abc-defg-hij")).rejects.toThrow(
-      "Toplantı asistanı durdurulamadı. (ağ hatası)",
-    );
+    await expect(
+      stopMeetingBot("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
+    ).rejects.toThrow("Toplantı asistanı durdurulamadı. (ağ hatası)");
   });
 
   it("generateMeetingReport posts empty payload and returns report", async () => {
@@ -146,16 +157,17 @@ describe("assistant lib", () => {
       createAxiosResponse(report, 200),
     );
 
-    const result = await generateMeetingReport("google_meet", "abc-defg-hij", [
-      { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
-    ]);
+    const result = await generateMeetingReport(
+      "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+      [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
+    );
 
     expect(httpClient.post).toHaveBeenCalledWith(
-      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
       {
         segments: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
       },
-      { timeout: 120_000 },
+      { timeout: 120_000, headers: { Authorization: "Bearer firebase-token" } },
     );
     expect(result).toEqual(report);
   });
@@ -169,7 +181,7 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
+      generateMeetingReport("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
     ).rejects.toThrow(/CloudFront tarafından engellendi/);
@@ -190,12 +202,15 @@ describe("assistant lib", () => {
       at: "00:10",
     }));
 
-    await generateMeetingReport("google_meet", "abc-defg-hij", segments);
+    await generateMeetingReport(
+      "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719",
+      segments,
+    );
 
     expect(httpClient.post).toHaveBeenCalledWith(
-      getMeetingReportApiUrl("google_meet", "abc-defg-hij"),
+      getMeetingReportApiUrl("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719"),
       {},
-      { timeout: 120_000 },
+      { timeout: 120_000, headers: { Authorization: "Bearer firebase-token" } },
     );
   });
 
@@ -205,7 +220,7 @@ describe("assistant lib", () => {
     );
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
+      generateMeetingReport("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
     ).rejects.toThrow("Toplantı raporu oluşturulamadı.");
@@ -215,7 +230,7 @@ describe("assistant lib", () => {
     vi.mocked(httpClient.post).mockRejectedValue(createAxiosError({}, 502));
 
     await expect(
-      generateMeetingReport("google_meet", "abc-defg-hij", [
+      generateMeetingReport("8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719", [
         { id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" },
       ]),
     ).rejects.toThrow("Toplantı raporu oluşturulamadı. (502)");

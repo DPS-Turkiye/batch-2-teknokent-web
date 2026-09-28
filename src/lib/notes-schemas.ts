@@ -51,8 +51,7 @@ export const publishAssistantShareBodySchema = z.union([
   }),
   z.object({
     kind: z.literal("PROVIDER_TRANSCRIPT"),
-    platform: z.string().trim().min(1),
-    nativeMeetingId: z.string().trim().min(1),
+    assistantSessionId: z.string().uuid(),
   }),
   z.object({
     kind: z.literal("TRANSCRIPT_S3"),

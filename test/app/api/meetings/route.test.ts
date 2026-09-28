@@ -117,7 +117,7 @@ describe("POST /api/meetings", () => {
       }),
     );
 
-    expect(fetchMentorRequest).toHaveBeenCalledWith("req-1");
+    expect(fetchMentorRequest).toHaveBeenCalledWith("req-1", "mentor-1");
     expect(createMeeting).toHaveBeenCalledWith(
       "org-greenloop",
       { mentorshipRequestId: "req-1", agenda: "Mentor: Leyla Aksoy" },

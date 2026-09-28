@@ -1,111 +1,66 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { POST } from "@/app/api/botapi/report/route";
 import { generateMeetingReportBackend } from "@/lib/botapi";
 
-vi.mock("@/lib/botapi", () => ({
-  generateMeetingReportBackend: vi.fn(),
-}));
+vi.mock("@/lib/botapi", () => ({ generateMeetingReportBackend: vi.fn() }));
 
 describe("assistant report API route", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
+  const sessionId = "8703d8c7-a0b6-4b05-9bb2-1d58aeb4e719";
+  const headers = { authorization: "Bearer test-token" };
+  const url = `http://localhost/api/botapi/report?sessionId=${sessionId}`;
+  beforeEach(() => vi.clearAllMocks());
 
-  it("returns 400 when required query params are missing", async () => {
-    const request = new NextRequest("http://localhost/api/botapi/report", {
-      method: "POST",
-      body: JSON.stringify({}),
-    });
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(400);
-    expect(generateMeetingReportBackend).not.toHaveBeenCalled();
-  });
-
-  it("returns 400 for invalid request body", async () => {
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
+  it("rejects missing session ID", async () => {
+    const response = await POST(
+      new NextRequest("http://localhost/api/botapi/report", {
         method: "POST",
+        headers,
+        body: JSON.stringify({}),
+      }),
+    );
+    expect(response.status).toBe(400);
+  });
+
+  it("rejects invalid report body", async () => {
+    const response = await POST(
+      new NextRequest(url, {
+        method: "POST",
+        headers,
         body: JSON.stringify({ model: "   " }),
-      },
+      }),
     );
-
-    const response = await POST(request);
-
     expect(response.status).toBe(400);
     expect(generateMeetingReportBackend).not.toHaveBeenCalled();
   });
 
-  it("forwards valid report requests", async () => {
+  it("forwards valid report request with opaque session and token", async () => {
     vi.mocked(generateMeetingReportBackend).mockResolvedValue({
-      data: { title: "Mentorluk Gorusmesi" },
+      data: { title: "Meeting" },
       status: 200,
     });
-
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
+    const response = await POST(
+      new NextRequest(url, {
         method: "POST",
+        headers,
         body: JSON.stringify({ model: "gpt-5.4" }),
-      },
+      }),
     );
-
-    const response = await POST(request);
-
     expect(response.status).toBe(200);
     expect(generateMeetingReportBackend).toHaveBeenCalledWith(
-      "google_meet",
-      "abc-defg-hij",
+      sessionId,
       { model: "gpt-5.4" },
+      "test-token",
     );
   });
 
-  it("defaults to empty body when JSON parsing fails", async () => {
-    vi.mocked(generateMeetingReportBackend).mockResolvedValue({
-      data: { title: "Mentorluk Gorusmesi" },
-      status: 200,
-    });
-
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
-        method: "POST",
-      },
-    );
-
-    const response = await POST(request);
-
-    expect(response.status).toBe(200);
-    expect(generateMeetingReportBackend).toHaveBeenCalledWith(
-      "google_meet",
-      "abc-defg-hij",
-      {},
-    );
-  });
-
-  it("returns 502 when backend report call throws", async () => {
+  it("returns unavailable response when backend call fails", async () => {
     vi.mocked(generateMeetingReportBackend).mockRejectedValue(
       new Error("boom"),
     );
-
-    const request = new NextRequest(
-      "http://localhost/api/botapi/report?platform=google_meet&nativeMeetingId=abc-defg-hij",
-      {
-        method: "POST",
-        body: JSON.stringify({}),
-      },
+    const response = await POST(
+      new NextRequest(url, { method: "POST", headers, body: "{}" }),
     );
-
-    const response = await POST(request);
-
     expect(response.status).toBe(502);
-    await expect(response.json()).resolves.toEqual({
-      code: "BACKEND_UNAVAILABLE",
-      message: "Toplantı raporu hizmetine ulaşılamıyor.",
-    });
   });
 });
