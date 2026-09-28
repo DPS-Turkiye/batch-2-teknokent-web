@@ -324,14 +324,6 @@ export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
   },
 ];
 
-export const MEETING_PREPARE_CHECKLIST = [
-  "Pitch deck'i güncelle",
-  "Ürün demosunu ekle",
-  "Görüşülecek üç ana soruyu yaz",
-  "Önceki aksiyonları tamamla",
-  "İlgili verileri yükle",
-] as const;
-
 export const MEETING_FEEDBACK_QUESTIONS = [
   {
     prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
