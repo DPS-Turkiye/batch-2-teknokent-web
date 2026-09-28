@@ -168,7 +168,7 @@ export function writeDismissedHomeTasks(userId: string, ids: string[]) {
   window.localStorage.setItem(dismissedStorageKey(userId), JSON.stringify(ids));
 }
 
-function meetingEndedAt(meeting: MeetingItem) {
+export function meetingEndedAt(meeting: MeetingItem) {
   const start = new Date(meeting.scheduledAt).getTime();
   const durationMs = Math.max(1, meeting.durationMinutes || 60) * 60_000;
   return new Date(start + durationMs).toISOString();

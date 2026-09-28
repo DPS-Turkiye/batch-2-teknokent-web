@@ -3,6 +3,7 @@ import {
   ProgramEventKind,
   type MemberProgramEvent,
 } from "@/interfaces/coordinator-program";
+import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
   MobileConversationKind,
@@ -12,6 +13,9 @@ import {
   type MobileTaskGroup,
 } from "@/interfaces/mobile";
 import type { ProcessAssignment } from "@/interfaces/startup-process";
+import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
+import { meetingEndedAt } from "@/lib/mentee-home";
+import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
 import { mobileChatHref, webHref } from "@/lib/mobile";
 import { calendarDay } from "@/lib/utils";
 
@@ -150,11 +154,38 @@ export function programDeadlineTask(
   );
 }
 
+/** A held meeting still waiting for the mentee's rating; it is rated on the web. */
+export function meetingFeedbackTask(
+  meeting: MeetingItem,
+  today: Date,
+): MobileTask {
+  const mentor = meeting.mentorName ?? null;
+  return withDue(
+    {
+      id: `feedback:${meeting.id}`,
+      source: MobileTaskSource.Feedback,
+      title: HOME_TASK_LABELS.feedbackTitle,
+      description: null,
+      dueAt: new Date(meetingEndedAt(meeting)),
+      assignedBy: mentor,
+      assignedOn: null,
+      chips: [meeting.agenda?.trim() || "Mentorluk görüşmesi"],
+      completed: false,
+      requestId: meeting.mentorshipRequestId ?? null,
+      chatHref: null,
+      webHref: webHref(meetingFeedbackHref(meeting.id)),
+    },
+    mentor,
+    today,
+  );
+}
+
 export function collectTasks(
   input: {
     actionItemsByRequest: { request: MentorshipRequest; items: ActionItem[] }[];
     assignments: ProcessAssignment[];
     deadlines: MemberProgramEvent[];
+    feedbackMeetings: MeetingItem[];
   },
   today: Date,
 ) {
@@ -180,6 +211,9 @@ export function collectTasks(
           new Date(event.startsAt) >= startOfDay(today),
       )
       .map((event) => programDeadlineTask(event, today)),
+    ...input.feedbackMeetings.map((meeting) =>
+      meetingFeedbackTask(meeting, today),
+    ),
   ];
 }
 
@@ -190,13 +224,17 @@ function byDue(left: MobileTask, right: MobileTask) {
   );
 }
 
-/** Gecikmiş, Bugün, Bu hafta, Daha sonra, then program deadlines on their own. */
+/** Gecikmiş, Bugün, Bu hafta, Daha sonra, then meeting ratings and program deadlines on their own. */
 export function groupOpenTasks(
   tasks: MobileTask[],
   today: Date,
 ): MobileTaskGroup[] {
   const open = tasks.filter((task) => !task.completed).sort(byDue);
-  const own = open.filter((task) => task.source !== MobileTaskSource.Program);
+  const own = open.filter(
+    (task) =>
+      task.source !== MobileTaskSource.Program &&
+      task.source !== MobileTaskSource.Feedback,
+  );
   const daysToSunday = 6 - ((today.getDay() + 6) % 7);
   const within = (task: MobileTask, from: number, to: number) => {
     if (!task.dueAt) return false;
@@ -229,6 +267,12 @@ export function groupOpenTasks(
       tasks: own.filter(
         (task) => !task.dueAt || dayOffset(task.dueAt, today) > daysToSunday,
       ),
+    },
+    {
+      key: "feedback",
+      label: "Değerlendirmeler",
+      urgent: false,
+      tasks: open.filter((task) => task.source === MobileTaskSource.Feedback),
     },
     {
       key: "program",

@@ -8,7 +8,11 @@ import {
 } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
+import { useSession } from "@/components/providers/session-provider";
 import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
+import { useMeetings } from "@/hooks/use-meetings";
+import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { MEMBER_PROGRAM_EVENTS_QUERY_KEY } from "@/hooks/use-mobile-calendar";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
@@ -22,11 +26,14 @@ import {
 } from "@/lib/client/action-items";
 import { getMemberProgramEvents } from "@/lib/client/programs";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { homeTaskId } from "@/lib/mentee-home";
 import {
   collectTasks,
   completedTasks,
   groupOpenTasks,
 } from "@/lib/mobile-tasks";
+import { heldMeetingsNewestFirst } from "@/lib/startup-meetings";
+import { HomeTaskKind } from "@/types/mentee-home";
 
 export enum MobileTaskTab {
   Open = "open",
@@ -80,6 +87,19 @@ export function useMobileTasks() {
     queryKey: [MEMBER_PROGRAM_EVENTS_QUERY_KEY, range],
     queryFn: () => getMemberProgramEvents(range),
   });
+  // Home hides a rating the mentee dismissed on the web, so this list does too.
+  const { session } = useSession();
+  const { dismissedTaskIds } = useDismissedHomeTasks(session?.userId);
+  const meetings = useMeetings();
+  const { feedbackMeetings, isLoadingFeedback } = useMeetingsAwaitingFeedback(
+    heldMeetingsNewestFirst(meetings.data ?? []),
+  );
+  const unratedMeetings = feedbackMeetings.filter(
+    (meeting) =>
+      !dismissedTaskIds.includes(
+        homeTaskId(HomeTaskKind.MeetingFeedback, meeting.id),
+      ),
+  );
 
   const tasks = useMemo(
     () =>
@@ -91,10 +111,17 @@ export function useMobileTasks() {
           })),
           assignments: process.data?.assignments ?? [],
           deadlines: deadlines.data ?? [],
+          feedbackMeetings: unratedMeetings,
         },
         new Date(),
       ),
-    [accepted, actionItems.byRequest, process.data, deadlines.data],
+    [
+      accepted,
+      actionItems.byRequest,
+      process.data,
+      deadlines.data,
+      unratedMeetings,
+    ],
   );
   const groups = groupOpenTasks(tasks, new Date());
   const done = completedTasks(tasks);
@@ -147,7 +174,7 @@ export function useMobileTasks() {
     done,
     groups,
     isError: Boolean(requests.error),
-    isLoading: requests.isLoading || actionItems.isLoading,
+    isLoading: requests.isLoading || actionItems.isLoading || isLoadingFeedback,
     isSaving: setStatus.isPending,
     justCompleted,
     openTask: (id: string) => setOpenId(id),
