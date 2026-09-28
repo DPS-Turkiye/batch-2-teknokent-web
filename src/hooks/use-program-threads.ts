@@ -13,10 +13,18 @@ import { MAX_MESSAGE_LENGTH } from "@/lib/coordinator-messages";
 
 const POLL_MS = 15_000;
 
-/** A team's or mentor's threads with their program coordinators, shown in the web Mesajlar. */
-export function useProgramThreads() {
+/**
+ * A team's or mentor's threads with their program coordinators, shown in the web Mesajlar. `linkedId` is the
+ * thread a notification links to (`?conversation=`); it opens whenever the link changes.
+ */
+export function useProgramThreads(linkedId: string | null = null) {
   const queryClient = useQueryClient();
-  const [openId, setOpenId] = useState<string | null>(null);
+  const [openId, setOpenId] = useState<string | null>(linkedId);
+  const [syncedLink, setSyncedLink] = useState(linkedId);
+  if (syncedLink !== linkedId) {
+    setSyncedLink(linkedId);
+    setOpenId(linkedId);
+  }
   const [draft, setDraft] = useState("");
 
   const threads = useQuery({

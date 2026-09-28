@@ -81,4 +81,20 @@ describe("useProgramThreads", () => {
 
     expect(result.current.active).toBeNull();
   });
+
+  it("opens the thread a notification links to, and follows a new link", async () => {
+    const { result, rerender } = renderHook(
+      ({ linked }: { linked: string | null }) => useProgramThreads(linked),
+      { wrapper, initialProps: { linked: "conversation-1" } },
+    );
+
+    await waitFor(() =>
+      expect(result.current.active?.id).toBe("conversation-1"),
+    );
+    expect(getCoordinatorMessages).toHaveBeenCalledWith("conversation-1");
+
+    act(() => result.current.close());
+    rerender({ linked: "conversation-2" });
+    expect(result.current.openId).toBe("conversation-2");
+  });
 });

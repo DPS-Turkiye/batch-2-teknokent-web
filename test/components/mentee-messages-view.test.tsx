@@ -21,6 +21,10 @@ vi.mock("@/components/hoc/app-shell", () => ({
     <div>{children}</div>
   ),
 }));
+let search = new URLSearchParams();
+vi.mock("next/navigation", () => ({
+  useSearchParams: () => search,
+}));
 vi.mock("@/hooks/use-mentee-messages", () => ({
   useMenteeMessages: vi.fn(),
 }));
@@ -59,7 +63,10 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
 }
 
 describe("MenteeMessagesView", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    search = new URLSearchParams();
+  });
 
   it("shows the mentorship thread when no program thread is open", () => {
     mockMessages();
@@ -134,5 +141,13 @@ describe("MenteeMessagesView", () => {
       }),
     );
     expect(openAnnouncements).toHaveBeenCalledWith("program-1");
+  });
+
+  it("passes the thread a notification links to", () => {
+    search = new URLSearchParams("conversation=conversation-1");
+    mockMessages();
+    render(<MenteeMessagesView />);
+
+    expect(useMenteeMessages).toHaveBeenCalledWith("conversation-1");
   });
 });
