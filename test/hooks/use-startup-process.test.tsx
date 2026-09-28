@@ -39,13 +39,13 @@ function wrapper({ children }: { children: ReactNode }) {
 
 function assignment(
   id: string,
-  roundId: string | null,
+  stage: StartupStage,
   status = ActionItemStatus.Open,
 ): ProcessAssignment {
   return {
     id,
-    roundId,
-    stage: StartupStage.Finance,
+    roundId: null,
+    stage,
     title: "Finansal model",
     description: null,
     status,
@@ -65,16 +65,29 @@ const round = {
   endsOn: "2026-08-31",
 };
 
+const problemRound = {
+  id: "round-0",
+  title: "Problem keşfi",
+  name: "Problem turu",
+  stage: StartupStage.Problem,
+  startsOn: "2026-06-12",
+  endsOn: "2026-07-08",
+};
+
 function process(overrides: Partial<StartupProcess> = {}): StartupProcess {
   return {
     organizationId: "org-1",
     currentStage: StartupStage.Mvp,
-    stages: [{ stage: StartupStage.Mvp, state: StartupStageState.Current }],
+    stages: [
+      { stage: StartupStage.Problem, state: StartupStageState.Completed },
+      { stage: StartupStage.Mvp, state: StartupStageState.Current },
+      { stage: StartupStage.Market, state: StartupStageState.Upcoming },
+    ],
     currentRound: round,
-    rounds: [round],
+    rounds: [round, problemRound],
     assignments: [
-      assignment("in-round", "round-1"),
-      assignment("other-round", "round-0"),
+      assignment("mvp", StartupStage.Mvp),
+      assignment("problem", StartupStage.Problem, ActionItemStatus.Completed),
     ],
     ...overrides,
   };
@@ -85,26 +98,46 @@ describe("useStartupProcess", () => {
     vi.clearAllMocks();
   });
 
-  it("keeps the list to the focus round's Ödevler", async () => {
+  it("opens on the current stage with its round and Ödevler", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(process());
 
     const { result } = renderHook(() => useStartupProcess(), { wrapper });
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.assignments.map((item) => item.id)).toEqual([
-      "in-round",
+    expect(result.current.selectedStage).toBe(StartupStage.Mvp);
+    expect(result.current.selectedRound?.name).toBe("MVP test turu");
+    expect(result.current.assignments.map((item) => item.id)).toEqual(["mvp"]);
+    expect(result.current.stageCards.map((card) => card.percent)).toEqual([
+      100, 0, 0,
     ]);
-    expect(result.current.currentRound?.name).toBe("MVP test turu");
   });
 
-  it("shows every Ödev when no round is planned", async () => {
+  it("switches the round and Ödevler to a picked stage and leaves Tümü", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.toggleShowAll());
+    expect(result.current.assignments).toHaveLength(2);
+    act(() => result.current.selectStage(StartupStage.Problem));
+
+    expect(result.current.showAll).toBe(false);
+    expect(result.current.selectedRound?.name).toBe("Problem turu");
+    expect(result.current.assignments.map((item) => item.id)).toEqual([
+      "problem",
+    ]);
+  });
+
+  it("starts on the first stage when none is current", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(
-      process({ currentRound: null, rounds: [] }),
+      process({ currentStage: null, currentRound: null }),
     );
 
     const { result } = renderHook(() => useStartupProcess(), { wrapper });
 
-    await waitFor(() => expect(result.current.assignments).toHaveLength(2));
+    await waitFor(() =>
+      expect(result.current.selectedStage).toBe(StartupStage.Problem),
+    );
   });
 
   it("uploads the file as homework, links it and shows the new process", async () => {
@@ -113,7 +146,7 @@ describe("useStartupProcess", () => {
     });
     const done = process({
       assignments: [
-        assignment("in-round", "round-1", ActionItemStatus.Completed),
+        assignment("mvp", StartupStage.Mvp, ActionItemStatus.Completed),
       ],
     });
     vi.mocked(getStartupProcess).mockResolvedValue(process());
@@ -127,7 +160,7 @@ describe("useStartupProcess", () => {
     const { result } = renderHook(() => useStartupProcess(), { wrapper });
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    act(() => result.current.uploadAssignment("in-round", file));
+    act(() => result.current.uploadAssignment("mvp", file));
 
     await waitFor(() =>
       expect(result.current.assignments[0].status).toBe(
@@ -135,7 +168,7 @@ describe("useStartupProcess", () => {
       ),
     );
     expect(uploadDocument).toHaveBeenCalledWith(file, DocumentKind.Homework);
-    expect(submitAssignment).toHaveBeenCalledWith("in-round", "doc-1");
+    expect(submitAssignment).toHaveBeenCalledWith("mvp", "doc-1");
     expect(result.current.uploadingAssignmentId).toBeNull();
   });
 });

@@ -141,6 +141,14 @@ describe("useStartupOverview", () => {
         durationMinutes: 45,
         status: MeetingStatus.Completed,
       },
+      {
+        id: "m-2",
+        organizationId: "org-1",
+        mentorshipRequestId: "r-1",
+        scheduledAt: "2099-01-10T09:00:00Z",
+        durationMinutes: 45,
+        status: MeetingStatus.Scheduled,
+      },
     ]);
   });
 
@@ -156,7 +164,7 @@ describe("useStartupOverview", () => {
     expect(result.current.canvas?.id).toBe("canvas-new");
   });
 
-  it("summarizes each accepted mentorship's sessions", async () => {
+  it("summarizes each active mentorship's sessions", async () => {
     const { result } = renderHook(() => useStartupOverview(), { wrapper });
 
     await waitFor(() => expect(result.current.mentorships).toHaveLength(1));
@@ -169,7 +177,7 @@ describe("useStartupOverview", () => {
       supportArea: "Ürün konumlandırma",
       heldSessions: 1,
       plannedSessions: 6,
-      nextMeetingAt: null,
+      nextMeetingAt: "2099-01-10T09:00:00Z",
     });
   });
 

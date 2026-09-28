@@ -141,6 +141,7 @@ describe("StartupProfileView", () => {
       within(status).getByText("v0.9.2 · son güncelleme 2 Eylül 2026"),
     ).toBeInTheDocument();
     expect(within(status).getByText("%72")).toBeInTheDocument();
+    expect(within(status).getByText("MVP tamamlanma")).toBeInTheDocument();
     expect(within(status).getByRole("progressbar")).toHaveAttribute(
       "aria-valuenow",
       "72",
@@ -227,6 +228,10 @@ describe("StartupProfileView", () => {
     expect(
       screen.getByText("Henüz bir kanvas yüklenmedi."),
     ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Yükle →" })).toHaveAttribute(
+      "href",
+      "/startup/files",
+    );
     expect(
       screen.getByText("Henüz aktif bir mentorluğun yok."),
     ).toBeInTheDocument();

@@ -79,7 +79,11 @@ describe("activeMentorships", () => {
         request("r1", MentorshipRequestStatus.Accepted),
         request("r2", MentorshipRequestStatus.Pending),
       ],
-      [meeting("m1", "r2", "2026-08-10T09:00:00Z", MeetingStatus.Completed)],
+      [
+        meeting("m1", "r2", "2026-08-10T09:00:00Z", MeetingStatus.Completed),
+        meeting("m2", "r1", "2026-09-02T09:00:00Z", MeetingStatus.Scheduled),
+        meeting("m3", "r2", "2026-09-05T09:00:00Z", MeetingStatus.Scheduled),
+      ],
       NOW,
     );
 
@@ -88,17 +92,34 @@ describe("activeMentorships", () => {
       id: "r1",
       heldSessions: 0,
       plannedSessions: null,
-      nextMeetingAt: null,
+      nextMeetingAt: "2026-09-02T09:00:00Z",
     });
   });
 
-  it("does not offer a scheduled meeting that has already passed as the next one", () => {
+  it("keeps a mentorship whose meeting is still running, without offering it as the next one", () => {
     const rows = activeMentorships(
       [request("r1", MentorshipRequestStatus.Accepted)],
-      [meeting("m1", "r1", "2026-08-27T09:00:00Z", MeetingStatus.Scheduled)],
+      [meeting("m1", "r1", "2026-08-28T08:30:00Z", MeetingStatus.Scheduled)],
       NOW,
     );
 
+    expect(rows).toHaveLength(1);
     expect(rows[0].nextMeetingAt).toBeNull();
+  });
+
+  it("leaves out accepted mentorships that are over or have no meeting yet, like the Aktif tab", () => {
+    const rows = activeMentorships(
+      [
+        request("ended", MentorshipRequestStatus.Accepted),
+        request("unscheduled", MentorshipRequestStatus.Accepted),
+      ],
+      [
+        meeting("m1", "ended", "2026-08-20T09:00:00Z", MeetingStatus.Completed),
+        meeting("m2", "ended", "2026-08-27T09:00:00Z", MeetingStatus.Scheduled),
+      ],
+      NOW,
+    );
+
+    expect(rows).toEqual([]);
   });
 });

@@ -10,15 +10,21 @@ import {
   getStartupProcess,
   submitAssignment,
 } from "@/lib/client/startup-process";
-import { completedStages } from "@/lib/startup-process";
+import type { StartupStage } from "@/interfaces/startup-process";
+import {
+  completedStages,
+  roundForStage,
+  stageCards,
+} from "@/lib/startup-process";
 
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
-/** The Süreç tab: the stage tracker, the focus round and its Ödevler. */
+/** The Süreç tab: the stage cards, the chosen stage's round and its Ödevler. */
 export function useStartupProcess() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [showAll, setShowAll] = useState(false);
+  const [pickedStage, setPickedStage] = useState<StartupStage | null>(null);
   const query = useQuery({
     queryKey: STARTUP_PROCESS_QUERY_KEY,
     queryFn: getStartupProcess,
@@ -47,17 +53,18 @@ export function useStartupProcess() {
   });
 
   const process = query.data ?? null;
-  const currentRound = process?.currentRound ?? null;
+  // The current stage is open until a card is picked.
+  const selectedStage =
+    pickedStage ?? process?.currentStage ?? process?.stages[0]?.stage ?? null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
-  // A round focuses the list on its own Ödevler until "Tümü" is chosen.
   const assignments = useMemo(
     () =>
-      showAll || !currentRound
+      showAll || !selectedStage
         ? allAssignments
         : allAssignments.filter(
-            (assignment) => assignment.roundId === currentRound.id,
+            (assignment) => assignment.stage === selectedStage,
           ),
-    [allAssignments, currentRound, showAll],
+    [allAssignments, selectedStage, showAll],
   );
   const roundNames = useMemo(
     () =>
@@ -68,17 +75,24 @@ export function useStartupProcess() {
     () => (process ? completedStages(process) : []),
     [process],
   );
+  const cards = useMemo(() => (process ? stageCards(process) : []), [process]);
 
   return {
     assignments,
     completedStages: stagesDone,
-    currentRound,
     error: query.error,
     isLoading: query.isLoading,
     roundName: (roundId: string | null) =>
       roundId ? (roundNames.get(roundId) ?? null) : null,
+    selectStage: (stage: StartupStage) => {
+      setPickedStage(stage);
+      setShowAll(false);
+    },
+    selectedRound:
+      process && selectedStage ? roundForStage(process, selectedStage) : null,
+    selectedStage,
     showAll,
-    stages: process?.stages ?? [],
+    stageCards: cards,
     toggleShowAll: () => setShowAll((current) => !current),
     totalAssignments: allAssignments.length,
     uploadAssignment: (assignmentId: string, file: File) =>
