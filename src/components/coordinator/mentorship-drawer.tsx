@@ -11,10 +11,8 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-notes";
-import {
-  MeetingProposalPanel,
-  ProposeMeetingDialog,
-} from "@/components/coordinator/meeting-proposal-panel";
+import { MeetingProposalPanel } from "@/components/coordinator/meeting-proposal-panel";
+import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useCoordinatorMentorshipDrawer } from "@/hooks/use-coordinator-mentorships";
 import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";

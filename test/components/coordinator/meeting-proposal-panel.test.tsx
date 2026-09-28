@@ -2,10 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import {
-  MeetingProposalPanel,
-  ProposeMeetingDialog,
-} from "@/components/coordinator/meeting-proposal-panel";
+import { MeetingProposalPanel } from "@/components/coordinator/meeting-proposal-panel";
+import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
 import {
   meetingProposal,

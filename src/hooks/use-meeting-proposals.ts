@@ -3,7 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import { useToast } from "@/components/providers/toast-provider";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import type { MeetingItem } from "@/interfaces/meeting";
 import type { ProposeMeetingInput } from "@/interfaces/meeting-proposal";
 import {
   acceptMeetingProposal,
@@ -11,6 +13,7 @@ import {
   getMentorshipMeetingProposals,
   getMyMeetingProposals,
   proposeMeeting,
+  proposeReschedule,
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/client/meeting-proposals";
@@ -172,3 +175,55 @@ export function useMentorshipMeetingProposals(
 export type MentorshipMeetingProposals = ReturnType<
   typeof useMentorshipMeetingProposals
 >;
+
+/**
+ * "Yeni saat öner" on a mentor's or a team's own meeting: the new time goes to the other side, and the meeting
+ * moves once they confirm. The proposer's side counts as already accepted.
+ */
+export function useRescheduleMeeting(meeting: MeetingItem) {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [composing, setComposing] = useState(false);
+  const [startsAt, setStartsAt] = useState(() =>
+    toDateTimeLocalValue(new Date(meeting.scheduledAt)),
+  );
+  const [duration, setDuration] = useState(
+    meeting.durationMinutes || DEFAULT_PROPOSAL_DURATION,
+  );
+  const propose = useMutation({
+    mutationFn: () =>
+      proposeReschedule(meeting.id, {
+        scheduledAt: new Date(startsAt).toISOString(),
+        durationMinutes: duration,
+      }),
+    onSuccess: () => {
+      setComposing(false);
+      void queryClient.invalidateQueries({
+        queryKey: MEETING_PROPOSALS_QUERY_KEY,
+      });
+      showToast({
+        message: "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
+        tone: "success",
+      });
+    },
+  });
+
+  return {
+    composing,
+    openComposer: () => {
+      propose.reset();
+      setComposing(true);
+    },
+    closeComposer: () => setComposing(false),
+    rescheduling: true,
+    startsAt,
+    setStartsAt,
+    duration,
+    setDuration,
+    agenda: "",
+    setAgenda: () => undefined,
+    canPropose: !!startsAt && !propose.isPending,
+    propose: () => propose.mutate(),
+    proposeError: propose.error,
+  };
+}

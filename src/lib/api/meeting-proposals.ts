@@ -79,3 +79,15 @@ export function declineMeetingProposal(
     data: { actorId, reason },
   });
 }
+
+export function proposeReschedule(
+  actorId: string,
+  meetingId: string,
+  input: { scheduledAt: string; durationMinutes: number },
+) {
+  return backendRequest<MeetingProposal>({
+    method: "POST",
+    url: `/api/meetings/${encodeURIComponent(meetingId)}/reschedule-proposals`,
+    data: { ...input, actorId },
+  });
+}

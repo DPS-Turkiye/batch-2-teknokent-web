@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
+import { MeetingStatus } from "@/interfaces/meeting";
 import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
 import {
+  canReschedule,
   defaultProposalStart,
   introStep,
   StepState,
@@ -10,6 +12,7 @@ import {
   proposalWhenLabel,
   sideLabel,
 } from "@/lib/meeting-proposals";
+import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
 
 describe("meeting proposal helpers", () => {
@@ -68,5 +71,19 @@ describe("meeting proposal helpers", () => {
       state: StepState.Todo,
       detail: "1 Ekim Perşembe 10:30 · 45 dk önerisi reddedildi: Seyahatteyim",
     });
+  });
+
+  it("only moves a planned meeting that hasn't started", () => {
+    const now = new Date("2026-09-28T09:00:00Z");
+    const upcoming = menteeMeetingFixture({
+      scheduledAt: "2026-09-29T09:00:00Z",
+    });
+    expect(canReschedule(upcoming, now)).toBe(true);
+    expect(
+      canReschedule({ ...upcoming, scheduledAt: "2026-09-27T09:00:00Z" }, now),
+    ).toBe(false);
+    expect(
+      canReschedule({ ...upcoming, status: MeetingStatus.Completed }, now),
+    ).toBe(false);
   });
 });

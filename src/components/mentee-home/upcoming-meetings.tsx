@@ -6,6 +6,7 @@ import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { meetingWhenLabel } from "@/lib/mentee-home";
 import { meetingCallHref } from "@/lib/mentorship-workspace";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 const MEETING_LIMIT = 2;
 
@@ -63,6 +64,11 @@ export function UpcomingMeetings({
               >
                 Mentora mesaj
               </Link>
+              <RescheduleMeetingButton
+                meeting={meeting}
+                pairLabel={meeting.mentorName ?? "Mentor"}
+                className="inline-flex items-center justify-center rounded-full border border-[#d4d8dd] bg-white px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-[#4a5059] hover:bg-[#f8f9fa]"
+              />
               <Link
                 href={meetingCallHref(meeting.id)}
                 className="inline-flex items-center justify-center rounded-full bg-[#ffb28a] px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-white hover:bg-[#f79a6b]"

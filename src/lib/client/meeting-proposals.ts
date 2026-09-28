@@ -70,3 +70,15 @@ export async function declineMeetingProposal(id: string, reason: string) {
     ),
   );
 }
+
+export async function proposeReschedule(
+  meetingId: string,
+  input: { scheduledAt: string; durationMinutes: number },
+) {
+  return requireSuccess(
+    await httpClient.post<MeetingProposal>(
+      `/api/meetings/${encodeURIComponent(meetingId)}/reschedule-proposals`,
+      input,
+    ),
+  );
+}
