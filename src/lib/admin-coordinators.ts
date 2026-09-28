@@ -58,3 +58,12 @@ export function addedMessage(account: CoordinatorAccount) {
 export function nameRequired(candidate: CoordinatorCandidate | undefined) {
   return candidate?.status === CoordinatorCandidateStatus.New;
 }
+
+export const COORDINATOR_UNASSIGNED = "Atanmadı";
+
+/** A program's coordinators in the admin lists, or "Atanmadı". */
+export function programCoordinatorLabel(program: {
+  coordinatorName: string | null;
+}) {
+  return program.coordinatorName ?? COORDINATOR_UNASSIGNED;
+}

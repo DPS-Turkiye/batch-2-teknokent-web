@@ -32,6 +32,7 @@ import type {
   AdminProgram,
 } from "@/interfaces/admin-overview";
 import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
+import { COORDINATOR_UNASSIGNED } from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
@@ -389,10 +390,16 @@ function ProgramRow({
         <IssueCount count={issues} />
       </span>
       <span className="flex items-center gap-2.5 text-[13px] leading-[1.3] text-[#22262b]">
-        <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[9px] font-semibold text-[#a8480e]">
-          {initials(program.coordinatorName)}
-        </span>
-        {program.coordinatorName}
+        {program.coordinatorName ? (
+          <span className="grid size-[26px] shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[9px] font-semibold text-[#a8480e]">
+            {initials(program.coordinatorName)}
+          </span>
+        ) : null}
+        {program.coordinatorName ?? (
+          <span className="font-medium text-[#b7791f]">
+            {COORDINATOR_UNASSIGNED}
+          </span>
+        )}
       </span>
       <span className="text-[13px] leading-[1.3] text-[#676e78]">
         {phaseLabel(program, data)}

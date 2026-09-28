@@ -12,6 +12,10 @@ import {
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
 import {
+  addProgramCoordinator,
+  getProgramCoordinatorCandidates,
+} from "@/lib/client/coordinator-programs";
+import {
   addedMessage,
   isAssignable,
   nameRequired,
@@ -21,8 +25,11 @@ import { errorMessage, isEmailAddress } from "@/lib/utils";
 const CANDIDATE_QUERY_KEY = ["admin-coordinator-candidate"] as const;
 const CHECK_DELAY_MS = 400;
 
-/** The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes. */
-export function useAddCoordinatorForm(onDone: () => void) {
+/**
+ * The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes.
+ * With a programId the new coordinator is also added to that program.
+ */
+export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
@@ -49,11 +56,14 @@ export function useAddCoordinatorForm(onDone: () => void) {
   const needsName = nameRequired(current);
 
   const save = useMutation({
-    mutationFn: () =>
-      addCoordinator({
+    mutationFn: async () => {
+      const account = await addCoordinator({
         fullName: needsName ? fullName.trim() : (current?.fullName ?? ""),
         email: email.trim(),
-      }),
+      });
+      if (programId) await addProgramCoordinator(programId, account.id);
+      return account;
+    },
     onSuccess: (account) => {
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
@@ -136,5 +146,47 @@ export function useCoordinatorPasswordSetup() {
   return {
     resend: (id: string) => mutation.mutate(id),
     busy: mutation.isPending,
+  };
+}
+
+/** The admin's "Koordinatör ata" popup: pick an approved coordinator and add them to the program. */
+export function useAssignProgramCoordinator(
+  programId: string,
+  onDone: () => void,
+) {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const candidates = useQuery({
+    queryKey: ["admin-program-coordinator-candidates", programId],
+    queryFn: () => getProgramCoordinatorCandidates(programId),
+  });
+  const mutation = useMutation({
+    mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      showToast({ message: "Koordinatör programa eklendi.", tone: "success" });
+      onDone();
+    },
+    onError: (error) =>
+      showToast({
+        message: errorMessage(error, "Koordinatör eklenemedi."),
+        tone: "error",
+      }),
+  });
+
+  return {
+    candidates: candidates.data ?? [],
+    isLoading: candidates.isLoading,
+    loadError: candidates.error,
+    selectedId,
+    select: setSelectedId,
+    canSave: selectedId != null && !mutation.isPending,
+    save: () => {
+      if (selectedId) mutation.mutate(selectedId);
+    },
+    saving: mutation.isPending,
   };
 }

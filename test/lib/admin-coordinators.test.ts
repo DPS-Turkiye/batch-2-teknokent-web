@@ -7,6 +7,8 @@ import {
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   addedMessage,
+  COORDINATOR_UNASSIGNED,
+  programCoordinatorLabel,
   candidateMessage,
   isAssignable,
   nameRequired,
@@ -108,5 +110,16 @@ describe("admin coordinators", () => {
     expect(isEmailAddress(" elif@teknokent.org ")).toBe(true);
     expect(isEmailAddress("elif@teknokent")).toBe(false);
     expect(isEmailAddress("elif teknokent.org")).toBe(false);
+  });
+});
+
+describe("program coordinator helpers", () => {
+  it("names the assigned coordinators, or says none is assigned", () => {
+    expect(programCoordinatorLabel({ coordinatorName: "Elif Demir" })).toBe(
+      "Elif Demir",
+    );
+    expect(programCoordinatorLabel({ coordinatorName: null })).toBe(
+      COORDINATOR_UNASSIGNED,
+    );
   });
 });
