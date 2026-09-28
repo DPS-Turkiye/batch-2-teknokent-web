@@ -159,13 +159,32 @@ describe("CalendarView", () => {
 
     expect(
       screen.getByRole("link", { name: /Toplantıya hazırlan/ }),
-    ).toHaveAttribute("href", "/meetings/research/prepare");
+    ).toHaveAttribute("href", "/notes/meeting-1");
     expect(
       screen.getByRole("link", { name: /Google Takvime Ekle/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: /iCal \(\.ics\) İndir/ }),
     ).toBeInTheDocument();
+  });
+
+  it("opens the meeting's notes when nothing is waiting to be prepared", async () => {
+    mockUseMeetings.mockReturnValue(meetingsResult({ data: [meeting()] }));
+    vi.mocked(getActionItems).mockResolvedValue([]);
+
+    renderWithQueryClient(<CalendarView />);
+
+    const prep = await screen.findByRole("region", {
+      name: "Hazırlık bekleyen",
+    });
+    expect(
+      await within(prep).findByText(
+        "Bu görüşme için bekleyen bir hazırlık yok.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(prep).getByRole("link", { name: "Toplantı notlarını aç" }),
+    ).toHaveAttribute("href", "/notes/meeting-1");
   });
 
   it("shows what to prepare for the next meeting and what is coming up", async () => {
@@ -199,7 +218,7 @@ describe("CalendarView", () => {
     expect(within(prep).getByText("Gecikti")).toBeInTheDocument();
     expect(
       within(prep).getByRole("link", { name: "Hazırlığı tamamla" }),
-    ).toBeInTheDocument();
+    ).toHaveAttribute("href", "/notes/meeting-1");
 
     const upcoming = screen.getByRole("region", {
       name: "Sıradaki etkinlikler",

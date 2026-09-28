@@ -11,6 +11,7 @@ import {
   PrepStatus,
   prepStatus,
 } from "@/lib/mentee-calendar";
+import { meetingNotebookHref } from "@/lib/startup-meetings";
 
 const WHEN_COLORS: Record<CalendarEntryKind, string> = {
   [CalendarEntryKind.Mentorship]: "text-[#c95c18]",
@@ -76,10 +77,10 @@ export function PrepCard({
         </ul>
       )}
       <Link
-        href="/meetings/research/prepare"
+        href={meetingNotebookHref(meeting.id)}
         className="flex w-full items-center justify-center rounded-full bg-[#e86f22] px-4 py-2.5 text-[12.5px] font-medium leading-[18px] text-white transition hover:bg-[#ce5e19]"
       >
-        Hazırlığı tamamla
+        {items.length > 0 ? "Hazırlığı tamamla" : "Toplantı notlarını aç"}
       </Link>
     </section>
   );

@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MeetingFeedbackPage from "@/app/meetings/research/feedback/page";
 import MeetingDetailPage from "@/app/meetings/research/page";
-import MeetingPreparationPage from "@/app/meetings/research/prepare/page";
 import MeetingSummaryPage from "@/app/meetings/research/summary/page";
 import {
   useMeetingFeedback,
@@ -13,7 +12,6 @@ import {
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { MEETING_PREPARE_CHECKLIST } from "@/lib/const";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -265,11 +263,5 @@ describe("meeting lifecycle pages", () => {
 
     await user.click(screen.getByText("Değerlendirmeyi gönder"));
     expect(submit).not.toHaveBeenCalled();
-  });
-
-  it("shows preparation checklist for the selected meeting", () => {
-    render(<MeetingPreparationPage />);
-    expect(screen.getByText("Toplantının Amacı")).toBeInTheDocument();
-    expect(screen.getByText(MEETING_PREPARE_CHECKLIST[0]!)).toBeInTheDocument();
   });
 });

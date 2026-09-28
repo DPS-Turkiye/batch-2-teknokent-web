@@ -6,6 +6,7 @@ import { ClipboardList } from "lucide-react";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
 import type { MeetingItem } from "@/interfaces/meeting";
+import { meetingNotebookHref } from "@/lib/startup-meetings";
 
 export function MeetingDetailModal({
   meeting,
@@ -76,7 +77,7 @@ export function MeetingDetailModal({
       <SyncMeetingActions meeting={meeting} />
 
       <Link
-        href="/meetings/research/prepare"
+        href={meetingNotebookHref(meeting.id)}
         className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e86f22] px-4 text-xs font-semibold text-white transition hover:bg-[#ce5e19]"
       >
         <ClipboardList className="size-4" aria-hidden />
