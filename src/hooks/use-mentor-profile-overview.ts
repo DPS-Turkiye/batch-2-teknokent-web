@@ -2,6 +2,7 @@
 
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
+import { useMentorRating } from "@/hooks/use-mentor-rating";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -16,6 +17,7 @@ import {
   mentorshipHistory,
   programDetail,
   profileSubtitle,
+  ratingLabel,
   weeklyAvailabilityRows,
   workingStyleBullets,
 } from "@/lib/mentor-profile-overview";
@@ -32,6 +34,13 @@ export function useMentorProfileOverview(profile: MentorProfile) {
   const settingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
+  const ratingQuery = useMentorRating(profile.id);
+  const ratingByRequest = Object.fromEntries(
+    (ratingQuery.data?.mentorships ?? []).map((row) => [
+      row.mentorshipRequestId,
+      row.average,
+    ]),
+  );
 
   const settings = settingsQuery.data;
   const meetings = meetingsQuery.data ?? [];
@@ -72,8 +81,10 @@ export function useMentorProfileOverview(profile: MentorProfile) {
           : String(completedSessionCount(meetings)),
       },
       {
-        label: "Ortalama yanıt süresi",
-        value: profile.responseTimeLabel?.trim() || MISSING,
+        label: "Ortalama değerlendirme",
+        value: ratingQuery.isLoading
+          ? LOADING
+          : (ratingLabel(ratingQuery.data?.average) ?? MISSING),
       },
       {
         label: "Mentorluk süresi",
@@ -90,7 +101,7 @@ export function useMentorProfileOverview(profile: MentorProfile) {
     isAvailabilityLoading: settingsQuery.isLoading,
     preferences: meetingPreferenceRows(profile, settings),
     workingStyle: workingStyleBullets(profile),
-    history: mentorshipHistory(accepted, meetings),
+    history: mentorshipHistory(accepted, meetings, ratingByRequest),
     isHistoryLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
   };
 }

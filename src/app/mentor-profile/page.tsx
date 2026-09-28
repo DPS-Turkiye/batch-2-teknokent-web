@@ -523,8 +523,16 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 <ul className="flex flex-col gap-3">
                   {overview.history.map((row) => (
                     <li key={row.id} className={listItemClass}>
-                      <p className="text-[13px] font-medium leading-5 text-[#22262b]">
+                      <p className="flex items-center justify-between gap-3 text-[13px] font-medium leading-5 text-[#22262b]">
                         {row.title}
+                        {row.rating ? (
+                          <span
+                            className="shrink-0 text-[12px] text-[#b7791f]"
+                            aria-label={`Değerlendirme ${row.rating}`}
+                          >
+                            ★ {row.rating}
+                          </span>
+                        ) : null}
                       </p>
                       <p className="text-[11.5px] leading-[18px] text-[#676e78]">
                         {row.detail}

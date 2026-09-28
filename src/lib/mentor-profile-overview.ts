@@ -21,7 +21,19 @@ export type MentorshipHistoryRow = {
   id: string;
   title: string;
   detail: string;
+  /** "4,5": the mentees' average for this mentorship, or null before any feedback. */
+  rating: string | null;
 };
+
+const RATING = new Intl.NumberFormat("tr-TR", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** "4,8" for a 1–5 average; null before the first feedback. */
+export function ratingLabel(average: number | null | undefined) {
+  return average == null ? null : RATING.format(average);
+}
 
 /** "Design / UX Mentor · Döngü Labs · 12 yıl" */
 export function profileSubtitle(profile: MentorProfile) {
@@ -80,6 +92,7 @@ function periodLabel(start: Date, end: Date) {
 export function mentorshipHistory(
   accepted: MentorshipRequest[],
   meetings: MeetingItem[],
+  ratingByRequest: Record<string, number> = {},
 ): MentorshipHistoryRow[] {
   const completed = completedMeetings(meetings);
   return accepted.map((request) => {
@@ -98,6 +111,7 @@ export function mentorshipHistory(
           .filter(Boolean)
           .join(" · ") || request.supportArea,
       detail: `${periodLabel(new Date(start), new Date(end))} · ${sessions.length} seans`,
+      rating: ratingLabel(ratingByRequest[request.id]),
     };
   });
 }

@@ -8,3 +8,10 @@ export function fetchMentorDirectory() {
     url: "/api/mentors",
   });
 }
+
+export function fetchMentorRating(mentorId: string) {
+  return backendRequest({
+    method: "GET",
+    url: `/api/mentors/${encodeURIComponent(mentorId)}/rating`,
+  });
+}

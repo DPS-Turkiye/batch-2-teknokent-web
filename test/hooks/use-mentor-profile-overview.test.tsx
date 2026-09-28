@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
+import { useMentorRating } from "@/hooks/use-mentor-rating";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorLanguage, type MentorProfile } from "@/interfaces/mentor";
@@ -11,6 +12,7 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramStatus } from "@/interfaces/program";
 
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
+vi.mock("@/hooks/use-mentor-rating", () => ({ useMentorRating: vi.fn() }));
 vi.mock("@/hooks/use-mentor-profile", () => ({
   useMentorAvailabilitySettings: vi.fn(),
 }));
@@ -82,6 +84,18 @@ function mockQueries({ loading = false } = {}) {
     },
     isLoading: false,
   } as unknown as ReturnType<typeof useMentorAvailabilitySettings>);
+  vi.mocked(useMentorRating).mockReturnValue({
+    data: loading
+      ? undefined
+      : {
+          average: 4.75,
+          feedbackCount: 2,
+          mentorships: [
+            { mentorshipRequestId: "r1", average: 4.5, feedbackCount: 1 },
+          ],
+        },
+    isLoading: loading,
+  } as unknown as ReturnType<typeof useMentorRating>);
 }
 
 function statValue(stats: { label: string; value: string }[], label: string) {
@@ -159,5 +173,19 @@ describe("useMentorProfileOverview", () => {
     expect(result.current.programs).toEqual([]);
     expect(result.current.activePrograms).toEqual([]);
     expect(result.current.languages).toBe("");
+  });
+
+  it("shows the mentees' average rating and each mentorship's stars", () => {
+    mockQueries();
+    const { result } = renderHook(() => useMentorProfileOverview(profile()));
+
+    expect(statValue(result.current.stats, "Ortalama değerlendirme")).toBe(
+      "4,8",
+    );
+    expect(result.current.history.map((row) => row.rating)).toEqual([
+      "4,5",
+      null,
+      null,
+    ]);
   });
 });
