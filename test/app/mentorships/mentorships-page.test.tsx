@@ -295,6 +295,10 @@ describe("MentorshipsPage", () => {
 
     await user.click(screen.getByRole("tab", { name: "Talepler" }));
     expect(await screen.findByText("Ece Demir")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Ece Demir/ })).toHaveAttribute(
+      "href",
+      "/mentor-request/status?id=pending-1",
+    );
   });
 
   it("lists backend mentors on the Mentor Havuzu tab", async () => {

@@ -373,6 +373,28 @@ describe("MentorProfilePage", () => {
     expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
   });
 
+  it("pages the mentorship history", async () => {
+    const user = userEvent.setup();
+    mockAll({
+      overview: {
+        history: Array.from({ length: 6 }, (_, index) => ({
+          id: `r${index + 1}`,
+          title: `Girişim ${index + 1}`,
+          detail: `Eyl 2026 · ${index} seans`,
+        })),
+      },
+    });
+    render(<MentorProfilePage />);
+
+    expect(screen.getByText("Girişim 1")).toBeInTheDocument();
+    expect(screen.getByText("Girişim 5")).toBeInTheDocument();
+    expect(screen.queryByText("Girişim 6")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Sonraki" }));
+    expect(screen.getByText("Girişim 6")).toBeInTheDocument();
+    expect(screen.queryByText("Girişim 1")).not.toBeInTheDocument();
+  });
+
   it("lists the weekly availability and the mentee load", () => {
     mockAll();
     render(<MentorProfilePage />);

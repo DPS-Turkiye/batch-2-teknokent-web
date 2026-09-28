@@ -4,8 +4,11 @@ import { X } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
+import { ListPagination } from "@/components/common/list-pagination";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
+import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { CvFileSection } from "@/components/profile/cv-file-section";
+import { useClientPagination } from "@/hooks/use-client-pagination";
 import { useMentorCv } from "@/hooks/use-mentor-cv";
 import {
   useMentorProfile,
@@ -19,7 +22,14 @@ import {
   type MentorProfile,
   PREP_FILE_REQUIREMENT_LABELS,
 } from "@/interfaces/mentor";
-import type { LabelValue } from "@/lib/mentor-profile-overview";
+import type {
+  LabelValue,
+  MentorshipHistoryRow,
+} from "@/lib/mentor-profile-overview";
+import {
+  MENTOR_PROFILE_HISTORY_PAGE_SIZE,
+  MENTOR_PROFILE_HISTORY_PAGER_LABEL,
+} from "@/lib/const/mentorships";
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
@@ -41,6 +51,54 @@ const chipToneClass: Record<ChipTone, string> = {
 };
 const listItemClass =
   "flex flex-col gap-0.5 rounded-lg border border-[#e4e7ea] bg-white px-3 py-2.5";
+
+function MentorshipHistoryList({
+  history,
+  isLoading,
+}: {
+  history: MentorshipHistoryRow[];
+  isLoading: boolean;
+}) {
+  const pager = useClientPagination(history, MENTOR_PROFILE_HISTORY_PAGE_SIZE);
+
+  if (isLoading) {
+    return <p className={emptyClass}>Yükleniyor...</p>;
+  }
+  if (history.length === 0) {
+    return <p className={emptyClass}>Henüz kabul edilmiş bir mentorluk yok.</p>;
+  }
+
+  return (
+    <MentorAccent enabled>
+      <ul className="flex flex-col gap-3">
+        {pager.pageItems.map((row) => (
+          <li key={row.id} className={listItemClass}>
+            <p className="flex items-center justify-between gap-3 text-[13px] font-medium leading-5 text-[#22262b]">
+              {row.title}
+              {row.rating ? (
+                <span
+                  className="shrink-0 text-[12px] text-[#b7791f]"
+                  aria-label={`Değerlendirme ${row.rating}`}
+                >
+                  ★ {row.rating}
+                </span>
+              ) : null}
+            </p>
+            <p className="text-[11.5px] leading-[18px] text-[#676e78]">
+              {row.detail}
+            </p>
+          </li>
+        ))}
+      </ul>
+      <ListPagination
+        page={pager.page}
+        totalPages={pager.totalPages}
+        onPageChange={pager.setPage}
+        label={MENTOR_PROFILE_HISTORY_PAGER_LABEL}
+      />
+    </MentorAccent>
+  );
+}
 
 function Chip({ tone, children }: { tone: ChipTone; children: ReactNode }) {
   return (
@@ -513,34 +571,10 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             ) : null}
 
             <Card title="Mentorluk geçmişi">
-              {overview.isHistoryLoading ? (
-                <p className={emptyClass}>Yükleniyor...</p>
-              ) : overview.history.length === 0 ? (
-                <p className={emptyClass}>
-                  Henüz kabul edilmiş bir mentorluk yok.
-                </p>
-              ) : (
-                <ul className="flex flex-col gap-3">
-                  {overview.history.map((row) => (
-                    <li key={row.id} className={listItemClass}>
-                      <p className="flex items-center justify-between gap-3 text-[13px] font-medium leading-5 text-[#22262b]">
-                        {row.title}
-                        {row.rating ? (
-                          <span
-                            className="shrink-0 text-[12px] text-[#b7791f]"
-                            aria-label={`Değerlendirme ${row.rating}`}
-                          >
-                            ★ {row.rating}
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className="text-[11.5px] leading-[18px] text-[#676e78]">
-                        {row.detail}
-                      </p>
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <MentorshipHistoryList
+                history={overview.history}
+                isLoading={overview.isHistoryLoading}
+              />
             </Card>
           </div>
 

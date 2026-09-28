@@ -359,6 +359,14 @@ describe("RequestStatusPage", () => {
     expect(screen.queryByText("Talep yükleniyor…")).not.toBeInTheDocument();
   });
 
+  it("opens the request named in the id query from Mentorluklarım", () => {
+    searchParams.current = new URLSearchParams("id=request-1");
+    renderWithQueryClient(<RequestStatusPage />);
+
+    expect(screen.getByText("Talep bilgileri")).toBeInTheDocument();
+    expect(screen.getByText("Leyla Aksoy")).toBeInTheDocument();
+  });
+
   it("still finds the request a status link was sent to open", () => {
     searchParams.current = new URLSearchParams(
       `state=${MentorshipRequestStatus.Accepted}`,

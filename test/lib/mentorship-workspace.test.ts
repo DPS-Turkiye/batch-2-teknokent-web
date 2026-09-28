@@ -14,6 +14,7 @@ import {
   meetingCallHref,
   meetingFeedbackHref,
   meetingSummaryHref,
+  menteeRequestStatusHref,
   mentorRequestHref,
   mentorRequestMessagesHref,
   mentorshipRequestAllowsMessaging,
@@ -195,6 +196,9 @@ describe("mentorship workspace helpers", () => {
     );
     expect(assistantMeetingHref("meeting-9")).toBe(
       "/assistant?meetingId=meeting-9",
+    );
+    expect(menteeRequestStatusHref("req-1")).toBe(
+      "/mentor-request/status?id=req-1",
     );
   });
 

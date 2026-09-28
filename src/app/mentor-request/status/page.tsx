@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, FileUp, Upload } from "lucide-react";
 
@@ -65,6 +65,26 @@ const statusTones: Record<
 };
 
 export default function RequestStatusPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell
+          active={AppArea.Mentorships}
+          title="Talep Detayı"
+          backHref="/mentorships?tab=requests"
+        >
+          <p className="mx-auto max-w-[960px] px-4 py-6 text-sm text-[#777] sm:px-8">
+            Talep yükleniyor…
+          </p>
+        </AppShell>
+      }
+    >
+      <RequestStatusContent />
+    </Suspense>
+  );
+}
+
+function RequestStatusContent() {
   const router = useRouter();
   const params = useSearchParams();
   const { session } = useSession();

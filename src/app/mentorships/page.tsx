@@ -24,6 +24,7 @@ import {
   meetingAboutHref,
   meetingCallHref,
   menteeRequestOwnerLabel,
+  menteeRequestStatusHref,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
@@ -179,7 +180,7 @@ function RequestsTab() {
           return (
             <Link
               key={request.id}
-              href={requestHref(request.id)}
+              href={menteeRequestStatusHref(request.id)}
               className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
             >
               <div className="flex items-start justify-between gap-3">
@@ -393,7 +394,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
                       </>
                     ) : (
                       <Link
-                        href={requestHref(request.id)}
+                        href={menteeRequestStatusHref(request.id)}
                         className="inline-flex min-h-[38px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#22262b]"
                       >
                         Talebi aç →
@@ -428,8 +429,4 @@ function EmptyState() {
       </p>
     </div>
   );
-}
-
-function requestHref(id: string) {
-  return "/mentor-request/status?id=" + encodeURIComponent(id);
 }
