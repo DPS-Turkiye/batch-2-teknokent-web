@@ -10,11 +10,13 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-notes";
 import {
   MeetingProposalPanel,
   ProposeMeetingDialog,
 } from "@/components/coordinator/meeting-proposal-panel";
 import { useCoordinatorMentorshipDrawer } from "@/hooks/use-coordinator-mentorships";
+import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type { CoordinatorMentorshipDetail } from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
@@ -139,6 +141,7 @@ export function MentorshipDrawer({
             <SummaryTab
               detail={detail}
               proposals={drawer.proposals}
+              notes={drawer.notes}
               onRemind={drawer.remind}
               reminding={drawer.reminding}
               reminded={drawer.reminded}
@@ -155,16 +158,25 @@ export function MentorshipDrawer({
 
         {detail ? (
           <footer className="flex items-center justify-between gap-3 border-t border-[#eef0f2] px-7 py-4">
-            <button
-              type="button"
-              onClick={drawer.remind}
-              disabled={drawer.reminding || drawer.reminded}
-              className="inline-flex h-10 items-center rounded-full border border-[#e9ecef] px-4 text-[13px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
-            >
-              {drawer.reminded
-                ? "Hatırlatma gönderildi"
-                : "İki tarafa hatırlat"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={drawer.addNote}
+                className="inline-flex h-10 items-center rounded-full border border-[#e9ecef] px-4 text-[13px] font-medium text-[#22262b]"
+              >
+                Koordinatör notu ekle
+              </button>
+              <button
+                type="button"
+                onClick={drawer.remind}
+                disabled={drawer.reminding || drawer.reminded}
+                className="inline-flex h-10 items-center rounded-full border border-[#e9ecef] px-4 text-[13px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
+              >
+                {drawer.reminded
+                  ? "Hatırlatma gönderildi"
+                  : "İki tarafa hatırlat"}
+              </button>
+            </div>
             <Link
               href={coordinatorMessageHref(
                 detail.mentorship.programId,
@@ -225,6 +237,7 @@ function Tab({
 function SummaryTab({
   detail,
   proposals,
+  notes,
   onRemind,
   reminding,
   reminded,
@@ -232,6 +245,7 @@ function SummaryTab({
 }: {
   detail: CoordinatorMentorshipDetail;
   proposals: MentorshipMeetingProposals;
+  notes: CoordinatorNotes;
   onRemind: () => void;
   reminding: boolean;
   reminded: boolean;
@@ -314,6 +328,10 @@ function SummaryTab({
         <p className="rounded-2xl bg-[#f7f8f9] px-4 py-3 text-[13px] text-[#22262b]">
           {notesSummary(detail)}
         </p>
+      </Section>
+
+      <Section title="Koordinatör notları">
+        <CoordinatorNotesSection notes={notes} />
       </Section>
     </div>
   );
