@@ -73,7 +73,7 @@ export function useMentorPool(programId: string) {
       if (link?.inviteCode) {
         await copyInviteLink(link.inviteCode);
         showToast({
-          message: `Davet bağlantısı kopyalandı. ${value.trim()} ile paylaşın; 7 gün geçerli.`,
+          message: `Davet bağlantısı ${value.trim()} adresine e-postayla gönderildi ve kopyalandı; 7 gün geçerli.`,
           tone: "success",
         });
       } else {
@@ -93,7 +93,8 @@ export function useMentorPool(programId: string) {
       saved(rows);
       await copyInviteLink(row.inviteCode as string);
       showToast({
-        message: "Bağlantı 7 gün daha geçerli ve yeniden kopyalandı.",
+        message:
+          "Bağlantı 7 gün daha geçerli; yeniden e-postayla gönderildi ve kopyalandı.",
         tone: "success",
       });
     },
