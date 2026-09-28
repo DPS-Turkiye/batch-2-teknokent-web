@@ -19,6 +19,7 @@ import {
   meetingPreferenceRows,
   mentorshipDurationLabel,
   mentorshipHistory,
+  ratingLabel,
   programDetail,
   profileSubtitle,
   weeklyAvailabilityRows,
@@ -142,8 +143,14 @@ describe("mentorshipHistory", () => {
         id: "r1",
         title: "NovaTech · Zeynep Er",
         detail: "Mar – Haz 2026 · 2 seans",
+        rating: null,
       },
     ]);
+    expect(
+      mentorshipHistory([request("r1", "2026-03-10T09:00:00Z")], meetings, {
+        r1: 4.25,
+      })[0].rating,
+    ).toBe("4,3");
   });
 
   it("names both years across a new year, and one month when it has just begun", () => {
@@ -277,5 +284,13 @@ describe("weeklyAvailabilityRows", () => {
 
   it("has no rows when no day is open", () => {
     expect(weeklyAvailabilityRows([])).toEqual([]);
+  });
+});
+
+describe("ratingLabel", () => {
+  it("shows one decimal the Turkish way, and nothing before any feedback", () => {
+    expect(ratingLabel(4.8)).toBe("4,8");
+    expect(ratingLabel(5)).toBe("5,0");
+    expect(ratingLabel(null)).toBeNull();
   });
 });
