@@ -115,6 +115,11 @@ describe("ProgramMentorsView", () => {
     expect(writeText).toHaveBeenCalledWith(
       expect.stringContaining("/signup?role=mentor&programInvite=abc123"),
     );
+    expect(
+      await screen.findByText(
+        /cagri@yilmazfinans.com adresine e-postayla gönderildi/,
+      ),
+    ).toBeInTheDocument();
   });
 
   it("renews and takes back a waiting invite", async () => {
@@ -128,6 +133,9 @@ describe("ProgramMentorsView", () => {
       await screen.findByRole("button", { name: "Tekrar gönder" }),
     );
     expect(renewMentorInvite).toHaveBeenCalledWith("program-1", "invite-1");
+    expect(
+      await screen.findByText(/yeniden e-postayla gönderildi/),
+    ).toBeInTheDocument();
 
     await user.click(
       screen.getByRole("button", {
