@@ -65,6 +65,9 @@ describe("CoordinatorFrame", () => {
       "/coordinator/messages",
     );
     expect(menu).not.toHaveTextContent("Yakında");
+    expect(
+      screen.queryByRole("link", { name: "← Yönetim paneline dön" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Koordinatör")).toBeInTheDocument();
     expect(screen.getByText("Programlar içeriği")).toBeInTheDocument();
   });
@@ -80,6 +83,9 @@ describe("CoordinatorFrame", () => {
 
     expect(screen.getByText("Programlar içeriği")).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("link", { name: "← Yönetim paneline dön" }),
+    ).toHaveAttribute("href", "/admin/programs");
   });
 
   it("sends a mentee back to their own home", () => {
