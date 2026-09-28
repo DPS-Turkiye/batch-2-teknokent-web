@@ -8,11 +8,9 @@ import {
   useReplyForm,
   useRequestFileUpload,
 } from "@/hooks/use-mentorship-requests";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
 import { useMyAnnouncements } from "@/hooks/use-program-announcements";
 import { useProgramThreads } from "@/hooks/use-program-threads";
 
@@ -24,8 +22,8 @@ export function useMenteeMessages() {
   const announcements = useMyAnnouncements();
   const conversations = useMemo<MentorshipRequest[]>(
     () =>
-      (requestsQuery.data ?? []).filter(
-        (request) => request.status === MentorshipRequestStatus.Accepted,
+      (requestsQuery.data ?? []).filter((request) =>
+        mentorshipRequestAllowsMessaging(request.status),
       ),
     [requestsQuery.data],
   );
