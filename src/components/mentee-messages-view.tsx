@@ -1,6 +1,7 @@
 "use client";
 
 import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -311,7 +312,8 @@ function Conversation({
 }
 
 export function MenteeMessagesView() {
-  const messages = useMenteeMessages();
+  const params = useSearchParams();
+  const messages = useMenteeMessages(params.get("conversation"));
   return (
     <AppShell active={AppArea.Meetings} menteeHome>
       {messages.error ? (

@@ -16,11 +16,11 @@ import { UserRole } from "@/interfaces/session";
 import { useMyAnnouncements } from "@/hooks/use-program-announcements";
 import { useProgramThreads } from "@/hooks/use-program-threads";
 
-export function useMenteeMessages() {
+export function useMenteeMessages(linkedThreadId: string | null = null) {
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const programThreads = useProgramThreads();
+  const programThreads = useProgramThreads(linkedThreadId);
   const announcements = useMyAnnouncements();
   const conversations = useMemo<MentorshipRequest[]>(
     () =>
