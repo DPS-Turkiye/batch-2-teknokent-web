@@ -5,7 +5,7 @@ import {
   type ProgramTeam,
   TeamJoinStatus,
 } from "@/interfaces/coordinator-program";
-import { isEmailAddress } from "@/lib/utils";
+import { formatDayMonth, isEmailAddress } from "@/lib/utils";
 
 export enum LaunchStep {
   Basics = "BASICS",
@@ -165,29 +165,42 @@ export enum TeamFilter {
   All = "ALL",
   Joined = "JOINED",
   Waiting = "WAITING",
+  Problem = "PROBLEM",
+}
+
+/** A waiting team whose code email SES refused: "E-posta iletilemedi", listed under "Sorunlu". */
+export function isTeamProblem(team: ProgramTeam) {
+  return team.status === TeamJoinStatus.Waiting && team.codeSendFailed;
+}
+
+function teamFilterOf(team: ProgramTeam) {
+  if (team.status === TeamJoinStatus.Joined) return TeamFilter.Joined;
+  return isTeamProblem(team) ? TeamFilter.Problem : TeamFilter.Waiting;
 }
 
 export function teamFilterOptions(teams: ProgramTeam[]) {
-  const joined = teams.filter(
-    (team) => team.status === TeamJoinStatus.Joined,
-  ).length;
+  const count = (filter: TeamFilter) =>
+    teams.filter((team) => teamFilterOf(team) === filter).length;
   return [
     { id: TeamFilter.All, label: `Tümü ${teams.length}` },
-    { id: TeamFilter.Joined, label: `Katıldı ${joined}` },
+    { id: TeamFilter.Joined, label: `Katıldı ${count(TeamFilter.Joined)}` },
     {
       id: TeamFilter.Waiting,
-      label: `Yetkili bekleniyor ${teams.length - joined}`,
+      label: `Yetkili bekleniyor ${count(TeamFilter.Waiting)}`,
     },
+    { id: TeamFilter.Problem, label: `Sorunlu ${count(TeamFilter.Problem)}` },
   ];
 }
 
 export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
   if (filter === TeamFilter.All) return teams;
-  const status =
-    filter === TeamFilter.Joined
-      ? TeamJoinStatus.Joined
-      : TeamJoinStatus.Waiting;
-  return teams.filter((team) => team.status === status);
+  return teams.filter((team) => teamFilterOf(team) === filter);
+}
+
+/** "Gönderildi 19 Eyl · ali@pusula.io" once the code has been emailed. */
+export function codeSentLabel(team: ProgramTeam) {
+  if (!team.codeSentAt) return null;
+  return `Gönderildi ${formatDayMonth(new Date(team.codeSentAt))} · ${team.leadEmail ?? ""}`.trim();
 }
 
 const DAY = 24 * 60 * 60 * 1000;

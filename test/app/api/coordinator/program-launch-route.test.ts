@@ -9,6 +9,8 @@ import {
   GET as listTeams,
   POST as addTeams,
 } from "@/app/api/coordinator/programs/[id]/teams/route";
+import { GET as teamDetail } from "@/app/api/coordinator/programs/[id]/team-details/[organizationId]/route";
+import { POST as sendCode } from "@/app/api/coordinator/programs/[id]/teams/[inviteId]/send-code/route";
 import { POST as create } from "@/app/api/coordinator/programs/route";
 import { type AppSession, UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
@@ -21,6 +23,8 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   addProgramTeams: vi.fn(),
   updateProgramTeam: vi.fn(),
   removeProgramTeam: vi.fn(),
+  sendProgramTeamCode: vi.fn(),
+  fetchProgramTeamDetail: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorSession: vi.fn(),
@@ -50,6 +54,8 @@ describe("coordinator program launch routes", () => {
       api.addProgramTeams,
       api.updateProgramTeam,
       api.removeProgramTeam,
+      api.sendProgramTeamCode,
+      api.fetchProgramTeamDetail,
     ]) {
       vi.mocked(fn).mockResolvedValue(ok);
     }
@@ -103,6 +109,27 @@ describe("coordinator program launch routes", () => {
       "coordinator-1",
       "program-1",
       "invite-1",
+    );
+  });
+
+  it("emails a team code and opens a joined team as the signed-in coordinator", async () => {
+    await sendCode(
+      new Request("http://localhost", { method: "POST" }),
+      inviteParams,
+    );
+    expect(api.sendProgramTeamCode).toHaveBeenCalledWith(
+      "coordinator-1",
+      "program-1",
+      "invite-1",
+    );
+
+    await teamDetail(new Request("http://localhost"), {
+      params: Promise.resolve({ id: "program-1", organizationId: "org-1" }),
+    });
+    expect(api.fetchProgramTeamDetail).toHaveBeenCalledWith(
+      "coordinator-1",
+      "program-1",
+      "org-1",
     );
   });
 

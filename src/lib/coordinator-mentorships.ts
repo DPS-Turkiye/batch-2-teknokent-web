@@ -233,3 +233,10 @@ export function mentorLoadLabel(detail: CoordinatorMentorshipDetail) {
 export function coordinatorMessageHref(programId: string, mentorId: string) {
   return `/coordinator/messages?program=${encodeURIComponent(programId)}&mentor=${encodeURIComponent(mentorId)}`;
 }
+
+export function coordinatorTeamMessageHref(
+  programId: string,
+  organizationId: string,
+) {
+  return `/coordinator/messages?program=${encodeURIComponent(programId)}&team=${encodeURIComponent(organizationId)}`;
+}

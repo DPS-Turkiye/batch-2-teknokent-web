@@ -7,6 +7,7 @@ import type {
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
+  ProgramTeamDetail,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -160,6 +161,25 @@ export async function removeProgramTeam(programId: string, inviteId: string) {
   return requireSuccess(
     await httpClient.delete<ProgramTeam[]>(
       `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
+    ),
+  );
+}
+
+export async function sendProgramTeamCode(programId: string, inviteId: string) {
+  return requireSuccess(
+    await httpClient.post<ProgramTeam[]>(
+      `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}/send-code`,
+    ),
+  );
+}
+
+export async function getProgramTeamDetail(
+  programId: string,
+  organizationId: string,
+) {
+  return requireSuccess(
+    await httpClient.get<ProgramTeamDetail>(
+      `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
     ),
   );
 }

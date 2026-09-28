@@ -9,6 +9,7 @@ import type {
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
+  ProgramTeamDetail,
   TeamInviteInput,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
@@ -175,6 +176,30 @@ export function removeProgramTeam(
   return backendRequest<ProgramTeam[]>({
     method: "DELETE",
     url: `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}`,
+    params: { actorId },
+  });
+}
+
+export function sendProgramTeamCode(
+  actorId: string,
+  programId: string,
+  inviteId: string,
+) {
+  return backendRequest<ProgramTeam[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/teams/${encodeURIComponent(inviteId)}/send-code`,
+    params: { actorId },
+  });
+}
+
+export function fetchProgramTeamDetail(
+  actorId: string,
+  programId: string,
+  organizationId: string,
+) {
+  return backendRequest<ProgramTeamDetail>({
+    method: "GET",
+    url: `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
     params: { actorId },
   });
 }
