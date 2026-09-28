@@ -100,6 +100,10 @@ export function menteeRequestStatusHref(id: string) {
   return `/mentor-request/status?id=${encodeURIComponent(id)}`;
 }
 
+export function menteeRequestDetailHref(id: string) {
+  return `/mentor-request/detail?id=${encodeURIComponent(id)}`;
+}
+
 export function activeMentorshipHref(
   request: MentorshipRequest,
   meeting: MeetingItem | null | undefined,

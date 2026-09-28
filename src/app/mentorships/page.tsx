@@ -24,6 +24,7 @@ import {
   meetingAboutHref,
   meetingCallHref,
   menteeRequestOwnerLabel,
+  menteeRequestDetailHref,
   menteeRequestStatusHref,
   pickRequestMeeting,
   requestProgressPercent,
@@ -180,7 +181,7 @@ function RequestsTab() {
           return (
             <Link
               key={request.id}
-              href={menteeRequestStatusHref(request.id)}
+              href={menteeRequestDetailHref(request.id)}
               className="rounded-[20px] border border-[#e4e7ea] bg-white p-[18px] transition hover:border-[#f2b78f]"
             >
               <div className="flex items-start justify-between gap-3">
@@ -204,7 +205,7 @@ function RequestsTab() {
                   ) : null}
                 </div>
                 <span className="shrink-0 text-[13px] font-medium text-[#e86f22]">
-                  Süreci aç →
+                  Talebi gör →
                 </span>
               </div>
             </Link>

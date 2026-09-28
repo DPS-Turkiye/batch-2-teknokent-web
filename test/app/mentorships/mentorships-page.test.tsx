@@ -297,7 +297,7 @@ describe("MentorshipsPage", () => {
     expect(await screen.findByText("Ece Demir")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Ece Demir/ })).toHaveAttribute(
       "href",
-      "/mentor-request/status?id=pending-1",
+      "/mentor-request/detail?id=pending-1",
     );
   });
 
