@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import {
   CalendarDays,
   ClipboardList,
@@ -21,6 +20,7 @@ import {
 import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
 import { AccountMenu } from "@/components/hoc/account-menu";
 import {
@@ -148,62 +148,6 @@ function buildNavigation(
     : menteeNavigation;
 }
 
-function BrandBlock({
-  href,
-  mentor = false,
-  menteeHome = false,
-}: {
-  href: string;
-  mentor?: boolean;
-  menteeHome?: boolean;
-}) {
-  return (
-    <Link
-      href={href}
-      className="flex items-center gap-2"
-      aria-label="metual ana sayfa"
-    >
-      {menteeHome ? (
-        <span className="relative h-[29px] w-14 shrink-0" aria-hidden>
-          <Image
-            src="/mentee-dashboard/revised/logo-blue.svg"
-            alt=""
-            width={56}
-            height={29}
-            className="absolute inset-0 size-full"
-          />
-          <Image
-            src="/mentee-dashboard/revised/logo-orange.svg"
-            alt=""
-            width={30}
-            height={29}
-            className="absolute left-[13px] top-0 h-[29px] w-[30px]"
-          />
-        </span>
-      ) : null}
-      <span
-        className={
-          mentor
-            ? "text-[32px] font-bold tracking-[0.04em] text-[#898989]"
-            : "text-[22px] font-black tracking-[-0.08em] text-[#e5701d]"
-        }
-      >
-        {mentor || menteeHome ? "menton" : "metual"}
-      </span>
-      {!mentor && !menteeHome ? (
-        <>
-          <span className="hidden h-4 w-px bg-[#e4e7ea] sm:block" />
-          <span className="hidden text-[10px] font-medium leading-tight text-[#858c96] sm:block">
-            ODTÜ Teknokent
-            <br />
-            Mentorluk Platformu
-          </span>
-        </>
-      ) : null}
-    </Link>
-  );
-}
-
 export function AppShell({
   menteeHome,
   mentorHome = false,
@@ -257,11 +201,7 @@ export function AppShell({
           className={`mx-auto flex items-center gap-5 px-4 sm:px-8 ${usesRevisedNav ? "h-[106px] max-w-[1440px] justify-between sm:px-6" : "h-[72px] max-w-[1320px]"}`}
         >
           <div className={usesRevisedNav ? "lg:w-[200px]" : undefined}>
-            <BrandBlock
-              href={homeHref}
-              mentor={isMentor}
-              menteeHome={menteeFrame}
-            />
+            <MentonWordmark href={homeHref} />
           </div>
           <nav
             className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${usesRevisedNav ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
@@ -322,11 +262,7 @@ export function AppShell({
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <BrandBlock
-                href={homeHref}
-                mentor={isMentor}
-                menteeHome={menteeFrame}
-              />
+              <MentonWordmark href={homeHref} />
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}

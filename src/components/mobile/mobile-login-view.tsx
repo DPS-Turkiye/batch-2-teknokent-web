@@ -47,7 +47,7 @@ function BrandVisual() {
         />
       </div>
       <div className="absolute inset-x-0 top-[160px] h-[140px] bg-gradient-to-b from-[rgba(255,255,255,0)] to-white" />
-      <p className="absolute inset-x-0 top-[118px] text-center text-[30px] leading-[1.35] font-bold tracking-[-0.9px] text-[#5b6168]">
+      <p className="absolute inset-x-0 top-[118px] text-center text-[30px] leading-[1.35] font-bold tracking-[-0.9px] text-[#898989]">
         menton
       </p>
     </div>

@@ -297,7 +297,9 @@ describe("AppShell navigation", () => {
     expect(
       within(menteeNav).queryByRole("link", { name: /Toplantı Asistanı/ }),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("metual")).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "menton ana sayfa" }),
+    ).toHaveAttribute("href", "/dashboard");
   });
 
   it("lets a page opt out of the revised frame for a mentee", () => {
@@ -316,7 +318,8 @@ describe("AppShell navigation", () => {
     expect(
       within(menteeNav).getByRole("link", { name: /Ana Sayfa/ }),
     ).toHaveAttribute("href", "/dashboard");
-    expect(screen.getByText("metual")).toBeInTheDocument();
+    expect(screen.queryByText("metual")).not.toBeInTheDocument();
+    expect(screen.getByText("menton")).toBeInTheDocument();
   });
 
   it("leaves a mentor on a page that does not opt in unchanged", () => {
