@@ -1,4 +1,5 @@
 import type {
+  CoordinatorCalendar,
   CoordinatorCalendarConflict,
   CoordinatorCalendarItem,
 } from "@/interfaces/coordinator-calendar";
@@ -240,4 +241,24 @@ export function eventInput(draft: EventDraft) {
     endsAt: draft.endTime ? at(draft.endTime) : null,
     description: draft.description.trim() || null,
   };
+}
+
+export function isRecordingFull(
+  item: CoordinatorCalendarItem,
+  capacity: number,
+) {
+  return capacity > 0 && (item.recordingLoad ?? 0) >= capacity;
+}
+
+/** "Kayıt botu 1/2", or "dolu" once every bot slot at that time is taken. */
+export function recordingNote(item: CoordinatorCalendarItem, capacity: number) {
+  if (item.recordingLoad == null || capacity <= 0) return null;
+  const load = `Kayıt botu ${item.recordingLoad}/${capacity}`;
+  return isRecordingFull(item, capacity) ? `${load} · dolu` : load;
+}
+
+export function fullRecordingCount(data: CoordinatorCalendar) {
+  return data.items.filter((item) =>
+    isRecordingFull(item, data.recordingCapacity),
+  ).length;
 }

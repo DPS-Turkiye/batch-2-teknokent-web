@@ -30,6 +30,7 @@ export function calendarMeeting(
     meetLink: "https://meet.google.com/abc",
     description: null,
     conflict: false,
+    recordingLoad: 1,
     ...overrides,
   };
 }
@@ -52,6 +53,7 @@ export function calendarEvent(
     topic: null,
     sequence: null,
     meetLink: null,
+    recordingLoad: null,
     ...overrides,
   };
 }
@@ -92,6 +94,7 @@ export function coordinatorCalendar(
       },
     ],
     summary: { meetings: 3, events: 1, deadlines: 0, unscheduledRisky: 2 },
+    recordingCapacity: 2,
     ...overrides,
   };
 }

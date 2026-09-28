@@ -26,12 +26,15 @@ import {
   CalendarView,
   conflictSummary,
   type EventDraft,
+  fullRecordingCount,
   GRID_HOURS,
   GRID_START_HOUR,
   itemsOnDay,
+  isRecordingFull,
   longDayLabel,
   mentorshipHref,
   placeDayItems,
+  recordingNote,
   sameDay,
   slotLabel,
   timeLabel,
@@ -123,6 +126,7 @@ export function CoordinatorCalendarView() {
                 days={calendar.days}
                 items={data.items}
                 selected={selected}
+                capacity={data.recordingCapacity}
                 onSelect={calendar.select}
               />
             ) : calendar.view === CalendarView.Month ? (
@@ -136,14 +140,20 @@ export function CoordinatorCalendarView() {
               <ListView
                 days={calendar.days}
                 items={data.items}
+                capacity={data.recordingCapacity}
                 onSelect={calendar.select}
               />
             )}
           </div>
           <aside className="space-y-4">
             {selected && calendar.view !== CalendarView.Week ? (
-              <ItemCard item={selected} onClose={() => calendar.select(null)} />
+              <ItemCard
+                item={selected}
+                capacity={data.recordingCapacity}
+                onClose={() => calendar.select(null)}
+              />
             ) : null}
+            <RecordingCapacity data={data} />
             <Conflicts data={data} />
             <Summary
               data={data}
@@ -264,12 +274,14 @@ function itemDetail(item: CoordinatorCalendarItem) {
 function WeekGrid({
   days,
   items,
+  capacity,
   selected,
   onSelect,
 }: {
   days: Date[];
   items: CoordinatorCalendarItem[];
   selected: CoordinatorCalendarItem | null;
+  capacity: number;
   onSelect: (id: string | null) => void;
 }) {
   const today = new Date();
@@ -358,6 +370,9 @@ function WeekGrid({
                       {entry.item.conflict
                         ? itemName(entry.item)
                         : itemDetail(entry.item)}
+                      {isRecordingFull(entry.item, capacity)
+                        ? " · Kayıt dolu"
+                        : ""}
                     </span>
                   </button>
                 ))}
@@ -371,7 +386,11 @@ function WeekGrid({
                       ),
                     }}
                   >
-                    <ItemCard item={selected} onClose={() => onSelect(null)} />
+                    <ItemCard
+                      item={selected}
+                      capacity={capacity}
+                      onClose={() => onSelect(null)}
+                    />
                   </div>
                 ) : null}
               </div>
@@ -460,10 +479,12 @@ function MonthGrid({
 function ListView({
   days,
   items,
+  capacity,
   onSelect,
 }: {
   days: Date[];
   items: CoordinatorCalendarItem[];
+  capacity: number;
   onSelect: (id: string) => void;
 }) {
   const withItems = days
@@ -508,9 +529,14 @@ function ListView({
                         : item.programName}
                     </span>
                   </span>
-                  {item.conflict ? (
-                    <span className="text-[12px] text-[#d9464b]">Çakışma</span>
-                  ) : null}
+                  <span className="flex gap-2 text-[12px]">
+                    {item.conflict ? (
+                      <span className="text-[#d9464b]">Çakışma</span>
+                    ) : null}
+                    {isRecordingFull(item, capacity) ? (
+                      <span className="text-[#9e4400]">Kayıt dolu</span>
+                    ) : null}
+                  </span>
                 </button>
               </li>
             ))}
@@ -523,12 +549,15 @@ function ListView({
 
 function ItemCard({
   item,
+  capacity,
   onClose,
 }: {
   item: CoordinatorCalendarItem;
+  capacity: number;
   onClose: () => void;
 }) {
   const meeting = item.kind === CoordinatorAgendaKind.Meeting;
+  const recording = meeting ? recordingNote(item, capacity) : null;
   const facts = [
     item.topic ? `Konu: ${item.topic}` : null,
     item.sequence ? `${item.sequence}. görüşme` : null,
@@ -568,6 +597,15 @@ function ItemCard({
           <li>{item.meetLink ? "Online · Google Meet" : "Görüşme"}</li>
         ) : null}
         {meeting && facts.length > 0 ? <li>{facts.join(" · ")}</li> : null}
+        {recording ? (
+          <li
+            className={
+              isRecordingFull(item, capacity) ? "text-[#9e4400]" : undefined
+            }
+          >
+            {recording}
+          </li>
+        ) : null}
         {item.description ? (
           <li className="text-[#676e78]">{item.description}</li>
         ) : null}
@@ -592,6 +630,23 @@ function ItemCard({
           ) : null}
         </div>
       ) : null}
+    </article>
+  );
+}
+
+function RecordingCapacity({ data }: { data: CoordinatorCalendar }) {
+  const full = fullRecordingCount(data);
+  if (full === 0) return null;
+  return (
+    <article className="rounded-[24px] border border-[#ffd8b0] bg-[#fff6ed] p-5">
+      <p className="text-[14px] font-medium text-[#9e4400]">
+        Kayıt botu kapasitesi dolu
+      </p>
+      <p className="mt-2 text-[13px] text-[#22262b]">
+        Aynı anda en fazla {data.recordingCapacity} görüşme kaydedilebiliyor. Bu
+        aralıkta {full} görüşmenin saatinde kapasite dolu; bu saatlere eklenen
+        yeni kayıtlı görüşmelere bot katılamaz.
+      </p>
     </article>
   );
 }

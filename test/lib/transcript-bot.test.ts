@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { TRANSCRIPT_BOT_LEAD_MS } from "@/lib/const";
 import {
+  announceDroppedTranscriptBot,
   isTranscriptBotDue,
   nextTranscriptBotAction,
+  TRANSCRIPT_BOT_FULL_EVENT,
 } from "@/lib/transcript-bot";
 
 function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
@@ -63,5 +65,21 @@ describe("transcript bot timing", () => {
         start,
       ),
     ).toBeNull();
+  });
+});
+
+describe("announceDroppedTranscriptBot", () => {
+  it("tells the page only when the backend turned an asked-for bot off", () => {
+    const listener = vi.fn();
+    window.addEventListener(TRANSCRIPT_BOT_FULL_EVENT, listener);
+
+    announceDroppedTranscriptBot(true, { transcribeRequested: true });
+    announceDroppedTranscriptBot(undefined, { transcribeRequested: false });
+    expect(listener).not.toHaveBeenCalled();
+
+    const saved = { transcribeRequested: false };
+    expect(announceDroppedTranscriptBot(true, saved)).toBe(saved);
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener(TRANSCRIPT_BOT_FULL_EVENT, listener);
   });
 });
