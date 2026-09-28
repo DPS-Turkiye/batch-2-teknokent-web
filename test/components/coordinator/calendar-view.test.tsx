@@ -10,14 +10,29 @@ import {
   getCoordinatorPrograms,
 } from "@/lib/client/coordinator-programs";
 import {
+  getCoordinatorMeetingProposals,
+  getMentorshipMeetingProposals,
+  proposeMeeting,
+} from "@/lib/client/meeting-proposals";
+import {
+  at,
   calendarMeeting,
   coordinatorCalendar,
 } from "@test/fixtures/coordinator-calendar";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-calendar", () => ({
   getCoordinatorCalendar: vi.fn(),
+}));
+
+vi.mock("@/lib/client/meeting-proposals", () => ({
+  getCoordinatorMeetingProposals: vi.fn(),
+  getMentorshipMeetingProposals: vi.fn(),
+  proposeMeeting: vi.fn(),
+  remindMeetingProposal: vi.fn(),
+  withdrawMeetingProposal: vi.fn(),
 }));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
@@ -32,6 +47,11 @@ describe("CoordinatorCalendarView", () => {
     vi.setSystemTime(new Date(2026, 8, 15, 9, 0));
     vi.mocked(getCoordinatorPrograms).mockResolvedValue([coordinatorProgram()]);
     vi.mocked(getCoordinatorCalendar).mockResolvedValue(coordinatorCalendar());
+    vi.mocked(getCoordinatorMeetingProposals).mockResolvedValue([
+      meetingProposal({ scheduledAt: at(4, 10, 30) }),
+    ]);
+    vi.mocked(getMentorshipMeetingProposals).mockResolvedValue([]);
+    vi.mocked(proposeMeeting).mockResolvedValue(meetingProposal());
   });
 
   afterEach(() => vi.useRealTimers());
@@ -181,5 +201,40 @@ describe("CoordinatorCalendarView", () => {
     expect(await screen.findByText("2 çakışma")).toBeInTheDocument();
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(getCoordinatorCalendar).toHaveBeenCalledTimes(2);
+  });
+
+  it("draws a pending proposal as an Önerilen slot", async () => {
+    renderWithQueryClient(<CoordinatorCalendarView />);
+
+    const slot = await screen.findByRole("button", {
+      name: "Ayşe Demir ↔ Lumen Cum 18 Eyl · 10:30–11:15",
+    });
+    expect(within(slot).getByText("10:30 · Önerilen slot")).toBeInTheDocument();
+  });
+
+  it("proposes a new time for the later conflicting meeting", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<CoordinatorCalendarView />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Yeniden planla" }),
+    );
+    const dialog = screen.getByRole("dialog", { name: "Yeni saat öner" });
+    const when = within(dialog).getByLabelText("Tarih ve saat");
+    await user.clear(when);
+    await user.type(when, "2026-09-17T15:00");
+    await user.click(
+      within(dialog).getByRole("button", { name: "İki tarafa öner" }),
+    );
+
+    expect(proposeMeeting).toHaveBeenCalledWith("mentorship-1", {
+      scheduledAt: new Date("2026-09-17T15:00").toISOString(),
+      durationMinutes: 45,
+      agenda: null,
+      replacesMeetingId: "vega",
+    });
+    expect(
+      screen.queryByRole("dialog", { name: "Yeni saat öner" }),
+    ).not.toBeInTheDocument();
   });
 });

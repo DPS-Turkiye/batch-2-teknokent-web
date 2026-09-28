@@ -21,6 +21,8 @@ export type CoordinatorCalendarItem = {
   conflict: boolean;
   /** Most meeting rooms the transcript bot records at once during a MEETING, platform-wide. */
   recordingLoad: number | null;
+  /** Set on the client for a coordinator's proposal still waiting for both sides ("Önerilen slot"). */
+  proposalId?: string;
 };
 
 /** Meetings of one mentor that overlap in time. */
