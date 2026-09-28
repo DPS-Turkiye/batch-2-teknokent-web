@@ -1,3 +1,4 @@
+import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 export enum ProgramLifecycle {
   Upcoming = "UPCOMING",
   Active = "ACTIVE",
@@ -145,6 +146,9 @@ export type ProgramTeam = {
   invitedAt: string | null;
   joinedAt: string | null;
   memberCount: number;
+  codeSentAt: string | null;
+  /** SES refused the last code email; the team shows under "Sorunlu". */
+  codeSendFailed: boolean;
 };
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
@@ -161,4 +165,23 @@ export type CreateProgramInput = {
   communicationGapDays: number;
   bottleneckFlagDays: number;
   teams: TeamInviteInput[];
+};
+
+export type ProgramTeamPerson = {
+  id: string;
+  name: string;
+  jobTitle: string | null;
+  email: string | null;
+  joinedAt: string | null;
+};
+
+/** The Takımlar drawer (`GET /api/coordinator/programs/{id}/team-details/{organizationId}`). */
+export type ProgramTeamDetail = {
+  organizationId: string;
+  name: string;
+  sector: string | null;
+  lead: ProgramTeamPerson | null;
+  code: string | null;
+  members: ProgramTeamPerson[];
+  mentorships: CoordinatorMentorship[];
 };

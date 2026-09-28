@@ -10,8 +10,10 @@ import {
 import {
   addProgramTeams,
   getCoordinatorProgram,
+  getProgramTeamDetail,
   getProgramTeams,
   removeProgramTeam,
+  sendProgramTeamCode,
   updateProgramTeam,
 } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
@@ -23,6 +25,8 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   addProgramTeams: vi.fn(),
   updateProgramTeam: vi.fn(),
   removeProgramTeam: vi.fn(),
+  sendProgramTeamCode: vi.fn(),
+  getProgramTeamDetail: vi.fn(),
 }));
 
 const joined: ProgramTeam = {
@@ -36,6 +40,8 @@ const joined: ProgramTeam = {
   invitedAt: "2026-09-19T10:00:00Z",
   joinedAt: "2026-09-20T10:00:00Z",
   memberCount: 3,
+  codeSentAt: null,
+  codeSendFailed: false,
 };
 const waiting: ProgramTeam = {
   ...joined,
@@ -77,6 +83,86 @@ describe("ProgramTeamsView", () => {
     );
     expect(screen.queryByText("Deniz Arı")).not.toBeInTheDocument();
     expect(screen.getByText("ali@pusula.io")).toBeInTheDocument();
+  });
+
+  it("emails a waiting team's code and shows when it went out", async () => {
+    const user = userEvent.setup();
+    vi.mocked(sendProgramTeamCode).mockResolvedValue([
+      joined,
+      { ...waiting, codeSentAt: "2026-09-19T10:00:00Z" },
+    ]);
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Kodu gönder" }),
+    );
+
+    expect(sendProgramTeamCode).toHaveBeenCalledWith("program-1", "invite-2");
+    expect(
+      await screen.findByText("Gönderildi 19 Eyl · ali@pusula.io"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Kodu tekrar gönder" }),
+    ).toBeInTheDocument();
+  });
+
+  it("lists a team whose code email bounced under Sorunlu and lets the coordinator fix the address", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeams).mockResolvedValue([
+      joined,
+      { ...waiting, codeSendFailed: true },
+    ]);
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+
+    await user.click(await screen.findByRole("button", { name: "Sorunlu 1" }));
+    expect(screen.getByText("E-posta iletilemedi")).toBeInTheDocument();
+    expect(screen.queryByText("Deniz Arı")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "E-postayı düzelt" }));
+    expect(screen.getByDisplayValue("ali@pusula.io")).toBeInTheDocument();
+  });
+
+  it("opens a joined team's drawer with its lead, members and message link", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamDetail).mockResolvedValue({
+      organizationId: "org-1",
+      name: "Kavşak",
+      sector: "Fintech",
+      lead: {
+        id: "lead-1",
+        name: "Deniz Arı",
+        jobTitle: "CEO",
+        email: "deniz@kavsak.co",
+        joinedAt: "2026-09-20T10:00:00Z",
+      },
+      code: "BIGG26-K4TX",
+      members: [
+        {
+          id: "member-1",
+          name: "Cem Tunç",
+          jobTitle: "CTO",
+          email: null,
+          joinedAt: "2026-09-21T10:00:00Z",
+        },
+      ],
+      mentorships: [],
+    });
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+
+    await user.click(await screen.findByRole("button", { name: "Detay" }));
+
+    const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
+    expect(await within(drawer).findByText("Cem Tunç")).toBeInTheDocument();
+    expect(getProgramTeamDetail).toHaveBeenCalledWith("program-1", "org-1");
+    expect(
+      within(drawer).getByRole("link", { name: "Takıma mesaj gönder" }),
+    ).toHaveAttribute(
+      "href",
+      "/coordinator/messages?program=program-1&team=org-1",
+    );
+    expect(
+      within(drawer).getByText("Bu takım henüz bir mentorla eşleşmedi."),
+    ).toBeInTheDocument();
   });
 
   it("copies a team code", async () => {

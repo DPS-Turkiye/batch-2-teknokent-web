@@ -13,6 +13,7 @@ import {
   addProgramTeams,
   getProgramTeams,
   removeProgramTeam,
+  sendProgramTeamCode,
   updateProgramTeam,
 } from "@/lib/client/coordinator-programs";
 import {
@@ -39,7 +40,7 @@ function teamInput(row: TeamRowDraft): TeamInviteInput {
   return { teamName: row.teamName.trim(), leadEmail: row.leadEmail.trim() };
 }
 
-/** Takımlar: follow which leads joined, copy codes, and add, fix or remove teams still waiting. */
+/** Takımlar: follow which leads joined, copy or email codes, fix or remove teams still waiting, open a team. */
 export function useProgramTeams(programId: string) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -48,6 +49,7 @@ export function useProgramTeams(programId: string) {
   const [adding, setAdding] = useState<TeamRowDraft | null>(null);
   const [editing, setEditing] = useState<TeamRowDraft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const saved = (teams: ProgramTeam[]) => {
     queryClient.setQueryData(programTeamsQueryKey(programId), teams);
@@ -84,6 +86,31 @@ export function useProgramTeams(programId: string) {
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, "Takım kaldırılamadı."),
+        tone: "error",
+      }),
+  });
+
+  const sendCode = useMutation({
+    mutationFn: (team: ProgramTeam) =>
+      sendProgramTeamCode(programId, team.inviteId as string),
+    onSuccess: (teams, team) => {
+      saved(teams);
+      const row = teams.find((item) => item.inviteId === team.inviteId);
+      showToast(
+        row?.codeSendFailed
+          ? {
+              message: `${team.leadEmail} adresine e-posta iletilemedi. Adresi düzeltip tekrar gönderin.`,
+              tone: "error",
+            }
+          : {
+              message: `Kod ${team.leadEmail} adresine gönderildi.`,
+              tone: "success",
+            },
+      );
+    },
+    onError: (failure) =>
+      showToast({
+        message: errorMessage(failure, "Kod gönderilemedi."),
         tone: "error",
       }),
   });
@@ -141,7 +168,18 @@ export function useProgramTeams(programId: string) {
       await navigator.clipboard.writeText(code);
       showToast({ message: `${code} kopyalandı.`, tone: "success" });
     },
+    sendCode: (team: ProgramTeam) => team.inviteId && sendCode.mutate(team),
+    sendingCodeFor: sendCode.isPending
+      ? (sendCode.variables?.inviteId ?? null)
+      : null,
+    detailId,
+    openDetail: (organizationId: string) => setDetailId(organizationId),
+    closeDetail: () => setDetailId(null),
     error,
-    busy: add.isPending || update.isPending || remove.isPending,
+    busy:
+      add.isPending ||
+      update.isPending ||
+      remove.isPending ||
+      sendCode.isPending,
   };
 }

@@ -8,7 +8,9 @@ import {
   createProgramInput,
   daysWaiting,
   emptyLaunchDraft,
+  codeSentLabel,
   filterTeams,
+  isTeamProblem,
   parseTeamsCsv,
   setupSteps,
   TeamFilter,
@@ -31,6 +33,8 @@ function team(overrides: Partial<ProgramTeam> = {}): ProgramTeam {
     invitedAt: "2026-09-20T10:00:00Z",
     joinedAt: null,
     memberCount: 0,
+    codeSentAt: null,
+    codeSendFailed: false,
     ...overrides,
   };
 }
@@ -103,11 +107,34 @@ describe("program launch helpers", () => {
       "Tümü 2",
       "Katıldı 1",
       "Yetkili bekleniyor 1",
+      "Sorunlu 0",
     ]);
     expect(filterTeams(teams, TeamFilter.Waiting)).toEqual([teams[0]]);
     expect(
       daysWaiting("2026-09-20T10:00:00Z", new Date("2026-09-23T11:00:00Z")),
     ).toBe(3);
+  });
+
+  it("puts a refused code email under Sorunlu and says when a code went out", () => {
+    const refused = team({ inviteId: "invite-3", codeSendFailed: true });
+    const sent = team({ codeSentAt: "2026-09-19T10:00:00Z" });
+    const teams = [sent, refused];
+
+    expect(teamFilterOptions(teams).map((option) => option.label)).toEqual([
+      "Tümü 2",
+      "Katıldı 0",
+      "Yetkili bekleniyor 1",
+      "Sorunlu 1",
+    ]);
+    expect(filterTeams(teams, TeamFilter.Problem)).toEqual([refused]);
+    expect(filterTeams(teams, TeamFilter.Waiting)).toEqual([sent]);
+    expect(
+      isTeamProblem(
+        team({ status: TeamJoinStatus.Joined, codeSendFailed: true }),
+      ),
+    ).toBe(false);
+    expect(codeSentLabel(sent)).toBe("Gönderildi 19 Eyl · deniz@kavsak.co");
+    expect(codeSentLabel(refused)).toBeNull();
   });
 
   it("lists setup steps until the program has teams, mentors and mentorships", () => {

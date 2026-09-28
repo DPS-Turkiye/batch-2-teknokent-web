@@ -9,6 +9,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
 import { useProgramTeams } from "@/hooks/use-program-teams";
 import {
   ProgramLifecycle,
@@ -16,7 +17,12 @@ import {
   TeamJoinStatus,
 } from "@/interfaces/coordinator-program";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
-import { daysWaiting, type TeamRowDraft } from "@/lib/program-launch";
+import {
+  codeSentLabel,
+  daysWaiting,
+  isTeamProblem,
+  type TeamRowDraft,
+} from "@/lib/program-launch";
 import { initials } from "@/lib/utils";
 
 const FIELD =
@@ -150,6 +156,15 @@ function TeamsBody({
           </table>
         </div>
       ) : null}
+
+      {teams.detailId ? (
+        <TeamDetailDrawer
+          programId={programId}
+          organizationId={teams.detailId}
+          onCopyCode={(code) => void teams.copyCode(code)}
+          onClose={teams.closeDetail}
+        />
+      ) : null}
     </div>
   );
 }
@@ -164,6 +179,8 @@ function TeamRow({
   archived: boolean;
 }) {
   const waiting = team.status === TeamJoinStatus.Waiting;
+  const problem = isTeamProblem(team);
+  const sent = codeSentLabel(team);
   const days = daysWaiting(team.invitedAt);
   return (
     <tr className="border-b border-[#f0f2f4] last:border-0">
@@ -179,7 +196,9 @@ function TeamRow({
         </span>
       </td>
       <td className="px-4 py-4">
-        {waiting ? (
+        {problem ? (
+          <StatusChip tone="red">E-posta iletilemedi</StatusChip>
+        ) : waiting ? (
           <StatusChip tone="amber">
             Yetkili bekleniyor{days > 0 ? ` · ${days} gün` : ""}
           </StatusChip>
@@ -187,8 +206,13 @@ function TeamRow({
           <StatusChip tone="green">Yetkili katıldı</StatusChip>
         )}
       </td>
-      <td className="px-4 py-4 text-[#22262b]">
+      <td
+        className={`px-4 py-4 ${problem ? "text-[#d9464b]" : "text-[#22262b]"}`}
+      >
         {waiting ? team.leadEmail : (team.leadName ?? team.leadEmail ?? "—")}
+        {waiting && sent ? (
+          <span className="block text-[12px] text-[#858c96]">{sent}</span>
+        ) : null}
       </td>
       <td className="px-4 py-4">
         {team.code ? (
@@ -212,7 +236,29 @@ function TeamRow({
       </td>
       <td className="px-6 py-4">
         {waiting && team.inviteId && !archived ? (
-          <span className="flex justify-end gap-1">
+          <span className="flex items-center justify-end gap-1">
+            {problem ? (
+              <button
+                type="button"
+                onClick={() => teams.startEditing(team)}
+                className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
+              >
+                E-postayı düzelt
+              </button>
+            ) : (
+              <button
+                type="button"
+                disabled={teams.busy}
+                onClick={() => teams.sendCode(team)}
+                className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white disabled:opacity-50"
+              >
+                {teams.sendingCodeFor === team.inviteId
+                  ? "Gönderiliyor…"
+                  : team.codeSentAt
+                    ? "Kodu tekrar gönder"
+                    : "Kodu gönder"}
+              </button>
+            )}
             <button
               type="button"
               aria-label={`${team.name} düzenle`}
@@ -229,6 +275,16 @@ function TeamRow({
               className="grid size-8 place-items-center rounded-full text-[#d9464b] hover:bg-[#fff1f0] disabled:opacity-40"
             >
               <Trash2 aria-hidden className="size-4" />
+            </button>
+          </span>
+        ) : !waiting && team.organizationId ? (
+          <span className="flex justify-end">
+            <button
+              type="button"
+              onClick={() => teams.openDetail(team.organizationId as string)}
+              className="rounded-full border border-[#e9ecef] px-3.5 py-2 text-[12.5px] font-medium text-[#22262b]"
+            >
+              Detay
             </button>
           </span>
         ) : null}
