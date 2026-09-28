@@ -308,7 +308,10 @@ function ActiveConversation({
 export function MentorMessagesView() {
   const params = useSearchParams();
   const preferredRequestId = params.get("request") ?? params.get("id");
-  const messages = useMentorMessages(preferredRequestId);
+  const messages = useMentorMessages(
+    preferredRequestId,
+    params.get("conversation"),
+  );
   const meetingLabel = messages.meetingLabel;
 
   return (
