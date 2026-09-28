@@ -36,7 +36,8 @@ function ConversationRow({
 }) {
   const unread = conversation.unreadCount > 0;
   const look =
-    conversation.kind === MobileConversationKind.Program
+    conversation.kind === MobileConversationKind.Program ||
+    conversation.kind === MobileConversationKind.Announcement
       ? "program"
       : conversation.isStartup
         ? "startup"

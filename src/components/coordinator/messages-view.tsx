@@ -5,6 +5,10 @@ import Link from "next/link";
 import { useState } from "react";
 
 import {
+  AnnouncementPane,
+  AnnouncementThreadList,
+} from "@/components/announcements";
+import {
   Avatar,
   EmptyNote,
   FilterPills,
@@ -40,9 +44,12 @@ import {
   isUnread,
   MAX_MESSAGE_LENGTH,
   messageDayLabel,
+  MessageFilter,
   messageTime,
 } from "@/lib/coordinator-messages";
 import { initials } from "@/lib/utils";
+
+const ANNOUNCEMENT_ACCENT = { strong: "#22262b", soft: "#f4f5f7" };
 
 function counterpartTone(
   conversation: Pick<CoordinatorConversation, "counterpartType">,
@@ -104,7 +111,16 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
               options={messages.filterOptions}
             />
           </div>
-          {messages.visible.length === 0 && messages.conversations.data ? (
+          {messages.filter === MessageFilter.Announcements ? (
+            <div className="-mx-4 mt-3">
+              <AnnouncementThreadList
+                threads={messages.announcements.threads}
+                activeProgramId={messages.announcements.openProgramId}
+                accent={ANNOUNCEMENT_ACCENT}
+                onSelect={messages.openAnnouncements}
+              />
+            </div>
+          ) : messages.visible.length === 0 && messages.conversations.data ? (
             <EmptyNote>Henüz bir konuşma yok.</EmptyNote>
           ) : (
             <ul aria-label="Konuşmalar" className="mt-3 space-y-1">
@@ -123,7 +139,14 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
         </aside>
 
         <section className="flex min-h-[560px] min-w-0 flex-col">
-          {messages.open ? (
+          {messages.announcements.active ? (
+            <AnnouncementPane
+              thread={messages.announcements.active}
+              accent={ANNOUNCEMENT_ACCENT}
+              className="flex-1"
+              composer={messages.announcements}
+            />
+          ) : messages.open ? (
             <>
               <header className="flex items-center gap-3 border-b border-[#eef0f2] px-6 py-4">
                 <Avatar
@@ -198,7 +221,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
           )}
         </section>
 
-        {messages.open ? (
+        {messages.open && !messages.announcements.active ? (
           <RelatedPanel
             conversation={messages.open}
             related={messages.related}

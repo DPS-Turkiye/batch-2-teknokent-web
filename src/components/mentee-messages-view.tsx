@@ -3,12 +3,17 @@
 import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
 
+import {
+  AnnouncementPane,
+  AnnouncementThreadList,
+} from "@/components/announcements";
 import { AppShell } from "@/components/hoc/app-shell";
 import {
   ProgramThreadList,
   ProgramThreadPane,
 } from "@/components/program-threads";
 import { useMenteeMessages } from "@/hooks/use-mentee-messages";
+import type { MyAnnouncements } from "@/hooks/use-program-announcements";
 import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type {
   MentorshipRequest,
@@ -44,12 +49,18 @@ function ConversationList({
   isLoading,
   onSelect,
   programThreads,
+  announcements,
+  onOpenProgramThread,
+  onOpenAnnouncements,
 }: {
   conversations: MentorshipRequest[];
   activeId: string | null;
   isLoading: boolean;
   onSelect: (id: string) => void;
   programThreads: ProgramThreads;
+  announcements: MyAnnouncements;
+  onOpenProgramThread: (id: string) => void;
+  onOpenAnnouncements: (programId: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const shown = useMemo(() => {
@@ -134,7 +145,13 @@ function ConversationList({
       <ProgramThreadList
         threads={programThreads}
         accent={ACCENT}
-        onSelect={programThreads.open}
+        onSelect={onOpenProgramThread}
+      />
+      <AnnouncementThreadList
+        threads={announcements.threads}
+        activeProgramId={announcements.openProgramId}
+        accent={ACCENT}
+        onSelect={onOpenAnnouncements}
       />
     </aside>
   );
@@ -188,6 +205,14 @@ function Conversation({
 }) {
   const fileInput = useRef<HTMLInputElement>(null);
   const active = messages.active;
+  if (messages.announcements.active)
+    return (
+      <AnnouncementPane
+        thread={messages.announcements.active}
+        accent={ACCENT}
+        className="h-full"
+      />
+    );
   if (messages.programThreads.active)
     return (
       <ProgramThreadPane
@@ -297,10 +322,17 @@ export function MenteeMessagesView() {
       <main className="mx-auto grid h-[calc(100vh-106px)] min-h-[620px] w-full max-w-[1440px] grid-cols-[360px_minmax(0,1fr)] overflow-hidden border-x border-[#e4e7ea] max-md:grid-cols-1">
         <ConversationList
           conversations={messages.conversations}
-          activeId={messages.programThreads.active ? null : messages.activeId}
+          activeId={
+            messages.programThreads.active || messages.announcements.active
+              ? null
+              : messages.activeId
+          }
           isLoading={messages.isLoading}
           onSelect={messages.select}
           programThreads={messages.programThreads}
+          announcements={messages.announcements}
+          onOpenProgramThread={messages.openProgramThread}
+          onOpenAnnouncements={messages.openAnnouncements}
         />
         <Conversation messages={messages} />
       </main>

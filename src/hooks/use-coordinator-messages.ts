@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useCoordinatorMentorships } from "@/hooks/use-coordinator-mentorships";
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
+import { useCoordinatorAnnouncements } from "@/hooks/use-program-announcements";
 import {
   type CoordinatorConversation,
   CoordinatorConversationCounterpart,
@@ -38,7 +39,10 @@ export type MessagesDeepLink = {
   start: StartCoordinatorConversationInput | null;
 };
 
-/** Mesajlar: the thread list, the open thread, sending, and starting a thread with a team or mentor. */
+/**
+ * Mesajlar: the thread list, the open thread, sending, starting a thread with a team or mentor, and the
+ * "Duyurular" filter's program-wide announcements.
+ */
 export function useCoordinatorMessages(link: MessagesDeepLink) {
   const queryClient = useQueryClient();
   const programs = useCoordinatorPrograms();
@@ -51,6 +55,11 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
   const [openId, setOpenId] = useState<string | null>(link.conversationId);
   const [draft, setDraft] = useState("");
   const [composing, setComposing] = useState(false);
+
+  const programList = programs.data ?? [];
+  const announcements = useCoordinatorAnnouncements(
+    programList.filter((program) => !programId || program.id === programId),
+  );
 
   const conversations = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
@@ -105,7 +114,12 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
 
   return {
     conversations,
-    programOptions: programs.data ?? [],
+    programOptions: programList,
+    announcements,
+    openAnnouncements: (programId: string) => {
+      setOpenId(null);
+      announcements.open(programId);
+    },
     programId,
     setProgramId,
     filter,
@@ -119,6 +133,7 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
       counterpartSubtitle(conversation, relatedMentorships(conversation, rows)),
     openId,
     openConversation: (id: string) => {
+      announcements.close();
       setOpenId(id);
       setDraft("");
       void refreshList();

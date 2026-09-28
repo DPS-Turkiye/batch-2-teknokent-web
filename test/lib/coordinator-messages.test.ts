@@ -46,12 +46,12 @@ describe("coordinator messages", () => {
   it("counts unread threads per side, treating the open one as read", () => {
     expect(
       messageFilterOptions([ayse, lumen, terra], null).map((o) => o.label),
-    ).toEqual(["Tümü", "Mentorlar 1", "Takımlar 1"]);
+    ).toEqual(["Tümü", "Mentorlar 1", "Takımlar 1", "Duyurular"]);
     expect(
       messageFilterOptions([ayse, lumen, terra], "conversation-1").map(
         (o) => o.label,
       ),
-    ).toEqual(["Tümü", "Mentorlar 0", "Takımlar 1"]);
+    ).toEqual(["Tümü", "Mentorlar 0", "Takımlar 1", "Duyurular"]);
     expect(isUnread(ayse, "conversation-1")).toBe(false);
   });
 

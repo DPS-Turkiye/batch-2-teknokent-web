@@ -10,7 +10,10 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { MobileConversationKind } from "@/interfaces/mobile";
+import {
+  MobileChatItemKind,
+  MobileConversationKind,
+} from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import {
   getCoordinatorConversations,
@@ -23,11 +26,13 @@ import {
   postMentorMessage,
   replyToMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { getMyAnnouncements } from "@/lib/client/program-announcements";
 import { getPrograms } from "@/lib/client/programs";
 import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { programAnnouncement } from "@test/fixtures/program-announcements";
 import { createTestQueryClient } from "@test/test-utils";
 
 let role = UserRole.Mentee;
@@ -47,6 +52,9 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   replyToMentorRequest: vi.fn(),
 }));
 vi.mock("@/lib/client/programs", () => ({ getPrograms: vi.fn() }));
+vi.mock("@/lib/client/program-announcements", () => ({
+  getMyAnnouncements: vi.fn(),
+}));
 vi.mock("@/lib/client/coordinator-conversations", () => ({
   getCoordinatorConversations: vi.fn(),
   getCoordinatorMessages: vi.fn(),
@@ -301,5 +309,40 @@ describe("useMobileChat for a program thread", () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.notFound).toBe(true);
+  });
+});
+
+describe("useMobileChat for a Duyurular thread", () => {
+  it("shows the program's announcements oldest first and cannot send", async () => {
+    vi.mocked(getMyAnnouncements).mockResolvedValue([
+      programAnnouncement({
+        id: "a2",
+        body: "İkinci",
+        createdAt: "2026-09-25T10:00:00Z",
+      }),
+      programAnnouncement({
+        id: "a1",
+        body: "Birinci",
+        createdAt: "2026-09-24T10:00:00Z",
+      }),
+    ]);
+    const { result } = renderHook(
+      () => useMobileChat(MobileConversationKind.Announcement, "program-1"),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.header).not.toBeNull());
+    expect(result.current.header?.name).toBe("METU Stars 2026 — Duyuru");
+    expect(result.current.header?.subtitle).toBe("42 takım · 28 mentor");
+    expect(
+      result.current.items
+        .filter((item) => item.kind === MobileChatItemKind.Message)
+        .map((item) =>
+          item.kind === MobileChatItemKind.Message ? item.body : "",
+        ),
+    ).toEqual(["Birinci", "İkinci"]);
+    expect(result.current.canSend).toBe(false);
+    expect(result.current.closedNote).toMatch(/yalnızca okunur/);
+    expect(getCoordinatorConversations).not.toHaveBeenCalled();
   });
 });

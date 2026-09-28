@@ -6,6 +6,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { useMyAnnouncements } from "@/hooks/use-program-announcements";
 import { useProgramThreads } from "@/hooks/use-program-threads";
 import {
   useMentorMessageForm,
@@ -25,6 +26,7 @@ export function useMentorMessages(preferredRequestId?: string | null) {
   const preferred = preferredRequestId ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const programThreads = useProgramThreads();
+  const announcements = useMyAnnouncements();
   const [syncedPreferred, setSyncedPreferred] = useState(preferred);
 
   if (syncedPreferred !== preferred) {
@@ -68,8 +70,18 @@ export function useMentorMessages(preferredRequestId?: string | null) {
     meetingLabel: conversationMeetingLabel(activeMeeting),
     messageForm,
     programThreads,
+    announcements,
+    openProgramThread: (id: string) => {
+      announcements.close();
+      programThreads.open(id);
+    },
+    openAnnouncements: (programId: string) => {
+      programThreads.close();
+      announcements.open(programId);
+    },
     select: (id: string) => {
       programThreads.close();
+      announcements.close();
       setSelectedId(id);
     },
     viewerUserId: session?.userId ?? "",

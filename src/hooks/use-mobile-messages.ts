@@ -6,9 +6,11 @@ import { useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
+import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
 import { UserRole } from "@/interfaces/session";
 import { getCoordinatorConversations } from "@/lib/client/coordinator-conversations";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
+import { getMyAnnouncements } from "@/lib/client/program-announcements";
 import { hasMobileApp } from "@/lib/mobile";
 import {
   type MessagingRole,
@@ -16,7 +18,9 @@ import {
   newestFirst,
   programConversation,
   searchConversations,
+  announcementConversation,
 } from "@/lib/mobile-messages";
+import { announcementThreads } from "@/lib/program-announcements";
 
 const POLL_MS = 15_000;
 
@@ -42,6 +46,13 @@ export function useMobileConversations() {
     refetchInterval: POLL_MS,
   });
 
+  const announcements = useQuery({
+    queryKey: [...ANNOUNCEMENTS_QUERY_KEY, "mine"],
+    queryFn: getMyAnnouncements,
+    enabled,
+    refetchInterval: POLL_MS,
+  });
+
   const conversations = useMemo(
     () =>
       newestFirst([
@@ -49,8 +60,11 @@ export function useMobileConversations() {
         ...(programs.data ?? []).map((conversation) =>
           programConversation(conversation),
         ),
+        ...announcementThreads(announcements.data ?? []).map((thread) =>
+          announcementConversation(thread),
+        ),
       ]),
-    [requests.data, programs.data, role],
+    [requests.data, programs.data, announcements.data, role],
   );
 
   return {
@@ -61,6 +75,7 @@ export function useMobileConversations() {
     retry: () => {
       void requests.refetch();
       void programs.refetch();
+      void announcements.refetch();
     },
     unreadTotal: conversations.reduce(
       (total, conversation) => total + conversation.unreadCount,

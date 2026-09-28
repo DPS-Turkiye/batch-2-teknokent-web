@@ -5,12 +5,17 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
+import {
+  AnnouncementPane,
+  AnnouncementThreadList,
+} from "@/components/announcements";
 import { AppShell } from "@/components/hoc/app-shell";
 import {
   ProgramThreadList,
   ProgramThreadPane,
 } from "@/components/program-threads";
 import { useMentorMessages } from "@/hooks/use-mentor-messages";
+import type { MyAnnouncements } from "@/hooks/use-program-announcements";
 import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { initials } from "@/lib/utils";
@@ -47,12 +52,18 @@ function ConversationList({
   isLoading,
   onSelect,
   programThreads,
+  announcements,
+  onOpenProgramThread,
+  onOpenAnnouncements,
 }: {
   conversations: MentorshipRequest[];
   activeId: string | null;
   isLoading: boolean;
   onSelect: (id: string) => void;
   programThreads: ProgramThreads;
+  announcements: MyAnnouncements;
+  onOpenProgramThread: (id: string) => void;
+  onOpenAnnouncements: (programId: string) => void;
 }) {
   const [search, setSearch] = useState("");
   const shown = useMemo(
@@ -131,7 +142,13 @@ function ConversationList({
       <ProgramThreadList
         threads={programThreads}
         accent={ACCENT}
-        onSelect={programThreads.open}
+        onSelect={onOpenProgramThread}
+      />
+      <AnnouncementThreadList
+        threads={announcements.threads}
+        activeProgramId={announcements.openProgramId}
+        accent={ACCENT}
+        onSelect={onOpenAnnouncements}
       />
     </aside>
   );
@@ -310,12 +327,25 @@ export function MentorMessagesView() {
         <div className="mt-5 grid items-start gap-5 lg:grid-cols-[340px_minmax(0,868px)]">
           <ConversationList
             conversations={messages.conversations}
-            activeId={messages.programThreads.active ? null : messages.activeId}
+            activeId={
+              messages.programThreads.active || messages.announcements.active
+                ? null
+                : messages.activeId
+            }
             isLoading={messages.isLoading}
             onSelect={messages.select}
             programThreads={messages.programThreads}
+            announcements={messages.announcements}
+            onOpenProgramThread={messages.openProgramThread}
+            onOpenAnnouncements={messages.openAnnouncements}
           />
-          {messages.programThreads.active ? (
+          {messages.announcements.active ? (
+            <AnnouncementPane
+              thread={messages.announcements.active}
+              accent={ACCENT}
+              className="overflow-hidden rounded-[12px] border border-[#e4e7ea]"
+            />
+          ) : messages.programThreads.active ? (
             <ProgramThreadPane
               threads={messages.programThreads}
               accent={ACCENT}
