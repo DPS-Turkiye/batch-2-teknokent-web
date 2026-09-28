@@ -3,6 +3,7 @@ import { UserRole } from "@/interfaces/session";
 import {
   type ProcessAssignment,
   type StartupProcess,
+  type StartupRound,
   StartupStage,
   StartupStageState,
 } from "@/interfaces/startup-process";
@@ -107,4 +108,56 @@ export function completedStages(process: StartupProcess): CompletedStageRow[] {
         ).length,
       };
     });
+}
+
+export type StageCard = {
+  stage: StartupStage;
+  state: StartupStageState;
+  done: number;
+  total: number;
+  percent: number;
+  action: string;
+};
+
+/** One Süreç card per stage: how many of its Ödevler are done, cancelled ones left out. */
+export function stageCards(process: StartupProcess): StageCard[] {
+  return process.stages.map(({ stage, state }) => {
+    const own = process.assignments.filter(
+      (assignment) =>
+        assignment.stage === stage &&
+        assignment.status !== ActionItemStatus.Cancelled,
+    );
+    const done = own.filter(
+      (assignment) => assignment.status === ActionItemStatus.Completed,
+    ).length;
+    const percent =
+      own.length > 0
+        ? Math.round((done / own.length) * 100)
+        : state === StartupStageState.Completed
+          ? 100
+          : 0;
+    const action =
+      state === StartupStageState.Current
+        ? "Mevcut aşama"
+        : state === StartupStageState.Completed
+          ? "Tamamlandı"
+          : done > 0
+            ? "Devam et"
+            : "Başla";
+    return { stage, state, done, total: own.length, percent, action };
+  });
+}
+
+/** The round a stage card opens: the focus round for its stage, else that stage's latest round. */
+export function roundForStage(
+  process: StartupProcess,
+  stage: StartupStage,
+): StartupRound | null {
+  if (process.currentRound?.stage === stage) return process.currentRound;
+  return (
+    process.rounds
+      .filter((round) => round.stage === stage)
+      .sort((left, right) => right.startsOn.localeCompare(left.startsOn))[0] ??
+    null
+  );
 }

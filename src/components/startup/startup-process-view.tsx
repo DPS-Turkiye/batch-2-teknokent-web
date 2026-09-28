@@ -1,5 +1,6 @@
 "use client";
 
+import { Check, ChevronRight } from "lucide-react";
 import Image from "next/image";
 
 import {
@@ -19,6 +20,7 @@ import {
   formatDueLabel,
   formatRoundRange,
   formatStageRange,
+  type StageCard,
   STARTUP_STAGE_LABELS,
 } from "@/lib/startup-process";
 
@@ -33,11 +35,102 @@ const CHIP_TONES: Record<ChipTone, string> = {
   [ChipTone.Green]: "border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]",
 };
 
-const STAGE_MARKERS: Record<StartupStageState, string> = {
-  [StartupStageState.Completed]: "/startup/stage-completed.svg",
-  [StartupStageState.Current]: "/startup/stage-current.svg",
-  [StartupStageState.Upcoming]: "/startup/stage-upcoming.svg",
-};
+const RING_RADIUS = 47;
+const RING_LENGTH = 2 * Math.PI * RING_RADIUS;
+
+function StageCardButton({
+  card,
+  number,
+  selected,
+  onSelect,
+}: {
+  card: StageCard;
+  number: number;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  const label = STARTUP_STAGE_LABELS[card.stage];
+  const count =
+    card.total > 0
+      ? `${card.done} / ${card.total} tamamlandı`
+      : "Henüz ödev yok";
+  const completed = card.state === StartupStageState.Completed;
+  const current = card.state === StartupStageState.Current;
+  const actionTone = selected
+    ? "bg-white text-[#e86f22]"
+    : completed
+      ? "bg-[#eefaf3] text-[#0f7a4d]"
+      : "bg-[#f3f4f6] text-[#22262b]";
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      aria-current={current ? "step" : undefined}
+      aria-label={`${label} · ${count}`}
+      className={`w-full rounded-2xl p-2.5 text-center transition ${selected ? "bg-gradient-to-br from-[#f58a3c] to-[#c9571a] shadow-[0_8px_24px_rgba(232,111,34,0.25)]" : "border border-[#e4e7ea] bg-white hover:border-[#f6c9a5]"}`}
+    >
+      <span
+        className={`flex flex-col items-center gap-3.5 rounded-xl border px-1.5 pb-1.5 pt-2 ${selected ? "border-white/40" : "border-transparent"}`}
+      >
+        <span className="flex w-full items-center gap-2">
+          <span
+            className={`grid size-[26px] shrink-0 place-items-center rounded-full text-xs font-medium ${selected ? "bg-white text-[#e86f22]" : "border border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]"}`}
+          >
+            {number}
+          </span>
+          <span
+            className={`flex-1 truncate pr-[26px] text-center text-[15px] font-semibold leading-5 ${selected ? "text-white" : "text-[#22262b]"}`}
+          >
+            {label}
+          </span>
+        </span>
+        <span className="relative grid size-28 place-items-center">
+          <svg viewBox="0 0 112 112" className="absolute inset-0 -rotate-90">
+            <circle
+              cx="56"
+              cy="56"
+              r={RING_RADIUS}
+              fill="none"
+              strokeWidth="18"
+              className={selected ? "stroke-white/25" : "stroke-[#eceef0]"}
+            />
+            {card.percent > 0 ? (
+              <circle
+                cx="56"
+                cy="56"
+                r={RING_RADIUS}
+                fill="none"
+                strokeWidth="18"
+                strokeDasharray={`${(card.percent / 100) * RING_LENGTH} ${RING_LENGTH}`}
+                className={selected ? "stroke-white" : "stroke-[#e86f22]"}
+              />
+            ) : null}
+          </svg>
+          <span
+            className={`text-[17px] font-semibold ${selected ? "text-white" : "text-[#22262b]"}`}
+          >
+            {card.percent}%
+          </span>
+        </span>
+        <span
+          className={`text-[12.5px] leading-[19px] ${selected ? "text-white/90" : "text-[#676e78]"}`}
+        >
+          {count}
+        </span>
+        <span
+          className={`flex h-10 w-full items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-semibold ${actionTone}`}
+        >
+          {completed ? <Check aria-hidden className="size-4" /> : null}
+          <span className="flex-1 truncate text-left">{card.action}</span>
+          {completed || current ? null : (
+            <ChevronRight aria-hidden className="size-4" />
+          )}
+        </span>
+      </span>
+    </button>
+  );
+}
 
 function AssignmentRow({
   assignment,
@@ -127,25 +220,37 @@ export function StartupProcessView() {
     );
   }
 
-  const { currentRound, stages } = process;
-  const currentIndex = stages.findIndex(
-    (stage) => stage.state === StartupStageState.Current,
-  );
+  const round = process.selectedRound;
 
   return (
     <StartupPageFrame>
       <div className="space-y-5">
+        <section aria-label="Aşamalar">
+          <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
+            {process.stageCards.map((card, index) => (
+              <li key={card.stage}>
+                <StageCardButton
+                  card={card}
+                  number={index + 1}
+                  selected={card.stage === process.selectedStage}
+                  onSelect={() => process.selectStage(card.stage)}
+                />
+              </li>
+            ))}
+          </ol>
+        </section>
+
         <section
           aria-label="Odak turu"
           className="space-y-3 rounded-[10px] bg-[#fff4ec] px-6 py-5"
         >
-          {currentRound ? (
+          {round ? (
             <>
               <h2 className="text-xl leading-7 text-[#22262b]">
-                {currentRound.title}
+                {round.title}
               </h2>
               <div className="flex items-center gap-3 text-[13px] font-medium text-[#22262b]">
-                <span>{currentRound.name}</span>
+                <span>{round.name}</span>
                 <span className="flex items-center gap-1">
                   <Image
                     src="/startup/calendar-orange.svg"
@@ -153,72 +258,15 @@ export function StartupProcessView() {
                     width={24}
                     height={24}
                   />
-                  {formatRoundRange(currentRound.startsOn, currentRound.endsOn)}
+                  {formatRoundRange(round.startsOn, round.endsOn)}
                 </span>
               </div>
             </>
           ) : (
             <p className="text-sm text-[#676e78]">
-              Henüz bir odak turu planlanmadı.
+              Bu aşama için henüz bir tur planlanmadı.
             </p>
           )}
-        </section>
-
-        <section
-          aria-labelledby="startup-journey"
-          className="space-y-4 rounded-[10px] bg-white px-6 py-[18px]"
-        >
-          <h2
-            id="startup-journey"
-            className="text-[15px] font-medium text-[#22262b]"
-          >
-            Startup süreci
-          </h2>
-          <div className="relative overflow-x-auto">
-            {currentRound && currentIndex >= 0 ? (
-              <Image
-                src="/startup/focus-pointer.svg"
-                alt=""
-                width={199}
-                height={79}
-                className="pointer-events-none absolute -top-[92px] hidden -translate-x-1/2 md:block"
-                style={{
-                  left: `${((currentIndex + 0.5) / stages.length) * 100}%`,
-                }}
-              />
-            ) : null}
-            <ol className="relative flex min-w-[560px]">
-              <span
-                aria-hidden
-                className="absolute top-1.5 h-0.5 rounded-sm bg-[#fff4ec]"
-                style={{
-                  left: `${50 / Math.max(stages.length, 1)}%`,
-                  right: `${50 / Math.max(stages.length, 1)}%`,
-                }}
-              />
-              {stages.map(({ stage, state }) => (
-                <li
-                  key={stage}
-                  aria-current={
-                    state === StartupStageState.Current ? "step" : undefined
-                  }
-                  className="relative flex flex-1 flex-col items-center gap-1.5"
-                >
-                  <Image
-                    src={STAGE_MARKERS[state]}
-                    alt=""
-                    width={14}
-                    height={14}
-                  />
-                  <span
-                    className={`text-xs leading-5 ${state === StartupStageState.Completed ? "text-[#858c96]" : "text-[#9e4400]"}`}
-                  >
-                    {STARTUP_STAGE_LABELS[stage]}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          </div>
         </section>
 
         <section aria-labelledby="startup-assignments" className={cardClass}>
@@ -231,7 +279,7 @@ export function StartupProcessView() {
                 Her ödevin kimden geldiği ve neye bağlı olduğu satırda yazıyor.
               </p>
             </div>
-            {currentRound ? (
+            {process.totalAssignments > 0 ? (
               <button
                 type="button"
                 onClick={process.toggleShowAll}
@@ -239,14 +287,14 @@ export function StartupProcessView() {
                 className="shrink-0 text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline"
               >
                 {process.showAll
-                  ? "Bu tur →"
+                  ? "Bu aşama →"
                   : `Tümü (${process.totalAssignments}) →`}
               </button>
             ) : null}
           </div>
           {process.assignments.length === 0 ? (
             <p className="text-sm text-[#858c96]">
-              Bu tur için henüz ödev yok.
+              Bu aşama için henüz ödev yok.
             </p>
           ) : (
             <ul className="space-y-3">

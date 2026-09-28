@@ -185,7 +185,9 @@ export function StartupProfileView() {
                 </div>
                 <div className="flex items-start justify-between">
                   <span className="text-xs leading-[18px] text-[#676e78]">
-                    Tamamlanma
+                    {overview.stageName
+                      ? `${overview.stageName} tamamlanma`
+                      : "Tamamlanma"}
                   </span>
                   <span className="text-[12.5px] font-medium leading-[19px] text-[#9e4400]">
                     %{percent}
@@ -208,7 +210,11 @@ export function StartupProfileView() {
                 >
                   Görüntüle
                 </button>
-              ) : null
+              ) : (
+                <Link href="/startup/files" className={cardLinkClass}>
+                  Yükle →
+                </Link>
+              )
             }
           >
             {canvas ? (

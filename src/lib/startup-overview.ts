@@ -3,6 +3,10 @@ import {
   type MentorshipRequest,
   MentorshipRequestStatus,
 } from "@/interfaces/mentorship-request";
+import {
+  meetingsForRequest,
+  requestHasOpenMeeting,
+} from "@/lib/mentorship-workspace";
 
 export type ActiveMentorshipRow = {
   id: string;
@@ -14,8 +18,9 @@ export type ActiveMentorshipRow = {
 };
 
 /**
- * One row per accepted mentorship: sessions held are its completed meetings,
- * and the next one is its earliest meeting still to come.
+ * The mentorships Mentorluklarım lists under "Aktif": accepted, with a meeting
+ * that hasn't ended. Sessions held are its completed meetings, and the next one
+ * is its earliest meeting still to come.
  */
 export function activeMentorships(
   requests: MentorshipRequest[],
@@ -23,11 +28,13 @@ export function activeMentorships(
   now: Date,
 ): ActiveMentorshipRow[] {
   return requests
-    .filter((request) => request.status === MentorshipRequestStatus.Accepted)
+    .filter(
+      (request) =>
+        request.status === MentorshipRequestStatus.Accepted &&
+        requestHasOpenMeeting(meetings, request, now),
+    )
     .map((request) => {
-      const own = meetings.filter(
-        (meeting) => meeting.mentorshipRequestId === request.id,
-      );
+      const own = meetingsForRequest(meetings, request);
       const upcoming = own
         .filter(
           (meeting) =>
