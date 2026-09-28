@@ -71,3 +71,31 @@ export function filterPool(pool: MatchCandidate[], search: string) {
     ),
   );
 }
+
+export const INTRO_MEETING_MINUTES = 30;
+export const INTRO_AGENDA = "İlk tanışma görüşmesi";
+
+/** The mentorship a match just created, found in the overview the match call returns. */
+export function findMatch(
+  overview: MatchingOverview,
+  organizationId: string,
+  mentorId: string,
+) {
+  return (
+    overview.active.find(
+      (match) =>
+        match.organizationId === organizationId && match.mentorId === mentorId,
+    ) ?? null
+  );
+}
+
+/** What the "İlk adımlar" drawer needs about a match made a moment ago. */
+export type FirstSteps = {
+  mentorshipId: string;
+  teamName: string;
+  leadName: string | null;
+  mentorId: string;
+  mentorName: string;
+  mentorLoad: string;
+  matchedAt: string;
+};

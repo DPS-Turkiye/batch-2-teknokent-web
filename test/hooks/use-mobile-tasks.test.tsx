@@ -12,9 +12,12 @@ import {
 } from "@/lib/client/action-items";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getMemberProgramEvents } from "@/lib/client/programs";
+import { getMeetingFeedback } from "@/lib/client/meetings";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import type { MeetingItem } from "@/interfaces/meeting";
 import {
   menteeActionItemFixture,
+  menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
 import { createTestQueryClient } from "@test/test-utils";
@@ -26,6 +29,14 @@ vi.mock("@/lib/client/action-items", () => ({
 }));
 vi.mock("@/lib/client/startup-process", () => ({ getStartupProcess: vi.fn() }));
 vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
+vi.mock("@/lib/client/meetings", () => ({ getMeetingFeedback: vi.fn() }));
+vi.mock("@/components/providers/session-provider", () => ({
+  useSession: () => ({ session: { userId: "mentee-1" } }),
+}));
+let mockMeetings: MeetingItem[] = [];
+vi.mock("@/hooks/use-meetings", () => ({
+  useMeetings: () => ({ data: mockMeetings }),
+}));
 
 function wrapper({ children }: { children: ReactNode }) {
   return (
@@ -56,6 +67,8 @@ beforeEach(() => {
   ]);
   vi.mocked(getStartupProcess).mockRejectedValue(new Error("no startup"));
   vi.mocked(getMemberProgramEvents).mockResolvedValue([]);
+  vi.mocked(getMeetingFeedback).mockResolvedValue(null);
+  mockMeetings = [];
   vi.mocked(changeActionItemStatus).mockResolvedValue(
     menteeActionItemFixture(),
   );
@@ -69,6 +82,20 @@ describe("useMobileTasks", () => {
       expect(result.current.counts).toEqual({ open: 1, done: 1 }),
     );
     expect(result.current.isError).toBe(false);
+  });
+
+  it("lists a held meeting the mentee has not rated under Değerlendirmeler", async () => {
+    mockMeetings = [
+      menteeMeetingFixture({ id: "m1", mentorName: "Leyla Aksoy" }),
+    ];
+    const { result } = renderHook(() => useMobileTasks(), { wrapper });
+
+    await waitFor(() =>
+      expect(result.current.groups.map((group) => group.label)).toContain(
+        "Değerlendirmeler",
+      ),
+    );
+    expect(result.current.counts.open).toBe(2);
   });
 
   it("completes a mentorship task and offers to undo it", async () => {

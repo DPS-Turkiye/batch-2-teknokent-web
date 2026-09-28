@@ -1,6 +1,7 @@
 "use client";
 
 import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -19,6 +20,7 @@ import type {
   MentorshipRequest,
   RequestMessage,
 } from "@/interfaces/mentorship-request";
+import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -124,7 +126,7 @@ function ConversationList({
                     <span
                       className={`block truncate text-xs ${selected ? "text-[#1a1a1a]" : "text-[#666b75]"}`}
                     >
-                      {last?.body ?? "Henüz mesaj yok"}
+                      {last ? withoutSlotLines(last.body) : "Henüz mesaj yok"}
                     </span>
                   </span>
                   {selected && last ? (
@@ -189,7 +191,7 @@ function MessageBubble({
       <p
         className={`max-w-[520px] rounded-xl px-4 py-3 text-[13.5px] leading-[normal] ${own ? "bg-[#e86f22] text-white" : "bg-[#f7f7f7] text-[#1a1a1a]"}`}
       >
-        {message.body}
+        {withoutSlotLines(message.body)}
       </p>
       <time className="mt-1 text-[11px] text-[#666b75]">
         {timeLabel(message.createdAt)}
@@ -311,7 +313,8 @@ function Conversation({
 }
 
 export function MenteeMessagesView() {
-  const messages = useMenteeMessages();
+  const params = useSearchParams();
+  const messages = useMenteeMessages(params.get("conversation"));
   return (
     <AppShell active={AppArea.Meetings} menteeHome>
       {messages.error ? (

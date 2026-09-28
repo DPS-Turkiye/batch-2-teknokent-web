@@ -43,6 +43,7 @@ export function mentorshipProposalsStub(
   return {
     query: {} as MentorshipMeetingProposals["query"],
     open: null,
+    latest: null,
     declined: null,
     composing: false,
     openComposer: vi.fn(),

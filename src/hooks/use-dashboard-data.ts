@@ -14,14 +14,13 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { actionItemsQueryKey } from "@/hooks/use-action-items";
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
+import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
 import { getActionItems } from "@/lib/client/action-items";
-import { getMeetingFeedback } from "@/lib/client/meetings";
 import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   DASHBOARD_FALLBACK_MEETINGS,
   DASHBOARD_FALLBACK_REQUESTS,
-  HOME_TASK_FEEDBACK_MEETING_LIMIT,
 } from "@/lib/const";
 import {
   buildHomeTasks,
@@ -33,11 +32,7 @@ import {
   requestHasConfirmedMeeting,
   requestHasOpenMeeting,
 } from "@/lib/mentorship-workspace";
-import {
-  MeetingTiming,
-  meetingTiming,
-  visibleMeetings,
-} from "@/lib/startup-meetings";
+import { heldMeetingsNewestFirst } from "@/lib/startup-meetings";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
 const NOTE_MEETING_LIMIT = 3;
@@ -128,30 +123,13 @@ export function useDashboardData() {
   const requestsById: Record<string, MentorshipRequest> = {};
   for (const request of requests) requestsById[request.id] = request;
 
-  const heldMeetings = visibleMeetings(meetings)
-    .filter((meeting) => meetingTiming(meeting) === MeetingTiming.Held)
-    .sort((left, right) => right.scheduledAt.localeCompare(left.scheduledAt));
+  const heldMeetings = heldMeetingsNewestFirst(meetings);
   const noteMeetings = heldMeetings.slice(0, NOTE_MEETING_LIMIT);
   const openTodoCounts = useOpenTodoCounts(
     noteMeetings.map((meeting) => meeting.id),
   );
-  const feedbackCandidates = heldMeetings.slice(
-    0,
-    HOME_TASK_FEEDBACK_MEETING_LIMIT,
-  );
-  const { feedbackMeetings, isLoadingFeedback } = useQueries({
-    queries: feedbackCandidates.map((meeting) => ({
-      queryKey: ["meeting-feedback", meeting.id],
-      queryFn: () => getMeetingFeedback(meeting.id),
-    })),
-    combine: (results) => ({
-      feedbackMeetings: feedbackCandidates.filter((_, index) => {
-        const result = results[index];
-        return Boolean(result && !result.isLoading && !result.data);
-      }),
-      isLoadingFeedback: results.some((result) => result.isLoading),
-    }),
-  });
+  const { feedbackMeetings, isLoadingFeedback } =
+    useMeetingsAwaitingFeedback(heldMeetings);
 
   return {
     activeRequests,

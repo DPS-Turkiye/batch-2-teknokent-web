@@ -19,13 +19,16 @@ import {
   pickRequestMeeting,
 } from "@/lib/mentorship-workspace";
 
-export function useMentorMessages(preferredRequestId?: string | null) {
+export function useMentorMessages(
+  preferredRequestId?: string | null,
+  linkedThreadId: string | null = null,
+) {
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
   const preferred = preferredRequestId ?? null;
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const programThreads = useProgramThreads();
+  const programThreads = useProgramThreads(linkedThreadId);
   const announcements = useMyAnnouncements();
   const [syncedPreferred, setSyncedPreferred] = useState(preferred);
 

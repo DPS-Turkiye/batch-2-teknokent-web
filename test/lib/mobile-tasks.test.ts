@@ -10,9 +10,11 @@ import {
   completedTasks,
   dueLabel,
   groupOpenTasks,
+  meetingFeedbackTask,
 } from "@/lib/mobile-tasks";
 import {
   menteeActionItemFixture,
+  menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
 
@@ -43,6 +45,12 @@ function assignment(overrides: Partial<ProcessAssignment> = {}) {
     ...overrides,
   } as ProcessAssignment;
 }
+
+const RATING_MEETING = menteeMeetingFixture({
+  id: "m1",
+  mentorName: "Leyla Aksoy",
+  agenda: "Yatırımcı sunumu",
+});
 
 const TASKS = collectTasks(
   {
@@ -102,6 +110,7 @@ const TASKS = collectTasks(
         description: null,
       },
     ],
+    feedbackMeetings: [RATING_MEETING],
   },
   TODAY,
 );
@@ -125,6 +134,7 @@ describe("collectTasks", () => {
       "Eski görev",
       "Finansal model",
       "Ara rapor teslimi",
+      "Toplantıyı değerlendir",
     ]);
   });
 
@@ -164,6 +174,7 @@ describe("groupOpenTasks and completedTasks", () => {
       ["Bugün", ["Pitch deck"]],
       ["Bu hafta", ["Rakip analizi"]],
       ["Daha sonra", ["Finansal model"]],
+      ["Değerlendirmeler", ["Toplantıyı değerlendir"]],
       ["Program", ["Ara rapor teslimi"]],
     ]);
     expect(groups[0]?.urgent).toBe(true);
@@ -173,5 +184,16 @@ describe("groupOpenTasks and completedTasks", () => {
     expect(completedTasks(TASKS).map((task) => task.title)).toEqual([
       "Eski görev",
     ]);
+  });
+});
+
+describe("meetingFeedbackTask", () => {
+  it("is due when the meeting ended and is rated on the web", () => {
+    const task = meetingFeedbackTask(RATING_MEETING, TODAY);
+
+    expect(task.source).toBe(MobileTaskSource.Feedback);
+    expect(task.meta).toBe("15 Eylül · Leyla Aksoy");
+    expect(task.chips).toEqual(["Yatırımcı sunumu"]);
+    expect(task.webHref).toBe("/meetings/research/feedback?id=m1&web=1");
   });
 });
