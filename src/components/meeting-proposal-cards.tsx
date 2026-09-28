@@ -9,6 +9,28 @@ import { proposalWhenLabel, sideLabel } from "@/lib/meeting-proposals";
 /** "Koordinatör önerileri" on the mentor and team homes; hidden when nothing is waiting. */
 export function MeetingProposalCards() {
   const proposals = useMeetingProposals();
+  if (proposals.loadError) {
+    return (
+      <section
+        aria-label="Koordinatör önerileri"
+        className="rounded-[22px] border border-[#e9ecef] bg-white p-5"
+      >
+        <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#22262b]">
+          <CalendarClock aria-hidden className="size-4" /> Koordinatör önerileri
+        </h2>
+        <p className="mt-2 text-[12.5px] text-[#d9464b]">
+          Öneriler yüklenemedi.
+        </p>
+        <button
+          type="button"
+          onClick={proposals.retry}
+          className="mt-3 inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
+        >
+          Tekrar dene
+        </button>
+      </section>
+    );
+  }
   if (!proposals.proposals.length) return null;
   return (
     <section

@@ -59,6 +59,8 @@ export function useMeetingProposals() {
   return {
     proposals: proposals.data ?? [],
     isLoading: proposals.isLoading,
+    loadError: proposals.error,
+    retry: () => void proposals.refetch(),
     accept: (id: string) => accept.mutate(id),
     accepting: accept.isPending ? accept.variables : null,
     decliningId,
@@ -160,7 +162,7 @@ export function useMentorshipMeetingProposals(
       if (open) remind.mutate(open.id);
     },
     reminding: remind.isPending,
-    reminded: remind.isSuccess,
+    reminded: remind.isSuccess && remind.variables === open?.id,
     withdraw: () => {
       if (open) withdraw.mutate(open.id);
     },

@@ -134,4 +134,32 @@ describe("useMentorshipMeetingProposals", () => {
       expect.anything(),
     );
   });
+
+  it("does not carry the reminder state to a different open proposal", async () => {
+    vi.mocked(getMentorshipMeetingProposals).mockResolvedValue([
+      meetingProposal(),
+    ]);
+    const { result } = renderHook(
+      () => useMentorshipMeetingProposals("mentorship-1"),
+      { wrapper },
+    );
+    await waitFor(() => expect(result.current.open?.id).toBe("proposal-1"));
+
+    act(() => result.current.remind());
+    await waitFor(() => expect(result.current.reminded).toBe(true));
+
+    vi.mocked(getMentorshipMeetingProposals).mockResolvedValue([
+      meetingProposal({ id: "proposal-2" }),
+    ]);
+    act(() => void result.current.query.refetch());
+    await waitFor(() => expect(result.current.open?.id).toBe("proposal-2"));
+    expect(result.current.reminded).toBe(false);
+
+    act(() => result.current.remind());
+    await waitFor(() => expect(result.current.reminded).toBe(true));
+    expect(remindMeetingProposal).toHaveBeenLastCalledWith(
+      "proposal-2",
+      expect.anything(),
+    );
+  });
 });

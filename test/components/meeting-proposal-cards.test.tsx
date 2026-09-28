@@ -13,11 +13,14 @@ vi.mock("@/hooks/use-meeting-proposals", () => ({
 const accept = vi.fn();
 const startDecline = vi.fn();
 const confirmDecline = vi.fn();
+const retry = vi.fn();
 
 function mockProposals(overrides: Record<string, unknown> = {}) {
   vi.mocked(useMeetingProposals).mockReturnValue({
     proposals: [meetingProposal()],
     isLoading: false,
+    loadError: null,
+    retry,
     accept,
     accepting: null,
     decliningId: null,
@@ -39,6 +42,16 @@ describe("MeetingProposalCards", () => {
     mockProposals({ proposals: [] });
     const { container } = render(<MeetingProposalCards />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("shows a retry state when loading fails", async () => {
+    const user = userEvent.setup();
+    mockProposals({ proposals: [], loadError: new Error("offline") });
+    render(<MeetingProposalCards />);
+
+    expect(screen.getByText("Öneriler yüklenemedi.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Tekrar dene" }));
+    expect(retry).toHaveBeenCalled();
   });
 
   it("shows the pair, time, who proposed it and each side's answer", async () => {
