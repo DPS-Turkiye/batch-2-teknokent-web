@@ -25,8 +25,11 @@ import { errorMessage, isEmailAddress } from "@/lib/utils";
 const CANDIDATE_QUERY_KEY = ["admin-coordinator-candidate"] as const;
 const CHECK_DELAY_MS = 400;
 
-/** The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes. */
-export function useAddCoordinatorForm(onDone: () => void) {
+/**
+ * The "Koordinatör ekle" form: checks the email as it is typed, then adds or promotes.
+ * With a programId the new coordinator is also added to that program.
+ */
+export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
@@ -53,11 +56,14 @@ export function useAddCoordinatorForm(onDone: () => void) {
   const needsName = nameRequired(current);
 
   const save = useMutation({
-    mutationFn: () =>
-      addCoordinator({
+    mutationFn: async () => {
+      const account = await addCoordinator({
         fullName: needsName ? fullName.trim() : (current?.fullName ?? ""),
         email: email.trim(),
-      }),
+      });
+      if (programId) await addProgramCoordinator(programId, account.id);
+      return account;
+    },
     onSuccess: (account) => {
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,

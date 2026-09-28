@@ -9,7 +9,6 @@ const FIELD =
 
 export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
   const form = useAddCoordinatorForm(onClose);
-  const candidate = form.candidate;
 
   return (
     <AdminOverlay label="Koordinatör ekle" onClose={onClose}>
@@ -31,43 +30,7 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
           bu listede onay bekler.
         </p>
 
-        <label className="mt-5 block text-[12.5px] font-medium text-[#676e78]">
-          E-posta
-          <input
-            type="email"
-            autoComplete="off"
-            value={form.email}
-            onChange={(event) => form.setEmail(event.target.value)}
-            className={FIELD}
-          />
-        </label>
-        {form.needsName ? (
-          <label className="mt-4 block text-[12.5px] font-medium text-[#676e78]">
-            Ad soyad
-            <input
-              value={form.fullName}
-              maxLength={255}
-              onChange={(event) => form.setFullName(event.target.value)}
-              className={FIELD}
-            />
-          </label>
-        ) : null}
-
-        <div aria-live="polite" className="mt-4 min-h-[20px] text-[13px]">
-          {candidate ? (
-            <p
-              className={
-                isAssignable(candidate) ? "text-[#1d3a5f]" : "text-[#d9464b]"
-              }
-            >
-              {candidateMessage(candidate)}
-            </p>
-          ) : form.checkError ? (
-            <p className="text-[#d9464b]">{form.checkError.message}</p>
-          ) : form.checking ? (
-            <p className="text-[#858c96]">Kontrol ediliyor…</p>
-          ) : null}
-        </div>
+        <CoordinatorEmailFields form={form} />
 
         <div className="mt-5 flex justify-end gap-2">
           <button
@@ -87,5 +50,55 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
         </div>
       </form>
     </AdminOverlay>
+  );
+}
+
+/** Email, then a name when the address is new, and what adding it will do. */
+export function CoordinatorEmailFields({
+  form,
+}: {
+  form: ReturnType<typeof useAddCoordinatorForm>;
+}) {
+  const candidate = form.candidate;
+  return (
+    <>
+      <label className="mt-5 block text-[12.5px] font-medium text-[#676e78]">
+        E-posta
+        <input
+          type="email"
+          autoComplete="off"
+          value={form.email}
+          onChange={(event) => form.setEmail(event.target.value)}
+          className={FIELD}
+        />
+      </label>
+      {form.needsName ? (
+        <label className="mt-4 block text-[12.5px] font-medium text-[#676e78]">
+          Ad soyad
+          <input
+            value={form.fullName}
+            maxLength={255}
+            onChange={(event) => form.setFullName(event.target.value)}
+            className={FIELD}
+          />
+        </label>
+      ) : null}
+
+      <div aria-live="polite" className="mt-4 min-h-[20px] text-[13px]">
+        {candidate ? (
+          <p
+            className={
+              isAssignable(candidate) ? "text-[#1d3a5f]" : "text-[#d9464b]"
+            }
+          >
+            {candidateMessage(candidate)}
+          </p>
+        ) : form.checkError ? (
+          <p className="text-[#d9464b]">{form.checkError.message}</p>
+        ) : form.checking ? (
+          <p className="text-[#858c96]">Kontrol ediliyor…</p>
+        ) : null}
+      </div>
+    </>
   );
 }
