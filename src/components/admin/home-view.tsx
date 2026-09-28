@@ -32,7 +32,7 @@ import type {
   AdminProgram,
 } from "@/interfaces/admin-overview";
 import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
-import { programCoordinatorsHref } from "@/lib/admin-coordinators";
+import { COORDINATOR_UNASSIGNED } from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
@@ -396,12 +396,9 @@ function ProgramRow({
           </span>
         ) : null}
         {program.coordinatorName ?? (
-          <Link
-            href={programCoordinatorsHref(program.id)}
-            className="font-medium text-[#b7791f] underline"
-          >
-            Koordinatör ata
-          </Link>
+          <span className="font-medium text-[#b7791f]">
+            {COORDINATOR_UNASSIGNED}
+          </span>
         )}
       </span>
       <span className="text-[13px] leading-[1.3] text-[#676e78]">

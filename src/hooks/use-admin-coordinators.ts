@@ -12,6 +12,10 @@ import {
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
 import {
+  addProgramCoordinator,
+  getProgramCoordinatorCandidates,
+} from "@/lib/client/coordinator-programs";
+import {
   addedMessage,
   isAssignable,
   nameRequired,
@@ -136,5 +140,47 @@ export function useCoordinatorPasswordSetup() {
   return {
     resend: (id: string) => mutation.mutate(id),
     busy: mutation.isPending,
+  };
+}
+
+/** The admin's "Koordinatör ata" popup: pick an approved coordinator and add them to the program. */
+export function useAssignProgramCoordinator(
+  programId: string,
+  onDone: () => void,
+) {
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const candidates = useQuery({
+    queryKey: ["admin-program-coordinator-candidates", programId],
+    queryFn: () => getProgramCoordinatorCandidates(programId),
+  });
+  const mutation = useMutation({
+    mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      showToast({ message: "Koordinatör programa eklendi.", tone: "success" });
+      onDone();
+    },
+    onError: (error) =>
+      showToast({
+        message: errorMessage(error, "Koordinatör eklenemedi."),
+        tone: "error",
+      }),
+  });
+
+  return {
+    candidates: candidates.data ?? [],
+    isLoading: candidates.isLoading,
+    loadError: candidates.error,
+    selectedId,
+    select: setSelectedId,
+    canSave: selectedId != null && !mutation.isPending,
+    save: () => {
+      if (selectedId) mutation.mutate(selectedId);
+    },
+    saving: mutation.isPending,
   };
 }

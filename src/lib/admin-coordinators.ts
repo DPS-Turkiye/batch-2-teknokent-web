@@ -67,8 +67,3 @@ export function programCoordinatorLabel(program: {
 }) {
   return program.coordinatorName ?? COORDINATOR_UNASSIGNED;
 }
-
-/** The program's Koordinatörler settings, where an admin adds or removes coordinators. */
-export function programCoordinatorsHref(programId: string) {
-  return `/coordinator/programs/${encodeURIComponent(programId)}/settings#coordinators`;
-}

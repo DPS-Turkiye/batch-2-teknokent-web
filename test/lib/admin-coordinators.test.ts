@@ -9,7 +9,6 @@ import {
   addedMessage,
   COORDINATOR_UNASSIGNED,
   programCoordinatorLabel,
-  programCoordinatorsHref,
   candidateMessage,
   isAssignable,
   nameRequired,
@@ -121,12 +120,6 @@ describe("program coordinator helpers", () => {
     );
     expect(programCoordinatorLabel({ coordinatorName: null })).toBe(
       COORDINATOR_UNASSIGNED,
-    );
-  });
-
-  it("links to the program's Koordinatörler settings", () => {
-    expect(programCoordinatorsHref("program 1")).toBe(
-      "/coordinator/programs/program%201/settings#coordinators",
     );
   });
 });

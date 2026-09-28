@@ -14,6 +14,7 @@ import {
   OutlineButton,
   QueryNotice,
 } from "@/components/admin/admin-ui";
+import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
 import { useToast } from "@/components/providers/toast-provider";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
@@ -21,10 +22,7 @@ import {
 } from "@/hooks/use-admin-overview";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
-import {
-  programCoordinatorLabel,
-  programCoordinatorsHref,
-} from "@/lib/admin-coordinators";
+import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
@@ -228,6 +226,7 @@ function ProgramRow({
   );
   const missingAccess =
     coordinator != null && coordinator.status !== "APPROVED";
+  const [assigning, setAssigning] = useState(false);
   return (
     <div
       className={`${cols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
@@ -277,12 +276,20 @@ function ProgramRow({
         <HealthBar green={health.green} amber={health.amber} red={health.red} />
       </span>
       <span className="flex items-center justify-end gap-1">
-        <Link
-          href={programCoordinatorsHref(program.id)}
+        <button
+          type="button"
+          onClick={() => setAssigning(true)}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium whitespace-nowrap text-[#22262b]"
         >
-          {program.coordinatorName ? "Koordinatörler" : "Koordinatör ata"}
-        </Link>
+          {program.coordinatorName ? "Koordinatör ekle" : "Koordinatör ata"}
+        </button>
+        {assigning ? (
+          <AssignCoordinatorDialog
+            programId={program.id}
+            programName={program.name}
+            onClose={() => setAssigning(false)}
+          />
+        ) : null}
         <Link
           href={`/programs/${program.id}`}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium text-[#22262b]"
