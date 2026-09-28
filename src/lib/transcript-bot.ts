@@ -56,3 +56,22 @@ function transcriptBotActionFor(
     alreadyDispatched: Boolean(meeting.botDispatchedAt),
   };
 }
+
+export const TRANSCRIPT_BOT_FULL_EVENT = "menton:transcript-bot-full";
+export const TRANSCRIPT_BOT_FULL_TITLE = "Kayıt botu şu anda katılamıyor";
+export const TRANSCRIPT_BOT_FULL_MESSAGE =
+  "Özür dileriz, sitedeki yoğun kullanım nedeniyle kayıt botu şu anda bu görüşmeye katılamıyor. Görüşme planlandı; kayıt olmadan yapılacak.";
+
+/** The backend turns the bot off when its slot is already full, so compare what was asked with what was saved. */
+export function announceDroppedTranscriptBot<
+  T extends { transcribeRequested?: boolean },
+>(requested: unknown, saved: T): T {
+  if (
+    requested === true &&
+    saved.transcribeRequested === false &&
+    typeof window !== "undefined"
+  ) {
+    window.dispatchEvent(new Event(TRANSCRIPT_BOT_FULL_EVENT));
+  }
+  return saved;
+}

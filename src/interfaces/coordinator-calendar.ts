@@ -19,6 +19,8 @@ export type CoordinatorCalendarItem = {
   meetLink: string | null;
   description: string | null;
   conflict: boolean;
+  /** Most meeting rooms the transcript bot records at once during a MEETING, platform-wide. */
+  recordingLoad: number | null;
 };
 
 /** Meetings of one mentor that overlap in time. */
@@ -40,4 +42,6 @@ export type CoordinatorCalendar = {
     deadlines: number;
     unscheduledRisky: number;
   };
+  /** How many rooms the transcript bot can record at the same moment. */
+  recordingCapacity: number;
 };

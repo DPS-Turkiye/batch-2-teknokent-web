@@ -8,10 +8,12 @@ import {
   emptyEventDraft,
   eventDraftError,
   eventInput,
+  fullRecordingCount,
   isoDay,
   mentorshipHref,
   placeDayItems,
   rangeLabel,
+  recordingNote,
   shiftAnchor,
   slotLabel,
   startOfWeek,
@@ -126,5 +128,27 @@ describe("coordinator calendar", () => {
       endsAt: null,
       description: null,
     });
+  });
+
+  it("shows how many rooms the recording bot holds at a meeting's time", () => {
+    expect(recordingNote(calendarMeeting({ recordingLoad: 1 }), 2)).toBe(
+      "Kayıt botu 1/2",
+    );
+    expect(recordingNote(calendarMeeting({ recordingLoad: 2 }), 2)).toBe(
+      "Kayıt botu 2/2 · dolu",
+    );
+    expect(
+      recordingNote(calendarMeeting({ recordingLoad: null }), 2),
+    ).toBeNull();
+    expect(
+      fullRecordingCount(
+        coordinatorCalendar({
+          items: [
+            calendarMeeting({ recordingLoad: 2 }),
+            calendarMeeting({ id: "m-2", recordingLoad: 1 }),
+          ],
+        }),
+      ),
+    ).toBe(1);
   });
 });

@@ -1,14 +1,18 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
+import { announceDroppedTranscriptBot } from "@/lib/transcript-bot";
 
 export async function getMeetings() {
   return requireSuccess(await httpClient.get<MeetingItem[]>("/api/meetings"));
 }
 
 export async function postMeeting(payload: Record<string, unknown>) {
-  return requireSuccess(
-    await httpClient.post<MeetingItem>("/api/meetings", payload),
+  return announceDroppedTranscriptBot(
+    payload.transcribeRequested,
+    requireSuccess(
+      await httpClient.post<MeetingItem>("/api/meetings", payload),
+    ),
   );
 }
 
@@ -56,10 +60,13 @@ export async function postMeetingFeedback(
 }
 
 export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
-  return requireSuccess(
-    await httpClient.patch<MeetingItem>(
-      `/api/meetings/${encodeURIComponent(id)}`,
-      payload,
+  return announceDroppedTranscriptBot(
+    payload.transcribeRequested,
+    requireSuccess(
+      await httpClient.patch<MeetingItem>(
+        `/api/meetings/${encodeURIComponent(id)}`,
+        payload,
+      ),
     ),
   );
 }

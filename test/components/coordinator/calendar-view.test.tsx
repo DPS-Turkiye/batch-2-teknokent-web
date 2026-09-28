@@ -9,7 +9,10 @@ import {
   createCoordinatorProgramEvent,
   getCoordinatorPrograms,
 } from "@/lib/client/coordinator-programs";
-import { coordinatorCalendar } from "@test/fixtures/coordinator-calendar";
+import {
+  calendarMeeting,
+  coordinatorCalendar,
+} from "@test/fixtures/coordinator-calendar";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -83,6 +86,28 @@ describe("CoordinatorCalendarView", () => {
       "href",
       "/coordinator/messages?program=program-1&mentor=mentor-1",
     );
+  });
+
+  it("warns when the recording bot is full at a meeting's time", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getCoordinatorCalendar).mockResolvedValue(
+      coordinatorCalendar({
+        items: [calendarMeeting({ recordingLoad: 2 })],
+        conflicts: [],
+      }),
+    );
+    renderWithQueryClient(<CoordinatorCalendarView />);
+
+    expect(
+      await screen.findByText("Kayıt botu kapasitesi dolu"),
+    ).toBeInTheDocument();
+    await user.click(
+      screen.getByRole("button", {
+        name: "Nihan Öztürk ↔ Atlas AI Çar 16 Eyl · 14:00–15:00",
+      }),
+    );
+    const card = screen.getByRole("article", { name: "Kayıt detayı" });
+    expect(within(card).getByText("Kayıt botu 2/2 · dolu")).toBeInTheDocument();
   });
 
   it("moves to the next week and to the month view", async () => {
