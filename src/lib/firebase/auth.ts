@@ -21,7 +21,10 @@ const EXEMPT_EMAILS = new Set<string>(EMAIL_VERIFICATION_EXEMPT);
 export function isEmailVerificationExempt(
   email: string | null | undefined,
 ): boolean {
-  return EXEMPT_EMAILS.has(email?.trim().toLowerCase() ?? "");
+  return (
+    process.env.NODE_ENV !== "production" &&
+    EXEMPT_EMAILS.has(email?.trim().toLowerCase() ?? "")
+  );
 }
 
 export function describeAuthError(error: unknown): string {
@@ -75,6 +78,7 @@ export async function reloadAndCheckEmailVerified(): Promise<boolean> {
   if (!user) return false;
   if (isEmailVerificationExempt(user.email)) return true;
   await user.reload();
+  if (user.emailVerified) await user.getIdToken(true);
   return user.emailVerified;
 }
 

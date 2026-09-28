@@ -7,6 +7,7 @@ export const authFieldClass =
 
 export function AuthField({
   id,
+  name,
   label,
   required = false,
   type = "text",
@@ -20,6 +21,7 @@ export function AuthField({
   maxLength,
 }: {
   id: string;
+  name?: string;
   label: string;
   required?: boolean;
   type?: string;
@@ -46,7 +48,9 @@ export function AuthField({
       </div>
       <input
         id={id}
+        name={name ?? id}
         type={type}
+        required={required}
         inputMode={inputMode}
         autoComplete={autoComplete}
         placeholder={placeholder}

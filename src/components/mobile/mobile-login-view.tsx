@@ -94,10 +94,12 @@ export function MobileLoginView() {
               <div className={`${FIELD_CLASS} border-[#e9ecef]`}>
                 <input
                   id="mobile-login-email"
+                  name="username"
                   type="email"
                   inputMode="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   autoCapitalize="none"
+                  required
                   value={login.email}
                   onChange={(event) => login.setEmail(event.target.value)}
                   className={INPUT_CLASS}
@@ -118,8 +120,10 @@ export function MobileLoginView() {
               >
                 <input
                   id="mobile-login-password"
+                  name="password"
                   type={login.showPassword ? "text" : "password"}
                   autoComplete="current-password"
+                  required
                   value={login.password}
                   onChange={(event) => login.setPassword(event.target.value)}
                   aria-invalid={passwordError ? true : undefined}
@@ -161,6 +165,17 @@ export function MobileLoginView() {
                 </p>
               ) : null}
             </div>
+
+            <label className="flex items-center gap-2 text-sm text-[#676e78]">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={login.rememberMe}
+                onChange={(event) => login.setRememberMe(event.target.checked)}
+                className="size-4 accent-[#22262b]"
+              />
+              Beni Hatırla
+            </label>
 
             <div className="flex justify-end">
               <button

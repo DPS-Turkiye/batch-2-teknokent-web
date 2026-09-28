@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -53,7 +53,8 @@ export function InviteView() {
     router.push("/workspace");
   }
 
-  async function handleSubmit() {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSubmitting(true);
     setError("");
     try {
@@ -94,9 +95,10 @@ export function InviteView() {
           hesaplar ayrıca onay beklemez.
         </p>
 
-        <div className="flex flex-col gap-4 pt-7">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-7">
           <AuthField
             id="invite-code"
+            name="invite-code"
             label="Davet kodu"
             required
             placeholder="ABCD1234"
@@ -106,6 +108,7 @@ export function InviteView() {
           <div className="grid gap-4 sm:grid-cols-2">
             <AuthField
               id="invite-first-name"
+              name="given-name"
               label="Ad"
               required
               placeholder="Adınız"
@@ -114,6 +117,7 @@ export function InviteView() {
             />
             <AuthField
               id="invite-last-name"
+              name="family-name"
               label="Soyad"
               required
               placeholder="Soyadınız"
@@ -124,6 +128,7 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-email"
+              name="email"
               label="E-posta"
               required
               type="text"
@@ -141,9 +146,11 @@ export function InviteView() {
           </div>
           <AuthField
             id="invite-phone"
+            name="tel"
             label="Telefon"
             required
             type="tel"
+            autoComplete="tel"
             placeholder="+90"
             value={form.phone}
             onChange={(value) => update("phone", value)}
@@ -151,9 +158,11 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-password"
+              name="password"
               label="Şifre"
               required
               type="password"
+              autoComplete="new-password"
               placeholder={PASSWORD_HINT}
               value={form.password}
               onChange={(value) => update("password", value)}
@@ -169,9 +178,11 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-password-confirm"
+              name="passwordConfirm"
               label="Şifre tekrar"
               required
               type="password"
+              autoComplete="new-password"
               placeholder="Şifrenizi tekrarlayın"
               value={form.passwordConfirm}
               onChange={(value) => update("passwordConfirm", value)}
@@ -182,27 +193,25 @@ export function InviteView() {
               </p>
             ) : null}
           </div>
-        </div>
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={!canSubmit || !inviteCode.trim() || submitting}
+              className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
+            >
+              {submitting ? "Hesap oluşturuluyor…" : "Ekibe katıl"}
+            </button>
+          </div>
 
-        <div className="pt-6">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit || !inviteCode.trim() || submitting}
-            className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
-          >
-            {submitting ? "Hesap oluşturuluyor…" : "Ekibe katıl"}
-          </button>
-        </div>
-
-        {error ? (
-          <p
-            role="alert"
-            className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
-          >
-            {error}
-          </p>
-        ) : null}
+          {error ? (
+            <p
+              role="alert"
+              className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+            >
+              {error}
+            </p>
+          ) : null}
+        </form>
 
         <p className="pt-5 text-center text-xs text-[#6b7280]">
           Davet kodun yok mu?{" "}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { type FormEvent, useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -46,7 +46,8 @@ export function RegisterView({
   const [error, setError] = useState("");
   const steps = isMentor ? mentorSteps : menteeSteps;
 
-  async function handleSubmit() {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSubmitting(true);
     setError("");
     try {
@@ -70,10 +71,11 @@ export function RegisterView({
             : "Startup’ınla menton’a katıl"}
         </h1>
 
-        <div className="flex flex-col gap-4 pt-7">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 pt-7">
           <div className="grid gap-4 sm:grid-cols-2">
             <AuthField
               id="register-first-name"
+              name="given-name"
               label="Ad"
               required
               placeholder="Adınız"
@@ -82,6 +84,7 @@ export function RegisterView({
             />
             <AuthField
               id="register-last-name"
+              name="family-name"
               label="Soyad"
               required
               placeholder="Soyadınız"
@@ -92,6 +95,7 @@ export function RegisterView({
           <div>
             <AuthField
               id="register-email"
+              name="email"
               label="E-posta"
               required
               type="text"
@@ -109,6 +113,7 @@ export function RegisterView({
           </div>
           <AuthField
             id="register-phone"
+            name="tel"
             label="Telefon"
             required
             type="tel"
@@ -123,9 +128,11 @@ export function RegisterView({
           <div>
             <AuthField
               id="register-password"
+              name="password"
               label="Şifre"
               required
               type="password"
+              autoComplete="new-password"
               placeholder={PASSWORD_HINT}
               value={form.password}
               onChange={(value) => update("password", value)}
@@ -141,9 +148,11 @@ export function RegisterView({
           <div>
             <AuthField
               id="register-password-confirm"
+              name="passwordConfirm"
               label="Şifre tekrar"
               required
               type="password"
+              autoComplete="new-password"
               placeholder="Şifrenizi tekrarlayın"
               value={form.passwordConfirm}
               onChange={(value) => update("passwordConfirm", value)}
@@ -154,27 +163,27 @@ export function RegisterView({
               </p>
             ) : null}
           </div>
-        </div>
+          <div className="pt-6">
+            <button
+              type="submit"
+              disabled={!canSubmit || submitting}
+              className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
+            >
+              {submitting
+                ? "Hesap oluşturuluyor…"
+                : "Hesap oluştur ve devam et"}
+            </button>
+          </div>
 
-        <div className="pt-6">
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!canSubmit || submitting}
-            className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
-          >
-            {submitting ? "Hesap oluşturuluyor…" : "Hesap oluştur ve devam et"}
-          </button>
-        </div>
-
-        {error ? (
-          <p
-            role="alert"
-            className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
-          >
-            {error}
-          </p>
-        ) : null}
+          {error ? (
+            <p
+              role="alert"
+              className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+            >
+              {error}
+            </p>
+          ) : null}
+        </form>
 
         <div className="mt-8 rounded-xl border border-[#e8eaed] p-4">
           <h2 className="text-[13px] font-semibold text-[#111827]">

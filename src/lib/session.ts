@@ -24,7 +24,7 @@ function sessionOptions(persist = false): SessionOptions {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: persist ? 60 * 60 * 12 : undefined,
+      maxAge: persist ? 60 * 60 * 24 * 30 : 60 * 60 * 12,
     },
   };
 }

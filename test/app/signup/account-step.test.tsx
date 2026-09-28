@@ -28,6 +28,21 @@ describe("Account creation step", () => {
     expect(screen.getByText("Koordinatör onayını bekle")).toBeInTheDocument();
   });
 
+  it("uses credential fields that password managers recognize", () => {
+    render(<RegisterView onSubmit={vi.fn()} />);
+
+    expect(document.querySelector("form")).not.toBeNull();
+    expect(screen.getByLabelText(/E-posta/)).toHaveAttribute("name", "email");
+    expect(screen.getByLabelText("Şifre *")).toHaveAttribute(
+      "autocomplete",
+      "new-password",
+    );
+    expect(screen.getByLabelText(/Şifre tekrar/)).toHaveAttribute(
+      "autocomplete",
+      "new-password",
+    );
+  });
+
   it("warns when the password is too short", async () => {
     const user = userEvent.setup();
     render(<RegisterView onSubmit={vi.fn()} />);

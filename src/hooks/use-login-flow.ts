@@ -24,6 +24,7 @@ export function useLoginFlow() {
   const [step, setStep] = useState<LoginFlowStep>(LoginFlowStep.Login);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [loginError, setLoginError] = useState("");
   const [notice, setNotice] = useState("");
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
@@ -43,13 +44,13 @@ export function useLoginFlow() {
       return;
     }
     try {
-      const idToken = await signInToFirebase(email, password, false);
+      const idToken = await signInToFirebase(email, password, rememberMe);
       if (!isCurrentEmailVerified()) {
         setNeedsEmailVerification(true);
         setStep(LoginFlowStep.Login);
         return;
       }
-      await login(idToken);
+      await login(idToken, rememberMe);
       setStep(LoginFlowStep.Verified);
     } catch (error) {
       if (error instanceof ClientApiError) {
@@ -95,6 +96,8 @@ export function useLoginFlow() {
     setEmail,
     password,
     setPassword,
+    rememberMe,
+    setRememberMe,
     loginError,
     notice,
     submitLogin,
@@ -105,7 +108,7 @@ export function useLoginFlow() {
       if (!idToken) {
         throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
       }
-      await login(idToken);
+      await login(idToken, rememberMe);
       setNeedsEmailVerification(false);
       setStep(LoginFlowStep.Verified);
     },

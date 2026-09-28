@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { getIronSession } from "iron-session";
 
 import { UserRole, type BackendUser } from "@/interfaces/session";
 
@@ -19,8 +20,13 @@ vi.mock("iron-session", () => ({
 
 process.env.SESSION_PASSWORD = "a".repeat(32);
 
-const { getSessionIds, getSessionMentorId, getSessionUser, toSession } =
-  await import("@/lib/session");
+const {
+  getSessionIds,
+  getSessionMentorId,
+  getSessionStore,
+  getSessionUser,
+  toSession,
+} = await import("@/lib/session");
 const { SessionRequiredError } = await import("@/lib/server/session-error");
 
 function mentee(overrides: Partial<BackendUser> = {}): BackendUser {
@@ -120,6 +126,26 @@ describe("getSessionUser", () => {
 
   it("returns null when the session cookie is missing", async () => {
     await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
+
+describe("getSessionStore", () => {
+  it("uses a 30 day cookie for remembered sessions and 12 hours otherwise", async () => {
+    await getSessionStore(true);
+    expect(vi.mocked(getIronSession)).toHaveBeenLastCalledWith(
+      {},
+      expect.objectContaining({
+        cookieOptions: expect.objectContaining({ maxAge: 60 * 60 * 24 * 30 }),
+      }),
+    );
+
+    await getSessionStore(false);
+    expect(vi.mocked(getIronSession)).toHaveBeenLastCalledWith(
+      {},
+      expect.objectContaining({
+        cookieOptions: expect.objectContaining({ maxAge: 60 * 60 * 12 }),
+      }),
+    );
   });
 });
 

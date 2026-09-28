@@ -55,6 +55,15 @@ describe("Phone login", () => {
     expect(
       screen.getByRole("heading", { name: "Hesabınıza giriş yapın" }),
     ).toBeInTheDocument();
+    expect(screen.getByLabelText("E-posta")).toHaveAttribute(
+      "autocomplete",
+      "username",
+    );
+    expect(screen.getByLabelText("Şifre")).toHaveAttribute(
+      "autocomplete",
+      "current-password",
+    );
+    expect(screen.getByLabelText("Beni Hatırla")).not.toBeChecked();
     expect(
       screen.getByRole("link", { name: /Web üzerinden kayıt olun/ }),
     ).toHaveAttribute("href", "/signup?web=1");

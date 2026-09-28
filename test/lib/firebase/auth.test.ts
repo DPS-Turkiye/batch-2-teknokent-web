@@ -73,4 +73,16 @@ describe("isEmailVerificationExempt", () => {
     expect(isEmailVerificationExempt("gulse@dongu.co")).toBe(false);
     expect(isEmailVerificationExempt("mentor@teknokent.demo")).toBe(false);
   });
+
+  it("does not exempt demo addresses in production", () => {
+    vi.stubEnv("NODE_ENV", "production");
+    try {
+      expect(isEmailVerificationExempt("admin@teknokent.demo")).toBe(false);
+      expect(isEmailVerificationExempt("coordinator@teknokent.demo")).toBe(
+        false,
+      );
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });

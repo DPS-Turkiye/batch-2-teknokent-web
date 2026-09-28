@@ -77,8 +77,7 @@ describe("Login screen", () => {
     expect(
       screen.getByRole("button", { name: "Şifremi unuttum" }),
     ).toBeInTheDocument();
-    // The revised design dropped Beni Hatırla.
-    expect(screen.queryByLabelText("Beni Hatırla")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Beni Hatırla")).not.toBeChecked();
   });
 
   it("masks the password field", async () => {
@@ -120,8 +119,28 @@ describe("Login screen", () => {
         false,
       ),
     );
-    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token"));
+    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", false));
     await waitFor(() => expect(push).toHaveBeenCalledWith("/workspace"));
+  });
+
+  it("persists the Firebase and server sessions when Remember me is selected", async () => {
+    login.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByLabelText("Beni Hatırla"));
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(signInToFirebase).toHaveBeenCalledWith(
+        "gulse@dongu.co",
+        "sifre1234",
+        true,
+      ),
+    );
+    await waitFor(() => expect(login).toHaveBeenCalledWith("id-token", true));
   });
 
   it("continues to where the gate was sending them, not the workspace", async () => {

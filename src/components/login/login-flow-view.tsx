@@ -24,6 +24,8 @@ export function LoginFlowView() {
     setEmail,
     password,
     setPassword,
+    rememberMe,
+    setRememberMe,
     loginError,
     notice,
     submitLogin,
@@ -56,6 +58,7 @@ export function LoginFlowView() {
         <div className="flex flex-1 items-center justify-center py-8">
           <form
             onSubmit={submitLogin}
+            noValidate
             className="flex w-full max-w-[384px] flex-col gap-2"
           >
             <h1 className="pt-8 text-center text-2xl font-bold leading-9 text-[#676e78]">
@@ -69,9 +72,10 @@ export function LoginFlowView() {
                 </label>
                 <input
                   id="login-email"
-                  type="text"
+                  name="username"
+                  type="email"
                   inputMode="email"
-                  autoComplete="email"
+                  autoComplete="username"
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
@@ -95,6 +99,7 @@ export function LoginFlowView() {
                 </div>
                 <input
                   id="login-password"
+                  name="password"
                   type="password"
                   autoComplete="current-password"
                   required
@@ -105,6 +110,17 @@ export function LoginFlowView() {
                 />
               </div>
             </div>
+
+            <label className="flex items-center gap-2 pt-1 text-xs text-[#6b7280]">
+              <input
+                type="checkbox"
+                name="rememberMe"
+                checked={rememberMe}
+                onChange={(event) => setRememberMe(event.target.checked)}
+                className="size-4 accent-[#e86f22]"
+              />
+              Beni Hatırla
+            </label>
 
             <div className="pt-6">
               <button

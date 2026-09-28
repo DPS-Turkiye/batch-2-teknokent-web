@@ -86,30 +86,18 @@ export function getBotApiUrl(): string {
   return BOT_API_PATH;
 }
 
-export function getStopBotApiUrl(
-  platform: string,
-  nativeMeetingId: string,
-): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${BOT_API_PATH}?${q.toString()}`;
+export function getStopBotApiUrl(assistantSessionId: string): string {
+  return `${BOT_API_PATH}?sessionId=${encodeURIComponent(assistantSessionId)}`;
 }
 
-export function getTranscriptApiUrl(
-  platform: string,
-  nativeMeetingId: string,
-): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${TRANSCRIPT_API_PATH}?${q.toString()}`;
+export function getTranscriptApiUrl(assistantSessionId: string): string {
+  return `${TRANSCRIPT_API_PATH}?sessionId=${encodeURIComponent(assistantSessionId)}`;
 }
 
 export const MEETING_REPORT_API_PATH = "/api/botapi/report";
 
-export function getMeetingReportApiUrl(
-  platform: string,
-  nativeMeetingId: string,
-): string {
-  const q = new URLSearchParams({ platform, nativeMeetingId });
-  return `${MEETING_REPORT_API_PATH}?${q.toString()}`;
+export function getMeetingReportApiUrl(assistantSessionId: string): string {
+  return `${MEETING_REPORT_API_PATH}?sessionId=${encodeURIComponent(assistantSessionId)}`;
 }
 
 export const DEFAULT_REALTIME_URL = "ws://localhost:8080/ws";

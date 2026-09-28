@@ -4,6 +4,13 @@ import { afterEach, vi } from "vitest";
 
 window.scrollTo = () => {};
 
+if (!window.localStorage) {
+  Object.defineProperty(window, "localStorage", {
+    configurable: true,
+    value: window.sessionStorage,
+  });
+}
+
 const originalGetComputedStyle = window.getComputedStyle.bind(window);
 
 function fallbackComputedStyle(): CSSStyleDeclaration {
