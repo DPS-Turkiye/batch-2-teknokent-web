@@ -78,7 +78,7 @@ function ConversationList({
   }, [conversations, search]);
 
   return (
-    <aside className="h-full border-r border-[#e4e7ea] bg-white">
+    <aside className="h-full min-h-0 overflow-y-auto border-r border-[#e4e7ea] bg-white">
       <div className="px-6 pb-3 pt-6">
         <label className="flex h-9 items-center gap-2 rounded-lg border border-[#e4e7ea] bg-[#f7f7f7] px-3.5">
           <Search className="size-4 text-[#666b75]" strokeWidth={1.6} />
@@ -322,7 +322,7 @@ export function MenteeMessagesView() {
           {messages.error.message}
         </p>
       ) : null}
-      <main className="mx-auto grid h-[calc(100vh-106px)] min-h-[620px] w-full max-w-[1440px] grid-cols-[360px_minmax(0,1fr)] overflow-hidden border-x border-[#e4e7ea] max-md:grid-cols-1">
+      <main className="mx-auto grid h-[calc(100vh-106px)] min-h-[620px] w-full max-w-[1440px] grid-cols-[360px_minmax(0,1fr)] overflow-hidden md:grid-rows-[minmax(0,1fr)] border-x border-[#e4e7ea] max-md:grid-cols-1">
         <ConversationList
           conversations={messages.conversations}
           activeId={
