@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { UpcomingMeetings } from "@/components/mentee-home/upcoming-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -8,6 +8,10 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+
+vi.mock("@/components/reschedule-meeting-button", () => ({
+  RescheduleMeetingButton: () => <button type="button">Yeni saat öner</button>,
+}));
 
 function meeting(overrides: Partial<MeetingItem> = {}) {
   return menteeMeetingFixture({

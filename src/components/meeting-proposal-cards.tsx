@@ -6,17 +6,17 @@ import { useMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type { MeetingProposal } from "@/interfaces/meeting-proposal";
 import { proposalWhenLabel, sideLabel } from "@/lib/meeting-proposals";
 
-/** "Koordinatör önerileri" on the mentor and team homes; hidden when nothing is waiting. */
+/** "Görüşme önerileri" on the mentor and team homes (from the coordinator or the other side); hidden when empty. */
 export function MeetingProposalCards() {
   const proposals = useMeetingProposals();
   if (!proposals.proposals.length) return null;
   return (
     <section
-      aria-label="Koordinatör önerileri"
+      aria-label="Görüşme önerileri"
       className="rounded-[22px] border border-[#e9ecef] bg-white p-5"
     >
       <h2 className="flex items-center gap-2 text-[15px] font-semibold text-[#22262b]">
-        <CalendarClock aria-hidden className="size-4" /> Koordinatör önerileri
+        <CalendarClock aria-hidden className="size-4" /> Görüşme önerileri
       </h2>
       {proposals.error ? (
         <p className="mt-2 text-[12px] text-[#d9464b]">

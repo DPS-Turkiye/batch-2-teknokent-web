@@ -30,6 +30,7 @@ import {
   ensureGoogleCalendarToken,
 } from "@/lib/google-calendar";
 import { AppArea } from "@/types/app-area";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 function toDateKey(value: Date) {
   const year = value.getFullYear();
@@ -125,13 +126,20 @@ function MeetingModal({
           ) : null}
         </div>
         <footer className="flex items-center justify-between gap-3 border-t border-[#eef0f3] px-6 py-4">
-          <button
-            onClick={onDelete}
-            disabled={isBusy}
-            className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px] disabled:opacity-50"
-          >
-            Görüşmeyi sil
-          </button>
+          <span className="flex flex-wrap gap-2">
+            <button
+              onClick={onDelete}
+              disabled={isBusy}
+              className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px] disabled:opacity-50"
+            >
+              Görüşmeyi sil
+            </button>
+            <RescheduleMeetingButton
+              meeting={meeting}
+              pairLabel={meeting.organizationName ?? "Takım"}
+              className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
+            />
+          </span>
           {meeting.meetLink ? (
             <a
               href={meeting.meetLink}

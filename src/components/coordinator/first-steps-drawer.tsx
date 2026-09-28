@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { Avatar, StatusChip } from "@/components/admin/admin-ui";
-import { ProposeMeetingDialog } from "@/components/coordinator/meeting-proposal-panel";
+import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import { coordinatorMessageHref } from "@/lib/coordinator-mentorships";
 import { introStep, StepState } from "@/lib/meeting-proposals";

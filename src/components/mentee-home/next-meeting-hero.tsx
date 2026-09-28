@@ -6,6 +6,7 @@ import type { MeetingItem } from "@/interfaces/meeting";
 import { meetingWhenLabel } from "@/lib/mentee-home";
 import { meetingCallHref } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 const whiteButton =
   "inline-flex items-center justify-center rounded-full border border-white bg-white px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-[#4a5059] hover:bg-[#fff7f1]";
@@ -65,6 +66,11 @@ export function NextMeetingHero({
                 <Link href="/messages" className={whiteButton}>
                   Mentora mesaj
                 </Link>
+                <RescheduleMeetingButton
+                  meeting={meeting}
+                  pairLabel={meeting.mentorName ?? "Mentor"}
+                  className={whiteButton}
+                />
                 <Link
                   href={meetingCallHref(meeting.id)}
                   className={primaryButton}

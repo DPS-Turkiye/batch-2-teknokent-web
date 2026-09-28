@@ -1,3 +1,4 @@
+import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import {
   type MeetingProposal,
   MeetingProposalStatus,
@@ -73,4 +74,12 @@ export function introStep(latest: MeetingProposal | null) {
     default:
       return { state: StepState.Todo, detail: "Öneri geri çekildi" };
   }
+}
+
+/** Only a planned meeting that hasn't started yet can be moved. */
+export function canReschedule(meeting: MeetingItem, now = new Date()) {
+  return (
+    meeting.status === MeetingStatus.Scheduled &&
+    new Date(meeting.scheduledAt).getTime() > now.getTime()
+  );
 }

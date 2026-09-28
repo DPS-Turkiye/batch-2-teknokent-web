@@ -10,7 +10,7 @@ import {
   QueryNotice,
   SolidButton,
 } from "@/components/admin/admin-ui";
-import { ProposeMeetingDialog } from "@/components/coordinator/meeting-proposal-panel";
+import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { PillSelect } from "@/components/coordinator/pill-select";
 import { useCoordinatorCalendar } from "@/hooks/use-coordinator-calendar";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";

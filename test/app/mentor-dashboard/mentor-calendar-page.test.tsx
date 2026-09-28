@@ -9,6 +9,10 @@ import { Weekday, type MentorAvailabilityRule } from "@/interfaces/mentor";
 import { CalendarFilter } from "@/lib/calendar";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 
+vi.mock("@/components/reschedule-meeting-button", () => ({
+  RescheduleMeetingButton: () => <button type="button">Yeni saat öner</button>,
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
