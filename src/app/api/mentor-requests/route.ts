@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       if (role === UserRole.Mentor) {
         return backendResponse(
           await fetchMentorRequestsPage({
+            actorId: await getSessionMentorId(),
             requesterId: await getSessionMentorId(),
             role,
             tab,
@@ -33,9 +34,10 @@ export async function GET(request: NextRequest) {
           }),
         );
       }
-      const { organizationId } = await getSessionIds();
+      const { organizationId, userId } = await getSessionIds();
       return backendResponse(
         await fetchMentorRequestsPage({
+          actorId: userId,
           organizationId,
           role,
           tab,
@@ -48,13 +50,16 @@ export async function GET(request: NextRequest) {
     if (role === UserRole.Mentor) {
       return backendResponse(
         await fetchMentorRequests({
+          actorId: await getSessionMentorId(),
           requesterId: await getSessionMentorId(),
           role,
         }),
       );
     }
-    const { organizationId } = await getSessionIds();
-    return backendResponse(await fetchMentorRequests({ organizationId, role }));
+    const { organizationId, userId } = await getSessionIds();
+    return backendResponse(
+      await fetchMentorRequests({ actorId: userId, organizationId, role }),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Mentorluk talebi hizmetine ulaşılamıyor.",

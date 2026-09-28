@@ -6,11 +6,11 @@ import { getSessionIds } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {
-    const { organizationId } = await getSessionIds();
+    const { organizationId, userId } = await getSessionIds();
     const appUserId =
       request.nextUrl.searchParams.get("appUserId") ?? undefined;
     return backendResponse(
-      await fetchLatestProfileAnalysis(organizationId, appUserId),
+      await fetchLatestProfileAnalysis(organizationId, userId, appUserId),
     );
   } catch (error) {
     return apiErrorResponse(error, {

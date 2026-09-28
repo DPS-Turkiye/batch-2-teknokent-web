@@ -34,6 +34,7 @@ describe("GET /api/mentor-requests", () => {
     expect(getSessionMentorId).toHaveBeenCalled();
     expect(getSessionIds).not.toHaveBeenCalled();
     expect(fetchMentorRequests).toHaveBeenCalledWith({
+      actorId: "mentor-1",
       requesterId: "mentor-1",
       role: UserRole.Mentor,
     });
@@ -50,6 +51,7 @@ describe("GET /api/mentor-requests", () => {
     expect(getSessionIds).toHaveBeenCalled();
     expect(getSessionMentorId).not.toHaveBeenCalled();
     expect(fetchMentorRequests).toHaveBeenCalledWith({
+      actorId: "mentee-1",
       organizationId: "org-1",
       role: UserRole.Mentee,
     });

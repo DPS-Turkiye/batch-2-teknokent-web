@@ -6,14 +6,19 @@ import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
-    const { organizationId } = await getSessionIds();
+    const { organizationId, userId } = await getSessionIds();
     const body = (await request.json()) as {
       appUserId?: string;
       [key: string]: unknown;
     };
     const { appUserId, ...payload } = body;
     return backendResponse(
-      await createManualProfileAnalysis(organizationId, appUserId, payload),
+      await createManualProfileAnalysis(
+        organizationId,
+        userId,
+        appUserId,
+        payload,
+      ),
     );
   } catch (error) {
     return apiErrorResponse(error, {

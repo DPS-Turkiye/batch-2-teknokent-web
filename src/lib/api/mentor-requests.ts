@@ -33,6 +33,7 @@ export function isMentorRequestAction(
 }
 
 export function fetchMentorRequests(options: {
+  actorId: string;
   requesterId?: string;
   organizationId?: string;
   role?: UserRole.Mentee | UserRole.Mentor;
@@ -42,12 +43,13 @@ export function fetchMentorRequests(options: {
     url: "/api/mentorship-requests",
     params:
       options.role === UserRole.Mentor
-        ? { mentorId: options.requesterId }
-        : { organizationId: options.organizationId },
+        ? { mentorId: options.requesterId, actorId: options.actorId }
+        : { organizationId: options.organizationId, actorId: options.actorId },
   });
 }
 
 export function fetchMentorRequestsPage(options: {
+  actorId: string;
   requesterId?: string;
   organizationId?: string;
   role?: UserRole.Mentee | UserRole.Mentor;
@@ -57,8 +59,8 @@ export function fetchMentorRequestsPage(options: {
 }) {
   const scope =
     options.role === UserRole.Mentor
-      ? { mentorId: options.requesterId }
-      : { organizationId: options.organizationId };
+      ? { mentorId: options.requesterId, actorId: options.actorId }
+      : { organizationId: options.organizationId, actorId: options.actorId };
   return backendRequest({
     method: HttpMethod.Get,
     url: "/api/mentorship-requests",
@@ -71,10 +73,11 @@ export function fetchMentorRequestsPage(options: {
   });
 }
 
-export function fetchMentorRequest(id: string) {
+export function fetchMentorRequest(id: string, actorId: string) {
   return backendRequest({
     method: HttpMethod.Get,
     url: `/api/mentorship-requests/${encodeURIComponent(id)}`,
+    params: { actorId },
   });
 }
 
@@ -119,6 +122,7 @@ export function mutateMentorRequest(options: {
   return backendRequest({
     method: options.method,
     url: `/api/mentorship-requests/${encodeURIComponent(options.id)}/${options.action}`,
+    params: { actorId: options.requesterId },
     data,
   });
 }

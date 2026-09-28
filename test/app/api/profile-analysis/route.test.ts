@@ -37,6 +37,7 @@ describe("/api/profile-analysis", () => {
 
     expect(fetchLatestProfileAnalysis).toHaveBeenCalledWith(
       "org-1",
+      "user-1",
       "member-1",
     );
   });
@@ -50,6 +51,10 @@ describe("/api/profile-analysis", () => {
 
     await GET(new NextRequest("http://localhost/api/profile-analysis"));
 
-    expect(fetchLatestProfileAnalysis).toHaveBeenCalledWith("org-1", undefined);
+    expect(fetchLatestProfileAnalysis).toHaveBeenCalledWith(
+      "org-1",
+      "user-1",
+      undefined,
+    );
   });
 });

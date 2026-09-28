@@ -253,4 +253,51 @@ describe("ProgramMatchingView", () => {
       within(steps).getByText("Nihan Öztürk, Mert Aydın (yetkili)"),
     ).toBeInTheDocument();
   });
+
+  it("shows a recoverable error when the automatic introduction proposal fails", async () => {
+    const user = userEvent.setup();
+    vi.mocked(createMatch).mockResolvedValue({
+      ...overview,
+      waiting: overview.waiting.slice(1),
+      active: [
+        ...overview.active,
+        {
+          mentorshipId: "m-new",
+          organizationId: "terra",
+          teamName: "Terra",
+          mentorId: "nihan",
+          mentorName: "Nihan Öztürk",
+          status: MentorshipStatus.Active,
+          startDate: "2026-09-27",
+          endDate: null,
+        },
+      ],
+    });
+    vi.mocked(proposeMeeting).mockRejectedValue(new Error("Conflict"));
+    vi.mocked(getMentorshipMeetingProposals).mockResolvedValue([]);
+    renderWithQueryClient(<ProgramMatchingView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: "Nihan Öztürk ile eşleştir" }),
+    );
+    const dialog = screen.getByRole("region", { name: "Eşleşmeyi onayla" });
+    await user.click(
+      within(dialog).getByRole("checkbox", {
+        name: "İlk tanışma görüşmesi öner",
+      }),
+    );
+    await user.click(
+      within(dialog).getByRole("button", { name: "Eşleşmeyi onayla" }),
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Eşleşme oluşturuldu, ancak tanışma önerisi kaydedilemedi. İlk adımlar bölümünden görüşmeyi yeniden önerebilirsiniz.",
+    );
+    expect(
+      await screen.findByRole("dialog", { name: "İlk adımlar" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Terra ↔ Nihan Öztürk eşleşti",
+    );
+  });
 });

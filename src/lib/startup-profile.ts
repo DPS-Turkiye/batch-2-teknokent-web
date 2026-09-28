@@ -39,7 +39,10 @@ function textList(value: unknown): string[] {
     : [];
 }
 
-export async function loadStartupContext(organizationId: string): Promise<{
+export async function loadStartupContext(
+  organizationId: string,
+  actorId: string,
+): Promise<{
   startup: StartupContext;
   error?: string;
 }> {
@@ -52,7 +55,7 @@ export async function loadStartupContext(organizationId: string): Promise<{
       backendRequest<ProfileAnalysisResponse>({
         method: "GET",
         url: "/api/profile-analyses/latest/confirmed",
-        params: { organizationId },
+        params: { organizationId, actorId },
       }),
     ]);
 

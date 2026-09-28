@@ -48,7 +48,7 @@ export default async function MentorDetailPage({
   const [slots, startupResult] = await Promise.all([
     loadMentorSlots(id),
     session?.organizationId
-      ? loadStartupContext(session.organizationId)
+      ? loadStartupContext(session.organizationId, session.userId)
       : Promise.resolve({
           startup: {
             organizationId: "",

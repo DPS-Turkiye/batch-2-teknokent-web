@@ -84,21 +84,23 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
                   agenda: INTRO_AGENDA,
                   replacesMeetingId: null,
                 })
-              : null,
+              : Promise.resolve(null),
             noteOn && trimmedNote
               ? addCoordinatorNote(created.mentorshipId, trimmedNote)
-              : null,
+              : Promise.resolve(null),
           ])
         : [];
       return {
         next,
         mentorshipId: created?.mentorshipId ?? null,
-        followUpFailed: followUps.some(
-          (result) => result.status === "rejected",
-        ),
+        proposalFailed: followUps[0]?.status === "rejected",
+        noteFailed: followUps[1]?.status === "rejected",
       };
     },
-    onSuccess: ({ next, mentorshipId, followUpFailed }, candidate) => {
+    onSuccess: (
+      { next, mentorshipId, proposalFailed, noteFailed },
+      candidate,
+    ) => {
       queryClient.setQueryData(matchingQueryKey(programId), next);
       if (mentorshipId) {
         setFirstSteps({
@@ -115,11 +117,25 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       setIntroOn(false);
       setNoteOn(false);
       setNote("");
-      if (followUpFailed) {
+      if (proposalFailed || noteFailed) {
+        const failedSteps = [
+          proposalFailed ? "tanışma önerisi" : null,
+          noteFailed ? "koordinatör notu" : null,
+        ]
+          .filter(Boolean)
+          .join(" ve ");
         showToast({
-          message:
-            "Eşleşme oluşturuldu, ama tanışma önerisi ya da not kaydedilemedi.",
+          message: `Eşleşme oluşturuldu, ancak ${failedSteps} kaydedilemedi.${
+            proposalFailed
+              ? " İlk adımlar bölümünden görüşmeyi yeniden önerebilirsiniz."
+              : ""
+          }`,
           tone: "error",
+        });
+      } else {
+        showToast({
+          message: `${team!.name} ↔ ${candidate.fullName} eşleşti. İki tarafa bildirim gönderildi.`,
+          tone: "success",
         });
       }
       void queryClient.invalidateQueries({
@@ -133,10 +149,6 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       setConfirming(null);
       setSearch("");
       setPickedTeamId(null);
-      showToast({
-        message: `${team!.name} ↔ ${candidate.fullName} eşleşti. İki tarafa bildirim gönderildi.`,
-        tone: "success",
-      });
     },
     onError: (failure) =>
       showToast({

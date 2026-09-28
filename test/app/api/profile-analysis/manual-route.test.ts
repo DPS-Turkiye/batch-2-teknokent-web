@@ -42,6 +42,7 @@ describe("POST /api/profile-analysis/manual", () => {
 
     expect(createManualProfileAnalysis).toHaveBeenCalledWith(
       "org-1",
+      "user-1",
       "member-1",
       { profileType: "mentee", profile: { startup_name: "Acme" } },
     );
@@ -66,6 +67,7 @@ describe("POST /api/profile-analysis/manual", () => {
 
     expect(createManualProfileAnalysis).toHaveBeenCalledWith(
       "org-1",
+      "user-1",
       undefined,
       { profileType: "mentee", profile: { startup_name: "Acme" } },
     );

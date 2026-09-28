@@ -16,7 +16,7 @@ export default async function MentorRequestPage() {
   const [{ mentors, error: mentorError }, { startup, error: startupError }] =
     await Promise.all([
       loadMentors(),
-      loadStartupContext(session.organizationId),
+      loadStartupContext(session.organizationId, session.userId),
     ]);
 
   return (

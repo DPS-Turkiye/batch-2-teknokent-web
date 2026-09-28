@@ -19,7 +19,7 @@ export async function resolveMentorMeetingOrganization(
 ) {
   const requestId = payload.mentorshipRequestId;
   if (typeof requestId === "string" && requestId) {
-    const mentorship = await fetchMentorRequest(requestId);
+    const mentorship = await fetchMentorRequest(requestId, mentorId);
     if (mentorship.status !== 200) {
       return { error: backendResponse(mentorship) };
     }
@@ -49,6 +49,7 @@ export async function resolveMentorMeetingOrganization(
     }
 
     const requests = await fetchMentorRequests({
+      actorId: mentorId,
       requesterId: mentorId,
       role: UserRole.Mentor,
     });
