@@ -4,7 +4,10 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
+import { MEETING_PROPOSALS_QUERY_KEY } from "@/hooks/use-meeting-proposals";
+import type { CoordinatorCalendarItem } from "@/interfaces/coordinator-calendar";
 import { getCoordinatorCalendar } from "@/lib/client/coordinator-calendar";
+import { getCoordinatorMeetingProposals } from "@/lib/client/meeting-proposals";
 import { createCoordinatorProgramEvent } from "@/lib/client/coordinator-programs";
 import {
   CalendarView,
@@ -12,6 +15,7 @@ import {
   type EventDraft,
   eventDraftError,
   eventInput,
+  proposalItems,
   rangeLabel,
   shiftAnchor,
   viewDays,
@@ -20,7 +24,10 @@ import {
 
 export const COORDINATOR_CALENDAR_QUERY_KEY = ["coordinator-calendar"] as const;
 
-/** The coordinator's Takvim: the visible range, program filter, the open item and the add-event form. */
+/**
+ * The coordinator's Takvim: the visible range, program filter, the open item, the add-event form, pending
+ * proposals as "Önerilen slot" and a conflict's "Yeniden planla".
+ */
 export function useCoordinatorCalendar(today = new Date()) {
   const queryClient = useQueryClient();
   const programs = useCoordinatorPrograms();
@@ -30,13 +37,23 @@ export function useCoordinatorCalendar(today = new Date()) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState<EventDraft | null>(null);
   const [draftError, setDraftError] = useState<string | null>(null);
+  const [rescheduling, setRescheduling] =
+    useState<CoordinatorCalendarItem | null>(null);
 
   const range = viewRange(view, anchor);
   const query = useQuery({
     queryKey: [...COORDINATOR_CALENDAR_QUERY_KEY, range, programId],
     queryFn: () => getCoordinatorCalendar({ ...range, programId }),
   });
+  const proposals = useQuery({
+    queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "program", programId],
+    queryFn: () => getCoordinatorMeetingProposals(programId),
+  });
   const programOptions = programs.data ?? [];
+  const items = [
+    ...(query.data?.items ?? []),
+    ...proposalItems(proposals.data ?? [], range),
+  ];
 
   const createEvent = useMutation({
     mutationFn: (input: EventDraft) =>
@@ -51,6 +68,7 @@ export function useCoordinatorCalendar(today = new Date()) {
 
   return {
     query,
+    items,
     programOptions,
     view,
     setView: (next: CalendarView) => {
@@ -84,6 +102,15 @@ export function useCoordinatorCalendar(today = new Date()) {
       );
     },
     closeEventForm: () => setDraft(null),
+    rescheduling,
+    startReschedule: (meeting: CoordinatorCalendarItem) =>
+      setRescheduling(meeting),
+    endReschedule: () => {
+      setRescheduling(null);
+      void queryClient.invalidateQueries({
+        queryKey: COORDINATOR_CALENDAR_QUERY_KEY,
+      });
+    },
     updateDraft: (patch: Partial<EventDraft>) =>
       setDraft((current) => (current ? { ...current, ...patch } : current)),
     saveDraft: () => {

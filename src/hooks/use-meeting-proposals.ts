@@ -79,11 +79,18 @@ export function useMeetingProposals() {
   };
 }
 
-/** The coordinator drawer's "Görüşme planla": the mentorship's proposals, the propose form, remind and withdraw. */
-export function useMentorshipMeetingProposals(mentorshipId: string) {
+/**
+ * The coordinator drawer's "Görüşme planla": the mentorship's proposals, the propose form, remind and withdraw.
+ * With `reschedule`, the form opens at once and proposes a new time for that meeting (the calendar's
+ * "Yeniden planla"); `onDone` runs when it closes.
+ */
+export function useMentorshipMeetingProposals(
+  mentorshipId: string,
+  options: { reschedule?: string; onDone?: () => void } = {},
+) {
   const queryClient = useQueryClient();
   const key = [...MEETING_PROPOSALS_QUERY_KEY, "mentorship", mentorshipId];
-  const [composing, setComposing] = useState(false);
+  const [composing, setComposing] = useState(Boolean(options.reschedule));
   const [startsAt, setStartsAt] = useState(() =>
     toDateTimeLocalValue(defaultProposalStart()),
   );
@@ -102,7 +109,10 @@ export function useMentorshipMeetingProposals(mentorshipId: string) {
     onSuccess: () => {
       setComposing(false);
       setAgenda("");
-      void refresh();
+      void queryClient.invalidateQueries({
+        queryKey: MEETING_PROPOSALS_QUERY_KEY,
+      });
+      options.onDone?.();
     },
   });
   const remind = useMutation({ mutationFn: remindMeetingProposal });
@@ -123,7 +133,11 @@ export function useMentorshipMeetingProposals(mentorshipId: string) {
       propose.reset();
       setComposing(true);
     },
-    closeComposer: () => setComposing(false),
+    closeComposer: () => {
+      setComposing(false);
+      options.onDone?.();
+    },
+    rescheduling: Boolean(options.reschedule),
     startsAt,
     setStartsAt,
     duration,
@@ -137,7 +151,7 @@ export function useMentorshipMeetingProposals(mentorshipId: string) {
         scheduledAt: new Date(startsAt).toISOString(),
         durationMinutes: duration,
         agenda: agenda.trim() || null,
-        replacesMeetingId: null,
+        replacesMeetingId: options.reschedule ?? null,
       }),
     proposing: propose.isPending,
     proposeError: propose.error,
