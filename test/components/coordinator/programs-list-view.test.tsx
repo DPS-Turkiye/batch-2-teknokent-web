@@ -80,6 +80,12 @@ describe("ProgramsListView", () => {
     expect(
       screen.getByText("Şub 2025 – Ara 2025 · 38 takım · 24 mentor"),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Program raporu" }),
+    ).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/coordinator\/programs\/.+\/report$/),
+    );
   });
 
   it("says so when the coordinator has no programs", async () => {

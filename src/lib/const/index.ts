@@ -335,22 +335,26 @@ export const MEETING_PREPARE_CHECKLIST = [
 export const MEETING_FEEDBACK_QUESTIONS = [
   {
     prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
+    short: "Sonraki adımlar netleşti",
     low: "1 — Hiç netleşmedi",
     high: "5 — Tamamen netleşti",
   },
   {
     prompt: "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
+    short: "Öneriler aşamaya uygundu",
     low: "1 — Hiç uygun değildi",
     high: "5 — Tamamen uygundu",
   },
   {
     prompt: "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
+    short: "Rahatça ifade edebildi",
     low: "1 — Hiç katılmıyorum",
     high: "5 — Tamamen katılıyorum",
   },
   {
     prompt:
       "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
+    short: "İlerleme güveni",
     low: "1 — Azaldı",
     high: "5 — Belirgin şekilde arttı",
   },

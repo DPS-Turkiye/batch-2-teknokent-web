@@ -66,6 +66,12 @@ export function ProgramDetailFrame({
             {programHeaderLine(detail)}
           </p>
         </div>
+        <Link
+          href={`/coordinator/programs/${encodeURIComponent(programId)}/report`}
+          className="shrink-0 rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] font-medium text-[#22262b]"
+        >
+          Program raporu
+        </Link>
       </header>
 
       <ul className="flex flex-wrap gap-2 text-[13.5px]">
