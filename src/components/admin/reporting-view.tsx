@@ -17,6 +17,7 @@ import {
 } from "recharts";
 
 import { needsAttention } from "@/components/admin/admin-model";
+import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
 import {
   AdminIcon,
   AdminOverlay,
@@ -24,12 +25,16 @@ import {
   QueryNotice,
 } from "@/components/admin/admin-ui";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import { useProgramMeetingRatings } from "@/hooks/use-program-report";
 import type {
   AdminMeetingMark,
   AdminMentorship,
   AdminOverview,
   AdminProgram,
 } from "@/interfaces/admin-overview";
+import type { ProgramMeetingRatings } from "@/interfaces/program-report";
+import { isoDay } from "@/lib/coordinator-calendar";
+import { satisfactionKpi } from "@/lib/meeting-ratings";
 import { initials } from "@/lib/utils";
 
 type RangeId = "8" | "13" | "all";
@@ -43,6 +48,23 @@ const RANGES: { id: RangeId; label: string }[] = [
 
 export function ReportingView() {
   const query = useAdminOverview();
+  if (!query.data) {
+    return <QueryNotice isLoading={query.isLoading} error={query.error} />;
+  }
+  return <ProgramReporting data={query.data} />;
+}
+
+/**
+ * Raporlama's numbers. The admin picks any program; a coordinator's Program raporu passes `fixedProgram`, which
+ * hides the program picker and Sistem Aktivitesi (its data carries no user list).
+ */
+export function ProgramReporting({
+  data,
+  fixedProgram = false,
+}: {
+  data: AdminOverview;
+  fixedProgram?: boolean;
+}) {
   const [programId, setProgramId] = useState<string | null>(null);
   const [range, setRange] = useState<RangeId>("8");
   const [tab, setTab] = useState<TabId>("program");
@@ -50,10 +72,6 @@ export function ReportingView() {
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(
     null,
   );
-  if (!query.data) {
-    return <QueryNotice isLoading={query.isLoading} error={query.error} />;
-  }
-  const data = query.data;
   const program =
     data.programs.find((item) => item.id === programId) ??
     data.programs.find((item) => item.status === "ACTIVE") ??
@@ -63,6 +81,10 @@ export function ReportingView() {
   const pairs = program ? pairsIn(data, program) : [];
   const selected = pairs.find((pair) => pair.id === selectedId) ?? null;
   const meetingsKnown = data.meetings != null;
+  const ratingsQuery = useProgramMeetingRatings(
+    program?.id ?? null,
+    range === "all" || !weeks[0] ? null : isoDay(weeks[0]),
+  );
 
   return (
     <div className="space-y-5">
@@ -73,7 +95,9 @@ export function ReportingView() {
             : "Program yok"}
         </p>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
+          <label
+            className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
+          >
             <span className="text-[#858c96]">Program:</span>
             <select
               aria-label="Program"
@@ -131,25 +155,27 @@ export function ReportingView() {
             ["health", "Mentorluk Sağlığı"],
             ["activity", "Sistem Aktivitesi"],
           ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className="flex flex-1 flex-col items-center gap-3 px-4"
-          >
-            <span
-              className={`text-[14.5px] leading-[1.3] ${
-                tab === id ? "font-semibold text-[#22262b]" : "text-[#676e78]"
-              }`}
+        )
+          .filter(([id]) => !(fixedProgram && id === "activity"))
+          .map(([id, label]) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setTab(id)}
+              className="flex flex-1 flex-col items-center gap-3 px-4"
             >
-              {label}
-            </span>
-            <span
-              className={`h-[2.5px] w-full rounded-sm ${tab === id ? "bg-[#22262b]" : ""}`}
-            />
-          </button>
-        ))}
+              <span
+                className={`text-[14.5px] leading-[1.3] ${
+                  tab === id ? "font-semibold text-[#22262b]" : "text-[#676e78]"
+                }`}
+              >
+                {label}
+              </span>
+              <span
+                className={`h-[2.5px] w-full rounded-sm ${tab === id ? "bg-[#22262b]" : ""}`}
+              />
+            </button>
+          ))}
       </div>
 
       {tab === "activity" ? (
@@ -166,7 +192,7 @@ export function ReportingView() {
               onClick={() =>
                 setNotice({
                   title: "Neler görünür?",
-                  body: "Program, eşleşme, haftalık görüşme sayısı, tamamlanan hedef oranı ve açık darboğaz sayısı. Not, transkript, görev başlığı ve memnuniyet anketi kayıtlı değil.",
+                  body: "Program, eşleşme, haftalık görüşme sayısı, tamamlanan hedef oranı, açık darboğaz sayısı ve görüşme sonrası anket puanları. Görüşme notu, transkript, görev başlığı ve anketteki yazılı notlar görünmez.",
                 })
               }
               className="shrink-0 text-[12.5px] font-medium text-[#22262b]"
@@ -180,6 +206,7 @@ export function ReportingView() {
               pairs={pairs}
               weeks={weeks}
               meetingsKnown={meetingsKnown}
+              ratings={ratingsQuery.data}
             />
           ) : null}
           <Heatmap
@@ -196,6 +223,13 @@ export function ReportingView() {
               weeks={weeks}
               meetings={data.meetings ?? []}
               program={program}
+            />
+          ) : null}
+          {tab === "program" ? (
+            <MeetingRatingsSection
+              ratings={ratingsQuery.data}
+              isLoading={ratingsQuery.isLoading}
+              error={ratingsQuery.error}
             />
           ) : null}
           {tab === "program" ? (
@@ -238,12 +272,15 @@ function Kpis({
   pairs,
   weeks,
   meetingsKnown,
+  ratings,
 }: {
   data: AdminOverview;
   pairs: Pair[];
   weeks: Date[];
   meetingsKnown: boolean;
+  ratings: ProgramMeetingRatings | undefined;
 }) {
+  const satisfaction = satisfactionKpi(ratings);
   const rate = meetingRate(pairs, data.meetings ?? [], weeks);
   const goals = goalRate(pairs);
   const flags = flagCounts(pairs);
@@ -277,7 +314,11 @@ function Kpis({
             : `${goals.done}/${goals.total} hedef`
         }
       />
-      <Kpi title="Memnuniyet" value="—" detail="anket kaydı yok" />
+      <Kpi
+        title="Memnuniyet"
+        value={satisfaction.value}
+        detail={satisfaction.detail}
+      />
       <Kpi
         title="Aktif bayrak"
         value={String(flags.red + flags.amber)}

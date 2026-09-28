@@ -210,12 +210,20 @@ function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
         </div>
         <p className="mt-1 text-[13px] text-[#858c96]">{details.join(" · ")}</p>
       </div>
-      <Link
-        href={`/coordinator/programs/${program.id}`}
-        className="ml-auto rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
-      >
-        Programı aç
-      </Link>
+      <div className="ml-auto flex items-center gap-2">
+        <Link
+          href={`/coordinator/programs/${program.id}/report`}
+          className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
+        >
+          Program raporu
+        </Link>
+        <Link
+          href={`/coordinator/programs/${program.id}`}
+          className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
+        >
+          Programı aç
+        </Link>
+      </div>
     </article>
   );
 }
