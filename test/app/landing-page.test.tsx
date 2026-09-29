@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import Home from "@/app/(public)/page";
+import Home, { dynamic } from "@/app/(public)/page";
 import type { AppSession } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
 
@@ -15,6 +15,10 @@ vi.mock("@/components/providers/session-provider", () => ({
 describe("Landing page", () => {
   beforeEach(() => {
     mockSession = null;
+  });
+
+  it("renders per request so the CDN never hands phones the desktop page", () => {
+    expect(dynamic).toBe("force-dynamic");
   });
 
   it("shows the designer's sections and sends a visitor to sign in", () => {
