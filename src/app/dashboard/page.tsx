@@ -31,8 +31,8 @@ export default function DashboardPage() {
             Veriler yüklenemedi. Daha sonra yeniden dene.
           </p>
         )}
-        <MeetingProposalCards />
         <NextMeetingHero meeting={data.nextMeeting} loading={data.isLoading} />
+        <MeetingProposalCards />
         <QuickActions />
         <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
           <div className="flex min-w-0 flex-col gap-6">

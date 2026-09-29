@@ -27,7 +27,7 @@ vi.mock("@/components/dashboard/my-programs-panel", () => ({
 }));
 
 vi.mock("@/components/meeting-proposal-cards", () => ({
-  MeetingProposalCards: () => null,
+  MeetingProposalCards: () => <section aria-label="Görüşme önerileri" />,
 }));
 
 vi.mock("@/hooks/use-dashboard-data", () => ({
@@ -121,6 +121,19 @@ describe("Mentee dashboard", () => {
         screen.getByRole("heading", { name: heading }),
       ).toBeInTheDocument();
     }
+  });
+
+  it("puts meeting proposals under the next meeting banner", () => {
+    mockUseDashboardData.mockReturnValue(dashboardData());
+
+    render(<DashboardPage />);
+
+    const hero = screen.getByRole("region", { name: "Sıradaki görüşme" });
+    const proposals = screen.getByRole("region", { name: "Görüşme önerileri" });
+    expect(
+      hero.compareDocumentPosition(proposals) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("shows empty states only once loading has finished", () => {
