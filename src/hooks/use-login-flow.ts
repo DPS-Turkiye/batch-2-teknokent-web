@@ -6,6 +6,7 @@ import { FormEvent, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
 import { ClientApiError } from "@/lib/client/api";
+import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import { emailCharacterError } from "@/lib/email";
 import {
   currentIdToken,
@@ -17,6 +18,7 @@ import {
 } from "@/lib/firebase/auth";
 
 import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
+import { signupResumeHref } from "@/lib/signup-resume";
 
 export function useLoginFlow() {
   const router = useRouter();
@@ -42,8 +44,9 @@ export function useLoginFlow() {
       setStep(LoginFlowStep.Login);
       return;
     }
+    let idToken: string | null = null;
     try {
-      const idToken = await signInToFirebase(email, password, false);
+      idToken = await signInToFirebase(email, password, false);
       if (!isCurrentEmailVerified()) {
         setNeedsEmailVerification(true);
         setStep(LoginFlowStep.Login);
@@ -53,12 +56,21 @@ export function useLoginFlow() {
       setStep(LoginFlowStep.Verified);
     } catch (error) {
       if (error instanceof ClientApiError) {
-        if (error.code === ACCOUNT_NOT_APPROVED) {
-          router.push("/application-status");
-          return;
-        }
-        if (error.code === REGISTRATION_REQUIRED) {
-          router.push("/signup?resume=1");
+        if (
+          error.code === ACCOUNT_NOT_APPROVED ||
+          error.code === REGISTRATION_REQUIRED
+        ) {
+          // A signup saved half-way reopens in its wizard; a finished one clears its draft.
+          const draft = idToken
+            ? await fetchOnboardingDraft(idToken).catch(() => null)
+            : null;
+          router.push(
+            draft
+              ? signupResumeHref(draft.kind)
+              : error.code === ACCOUNT_NOT_APPROVED
+                ? "/application-status"
+                : signupResumeHref(),
+          );
           return;
         }
         await signOutOfFirebase().catch(() => undefined);

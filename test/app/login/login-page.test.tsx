@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
 import { ClientApiError } from "@/lib/client/api";
+import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import {
   requestPasswordReset,
   signInToFirebase,
@@ -22,6 +23,10 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ login, logout }),
+}));
+
+vi.mock("@/lib/client/onboarding-draft", () => ({
+  fetchOnboardingDraft: vi.fn(),
 }));
 
 vi.mock("@/lib/firebase/auth", () => ({
@@ -43,6 +48,7 @@ async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(signInToFirebase).mockResolvedValue("id-token");
+  vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
   vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
   logout.mockResolvedValue(undefined);
   searchParams = new URLSearchParams();
@@ -187,6 +193,58 @@ describe("Login screen", () => {
     );
     // The Firebase session has to survive, or the status page has no token.
     expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("reopens a pending mentor's saved signup instead of the status page", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Hesabınız koordinatör onayı bekliyor.",
+        403,
+        "ACCOUNT_NOT_APPROVED",
+      ),
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "mentor-onboarding",
+      step: "profile",
+      payload: {},
+    });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/signup?resume=1&role=mentor"),
+    );
+    expect(fetchOnboardingDraft).toHaveBeenCalledWith("id-token");
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("resumes a founder's saved signup straight in the founder wizard", async () => {
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Bu hesabın kaydı tamamlanmamış.",
+        401,
+        "REGISTRATION_REQUIRED",
+      ),
+    );
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "2",
+      payload: {},
+    });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/signup?resume=1&role=founder"),
+    );
   });
 
   it("still signs the user out for a rejection without that code", async () => {
