@@ -24,6 +24,7 @@ import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 const ACCENT = { strong: "#e86f22", soft: "#fdebdd" };
 
@@ -288,10 +289,11 @@ function Conversation({
             <input
               ref={fileInput}
               type="file"
+              accept={DOCUMENT_UPLOAD_ACCEPT}
               className="hidden"
               onChange={(event) => {
                 const file = event.target.files?.[0];
-                if (file) void messages.fileUpload.mutateAsync(file);
+                if (file) messages.fileUpload.mutate(file);
                 event.target.value = "";
               }}
             />

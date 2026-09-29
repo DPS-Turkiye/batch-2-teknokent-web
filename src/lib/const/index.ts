@@ -436,3 +436,7 @@ export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
     bg: "var(--ma-dangerbg)",
   },
 };
+
+export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
+export const DOCUMENT_UPLOAD_HINT =
+  "PDF, DOCX, XLSX veya PPTX · en fazla 10 MB";

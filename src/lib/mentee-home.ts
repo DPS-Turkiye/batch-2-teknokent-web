@@ -138,6 +138,7 @@ export type HomeTask = {
   dueLabel: string;
   actionLabel: string;
   href: string;
+  requestId?: string;
 };
 
 export function homeTaskId(kind: HomeTaskKind, entityId: string) {
@@ -232,6 +233,7 @@ export function buildHomeTasks({
         dueLabel: due.label,
         actionLabel: "Görevi aç",
         href: requestId ? requestStatusHref(requestId) : "/mentorships",
+        requestId,
       },
     };
   });

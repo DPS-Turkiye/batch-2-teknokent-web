@@ -12,6 +12,7 @@ import type {
   StartupDocument,
 } from "@/interfaces/startup-document";
 import { DOCUMENT_KIND_LABELS, UPLOADABLE_KINDS } from "@/lib/startup-files";
+import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT } from "@/lib/const";
 
 type UploadForm = ReturnType<typeof useFileUploadForm>;
 
@@ -40,11 +41,12 @@ export function FileUploadDialog({ form }: { form: UploadForm }) {
         <span className={labelClass}>Dosya</span>
         <input
           type="file"
-          accept=".pdf,.docx,.xlsx"
+          accept={DOCUMENT_UPLOAD_ACCEPT}
           className="block w-full text-sm text-[#676e78]"
           onChange={(event) => form.setFile(event.target.files?.[0] ?? null)}
         />
       </label>
+      <p className="-mt-2 text-xs text-[#858c96]">{DOCUMENT_UPLOAD_HINT}</p>
       <div className="flex justify-end gap-2">
         <SecondaryButton onClick={form.close}>Vazgeç</SecondaryButton>
         <PrimaryButton onClick={form.submit} disabled={!form.canSubmit}>

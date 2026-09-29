@@ -1,3 +1,5 @@
+import type { AxiosResponse } from "axios";
+
 import { getPublicBackendUrl } from "@/lib/const";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
 import { currentIdToken } from "@/lib/firebase/auth";
@@ -9,6 +11,42 @@ export type StoredDocument = {
   originalFilename: string;
   sizeBytes: number;
 };
+
+const UPLOAD_ERROR_MESSAGES: Record<string, string> = {
+  "The file is too large.": "Dosya boyut sınırını aşıyor.",
+  "Please upload a PDF, DOCX or XLSX file.":
+    "Yalnızca PDF, DOCX, XLSX veya PPTX dosyası yükleyebilirsin.",
+  "Please upload a PDF.": "Yalnızca PDF dosyası yükleyebilirsin.",
+  "Please upload a PNG, JPG or WebP image.":
+    "Yalnızca PNG, JPG veya WebP görsel yükleyebilirsin.",
+  "Please upload a PNG, JPG, or WebP image.":
+    "Yalnızca PNG, JPG veya WebP görsel yükleyebilirsin.",
+  "A file is required.": "Boş bir dosya yüklenemez.",
+  "The uploaded file could not be read.": "Dosya okunamadı.",
+  "The uploaded PDF is invalid.": "PDF dosyası bozuk görünüyor.",
+  "The uploaded image is invalid.": "Görsel dosyası bozuk görünüyor.",
+};
+
+const UPLOAD_UNREACHABLE_MESSAGE =
+  "Dosya sunucusuna ulaşılamadı. Bağlantını kontrol edip tekrar dene.";
+
+/**
+ * requireSuccess hides English server messages behind a generic "check the
+ * fields" text, which is wrong for a refused file, so the reason is read first.
+ */
+function uploaded(response: AxiosResponse<StoredDocument>) {
+  const body = response.data as unknown;
+  const reason =
+    response.status >= 400 &&
+    body &&
+    typeof body === "object" &&
+    "message" in body &&
+    typeof body.message === "string"
+      ? UPLOAD_ERROR_MESSAGES[body.message.trim()]
+      : undefined;
+  if (reason) throw new ClientApiError(reason, response.status);
+  return requireSuccess(response);
+}
 
 /**
  * The Amplify-hosted frontend's own edge blocks any request body over ~8KB on
@@ -40,20 +78,19 @@ export async function uploadDocument(
     });
 
   try {
-    return requireSuccess(await post(`${getPublicBackendUrl()}/api/documents`));
+    return uploaded(await post(`${getPublicBackendUrl()}/api/documents`));
   } catch (error) {
     if (!(error instanceof ClientApiError) || error.code !== "NETWORK") {
       throw error;
     }
-    try {
-      return requireSuccess(await post("/api/documents"));
-    } catch {
-      throw new ClientApiError(
-        "Belge sunucusuna ulaşılamadı. Canlı ortamda NEXT_PUBLIC_BACKEND_URL (CloudFront API) ve backend DOCUMENTS_ALLOWED_ORIGINS (Amplify adresi) ayarlarını kontrol edin.",
-        0,
-        "NETWORK",
-      );
+  }
+  try {
+    return uploaded(await post("/api/documents"));
+  } catch (error) {
+    if (error instanceof ClientApiError && error.code === "NETWORK") {
+      throw new ClientApiError(UPLOAD_UNREACHABLE_MESSAGE, 0, "NETWORK");
     }
+    throw error;
   }
 }
 

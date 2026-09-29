@@ -104,7 +104,7 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
     meetingLabel: "Sonraki görüşme 14 Eyl · 14:00",
     conversations,
     error: null,
-    fileUpload: { isPending: false, mutateAsync: shareFile },
+    fileUpload: { isPending: false, mutate: shareFile },
     isLoading: false,
     messageForm: {
       message: "",

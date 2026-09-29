@@ -17,6 +17,7 @@ import {
   type MobileChatItem,
   type MobileConversationKind,
 } from "@/interfaces/mobile";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 type ChatMessage = Extract<
   MobileChatItem,
@@ -251,6 +252,7 @@ export function MobileChatView({
                 <input
                   ref={fileInput}
                   type="file"
+                  accept={DOCUMENT_UPLOAD_ACCEPT}
                   className="hidden"
                   aria-hidden="true"
                   tabIndex={-1}

@@ -25,6 +25,12 @@ vi.mock("@/lib/client/mentor-requests", () => ({
   scheduleMeeting: vi.fn(),
 }));
 
+const showToast = vi.fn();
+
+vi.mock("@/components/providers/toast-provider", () => ({
+  useToast: () => ({ showToast }),
+}));
+
 vi.mock("@/lib/client/documents", () => ({
   uploadDocument: vi.fn(),
 }));
@@ -235,7 +241,7 @@ describe("useRequestFileUpload", () => {
   it("stores the document and posts its filename to the conversation", async () => {
     vi.mocked(uploadDocument).mockResolvedValue({
       id: "document-1",
-      kind: "pitch-deck",
+      kind: "other",
       originalFilename: "financial-model.pdf",
       sizeBytes: 12,
     });
@@ -253,7 +259,7 @@ describe("useRequestFileUpload", () => {
       await result.current.mutateAsync(file);
     });
 
-    expect(uploadDocument).toHaveBeenCalledWith(file, "pitch-deck");
+    expect(uploadDocument).toHaveBeenCalledWith(file, "other");
     expect(replyToMentorRequest).toHaveBeenCalledWith({
       id: "request-1",
       message: "Dosya paylaşıldı: financial-model.pdf",
@@ -263,7 +269,7 @@ describe("useRequestFileUpload", () => {
   it("posts an uploaded document as a mentor message for mentor threads", async () => {
     vi.mocked(uploadDocument).mockResolvedValue({
       id: "document-2",
-      kind: "pitch-deck",
+      kind: "other",
       originalFilename: "research-notes.docx",
       sizeBytes: 24,
     });
@@ -282,11 +288,31 @@ describe("useRequestFileUpload", () => {
       await result.current.mutateAsync(file);
     });
 
-    expect(uploadDocument).toHaveBeenCalledWith(file, "pitch-deck");
+    expect(uploadDocument).toHaveBeenCalledWith(file, "other");
     expect(postMentorMessage).toHaveBeenCalledWith({
       id: "request-1",
       message: "Dosya paylaşıldı: research-notes.docx",
     });
+    expect(replyToMentorRequest).not.toHaveBeenCalled();
+  });
+
+  it("tells the sender when the file could not be uploaded", async () => {
+    vi.mocked(uploadDocument).mockRejectedValue(
+      new Error("Dosya boyut sınırını aşıyor."),
+    );
+    const file = new File(["big"], "deck.pdf", { type: "application/pdf" });
+    const { result } = renderHook(() => useRequestFileUpload("request-1"), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    act(() => result.current.mutate(file));
+
+    await waitFor(() =>
+      expect(showToast).toHaveBeenCalledWith({
+        message: "Dosya boyut sınırını aşıyor.",
+        tone: "error",
+      }),
+    );
     expect(replyToMentorRequest).not.toHaveBeenCalled();
   });
 });

@@ -20,6 +20,7 @@ import {
 import type { MeetingDetails } from "@/hooks/use-startup-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { TODO_NOTEBOOK_LABELS } from "@/lib/const/notes";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   meetingNotebookHref,
   meetingTiming,
@@ -112,7 +113,7 @@ export function MeetingNotesPanel({
                   onFile={notes.uploadPhoto}
                 />
                 <UploadButton
-                  accept=".pdf,.docx,.xlsx"
+                  accept={DOCUMENT_UPLOAD_ACCEPT}
                   disabled={notes.isUploading}
                   icon="/startup/file-upload.svg"
                   label="Dosya yükle"

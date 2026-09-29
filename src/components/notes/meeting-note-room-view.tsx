@@ -38,6 +38,7 @@ import {
   visibleMeetings,
 } from "@/lib/startup-meetings";
 import { AppArea } from "@/types/app-area";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 const REALTIME_LABELS: Record<RealtimeStatus, string> = {
   [RealtimeStatus.Connecting]: "Bağlanıyor",
@@ -145,7 +146,7 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
         onFile={notes.uploadPhoto}
       />
       <UploadButton
-        accept=".pdf,.docx,.xlsx"
+        accept={DOCUMENT_UPLOAD_ACCEPT}
         disabled={notes.isUploading}
         icon="/startup/file-upload.svg"
         label="Dosya yükle"

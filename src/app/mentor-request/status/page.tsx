@@ -31,7 +31,10 @@ import {
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
-import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
+import {
+  MENTORSHIP_MEETING_DURATION_MINUTES,
+  DOCUMENT_UPLOAD_ACCEPT,
+} from "@/lib/const";
 import { formatSlotDateTime } from "@/lib/format";
 import {
   parseProposedSlotsFromMessage,
@@ -407,7 +410,7 @@ function RequestStatusContent() {
                               : "Dosya yükle"}
                             <input
                               type="file"
-                              accept=".pdf,.docx"
+                              accept={DOCUMENT_UPLOAD_ACCEPT}
                               disabled={fileUpload.isPending}
                               className="hidden"
                               aria-label="Mentorluk dosyası yükle"

@@ -9,6 +9,7 @@ import {
 } from "@/components/startup/startup-page-frame";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   StartupStageState,
   type ProcessAssignment,
@@ -181,7 +182,7 @@ function AssignmentRow({
             <input
               type="file"
               className="sr-only"
-              accept=".pdf,.docx,.xlsx"
+              accept={DOCUMENT_UPLOAD_ACCEPT}
               disabled={isUploading}
               aria-label={`${assignment.title} için ödev yükle`}
               onChange={(event) => {
