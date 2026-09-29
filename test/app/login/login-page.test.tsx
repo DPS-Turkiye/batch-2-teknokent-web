@@ -66,8 +66,11 @@ describe("Login screen", () => {
   });
 
   it("renders the shared login frame", async () => {
-    render(<LoginPage />);
+    const { container } = render(<LoginPage />);
     await waitUntilLoginReady();
+
+    // A single centred form, without the orange side panel.
+    expect(container.querySelector("img")).toBeNull();
 
     expect(
       screen.getByRole("heading", { name: "Menton’a hoş geldin" }),

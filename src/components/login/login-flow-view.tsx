@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
@@ -156,16 +155,6 @@ export function LoginFlowView() {
           </form>
         </div>
       </main>
-      <div className="relative hidden w-[46%] max-w-[657px] shrink-0 overflow-hidden lg:block">
-        <Image
-          src="/onboarding/login-panel.svg"
-          alt=""
-          fill
-          priority
-          sizes="657px"
-          className="object-cover object-left"
-        />
-      </div>
     </div>
   );
 }
