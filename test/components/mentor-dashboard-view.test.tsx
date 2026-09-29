@@ -374,6 +374,12 @@ describe("MentorDashboardView", () => {
 
     expect(screen.getByText("Değerlendirme bekliyor")).toBeInTheDocument();
     expect(screen.getAllByText(/UX Flow Review/).length).toBeGreaterThan(0);
+    expect(
+      screen.getByRole("link", { name: "Değerlendirmeyi tamamla" }),
+    ).toHaveAttribute(
+      "href",
+      expect.stringMatching(/^\/mentor-dashboard\/meetings\/.+\/evaluation$/),
+    );
   });
 
   it("notes when no meeting awaits review", () => {

@@ -68,7 +68,11 @@
 }
 
 .mentor-home button:focus-visible,
-.mentor-home a:focus-visible {
+.mentor-home a:focus-visible,
+.mentor-home summary:focus-visible,
+.mentor-home input:focus-visible,
+.mentor-home textarea:focus-visible,
+.mentor-home select:focus-visible {
   outline-color: #26a4ff;
 }
 

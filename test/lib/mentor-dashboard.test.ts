@@ -168,7 +168,7 @@ describe("mentorTodayActions", () => {
         detail: "UX Flow Review · değerlendirme bekliyor",
         chip: null,
         action: "Değerlendir",
-        href: "/mentor-dashboard/calendar",
+        href: "/mentor-dashboard/meetings/m1/evaluation",
       },
       {
         id: "a1",
