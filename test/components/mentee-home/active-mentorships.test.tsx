@@ -43,7 +43,7 @@ describe("ActiveMentorships", () => {
     expect(screen.getByText("Planlı görüşme yok")).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Mentorluğa git: Selin Kaya" }),
-    ).toHaveAttribute("href", "/mentor-request/status?id=r-1");
+    ).toHaveAttribute("href", "/mentorships?tab=active");
   });
 
   it("says it is loading, then shows the empty state", () => {

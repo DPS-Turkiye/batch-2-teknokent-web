@@ -6,8 +6,9 @@ import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { activeMentorshipFooter, requestStatusHref } from "@/lib/mentee-home";
+import { activeMentorshipFooter } from "@/lib/mentee-home";
 import { initials } from "@/lib/utils";
+import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 const MENTORSHIP_LIMIT = 3;
 
@@ -64,7 +65,7 @@ export function ActiveMentorships({
                 </span>
               )}
               <Link
-                href={requestStatusHref(request.id)}
+                href={`/mentorships?tab=${MentorshipWorkspaceTab.Active}`}
                 aria-label={`Mentorluğa git: ${request.mentorName}`}
                 className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold leading-[18.75px] text-[#565e68] hover:text-[#22262b]"
               >
