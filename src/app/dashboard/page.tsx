@@ -9,12 +9,15 @@ import { NextMeetingHero } from "@/components/mentee-home/next-meeting-hero";
 import { QuickActions } from "@/components/mentee-home/quick-actions";
 import { SentRequests } from "@/components/mentee-home/sent-requests";
 import { TaskList } from "@/components/mentee-home/task-list";
+import { TaskNotebookDialog } from "@/components/mentee-home/task-notebook-dialog";
 import { UpcomingMeetings } from "@/components/mentee-home/upcoming-meetings";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
+import { useHomeTaskNotebook } from "@/hooks/use-task-notebook";
 import { AppArea } from "@/types/app-area";
 
 export default function DashboardPage() {
   const data = useDashboardData();
+  const notebook = useHomeTaskNotebook();
   return (
     <AppShell active={AppArea.Home} menteeHome>
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-7 px-4 pb-[72px] pt-3 sm:px-8">
@@ -41,6 +44,7 @@ export default function DashboardPage() {
                 data.isLoadingFeedback
               }
               onDismiss={data.dismissHomeTask}
+              onOpenTask={notebook.open}
             />
             <UpcomingMeetings
               meetings={data.otherUpcomingMeetings}
@@ -70,6 +74,13 @@ export default function DashboardPage() {
           </aside>
         </div>
       </div>
+      {notebook.task?.requestId ? (
+        <TaskNotebookDialog
+          task={notebook.task}
+          requestId={notebook.task.requestId}
+          onClose={notebook.close}
+        />
+      ) : null}
     </AppShell>
   );
 }

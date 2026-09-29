@@ -33,14 +33,19 @@ const TONE_STYLES: Record<DueTone, { bar: string; chip: string; dot: string }> =
     },
   };
 
+const ACTION_CLASS =
+  "inline-flex h-8 w-[116px] items-center justify-center rounded-3xl border border-[#ffe3d5] bg-white px-3 text-xs font-medium text-[#f97316] hover:bg-[#fff7f1]";
+
 export function TaskList({
   tasks,
   loading,
   onDismiss,
+  onOpenTask,
 }: {
   tasks: HomeTask[];
   loading: boolean;
   onDismiss?: (taskId: string) => void;
+  onOpenTask?: (task: HomeTask) => void;
 }) {
   return (
     <section aria-labelledby="home-tasks-title" className="flex flex-col gap-3">
@@ -85,13 +90,26 @@ export function TaskList({
                   {task.dueLabel}
                 </span>
               )}
-              <Link
-                href={task.href}
-                aria-label={`${task.actionLabel}: ${task.title}`}
-                className="inline-flex h-8 w-[116px] items-center justify-center rounded-3xl border border-[#ffe3d5] bg-white px-3 text-xs font-medium text-[#f97316] hover:bg-[#fff7f1]"
-              >
-                {task.actionLabel}
-              </Link>
+              {onOpenTask &&
+              task.kind === HomeTaskKind.ActionItem &&
+              task.requestId ? (
+                <button
+                  type="button"
+                  onClick={() => onOpenTask(task)}
+                  aria-label={`${task.actionLabel}: ${task.title}`}
+                  className={ACTION_CLASS}
+                >
+                  {task.actionLabel}
+                </button>
+              ) : (
+                <Link
+                  href={task.href}
+                  aria-label={`${task.actionLabel}: ${task.title}`}
+                  className={ACTION_CLASS}
+                >
+                  {task.actionLabel}
+                </Link>
+              )}
               {onDismiss && (
                 <button
                   type="button"

@@ -60,6 +60,28 @@ describe("TaskList", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("opens a mentorship task in the notebook popup instead of leaving the page", async () => {
+    const user = userEvent.setup();
+    const onOpenTask = vi.fn();
+    const withRequest = task({ requestId: "r3" });
+    render(
+      <TaskList
+        tasks={[withRequest]}
+        loading={false}
+        onOpenTask={onOpenTask}
+      />,
+    );
+
+    await user.click(
+      screen.getByRole("button", { name: "Görevi aç: Pitch deck'i güncelle" }),
+    );
+
+    expect(onOpenTask).toHaveBeenCalledWith(withRequest);
+    expect(
+      screen.queryByRole("link", { name: "Görevi aç: Pitch deck'i güncelle" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("shows at most four tasks", () => {
     render(
       <TaskList
