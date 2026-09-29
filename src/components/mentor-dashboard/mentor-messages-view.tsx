@@ -21,6 +21,7 @@ import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 const ACCENT = { strong: "#26a4ff", soft: "#f2f8fc" };
 
@@ -283,6 +284,7 @@ function ActiveConversation({
           <input
             ref={fileInput}
             type="file"
+            accept={DOCUMENT_UPLOAD_ACCEPT}
             className="hidden"
             aria-label="Dosya seç"
             onChange={(event) => {
@@ -363,7 +365,7 @@ export function MentorMessagesView() {
               messageForm={messages.messageForm}
               isSharing={messages.fileUpload.isPending}
               onShareFile={(file) => {
-                void messages.fileUpload.mutateAsync(file);
+                messages.fileUpload.mutate(file);
               }}
             />
           ) : (

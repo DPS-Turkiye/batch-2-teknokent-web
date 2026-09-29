@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useToast } from "@/components/providers/toast-provider";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { UserRole } from "@/interfaces/session";
 import { uploadDocument } from "@/lib/client/documents";
 import { sharedFileMessage } from "@/lib/mentorship-messages";
@@ -156,9 +158,10 @@ export function useRequestFileUpload(
   role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
 ) {
   const queryClient = useQueryClient();
+  const { showToast } = useToast();
   return useMutation({
     mutationFn: async (file: File) => {
-      const stored = await uploadDocument(file, "pitch-deck");
+      const stored = await uploadDocument(file, DocumentKind.Other);
       const sendFileMessage =
         role === UserRole.Mentor ? postMentorMessage : replyToMentorRequest;
       const request = await sendFileMessage({
@@ -173,6 +176,12 @@ export function useRequestFileUpload(
         queryKey: mentorshipRequestsQueryKey(role),
       });
     },
+    onError: (error) =>
+      showToast({
+        message:
+          error instanceof Error ? error.message : "Dosya gönderilemedi.",
+        tone: "error",
+      }),
   });
 }
 

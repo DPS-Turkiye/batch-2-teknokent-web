@@ -63,6 +63,45 @@ describe("uploadDocument", () => {
     expect(vi.mocked(httpClient.post).mock.calls[1][0]).toBe("/api/documents");
   });
 
+  it("says why the backend refused the file, in Turkish", async () => {
+    vi.mocked(httpClient.post).mockResolvedValue({
+      status: 400,
+      data: { status: 400, message: "The file is too large." },
+    } as never);
+
+    await expect(
+      uploadDocument(file, "pitch-deck", "id-token"),
+    ).rejects.toThrow("Dosya boyut sınırını aşıyor.");
+  });
+
+  it("keeps the proxy's refusal instead of blaming the connection", async () => {
+    vi.mocked(httpClient.post)
+      .mockRejectedValueOnce(
+        new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
+      )
+      .mockResolvedValueOnce({
+        status: 400,
+        data: {
+          status: 400,
+          message: "Please upload a PDF, DOCX or XLSX file.",
+        },
+      } as never);
+
+    await expect(uploadDocument(file, "other", "id-token")).rejects.toThrow(
+      "Yalnızca PDF, DOCX, XLSX veya PPTX dosyası yükleyebilirsin.",
+    );
+  });
+
+  it("asks the user to check the connection when neither route answers", async () => {
+    vi.mocked(httpClient.post).mockRejectedValue(
+      new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
+    );
+
+    await expect(uploadDocument(file, "other", "id-token")).rejects.toThrow(
+      "Dosya sunucusuna ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
+    );
+  });
+
   it("resolves a fresh Firebase token when the caller doesn't pass one", async () => {
     vi.mocked(currentIdToken).mockResolvedValue("fresh-token");
     vi.mocked(httpClient.post).mockResolvedValue({

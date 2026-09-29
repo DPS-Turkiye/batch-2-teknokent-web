@@ -6,6 +6,7 @@ import {
   errorMessage,
   formatLongDate,
   formatShortDate,
+  formatFileSize,
 } from "@/lib/utils";
 
 describe("dayGreeting", () => {
@@ -47,5 +48,18 @@ describe("errorMessage", () => {
 
   it("falls back when what was thrown is not an Error", () => {
     expect(errorMessage("boom", "Kaydedilemedi.")).toBe("Kaydedilemedi.");
+  });
+});
+
+describe("formatFileSize", () => {
+  it("shows files under a megabyte in kilobytes, never as 0.00 MB", () => {
+    expect(formatFileSize(3_300)).toBe("3 KB");
+    expect(formatFileSize(200)).toBe("1 KB");
+    expect(formatFileSize(300 * 1024)).toBe("300 KB");
+  });
+
+  it("shows larger files in megabytes with one decimal", () => {
+    expect(formatFileSize(2.34 * 1024 * 1024)).toBe("2.3 MB");
+    expect(formatFileSize(10 * 1024 * 1024)).toBe("10 MB");
   });
 });

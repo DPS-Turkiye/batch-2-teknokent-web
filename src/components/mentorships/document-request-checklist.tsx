@@ -17,6 +17,7 @@ import {
   replaceDocumentRequests,
 } from "@/lib/client/document-requests";
 import { uploadDocument } from "@/lib/client/documents";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   DocumentRequestTitleEditor,
   normalizeDocumentTitles,
@@ -311,7 +312,7 @@ export function DocumentRequestChecklist({
       <input
         ref={fileInputRef}
         type="file"
-        accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        accept={DOCUMENT_UPLOAD_ACCEPT}
         className="hidden"
         onChange={(event) => {
           const file = event.target.files?.[0];

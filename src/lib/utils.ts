@@ -56,8 +56,8 @@ export function initials(name: string) {
 }
 
 export function formatFileSize(bytes: number) {
-  const mb = bytes / (1024 * 1024);
-  return `${mb < 0.1 ? mb.toFixed(2) : Number(mb.toFixed(1))} MB`;
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${Number((bytes / (1024 * 1024)).toFixed(1))} MB`;
 }
 
 export function scrollToTop() {
