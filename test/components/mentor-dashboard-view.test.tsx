@@ -27,6 +27,10 @@ vi.mock("@/components/dashboard/my-programs-panel", () => ({
   ),
 }));
 
+vi.mock("@/components/meeting-proposal-cards", () => ({
+  MeetingProposalCards: () => <section aria-label="Görüşme önerileri" />,
+}));
+
 vi.mock("@/hooks/use-mentor-dashboard", () => ({
   useMentorDashboard: vi.fn(),
 }));
@@ -422,6 +426,18 @@ describe("MentorDashboardView", () => {
 
     await user.click(toggle);
     expect(screen.queryByText("Atanan işler")).not.toBeInTheDocument();
+  });
+
+  it("puts meeting proposals under the next meeting banner", () => {
+    mockDashboard();
+    renderWithQueryClient(<MentorDashboardView />);
+
+    const banner = screen.getByRole("region", { name: "Sıradaki görüşme" });
+    const proposals = screen.getByRole("region", { name: "Görüşme önerileri" });
+    expect(
+      banner.compareDocumentPosition(proposals) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("shows the next meeting banner with its link and transcript choice", async () => {

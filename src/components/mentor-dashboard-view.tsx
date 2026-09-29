@@ -795,9 +795,6 @@ export function MentorDashboardView() {
             </span>
           </PillButton>
         </header>
-        <div className="mt-7 empty:hidden">
-          <MeetingProposalCards />
-        </div>
         {nextMeeting ? (
           <div className="mt-7">
             <NextMeetingBanner
@@ -808,6 +805,9 @@ export function MentorDashboardView() {
             />
           </div>
         ) : null}
+        <div className="mt-7 empty:hidden">
+          <MeetingProposalCards />
+        </div>
         <div className="mt-7 grid gap-3 md:grid-cols-3">
           <QuickAction
             icon="calendar-fill"
