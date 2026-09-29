@@ -24,6 +24,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 
 const ACTION_ITEM_LABELS: Record<ActionItemStatus, string> = {
   [ActionItemStatus.Open]: "Açık",
@@ -999,7 +1000,11 @@ export function MentorDashboardView() {
                             ? "Görüşme notu ekle"
                             : "Değerlendirmeyi tamamla"
                         }
-                        href="/mentor-dashboard/calendar"
+                        href={
+                          meeting.outcomes?.trim()
+                            ? "/mentor-dashboard/calendar"
+                            : mentorMeetingEvaluationHref(meeting.id)
+                        }
                       />
                     ))
                 )}

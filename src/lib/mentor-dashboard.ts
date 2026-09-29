@@ -4,6 +4,7 @@ import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { formatMeetingShort } from "@/lib/format";
 import { isMeetingEnded } from "@/lib/mentorship-workspace";
 import { formatFileSize, formatShortDate } from "@/lib/utils";
+import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 
 /** A past meeting is the last one, not the next one. */
 export function conversationMeetingLabel(
@@ -135,7 +136,7 @@ export function mentorTodayActions(
     detail: `${meeting.agenda ?? "Mentorluk görüşmesi"} · değerlendirme bekliyor`,
     chip: null,
     action: "Değerlendir",
-    href: "/mentor-dashboard/calendar",
+    href: mentorMeetingEvaluationHref(meeting.id),
   }));
   const itemRows = openActionItems.map((item) => {
     const overdue = isOverdueActionItem(item, now);
