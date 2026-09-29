@@ -48,8 +48,13 @@ beforeAll(async () => {
 });
 afterAll(() => vi.unstubAllEnvs());
 
-function request(path: string, cookie?: string, userAgent?: string) {
-  const headers = new Headers();
+function request(
+  path: string,
+  cookie?: string,
+  userAgent?: string,
+  extraHeaders: Record<string, string> = {},
+) {
+  const headers = new Headers(extraHeaders);
   if (cookie) headers.set("cookie", cookie);
   if (userAgent) headers.set("user-agent", userAgent);
   return proxy(
@@ -202,6 +207,30 @@ describe("proxy on a phone", () => {
       IPHONE,
     );
     expect(location(later)).toBeNull();
+  });
+
+  it("does not save the web preference when Next.js only prefetches a ?web=1 link", async () => {
+    for (const prefetch of [
+      { "next-router-prefetch": "1" },
+      { "next-router-segment-prefetch": "/_tree" },
+      { purpose: "prefetch" },
+      { "sec-purpose": "prefetch" },
+    ]) {
+      const response = await request(
+        "/signup?web=1",
+        undefined,
+        IPHONE,
+        prefetch,
+      );
+      expect(response.headers.get("set-cookie") ?? "").not.toMatch(
+        /menton_prefer_web=1/,
+      );
+    }
+
+    const opened = await request("/signup?web=1", undefined, IPHONE, {
+      rsc: "1",
+    });
+    expect(opened.headers.get("set-cookie")).toMatch(/menton_prefer_web=1/);
   });
 
   it("forgets the web preference once the phone app is opened again", async () => {

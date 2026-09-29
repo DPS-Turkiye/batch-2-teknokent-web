@@ -28,6 +28,20 @@ const PREFER_WEB_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 type SessionRead = { signedIn: boolean; user?: AppSession };
 
 /**
+ * Next.js prefetches links as soon as they are on screen, so a phone page with
+ * a "Web'de aç" link would otherwise switch the phone to the web pages unasked.
+ */
+function isPrefetch(request: NextRequest) {
+  const { headers } = request;
+  return (
+    headers.has("next-router-prefetch") ||
+    headers.has("next-router-segment-prefetch") ||
+    headers.get("purpose") === "prefetch" ||
+    (headers.get("sec-purpose") ?? "").includes("prefetch")
+  );
+}
+
+/**
  * A cookie that is merely present is not a session: an expired one, or one
  * sealed with a rotated password, unseals to nothing. Treating it as signed in
  * rendered the app to a stranger as "Kullanıcı", and sent them away from /login.
@@ -55,12 +69,13 @@ export async function proxy(request: NextRequest) {
   const { signedIn, user } = await readSession(seal);
   const mobile = isMobilePath(pathname);
   const asksForWeb = searchParams.get(PREFER_WEB_PARAM) === "1";
+  const savesWebChoice = asksForWeb && !isPrefetch(request);
   const prefersWeb =
     asksForWeb || request.cookies.get(PREFER_WEB_COOKIE)?.value === "1";
 
   const respond = (response: NextResponse) => {
     if (seal && !signedIn) response.cookies.delete(SESSION_COOKIE);
-    if (asksForWeb) {
+    if (savesWebChoice) {
       response.cookies.set(PREFER_WEB_COOKIE, "1", {
         path: "/",
         sameSite: "lax",
