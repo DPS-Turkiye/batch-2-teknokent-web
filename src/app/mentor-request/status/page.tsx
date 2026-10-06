@@ -9,6 +9,7 @@ import { Badge } from "@/components/common/badge";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
+import { SlotDayTimePicker } from "@/components/mentor-request/slot-day-time-picker";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { ConversationThread } from "@/components/mentorship/conversation-thread";
@@ -35,7 +36,6 @@ import {
   MENTORSHIP_MEETING_DURATION_MINUTES,
   DOCUMENT_UPLOAD_ACCEPT,
 } from "@/lib/const";
-import { formatSlotDateTime } from "@/lib/format";
 import {
   parseProposedSlotsFromMessage,
   preferredSlotKey,
@@ -354,21 +354,11 @@ function RequestStatusContent() {
                       <h3 className="text-lg font-semibold">
                         Toplantı zamanı seçin
                       </h3>
-                      <div className="mt-4 grid gap-2 sm:grid-cols-2">
-                        {availabilityQuery.data?.map((slot) => (
-                          <button
-                            key={slot.id}
-                            type="button"
-                            disabled={slot.booked || isBooking}
-                            onClick={() => void bookSlot(slot.id)}
-                            className="rounded-lg border border-[#e5e7eb] bg-white px-3 py-3 text-left text-xs hover:border-[#555] disabled:cursor-not-allowed disabled:opacity-60"
-                          >
-                            {formatSlotDateTime(slot.startsAt)} ·{" "}
-                            {slot.durationMinutes} dk
-                            {slot.booked ? " · Dolu" : ""}
-                          </button>
-                        ))}
-                      </div>
+                      <SlotDayTimePicker
+                        slots={availabilityQuery.data ?? []}
+                        disabled={isBooking}
+                        onPick={(slotId) => void bookSlot(slotId)}
+                      />
                       {!availabilityQuery.isLoading &&
                       !availabilityQuery.data?.length ? (
                         <p className="mt-3 text-sm text-[#777]">
