@@ -7,9 +7,8 @@ import { useState } from "react";
  * A free-form set of chips: values come from anywhere — a parsed CV, the user's
  * own typing — rather than a fixed option list.
  *
- * Distinct from ChipGroup, which toggles membership of a known list. A parsed CV
- * returns whatever the document actually says, so there is no list to toggle
- * against, and mapping those values onto a fixed set would discard most of them.
+ * A parsed CV returns whatever the document actually says, so there is no fixed
+ * list to toggle against, and mapping those values onto one would discard most.
  */
 export function EditableChips({
   label,

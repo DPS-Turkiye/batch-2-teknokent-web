@@ -13,7 +13,6 @@ import {
   meetingAboutHref,
   meetingCallHref,
   meetingFeedbackHref,
-  meetingSummaryHref,
   menteeRequestDetailHref,
   menteeRequestStatusHref,
   mentorRequestHref,
@@ -182,10 +181,7 @@ describe("mentorship workspace helpers", () => {
     expect(requestHasEndedMeeting([endedMeeting], request, now)).toBe(true);
   });
 
-  it("builds summary and feedback deep links from the meeting id", () => {
-    expect(meetingSummaryHref("meeting-9")).toBe(
-      "/meetings/research/summary?id=meeting-9",
-    );
+  it("builds feedback and call deep links from the meeting id", () => {
     expect(meetingFeedbackHref("meeting-9")).toBe(
       "/meetings/research/feedback?id=meeting-9",
     );
