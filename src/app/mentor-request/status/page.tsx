@@ -398,7 +398,7 @@ function RequestStatusContent() {
                               Görüşme dosyanı paylaş
                             </h3>
                             <p className="mt-1 text-xs text-[#676e78]">
-                              PDF veya DOCX · En fazla 10 MB. Dosya güvenli
+                              PDF veya DOCX · En fazla 25 MB. Dosya güvenli
                               şekilde yüklenir ve mentora mesaj olarak
                               bildirilir.
                             </p>

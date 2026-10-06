@@ -438,5 +438,7 @@ export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
 };
 
 export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
+/** Mirrors the backend's DocumentKind limit for documents (images stay at 5 MB). */
+export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 export const DOCUMENT_UPLOAD_HINT =
-  "PDF, DOCX, XLSX veya PPTX · en fazla 10 MB";
+  "PDF, DOCX, XLSX veya PPTX · en fazla 25 MB";

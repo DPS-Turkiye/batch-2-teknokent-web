@@ -12,6 +12,7 @@ export enum DocumentKind {
   Logo = "logo",
   Avatar = "avatar",
   ProfilePdf = "profile-pdf",
+  RequestedDoc = "requested-doc",
 }
 
 export interface DocumentShare {
