@@ -22,6 +22,16 @@ export enum MentorRegistration {
   Error = "error",
 }
 
+/** The name the backend already has for this login, or "" when it has no account yet. */
+async function registeredFullName() {
+  try {
+    const idToken = await currentIdToken();
+    return idToken ? (await fetchAccountStatus(idToken)).fullName : "";
+  } catch {
+    return "";
+  }
+}
+
 function roleFromParam(value: string | null) {
   return Object.values(SignupRole).find((role) => role === value) ?? null;
 }
@@ -51,18 +61,20 @@ export function useSignupFlow() {
   useEffect(() => {
     if (!isResuming) return;
     let active = true;
-    void currentFirebaseAccount().then((firebaseAccount) => {
+    void (async () => {
+      const firebaseAccount = await currentFirebaseAccount();
+      // Signup never sets the Firebase display name, so the name lives on the
+      // backend account; without it the mentor is asked for it all over again.
+      const fullName =
+        firebaseAccount?.fullName.trim() ||
+        (firebaseAccount ? await registeredFullName() : "");
       if (!active) return;
       if (firebaseAccount) {
         setNeedsEmailVerification(!firebaseAccount.verified);
-        setAccount({
-          email: firebaseAccount.email,
-          fullName: firebaseAccount.fullName,
-          phone: "",
-        });
+        setAccount({ email: firebaseAccount.email, fullName, phone: "" });
       }
       setAuthReady(true);
-    });
+    })();
     return () => {
       active = false;
     };

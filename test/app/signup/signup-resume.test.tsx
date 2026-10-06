@@ -248,6 +248,29 @@ describe("SignupFlow resume", () => {
     expect(registerMentor).not.toHaveBeenCalled();
   });
 
+  it("takes a resumed mentor's name from the account instead of asking again", async () => {
+    searchParams.set("resume", "1");
+    searchParams.set("role", "mentor");
+    vi.mocked(currentFirebaseAccount).mockResolvedValue({
+      email: "deniz@mentor.co",
+      fullName: "",
+      verified: true,
+    });
+    vi.mocked(fetchAccountStatus).mockResolvedValue({
+      id: "mentor-id",
+      email: "deniz@mentor.co",
+      fullName: "Deniz Test",
+      role: UserRole.Mentor,
+    });
+
+    render(<SignupFlow />);
+
+    expect(await screen.findByTestId("mentor-onboarding")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Mentor hesabını tamamla" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("keeps an unverified restored account in the verification step", async () => {
     searchParams.set("resume", "1");
     vi.mocked(currentFirebaseAccount).mockResolvedValue({
