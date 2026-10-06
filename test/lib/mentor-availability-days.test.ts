@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   assignPreferredSlot,
@@ -6,6 +6,7 @@ import {
   formatPreferredSlot,
   hasPreferredSlots,
   hasProposedSlots,
+  isBookableSlot,
   isHalfOrFullHour,
   isValidPreferredSlot,
   parsePreferredSlotsFromMessage,
@@ -19,6 +20,7 @@ import {
   upcomingPreferenceDays,
 } from "@/lib/mentor-availability-days";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
+import { freezeDate } from "@test/test-utils";
 
 function slot(
   id: string,
@@ -59,6 +61,28 @@ describe("availabilityColumns", () => {
 });
 
 describe("preferred day and time slots", () => {
+  beforeEach(() => {
+    freezeDate("2026-09-08T05:00:00");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("needs a new time to be at least four hours away", () => {
+    expect(isBookableSlot({ date: "2026-09-08", time: "09:00" })).toBe(true);
+    expect(isBookableSlot({ date: "2026-09-08", time: "08:30" })).toBe(false);
+    expect(
+      hasProposedSlots([
+        { date: "2026-09-10", time: "10:00" },
+        { date: "2026-09-08", time: "07:00" },
+      ]),
+    ).toBe(false);
+    expect(isValidPreferredSlot({ date: "2026-09-08", time: "07:00" })).toBe(
+      true,
+    );
+  });
+
   it("accepts only full or half hours", () => {
     expect(isHalfOrFullHour("10:00")).toBe(true);
     expect(isHalfOrFullHour("10:30")).toBe(true);

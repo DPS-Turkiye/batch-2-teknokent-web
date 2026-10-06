@@ -99,7 +99,9 @@ export function MentorRequestDialog({
   async function sendRequest() {
     if (!session?.fullName) return;
     if (!canSend) {
-      setError("En az bir tercih için gün ve tam/buçuk saat seç.");
+      setError(
+        "En az bir tercih için gün ve tam/buçuk saat seç; en erken 4 saat sonrası.",
+      );
       return;
     }
     const submission = profileMentorshipSubmission({
@@ -259,7 +261,7 @@ export function MentorRequestDialog({
               </p>
               <p className="mt-1 text-[11px] text-[#858c96]">
                 En az bir tercih yeterli; en fazla üç seçebilirsin. Saatler tam
-                (10:00) veya buçuk (10:30) olmalı.
+                (10:00) veya buçuk (10:30) ve en erken 4 saat sonrası olmalı.
               </p>
               <div className="mt-2 grid gap-2">
                 {preferredSlots.map((slot, index) => (

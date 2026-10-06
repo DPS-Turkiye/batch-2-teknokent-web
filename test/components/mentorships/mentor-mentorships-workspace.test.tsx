@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -12,7 +12,11 @@ import {
 import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
-import { renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, renderWithQueryClient } from "@test/test-utils";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const pagesByTab = vi.hoisted(() => ({
   active: [] as MentorshipRequest[],
@@ -316,6 +320,7 @@ describe("MentorMentorshipsWorkspace", () => {
   });
 
   it("lets the mentor propose alternative times instead of accepting mentee slots", async () => {
+    freezeDate("2026-09-08T05:00:00");
     const user = userEvent.setup();
     mockRequests([request()]);
     mutateAsync.mockResolvedValue(

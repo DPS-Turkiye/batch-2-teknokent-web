@@ -172,7 +172,7 @@ export function MentorRequestReviewDialog({
               </h3>
               <p className="mt-1 text-xs text-[#858c96]">
                 En az bir öneri yeterli. Daha fazla ekleyebilirsin. Saatler tam
-                (10:00) veya buçuk (10:30) olmalı.
+                (10:00) veya buçuk (10:30) ve en erken 4 saat sonrası olmalı.
               </p>
             </div>
             <button
