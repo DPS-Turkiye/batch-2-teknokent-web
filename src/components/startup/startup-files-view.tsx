@@ -16,6 +16,7 @@ import { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
 import type { StartupDocument } from "@/interfaces/startup-document";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   STARTUP_FILE_FILTER_LABELS,
   STARTUP_FILE_STATUS_LABELS,
@@ -128,6 +129,38 @@ function FileMenu({
   );
 }
 
+function RequestUploadButton({
+  title,
+  isUploading,
+  onFile,
+}: {
+  title: string;
+  isUploading: boolean;
+  onFile: (file: File) => void;
+}) {
+  return (
+    <label
+      className={`inline-flex min-h-8 cursor-pointer items-center rounded-lg border border-[#e86f22] px-3 text-xs font-semibold text-[#c85816] hover:bg-[#fff9f5] ${
+        isUploading ? "pointer-events-none opacity-60" : ""
+      }`}
+    >
+      {isUploading ? "Yükleniyor…" : "Yükle"}
+      <input
+        type="file"
+        accept={DOCUMENT_UPLOAD_ACCEPT}
+        aria-label={`${title} yükle`}
+        disabled={isUploading}
+        className="sr-only"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.target.value = "";
+          if (file) onFile(file);
+        }}
+      />
+    </label>
+  );
+}
+
 export function StartupFilesView() {
   const files = useStartupFiles();
   const uploadForm = useFileUploadForm();
@@ -221,6 +254,7 @@ export function StartupFilesView() {
               ) : (
                 files.rows.map((row) => {
                   const own = row.ownDocument;
+                  const pending = row.pendingRequest;
                   const documentId = row.documentId;
                   return (
                     <tr key={row.key} className="border-t border-[#eceef0]">
@@ -277,6 +311,17 @@ export function StartupFilesView() {
                             onDelete={() => files.askDelete(own.id)}
                             onOpen={() => void openDocument(own.id)}
                             onShare={() => files.openShare(own.id)}
+                          />
+                        ) : null}
+                        {pending ? (
+                          <RequestUploadButton
+                            title={pending.title}
+                            isUploading={
+                              files.uploadingRequestId === pending.id
+                            }
+                            onFile={(file) =>
+                              files.uploadForRequest(pending, file)
+                            }
                           />
                         ) : null}
                       </td>

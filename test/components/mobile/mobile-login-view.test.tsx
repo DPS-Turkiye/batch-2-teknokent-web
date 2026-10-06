@@ -19,6 +19,8 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams,
 }));
 
+vi.mock("next/link", () => import("@test/mocks/next-link"));
+
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ login, logout: vi.fn() }),
 }));
@@ -55,9 +57,12 @@ describe("Phone login", () => {
     expect(
       screen.getByRole("heading", { name: "Hesabınıza giriş yapın" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /Web üzerinden kayıt olun/ }),
-    ).toHaveAttribute("href", "/signup?web=1");
+    const signUp = screen.getByRole("link", {
+      name: /Web üzerinden kayıt olun/,
+    });
+    expect(signUp).toHaveAttribute("href", "/signup?web=1");
+    // A next/link would be prefetched while the login is on screen.
+    expect(signUp).not.toHaveAttribute("data-next-link");
   });
 
   it("opens the phone home after signing in", async () => {

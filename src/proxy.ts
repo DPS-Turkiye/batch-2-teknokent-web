@@ -28,17 +28,13 @@ const PREFER_WEB_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 type SessionRead = { signedIn: boolean; user?: AppSession };
 
 /**
- * Next.js prefetches links as soon as they are on screen, so a phone page with
- * a "Web'de aç" link would otherwise switch the phone to the web pages unasked.
+ * Only a page load the visitor made may switch a phone to the web pages. Next.js
+ * prefetches with fetch() (Sec-Fetch-Dest: empty) and deletes its own prefetch
+ * headers before the proxy runs, so they cannot be checked here. Browsers that
+ * send no Sec-Fetch-Dest are treated as page loads.
  */
-function isPrefetch(request: NextRequest) {
-  const { headers } = request;
-  return (
-    headers.has("next-router-prefetch") ||
-    headers.has("next-router-segment-prefetch") ||
-    headers.get("purpose") === "prefetch" ||
-    (headers.get("sec-purpose") ?? "").includes("prefetch")
-  );
+function isPageLoad(request: NextRequest) {
+  return (request.headers.get("sec-fetch-dest") ?? "document") === "document";
 }
 
 /**
@@ -69,7 +65,7 @@ export async function proxy(request: NextRequest) {
   const { signedIn, user } = await readSession(seal);
   const mobile = isMobilePath(pathname);
   const asksForWeb = searchParams.get(PREFER_WEB_PARAM) === "1";
-  const savesWebChoice = asksForWeb && !isPrefetch(request);
+  const savesWebChoice = asksForWeb && isPageLoad(request);
   const prefersWeb =
     asksForWeb || request.cookies.get(PREFER_WEB_COOKIE)?.value === "1";
 

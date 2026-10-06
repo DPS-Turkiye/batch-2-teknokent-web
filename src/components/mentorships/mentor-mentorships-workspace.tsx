@@ -156,6 +156,29 @@ export function MentorMentorshipsWorkspace() {
     }
   }
 
+  async function askInfo(
+    request: MentorshipRequest,
+    question: string,
+    requestedDocuments: string[],
+  ) {
+    setActionError("");
+    try {
+      await decisionMutation.mutateAsync({
+        id: request.id,
+        status: MentorshipRequestStatus.MoreInfoRequested,
+        message: question,
+        requestedDocuments: normalizeDocumentTitles(requestedDocuments),
+      });
+      setReviewing(null);
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : "Soru gönderilemedi. Lütfen tekrar dene.",
+      );
+    }
+  }
+
   function openMeetLinkEditor(request: MentorshipRequest) {
     const meeting = pickRequestMeeting(meetings, request);
     setActionError("");
@@ -283,6 +306,9 @@ export function MentorMentorshipsWorkspace() {
             }
             onPropose={(slots, requestedDocuments) =>
               void proposeSlots(reviewing, slots, requestedDocuments)
+            }
+            onAskInfo={(question, requestedDocuments) =>
+              void askInfo(reviewing, question, requestedDocuments)
             }
           />
         ) : null}

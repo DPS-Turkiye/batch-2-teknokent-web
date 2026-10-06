@@ -210,25 +210,18 @@ describe("proxy on a phone", () => {
   });
 
   it("does not save the web preference when Next.js only prefetches a ?web=1 link", async () => {
-    for (const prefetch of [
-      { "next-router-prefetch": "1" },
-      { "next-router-segment-prefetch": "/_tree" },
-      { purpose: "prefetch" },
-      { "sec-purpose": "prefetch" },
-    ]) {
-      const response = await request(
-        "/signup?web=1",
-        undefined,
-        IPHONE,
-        prefetch,
-      );
-      expect(response.headers.get("set-cookie") ?? "").not.toMatch(
-        /menton_prefer_web=1/,
-      );
-    }
+    // What reaches the proxy: Next.js has already deleted its own prefetch headers.
+    const prefetched = await request("/signup?web=1", undefined, IPHONE, {
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+    });
+    expect(prefetched.headers.get("set-cookie") ?? "").not.toMatch(
+      /menton_prefer_web=1/,
+    );
 
     const opened = await request("/signup?web=1", undefined, IPHONE, {
-      rsc: "1",
+      "sec-fetch-dest": "document",
+      "sec-fetch-mode": "navigate",
     });
     expect(opened.headers.get("set-cookie")).toMatch(/menton_prefer_web=1/);
   });

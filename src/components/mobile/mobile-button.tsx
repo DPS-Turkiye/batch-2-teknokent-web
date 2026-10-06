@@ -49,12 +49,20 @@ export function MobileButtonLink({
   children: ReactNode;
   external?: boolean;
 }) {
+  if (external) {
+    return (
+      <a
+        href={href}
+        className={mobileButtonClass(variant)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {children}
+      </a>
+    );
+  }
   return (
-    <Link
-      href={href}
-      className={mobileButtonClass(variant)}
-      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-    >
+    <Link href={href} className={mobileButtonClass(variant)}>
       {children}
     </Link>
   );

@@ -156,14 +156,14 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
           </MobileButton>
         ) : null}
         {task.webHref ? (
-          <Link
+          <a
             href={task.webHref}
             className="flex w-full items-center justify-center rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
           >
             {task.source === MobileTaskSource.Feedback
               ? "Web’de değerlendir"
               : "Web’de teslim et"}
-          </Link>
+          </a>
         ) : null}
         {task.chatHref ? (
           <Link

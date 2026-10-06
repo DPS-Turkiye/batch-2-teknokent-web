@@ -22,11 +22,11 @@ import {
   IntroPhase,
   MAX_EXPERIENCES,
 } from "@/interfaces/mentor-onboarding";
+import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
 
 const TONE = OnboardingTone.Mentor;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
-const CV_MAX_BYTES = 10 * 1024 * 1024;
 
 function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +50,7 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
             </span>
           </span>
           <span className="text-sm text-[#676e78]">
-            PDF veya DOCX · Maks. 10 MB
+            PDF veya DOCX · Maks. 25 MB
           </span>
         </button>
         <input
@@ -63,7 +63,7 @@ function UploadPhase({ wizard }: { wizard: MentorOnboarding }) {
             const selected = event.target.files?.[0];
             event.target.value = "";
             if (!selected) return;
-            if (selected.size > CV_MAX_BYTES) return;
+            if (selected.size > DOCUMENT_MAX_BYTES) return;
             void wizard.uploadCv({
               name: selected.name,
               size: selected.size,

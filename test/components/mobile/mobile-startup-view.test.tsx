@@ -15,6 +15,8 @@ vi.mock("@/hooks/use-mobile-startup", () => ({
   useMobileStartup: () => startup,
 }));
 
+vi.mock("next/link", () => import("@test/mocks/next-link"));
+
 function state(overrides: Partial<Startup> = {}): Startup {
   return {
     backHref: "/m/startups",
@@ -92,6 +94,22 @@ describe("MobileStartupView", () => {
     expect(screen.getByText("Takım yetkilisi")).toBeInTheDocument();
     expect(screen.getByText("3 / 5 tamamlandı")).toBeInTheDocument();
     expect(screen.getByText("4 dosya · son 2 gün önce")).toBeInTheDocument();
+  });
+
+  it("opens the notes on the web with a full page load, phone links in the app", () => {
+    render(<MobileStartupView organizationId="atlas" />);
+
+    for (const name of [/Verilen görevler/, /Dosyalar/, "Web’de Aç"]) {
+      const link = screen.getByRole("link", { name });
+      expect(link).toHaveAttribute(
+        "href",
+        "/mentor-dashboard/mentorship/r1?web=1",
+      );
+      expect(link).not.toHaveAttribute("data-next-link");
+    }
+    expect(screen.getByRole("link", { name: "Mesaj" })).toHaveAttribute(
+      "data-next-link",
+    );
   });
 
   it("unfolds the team members", async () => {

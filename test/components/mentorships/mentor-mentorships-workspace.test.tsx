@@ -352,6 +352,33 @@ describe("MentorMentorshipsWorkspace", () => {
     expect(logMentorshipMeeting).not.toHaveBeenCalled();
   });
 
+  it("lets the mentor ask for information and documents before deciding", async () => {
+    const user = userEvent.setup();
+    mockRequests([request()]);
+    mutateAsync.mockResolvedValue(
+      request({ status: MentorshipRequestStatus.MoreInfoRequested }),
+    );
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    await user.click(screen.getByRole("button", { name: "Talebi incele" }));
+    await user.click(screen.getByRole("button", { name: "Bilgi iste" }));
+    expect(screen.getByRole("button", { name: "Gönder" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Belge ekle" }));
+    await user.type(screen.getByPlaceholderText("1. belge adı"), "Pitch deck");
+    await user.click(screen.getByRole("button", { name: "Gönder" }));
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id: "req-1",
+      status: MentorshipRequestStatus.MoreInfoRequested,
+      message: "Görüşmeden önce aşağıdaki belgeleri paylaşır mısın?",
+      requestedDocuments: ["Pitch deck"],
+    });
+    expect(logMentorshipMeeting).not.toHaveBeenCalled();
+  });
+
   it("shows waiting state when mentor already proposed alternative times", async () => {
     const user = userEvent.setup();
     mockRequests([

@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
 import type {
   DocumentRequestItem,
   DocumentRequestScope,
@@ -122,7 +123,7 @@ export function DocumentRequestChecklist({
     mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
       const stored = await uploadDocument(
         file,
-        "requested-doc",
+        DocumentKind.RequestedDoc,
         undefined,
         scope.meetingId,
       );

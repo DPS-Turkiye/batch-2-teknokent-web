@@ -7,6 +7,7 @@ import { StartupFilesView } from "@/components/startup/startup-files-view";
 import { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import {
   StartupFileFilter,
   type StartupFileRow,
@@ -61,6 +62,10 @@ const rows: StartupFileRow[] = [
     date: "2026-08-20T09:00:00Z",
     status: StartupFileStatus.Waiting,
     ownDocument: null,
+    pendingRequest: {
+      id: "deck-request",
+      title: "pitch-deck-v3.pdf",
+    } as DocumentRequestItem,
   },
   {
     key: "document:notes",
@@ -106,6 +111,8 @@ function state(overrides: Partial<Files> = {}): Files {
     shareWith: vi.fn(),
     sharingDocument: null,
     stopSharing: vi.fn(),
+    uploadForRequest: vi.fn(),
+    uploadingRequestId: undefined,
     ...overrides,
   };
 }
@@ -196,6 +203,22 @@ describe("StartupFilesView", () => {
     await user.click(menu);
     await user.click(screen.getByRole("menuitem", { name: "Sil" }));
     expect(files.askDelete).toHaveBeenCalledWith("Pitch_Deck_v3");
+  });
+
+  it("uploads a file for a request that is still waiting", async () => {
+    const user = userEvent.setup();
+    const files = state();
+    vi.mocked(useStartupFiles).mockReturnValue(files);
+    const file = new File(["deck"], "deck.pdf", { type: "application/pdf" });
+    renderWithQueryClient(<StartupFilesView />);
+
+    expect(screen.getAllByText("Yükle")).toHaveLength(1);
+    await user.upload(screen.getByLabelText("pitch-deck-v3.pdf yükle"), file);
+
+    expect(files.uploadForRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "deck-request" }),
+      file,
+    );
   });
 
   it("opens the upload dialog", async () => {
