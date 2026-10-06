@@ -12,6 +12,7 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { StartupNameLink } from "@/components/common/startup-name-link";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
+import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import {
@@ -295,310 +296,317 @@ export function MentorRequestStartupDetail({
 
   return (
     <AppShell active={AppArea.Mentorships} mentorHome>
-      <div className="mx-auto w-full max-w-[1228px] px-4 pb-16 pt-3 sm:px-8 lg:px-[106px]">
-        <nav
-          aria-label="Sayfa yolu"
-          className="flex flex-wrap items-center gap-1.5 text-[12.5px] leading-[19px] text-[#676e78]"
-        >
-          <Link href="/mentorships" className="hover:text-[#22262b]">
-            {MENTOR_REQUEST_STARTUP_LABELS.mentorships}
-          </Link>
-          <Image
-            src="/startup/expand-muted.svg"
-            alt=""
-            width={14}
-            height={14}
-            className="size-3.5"
-          />
-          <Link
-            href="/mentorships?tab=requests"
-            className="hover:text-[#22262b]"
+      <MentorAccent enabled>
+        <div className="mx-auto w-full max-w-[1228px] px-4 pb-16 pt-3 sm:px-8 lg:px-[106px]">
+          <nav
+            aria-label="Sayfa yolu"
+            className="flex flex-wrap items-center gap-1.5 text-[12.5px] leading-[19px] text-[#676e78]"
           >
-            {MENTOR_REQUEST_STARTUP_LABELS.requests}
-          </Link>
-          <Image
-            src="/startup/expand-muted.svg"
-            alt=""
-            width={14}
-            height={14}
-            className="size-3.5"
-          />
-          <span className="font-medium text-[#4a5059]">
-            {request ? (
-              <StartupNameLink organizationId={request.organizationId}>
-                {startupName}
-              </StartupNameLink>
-            ) : (
-              startupName
-            )}
-          </span>
-        </nav>
+            <Link href="/mentorships" className="hover:text-[#22262b]">
+              {MENTOR_REQUEST_STARTUP_LABELS.mentorships}
+            </Link>
+            <Image
+              src="/startup/expand-muted.svg"
+              alt=""
+              width={14}
+              height={14}
+              className="size-3.5"
+            />
+            <Link
+              href="/mentorships?tab=requests"
+              className="hover:text-[#22262b]"
+            >
+              {MENTOR_REQUEST_STARTUP_LABELS.requests}
+            </Link>
+            <Image
+              src="/startup/expand-muted.svg"
+              alt=""
+              width={14}
+              height={14}
+              className="size-3.5"
+            />
+            <span className="font-medium text-[#4a5059]">
+              {request ? (
+                <StartupNameLink organizationId={request.organizationId}>
+                  {startupName}
+                </StartupNameLink>
+              ) : (
+                startupName
+              )}
+            </span>
+          </nav>
 
-        {isLoading ? (
-          <p className="mt-10 text-sm text-[#858c96]">
-            {MENTOR_REQUEST_STARTUP_LABELS.loading}
-          </p>
-        ) : !request ? (
-          <p
-            role="alert"
-            className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          >
-            {requestQuery.error?.message ??
-              MENTOR_REQUEST_STARTUP_LABELS.notFound}
-          </p>
-        ) : (
-          <>
-            <header className="mt-[22px] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-              <div className="flex min-w-0 items-center gap-3.5">
-                <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-[#fdebdd] text-base font-semibold text-[#e86f22]">
-                  {initials(startupName)}
-                </div>
-                <div className="min-w-0">
-                  <h1 className="truncate text-[28px] font-semibold leading-[43px]">
-                    <StartupNameLink organizationId={request.organizationId}>
-                      {startupName}
-                    </StartupNameLink>
-                  </h1>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                    {contactLine ? (
-                      <p className="text-[13px] leading-5 text-[#676e78]">
-                        {contactLine}
-                      </p>
-                    ) : null}
-                    <span className="rounded-full border border-[#fdebdd] bg-[#fff4ec] px-2.5 py-1 text-[11.5px] font-medium leading-[18px] text-[#e86f22]">
-                      {statusChip(request.status)}
-                    </span>
+          {isLoading ? (
+            <p className="mt-10 text-sm text-[#858c96]">
+              {MENTOR_REQUEST_STARTUP_LABELS.loading}
+            </p>
+          ) : !request ? (
+            <p
+              role="alert"
+              className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            >
+              {requestQuery.error?.message ??
+                MENTOR_REQUEST_STARTUP_LABELS.notFound}
+            </p>
+          ) : (
+            <>
+              <header className="mt-[22px] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <div className="grid size-14 shrink-0 place-items-center rounded-xl bg-[var(--ms-accent-soft,#fdebdd)] text-base font-semibold text-[var(--ms-accent,#e86f22)]">
+                    {initials(startupName)}
+                  </div>
+                  <div className="min-w-0">
+                    <h1 className="truncate text-[28px] font-semibold leading-[43px]">
+                      <StartupNameLink organizationId={request.organizationId}>
+                        {startupName}
+                      </StartupNameLink>
+                    </h1>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      {contactLine ? (
+                        <p className="text-[13px] leading-5 text-[#676e78]">
+                          {contactLine}
+                        </p>
+                      ) : null}
+                      <span className="rounded-full border border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-2.5 py-1 text-[11.5px] font-medium leading-[18px] text-[var(--ms-accent,#e86f22)]">
+                        {statusChip(request.status)}
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2.5">
-                {canDecide ? (
+                <div className="flex flex-wrap items-center gap-2.5">
+                  {canDecide ? (
+                    <SecondaryButton
+                      onClick={() => void declineRequest()}
+                      disabled={decisionMutation.isPending}
+                      className="rounded-full px-4 py-2.5 text-[12.5px]"
+                    >
+                      {MENTOR_REQUEST_STARTUP_LABELS.decline}
+                    </SecondaryButton>
+                  ) : null}
                   <SecondaryButton
-                    onClick={() => void declineRequest()}
-                    disabled={decisionMutation.isPending}
-                    className="rounded-full px-4 py-2.5 text-[12.5px]"
+                    href={mentorRequestMessagesHref(request.id)}
+                    className="rounded-full border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-4 py-2.5 text-[12.5px] text-[var(--ms-accent,#e86f22)] hover:border-[var(--ms-accent,#e86f22)] hover:bg-[var(--ms-accent-soft,#fdebdd)] hover:text-[var(--ms-accent-hover,#c85816)]"
                   >
-                    {MENTOR_REQUEST_STARTUP_LABELS.decline}
+                    {MENTOR_REQUEST_STARTUP_LABELS.message}
                   </SecondaryButton>
-                ) : null}
-                <SecondaryButton
-                  href={mentorRequestMessagesHref(request.id)}
-                  className="rounded-full border-[#fdebdd] bg-[#fff4ec] px-4 py-2.5 text-[12.5px] text-[#e86f22] hover:border-[#e86f22] hover:bg-[#fdebdd] hover:text-[#c85816]"
-                >
-                  {MENTOR_REQUEST_STARTUP_LABELS.message}
-                </SecondaryButton>
-                {canDecide ? (
-                  <PrimaryButton
-                    onClick={() => {
-                      setActionError("");
-                      setReviewing(true);
-                    }}
-                    disabled={decisionMutation.isPending}
-                    className="rounded-full px-4 py-2.5 text-[12.5px]"
-                  >
-                    {MENTOR_REQUEST_STARTUP_LABELS.accept}
-                  </PrimaryButton>
-                ) : null}
+                  {canDecide ? (
+                    <PrimaryButton
+                      onClick={() => {
+                        setActionError("");
+                        setReviewing(true);
+                      }}
+                      disabled={decisionMutation.isPending}
+                      className="rounded-full px-4 py-2.5 text-[12.5px]"
+                    >
+                      {MENTOR_REQUEST_STARTUP_LABELS.accept}
+                    </PrimaryButton>
+                  ) : null}
+                </div>
+              </header>
+
+              {actionError ? (
+                <p role="alert" className="mt-4 text-sm text-red-700">
+                  {actionError}
+                </p>
+              ) : null}
+
+              <div className="mt-[22px] grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <Metric
+                  label={MENTOR_REQUEST_STARTUP_LABELS.stage}
+                  value={
+                    profile?.fundingStage ||
+                    profile?.maturity ||
+                    MENTOR_REQUEST_STARTUP_LABELS.dash
+                  }
+                />
+                <Metric
+                  label={MENTOR_REQUEST_STARTUP_LABELS.sector}
+                  value={
+                    profile?.sector ||
+                    request.recommendationSnapshot?.startupSector ||
+                    MENTOR_REQUEST_STARTUP_LABELS.dash
+                  }
+                />
+                <Metric
+                  label={MENTOR_REQUEST_STARTUP_LABELS.program}
+                  value={
+                    profile?.programLevel || MENTOR_REQUEST_STARTUP_LABELS.dash
+                  }
+                />
+                <Metric
+                  label={MENTOR_REQUEST_STARTUP_LABELS.requestDate}
+                  value={formatRequestSentAt(request.createdAt)}
+                />
               </div>
-            </header>
 
-            {actionError ? (
-              <p role="alert" className="mt-4 text-sm text-red-700">
-                {actionError}
-              </p>
-            ) : null}
+              <div className="mt-[22px] grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]">
+                <div className="min-w-0 space-y-[18px]">
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                      {MENTOR_REQUEST_STARTUP_LABELS.about}
+                    </h2>
+                    <p className={STARTUP_INFO_BODY_CLASS}>
+                      {profile?.description?.trim() ||
+                        request.recommendationSnapshot?.startupSummary?.trim() ||
+                        MENTOR_REQUEST_STARTUP_LABELS.noDescription}
+                    </p>
+                  </section>
 
-            <div className="mt-[22px] grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <Metric
-                label={MENTOR_REQUEST_STARTUP_LABELS.stage}
-                value={
-                  profile?.fundingStage ||
-                  profile?.maturity ||
-                  MENTOR_REQUEST_STARTUP_LABELS.dash
-                }
-              />
-              <Metric
-                label={MENTOR_REQUEST_STARTUP_LABELS.sector}
-                value={
-                  profile?.sector ||
-                  request.recommendationSnapshot?.startupSector ||
-                  MENTOR_REQUEST_STARTUP_LABELS.dash
-                }
-              />
-              <Metric
-                label={MENTOR_REQUEST_STARTUP_LABELS.program}
-                value={
-                  profile?.programLevel || MENTOR_REQUEST_STARTUP_LABELS.dash
-                }
-              />
-              <Metric
-                label={MENTOR_REQUEST_STARTUP_LABELS.requestDate}
-                value={formatRequestSentAt(request.createdAt)}
-              />
-            </div>
-
-            <div className="mt-[22px] grid gap-[18px] lg:grid-cols-[minmax(0,1fr)_360px]">
-              <div className="min-w-0 space-y-[18px]">
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {MENTOR_REQUEST_STARTUP_LABELS.about}
-                  </h2>
-                  <p className={STARTUP_INFO_BODY_CLASS}>
-                    {profile?.description?.trim() ||
-                      request.recommendationSnapshot?.startupSummary?.trim() ||
-                      MENTOR_REQUEST_STARTUP_LABELS.noDescription}
-                  </p>
-                </section>
-
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.canvas}
-                      </h2>
-                      <p className={`mt-1 ${STARTUP_INFO_CARD_HINT_CLASS}`}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.canvasHint}
-                      </p>
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                          {MENTOR_REQUEST_STARTUP_LABELS.canvas}
+                        </h2>
+                        <p className={`mt-1 ${STARTUP_INFO_CARD_HINT_CLASS}`}>
+                          {MENTOR_REQUEST_STARTUP_LABELS.canvasHint}
+                        </p>
+                      </div>
+                      {canvas ? (
+                        <button
+                          type="button"
+                          onClick={() => void openDocument(canvas.id)}
+                          className="shrink-0 text-[12.5px] font-medium text-[var(--ms-accent-strong,#9e4400)] hover:underline"
+                        >
+                          {MENTOR_REQUEST_STARTUP_LABELS.view}
+                        </button>
+                      ) : null}
                     </div>
                     {canvas ? (
-                      <button
-                        type="button"
-                        onClick={() => void openDocument(canvas.id)}
-                        className="shrink-0 text-[12.5px] font-medium text-[#9e4400] hover:underline"
-                      >
-                        {MENTOR_REQUEST_STARTUP_LABELS.view}
-                      </button>
-                    ) : null}
-                  </div>
-                  {canvas ? (
-                    <FileRow
-                      document={canvas}
-                      onOpen={() => void openDocument(canvas.id)}
-                    />
-                  ) : (
-                    <p className={STARTUP_INFO_BODY_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.noCanvas}
-                    </p>
-                  )}
-                </section>
-
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {MENTOR_REQUEST_STARTUP_LABELS.focus}
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
-                    {tags.length > 0 ? (
-                      tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded-full border border-[#fdebdd] bg-[#fff4ec] px-2.5 py-1 text-[11.5px] font-medium leading-[17px] text-[#9e4400]"
-                        >
-                          {tag}
-                        </span>
-                      ))
+                      <FileRow
+                        document={canvas}
+                        onOpen={() => void openDocument(canvas.id)}
+                      />
                     ) : (
                       <p className={STARTUP_INFO_BODY_CLASS}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.noFocus}
+                        {MENTOR_REQUEST_STARTUP_LABELS.noCanvas}
                       </p>
                     )}
-                  </div>
-                </section>
+                  </section>
 
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {MENTOR_REQUEST_STARTUP_LABELS.need}
-                  </h2>
-                  <p
-                    className={`${STARTUP_INFO_BODY_CLASS} whitespace-pre-wrap`}
-                  >
-                    {needText(request)}
-                  </p>
-                </section>
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                      {MENTOR_REQUEST_STARTUP_LABELS.focus}
+                    </h2>
+                    <div className="flex flex-wrap gap-2">
+                      {tags.length > 0 ? (
+                        tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="rounded-full border border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-2.5 py-1 text-[11.5px] font-medium leading-[17px] text-[var(--ms-accent-strong,#9e4400)]"
+                          >
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <p className={STARTUP_INFO_BODY_CLASS}>
+                          {MENTOR_REQUEST_STARTUP_LABELS.noFocus}
+                        </p>
+                      )}
+                    </div>
+                  </section>
+
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                      {MENTOR_REQUEST_STARTUP_LABELS.need}
+                    </h2>
+                    <p
+                      className={`${STARTUP_INFO_BODY_CLASS} whitespace-pre-wrap`}
+                    >
+                      {needText(request)}
+                    </p>
+                  </section>
+                </div>
+
+                <aside className="space-y-[18px]">
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                      {MENTOR_REQUEST_STARTUP_LABELS.files}
+                    </h2>
+                    {files.length === 0 ? (
+                      <p className={STARTUP_INFO_BODY_CLASS}>
+                        {MENTOR_REQUEST_STARTUP_LABELS.noFiles}
+                      </p>
+                    ) : (
+                      <div className="space-y-2.5">
+                        {files.map((document) => (
+                          <FileRow
+                            key={document.id}
+                            document={document}
+                            onOpen={() => void openDocument(document.id)}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+
+                  {request ? (
+                    <DocumentRequestChecklist
+                      scope={{ mentorshipRequestId: request.id }}
+                      canManage
+                    />
+                  ) : null}
+
+                  <section className={STARTUP_INFO_CARD_CLASS}>
+                    <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
+                      {MENTOR_REQUEST_STARTUP_LABELS.team}
+                    </h2>
+                    {members.length === 0 ? (
+                      <p className={STARTUP_INFO_BODY_CLASS}>
+                        {MENTOR_REQUEST_STARTUP_LABELS.noTeam}
+                      </p>
+                    ) : (
+                      <div className="space-y-3">
+                        {members.map((member) => (
+                          <MemberRow key={member.id} member={member} />
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </aside>
               </div>
+            </>
+          )}
+        </div>
 
-              <aside className="space-y-[18px]">
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {MENTOR_REQUEST_STARTUP_LABELS.files}
-                  </h2>
-                  {files.length === 0 ? (
-                    <p className={STARTUP_INFO_BODY_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.noFiles}
-                    </p>
-                  ) : (
-                    <div className="space-y-2.5">
-                      {files.map((document) => (
-                        <FileRow
-                          key={document.id}
-                          document={document}
-                          onOpen={() => void openDocument(document.id)}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
-
-                {request ? (
-                  <DocumentRequestChecklist
-                    scope={{ mentorshipRequestId: request.id }}
-                    canManage
-                  />
-                ) : null}
-
-                <section className={STARTUP_INFO_CARD_CLASS}>
-                  <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {MENTOR_REQUEST_STARTUP_LABELS.team}
-                  </h2>
-                  {members.length === 0 ? (
-                    <p className={STARTUP_INFO_BODY_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.noTeam}
-                    </p>
-                  ) : (
-                    <div className="space-y-3">
-                      {members.map((member) => (
-                        <MemberRow key={member.id} member={member} />
-                      ))}
-                    </div>
-                  )}
-                </section>
-              </aside>
-            </div>
-          </>
-        )}
-      </div>
-
-      {reviewing && request ? (
-        <MentorRequestReviewDialog
-          request={request}
-          isPending={decisionMutation.isPending}
-          error={actionError}
-          onClose={() => {
-            setReviewing(false);
-            setActionError("");
-          }}
-          onAccept={(slot, meetLink, transcribeRequested, requestedDocuments) =>
-            void acceptRequest(
+        {reviewing && request ? (
+          <MentorRequestReviewDialog
+            request={request}
+            isPending={decisionMutation.isPending}
+            error={actionError}
+            onClose={() => {
+              setReviewing(false);
+              setActionError("");
+            }}
+            onAccept={(
               slot,
               meetLink,
               transcribeRequested,
               requestedDocuments,
-            )
-          }
-          onPropose={(slots, requestedDocuments) =>
-            void proposeSlots(slots, requestedDocuments)
-          }
-          onAskInfo={(question, requestedDocuments) =>
-            void askInfo(question, requestedDocuments)
-          }
-        />
-      ) : null}
+            ) =>
+              void acceptRequest(
+                slot,
+                meetLink,
+                transcribeRequested,
+                requestedDocuments,
+              )
+            }
+            onPropose={(slots, requestedDocuments) =>
+              void proposeSlots(slots, requestedDocuments)
+            }
+            onAskInfo={(question, requestedDocuments) =>
+              void askInfo(question, requestedDocuments)
+            }
+          />
+        ) : null}
+      </MentorAccent>
     </AppShell>
   );
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex min-h-[84px] flex-col justify-center rounded-[20px] border border-[#f2b78f] px-6 py-3">
+    <div className="flex min-h-[84px] flex-col justify-center rounded-[20px] border border-[var(--ms-accent-border,#f2b78f)] px-6 py-3">
       <p className="text-[11px] leading-[17px] text-[#858c96]">{label}</p>
       <p className="mt-0.5 text-sm font-medium leading-[22px] text-[#22262b]">
         {value}
@@ -670,7 +678,7 @@ function MemberRow({ member }: { member: OrganizationMember }) {
       className="flex items-center justify-between gap-3 rounded-lg hover:bg-[#f7f8f9]"
     >
       <div className="flex min-w-0 items-center gap-2.5">
-        <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fdebdd] text-[11px] font-medium text-[#a8480e]">
+        <div className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--ms-accent-soft,#fdebdd)] text-[11px] font-medium text-[var(--ms-accent-strong,#a8480e)]">
           {initials(member.fullName)}
         </div>
         <div className="min-w-0">
@@ -690,7 +698,7 @@ function MemberRow({ member }: { member: OrganizationMember }) {
       <span
         className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-medium ${
           member.founder
-            ? "bg-[#fff4ec] text-[#9e4400]"
+            ? "bg-[var(--ms-accent-faint,#fff4ec)] text-[var(--ms-accent-strong,#9e4400)]"
             : "bg-[#f2f4f6] text-[#676e78]"
         }`}
       >
