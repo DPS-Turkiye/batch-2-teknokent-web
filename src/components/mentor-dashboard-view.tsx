@@ -25,6 +25,7 @@ import {
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 const ACTION_ITEM_LABELS: Record<ActionItemStatus, string> = {
   [ActionItemStatus.Open]: "Açık",
@@ -922,7 +923,7 @@ export function MentorDashboardView() {
                           progress={progress}
                           ratio={ratio}
                           actionItems={actionItems}
-                          href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
+                          href={mentorRequestStartupHref(request.id)}
                           expanded={expandedId === request.id}
                           onToggle={() =>
                             setExpandedId((current) =>

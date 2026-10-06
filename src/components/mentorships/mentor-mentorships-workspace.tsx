@@ -52,7 +52,6 @@ import {
   formatRequestSentAt,
   meetingAboutHref,
   meetingCallHref,
-  mentorRequestHref,
   mentorRequestStartupHref,
   mentorshipPeriodLabel,
   mentorshipTopics,
@@ -652,7 +651,7 @@ function PastMentorshipRow({
   const period = mentorshipPeriodLabel(meetings, request);
   const detailHref = latest
     ? meetingAboutHref(latest.id)
-    : mentorRequestHref(request.id);
+    : mentorRequestStartupHref(request.id);
 
   return (
     <article className="rounded-[20px] border border-[#e4e7ea] bg-white px-5 py-4">

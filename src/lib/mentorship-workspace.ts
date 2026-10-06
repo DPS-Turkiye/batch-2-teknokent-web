@@ -113,7 +113,7 @@ export function activeMentorshipHref(
     return meetingCallHref(meeting.id);
   }
   return viewerIsMentor
-    ? mentorRequestHref(request.id)
+    ? mentorRequestStartupHref(request.id)
     : menteeRequestStatusHref(request.id);
 }
 
@@ -201,10 +201,6 @@ export function menteeRequestOwnerLabel(request: MentorshipRequest) {
   return (
     request.requestedForName?.trim() || request.requesterName?.trim() || ""
   );
-}
-
-export function mentorRequestHref(id: string) {
-  return `/mentor-dashboard/mentorship/${encodeURIComponent(id)}`;
 }
 
 export function mentorRequestMessagesHref(id: string) {

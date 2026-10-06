@@ -230,7 +230,7 @@ describe("MentorMentorshipsWorkspace", () => {
         .map((link) => link.getAttribute("href")),
     ).toEqual([
       "/meetings/research/about?id=ended-meeting",
-      "/mentor-dashboard/mentorship/withdrawn-1",
+      "/mentorships/requests/withdrawn-1",
     ]);
   });
 

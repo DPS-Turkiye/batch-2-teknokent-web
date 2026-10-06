@@ -49,7 +49,7 @@ function state(overrides: Partial<Startup> = {}): Startup {
       },
       tasks: "3 / 5 tamamlandı",
       files: "4 dosya · son 2 gün önce",
-      notesHref: "/mentor-dashboard/mentorship/r1?web=1",
+      notesHref: "/mentorships/requests/r1?web=1",
     },
     isError: false,
     isLoading: false,
@@ -101,10 +101,7 @@ describe("MobileStartupView", () => {
 
     for (const name of [/Verilen görevler/, /Dosyalar/, "Web’de Aç"]) {
       const link = screen.getByRole("link", { name });
-      expect(link).toHaveAttribute(
-        "href",
-        "/mentor-dashboard/mentorship/r1?web=1",
-      );
+      expect(link).toHaveAttribute("href", "/mentorships/requests/r1?web=1");
       expect(link).not.toHaveAttribute("data-next-link");
     }
     expect(screen.getByRole("link", { name: "Mesaj" })).toHaveAttribute(

@@ -66,7 +66,7 @@ describe("MentorRequestCard", () => {
     expect(link).toBeInTheDocument();
     expect(link.closest("a")).toHaveAttribute(
       "href",
-      "/mentor-dashboard/mentorship/40000000-0000-0000-0000-000000000012",
+      "/mentorships/requests/40000000-0000-0000-0000-000000000012",
     );
   });
 
