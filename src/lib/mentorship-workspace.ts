@@ -121,10 +121,6 @@ export function meetingAboutHref(meetingId: string) {
   return `/meetings/research/about?id=${encodeURIComponent(meetingId)}`;
 }
 
-export function meetingSummaryHref(meetingId: string) {
-  return `/meetings/research/summary?id=${encodeURIComponent(meetingId)}`;
-}
-
 export function meetingFeedbackHref(meetingId: string) {
   return `/meetings/research/feedback?id=${encodeURIComponent(meetingId)}`;
 }
