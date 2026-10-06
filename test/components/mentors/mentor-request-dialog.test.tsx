@@ -1,13 +1,13 @@
 import { fireEvent, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
 import { UserRole } from "@/interfaces/session";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
-import { renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => ({
@@ -63,6 +63,21 @@ describe("MentorRequestDialog", () => {
   beforeEach(() => {
     sessionStorage.clear();
     vi.mocked(submitMentorshipRequest).mockReset();
+    // Early morning, so "today at 10:00" is more than four hours away.
+    freezeDate("2026-09-08T05:00:00");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("will not send a time sooner than four hours", () => {
+    renderDialog();
+    fillPreference(1, upcomingPreferenceDays()[0]?.value ?? "", "07:00");
+
+    expect(
+      screen.getByRole("button", { name: "Talebi gönder" }),
+    ).toBeDisabled();
   });
 
   it("keeps Talebi gönder disabled until at least one valid preference is entered", () => {
