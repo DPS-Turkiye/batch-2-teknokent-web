@@ -66,7 +66,11 @@ export function mobileAccentFor(role?: UserRole | null) {
   return (role && MOBILE_ACCENTS[role]) ?? MOBILE_NEUTRAL_ACCENT;
 }
 
-/** A web page opened from the phone app, without being sent back to /m. */
+/**
+ * A web page opened from the phone app, without being sent back to /m. Render
+ * it as a plain <a>, not next/link: the proxy only remembers the choice on a
+ * full page load, and leaving the phone shell needs one anyway.
+ */
 export function webHref(path: string) {
   const separator = path.includes("?") ? "&" : "?";
   return `${path}${separator}${PREFER_WEB_PARAM}=1`;

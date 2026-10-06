@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
@@ -192,7 +191,7 @@ export function MobileLoginView() {
             <Image src="/mobile/icon-info.svg" alt="" width={16} height={16} />
             <span className="sr-only">Kayıt neden web’de?</span>
           </button>
-          <Link
+          <a
             href={SIGNUP_ON_WEB_HREF}
             target="_blank"
             rel="noopener noreferrer"
@@ -200,7 +199,7 @@ export function MobileLoginView() {
           >
             Web üzerinden kayıt olun
             <Image src="/mobile/icon-ext.svg" alt="" width={16} height={16} />
-          </Link>
+          </a>
         </div>
       </div>
 

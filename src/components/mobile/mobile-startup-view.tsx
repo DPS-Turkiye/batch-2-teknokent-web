@@ -38,7 +38,7 @@ function LinkRow({
 }) {
   return (
     <li>
-      <Link href={href} className="flex items-center gap-3 px-[18px] py-3.5">
+      <a href={href} className="flex items-center gap-3 px-[18px] py-3.5">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-[#f5f6f8]">
           <Image src={icon} alt="" width={18} height={18} />
         </span>
@@ -54,7 +54,7 @@ function LinkRow({
           width={18}
           height={18}
         />
-      </Link>
+      </a>
     </li>
   );
 }
@@ -251,12 +251,12 @@ export function MobileStartupView({
               <p className="min-w-0 flex-1 text-[#676e78]">
                 Görüşme notları ve değerlendirmeler web’de.
               </p>
-              <Link
+              <a
                 href={detail.notesHref}
                 className="shrink-0 font-semibold text-[#22262b]"
               >
                 Web’de Aç
-              </Link>
+              </a>
             </div>
           </>
         )}
