@@ -89,6 +89,7 @@ export const MENTOR_REQUEST_STARTUP_LABELS = {
   acceptDefaultMessage: "Talebiniz kabul edildi.",
   acceptError: "Talep kabul edilemedi. Lütfen tekrar dene.",
   proposeError: "Öneri gönderilemedi. Lütfen tekrar dene.",
+  askInfoError: "Soru gönderilemedi. Lütfen tekrar dene.",
   declineMessage: "Şu an uygun değilim.",
   declineError: "Talep reddedilemedi. Lütfen tekrar dene.",
 } as const;

@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -12,7 +12,11 @@ import {
 import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
-import { renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, renderWithQueryClient } from "@test/test-utils";
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 const pagesByTab = vi.hoisted(() => ({
   active: [] as MentorshipRequest[],
@@ -316,6 +320,7 @@ describe("MentorMentorshipsWorkspace", () => {
   });
 
   it("lets the mentor propose alternative times instead of accepting mentee slots", async () => {
+    freezeDate("2026-09-08T05:00:00");
     const user = userEvent.setup();
     mockRequests([request()]);
     mutateAsync.mockResolvedValue(
@@ -343,6 +348,33 @@ describe("MentorMentorshipsWorkspace", () => {
       status: MentorshipRequestStatus.CounterProposed,
       message: expect.stringContaining(`proposedSlots:${day}T15:00`),
       requestedDocuments: [],
+    });
+    expect(logMentorshipMeeting).not.toHaveBeenCalled();
+  });
+
+  it("lets the mentor ask for information and documents before deciding", async () => {
+    const user = userEvent.setup();
+    mockRequests([request()]);
+    mutateAsync.mockResolvedValue(
+      request({ status: MentorshipRequestStatus.MoreInfoRequested }),
+    );
+
+    renderWithQueryClient(<MentorMentorshipsWorkspace />);
+
+    await user.click(screen.getByRole("tab", { name: "Talepler" }));
+    await user.click(screen.getByRole("button", { name: "Talebi incele" }));
+    await user.click(screen.getByRole("button", { name: "Bilgi iste" }));
+    expect(screen.getByRole("button", { name: "Gönder" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "Belge ekle" }));
+    await user.type(screen.getByPlaceholderText("1. belge adı"), "Pitch deck");
+    await user.click(screen.getByRole("button", { name: "Gönder" }));
+
+    expect(mutateAsync).toHaveBeenCalledWith({
+      id: "req-1",
+      status: MentorshipRequestStatus.MoreInfoRequested,
+      message: "Görüşmeden önce aşağıdaki belgeleri paylaşır mısın?",
+      requestedDocuments: ["Pitch deck"],
     });
     expect(logMentorshipMeeting).not.toHaveBeenCalled();
   });

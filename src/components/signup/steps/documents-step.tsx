@@ -30,14 +30,14 @@ const FILE_CARDS: {
     title: "Business Model Canvas",
     subtitle: "İş modelini tek sayfada özetleyen doküman.",
     accept: ".pdf,.docx",
-    helpText: "PDF veya DOCX · en fazla 10 MB",
+    helpText: "PDF veya DOCX · en fazla 25 MB",
   },
   {
     kind: StartupDocumentKind.PitchDeck,
     title: "Pitch Deck",
     subtitle: "Sunum dosyan. Mentorun startupını hızlıca anlamasını sağlar.",
     accept: ".pdf,.pptx",
-    helpText: "PDF veya PPTX · en fazla 10 MB",
+    helpText: "PDF veya PPTX · en fazla 25 MB",
   },
 ];
 
@@ -82,7 +82,7 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
           file={draft.documents[StartupDocumentKind.Mvp] ?? null}
           onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
           accept=".pdf,.docx,.pptx"
-          helpText="PDF, DOCX veya PPTX · en fazla 10 MB"
+          helpText="PDF, DOCX veya PPTX · en fazla 25 MB"
           storedName={
             stored.byKind(StartupDocumentKind.Mvp)?.originalFilename ?? null
           }

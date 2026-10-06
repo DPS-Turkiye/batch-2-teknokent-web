@@ -12,6 +12,8 @@ import {
 
 type Tasks = ReturnType<typeof useMobileTasks>;
 
+vi.mock("next/link", () => import("@test/mocks/next-link"));
+
 vi.mock("@/hooks/use-mobile-tasks", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/hooks/use-mobile-tasks")>()),
   useMobileTasks: () => tasks,
@@ -141,9 +143,11 @@ describe("MobileTasksView", () => {
       within(sheet).getByRole("button", { name: "Tamamlandı olarak işaretle" }),
     );
     expect(complete).toHaveBeenCalledWith(MENTOR_TASK);
-    expect(
-      within(sheet).getByRole("link", { name: "Mentora mesaj gönder" }),
-    ).toHaveAttribute("href", "/m/messages/mentorship/r1");
+    const chat = within(sheet).getByRole("link", {
+      name: "Mentora mesaj gönder",
+    });
+    expect(chat).toHaveAttribute("href", "/m/messages/mentorship/r1");
+    expect(chat).toHaveAttribute("data-next-link");
   });
 
   it("sends a process task to the web to hand it in", () => {
@@ -151,9 +155,11 @@ describe("MobileTasksView", () => {
     render(<MobileTasksView />);
 
     const sheet = screen.getByRole("dialog");
-    expect(
-      within(sheet).getByRole("link", { name: "Web’de teslim et" }),
-    ).toHaveAttribute("href", "/startup/process?web=1");
+    const webLink = within(sheet).getByRole("link", {
+      name: "Web’de teslim et",
+    });
+    expect(webLink).toHaveAttribute("href", "/startup/process?web=1");
+    expect(webLink).not.toHaveAttribute("data-next-link");
     expect(
       within(sheet).queryByRole("button", {
         name: "Tamamlandı olarak işaretle",

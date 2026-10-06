@@ -11,6 +11,9 @@ import { useStartupFiles } from "@/hooks/use-startup-files";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { attachDocumentRequestUpload } from "@/lib/client/document-requests";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   deleteDocument,
   getStartupDocumentRequests,
@@ -33,6 +36,10 @@ vi.mock("@/hooks/use-organization-members", () => ({
 }));
 vi.mock("@/hooks/use-startup-header", () => ({
   useStartupHeader: vi.fn(),
+}));
+vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
+vi.mock("@/lib/client/document-requests", () => ({
+  attachDocumentRequestUpload: vi.fn(),
 }));
 vi.mock("@/lib/client/startup-documents", () => ({
   deleteDocument: vi.fn(),
@@ -202,5 +209,35 @@ describe("useStartupFiles", () => {
     await waitFor(() => expect(result.current.isDeleting).toBe(false));
     expect(deleteDocument).toHaveBeenCalled();
     expect(result.current.deletingDocument).toBe(deck);
+  });
+
+  it("uploads a requested file and attaches it to the request", async () => {
+    vi.mocked(uploadDocument).mockResolvedValue({ id: "stored-1" } as never);
+    vi.mocked(attachDocumentRequestUpload).mockResolvedValue({} as never);
+    const file = new File(["deck"], "deck.pdf", { type: "application/pdf" });
+    const { result } = renderHook(() => useStartupFiles(), { wrapper });
+
+    act(() =>
+      result.current.uploadForRequest(
+        { ...programRequest, meetingId: "meeting-1" },
+        file,
+      ),
+    );
+
+    await waitFor(() =>
+      expect(attachDocumentRequestUpload).toHaveBeenCalledWith(
+        "deck-request",
+        "stored-1",
+      ),
+    );
+    expect(uploadDocument).toHaveBeenCalledWith(
+      file,
+      DocumentKind.RequestedDoc,
+      undefined,
+      "meeting-1",
+    );
+    await waitFor(() =>
+      expect(result.current.uploadingRequestId).toBeUndefined(),
+    );
   });
 });

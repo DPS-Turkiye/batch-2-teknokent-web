@@ -37,7 +37,7 @@ export function CvFileSection({
         onChange={cv.choose}
         alreadyStored={cv.storedName ? { name: cv.storedName } : null}
         accept=".pdf"
-        helpText="PDF · En fazla 10 MB"
+        helpText="PDF · En fazla 25 MB"
       />
       {cv.storedName && !cv.selected ? (
         cv.storedIsPdf ? (

@@ -136,8 +136,26 @@ export function isHalfOrFullHour(value: string) {
   return minute === 0 || minute === 30;
 }
 
+/** Mirrors the backend's MeetingSlotTimes.MIN_BOOKING_LEAD. */
+export const MIN_BOOKING_LEAD_HOURS = 4;
+
 export function isValidPreferredSlot(slot: PreferredSlot) {
   return Boolean(parseLocalDate(slot.date)) && isHalfOrFullHour(slot.time);
+}
+
+/** Only for times being entered now; times already in a message stay readable. */
+export function isBookableSlot(slot: PreferredSlot) {
+  const startsAt = preferredSlotStartsAt(slot);
+  return (
+    startsAt !== null &&
+    Date.parse(startsAt) >= Date.now() + MIN_BOOKING_LEAD_HOURS * 3_600_000
+  );
+}
+
+/** The entered times, or none at all while any of them is too soon. */
+function enteredSlots(slots: readonly PreferredSlot[]) {
+  const valid = slots.filter(isValidPreferredSlot);
+  return valid.every(isBookableSlot) ? valid : [];
 }
 
 export function formatPreferredSlot(slot: PreferredSlot) {
@@ -151,7 +169,7 @@ export function formatPreferredSlot(slot: PreferredSlot) {
 }
 
 export function hasPreferredSlots(slots: readonly PreferredSlot[]) {
-  const valid = slots.filter(isValidPreferredSlot);
+  const valid = enteredSlots(slots);
   const unique = new Set(valid.map(preferredSlotKey)).size;
   return (
     valid.length >= 1 &&
@@ -199,7 +217,7 @@ export function proposedSlotsMessageLines(slots: readonly PreferredSlot[]) {
 }
 
 export function hasProposedSlots(slots: readonly PreferredSlot[]) {
-  const valid = slots.filter(isValidPreferredSlot);
+  const valid = enteredSlots(slots);
   const unique = new Set(valid.map(preferredSlotKey)).size;
   return (
     valid.length >= 1 &&
