@@ -6,7 +6,10 @@ import { X } from "lucide-react";
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
-import { DocumentRequestTitleEditor } from "@/components/mentorships/document-request-title-editor";
+import {
+  DocumentRequestTitleEditor,
+  normalizeDocumentTitles,
+} from "@/components/mentorships/document-request-title-editor";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import {
@@ -27,7 +30,10 @@ import {
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
 
-type ReviewMode = "accept" | "propose";
+type ReviewMode = "accept" | "propose" | "info";
+
+const DOCUMENTS_ONLY_QUESTION =
+  "Görüşmeden önce aşağıdaki belgeleri paylaşır mısın?";
 
 export function MentorRequestReviewDialog({
   request,
@@ -36,6 +42,7 @@ export function MentorRequestReviewDialog({
   onClose,
   onAccept,
   onPropose,
+  onAskInfo,
 }: {
   request: MentorshipRequest;
   isPending: boolean;
@@ -48,6 +55,7 @@ export function MentorRequestReviewDialog({
     requestedDocuments: string[],
   ) => void;
   onPropose: (slots: PreferredSlot[], requestedDocuments: string[]) => void;
+  onAskInfo: (question: string, requestedDocuments: string[]) => void;
 }) {
   const slots = parsePreferredSlotsFromMessage(request.requesterMessage);
   const dayOptions = upcomingPreferenceDays();
@@ -56,6 +64,7 @@ export function MentorRequestReviewDialog({
   const [meetLink, setMeetLink] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
   const [documentTitles, setDocumentTitles] = useState<string[]>([]);
+  const [question, setQuestion] = useState("");
   const [proposedSlots, setProposedSlots] = useState<PreferredSlot[]>([
     emptyPreferredSlot(),
   ]);
@@ -65,6 +74,9 @@ export function MentorRequestReviewDialog({
   const person = mentorWorkspacePerson(request);
   const canAccept = slots.length === 0 || Boolean(selected);
   const canPropose = hasProposedSlots(proposedSlots);
+  const canAskInfo =
+    question.trim() !== "" ||
+    normalizeDocumentTitles(documentTitles).length > 0;
 
   function updateProposedSlot(index: number, patch: Partial<PreferredSlot>) {
     setProposedSlots((current) =>
@@ -253,6 +265,22 @@ export function MentorRequestReviewDialog({
           </>
         ) : null}
 
+        {mode === "info" ? (
+          <label className="mt-5 block">
+            <span className="text-base font-medium text-[#22262b]">
+              Startup’a sorun
+            </span>
+            <textarea
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              rows={4}
+              maxLength={5000}
+              placeholder="Karar vermeden önce öğrenmek istediklerini yaz."
+              className="mt-2 w-full rounded-lg border border-[#d4d8dd] px-3.5 py-2.5 text-sm text-[#22262b] outline-none"
+            />
+          </label>
+        ) : null}
+
         <DocumentRequestTitleEditor
           titles={documentTitles}
           onChange={setDocumentTitles}
@@ -270,7 +298,24 @@ export function MentorRequestReviewDialog({
             Startup’ı görüntüle
           </SecondaryButton>
           <SecondaryButton onClick={onClose}>Vazgeç</SecondaryButton>
-          {mode === "propose" ? (
+          <SecondaryButton
+            onClick={() => setMode(mode === "info" ? "accept" : "info")}
+          >
+            {mode === "info" ? "Geri dön" : "Bilgi iste"}
+          </SecondaryButton>
+          {mode === "info" ? (
+            <PrimaryButton
+              disabled={isPending || !canAskInfo}
+              onClick={() =>
+                onAskInfo(
+                  question.trim() || DOCUMENTS_ONLY_QUESTION,
+                  documentTitles,
+                )
+              }
+            >
+              {isPending ? "Gönderiliyor…" : "Gönder"}
+            </PrimaryButton>
+          ) : mode === "propose" ? (
             <PrimaryButton
               disabled={isPending || !canPropose}
               onClick={() =>

@@ -4,6 +4,7 @@ import { FileText, Upload, X } from "lucide-react";
 import { ChangeEvent, useRef, useState } from "react";
 
 import type { UploadedFile } from "@/interfaces/signup";
+import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
 
 export function FileDrop({
@@ -12,8 +13,8 @@ export function FileDrop({
   onChange,
   alreadyStored,
   accept = ".pdf,.docx",
-  helpText = "PDF veya DOCX · En fazla 10 MB",
-  maxBytes = 10 * 1024 * 1024,
+  helpText = "PDF veya DOCX · En fazla 25 MB",
+  maxBytes = DOCUMENT_MAX_BYTES,
 }: {
   file: UploadedFile | null;
   label: string;
@@ -26,17 +27,20 @@ export function FileDrop({
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
 
-  function handleChange(event: ChangeEvent<HTMLInputElement>) {
-    const selected = event.target.files?.[0];
+  function takeFile(selected: File | undefined) {
     if (!selected) return;
     if (selected.size > maxBytes) {
       setError(`Dosya boyutu ${formatFileSize(maxBytes)} sınırını aşamaz.`);
-      event.target.value = "";
       return;
     }
 
     setError(null);
     onChange({ name: selected.name, size: selected.size, file: selected });
+  }
+
+  function handleChange(event: ChangeEvent<HTMLInputElement>) {
+    takeFile(event.target.files?.[0]);
+    event.target.value = "";
   }
 
   if (!file && alreadyStored) {
@@ -105,7 +109,14 @@ export function FileDrop({
   }
 
   return (
-    <div className="rounded-xl border border-dashed border-[#d6dade] bg-white px-4 py-6 text-center">
+    <div
+      onDragOver={(event) => event.preventDefault()}
+      onDrop={(event) => {
+        event.preventDefault();
+        takeFile(event.dataTransfer.files?.[0]);
+      }}
+      className="rounded-xl border border-dashed border-[#d6dade] bg-white px-4 py-6 text-center"
+    >
       <Upload className="mx-auto size-5 text-[#858c96]" strokeWidth={1.8} />
       <p className="mt-2 text-xs text-[#676e78]">Dosyayı sürükleyip bırakın</p>
       <button

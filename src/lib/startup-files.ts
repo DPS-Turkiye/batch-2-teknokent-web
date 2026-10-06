@@ -50,6 +50,7 @@ export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
   [DocumentKind.Logo]: "Logo",
   [DocumentKind.Avatar]: "Profil fotoğrafı",
   [DocumentKind.ProfilePdf]: "Profil PDF'i",
+  [DocumentKind.RequestedDoc]: "İstenen belge",
 };
 
 /** What a startup can upload from the Dosyalar tab. */
@@ -74,6 +75,8 @@ export type StartupFileRow = {
   status: StartupFileStatus;
   /** Set for the startup's own files, which it can share or delete. */
   ownDocument: StartupDocument | null;
+  /** Set for a requested file not yet uploaded, which it can upload. */
+  pendingRequest?: DocumentRequestItem;
 };
 
 function requestContext(item: DocumentRequestItem, programName: string | null) {
@@ -138,6 +141,7 @@ export function buildStartupFileRows({
         date: item.createdAt,
         status: StartupFileStatus.Waiting,
         ownDocument: null,
+        pendingRequest: item,
       });
       continue;
     }

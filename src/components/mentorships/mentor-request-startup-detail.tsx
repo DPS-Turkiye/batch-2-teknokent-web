@@ -238,6 +238,27 @@ export function MentorRequestStartupDetail({
     }
   }
 
+  async function askInfo(question: string, requestedDocuments: string[]) {
+    if (!request) return;
+    setActionError("");
+    try {
+      await decisionMutation.mutateAsync({
+        id: request.id,
+        status: MentorshipRequestStatus.MoreInfoRequested,
+        message: question,
+        requestedDocuments: normalizeDocumentTitles(requestedDocuments),
+      });
+      setReviewing(false);
+      router.push("/mentorships?tab=requests");
+    } catch (caught) {
+      setActionError(
+        caught instanceof Error
+          ? caught.message
+          : MENTOR_REQUEST_STARTUP_LABELS.askInfoError,
+      );
+    }
+  }
+
   async function declineRequest() {
     if (!request) return;
     setActionError("");
@@ -565,6 +586,9 @@ export function MentorRequestStartupDetail({
           }
           onPropose={(slots, requestedDocuments) =>
             void proposeSlots(slots, requestedDocuments)
+          }
+          onAskInfo={(question, requestedDocuments) =>
+            void askInfo(question, requestedDocuments)
           }
         />
       ) : null}

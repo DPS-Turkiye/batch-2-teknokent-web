@@ -9,6 +9,7 @@ import {
 } from "@/components/onboarding/onboarding-tone";
 import { useObjectUrl } from "@/hooks/use-object-url";
 import type { UploadedFile } from "@/interfaces/signup";
+import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
 
 export const onboardingInputClass =
@@ -214,7 +215,7 @@ export function OnboardingFileField({
   onChange,
   accept,
   helpText = "veya cihazından seç",
-  maxBytes = 10 * 1024 * 1024,
+  maxBytes = DOCUMENT_MAX_BYTES,
   storedName,
 }: {
   label: string;

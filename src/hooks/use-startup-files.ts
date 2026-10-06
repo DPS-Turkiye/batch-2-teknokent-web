@@ -11,8 +11,12 @@ import {
   useStartupDocuments,
 } from "@/hooks/use-startup-documents";
 import { useStartupHeader } from "@/hooks/use-startup-header";
+import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { attachDocumentRequestUpload } from "@/lib/client/document-requests";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   deleteDocument,
   getStartupDocumentRequests,
@@ -131,6 +135,36 @@ export function useStartupFiles() {
       }),
   });
 
+  const answerRequest = useMutation({
+    mutationFn: async ({
+      item,
+      file,
+    }: {
+      item: DocumentRequestItem;
+      file: File;
+    }) => {
+      const stored = await uploadDocument(
+        file,
+        DocumentKind.RequestedDoc,
+        undefined,
+        item.meetingId ?? undefined,
+      );
+      return attachDocumentRequestUpload(item.id, stored.id);
+    },
+    onSuccess: () => {
+      void refresh();
+      void queryClient.invalidateQueries({
+        queryKey: STARTUP_DOCUMENT_REQUESTS_QUERY_KEY,
+      });
+      showToast({ message: "Dosya yüklendi.", tone: "success" });
+    },
+    onError: (error) =>
+      showToast({
+        message: errorMessage(error, "Dosya yüklenemedi."),
+        tone: "error",
+      }),
+  });
+
   const remove = useMutation({
     mutationFn: deleteDocument,
     onSuccess: () => {
@@ -178,5 +212,10 @@ export function useStartupFiles() {
     stopSharing: (mentorId: string) => {
       if (sharingId) unshare.mutate({ documentId: sharingId, mentorId });
     },
+    uploadForRequest: (item: DocumentRequestItem, file: File) =>
+      answerRequest.mutate({ item, file }),
+    uploadingRequestId: answerRequest.isPending
+      ? answerRequest.variables?.item.id
+      : undefined,
   };
 }
