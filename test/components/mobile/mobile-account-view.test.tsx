@@ -18,6 +18,8 @@ vi.mock("@/hooks/use-mobile-account", () => ({
   useMobileAccount: () => account,
 }));
 
+vi.mock("next/link", () => import("@test/mocks/next-link"));
+
 function accountState(overrides: Partial<Account> = {}): Account {
   return {
     avatarClass: "",
@@ -109,10 +111,9 @@ describe("MobileAccountView", () => {
   it("links profile editing to the web", () => {
     render(<MobileAccountView />);
 
-    expect(screen.getByRole("link", { name: "Web’de Aç" })).toHaveAttribute(
-      "href",
-      "/profile?web=1",
-    );
+    const webLink = screen.getByRole("link", { name: "Web’de Aç" });
+    expect(webLink).toHaveAttribute("href", "/profile?web=1");
+    expect(webLink).not.toHaveAttribute("data-next-link");
   });
 
   it("signs out", async () => {

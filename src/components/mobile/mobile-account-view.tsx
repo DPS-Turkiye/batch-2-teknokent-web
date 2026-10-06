@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileToggle } from "@/components/mobile/mobile-toggle";
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar";
@@ -138,12 +136,12 @@ export function MobileAccountView() {
               {account.webEdit.hint}
             </p>
           </div>
-          <Link
+          <a
             href={account.webEdit.href}
             className="shrink-0 rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] leading-[1.35] font-semibold text-[#22262b]"
           >
             Web’de Aç
-          </Link>
+          </a>
         </section>
 
         <button
