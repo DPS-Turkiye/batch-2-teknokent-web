@@ -23,7 +23,7 @@ export function updateOrganization(
   return backendRequest<StartupProfile>({
     method: HttpMethod.Put,
     url: `/api/organizations/${encodeURIComponent(organizationId)}`,
-    data: { actorId, ...profile },
+    data: { ...profile, actorId },
   });
 }
 
@@ -35,6 +35,6 @@ export function updateOrganizationStatus(
   return backendRequest<StartupProfile>({
     method: HttpMethod.Put,
     url: `/api/organizations/${encodeURIComponent(organizationId)}/status`,
-    data: { actorId, ...status },
+    data: { ...status, actorId },
   });
 }

@@ -1,12 +1,13 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
+import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import {
   deleteRegularMentorship,
   fetchRegularMentorship,
   updateRegularMentorship,
 } from "@/lib/api/mentorships";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-import { getSessionMentorId } from "@/lib/session";
+import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -14,8 +15,21 @@ type RouteContext = {
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
+    const { userId, organizationId } = await getSessionIds();
     const { id } = await context.params;
-    return backendResponse(await fetchRegularMentorship(id));
+    const response = await fetchRegularMentorship(id);
+    const mentorship = response.data as RegularMentorship | undefined;
+    if (
+      response.status === 200 &&
+      mentorship?.mentorId !== userId &&
+      mentorship?.organizationId !== organizationId
+    ) {
+      return NextResponse.json(
+        { code: "NOT_FOUND", message: "Düzenli mentorlük bulunamadı." },
+        { status: 404 },
+      );
+    }
+    return backendResponse(response);
   } catch (error) {
     return apiErrorResponse(error, {
       message: "Düzenli mentorlük bulunamadı.",

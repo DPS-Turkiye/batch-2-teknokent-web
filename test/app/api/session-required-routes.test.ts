@@ -6,22 +6,36 @@ import {
   GET as listActionItems,
   POST as createActionItemRoute,
 } from "@/app/api/action-items/route";
+import { POST as addBotRoute } from "@/app/api/botapi/route";
+import { GET as listDocumentRequestsRoute } from "@/app/api/document-requests/route";
 import { POST as recommendMentorsRoute } from "@/app/api/mentor-recommendations/route";
 import { GET as getMentorRequest } from "@/app/api/mentor-requests/[id]/route";
 import { PATCH as confirmProfile } from "@/app/api/profile-analysis/[id]/confirmation/route";
+import { GET as transcriptRoute } from "@/app/api/transcriptapi/route";
 import {
   createActionItem,
   fetchActionItems,
   updateActionItem,
 } from "@/lib/api/action-items";
+import { fetchDocumentRequests } from "@/lib/api/document-requests";
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
 import { confirmProfileAnalysis } from "@/lib/api/profile-analysis";
+import { createMeetingBot } from "@/lib/botapi";
 import { HttpMethod } from "@/lib/http-method";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
-vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
+vi.mock("@/lib/session", () => ({
+  getSessionIds: vi.fn(),
+  getSessionMentorId: vi.fn(),
+}));
+vi.mock("@/lib/botapi", () => ({ createMeetingBot: vi.fn() }));
+vi.mock("@/lib/transcriptapi", () => ({ fetchMeetingTranscript: vi.fn() }));
+vi.mock("@/lib/api/document-requests", () => ({
+  fetchDocumentRequests: vi.fn(),
+}));
 vi.mock("@/lib/api/action-items", () => ({
   createActionItem: vi.fn(),
   fetchActionItems: vi.fn(),
@@ -81,6 +95,34 @@ const cases = [
     name: "POST /api/mentor-recommendations",
     call: () => recommendMentorsRoute(request(HttpMethod.Post, {})),
     backend: recommendMentors,
+  },
+  {
+    name: "POST /api/botapi",
+    call: () =>
+      addBotRoute(
+        request(HttpMethod.Post, {
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+        }),
+      ),
+    backend: createMeetingBot,
+  },
+  {
+    name: "GET /api/transcriptapi",
+    call: () =>
+      transcriptRoute(
+        new NextRequest(
+          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
+        ),
+      ),
+    backend: fetchMeetingTranscript,
+  },
+  {
+    name: "GET /api/document-requests",
+    call: () =>
+      listDocumentRequestsRoute(
+        new NextRequest("http://localhost/x?meetingId=meeting-1"),
+      ),
+    backend: fetchDocumentRequests,
   },
 ];
 

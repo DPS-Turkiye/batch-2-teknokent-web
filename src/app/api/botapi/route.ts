@@ -5,9 +5,11 @@ import {
 } from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
 import { apiErrorResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
+    await getSessionIds();
     const body = await request.json();
     const parsed = addBotBodySchema.safeParse(body);
 
@@ -32,6 +34,7 @@ export async function POST(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    await getSessionIds();
     const { searchParams } = request.nextUrl;
     const parsed = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),

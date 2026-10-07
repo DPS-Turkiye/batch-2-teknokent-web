@@ -11,7 +11,7 @@ import {
 import { fetchRegularMentorships } from "@/lib/api/mentorships";
 import { fetchPrograms } from "@/lib/api/programs";
 import { backendResponse } from "@/lib/server/api-response";
-import { UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 
 export async function resolveMentorMeetingOrganization(
   payload: Record<string, unknown>,
@@ -138,8 +138,31 @@ export async function resolveMentorMeetingOrganization(
   return { organizationId, otherMentorIds };
 }
 
-export async function requireOwnedMeeting(mentorId: string, meetingId: string) {
-  const list = await fetchMeetings({ mentorId });
+export function requireOwnedMeeting(mentorId: string, meetingId: string) {
+  return findMeetingIn({ mentorId }, meetingId);
+}
+
+/** The caller's own meeting: a mentor's, or one of a startup member's startup. */
+export function requireMeetingAccess(session: AppSession, meetingId: string) {
+  if (session.role === UserRole.Mentor) {
+    return findMeetingIn({ mentorId: session.userId }, meetingId);
+  }
+  if (session.role === UserRole.Mentee) {
+    return findMeetingIn({ organizationId: session.organizationId }, meetingId);
+  }
+  return Promise.resolve({
+    error: NextResponse.json(
+      { code: "FORBIDDEN", message: "Bu toplantıyı değiştiremezsiniz." },
+      { status: 403 },
+    ),
+  });
+}
+
+async function findMeetingIn(
+  scope: { mentorId?: string; organizationId?: string },
+  meetingId: string,
+) {
+  const list = await fetchMeetings(scope);
   if (list.status !== 200) return { error: backendResponse(list) };
   const owned = ((list.data ?? []) as { id: string }[]).find(
     (item) => item.id === meetingId,

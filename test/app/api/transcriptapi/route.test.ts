@@ -4,6 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/transcriptapi/route";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
+vi.mock("@/lib/session", () => ({
+  getSessionIds: vi
+    .fn()
+    .mockResolvedValue({ userId: "user-1", organizationId: "org-1" }),
+}));
 vi.mock("@/lib/transcriptapi", () => ({
   fetchMeetingTranscript: vi.fn(),
 }));

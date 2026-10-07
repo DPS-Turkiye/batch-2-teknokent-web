@@ -5,9 +5,11 @@ import {
 } from "@/lib/assistant-schemas";
 import { generateMeetingReportBackend } from "@/lib/botapi";
 import { apiErrorResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
   try {
+    await getSessionIds();
     const { searchParams } = request.nextUrl;
     const query = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),

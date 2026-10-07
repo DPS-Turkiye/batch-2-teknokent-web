@@ -4,6 +4,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/botapi/report/route";
 import { generateMeetingReportBackend } from "@/lib/botapi";
 
+vi.mock("@/lib/session", () => ({
+  getSessionIds: vi
+    .fn()
+    .mockResolvedValue({ userId: "user-1", organizationId: "org-1" }),
+}));
 vi.mock("@/lib/botapi", () => ({
   generateMeetingReportBackend: vi.fn(),
 }));
