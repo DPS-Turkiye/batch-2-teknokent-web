@@ -232,7 +232,7 @@ describe("MentorMessagesPage", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("link", { name: "Mentorluk detayına git →" }),
-    ).toHaveAttribute("href", "/mentor-dashboard/mentorship/r1");
+    ).toHaveAttribute("href", "/mentorships/requests/r1");
   });
 
   it("notes when the mentorship has no meeting planned", () => {

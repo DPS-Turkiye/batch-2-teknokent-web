@@ -6,6 +6,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 const statusLabels: Record<MentorshipRequestStatus, string> = {
   [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
@@ -96,7 +97,7 @@ export function MentorRequestCard({
         </button>
         {request.status === MentorshipRequestStatus.Accepted ? (
           <Link
-            href={`/mentor-dashboard/mentorship/${request.id}`}
+            href={mentorRequestStartupHref(request.id)}
             className="block w-full rounded-lg border border-zinc-300 py-2 text-center text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50"
           >
             Süreci Görüntüle

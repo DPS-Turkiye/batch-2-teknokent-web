@@ -57,6 +57,7 @@ function emptyDraft(fullName = ""): MentorOnboardingDraft {
     about: "",
     photo: null,
     cv: null,
+    cvStoredName: null,
     profile: { ...PLACEHOLDER_PARSED_PROFILE },
     topics: [],
     stages: [],
@@ -122,7 +123,9 @@ export function useMentorOnboarding(
       cv: cv.value,
       consent: false,
     }));
-    setDroppedFiles(photo.dropped + cv.dropped);
+    // A CV that already reached the server is not lost, only its browser handle is.
+    setDroppedFiles(photo.dropped + (payload.cvStoredName ? 0 : cv.dropped));
+    setCvUploaded(Boolean(payload.cvStoredName));
     setPhase(
       payload.introPhase === IntroPhase.Review
         ? IntroPhase.Review
@@ -177,6 +180,7 @@ export function useMentorOnboarding(
       const idToken = await requireToken();
       const stored = await uploadDocument(file.file, "cv", idToken);
       setCvUploaded(true);
+      setDraft((current) => ({ ...current, cvStoredName: file.name }));
       try {
         const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
         setDraft((current) => {
@@ -206,7 +210,7 @@ export function useMentorOnboarding(
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
 
   const setCv = useCallback((file: UploadedFile | null) => {
-    setDraft((current) => ({ ...current, cv: file }));
+    setDraft((current) => ({ ...current, cv: file, cvStoredName: null }));
     setCvUploaded(false);
   }, []);
 

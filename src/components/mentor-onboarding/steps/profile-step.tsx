@@ -313,6 +313,7 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
         <OnboardingFileField
           label="CV dosyası seç"
           file={draft.cv}
+          storedName={draft.cvStoredName}
           onChange={wizard.setCv}
           accept=".pdf,.docx"
         />

@@ -22,6 +22,7 @@ import {
 import { meetingDayAndTime } from "@/lib/mobile-home";
 import { endOf, programNameFor, upcomingFor } from "@/lib/mobile-mentor-home";
 import { initials } from "@/lib/utils";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 export enum StartupHealth {
   Active = "active",
@@ -316,8 +317,6 @@ export function startupDetail(input: {
       input.documents.length > 0 && newestFile
         ? `${input.documents.length} dosya · son ${relativeDays(newestFile, now)}`
         : "Henüz dosya yok",
-    notesHref: webHref(
-      `/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`,
-    ),
+    notesHref: webHref(mentorRequestStartupHref(request.id)),
   };
 }

@@ -22,6 +22,7 @@ import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 const ACCENT = { strong: "#26a4ff", soft: "#f2f8fc" };
 
@@ -231,7 +232,7 @@ function ActiveConversation({
             </p>
           </div>
           <Link
-            href={`/mentor-dashboard/mentorship/${encodeURIComponent(request.id)}`}
+            href={mentorRequestStartupHref(request.id)}
             className="text-[12px] font-medium text-[#26a4ff]"
           >
             Mentorluk detayına git →

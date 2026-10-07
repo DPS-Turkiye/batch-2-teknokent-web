@@ -429,6 +429,36 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     expect(second.result.current.droppedFiles).toBe(0);
   });
 
+  it("keeps a CV that already reached the server instead of asking for it again", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({ full_name: "Nihan Öztürk" });
+    const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
+    act(
+      () =>
+        void first.result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+    await waitFor(() =>
+      expect(first.result.current.phase).toBe(IntroPhase.Review),
+    );
+    await act(async () => {
+      await first.result.current.saveDraft();
+    });
+    first.unmount();
+    vi.mocked(uploadDocument).mockClear();
+
+    const second = renderHook(() => useMentorOnboarding());
+
+    await waitFor(() =>
+      expect(second.result.current.draft.cvStoredName).toBe(cvFile.name),
+    );
+    expect(second.result.current.droppedFiles).toBe(0);
+    expect(second.result.current.draft.cv).toBeNull();
+  });
+
   it("forgets the draft once the profile is sent", async () => {
     const first = renderHook(() => useMentorOnboarding());
     await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());

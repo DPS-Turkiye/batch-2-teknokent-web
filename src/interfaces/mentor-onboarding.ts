@@ -128,6 +128,8 @@ export interface MentorOnboardingDraft {
   about: string;
   photo: UploadedFile | null;
   cv: UploadedFile | null;
+  /** Set once the CV is stored on the server, so a resumed draft knows it is not lost. */
+  cvStoredName: string | null;
   profile: ParsedProfile;
   topics: string[];
   stages: string[];
