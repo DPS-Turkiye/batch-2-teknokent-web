@@ -118,6 +118,30 @@ export function dateFromStartsAt(startsAt: string) {
   return toDateInputValue(new Date(startsAt));
 }
 
+/** Free slots grouped by local day, soonest first: pick a day, then a time. */
+export function slotsByDay(slots: readonly MentorAvailabilitySlot[]) {
+  const days = new Map<
+    string,
+    { key: string; label: string; slots: MentorAvailabilitySlot[] }
+  >();
+  const free = slots
+    .filter((slot) => !slot.booked)
+    .sort(
+      (left, right) => Date.parse(left.startsAt) - Date.parse(right.startsAt),
+    );
+  for (const slot of free) {
+    const key = dateFromStartsAt(slot.startsAt);
+    const day = days.get(key) ?? {
+      key,
+      label: slotDayLabel(slot.startsAt),
+      slots: [],
+    };
+    day.slots.push(slot);
+    days.set(key, day);
+  }
+  return [...days.values()];
+}
+
 export function slotFromStartsAt(startsAt: string): PreferredSlot {
   return {
     date: dateFromStartsAt(startsAt),
