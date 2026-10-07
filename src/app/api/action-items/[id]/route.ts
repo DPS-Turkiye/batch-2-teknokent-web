@@ -2,12 +2,14 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { updateActionItem } from "@/lib/api/action-items";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    await getSessionIds();
     const { id } = await params;
     const { requestId, ...payload } = (await request.json()) as Record<
       string,

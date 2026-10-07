@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { createActionItem, fetchActionItems } from "@/lib/api/action-items";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 function missingRequestId() {
   return NextResponse.json(
@@ -12,6 +13,7 @@ function missingRequestId() {
 
 export async function GET(request: NextRequest) {
   try {
+    await getSessionIds();
     const requestId = request.nextUrl.searchParams.get("requestId");
     if (!requestId) return missingRequestId();
 
@@ -25,6 +27,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    await getSessionIds();
     const { requestId, ...payload } = (await request.json()) as Record<
       string,
       unknown

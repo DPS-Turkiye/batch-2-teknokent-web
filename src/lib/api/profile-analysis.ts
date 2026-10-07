@@ -36,10 +36,3 @@ export function confirmProfileAnalysis(id: string, payload: unknown) {
     data: payload,
   });
 }
-
-export function recommendFromProfileAnalysis(id: string) {
-  return backendRequest({
-    method: "POST",
-    url: `/api/profile-analyses/${encodeURIComponent(id)}/recommendations`,
-  });
-}
