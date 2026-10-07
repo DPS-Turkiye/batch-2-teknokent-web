@@ -28,14 +28,11 @@ describe("assistant server lib", () => {
       meetingUrl: "https://meet.google.com/abc-defg-hij",
     });
 
-    expect(backendRequest).toHaveBeenCalledWith(
-      {
-        method: "POST",
-        url: "/api/assistant/bots",
-        data: { meetingUrl: "https://meet.google.com/abc-defg-hij" },
-      },
-      { authenticated: false },
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "POST",
+      url: "/api/assistant/bots",
+      data: { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+    });
     expect(result).toEqual({ data: { id: "bot-1" }, status: 201 });
   });
 
@@ -48,13 +45,10 @@ describe("assistant server lib", () => {
 
     const result = await stopMeetingBotBackend("google meet", "id/with/slash");
 
-    expect(backendRequest).toHaveBeenCalledWith(
-      {
-        method: "DELETE",
-        url: "/api/assistant/bots/google%20meet/id%2Fwith%2Fslash",
-      },
-      { authenticated: false },
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "DELETE",
+      url: "/api/assistant/bots/google%20meet/id%2Fwith%2Fslash",
+    });
     expect(result).toEqual({ data: null, status: 204 });
   });
 
@@ -71,15 +65,12 @@ describe("assistant server lib", () => {
       { model: "gpt-5.4" },
     );
 
-    expect(backendRequest).toHaveBeenCalledWith(
-      {
-        method: "POST",
-        url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
-        data: { model: "gpt-5.4" },
-        timeout: 120000,
-      },
-      { authenticated: false },
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "POST",
+      url: "/api/assistant/bots/google_meet/abc-defg-hij/report",
+      data: { model: "gpt-5.4" },
+      timeout: 120000,
+    });
     expect(result).toEqual({ data: { title: "Meeting" }, status: 200 });
   });
 
@@ -92,13 +83,10 @@ describe("assistant server lib", () => {
 
     const result = await fetchMeetingTranscript("google meet", "abc/def");
 
-    expect(backendRequest).toHaveBeenCalledWith(
-      {
-        method: "GET",
-        url: "/api/assistant/transcripts/google%20meet/abc%2Fdef",
-      },
-      { authenticated: false },
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "GET",
+      url: "/api/assistant/transcripts/google%20meet/abc%2Fdef",
+    });
     expect(result).toEqual({ data: { segments: [] }, status: 200 });
   });
 });

@@ -5,7 +5,7 @@ import {
   replaceDocumentRequests,
 } from "@/lib/api/document-requests";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
-import { getSessionMentorId } from "@/lib/session";
+import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 function scopeFrom(request: NextRequest) {
   const params = request.nextUrl.searchParams;
@@ -28,6 +28,7 @@ function missingScope() {
 
 export async function GET(request: NextRequest) {
   try {
+    await getSessionIds();
     const scope = scopeFrom(request);
     if (!scope.mentorshipRequestId && !scope.meetingId && !scope.mentorshipId) {
       return missingScope();

@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { transcriptQuerySchema } from "@/lib/assistant-schemas";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 import { apiErrorResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {
+    await getSessionIds();
     const { searchParams } = request.nextUrl;
 
     const parsed = transcriptQuerySchema.safeParse({

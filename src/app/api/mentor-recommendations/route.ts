@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { getSessionIds } from "@/lib/session";
 
 const RECOMMENDATION_HEADERS = [
   "X-Matching-Method",
@@ -11,6 +12,7 @@ const RECOMMENDATION_HEADERS = [
 
 export async function POST(request: NextRequest) {
   try {
+    await getSessionIds();
     const payload: unknown = await request.json();
     return backendResponse(
       await recommendMentors(payload),

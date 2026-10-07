@@ -2,8 +2,12 @@ import type { NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { deleteMeeting, updateMeeting } from "@/lib/api/meetings";
-import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
+import {
+  requireMeetingAccess,
+  requireOwnedMeeting,
+} from "@/lib/server/mentor-meeting";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
 type RouteContext = {
@@ -12,7 +16,11 @@ type RouteContext = {
 
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
+    const session = await getSessionUser();
+    if (!session) throw new SessionRequiredError();
     const { id } = await context.params;
+    const access = await requireMeetingAccess(session, id);
+    if ("error" in access) return access.error;
     const payload = (await request.json()) as Record<string, unknown>;
     return backendResponse(await updateMeeting(id, payload));
   } catch (error) {
