@@ -1,8 +1,20 @@
 import type { MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  type MeetingProposal,
+  MeetingProposalStatus,
+} from "@/interfaces/meeting-proposal";
+import {
+  type MentorshipRequest,
+  MentorshipRequestStatus,
+} from "@/interfaces/mentorship-request";
 import type { OrganizationMember } from "@/interfaces/organization-member";
 import {
+  parsePreferredSlotsFromMessage,
+  preferredSlotStartsAt,
+} from "@/lib/mentor-availability-days";
+import {
   dayHeading,
+  MobileAgendaKind,
   startsInLabel,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
@@ -56,6 +68,83 @@ export function mentorAgendaEntries(
       startup: { name, initials: initials(name) },
     };
   });
+}
+
+export const AWAITING_APPROVAL_LABEL = "Onay bekliyor";
+
+// The request dialog books 45 minutes when the mentor's slot length is unknown.
+const REQUEST_MINUTES = 45;
+const MINUTE_MS = 60_000;
+
+function awaitingEntry(input: {
+  id: string;
+  startsAt: Date;
+  minutes: number;
+  startupName: string;
+  topic: string;
+  requestId?: string;
+}): MobileAgendaEntry {
+  return {
+    id: input.id,
+    kind: MobileAgendaKind.Meeting,
+    startsAt: input.startsAt,
+    endsAt: new Date(input.startsAt.getTime() + input.minutes * MINUTE_MS),
+    time: time.format(input.startsAt),
+    length: `${input.minutes} dk`,
+    title: input.startupName,
+    detail: `${input.topic} · önerilen saat · onay bekliyor`,
+    meeting: null,
+    event: null,
+    startup: { name: input.startupName, initials: initials(input.startupName) },
+    awaitingApproval: true,
+    requestId: input.requestId,
+  };
+}
+
+/** Times still waiting for the mentor: proposals they have not answered and new requests' preferred slots. */
+export function mentorAwaitingEntries(
+  proposals: MeetingProposal[],
+  requests: MentorshipRequest[],
+  now: Date,
+): MobileAgendaEntry[] {
+  const fromProposals = proposals
+    .filter(
+      (proposal) =>
+        proposal.status === MeetingProposalStatus.Pending &&
+        proposal.canRespond,
+    )
+    .map((proposal) =>
+      awaitingEntry({
+        id: `proposal:${proposal.id}`,
+        startsAt: new Date(proposal.scheduledAt),
+        minutes: proposal.durationMinutes,
+        startupName: proposal.organizationName,
+        topic: proposal.agenda?.trim() || "Görüşme önerisi",
+      }),
+    );
+  const fromRequests = requests
+    .filter((request) => request.status === MentorshipRequestStatus.Pending)
+    .flatMap((request) =>
+      parsePreferredSlotsFromMessage(request.requesterMessage).flatMap(
+        (slot) => {
+          const startsAt = preferredSlotStartsAt(slot);
+          if (!startsAt) return [];
+          return [
+            awaitingEntry({
+              id: `request:${request.id}:${startsAt}`,
+              startsAt: new Date(startsAt),
+              minutes: REQUEST_MINUTES,
+              startupName: request.organizationName ?? "Startup",
+              topic: request.supportArea,
+              requestId: request.id,
+            }),
+          ];
+        },
+      ),
+    );
+  return [...fromProposals, ...fromRequests].filter(
+    (entry) => entry.endsAt > now,
+  );
 }
 
 // The founder leads; otherwise whoever asked for the mentorship.

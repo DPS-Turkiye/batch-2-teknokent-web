@@ -5,12 +5,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
+import { MEETING_PROPOSALS_QUERY_KEY } from "@/hooks/use-meeting-proposals";
 import { useMeetings } from "@/hooks/use-meetings";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
 import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
 import { MobileConversationKind } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import { monthLabel } from "@/lib/calendar";
+import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getMemberProgramEvents } from "@/lib/client/programs";
@@ -33,7 +35,9 @@ import {
   weekStrip,
 } from "@/lib/mobile-calendar";
 import {
+  AWAITING_APPROVAL_LABEL,
   mentorAgendaEntries,
+  mentorAwaitingEntries,
   mentorEntryDetail,
 } from "@/lib/mobile-mentor-calendar";
 
@@ -69,11 +73,27 @@ export function useMobileCalendar() {
     queryFn: () => getMentorRequests(UserRole.Mentor),
     enabled: isMentor,
   });
+  const proposals = useQuery({
+    queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "mine"],
+    queryFn: getMyMeetingProposals,
+    enabled: isMentor,
+  });
 
   const entries = useMemo(() => {
     const all = agendaEntries(meetings.data ?? [], events.data ?? []);
-    return isMentor ? mentorAgendaEntries(all, requests.data ?? []) : all;
-  }, [meetings.data, events.data, isMentor, requests.data]);
+    if (!isMentor) return all;
+    return [
+      ...mentorAgendaEntries(all, requests.data ?? []),
+      ...mentorAwaitingEntries(proposals.data ?? [], requests.data ?? [], now),
+    ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
+  }, [
+    meetings.data,
+    events.data,
+    isMentor,
+    requests.data,
+    proposals.data,
+    now,
+  ]);
 
   // A link from Home opens that meeting once the meetings have loaded.
   const linked =
@@ -94,7 +114,7 @@ export function useMobileCalendar() {
 
   const next = nextEntry(entries, now);
   const open = entries.find((entry) => entry.id === openId) ?? null;
-  const requestId = open?.meeting?.mentorshipRequestId;
+  const requestId = open?.meeting?.mentorshipRequestId ?? open?.requestId;
   const organizationId = open?.meeting?.organizationId ?? "";
   const members = useQuery({
     queryKey: [...ORGANIZATION_MEMBERS_QUERY_KEY, organizationId],
@@ -109,7 +129,9 @@ export function useMobileCalendar() {
     detail: open
       ? {
           entry: open,
-          kindLabel: ENTRY_KIND_LABELS[open.kind],
+          kindLabel: open.awaitingApproval
+            ? AWAITING_APPROVAL_LABEL
+            : ENTRY_KIND_LABELS[open.kind],
           timeLine: entryTimeLine(open),
           timeHint: entryTimeHint(open, now),
           link: open.meeting?.meetLink
