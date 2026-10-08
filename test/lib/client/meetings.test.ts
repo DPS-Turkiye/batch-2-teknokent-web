@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { updateMeeting } from "@/lib/client/meetings";
+import { getMeetingFeedback, updateMeeting } from "@/lib/client/meetings";
 import { httpClient } from "@/lib/http-client";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { createMentorResponse } from "@test/fixtures/mentors";
@@ -29,6 +29,20 @@ describe("meetings client", () => {
     expect(httpClient.patch).toHaveBeenCalledWith("/api/meetings/meeting-1", {
       notes: "Yeni not",
       status: MeetingStatus.Completed,
+    });
+  });
+
+  it("reads a meeting the author has not rated yet as no feedback", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse("", 204),
+    );
+    await expect(getMeetingFeedback("meeting-1")).resolves.toBeNull();
+
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse({ ratings: [5] }),
+    );
+    await expect(getMeetingFeedback("meeting-1")).resolves.toEqual({
+      ratings: [5],
     });
   });
 });
