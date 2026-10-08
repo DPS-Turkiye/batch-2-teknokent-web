@@ -42,6 +42,8 @@ export type AdminUser = {
   jobTitle: string | null;
   createdAt?: string | null;
   expertise?: string[];
+  /** Coordinators only: false until the e-mailed setup link set a password; null when unknown. */
+  passwordSet?: boolean | null;
 };
 
 export type AdminMentorship = {
