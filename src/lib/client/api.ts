@@ -53,6 +53,7 @@ function visibleServerMessage(body: unknown, status: number) {
     return fallbackMessage(status);
   }
   const message = body.message.trim();
+  if (!message) return fallbackMessage(status);
   const looksEnglish =
     /\b(the|a user|could|must|only|not found|already|awaiting|requires?|invalid|failed|provide|this endpoint|is unavailable)\b/i.test(
       message,
@@ -60,11 +61,25 @@ function visibleServerMessage(body: unknown, status: number) {
   return looksEnglish ? fallbackMessage(status) : message;
 }
 
+// The backend's rate limiter says how long to wait; axios lowercases header names.
+const RETRY_AFTER_HEADER = "x-rate-limit-retry-after-seconds";
+
+function rateLimitMessage(response: AxiosResponse) {
+  const seconds = Number(response.headers?.[RETRY_AFTER_HEADER]);
+  if (!Number.isFinite(seconds) || seconds <= 0) return fallbackMessage(429);
+  const minutes = Math.ceil(seconds / 60);
+  return `Çok fazla deneme yapıldı. ${minutes} dakika sonra tekrar dene.`;
+}
+
 export function requireSuccess<T>(response: AxiosResponse<T>): T {
   if (response.status >= 200 && response.status < 300) return response.data;
   const body = response.data as unknown;
   const blocked = amplifyBlockedMessage(body);
-  const message = blocked ?? visibleServerMessage(body, response.status);
+  const message =
+    blocked ??
+    (response.status === 429
+      ? rateLimitMessage(response)
+      : visibleServerMessage(body, response.status));
   const code =
     body &&
     typeof body === "object" &&
