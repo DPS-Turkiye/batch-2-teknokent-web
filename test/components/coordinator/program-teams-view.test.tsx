@@ -16,6 +16,8 @@ import {
   sendProgramTeamCode,
   updateProgramTeam,
 } from "@/lib/client/coordinator-programs";
+import { StartupStage } from "@/interfaces/startup-process";
+import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -28,6 +30,15 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   sendProgramTeamCode: vi.fn(),
   getProgramTeamDetail: vi.fn(),
 }));
+vi.mock("@/lib/client/startup-process", () => ({
+  getTeamProcess: vi.fn(),
+  updateTeamStage: vi.fn(),
+}));
+
+const teamProcess = (currentStage: StartupStage | null) =>
+  ({ organizationId: "org-1", currentStage }) as Awaited<
+    ReturnType<typeof getTeamProcess>
+  >;
 
 const joined: ProgramTeam = {
   inviteId: "invite-1",
@@ -163,6 +174,50 @@ describe("ProgramTeamsView", () => {
     expect(
       within(drawer).getByText("Bu takım henüz bir mentorla eşleşmedi."),
     ).toBeInTheDocument();
+  });
+
+  it("lets the coordinator move a joined team to another stage", async () => {
+    const user = userEvent.setup();
+    vi.mocked(getProgramTeamDetail).mockResolvedValue({
+      organizationId: "org-1",
+      name: "Kavşak",
+      sector: null,
+      lead: null,
+      code: null,
+      members: [],
+      mentorships: [],
+    });
+    vi.mocked(getTeamProcess).mockResolvedValue(teamProcess(StartupStage.Mvp));
+    vi.mocked(updateTeamStage).mockResolvedValue(
+      teamProcess(StartupStage.Market),
+    );
+    renderWithQueryClient(<ProgramTeamsView programId="program-1" />);
+
+    await user.click(await screen.findByRole("button", { name: "Detay" }));
+    const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
+    expect(await within(drawer).findByText("MVP")).toBeInTheDocument();
+    expect(getTeamProcess).toHaveBeenCalledWith("program-1", "org-1");
+
+    await user.click(
+      within(drawer).getByRole("button", { name: "Aşamayı güncelle" }),
+    );
+    const save = within(drawer).getByRole("button", { name: "Kaydet" });
+    expect(save).toBeDisabled();
+    await user.selectOptions(
+      within(drawer).getByRole("combobox", { name: "Yeni aşama" }),
+      "Pazar",
+    );
+    await user.click(save);
+
+    expect(updateTeamStage).toHaveBeenCalledWith(
+      "program-1",
+      "org-1",
+      StartupStage.Market,
+    );
+    expect(await within(drawer).findByText("Pazar")).toBeInTheDocument();
+    expect(
+      within(drawer).queryByRole("combobox", { name: "Yeni aşama" }),
+    ).not.toBeInTheDocument();
   });
 
   it("copies a team code", async () => {

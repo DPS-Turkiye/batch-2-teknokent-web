@@ -10,6 +10,7 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { TeamStage } from "@/components/coordinator/team-stage";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
 import {
@@ -134,6 +135,13 @@ export function TeamDetailDrawer({
                   </div>
                 </Section>
               ) : null}
+
+              <Section title="Süreç aşaması">
+                <TeamStage
+                  programId={programId}
+                  organizationId={organizationId}
+                />
+              </Section>
 
               <Section title={`Ekip üyeleri · ${team.members.length}`}>
                 {team.members.length === 0 ? (
