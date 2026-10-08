@@ -6,11 +6,11 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/providers/toast-provider";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
+import { usePasswordReset } from "@/hooks/use-password-reset";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
-import { requestPasswordReset } from "@/lib/firebase/auth";
 import { requestStatusHref } from "@/lib/mentee-home";
 import {
   COMING_SOON_MESSAGE,
@@ -37,7 +37,7 @@ export function usePersonalProfilePage() {
     overview.mentorships.map((row) => row.id),
   );
   const [editing, setEditing] = useState(false);
-  const [isSendingReset, setIsSendingReset] = useState(false);
+  const { isSendingReset, sendPasswordReset } = usePasswordReset();
 
   const fullName = profile.draft?.fullName ?? session?.fullName ?? "";
   const isFounder = (membersQuery.data ?? []).some(
@@ -64,25 +64,6 @@ export function usePersonalProfilePage() {
   const cancelEditing = () => {
     profile.discard();
     setEditing(false);
-  };
-
-  const sendPasswordReset = async () => {
-    if (!session?.email) return;
-    setIsSendingReset(true);
-    try {
-      await requestPasswordReset(session.email);
-      showToast({
-        message: "Şifre sıfırlama bağlantısı e-postana gönderildi.",
-        tone: "success",
-      });
-    } catch {
-      showToast({
-        message: "Şifre sıfırlama e-postası gönderilemedi.",
-        tone: "error",
-      });
-    } finally {
-      setIsSendingReset(false);
-    }
   };
 
   return {

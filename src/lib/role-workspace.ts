@@ -3,6 +3,8 @@ import { UserRole, type AppSession } from "@/interfaces/session";
 export type RoleWorkspace = {
   homeHref: string;
   profileHref: string;
+  /** Where "Kişisel bilgileri düzenle" in Hesap ayarları leads; staff have no personal page. */
+  personalInfoHref: string | null;
   notificationsHref: string;
   roleLabel: string;
   showNotificationBadge: boolean;
@@ -15,6 +17,7 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
       return {
         homeHref: "/admin",
         profileHref: "/admin",
+        personalInfoHref: null,
         notificationsHref: "/admin",
         roleLabel: "Admin",
         showNotificationBadge: true,
@@ -24,6 +27,7 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
       return {
         homeHref: "/coordinator",
         profileHref: "/coordinator",
+        personalInfoHref: null,
         notificationsHref: "/coordinator",
         roleLabel: "Koordinatör",
         showNotificationBadge: false,
@@ -33,6 +37,7 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
       return {
         homeHref: "/mentor-dashboard",
         profileHref: "/mentor-profile",
+        personalInfoHref: "/mentor-profile",
         notificationsHref: "/mentor-dashboard#notifications",
         roleLabel: "Mentor",
         showNotificationBadge: true,
@@ -42,6 +47,7 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
       return {
         homeHref: "/dashboard",
         profileHref: "/profile/personal",
+        personalInfoHref: "/profile/personal",
         notificationsHref: "/dashboard#notifications",
         roleLabel: "Girişim Ekibi",
         showNotificationBadge: true,

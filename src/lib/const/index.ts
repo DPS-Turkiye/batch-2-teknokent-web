@@ -442,3 +442,6 @@ export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 export const DOCUMENT_UPLOAD_HINT =
   "PDF, DOCX, XLSX veya PPTX · en fazla 25 MB";
+
+// No team mailbox yet; swap this when one exists.
+export const SUPPORT_EMAIL = "arya.zaeri@gmail.com";

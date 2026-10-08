@@ -37,8 +37,15 @@ const MENTOR_ROWS: PreferenceRow[] = [
   },
 ];
 
+// Coordinators and admins only get messages; their other notices are GENERAL, which cannot be muted.
+const STAFF_ROWS: PreferenceRow[] = [{ key: "messages", label: "Mesajlar" }];
+
 export function preferenceRowsFor(role?: UserRole | null) {
-  return role === UserRole.Mentor ? MENTOR_ROWS : MENTEE_ROWS;
+  if (role === UserRole.Mentor) return MENTOR_ROWS;
+  if (role === UserRole.Coordinator || role === UserRole.Admin) {
+    return STAFF_ROWS;
+  }
+  return MENTEE_ROWS;
 }
 
 export function toggledPreferences(
