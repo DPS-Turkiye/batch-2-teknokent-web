@@ -16,6 +16,7 @@ export type MentorshipRequestSubmission = {
   mentorshipFormat: MentorshipFormat;
   meetingMode: MentorMeetingMode;
   requesterMessage: string;
+  expectedOutcome: string;
   recommendationSnapshot: {
     matchingMethod: string;
     matchingModel?: string;

@@ -11,6 +11,7 @@ import {
   meetingInviteeLabels,
   meetingScheduleLabel,
   requestAgendaLines,
+  requestExpectedOutcome,
   splitContextLines,
 } from "@/lib/meeting-context";
 
@@ -57,6 +58,22 @@ function request(
 }
 
 describe("meeting-context helpers", () => {
+  it("reads the stored expected outcome, falling back to the message on older requests", () => {
+    expect(
+      requestExpectedOutcome({
+        expectedOutcome: " İlk finansal model ",
+        requesterMessage: "Eski metin",
+      } as MentorshipRequest),
+    ).toBe("İlk finansal model");
+    expect(
+      requestExpectedOutcome({
+        expectedOutcome: null,
+        requesterMessage: "Eski metin\nTercih edilen saatler: 2026-09-11|10:30",
+      } as MentorshipRequest),
+    ).toBe("Eski metin");
+    expect(requestExpectedOutcome(null)).toBe("");
+  });
+
   it("builds the call page href", () => {
     expect(meetingCallHref("abc")).toBe("/meetings/research?id=abc");
   });

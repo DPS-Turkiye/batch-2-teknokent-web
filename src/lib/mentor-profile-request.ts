@@ -84,9 +84,8 @@ export function profileMentorshipSubmission({
     urgency: MentorRequestUrgency.ThisWeek,
     mentorshipFormat: MentorshipFormat.SingleMeeting,
     meetingMode: meetingModeForMentor(mentor.meetingMode),
-    requesterMessage: [outcome?.trim() || draftOutcome, ...timesLine]
-      .filter(Boolean)
-      .join("\n"),
+    requesterMessage: timesLine.join("\n"),
+    expectedOutcome: outcome?.trim() || draftOutcome,
     recommendationSnapshot: {
       matchingMethod: "PROFILE",
       generatedAt: new Date().toISOString(),

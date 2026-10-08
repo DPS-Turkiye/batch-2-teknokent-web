@@ -60,6 +60,8 @@ export type MentorshipRequest = {
   supportArea: string;
   summary?: string;
   requesterMessage?: string;
+  /** The mentee's "BEKLENEN ÇIKTI"; null on requests sent before it had its own field. */
+  expectedOutcome?: string | null;
   status: MentorshipRequestStatus;
   mentorMessage: string | null;
   rejectionReason: string | null;

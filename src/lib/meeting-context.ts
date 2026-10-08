@@ -120,7 +120,11 @@ export function requestAgendaLines(
 export function requestExpectedOutcome(
   request: MentorshipRequest | null | undefined,
 ) {
-  return requestOutcomeFromMessage(request?.requesterMessage);
+  // Requests sent before the field existed keep the outcome inside the message.
+  return (
+    request?.expectedOutcome?.trim() ||
+    requestOutcomeFromMessage(request?.requesterMessage)
+  );
 }
 
 export function programsForOrganization(

@@ -2,9 +2,9 @@ import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { REQUEST_DETAIL_LABELS } from "@/lib/const";
 import {
   parsePreferredSlotsFromMessage,
-  requestOutcomeFromMessage,
   type ParsedPreferredSlot,
 } from "@/lib/mentor-availability-days";
+import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   MENTOR_REQUEST_NEED_GOALS,
   MENTOR_REQUEST_NEED_SITUATIONS,
@@ -47,7 +47,7 @@ export function isNeedOriginRequest(request: MentorshipRequest) {
   ) {
     return true;
   }
-  const outcome = requestOutcomeFromMessage(request.requesterMessage);
+  const outcome = requestExpectedOutcome(request);
   if (
     !outcome ||
     !MENTOR_REQUEST_NEED_GOALS.some((goal) => outcome.includes(goal.label))
@@ -64,7 +64,7 @@ export function buildRequestDetailContent(
   request: MentorshipRequest,
 ): RequestDetailContent {
   const needOrigin = isNeedOriginRequest(request);
-  const outcome = requestOutcomeFromMessage(request.requesterMessage);
+  const outcome = requestExpectedOutcome(request);
   const preferredSlots = parsePreferredSlotsFromMessage(
     request.requesterMessage,
   );

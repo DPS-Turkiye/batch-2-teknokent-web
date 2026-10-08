@@ -18,10 +18,8 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
-import {
-  parsePreferredSlotsFromMessage,
-  requestOutcomeFromMessage,
-} from "@/lib/mentor-availability-days";
+import { requestExpectedOutcome } from "@/lib/meeting-context";
+import { parsePreferredSlotsFromMessage } from "@/lib/mentor-availability-days";
 import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
@@ -625,7 +623,7 @@ function RequestDrawer({
   const sections = [
     ["STARTUP", snapshot?.startupSummary],
     ["MENTORLUK İHTİYACI", request.summary],
-    ["NEDEN BEN?", requestOutcomeFromMessage(request.requesterMessage)],
+    ["NEDEN BEN?", requestExpectedOutcome(request)],
     ["TERCİH EDİLEN SAATLER", preferredSlotLabels.join(" · ")],
   ].filter(([, copy]) => Boolean(copy));
   return (
