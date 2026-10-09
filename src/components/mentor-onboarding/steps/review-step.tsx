@@ -11,10 +11,13 @@ import { MEETING_FREQUENCY_LABELS } from "@/interfaces/mentor";
 import { MentorOnboardingStep } from "@/interfaces/mentor-onboarding";
 import { weekSummary, weeklyCapacity } from "@/lib/mentor-onboarding";
 import { truncate } from "@/lib/utils";
+import { useLocale } from "@/components/providers/locale-provider";
 
 const TONE = OnboardingTone.Mentor;
 
 export function MentorReviewStep({ wizard }: { wizard: MentorOnboarding }) {
+  const { messages, locale } = useLocale();
+  const copy = messages.mentorReview;
   const { draft, goToStep } = wizard;
   const { profile } = draft;
   const capacity = weeklyCapacity(draft);
@@ -25,36 +28,39 @@ export function MentorReviewStep({ wizard }: { wizard: MentorOnboarding }) {
       <OnboardingReviewCard
         tone={TONE}
         rounded="rounded-xl"
-        title="Uzmanlık profili"
+        title={copy.profile}
         onEdit={() => goToStep(MentorOnboardingStep.Profile)}
         rows={[
           {
-            label: "Ad soyad",
+            label: copy.fullName,
             value: `${draft.firstName} ${draft.lastName}`.trim(),
           },
-          { label: "Unvan", value: profile.title.trim() },
+          { label: copy.title, value: profile.title.trim() },
           {
-            label: "Kurum · Deneyim",
+            label: copy.companyExperience,
             value: [profile.company.trim(), profile.totalExperience.trim()]
               .filter(Boolean)
               .join(" · "),
           },
-          { label: "Hakkında", value: truncate(draft.about.trim(), 64) },
-          { label: "Deneyim", value: roles ? `${roles} görev eklendi` : "" },
+          { label: copy.about, value: truncate(draft.about.trim(), 64) },
+          {
+            label: copy.experience,
+            value: roles ? copy.rolesAdded(roles) : "",
+          },
         ]}
       />
       <OnboardingReviewCard
         tone={TONE}
         rounded="rounded-xl"
-        title="Mentorluk alanları"
+        title={copy.areas}
         onEdit={() => goToStep(MentorOnboardingStep.Areas)}
         rows={[
-          { label: "Konular", value: draft.topics.join(", ") },
-          { label: "Girişim aşaması", value: draft.stages.join(", ") },
+          { label: copy.topics, value: draft.topics.join(", ") },
+          { label: copy.stage, value: draft.stages.join(", ") },
           {
-            label: "Çalışılabilecek konular",
+            label: copy.offerings,
             value: draft.offerings.length
-              ? `${draft.offerings.length} madde`
+              ? copy.offeringCount(draft.offerings.length)
               : "",
           },
         ]}
@@ -62,38 +68,35 @@ export function MentorReviewStep({ wizard }: { wizard: MentorOnboarding }) {
       <OnboardingReviewCard
         tone={TONE}
         rounded="rounded-xl"
-        title="Müsaitlik ve kapasite"
+        title={copy.availability}
         onEdit={() => goToStep(MentorOnboardingStep.Availability)}
         rows={[
-          { label: "Haftalık uygunluk", value: weekSummary(draft.week) },
-          { label: "Eş zamanlı mentorluk", value: `${draft.capacity} startup` },
+          { label: copy.weekly, value: weekSummary(draft.week) },
+          { label: copy.concurrent, value: copy.capacityValue(draft.capacity) },
           {
-            label: "Görüşme",
+            label: copy.meeting,
             value: [
               `${draft.durationMinutes} dk`,
               MEETING_FREQUENCY_LABELS[draft.frequency],
               draft.format,
             ].join(" · "),
           },
-          { label: "Yanıt süresi", value: draft.responseTime },
+          { label: copy.responseTime, value: draft.responseTime },
         ]}
       />
       <OnboardingNote
         tone={TONE}
         icon="/onboarding/info-done-blue.svg"
-        title={`Haftada yaklaşık ${capacity.hours.toLocaleString("tr-TR")} saat ayırmış oluyorsun`}
+        title={copy.hoursTitle(capacity.hours.toLocaleString(locale))}
       >
-        Seçtiğin uygunluk ve {draft.durationMinutes} dakikalık görüşme süresiyle
-        haftada en fazla {capacity.meetings} görüşme planlanabilir. Kapasiteni
-        sonradan profilinden değiştirebilirsin.
+        {copy.hoursBody(draft.durationMinutes, capacity.meetings)}
       </OnboardingNote>
       <OnboardingConsent
         tone={TONE}
         checked={draft.consent}
         onChange={(value) => wizard.update("consent", value)}
       >
-        Mentorluk ilkelerini okudum ve kabul ediyorum. Profilimin koordinatör
-        tarafından incelenmesini onaylıyorum.
+        {copy.consent}
       </OnboardingConsent>
     </>
   );
