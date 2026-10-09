@@ -25,41 +25,26 @@ import {
   SIGNUP_STEPS,
   SignupStep,
 } from "@/interfaces/signup";
+import { useLocale } from "@/components/providers/locale-provider";
 
 const TONE = OnboardingTone.Mentee;
 
-const STEP_COPY: Record<SignupStep, { title: string; subtitle: string }> = {
-  [SignupStep.PersonalProfile]: {
-    title: "Kişisel profilini oluştur",
-    subtitle:
-      "Mentorlar seni bu bilgilerle tanıyacak. Sonradan düzenleyebilirsin.",
-  },
-  [SignupStep.StartupProfile]: {
-    title: "Startup profilini oluştur",
-    subtitle: "Koordinatör ve mentorlar startupını bu sayfadan tanıyacak.",
-  },
-  [SignupStep.Documents]: {
-    title: "Dosyalarını yükle",
-    subtitle:
-      "Hepsi isteğe bağlı. Yüklediklerin ilk görüşmeyi çok hızlandırır.",
-  },
-  [SignupStep.Review]: {
-    title: "Gözden geçir ve gönder",
-    subtitle:
-      "Koordinatöre göndermeden önce bilgileri kontrol et. Gönderdikten sonra düzenleme talebi gerekebilir.",
-  },
-};
-
-const RAIL_NOTE =
-  "Kişisel profilin yalnızca eşleştiğin mentorlar ve program koordinatörü tarafından görülür.";
-
-const NEXT_STEPS = [
-  "Onaylanırsa startupın mentor havuzunda görünür ve mentorlara talep gönderebilirsin.",
-  "Düzenleme istenirse e-postayla bilgilendirilirsin; talep edilen alanlar profilde işaretli gelir.",
-  "İnceleme sürerken profilde büyük değişiklik yapamazsın, dosya eklemeye devam edebilirsin.",
-];
+const STEP_KEYS = {
+  [SignupStep.PersonalProfile]: "personal",
+  [SignupStep.StartupProfile]: "startup",
+  [SignupStep.Documents]: "documents",
+  [SignupStep.Review]: "review",
+} as const satisfies Record<SignupStep, string>;
 
 export function SignupWizardView({ account }: { account: RegisteredAccount }) {
+  const { messages } = useLocale();
+  const copy = messages.signupWizard;
+  const railSteps = SIGNUP_STEPS.map((item) => ({
+    ...item,
+    title: copy.steps[STEP_KEYS[item.step]].railTitle,
+    hint: copy.steps[STEP_KEYS[item.step]].railHint,
+  }));
+  const stepCopy = (current: SignupStep) => copy.steps[STEP_KEYS[current]];
   const { submitApplication, submittedAt } = useFounderApplication(account);
   const wizard = useSignupWizard({ onSubmit: submitApplication });
   const { step, canContinue, isFirstStep, isLastStep } = wizard;
@@ -71,10 +56,10 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
       <OnboardingSubmittedView
         tone={TONE}
         name={startupName || signupFullName(wizard.draft)}
-        title={`${startupName || "Startup"} profili koordinatöre gönderildi`}
+        title={copy.submittedTitle(startupName || copy.submittedFallbackName)}
         submittedAt={submittedAt ?? new Date()}
-        lastStepLabel="Startup profilin yayına alınır"
-        nextSteps={NEXT_STEPS}
+        lastStepLabel={copy.lastStepLabel}
+        nextSteps={copy.nextSteps}
         onSignOut={exit}
         signingOut={exiting}
       />
@@ -87,7 +72,7 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
     <OnboardingLayout
       topbar={
         <OnboardingTopbar
-          exitLabel="Kaydet ve çık"
+          exitLabel={copy.saveAndExit}
           onExit={exit}
           exiting={exiting}
         />
@@ -95,14 +80,14 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
       rail={
         <OnboardingRail
           tone={TONE}
-          steps={SIGNUP_STEPS}
+          steps={railSteps}
           currentIndex={currentIndex}
-          note={RAIL_NOTE}
+          note={copy.railNote}
           onStepClick={(index) => wizard.goToStep(SIGNUP_STEP_ORDER[index])}
         />
       }
-      title={STEP_COPY[step].title}
-      subtitle={STEP_COPY[step].subtitle}
+      title={stepCopy(step).title}
+      subtitle={stepCopy(step).subtitle}
       footer={
         <OnboardingFooter
           tone={TONE}
@@ -112,17 +97,17 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
           saveDisabled={wizard.submitting}
           primaryLabel={
             wizard.submitting
-              ? "Gönderiliyor…"
+              ? copy.sending
               : isLastStep
-                ? "Koordinatöre gönder"
-                : "Devam et"
+                ? copy.sendToCoordinator
+                : copy.continue
           }
           onPrimary={isLastStep ? wizard.submit : wizard.goNext}
           primaryDisabled={wizard.submitting || !canContinue}
           status={
             wizard.draftSavedAt ? (
               <span role="status" className="text-xs text-[#676e78]">
-                Taslak kaydedildi.
+                {copy.draftSaved}
               </span>
             ) : null
           }

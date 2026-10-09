@@ -9,47 +9,12 @@ import {
 } from "@/components/onboarding/onboarding-tone";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import { SignupRole } from "@/interfaces/signup";
+import { useLocale } from "@/components/providers/locale-provider";
 
-const ROLE_CARDS: {
-  role: SignupRole;
-  tone: OnboardingTone;
-  badge: string;
-  title: string;
-  description: string;
-  steps: string[];
-  action: string;
-}[] = [
-  {
-    role: SignupRole.Founder,
-    tone: OnboardingTone.Mentee,
-    badge: "Girişimci",
-    title: "Startup’ımla katılmak istiyorum",
-    description:
-      "Kişisel ve startup profilini oluşturursun, koordinatör onayından sonra mentor havuzuna erişirsin.",
-    steps: [
-      "Kişisel profil",
-      "Startup profili ve ekip",
-      "Kanvas, pitch deck, prototip",
-      "Koordinatör onayı",
-    ],
-    action: "Girişimci olarak devam et",
-  },
-  {
-    role: SignupRole.Mentor,
-    tone: OnboardingTone.Mentor,
-    badge: "Mentor",
-    title: "Mentor olmak istiyorum",
-    description:
-      "Uzmanlık alanlarını ve müsaitliğini tanımlarsın, sana uygun startuplardan mentorluk talebi gelir.",
-    steps: [
-      "Uzmanlık profili",
-      "Mentorluk alanları",
-      "Haftalık müsaitlik ve kapasite",
-      "Koordinatör onayı",
-    ],
-    action: "Mentor olarak devam et",
-  },
-];
+const ROLE_CARDS = [
+  { role: SignupRole.Founder, tone: OnboardingTone.Mentee, copy: "founder" },
+  { role: SignupRole.Mentor, tone: OnboardingTone.Mentor, copy: "mentor" },
+] as const;
 
 const BADGE_CLASSES: Record<OnboardingTone, string> = {
   [OnboardingTone.Mentee]: "bg-[#fff4ec] text-[#e86f22]",
@@ -68,27 +33,29 @@ export function RoleSelectView({
   signedIn: boolean;
   onChoose: (role: SignupRole) => void;
 }) {
+  const { messages } = useLocale();
+  const copy = messages.roleSelect;
   const { exit, exiting } = useOnboardingExit();
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#1f2328]">
       <OnboardingTopbar
-        exitLabel={signedIn ? "Çıkış yap" : undefined}
+        exitLabel={signedIn ? copy.exit : undefined}
         onExit={signedIn ? exit : undefined}
         exiting={exiting}
       />
       <main className="mx-auto flex w-full max-w-[860px] flex-1 flex-col items-center px-4 py-12 sm:py-[88px]">
         <h1 className="text-center text-2xl font-semibold leading-9 sm:text-[28px]">
-          menton’a nasıl katılmak istiyorsun?
+          {copy.title}
         </h1>
         <p className="mt-2 text-center text-[13px] leading-5 text-[#4a5059]">
-          Seçimin hesabının nasıl kurulacağını belirler. Sonradan
-          değiştirebilirsin.
+          {copy.intro}
         </p>
 
         <div className="mt-11 grid w-full gap-5 md:grid-cols-2">
           {ROLE_CARDS.map((card) => {
             const tone = ONBOARDING_TONES[card.tone];
+            const text = copy.cards[card.copy];
             return (
               <section
                 key={card.role}
@@ -98,22 +65,22 @@ export function RoleSelectView({
                 <span
                   className={`w-fit rounded-full px-3 py-1 text-[11px] font-medium leading-4 ${BADGE_CLASSES[card.tone]}`}
                 >
-                  {card.badge}
+                  {text.badge}
                 </span>
                 <h2
                   id={`role-${card.role}`}
                   className="mt-3 text-base font-semibold leading-6"
                 >
-                  {card.title}
+                  {text.title}
                 </h2>
                 <p className="mt-3 text-xs leading-5 text-[#4a5059]">
-                  {card.description}
+                  {text.description}
                 </p>
                 <p className="mt-5 text-[10px] font-semibold uppercase leading-4 tracking-[0.04em] text-[#676e78]">
-                  Kurulum adımları
+                  {copy.setupSteps}
                 </p>
                 <ul className="mt-2 flex flex-col gap-2.5 text-xs leading-4 text-[#1f2328]">
-                  {card.steps.map((step) => (
+                  {text.steps.map((step) => (
                     <li key={step} className="flex items-center gap-2">
                       <span
                         aria-hidden
@@ -128,7 +95,7 @@ export function RoleSelectView({
                   onClick={() => onChoose(card.role)}
                   className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${tone.bg} ${tone.bgHover}`}
                 >
-                  {card.action}
+                  {text.action}
                 </button>
               </section>
             );
@@ -136,16 +103,16 @@ export function RoleSelectView({
         </div>
 
         <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
-          Davet kodun mu var?{" "}
+          {copy.haveCode}{" "}
           <Link href="/invite" className="hover:underline">
-            Kodunla doğrudan devam edebilirsin.
+            {copy.codeLink}
           </Link>
         </p>
         {signedIn ? null : (
           <p className="mt-3 text-center text-xs leading-5 text-[#1f2328]">
-            Zaten hesabın var mı?{" "}
+            {messages.register.haveAccount}{" "}
             <Link href="/login" className="font-medium hover:underline">
-              Giriş yap
+              {messages.auth.signIn}
             </Link>
           </p>
         )}

@@ -10,6 +10,7 @@ import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import { useLocale } from "@/components/providers/locale-provider";
 
 export function OnboardingTopbar({
   exitLabel,
@@ -20,6 +21,8 @@ export function OnboardingTopbar({
   onExit?: () => void;
   exiting?: boolean;
 }) {
+  const { messages } = useLocale();
+  const copy = messages.onboarding;
   return (
     <header className="border-b border-[#eceef0] bg-white">
       <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-[14px] sm:px-8 lg:px-[120px]">
@@ -38,7 +41,7 @@ export function OnboardingTopbar({
               disabled={exiting}
               className="font-medium text-[#4a5059] hover:underline disabled:opacity-60"
             >
-              {exiting ? "Çıkılıyor…" : exitLabel}
+              {exiting ? copy.exiting : exitLabel}
             </button>
           ) : null}
         </nav>
@@ -67,6 +70,8 @@ export function OnboardingRail({
   showProgress?: boolean;
   onStepClick?: (index: number) => void;
 }) {
+  const { messages } = useLocale();
+  const copy = messages.onboarding;
   const theme = ONBOARDING_TONES[tone];
   const percent = Math.round((currentIndex / steps.length) * 100);
   return (
@@ -87,7 +92,7 @@ export function OnboardingRail({
             aria-valuenow={percent}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Profil kurulumu ilerlemesi"
+            aria-label={copy.progress}
           >
             <div
               className={`h-1.5 rounded-full ${theme.bg}`}
@@ -96,10 +101,7 @@ export function OnboardingRail({
           </div>
         </div>
       ) : null}
-      <ol
-        className="flex flex-col gap-1.5"
-        aria-label="Profil kurulum adımları"
-      >
+      <ol className="flex flex-col gap-1.5" aria-label={copy.stepsLabel}>
         {steps.map((step, index) => {
           const done = index < currentIndex;
           const current = index === currentIndex;
@@ -142,7 +144,7 @@ export function OnboardingRail({
                     done ? "text-[#0f7a4d]" : "text-[#858c96]"
                   }`}
                 >
-                  {done ? "Tamamlandı" : step.hint}
+                  {done ? copy.done : step.hint}
                 </span>
               </span>
             </>
@@ -171,7 +173,7 @@ export function OnboardingRail({
         className={`flex flex-col gap-2 rounded-[10px] px-4 py-3.5 ${theme.railNote}`}
       >
         <p className="text-[10.5px] font-semibold leading-4 text-[#858c96]">
-          BU BİLGİLERİ KİM GÖRÜR?
+          {copy.whoSees}
         </p>
         <p className="text-xs leading-[18px] text-[#4a5059]">{note}</p>
       </div>
@@ -200,6 +202,8 @@ export function OnboardingFooter({
   primaryDisabled?: boolean;
   status?: ReactNode;
 }) {
+  const { messages } = useLocale();
+  const copy = messages.onboarding;
   const theme = ONBOARDING_TONES[tone];
   return (
     <footer className="border-t border-[#eceef0] bg-white">
@@ -210,7 +214,7 @@ export function OnboardingFooter({
           disabled={backDisabled}
           className="rounded-full px-5 py-[11px] text-[13px] font-medium leading-5 text-[#4a5059] hover:bg-[#f8f9fa] disabled:invisible"
         >
-          ← Geri
+          {copy.back}
         </button>
         <div className="flex flex-wrap items-center gap-3">
           {status}
@@ -221,7 +225,7 @@ export function OnboardingFooter({
               disabled={saveDisabled}
               className="rounded-full border border-[#d4d8dd] bg-white px-5 py-[11px] text-[13px] font-medium leading-5 text-[#4a5059] hover:bg-[#f8f9fa] disabled:opacity-60"
             >
-              Taslak olarak kaydet
+              {copy.saveDraft}
             </button>
           ) : null}
           <button

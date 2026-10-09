@@ -15,11 +15,14 @@ import {
   StartupDocumentKind,
 } from "@/interfaces/signup";
 import { truncate } from "@/lib/utils";
+import { useLocale } from "@/components/providers/locale-provider";
 
 const TONE = OnboardingTone.Mentee;
-const NOT_UPLOADED = "Yüklenmedi";
 
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
+  const { messages } = useLocale();
+  const copy = messages.signupReview;
+  const NOT_UPLOADED = copy.notUploaded;
   const { draft, goToStep, setConsent } = wizard;
   const { personal, startup, documents } = draft;
   const programs = useProgramNames();
@@ -27,7 +30,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
 
   const programName =
     startup.programId === null
-      ? "Bağımsız"
+      ? messages.signupSteps.independent
       : (programs.data?.find((program) => program.id === startup.programId)
           ?.name ?? "");
 
@@ -49,17 +52,17 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
     <>
       <OnboardingReviewCard
         tone={TONE}
-        title="Kişisel profil"
+        title={copy.personal}
         onEdit={() => goToStep(SignupStep.PersonalProfile)}
         rows={[
           {
-            label: "Ad soyad",
+            label: copy.fullName,
             value: `${personal.firstName} ${personal.lastName}`.trim(),
           },
-          { label: "Rol", value: personal.role.trim() },
-          { label: "Kısa tanıtım", value: truncate(personal.bio.trim(), 44) },
+          { label: copy.role, value: personal.role.trim() },
+          { label: copy.bio, value: truncate(personal.bio.trim(), 44) },
           {
-            label: "İletişim tercihi",
+            label: copy.contact,
             value: personal.contactPreferences
               .map((value) => CONTACT_PREFERENCE_LABELS[value])
               .join(", "),
@@ -68,22 +71,25 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
       />
       <OnboardingReviewCard
         tone={TONE}
-        title="Startup profili"
+        title={copy.startup}
         onEdit={() => goToStep(SignupStep.StartupProfile)}
         rows={[
-          { label: "Startup", value: startup.name.trim() },
-          { label: "Tanım", value: startup.tagline.trim() },
+          { label: copy.startupName, value: startup.name.trim() },
+          { label: copy.tagline, value: startup.tagline.trim() },
           {
-            label: "Program · Aşama",
+            label: copy.programStage,
             value: [programName, startup.maturity].filter(Boolean).join(" · "),
           },
-          { label: "Ekip", value: `${startup.teamMembers.length + 1} üye` },
-          { label: "Destek alanları", value: startup.supportAreas.join(", ") },
+          {
+            label: copy.team,
+            value: copy.teamCount(startup.teamMembers.length + 1),
+          },
+          { label: copy.supportAreas, value: startup.supportAreas.join(", ") },
         ]}
       />
       <OnboardingReviewCard
         tone={TONE}
-        title="Dosyalar"
+        title={copy.files}
         onEdit={() => goToStep(SignupStep.Documents)}
         rows={[
           {
@@ -91,17 +97,16 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
             value: fileName(StartupDocumentKind.Canvas),
           },
           { label: "Pitch Deck", value: pitchDeck },
-          { label: "MVP / Prototip", value: mvp },
+          { label: copy.mvp, value: mvp },
         ]}
       />
       {missingKeyFiles ? (
         <OnboardingNote
           tone={TONE}
           icon="/onboarding/star.svg"
-          title="Pitch deck ve prototip yüklemeden de gönderebilirsin"
+          title={copy.missingTitle}
         >
-          Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya
-          bakıyor. Sonradan da ekleyebilirsin.
+          {copy.missingBody}
         </OnboardingNote>
       ) : null}
       <OnboardingConsent
@@ -109,8 +114,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
         checked={draft.consent}
         onChange={setConsent}
       >
-        Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör
-        tarafından incelenmesini kabul ediyorum.
+        {copy.consent}
       </OnboardingConsent>
     </>
   );
