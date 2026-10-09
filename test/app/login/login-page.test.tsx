@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
+import { LocaleProvider } from "@/components/providers/locale-provider";
+import { Locale } from "@/lib/i18n";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import {
@@ -69,6 +71,23 @@ describe("Login screen", () => {
     // out here signed out an authenticated tab elsewhere.
     expect(logout).not.toHaveBeenCalled();
     expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("shows the login screen in English when that is the chosen language", async () => {
+    render(
+      <LocaleProvider locale={Locale.En}>
+        <LoginPage />
+      </LocaleProvider>,
+    );
+
+    expect(
+      await screen.findByRole("heading", { name: "Welcome to Menton" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign in" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Sign up" })).toHaveAttribute(
+      "href",
+      "/signup",
+    );
   });
 
   it("renders the shared login frame", async () => {

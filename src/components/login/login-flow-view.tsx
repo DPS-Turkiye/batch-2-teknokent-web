@@ -5,7 +5,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
+import { LanguageSwitch } from "@/components/common/language-switch";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
+import { useLocale } from "@/components/providers/locale-provider";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { safeNextPath } from "@/lib/public-paths";
 
@@ -16,6 +18,8 @@ const labelClass = "text-[13px] font-semibold leading-[19.5px] text-[#374151]";
 
 export function LoginFlowView() {
   const router = useRouter();
+  const { messages } = useLocale();
+  const copy = messages.login;
   const searchParams = useSearchParams();
   const {
     email,
@@ -50,20 +54,23 @@ export function LoginFlowView() {
   return (
     <div className="flex min-h-screen bg-white text-[#111827]">
       <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
-        <MentonWordmark />
+        <div className="flex items-center justify-between gap-4">
+          <MentonWordmark />
+          <LanguageSwitch />
+        </div>
         <div className="flex flex-1 items-center justify-center py-8">
           <form
             onSubmit={submitLogin}
             className="flex w-full max-w-[384px] flex-col gap-2"
           >
             <h1 className="pt-8 text-center text-2xl font-bold leading-9 text-[#676e78]">
-              Menton’a hoş geldin
+              {copy.title}
             </h1>
 
             <div className="flex flex-col gap-4 pt-8">
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="login-email" className={labelClass}>
-                  E-posta <span className="text-[#e5701d]">*</span>
+                  {copy.email} <span className="text-[#e5701d]">*</span>
                 </label>
                 <input
                   id="login-email"
@@ -73,7 +80,7 @@ export function LoginFlowView() {
                   required
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="ornek@email.com"
+                  placeholder={copy.emailPlaceholder}
                   className={inputClass}
                 />
               </div>
@@ -81,14 +88,14 @@ export function LoginFlowView() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="login-password" className={labelClass}>
-                    Şifre <span className="text-[#e5701d]">*</span>
+                    {copy.password} <span className="text-[#e5701d]">*</span>
                   </label>
                   <button
                     type="button"
                     onClick={sendPasswordReset}
                     className="text-xs font-medium text-[#e5701d] hover:underline"
                   >
-                    Şifremi unuttum
+                    {copy.forgotPassword}
                   </button>
                 </div>
                 <input
@@ -110,7 +117,7 @@ export function LoginFlowView() {
                 disabled={!isReady || isVerifying}
                 className="h-[46px] w-full rounded-[20px] bg-[#e86f22] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
               >
-                {isVerifying ? "Giriş yapılıyor…" : "Giriş yap"}
+                {isVerifying ? copy.submitting : copy.submit}
               </button>
             </div>
 
@@ -134,13 +141,13 @@ export function LoginFlowView() {
 
             <div className="mt-9 flex flex-col gap-3 border-t border-[#f3f4f6] pt-7">
               <p className="text-center text-[13px] font-medium leading-[19.5px] text-[#6b7280]">
-                Menton’a yeni misin?
+                {copy.newHere}
               </p>
               <Link
                 href="/signup"
                 className="flex h-[46px] items-center justify-center rounded-[20px] border border-[#e4e7ea] text-sm font-semibold text-[#f97316] transition hover:border-[#e86f22] hover:bg-[#fff9f5]"
               >
-                Kayıt Ol
+                {copy.signUp}
               </Link>
             </div>
 
@@ -149,7 +156,7 @@ export function LoginFlowView() {
                 href="/invite"
                 className="text-xs leading-[18px] text-[#6b7280] underline hover:text-[#111827]"
               >
-                Bir davet aldın mı? Davet kodunla devam et
+                {copy.invite}
               </Link>
             </div>
           </form>
