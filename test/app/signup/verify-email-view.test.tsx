@@ -3,11 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
+import { LocaleProvider } from "@/components/providers/locale-provider";
+import { Locale } from "@/lib/i18n";
 import {
   reloadAndCheckEmailVerified,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/firebase/auth", () => ({
   reloadAndCheckEmailVerified: vi.fn(),
   resendVerificationEmail: vi.fn(),
@@ -36,6 +39,26 @@ describe("VerifyEmailView", () => {
       expect(resendVerificationEmail).toHaveBeenCalledTimes(1),
     );
     expect(screen.getByRole("status")).toHaveTextContent(/yeniden gönderdik/);
+  });
+
+  it("reads in English when that is the chosen language", () => {
+    render(
+      <LocaleProvider locale={Locale.En}>
+        <VerifyEmailView email="gulse@dongu.co" onVerified={vi.fn()} />
+      </LocaleProvider>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Verify your email" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/We sent a verification link to/),
+    ).toHaveTextContent(
+      "We sent a verification link to gulse@dongu.co. Click the link in the email to continue.",
+    );
+    expect(
+      screen.getByRole("button", { name: "Send again" }),
+    ).toBeInTheDocument();
   });
 
   it("continues only after Firebase says the address is verified", async () => {

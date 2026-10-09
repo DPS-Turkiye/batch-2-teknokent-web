@@ -18,8 +18,12 @@ import {
   isCurrentEmailVerified,
 } from "@/lib/firebase/auth";
 import { PASSWORD_HINT } from "@/lib/password";
+import { useLocale } from "@/components/providers/locale-provider";
 
 export function InviteView() {
+  const { messages } = useLocale();
+  const copy = messages.invite;
+  const fields = messages.auth;
   const router = useRouter();
   const { login } = useSession();
   const {
@@ -38,7 +42,7 @@ export function InviteView() {
   async function joinAfterEmailVerified() {
     const idToken = await currentIdToken();
     if (!idToken) {
-      throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+      throw new Error(fields.sessionExpired);
     }
     await registerMember(
       {
@@ -87,17 +91,16 @@ export function InviteView() {
     <AuthShell>
       <div className="flex flex-col gap-2 py-8">
         <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
-          Davet kodunla ekibe katıl
+          {copy.title}
         </h1>
         <p className="pt-2 text-center text-xs leading-[18px] text-[#6b7280]">
-          Kodu startup&apos;ının kurucusundan alırsın. Kodla oluşturulan
-          hesaplar ayrıca onay beklemez.
+          {copy.intro}
         </p>
 
         <div className="flex flex-col gap-4 pt-7">
           <AuthField
             id="invite-code"
-            label="Davet kodu"
+            label={copy.code}
             required
             placeholder="ABCD1234"
             value={inviteCode}
@@ -106,17 +109,17 @@ export function InviteView() {
           <div className="grid gap-4 sm:grid-cols-2">
             <AuthField
               id="invite-first-name"
-              label="Ad"
+              label={fields.firstName}
               required
-              placeholder="Adınız"
+              placeholder={fields.firstNamePlaceholder}
               value={form.firstName}
               onChange={(value) => update("firstName", value)}
             />
             <AuthField
               id="invite-last-name"
-              label="Soyad"
+              label={fields.lastName}
               required
-              placeholder="Soyadınız"
+              placeholder={fields.lastNamePlaceholder}
               value={form.lastName}
               onChange={(value) => update("lastName", value)}
             />
@@ -124,12 +127,12 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-email"
-              label="E-posta"
+              label={fields.email}
               required
               type="text"
               inputMode="email"
               autoComplete="email"
-              placeholder="ornek@email.com"
+              placeholder={fields.emailPlaceholder}
               value={form.email}
               onChange={(value) => update("email", value)}
             />
@@ -141,7 +144,7 @@ export function InviteView() {
           </div>
           <AuthField
             id="invite-phone"
-            label="Telefon"
+            label={fields.phone}
             required
             type="tel"
             placeholder="+90"
@@ -151,7 +154,7 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-password"
-              label="Şifre"
+              label={fields.password}
               required
               type="password"
               placeholder={PASSWORD_HINT}
@@ -169,16 +172,16 @@ export function InviteView() {
           <div>
             <AuthField
               id="invite-password-confirm"
-              label="Şifre tekrar"
+              label={fields.passwordConfirm}
               required
               type="password"
-              placeholder="Şifrenizi tekrarlayın"
+              placeholder={fields.passwordConfirmPlaceholder}
               value={form.passwordConfirm}
               onChange={(value) => update("passwordConfirm", value)}
             />
             {passwordsMismatch ? (
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
-                Passwords do not match.
+                {fields.passwordsMismatch}
               </p>
             ) : null}
           </div>
@@ -191,7 +194,7 @@ export function InviteView() {
             disabled={!canSubmit || !inviteCode.trim() || submitting}
             className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
           >
-            {submitting ? "Hesap oluşturuluyor…" : "Ekibe katıl"}
+            {submitting ? fields.creatingAccount : copy.submit}
           </button>
         </div>
 
@@ -205,12 +208,12 @@ export function InviteView() {
         ) : null}
 
         <p className="pt-5 text-center text-xs text-[#6b7280]">
-          Davet kodun yok mu?{" "}
+          {copy.noCode}{" "}
           <Link
             href="/login"
             className="font-semibold text-[#e5701d] hover:underline"
           >
-            Giriş ekranına dön
+            {copy.backToLogin}
           </Link>
         </p>
       </div>

@@ -2,7 +2,9 @@
 
 import { Check } from "lucide-react";
 
+import { useLocale } from "@/components/providers/locale-provider";
 import { UserAccountStatus } from "@/interfaces/session";
+import { tr, type Messages } from "@/messages/tr";
 
 type TimelineEntry = {
   title: string;
@@ -12,20 +14,20 @@ type TimelineEntry = {
 
 export function buildApplicationTimeline(
   status: UserAccountStatus,
+  copy: Messages["applicationTimeline"] = tr.applicationTimeline,
 ): TimelineEntry[] {
   const submitted: TimelineEntry[] = [
-    { title: "Profil tamamlandı", state: "done" },
-    { title: "Koordinatöre gönderildi", state: "done" },
+    { title: copy.completed, state: "done" },
+    { title: copy.sent, state: "done" },
   ];
 
   if (status === UserAccountStatus.Approved) {
     return [
       ...submitted,
-      { title: "İncelendi", state: "done" },
+      { title: copy.reviewed, state: "done" },
       {
-        title: "Startup aktif",
-        detail:
-          "Profilin onaylandı. Giriş yaparak çalışma alanını açabilirsin.",
+        title: copy.active,
+        detail: copy.approvedDetail,
         state: "current",
       },
     ];
@@ -35,24 +37,22 @@ export function buildApplicationTimeline(
     return [
       ...submitted,
       {
-        title: "Başvuru onaylanmadı",
-        detail:
-          "Koordinatör başvurunu onaylamadı. Ayrıntı için info@metu.edu.tr adresine yazabilirsin.",
+        title: copy.rejected,
+        detail: copy.rejectedDetail,
         state: "current",
       },
-      { title: "Startup aktif olacak", state: "pending" },
+      { title: copy.willActivate, state: "pending" },
     ];
   }
 
   return [
     ...submitted,
     {
-      title: "İnceleniyor",
-      detail:
-        "Profilin koordinatörler tarafından incelenir. Genellikle 1-3 iş günü sürer.",
+      title: copy.reviewing,
+      detail: copy.reviewingDetail,
       state: "current",
     },
-    { title: "Startup aktif olacak", state: "pending" },
+    { title: copy.willActivate, state: "pending" },
   ];
 }
 
@@ -61,7 +61,11 @@ export function ApplicationStatusTimeline({
 }: {
   status: UserAccountStatus;
 }) {
-  const timeline = buildApplicationTimeline(status);
+  const { messages } = useLocale();
+  const timeline = buildApplicationTimeline(
+    status,
+    messages.applicationTimeline,
+  );
 
   return (
     <ol className="mt-4 space-y-0">
