@@ -26,7 +26,7 @@ export function LanguageSwitch({
           aria-pressed={locale === option}
           onClick={() => setLocale(option)}
           className={`rounded-full px-3 py-1 ${
-            locale === option ? "bg-[#22262b] text-white" : "text-[#676e78]"
+            locale === option ? "bg-[#22262b] text-white!" : "text-[#676e78]!"
           }`}
         >
           {messages.language[option]}

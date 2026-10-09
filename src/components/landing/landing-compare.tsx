@@ -3,7 +3,7 @@ import type { CSSProperties } from "react";
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingPointerEffects } from "@/hooks/use-landing";
-import { LANDING_COMPARE } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 function MentoringIcon() {
   return (
@@ -43,6 +43,7 @@ function TrainingIcon() {
 }
 
 export function LandingCompare({ onDifference }: { onDifference: () => void }) {
+  const landing = useLandingContent();
   const pointer = useLandingPointerEffects();
   const cards = [
     {
@@ -51,7 +52,7 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
       delay: 0,
       firstPoint: 200,
       icon: <MentoringIcon />,
-      card: LANDING_COMPARE.mentoring,
+      card: landing.compare.mentoring,
     },
     {
       key: "e",
@@ -59,7 +60,7 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
       delay: 120,
       firstPoint: 300,
       icon: <TrainingIcon />,
-      card: LANDING_COMPARE.training,
+      card: landing.compare.training,
     },
   ];
 
@@ -67,13 +68,13 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
     <section id="karsilastirma">
       <div className={cx("wrap")}>
         <div className={cx("sec-head")}>
-          <div className={cx("eyebrow", "rv")}>Karşılaştırma</div>
+          <div className={cx("eyebrow", "rv")}>{landing.ui.compareEyebrow}</div>
           <h2 className={cx("h2", "rvt")}>
             <span className={cx("mask")}>
-              <span>Mentorluk ve eğitim</span>
+              <span>{landing.ui.compareTitleStart}</span>
             </span>{" "}
             <span className={cx("mask")}>
-              <span>arasındaki fark nedir?</span>
+              <span>{landing.ui.compareTitleEnd}</span>
             </span>
           </h2>
         </div>
@@ -113,7 +114,7 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
         </div>
         <div className={cx("cmp-foot", "rv")}>
           <a className={cx("link")} href="#sss" onClick={onDifference}>
-            Hangi desteğe ihtiyacım olduğunu nasıl anlarım? <ArrowIcon />
+            {landing.ui.whichSupport} <ArrowIcon />
           </a>
         </div>
       </div>

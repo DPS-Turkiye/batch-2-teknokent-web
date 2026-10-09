@@ -265,3 +265,71 @@ export const LANDING_FOOTER = {
   ],
   copyright: "© 2026 ODTÜ Teknokent. Tüm hakları saklıdır.",
 } as const;
+
+/** Text the landing components write themselves, outside the lists above. */
+export const LANDING_UI = {
+  open: "Açık",
+  augustShort: "3 Ağu",
+  viewDetails: "Detayları görüntüle",
+  viewAllAnnouncements: "Tüm duyuruları görüntüle",
+  announcementsEyebrow: "Duyurular",
+  compareEyebrow: "Karşılaştırma",
+  whichSupport: "Hangi desteğe ihtiyacım olduğunu nasıl anlarım?",
+  howEyebrow: "Mentorluk",
+  supportTopic: "Destek almak istediğin konu",
+  currentProblem: "Mevcut problemin",
+  session: "4. seans / 6",
+  agendaLabel: "Gündem",
+  faqEyebrow: "SSS",
+  homeLabel: "menton ana sayfa",
+  mainMenu: "Ana menü",
+  howItWorks: "Nasıl işler?",
+  howTitleStart: "Mentorluk süreci",
+  howTitleEnd: "nasıl işler?",
+  howLead:
+    "Mentorluk, girişiminizin karşılaştığı problemleri deneyimli kişilerle değerlendirmenizi, farklı bakış açıları kazanmanızı ve sonraki adımlarınızı netleştirmenizi sağlar.",
+  howStepsLabel: "Mentorluk adımları",
+  autoplaying: "Otomatik oynatılıyor · adıma tıklayarak geçebilirsin",
+  paused: "Duraklatıldı · adımlar arasında tıklayarak gezinebilirsin",
+  sendRequest: "Talebi gönder",
+  whyRecommended: "Neden önerildi?",
+  meetingWhen: "30 Ağustos · 14:00 · 45 dk",
+  meetingTitle: "Ürün konumlandırma kararları",
+  stageTasks: "Bu aşamadaki görevlerin",
+  stageName: "MVP · Value proposition & onboarding",
+  stageProgress: "Aşama ilerlemesi",
+  compareTitleStart: "Mentorluk ve eğitim",
+  compareTitleEnd: "arasındaki fark nedir?",
+  announcementsTitle: "Son gelişmeler",
+  announcementsLead:
+    "Programlar, eğitimler ve etkinliklerle ilgili son gelişmeleri takip edin.",
+  announcementsLabel: "Duyurular (üzerine gelince durur)",
+  mockApplication: "Başvuru dönemi",
+  mockTraining: "Grup eğitimi",
+  mockDocuments: "Başvuru belgeleri",
+  faqTitleStart: "Sıkça sorulan",
+  faqTitleEnd: "sorular",
+  faqLead:
+    "Aradığın cevabı bulamazsan program ekibine platform içinden ulaşabilirsin.",
+};
+
+export const LANDING_CONTENT = {
+  navLinks: LANDING_NAV_LINKS,
+  hero: LANDING_HERO,
+  announcements: LANDING_ANNOUNCEMENTS,
+  howSteps: LANDING_HOW_STEPS,
+  stageRoles: LANDING_STAGE_ROLES,
+  typedProblem: LANDING_TYPED_PROBLEM,
+  topicChips: LANDING_TOPIC_CHIPS,
+  matches: LANDING_MATCHES,
+  matchReason: LANDING_MATCH_REASON,
+  agenda: LANDING_AGENDA,
+  tasks: LANDING_TASKS,
+  compare: LANDING_COMPARE,
+  faqs: LANDING_FAQS,
+  cta: LANDING_CTA,
+  footer: LANDING_FOOTER,
+  ui: LANDING_UI,
+};
+
+export type LandingContent = typeof LANDING_CONTENT;

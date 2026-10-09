@@ -453,4 +453,8 @@ export const en: Messages = {
     consent:
       "I have read and accept the mentorship principles, and I agree to the coordinator reviewing my profile.",
   },
+  publicSession: {
+    continueAs: (name: string) => `Continue as ${name}`,
+    signIn: "Sign in",
+  },
 };

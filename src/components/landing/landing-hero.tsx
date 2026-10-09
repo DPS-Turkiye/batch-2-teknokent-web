@@ -9,13 +9,15 @@ import {
 } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingHero, useLandingPointerEffects } from "@/hooks/use-landing";
-import { LANDING_HERO, LANDING_PHOTOS } from "@/lib/const/landing";
+import { LANDING_PHOTOS } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 export function LandingHero({
   login,
 }: {
   login: { href: string; label: string };
 }) {
+  const landing = useLandingContent();
   const {
     sceneRef,
     layerRef,
@@ -27,25 +29,25 @@ export function LandingHero({
     cursor,
     still,
     onPointerMove,
-  } = useLandingHero(LANDING_HERO.sceneSteps.length);
+  } = useLandingHero(landing.hero.sceneSteps.length);
   const pointer = useLandingPointerEffects();
-  const words = LANDING_HERO.headline.split(/\s+/);
+  const words = landing.hero.headline.split(/\s+/);
 
   return (
     <section className={cx("hero")} onPointerMove={onPointerMove}>
       <div className={cx("wrap")}>
         <div>
           <div className={cx("eyebrow", "eyebrowIn")}>
-            {LANDING_HERO.eyebrow}
+            {landing.hero.eyebrow}
           </div>
-          <h1 aria-label={LANDING_HERO.headline}>
+          <h1 aria-label={landing.hero.headline}>
             {words.map((word, index) => (
               <span key={`${word}-${index}`}>
                 <span
                   aria-hidden
                   className={cx(
                     "w",
-                    word.startsWith(LANDING_HERO.accentPrefix) && "accent",
+                    word.startsWith(landing.hero.accentPrefix) && "accent",
                   )}
                 >
                   <span style={{ "--i": index } as CSSProperties}>{word}</span>
@@ -53,7 +55,7 @@ export function LandingHero({
               </span>
             ))}
           </h1>
-          <p className={cx("lead")}>{LANDING_HERO.lead}</p>
+          <p className={cx("lead")}>{landing.hero.lead}</p>
           <div className={cx("hero-cta")}>
             <Link
               id="giris"
@@ -71,12 +73,12 @@ export function LandingHero({
               onPointerMove={pointer.magnet}
               onPointerLeave={pointer.reset}
             >
-              Nasıl işler?
+              {landing.ui.howItWorks}
             </a>
           </div>
           <p className={cx("hero-note")}>
             <LockIcon />
-            {LANDING_HERO.note}
+            {landing.hero.note}
           </p>
         </div>
 
@@ -99,21 +101,21 @@ export function LandingHero({
               height={60}
             />
             <div>
-              {LANDING_HERO.match.title}
-              <small>{LANDING_HERO.match.detail}</small>
+              {landing.hero.match.title}
+              <small>{landing.hero.match.detail}</small>
             </div>
             <span className={cx("live")} />
           </div>
           <div ref={glassRef} className={cx("glass")}>
             <div className={cx("glass-top")}>
-              <span>{LANDING_HERO.sceneTitle}</span>
+              <span>{landing.hero.sceneTitle}</span>
               <span className={cx("dots")}>
-                {LANDING_HERO.sceneSteps.map((step, index) => (
+                {landing.hero.sceneSteps.map((step, index) => (
                   <i key={step} className={cx(index === active && "on")} />
                 ))}
               </span>
             </div>
-            {LANDING_HERO.sceneSteps.map((step, index) => (
+            {landing.hero.sceneSteps.map((step, index) => (
               <div
                 key={step}
                 ref={(element) => {

@@ -449,6 +449,10 @@ export const tr = {
     consent:
       "Mentorluk ilkelerini okudum ve kabul ediyorum. Profilimin koordinatör tarafından incelenmesini onaylıyorum.",
   },
+  publicSession: {
+    continueAs: (name: string) => `${name} olarak devam et`,
+    signIn: "Giriş Yap",
+  },
 };
 
 export type Messages = typeof tr;

@@ -2,13 +2,14 @@ import Link from "next/link";
 
 import { LandingLogo } from "@/components/landing/landing-nav";
 import { cx } from "@/components/landing/landing-styles";
-import { LANDING_FOOTER } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 export function LandingFooter({
   login,
 }: {
   login: { href: string; label: string };
 }) {
+  const landing = useLandingContent();
   return (
     <footer>
       <div className={cx("wrap")}>
@@ -16,13 +17,13 @@ export function LandingFooter({
           <div className={cx("fbrand")}>
             <LandingLogo />
             <p>
-              <b>{LANDING_FOOTER.tagline}</b> {LANDING_FOOTER.text}
+              <b>{landing.footer.tagline}</b> {landing.footer.text}
             </p>
             <Link className={cx("btn", "btn-or")} href={login.href}>
               {login.label}
             </Link>
           </div>
-          {LANDING_FOOTER.columns.map((column) => (
+          {landing.footer.columns.map((column) => (
             <div key={column.title} className={cx("fcol")}>
               <h4>{column.title}</h4>
               {column.links.map((link) => (
@@ -34,8 +35,8 @@ export function LandingFooter({
           ))}
         </div>
         <div className={cx("fbot")}>
-          <span>{LANDING_FOOTER.copyright}</span>
-          <span>{LANDING_FOOTER.tagline.replace(/\.$/, "")}</span>
+          <span>{landing.footer.copyright}</span>
+          <span>{landing.footer.tagline.replace(/\.$/, "")}</span>
         </div>
       </div>
     </footer>
