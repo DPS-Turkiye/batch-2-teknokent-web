@@ -2,10 +2,10 @@
 
 import { useSession } from "@/components/providers/session-provider";
 import { roleWorkspace } from "@/lib/role-workspace";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 export function usePublicSessionDestination() {
-  const { messages } = useLocale();
+  const t = useTranslations();
   const { isLoading, session } = useSession();
   const { homeHref } = roleWorkspace(session?.role);
   const firstName = session?.fullName.trim().split(/\s+/)[0];
@@ -14,8 +14,8 @@ export function usePublicSessionDestination() {
     href: session ? homeHref : "/login",
     isLoading,
     label: firstName
-      ? messages.publicSession.continueAs(firstName)
-      : messages.publicSession.signIn,
+      ? t("publicSession.continueAs", { name: firstName })
+      : t("publicSession.signIn"),
     session,
   };
 }

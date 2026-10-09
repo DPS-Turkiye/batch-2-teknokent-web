@@ -10,7 +10,7 @@ import { RoleSelectView } from "@/components/signup/role-select-view";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import { MentorRegistration, useSignupFlow } from "@/hooks/use-signup-flow";
 import type { RegisteredAccount } from "@/interfaces/auth";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 function ResumeMentorIdentity({
   account,
@@ -19,8 +19,8 @@ function ResumeMentorIdentity({
   account: RegisteredAccount;
   onContinue: (account: RegisteredAccount) => void;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.signupFlow;
+  const t = useTranslations();
+  const copy = useTranslations("signupFlow");
   const [fullName, setFullName] = useState(account.fullName);
   const [phone, setPhone] = useState(account.phone);
 
@@ -34,11 +34,13 @@ function ResumeMentorIdentity({
     <AuthShell>
       <form onSubmit={submit} className="flex flex-col gap-4 py-8">
         <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
-          {copy.resumeTitle}
+          {copy("resumeTitle")}
         </h1>
-        <p className="text-center text-sm text-[#6b7280]">{copy.resumeIntro}</p>
+        <p className="text-center text-sm text-[#6b7280]">
+          {copy("resumeIntro")}
+        </p>
         <label className="text-sm font-medium text-[#111827]">
-          {copy.fullName} <span className="text-[#e5701d]">*</span>
+          {copy("fullName")} <span className="text-[#e5701d]">*</span>
           <input
             value={fullName}
             onChange={(event) => setFullName(event.target.value)}
@@ -46,7 +48,7 @@ function ResumeMentorIdentity({
           />
         </label>
         <label className="text-sm font-medium text-[#111827]">
-          {messages.auth.phone}
+          {t("auth.phone")}
           <input
             type="tel"
             value={phone}
@@ -59,7 +61,7 @@ function ResumeMentorIdentity({
           disabled={!fullName.trim()}
           className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white disabled:opacity-50"
         >
-          {copy.resumeSubmit}
+          {copy("resumeSubmit")}
         </button>
       </form>
     </AuthShell>
@@ -77,13 +79,12 @@ function ResumeLoading({ message }: { message: string }) {
 }
 
 export function SignupFlow() {
-  const { messages } = useLocale();
-  const copy = messages.signupFlow;
+  const copy = useTranslations("signupFlow");
   const flow = useSignupFlow();
   const { account, isMentor, mentorRegistration } = flow;
 
   if (!flow.authReady) {
-    return <ResumeLoading message={copy.checkingSession} />;
+    return <ResumeLoading message={copy("checkingSession")} />;
   }
 
   if (account && flow.needsEmailVerification) {
@@ -124,13 +125,13 @@ export function SignupFlow() {
               onClick={flow.retryMentorRegistration}
               className="mt-4 rounded-[10px] bg-[#e5701d] px-5 py-2.5 text-sm font-semibold text-white"
             >
-              {copy.retry}
+              {copy("retry")}
             </button>
           </div>
         </AuthShell>
       );
     }
-    return <ResumeLoading message={copy.preparingMentor} />;
+    return <ResumeLoading message={copy("preparingMentor")} />;
   }
 
   return isMentor ? (

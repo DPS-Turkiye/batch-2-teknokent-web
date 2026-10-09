@@ -14,7 +14,7 @@ import {
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { StartupDocumentKind } from "@/interfaces/signup";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
@@ -43,8 +43,7 @@ const FILE_CARDS: {
 ];
 
 export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
-  const { messages } = useLocale();
-  const copy = messages.signupDocuments;
+  const copy = useTranslations("signupDocuments");
   const { draft, setDocument, setMvpUrl } = wizard;
   const stored = useStoredDocuments();
 
@@ -54,31 +53,31 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
         <OnboardingCard
           key={card.kind}
           title={card.title}
-          subtitle={copy[card.subtitle]}
+          subtitle={copy(card.subtitle)}
         >
           <OnboardingFileField
-            label={copy.pickFile(card.title)}
+            label={copy("pickFile", { title: card.title })}
             file={draft.documents[card.kind] ?? null}
             onChange={(file) => setDocument(card.kind, file)}
             accept={card.accept}
-            helpText={copy[card.helpText]}
+            helpText={copy(card.helpText)}
             storedName={stored.byKind(card.kind)?.originalFilename ?? null}
           />
         </OnboardingCard>
       ))}
 
-      <OnboardingCard title={copy.mvpTitle} subtitle={copy.mvpSubtitle}>
-        <OnboardingField id="signup-mvp-url" label={copy.link} tone={TONE}>
+      <OnboardingCard title={copy("mvpTitle")} subtitle={copy("mvpSubtitle")}>
+        <OnboardingField id="signup-mvp-url" label={copy("link")} tone={TONE}>
           <input
             id="signup-mvp-url"
             className={inputClass}
-            placeholder={copy.mvpPlaceholder}
+            placeholder={copy("mvpPlaceholder")}
             value={draft.mvpUrl}
             onChange={(event) => setMvpUrl(event.target.value)}
           />
         </OnboardingField>
         <OnboardingFileField
-          label={copy.mvpPick}
+          label={copy("mvpPick")}
           file={draft.documents[StartupDocumentKind.Mvp] ?? null}
           onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
           accept=".pdf,.docx,.pptx"
@@ -90,7 +89,7 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingNote icon="/onboarding/info-done.svg">
-        {copy.optionalNote}
+        {copy("optionalNote")}
       </OnboardingNote>
     </>
   );

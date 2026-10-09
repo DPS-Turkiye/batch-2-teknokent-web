@@ -3,12 +3,11 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
-import { LocaleProvider } from "@/components/providers/locale-provider";
-import { Locale } from "@/lib/i18n";
 import {
   reloadAndCheckEmailVerified,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/firebase/auth", () => ({
@@ -43,9 +42,9 @@ describe("VerifyEmailView", () => {
 
   it("reads in English when that is the chosen language", () => {
     render(
-      <LocaleProvider locale={Locale.En}>
+      <InLocale locale="en">
         <VerifyEmailView email="gulse@dongu.co" onVerified={vi.fn()} />
-      </LocaleProvider>,
+      </InLocale>,
     );
 
     expect(

@@ -26,7 +26,7 @@ import {
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
 import { initials } from "@/lib/utils";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const theme = ONBOARDING_TONES[TONE];
@@ -44,10 +44,10 @@ function Avatar({ name }: { name: string }) {
 }
 
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
-  const { messages } = useLocale();
-  const copy = messages.signupSteps;
+  const t = useTranslations();
+  const copy = useTranslations("signupSteps");
   // The no-program answer, sent as a null program id.
-  const INDEPENDENT = copy.independent;
+  const INDEPENDENT = copy("independent");
   const {
     draft,
     updateStartup,
@@ -78,17 +78,17 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
 
   return (
     <>
-      <OnboardingCard title={copy.basics}>
+      <OnboardingCard title={copy("basics")}>
         <div className="flex items-center gap-4">
           <OnboardingImagePicker
-            label={copy.logo}
-            placeholder={copy.logoPlaceholder}
+            label={copy("logo")}
+            placeholder={copy("logoPlaceholder")}
             file={startup.logo}
             onChange={(file) => updateStartup("logo", file)}
           />
           <OnboardingField
             id="signup-startup-name"
-            label={copy.startupName}
+            label={copy("startupName")}
             required
             tone={TONE}
           >
@@ -102,7 +102,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         </div>
         <OnboardingField
           id="signup-tagline"
-          label={copy.oneLiner}
+          label={copy("oneLiner")}
           required
           tone={TONE}
         >
@@ -115,23 +115,27 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           />
         </OnboardingField>
         <OnboardingCounter
-          hint={copy.oneLinerHint}
+          hint={copy("oneLinerHint")}
           length={startup.tagline.length}
           max={TAGLINE_MAX_LENGTH}
         />
         <div className="flex flex-col gap-3.5 sm:flex-row">
-          <OnboardingField id="signup-website" label={copy.website} tone={TONE}>
+          <OnboardingField
+            id="signup-website"
+            label={copy("website")}
+            tone={TONE}
+          >
             <input
               id="signup-website"
               className={inputClass}
-              placeholder={copy.websitePlaceholder}
+              placeholder={copy("websitePlaceholder")}
               value={startup.website}
               onChange={(event) => updateStartup("website", event.target.value)}
             />
           </OnboardingField>
           <OnboardingField
             id="signup-founded-year"
-            label={copy.foundedYear}
+            label={copy("foundedYear")}
             tone={TONE}
           >
             <input
@@ -153,29 +157,29 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title={copy.programAndStage}
-        subtitle={copy.programAndStageSubtitle}
+        title={copy("programAndStage")}
+        subtitle={copy("programAndStageSubtitle")}
       >
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy.program}
+          {copy("program")}
         </p>
         {programs.isLoading ? (
-          <p className="text-xs text-[#676e78]">{copy.programsLoading}</p>
+          <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
         ) : (
           <OnboardingChips
             tone={TONE}
-            label={copy.program}
+            label={copy("program")}
             options={programOptions}
             selected={selectedProgram ? [selectedProgram] : []}
             onToggle={chooseProgram}
           />
         )}
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy.stage}
+          {copy("stage")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label={copy.stage}
+          label={copy("stage")}
           options={STARTUP_STAGE_OPTIONS}
           selected={
             startup.maturity
@@ -197,12 +201,12 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title={copy.team}
-        subtitle={copy.teamSubtitle}
+        title={copy("team")}
+        subtitle={copy("teamSubtitle")}
         action={
           memberForm.open ? null : (
             <OnboardingTextAction tone={TONE} onClick={memberForm.openForm}>
-              {copy.addMember}
+              {copy("addMember")}
             </OnboardingTextAction>
           )
         }
@@ -221,8 +225,8 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         {startup.teamMembers.map((member, index) => (
           <OnboardingListRow
             key={`${member.fullName}-${index}`}
-            actionLabel={copy.remove}
-            actionAriaLabel={copy.removeMember(member.fullName)}
+            actionLabel={copy("remove")}
+            actionAriaLabel={copy("removeMember", { name: member.fullName })}
             onAction={() => removeTeamMember(index)}
           >
             <Avatar name={member.fullName} />
@@ -242,7 +246,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             <div className="flex flex-col gap-3 sm:flex-row">
               <OnboardingField
                 id="team-member-name"
-                label={copy.memberName}
+                label={copy("memberName")}
                 required
                 tone={TONE}
               >
@@ -257,7 +261,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
               </OnboardingField>
               <OnboardingField
                 id="team-member-role"
-                label={copy.memberRole}
+                label={copy("memberRole")}
                 tone={TONE}
               >
                 <input
@@ -272,7 +276,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             </div>
             <OnboardingField
               id="team-member-email"
-              label={messages.auth.email}
+              label={t("auth.email")}
               tone={TONE}
             >
               <input
@@ -296,14 +300,14 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
                 onClick={memberForm.cancel}
                 className="rounded-full px-4 py-2 text-[12.5px] font-medium text-[#4a5059] hover:bg-[#f8f9fa]"
               >
-                {copy.cancel}
+                {copy("cancel")}
               </button>
               <button
                 type="button"
                 onClick={memberForm.submit}
                 className={`rounded-full px-4 py-2 text-[12.5px] font-medium text-white ${theme.bg} ${theme.bgHover}`}
               >
-                {copy.add}
+                {copy("add")}
               </button>
             </div>
           </div>
@@ -311,12 +315,12 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title={copy.supportAreas}
-        subtitle={copy.supportAreasSubtitle(MAX_SUPPORT_AREAS)}
+        title={copy("supportAreas")}
+        subtitle={copy("supportAreasSubtitle", { max: MAX_SUPPORT_AREAS })}
       >
         <OnboardingChips
           tone={TONE}
-          label={copy.supportAreas}
+          label={copy("supportAreas")}
           options={SUPPORT_AREA_OPTIONS}
           selected={
             startup.supportAreas as (typeof SUPPORT_AREA_OPTIONS)[number][]
@@ -325,7 +329,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         />
         {wizard.supportAreaLimitReached ? (
           <OnboardingNote>
-            {copy.supportAreasLimit(MAX_SUPPORT_AREAS)}
+            {copy("supportAreasLimit", { max: MAX_SUPPORT_AREAS })}
           </OnboardingNote>
         ) : null}
       </OnboardingCard>

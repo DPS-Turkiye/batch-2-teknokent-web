@@ -18,15 +18,14 @@ import {
   MAX_OFFERINGS,
 } from "@/interfaces/mentor-onboarding";
 import { STARTUP_STAGE_OPTIONS } from "@/interfaces/signup";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 const theme = ONBOARDING_TONES[TONE];
 const inputClass = `${onboardingInputClass} ${theme.focus}`;
 
 export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
-  const { messages } = useLocale();
-  const copy = messages.mentorSteps;
+  const copy = useTranslations("mentorSteps");
   const { draft } = wizard;
   const entry = useInlineEntry(wizard.addOffering);
 
@@ -34,12 +33,12 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
     <>
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy.topics}
-        subtitle={copy.topicsSubtitle(MAX_MENTOR_TOPICS)}
+        title={copy("topics")}
+        subtitle={copy("topicsSubtitle", { max: MAX_MENTOR_TOPICS })}
       >
         <OnboardingChips
           tone={TONE}
-          label={copy.topics}
+          label={copy("topics")}
           options={wizard.topicOptions}
           selected={draft.topics}
           onToggle={wizard.toggleTopic}
@@ -56,12 +55,12 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
 
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy.stagesTitle}
-        subtitle={copy.stagesSubtitle}
+        title={copy("stagesTitle")}
+        subtitle={copy("stagesSubtitle")}
       >
         <OnboardingChips
           tone={TONE}
-          label={copy.stagesLabel}
+          label={copy("stagesLabel")}
           options={STARTUP_STAGE_OPTIONS}
           selected={draft.stages as (typeof STARTUP_STAGE_OPTIONS)[number][]}
           onToggle={wizard.toggleStage}
@@ -70,12 +69,12 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
 
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy.offeringsTitle}
-        subtitle={copy.offeringsSubtitle}
+        title={copy("offeringsTitle")}
+        subtitle={copy("offeringsSubtitle")}
         action={
           !entry.open && draft.offerings.length < MAX_OFFERINGS ? (
             <OnboardingTextAction tone={TONE} onClick={entry.openEntry}>
-              {copy.addOffering}
+              {copy("addOffering")}
             </OnboardingTextAction>
           ) : null
         }
@@ -83,8 +82,8 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
         {draft.offerings.map((offering, index) => (
           <OnboardingListRow
             key={offering}
-            actionLabel={copy.remove}
-            actionAriaLabel={copy.removeOffering(offering)}
+            actionLabel={copy("remove")}
+            actionAriaLabel={copy("removeOffering", { offering: offering })}
             onAction={() => wizard.removeOffering(index)}
           >
             <span
@@ -105,10 +104,10 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
             }}
           >
             <input
-              aria-label={copy.newOffering}
+              aria-label={copy("newOffering")}
               autoFocus
               className={inputClass}
-              placeholder={copy.offeringPlaceholder}
+              placeholder={copy("offeringPlaceholder")}
               value={entry.value}
               maxLength={255}
               onChange={(event) => entry.setValue(event.target.value)}
@@ -119,19 +118,19 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
                 onClick={entry.cancel}
                 className="rounded-full px-4 py-2 text-[12.5px] font-medium text-[#4a5059] hover:bg-[#f8f9fa]"
               >
-                {copy.cancel}
+                {copy("cancel")}
               </button>
               <button
                 type="submit"
                 className={`rounded-full px-4 py-2 text-[12.5px] font-medium text-white ${theme.bg} ${theme.bgHover}`}
               >
-                {copy.add}
+                {copy("add")}
               </button>
             </div>
           </form>
         ) : null}
         {!draft.offerings.length && !entry.open ? (
-          <p className="text-xs text-[#858c96]">{copy.noOfferings}</p>
+          <p className="text-xs text-[#858c96]">{copy("noOfferings")}</p>
         ) : null}
       </OnboardingCard>
     </>

@@ -21,7 +21,7 @@ import {
   MENTOR_STEPS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 
@@ -33,13 +33,12 @@ const STEP_KEYS = {
 } as const satisfies Record<MentorOnboardingStep, string>;
 
 export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
-  const { messages } = useLocale();
-  const text = messages.mentorOnboarding;
-  const flow = messages.signupWizard;
+  const text = useTranslations("mentorOnboarding");
+  const flow = useTranslations("signupWizard");
   const railSteps = MENTOR_STEPS.map((item) => ({
     ...item,
-    title: text.steps[STEP_KEYS[item.step]].railTitle,
-    hint: text.steps[STEP_KEYS[item.step]].railHint,
+    title: text(`steps.${STEP_KEYS[item.step]}.railTitle`),
+    hint: text(`steps.${STEP_KEYS[item.step]}.railHint`),
   }));
   const wizard = useMentorOnboarding({ fullName });
   const { step, phase } = wizard;
@@ -50,17 +49,17 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
       <OnboardingSubmittedView
         tone={TONE}
         name={`${wizard.draft.firstName} ${wizard.draft.lastName}`.trim()}
-        title={text.submittedTitle}
+        title={text("submittedTitle")}
         submittedAt={wizard.submittedAt}
-        lastStepLabel={text.lastStepLabel}
-        nextSteps={text.nextSteps}
+        lastStepLabel={text("lastStepLabel")}
+        nextSteps={text.raw("nextSteps")}
         onSignOut={exit}
         signingOut={exiting}
       />
     );
   }
 
-  const copy = text.steps[STEP_KEYS[step]];
+  const stepKey = STEP_KEYS[step];
   const onFormScreen =
     step !== MentorOnboardingStep.Profile || phase === IntroPhase.Review;
 
@@ -68,7 +67,7 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
     <OnboardingLayout
       topbar={
         <OnboardingTopbar
-          exitLabel={flow.saveAndExit}
+          exitLabel={flow("saveAndExit")}
           onExit={exit}
           exiting={exiting}
         />
@@ -78,13 +77,13 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           tone={TONE}
           steps={railSteps}
           currentIndex={MENTOR_STEP_ORDER.indexOf(step)}
-          note={copy.note}
+          note={text(`steps.${stepKey}.note`)}
           showProgress
           onStepClick={(index) => wizard.goToStep(MENTOR_STEP_ORDER[index])}
         />
       }
-      title={copy.title}
-      subtitle={copy.subtitle}
+      title={text(`steps.${stepKey}.title`)}
+      subtitle={text(`steps.${stepKey}.subtitle`)}
       footer={
         <OnboardingFooter
           tone={TONE}
@@ -94,10 +93,10 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           saveDisabled={wizard.isSaving}
           primaryLabel={
             wizard.isSaving
-              ? flow.sending
+              ? flow("sending")
               : wizard.isLastStep
-                ? flow.sendToCoordinator
-                : flow.continue
+                ? flow("sendToCoordinator")
+                : flow("continue")
           }
           onPrimary={wizard.isLastStep ? wizard.complete : wizard.goNext}
           primaryDisabled={
@@ -106,7 +105,7 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           status={
             wizard.draftSavedAt ? (
               <span role="status" className="text-xs text-[#676e78]">
-                {flow.draftSaved}
+                {flow("draftSaved")}
               </span>
             ) : null
           }

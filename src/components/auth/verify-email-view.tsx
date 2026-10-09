@@ -8,7 +8,7 @@ import {
   reloadAndCheckEmailVerified,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 export function VerifyEmailView({
   email,
@@ -17,8 +17,7 @@ export function VerifyEmailView({
   email: string;
   onVerified: () => Promise<void>;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.verifyEmail;
+  const copy = useTranslations("verifyEmail");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [checking, setChecking] = useState(false);
@@ -51,7 +50,7 @@ export function VerifyEmailView({
     try {
       const verified = await reloadAndCheckEmailVerified();
       if (!verified) {
-        setError(copy.notVerified);
+        setError(copy("notVerified"));
         return;
       }
       finishedRef.current = true;
@@ -69,7 +68,7 @@ export function VerifyEmailView({
     setNotice("");
     try {
       await resendVerificationEmail();
-      setNotice(copy.resent);
+      setNotice(copy("resent"));
     } catch (caught) {
       setError(describeAuthError(caught));
     } finally {
@@ -81,12 +80,12 @@ export function VerifyEmailView({
     <AuthShell>
       <div className="flex flex-col gap-4 py-8">
         <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
-          {copy.title}
+          {copy("title")}
         </h1>
         <p className="text-center text-sm leading-6 text-[#6b7280]">
-          {copy.sentBefore}
+          {copy("sentBefore")}
           <span className="font-semibold text-[#111827]">{email}</span>
-          {copy.sentAfter}
+          {copy("sentAfter")}
         </p>
 
         <button
@@ -95,7 +94,7 @@ export function VerifyEmailView({
           disabled={checking}
           className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
         >
-          {checking ? copy.checking : copy.confirm}
+          {checking ? copy("checking") : copy("confirm")}
         </button>
         <button
           type="button"
@@ -103,7 +102,7 @@ export function VerifyEmailView({
           disabled={resending}
           className="h-[46px] w-full rounded-[10px] border border-[#e8eaed] text-sm font-semibold text-[#111827] hover:border-[#e5701d] disabled:opacity-60"
         >
-          {resending ? copy.resending : copy.resend}
+          {resending ? copy("resending") : copy("resend")}
         </button>
 
         {notice ? (

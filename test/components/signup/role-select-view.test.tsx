@@ -2,10 +2,9 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
-import { LocaleProvider } from "@/components/providers/locale-provider";
 import { RoleSelectView } from "@/components/signup/role-select-view";
 import { SignupRole } from "@/interfaces/signup";
-import { Locale } from "@/lib/i18n";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/hooks/use-onboarding-exit", () => ({
@@ -31,9 +30,9 @@ describe("RoleSelectView", () => {
 
   it("reads in English when that is the chosen language", () => {
     render(
-      <LocaleProvider locale={Locale.En}>
+      <InLocale locale="en">
         <RoleSelectView signedIn={false} onChoose={vi.fn()} />
-      </LocaleProvider>,
+      </InLocale>,
     );
 
     expect(

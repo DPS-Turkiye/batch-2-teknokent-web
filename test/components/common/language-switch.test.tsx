@@ -3,8 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LanguageSwitch } from "@/components/common/language-switch";
-import { LocaleProvider } from "@/components/providers/locale-provider";
-import { Locale, LOCALE_COOKIE } from "@/lib/i18n";
+import { LOCALE_COOKIE } from "@/lib/i18n";
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
@@ -22,11 +21,7 @@ describe("LanguageSwitch", () => {
 
   it("remembers the chosen language and reloads the page in it", async () => {
     const user = userEvent.setup();
-    render(
-      <LocaleProvider locale={Locale.Tr}>
-        <LanguageSwitch enabled />
-      </LocaleProvider>,
-    );
+    render(<LanguageSwitch enabled />);
 
     expect(screen.getByRole("button", { name: "Türkçe" })).toHaveAttribute(
       "aria-pressed",

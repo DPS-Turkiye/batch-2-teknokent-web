@@ -2,9 +2,9 @@
 
 import { Check } from "lucide-react";
 
-import { useLocale } from "@/components/providers/locale-provider";
 import { UserAccountStatus } from "@/interfaces/session";
-import { tr, type Messages } from "@/messages/tr";
+import tr from "@/messages/tr.json";
+import { useTranslations } from "next-intl";
 
 type TimelineEntry = {
   title: string;
@@ -14,20 +14,21 @@ type TimelineEntry = {
 
 export function buildApplicationTimeline(
   status: UserAccountStatus,
-  copy: Messages["applicationTimeline"] = tr.applicationTimeline,
+  copy: (key: keyof typeof tr.applicationTimeline) => string = (key) =>
+    tr.applicationTimeline[key],
 ): TimelineEntry[] {
   const submitted: TimelineEntry[] = [
-    { title: copy.completed, state: "done" },
-    { title: copy.sent, state: "done" },
+    { title: copy("completed"), state: "done" },
+    { title: copy("sent"), state: "done" },
   ];
 
   if (status === UserAccountStatus.Approved) {
     return [
       ...submitted,
-      { title: copy.reviewed, state: "done" },
+      { title: copy("reviewed"), state: "done" },
       {
-        title: copy.active,
-        detail: copy.approvedDetail,
+        title: copy("active"),
+        detail: copy("approvedDetail"),
         state: "current",
       },
     ];
@@ -37,22 +38,22 @@ export function buildApplicationTimeline(
     return [
       ...submitted,
       {
-        title: copy.rejected,
-        detail: copy.rejectedDetail,
+        title: copy("rejected"),
+        detail: copy("rejectedDetail"),
         state: "current",
       },
-      { title: copy.willActivate, state: "pending" },
+      { title: copy("willActivate"), state: "pending" },
     ];
   }
 
   return [
     ...submitted,
     {
-      title: copy.reviewing,
-      detail: copy.reviewingDetail,
+      title: copy("reviewing"),
+      detail: copy("reviewingDetail"),
       state: "current",
     },
-    { title: copy.willActivate, state: "pending" },
+    { title: copy("willActivate"), state: "pending" },
   ];
 }
 
@@ -61,11 +62,8 @@ export function ApplicationStatusTimeline({
 }: {
   status: UserAccountStatus;
 }) {
-  const { messages } = useLocale();
-  const timeline = buildApplicationTimeline(
-    status,
-    messages.applicationTimeline,
-  );
+  const t = useTranslations("applicationTimeline");
+  const timeline = buildApplicationTimeline(status, (key) => t(key));
 
   return (
     <ol className="mt-4 space-y-0">

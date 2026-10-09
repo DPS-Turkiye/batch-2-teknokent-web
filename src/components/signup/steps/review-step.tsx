@@ -15,14 +15,14 @@ import {
   StartupDocumentKind,
 } from "@/interfaces/signup";
 import { truncate } from "@/lib/utils";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
-  const { messages } = useLocale();
-  const copy = messages.signupReview;
-  const NOT_UPLOADED = copy.notUploaded;
+  const t = useTranslations();
+  const copy = useTranslations("signupReview");
+  const NOT_UPLOADED = copy("notUploaded");
   const { draft, goToStep, setConsent } = wizard;
   const { personal, startup, documents } = draft;
   const programs = useProgramNames();
@@ -30,7 +30,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
 
   const programName =
     startup.programId === null
-      ? messages.signupSteps.independent
+      ? t("signupSteps.independent")
       : (programs.data?.find((program) => program.id === startup.programId)
           ?.name ?? "");
 
@@ -52,17 +52,17 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
     <>
       <OnboardingReviewCard
         tone={TONE}
-        title={copy.personal}
+        title={copy("personal")}
         onEdit={() => goToStep(SignupStep.PersonalProfile)}
         rows={[
           {
-            label: copy.fullName,
+            label: copy("fullName"),
             value: `${personal.firstName} ${personal.lastName}`.trim(),
           },
-          { label: copy.role, value: personal.role.trim() },
-          { label: copy.bio, value: truncate(personal.bio.trim(), 44) },
+          { label: copy("role"), value: personal.role.trim() },
+          { label: copy("bio"), value: truncate(personal.bio.trim(), 44) },
           {
-            label: copy.contact,
+            label: copy("contact"),
             value: personal.contactPreferences
               .map((value) => CONTACT_PREFERENCE_LABELS[value])
               .join(", "),
@@ -71,25 +71,28 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
       />
       <OnboardingReviewCard
         tone={TONE}
-        title={copy.startup}
+        title={copy("startup")}
         onEdit={() => goToStep(SignupStep.StartupProfile)}
         rows={[
-          { label: copy.startupName, value: startup.name.trim() },
-          { label: copy.tagline, value: startup.tagline.trim() },
+          { label: copy("startupName"), value: startup.name.trim() },
+          { label: copy("tagline"), value: startup.tagline.trim() },
           {
-            label: copy.programStage,
+            label: copy("programStage"),
             value: [programName, startup.maturity].filter(Boolean).join(" · "),
           },
           {
-            label: copy.team,
-            value: copy.teamCount(startup.teamMembers.length + 1),
+            label: copy("team"),
+            value: copy("teamCount", { count: startup.teamMembers.length + 1 }),
           },
-          { label: copy.supportAreas, value: startup.supportAreas.join(", ") },
+          {
+            label: copy("supportAreas"),
+            value: startup.supportAreas.join(", "),
+          },
         ]}
       />
       <OnboardingReviewCard
         tone={TONE}
-        title={copy.files}
+        title={copy("files")}
         onEdit={() => goToStep(SignupStep.Documents)}
         rows={[
           {
@@ -97,16 +100,16 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
             value: fileName(StartupDocumentKind.Canvas),
           },
           { label: "Pitch Deck", value: pitchDeck },
-          { label: copy.mvp, value: mvp },
+          { label: copy("mvp"), value: mvp },
         ]}
       />
       {missingKeyFiles ? (
         <OnboardingNote
           tone={TONE}
           icon="/onboarding/star.svg"
-          title={copy.missingTitle}
+          title={copy("missingTitle")}
         >
-          {copy.missingBody}
+          {copy("missingBody")}
         </OnboardingNote>
       ) : null}
       <OnboardingConsent
@@ -114,7 +117,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
         checked={draft.consent}
         onChange={setConsent}
       >
-        {copy.consent}
+        {copy("consent")}
       </OnboardingConsent>
     </>
   );

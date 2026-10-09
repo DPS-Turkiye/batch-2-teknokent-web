@@ -42,3 +42,31 @@ afterEach(() => {
     sessionStorage.clear();
   } catch {}
 });
+
+// A component rendered without NextIntlClientProvider reads Turkish, as production does with no
+// locale cookie; tests that need English wrap their render in <InLocale locale="en">.
+vi.mock("next-intl", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next-intl")>();
+  const { default: tr } = await import("@/messages/tr.json");
+  return {
+    ...actual,
+    useTranslations: (namespace?: string) => {
+      try {
+        return actual.useTranslations(namespace as never);
+      } catch {
+        return actual.createTranslator({
+          locale: "tr",
+          messages: tr,
+          namespace: namespace as never,
+        });
+      }
+    },
+    useLocale: () => {
+      try {
+        return actual.useLocale();
+      } catch {
+        return "tr";
+      }
+    },
+  };
+});

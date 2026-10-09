@@ -25,7 +25,7 @@ import {
   SIGNUP_STEPS,
   SignupStep,
 } from "@/interfaces/signup";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 
@@ -37,14 +37,14 @@ const STEP_KEYS = {
 } as const satisfies Record<SignupStep, string>;
 
 export function SignupWizardView({ account }: { account: RegisteredAccount }) {
-  const { messages } = useLocale();
-  const copy = messages.signupWizard;
+  const copy = useTranslations("signupWizard");
   const railSteps = SIGNUP_STEPS.map((item) => ({
     ...item,
-    title: copy.steps[STEP_KEYS[item.step]].railTitle,
-    hint: copy.steps[STEP_KEYS[item.step]].railHint,
+    title: copy(`steps.${STEP_KEYS[item.step]}.railTitle`),
+    hint: copy(`steps.${STEP_KEYS[item.step]}.railHint`),
   }));
-  const stepCopy = (current: SignupStep) => copy.steps[STEP_KEYS[current]];
+  const stepText = (current: SignupStep, field: "title" | "subtitle") =>
+    copy(`steps.${STEP_KEYS[current]}.${field}`);
   const { submitApplication, submittedAt } = useFounderApplication(account);
   const wizard = useSignupWizard({ onSubmit: submitApplication });
   const { step, canContinue, isFirstStep, isLastStep } = wizard;
@@ -56,10 +56,12 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
       <OnboardingSubmittedView
         tone={TONE}
         name={startupName || signupFullName(wizard.draft)}
-        title={copy.submittedTitle(startupName || copy.submittedFallbackName)}
+        title={copy("submittedTitle", {
+          name: startupName || copy("submittedFallbackName"),
+        })}
         submittedAt={submittedAt ?? new Date()}
-        lastStepLabel={copy.lastStepLabel}
-        nextSteps={copy.nextSteps}
+        lastStepLabel={copy("lastStepLabel")}
+        nextSteps={copy.raw("nextSteps")}
         onSignOut={exit}
         signingOut={exiting}
       />
@@ -72,7 +74,7 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
     <OnboardingLayout
       topbar={
         <OnboardingTopbar
-          exitLabel={copy.saveAndExit}
+          exitLabel={copy("saveAndExit")}
           onExit={exit}
           exiting={exiting}
         />
@@ -82,12 +84,12 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
           tone={TONE}
           steps={railSteps}
           currentIndex={currentIndex}
-          note={copy.railNote}
+          note={copy("railNote")}
           onStepClick={(index) => wizard.goToStep(SIGNUP_STEP_ORDER[index])}
         />
       }
-      title={stepCopy(step).title}
-      subtitle={stepCopy(step).subtitle}
+      title={stepText(step, "title")}
+      subtitle={stepText(step, "subtitle")}
       footer={
         <OnboardingFooter
           tone={TONE}
@@ -97,17 +99,17 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
           saveDisabled={wizard.submitting}
           primaryLabel={
             wizard.submitting
-              ? copy.sending
+              ? copy("sending")
               : isLastStep
-                ? copy.sendToCoordinator
-                : copy.continue
+                ? copy("sendToCoordinator")
+                : copy("continue")
           }
           onPrimary={isLastStep ? wizard.submit : wizard.goNext}
           primaryDisabled={wizard.submitting || !canContinue}
           status={
             wizard.draftSavedAt ? (
               <span role="status" className="text-xs text-[#676e78]">
-                {copy.draftSaved}
+                {copy("draftSaved")}
               </span>
             ) : null
           }

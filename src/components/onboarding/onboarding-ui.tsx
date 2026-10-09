@@ -11,7 +11,7 @@ import { useObjectUrl } from "@/hooks/use-object-url";
 import type { UploadedFile } from "@/interfaces/signup";
 import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 export const onboardingInputClass =
   "w-full rounded-lg border border-[#d4d8dd] bg-white px-3.5 py-[11px] text-[13px] leading-5 text-[#22262b] outline-none placeholder:text-[#858c96]";
@@ -227,8 +227,7 @@ export function OnboardingFileField({
   maxBytes?: number;
   storedName?: string | null;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.onboarding;
+  const copy = useTranslations("onboarding");
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const [dragging, setDragging] = useState(false);
@@ -236,7 +235,7 @@ export function OnboardingFileField({
   function takeFile(selected: File | undefined) {
     if (!selected) return;
     if (selected.size > maxBytes) {
-      setError(copy.fileTooBig(formatFileSize(maxBytes)));
+      setError(copy("fileTooBig", { limit: formatFileSize(maxBytes) }));
       return;
     }
     setError("");
@@ -267,13 +266,13 @@ export function OnboardingFileField({
                 {shownName}
               </p>
               <p className="text-[11.5px] leading-[17px] text-[#676e78]">
-                {file ? formatFileSize(file.size) : copy.uploadedBefore}
+                {file ? formatFileSize(file.size) : copy("uploadedBefore")}
               </p>
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2.5">
             <span className="rounded-full border border-[#cbebda] bg-[#eefaf3] px-2.5 py-1 text-[11.5px] font-medium leading-[17px] text-[#0f7a4d]">
-              {file ? copy.selected : copy.uploaded}
+              {file ? copy("selected") : copy("uploaded")}
             </span>
             <button
               type="button"
@@ -282,10 +281,12 @@ export function OnboardingFileField({
               }
               className="text-xs font-medium leading-[18px] text-[#676e78] hover:underline"
               aria-label={
-                file ? copy.removeFile(shownName) : copy.change(label)
+                file
+                  ? copy("removeFile", { name: shownName })
+                  : copy("change", { label: label })
               }
             >
-              {file ? copy.remove : copy.changeShort}
+              {file ? copy("remove") : copy("changeShort")}
             </button>
           </div>
         </div>
@@ -317,10 +318,10 @@ export function OnboardingFileField({
             className="size-[22px]"
           />
           <span className="text-[13px] font-medium leading-5 text-[#22262b]">
-            {copy.drop}
+            {copy("drop")}
           </span>
           <span className="text-xs leading-[18px] text-[#676e78]">
-            {helpText ?? copy.orPick}
+            {helpText ?? copy("orPick")}
           </span>
         </button>
       )}
@@ -442,8 +443,7 @@ export function OnboardingImagePicker({
   round?: boolean;
   size?: number;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.onboarding;
+  const copy = useTranslations("onboarding");
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState("");
   const preview = useObjectUrl(file?.file);
@@ -454,7 +454,7 @@ export function OnboardingImagePicker({
     event.target.value = "";
     if (!selected) return;
     if (selected.size > 5 * 1024 * 1024) {
-      setError(copy.imageTooBig);
+      setError(copy("imageTooBig"));
       return;
     }
     setError("");
@@ -466,7 +466,11 @@ export function OnboardingImagePicker({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        aria-label={file ? copy.change(label) : copy.pick(label)}
+        aria-label={
+          file
+            ? copy("change", { label: label })
+            : copy("pick", { label: label })
+        }
         className="relative"
         style={{ width: size, height: size }}
       >

@@ -22,16 +22,15 @@ import {
   type UploadedFile,
 } from "@/interfaces/signup";
 import { applyCvParse } from "@/lib/cv-suggestions";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
 const CONTACT_OPTIONS = Object.values(ContactPreference);
 
 export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
-  const { messages } = useLocale();
-  const copy = messages.signupSteps;
-  const fields = messages.auth;
+  const copy = useTranslations("signupSteps");
+  const fields = useTranslations("auth");
   const { draft, updatePersonal, toggleContactPreference } = wizard;
   const { personal } = draft;
   const cvParse = useCvParse();
@@ -56,11 +55,11 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
 
   return (
     <>
-      <OnboardingCard title={copy.basics}>
+      <OnboardingCard title={copy("basics")}>
         <div className="flex flex-col gap-3.5 sm:flex-row">
           <OnboardingField
             id="signup-first-name"
-            label={fields.firstName}
+            label={fields("firstName")}
             required
             tone={TONE}
           >
@@ -75,7 +74,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
           </OnboardingField>
           <OnboardingField
             id="signup-last-name"
-            label={fields.lastName}
+            label={fields("lastName")}
             required
             tone={TONE}
           >
@@ -91,32 +90,36 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
         </div>
         <OnboardingField
           id="signup-role"
-          label={copy.role}
+          label={copy("role")}
           required
           tone={TONE}
         >
           <input
             id="signup-role"
             className={inputClass}
-            placeholder={copy.rolePlaceholder}
+            placeholder={copy("rolePlaceholder")}
             value={personal.role}
             onChange={(event) => updatePersonal("role", event.target.value)}
           />
         </OnboardingField>
-        <OnboardingField id="signup-linkedin" label={copy.linkedin} tone={TONE}>
+        <OnboardingField
+          id="signup-linkedin"
+          label={copy("linkedin")}
+          tone={TONE}
+        >
           <input
             id="signup-linkedin"
             className={inputClass}
-            placeholder={copy.linkedinPlaceholder}
+            placeholder={copy("linkedinPlaceholder")}
             value={personal.linkedin}
             onChange={(event) => updatePersonal("linkedin", event.target.value)}
           />
         </OnboardingField>
       </OnboardingCard>
 
-      <OnboardingCard title={copy.bio} subtitle={copy.bioSubtitle}>
+      <OnboardingCard title={copy("bio")} subtitle={copy("bioSubtitle")}>
         <textarea
-          aria-label={copy.bio}
+          aria-label={copy("bio")}
           rows={3}
           maxLength={BIO_MAX_LENGTH}
           className={`${inputClass} min-h-20 resize-y py-3`}
@@ -124,15 +127,15 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
           onChange={(event) => updatePersonal("bio", event.target.value)}
         />
         <OnboardingCounter
-          hint={copy.bioHint}
+          hint={copy("bioHint")}
           length={personal.bio.length}
           max={BIO_MAX_LENGTH}
         />
       </OnboardingCard>
 
-      <OnboardingCard title={copy.cvTitle} subtitle={copy.cvSubtitle}>
+      <OnboardingCard title={copy("cvTitle")} subtitle={copy("cvSubtitle")}>
         <OnboardingFileField
-          label={copy.cvPick}
+          label={copy("cvPick")}
           file={personal.cv}
           onChange={onCvSelected}
           accept=".pdf,.docx"
@@ -140,7 +143,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
         />
         {cvParse.isPending ? (
           <p className="text-xs text-[#676e78]" role="status">
-            {copy.cvReading}
+            {copy("cvReading")}
           </p>
         ) : null}
         {cvParse.error ? (
@@ -150,10 +153,13 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
         ) : null}
       </OnboardingCard>
 
-      <OnboardingCard title={copy.contact} subtitle={copy.contactSubtitle}>
+      <OnboardingCard
+        title={copy("contact")}
+        subtitle={copy("contactSubtitle")}
+      >
         <OnboardingChips
           tone={TONE}
-          label={copy.contact}
+          label={copy("contact")}
           options={CONTACT_OPTIONS}
           selected={personal.contactPreferences}
           onToggle={toggleContactPreference}

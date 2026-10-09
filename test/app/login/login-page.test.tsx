@@ -3,8 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import LoginPage from "@/app/login/page";
-import { LocaleProvider } from "@/components/providers/locale-provider";
-import { Locale } from "@/lib/i18n";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import {
@@ -12,6 +10,7 @@ import {
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
+import { InLocale } from "@test/test-utils";
 
 const push = vi.fn();
 const login = vi.fn();
@@ -75,9 +74,9 @@ describe("Login screen", () => {
 
   it("shows the login screen in English when that is the chosen language", async () => {
     render(
-      <LocaleProvider locale={Locale.En}>
+      <InLocale locale="en">
         <LoginPage />
-      </LocaleProvider>,
+      </InLocale>,
     );
 
     expect(

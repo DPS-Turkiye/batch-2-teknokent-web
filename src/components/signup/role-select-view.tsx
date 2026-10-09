@@ -9,7 +9,7 @@ import {
 } from "@/components/onboarding/onboarding-tone";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import { SignupRole } from "@/interfaces/signup";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const ROLE_CARDS = [
   { role: SignupRole.Founder, tone: OnboardingTone.Mentee, copy: "founder" },
@@ -33,29 +33,28 @@ export function RoleSelectView({
   signedIn: boolean;
   onChoose: (role: SignupRole) => void;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.roleSelect;
+  const t = useTranslations();
+  const copy = useTranslations("roleSelect");
   const { exit, exiting } = useOnboardingExit();
 
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#1f2328]">
       <OnboardingTopbar
-        exitLabel={signedIn ? copy.exit : undefined}
+        exitLabel={signedIn ? copy("exit") : undefined}
         onExit={signedIn ? exit : undefined}
         exiting={exiting}
       />
       <main className="mx-auto flex w-full max-w-[860px] flex-1 flex-col items-center px-4 py-12 sm:py-[88px]">
         <h1 className="text-center text-2xl font-semibold leading-9 sm:text-[28px]">
-          {copy.title}
+          {copy("title")}
         </h1>
         <p className="mt-2 text-center text-[13px] leading-5 text-[#4a5059]">
-          {copy.intro}
+          {copy("intro")}
         </p>
 
         <div className="mt-11 grid w-full gap-5 md:grid-cols-2">
           {ROLE_CARDS.map((card) => {
             const tone = ONBOARDING_TONES[card.tone];
-            const text = copy.cards[card.copy];
             return (
               <section
                 key={card.role}
@@ -65,37 +64,39 @@ export function RoleSelectView({
                 <span
                   className={`w-fit rounded-full px-3 py-1 text-[11px] font-medium leading-4 ${BADGE_CLASSES[card.tone]}`}
                 >
-                  {text.badge}
+                  {copy(`cards.${card.copy}.badge`)}
                 </span>
                 <h2
                   id={`role-${card.role}`}
                   className="mt-3 text-base font-semibold leading-6"
                 >
-                  {text.title}
+                  {copy(`cards.${card.copy}.title`)}
                 </h2>
                 <p className="mt-3 text-xs leading-5 text-[#4a5059]">
-                  {text.description}
+                  {copy(`cards.${card.copy}.description`)}
                 </p>
                 <p className="mt-5 text-[10px] font-semibold uppercase leading-4 tracking-[0.04em] text-[#676e78]">
-                  {copy.setupSteps}
+                  {copy("setupSteps")}
                 </p>
                 <ul className="mt-2 flex flex-col gap-2.5 text-xs leading-4 text-[#1f2328]">
-                  {text.steps.map((step) => (
-                    <li key={step} className="flex items-center gap-2">
-                      <span
-                        aria-hidden
-                        className={`size-1 rounded-full ${BULLET_CLASSES[card.tone]}`}
-                      />
-                      {step}
-                    </li>
-                  ))}
+                  {(copy.raw(`cards.${card.copy}.steps`) as string[]).map(
+                    (step) => (
+                      <li key={step} className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className={`size-1 rounded-full ${BULLET_CLASSES[card.tone]}`}
+                        />
+                        {step}
+                      </li>
+                    ),
+                  )}
                 </ul>
                 <button
                   type="button"
                   onClick={() => onChoose(card.role)}
                   className={`mt-5 h-10 w-full rounded-full text-[13px] font-medium text-white ${tone.bg} ${tone.bgHover}`}
                 >
-                  {text.action}
+                  {copy(`cards.${card.copy}.action`)}
                 </button>
               </section>
             );
@@ -103,16 +104,16 @@ export function RoleSelectView({
         </div>
 
         <p className="mt-11 text-center text-xs leading-5 text-[#4a5059]">
-          {copy.haveCode}{" "}
+          {copy("haveCode")}{" "}
           <Link href="/invite" className="hover:underline">
-            {copy.codeLink}
+            {copy("codeLink")}
           </Link>
         </p>
         {signedIn ? null : (
           <p className="mt-3 text-center text-xs leading-5 text-[#1f2328]">
-            {messages.register.haveAccount}{" "}
+            {t("register.haveAccount")}{" "}
             <Link href="/login" className="font-medium hover:underline">
-              {messages.auth.signIn}
+              {t("auth.signIn")}
             </Link>
           </p>
         )}

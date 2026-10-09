@@ -26,7 +26,7 @@ import {
   MEETING_FORMAT_OPTIONS,
   RESPONSE_TIME_OPTIONS,
 } from "@/interfaces/mentor-onboarding";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 const focus = ONBOARDING_TONES[TONE].focus;
@@ -56,16 +56,15 @@ export function MentorAvailabilityStep({
 }: {
   wizard: MentorOnboarding;
 }) {
-  const { messages } = useLocale();
-  const copy = messages.mentorAvailability;
+  const copy = useTranslations("mentorAvailability");
   const { draft, update, updateDay } = wizard;
 
   return (
     <>
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy.weekly}
-        subtitle={copy.weeklySubtitle}
+        title={copy("weekly")}
+        subtitle={copy("weeklySubtitle")}
       >
         <ul className="flex flex-col gap-4">
           {WEEKDAY_ORDER.map((day) => {
@@ -83,7 +82,7 @@ export function MentorAvailabilityStep({
                 <div className="flex items-center gap-3">
                   <ToggleSwitch
                     checked={slot.enabled}
-                    label={copy.dayAvailable(WEEKDAY_LABELS[day])}
+                    label={copy("dayAvailable", { day: WEEKDAY_LABELS[day] })}
                     onChange={() => updateDay(day, { enabled: !slot.enabled })}
                   />
                   <span
@@ -99,7 +98,9 @@ export function MentorAvailabilityStep({
                     <input
                       type="time"
                       step={900}
-                      aria-label={copy.dayStart(WEEKDAY_LABELS[day])}
+                      aria-label={copy("dayStart", {
+                        day: WEEKDAY_LABELS[day],
+                      })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.start}
                       onChange={(event) =>
@@ -110,7 +111,7 @@ export function MentorAvailabilityStep({
                     <input
                       type="time"
                       step={900}
-                      aria-label={copy.dayEnd(WEEKDAY_LABELS[day])}
+                      aria-label={copy("dayEnd", { day: WEEKDAY_LABELS[day] })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.end}
                       onChange={(event) =>
@@ -123,7 +124,7 @@ export function MentorAvailabilityStep({
                 )}
                 {invalid ? (
                   <p role="alert" className="w-full text-xs text-[#b42318]">
-                    {copy.endAfterStart}
+                    {copy("endAfterStart")}
                   </p>
                 ) : null}
               </li>
@@ -134,10 +135,10 @@ export function MentorAvailabilityStep({
 
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy.capacity}
-        subtitle={copy.capacitySubtitle}
+        title={copy("capacity")}
+        subtitle={copy("capacitySubtitle")}
       >
-        <SettingRow id="mentor-capacity" label={copy.capacityLimit}>
+        <SettingRow id="mentor-capacity" label={copy("capacityLimit")}>
           <div className="flex items-center gap-2">
             <input
               id="mentor-capacity"
@@ -160,11 +161,11 @@ export function MentorAvailabilityStep({
               }
             />
             <span className="text-[12.5px] font-medium text-[#22262b]">
-              {copy.startupUnit}
+              {copy("startupUnit")}
             </span>
           </div>
         </SettingRow>
-        <SettingRow id="mentor-duration" label={copy.duration}>
+        <SettingRow id="mentor-duration" label={copy("duration")}>
           <select
             id="mentor-duration"
             className={`${smallInput} w-full`}
@@ -180,7 +181,7 @@ export function MentorAvailabilityStep({
             ))}
           </select>
         </SettingRow>
-        <SettingRow id="mentor-frequency" label={copy.frequency}>
+        <SettingRow id="mentor-frequency" label={copy("frequency")}>
           <select
             id="mentor-frequency"
             className={`${smallInput} w-full`}
@@ -196,7 +197,7 @@ export function MentorAvailabilityStep({
             ))}
           </select>
         </SettingRow>
-        <SettingRow id="mentor-buffer" label={copy.buffer}>
+        <SettingRow id="mentor-buffer" label={copy("buffer")}>
           <select
             id="mentor-buffer"
             className={`${smallInput} w-full`}
@@ -214,23 +215,23 @@ export function MentorAvailabilityStep({
         </SettingRow>
       </OnboardingCard>
 
-      <OnboardingCard rounded="rounded-xl" title={copy.formatTitle}>
+      <OnboardingCard rounded="rounded-xl" title={copy("formatTitle")}>
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy.format}
+          {copy("format")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label={copy.formatLabel}
+          label={copy("formatLabel")}
           options={MEETING_FORMAT_OPTIONS}
           selected={[draft.format as (typeof MEETING_FORMAT_OPTIONS)[number]]}
           onToggle={(value) => update("format", value)}
         />
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy.responseQuestion}
+          {copy("responseQuestion")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label={copy.responseLabel}
+          label={copy("responseLabel")}
           options={RESPONSE_TIME_OPTIONS}
           selected={[
             draft.responseTime as (typeof RESPONSE_TIME_OPTIONS)[number],

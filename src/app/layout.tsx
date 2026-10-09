@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Inter } from "next/font/google";
 
-import { LocaleProvider } from "@/components/providers/locale-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
-import { getLocale } from "@/lib/server/locale";
 
 import "./globals.css";
 
@@ -42,7 +42,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className="flex min-h-full flex-col font-sans"
       >
-        <LocaleProvider locale={locale}>
+        <NextIntlClientProvider>
           <QueryProvider>
             <ToastProvider>
               <DocumentPreviewProvider>
@@ -50,7 +50,7 @@ export default async function RootLayout({
               </DocumentPreviewProvider>
             </ToastProvider>
           </QueryProvider>
-        </LocaleProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

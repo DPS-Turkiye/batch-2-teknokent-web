@@ -4,7 +4,7 @@ import Image from "next/image";
 import { ReactNode } from "react";
 
 import { MentonWordmark } from "@/components/common/menton-wordmark";
-import { useLocale } from "@/components/providers/locale-provider";
+import { useTranslations } from "next-intl";
 
 export function AuthHeader() {
   return (
@@ -28,7 +28,7 @@ export function AuthPage({ children }: { children: ReactNode }) {
 }
 
 export function AuthShell({ children }: { children: ReactNode }) {
-  const { messages } = useLocale();
+  const t = useTranslations();
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#111827]">
       <AuthHeader />
@@ -38,7 +38,7 @@ export function AuthShell({ children }: { children: ReactNode }) {
           <div className="hidden w-[531px] shrink-0 lg:block">
             <Image
               src="/auth-illustration.webp"
-              alt={messages.auth.shellImageAlt}
+              alt={t("auth.shellImageAlt")}
               width={1100}
               height={923}
               priority
