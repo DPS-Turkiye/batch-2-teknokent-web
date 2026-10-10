@@ -22,15 +22,18 @@ import { ReactNode, useState } from "react";
 import { Avatar } from "@/components/common/avatar";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
+import {
+  AccountDialog,
+  AccountSettingsDialog,
+  NotificationPreferencesDialog,
+} from "@/components/hoc/account-dialogs";
 import { AccountMenu } from "@/components/hoc/account-menu";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
-import { COMING_SOON_MESSAGE } from "@/lib/personal-profile";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -160,9 +163,11 @@ export function AppShell({
 }: AppShellProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const [accountDialog, setAccountDialog] = useState<AccountDialog | null>(
+    null,
+  );
   const session = useAppSession();
   const { logout } = useSession();
-  const { showToast } = useToast();
   const photo = useProfilePhoto();
   const {
     homeHref,
@@ -235,8 +240,9 @@ export function AppShell({
               photoUrl={photo.photoUrl}
               profileHref={profileHref}
               showName={!usesRevisedNav}
-              onComingSoon={() =>
-                showToast({ message: COMING_SOON_MESSAGE, tone: "info" })
+              onOpenSettings={() => setAccountDialog(AccountDialog.Settings)}
+              onOpenNotifications={() =>
+                setAccountDialog(AccountDialog.Notifications)
               }
               onLogout={() => setConfirmLogout(true)}
             />
@@ -315,6 +321,12 @@ export function AppShell({
             </div>
           </aside>
         </div>
+      ) : null}
+      {accountDialog === AccountDialog.Settings ? (
+        <AccountSettingsDialog onClose={() => setAccountDialog(null)} />
+      ) : null}
+      {accountDialog === AccountDialog.Notifications ? (
+        <NotificationPreferencesDialog onClose={() => setAccountDialog(null)} />
       ) : null}
       {confirmLogout ? (
         <div className="fixed inset-0 z-[60] grid place-items-center bg-black/35 px-4">

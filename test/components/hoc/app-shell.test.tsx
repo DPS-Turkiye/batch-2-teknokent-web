@@ -175,6 +175,13 @@ describe("AppShell navigation", () => {
     );
     await user.click(menu.getByRole("menuitem", { name: "Hesap ayarları" }));
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    const settings = within(
+      screen.getByRole("dialog", { name: "Hesap ayarları" }),
+    );
+    expect(settings.getByText("ayse.kaya@novamed.demo")).toBeInTheDocument();
+
+    await user.click(settings.getByRole("button", { name: "Kapat" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
   it("gives an admin only the applications inbox", () => {

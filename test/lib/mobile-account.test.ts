@@ -35,6 +35,14 @@ describe("preferenceRowsFor", () => {
       "startupActivity",
     ]);
   });
+
+  it("gives coordinators and admins only the message switch", () => {
+    for (const role of [UserRole.Coordinator, UserRole.Admin]) {
+      expect(preferenceRowsFor(role).map((row) => row.key)).toEqual([
+        "messages",
+      ]);
+    }
+  });
 });
 
 describe("toggledPreferences", () => {

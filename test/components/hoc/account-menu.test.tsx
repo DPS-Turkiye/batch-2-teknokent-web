@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AccountMenu } from "@/components/hoc/account-menu";
 
-const onComingSoon = vi.fn();
+const onOpenSettings = vi.fn();
+const onOpenNotifications = vi.fn();
 const onLogout = vi.fn();
 
 function renderMenu(
@@ -21,7 +22,8 @@ function renderMenu(
         photoUrl={null}
         profileHref="/profile/personal"
         showName={false}
-        onComingSoon={onComingSoon}
+        onOpenSettings={onOpenSettings}
+        onOpenNotifications={onOpenNotifications}
         onLogout={onLogout}
         {...overrides}
       />
@@ -61,20 +63,34 @@ describe("AccountMenu", () => {
     );
   });
 
-  it("reports the actions without a page yet and closes", async () => {
+  it("opens the settings and notification dialogs, closing the menu and keeping focus on the trigger", async () => {
+    const user = userEvent.setup();
+    renderMenu();
+    const trigger = screen.getByRole("button", { name: /Hesap menüsünü aç/ });
+
+    await openMenu(user);
+    await user.click(screen.getByRole("menuitem", { name: "Hesap ayarları" }));
+    expect(onOpenSettings).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+
+    await openMenu(user);
+    await user.click(
+      screen.getByRole("menuitem", { name: "Bildirim tercihleri" }),
+    );
+    expect(onOpenNotifications).toHaveBeenCalledOnce();
+    expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+  });
+
+  it("writes to support by e-mail", async () => {
     const user = userEvent.setup();
     renderMenu();
 
-    for (const name of [
-      "Hesap ayarları",
-      "Bildirim tercihleri",
-      "Yardım & destek",
-    ]) {
-      await openMenu(user);
-      await user.click(screen.getByRole("menuitem", { name }));
-      expect(screen.queryByRole("menu")).not.toBeInTheDocument();
-    }
-    expect(onComingSoon).toHaveBeenCalledTimes(3);
+    await openMenu(user);
+
+    expect(
+      screen.getByRole("menuitem", { name: "Yardım & destek" }),
+    ).toHaveAttribute("href", "mailto:arya.zaeri@gmail.com");
   });
 
   it("asks to log out", async () => {
