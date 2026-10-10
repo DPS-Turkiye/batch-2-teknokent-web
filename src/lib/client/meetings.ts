@@ -43,7 +43,8 @@ export async function getMeetingFeedback(meetingId: string) {
   const response = await httpClient.get<MeetingFeedbackItem>(
     `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
   );
-  if (response.status === 404) return null;
+  // Not rated yet: 204 from the backend, 404 from releases before it.
+  if (response.status === 204 || response.status === 404) return null;
   return requireSuccess(response);
 }
 

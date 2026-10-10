@@ -264,7 +264,7 @@ function NextMeetingBanner({
               disabled={meeting.isSaving}
               className="size-[18px] rounded border border-[#d4d8dd] accent-[#26a4ff]"
             />
-            Transript gönderilsin
+            Transkript gönderilsin
           </label>
         </div>
       </div>

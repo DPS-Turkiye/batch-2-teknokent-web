@@ -75,6 +75,27 @@ describe("requireSuccess", () => {
     },
   );
 
+  it("says how many minutes to wait after too many tries", () => {
+    const limited = {
+      status: 429,
+      data: { message: "" },
+      headers: { "x-rate-limit-retry-after-seconds": "125" },
+    } as unknown as AxiosResponse;
+
+    expect(() => requireSuccess(limited)).toThrow(
+      "Çok fazla deneme yapıldı. 3 dakika sonra tekrar dene.",
+    );
+    expect(() => requireSuccess(response(429, { message: "" }))).toThrow(
+      "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+    );
+  });
+
+  it("falls back when the backend sends an empty message", () => {
+    expect(() => requireSuccess(response(404, { message: "  " }))).toThrow(
+      "Aradığın kayıt bulunamadı.",
+    );
+  });
+
   it("never leaks the raw axios wording", () => {
     expect(() => requireSuccess(response(403, ""))).not.toThrow(
       /Request failed with HTTP/,

@@ -268,7 +268,10 @@ function CoordinatorsTable({
                 }`}
               >
                 <PersonCell user={user} tone="coordinator" />
-                <AccessChip status={user.status} />
+                <AccessChip
+                  status={user.status}
+                  passwordSet={user.passwordSet}
+                />
                 <ProgramChips programs={programs} />
                 <span className="text-[13.5px] font-medium text-[#22262b]">
                   {programs.length}
@@ -833,7 +836,10 @@ function CoordinatorDrawer({
                   {user.fullName}
                 </p>
                 <span className="text-[12px] text-[#858c96]">Koordinatör</span>
-                <AccessChip status={user.status} />
+                <AccessChip
+                  status={user.status}
+                  passwordSet={user.passwordSet}
+                />
               </div>
               <p className="truncate text-[12.5px] text-[#858c96]">
                 {user.email}
@@ -907,7 +913,7 @@ function CoordinatorDrawer({
           ) : null}
           {section === "Erişim" ? (
             <div className="space-y-3">
-              <AccessChip status={user.status} />
+              <AccessChip status={user.status} passwordSet={user.passwordSet} />
               <p className="text-[13px] leading-[1.5] text-[#676e78]">
                 Pasife alınan koordinatör giriş yapamaz; programları ve
                 mesajları olduğu gibi kalır.
@@ -978,7 +984,10 @@ function MentorDrawer({
                   {user.fullName}
                 </p>
                 <span className="text-[12px] text-[#858c96]">Mentor</span>
-                <AccessChip status={user.status} />
+                <AccessChip
+                  status={user.status}
+                  passwordSet={user.passwordSet}
+                />
               </div>
               <p className="truncate text-[12.5px] text-[#858c96]">
                 {user.email}
@@ -1447,7 +1456,16 @@ function ProgramChips({
   );
 }
 
-function AccessChip({ status }: { status: AdminUser["status"] }) {
+function AccessChip({
+  status,
+  passwordSet,
+}: {
+  status: AdminUser["status"];
+  passwordSet?: AdminUser["passwordSet"];
+}) {
+  // An added coordinator is approved at once but cannot sign in before the e-mailed link sets a password.
+  if (status === "APPROVED" && passwordSet === false)
+    return <StatusPill tone="amber">Şifre belirlenmedi</StatusPill>;
   if (status === "APPROVED") return <StatusPill tone="green">Aktif</StatusPill>;
   if (status === "PENDING")
     return <StatusPill tone="amber">Onay bekliyor</StatusPill>;

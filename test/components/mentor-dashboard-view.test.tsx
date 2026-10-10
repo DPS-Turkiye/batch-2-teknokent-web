@@ -462,8 +462,8 @@ describe("MentorDashboardView", () => {
     expect(
       banner.getByRole("link", { name: "Görüşmeye katıl" }),
     ).toHaveAttribute("href", "https://meet.example/abc");
-    expect(banner.getByLabelText("Transript gönderilsin")).not.toBeChecked();
-    await user.click(banner.getByLabelText("Transript gönderilsin"));
+    expect(banner.getByLabelText("Transkript gönderilsin")).not.toBeChecked();
+    await user.click(banner.getByLabelText("Transkript gönderilsin"));
   });
 
   it("leaves the banner out when no meeting is coming up", () => {
