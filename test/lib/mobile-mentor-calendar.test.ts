@@ -1,8 +1,14 @@
 import { describe, expect, it } from "vitest";
 
+import {
+  type MeetingProposal,
+  MeetingProposalStatus,
+} from "@/interfaces/meeting-proposal";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { agendaEntries, startsInLabel } from "@/lib/mobile-calendar";
 import {
   mentorAgendaEntries,
+  mentorAwaitingEntries,
   mentorEntryDetail,
 } from "@/lib/mobile-mentor-calendar";
 import {
@@ -107,5 +113,62 @@ describe("startsInLabel", () => {
     expect(startsInLabel(entry!, NOW)).toBe("5 dk sonra");
     expect(startsInLabel(entry!, new Date(2026, 8, 23, 17, 0))).toBe("şimdi");
     expect(startsInLabel(entry!, new Date(2026, 8, 22, 16, 30))).toBe("yarın");
+  });
+});
+
+describe("mentorAwaitingEntries", () => {
+  const proposal = (overrides: Partial<MeetingProposal>) =>
+    ({
+      id: "p1",
+      organizationName: "Atlas AI",
+      scheduledAt: new Date(2026, 8, 24, 11, 0).toISOString(),
+      durationMinutes: 30,
+      agenda: null,
+      status: MeetingProposalStatus.Pending,
+      canRespond: true,
+      ...overrides,
+    }) as MeetingProposal;
+
+  it("places proposals the mentor still answers and a new request's future slots", () => {
+    const entries = mentorAwaitingEntries(
+      [
+        proposal({}),
+        proposal({ id: "p2", canRespond: false }),
+        proposal({ id: "p3", status: MeetingProposalStatus.Confirmed }),
+      ],
+      [
+        menteeRequestFixture({
+          id: "r2",
+          status: MentorshipRequestStatus.Pending,
+          organizationName: "Lumen",
+          supportArea: "Finansal model",
+          requesterMessage: "preferredSlots:2026-09-26T11:00,2026-09-22T10:00",
+        }),
+        menteeRequestFixture({
+          id: "r3",
+          status: MentorshipRequestStatus.Accepted,
+          requesterMessage: "preferredSlots:2026-09-27T11:00",
+        }),
+      ],
+      NOW,
+    );
+
+    expect(entries.map((entry) => entry.id)).toEqual([
+      "proposal:p1",
+      expect.stringMatching(/^request:r2:/),
+    ]);
+    expect(entries[0]).toMatchObject({
+      title: "Atlas AI",
+      detail: "Görüşme önerisi · önerilen saat · onay bekliyor",
+      length: "30 dk",
+      awaitingApproval: true,
+      meeting: null,
+    });
+    expect(entries[1]).toMatchObject({
+      title: "Lumen",
+      time: "11:00",
+      length: "45 dk",
+      requestId: "r2",
+    });
   });
 });

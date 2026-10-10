@@ -240,6 +240,49 @@ describe("MobileCalendarView", () => {
     );
   });
 
+  it("tags a time waiting for the mentor's approval and offers only the chat", () => {
+    const pending = {
+      ...MENTOR_ENTRY,
+      id: "request:r2:2026-09-26T08:00:00.000Z",
+      title: "Lumen",
+      detail: "Finansal model · önerilen saat · onay bekliyor",
+      startup: { name: "Lumen", initials: "L" },
+      meeting: null,
+      awaitingApproval: true,
+      requestId: "r2",
+    };
+    calendar = calendarState({
+      isMentor: true,
+      nextId: null,
+      agenda: [
+        {
+          key: "d26",
+          heading: "Cumartesi 26 Eylül",
+          isToday: false,
+          entries: [pending],
+        },
+      ],
+      detail: {
+        ...detail(false),
+        entry: pending,
+        kindLabel: "Onay bekliyor",
+        link: null,
+        messageHref: "/m/messages/mentorship/r2",
+      },
+    });
+    render(<MobileCalendarView />);
+
+    const card = screen.getByRole("button", { name: /Lumen/ });
+    expect(within(card).getByText("Onay bekliyor")).toHaveClass(
+      "text-[#b7791f]",
+    );
+    const sheet = screen.getByRole("dialog");
+    expect(within(sheet).queryByText("Toplantıya katıl")).toBeNull();
+    expect(
+      within(sheet).getByRole("link", { name: "Mesaj gönder" }),
+    ).toHaveAttribute("href", "/m/messages/mentorship/r2");
+  });
+
   it("gives mentors the startup, themselves and the topic in the sheet", () => {
     calendar = calendarState({ isMentor: true, detail: mentorDetail() });
     render(<MobileCalendarView />);

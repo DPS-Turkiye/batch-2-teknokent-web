@@ -29,6 +29,10 @@ export type MobileAgendaEntry = {
   meeting: MeetingItem | null;
   event: MemberProgramEvent | null;
   startup: { name: string; initials: string } | null;
+  /** A time the mentor has been offered but not yet approved; not a booked meeting. */
+  awaitingApproval?: boolean;
+  /** The request whose chat answers it, for times that are not a meeting yet. */
+  requestId?: string;
 };
 
 export type MobileCalendarDay = {
@@ -219,9 +223,12 @@ export function agendaDays(
   return days;
 }
 
-/** The first entry that has not finished yet. */
+/** The first booked entry that has not finished yet. */
 export function nextEntry(entries: MobileAgendaEntry[], now: Date) {
-  return entries.find((entry) => entry.endsAt > now) ?? null;
+  return (
+    entries.find((entry) => !entry.awaitingApproval && entry.endsAt > now) ??
+    null
+  );
 }
 
 /** "2 saat sonra", "15 dk sonra", "şimdi", then "yarın" or "3 gün sonra". */

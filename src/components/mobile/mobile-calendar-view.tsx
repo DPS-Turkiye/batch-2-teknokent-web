@@ -18,7 +18,10 @@ import {
   MONTH_WEEKDAY_LABELS,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
-import type { MentorEntryDetail } from "@/lib/mobile-mentor-calendar";
+import {
+  AWAITING_APPROVAL_LABEL,
+  type MentorEntryDetail,
+} from "@/lib/mobile-mentor-calendar";
 import { initials } from "@/lib/utils";
 
 type Calendar = ReturnType<typeof useMobileCalendar>;
@@ -141,6 +144,11 @@ function AgendaCard({
             </span>
           ) : null}
           {entry.title}
+          {entry.awaitingApproval ? (
+            <span className="rounded-full bg-[#fff6e5] px-2 py-0.5 text-[11px] font-medium text-[#b7791f]">
+              {AWAITING_APPROVAL_LABEL}
+            </span>
+          ) : null}
         </span>
         <span className="text-[13px] text-[#676e78]">{entry.detail}</span>
         {nextLabel ? (
@@ -343,6 +351,24 @@ function MentorRows({
   );
 }
 
+function MessageLink({ href }: { href: string | null }) {
+  if (!href) return null;
+  return (
+    <Link
+      href={href}
+      className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e9ecef] bg-white px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#22262b]"
+    >
+      <Image
+        src="/mobile/icon-message-button.svg"
+        alt=""
+        width={18}
+        height={18}
+      />
+      Mesaj gönder
+    </Link>
+  );
+}
+
 function SheetActions({ detail }: { detail: EntryDetail }) {
   return (
     <div className="flex flex-col items-center gap-2.5 pt-2">
@@ -378,20 +404,7 @@ function SheetActions({ detail }: { detail: EntryDetail }) {
           </p>
         </>
       )}
-      {detail.messageHref ? (
-        <Link
-          href={detail.messageHref}
-          className="flex w-full items-center justify-center gap-2 rounded-full border border-[#e9ecef] bg-white px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#22262b]"
-        >
-          <Image
-            src="/mobile/icon-message-button.svg"
-            alt=""
-            width={18}
-            height={18}
-          />
-          Mesaj gönder
-        </Link>
-      ) : null}
+      <MessageLink href={detail.messageHref} />
     </div>
   );
 }
@@ -409,7 +422,13 @@ function EntrySheet({ calendar }: { calendar: Calendar }) {
       ) : (
         <MenteeRows detail={detail} />
       )}
-      {detail.entry.meeting ? <SheetActions detail={detail} /> : null}
+      {detail.entry.meeting ? (
+        <SheetActions detail={detail} />
+      ) : (
+        <div className="pt-2">
+          <MessageLink href={detail.messageHref} />
+        </div>
+      )}
     </BottomSheet>
   );
 }

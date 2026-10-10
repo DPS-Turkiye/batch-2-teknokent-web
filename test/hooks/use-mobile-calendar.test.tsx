@@ -4,7 +4,13 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMobileCalendar } from "@/hooks/use-mobile-calendar";
+import {
+  type MeetingProposal,
+  MeetingProposalStatus,
+} from "@/interfaces/meeting-proposal";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
+import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getMemberProgramEvents } from "@/lib/client/programs";
@@ -29,6 +35,9 @@ vi.mock("@/hooks/use-meetings", () => ({
 }));
 vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
 vi.mock("@/lib/client/mentor-requests", () => ({ getMentorRequests: vi.fn() }));
+vi.mock("@/lib/client/meeting-proposals", () => ({
+  getMyMeetingProposals: vi.fn(),
+}));
 vi.mock("@/lib/client/organization-members", () => ({
   getOrganizationMembersById: vi.fn(),
 }));
@@ -62,6 +71,7 @@ beforeEach(() => {
     }),
   ];
   vi.mocked(getMemberProgramEvents).mockResolvedValue([]);
+  vi.mocked(getMyMeetingProposals).mockResolvedValue([]);
   vi.mocked(getMentorRequests).mockResolvedValue([
     menteeRequestFixture({
       id: "r1",
@@ -191,5 +201,63 @@ describe("useMobileCalendar", () => {
         agenda: "Gündem: Değer önerisi",
       },
     });
+  });
+
+  it("puts times waiting for the mentor's approval on the agenda without making them the next meeting", async () => {
+    role = UserRole.Mentor;
+    vi.mocked(getMentorRequests).mockResolvedValue([
+      menteeRequestFixture({
+        id: "r2",
+        status: MentorshipRequestStatus.Pending,
+        organizationName: "Lumen",
+        supportArea: "Finansal model",
+        requesterMessage: "preferredSlots:2026-09-23T15:00,2026-09-22T10:00",
+      }),
+    ]);
+    const proposal = (id: string, canRespond: boolean) =>
+      ({
+        id,
+        organizationName: "Atlas AI",
+        scheduledAt: new Date(2026, 8, 24, 11, 0).toISOString(),
+        durationMinutes: 30,
+        agenda: "Yeni saat",
+        status: MeetingProposalStatus.Pending,
+        canRespond,
+      }) as MeetingProposal;
+    vi.mocked(getMyMeetingProposals).mockResolvedValue([
+      proposal("p1", true),
+      proposal("p2", false),
+    ]);
+    const { result } = renderHook(() => useMobileCalendar(), { wrapper });
+
+    await waitFor(() =>
+      expect(
+        result.current.agenda[0]?.entries.map((entry) => entry.id),
+      ).toEqual([expect.stringMatching(/^request:r2:/)]),
+    );
+    expect(result.current.agenda[0]?.entries[0]).toMatchObject({
+      title: "Lumen",
+      detail: "Finansal model · önerilen saat · onay bekliyor",
+      awaitingApproval: true,
+    });
+    expect(result.current.nextId).toBe("meeting:m1");
+
+    act(() => result.current.selectDay(new Date(2026, 8, 24)));
+    expect(result.current.agenda[0]?.entries.map((entry) => entry.id)).toEqual([
+      "proposal:p1",
+      "meeting:m1",
+    ]);
+
+    act(() => result.current.openEntry("proposal:p1"));
+    expect(result.current.detail).toMatchObject({
+      kindLabel: "Onay bekliyor",
+      canJoin: false,
+      messageHref: null,
+    });
+
+    act(() => result.current.selectDay(new Date(2026, 8, 23)));
+    const pending = result.current.agenda[0]?.entries[0]?.id as string;
+    act(() => result.current.openEntry(pending));
+    expect(result.current.detail?.messageHref).toContain("r2");
   });
 });
