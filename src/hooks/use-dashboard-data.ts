@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -27,7 +28,7 @@ import {
   requestNeedsMenteeAction,
   sentRequestState,
 } from "@/lib/mentee-home";
-import { dayGreeting } from "@/lib/utils";
+import { dayPart } from "@/lib/utils";
 import {
   requestHasConfirmedMeeting,
   requestHasOpenMeeting,
@@ -38,6 +39,9 @@ import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 const NOTE_MEETING_LIMIT = 3;
 
 export function useDashboardData() {
+  const tCommon = useTranslations("common");
+  const t = useTranslations("menteeHome");
+  const locale = useLocale();
   const { session } = useSession();
   const { dismissedTaskIds, dismissHomeTask } = useDismissedHomeTasks(
     session?.userId,
@@ -135,7 +139,7 @@ export function useDashboardData() {
     activeRequests,
     dismissHomeTask,
     displayName: session?.fullName.split(" ")[0] ?? "",
-    greeting: dayGreeting(),
+    greeting: tCommon(`greeting.${dayPart()}`),
     heldMeetingCount: heldMeetings.length,
     homeTasks: buildHomeTasks({
       requests,
@@ -144,6 +148,7 @@ export function useDashboardData() {
       actionItemRequestIds,
       feedbackMeetings,
       dismissedTaskIds,
+      texts: { t, locale },
     }),
     organizationName: session?.organizationName ?? "",
     isFallback: hasError,

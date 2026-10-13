@@ -1,13 +1,12 @@
+import type { useTranslations } from "next-intl";
+
 import type { ActionItem } from "@/interfaces/action-item";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import {
-  HOME_TASK_DISMISS_STORAGE_KEY,
-  HOME_TASK_LABELS,
-} from "@/lib/const/mentee-home";
+import { HOME_TASK_DISMISS_STORAGE_KEY } from "@/lib/const/mentee-home";
 import {
   meetingFeedbackHref,
   requestHasConfirmedMeeting,
@@ -17,23 +16,17 @@ import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 
 const DAY_MS = 86_400_000;
 
-const DUE_TONE_LABELS = {
-  [DueTone.Overdue]: "Gecikti",
-  [DueTone.Today]: "Bugün",
-  [DueTone.None]: "Tarih yok",
-} satisfies Record<Exclude<DueTone, DueTone.Upcoming>, string>;
-
-export const SENT_REQUEST_STATE_LABELS: Record<SentRequestState, string> = {
-  [SentRequestState.ActionNeeded]: "Aksiyon gerekli",
-  [SentRequestState.MentorReviewing]: "Mentor inceliyor",
+/** The home page's translator and language, for the labels built here. */
+export type HomeTexts = {
+  t: ReturnType<typeof useTranslations<"menteeHome">>;
+  locale: string;
 };
 
 // A request only lands in Yapılacaklar when the mentee has to move next.
-const REQUEST_TASK_LABELS: Partial<Record<MentorshipRequestStatus, string>> = {
-  [MentorshipRequestStatus.MoreInfoRequested]: "Bilgi bekliyor",
-  [MentorshipRequestStatus.CounterProposed]: "Saat önerisi",
-  [MentorshipRequestStatus.Accepted]: "Saat seç",
-};
+type RequestTaskStatus =
+  | MentorshipRequestStatus.MoreInfoRequested
+  | MentorshipRequestStatus.CounterProposed
+  | MentorshipRequestStatus.Accepted;
 
 const TONE_ORDER: Record<DueTone, number> = {
   [DueTone.Overdue]: 0,
@@ -42,19 +35,12 @@ const TONE_ORDER: Record<DueTone, number> = {
   [DueTone.None]: 3,
 };
 
-const dayMonth = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-const dayMonthYear = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
-const hourMinute = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
+function dayMonth(locale: string, date: Date) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -71,37 +57,56 @@ function dueDay(value: string) {
   return value.length > 10 ? startOfDay(new Date(value)) : calendarDay(value);
 }
 
-export function dueState(dueDate: string | null | undefined, now = new Date()) {
+export function dueState(
+  dueDate: string | null | undefined,
+  { t, locale }: HomeTexts,
+  now = new Date(),
+) {
   const day = dueDate ? dueDay(dueDate) : null;
   if (!day || Number.isNaN(day.getTime())) {
-    return { tone: DueTone.None, label: DUE_TONE_LABELS[DueTone.None] };
+    return { tone: DueTone.None, label: t("tasks.due.none") };
   }
   const offset = dayOffset(day, now);
   if (offset < 0) {
-    return { tone: DueTone.Overdue, label: DUE_TONE_LABELS[DueTone.Overdue] };
+    return { tone: DueTone.Overdue, label: t("tasks.due.overdue") };
   }
   if (offset === 0) {
-    return { tone: DueTone.Today, label: DUE_TONE_LABELS[DueTone.Today] };
+    return { tone: DueTone.Today, label: t("tasks.due.today") };
   }
-  return { tone: DueTone.Upcoming, label: dayMonth.format(day) };
+  return { tone: DueTone.Upcoming, label: dayMonth(locale, day) };
 }
 
-export function meetingWhenLabel(meeting: MeetingItem, now = new Date()) {
+export function meetingWhenLabel(
+  meeting: MeetingItem,
+  { t, locale }: HomeTexts,
+  now = new Date(),
+) {
   const start = new Date(meeting.scheduledAt);
   const offset = dayOffset(start, now);
   const day =
-    offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : dayMonth.format(start);
+    offset === 0
+      ? t("when.today")
+      : offset === 1
+        ? t("when.tomorrow")
+        : dayMonth(locale, start);
   const parts = [
     day,
-    hourMinute.format(start),
-    `${meeting.durationMinutes} dk`,
+    new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(start),
+    t("when.minutes", { count: meeting.durationMinutes }),
   ];
-  if (meeting.meetLink) parts.push("Online");
+  if (meeting.meetLink) parts.push(t("when.online"));
   return parts.join(" · ");
 }
 
-export function meetingDayLabel(meeting: MeetingItem) {
-  return dayMonthYear.format(new Date(meeting.scheduledAt));
+export function meetingDayLabel(meeting: MeetingItem, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(meeting.scheduledAt));
 }
 
 export function requestStatusHref(requestId: string) {
@@ -182,6 +187,7 @@ export function buildHomeTasks({
   actionItemRequestIds,
   feedbackMeetings = [],
   dismissedTaskIds = [],
+  texts,
   now = new Date(),
 }: {
   requests: MentorshipRequest[];
@@ -190,8 +196,10 @@ export function buildHomeTasks({
   actionItemRequestIds: Record<string, string>;
   feedbackMeetings?: MeetingItem[];
   dismissedTaskIds?: string[];
+  texts: HomeTexts;
   now?: Date;
 }): HomeTask[] {
+  const { t } = texts;
   const requestsById = new Map(
     requests.map((request) => [request.id, request]),
   );
@@ -204,11 +212,13 @@ export function buildHomeTasks({
       task: {
         id: homeTaskId(HomeTaskKind.RequestReply, request.id),
         kind: HomeTaskKind.RequestReply,
-        title: "Mentor talebini yanıtla",
+        title: t("tasks.replyTitle"),
         subtitle: `${request.mentorName} · ${request.supportArea}`,
         dueTone: DueTone.Today,
-        dueLabel: REQUEST_TASK_LABELS[request.status] ?? "",
-        actionLabel: "Yanıtla",
+        dueLabel: t(
+          `tasks.requestStatus.${request.status as RequestTaskStatus}`,
+        ),
+        actionLabel: t("tasks.reply"),
         href: requestStatusHref(request.id),
       },
     }));
@@ -216,7 +226,7 @@ export function buildHomeTasks({
   const items = actionItems.map((item) => {
     const requestId = actionItemRequestIds[item.id];
     const request = requestId ? requestsById.get(requestId) : undefined;
-    const due = dueState(item.dueDate, now);
+    const due = dueState(item.dueDate, texts, now);
     return {
       sortKey: item.dueDate ?? "",
       task: {
@@ -225,13 +235,13 @@ export function buildHomeTasks({
         title: item.title,
         subtitle: [
           request?.mentorName ?? item.ownerName,
-          request?.supportArea ?? "Mentorluk görevi",
+          request?.supportArea ?? t("tasks.taskFallback"),
         ]
           .filter(Boolean)
           .join(" · "),
         dueTone: due.tone,
         dueLabel: due.label,
-        actionLabel: "Görevi aç",
+        actionLabel: t("tasks.openTask"),
         href: requestId ? requestStatusHref(requestId) : "/mentorships",
         requestId,
       },
@@ -243,24 +253,24 @@ export function buildHomeTasks({
       ? requestsById.get(meeting.mentorshipRequestId)
       : undefined;
     const endedAt = meetingEndedAt(meeting);
-    const due = dueState(endedAt, now);
+    const due = dueState(endedAt, texts, now);
     return {
       sortKey: endedAt,
       task: {
         id: homeTaskId(HomeTaskKind.MeetingFeedback, meeting.id),
         kind: HomeTaskKind.MeetingFeedback,
-        title: HOME_TASK_LABELS.feedbackTitle,
+        title: t("tasks.feedbackTitle"),
         subtitle: [
           meeting.mentorName ?? request?.mentorName,
           meeting.agenda?.trim() ||
             request?.supportArea ||
-            "Mentorluk görüşmesi",
+            t("meetingFallback"),
         ]
           .filter(Boolean)
           .join(" · "),
         dueTone: due.tone,
         dueLabel: due.label,
-        actionLabel: HOME_TASK_LABELS.feedbackAction,
+        actionLabel: t("tasks.feedbackAction"),
         href: meetingFeedbackHref(meeting.id),
       },
     };
@@ -279,15 +289,21 @@ export function buildHomeTasks({
 export function activeMentorshipFooter(
   openActionCount: number,
   nextMeeting: MeetingItem | null,
+  { t, locale }: HomeTexts,
 ) {
   if (openActionCount > 0) {
-    return { hasOpenActions: true, label: `${openActionCount} açık aksiyon` };
+    return {
+      hasOpenActions: true,
+      label: t("active.openActions", { count: openActionCount }),
+    };
   }
   if (nextMeeting) {
     return {
       hasOpenActions: false,
-      label: `Sonraki görüşme · ${dayMonth.format(new Date(nextMeeting.scheduledAt))}`,
+      label: t("active.nextMeeting", {
+        date: dayMonth(locale, new Date(nextMeeting.scheduledAt)),
+      }),
     };
   }
-  return { hasOpenActions: false, label: "Planlı görüşme yok" };
+  return { hasOpenActions: false, label: t("active.noMeeting") };
 }

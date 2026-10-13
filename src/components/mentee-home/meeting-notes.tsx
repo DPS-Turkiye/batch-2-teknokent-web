@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
@@ -20,6 +21,8 @@ export function MeetingNotes({
   requestsById: Record<string, MentorshipRequest>;
   loading: boolean;
 }) {
+  const t = useTranslations("menteeHome");
+  const locale = useLocale();
   return (
     <section
       aria-labelledby="home-notes-title"
@@ -27,9 +30,9 @@ export function MeetingNotes({
     >
       <SectionHeader
         id="home-notes-title"
-        title="Toplantı Notların"
+        title={t("notes.title")}
         href="/notes"
-        linkText={`Tümü (${totalCount})`}
+        linkText={t("all", { count: totalCount })}
       />
       {meetings.map((meeting) => {
         const openTodos = openTodoCounts.get(meeting.id);
@@ -54,7 +57,7 @@ export function MeetingNotes({
               </span>
               <span className="min-w-0">
                 <strong className="block truncate text-sm font-normal leading-5 text-[#22262b]">
-                  {meeting.agenda || "Mentorluk görüşmesi"}
+                  {meeting.agenda || t("meetingFallback")}
                 </strong>
                 <small className="block truncate text-xs leading-6 text-[#676e78]">
                   {[meeting.mentorName, request?.supportArea]
@@ -65,15 +68,13 @@ export function MeetingNotes({
             </span>
             <span className="flex shrink-0 flex-col items-end gap-1">
               <span className="text-xs leading-5 text-[#858c96]">
-                {meetingDayLabel(meeting)}
+                {meetingDayLabel(meeting, locale)}
               </span>
               {openTodos !== undefined && (
                 <span
                   className={`text-[11.5px] font-medium leading-[17.25px] ${openTodos > 0 ? "text-[#f97316] underline" : "text-[#676e78]"}`}
                 >
-                  {openTodos > 0
-                    ? "Görevler tamamlanmadı"
-                    : "Görevler tamamlandı"}
+                  {openTodos > 0 ? t("notes.tasksOpen") : t("notes.tasksDone")}
                 </span>
               )}
             </span>
@@ -81,10 +82,7 @@ export function MeetingNotes({
         );
       })}
       {meetings.length === 0 && (
-        <SectionPlaceholder
-          loading={loading}
-          emptyText="Henüz gerçekleşen bir görüşmen yok."
-        />
+        <SectionPlaceholder loading={loading} emptyText={t("notes.empty")} />
       )}
     </section>
   );

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { useMeetingProposals } from "@/hooks/use-meeting-proposals";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/hooks/use-meeting-proposals", () => ({
   useMeetingProposals: vi.fn(),
@@ -39,6 +40,28 @@ describe("MeetingProposalCards", () => {
     mockProposals({ proposals: [] });
     const { container } = render(<MeetingProposalCards />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it("reads in English", () => {
+    mockProposals({
+      proposals: [
+        meetingProposal({ mentorAcceptedAt: "2026-09-27T10:00:00Z" }),
+      ],
+    });
+    render(
+      <InLocale locale="en">
+        <MeetingProposalCards />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("region", { name: "Meeting proposals" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Proposed by: Elif Demir/)).toBeInTheDocument();
+    expect(
+      screen.getByText("Mentor: Accepted · Team: Awaiting reply"),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Thursday, October 1/)).toBeInTheDocument();
   });
 
   it("shows the pair, time, who proposed it and each side's answer", async () => {

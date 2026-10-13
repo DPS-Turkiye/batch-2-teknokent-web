@@ -1,13 +1,11 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import {
-  requestStatusHref,
-  SENT_REQUEST_STATE_LABELS,
-} from "@/lib/mentee-home";
+import { requestStatusHref } from "@/lib/mentee-home";
 import { initials } from "@/lib/utils";
 import { SentRequestState } from "@/types/mentee-home";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
@@ -21,6 +19,7 @@ export function SentRequests({
   requests: { request: MentorshipRequest; state: SentRequestState }[];
   loading: boolean;
 }) {
+  const t = useTranslations("menteeHome");
   return (
     <section
       aria-labelledby="home-requests-title"
@@ -28,9 +27,9 @@ export function SentRequests({
     >
       <SectionHeader
         id="home-requests-title"
-        title="Gönderdiğin talepler"
+        title={t("sent.title")}
         href={`/mentorships?tab=${MentorshipWorkspaceTab.Requests}`}
-        linkText={`Tümü (${requests.length})`}
+        linkText={t("all", { count: requests.length })}
       />
       {requests.slice(0, REQUEST_LIMIT).map(({ request, state }) => {
         const needsAction = state === SentRequestState.ActionNeeded;
@@ -69,7 +68,7 @@ export function SentRequests({
                 <span
                   className={`size-1.5 rounded-full ${needsAction ? "bg-[#e86f22]" : "bg-[#d9930a]"}`}
                 />
-                {SENT_REQUEST_STATE_LABELS[state]}
+                {t(`sent.state.${state}`)}
               </span>
             </div>
             {needsAction && (
@@ -77,17 +76,14 @@ export function SentRequests({
                 href={requestStatusHref(request.id)}
                 className="flex h-8 w-full items-center justify-center rounded-xl bg-[#e86f22] px-3 text-xs font-semibold text-white hover:bg-[#d9631c]"
               >
-                Talebi yanıtla
+                {t("sent.reply")}
               </Link>
             )}
           </article>
         );
       })}
       {requests.length === 0 && (
-        <SectionPlaceholder
-          loading={loading}
-          emptyText="Bekleyen talebin yok."
-        />
+        <SectionPlaceholder loading={loading} emptyText={t("sent.empty")} />
       )}
     </section>
   );

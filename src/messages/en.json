@@ -803,5 +803,131 @@
     "mentorDashboardDescription": "Review and decide on incoming mentorship requests.",
     "calendar": "My Calendar | Teknokent",
     "calendarDescription": "Mentoring meetings and your personal meeting calendar."
+  },
+  "common": {
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
+    "loading": "Loading…",
+    "close": "Close",
+    "cancel": "Cancel"
+  },
+  "menteeHome": {
+    "greetingWithName": "{greeting}, {name}",
+    "loadFailed": "Couldn't load your data. Please try again later.",
+    "all": "All ({count})",
+    "meetingFallback": "Mentoring session",
+    "mentorFallback": "Mentor",
+    "messageMentor": "Message mentor",
+    "joinMeeting": "Join meeting",
+    "when": {
+      "today": "Today",
+      "tomorrow": "Tomorrow",
+      "minutes": "{count} min",
+      "online": "Online"
+    },
+    "hero": {
+      "label": "Next meeting",
+      "loading": "Loading meetings…",
+      "empty": "No meeting planned",
+      "emptyBody": "Plan your next meeting with your mentor.",
+      "plan": "Plan a meeting"
+    },
+    "quickActions": {
+      "label": "Quick actions",
+      "findMentor": "Find a mentor",
+      "findMentorHint": "Describe a new need",
+      "planMeeting": "Plan a meeting",
+      "planMeetingHint": "Set up a session",
+      "uploadFile": "Upload a file",
+      "uploadFileHint": "Share a document",
+      "myTasks": "My tasks",
+      "myTasksHint": "See all"
+    },
+    "tasks": {
+      "title": "To do",
+      "empty": "Nothing to do right now.",
+      "dismiss": "Remove from list: {title}",
+      "replyTitle": "Reply to the mentor request",
+      "reply": "Reply",
+      "openTask": "Open task",
+      "taskFallback": "Mentoring task",
+      "feedbackTitle": "Rate the meeting",
+      "feedbackAction": "Rate",
+      "due": {
+        "overdue": "Overdue",
+        "today": "Today",
+        "none": "No date"
+      },
+      "requestStatus": {
+        "MORE_INFO_REQUESTED": "Info needed",
+        "COUNTER_PROPOSED": "New time proposed",
+        "ACCEPTED": "Pick a time"
+      }
+    },
+    "upcoming": {
+      "title": "Upcoming meetings",
+      "openCalendar": "Open calendar",
+      "planned": "Scheduled",
+      "empty": "No other upcoming meetings."
+    },
+    "notes": {
+      "title": "Your meeting notes",
+      "tasksOpen": "Tasks not done",
+      "tasksDone": "Tasks done",
+      "empty": "You haven't had a meeting yet."
+    },
+    "sent": {
+      "title": "Your requests",
+      "reply": "Reply to request",
+      "empty": "No pending requests.",
+      "state": {
+        "action-needed": "Action needed",
+        "mentor-reviewing": "Mentor reviewing"
+      }
+    },
+    "active": {
+      "title": "Active mentorships",
+      "goTo": "Go to mentorship",
+      "goToLabel": "Go to mentorship: {name}",
+      "empty": "No active mentorships yet.",
+      "openActions": "{count, plural, one {# open action} other {# open actions}}",
+      "nextMeeting": "Next meeting · {date}",
+      "noMeeting": "No meeting planned"
+    }
+  },
+  "meetingProposals": {
+    "title": "Meeting proposals",
+    "when": "{when} · {minutes} min",
+    "newTime": "New time proposed",
+    "proposedBy": "Proposed by: {name}",
+    "sides": "Mentor: {mentor} · Team: {team}",
+    "accepted": "Accepted",
+    "awaiting": "Awaiting reply",
+    "accept": "Accept",
+    "decline": "I can't make it",
+    "reasonLabel": "Why can't you make it?",
+    "reasonPlaceholder": "Why can't you make it? (optional)",
+    "notifyCoordinator": "Tell the coordinator",
+    "cancel": "Cancel",
+    "reschedule": "Propose a new time",
+    "propose": "Propose a meeting",
+    "rescheduleNote": "the meeting moves to the new time once the other side accepts.",
+    "bothSidesNote": "the mentor and the team lead each confirm it.",
+    "dateTime": "Date and time",
+    "duration": "Duration",
+    "minutes": "{minutes} min",
+    "topic": "Topic (optional)",
+    "topicPlaceholder": "E.g. cash flow model",
+    "submit": "Propose to both sides"
+  },
+  "myPrograms": {
+    "title": "My programs",
+    "failed": "Couldn't load programs.",
+    "empty": "You're not in a program yet.",
+    "mentorLink": "See program details",
+    "menteeLink": "See who's in the program"
   }
 }

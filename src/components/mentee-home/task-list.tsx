@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
-import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 
@@ -47,9 +47,10 @@ export function TaskList({
   onDismiss?: (taskId: string) => void;
   onOpenTask?: (task: HomeTask) => void;
 }) {
+  const t = useTranslations("menteeHome.tasks");
   return (
     <section aria-labelledby="home-tasks-title" className="flex flex-col gap-3">
-      <SectionHeader id="home-tasks-title" title="Yapılacaklar" />
+      <SectionHeader id="home-tasks-title" title={t("title")} />
       <div className="rounded-[20px] border-[0.685px] border-[#e4e7ea] bg-white p-2">
         {tasks.slice(0, TASK_LIMIT).map((task) => {
           const tone = TONE_STYLES[task.dueTone];
@@ -113,7 +114,7 @@ export function TaskList({
               {onDismiss && (
                 <button
                   type="button"
-                  aria-label={`${HOME_TASK_LABELS.dismiss}: ${task.title}`}
+                  aria-label={t("dismiss", { title: task.title })}
                   onClick={() => onDismiss(task.id)}
                   className="grid size-8 shrink-0 place-items-center rounded-full text-[#7a828d] hover:bg-[#f3f4f6] hover:text-[#2b303a]"
                 >
@@ -132,7 +133,7 @@ export function TaskList({
         {tasks.length === 0 && (
           <SectionPlaceholder
             loading={loading}
-            emptyText="Şu anda yapılacak bir işin yok."
+            emptyText={t("empty")}
             framed={false}
           />
         )}

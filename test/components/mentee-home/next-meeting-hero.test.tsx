@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { NextMeetingHero } from "@/components/mentee-home/next-meeting-hero";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/reschedule-meeting-button", () => ({
   RescheduleMeetingButton: () => <button type="button">Yeni saat öner</button>,
@@ -31,6 +32,22 @@ describe("NextMeetingHero", () => {
       "href",
       "/messages",
     );
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <NextMeetingHero meeting={meeting} loading={false} />
+      </InLocale>,
+    );
+
+    expect(screen.getByText(/45 min · Online/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Join meeting" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Message mentor" }),
+    ).toBeInTheDocument();
   });
 
   it("offers to plan a meeting when none is scheduled", () => {

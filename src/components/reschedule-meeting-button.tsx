@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useRescheduleMeeting } from "@/hooks/use-meeting-proposals";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -15,6 +17,7 @@ export function RescheduleMeetingButton({
   pairLabel: string;
   className: string;
 }) {
+  const t = useTranslations("meetingProposals");
   const reschedule = useRescheduleMeeting(meeting);
   if (!canReschedule(meeting)) return null;
   return (
@@ -24,12 +27,12 @@ export function RescheduleMeetingButton({
         onClick={reschedule.openComposer}
         className={className}
       >
-        Yeni saat öner
+        {t("reschedule")}
       </button>
       <ProposeMeetingDialog
         proposals={reschedule}
         pairLabel={pairLabel}
-        note="diğer taraf onaylayınca görüşme yeni saate taşınır."
+        note={t("rescheduleNote")}
       />
     </>
   );

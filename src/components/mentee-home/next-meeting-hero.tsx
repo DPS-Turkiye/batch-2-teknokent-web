@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -20,9 +21,11 @@ export function NextMeetingHero({
   meeting: MeetingItem | null;
   loading: boolean;
 }) {
+  const t = useTranslations("menteeHome");
+  const locale = useLocale();
   return (
     <section
-      aria-label="Sıradaki görüşme"
+      aria-label={t("hero.label")}
       className="relative flex min-h-[160px] items-center overflow-hidden rounded-[24px] px-4 py-6 sm:px-12"
     >
       {/* The Figma gradient is drawn vertically; turning it sideways lays it across the banner. */}
@@ -44,10 +47,10 @@ export function NextMeetingHero({
               />
               <div className="min-w-0">
                 <p className="truncate text-[13px] leading-[19px] text-white">
-                  {meeting.mentorName ?? "Mentor"}
+                  {meeting.mentorName ?? t("mentorFallback")}
                 </p>
                 <h2 className="truncate text-[15px] font-semibold leading-[22px] text-white">
-                  {meeting.agenda || "Mentorluk görüşmesi"}
+                  {meeting.agenda || t("meetingFallback")}
                 </h2>
               </div>
             </div>
@@ -60,22 +63,22 @@ export function NextMeetingHero({
                   height={14}
                   className="size-3.5"
                 />
-                {meetingWhenLabel(meeting)}
+                {meetingWhenLabel(meeting, { t, locale })}
               </p>
               <div className="flex flex-wrap gap-2">
                 <Link href="/messages" className={whiteButton}>
-                  Mentora mesaj
+                  {t("messageMentor")}
                 </Link>
                 <RescheduleMeetingButton
                   meeting={meeting}
-                  pairLabel={meeting.mentorName ?? "Mentor"}
+                  pairLabel={meeting.mentorName ?? t("mentorFallback")}
                   className={whiteButton}
                 />
                 <Link
                   href={meetingCallHref(meeting.id)}
                   className={primaryButton}
                 >
-                  Görüşmeye katıl
+                  {t("joinMeeting")}
                 </Link>
               </div>
             </div>
@@ -84,15 +87,15 @@ export function NextMeetingHero({
           <>
             <div className="min-w-0">
               <h2 className="text-[15px] font-semibold leading-[22px] text-white">
-                {loading ? "Görüşmeler yükleniyor…" : "Planlanmış görüşmen yok"}
+                {loading ? t("hero.loading") : t("hero.empty")}
               </h2>
               <p className="text-[13px] leading-[19px] text-white">
-                Mentorunla bir sonraki görüşmeyi planla.
+                {t("hero.emptyBody")}
               </p>
             </div>
             {!loading && (
               <Link href="/calendar" className={primaryButton}>
-                Toplantı planla
+                {t("hero.plan")}
               </Link>
             )}
           </>

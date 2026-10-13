@@ -803,5 +803,131 @@
     "mentorDashboardDescription": "Gelen mentorluk talepleri inceleme ve karar ekranı.",
     "calendar": "Takvimim | Teknokent",
     "calendarDescription": "Mentorluk görüşmeleri ve kişisel toplantı takvimi."
+  },
+  "common": {
+    "greeting": {
+      "morning": "Günaydın",
+      "afternoon": "İyi günler",
+      "evening": "İyi akşamlar"
+    },
+    "loading": "Yükleniyor…",
+    "close": "Kapat",
+    "cancel": "Vazgeç"
+  },
+  "menteeHome": {
+    "greetingWithName": "{greeting}, {name}",
+    "loadFailed": "Veriler yüklenemedi. Daha sonra yeniden dene.",
+    "all": "Tümü ({count})",
+    "meetingFallback": "Mentorluk görüşmesi",
+    "mentorFallback": "Mentor",
+    "messageMentor": "Mentora mesaj",
+    "joinMeeting": "Görüşmeye katıl",
+    "when": {
+      "today": "Bugün",
+      "tomorrow": "Yarın",
+      "minutes": "{count} dk",
+      "online": "Online"
+    },
+    "hero": {
+      "label": "Sıradaki görüşme",
+      "loading": "Görüşmeler yükleniyor…",
+      "empty": "Planlanmış görüşmen yok",
+      "emptyBody": "Mentorunla bir sonraki görüşmeyi planla.",
+      "plan": "Toplantı planla"
+    },
+    "quickActions": {
+      "label": "Hızlı işlemler",
+      "findMentor": "Mentor bul",
+      "findMentorHint": "Yeni ihtiyaç tanımla",
+      "planMeeting": "Toplantı planla",
+      "planMeetingHint": "Görüşme oluştur",
+      "uploadFile": "Dosya yükle",
+      "uploadFileHint": "Belge paylaş",
+      "myTasks": "Görevlerim",
+      "myTasksHint": "Tümünü gör"
+    },
+    "tasks": {
+      "title": "Yapılacaklar",
+      "empty": "Şu anda yapılacak bir işin yok.",
+      "dismiss": "Listeden kaldır: {title}",
+      "replyTitle": "Mentor talebini yanıtla",
+      "reply": "Yanıtla",
+      "openTask": "Görevi aç",
+      "taskFallback": "Mentorluk görevi",
+      "feedbackTitle": "Toplantıyı değerlendir",
+      "feedbackAction": "Değerlendir",
+      "due": {
+        "overdue": "Gecikti",
+        "today": "Bugün",
+        "none": "Tarih yok"
+      },
+      "requestStatus": {
+        "MORE_INFO_REQUESTED": "Bilgi bekliyor",
+        "COUNTER_PROPOSED": "Saat önerisi",
+        "ACCEPTED": "Saat seç"
+      }
+    },
+    "upcoming": {
+      "title": "Yaklaşan görüşmeler",
+      "openCalendar": "Takvimi aç",
+      "planned": "Planlandı",
+      "empty": "Başka yaklaşan görüşmen yok."
+    },
+    "notes": {
+      "title": "Toplantı Notların",
+      "tasksOpen": "Görevler tamamlanmadı",
+      "tasksDone": "Görevler tamamlandı",
+      "empty": "Henüz gerçekleşen bir görüşmen yok."
+    },
+    "sent": {
+      "title": "Gönderdiğin talepler",
+      "reply": "Talebi yanıtla",
+      "empty": "Bekleyen talebin yok.",
+      "state": {
+        "action-needed": "Aksiyon gerekli",
+        "mentor-reviewing": "Mentor inceliyor"
+      }
+    },
+    "active": {
+      "title": "Aktif Mentorluklar",
+      "goTo": "Mentorluğa git",
+      "goToLabel": "Mentorluğa git: {name}",
+      "empty": "Henüz aktif mentorluk yok.",
+      "openActions": "{count} açık aksiyon",
+      "nextMeeting": "Sonraki görüşme · {date}",
+      "noMeeting": "Planlı görüşme yok"
+    }
+  },
+  "meetingProposals": {
+    "title": "Görüşme önerileri",
+    "when": "{when} · {minutes} dk",
+    "newTime": "Yeni saat önerisi",
+    "proposedBy": "Öneren: {name}",
+    "sides": "Mentor: {mentor} · Takım: {team}",
+    "accepted": "Onayladı",
+    "awaiting": "Yanıt bekleniyor",
+    "accept": "Onayla",
+    "decline": "Uygun değilim",
+    "reasonLabel": "Neden uygun değilsin?",
+    "reasonPlaceholder": "Neden uygun değilsin? (isteğe bağlı)",
+    "notifyCoordinator": "Koordinatöre bildir",
+    "cancel": "Vazgeç",
+    "reschedule": "Yeni saat öner",
+    "propose": "Görüşme öner",
+    "rescheduleNote": "diğer taraf onaylayınca görüşme yeni saate taşınır.",
+    "bothSidesNote": "mentor ve takım yetkilisi ayrı ayrı onaylar.",
+    "dateTime": "Tarih ve saat",
+    "duration": "Süre",
+    "minutes": "{minutes} dk",
+    "topic": "Konu (isteğe bağlı)",
+    "topicPlaceholder": "Örn. Nakit akışı modeli",
+    "submit": "İki tarafa öner"
+  },
+  "myPrograms": {
+    "title": "Programlarım",
+    "failed": "Programlar yüklenemedi.",
+    "empty": "Henüz bir programa dahil değilsin.",
+    "mentorLink": "Program detayını gör",
+    "menteeLink": "Programdaki kişileri gör"
   }
 }
