@@ -204,32 +204,19 @@ export function exceptionError(
   return null;
 }
 
-const DAY_MONTH = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-
 /** "21–25 Eylül · İzin", "3 Ekim", "30 Eylül – 2 Ekim"; the year only when it isn't this year. */
 export function exceptionLabel(
   exception: MentorAvailabilityException,
+  locale: string,
   now = new Date(),
 ) {
   const start = calendarDay(exception.startsOn);
   const end = calendarDay(exception.endsOn);
-  let range: string;
-  if (exception.endsOn === exception.startsOn) {
-    range = DAY_MONTH.format(start);
-  } else if (
-    start.getFullYear() === end.getFullYear() &&
-    start.getMonth() === end.getMonth()
-  ) {
-    range = `${start.getDate()}–${DAY_MONTH.format(end)}`;
-  } else {
-    range = `${DAY_MONTH.format(start)} – ${DAY_MONTH.format(end)}`;
-  }
-  if (end.getFullYear() !== now.getFullYear()) {
-    range = `${range} ${end.getFullYear()}`;
-  }
+  const range = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  }).formatRange(start, end);
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 

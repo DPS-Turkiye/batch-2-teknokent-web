@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorRating } from "@/hooks/use-mentor-rating";
@@ -31,6 +33,8 @@ function countLabel(count: number | undefined) {
 
 /** Everything the mentor's own profile page shows besides the editable form. */
 export function useMentorProfileOverview(profile: MentorProfile) {
+  const tSchedule = useTranslations("mentorSchedule");
+  const tOptions = useTranslations("options");
   const settingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
@@ -93,7 +97,11 @@ export function useMentorProfileOverview(profile: MentorProfile) {
           : (mentorshipDurationLabel(accepted) ?? MISSING),
       },
     ],
-    weeklyAvailability: weeklyAvailabilityRows(settings?.rules ?? []),
+    weeklyAvailability: weeklyAvailabilityRows(settings?.rules ?? [], {
+      weekday: (day) => tOptions(`weekday.${day}`),
+      otherDays: tSchedule("otherDays"),
+      closed: tSchedule("closed"),
+    }),
     capacityLabel: menteeLoadLabel({
       ...profile,
       menteeCapacity: settings?.menteeCapacity ?? profile.menteeCapacity,

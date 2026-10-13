@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import {
-  CALENDAR_FILTER_LABELS,
   CalendarFilter,
   DAY_SHORT_LABELS,
   MONTH_LABELS,
-  WEEKDAY_SHORT_LABELS,
   hourOf,
   isSameDay,
   monthGridCells,
@@ -22,10 +22,6 @@ describe("calendar labels", () => {
     expect(DAY_SHORT_LABELS).toHaveLength(7);
     expect(DAY_SHORT_LABELS[0]).toBe("Pzt");
     expect(DAY_SHORT_LABELS[6]).toBe("Paz");
-  });
-
-  it("exposes the Monday–Friday subset for the mentor grid", () => {
-    expect(WEEKDAY_SHORT_LABELS).toEqual(["Pzt", "Sal", "Çar", "Per", "Cum"]);
   });
 
   it("has twelve months in order", () => {
@@ -55,10 +51,13 @@ describe("calendar helpers", () => {
     expect(isSameDay(nextDay.toISOString(), day)).toBe(false);
   });
 
-  it("takes the month from the end of a week that spans two months", () => {
-    expect(weekRangeLabel(new Date(2026, 7, 31), new Date(2026, 8, 4))).toBe(
-      "31–4 Eylül",
-    );
+  it("names both months when a week spans two", () => {
+    expect(
+      weekRangeLabel(new Date(2026, 7, 31), new Date(2026, 8, 4), "tr"),
+    ).toMatch(/^31 Ağustos\s–\s4 Eylül$/);
+    expect(
+      weekRangeLabel(new Date(2026, 8, 14), new Date(2026, 8, 18), "en"),
+    ).toMatch(/^September 14\s–\s18$/);
   });
 
   it("offers selectable hours even when the mentor has no free slots", () => {
@@ -71,9 +70,10 @@ describe("calendar helpers", () => {
 });
 
 describe("shared calendar filter", () => {
-  it("has a label for every filter value", () => {
+  it("has a label for every filter value in both languages", () => {
     for (const value of Object.values(CalendarFilter)) {
-      expect(CALENDAR_FILTER_LABELS[value]).toBeTruthy();
+      expect(tr.calendar.filters[value]).toBeTruthy();
+      expect(en.calendar.filters[value]).toBeTruthy();
     }
   });
 });

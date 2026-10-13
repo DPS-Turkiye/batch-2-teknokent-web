@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -38,18 +39,13 @@ import { programsMentorHasJoined } from "@/lib/meeting-targets";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { exceptionLabel, exceptionsInRange } from "@/lib/mentor-availability";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
-import {
-  CalendarFilter,
-  CALENDAR_FILTER_LABELS,
-  startOfWeek,
-  weekDays,
-} from "@/lib/calendar";
+import { CalendarFilter, startOfWeek, weekDays } from "@/lib/calendar";
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 
 // Re-exported for existing importers; the canonical definition moved to
 // lib/calendar so the mentee calendar can share it without depending on a
 // "mentor" hook.
-export { CalendarFilter, CALENDAR_FILTER_LABELS };
+export { CalendarFilter };
 
 /** The grid runs 09:00–18:00, matching the design. */
 export const CALENDAR_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
@@ -58,6 +54,9 @@ export const AVAILABILITY_RULES_KEY = ["mentor-availability-rules"] as const;
 export const AVAILABILITY_SLOTS_KEY = ["mentor-availability-slots"] as const;
 
 export function useMentorCalendar() {
+  const locale = useLocale();
+  const tSchedule = useTranslations("mentorSchedule");
+  const tOptions = useTranslations("options");
   const queryClient = useQueryClient();
   const { session } = useSession();
   const [weekOffset, setWeekOffset] = useState(0);
@@ -220,12 +219,16 @@ export function useMentorCalendar() {
         settingsQuery.data?.exceptions ?? [],
         days[0],
         days[days.length - 1],
-      ).map((exception) => exceptionLabel(exception)),
-    [settingsQuery.data?.exceptions, days],
+      ).map((exception) => exceptionLabel(exception, locale)),
+    [settingsQuery.data?.exceptions, days, locale],
   );
 
   return {
-    availabilityRows: weeklyAvailabilityRows(rules),
+    availabilityRows: weeklyAvailabilityRows(rules, {
+      weekday: (day) => tOptions(`weekday.${day}`),
+      otherDays: tSchedule("otherDays"),
+      closed: tSchedule("closed"),
+    }),
     weekExceptionLabels,
     addMeeting: (input: {
       mentorshipRequestId?: string;

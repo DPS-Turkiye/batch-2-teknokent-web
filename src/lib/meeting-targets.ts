@@ -6,7 +6,9 @@ export type MeetingTarget = {
   key: string;
   organizationId: string;
   organizationName: string;
+  /** Empty for a regular mentorship, whose subtitle the dialog builds from `daysPerWeek`. */
   subtitle: string;
+  daysPerWeek?: number;
   requesterName?: string;
   mentorshipRequestId?: string;
   programId?: string;
@@ -86,7 +88,8 @@ export function groupMeetingTargets(
     key: `regular:${item.id}`,
     organizationId: item.organizationId,
     organizationName: item.organizationName,
-    subtitle: `Haftada ${item.daysPerWeek} gün · Düzenli`,
+    subtitle: "",
+    daysPerWeek: item.daysPerWeek,
     regularMentorshipId: item.id,
   }));
 

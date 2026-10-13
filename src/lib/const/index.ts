@@ -206,9 +206,6 @@ export const MENTOR_DASHBOARD_FILTER_OPTIONS = [
   [MentorRequestFilter.Declined, "Uygun Değil"],
 ] as const;
 
-export const CREATE_MEETING_NO_STARTUP_MESSAGE =
-  "Toplantı oluşturmak için kabul edilmiş bir mentorluk veya katıldığınız programdaki bir startup gerekir.";
-
 export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [];
 
 export const DASHBOARD_FALLBACK_REQUESTS: MentorshipRequest[] = [];

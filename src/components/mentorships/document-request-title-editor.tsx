@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export function DocumentRequestTitleEditor({
   titles,
@@ -13,6 +14,7 @@ export function DocumentRequestTitleEditor({
   disabled?: boolean;
   showHeading?: boolean;
 }) {
+  const t = useTranslations("meetingFields.documents");
   function updateTitle(index: number, value: string) {
     onChange(titles.map((title, i) => (i === index ? value : title)));
   }
@@ -29,12 +31,8 @@ export function DocumentRequestTitleEditor({
     <div className={showHeading ? "mt-5" : undefined}>
       {showHeading ? (
         <>
-          <h3 className="text-base font-medium text-[#22262b]">
-            İstenen belgeler
-          </h3>
-          <p className="mt-1 text-sm text-[#676e78]">
-            Mentee’den görüşme öncesi yüklemesini istediğin belgeleri ekle.
-          </p>
+          <h3 className="text-base font-medium text-[#22262b]">{t("title")}</h3>
+          <p className="mt-1 text-sm text-[#676e78]">{t("hint")}</p>
         </>
       ) : null}
       <div className={showHeading ? "mt-3 space-y-2" : "space-y-2"}>
@@ -45,7 +43,7 @@ export function DocumentRequestTitleEditor({
               value={title}
               disabled={disabled}
               onChange={(event) => updateTitle(index, event.target.value)}
-              placeholder={`${index + 1}. belge adı`}
+              placeholder={t("placeholder", { number: index + 1 })}
               maxLength={500}
               className="min-h-10 flex-1 rounded-lg border border-[#d4d8dd] px-3 text-sm text-[#22262b] outline-none focus:border-[var(--ms-accent,#e86f22)]"
             />
@@ -53,7 +51,7 @@ export function DocumentRequestTitleEditor({
               type="button"
               disabled={disabled}
               onClick={() => removeTitle(index)}
-              aria-label="Belgeyi kaldır"
+              aria-label={t("remove")}
               className="grid size-9 place-items-center rounded-lg text-[#858c96] hover:bg-[#f1f2f4] hover:text-[#22262b]"
             >
               <X className="size-4" />
@@ -68,7 +66,7 @@ export function DocumentRequestTitleEditor({
         className="mt-2 inline-flex items-center gap-1 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
       >
         <Plus className="size-3.5" />
-        Belge ekle
+        {t("add")}
       </button>
     </div>
   );

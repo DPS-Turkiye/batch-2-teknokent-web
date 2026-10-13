@@ -2499,5 +2499,97 @@
     "answered": "Mentorluk talebi yanıtlandı.",
     "failed": "İşlem tamamlanamadı.",
     "answerFailed": "Mentorluk talebi yanıtlanamadı."
+  },
+  "mentorSchedule": {
+    "otherDays": "Diğer günler",
+    "closed": "Kapalı"
+  },
+  "meetingFields": {
+    "transcribe": {
+      "label": "Toplantının transkriptinin çıkarılmasını istiyorum",
+      "hint": "İşaretlersen Meet linki Toplantı Asistanı listesine düşer; toplantı saatinde bot otomatik katılır.",
+      "after": "Toplantı sonrası Toplantı Asistanı’ndan toplantı raporunu ve transkripti menteelerinize gönderebilirsiniz."
+    },
+    "documents": {
+      "title": "İstenen belgeler",
+      "hint": "Mentee’den görüşme öncesi yüklemesini istediğin belgeleri ekle.",
+      "placeholder": "{number}. belge adı",
+      "remove": "Belgeyi kaldır",
+      "add": "Belge ekle"
+    }
+  },
+  "mentorCalendar": {
+    "title": "Takvim",
+    "summary": "Bu hafta {meetings} görüşme · {programs} program · {slots} boş slot",
+    "newMeeting": "Yeni toplantı oluştur",
+    "previousWeek": "Önceki hafta",
+    "today": "Bugün",
+    "nextWeek": "Sonraki hafta",
+    "loading": "Yükleniyor...",
+    "available": "Müsait",
+    "minutes": "{count} dk",
+    "createAt": "{day} {time} için toplantı oluştur",
+    "noProgram": "Katıldığınız bir program yok.",
+    "programList": "{count} programa katılıyorsunuz: {names}",
+    "createFailed": "Toplantı oluşturulamadı.",
+    "fallback": {
+      "mentorship": "Mentorluk",
+      "meeting": "Mentorluk görüşmesi",
+      "team": "Takım"
+    },
+    "availability": {
+      "title": "Müsaitliğim",
+      "edit": "Düzenle",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "noRules": "Tanımlı bir uygunluk kuralı yok.",
+      "unavailable": "Bu hafta müsait değilsin",
+      "thisWeek": "Bu hafta",
+      "freeSlots": "{count} boş slot"
+    },
+    "upcoming": {
+      "title": "Sıradaki görüşmeler",
+      "empty": "Bu hafta planlanmış görüşme yok."
+    },
+    "files": {
+      "title": "Dosyalar",
+      "hint": "Görüşme dosyaları mentorluk çalışma alanında."
+    },
+    "modal": {
+      "close": "Kapat",
+      "online": "Online · Google Meet",
+      "purpose": "Toplantı amacı",
+      "notes": "Notlar",
+      "outcomes": "Çıktılar",
+      "noNotes": "Bu görüşme için henüz not eklenmedi.",
+      "delete": "Görüşmeyi sil",
+      "join": "Toplantıya katıl",
+      "noLink": "Toplantı bağlantısı yok"
+    },
+    "create": {
+      "label": "Yeni toplantı oluştur",
+      "title": "Toplantı hedefi seç",
+      "close": "Kapat",
+      "noTargets": "Toplantı oluşturmak için kabul edilmiş bir mentorluk veya katıldığınız programdaki bir startup gerekir.",
+      "myPrograms": "Programlarım:",
+      "showStartups": "{program} startuplarını göster",
+      "regular": "Düzenli mentorlüklerim:",
+      "regularSubtitle": "Haftada {count} gün · Düzenli",
+      "pickDate": "Tarih Seç",
+      "nextDays": "Önümüzdeki 7 gün",
+      "pickable": "Seçilebilir saat",
+      "summary": "İstek Özeti",
+      "autoMeetFailed": "Otomatik Google Meet oluşturulamadı. {error} Linki kendin oluşturup aşağıya yapıştırabilirsin.",
+      "meetLink": "Google Meet linki",
+      "invalidLink": "Geçerli bir Google Meet linki yapıştırın.",
+      "sending": "Gönderiliyor...",
+      "send": "Gönder"
+    },
+    "weekChecks": {
+      "title": "Bu hafta görüşmen gereken düzenli mentorlükler",
+      "hint": "Görüştüklerini işaretle. Her haftanın başında liste yenilenir.",
+      "loading": "Yükleniyor...",
+      "empty": "Bu hafta için aktif düzenli mentorlük yok.",
+      "perWeek": "Haftada {count} gün"
+    }
   }
 }

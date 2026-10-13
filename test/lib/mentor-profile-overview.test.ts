@@ -7,6 +7,7 @@ import {
   type MentorProfile,
   PrepFileRequirement,
   Weekday,
+  WEEKDAY_LABELS,
 } from "@/interfaces/mentor";
 import {
   type MentorshipRequest,
@@ -250,31 +251,40 @@ describe("programDetail", () => {
 });
 
 describe("weeklyAvailabilityRows", () => {
+  const texts = {
+    weekday: (day: Weekday) => WEEKDAY_LABELS[day],
+    otherDays: "Diğer günler",
+    closed: "Kapalı",
+  };
+
   it("groups a day's ranges in order and closes the other days", () => {
     expect(
-      weeklyAvailabilityRows([
-        {
-          id: "a",
-          dayOfWeek: Weekday.Tuesday,
-          startTime: "14:00:00",
-          endTime: "17:00:00",
-          slotMinutes: 45,
-        },
-        {
-          id: "b",
-          dayOfWeek: Weekday.Wednesday,
-          startTime: "10:00:00",
-          endTime: "13:00:00",
-          slotMinutes: 45,
-        },
-        {
-          id: "c",
-          dayOfWeek: Weekday.Tuesday,
-          startTime: "09:00:00",
-          endTime: "10:00:00",
-          slotMinutes: 45,
-        },
-      ]),
+      weeklyAvailabilityRows(
+        [
+          {
+            id: "a",
+            dayOfWeek: Weekday.Tuesday,
+            startTime: "14:00:00",
+            endTime: "17:00:00",
+            slotMinutes: 45,
+          },
+          {
+            id: "b",
+            dayOfWeek: Weekday.Wednesday,
+            startTime: "10:00:00",
+            endTime: "13:00:00",
+            slotMinutes: 45,
+          },
+          {
+            id: "c",
+            dayOfWeek: Weekday.Tuesday,
+            startTime: "09:00:00",
+            endTime: "10:00:00",
+            slotMinutes: 45,
+          },
+        ],
+        texts,
+      ),
     ).toEqual([
       { label: "Salı", value: "09:00–10:00, 14:00–17:00" },
       { label: "Çarşamba", value: "10:00–13:00" },
@@ -283,7 +293,7 @@ describe("weeklyAvailabilityRows", () => {
   });
 
   it("has no rows when no day is open", () => {
-    expect(weeklyAvailabilityRows([])).toEqual([]);
+    expect(weeklyAvailabilityRows([], texts)).toEqual([]);
   });
 });
 

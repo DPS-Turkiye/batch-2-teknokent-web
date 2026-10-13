@@ -651,7 +651,7 @@ describe("MentorProfilePage", () => {
     const dialog = within(await openEditor(user));
     await user.click(
       dialog.getByRole("button", {
-        name: /^1–3 Ekim( 2026)? · İzin tarihini kaldır$/,
+        name: /^1\s–\s3 Ekim( 2026)? · İzin tarihini kaldır$/,
       }),
     );
     await user.click(dialog.getByRole("button", { name: "Tarih ekle" }));

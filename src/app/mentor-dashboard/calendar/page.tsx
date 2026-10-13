@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight, FileText, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -11,7 +12,6 @@ import {
 import { RegularMentorshipWeekChecksPanel } from "@/components/mentor-dashboard/regular-mentorship-week-checks";
 import { useAppSession } from "@/components/providers/session-provider";
 import {
-  CALENDAR_FILTER_LABELS,
   CALENDAR_HOURS,
   CalendarFilter,
   useMentorCalendar,
@@ -20,8 +20,8 @@ import type { MeetingItem } from "@/interfaces/meeting";
 import {
   hourOf,
   isSameDay,
+  shortWeekday,
   timeLabel,
-  WEEKDAY_SHORT_LABELS,
   MENTOR_CALENDAR_FILTERS,
   weekRangeLabel,
 } from "@/lib/calendar";
@@ -45,8 +45,8 @@ function atHour(day: Date, hour: number) {
   return next;
 }
 
-function counterpartOf(meeting: MeetingItem) {
-  return meeting.organizationName ?? meeting.mentorName ?? "Mentorluk";
+function counterpartOf(meeting: MeetingItem, fallback: string) {
+  return meeting.organizationName ?? meeting.mentorName ?? fallback;
 }
 
 function MeetingModal({
@@ -60,6 +60,8 @@ function MeetingModal({
   onDelete: () => void;
   isBusy: boolean;
 }) {
+  const t = useTranslations("mentorCalendar");
+  const locale = useLocale();
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-[#22262b]/35 px-4"
@@ -69,27 +71,29 @@ function MeetingModal({
     >
       <section className="w-full max-w-[560px] overflow-hidden rounded-[14px] bg-white shadow-[0_24px_60px_rgba(0,0,0,.22)]">
         <header className="relative border-b border-[#eef0f3] px-6 pb-4 pt-5">
-          <p className="text-[11px] text-[#858c96]">{counterpartOf(meeting)}</p>
+          <p className="text-[11px] text-[#858c96]">
+            {counterpartOf(meeting, t("fallback.mentorship"))}
+          </p>
           <h2 id="meeting-title" className="mt-1 text-xl font-semibold">
-            {meeting.agenda ?? "Mentorluk görüşmesi"}
+            {meeting.agenda ?? t("fallback.meeting")}
           </h2>
           <button
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("modal.close")}
             className="absolute right-5 top-8"
           >
             <X className="size-5" strokeWidth={1.5} />
           </button>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
             <span className="rounded-full bg-[#eaf6ff] px-2.5 py-1 font-medium text-[#26a4ff]">
-              {timeLabel(meeting.scheduledAt)}
+              {timeLabel(meeting.scheduledAt, locale)}
               {meeting.durationMinutes
-                ? ` · ${meeting.durationMinutes} dk`
+                ? ` · ${t("minutes", { count: meeting.durationMinutes })}`
                 : ""}
             </span>
             {meeting.meetLink ? (
               <span className="rounded-full bg-[#f3f4f6] px-2.5 py-1 text-[#676e78]">
-                Online · Google Meet
+                {t("modal.online")}
               </span>
             ) : null}
           </div>
@@ -98,7 +102,7 @@ function MeetingModal({
           {meeting.agenda ? (
             <section>
               <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
-                Toplantı amacı
+                {t("modal.purpose")}
               </p>
               <p>{meeting.agenda}</p>
             </section>
@@ -106,7 +110,7 @@ function MeetingModal({
           {meeting.notes ? (
             <section>
               <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
-                Notlar
+                {t("modal.notes")}
               </p>
               <p>{meeting.notes}</p>
             </section>
@@ -114,15 +118,13 @@ function MeetingModal({
           {meeting.outcomes ? (
             <section>
               <p className="mb-1 text-[10px] font-semibold uppercase text-[#858c96]">
-                Çıktılar
+                {t("modal.outcomes")}
               </p>
               <p>{meeting.outcomes}</p>
             </section>
           ) : null}
           {!meeting.agenda && !meeting.notes && !meeting.outcomes ? (
-            <p className="text-[#858c96]">
-              Bu görüşme için henüz not eklenmedi.
-            </p>
+            <p className="text-[#858c96]">{t("modal.noNotes")}</p>
           ) : null}
         </div>
         <footer className="flex items-center justify-between gap-3 border-t border-[#eef0f3] px-6 py-4">
@@ -132,11 +134,11 @@ function MeetingModal({
               disabled={isBusy}
               className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px] disabled:opacity-50"
             >
-              Görüşmeyi sil
+              {t("modal.delete")}
             </button>
             <RescheduleMeetingButton
               meeting={meeting}
-              pairLabel={meeting.organizationName ?? "Takım"}
+              pairLabel={meeting.organizationName ?? t("fallback.team")}
               className="rounded-full border border-[#d4d8dd] px-5 py-2.5 text-[12.5px]"
             />
           </span>
@@ -147,11 +149,11 @@ function MeetingModal({
               rel="noreferrer"
               className="rounded-full bg-[#26a4ff] px-5 py-2.5 text-[12.5px] text-white"
             >
-              Toplantıya katıl
+              {t("modal.join")}
             </a>
           ) : (
             <span className="text-[11px] text-[#858c96]">
-              Toplantı bağlantısı yok
+              {t("modal.noLink")}
             </span>
           )}
         </footer>
@@ -161,6 +163,9 @@ function MeetingModal({
 }
 
 export default function MentorCalendarPage() {
+  const t = useTranslations("mentorCalendar");
+  const tFilters = useTranslations("calendar.filters");
+  const locale = useLocale();
   const calendar = useMentorCalendar();
   const session = useAppSession();
   const [openMeeting, setOpenMeeting] = useState<MeetingItem | null>(null);
@@ -171,7 +176,7 @@ export default function MentorCalendarPage() {
 
   const days = calendar.days;
   const range = days.length
-    ? weekRangeLabel(days[0], days[days.length - 1])
+    ? weekRangeLabel(days[0], days[days.length - 1], locale)
     : "";
   const programEventCount =
     calendar.filter === CalendarFilter.Program ? calendar.programs.length : 0;
@@ -216,7 +221,7 @@ export default function MentorCalendarPage() {
       closeCreateDialog();
     } catch (error) {
       setCreateError(
-        error instanceof Error ? error : new Error("Toplantı oluşturulamadı."),
+        error instanceof Error ? error : new Error(t("createFailed")),
       );
     } finally {
       setIsCreating(false);
@@ -228,18 +233,22 @@ export default function MentorCalendarPage() {
       <main className="mx-auto w-full max-w-[1276px] px-6 pb-[72px] pt-3">
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-[28px] font-semibold leading-[39px]">Takvim</h1>
+            <h1 className="text-[28px] font-semibold leading-[39px]">
+              {t("title")}
+            </h1>
             <p className="mt-1 text-[13px] text-[#676e78]">
-              Bu hafta {calendar.meetings.length} görüşme ·{" "}
-              {calendar.programs.length} program · {calendar.freeSlotCount} boş
-              slot
+              {t("summary", {
+                meetings: calendar.meetings.length,
+                programs: calendar.programs.length,
+                slots: calendar.freeSlotCount,
+              })}
             </p>
           </div>
           <button
             onClick={() => openCreateDialog(null)}
             className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] font-medium text-white"
           >
-            Yeni toplantı oluştur
+            {t("newMeeting")}
           </button>
         </header>
         <div className="mt-[22px] flex gap-2">
@@ -249,7 +258,7 @@ export default function MentorCalendarPage() {
               onClick={() => calendar.setFilter(item)}
               className={`rounded-full border px-3 py-[5px] text-xs font-medium ${calendar.filter === item ? "border-[#f5faff] bg-[#f2f8fc] text-[#26a4ff]" : "border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]"}`}
             >
-              {CALENDAR_FILTER_LABELS[item]}
+              {tFilters(item)}
             </button>
           ))}
         </div>
@@ -260,7 +269,7 @@ export default function MentorCalendarPage() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={calendar.previousWeek}
-                  aria-label="Önceki hafta"
+                  aria-label={t("previousWeek")}
                 >
                   <ChevronLeft className="size-[18px]" strokeWidth={1.5} />
                 </button>
@@ -268,27 +277,27 @@ export default function MentorCalendarPage() {
                   onClick={calendar.thisWeek}
                   className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]"
                 >
-                  Bugün
+                  {t("today")}
                 </button>
-                <button onClick={calendar.nextWeek} aria-label="Sonraki hafta">
+                <button onClick={calendar.nextWeek} aria-label={t("nextWeek")}>
                   <ChevronRight className="size-[18px]" strokeWidth={1.5} />
                 </button>
               </div>
             </div>
             {calendar.isLoading ? (
               <p className="py-10 text-center text-xs text-[#858c96]">
-                Yükleniyor...
+                {t("loading")}
               </p>
             ) : (
               <div className="mt-[14px] grid min-w-[720px] grid-cols-[52px_repeat(5,1fr)] text-[11px]">
                 <div />
-                {days.map((day, dayIndex) => (
+                {days.map((day) => (
                   <div
                     key={day.toISOString()}
                     className="flex h-[34px] items-center justify-center gap-1.5"
                   >
                     <span className="text-[#676e78]">
-                      {WEEKDAY_SHORT_LABELS[dayIndex]}
+                      {shortWeekday(day, locale)}
                     </span>
                     <b className="text-[13px] font-medium">{day.getDate()}</b>
                   </div>
@@ -312,7 +321,10 @@ export default function MentorCalendarPage() {
                       const slotStart = slot
                         ? new Date(slot.startsAt)
                         : atHour(day, hour);
-                      const createLabel = `${day.getDate()} ${String(hour).padStart(2, "0")}:00 için toplantı oluştur`;
+                      const createLabel = t("createAt", {
+                        day: day.getDate(),
+                        time: `${String(hour).padStart(2, "0")}:00`,
+                      });
                       return (
                         <div
                           key={`${day.toISOString()}-${hour}`}
@@ -325,7 +337,10 @@ export default function MentorCalendarPage() {
                               className="absolute inset-x-1 top-px z-10 h-10 overflow-hidden rounded-md bg-[#26a4ff] px-2 py-1.5 text-left leading-[15px] text-white"
                             >
                               <b className="block truncate text-[11px] font-semibold">
-                                {counterpartOf(meeting)}
+                                {counterpartOf(
+                                  meeting,
+                                  t("fallback.mentorship"),
+                                )}
                               </b>
                               {meeting.agenda ? (
                                 <span className="block truncate text-[10.5px] opacity-80">
@@ -341,10 +356,10 @@ export default function MentorCalendarPage() {
                               className="absolute inset-x-1 top-px z-10 block h-10 overflow-hidden rounded-md bg-[#e9f2fa] px-2 py-1.5 text-left leading-[15px] text-[#26a4ff] hover:bg-[#dceefb]"
                             >
                               <b className="block text-[11px] font-semibold">
-                                Müsait
+                                {t("available")}
                               </b>
                               <span className="block text-[10.5px] opacity-80">
-                                {slot.durationMinutes} dk
+                                {t("minutes", { count: slot.durationMinutes })}
                               </span>
                             </button>
                           ) : (
@@ -365,10 +380,13 @@ export default function MentorCalendarPage() {
             {calendar.filter === CalendarFilter.Program ? (
               <p className="mt-4 min-w-[720px] text-xs text-[#676e78]">
                 {programEventCount === 0
-                  ? "Katıldığınız bir program yok."
-                  : `${programEventCount} programa katılıyorsunuz: ${calendar.programs
-                      .map((program) => program.name)
-                      .join(", ")}`}
+                  ? t("noProgram")
+                  : t("programList", {
+                      count: programEventCount,
+                      names: calendar.programs
+                        .map((program) => program.name)
+                        .join(", "),
+                    })}
               </p>
             ) : null}
           </section>
@@ -378,21 +396,23 @@ export default function MentorCalendarPage() {
             />
             <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
               <div className="flex justify-between">
-                <h2 className="text-[15px] font-semibold">Müsaitliğim</h2>
+                <h2 className="text-[15px] font-semibold">
+                  {t("availability.title")}
+                </h2>
                 <a
                   href="/mentor-profile"
                   className="text-[12.5px] font-medium text-[#26a4ff]"
                 >
-                  Düzenle
+                  {t("availability.edit")}
                 </a>
               </div>
               <p className="mt-3 text-xs text-[#676e78]">
-                Tekrarlayan haftalık uygunluk
+                {t("availability.weekly")}
               </p>
               <div className="mt-4 space-y-3">
                 {calendar.availabilityRows.length === 0 ? (
                   <p className="text-xs text-[#858c96]">
-                    Tanımlı bir uygunluk kuralı yok.
+                    {t("availability.noRules")}
                   </p>
                 ) : (
                   calendar.availabilityRows.map((row) => (
@@ -416,7 +436,7 @@ export default function MentorCalendarPage() {
               </div>
               {calendar.weekExceptionLabels.length > 0 ? (
                 <div className="mt-4 rounded-lg border border-[#fde7d4] bg-[#fff8f2] px-3 py-2.5 text-xs text-[#9e4400]">
-                  <p className="font-medium">Bu hafta müsait değilsin</p>
+                  <p className="font-medium">{t("availability.unavailable")}</p>
                   <ul className="mt-1 space-y-0.5">
                     {calendar.weekExceptionLabels.map((label) => (
                       <li key={label}>{label}</li>
@@ -425,18 +445,24 @@ export default function MentorCalendarPage() {
                 </div>
               ) : null}
               <div className="mt-4 flex justify-between rounded-lg bg-[#f2f8fc] px-3 py-2.5 text-xs">
-                <span className="text-[#676e78]">Bu hafta</span>
+                <span className="text-[#676e78]">
+                  {t("availability.thisWeek")}
+                </span>
                 <b className="font-medium text-[#26a4ff]">
-                  {calendar.freeSlotCount} boş slot
+                  {t("availability.freeSlots", {
+                    count: calendar.freeSlotCount,
+                  })}
                 </b>
               </div>
             </section>
             <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
-              <h2 className="text-[15px] font-semibold">Sıradaki görüşmeler</h2>
+              <h2 className="text-[15px] font-semibold">
+                {t("upcoming.title")}
+              </h2>
               <div className="mt-3 space-y-3">
                 {calendar.meetings.length === 0 ? (
                   <p className="text-xs text-[#858c96]">
-                    Bu hafta planlanmış görüşme yok.
+                    {t("upcoming.empty")}
                   </p>
                 ) : (
                   [...calendar.meetings]
@@ -449,14 +475,14 @@ export default function MentorCalendarPage() {
                       >
                         <span>
                           <b className="block text-[13px] font-medium">
-                            {meeting.agenda ?? "Mentorluk görüşmesi"}
+                            {meeting.agenda ?? t("fallback.meeting")}
                           </b>
                           <span className="block text-[11.5px] text-[#676e78]">
-                            {counterpartOf(meeting)}
+                            {counterpartOf(meeting, t("fallback.mentorship"))}
                           </span>
                         </span>
                         <span className="text-[11.5px] font-medium text-[#26a4ff]">
-                          {timeLabel(meeting.scheduledAt)}
+                          {timeLabel(meeting.scheduledAt, locale)}
                         </span>
                       </button>
                     ))
@@ -464,10 +490,10 @@ export default function MentorCalendarPage() {
               </div>
             </section>
             <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
-              <h2 className="text-[15px] font-semibold">Dosyalar</h2>
+              <h2 className="text-[15px] font-semibold">{t("files.title")}</h2>
               <p className="mt-3 flex items-center gap-2 text-xs text-[#676e78]">
                 <FileText className="size-4" strokeWidth={1.5} />
-                Görüşme dosyaları mentorluk çalışma alanında.
+                {t("files.hint")}
               </p>
             </section>
           </aside>

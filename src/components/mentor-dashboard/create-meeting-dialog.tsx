@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
@@ -11,11 +12,8 @@ import {
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
-import { timeLabel, upcomingHourColumns } from "@/lib/calendar";
-import {
-  CALENDAR_MEETING_DURATION_MINUTES,
-  CREATE_MEETING_NO_STARTUP_MESSAGE,
-} from "@/lib/const";
+import { shortWeekday, timeLabel, upcomingHourColumns } from "@/lib/calendar";
+import { CALENDAR_MEETING_DURATION_MINUTES } from "@/lib/const";
 import { parseGoogleMeetLink } from "@/lib/google-calendar";
 import {
   groupMeetingTargets,
@@ -33,6 +31,7 @@ function StartupCard({
   selected: boolean;
   onSelect: () => void;
 }) {
+  const t = useTranslations("mentorCalendar.create");
   return (
     <label
       className={`flex cursor-pointer flex-col rounded-xl border px-3 py-2 transition ${
@@ -57,7 +56,9 @@ function StartupCard({
         {meetingTargetLabel(target)}
       </span>
       <span className="mt-0.5 truncate text-[11px] text-[#8aa2b8]">
-        {target.subtitle}
+        {target.daysPerWeek
+          ? t("regularSubtitle", { count: target.daysPerWeek })
+          : target.subtitle}
       </span>
     </label>
   );
@@ -109,6 +110,8 @@ export function CreateMeetingDialog({
   error?: Error | null;
   startAt: Date | null;
 }) {
+  const t = useTranslations("mentorCalendar.create");
+  const locale = useLocale();
   const grouped = useMemo(
     () => groupMeetingTargets(mentorships, programs, regularMentorships),
     [mentorships, programs, regularMentorships],
@@ -190,7 +193,7 @@ export function CreateMeetingDialog({
     if (pasted) {
       const parsed = parseGoogleMeetLink(pasted);
       if (!parsed) {
-        setLinkError("Geçerli bir Google Meet linki yapıştırın.");
+        setLinkError(t("invalidLink"));
         return;
       }
       setLinkError("");
@@ -205,18 +208,16 @@ export function CreateMeetingDialog({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Yeni toplantı oluştur"
+      aria-label={t("label")}
       className="fixed inset-0 z-50 grid place-items-center bg-black/40 p-4"
     >
       <div className="max-h-[94vh] w-full max-w-[720px] overflow-y-auto rounded-2xl bg-white p-6 shadow-lg">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-base font-bold text-[#22262b]">
-            Toplantı hedefi seç
-          </h2>
+          <h2 className="text-base font-bold text-[#22262b]">{t("title")}</h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="-mr-1 -mt-1 grid size-7 shrink-0 place-items-center rounded-full text-[#858c96] hover:bg-[#f1f2f4]"
           >
             <X className="size-4" />
@@ -224,15 +225,13 @@ export function CreateMeetingDialog({
         </div>
 
         {!hasTargets ? (
-          <p className="mt-4 text-sm text-[#676e78]">
-            {CREATE_MEETING_NO_STARTUP_MESSAGE}
-          </p>
+          <p className="mt-4 text-sm text-[#676e78]">{t("noTargets")}</p>
         ) : (
           <>
             {grouped.byProgram.length > 0 ? (
               <section className="mt-4">
                 <h3 className="text-sm font-bold text-[#22262b]">
-                  Programlarım:
+                  {t("myPrograms")}
                 </h3>
                 <div className="mt-2">
                   {grouped.byProgram.map((group) => {
@@ -263,7 +262,9 @@ export function CreateMeetingDialog({
                           <button
                             type="button"
                             aria-expanded={open}
-                            aria-label={`${group.program.name} startuplarını göster`}
+                            aria-label={t("showStartups", {
+                              program: group.program.name,
+                            })}
                             onClick={() =>
                               setOpenProgramId(open ? "" : group.program.id)
                             }
@@ -296,7 +297,7 @@ export function CreateMeetingDialog({
             {grouped.regular.length > 0 ? (
               <section className="mt-5">
                 <h3 className="text-sm font-bold text-[#22262b]">
-                  Düzenli mentorlüklerim:
+                  {t("regular")}
                 </h3>
                 <div className="mt-2 grid grid-cols-3 gap-2">
                   {grouped.regular.map((target) => (
@@ -314,15 +315,15 @@ export function CreateMeetingDialog({
             {startAt ? null : (
               <>
                 <h3 className="mt-5 text-base font-bold text-[#22262b]">
-                  Tarih Seç
+                  {t("pickDate")}
                 </h3>
                 <div className="mt-2 rounded-xl border border-[#e4e7ea] p-3">
-                  <p className="text-[11px] text-[#858c96]">Önümüzdeki 7 gün</p>
+                  <p className="text-[11px] text-[#858c96]">{t("nextDays")}</p>
                   <div className="mt-2 grid grid-cols-5 gap-1.5">
                     {columns.map((column) => (
                       <div key={column.key} className="min-w-0">
                         <p className="truncate text-center text-[11px] text-[#676e78]">
-                          {column.heading}
+                          {`${column.day.getDate()} ${shortWeekday(column.day, locale)}`}
                         </p>
                         <div className="mt-1.5 space-y-1.5">
                           {column.slots.map((slot) => {
@@ -340,7 +341,7 @@ export function CreateMeetingDialog({
                                     : "border-[#c7dcf3] bg-white text-[#2f7ff0] hover:border-[#8fbdea]"
                                 }`}
                               >
-                                {timeLabel(iso)}
+                                {timeLabel(iso, locale)}
                               </button>
                             );
                           })}
@@ -350,7 +351,7 @@ export function CreateMeetingDialog({
                   </div>
                   <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#858c96]">
                     <span className="size-1.5 rounded-full bg-[#e86f22]" />
-                    Seçilebilir saat
+                    {t("pickable")}
                   </p>
                 </div>
               </>
@@ -358,7 +359,7 @@ export function CreateMeetingDialog({
 
             <div className="mt-4 rounded-xl border border-[#e4e7ea] p-3">
               <label className="block text-sm font-semibold text-[#22262b]">
-                İstek Özeti
+                {t("summary")}
                 <textarea
                   value={agenda}
                   onChange={(event) => setAgenda(event.target.value)}
@@ -376,10 +377,10 @@ export function CreateMeetingDialog({
                 >
                   {manualMeetLink.trim()
                     ? error.message
-                    : `Otomatik Google Meet oluşturulamadı. ${error.message} Linki kendin oluşturup aşağıya yapıştırabilirsin.`}
+                    : t("autoMeetFailed", { error: error.message })}
                 </p>
                 <label className="block text-sm font-semibold text-[#22262b]">
-                  Google Meet linki
+                  {t("meetLink")}
                   <input
                     type="url"
                     value={manualMeetLink}
@@ -414,7 +415,7 @@ export function CreateMeetingDialog({
               onClick={handleSubmit}
               className="mt-4 w-full rounded-xl bg-[#e86f22] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#ce5e19] disabled:opacity-60"
             >
-              {isSaving ? "Gönderiliyor..." : "Gönder"}
+              {isSaving ? t("sending") : t("send")}
             </button>
           </>
         )}

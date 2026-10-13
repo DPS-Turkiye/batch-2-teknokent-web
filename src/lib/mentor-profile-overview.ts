@@ -8,7 +8,7 @@ import {
   type MentorProfile,
   type MentorProgram,
   PREP_FILE_REQUIREMENT_LABELS,
-  WEEKDAY_LABELS,
+  type Weekday,
   WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
@@ -172,9 +172,16 @@ export function programDetail(program: MentorProgram) {
     .join(" · ");
 }
 
+export type WeeklyAvailabilityTexts = {
+  weekday: (day: Weekday) => string;
+  otherDays: string;
+  closed: string;
+};
+
 /** "Salı 09:00–10:00, 14:00–17:00" per open day, then "Diğer günler Kapalı". */
 export function weeklyAvailabilityRows(
   rules: MentorAvailabilityRule[],
+  { weekday, otherDays, closed }: WeeklyAvailabilityTexts,
 ): LabelValue[] {
   const rows: LabelValue[] = WEEKDAY_ORDER.flatMap((day) => {
     const ranges = rules
@@ -184,11 +191,11 @@ export function weeklyAvailabilityRows(
         (rule) => `${toTimeInput(rule.startTime)}–${toTimeInput(rule.endTime)}`,
       );
     return ranges.length > 0
-      ? [{ label: WEEKDAY_LABELS[day], value: ranges.join(", ") }]
+      ? [{ label: weekday(day), value: ranges.join(", ") }]
       : [];
   });
   if (rows.length > 0 && rows.length < WEEKDAY_ORDER.length) {
-    rows.push({ label: "Diğer günler", value: "Kapalı", muted: true });
+    rows.push({ label: otherDays, value: closed, muted: true });
   }
   return rows;
 }

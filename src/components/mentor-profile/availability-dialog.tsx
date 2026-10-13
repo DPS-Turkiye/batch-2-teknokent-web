@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { X } from "lucide-react";
+import { useLocale } from "next-intl";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { NumberStepper } from "@/components/common/number-stepper";
@@ -26,6 +27,7 @@ const pillButtonClass =
 const smallButtonClass = "text-xs! font-medium! leading-[18px]!";
 
 export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
+  const locale = useLocale();
   const availability = useAvailabilitySettingsForm(onClose);
   const { draft } = availability;
 
@@ -209,7 +211,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
               <h3 className={sectionLabelClass}>UYGUN OLMADIĞIN TARİHLER</h3>
               <div className="flex flex-wrap items-center gap-2">
                 {draft.exceptions.map((item, index) => {
-                  const text = exceptionLabel(item);
+                  const text = exceptionLabel(item, locale);
                   return (
                     <span
                       key={`${item.startsOn}-${item.endsOn}`}

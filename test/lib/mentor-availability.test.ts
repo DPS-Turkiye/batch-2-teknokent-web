@@ -208,31 +208,42 @@ describe("exceptionsInRange", () => {
 describe("exceptionLabel", () => {
   const now = new Date("2026-09-15T12:00:00");
 
-  it("names the days in Turkish, writes a shared month once and adds the reason", () => {
+  it("names the days in the page's language, writes a shared month once and adds the reason", () => {
     expect(
       exceptionLabel(
         { startsOn: "2026-10-03", endsOn: "2026-10-03", reason: "Konferans" },
+        "tr",
         now,
       ),
     ).toBe("3 Ekim · Konferans");
     expect(
       exceptionLabel(
         { startsOn: "2026-09-21", endsOn: "2026-09-25", reason: "İzin" },
+        "tr",
         now,
       ),
-    ).toBe("21–25 Eylül · İzin");
+    ).toMatch(/^21\s–\s25 Eylül · İzin$/);
     expect(
       exceptionLabel(
         { startsOn: "2026-09-30", endsOn: "2026-10-02", reason: null },
+        "tr",
         now,
       ),
-    ).toBe("30 Eylül – 2 Ekim");
+    ).toMatch(/^30 Eylül\s–\s2 Ekim$/);
+    expect(
+      exceptionLabel(
+        { startsOn: "2026-09-21", endsOn: "2026-09-25", reason: null },
+        "en",
+        now,
+      ),
+    ).toMatch(/^September 21\s–\s25$/);
   });
 
   it("adds the year only when it is not this year", () => {
     expect(
       exceptionLabel(
         { startsOn: "2027-01-04", endsOn: "2027-01-04", reason: null },
+        "tr",
         now,
       ),
     ).toBe("4 Ocak 2027");

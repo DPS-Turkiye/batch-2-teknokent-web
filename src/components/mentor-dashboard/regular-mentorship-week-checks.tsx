@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import {
   getMentorshipWeekChecks,
@@ -12,6 +13,7 @@ export function RegularMentorshipWeekChecksPanel({
 }: {
   weekStart: string;
 }) {
+  const t = useTranslations("mentorCalendar.weekChecks");
   const queryClient = useQueryClient();
   const queryKey = ["mentorship-week-checks", weekStart] as const;
 
@@ -31,21 +33,15 @@ export function RegularMentorshipWeekChecksPanel({
 
   return (
     <section className="rounded-xl border border-[#e4e7ea] p-[18px]">
-      <h2 className="text-[15px] font-semibold">
-        Bu hafta görüşmen gereken düzenli mentorlükler
-      </h2>
-      <p className="mt-2 text-xs text-[#676e78]">
-        Görüştüklerini işaretle. Her haftanın başında liste yenilenir.
-      </p>
+      <h2 className="text-[15px] font-semibold">{t("title")}</h2>
+      <p className="mt-2 text-xs text-[#676e78]">{t("hint")}</p>
       <div className="mt-4 space-y-3">
         {query.isLoading ? (
-          <p className="text-xs text-[#858c96]">Yükleniyor...</p>
+          <p className="text-xs text-[#858c96]">{t("loading")}</p>
         ) : query.error ? (
           <p className="text-xs text-red-600">{query.error.message}</p>
         ) : items.length === 0 ? (
-          <p className="text-xs text-[#858c96]">
-            Bu hafta için aktif düzenli mentorlük yok.
-          </p>
+          <p className="text-xs text-[#858c96]">{t("empty")}</p>
         ) : (
           items.map((item) => (
             <label
@@ -70,7 +66,7 @@ export function RegularMentorshipWeekChecksPanel({
                   {item.organizationName}
                 </span>
                 <span className="block text-[11px] text-[#858c96]">
-                  Haftada {item.daysPerWeek} gün
+                  {t("perWeek", { count: item.daysPerWeek })}
                 </span>
               </span>
             </label>

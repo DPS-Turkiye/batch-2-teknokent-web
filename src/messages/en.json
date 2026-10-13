@@ -2499,5 +2499,97 @@
     "answered": "Mentorship request answered.",
     "failed": "Couldn't complete that.",
     "answerFailed": "Couldn't answer the mentorship request."
+  },
+  "mentorSchedule": {
+    "otherDays": "Other days",
+    "closed": "Closed"
+  },
+  "meetingFields": {
+    "transcribe": {
+      "label": "I want a transcript of this meeting",
+      "hint": "If you tick this, the Meet link goes to the Meeting Assistant list and the bot joins automatically at meeting time.",
+      "after": "After the meeting you can send the report and transcript to your mentees from the Meeting Assistant."
+    },
+    "documents": {
+      "title": "Requested documents",
+      "hint": "Add the documents you want the mentee to upload before the meeting.",
+      "placeholder": "Document {number} name",
+      "remove": "Remove document",
+      "add": "Add a document"
+    }
+  },
+  "mentorCalendar": {
+    "title": "Calendar",
+    "summary": "This week {meetings, plural, one {# meeting} other {# meetings}} · {programs, plural, one {# program} other {# programs}} · {slots, plural, one {# free slot} other {# free slots}}",
+    "newMeeting": "Create a meeting",
+    "previousWeek": "Previous week",
+    "today": "Today",
+    "nextWeek": "Next week",
+    "loading": "Loading...",
+    "available": "Available",
+    "minutes": "{count} min",
+    "createAt": "Create a meeting on day {day} at {time}",
+    "noProgram": "You're not in any program.",
+    "programList": "You're in {count, plural, one {# program} other {# programs}}: {names}",
+    "createFailed": "Couldn't create the meeting.",
+    "fallback": {
+      "mentorship": "Mentorship",
+      "meeting": "Mentoring session",
+      "team": "Team"
+    },
+    "availability": {
+      "title": "My availability",
+      "edit": "Edit",
+      "weekly": "Recurring weekly availability",
+      "noRules": "No availability set.",
+      "unavailable": "You're unavailable this week",
+      "thisWeek": "This week",
+      "freeSlots": "{count, plural, one {# free slot} other {# free slots}}"
+    },
+    "upcoming": {
+      "title": "Next meetings",
+      "empty": "No meetings planned this week."
+    },
+    "files": {
+      "title": "Files",
+      "hint": "Meeting files are in the mentorship workspace."
+    },
+    "modal": {
+      "close": "Close",
+      "online": "Online · Google Meet",
+      "purpose": "Meeting goal",
+      "notes": "Notes",
+      "outcomes": "Outcomes",
+      "noNotes": "No notes for this meeting yet.",
+      "delete": "Delete meeting",
+      "join": "Join meeting",
+      "noLink": "No meeting link"
+    },
+    "create": {
+      "label": "Create a meeting",
+      "title": "Choose who the meeting is with",
+      "close": "Close",
+      "noTargets": "To create a meeting you need an accepted mentorship or a startup in one of your programs.",
+      "myPrograms": "My programs:",
+      "showStartups": "Show the startups in {program}",
+      "regular": "My regular mentorships:",
+      "regularSubtitle": "{count, plural, one {# day} other {# days}} a week · Regular",
+      "pickDate": "Pick a date",
+      "nextDays": "Next 7 days",
+      "pickable": "Time you can pick",
+      "summary": "Request summary",
+      "autoMeetFailed": "Couldn't create the Google Meet automatically. {error} You can create the link yourself and paste it below.",
+      "meetLink": "Google Meet link",
+      "invalidLink": "Paste a valid Google Meet link.",
+      "sending": "Sending...",
+      "send": "Send"
+    },
+    "weekChecks": {
+      "title": "Regular mentorships to meet this week",
+      "hint": "Tick the ones you've met. The list resets at the start of each week.",
+      "loading": "Loading...",
+      "empty": "No active regular mentorships this week.",
+      "perWeek": "{count, plural, one {# day} other {# days}} a week"
+    }
   }
 }
