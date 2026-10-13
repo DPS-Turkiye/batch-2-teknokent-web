@@ -1,8 +1,8 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
-  TODO_NOTEBOOK_LABELS,
   TODO_NOTEBOOK_MIN_ROWS,
   TODO_NOTEBOOK_RING_GROUPS,
 } from "@/lib/const/notes";
@@ -18,6 +18,7 @@ export function TodoNotebook({
   className?: string;
   children: ReactNode;
 }) {
+  const t = useTranslations("notes.todo");
   return (
     <section
       aria-labelledby={titleId}
@@ -29,7 +30,7 @@ export function TodoNotebook({
             id={titleId}
             className="shrink-0 border-b border-[#c2c2c2] p-3 text-xl leading-7 text-[#22262b]"
           >
-            {TODO_NOTEBOOK_LABELS.title}
+            {t("title")}
           </Heading>
           <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>
         </div>

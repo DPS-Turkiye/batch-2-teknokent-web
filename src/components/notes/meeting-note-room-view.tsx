@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -39,12 +40,6 @@ import {
 } from "@/lib/startup-meetings";
 import { AppArea } from "@/types/app-area";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
-
-const REALTIME_LABELS: Record<RealtimeStatus, string> = {
-  [RealtimeStatus.Connecting]: "Bağlanıyor",
-  [RealtimeStatus.Connected]: "Canlı",
-  [RealtimeStatus.Offline]: "Bağlantı yok",
-};
 
 function UploadButton({
   accept,
@@ -86,6 +81,7 @@ interface MeetingNoteRoomViewProps {
 }
 
 export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
+  const t = useTranslations("notes");
   const meetingsQuery = useMeetings();
   const mentorsQuery = useMentors();
   const documentsQuery = useStartupDocuments();
@@ -101,7 +97,7 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
     ? meetingsWithSameMentor(meetings, meeting)
     : [];
   const openTodos = useOpenTodoCounts(otherMeetings.map((item) => item.id));
-  const title = meeting ? meetingTitle(meeting) : "Toplantı";
+  const title = meeting ? meetingTitle(meeting, t("untitled")) : t("untitled");
   const mentorTitle = meeting?.mentorId
     ? mentorsQuery.data?.find((mentor) => mentor.id === meeting.mentorId)
         ?.professionalTitle || null
@@ -142,14 +138,14 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
         accept="image/png,image/jpeg,image/webp"
         disabled={notes.isUploading}
         icon="/startup/photo-upload.svg"
-        label="Fotoğraf Yükle"
+        label={t("photo")}
         onFile={notes.uploadPhoto}
       />
       <UploadButton
         accept={DOCUMENT_UPLOAD_ACCEPT}
         disabled={notes.isUploading}
         icon="/startup/file-upload.svg"
-        label="Dosya yükle"
+        label={t("file")}
         onFile={notes.uploadFile}
       />
     </div>
@@ -159,15 +155,15 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
     <AppShell active={AppArea.Notes} menteeHome>
       <div className="mx-auto w-full max-w-[1280px] px-4 pb-14 pt-3 sm:px-8">
         <nav
-          aria-label="Sayfa konumu"
+          aria-label={t("breadcrumb")}
           className="mb-5 flex items-center gap-1.5 text-sm text-[#858c96]"
         >
           <Link href="/dashboard" className="hover:text-[#e86f22]">
-            Anasayfa
+            {t("home")}
           </Link>
           <span aria-hidden>›</span>
           <Link href="/notes" className="hover:text-[#e86f22]">
-            Toplantı Notları
+            {t("title")}
           </Link>
           <span aria-hidden>›</span>
           <span className="truncate text-[#22262b]">{title}</span>
@@ -186,7 +182,7 @@ export function MeetingNoteRoomView({ meetingId }: MeetingNoteRoomViewProps) {
                     : "bg-[#e0645e]"
               }`}
             />
-            {REALTIME_LABELS[realtimeStatus]}
+            {t(`realtime.${realtimeStatus}`)}
           </span>
         </div>
 

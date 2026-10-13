@@ -1,6 +1,7 @@
 "use client";
 
 import { Pencil, Sparkles, Trash2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
 import {
@@ -16,13 +17,13 @@ import {
   useUpdateMeetingTodo,
 } from "@/hooks/use-meeting-notes";
 import { MeetingTodoSource } from "@/interfaces/meeting-note";
-import { TODO_NOTEBOOK_LABELS as LABELS } from "@/lib/const/notes";
 
 interface MeetingTodoListProps {
   meetingId: string;
 }
 
 export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
+  const t = useTranslations("notes.todo");
   const todosQuery = useMeetingTodos(meetingId);
   const createTodo = useCreateMeetingTodo(meetingId);
   const updateTodo = useUpdateMeetingTodo(meetingId);
@@ -42,9 +43,9 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
   return (
     <TodoNotebook titleId="meeting-todos-title" className="h-[389px]">
       {todosQuery.isLoading ? (
-        <p className="p-3 text-sm text-[#8a8a8a]">{LABELS.loading}</p>
+        <p className="p-3 text-sm text-[#8a8a8a]">{t("loading")}</p>
       ) : todosQuery.isError ? (
-        <p className="p-3 text-sm text-[#9b2c2c]">{LABELS.error}</p>
+        <p className="p-3 text-sm text-[#9b2c2c]">{t("error")}</p>
       ) : (
         <>
           <ul>
@@ -70,7 +71,7 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
                           editor.cancel();
                         }
                       }}
-                      aria-label={LABELS.editInput}
+                      aria-label={t("edit")}
                       maxLength={1000}
                       autoFocus
                       className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#22262b] outline-none"
@@ -91,17 +92,17 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
                     </span>
                     {todo.source === MeetingTodoSource.Ai ? (
                       <span
-                        title={LABELS.aiTagHint}
+                        title={t("aiTagHint")}
                         className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#fff1e8] px-2 py-0.5 text-[11px] font-medium text-[#e86f22]"
                       >
                         <Sparkles className="size-3" aria-hidden />
-                        {LABELS.aiTag}
-                        <span className="sr-only"> · {LABELS.aiTagHint}</span>
+                        {t("aiTag")}
+                        <span className="sr-only"> · {t("aiTagHint")}</span>
                       </span>
                     ) : null}
                     <button
                       type="button"
-                      aria-label={LABELS.edit}
+                      aria-label={t("edit")}
                       onClick={(event) => {
                         event.preventDefault();
                         editor.start(todo);
@@ -116,7 +117,7 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
                     </button>
                     <button
                       type="button"
-                      aria-label={LABELS.remove}
+                      aria-label={t("remove")}
                       onClick={() => deleteTodo.mutate(todo.id)}
                       className="shrink-0 rounded p-1 text-[#c2c2c2] opacity-0 hover:text-[#9b2c2c] focus:opacity-100 group-hover:opacity-100"
                     >
@@ -140,8 +141,8 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder={LABELS.add}
-                aria-label={LABELS.add}
+                placeholder={t("add")}
+                aria-label={t("add")}
                 disabled={createTodo.isPending}
                 className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#636e7d] outline-none placeholder:text-[#aeb4bc]"
               />

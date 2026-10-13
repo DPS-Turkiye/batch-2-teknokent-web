@@ -1504,5 +1504,81 @@
     "placeholder": "Programdaki tüm takımlara ve mentorlara duyuru yaz…",
     "send": "Duyur",
     "readOnly": "Duyurular yalnızca okunur. Koordinatöre yazmak için Program konuşmasını kullan."
+  },
+  "notes": {
+    "breadcrumb": "Sayfa konumu",
+    "home": "Anasayfa",
+    "title": "Toplantı Notları",
+    "untitled": "Toplantı",
+    "realtime": {
+      "connecting": "Bağlanıyor",
+      "connected": "Canlı",
+      "offline": "Bağlantı yok"
+    },
+    "photo": "Fotoğraf Yükle",
+    "file": "Dosya yükle",
+    "saving": "Yedekleniyor…",
+    "unsaved": "Yedeklenmedi",
+    "saved": "Yedeklendi",
+    "failed": "Not defteri şu an açılamıyor.",
+    "loading": "Not yükleniyor…",
+    "offline": "Bağlantı yok · son kayıt salt okunur. Yenileyince birlikte yazabilirsiniz.",
+    "sameMentor": "Aynı mentörle diğer toplantı notları",
+    "tasksOpen": "Görevler tamamlanmadı",
+    "fileAdded": "Dosya toplantıya eklendi.",
+    "uploadFailed": "Dosya yüklenemedi.",
+    "todo": {
+      "title": "Yapılacaklar",
+      "loading": "Liste yükleniyor…",
+      "error": "Liste şu an açılamıyor.",
+      "add": "Görev ekle",
+      "remove": "Maddeyi sil",
+      "edit": "Maddeyi düzenle",
+      "aiTag": "AI",
+      "aiTagHint": "Toplantı raporundan eklendi"
+    },
+    "share": {
+      "sentReadOnly": "Mentör gönderdi · salt okunur",
+      "report": "Toplantı raporu",
+      "reportSent": "Mentör not defterinin altına gönderdi · salt okunur",
+      "noTopicDate": "Konu / tarih belirtilmedi",
+      "decisions": "Kararlar",
+      "actions": "Aksiyonlar",
+      "failed": "Mentörün gönderdiği içerik şu an yüklenemedi.",
+      "loading": "Yükleniyor…",
+      "transcriptTitle": "Toplantı Transkripti",
+      "reportTitle": "Toplantı Raporu",
+      "noTranscript": "Mentör henüz transkript göndermedi.",
+      "noReport": "Mentör henüz rapor göndermedi."
+    }
+  },
+  "startupMeetings": {
+    "loading": "Toplantılar yükleniyor…",
+    "toolbar": "Toplantı görünümü",
+    "list": "Liste görünümü",
+    "grid": "Kart görünümü",
+    "views": {
+      "topic": "Konu",
+      "time": "Zaman",
+      "notes": "Toplantı Notları",
+      "mentor": "Mentor"
+    },
+    "empty": "Henüz bir toplantı yok.",
+    "plan": "Takvimden toplantı planla",
+    "mentorFallback": "Mentor",
+    "lastMeeting": "Son görüşme",
+    "timing": {
+      "upcoming": "Yaklaşan",
+      "held": "Gerçekleşti"
+    },
+    "openTopic": "{title} notlarını aç",
+    "notesOf": "{title} notları",
+    "noteEmpty": "Bu toplantı için henüz not yazılmadı.",
+    "addNote": "…Not ekle",
+    "transcript": "Toplantı Transkripti",
+    "tasksOpen": "Görevler tamamlanmadı",
+    "count": "{count} Toplantı",
+    "yearMeetings": "{year} toplantıları",
+    "close": "Kapat"
   }
 }

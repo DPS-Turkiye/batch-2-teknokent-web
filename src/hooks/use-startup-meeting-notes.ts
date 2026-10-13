@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -18,6 +19,7 @@ import { getMeetingTodos } from "@/lib/client/meeting-notes";
 
 /** The notes view's open meeting: its note, its to-dos and its attachments. */
 export function useStartupMeetingNotes(meetingId: string | null) {
+  const t = useTranslations("notes");
   const id = meetingId ?? "";
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -34,11 +36,11 @@ export function useStartupMeetingNotes(meetingId: string | null) {
       void queryClient.invalidateQueries({
         queryKey: STARTUP_DOCUMENTS_QUERY_KEY,
       });
-      showToast({ message: "Dosya toplantıya eklendi.", tone: "success" });
+      showToast({ message: t("fileAdded"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: error instanceof Error ? error.message : "Dosya yüklenemedi.",
+        message: error instanceof Error ? error.message : t("uploadFailed"),
         tone: "error",
       }),
   });

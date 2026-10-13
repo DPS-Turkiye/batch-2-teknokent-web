@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { MeetingNotesPanel } from "@/components/startup/meeting-notes-panel";
 import { MeetingTimeline } from "@/components/startup/meeting-timeline";
@@ -15,7 +16,6 @@ import {
 } from "@/hooks/use-startup-meetings";
 import {
   meetingNotebookHref,
-  STARTUP_MEETING_VIEW_LABELS,
   StartupMeetingView,
 } from "@/lib/startup-meetings";
 
@@ -55,6 +55,7 @@ export function StartupMeetingsView({
 }: {
   hideNotesChip?: boolean;
 }) {
+  const t = useTranslations("startupMeetings");
   const router = useRouter();
   const meetings = useStartupMeetings();
   const openDocument = useOpenDocument();
@@ -70,9 +71,7 @@ export function StartupMeetingsView({
   }
 
   if (meetings.isLoading) {
-    return (
-      <p className="py-10 text-sm text-[#858c96]">Toplantılar yükleniyor…</p>
-    );
+    return <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>;
   }
   if (meetings.error) {
     return (
@@ -120,11 +119,11 @@ export function StartupMeetingsView({
     <div className="space-y-5">
       <div
         role="toolbar"
-        aria-label="Toplantı görünümü"
+        aria-label={t("toolbar")}
         className="flex flex-wrap items-center gap-3"
       >
-        {layoutButton(MeetingLayout.List, "Liste görünümü")}
-        {layoutButton(MeetingLayout.Grid, "Kart görünümü")}
+        {layoutButton(MeetingLayout.List, t("list"))}
+        {layoutButton(MeetingLayout.Grid, t("grid"))}
         {views.map((item) => {
           const selected = view === item;
           return (
@@ -141,7 +140,7 @@ export function StartupMeetingsView({
                 width={24}
                 height={24}
               />
-              {STARTUP_MEETING_VIEW_LABELS[item]}
+              {t(`views.${item}`)}
             </button>
           );
         })}
@@ -149,9 +148,9 @@ export function StartupMeetingsView({
 
       {meetings.meetingCount === 0 ? (
         <div className="rounded-[24px] border border-[#e4e7ea] p-6 text-sm text-[#676e78]">
-          Henüz bir toplantı yok.{" "}
+          {t("empty")}{" "}
           <Link href="/calendar" className="text-[#e86f22] underline">
-            Takvimden toplantı planla
+            {t("plan")}
           </Link>
         </div>
       ) : view === StartupMeetingView.Topic ? (

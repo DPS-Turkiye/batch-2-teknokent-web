@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import {
   MeetingPerson,
   MeetingWhen,
@@ -29,6 +31,8 @@ export function MeetingTopicGrid({
   onOpenTopic: (topicKey: string) => void;
   topics: MeetingTopic[];
 }) {
+  const t = useTranslations("startupMeetings");
+  const tNotes = useTranslations("notes");
   return (
     <ul
       className={`grid gap-5 ${layout === MeetingLayout.Grid ? "sm:grid-cols-2 xl:grid-cols-3" : ""}`}
@@ -55,7 +59,7 @@ export function MeetingTopicGrid({
             <button
               type="button"
               onClick={() => onOpenTopic(topic.key)}
-              aria-label={`${topic.title} notlarını aç`}
+              aria-label={t("openTopic", { title: topic.title })}
               className={`relative w-full space-y-2.5 rounded-[21px] p-5 text-left transition ${featured ? "bg-[#ffe3d5]" : "border border-[#e4e7ea] bg-white hover:border-[#fbe2d0]"}`}
             >
               <h3
@@ -68,7 +72,7 @@ export function MeetingTopicGrid({
               >
                 {kind === "mentor" ? (
                   <p className="text-sm leading-5 text-[#676e78]">
-                    {meetingTitle(meeting)}
+                    {meetingTitle(meeting, tNotes("untitled"))}
                   </p>
                 ) : (
                   <MeetingPerson meeting={meeting} mentorTitle={mentorTitle} />

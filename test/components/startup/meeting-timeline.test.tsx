@@ -9,6 +9,7 @@ import {
   meetingFileFixture,
   meetingFixture,
 } from "@test/fixtures/startup-meetings";
+import { InLocale } from "@test/test-utils";
 
 const years = groupMeetingsByYear([
   meetingFixture("sep", "2026-09-02T09:00:00Z"),
@@ -51,6 +52,33 @@ describe("MeetingTimeline", () => {
     );
 
     expect(props.onOpenFile).toHaveBeenCalledWith("user-flow");
+  });
+
+  it("names months and counts meetings in English", () => {
+    render(
+      <InLocale locale="en">
+        <MeetingTimeline
+          details={detailsFixture({ files: [] })}
+          expandedMonthKey="2026-09"
+          expandedYear={2026}
+          onOpenFile={vi.fn()}
+          onOpenMeeting={vi.fn()}
+          onToggleMonth={vi.fn()}
+          onToggleYear={vi.fn()}
+          years={groupMeetingsByYear(
+            [
+              meetingFixture("sep", "2026-09-02T09:00:00Z"),
+              meetingFixture("aug", "2026-08-18T09:00:00Z"),
+            ],
+            "en",
+          )}
+        />
+      </InLocale>,
+    );
+
+    const september = screen.getByRole("region", { name: "September 2026" });
+    expect(within(september).getByText("1 meeting")).toBeInTheDocument();
+    expect(within(september).getByText("Held")).toBeInTheDocument();
   });
 
   it("folds months and years behind their own buttons", async () => {

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   MeetingFiles,
@@ -29,6 +30,7 @@ export function MeetingTopicStackDialog({
   onSelectMeeting: (meetingId: string) => void;
   topic: MeetingTopic;
 }) {
+  const t = useTranslations("startupMeetings");
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
 
@@ -90,7 +92,7 @@ export function MeetingTopicStackDialog({
           </h2>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={onClose}
             className="grid size-6 shrink-0 place-items-center text-[#858c96] hover:text-[#22262b]"
           >

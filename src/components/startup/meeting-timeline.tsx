@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import {
   MeetingFiles,
@@ -15,10 +16,6 @@ import {
   type MeetingMonth,
   type MeetingYear,
 } from "@/lib/startup-meetings";
-
-function countLabel(month: MeetingMonth) {
-  return `${month.meetings.length} Toplantı`;
-}
 
 export function MeetingTimeline({
   details,
@@ -39,6 +36,9 @@ export function MeetingTimeline({
   onToggleYear: (year: number) => void;
   years: MeetingYear[];
 }) {
+  const t = useTranslations("startupMeetings");
+  const countLabel = (month: MeetingMonth) =>
+    t("count", { count: month.meetings.length });
   return (
     <div className="flex flex-col gap-7">
       {years.map((year) => {
@@ -65,7 +65,7 @@ export function MeetingTimeline({
         return (
           <section
             key={year.year}
-            aria-label={`${year.year} toplantıları`}
+            aria-label={t("yearMeetings", { year: year.year })}
             className="flex flex-col gap-6"
           >
             {expanded ? (
