@@ -8,7 +8,7 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
 
@@ -47,6 +47,30 @@ const startup = {
 };
 
 describe("MentorDetailView", () => {
+  it("reads in English", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByText("Why was this mentor suggested to you?"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "No times to pick right now. You can still send a mentorship request.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send a mentorship request" }),
+    ).toBeInTheDocument();
+  });
+
   it("opens the Figma mentorship request dialog from the profile CTA", async () => {
     vi.mocked(useMentorshipRequests).mockReturnValue({
       data: [],

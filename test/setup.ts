@@ -71,6 +71,22 @@ vi.mock("next-intl", async (importOriginal) => {
   };
 });
 
+// Server components and loading screens read Turkish too; there is no request config in tests.
+vi.mock("next-intl/server", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("next-intl/server")>();
+  const { createTranslator } = await import("next-intl");
+  const { default: tr } = await import("@/messages/tr.json");
+  return {
+    ...actual,
+    getTranslations: async (namespace?: string) =>
+      createTranslator({
+        locale: "tr",
+        messages: tr,
+        namespace: namespace as never,
+      }),
+  };
+});
+
 // Plain modules (lib/client, lib/firebase) read error texts through clientText(); the app's root
 // layout hands them the translator, so each test starts with the Turkish one.
 const { clientTextsIn } = await import("@test/client-texts");

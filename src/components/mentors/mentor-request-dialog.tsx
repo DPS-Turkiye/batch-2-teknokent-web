@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { X } from "lucide-react";
 
@@ -29,6 +30,7 @@ import {
   DEFAULT_NEED_GOAL_IDS,
   DEFAULT_NEED_SITUATION_ID,
   messageForNeedGoals,
+  needLabels,
   needTitleForSummary,
   readNeedDraft,
   summaryForNeed,
@@ -48,40 +50,47 @@ export function MentorRequestDialog({
   onClose: () => void;
   onSent: (requestId: string) => void;
 }) {
+  const t = useTranslations("mentorRequestDialog");
+  const tNeed = useTranslations("mentorRequest");
+  const locale = useLocale();
   const session = useAppSession();
   const draft = readNeedDraft();
-  const [problem, setProblem] = useState(() =>
-    draft
-      ? summaryForNeed({
+  const labels = needLabels(tNeed);
+  // The draft shows in the page's language; left unedited, the Turkish preset is what gets saved.
+  const shownProblem = draft
+    ? summaryForNeed(
+        {
           topicId: draft.topicId,
           otherSummary: draft.otherSummary,
           situationId: draft.situationId ?? DEFAULT_NEED_SITUATION_ID,
           noneSummary: draft.noneSummary ?? "",
-        })
-      : "",
-  );
-  const [outcome, setOutcome] = useState(() =>
-    draft
-      ? messageForNeedGoals(
-          draft.goalIds ?? DEFAULT_NEED_GOAL_IDS,
-          draft.goalNote ?? "",
-        )
-      : "",
-  );
+        },
+        labels,
+      )
+    : "";
+  const shownOutcome = draft
+    ? messageForNeedGoals(
+        draft.goalIds ?? DEFAULT_NEED_GOAL_IDS,
+        draft.goalNote ?? "",
+        labels,
+      )
+    : "";
+  const [problem, setProblem] = useState(shownProblem);
+  const [outcome, setOutcome] = useState(shownOutcome);
   const [preferredSlots, setPreferredSlots] = useState(emptyPreferredSlots);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const columns = availabilityColumns(slots);
-  const dayOptions = upcomingPreferenceDays();
+  const columns = availabilityColumns(slots, new Date(), 5, locale);
+  const dayOptions = upcomingPreferenceDays(new Date(), 14, locale);
   const topic =
     (draft
-      ? needTitleForSummary(draft.topicId, draft.otherSummary)
+      ? needTitleForSummary(draft.topicId, draft.otherSummary, labels)
       : mentor.specialties[0]) || mentor.professionalTitle;
   const canSend = hasPreferredSlots(preferredSlots);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const summaryWhen = preferredSlots
-    .map((slot) => formatPreferredSlot(slot))
+    .map((slot) => formatPreferredSlot(slot, locale))
     .filter(Boolean)
     .join(" · ");
 
@@ -99,22 +108,20 @@ export function MentorRequestDialog({
   async function sendRequest() {
     if (!session?.fullName) return;
     if (!canSend) {
-      setError(
-        "En az bir tercih için gün ve tam/buçuk saat seç; en erken 4 saat sonrası.",
-      );
+      setError(t("needSlots"));
       return;
     }
     const submission = profileMentorshipSubmission({
       mentor,
       startup,
       requestedForName: session.fullName,
-      problem,
-      outcome,
+      problem: problem === shownProblem ? undefined : problem,
+      outcome: outcome === shownOutcome ? undefined : outcome,
       preferredSlots: preferredSlots.filter(isValidPreferredSlot),
     });
     // An empty field falls back to the mentor's title, which not every mentor has.
     if (!submission.summary.trim()) {
-      setError("Nerede takıldığını kısaca yaz.");
+      setError(t("needProblem"));
       return;
     }
     setIsSubmitting(true);
@@ -123,11 +130,7 @@ export function MentorRequestDialog({
       const saved = await submitMentorshipRequest(submission);
       onSent(saved.id);
     } catch (caught) {
-      setError(
-        caught instanceof Error
-          ? caught.message
-          : "Talep gönderilemedi. Lütfen tekrar dene.",
-      );
+      setError(caught instanceof Error ? caught.message : t("sendFailed"));
       setIsSubmitting(false);
     }
   }
@@ -149,12 +152,12 @@ export function MentorRequestDialog({
             id="mentor-request-title"
             className="text-[28px] font-semibold leading-tight text-[#22262b]"
           >
-            {mentor.fullName} ile mentorluk planla
+            {t("title", { name: mentor.fullName })}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="grid size-6 place-items-center text-[#676e78] hover:text-[#22262b]"
           >
             <X className="size-6" />
@@ -175,37 +178,36 @@ export function MentorRequestDialog({
 
         <label className="mt-3 block rounded-[10px] border border-[#e4e7ea] bg-white p-4">
           <span className="text-base font-medium text-[#22262b]">
-            Nerede takıldık?
+            {t("stuck")}
           </span>
           <textarea
             value={problem}
             onChange={(event) => setProblem(event.target.value)}
-            placeholder="Teknik ve ürün geliştirme tarafında ilerleyebiliyoruz ancak girişimin finansal yapısını nasıl modellememiz gerektiği konusunda deneyimimiz yok."
+            placeholder={t("stuckPlaceholder")}
             className="mt-2.5 min-h-[54px] w-full rounded-lg border border-[#d4d8dd] px-3.5 py-3 text-xs text-[#22262b] outline-none placeholder:text-[#858c96]"
           />
         </label>
 
         <label className="mt-3 block rounded-[10px] border border-[#e4e7ea] bg-white p-4">
           <span className="text-base font-medium text-[#22262b]">
-            Bu görüşmeden neyle ayrılmak istiyorsun?
+            {t("outcome")}
           </span>
           <textarea
             value={outcome}
             onChange={(event) => setOutcome(event.target.value)}
-            placeholder="İlk finansal modelimizin çerçevesini oluşturmak ve öncelikli varsayımlarımızı netleştirmek istiyoruz."
+            placeholder={t("outcomePlaceholder")}
             className="mt-2.5 min-h-[54px] w-full rounded-lg border border-[#d4d8dd] px-3.5 py-3 text-xs text-[#22262b] outline-none placeholder:text-[#858c96]"
           />
         </label>
 
         <div className="mt-5 grid gap-5 lg:grid-cols-[minmax(280px,1fr)_minmax(0,1.3fr)]">
           <section className="rounded-[10px] border border-[#e4e7ea] bg-white p-4">
-            <h3 className="text-base font-medium text-[#22262b]">Uygunluk</h3>
-            <p className="mt-1 text-xs text-[#858c96]">Önümüzdeki 7 gün</p>
+            <h3 className="text-base font-medium text-[#22262b]">
+              {t("availability")}
+            </h3>
+            <p className="mt-1 text-xs text-[#858c96]">{t("nextDays")}</p>
             {columns.length === 0 ? (
-              <p className="mt-4 text-sm text-[#676e78]">
-                Mentörün açık saati yok. Aşağıdan en az bir tercih günü ve saati
-                girebilirsin (en fazla üç).
-              </p>
+              <p className="mt-4 text-sm text-[#676e78]">{t("noSlots")}</p>
             ) : (
               <div className="mt-4 flex gap-2 overflow-x-auto">
                 {columns.map((column, index) => (
@@ -242,7 +244,7 @@ export function MentorRequestDialog({
                                 : "border border-[#e86f22] bg-white text-[#e86f22]"
                             }`}
                           >
-                            {slotTimeLabel(slot.startsAt)}
+                            {slotTimeLabel(slot.startsAt, locale)}
                           </button>
                         );
                       })}
@@ -253,15 +255,14 @@ export function MentorRequestDialog({
             )}
             <p className="mt-3 flex items-center gap-2 text-[11px] text-[#858c96]">
               <span className="size-1.5 rounded-full bg-[#e86f22]" />
-              Seçilebilir saat
+              {t("pickable")}
             </p>
             <div className="mt-4 border-t border-[#e4e7ea] pt-3">
               <p className="text-xs font-medium text-[#22262b]">
-                Tercih günü ve saati gir
+                {t("enterPreference")}
               </p>
               <p className="mt-1 text-[11px] text-[#858c96]">
-                En az bir tercih yeterli; en fazla üç seçebilirsin. Saatler tam
-                (10:00) veya buçuk (10:30) ve en erken 4 saat sonrası olmalı.
+                {t("preferenceHint")}
               </p>
               <div className="mt-2 grid gap-2">
                 {preferredSlots.map((slot, index) => (
@@ -269,16 +270,18 @@ export function MentorRequestDialog({
                     key={index}
                     className="flex flex-wrap items-center gap-2 text-xs text-[#676e78]"
                   >
-                    <span className="w-16">{index + 1}. tercih</span>
+                    <span className="w-16">
+                      {t("preference", { number: index + 1 })}
+                    </span>
                     <select
                       value={slot.date}
-                      aria-label={`${index + 1}. tercih günü`}
+                      aria-label={t("preferenceDay", { number: index + 1 })}
                       onChange={(event) =>
                         updateSlot(index, { date: event.target.value })
                       }
                       className="min-h-9 min-w-[132px] flex-1 rounded-lg border border-[#d4d8dd] px-2.5 text-sm text-[#22262b] outline-none"
                     >
-                      <option value="">Gün seç</option>
+                      <option value="">{t("pickDay")}</option>
                       {dayOptions.map((day) => (
                         <option key={day.value} value={day.value}>
                           {day.label}
@@ -289,7 +292,7 @@ export function MentorRequestDialog({
                       type="time"
                       step={1800}
                       value={slot.time}
-                      aria-label={`${index + 1}. tercih saati`}
+                      aria-label={t("preferenceTime", { number: index + 1 })}
                       onChange={(event) =>
                         updateSlot(index, { time: event.target.value })
                       }
@@ -307,20 +310,23 @@ export function MentorRequestDialog({
 
           <section className="rounded-[10px] border border-[#e4e7ea] bg-white p-4">
             <h3 className="text-base font-medium text-[#22262b]">
-              Talep Özeti
+              {t("summary")}
             </h3>
             <div className="mt-3 space-y-2.5 text-xs text-[#676e78]">
               <p className="rounded-lg border border-[#d4d8dd] px-3.5 py-3">
-                Mentor: {mentor.fullName}
+                {t("mentor", { name: mentor.fullName })}
               </p>
               <p className="rounded-lg border border-[#d4d8dd] px-3.5 py-3">
-                Konu: {topic}
+                {t("topic", { topic })}
               </p>
               <p className="rounded-lg border border-[#d4d8dd] px-3.5 py-3">
-                {summaryWhen || "Üç gün ve saat seçildiğinde burada görünür"}
                 {summaryWhen
-                  ? ` · ${durationMinutes} dk · ${mentor.meetingMode || "Online"}`
-                  : ""}
+                  ? t("whenDetails", {
+                      when: summaryWhen,
+                      minutes: durationMinutes,
+                      mode: mentor.meetingMode || t("onlineFallback"),
+                    })
+                  : t("whenEmpty")}
               </p>
             </div>
           </section>
@@ -333,12 +339,12 @@ export function MentorRequestDialog({
         ) : null}
 
         <div className="mt-5 flex justify-end gap-2">
-          <SecondaryButton onClick={onClose}>İptal</SecondaryButton>
+          <SecondaryButton onClick={onClose}>{t("cancel")}</SecondaryButton>
           <PrimaryButton
             disabled={isSubmitting || !canSend}
             onClick={() => void sendRequest()}
           >
-            {isSubmitting ? "Gönderiliyor…" : "Talebi gönder"}
+            {isSubmitting ? t("sending") : t("send")}
           </PrimaryButton>
         </div>
       </div>

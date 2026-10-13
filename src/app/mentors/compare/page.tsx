@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server";
+
 import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
@@ -10,33 +12,36 @@ export const dynamic = "force-dynamic";
 type Mentor = Awaited<ReturnType<typeof loadMentors>>["mentors"][number];
 
 const comparisonRows = [
-  ["Uzmanlık", (mentor: Mentor) => mentor.specialties.join(", ")],
-  ["Deneyim", (mentor: Mentor) => mentor.experienceLevel],
-  ["Sektör", (mentor: Mentor) => mentor.sectorExperience],
-  ["Girişim aşamaları", (mentor: Mentor) => mentor.startupStages],
-  ["Görüşme biçimi", (mentor: Mentor) => mentor.meetingMode],
-  ["Müsaitlik", (mentor: Mentor) => mentor.availabilityLabel],
-  ["Mentorluk yaklaşımı", (mentor: Mentor) => mentor.mentoringStyle],
+  ["specialties", (mentor: Mentor) => mentor.specialties.join(", ")],
+  ["experience", (mentor: Mentor) => mentor.experienceLevel],
+  ["sector", (mentor: Mentor) => mentor.sectorExperience],
+  ["stages", (mentor: Mentor) => mentor.startupStages],
+  ["meetingMode", (mentor: Mentor) => mentor.meetingMode],
+  ["availability", (mentor: Mentor) => mentor.availabilityLabel],
+  ["style", (mentor: Mentor) => mentor.mentoringStyle],
 ] as const;
 
 export default async function MentorComparisonPage() {
-  const { mentors, error } = await loadMentors();
+  const [t, { mentors, error }] = await Promise.all([
+    getTranslations("mentorCompare"),
+    loadMentors(),
+  ]);
   const visibleMentors = mentors.slice(0, 3);
 
   return (
-    <AppShell title="Mentor Karşılaştırması" backHref="/mentor-request?step=4">
+    <AppShell title={t("title")} backHref="/mentor-request?step=4">
       <div className="mx-auto max-w-5xl px-4 py-6 sm:px-8">
         {error ? (
           <p
             role="alert"
             className="mb-4 rounded-lg bg-red-50 p-4 text-sm text-red-700"
           >
-            Mentors could not be loaded: {error}
+            {t("loadFailed")}
           </p>
         ) : null}
         {visibleMentors.length === 0 ? (
           <p className="rounded-lg border border-[#e5e7eb] bg-white p-8 text-sm text-[#777]">
-            Karşılaştırılabilecek mentor bulunamadı.
+            {t("empty")}
           </p>
         ) : (
           <div className="overflow-x-auto rounded-lg border border-[#e5e7eb] bg-white">
@@ -54,7 +59,7 @@ export default async function MentorComparisonPage() {
                         {mentor.fullName}
                       </span>
                       <span className="mt-3 block text-xs text-[#777]">
-                        {index === 0 ? "En uygun · " : ""}
+                        {index === 0 ? t("bestMatch") : ""}
                         {mentor.professionalTitle} · {mentor.company}
                       </span>
                     </th>
@@ -62,15 +67,15 @@ export default async function MentorComparisonPage() {
                 </tr>
               </thead>
               <tbody>
-                {comparisonRows.map(([label, value], index) => (
+                {comparisonRows.map(([row, value], index) => (
                   <tr
-                    key={label}
+                    key={row}
                     className={index % 2 ? "bg-[#fafafa]" : "bg-white"}
                   >
-                    <td className="p-4 text-[#777]">{label}</td>
+                    <td className="p-4 text-[#777]">{t(`rows.${row}`)}</td>
                     {visibleMentors.map((mentor) => (
                       <td key={mentor.id} className="p-4 text-[#444]">
-                        {value(mentor) || "Belirtilmedi"}
+                        {value(mentor) || t("notSpecified")}
                       </td>
                     ))}
                   </tr>
@@ -83,13 +88,13 @@ export default async function MentorComparisonPage() {
                         href={mentorProfileHref(mentor.id)}
                         className="mb-2 w-full border-0"
                       >
-                        Profili Görüntüle
+                        {t("viewProfile")}
                       </SecondaryButton>
                       <PrimaryButton
                         href={mentorProfileHref(mentor.id)}
                         className="w-full"
                       >
-                        Mentorluk talebi gönder
+                        {t("sendRequest")}
                       </PrimaryButton>
                     </td>
                   ))}
