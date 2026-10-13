@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
@@ -41,12 +42,14 @@ export function MentorDetailView({
   slots: MentorAvailabilitySlot[];
   startup: StartupContext;
 }) {
+  const t = useTranslations("mentorDetail");
+  const locale = useLocale();
   const router = useRouter();
   const session = useAppSession();
   const mentorshipsQuery = useMentorshipRequests(UserRole.Mentee);
   const [requestOpen, setRequestOpen] = useState(false);
   const firstName = mentorFirstName(mentor.fullName);
-  const columns = availabilityColumns(slots);
+  const columns = availabilityColumns(slots, new Date(), 5, locale);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const about = [
@@ -59,7 +62,7 @@ export function MentorDetailView({
     .join(". ");
   const why =
     mentor.recommendationReasons[0] ||
-    `${mentor.fullName} uzmanlığı, ihtiyacınla örtüşüyor.`;
+    t("whyFallback", { name: mentor.fullName });
   const tags = mentor.specialties;
   const menteeLoad = menteeLoadLabel(mentor);
   const experiences = mentor.experiences ?? [];
@@ -82,7 +85,7 @@ export function MentorDetailView({
     <div className="mx-auto w-full max-w-[1116px] px-4 pb-14 pt-6 sm:px-8">
       <nav className="flex gap-1.5 text-sm text-[#858c96]">
         <Link href="/mentorships" className="hover:text-[#e86f22]">
-          Mentorluklarım
+          {t("breadcrumb")}
         </Link>
         <span className="text-[13px]">›</span>
         <span className="text-[#22262b]">{mentor.fullName}</span>
@@ -122,7 +125,7 @@ export function MentorDetailView({
         <div className="flex w-full flex-col items-end justify-between gap-6 self-stretch sm:w-[325px]">
           {menteeLoad ? (
             <div className="space-y-[5px] self-start sm:self-end">
-              <p className="text-xs text-[#858c96]">aktif mentee</p>
+              <p className="text-xs text-[#858c96]">{t("activeMentees")}</p>
               <p className="text-2xl font-medium text-[#22262b]">
                 {menteeLoad}
               </p>
@@ -135,19 +138,19 @@ export function MentorDetailView({
           {acceptedRequest ? (
             <Link
               href={`/mentor-request/status?request=${encodeURIComponent(acceptedRequest.id)}#messages`}
-              title="Mesajlaşmayı aç"
+              title={t("openChat")}
               className={messageButtonClass}
             >
-              Mesaj gönder
+              {t("message")}
             </Link>
           ) : (
             <button
               type="button"
               disabled
-              title="Mesajlaşma, mentor talebinizi kabul ettiğinde açılır."
+              title={t("messageLocked")}
               className={`${messageButtonClass} disabled:cursor-not-allowed disabled:opacity-60`}
             >
-              Mesaj gönder
+              {t("message")}
             </button>
           )}
         </div>
@@ -155,7 +158,7 @@ export function MentorDetailView({
 
       <section className="mt-5 space-y-2.5 rounded-[20px] bg-[#fff4ec] p-4">
         <h2 className="text-[15px] font-medium text-[#22262b]">
-          Bu mentor neden sana önerildi?
+          {t("whyTitle")}
         </h2>
         <p className="text-[13px] leading-5 text-[#676e78]">{why}</p>
       </section>
@@ -168,43 +171,49 @@ export function MentorDetailView({
                 <p className="text-[22px] font-medium text-[#22262b]">
                   {mentor.activeMenteeCount}
                 </p>
-                <p className="text-xs text-[#858c96]">aktif mentee</p>
+                <p className="text-xs text-[#858c96]">{t("activeMentees")}</p>
               </div>
               <div className="space-y-2.5 rounded-[10px] border border-[#e4e7ea] bg-white p-4">
                 <p className="text-[22px] font-medium text-[#f97316]">
                   {mentor.completedMentorshipCount ?? 0}
                 </p>
-                <p className="text-xs text-[#858c96]">tamamlanan mentorluk</p>
+                <p className="text-xs text-[#858c96]">{t("completed")}</p>
               </div>
             </div>
           ) : null}
 
           <section className={cardClass}>
-            <h2 className={cardHeadingClass}>Mentorluk bilgisi</h2>
+            <h2 className={cardHeadingClass}>{t("infoTitle")}</h2>
             <p className={detailClass}>
-              Format · {mentor.meetingMode || "Online"}
+              {t("format", {
+                mode: mentor.meetingMode || t("onlineFallback"),
+              })}
             </p>
-            <p className={detailClass}>Süre · {durationMinutes} dk</p>
+            <p className={detailClass}>
+              {t("duration", { minutes: durationMinutes })}
+            </p>
             {programs.length > 0 ? (
-              <p className={detailClass}>Program · {programs.join(", ")}</p>
+              <p className={detailClass}>
+                {t("program", { names: programs.join(", ") })}
+              </p>
             ) : null}
             {mentor.communicationPreference ? (
               <p className={detailClass}>{mentor.communicationPreference}</p>
             ) : null}
             <p className={detailClass}>
-              Yanıt süresi · {mentor.responseTimeLabel}
+              {t("responseTime", { time: mentor.responseTimeLabel })}
             </p>
           </section>
 
           {about ? (
             <section className={cardClass}>
-              <h2 className={cardHeadingClass}>Hakkında</h2>
+              <h2 className={cardHeadingClass}>{t("about")}</h2>
               <p className="text-[13px] leading-5 text-[#676e78]">{about}</p>
             </section>
           ) : null}
 
           <section className={cardClass}>
-            <h2 className={cardHeadingClass}>Deneyim</h2>
+            <h2 className={cardHeadingClass}>{t("experience")}</h2>
             {experiences.length > 0 ? (
               experiences.map((experience, index) => (
                 <div key={index} className="space-y-[3px]">
@@ -235,9 +244,7 @@ export function MentorDetailView({
 
           {tags.length > 0 ? (
             <section className={cardClass}>
-              <h2 className={cardHeadingClass}>
-                Bu mentorla hangi konuları çalışabilirsin?
-              </h2>
+              <h2 className={cardHeadingClass}>{t("topics")}</h2>
               <ul className="space-y-2.5 text-[13px] text-[#676e78]">
                 {tags.map((tag) => (
                   <li key={tag} className="flex gap-2">
@@ -255,14 +262,11 @@ export function MentorDetailView({
         <aside className="space-y-3.5">
           <section className={cardClass}>
             <div className="space-y-2.5">
-              <h2 className={cardHeadingClass}>Uygunluk</h2>
-              <p className="text-xs text-[#858c96]">Önümüzdeki 7 gün</p>
+              <h2 className={cardHeadingClass}>{t("availability")}</h2>
+              <p className="text-xs text-[#858c96]">{t("nextDays")}</p>
             </div>
             {columns.length === 0 ? (
-              <p className="text-[13px] text-[#676e78]">
-                Şu an seçilebilir bir saat yok. Yine de mentorluk talebi
-                gönderebilirsin.
-              </p>
+              <p className="text-[13px] text-[#676e78]">{t("noSlots")}</p>
             ) : (
               <div className="flex overflow-x-auto px-2">
                 {columns.map((column, index) => (
@@ -281,7 +285,7 @@ export function MentorDetailView({
                           key={slot.id}
                           className="rounded-[14px] bg-[#fdebdd] px-2.5 py-1.5 text-xs font-medium text-[#e86f22]"
                         >
-                          {slotTimeLabel(slot.startsAt)}
+                          {slotTimeLabel(slot.startsAt, locale)}
                         </span>
                       ))}
                     </div>
@@ -293,24 +297,23 @@ export function MentorDetailView({
               <span aria-hidden className="text-[10px] text-[#e86f22]">
                 ●
               </span>
-              Seçilebilir saat
+              {t("pickable")}
             </p>
           </section>
 
           <section className="space-y-2.5 rounded-[10px] border border-[#e4e7ea] bg-[#fdebdd] p-4">
             <h2 className="text-[15px] font-medium text-[#22262b]">
-              {firstName} ile çalışmak ister misin?
+              {t("workWith", { name: firstName })}
             </h2>
             <p className="text-xs leading-[18px] text-[#676e78]">
-              Mentorluk ihtiyacınla birlikte talebini gönder. Kabul edildiğinde
-              ilk görüşme saatini netleştirebilirsin.
+              {t("workWithBody")}
             </p>
             <button
               type="button"
               onClick={openRequest}
               className="rounded-lg bg-[#e86f22] px-4 py-[11px] text-sm font-medium text-white transition hover:bg-[#ce5e19]"
             >
-              Mentorluk talebi gönder
+              {t("sendRequest")}
             </button>
           </section>
         </aside>

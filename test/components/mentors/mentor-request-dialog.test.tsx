@@ -5,9 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
 import { UserRole } from "@/interfaces/session";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
+import { writeNeedDraft } from "@/lib/mentor-request-need";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
-import { freezeDate, renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => ({
@@ -119,6 +120,56 @@ describe("MentorRequestDialog", () => {
       }),
     );
     expect(onSent).toHaveBeenCalledWith("req-1");
+  });
+
+  it("shows the draft in English but saves the Turkish preset when it is left as is", async () => {
+    vi.mocked(submitMentorshipRequest).mockResolvedValue({
+      id: "req-1",
+      status: "PENDING",
+    });
+    writeNeedDraft({
+      topicId: "product",
+      otherSummary: "",
+      situationId: "focus",
+      noneSummary: "",
+      goalIds: ["decision"],
+      goalNote: "",
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorRequestDialog
+          mentor={mentorProfile}
+          slots={[]}
+          startup={startup}
+          onClose={vi.fn()}
+          onSent={vi.fn()}
+        />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByDisplayValue(
+        "We have lots of ideas but can't prioritize them.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Topic: Product")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Day for choice 1"), {
+      target: { value: upcomingPreferenceDays()[0]?.value ?? "" },
+    });
+    fireEvent.change(screen.getByLabelText("Time for choice 1"), {
+      target: { value: "10:00" },
+    });
+    await user.click(screen.getByRole("button", { name: "Send request" }));
+
+    expect(submitMentorshipRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        supportArea: "Ürün ve ürün yönetimi",
+        summary: "Birçok fikir var ama önceliklendiremiyoruz.",
+        expectedOutcome: "Bir karar vermek",
+      }),
+    );
   });
 
   it("asks where they are stuck when a title-less mentor leaves nothing to fall back on", async () => {
