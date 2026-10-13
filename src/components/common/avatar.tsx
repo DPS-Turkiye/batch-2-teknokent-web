@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 /** A person's photo when they have one, otherwise their initials; `className` sets size and text. */
 export function PhotoAvatar({
   initials,
@@ -13,11 +14,12 @@ export function PhotoAvatar({
   /** Beside a visible or labelled name, the photo adds nothing to announce. */
   decorative?: boolean;
 }) {
+  const t = useTranslations("sharedUi");
   if (photoUrl) {
     return (
       <span
         role={decorative ? undefined : "img"}
-        aria-label={decorative ? undefined : (label ?? "Profil fotoğrafı")}
+        aria-label={decorative ? undefined : (label ?? t("profilePhoto"))}
         aria-hidden={decorative || undefined}
         className={`block shrink-0 rounded-full bg-[#fbe2d0] bg-cover bg-center ${className}`}
         style={{ backgroundImage: `url("${photoUrl}")` }}

@@ -233,7 +233,8 @@
     "link": "Bağlantı",
     "mvpPlaceholder": "ornek.app veya Figma prototip linki",
     "mvpPick": "MVP / Prototip dosyası seç",
-    "optionalNote": "Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da dosya ekleyebilirsin."
+    "optionalNote": "Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da dosya ekleyebilirsin.",
+    "mvpHelp": "PDF, DOCX veya PPTX · en fazla 25 MB"
   },
   "signupReview": {
     "personal": "Kişisel profil",
@@ -2263,5 +2264,25 @@
   },
   "workspace": {
     "opening": "Çalışma alanınız açılıyor…"
+  },
+  "sharedUi": {
+    "download": "İndir",
+    "previewFailed": "Dosya önizlenemedi. İndirerek açmayı deneyin.",
+    "fileLoading": "Dosya yükleniyor…",
+    "pendingRemoved": "Bekleyen üye listeden çıkarıldı.",
+    "pendingRemoveFailed": "Bekleyen üye çıkarılamadı.",
+    "fileSendFailed": "Dosya gönderilemedi.",
+    "tooBig": "Dosya boyutu {max} sınırını aşamaz.",
+    "alreadyUploaded": "Zaten yüklendi",
+    "chooseAnother": "Yerine başka bir dosya seç",
+    "removeFile": "{name} dosyasını kaldır",
+    "dragDrop": "Dosyayı sürükleyip bırakın",
+    "chooseFile": "Dosya seç",
+    "profilePhoto": "Profil fotoğrafı",
+    "required": "Bu alanı doldurman zorunlu.",
+    "decrease": "{label} azalt",
+    "increase": "{label} artır",
+    "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
+    "backToMentorships": "Mentorluklarıma dön"
   }
 }

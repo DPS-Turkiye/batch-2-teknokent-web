@@ -81,7 +81,7 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
           file={draft.documents[StartupDocumentKind.Mvp] ?? null}
           onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
           accept=".pdf,.docx,.pptx"
-          helpText="PDF, DOCX veya PPTX · en fazla 25 MB"
+          helpText={copy("mvpHelp")}
           storedName={
             stored.byKind(StartupDocumentKind.Mvp)?.originalFilename ?? null
           }

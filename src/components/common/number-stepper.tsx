@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 const stepButtonClass =
@@ -23,6 +24,7 @@ export function NumberStepper({
   onChange: (value: string) => void;
   onStep: (direction: 1 | -1) => void;
 }) {
+  const t = useTranslations("sharedUi");
   const filled = value.trim() !== "";
   const number = Number(value);
 
@@ -30,7 +32,7 @@ export function NumberStepper({
     <div className="flex h-[38px] w-[120px] shrink-0 items-center justify-between rounded-lg border border-[#d4d8dd] bg-white px-3">
       <button
         type="button"
-        aria-label={`${label} azalt`}
+        aria-label={t("decrease", { label })}
         onClick={() => onStep(-1)}
         disabled={filled && number <= min}
         className={stepButtonClass}
@@ -52,7 +54,7 @@ export function NumberStepper({
       </span>
       <button
         type="button"
-        aria-label={`${label} artır`}
+        aria-label={t("increase", { label })}
         onClick={() => onStep(1)}
         disabled={filled && number >= max}
         className={stepButtonClass}

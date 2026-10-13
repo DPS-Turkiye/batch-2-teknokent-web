@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 
 import type { DocumentDownload } from "@/interfaces/startup-document";
@@ -42,6 +43,7 @@ export function DocumentPreviewDialog({
   file: DocumentDownload;
   onClose: () => void;
 }) {
+  const t = useTranslations("sharedUi");
   const close = useCallback(() => onClose(), [onClose]);
   const fileKey = file.id ?? file.url;
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
@@ -118,7 +120,7 @@ export function DocumentPreviewDialog({
               download={file.filename}
               className="rounded-lg px-3 py-1.5 text-sm font-medium text-[#515861] hover:bg-[#f7f8f9]"
             >
-              İndir
+              {t("download")}
             </a>
             <button
               type="button"
@@ -132,7 +134,7 @@ export function DocumentPreviewDialog({
         <div className="min-h-0 flex-1 bg-[#f7f8f9]">
           {error ? (
             <p role="alert" className="p-6 text-sm text-[#676e78]">
-              Dosya önizlenemedi. İndirerek açmayı deneyin.
+              {t("previewFailed")}
             </p>
           ) : office ? (
             <iframe
@@ -141,7 +143,7 @@ export function DocumentPreviewDialog({
               className="h-full w-full border-0 bg-white"
             />
           ) : !objectUrl ? (
-            <p className="p-6 text-sm text-[#858c96]">Dosya yükleniyor…</p>
+            <p className="p-6 text-sm text-[#858c96]">{t("fileLoading")}</p>
           ) : isImage(file.contentType) ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
