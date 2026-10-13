@@ -106,17 +106,6 @@ export const MENTORSHIP_REQUEST_STATUS_CHIPS: Record<
   [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
 };
 
-export const PERSON_PROFILE_LABELS = {
-  home: "Anasayfa",
-  profile: "Profil",
-  loading: "Profil yükleniyor…",
-  notFound: "Kullanıcı bulunamadı.",
-  redirecting: "Mentor profiline yönlendiriliyorsun…",
-  redirectingOwn: "Profiline yönlendiriliyorsun…",
-  noBio: "Henüz bir biyografi eklenmemiş.",
-  linkedin: "LinkedIn profili",
-} as const;
-
 export const USER_ROLE_LABELS: Record<UserRole, string> = {
   [UserRole.Admin]: "Yönetici",
   [UserRole.Coordinator]: "Koordinatör",

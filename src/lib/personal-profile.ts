@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import { DocumentKind } from "@/interfaces/startup-document";
 import type { StoredDocument } from "@/lib/client/documents";
 import type { ActiveMentorshipRow } from "@/lib/startup-overview";
@@ -11,23 +13,25 @@ export enum ProfileChipTone {
 
 export type ProfileChip = { label: string; tone: ProfileChipTone };
 
-/** Shown by account actions that have no page yet. */
-export const COMING_SOON_MESSAGE = "Bu bölüm yakında eklenecek.";
+/** The personal profile's translator and language, for the labels built here. */
+export type PersonalProfileTexts = {
+  t: ReturnType<typeof useTranslations<"personalProfile">>;
+  locale: string;
+};
 
 export const PROFILE_PHOTO_TYPES = ["image/png", "image/jpeg", "image/webp"];
 export const PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
-
-const FOUNDER_LABEL = "Kurucu";
 
 /** "Product Designer · Kurucu" */
 export function personalRoleLabel(
   jobTitle: string | null | undefined,
   isFounder: boolean,
+  { t }: PersonalProfileTexts,
 ) {
   const title = jobTitle?.trim() ?? "";
   // A founder whose job title already says so is not labelled twice.
   const saysFounder = /^(kurucu|founder)$/i.test(title);
-  return [title, isFounder && !saysFounder ? FOUNDER_LABEL : null]
+  return [title, isFounder && !saysFounder ? t("founder") : null]
     .filter(Boolean)
     .join(" · ");
 }
@@ -41,25 +45,38 @@ export function personalSubtitle(
 }
 
 /** "Pre-seed · 4 kişilik ekip · MVP yayında" */
-export function startupSummary({
-  fundingStage,
-  teamSize,
-  maturity,
-}: {
-  fundingStage: string | null;
-  teamSize: number | null;
-  maturity: string | null;
-}) {
-  return [fundingStage, teamSize ? `${teamSize} kişilik ekip` : null, maturity]
+export function startupSummary(
+  {
+    fundingStage,
+    teamSize,
+    maturity,
+  }: {
+    fundingStage: string | null;
+    teamSize: number | null;
+    maturity: string | null;
+  },
+  { t }: PersonalProfileTexts,
+) {
+  return [
+    fundingStage,
+    teamSize ? t("teamSize", { count: teamSize }) : null,
+    maturity,
+  ]
     .filter(Boolean)
     .join(" · ");
 }
 
 /** "Ürün konumlandırma · 3/6 seans", or only the held count without a plan. */
-export function mentorshipSessionLabel(row: ActiveMentorshipRow) {
+export function mentorshipSessionLabel(
+  row: ActiveMentorshipRow,
+  { t }: PersonalProfileTexts,
+) {
   const sessions = row.plannedSessions
-    ? `${row.heldSessions}/${row.plannedSessions} seans`
-    : `${row.heldSessions} seans`;
+    ? t("sessionsPlanned", {
+        held: row.heldSessions,
+        planned: row.plannedSessions,
+      })
+    : t("sessions", { held: row.heldSessions });
   return [row.supportArea, sessions].filter(Boolean).join(" · ");
 }
 
@@ -71,10 +88,13 @@ export function mentorshipSessionLabel(row: ActiveMentorshipRow) {
 export function mentorshipRowStatus(
   row: ActiveMentorshipRow,
   openActionCount: number,
+  { t, locale }: PersonalProfileTexts,
 ) {
-  if (openActionCount > 0) return `${openActionCount} açık aksiyon`;
+  if (openActionCount > 0) return t("openActions", { count: openActionCount });
   return row.nextMeetingAt
-    ? `Sonraki görüşme ${formatDayMonth(new Date(row.nextMeetingAt))}`
+    ? t("nextMeeting", {
+        date: formatDayMonth(new Date(row.nextMeetingAt), locale),
+      })
     : null;
 }
 
@@ -85,13 +105,9 @@ export function currentAvatar(documents: StoredDocument[]) {
   );
 }
 
-/** Why a chosen file can't be a profile photo, or null; mirrors the backend's limits. */
+/** Why a chosen file can't be a profile photo (a `personalProfile` key), or null; mirrors the backend's limits. */
 export function profilePhotoError(file: File) {
-  if (!PROFILE_PHOTO_TYPES.includes(file.type)) {
-    return "PNG, JPG veya WebP bir fotoğraf seç.";
-  }
-  if (file.size > PROFILE_PHOTO_MAX_BYTES) {
-    return "Fotoğraf en fazla 5 MB olabilir.";
-  }
+  if (!PROFILE_PHOTO_TYPES.includes(file.type)) return "photoType" as const;
+  if (file.size > PROFILE_PHOTO_MAX_BYTES) return "photoSize" as const;
   return null;
 }

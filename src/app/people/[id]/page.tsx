@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -12,7 +13,6 @@ import type { UserProfile } from "@/interfaces/user-profile";
 import type { BackendUser } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
-import { PERSON_PROFILE_LABELS } from "@/lib/const/programs";
 import { httpClient } from "@/lib/http-client";
 import { organizationStartupHref } from "@/lib/program-links";
 import { AppArea } from "@/types/app-area";
@@ -34,6 +34,7 @@ async function getPersonProfile(userId: string) {
 }
 
 export default function PersonProfilePage() {
+  const t = useTranslations("personProfile");
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const session = useAppSession();
@@ -80,30 +81,24 @@ export default function PersonProfilePage() {
       <div className="mx-auto w-full max-w-[1440px] px-4 pt-3 sm:px-8 xl:px-[106px]">
         <nav className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-[#676e78]">
           <Link href={homeHref} className="hover:text-[#22262b]">
-            {PERSON_PROFILE_LABELS.home}
+            {t("home")}
           </Link>
           <span>›</span>
-          <span className="font-medium text-[#4a5059]">
-            {PERSON_PROFILE_LABELS.profile}
-          </span>
+          <span className="font-medium text-[#4a5059]">{t("profile")}</span>
         </nav>
 
         {userQuery.isLoading || profileQuery.isLoading ? (
-          <p className="mt-10 text-sm text-[#858c96]">
-            {PERSON_PROFILE_LABELS.loading}
-          </p>
+          <p className="mt-10 text-sm text-[#858c96]">{t("loading")}</p>
         ) : !user ? (
           <p
             role="alert"
             className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
-            {userQuery.error?.message ?? PERSON_PROFILE_LABELS.notFound}
+            {userQuery.error?.message ?? t("notFound")}
           </p>
         ) : user.role === UserRole.Mentor || isOwnProfile ? (
           <p className="mt-10 text-sm text-[#858c96]">
-            {isOwnProfile
-              ? PERSON_PROFILE_LABELS.redirectingOwn
-              : PERSON_PROFILE_LABELS.redirecting}
+            {isOwnProfile ? t("redirectingOwn") : t("redirecting")}
           </p>
         ) : null}
       </div>

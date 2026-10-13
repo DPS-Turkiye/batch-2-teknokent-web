@@ -1,3 +1,5 @@
+import { clientText } from "@/i18n/client-texts";
+
 const MAX_E164_DIGITS = 15;
 
 export function normalizePhoneInput(value: string) {
@@ -11,18 +13,18 @@ export function phoneNumberError(value: string | null | undefined) {
   const phone = value?.trim() ?? "";
   if (!phone) return null;
   if (!/^\+?\d+$/.test(phone)) {
-    return "Telefon numarası yalnızca rakamlardan oluşmalıdır.";
+    return clientText("phone.digits");
   }
 
   const digits = phone.replace(/\D/g, "");
   if (phone.startsWith("+90") && digits.length !== 12) {
-    return "Türkiye numarası +90'dan sonra 10 haneli olmalıdır.";
+    return clientText("phone.turkey");
   }
   if (!phone.startsWith("+") && ![10, 11].includes(digits.length)) {
-    return "Telefon numarası alan koduyla birlikte 10 veya 11 haneli olmalıdır.";
+    return clientText("phone.local");
   }
   if (phone.startsWith("+") && (digits.length < 8 || digits.length > 15)) {
-    return "Uluslararası telefon numarası 8–15 haneli olmalıdır.";
+    return clientText("phone.international");
   }
   return null;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -13,7 +14,6 @@ import { useStartupHeader } from "@/hooks/use-startup-header";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { requestStatusHref } from "@/lib/mentee-home";
 import {
-  COMING_SOON_MESSAGE,
   type ProfileChip,
   ProfileChipTone,
   mentorshipRowStatus,
@@ -26,6 +26,8 @@ import { initials } from "@/lib/utils";
 
 /** Everything the mentee's personal profile page shows and does. */
 export function usePersonalProfilePage() {
+  const t = useTranslations("personalProfile");
+  const texts = { t, locale: useLocale() };
   const session = useAppSession();
   const { showToast } = useToast();
   const profile = usePersonalProfile();
@@ -43,13 +45,13 @@ export function usePersonalProfilePage() {
   const isFounder = (membersQuery.data ?? []).some(
     (member) => member.founder && member.id === session?.userId,
   );
-  const role = personalRoleLabel(profile.draft?.jobTitle, isFounder);
+  const role = personalRoleLabel(profile.draft?.jobTitle, isFounder, texts);
   const chips = [
     header.programName
       ? { label: header.programName, tone: ProfileChipTone.Program }
       : null,
     overview.mentorships.length > 0
-      ? { label: "Mentorluk alıyor", tone: ProfileChipTone.Active }
+      ? { label: t("inMentorship"), tone: ProfileChipTone.Active }
       : null,
     header.fundingStage
       ? { label: header.fundingStage, tone: ProfileChipTone.Neutral }
@@ -91,25 +93,27 @@ export function usePersonalProfilePage() {
           name: header.name ?? session.organizationName ?? "",
           initials: header.initials,
           logoUrl: header.logoUrl,
-          summary: startupSummary({
-            fundingStage: header.fundingStage,
-            teamSize: overview.teamSize,
-            maturity: overview.profile?.maturity ?? null,
-          }),
+          summary: startupSummary(
+            {
+              fundingStage: header.fundingStage,
+              teamSize: overview.teamSize,
+              maturity: overview.profile?.maturity ?? null,
+            },
+            texts,
+          ),
         }
       : null,
     mentorships: overview.mentorships.map((row) => ({
       id: row.id,
       mentorName: row.mentorName,
       initials: initials(row.mentorName),
-      detail: mentorshipSessionLabel(row),
-      status: mentorshipRowStatus(row, openActions[row.id] ?? 0),
+      detail: mentorshipSessionLabel(row, texts),
+      status: mentorshipRowStatus(row, openActions[row.id] ?? 0, texts),
       href: requestStatusHref(row.id),
     })),
     mentorshipsLoading: overview.mentorshipsLoading,
     isSendingReset,
     sendPasswordReset,
-    showComingSoon: () =>
-      showToast({ message: COMING_SOON_MESSAGE, tone: "info" }),
+    showComingSoon: () => showToast({ message: t("comingSoon"), tone: "info" }),
   };
 }

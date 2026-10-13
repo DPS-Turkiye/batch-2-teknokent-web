@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { clientText } from "@/i18n/client-texts";
+
 import {
   StartupFundingStage,
   type StartupProfileInput,
@@ -22,53 +24,81 @@ export function toFundingStage(value: string) {
   );
 }
 
-const optionalText = (label: string, max: number) =>
-  z.string().max(max, `${label} en fazla ${max} karakter olabilir.`).nullable();
+type ProfileField = Parameters<typeof fieldLabel>[0];
 
-const personalProfileSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(1, "Ad soyad zorunludur.")
-    .max(255, "Ad soyad en fazla 255 karakter olabilir."),
-  jobTitle: optionalText("Rol", 255),
-  phone: optionalText("Telefon", 32).superRefine((value, context) => {
-    const error = phoneNumberError(value);
-    if (error) context.addIssue({ code: "custom", message: error });
-  }),
-  bio: optionalText("Kısa tanıtım", 5000),
-  linkedinUrl: optionalText("LinkedIn", 255),
-  expertise: z.array(
-    z.string().max(255, "Uzmanlık alanı en fazla 255 karakter olabilir."),
-  ),
-});
+function fieldLabel(
+  field:
+    | "fullName"
+    | "jobTitle"
+    | "phone"
+    | "bio"
+    | "linkedinUrl"
+    | "expertise"
+    | "startupName"
+    | "description"
+    | "website"
+    | "problem"
+    | "solution"
+    | "currentSolution"
+    | "targetUser"
+    | "sector"
+    | "maturity"
+    | "programLevel"
+    | "supportArea",
+) {
+  return clientText(`profile.fields.${field}`);
+}
 
-const startupProfileSchema = z.object({
-  name: z
-    .string()
-    .trim()
-    .min(1, "Startup adı zorunludur.")
-    .max(255, "Startup adı en fazla 255 karakter olabilir."),
-  description: optionalText("Tek satırlık tanım", 5000),
-  website: optionalText("Web sitesi", 255),
-  problem: optionalText("Problem", 5000),
-  solution: optionalText("Çözüm", 5000),
-  currentSolution: optionalText("Mevcut çözüm", 5000),
-  targetUser: optionalText("Hedef kullanıcı", 5000),
-  sector: optionalText("Sektör", 255),
-  maturity: optionalText("Aşama", 255),
-  programLevel: optionalText("Program seviyesi", 255),
-  supportAreas: z.array(
-    z.string().max(255, "Destek alanı en fazla 255 karakter olabilir."),
-  ),
-  fundingStage: z.enum(StartupFundingStage).nullable(),
-  foundedYear: z
-    .number()
-    .int("Kuruluş yılı tam sayı olmalıdır.")
-    .min(1900, "Kuruluş yılı 1900 ile 2100 arasında olmalıdır.")
-    .max(2100, "Kuruluş yılı 1900 ile 2100 arasında olmalıdır.")
-    .nullable(),
-});
+function tooLong(field: ProfileField, max: number) {
+  return clientText("profile.tooLong", { label: fieldLabel(field), max });
+}
+
+const optionalText = (field: ProfileField, max: number) =>
+  z.string().max(max, tooLong(field, max)).nullable();
+
+// Built per call: the messages come from the active language, which is set after this module loads.
+const personalProfileSchema = () =>
+  z.object({
+    fullName: z
+      .string()
+      .trim()
+      .min(1, clientText("profile.fullNameRequired"))
+      .max(255, tooLong("fullName", 255)),
+    jobTitle: optionalText("jobTitle", 255),
+    phone: optionalText("phone", 32).superRefine((value, context) => {
+      const error = phoneNumberError(value);
+      if (error) context.addIssue({ code: "custom", message: error });
+    }),
+    bio: optionalText("bio", 5000),
+    linkedinUrl: optionalText("linkedinUrl", 255),
+    expertise: z.array(z.string().max(255, tooLong("expertise", 255))),
+  });
+
+const startupProfileSchema = () =>
+  z.object({
+    name: z
+      .string()
+      .trim()
+      .min(1, clientText("profile.startupNameRequired"))
+      .max(255, tooLong("startupName", 255)),
+    description: optionalText("description", 5000),
+    website: optionalText("website", 255),
+    problem: optionalText("problem", 5000),
+    solution: optionalText("solution", 5000),
+    currentSolution: optionalText("currentSolution", 5000),
+    targetUser: optionalText("targetUser", 5000),
+    sector: optionalText("sector", 255),
+    maturity: optionalText("maturity", 255),
+    programLevel: optionalText("programLevel", 255),
+    supportAreas: z.array(z.string().max(255, tooLong("supportArea", 255))),
+    fundingStage: z.enum(StartupFundingStage).nullable(),
+    foundedYear: z
+      .number()
+      .int(clientText("profile.foundedYearInteger"))
+      .min(1900, clientText("profile.foundedYearRange"))
+      .max(2100, clientText("profile.foundedYearRange"))
+      .nullable(),
+  });
 
 function fieldErrors<T extends object>(result: z.ZodSafeParseResult<T>) {
   if (result.success) return {};
@@ -80,11 +110,13 @@ function fieldErrors<T extends object>(result: z.ZodSafeParseResult<T>) {
 }
 
 export function validatePersonalProfile(draft: UserProfileInput) {
-  return fieldErrors<UserProfileInput>(personalProfileSchema.safeParse(draft));
+  return fieldErrors<UserProfileInput>(
+    personalProfileSchema().safeParse(draft),
+  );
 }
 
 export function validateStartupProfile(draft: StartupProfileInput) {
   return fieldErrors<StartupProfileInput>(
-    startupProfileSchema.safeParse(draft),
+    startupProfileSchema().safeParse(draft),
   );
 }

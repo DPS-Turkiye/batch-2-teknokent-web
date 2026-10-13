@@ -14,17 +14,3 @@ export const PROFILE_INPUT_CLASS =
 export const PROFILE_EMPTY_CLASS = "text-[12.5px] text-[#858c96]";
 export const PROFILE_ROW_CLASS =
   "flex items-center justify-between gap-4 text-[12.5px] leading-[19px]";
-
-export const PERSON_PROFILE_VIEW_LABELS = {
-  about: "Hakkımda",
-  noBio: "Henüz hakkında bilgisi eklenmedi.",
-  expertise: "Uzmanlık alanları",
-  startup: "Startup",
-  startupLink: "Startup profiline git →",
-  contact: "İletişim",
-  email: "E-posta",
-  role: "Rol",
-  linkedin: "LinkedIn",
-  linkedinOpen: "Profili aç →",
-  dash: "—",
-} as const;

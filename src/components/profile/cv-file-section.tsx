@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { FileDrop } from "@/components/common/file-drop";
 import type { CvFileState } from "@/hooks/use-cv-file";
 
@@ -25,19 +27,19 @@ export function CvFileSection({
   whoSees: string;
   filledMessage: string;
 }) {
+  const t = useTranslations("cvFile");
   return (
     <>
       <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-        {whoSees} Yüklediğin CV hemen kaydedilir; profilin Kaydet&apos;e basınca
-        değişir.
+        {t("intro", { whoSees })}
       </p>
       <FileDrop
         file={cv.selected}
-        label="CV dosyası seç"
+        label={t("pick")}
         onChange={cv.choose}
         alreadyStored={cv.storedName ? { name: cv.storedName } : null}
         accept=".pdf"
-        helpText="PDF · En fazla 25 MB"
+        helpText={t("help")}
       />
       {cv.storedName && !cv.selected ? (
         cv.storedIsPdf ? (
@@ -47,21 +49,19 @@ export function CvFileSection({
             disabled={!cv.canFill}
             className={`self-start rounded-full border px-4 py-2 disabled:opacity-50 ${ACCENT_CLASSES[accent]} ${buttonTextClass}`}
           >
-            Profili CV&apos;den doldur
+            {t("fill")}
           </button>
         ) : (
-          <p className={noteClass}>
-            Profili doldurmak için CV&apos;ni PDF olarak yükle.
-          </p>
+          <p className={noteClass}>{t("needPdf")}</p>
         )
       ) : null}
       {cv.isUploading ? (
         <p role="status" className={noteClass}>
-          CV yükleniyor…
+          {t("uploading")}
         </p>
       ) : cv.isParsing ? (
         <p role="status" className={noteClass}>
-          CV okunuyor, alanların dolduruluyor…
+          {t("reading")}
         </p>
       ) : null}
       {cv.error ? (

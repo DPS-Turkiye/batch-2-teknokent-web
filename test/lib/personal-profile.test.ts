@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import type { StoredDocument } from "@/lib/client/documents";
@@ -7,10 +8,25 @@ import {
   mentorshipSessionLabel,
   personalRoleLabel,
   personalSubtitle,
+  type PersonalProfileTexts,
   profilePhotoError,
   startupSummary,
 } from "@/lib/personal-profile";
 import type { ActiveMentorshipRow } from "@/lib/startup-overview";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+function profileTexts(locale: "tr" | "en"): PersonalProfileTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "personalProfile",
+    }),
+    locale,
+  };
+}
+const texts = profileTexts("tr");
 
 function row(
   overrides: Partial<ActiveMentorshipRow> = {},
@@ -32,7 +48,7 @@ function document(id: string, kind: string): StoredDocument {
 
 describe("personalRoleLabel and personalSubtitle", () => {
   it("adds Kurucu for the founder and the startup at the end", () => {
-    const role = personalRoleLabel("Product Designer", true);
+    const role = personalRoleLabel("Product Designer", true, texts);
 
     expect(role).toBe("Product Designer · Kurucu");
     expect(personalSubtitle(role, "Döngü")).toBe(
@@ -41,16 +57,16 @@ describe("personalRoleLabel and personalSubtitle", () => {
   });
 
   it("does not repeat Kurucu when the job title already says it", () => {
-    expect(personalRoleLabel("Kurucu", true)).toBe("Kurucu");
-    expect(personalRoleLabel(" founder ", true)).toBe("founder");
-    expect(personalRoleLabel("Kurucu Ortak", true)).toBe(
+    expect(personalRoleLabel("Kurucu", true, texts)).toBe("Kurucu");
+    expect(personalRoleLabel(" founder ", true, texts)).toBe("founder");
+    expect(personalRoleLabel("Kurucu Ortak", true, texts)).toBe(
       "Kurucu Ortak · Kurucu",
     );
   });
 
   it("leaves out what is missing", () => {
-    expect(personalRoleLabel(null, true)).toBe("Kurucu");
-    expect(personalRoleLabel("  ", false)).toBe("");
+    expect(personalRoleLabel(null, true, texts)).toBe("Kurucu");
+    expect(personalRoleLabel("  ", false, texts)).toBe("");
     expect(personalSubtitle("", undefined)).toBe("");
   });
 });
@@ -58,25 +74,34 @@ describe("personalRoleLabel and personalSubtitle", () => {
 describe("startupSummary", () => {
   it("joins funding stage, team size and maturity", () => {
     expect(
-      startupSummary({
-        fundingStage: "Pre-seed",
-        teamSize: 4,
-        maturity: "MVP yayında",
-      }),
+      startupSummary(
+        {
+          fundingStage: "Pre-seed",
+          teamSize: 4,
+          maturity: "MVP yayında",
+        },
+        texts,
+      ),
     ).toBe("Pre-seed · 4 kişilik ekip · MVP yayında");
     expect(
-      startupSummary({ fundingStage: null, teamSize: 0, maturity: null }),
+      startupSummary(
+        { fundingStage: null, teamSize: 0, maturity: null },
+        texts,
+      ),
     ).toBe("");
   });
 });
 
 describe("mentorshipSessionLabel", () => {
   it("shows held of planned sessions, or only the held count without a plan", () => {
-    expect(mentorshipSessionLabel(row())).toBe(
+    expect(mentorshipSessionLabel(row(), texts)).toBe(
       "Ürün konumlandırma · 3/6 seans",
     );
     expect(
-      mentorshipSessionLabel(row({ plannedSessions: null, heldSessions: 2 })),
+      mentorshipSessionLabel(
+        row({ plannedSessions: null, heldSessions: 2 }),
+        texts,
+      ),
     ).toBe("Ürün konumlandırma · 2 seans");
   });
 });
@@ -85,9 +110,11 @@ describe("mentorshipRowStatus", () => {
   it("prefers open actions, then the next meeting, then nothing", () => {
     const booked = row({ nextMeetingAt: "2026-08-30T10:00:00" });
 
-    expect(mentorshipRowStatus(booked, 2)).toBe("2 açık aksiyon");
-    expect(mentorshipRowStatus(booked, 0)).toBe("Sonraki görüşme 30 Ağu");
-    expect(mentorshipRowStatus(row(), 0)).toBeNull();
+    expect(mentorshipRowStatus(booked, 2, texts)).toBe("2 açık aksiyon");
+    expect(mentorshipRowStatus(booked, 0, texts)).toBe(
+      "Sonraki görüşme 30 Ağu",
+    );
+    expect(mentorshipRowStatus(row(), 0, texts)).toBeNull();
   });
 });
 
@@ -111,13 +138,32 @@ describe("profilePhotoError", () => {
     ).toBeNull();
     expect(
       profilePhotoError(new File(["x"], "me.gif", { type: "image/gif" })),
-    ).toBe("PNG, JPG veya WebP bir fotoğraf seç.");
+    ).toBe("photoType");
     expect(
       profilePhotoError(
         new File([new Uint8Array(5 * 1024 * 1024 + 1)], "me.jpg", {
           type: "image/jpeg",
         }),
       ),
-    ).toBe("Fotoğraf en fazla 5 MB olabilir.");
+    ).toBe("photoSize");
+  });
+});
+
+describe("personal profile labels in English", () => {
+  it("writes the role, team size and status in English", () => {
+    const english = profileTexts("en");
+    const booked = row({ nextMeetingAt: "2026-08-30T10:00:00" });
+
+    expect(personalRoleLabel("Product Designer", true, english)).toBe(
+      "Product Designer · Founder",
+    );
+    expect(
+      startupSummary(
+        { fundingStage: null, teamSize: 4, maturity: null },
+        english,
+      ),
+    ).toBe("team of 4");
+    expect(mentorshipRowStatus(booked, 1, english)).toBe("1 open action");
+    expect(mentorshipRowStatus(booked, 0, english)).toBe("Next meeting Aug 30");
   });
 });
