@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 import { STARTUP_TABS } from "@/lib/startup-tabs";
 
 export function StartupTabs() {
+  const t = useTranslations("startupFrame");
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Startup sekmeleri" className="flex overflow-x-auto">
+    <nav aria-label={t("tabsLabel")} className="flex overflow-x-auto">
       {STARTUP_TABS.map((tab) => {
         const selected = pathname === tab.href;
         return (
@@ -19,7 +21,7 @@ export function StartupTabs() {
             aria-current={selected ? "page" : undefined}
             className={`flex min-w-[96px] flex-1 flex-col items-center gap-2.5 whitespace-nowrap text-[13px] leading-5 transition ${selected ? "font-semibold text-[#9e4400]" : "text-[#676e78] hover:text-[#22262b]"}`}
           >
-            {tab.label}
+            {t(`tabs.${tab.id}`)}
             <span
               aria-hidden
               className={`w-full ${selected ? "h-0.5 bg-[#e86f22]" : "h-px bg-[#e4e7ea]"}`}

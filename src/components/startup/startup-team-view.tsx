@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   StartupPageFrame,
@@ -21,6 +22,8 @@ const chipClass =
 const rowLinkClass = "text-xs font-medium leading-[18px] hover:underline";
 
 export function StartupTeamView() {
+  const t = useTranslations("startupTeam");
+  const locale = useLocale();
   const team = useStartupTeam();
   const pendingMembers = usePendingMembers();
 
@@ -30,14 +33,14 @@ export function StartupTeamView() {
       onClick={team.openAdd}
       className={startupPrimaryActionClass}
     >
-      Ekip üyesi ekle
+      {t("add")}
     </button>
   );
 
   if (team.isLoading) {
     return (
       <StartupPageFrame action={addAction}>
-        <p className="py-10 text-sm text-[#858c96]">Ekip yükleniyor…</p>
+        <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>
       </StartupPageFrame>
     );
   }
@@ -66,15 +69,15 @@ export function StartupTeamView() {
             id="startup-team-title"
             className="text-[15px] font-semibold leading-[23px] text-[#22262b]"
           >
-            Ekip üyeleri
+            {t("title")}
           </h2>
           <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-            Ekip üyeleri startup profilinde ve mentorluk görüşmelerinde görünür.
+            {t("hint")}
           </p>
         </div>
 
         {team.members.length === 0 ? (
-          <p className="text-sm text-[#858c96]">Henüz ekip üyesi eklenmedi.</p>
+          <p className="text-sm text-[#858c96]">{t("empty")}</p>
         ) : (
           <ul className="space-y-3.5">
             {team.members.map((member) => (
@@ -97,7 +100,7 @@ export function StartupTeamView() {
                       {member.fullName}
                     </p>
                     <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
-                      {[member.jobTitle, member.founder ? "Kurucu" : null]
+                      {[member.jobTitle, member.founder ? t("founder") : null]
                         .filter(Boolean)
                         .join(" · ")}
                     </p>
@@ -109,40 +112,42 @@ export function StartupTeamView() {
                   </span>
                   <span className="w-[150px] text-xs leading-[18px] text-[#858c96]">
                     {member.joinedAt
-                      ? `Katılım: ${formatShortDate(member.joinedAt)}`
+                      ? t("joined", {
+                          date: formatShortDate(member.joinedAt, locale),
+                        })
                       : null}
                   </span>
                   {member.founder ? (
                     <span
                       className={`${chipClass} bg-[#fff4ec] text-[#9e4400]`}
                     >
-                      Yönetici
+                      {t("admin")}
                     </span>
                   ) : (
                     <span
                       className={`${chipClass} bg-[#f3f4f6] text-[#676e78]`}
                     >
-                      Üye
+                      {t("member")}
                     </span>
                   )}
                   {team.canEdit(member) ? (
                     <button
                       type="button"
                       onClick={() => team.openEdit(member)}
-                      aria-label={`${member.fullName} düzenle`}
+                      aria-label={t("editLabel", { name: member.fullName })}
                       className={`${rowLinkClass} text-[#676e78]`}
                     >
-                      Düzenle
+                      {t("edit")}
                     </button>
                   ) : null}
                   {team.canRemove(member) ? (
                     <button
                       type="button"
                       onClick={() => team.askRemove(member.id)}
-                      aria-label={`${member.fullName} ekipten çıkar`}
+                      aria-label={t("removeLabel", { name: member.fullName })}
                       className={`${rowLinkClass} text-[#c24135]`}
                     >
-                      Çıkar
+                      {t("remove")}
                     </button>
                   ) : null}
                 </div>
@@ -162,11 +167,10 @@ export function StartupTeamView() {
               id="startup-pending-title"
               className="text-[15px] font-semibold leading-[23px] text-[#22262b]"
             >
-              Katılım bekleyenler
+              {t("pendingTitle")}
             </h2>
             <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-              Kayıtta eklediğin ekip arkadaşların davet koduyla katıldığında
-              ekip üyelerine taşınır.
+              {t("pendingHint")}
             </p>
           </div>
           <ul className="space-y-3.5">
@@ -200,17 +204,19 @@ export function StartupTeamView() {
                     </span>
                   ) : null}
                   <span className={`${chipClass} bg-[#fff8e6] text-[#8a5a00]`}>
-                    Katılım bekleniyor
+                    {t("pending")}
                   </span>
                   {team.viewerIsFounder ? (
                     <button
                       type="button"
                       onClick={() => pendingMembers.remove(member.id)}
                       disabled={pendingMembers.removingId === member.id}
-                      aria-label={`${member.fullName} bekleyenlerden çıkar`}
+                      aria-label={t("removePendingLabel", {
+                        name: member.fullName,
+                      })}
                       className={`${rowLinkClass} text-[#c24135] disabled:opacity-60`}
                     >
-                      Çıkar
+                      {t("remove")}
                     </button>
                   ) : null}
                 </div>

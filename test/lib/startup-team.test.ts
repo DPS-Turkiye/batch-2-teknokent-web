@@ -36,12 +36,8 @@ describe("startup team helpers", () => {
 
   it("needs a name, and an email only when adding", () => {
     expect(memberDraftError(draft())).toBeNull();
-    expect(memberDraftError(draft({ fullName: "  " }))).toBe(
-      "Ad soyad gerekli.",
-    );
-    expect(memberDraftError(draft({ email: "ece" }))).toBe(
-      "Geçerli bir e-posta adresi gir.",
-    );
+    expect(memberDraftError(draft({ fullName: "  " }))).toBe("nameRequired");
+    expect(memberDraftError(draft({ email: "ece" }))).toBe("emailInvalid");
     expect(
       memberDraftError(draft({ mode: MemberFormMode.Edit, email: "" })),
     ).toBeNull();

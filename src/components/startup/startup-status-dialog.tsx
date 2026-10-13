@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { fieldClass, labelClass } from "@/components/common/form-field";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { PrimaryButton } from "@/components/common/primary-button";
@@ -9,6 +11,7 @@ import type { useStartupStatusForm } from "@/hooks/use-startup-status-form";
 type StartupStatusForm = ReturnType<typeof useStartupStatusForm>;
 
 export function StartupStatusDialog({ form }: { form: StartupStatusForm }) {
+  const t = useTranslations("startupProfile.statusDialog");
   if (!form.isOpen) return null;
 
   return (
@@ -17,10 +20,10 @@ export function StartupStatusDialog({ form }: { form: StartupStatusForm }) {
         id="startup-status-dialog-title"
         className="text-base font-semibold text-[#22262b]"
       >
-        Durumu güncelle
+        {t("title")}
       </h2>
       <label className="block">
-        <span className={labelClass}>Sürüm</span>
+        <span className={labelClass}>{t("version")}</span>
         <input
           className={fieldClass}
           value={form.draft.statusVersion}
@@ -32,7 +35,7 @@ export function StartupStatusDialog({ form }: { form: StartupStatusForm }) {
         />
       </label>
       <label className="block">
-        <span className={labelClass}>Durum özeti</span>
+        <span className={labelClass}>{t("summary")}</span>
         <textarea
           className={`${fieldClass} min-h-24 py-2.5`}
           value={form.draft.statusSummary}
@@ -43,7 +46,7 @@ export function StartupStatusDialog({ form }: { form: StartupStatusForm }) {
         />
       </label>
       <label className="block">
-        <span className={labelClass}>Tamamlanma oranı (%)</span>
+        <span className={labelClass}>{t("percent")}</span>
         <input
           className={fieldClass}
           type="number"
@@ -66,12 +69,12 @@ export function StartupStatusDialog({ form }: { form: StartupStatusForm }) {
         </p>
       ) : null}
       <div className="flex justify-end gap-2">
-        <SecondaryButton onClick={form.close}>Vazgeç</SecondaryButton>
+        <SecondaryButton onClick={form.close}>{t("cancel")}</SecondaryButton>
         <PrimaryButton
           onClick={form.submit}
           disabled={form.isSaving || Boolean(form.error)}
         >
-          {form.isSaving ? "Kaydediliyor…" : "Kaydet"}
+          {form.isSaving ? t("saving") : t("save")}
         </PrimaryButton>
       </div>
     </ModalDialog>

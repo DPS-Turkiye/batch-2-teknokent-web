@@ -21,11 +21,11 @@ export function foundersFirst(members: OrganizationMember[]) {
   );
 }
 
-/** The first problem with a draft, or null when it can be sent. */
+/** The first problem with a draft (a `startupTeam.errors` key), or null when it can be sent. */
 export function memberDraftError(draft: MemberDraft) {
-  if (!draft.fullName.trim()) return "Ad soyad gerekli.";
+  if (!draft.fullName.trim()) return "nameRequired" as const;
   if (draft.mode === MemberFormMode.Add && !isEmailAddress(draft.email)) {
-    return "Geçerli bir e-posta adresi gir.";
+    return "emailInvalid" as const;
   }
   return null;
 }

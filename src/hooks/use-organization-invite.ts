@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -28,6 +29,7 @@ export function useRotateInviteCode() {
 }
 
 export function useInviteCodeCard() {
+  const t = useTranslations("startupTeam.invite");
   const { showToast } = useToast();
   const inviteQuery = useOrganizationInvite();
   const rotate = useRotateInviteCode();
@@ -44,17 +46,16 @@ export function useInviteCodeCard() {
       if (!code) return;
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      showToast({ message: "Davet kodu kopyalandı.", tone: "success" });
+      showToast({ message: t("copiedToast"), tone: "success" });
     },
     async rotate() {
       setCopied(false);
       try {
         await rotate.mutateAsync();
-        showToast({ message: "Yeni davet kodu üretildi.", tone: "success" });
+        showToast({ message: t("rotated"), tone: "success" });
       } catch (reason) {
         showToast({
-          message:
-            reason instanceof Error ? reason.message : "Yeni kod üretilemedi.",
+          message: reason instanceof Error ? reason.message : t("rotateFailed"),
           tone: "error",
         });
       }

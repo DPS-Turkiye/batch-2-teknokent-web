@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -25,6 +26,7 @@ import { errorMessage } from "@/lib/utils";
 
 /** The Ekip tab: the member list, adding, editing and removing members. */
 export function useStartupTeam() {
+  const t = useTranslations("startupTeam");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const session = useAppSession();
@@ -63,16 +65,17 @@ export function useStartupTeam() {
     onSuccess: () => {
       setRemovingId(null);
       void refresh();
-      showToast({ message: "Ekip üyesi çıkarıldı.", tone: "success" });
+      showToast({ message: t("removed"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Ekip üyesi çıkarılamadı."),
+        message: errorMessage(error, t("removeFailed")),
         tone: "error",
       }),
   });
 
-  const formError = draft && showErrors ? memberDraftError(draft) : null;
+  const draftError = draft && showErrors ? memberDraftError(draft) : null;
+  const formError = draftError ? t(`errors.${draftError}`) : null;
 
   async function submitForm() {
     if (!draft) return;
@@ -87,19 +90,19 @@ export function useStartupTeam() {
           email: draft.email.trim(),
           jobTitle,
         });
-        showToast({ message: "Ekip üyesi eklendi.", tone: "success" });
+        showToast({ message: t("added"), tone: "success" });
       } else if (draft.memberId) {
         await update.mutateAsync({
           memberId: draft.memberId,
           fullName,
           jobTitle,
         });
-        showToast({ message: "Ekip üyesi güncellendi.", tone: "success" });
+        showToast({ message: t("updated"), tone: "success" });
       }
       setDraft(null);
     } catch (error) {
       showToast({
-        message: errorMessage(error, "Ekip üyesi kaydedilemedi."),
+        message: errorMessage(error, t("saveFailed")),
         tone: "error",
       });
     }

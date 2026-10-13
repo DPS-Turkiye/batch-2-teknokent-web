@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { StartupTabs } from "@/components/startup/startup-tabs";
+import { InLocale } from "@test/test-utils";
 
 const mockPathname = vi.fn<() => string>();
 
@@ -24,6 +25,24 @@ describe("StartupTabs", () => {
     expect(profile).toHaveClass("text-[#9e4400]");
     expect(screen.getByRole("link", { name: "Süreç" })).not.toHaveAttribute(
       "aria-current",
+    );
+  });
+
+  it("reads in English", () => {
+    mockPathname.mockReturnValue("/startup/team");
+
+    render(
+      <InLocale locale="en">
+        <StartupTabs />
+      </InLocale>,
+    );
+
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
+      ["Profile", "Process", "Files", "Team"],
+    );
+    expect(screen.getByRole("link", { name: "Team" })).toHaveAttribute(
+      "aria-current",
+      "page",
     );
   });
 
