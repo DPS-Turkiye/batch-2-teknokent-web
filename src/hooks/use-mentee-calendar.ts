@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueries, useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 import { actionItemsQueryKey } from "@/hooks/use-action-items";
@@ -15,7 +16,6 @@ import {
   MENTEE_WEEK_HOURS,
   startOfWeek,
   weekDays,
-  weekRangeLabel,
 } from "@/lib/calendar";
 import { getActionItems } from "@/lib/client/action-items";
 import { ClientApiError } from "@/lib/client/api";
@@ -42,6 +42,7 @@ const NOW_REFRESH_MS = 60_000;
  * from the mentor-request flow, not from here.
  */
 export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
+  const texts = { t: useTranslations("calendar"), locale: useLocale() };
   const meetingsQuery = useMeetings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
   // A mentee outside a startup has no process; the calendar just shows no Süreç deliverables.
@@ -98,11 +99,14 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
   }, [importedMeetings, meetingsQuery.data]);
 
   const entries = [
-    ...meetingEntries(meetings),
-    ...deliverableEntries([
-      ...actionItems.byRequest.flat(),
-      ...(processQuery.data?.assignments ?? []),
-    ]),
+    ...meetingEntries(meetings, texts),
+    ...deliverableEntries(
+      [
+        ...actionItems.byRequest.flat(),
+        ...(processQuery.data?.assignments ?? []),
+      ],
+      texts,
+    ),
   ];
   const weekEnd = new Date(weekStart);
   weekEnd.setDate(weekEnd.getDate() + MENTEE_WEEK_DAY_COUNT);
@@ -150,7 +154,11 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     days,
     hours: MENTEE_WEEK_HOURS,
     now,
-    rangeLabel: `${weekRangeLabel(days[0], lastDay)} ${lastDay.getFullYear()}`,
+    rangeLabel: new Intl.DateTimeFormat(texts.locale, {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).formatRange(days[0], lastDay),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),
     today: () => {
@@ -159,7 +167,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
       setNow(current);
     },
     entriesByDay: days.map((day) => entriesOnDay(visible, day)),
-    summary: weekSummary(weekEntries),
+    summary: weekSummary(weekEntries, texts),
     upcoming: upcomingEntries(entries, now, UPCOMING_LIMIT),
     prep: nextMeeting ? { meeting: nextMeeting, items: prepItems } : null,
     isLoading: meetingsQuery.isLoading,

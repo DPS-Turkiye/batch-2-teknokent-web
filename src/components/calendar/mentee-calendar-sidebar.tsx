@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { ActionItem } from "@/interfaces/action-item";
 import type { MeetingItem } from "@/interfaces/meeting";
@@ -6,7 +7,6 @@ import {
   type CalendarEntry,
   CalendarEntryKind,
   entryWhenLabel,
-  PREP_STATUS_LABELS,
   prepHeading,
   PrepStatus,
   prepStatus,
@@ -39,21 +39,23 @@ export function PrepCard({
   now: Date;
   isLoading: boolean;
 }) {
+  const t = useTranslations("calendar");
+  const locale = useLocale();
   return (
     <section
       aria-labelledby="calendar-prep"
       className="space-y-3 rounded-[24px] bg-[#fff4ec]/[0.27] p-[18px]"
     >
       <h2 id="calendar-prep" className={cardHeading}>
-        Hazırlık bekleyen
+        {t("prep.title")}
       </h2>
       <p className="text-[12.5px] leading-[18px] text-[#4a5059]">
-        {prepHeading(meeting)}
+        {prepHeading(meeting, { t, locale })}
       </p>
       {isLoading ? (
-        <p className={mutedText}>Hazırlık yükleniyor…</p>
+        <p className={mutedText}>{t("prep.loading")}</p>
       ) : items.length === 0 ? (
-        <p className={mutedText}>Bu görüşme için bekleyen bir hazırlık yok.</p>
+        <p className={mutedText}>{t("prep.empty")}</p>
       ) : (
         <ul className="space-y-3">
           {items.map((item) => {
@@ -69,7 +71,7 @@ export function PrepCard({
                 <span
                   className={`shrink-0 rounded-full px-3 py-[5px] text-xs font-medium leading-[17px] ${PREP_CHIPS[status]}`}
                 >
-                  {PREP_STATUS_LABELS[status]}
+                  {t(`prep.status.${status}`)}
                 </span>
               </li>
             );
@@ -80,7 +82,7 @@ export function PrepCard({
         href={meetingNotebookHref(meeting.id)}
         className="flex w-full items-center justify-center rounded-full bg-[#e86f22] px-4 py-2.5 text-[12.5px] font-medium leading-[18px] text-white transition hover:bg-[#ce5e19]"
       >
-        {items.length > 0 ? "Hazırlığı tamamla" : "Toplantı notlarını aç"}
+        {items.length > 0 ? t("prep.complete") : t("prep.openNotes")}
       </Link>
     </section>
   );
@@ -95,23 +97,25 @@ export function UpcomingCard({
   isLoading: boolean;
   hasError: boolean;
 }) {
+  const t = useTranslations("calendar.upcoming");
+  const locale = useLocale();
   return (
     <section
       aria-labelledby="calendar-upcoming"
       className="space-y-3 rounded-[24px] border border-[#e4e7ea] bg-white p-[18px]"
     >
       <h2 id="calendar-upcoming" className={cardHeading}>
-        Sıradaki etkinlikler
+        {t("title")}
       </h2>
       {hasError ? (
         <p role="alert" className="text-[12.5px] leading-[18px] text-[#a65a15]">
-          Teslimler yüklenemedi; liste eksik olabilir.
+          {t("deliverablesFailed")}
         </p>
       ) : null}
       {isLoading ? (
-        <p className={mutedText}>Etkinlikler yükleniyor…</p>
+        <p className={mutedText}>{t("loading")}</p>
       ) : entries.length === 0 ? (
-        <p className={mutedText}>Yaklaşan bir etkinlik yok.</p>
+        <p className={mutedText}>{t("empty")}</p>
       ) : (
         <ul className="space-y-3">
           {entries.map((entry) => (
@@ -130,7 +134,7 @@ export function UpcomingCard({
               <p
                 className={`shrink-0 text-[11.5px] font-medium leading-4 ${WHEN_COLORS[entry.kind]}`}
               >
-                {entryWhenLabel(entry)}
+                {entryWhenLabel(entry, locale)}
               </p>
             </li>
           ))}

@@ -82,7 +82,7 @@ describe("useMenteeCalendar", () => {
 
     expect(result.current.rangeLabel).toBe("24–28 Ağustos 2026");
     act(() => result.current.next());
-    expect(result.current.rangeLabel).toBe("31–4 Eylül 2026");
+    expect(result.current.rangeLabel).toMatch(/^31 Ağustos\s–\s4 Eylül 2026$/);
     act(() => result.current.today());
     expect(result.current.rangeLabel).toBe("24–28 Ağustos 2026");
   });

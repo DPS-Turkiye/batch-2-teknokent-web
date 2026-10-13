@@ -1,3 +1,5 @@
+import { clientText } from "@/i18n/client-texts";
+
 export type GoogleCalendarEvent = {
   id: string;
   summary?: string;
@@ -123,11 +125,7 @@ export async function authenticateWithGoogle(
     );
 
     if (!popup) {
-      reject(
-        new Error(
-          "The popup was blocked. Allow pop-ups in your browser and try again.",
-        ),
-      );
+      reject(new Error(clientText("googleCalendar.popupBlocked")));
       return;
     }
 
@@ -187,17 +185,13 @@ export async function authenticateWithGoogle(
 
 export async function ensureGoogleCalendarToken(): Promise<{ token: string }> {
   if (!getGoogleClientId()) {
-    throw new Error(
-      "Google Meet oluşturmak için NEXT_PUBLIC_GOOGLE_CLIENT_ID tanımlayın.",
-    );
+    throw new Error(clientText("googleCalendar.missingClientId"));
   }
   const stored = readStoredAccessToken();
   if (stored) return { token: stored };
   const result = await authenticateWithGoogle();
   if (result.token.startsWith("simulated-oauth-token")) {
-    throw new Error(
-      "Google Meet oluşturmak için NEXT_PUBLIC_GOOGLE_CLIENT_ID tanımlayın.",
-    );
+    throw new Error(clientText("googleCalendar.missingClientId"));
   }
   return { token: result.token };
 }
@@ -209,9 +203,7 @@ export async function createGoogleMeetEvent(input: {
   durationMinutes: number;
 }): Promise<string> {
   if (input.accessToken.startsWith("simulated-oauth-token")) {
-    throw new Error(
-      "Google Meet oluşturmak için NEXT_PUBLIC_GOOGLE_CLIENT_ID tanımlayın.",
-    );
+    throw new Error(clientText("googleCalendar.missingClientId"));
   }
 
   const start = new Date(input.startIso);
@@ -245,8 +237,7 @@ export async function createGoogleMeetEvent(input: {
 
   if (!res.ok) {
     throw new Error(
-      body.error?.message ??
-        "Google Meet etkinliği oluşturulamadı. Google iznini kontrol edin.",
+      body.error?.message ?? clientText("googleCalendar.meetCreateFailed"),
     );
   }
 
@@ -255,7 +246,7 @@ export async function createGoogleMeetEvent(input: {
   )?.uri;
   const meetLink = body.hangoutLink || fromEntry;
   if (!meetLink) {
-    throw new Error("Google Meet bağlantısı alınamadı.");
+    throw new Error(clientText("googleCalendar.meetLinkMissing"));
   }
   return meetLink;
 }
@@ -298,8 +289,7 @@ export async function fetchGoogleCalendarEvents(accessToken: string) {
   if (!res.ok) {
     const errorBody = await res.json().catch(() => ({}));
     throw new Error(
-      errorBody.error?.message ??
-        "Google Takvim API'sinden takvim verileri çekilemedi. Lütfen erişim tokenınızı kontrol edin.",
+      errorBody.error?.message ?? clientText("googleCalendar.fetchFailed"),
     );
   }
 

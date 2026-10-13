@@ -1,10 +1,11 @@
+import type { useTranslations } from "next-intl";
+
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   CalendarFilter,
-  DAY_SHORT_LABELS,
   MENTEE_WEEK_HOURS,
-  MONTH_LABELS,
+  shortWeekday,
   timeLabel,
 } from "@/lib/calendar";
 import { calendarDay } from "@/lib/utils";
@@ -20,9 +21,10 @@ export enum PrepStatus {
   InProgress = "in-progress",
 }
 
-export const PREP_STATUS_LABELS: Record<PrepStatus, string> = {
-  [PrepStatus.Overdue]: "Gecikti",
-  [PrepStatus.InProgress]: "Devam ediyor",
+/** The calendar's translator and language, for the labels built here. */
+export type CalendarTexts = {
+  t: ReturnType<typeof useTranslations<"calendar">>;
+  locale: string;
 };
 
 export const MENTEE_WEEK_DAY_COUNT = 5;
@@ -66,24 +68,30 @@ export function isOpenDeliverable(item: Deliverable) {
   return OPEN_STATUSES.has(item.status);
 }
 
-export function meetingEntries(meetings: MeetingItem[]): CalendarEntry[] {
+export function meetingEntries(
+  meetings: MeetingItem[],
+  { t }: CalendarTexts,
+): CalendarEntry[] {
   return meetings
     .filter((meeting) => meeting.status !== MeetingStatus.Cancelled)
     .map((meeting) => ({
       id: `meeting:${meeting.id}`,
       kind: CalendarEntryKind.Mentorship,
-      gridLabel: meeting.mentorName ?? meeting.agenda ?? "Görüşme",
-      title: meeting.agenda ?? "Mentorluk görüşmesi",
+      gridLabel: meeting.mentorName ?? meeting.agenda ?? t("meetingFallback"),
+      title: meeting.agenda ?? t("meetingTitleFallback"),
       detail: meeting.mentorName
-        ? `${meeting.mentorName} · mentorluk`
-        : "mentorluk",
+        ? t("mentorshipDetail", { mentor: meeting.mentorName })
+        : t("mentorshipOnly"),
       startsAt: new Date(meeting.scheduledAt),
       durationMinutes: meeting.durationMinutes,
       meeting,
     }));
 }
 
-export function deliverableEntries(items: Deliverable[]): CalendarEntry[] {
+export function deliverableEntries(
+  items: Deliverable[],
+  { t }: CalendarTexts,
+): CalendarEntry[] {
   // Süreç assignments are action items too, so the same item can arrive from both sources.
   const byId = new Map<string, CalendarEntry>();
   for (const item of items) {
@@ -95,9 +103,9 @@ export function deliverableEntries(items: Deliverable[]): CalendarEntry[] {
     byId.set(item.id, {
       id: `deliverable:${item.id}`,
       kind: CalendarEntryKind.Deliverable,
-      gridLabel: "Teslim",
+      gridLabel: t("deliverable"),
       title: item.title,
-      detail: "Teslim tarihi",
+      detail: t("deliverableDetail"),
       startsAt,
       durationMinutes: 0,
       meeting: null,
@@ -190,14 +198,18 @@ export function layoutDay(entries: CalendarEntry[]): PositionedEntry[] {
 }
 
 /** "Bu hafta 2 mentorluk görüşmesi · 1 teslim" — program events only once there are some. */
-export function weekSummary(entries: CalendarEntry[]) {
+export function weekSummary(entries: CalendarEntry[], { t }: CalendarTexts) {
   const count = (kind: CalendarEntryKind) =>
     entries.filter((entry) => entry.kind === kind).length;
-  const parts = [`${count(CalendarEntryKind.Mentorship)} mentorluk görüşmesi`];
+  const parts = [
+    t("mentorships", { count: count(CalendarEntryKind.Mentorship) }),
+  ];
   const programs = count(CalendarEntryKind.Program);
-  if (programs > 0) parts.push(`${programs} program etkinliği`);
-  parts.push(`${count(CalendarEntryKind.Deliverable)} teslim`);
-  return `Bu hafta ${parts.join(" · ")}`;
+  if (programs > 0) parts.push(t("programs", { count: programs }));
+  parts.push(
+    t("deliverables", { count: count(CalendarEntryKind.Deliverable) }),
+  );
+  return t("summary", { parts: parts.join(" · ") });
 }
 
 export function upcomingEntries(
@@ -212,11 +224,11 @@ export function upcomingEntries(
 }
 
 /** "Çar 28 · 10:00", or "Per 29" for a deliverable, which has no time. */
-export function entryWhenLabel(entry: CalendarEntry) {
-  const day = `${DAY_SHORT_LABELS[(entry.startsAt.getDay() + 6) % 7]} ${entry.startsAt.getDate()}`;
+export function entryWhenLabel(entry: CalendarEntry, locale: string) {
+  const day = `${shortWeekday(entry.startsAt, locale)} ${entry.startsAt.getDate()}`;
   return entry.kind === CalendarEntryKind.Deliverable
     ? day
-    : `${day} · ${timeLabel(entry.startsAt.toISOString())}`;
+    : `${day} · ${timeLabel(entry.startsAt.toISOString(), locale)}`;
 }
 
 export function prepStatus(item: Deliverable, now: Date) {
@@ -228,11 +240,16 @@ export function prepStatus(item: Deliverable, now: Date) {
 }
 
 /** "Cuma 28 Ağustos · Nihan Öztürk görüşmesi" */
-export function prepHeading(meeting: MeetingItem) {
-  const at = new Date(meeting.scheduledAt);
-  const weekday = new Intl.DateTimeFormat("tr-TR", { weekday: "long" }).format(
-    at,
-  );
-  const day = `${weekday} ${at.getDate()} ${MONTH_LABELS[at.getMonth()]}`;
-  return meeting.mentorName ? `${day} · ${meeting.mentorName} görüşmesi` : day;
+export function prepHeading(
+  meeting: MeetingItem,
+  { t, locale }: CalendarTexts,
+) {
+  const day = new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(new Date(meeting.scheduledAt));
+  return meeting.mentorName
+    ? t("prep.heading", { day, mentor: meeting.mentorName })
+    : day;
 }

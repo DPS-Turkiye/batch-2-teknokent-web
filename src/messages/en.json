@@ -786,6 +786,13 @@
       "too-many-requests": "Too many attempts. Wait a little and try again.",
       "network-request-failed": "Could not connect. Try again.",
       "missing-email": "Enter your e-mail address."
+    },
+    "googleCalendar": {
+      "popupBlocked": "The pop-up was blocked. Allow pop-ups in your browser and try again.",
+      "missingClientId": "Set NEXT_PUBLIC_GOOGLE_CLIENT_ID to create Google Meet links.",
+      "meetCreateFailed": "Couldn't create the Google Meet event. Check the Google permission.",
+      "meetLinkMissing": "Couldn't get a Google Meet link.",
+      "fetchFailed": "Couldn't read events from the Google Calendar API. Check your access token."
     }
   },
   "metadata": {
@@ -1381,5 +1388,80 @@
     "eyebrow": "Mentor pool",
     "title": "Mentors",
     "intro": "Browse the approved mentors. Click one to open their profile."
+  },
+  "calendar": {
+    "title": "Calendar",
+    "importGoogle": "Import from Google Calendar",
+    "requestMeeting": "Request a meeting",
+    "previousWeek": "Previous week",
+    "today": "Today",
+    "nextWeek": "Next week",
+    "loadFailed": "Couldn't load the calendar: {error}",
+    "loading": "Loading calendar…",
+    "noProgram": "No program events yet.",
+    "filters": {
+      "all": "All",
+      "mentorship": "Mentorship",
+      "program": "Program",
+      "availability": "Availability",
+      "deliverable": "Deliverables"
+    },
+    "summary": "This week: {parts}",
+    "mentorships": "{count, plural, one {# mentoring session} other {# mentoring sessions}}",
+    "programs": "{count, plural, one {# program event} other {# program events}}",
+    "deliverables": "{count, plural, one {# deliverable} other {# deliverables}}",
+    "meetingFallback": "Meeting",
+    "meetingTitleFallback": "Mentoring session",
+    "mentorshipDetail": "{mentor} · mentoring",
+    "mentorshipOnly": "mentoring",
+    "deliverable": "Due",
+    "deliverableDetail": "Due date",
+    "openDetail": "Open {title}",
+    "prep": {
+      "title": "Prep to do",
+      "loading": "Loading prep…",
+      "empty": "Nothing to prepare for this meeting.",
+      "status": {
+        "overdue": "Overdue",
+        "in-progress": "In progress"
+      },
+      "complete": "Finish preparing",
+      "openNotes": "Open meeting notes",
+      "heading": "{day} · Meeting with {mentor}"
+    },
+    "upcoming": {
+      "title": "Coming up",
+      "deliverablesFailed": "Couldn't load deliverables; the list may be incomplete.",
+      "loading": "Loading events…",
+      "empty": "No upcoming events."
+    },
+    "import": {
+      "body": "Bring events from your external calendar into this one.",
+      "connect": "Connect your Google account",
+      "connecting": "Connecting…",
+      "signIn": "Sign in with Google and import my calendar",
+      "orIcs": "Or upload an <code>.ics</code> file:",
+      "close": "Close",
+      "notConfigured": "Google isn't set up in this environment. A real account can't be connected without NEXT_PUBLIC_GOOGLE_CLIENT_ID.",
+      "connected": "Google Calendar connected; {count, plural, one {# event} other {# events}} imported.",
+      "connectFailed": "Couldn't connect to Google Calendar.",
+      "noEvents": "No valid events found. Choose an .ics file exported from Google Calendar.",
+      "imported": "{count, plural, one {# event} other {# events}} imported.",
+      "readFailed": "Couldn't read the file."
+    },
+    "detail": {
+      "fallback": "Meeting",
+      "when": "When:",
+      "duration": "Length:",
+      "minutes": "{count, plural, one {# minute} other {# minutes}}",
+      "mentor": "Mentor:",
+      "noLink": "There's no meeting link for this meeting yet.",
+      "prepare": "Prepare for the meeting",
+      "close": "Close"
+    },
+    "sync": {
+      "addGoogle": "Add to Google Calendar",
+      "downloadIcs": "Download iCal (.ics)"
+    }
   }
 }

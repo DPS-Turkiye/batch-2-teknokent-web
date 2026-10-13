@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ClipboardList } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
@@ -15,6 +16,8 @@ export function MeetingDetailModal({
   meeting: MeetingItem;
   onClose: () => void;
 }) {
+  const t = useTranslations("calendar.detail");
+  const locale = useLocale();
   const meetLink =
     meeting.meetLink && /^https?:\/\//i.test(meeting.meetLink)
       ? meeting.meetLink
@@ -27,12 +30,12 @@ export function MeetingDetailModal({
           id="meeting-detail-title"
           className="text-lg font-semibold text-[#22262b]"
         >
-          {meeting.agenda ?? "Toplantı"}
+          {meeting.agenda ?? t("fallback")}
         </h2>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Kapat"
+          aria-label={t("close")}
           className="text-[#a4aab2] hover:text-[#676e78]"
         >
           ✕
@@ -41,19 +44,19 @@ export function MeetingDetailModal({
 
       <div className="space-y-2 rounded-xl bg-[#f8f9fa] p-4 text-xs text-[#676e78]">
         <p>
-          <strong className="text-[#22262b]">Zaman:</strong>{" "}
-          {new Intl.DateTimeFormat("tr-TR", {
+          <strong className="text-[#22262b]">{t("when")}</strong>{" "}
+          {new Intl.DateTimeFormat(locale, {
             dateStyle: "full",
             timeStyle: "short",
           }).format(new Date(meeting.scheduledAt))}
         </p>
         <p>
-          <strong className="text-[#22262b]">Süre:</strong>{" "}
-          {meeting.durationMinutes} dakika
+          <strong className="text-[#22262b]">{t("duration")}</strong>{" "}
+          {t("minutes", { count: meeting.durationMinutes })}
         </p>
         {meeting.mentorName ? (
           <p>
-            <strong className="text-[#22262b]">Mentor:</strong>{" "}
+            <strong className="text-[#22262b]">{t("mentor")}</strong>{" "}
             {meeting.mentorName}
           </p>
         ) : null}
@@ -69,9 +72,7 @@ export function MeetingDetailModal({
           {meetLink}
         </a>
       ) : (
-        <p className="text-xs text-[#676e78]">
-          Bu toplantı için henüz bir görüşme bağlantısı yok.
-        </p>
+        <p className="text-xs text-[#676e78]">{t("noLink")}</p>
       )}
 
       <SyncMeetingActions meeting={meeting} />
@@ -81,7 +82,7 @@ export function MeetingDetailModal({
         className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e86f22] px-4 text-xs font-semibold text-white transition hover:bg-[#ce5e19]"
       >
         <ClipboardList className="size-4" aria-hidden />
-        Toplantıya hazırlan
+        {t("prepare")}
       </Link>
     </ModalDialog>
   );
