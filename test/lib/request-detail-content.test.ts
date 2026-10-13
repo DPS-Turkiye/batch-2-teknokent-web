@@ -76,4 +76,21 @@ describe("request-detail-content", () => {
       REQUEST_DETAIL_LABELS.profileOutcome,
     ]);
   });
+
+  it("shows the stored expected outcome when the message only carries times", () => {
+    const detail = buildRequestDetailContent(
+      request({
+        summary: "Finansal modeli kuramıyoruz.",
+        supportArea: "Yatırım Alma",
+        requesterMessage: "Tercih edilen saatler: 2026-09-11|10:30",
+        expectedOutcome: "İlk finansal modelin çerçevesi",
+      }),
+    );
+
+    expect(
+      detail.fields.find(
+        (field) => field.label === REQUEST_DETAIL_LABELS.profileOutcome,
+      )?.value,
+    ).toBe("İlk finansal modelin çerçevesi");
+  });
 });

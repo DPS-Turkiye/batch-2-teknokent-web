@@ -41,10 +41,10 @@ import {
   preferredSlotMachineValue,
   preferredSlotStartsAt,
   proposedSlotsMessageLines,
-  requestOutcomeFromMessage,
   type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
+import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   activeMentorshipHref,
   assistantMeetingHref,
@@ -393,7 +393,7 @@ function IncomingRequestCard({
   onReview: () => void;
 }) {
   const person = mentorWorkspacePerson(request);
-  const outcome = requestOutcomeFromMessage(request.requesterMessage);
+  const outcome = requestExpectedOutcome(request);
   const waitingForMentee =
     request.status === MentorshipRequestStatus.CounterProposed;
 

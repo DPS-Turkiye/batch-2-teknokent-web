@@ -78,4 +78,19 @@ describe("mentor-profile-request", () => {
       }),
     ]);
   });
+
+  it("sends the expected outcome as its own field, leaving only the times in the message", () => {
+    const payload = profileMentorshipSubmission({
+      mentor: mentorProfile,
+      startup,
+      requestedForName: "Sudenaz Yılmaz",
+      problem: "Finansal modeli kuramıyoruz.",
+      outcome: "  İlk finansal modelin çerçevesi  ",
+      preferredSlots: [{ date: "2026-09-10", time: "10:00" }],
+    });
+
+    expect(payload.expectedOutcome).toBe("İlk finansal modelin çerçevesi");
+    expect(payload.requesterMessage).not.toContain("finansal");
+    expect(payload.requesterMessage).toContain("Tercih edilen saatler:");
+  });
 });
