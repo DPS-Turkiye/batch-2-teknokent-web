@@ -5,13 +5,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
 import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import {
-  Weekday,
-  WEEKDAY_LABELS,
-  type MentorAvailabilityRule,
-} from "@/interfaces/mentor";
+import { Weekday, type MentorAvailabilityRule } from "@/interfaces/mentor";
 import { CalendarFilter } from "@/lib/calendar";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
+import tr from "@/messages/tr.json";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/reschedule-meeting-button", () => ({
@@ -120,7 +117,7 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
     availabilityRows: weeklyAvailabilityRows(
       value.rules as MentorAvailabilityRule[],
       {
-        weekday: (day) => WEEKDAY_LABELS[day],
+        weekday: (day) => tr.options.weekday[day],
         otherDays: "Diğer günler",
         closed: "Kapalı",
       },

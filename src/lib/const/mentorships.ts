@@ -17,6 +17,5 @@ export const MENTORSHIPS_ACTIVE_HREF = "/mentorships?tab=active";
 export const MENTORSHIPS_HISTORY_HREF = "/mentorships?tab=history";
 export const MENTORSHIPS_REGULAR_HREF = "/mentorships?tab=regular";
 export const MENTOR_PROFILE_HISTORY_PAGE_SIZE = 5;
-export const MENTOR_PROFILE_HISTORY_PAGER_LABEL = "Mentorluk geçmişi sayfaları";
 
 export const MENTEE_REQUESTS_HREF = "/mentorships?tab=requests";

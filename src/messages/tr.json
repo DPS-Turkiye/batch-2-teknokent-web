@@ -826,6 +826,32 @@
       "turkey": "Türkiye numarası +90'dan sonra 10 haneli olmalıdır.",
       "local": "Telefon numarası alan koduyla birlikte 10 veya 11 haneli olmalıdır.",
       "international": "Uluslararası telefon numarası 8–15 haneli olmalıdır."
+    },
+    "availability": {
+      "endBeforeStart": "{day}: bitiş saati başlangıçtan sonra olmalı.",
+      "overlap": "{day}: saat aralıkları çakışıyor.",
+      "tooManyRanges": "En fazla 21 saat aralığı ekleyebilirsin.",
+      "capacity": "Eş zamanlı mentorluk limiti 1 ile 50 arasında olmalı.",
+      "duration": "Varsayılan görüşme süresi 15 ile 480 dakika arasında olmalı.",
+      "buffer": "İki görüşme arası tampon 0 ile 240 dakika arasında olmalı.",
+      "tooManyDates": "En fazla 30 tarih ekleyebilirsin.",
+      "pickStart": "Bir başlangıç tarihi seç.",
+      "endBeforeStartDate": "Bitiş tarihi başlangıçtan önce olamaz.",
+      "duplicateDates": "Bu tarih aralığı zaten ekli.",
+      "weekday": {
+        "MONDAY": "Pazartesi",
+        "TUESDAY": "Salı",
+        "WEDNESDAY": "Çarşamba",
+        "THURSDAY": "Perşembe",
+        "FRIDAY": "Cuma",
+        "SATURDAY": "Cumartesi",
+        "SUNDAY": "Pazar"
+      }
+    },
+    "mentorProfile": {
+      "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
+      "roleTitle": "Her deneyim için bir ünvan gir.",
+      "programRole": "Program rolü en fazla {max} karakter olabilir."
     }
   },
   "metadata": {
@@ -2760,5 +2786,139 @@
     "memberFallback": "Üye",
     "founder": "Kurucu",
     "startupFallback": "Startup"
+  },
+  "mentorProfile": {
+    "loading": "Yükleniyor...",
+    "loadFailed": "Mentor profili yüklenemedi.",
+    "editAvailability": "Müsaitliği düzenle",
+    "cancel": "Vazgeç",
+    "editProfile": "Profili düzenle",
+    "saving": "Kaydediliyor…",
+    "save": "Kaydet",
+    "saved": "Mentor profiliniz kaydedildi.",
+    "saveFailed": "Profil kaydedilemedi.",
+    "summary": "Mentorluk özeti",
+    "edit": "Düzenle",
+    "editSection": "{title} düzenle",
+    "select": "Seçin",
+    "cv": {
+      "whoSees": "Sadece sen ve koordinatörler görür.",
+      "filled": "CV okundu. Hakkında, ünvan, şirket, uzmanlıklar ve geçmiş rolleri kontrol edip Kaydet’e bas."
+    },
+    "about": {
+      "title": "Hakkında",
+      "professionalTitle": "Ünvan",
+      "company": "Şirket",
+      "experience": "Deneyim",
+      "availabilityLabel": "Uygunluk etiketi",
+      "languages": "Diller",
+      "empty": "Henüz hakkında bilgisi eklenmedi."
+    },
+    "topics": {
+      "title": "Mentorluk konuları",
+      "empty": "Henüz konu eklenmedi.",
+      "remove": "{topic} konusunu kaldır",
+      "new": "Yeni konu",
+      "placeholder": "Konu ekle",
+      "add": "Ekle"
+    },
+    "style": {
+      "title": "Nasıl çalışıyorum",
+      "field": "Çalışma şekli (her satır bir madde)",
+      "sector": "Sektör deneyimi",
+      "stages": "Çalıştığı aşamalar",
+      "empty": "Henüz bilgi eklenmedi.",
+      "sectorBullet": "Sektör deneyimi: {value}",
+      "stagesBullet": "Çalıştığı aşamalar: {value}"
+    },
+    "roles": {
+      "title": "Geçmiş roller",
+      "legend": "{number}. deneyim",
+      "roleTitle": "Ünvan",
+      "organization": "Kurum",
+      "period": "Dönem",
+      "summary": "Açıklama",
+      "remove": "Deneyimi kaldır",
+      "add": "Deneyim ekle"
+    },
+    "history": {
+      "title": "Mentorluk geçmişi",
+      "empty": "Henüz kabul edilmiş bir mentorluk yok.",
+      "rating": "Değerlendirme {rating}",
+      "pages": "Mentorluk geçmişi sayfaları",
+      "sessions": "{count} seans"
+    },
+    "availability": {
+      "title": "Müsaitlik",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "empty": "Tanımlı haftalık saat yok.",
+      "capacity": "Eş zamanlı mentorluk"
+    },
+    "prefs": {
+      "title": "Görüşme tercihleri",
+      "duration": "Varsayılan süre",
+      "format": "Format",
+      "frequency": "Görüşme sıklığı",
+      "prepFile": "Ön hazırlık dosyası",
+      "responseTime": "Yanıt süresi",
+      "contact": "İletişim",
+      "empty": "Henüz bilgi eklenmedi.",
+      "minutes": "{count} dk"
+    },
+    "programs": {
+      "title": "Programlar",
+      "empty": "Katıldığınız bir program yok.",
+      "role": "Bu programdaki rolün",
+      "rolePlaceholder": "Örn. Design mentor",
+      "status": {
+        "ACTIVE": "Aktif",
+        "COMPLETED": "Tamamlandı"
+      }
+    },
+    "stats": {
+      "active": "Aktif mentorluk",
+      "completed": "Tamamlanan",
+      "sessions": "Toplam seans",
+      "rating": "Ortalama değerlendirme",
+      "duration": "Mentorluk süresi",
+      "lessThanMonth": "1 aydan az",
+      "months": "{count} ay",
+      "years": "{count} yıl"
+    },
+    "dialog": {
+      "title": "Müsaitliği düzenle",
+      "subtitle": "Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.",
+      "close": "Düzenlemeyi kapat",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Müsaitlik ayarları yüklenemedi.",
+      "weekly": "HAFTALIK UYGUNLUK",
+      "dayOpen": "{day} uygun",
+      "range": "{day} {number}. aralık",
+      "rangeStart": "{range} başlangıç",
+      "rangeEnd": "{range} bitiş",
+      "addRange": "{day} için saat aralığı ekle",
+      "removeRange": "{range} kaldır",
+      "closed": "Kapalı",
+      "defaults": "KAPASİTE VE VARSAYILANLAR",
+      "menteeCapacity": "Eş zamanlı mentorluk limiti",
+      "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
+      "meetingBufferMinutes": "İki görüşme arası tampon",
+      "minutesUnit": "dk",
+      "unavailable": "UYGUN OLMADIĞIN TARİHLER",
+      "removeDate": "{date} tarihini kaldır",
+      "addDate": "Tarih ekle",
+      "startDate": "Başlangıç tarihi",
+      "endDate": "Bitiş tarihi",
+      "reason": "İstisna nedeni",
+      "reasonPlaceholder": "Neden (isteğe bağlı)",
+      "cancelDate": "İptal",
+      "confirmDate": "Tarihi ekle",
+      "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet",
+      "saved": "Müsaitlik ayarların kaydedildi.",
+      "saveFailed": "Müsaitlik ayarları kaydedilemedi."
+    }
   }
 }

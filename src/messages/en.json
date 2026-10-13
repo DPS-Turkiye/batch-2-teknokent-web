@@ -826,6 +826,32 @@
       "turkey": "A Turkish number needs 10 digits after +90.",
       "local": "The phone number needs 10 or 11 digits including the area code.",
       "international": "An international phone number needs 8–15 digits."
+    },
+    "availability": {
+      "endBeforeStart": "{day}: the end time must be after the start.",
+      "overlap": "{day}: the time ranges overlap.",
+      "tooManyRanges": "You can add at most 21 time ranges.",
+      "capacity": "The concurrent mentorship limit must be between 1 and 50.",
+      "duration": "The default meeting length must be between 15 and 480 minutes.",
+      "buffer": "The buffer between meetings must be between 0 and 240 minutes.",
+      "tooManyDates": "You can add at most 30 dates.",
+      "pickStart": "Pick a start date.",
+      "endBeforeStartDate": "The end date can't be before the start date.",
+      "duplicateDates": "This date range is already added.",
+      "weekday": {
+        "MONDAY": "Monday",
+        "TUESDAY": "Tuesday",
+        "WEDNESDAY": "Wednesday",
+        "THURSDAY": "Thursday",
+        "FRIDAY": "Friday",
+        "SATURDAY": "Saturday",
+        "SUNDAY": "Sunday"
+      }
+    },
+    "mentorProfile": {
+      "capacity": "Mentee capacity must be between 1 and 50.",
+      "roleTitle": "Enter a title for each role.",
+      "programRole": "A program role can be at most {max} characters."
     }
   },
   "metadata": {
@@ -2760,5 +2786,139 @@
     "memberFallback": "Member",
     "founder": "Founder",
     "startupFallback": "Startup"
+  },
+  "mentorProfile": {
+    "loading": "Loading...",
+    "loadFailed": "Couldn't load the mentor profile.",
+    "editAvailability": "Edit availability",
+    "cancel": "Cancel",
+    "editProfile": "Edit profile",
+    "saving": "Saving…",
+    "save": "Save",
+    "saved": "Your mentor profile is saved.",
+    "saveFailed": "Couldn't save the profile.",
+    "summary": "Mentorship summary",
+    "edit": "Edit",
+    "editSection": "Edit {title}",
+    "select": "Choose",
+    "cv": {
+      "whoSees": "Only you and the coordinators see this.",
+      "filled": "We read your CV. Check About, title, company, expertise and past roles, then press Save."
+    },
+    "about": {
+      "title": "About",
+      "professionalTitle": "Title",
+      "company": "Company",
+      "experience": "Experience",
+      "availabilityLabel": "Availability label",
+      "languages": "Languages",
+      "empty": "No about text added yet."
+    },
+    "topics": {
+      "title": "Mentoring topics",
+      "empty": "No topics added yet.",
+      "remove": "Remove topic {topic}",
+      "new": "New topic",
+      "placeholder": "Add a topic",
+      "add": "Add"
+    },
+    "style": {
+      "title": "How I work",
+      "field": "Working style (one point per line)",
+      "sector": "Sector experience",
+      "stages": "Stages I work with",
+      "empty": "Nothing added yet.",
+      "sectorBullet": "Sector experience: {value}",
+      "stagesBullet": "Stages I work with: {value}"
+    },
+    "roles": {
+      "title": "Past roles",
+      "legend": "Role {number}",
+      "roleTitle": "Title",
+      "organization": "Organization",
+      "period": "Period",
+      "summary": "Description",
+      "remove": "Remove role",
+      "add": "Add a role"
+    },
+    "history": {
+      "title": "Mentorship history",
+      "empty": "No accepted mentorships yet.",
+      "rating": "Rating {rating}",
+      "pages": "Mentorship history pages",
+      "sessions": "{count, plural, one {# session} other {# sessions}}"
+    },
+    "availability": {
+      "title": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "capacity": "Concurrent mentorships"
+    },
+    "prefs": {
+      "title": "Meeting preferences",
+      "duration": "Default length",
+      "format": "Format",
+      "frequency": "Meeting frequency",
+      "prepFile": "Prep file",
+      "responseTime": "Response time",
+      "contact": "Contact",
+      "empty": "Nothing added yet.",
+      "minutes": "{count} min"
+    },
+    "programs": {
+      "title": "Programs",
+      "empty": "You're not in any program.",
+      "role": "Your role in this program",
+      "rolePlaceholder": "e.g. Design mentor",
+      "status": {
+        "ACTIVE": "Active",
+        "COMPLETED": "Completed"
+      }
+    },
+    "stats": {
+      "active": "Active mentorships",
+      "completed": "Completed",
+      "sessions": "Total sessions",
+      "rating": "Average rating",
+      "duration": "Mentoring for",
+      "lessThanMonth": "Under a month",
+      "months": "{count, plural, one {# month} other {# months}}",
+      "years": "{count, plural, one {# year} other {# years}}"
+    },
+    "dialog": {
+      "title": "Edit availability",
+      "subtitle": "Startups can only propose meetings in the hours you leave open.",
+      "close": "Close the editor",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load your availability settings.",
+      "weekly": "WEEKLY AVAILABILITY",
+      "dayOpen": "Available on {day}",
+      "range": "{day} range {number}",
+      "rangeStart": "{range} start",
+      "rangeEnd": "{range} end",
+      "addRange": "Add a time range on {day}",
+      "removeRange": "Remove {range}",
+      "closed": "Closed",
+      "defaults": "CAPACITY AND DEFAULTS",
+      "menteeCapacity": "Concurrent mentorship limit",
+      "defaultMeetingDurationMinutes": "Default meeting length",
+      "meetingBufferMinutes": "Buffer between meetings",
+      "minutesUnit": "min",
+      "unavailable": "DATES YOU'RE UNAVAILABLE",
+      "removeDate": "Remove {date}",
+      "addDate": "Add a date",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "reason": "Reason",
+      "reasonPlaceholder": "Reason (optional)",
+      "cancelDate": "Cancel",
+      "confirmDate": "Add the date",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "saved": "Your availability settings are saved.",
+      "saveFailed": "Couldn't save your availability settings."
+    }
   }
 }

@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
@@ -7,7 +8,6 @@ import {
   type MentorProfile,
   PrepFileRequirement,
   Weekday,
-  WEEKDAY_LABELS,
 } from "@/interfaces/mentor";
 import {
   type MentorshipRequest,
@@ -25,7 +25,29 @@ import {
   profileSubtitle,
   weeklyAvailabilityRows,
   workingStyleBullets,
+  type MentorProfileTexts,
 } from "@/lib/mentor-profile-overview";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+function profileTexts(locale: "tr" | "en"): MentorProfileTexts {
+  const messages = locale === "en" ? en : tr;
+  const optionValues = createTranslator({
+    locale,
+    messages,
+    namespace: "optionValues",
+  });
+  return {
+    t: createTranslator({ locale, messages, namespace: "mentorProfile" }),
+    tOptions: createTranslator({ locale, messages, namespace: "options" }),
+    optionLabel: (group, value) => {
+      const key = `${group}.${value}` as Parameters<typeof optionValues>[0];
+      return optionValues.has(key) ? optionValues(key) : value;
+    },
+    locale,
+  };
+}
+const texts = profileTexts("tr");
 
 function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
   return {
@@ -96,31 +118,49 @@ describe("mentorshipDurationLabel", () => {
           request("a", "2026-01-20T09:00:00Z"),
           request("b", "2024-09-10T09:00:00Z"),
         ],
+        texts,
         now,
       ),
     ).toBe("2 yıl");
     expect(
-      mentorshipDurationLabel([request("a", "2026-01-20T09:00:00Z")], now),
+      mentorshipDurationLabel(
+        [request("a", "2026-01-20T09:00:00Z")],
+        texts,
+        now,
+      ),
     ).toBe("7 ay");
     expect(
-      mentorshipDurationLabel([request("a", "2026-09-02T09:00:00Z")], now),
+      mentorshipDurationLabel(
+        [request("a", "2026-09-02T09:00:00Z")],
+        texts,
+        now,
+      ),
     ).toBe("1 aydan az");
+    expect(
+      mentorshipDurationLabel(
+        [request("a", "2026-01-20T09:00:00Z")],
+        profileTexts("en"),
+        now,
+      ),
+    ).toBe("7 months");
   });
 
   it("has nothing to show without a mentorship", () => {
-    expect(mentorshipDurationLabel([], now)).toBeNull();
+    expect(mentorshipDurationLabel([], texts, now)).toBeNull();
   });
 
   it("does not count a month until its day has come round", () => {
     expect(
       mentorshipDurationLabel(
         [request("a", "2026-08-31T09:00:00Z")],
+        texts,
         new Date("2026-09-01T12:00:00Z"),
       ),
     ).toBe("1 aydan az");
     expect(
       mentorshipDurationLabel(
         [request("a", "2026-08-10T09:00:00Z")],
+        texts,
         new Date("2026-09-10T12:00:00Z"),
       ),
     ).toBe("1 ay");
@@ -138,20 +178,38 @@ describe("mentorshipHistory", () => {
 
     expect(completedSessionCount(meetings)).toBe(3);
     expect(
-      mentorshipHistory([request("r1", "2026-03-10T09:00:00Z")], meetings),
+      mentorshipHistory(
+        [request("r1", "2026-03-10T09:00:00Z")],
+        meetings,
+        texts,
+      ),
     ).toEqual([
       {
         id: "r1",
         title: "NovaTech · Zeynep Er",
-        detail: "Mar – Haz 2026 · 2 seans",
+        detail: expect.stringMatching(/^Mar\s?–\s?Haz 2026 · 2 seans$/),
         rating: null,
       },
     ]);
     expect(
-      mentorshipHistory([request("r1", "2026-03-10T09:00:00Z")], meetings, {
-        r1: 4.25,
-      })[0].rating,
+      mentorshipHistory(
+        [request("r1", "2026-03-10T09:00:00Z")],
+        meetings,
+        texts,
+        { r1: 4.25 },
+      )[0].rating,
     ).toBe("4,3");
+    expect(
+      mentorshipHistory(
+        [request("r1", "2026-03-10T09:00:00Z")],
+        meetings,
+        profileTexts("en"),
+        { r1: 4.25 },
+      )[0],
+    ).toMatchObject({
+      detail: expect.stringMatching(/^Mar\s?–\s?Jun 2026 · 2 sessions$/),
+      rating: "4.3",
+    });
   });
 
   it("names both years across a new year, and one month when it has just begun", () => {
@@ -159,10 +217,12 @@ describe("mentorshipHistory", () => {
       mentorshipHistory(
         [request("r1", "2025-11-10T09:00:00Z")],
         [meeting("m1", "2026-02-12T10:00:00Z", MeetingStatus.Completed)],
+        texts,
       )[0].detail,
-    ).toBe("Kas 2025 – Şub 2026 · 1 seans");
+    ).toMatch(/^Kas 2025\s–\sŞub 2026 · 1 seans$/);
     expect(
-      mentorshipHistory([request("r1", "2026-09-10T09:00:00Z")], [])[0].detail,
+      mentorshipHistory([request("r1", "2026-09-10T09:00:00Z")], [], texts)[0]
+        .detail,
     ).toBe("Eyl 2026 · 0 seans");
   });
 });
@@ -176,6 +236,7 @@ describe("workingStyleBullets", () => {
             "Her mentorluk 5 aşamada ilerler\n• Görüşme öncesi kısa bir dosya isterim\n",
           sectorExperience: "B2C SaaS",
         }),
+        texts,
       ),
     ).toEqual([
       "Her mentorluk 5 aşamada ilerler",
@@ -202,6 +263,7 @@ describe("meetingPreferenceRows", () => {
           prepFileRequirement: PrepFileRequirement.Required,
         }),
         settings,
+        texts,
       ),
     ).toEqual([
       { label: "Varsayılan süre", value: "45 dk" },
@@ -211,8 +273,25 @@ describe("meetingPreferenceRows", () => {
     ]);
   });
 
+  it("reads in English, saved Turkish format included", () => {
+    expect(
+      meetingPreferenceRows(
+        profile({
+          meetingMode: "Yüz yüze",
+          meetingFrequency: MeetingFrequency.Biweekly,
+        }),
+        settings,
+        profileTexts("en"),
+      ),
+    ).toEqual([
+      { label: "Default length", value: "45 min" },
+      { label: "Format", value: "In person" },
+      { label: "Meeting frequency", value: "Every 2 weeks" },
+    ]);
+  });
+
   it("leaves out whatever is not set yet", () => {
-    expect(meetingPreferenceRows(profile(), undefined)).toEqual([
+    expect(meetingPreferenceRows(profile(), undefined, texts)).toEqual([
       { label: "Format", value: "Online" },
     ]);
   });
@@ -221,9 +300,9 @@ describe("meetingPreferenceRows", () => {
 describe("languagesLabel", () => {
   it("joins the chosen languages", () => {
     expect(
-      languagesLabel([MentorLanguage.Turkish, MentorLanguage.English]),
+      languagesLabel([MentorLanguage.Turkish, MentorLanguage.English], texts),
     ).toBe("Türkçe · İngilizce");
-    expect(languagesLabel(undefined)).toBe("");
+    expect(languagesLabel(undefined, texts)).toBe("");
   });
 });
 
@@ -236,23 +315,29 @@ describe("programDetail", () => {
   };
 
   it("pairs the status with the mentor's role", () => {
-    expect(programDetail(program)).toBe("Aktif · Design mentor");
+    expect(programDetail(program, texts)).toBe("Aktif · Design mentor");
+    expect(programDetail(program, profileTexts("en"))).toBe(
+      "Active · Design mentor",
+    );
   });
 
   it("shows only the status without a role", () => {
     expect(
-      programDetail({
-        ...program,
-        status: ProgramStatus.Completed,
-        role: "  ",
-      }),
+      programDetail(
+        {
+          ...program,
+          status: ProgramStatus.Completed,
+          role: "  ",
+        },
+        texts,
+      ),
     ).toBe("Tamamlandı");
   });
 });
 
 describe("weeklyAvailabilityRows", () => {
-  const texts = {
-    weekday: (day: Weekday) => WEEKDAY_LABELS[day],
+  const rowTexts = {
+    weekday: (day: Weekday) => tr.options.weekday[day],
     otherDays: "Diğer günler",
     closed: "Kapalı",
   };
@@ -283,7 +368,7 @@ describe("weeklyAvailabilityRows", () => {
             slotMinutes: 45,
           },
         ],
-        texts,
+        rowTexts,
       ),
     ).toEqual([
       { label: "Salı", value: "09:00–10:00, 14:00–17:00" },
@@ -293,14 +378,15 @@ describe("weeklyAvailabilityRows", () => {
   });
 
   it("has no rows when no day is open", () => {
-    expect(weeklyAvailabilityRows([], texts)).toEqual([]);
+    expect(weeklyAvailabilityRows([], rowTexts)).toEqual([]);
   });
 });
 
 describe("ratingLabel", () => {
   it("shows one decimal the Turkish way, and nothing before any feedback", () => {
-    expect(ratingLabel(4.8)).toBe("4,8");
-    expect(ratingLabel(5)).toBe("5,0");
-    expect(ratingLabel(null)).toBeNull();
+    expect(ratingLabel(4.8, "tr")).toBe("4,8");
+    expect(ratingLabel(5, "tr")).toBe("5,0");
+    expect(ratingLabel(4.8, "en")).toBe("4.8");
+    expect(ratingLabel(null, "tr")).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -15,21 +16,18 @@ import {
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import {
-  MEETING_FREQUENCY_LABELS,
-  MENTOR_LANGUAGE_LABELS,
+  MeetingFrequency,
   MentorLanguage,
   type MentorProfile,
-  PREP_FILE_REQUIREMENT_LABELS,
+  PrepFileRequirement,
 } from "@/interfaces/mentor";
 import type {
   LabelValue,
   MentorshipHistoryRow,
 } from "@/lib/mentor-profile-overview";
-import {
-  MENTOR_PROFILE_HISTORY_PAGE_SIZE,
-  MENTOR_PROFILE_HISTORY_PAGER_LABEL,
-} from "@/lib/const/mentorships";
+import { MENTOR_PROFILE_HISTORY_PAGE_SIZE } from "@/lib/const/mentorships";
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
@@ -59,13 +57,14 @@ function MentorshipHistoryList({
   history: MentorshipHistoryRow[];
   isLoading: boolean;
 }) {
+  const t = useTranslations("mentorProfile");
   const pager = useClientPagination(history, MENTOR_PROFILE_HISTORY_PAGE_SIZE);
 
   if (isLoading) {
-    return <p className={emptyClass}>Yükleniyor...</p>;
+    return <p className={emptyClass}>{t("loading")}</p>;
   }
   if (history.length === 0) {
-    return <p className={emptyClass}>Henüz kabul edilmiş bir mentorluk yok.</p>;
+    return <p className={emptyClass}>{t("history.empty")}</p>;
   }
 
   return (
@@ -78,7 +77,7 @@ function MentorshipHistoryList({
               {row.rating ? (
                 <span
                   className="shrink-0 text-[12px] text-[#b7791f]"
-                  aria-label={`Değerlendirme ${row.rating}`}
+                  aria-label={t("history.rating", { rating: row.rating })}
                 >
                   ★ {row.rating}
                 </span>
@@ -94,7 +93,7 @@ function MentorshipHistoryList({
         page={pager.page}
         totalPages={pager.totalPages}
         onPageChange={pager.setPage}
-        label={MENTOR_PROFILE_HISTORY_PAGER_LABEL}
+        label={t("history.pages")}
       />
     </MentorAccent>
   );
@@ -121,6 +120,7 @@ function Card({
   focusFirstField?: boolean;
   children: ReactNode;
 }) {
+  const t = useTranslations("mentorProfile");
   const contentRef = useRef<HTMLDivElement>(null);
 
   // The Düzenle button that was pressed leaves the page in edit mode, so focus
@@ -142,10 +142,10 @@ function Card({
           <button
             type="button"
             onClick={onEdit}
-            aria-label={`${title} düzenle`}
+            aria-label={t("editSection", { title })}
             className={`text-[#26a4ff] ${buttonTextClass}`}
           >
-            Düzenle
+            {t("edit")}
           </button>
         ) : null}
       </header>
@@ -211,14 +211,17 @@ function TextInput({
 function ChoiceInput<T extends string>({
   label,
   value,
-  labels,
+  options,
+  optionLabel,
   onChange,
 }: {
   label: string;
   value: T | null;
-  labels: Record<T, string>;
+  options: T[];
+  optionLabel: (option: T) => string;
   onChange: (value: T) => void;
 }) {
+  const t = useTranslations("mentorProfile");
   return (
     <label className={labelClass}>
       {label}
@@ -229,12 +232,12 @@ function ChoiceInput<T extends string>({
       >
         {value === null ? (
           <option value="" disabled>
-            Seçin
+            {t("select")}
           </option>
         ) : null}
-        {(Object.keys(labels) as T[]).map((option) => (
+        {options.map((option) => (
           <option key={option} value={option}>
-            {labels[option]}
+            {optionLabel(option)}
           </option>
         ))}
       </select>
@@ -243,20 +246,24 @@ function ChoiceInput<T extends string>({
 }
 
 function MentorCvCard({ form }: { form: ProfileForm }) {
+  const t = useTranslations("mentorProfile.cv");
   const cv = useMentorCv(form.applyCv);
   return (
     <Card title="CV">
       <CvFileSection
         cv={cv}
         accent="blue"
-        whoSees="Sadece sen ve koordinatörler görür."
-        filledMessage="CV okundu. Hakkında, ünvan, şirket, uzmanlıklar ve geçmiş rolleri kontrol edip Kaydet'e bas."
+        whoSees={t("whoSees")}
+        filledMessage={t("filled")}
       />
     </Card>
   );
 }
 
 function ProfileBody({ profile }: { profile: MentorProfile }) {
+  const t = useTranslations("mentorProfile");
+  const tOptions = useTranslations("options");
+  const optionLabel = useOptionLabel();
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const form = useMentorProfileForm(profile);
   const overview = useMentorProfileOverview(profile);
@@ -310,7 +317,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               onClick={() => setAvailabilityOpen(true)}
               className={outlineButtonClass}
             >
-              Müsaitliği düzenle
+              {t("editAvailability")}
             </button>
             {editing ? (
               <button
@@ -322,7 +329,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 disabled={form.isSaving}
                 className={outlineButtonClass}
               >
-                Vazgeç
+                {t("cancel")}
               </button>
             ) : null}
             <button
@@ -340,10 +347,10 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               className={`rounded-full bg-[#26a4ff] px-4 py-2.5 text-white disabled:bg-[#c9cdd2] ${buttonTextClass}`}
             >
               {!editing
-                ? "Profili düzenle"
+                ? t("editProfile")
                 : form.isSaving
-                  ? "Kaydediliyor…"
-                  : "Kaydet"}
+                  ? t("saving")
+                  : t("save")}
             </button>
           </div>
         </header>
@@ -354,7 +361,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
         ) : null}
 
         <section
-          aria-label="Mentorluk özeti"
+          aria-label={t("summary")}
           className="grid grid-cols-2 gap-6 rounded-xl border border-[#f5faff] px-0.5 py-[18px] sm:grid-cols-3 lg:grid-cols-5"
         >
           {overview.stats.map((stat) => (
@@ -376,38 +383,44 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
           <div className="flex flex-col gap-[18px]">
             {editing ? <MentorCvCard form={form} /> : null}
             <Card
-              title="Hakkında"
-              onEdit={editSection("Hakkında")}
-              focusFirstField={focusSection("Hakkında")}
+              title={t("about.title")}
+              onEdit={editSection("about")}
+              focusFirstField={focusSection("about")}
             >
               {editing ? (
                 <>
                   <TextInput
                     form={form}
                     field="about"
-                    label="Hakkında"
+                    label={t("about.title")}
                     multiline
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <TextInput
                       form={form}
                       field="professionalTitle"
-                      label="Ünvan"
+                      label={t("about.professionalTitle")}
                     />
-                    <TextInput form={form} field="company" label="Şirket" />
+                    <TextInput
+                      form={form}
+                      field="company"
+                      label={t("about.company")}
+                    />
                     <TextInput
                       form={form}
                       field="experienceLevel"
-                      label="Deneyim"
+                      label={t("about.experience")}
                     />
                     <TextInput
                       form={form}
                       field="availabilityLabel"
-                      label="Uygunluk etiketi"
+                      label={t("about.availabilityLabel")}
                     />
                   </div>
                   <fieldset>
-                    <legend className={labelClass}>Diller</legend>
+                    <legend className={labelClass}>
+                      {t("about.languages")}
+                    </legend>
                     <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
                       {Object.values(MentorLanguage).map((language) => (
                         <label
@@ -420,7 +433,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                             onChange={() => form.toggleLanguage(language)}
                             className="size-4 accent-[#26a4ff]"
                           />
-                          {MENTOR_LANGUAGE_LABELS[language]}
+                          {tOptions(`language.${language}`)}
                         </label>
                       ))}
                     </div>
@@ -428,24 +441,26 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 </>
               ) : (
                 <p className="whitespace-pre-line text-[13px] leading-5 text-[#4a5059]">
-                  {form.form.about || "Henüz hakkında bilgisi eklenmedi."}
+                  {form.form.about || t("about.empty")}
                 </p>
               )}
             </Card>
 
-            <Card title="Mentorluk konuları">
+            <Card title={t("topics.title")}>
               <div className="flex flex-wrap gap-2">
                 {form.form.specialties.length === 0 ? (
-                  <p className={emptyClass}>Henüz konu eklenmedi.</p>
+                  <p className={emptyClass}>{t("topics.empty")}</p>
                 ) : (
                   form.form.specialties.map((topic) => (
                     <Chip key={topic} tone="blue">
-                      {topic}
+                      {optionLabel("mentorTopic", topic)}
                       {editing ? (
                         <button
                           type="button"
                           onClick={() => form.removeSpecialty(topic)}
-                          aria-label={`${topic} konusunu kaldır`}
+                          aria-label={t("topics.remove", {
+                            topic: optionLabel("mentorTopic", topic),
+                          })}
                         >
                           <X className="size-3" />
                         </button>
@@ -457,12 +472,12 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               {editing ? (
                 <div className="flex gap-2">
                   <input
-                    aria-label="Yeni konu"
+                    aria-label={t("topics.new")}
                     value={form.specialtyInput}
                     onChange={(event) =>
                       form.setSpecialtyInput(event.target.value)
                     }
-                    placeholder="Konu ekle"
+                    placeholder={t("topics.placeholder")}
                     className="min-w-0 flex-1 rounded-lg border border-[#d4d8dd] px-3 py-2 text-[12.5px]!"
                   />
                   <button
@@ -470,36 +485,36 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     onClick={form.addSpecialty}
                     className={`rounded-full border border-[#d4d8dd] px-3 py-2 text-[#26a4ff] ${buttonTextClass}`}
                   >
-                    Ekle
+                    {t("topics.add")}
                   </button>
                 </div>
               ) : null}
             </Card>
 
-            <Card title="Nasıl çalışıyorum">
+            <Card title={t("style.title")}>
               {editing ? (
                 <>
                   <TextInput
                     form={form}
                     field="mentoringStyle"
-                    label="Çalışma şekli (her satır bir madde)"
+                    label={t("style.field")}
                     multiline
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <TextInput
                       form={form}
                       field="sectorExperience"
-                      label="Sektör deneyimi"
+                      label={t("style.sector")}
                     />
                     <TextInput
                       form={form}
                       field="startupStages"
-                      label="Çalıştığı aşamalar"
+                      label={t("style.stages")}
                     />
                   </div>
                 </>
               ) : overview.workingStyle.length === 0 ? (
-                <p className={emptyClass}>Henüz bilgi eklenmedi.</p>
+                <p className={emptyClass}>{t("style.empty")}</p>
               ) : (
                 <ul className="flex flex-col gap-3">
                   {overview.workingStyle.map((bullet) => (
@@ -519,19 +534,21 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
             </Card>
 
             {editing ? (
-              <Card title="Geçmiş roller">
+              <Card title={t("roles.title")}>
                 {form.form.experiences.map((experience, index) => (
                   <fieldset
                     key={index}
                     className="grid gap-2 rounded-lg border border-[#e4e7ea] p-3 sm:grid-cols-2"
                   >
-                    <legend className="sr-only">{index + 1}. deneyim</legend>
+                    <legend className="sr-only">
+                      {t("roles.legend", { number: index + 1 })}
+                    </legend>
                     {(
                       [
-                        ["title", "Ünvan"],
-                        ["organization", "Kurum"],
-                        ["period", "Dönem"],
-                        ["summary", "Açıklama"],
+                        ["title", t("roles.roleTitle")],
+                        ["organization", t("roles.organization")],
+                        ["period", t("roles.period")],
+                        ["summary", t("roles.summary")],
                       ] as const
                     ).map(([field, label]) => (
                       <label key={field} className={labelClass}>
@@ -554,7 +571,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       onClick={() => form.removeExperience(index)}
                       className="justify-self-start text-xs text-[#a65a15]"
                     >
-                      Deneyimi kaldır
+                      {t("roles.remove")}
                     </button>
                   </fieldset>
                 ))}
@@ -564,13 +581,13 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                     onClick={form.addExperience}
                     className={`self-start rounded-full border border-[#d4d8dd] px-3 py-2 text-[#26a4ff] ${buttonTextClass}`}
                   >
-                    Deneyim ekle
+                    {t("roles.add")}
                   </button>
                 ) : null}
               </Card>
             ) : null}
 
-            <Card title="Mentorluk geçmişi">
+            <Card title={t("history.title")}>
               <MentorshipHistoryList
                 history={overview.history}
                 isLoading={overview.isHistoryLoading}
@@ -579,21 +596,24 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
           </div>
 
           <aside className="flex flex-col gap-[18px]">
-            <Card title="Müsaitlik" onEdit={() => setAvailabilityOpen(true)}>
+            <Card
+              title={t("availability.title")}
+              onEdit={() => setAvailabilityOpen(true)}
+            >
               <p className="text-xs leading-[19px] text-[#676e78]">
-                Tekrarlayan haftalık uygunluk
+                {t("availability.weekly")}
               </p>
               {overview.isAvailabilityLoading ? (
-                <p className={emptyClass}>Yükleniyor...</p>
+                <p className={emptyClass}>{t("loading")}</p>
               ) : overview.weeklyAvailability.length === 0 ? (
-                <p className={emptyClass}>Tanımlı haftalık saat yok.</p>
+                <p className={emptyClass}>{t("availability.empty")}</p>
               ) : (
                 <Rows rows={overview.weeklyAvailability} />
               )}
               {overview.capacityLabel ? (
                 <div className="flex items-center justify-between rounded-lg border border-[#f5faff] bg-[#f2f8fc] px-3 py-2.5 leading-[19px]">
                   <span className="text-xs text-[#676e78]">
-                    Eş zamanlı mentorluk
+                    {t("availability.capacity")}
                   </span>
                   <span className="text-[12.5px] font-medium text-[#26a4ff]">
                     {overview.capacityLabel}
@@ -602,43 +622,51 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ) : null}
             </Card>
 
-            <Card title="Görüşme tercihleri">
+            <Card title={t("prefs.title")}>
               {editing ? (
                 <>
-                  <TextInput form={form} field="meetingMode" label="Format" />
+                  <TextInput
+                    form={form}
+                    field="meetingMode"
+                    label={t("prefs.format")}
+                  />
                   <ChoiceInput
-                    label="Görüşme sıklığı"
+                    label={t("prefs.frequency")}
                     value={form.form.meetingFrequency}
-                    labels={MEETING_FREQUENCY_LABELS}
+                    options={Object.values(MeetingFrequency)}
+                    optionLabel={(option) =>
+                      tOptions(`meetingFrequency.${option}`)
+                    }
                     onChange={form.setMeetingFrequency}
                   />
                   <ChoiceInput
-                    label="Ön hazırlık dosyası"
+                    label={t("prefs.prepFile")}
                     value={form.form.prepFileRequirement}
-                    labels={PREP_FILE_REQUIREMENT_LABELS}
+                    options={Object.values(PrepFileRequirement)}
+                    optionLabel={(option) => tOptions(`prepFile.${option}`)}
                     onChange={form.setPrepFileRequirement}
                   />
                   <TextInput
                     form={form}
                     field="responseTimeLabel"
-                    label="Yanıt süresi"
+                    label={t("prefs.responseTime")}
                   />
                   <TextInput
                     form={form}
                     field="communicationPreference"
-                    label="İletişim"
+                    label={t("prefs.contact")}
                   />
                 </>
               ) : overview.preferences.length === 0 ? (
-                <p className={emptyClass}>Henüz bilgi eklenmedi.</p>
+                <p className={emptyClass}>{t("prefs.empty")}</p>
               ) : (
                 <Rows rows={overview.preferences} />
               )}
             </Card>
 
-            <Card title="Programlar">
+            <Card title={t("programs.title")}>
               {overview.programs.length === 0 ? (
-                <p className={emptyClass}>Katıldığınız bir program yok.</p>
+                <p className={emptyClass}>{t("programs.empty")}</p>
               ) : (
                 <ul className="flex flex-col gap-3">
                   {overview.programs.map((program) => (
@@ -648,7 +676,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                       </p>
                       {editing ? (
                         <label className={labelClass}>
-                          Bu programdaki rolün
+                          {t("programs.role")}
                           <input
                             value={form.programRole(program.id)}
                             maxLength={80}
@@ -658,7 +686,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                                 event.target.value,
                               )
                             }
-                            placeholder="Örn. Design mentor"
+                            placeholder={t("programs.rolePlaceholder")}
                             className={inputClass}
                           />
                         </label>
@@ -683,15 +711,18 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
 }
 
 export default function MentorProfilePage() {
+  const t = useTranslations("mentorProfile");
   const profileQuery = useMentorProfile();
 
   return (
     <AppShell mentorHome>
       {profileQuery.isLoading ? (
-        <p className="p-10 text-center text-sm text-[#858c96]">Yükleniyor...</p>
+        <p className="p-10 text-center text-sm text-[#858c96]">
+          {t("loading")}
+        </p>
       ) : profileQuery.error || !profileQuery.data ? (
         <p className="p-10 text-center text-sm text-[#a65a15]">
-          Mentor profili yüklenemedi.
+          {t("loadFailed")}
         </p>
       ) : (
         <ProfileBody profile={profileQuery.data} />
