@@ -90,9 +90,11 @@ describe("evaluationMeetingMeta", () => {
   };
 
   it("names the startup, the mentee, the meeting and when it was", () => {
-    const meta = evaluationMeetingMeta(meeting, {
-      requesterName: "Gülse Buran",
-    } as MentorshipRequest);
+    const meta = evaluationMeetingMeta(
+      meeting,
+      { requesterName: "Gülse Buran" } as MentorshipRequest,
+      { minutes: (count) => `${count} dk`, locale: "tr" },
+    );
 
     expect(meta).toMatch(
       /^Döngü · Gülse · UX Flow Review · 5 Eylül · \d{2}:\d{2} · 45 dk$/,
@@ -106,6 +108,7 @@ describe("evaluationMeetingMeta", () => {
         organizationName: "Döngü",
         supportArea: "Fiyatlandırma",
       } as MentorshipRequest,
+      { minutes: (count) => `${count} dk`, locale: "tr" },
     );
 
     expect(meta.startsWith("Döngü · Fiyatlandırma · 5 Eylül")).toBe(true);

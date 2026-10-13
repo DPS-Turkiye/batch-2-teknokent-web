@@ -2920,5 +2920,50 @@
       "saved": "Your availability settings are saved.",
       "saveFailed": "Couldn't save your availability settings."
     }
+  },
+  "mentorEvaluation": {
+    "breadcrumb": "Location",
+    "breadcrumbRoot": "My mentorships",
+    "breadcrumbPage": "Meeting review",
+    "title": "How did this meeting go?",
+    "info": "3 short questions · about 1 minute. This review isn't a score for the mentee; it tells us how productive the meeting was.",
+    "preparedness": "1. How prepared was the mentee for today's meeting, and how clearly did they explain where the startup stands?",
+    "preparednessLow": "1 — Not prepared at all",
+    "preparednessHigh": "5 — Very prepared and clear",
+    "rating": "{value} / 5",
+    "qualities": "2. How would you sum up the communication in the meeting?",
+    "qualitiesHint": "You can pick more than one",
+    "quality": {
+      "prepared": "Prepared",
+      "clear": "Clear communication",
+      "questions": "Asked clear questions",
+      "feedback": "Open to feedback",
+      "active": "Engaged",
+      "focused": "Focused",
+      "constructive": "Constructive",
+      "solutions": "Solution-oriented",
+      "motivated": "Highly motivated",
+      "respectful": "Respectful"
+    },
+    "clarity": "3. By the end of the meeting, were the main decisions and next steps clear without needing the AI summary?",
+    "clarityOption": {
+      "YES": "Yes",
+      "PARTLY": "Partly",
+      "NO": "No"
+    },
+    "note": "Is there anything you'd like to be different in the next meeting?",
+    "optional": "(optional)",
+    "notePlaceholder": "e.g. I'd like them to bring their user testing findings to the next meeting.",
+    "submit": "Send review",
+    "submitting": "Sending…",
+    "later": "Later",
+    "answered": "{answered}/{total} questions answered",
+    "sentTitle": "Your review is in.",
+    "sentBody": "Your feedback helps improve the mentoring experience and the program.",
+    "backToMentorships": "Back to my mentorships",
+    "home": "Go to home",
+    "loading": "Loading the meeting…",
+    "notFound": "Meeting not found.",
+    "minutes": "{count} min"
   }
 }

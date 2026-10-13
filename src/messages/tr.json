@@ -2920,5 +2920,50 @@
       "saved": "Müsaitlik ayarların kaydedildi.",
       "saveFailed": "Müsaitlik ayarları kaydedilemedi."
     }
+  },
+  "mentorEvaluation": {
+    "breadcrumb": "Konum",
+    "breadcrumbRoot": "Mentorluklarım",
+    "breadcrumbPage": "Görüşme değerlendirmesi",
+    "title": "Bu görüşme nasıl geçti?",
+    "info": "3 kısa soru · yaklaşık 1 dakika. Bu değerlendirme mentee’yi puanlamak için değil, görüşmenin ne kadar verimli geçtiğini anlamak için kullanılır.",
+    "preparedness": "1. Mentee bugünkü görüşmeye ne kadar hazırlıklı geldi ve girişimin mevcut durumunu ne kadar net aktardı?",
+    "preparednessLow": "1 — Hiç hazırlıklı değildi",
+    "preparednessHigh": "5 — Çok hazırlıklı ve netti",
+    "rating": "{value} / 5",
+    "qualities": "2. Görüşmedeki iletişimi nasıl özetlersiniz?",
+    "qualitiesHint": "Birden fazla seçebilirsiniz",
+    "quality": {
+      "prepared": "Hazırlıklı",
+      "clear": "Açık iletişim",
+      "questions": "Net sorular sordu",
+      "feedback": "Geri bildirime açık",
+      "active": "Aktif katılım",
+      "focused": "Odaklı",
+      "constructive": "Yapıcı",
+      "solutions": "Çözüm odaklı",
+      "motivated": "Motivasyonu yüksek",
+      "respectful": "Saygılı"
+    },
+    "clarity": "3. Görüşmenin sonunda ana kararlar ve sonraki adımlar, yapay zeka özetine ihtiyaç duymadan netleşti mi?",
+    "clarityOption": {
+      "YES": "Evet",
+      "PARTLY": "Kısmen",
+      "NO": "Hayır"
+    },
+    "note": "Bir sonraki görüşmede farklı olmasını istediğiniz bir şey var mı?",
+    "optional": "(opsiyonel)",
+    "notePlaceholder": "Örn. Bir sonraki görüşmeye kullanıcı testi bulgularıyla gelmelerini istiyorum.",
+    "submit": "Değerlendirmeyi gönder",
+    "submitting": "Gönderiliyor…",
+    "later": "Daha sonra",
+    "answered": "{answered}/{total} soru yanıtlandı",
+    "sentTitle": "Değerlendirmeniz alındı.",
+    "sentBody": "Geri bildiriminiz mentörlük deneyiminin ve programın geliştirilmesine yardımcı olur.",
+    "backToMentorships": "Mentorluklarıma dön",
+    "home": "Anasayfaya git",
+    "loading": "Görüşme yükleniyor…",
+    "notFound": "Görüşme bulunamadı.",
+    "minutes": "{count} dk"
   }
 }

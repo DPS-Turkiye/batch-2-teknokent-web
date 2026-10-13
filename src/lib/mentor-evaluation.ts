@@ -52,13 +52,14 @@ export function evaluationPayload(
 export function evaluationMeetingMeta(
   meeting: MeetingItem,
   request: MentorshipRequest | undefined,
+  { minutes, locale }: { minutes: (count: number) => string; locale: string },
 ) {
   const start = new Date(meeting.scheduledAt);
-  const day = new Intl.DateTimeFormat("tr-TR", {
+  const day = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
   }).format(start);
-  const time = new Intl.DateTimeFormat("tr-TR", {
+  const time = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
   }).format(start);
@@ -68,7 +69,7 @@ export function evaluationMeetingMeta(
     meeting.agenda?.trim() || request?.supportArea,
     day,
     time,
-    `${meeting.durationMinutes} dk`,
+    minutes(meeting.durationMinutes),
   ]
     .filter(Boolean)
     .join(" · ");
