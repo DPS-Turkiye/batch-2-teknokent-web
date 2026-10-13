@@ -222,9 +222,13 @@ export function mentorRequestStartupHref(id: string) {
   return `/mentorships/requests/${encodeURIComponent(id)}`;
 }
 
-export function formatRequestSentAt(createdAt: string, now = new Date()) {
+export function formatRequestSentAt(
+  createdAt: string,
+  now = new Date(),
+  locale = "tr",
+) {
   const date = new Date(createdAt);
-  const time = new Intl.DateTimeFormat("tr-TR", {
+  const time = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
@@ -232,11 +236,14 @@ export function formatRequestSentAt(createdAt: string, now = new Date()) {
     left.getFullYear() === right.getFullYear() &&
     left.getMonth() === right.getMonth() &&
     left.getDate() === right.getDate();
-  if (sameDay(date, now)) return `bugün ${time}`;
+  const relative = new Intl.RelativeTimeFormat(locale, { numeric: "auto" });
+  if (sameDay(date, now)) return `${relative.format(0, "day")} ${time}`;
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (sameDay(date, yesterday)) return `dün ${time}`;
-  const day = new Intl.DateTimeFormat("tr-TR", {
+  if (sameDay(date, yesterday)) {
+    return `${relative.format(-1, "day")} ${time}`;
+  }
+  const day = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
   }).format(date);

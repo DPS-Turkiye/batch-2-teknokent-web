@@ -1,15 +1,5 @@
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 
-const WEEKDAY_LONG = [
-  "Pazar",
-  "Pazartesi",
-  "Salı",
-  "Çarşamba",
-  "Perşembe",
-  "Cuma",
-  "Cumartesi",
-];
-
 export type PreferredSlot = {
   date: string;
   time: string;
@@ -196,14 +186,16 @@ function enteredSlots(slots: readonly PreferredSlot[]) {
   return valid.every(isBookableSlot) ? valid : [];
 }
 
-export function formatPreferredSlot(slot: PreferredSlot) {
+/** "12 Ekim Pazartesi · 10:30"; Turkish by default because message lines are saved with it. */
+export function formatPreferredSlot(slot: PreferredSlot, locale = "tr") {
   const date = parseLocalDate(slot.date);
   if (!date || !isHalfOrFullHour(slot.time)) return "";
-  const dayMonth = new Intl.DateTimeFormat("tr-TR", {
+  const day = new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
+    weekday: "long",
   }).format(date);
-  return `${dayMonth} ${WEEKDAY_LONG[date.getDay()]} · ${slot.time}`;
+  return `${day} · ${slot.time}`;
 }
 
 export function hasPreferredSlots(slots: readonly PreferredSlot[]) {
@@ -240,7 +232,7 @@ export function preferredSlotsMessageLines(slots: readonly PreferredSlot[]) {
   const valid = slots.filter(isValidPreferredSlot);
   if (valid.length === 0) return [];
   return [
-    `${PREFERRED_TIMES_LINE_PREFIX} ${valid.map(formatPreferredSlot).join(", ")}`,
+    `${PREFERRED_TIMES_LINE_PREFIX} ${valid.map((slot) => formatPreferredSlot(slot)).join(", ")}`,
     `${PREFERRED_SLOTS_LINE_PREFIX}${valid.map(preferredSlotMachineValue).join(",")}`,
   ];
 }
@@ -249,7 +241,7 @@ export function proposedSlotsMessageLines(slots: readonly PreferredSlot[]) {
   const valid = slots.filter(isValidPreferredSlot);
   if (valid.length === 0) return [];
   return [
-    `${PROPOSED_TIMES_LINE_PREFIX} ${valid.map(formatPreferredSlot).join(", ")}`,
+    `${PROPOSED_TIMES_LINE_PREFIX} ${valid.map((slot) => formatPreferredSlot(slot)).join(", ")}`,
     `${PROPOSED_SLOTS_LINE_PREFIX}${valid.map(preferredSlotMachineValue).join(",")}`,
   ];
 }
@@ -287,6 +279,7 @@ export function withoutSlotLines(message: string) {
 
 export function parsePreferredSlotsFromMessage(
   message: string | null | undefined,
+  locale = "tr",
 ): ParsedPreferredSlot[] {
   if (!message) return [];
   const lines = message.split(/\r?\n/);
@@ -300,7 +293,7 @@ export function parsePreferredSlotsFromMessage(
       .map(parsePreferredSlotMachineValue)
       .filter((slot): slot is PreferredSlot => Boolean(slot))
       .filter(isValidPreferredSlot)
-      .map((slot) => ({ ...slot, label: formatPreferredSlot(slot) }));
+      .map((slot) => ({ ...slot, label: formatPreferredSlot(slot, locale) }));
   }
 
   const human = lines.find((line) =>
@@ -320,6 +313,7 @@ export function parsePreferredSlotsFromMessage(
 
 export function parseProposedSlotsFromMessage(
   message: string | null | undefined,
+  locale = "tr",
 ): ParsedPreferredSlot[] {
   if (!message) return [];
   const lines = message.split(/\r?\n/);
@@ -333,7 +327,7 @@ export function parseProposedSlotsFromMessage(
       .map(parsePreferredSlotMachineValue)
       .filter((slot): slot is PreferredSlot => Boolean(slot))
       .filter(isValidPreferredSlot)
-      .map((slot) => ({ ...slot, label: formatPreferredSlot(slot) }));
+      .map((slot) => ({ ...slot, label: formatPreferredSlot(slot, locale) }));
   }
 
   const human = lines.find((line) =>

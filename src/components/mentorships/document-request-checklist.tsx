@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -80,13 +81,12 @@ export function DocumentRequestChecklist({
   scope,
   canManage = false,
   canUpload = false,
-  title = "İstenen belgeler",
 }: {
   scope: DocumentRequestScope;
   canManage?: boolean;
   canUpload?: boolean;
-  title?: string;
 }) {
+  const t = useTranslations("documentChecklist");
   const session = useAppSession();
   const openDocument = useOpenDocument();
   const queryClient = useQueryClient();
@@ -149,15 +149,13 @@ export function DocumentRequestChecklist({
   const isMentor = session?.role === UserRole.Mentor;
 
   if (query.isLoading) {
-    return (
-      <p className="text-sm text-[#676e78]">İstenen belgeler yükleniyor…</p>
-    );
+    return <p className="text-sm text-[#676e78]">{t("loading")}</p>;
   }
 
   if (query.error) {
     return (
       <p className="text-sm text-red-600">
-        {query.error.message || "İstenen belgeler yüklenemedi."}
+        {query.error.message || t("failed")}
       </p>
     );
   }
@@ -170,11 +168,11 @@ export function DocumentRequestChecklist({
     <section className="rounded-[10px] border border-[#e4e7ea] bg-white px-6 py-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-base font-semibold text-[#1a1a1a]">{title}</h3>
+          <h3 className="text-base font-semibold text-[#1a1a1a]">
+            {t("title")}
+          </h3>
           <p className="mt-1 text-sm text-[#666b75]">
-            {isMentor
-              ? "Mentee’nin yüklediği dosyaları burada görürsün."
-              : "Mentörün istediği belgeleri buradan yükleyebilirsin."}
+            {isMentor ? t("mentorHint") : t("menteeHint")}
           </p>
         </div>
         {canManage && !editing ? (
@@ -189,7 +187,7 @@ export function DocumentRequestChecklist({
             }}
             className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
           >
-            {items.length === 0 ? "Belge iste" : "Düzenle"}
+            {items.length === 0 ? t("request") : t("edit")}
           </button>
         ) : null}
       </div>
@@ -212,7 +210,7 @@ export function DocumentRequestChecklist({
               }}
               className="rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm text-[#515861]"
             >
-              Vazgeç
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -222,12 +220,12 @@ export function DocumentRequestChecklist({
               }
               className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-3 py-2 text-sm font-medium text-white hover:bg-[var(--ms-accent-hover,#ce5e19)] disabled:opacity-60"
             >
-              {saveMutation.isPending ? "Kaydediliyor…" : "Kaydet"}
+              {saveMutation.isPending ? t("saving") : t("save")}
             </button>
           </div>
         </div>
       ) : items.length === 0 ? (
-        <p className="mt-3 text-sm text-[#676e78]">Henüz istenen belge yok.</p>
+        <p className="mt-3 text-sm text-[#676e78]">{t("empty")}</p>
       ) : (
         <ul className="mt-4 space-y-3">
           {items.map((item) => (
@@ -242,7 +240,7 @@ export function DocumentRequestChecklist({
                   </p>
                   {item.uploads.length === 0 ? (
                     <p className="mt-1 text-xs text-[#858c96]">
-                      Henüz yüklenmedi
+                      {t("notUploaded")}
                     </p>
                   ) : null}
                 </div>
@@ -257,8 +255,8 @@ export function DocumentRequestChecklist({
                     className="shrink-0 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-[12px] font-medium text-[#515861] hover:border-[var(--ms-accent-border,#f2b78f)]"
                   >
                     {uploadMutation.isPending && activeItemId === item.id
-                      ? "Yükleniyor…"
-                      : "Dosya yükle"}
+                      ? t("uploading")
+                      : t("upload")}
                   </button>
                 ) : null}
               </div>
@@ -288,7 +286,7 @@ export function DocumentRequestChecklist({
                           }
                           className="text-[var(--ms-accent,#e86f22)] hover:underline"
                         >
-                          Görüntüle
+                          {t("view")}
                         </button>
                         {canUpload || canManage ? (
                           <button
@@ -297,7 +295,7 @@ export function DocumentRequestChecklist({
                             onClick={() => deleteMutation.mutate(upload.id)}
                             className="text-[#b42318] hover:underline"
                           >
-                            Kaldır
+                            {t("remove")}
                           </button>
                         ) : null}
                       </span>

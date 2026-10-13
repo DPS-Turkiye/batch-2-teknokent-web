@@ -189,22 +189,6 @@ export const CALENDAR_SUPPORT_AREA = "Takvim toplantısı";
 
 export const MEET_LINK_MISSING_MESSAGE = "Meet linki henüz koyulmadı";
 
-export const REQUEST_DETAIL_LABELS = {
-  needTopic: "İhtiyacın",
-  needProblem: "Temel problem",
-  needOutcome: "Görüşmeden beklediğin",
-  supportArea: "Destek alanı",
-  profileTopic: "Konu",
-  profileStuck: "Nerede takıldık?",
-  profileOutcome: "Bu görüşmeden neyle ayrılmak istiyorsun?",
-  preferredSlots: "Tercih edilen saatler",
-} as const;
-
-export const REQUEST_DETAIL_HIGHLIGHT_LABELS = [
-  REQUEST_DETAIL_LABELS.needProblem,
-  REQUEST_DETAIL_LABELS.profileStuck,
-] as const;
-
 export const MEETING_CONTEXT_DAY_TODAY = "Bugün";
 
 export const MEETING_CONTEXT_STATUS_LABELS = {

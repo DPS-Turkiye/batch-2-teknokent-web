@@ -1,4 +1,5 @@
 import { Send } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { PrimaryButton } from "@/components/common/primary-button";
 import type { RequestMessage } from "@/interfaces/mentorship-request";
@@ -22,10 +23,12 @@ export function ConversationThread({
   isSending: boolean;
   error?: Error | null;
 }) {
+  const t = useTranslations("conversation");
+  const locale = useLocale();
   return (
     <div className="space-y-3">
       {messages.length === 0 ? (
-        <p className="text-xs text-zinc-500">Henüz mesaj yok.</p>
+        <p className="text-xs text-zinc-500">{t("empty")}</p>
       ) : (
         <ul className="max-h-[420px] space-y-3 overflow-y-auto rounded-2xl bg-[#f8f9fa] p-4">
           {messages.map((message) => {
@@ -48,7 +51,7 @@ export function ConversationThread({
                     }`}
                   >
                     <span>{message.authorName}</span>
-                    <span>{formatDateTime(message.createdAt)}</span>
+                    <span>{formatDateTime(message.createdAt, locale)}</span>
                   </div>
                   <p>{withoutSlotLines(message.body)}</p>
                 </div>
@@ -63,7 +66,7 @@ export function ConversationThread({
           rows={2}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          placeholder="Mesajınızı yazın..."
+          placeholder={t("placeholder")}
           className="w-full rounded-2xl border border-[#dfe2e6] bg-white p-3 text-xs focus:border-[#e86f22] focus:outline-none"
         />
         {error ? (
@@ -73,7 +76,7 @@ export function ConversationThread({
         ) : null}
         <div className="flex justify-end">
           <PrimaryButton disabled={!value.trim() || isSending} onClick={onSend}>
-            {isSending ? "Gönderiliyor..." : "Gönder"}
+            {isSending ? t("sending") : t("send")}
             <Send className="size-3.5" />
           </PrimaryButton>
         </div>
