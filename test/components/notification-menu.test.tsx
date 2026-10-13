@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { NotificationMenu } from "@/components/common/notification-menu";
+import { InLocale } from "@test/test-utils";
 
 const markRead = vi.fn().mockResolvedValue(undefined);
 const deleteNotification = vi.fn().mockResolvedValue(undefined);
@@ -44,6 +45,23 @@ describe("NotificationMenu", () => {
       screen.getByRole("dialog", { name: "Bildirimler" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Yeni mesaj")).toBeInTheDocument();
+  });
+
+  it("reads in English, with the unread count and the date in that language", async () => {
+    const user = userEvent.setup();
+    render(
+      <InLocale locale="en">
+        <NotificationMenu />
+      </InLocale>,
+    );
+
+    await user.click(screen.getByRole("button", { name: "Notifications" }));
+
+    expect(screen.getByText("1 unread notification")).toBeInTheDocument();
+    expect(screen.getByText(/Sep 8, 2026/)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mark as read: Yeni mesaj" }),
+    ).toBeInTheDocument();
   });
 
   it("marks one notification read and can delete it", async () => {

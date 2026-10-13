@@ -1,5 +1,6 @@
 import type { AxiosResponse } from "axios";
 
+import { clientText } from "@/i18n/client-texts";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
 
 export class ClientApiError extends Error {
@@ -23,23 +24,23 @@ export class ClientApiError extends Error {
 function fallbackMessage(status: number) {
   switch (status) {
     case 400:
-      return "Gönderilen bilgiler geçersiz. Alanları kontrol edip tekrar dene.";
+      return clientText("http400");
     case 401:
-      return "Oturumun sona ermiş görünüyor. Tekrar giriş yapıp dene.";
+      return clientText("http401");
     case 403:
-      return "Bu işlem için yetkin yok. Hesabın koordinatör onayında olabilir; onaylandıktan sonra tekrar dene.";
+      return clientText("http403");
     case 404:
-      return "Aradığın kayıt bulunamadı.";
+      return clientText("http404");
     case 413:
-      return "Dosya çok büyük. En fazla 50 MB yükleyebilirsin.";
+      return clientText("http413");
     case 415:
-      return "Bu dosya türü desteklenmiyor. Lütfen PDF yükle.";
+      return clientText("http415");
     case 429:
-      return "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.";
+      return clientText("http429");
     default:
       return status >= 500
-        ? "Sunucu şu anda yanıt veremiyor. Birazdan tekrar dene."
-        : `İşlem tamamlanamadı (HTTP ${status}).`;
+        ? clientText("http5xx")
+        : clientText("httpOther", { status });
   }
 }
 
@@ -68,7 +69,7 @@ function rateLimitMessage(response: AxiosResponse) {
   const seconds = Number(response.headers?.[RETRY_AFTER_HEADER]);
   if (!Number.isFinite(seconds) || seconds <= 0) return fallbackMessage(429);
   const minutes = Math.ceil(seconds / 60);
-  return `Çok fazla deneme yapıldı. ${minutes} dakika sonra tekrar dene.`;
+  return clientText("rateLimit", { minutes });
 }
 
 export function requireSuccess<T>(response: AxiosResponse<T>): T {

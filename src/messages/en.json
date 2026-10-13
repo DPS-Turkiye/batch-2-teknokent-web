@@ -665,5 +665,143 @@
       "faqTitleEnd": "questions",
       "faqLead": "If you can't find your answer, reach the program team from inside the platform."
     }
+  },
+  "appShell": {
+    "nav": {
+      "home": "Home",
+      "homeRevised": "Home",
+      "mentorships": "Mentorships",
+      "mentorMentorships": "Mentorships",
+      "calendar": "Calendar",
+      "startup": "Startup",
+      "messages": "Messages",
+      "notes": "Notes",
+      "mentors": "Mentors",
+      "programs": "Programs",
+      "applications": "Applications"
+    },
+    "mainMenu": "Main menu",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "profile": "My profile",
+    "logout": "Sign out",
+    "logoutTitle": "Do you want to sign out?",
+    "logoutBody": "If you continue, you will need to sign in again.",
+    "cancel": "Cancel",
+    "back": "Go back",
+    "fallbackName": "User",
+    "roles": {
+      "ADMIN": "Admin",
+      "COORDINATOR": "Coordinator",
+      "MENTOR": "Mentor",
+      "MENTEE": "Startup team"
+    }
+  },
+  "accountMenu": {
+    "open": "{name} · Open account menu",
+    "label": "Account menu",
+    "profile": "My profile",
+    "settings": "Account settings",
+    "notifications": "Notification preferences",
+    "help": "Help & support",
+    "logout": "Sign out"
+  },
+  "accountDialogs": {
+    "close": "Close",
+    "settingsTitle": "Account settings",
+    "email": "E-mail",
+    "password": "Password",
+    "sending": "Sending…",
+    "resetPassword": "Reset my password",
+    "resetHint": "The reset link is sent to this address.",
+    "language": "Language",
+    "editPersonal": "Edit personal details →",
+    "notificationsTitle": "Notification preferences",
+    "notificationsLoading": "Loading notification settings…",
+    "notificationsFailed": "Notification settings could not be loaded.",
+    "saveFailed": "The setting could not be saved. Try again.",
+    "preferences": {
+      "messages": {
+        "label": "Messages",
+        "hint": ""
+      },
+      "meetingReminders": {
+        "label": "Meeting reminders",
+        "hint": "30 min before"
+      },
+      "meetingChanges": {
+        "label": "Meeting changes",
+        "hint": ""
+      },
+      "newTasks": {
+        "label": "When a new task is assigned",
+        "hint": ""
+      },
+      "taskDeadlines": {
+        "label": "Task due date",
+        "hint": "1 day before"
+      },
+      "startupActivity": {
+        "label": "Startup activity",
+        "hint": "file uploads, completed tasks"
+      }
+    },
+    "resetSent": "A password reset link was sent to your e-mail.",
+    "resetFailed": "The password reset e-mail could not be sent."
+  },
+  "notificationMenu": {
+    "label": "Notifications",
+    "title": "Notifications",
+    "unread": "{count, plural, one {# unread notification} other {# unread notifications}}",
+    "close": "Close notifications",
+    "loading": "Loading notifications…",
+    "failed": "Notifications could not be loaded.",
+    "empty": "You have no notifications yet.",
+    "markRead": "Mark as read: {title}",
+    "delete": "Delete notification: {title}"
+  },
+  "clientErrors": {
+    "http400": "The information sent is not valid. Check the fields and try again.",
+    "http401": "Your session seems to have ended. Sign in again and retry.",
+    "http403": "You don't have permission for this. Your account may be waiting for coordinator approval; try again once it is approved.",
+    "http404": "The record you are looking for was not found.",
+    "http413": "The file is too large. You can upload up to 50 MB.",
+    "http415": "This file type is not supported. Please upload a PDF.",
+    "http429": "Too many attempts. Wait a little and try again.",
+    "http5xx": "The server cannot respond right now. Try again shortly.",
+    "httpOther": "The action could not be completed (HTTP {status}).",
+    "rateLimit": "Too many attempts. Try again in {minutes, plural, one {# minute} other {# minutes}}.",
+    "sessionExpired": "Your session has ended. Please sign in again.",
+    "notificationsSignIn": "You need to sign in to see notifications.",
+    "notebookUnreadable": "The transcript or report in the notebook could not be read.",
+    "verifySignIn": "Sign in first to get the verification e-mail.",
+    "authFailed": "Authentication could not be completed.",
+    "firebase": {
+      "email-already-in-use": "An account with this e-mail address already exists.",
+      "invalid-email": "The e-mail address is not valid.",
+      "weak-password": "The password is too weak. Choose a longer password.",
+      "invalid-credential": "The e-mail or password is wrong.",
+      "user-not-found": "The e-mail or password is wrong.",
+      "wrong-password": "The e-mail or password is wrong.",
+      "too-many-requests": "Too many attempts. Wait a little and try again.",
+      "network-request-failed": "Could not connect. Try again.",
+      "missing-email": "Enter your e-mail address."
+    }
+  },
+  "metadata": {
+    "defaultTitle": "Mentoring and Startup Programs Platform",
+    "titleTemplate": "%s | ODTÜ Teknokent",
+    "description": "ODTÜ Teknokent's platform for mentoring, training and startup programs.",
+    "login": "Sign in",
+    "startup": "My startup",
+    "workspace": "Workspace",
+    "notes": "Meeting Notes | Teknokent",
+    "notesDescription": "Your meeting notes, grouped by topic.",
+    "notebook": "Meeting Notebook | Teknokent",
+    "notebookDescription": "The notebook everyone in the same meeting edits together.",
+    "mentorDashboard": "Mentor Dashboard | Teknokent",
+    "mentorDashboardDescription": "Review and decide on incoming mentorship requests.",
+    "calendar": "My Calendar | Teknokent",
+    "calendarDescription": "Mentoring meetings and your personal meeting calendar."
   }
 }

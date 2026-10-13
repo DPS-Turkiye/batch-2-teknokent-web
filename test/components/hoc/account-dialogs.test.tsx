@@ -12,9 +12,18 @@ import {
   saveNotificationPreferences,
 } from "@/lib/client/notifications";
 import { requestPasswordReset } from "@/lib/firebase/auth";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 let session: Partial<AppSession>;
+let englishEnabled = false;
+
+vi.mock("@/lib/i18n", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/i18n")>()),
+  get ENGLISH_ENABLED() {
+    return englishEnabled;
+  },
+}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => session,
@@ -38,7 +47,36 @@ const preferences = {
 describe("AccountSettingsDialog", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    englishEnabled = false;
     session = { email: "gulse@dongu.app", role: UserRole.Mentee };
+  });
+
+  it("offers the language switch only once English is on, and reads in English", () => {
+    const { unmount } = renderWithQueryClient(
+      <AccountSettingsDialog onClose={vi.fn()} />,
+    );
+    expect(
+      screen.queryByRole("group", { name: "Dil" }),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    englishEnabled = true;
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <AccountSettingsDialog onClose={vi.fn()} />
+      </InLocale>,
+    );
+    expect(
+      screen.getByRole("dialog", { name: "Account settings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reset my password" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("group", { name: "Language" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "English" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("shows the e-mail, sends a reset link to it and links to the personal profile", async () => {
@@ -116,6 +154,24 @@ describe("NotificationPreferencesDialog", () => {
       expect.anything(),
     );
     expect(tasks).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("names a mentor's switches and hints in English", async () => {
+    session = { email: "mentor@example.com", role: UserRole.Mentor };
+    vi.mocked(getNotificationPreferences).mockResolvedValue(preferences);
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <NotificationPreferencesDialog onClose={vi.fn()} />
+      </InLocale>,
+    );
+
+    expect(
+      await screen.findByRole("switch", { name: "Startup activity" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("file uploads, completed tasks"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Meeting changes")).toBeInTheDocument();
   });
 
   it("says when the switches cannot be loaded", async () => {

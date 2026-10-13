@@ -665,5 +665,143 @@
       "faqTitleEnd": "sorular",
       "faqLead": "Aradığın cevabı bulamazsan program ekibine platform içinden ulaşabilirsin."
     }
+  },
+  "appShell": {
+    "nav": {
+      "home": "Ana Sayfa",
+      "homeRevised": "Anasayfa",
+      "mentorships": "Mentorluklarım",
+      "mentorMentorships": "Mentorlüklerim",
+      "calendar": "Takvim",
+      "startup": "Startup’ım",
+      "messages": "Mesajlar",
+      "notes": "Toplantı Notlarım",
+      "mentors": "Mentörler",
+      "programs": "Programlar",
+      "applications": "Başvurular"
+    },
+    "mainMenu": "Ana menü",
+    "openMenu": "Menüyü aç",
+    "closeMenu": "Menüyü kapat",
+    "profile": "Profilim",
+    "logout": "Çıkış yap",
+    "logoutTitle": "Çıkış yapmak istiyor musunuz?",
+    "logoutBody": "Devam ederseniz yeniden giriş yapmanız gerekir.",
+    "cancel": "Vazgeç",
+    "back": "Geri dön",
+    "fallbackName": "Kullanıcı",
+    "roles": {
+      "ADMIN": "Admin",
+      "COORDINATOR": "Koordinatör",
+      "MENTOR": "Mentor",
+      "MENTEE": "Girişim Ekibi"
+    }
+  },
+  "accountMenu": {
+    "open": "{name} · Hesap menüsünü aç",
+    "label": "Hesap menüsü",
+    "profile": "Profilim",
+    "settings": "Hesap ayarları",
+    "notifications": "Bildirim tercihleri",
+    "help": "Yardım & destek",
+    "logout": "Çıkış yap"
+  },
+  "accountDialogs": {
+    "close": "Kapat",
+    "settingsTitle": "Hesap ayarları",
+    "email": "E-posta",
+    "password": "Şifre",
+    "sending": "Gönderiliyor…",
+    "resetPassword": "Şifremi sıfırla",
+    "resetHint": "Sıfırlama bağlantısı bu adrese gönderilir.",
+    "language": "Dil",
+    "editPersonal": "Kişisel bilgileri düzenle →",
+    "notificationsTitle": "Bildirim tercihleri",
+    "notificationsLoading": "Bildirim ayarları yükleniyor…",
+    "notificationsFailed": "Bildirim ayarları yüklenemedi.",
+    "saveFailed": "Ayar kaydedilemedi. Tekrar dene.",
+    "preferences": {
+      "messages": {
+        "label": "Mesajlar",
+        "hint": ""
+      },
+      "meetingReminders": {
+        "label": "Görüşme hatırlatmaları",
+        "hint": "30 dk önce"
+      },
+      "meetingChanges": {
+        "label": "Görüşme değişiklikleri",
+        "hint": ""
+      },
+      "newTasks": {
+        "label": "Yeni görev atandığında",
+        "hint": ""
+      },
+      "taskDeadlines": {
+        "label": "Görev son tarihi",
+        "hint": "1 gün önce"
+      },
+      "startupActivity": {
+        "label": "Startup aktiviteleri",
+        "hint": "dosya yükleme, görev tamamlama"
+      }
+    },
+    "resetSent": "Şifre sıfırlama bağlantısı e-postana gönderildi.",
+    "resetFailed": "Şifre sıfırlama e-postası gönderilemedi."
+  },
+  "notificationMenu": {
+    "label": "Bildirimler",
+    "title": "Bildirimler",
+    "unread": "{count} okunmamış bildirim",
+    "close": "Bildirimleri kapat",
+    "loading": "Bildirimler yükleniyor…",
+    "failed": "Bildirimler yüklenemedi.",
+    "empty": "Henüz bildiriminiz yok.",
+    "markRead": "Okundu olarak işaretle: {title}",
+    "delete": "Bildirimi sil: {title}"
+  },
+  "clientErrors": {
+    "http400": "Gönderilen bilgiler geçersiz. Alanları kontrol edip tekrar dene.",
+    "http401": "Oturumun sona ermiş görünüyor. Tekrar giriş yapıp dene.",
+    "http403": "Bu işlem için yetkin yok. Hesabın koordinatör onayında olabilir; onaylandıktan sonra tekrar dene.",
+    "http404": "Aradığın kayıt bulunamadı.",
+    "http413": "Dosya çok büyük. En fazla 50 MB yükleyebilirsin.",
+    "http415": "Bu dosya türü desteklenmiyor. Lütfen PDF yükle.",
+    "http429": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar dene.",
+    "http5xx": "Sunucu şu anda yanıt veremiyor. Birazdan tekrar dene.",
+    "httpOther": "İşlem tamamlanamadı (HTTP {status}).",
+    "rateLimit": "Çok fazla deneme yapıldı. {minutes} dakika sonra tekrar dene.",
+    "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
+    "notificationsSignIn": "Bildirimler için oturum açmanız gerekiyor.",
+    "notebookUnreadable": "Not defterindeki transkript veya rapor okunamadı.",
+    "verifySignIn": "Doğrulama maili için önce giriş yapın.",
+    "authFailed": "Kimlik doğrulama tamamlanamadı.",
+    "firebase": {
+      "email-already-in-use": "Bu e-posta adresiyle kayıtlı bir hesap zaten var.",
+      "invalid-email": "E-posta adresi geçersiz.",
+      "weak-password": "Şifre çok zayıf. Daha uzun bir şifre seçin.",
+      "invalid-credential": "E-posta veya şifre hatalı.",
+      "user-not-found": "E-posta veya şifre hatalı.",
+      "wrong-password": "E-posta veya şifre hatalı.",
+      "too-many-requests": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
+      "network-request-failed": "Bağlantı kurulamadı. Tekrar deneyin.",
+      "missing-email": "E-posta adresinizi girin."
+    }
+  },
+  "metadata": {
+    "defaultTitle": "Mentorluk ve Girişim Programları Platformu",
+    "titleTemplate": "%s | ODTÜ Teknokent",
+    "description": "ODTÜ Teknokent mentorluk, eğitim ve girişim programları platformu.",
+    "login": "Giriş",
+    "startup": "Startup’ım",
+    "workspace": "Çalışma Alanı",
+    "notes": "Toplantı Notları | Teknokent",
+    "notesDescription": "Konuya göre gruplanmış toplantı notların.",
+    "notebook": "Toplantı Not Defteri | Teknokent",
+    "notebookDescription": "Aynı toplantıdaki herkesin ortak düzenlediği not defteri.",
+    "mentorDashboard": "Mentor Paneli | Teknokent",
+    "mentorDashboardDescription": "Gelen mentorluk talepleri inceleme ve karar ekranı.",
+    "calendar": "Takvimim | Teknokent",
+    "calendarDescription": "Mentorluk görüşmeleri ve kişisel toplantı takvimi."
   }
 }

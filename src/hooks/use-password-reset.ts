@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -9,6 +10,7 @@ import { requestPasswordReset } from "@/lib/firebase/auth";
 /** Sends the signed-in person a Firebase password-reset e-mail and says how it went. */
 export function usePasswordReset() {
   const session = useAppSession();
+  const t = useTranslations("accountDialogs");
   const { showToast } = useToast();
   const [isSendingReset, setIsSendingReset] = useState(false);
 
@@ -18,12 +20,12 @@ export function usePasswordReset() {
     try {
       await requestPasswordReset(session.email);
       showToast({
-        message: "Şifre sıfırlama bağlantısı e-postana gönderildi.",
+        message: t("resetSent"),
         tone: "success",
       });
     } catch {
       showToast({
-        message: "Şifre sıfırlama e-postası gönderilemedi.",
+        message: t("resetFailed"),
         tone: "error",
       });
     } finally {

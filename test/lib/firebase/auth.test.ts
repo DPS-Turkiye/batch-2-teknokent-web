@@ -5,6 +5,7 @@ import {
   describeAuthError,
   isEmailVerificationExempt,
 } from "@/lib/firebase/auth";
+import { clientTextsIn } from "@test/client-texts";
 
 vi.mock("@/lib/firebase/client", () => ({
   firebaseAuth: () => {
@@ -44,6 +45,16 @@ describe("describeAuthError", () => {
         describeAuthError(new FirebaseError(code, "The password is invalid.")),
       ).not.toContain("password is invalid");
     }
+  });
+
+  it("words a mapped Firebase code in English when that is the chosen language", () => {
+    clientTextsIn("en");
+    expect(
+      describeAuthError(new FirebaseError("auth/wrong-password", "x")),
+    ).toBe("The e-mail or password is wrong.");
+    expect(describeAuthError(new FirebaseError("auth/unknown", "x"))).toBe(
+      "Authentication could not be completed.",
+    );
   });
 
   it("falls back to Turkish for an unmapped Firebase code", () => {

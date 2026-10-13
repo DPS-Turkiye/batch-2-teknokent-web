@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AppShell } from "@/components/hoc/app-shell";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
+import { InLocale } from "@test/test-utils";
 
 const mockuseAppSession = vi.fn<() => AppSession | null>();
 const mockLogout = vi.fn().mockResolvedValue(undefined);
@@ -624,5 +625,35 @@ describe("AppShell mobile drawer", () => {
     expect(
       screen.queryByRole("link", { name: /Toplantı Notlarım/ }),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe("AppShell in English", () => {
+  it("names the navigation, account menu and logout in English", async () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+    const user = userEvent.setup();
+    render(
+      <InLocale locale="en">
+        <AppShell active={AppArea.Mentorships}>
+          <p>Mentee page</p>
+        </AppShell>
+      </InLocale>,
+    );
+
+    const nav = screen.getByRole("navigation", { name: "Main menu" });
+    expect(
+      within(nav).getByRole("link", { name: "Mentorships" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(nav).getByRole("link", { name: "Startup" }),
+    ).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Ayşe Kaya · Open account menu" }),
+    );
+    await user.click(screen.getByRole("menuitem", { name: "Sign out" }));
+    expect(
+      screen.getByRole("dialog", { name: "Do you want to sign out?" }),
+    ).toBeInTheDocument();
   });
 });

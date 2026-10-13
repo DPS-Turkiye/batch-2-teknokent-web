@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { type KeyboardEvent, useEffect, useRef, useState } from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
@@ -47,6 +48,7 @@ export function AccountMenu({
   onOpenNotifications: () => void;
   onLogout: () => void;
 }) {
+  const t = useTranslations("accountMenu");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -110,7 +112,7 @@ export function AccountMenu({
         type="button"
         aria-expanded={open}
         aria-haspopup="menu"
-        aria-label={`${displayName} · Hesap menüsünü aç`}
+        aria-label={t("open", { name: displayName })}
         onClick={() => setOpen((current) => !current)}
         className="flex items-center gap-2 rounded-lg border border-transparent px-2 py-1.5 text-left hover:border-[#e4e7ea]"
       >
@@ -142,7 +144,7 @@ export function AccountMenu({
         <div
           ref={menuRef}
           role="menu"
-          aria-label="Hesap menüsü"
+          aria-label={t("label")}
           onKeyDown={onMenuKeyDown}
           className="absolute right-0 top-12 z-50 w-[264px] overflow-hidden rounded-[20px] border border-[#e4e7ea] bg-white shadow-[0_12px_36px_rgba(0,0,0,0.16)]"
         >
@@ -173,7 +175,7 @@ export function AccountMenu({
             className={itemClass}
           >
             <ItemIcon src="/account-menu/user.svg" />
-            Profilim
+            {t("profile")}
           </Link>
           <button
             type="button"
@@ -183,7 +185,7 @@ export function AccountMenu({
             className={itemClass}
           >
             <ItemIcon src="/account-menu/settings.svg" />
-            Hesap ayarları
+            {t("settings")}
           </button>
           <button
             type="button"
@@ -193,7 +195,7 @@ export function AccountMenu({
             className={itemClass}
           >
             <ItemIcon src="/account-menu/bell.svg" />
-            Bildirim tercihleri
+            {t("notifications")}
           </button>
           <a
             href={`mailto:${SUPPORT_EMAIL}`}
@@ -203,7 +205,7 @@ export function AccountMenu({
             className={itemClass}
           >
             <ItemIcon src="/account-menu/search.svg" />
-            Yardım &amp; destek
+            {t("help")}
           </a>
           <button
             type="button"
@@ -216,7 +218,7 @@ export function AccountMenu({
             className={`${itemClass} text-[#b3261e]`}
           >
             <ItemIcon src="/account-menu/expand-right.svg" />
-            Çıkış yap
+            {t("logout")}
           </button>
         </div>
       ) : null}

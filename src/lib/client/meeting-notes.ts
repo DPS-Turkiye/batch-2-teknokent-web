@@ -20,6 +20,7 @@ import {
 import { httpClient } from "@/lib/http-client";
 import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
+import { clientText } from "@/i18n/client-texts";
 
 export async function getMeetingNote(meetingId: string) {
   return requireSuccess(
@@ -105,7 +106,7 @@ async function readJsonFromUrl<T>(
   if (!url) return null;
   const response = await fetch(url);
   if (!response.ok) {
-    throw new Error("Not defterindeki transkript veya rapor okunamadı.");
+    throw new Error(clientText("notebookUnreadable"));
   }
   return (await response.json()) as T;
 }

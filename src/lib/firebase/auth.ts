@@ -10,10 +10,8 @@ import {
   signOut,
 } from "firebase/auth";
 
-import {
-  EMAIL_VERIFICATION_EXEMPT,
-  FIREBASE_AUTH_ERROR_MESSAGES,
-} from "@/lib/const";
+import { clientText, hasClientText } from "@/i18n/client-texts";
+import { EMAIL_VERIFICATION_EXEMPT } from "@/lib/const";
 import { firebaseAuth } from "@/lib/firebase/client";
 
 const EXEMPT_EMAILS = new Set<string>(EMAIL_VERIFICATION_EXEMPT);
@@ -26,15 +24,13 @@ export function isEmailVerificationExempt(
 
 export function describeAuthError(error: unknown): string {
   if (error instanceof FirebaseError) {
-    return (
-      FIREBASE_AUTH_ERROR_MESSAGES[error.code] ??
-      "Kimlik doğrulama tamamlanamadı."
-    );
+    const key = `firebase.${error.code.replace(/^auth\//, "")}`;
+    return hasClientText(key) ? clientText(key) : clientText("authFailed");
   }
   if (error instanceof Error && error.message) {
     return error.message;
   }
-  return "Kimlik doğrulama tamamlanamadı.";
+  return clientText("authFailed");
 }
 
 export async function createFirebaseAccount(
@@ -55,7 +51,7 @@ export async function createFirebaseAccount(
 export async function resendVerificationEmail(): Promise<void> {
   const user = firebaseAuth().currentUser;
   if (!user) {
-    throw new Error("Doğrulama maili için önce giriş yapın.");
+    throw new Error(clientText("verifySignIn"));
   }
   await sendEmailVerification(user);
 }
