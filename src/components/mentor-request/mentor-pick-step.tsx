@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import {
@@ -27,6 +28,7 @@ export function MentorPickStep({
   onFilterChange: (filter: MentorPickFilterId) => void;
 }) {
   const t = useTranslations("mentorRequest.pick");
+  const optionLabel = useOptionLabel();
   return (
     <div>
       <div
@@ -99,7 +101,7 @@ export function MentorPickStep({
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.specialties.map((tag) => (
-                      <Badge key={tag}>{tag}</Badge>
+                      <Badge key={tag}>{optionLabel("mentorTopic", tag)}</Badge>
                     ))}
                   </div>
                 </div>
@@ -115,7 +117,11 @@ export function MentorPickStep({
                 )
                   .filter(([, value]) => value.trim().length > 0)
                   .map(([field, value]) => (
-                    <span key={field}>{value}</span>
+                    <span key={field}>
+                      {field === "meetingMode"
+                        ? optionLabel("meetingFormat", value)
+                        : value}
+                    </span>
                   ))}
               </div>
               {item.recommendationReasons.length > 0 ? (

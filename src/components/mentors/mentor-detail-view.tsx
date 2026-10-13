@@ -15,6 +15,7 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   availabilityColumns,
   slotTimeLabel,
@@ -44,6 +45,7 @@ export function MentorDetailView({
 }) {
   const t = useTranslations("mentorDetail");
   const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const router = useRouter();
   const session = useAppSession();
   const mentorshipsQuery = useMentorshipRequests(UserRole.Mentee);
@@ -116,7 +118,7 @@ export function MentorDetailView({
                       : "border border-[#e4e7ea] bg-[#fcfcfd] text-[#676e78]"
                   }`}
                 >
-                  {tag}
+                  {optionLabel("mentorTopic", tag)}
                 </span>
               ))}
             </div>
@@ -186,7 +188,9 @@ export function MentorDetailView({
             <h2 className={cardHeadingClass}>{t("infoTitle")}</h2>
             <p className={detailClass}>
               {t("format", {
-                mode: mentor.meetingMode || t("onlineFallback"),
+                mode: mentor.meetingMode
+                  ? optionLabel("meetingFormat", mentor.meetingMode)
+                  : t("onlineFallback"),
               })}
             </p>
             <p className={detailClass}>
@@ -201,7 +205,9 @@ export function MentorDetailView({
               <p className={detailClass}>{mentor.communicationPreference}</p>
             ) : null}
             <p className={detailClass}>
-              {t("responseTime", { time: mentor.responseTimeLabel })}
+              {t("responseTime", {
+                time: optionLabel("responseTime", mentor.responseTimeLabel),
+              })}
             </p>
           </section>
 
@@ -251,7 +257,7 @@ export function MentorDetailView({
                     <span aria-hidden className="font-medium text-[#e86f22]">
                       •
                     </span>
-                    {tag}
+                    {optionLabel("mentorTopic", tag)}
                   </li>
                 ))}
               </ul>

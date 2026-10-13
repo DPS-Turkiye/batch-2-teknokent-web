@@ -12,12 +12,7 @@ import {
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
-import {
-  MEETING_FREQUENCY_LABELS,
-  MeetingFrequency,
-  WEEKDAY_LABELS,
-  WEEKDAY_ORDER,
-} from "@/interfaces/mentor";
+import { MeetingFrequency, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import {
   CAPACITY_MAX,
   CAPACITY_MIN,
@@ -26,6 +21,7 @@ import {
   MEETING_FORMAT_OPTIONS,
   RESPONSE_TIME_OPTIONS,
 } from "@/interfaces/mentor-onboarding";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
@@ -57,6 +53,8 @@ export function MentorAvailabilityStep({
   wizard: MentorOnboarding;
 }) {
   const copy = useTranslations("mentorAvailability");
+  const tOptions = useTranslations("options");
+  const optionLabel = useOptionLabel();
   const { draft, update, updateDay } = wizard;
 
   return (
@@ -82,7 +80,9 @@ export function MentorAvailabilityStep({
                 <div className="flex items-center gap-3">
                   <ToggleSwitch
                     checked={slot.enabled}
-                    label={copy("dayAvailable", { day: WEEKDAY_LABELS[day] })}
+                    label={copy("dayAvailable", {
+                      day: tOptions(`weekday.${day}`),
+                    })}
                     onChange={() => updateDay(day, { enabled: !slot.enabled })}
                   />
                   <span
@@ -90,7 +90,7 @@ export function MentorAvailabilityStep({
                       slot.enabled ? "text-[#22262b]" : "text-[#858c96]"
                     }`}
                   >
-                    {WEEKDAY_LABELS[day]}
+                    {tOptions(`weekday.${day}`)}
                   </span>
                 </div>
                 {slot.enabled ? (
@@ -99,7 +99,7 @@ export function MentorAvailabilityStep({
                       type="time"
                       step={900}
                       aria-label={copy("dayStart", {
-                        day: WEEKDAY_LABELS[day],
+                        day: tOptions(`weekday.${day}`),
                       })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.start}
@@ -111,7 +111,9 @@ export function MentorAvailabilityStep({
                     <input
                       type="time"
                       step={900}
-                      aria-label={copy("dayEnd", { day: WEEKDAY_LABELS[day] })}
+                      aria-label={copy("dayEnd", {
+                        day: tOptions(`weekday.${day}`),
+                      })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.end}
                       onChange={(event) =>
@@ -192,7 +194,7 @@ export function MentorAvailabilityStep({
           >
             {Object.values(MeetingFrequency).map((frequency) => (
               <option key={frequency} value={frequency}>
-                {MEETING_FREQUENCY_LABELS[frequency]}
+                {tOptions(`meetingFrequency.${frequency}`)}
               </option>
             ))}
           </select>
@@ -225,6 +227,7 @@ export function MentorAvailabilityStep({
           options={MEETING_FORMAT_OPTIONS}
           selected={[draft.format as (typeof MEETING_FORMAT_OPTIONS)[number]]}
           onToggle={(value) => update("format", value)}
+          labelFor={(value) => optionLabel("meetingFormat", value)}
         />
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
           {copy("responseQuestion")}
@@ -237,6 +240,7 @@ export function MentorAvailabilityStep({
             draft.responseTime as (typeof RESPONSE_TIME_OPTIONS)[number],
           ]}
           onToggle={(value) => update("responseTime", value)}
+          labelFor={(value) => optionLabel("responseTime", value)}
         />
       </OnboardingCard>
     </>

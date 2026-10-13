@@ -1,7 +1,6 @@
 "use client";
 
 import { useSubmittedProfile } from "@/hooks/use-submitted-profile";
-import { CONTACT_PREFERENCE_LABELS } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { formatFileSize } from "@/lib/utils";
 import { useTranslations } from "next-intl";
@@ -23,6 +22,7 @@ export function SubmittedProfileSummary({
   organizationName?: string | null;
 }) {
   const copy = useTranslations("submittedProfile");
+  const tOptions = useTranslations("options");
   const tKinds = useTranslations("documentKinds");
   const { profile, documents, isLoading, isError } = useSubmittedProfile();
 
@@ -56,7 +56,9 @@ export function SubmittedProfileSummary({
             <Row
               label={copy("contact")}
               value={(profile.contactPreferences ?? [])
-                .map((preference) => CONTACT_PREFERENCE_LABELS[preference])
+                .map((preference) =>
+                  tOptions(`contactPreference.${preference}`),
+                )
                 .join(", ")}
             />
           </dl>

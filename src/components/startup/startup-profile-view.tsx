@@ -10,6 +10,7 @@ import {
   startupSecondaryActionClass,
 } from "@/components/startup/startup-page-frame";
 import { StartupStatusDialog } from "@/components/startup/startup-status-dialog";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
@@ -59,6 +60,7 @@ function Card({
 export function StartupProfileView() {
   const t = useTranslations("startupProfile");
   const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const sessionsLabel = (row: ActiveMentorshipRow) => {
     const sessions =
       row.plannedSessions != null
@@ -113,8 +115,13 @@ export function StartupProfileView() {
     ],
     [
       t("facts.stage"),
-      [overview.stageName, profile.fundingStage].filter(Boolean).join(" · ") ||
-        null,
+      [
+        overview.stageName,
+        profile.fundingStage &&
+          optionLabel("fundingStage", profile.fundingStage),
+      ]
+        .filter(Boolean)
+        .join(" · ") || null,
     ],
     [t("facts.sector"), profile.sector],
     [t("facts.program"), overview.programName],
@@ -163,7 +170,9 @@ export function StartupProfileView() {
               <span
                 className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
               >
-                {profile.maturity ?? t("noMaturity")}
+                {profile.maturity
+                  ? optionLabel("stage", profile.maturity)
+                  : t("noMaturity")}
               </span>
               <span className={cardHintClass}>
                 {[

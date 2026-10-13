@@ -53,13 +53,6 @@ export enum ContactPreference {
   InPerson = "IN_PERSON",
 }
 
-export const CONTACT_PREFERENCE_LABELS: Record<ContactPreference, string> = {
-  [ContactPreference.InAppMessage]: "Uygulama içi mesaj",
-  [ContactPreference.VideoCall]: "Video görüşme",
-  [ContactPreference.Email]: "E-posta",
-  [ContactPreference.InPerson]: "Yüz yüze",
-};
-
 /** Startup stage values, shared by the mentee's own stage and the mentor's preferences. */
 export const STARTUP_STAGE_OPTIONS = [
   "Fikir",
@@ -68,14 +61,6 @@ export const STARTUP_STAGE_OPTIONS = [
   "Gelir",
   "Büyüme",
 ] as const;
-
-export const STARTUP_STAGE_DESCRIPTIONS: Record<string, string> = {
-  Fikir: "Problemi ve çözüm fikrini doğruluyorsun.",
-  Prototip: "Çözümün ilk çalışan halini deniyorsun.",
-  MVP: "Ürünün ilk kullanıcılarla yayında.",
-  Gelir: "Ürünün gelir getirmeye başladı.",
-  Büyüme: "Kullanıcı ve gelir büyümesine odaklanıyorsun.",
-};
 
 export const SUPPORT_AREA_OPTIONS = [
   "Ürün & UX",

@@ -2284,5 +2284,102 @@
     "increase": "Increase {label}",
     "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
     "backToMentorships": "Back to my mentorships"
+  },
+  "optionValues": {
+    "stage": {
+      "Fikir": "Idea",
+      "Prototip": "Prototype",
+      "MVP": "MVP",
+      "Gelir": "Revenue",
+      "Büyüme": "Growth"
+    },
+    "stageDescription": {
+      "Fikir": "You're validating the problem and your solution idea.",
+      "Prototip": "You're testing the first working version of your solution.",
+      "MVP": "Your product is live with its first users.",
+      "Gelir": "Your product has started bringing in revenue.",
+      "Büyüme": "You're focused on growing users and revenue."
+    },
+    "supportArea": {
+      "Ürün & UX": "Product & UX",
+      "Value Proposition": "Value Proposition",
+      "User Research": "User Research",
+      "Finans": "Finance",
+      "Pazarlama": "Marketing",
+      "Büyüme": "Growth",
+      "Satış": "Sales",
+      "Hukuk": "Legal",
+      "Teknoloji": "Technology",
+      "Yatırım": "Investment"
+    },
+    "mentorTopic": {
+      "UX Stratejisi": "UX Strategy",
+      "Product Design": "Product Design",
+      "User Research": "User Research",
+      "Design Systems": "Design Systems",
+      "Product Validation": "Product Validation",
+      "UX/UI Review": "UX/UI Review",
+      "Product Experience": "Product Experience",
+      "Büyüme": "Growth",
+      "Finans": "Finance",
+      "Pazarlama": "Marketing",
+      "Satış": "Sales",
+      "Teknoloji": "Technology"
+    },
+    "meetingFormat": {
+      "Online": "Online",
+      "Yüz yüze": "In person",
+      "Her ikisi de": "Both"
+    },
+    "responseTime": {
+      "Aynı gün": "Same day",
+      "1–2 gün": "1–2 days",
+      "3–5 gün": "3–5 days"
+    },
+    "fundingStage": {
+      "Kendi kaynaklarıyla": "Bootstrapped",
+      "Pre-seed": "Pre-seed",
+      "Seed": "Seed",
+      "Seri A": "Series A",
+      "Seri B ve sonrası": "Series B and later"
+    }
+  },
+  "options": {
+    "contactPreference": {
+      "IN_APP_MESSAGE": "In-app message",
+      "VIDEO_CALL": "Video call",
+      "EMAIL": "Email",
+      "IN_PERSON": "In person"
+    },
+    "meetingFrequency": {
+      "WEEKLY": "Once a week",
+      "BIWEEKLY": "Every 2 weeks",
+      "MONTHLY": "Once a month",
+      "AS_NEEDED": "As needed"
+    },
+    "prepFile": {
+      "REQUIRED": "Required",
+      "OPTIONAL": "Optional",
+      "NOT_NEEDED": "Not needed"
+    },
+    "language": {
+      "TURKISH": "Turkish",
+      "ENGLISH": "English",
+      "GERMAN": "German",
+      "FRENCH": "French",
+      "SPANISH": "Spanish",
+      "ARABIC": "Arabic",
+      "RUSSIAN": "Russian"
+    },
+    "weekday": {
+      "MONDAY": "Monday",
+      "TUESDAY": "Tuesday",
+      "WEDNESDAY": "Wednesday",
+      "THURSDAY": "Thursday",
+      "FRIDAY": "Friday",
+      "SATURDAY": "Saturday",
+      "SUNDAY": "Sunday"
+    },
+    "minutes": "{count} min"
   }
 }

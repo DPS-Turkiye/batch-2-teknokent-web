@@ -20,12 +20,12 @@ import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useTeamMemberForm } from "@/hooks/use-team-member-form";
 import {
   MAX_SUPPORT_AREAS,
-  STARTUP_STAGE_DESCRIPTIONS,
   STARTUP_STAGE_OPTIONS,
   SUPPORT_AREA_OPTIONS,
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
 import { initials } from "@/lib/utils";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
@@ -46,6 +46,7 @@ function Avatar({ name }: { name: string }) {
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
   const t = useTranslations();
   const copy = useTranslations("signupSteps");
+  const optionLabel = useOptionLabel();
   // The no-program answer, sent as a null program id.
   const INDEPENDENT = copy("independent");
   const {
@@ -187,14 +188,15 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
               : []
           }
           onToggle={(stage) => updateStartup("maturity", stage)}
+          labelFor={(stage) => optionLabel("stage", stage)}
         />
         {startup.maturity ? (
           <div className="flex flex-col gap-2 rounded-[10px] bg-[#f5faff] px-4 py-3.5">
             <p className="text-[10.5px] font-semibold uppercase leading-4 text-[#858c96]">
-              {startup.maturity}
+              {optionLabel("stage", startup.maturity)}
             </p>
             <p className="text-xs leading-[18px] text-[#4a5059]">
-              {STARTUP_STAGE_DESCRIPTIONS[startup.maturity]}
+              {optionLabel("stageDescription", startup.maturity)}
             </p>
           </div>
         ) : null}
@@ -326,6 +328,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             startup.supportAreas as (typeof SUPPORT_AREA_OPTIONS)[number][]
           }
           onToggle={toggleSupportArea}
+          labelFor={(area) => optionLabel("supportArea", area)}
         />
         {wizard.supportAreaLimitReached ? (
           <OnboardingNote>

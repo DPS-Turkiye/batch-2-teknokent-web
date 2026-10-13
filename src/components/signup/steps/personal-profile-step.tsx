@@ -17,7 +17,6 @@ import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import {
   BIO_MAX_LENGTH,
-  CONTACT_PREFERENCE_LABELS,
   ContactPreference,
   type UploadedFile,
 } from "@/interfaces/signup";
@@ -30,6 +29,7 @@ const CONTACT_OPTIONS = Object.values(ContactPreference);
 
 export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
   const copy = useTranslations("signupSteps");
+  const tOptions = useTranslations("options");
   const fields = useTranslations("auth");
   const { draft, updatePersonal, toggleContactPreference } = wizard;
   const { personal } = draft;
@@ -163,7 +163,7 @@ export function PersonalProfileStep({ wizard }: { wizard: SignupWizard }) {
           options={CONTACT_OPTIONS}
           selected={personal.contactPreferences}
           onToggle={toggleContactPreference}
-          labelFor={(value) => CONTACT_PREFERENCE_LABELS[value]}
+          labelFor={(value) => tOptions(`contactPreference.${value}`)}
         />
       </OnboardingCard>
     </>

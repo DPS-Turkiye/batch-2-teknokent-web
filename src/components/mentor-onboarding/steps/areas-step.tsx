@@ -18,6 +18,7 @@ import {
   MAX_OFFERINGS,
 } from "@/interfaces/mentor-onboarding";
 import { STARTUP_STAGE_OPTIONS } from "@/interfaces/signup";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
@@ -26,6 +27,7 @@ const inputClass = `${onboardingInputClass} ${theme.focus}`;
 
 export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
   const copy = useTranslations("mentorSteps");
+  const optionLabel = useOptionLabel();
   const { draft } = wizard;
   const entry = useInlineEntry(wizard.addOffering);
 
@@ -42,6 +44,7 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
           options={wizard.topicOptions}
           selected={draft.topics}
           onToggle={wizard.toggleTopic}
+          labelFor={(topic) => optionLabel("mentorTopic", topic)}
         />
         {draft.topics.length ? (
           <div className="flex items-start justify-between gap-3 rounded-lg border border-[#e6f1f8] bg-[#f2f8fc] px-3 py-2.5 text-xs leading-[18px] text-[#0067b1]">
@@ -64,6 +67,7 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
           options={STARTUP_STAGE_OPTIONS}
           selected={draft.stages as (typeof STARTUP_STAGE_OPTIONS)[number][]}
           onToggle={wizard.toggleStage}
+          labelFor={(stage) => optionLabel("stage", stage)}
         />
       </OnboardingCard>
 

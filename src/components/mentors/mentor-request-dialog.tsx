@@ -7,6 +7,7 @@ import { X } from "lucide-react";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { useAppSession } from "@/components/providers/session-provider";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type {
   MentorAvailabilitySlot,
   MentorProfile,
@@ -53,6 +54,7 @@ export function MentorRequestDialog({
   const t = useTranslations("mentorRequestDialog");
   const tNeed = useTranslations("mentorRequest");
   const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const session = useAppSession();
   const draft = readNeedDraft();
   const labels = needLabels(tNeed);
@@ -85,7 +87,9 @@ export function MentorRequestDialog({
   const topic =
     (draft
       ? needTitleForSummary(draft.topicId, draft.otherSummary, labels)
-      : mentor.specialties[0]) || mentor.professionalTitle;
+      : mentor.specialties[0] &&
+        optionLabel("mentorTopic", mentor.specialties[0])) ||
+    mentor.professionalTitle;
   const canSend = hasPreferredSlots(preferredSlots);
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
@@ -324,7 +328,9 @@ export function MentorRequestDialog({
                   ? t("whenDetails", {
                       when: summaryWhen,
                       minutes: durationMinutes,
-                      mode: mentor.meetingMode || t("onlineFallback"),
+                      mode: mentor.meetingMode
+                        ? optionLabel("meetingFormat", mentor.meetingMode)
+                        : t("onlineFallback"),
                     })
                   : t("whenEmpty")}
               </p>
