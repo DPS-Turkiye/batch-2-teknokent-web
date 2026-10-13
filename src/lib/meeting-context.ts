@@ -46,15 +46,6 @@ export function splitContextLines(value: string | null | undefined) {
     .filter(Boolean);
 }
 
-function istanbulDayKey(value: Date) {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Istanbul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(value);
-}
-
 export function meetingScheduleLabel(
   meeting: MeetingItem,
   { t, locale }: MeetingContextTexts,
@@ -65,17 +56,15 @@ export function meetingScheduleLabel(
   const end = new Date(
     start.getTime() + Math.max(1, meeting.durationMinutes || 60) * 60_000,
   );
-  const sameDay = istanbulDayKey(start) === istanbulDayKey(now);
+  const sameDay = start.toDateString() === now.toDateString();
   const dayLabel = sameDay
     ? t("today")
     : new Intl.DateTimeFormat(locale, {
-        timeZone: "Europe/Istanbul",
         day: "numeric",
         month: "short",
         year: "numeric",
       }).format(start);
   const time = new Intl.DateTimeFormat(locale, {
-    timeZone: "Europe/Istanbul",
     hour: "2-digit",
     minute: "2-digit",
   });

@@ -2,6 +2,9 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 import { defineConfig } from "vitest/config";
 
+// Dates render in the browser's zone; pin it so expected clock times match on UTC CI runners too.
+process.env.TZ = "Europe/Istanbul";
+
 export default defineConfig({
   plugins: [react()],
   test: {

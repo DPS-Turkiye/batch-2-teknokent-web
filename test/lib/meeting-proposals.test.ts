@@ -16,7 +16,7 @@ import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
 
 describe("meeting proposal helpers", () => {
-  it("labels the time in Istanbul with the length", () => {
+  it("labels the time with the length", () => {
     expect(proposalWhenLabel(meetingProposal())).toBe(
       "1 Ekim Perşembe 10:30 · 45 dk",
     );

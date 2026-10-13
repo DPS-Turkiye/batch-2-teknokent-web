@@ -16,7 +16,6 @@ export function proposalWhen(proposal: MeetingProposal, locale: string) {
     month: "long",
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "Europe/Istanbul",
   }).format(new Date(proposal.scheduledAt));
 }
 

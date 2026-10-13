@@ -10,22 +10,40 @@ import { loadMentors } from "@/lib/mentors";
 export const dynamic = "force-dynamic";
 
 type Mentor = Awaited<ReturnType<typeof loadMentors>>["mentors"][number];
+type OptionLabel = (
+  group: "mentorTopic" | "meetingFormat",
+  value: string,
+) => string;
 
 const comparisonRows = [
-  ["specialties", (mentor: Mentor) => mentor.specialties.join(", ")],
+  [
+    "specialties",
+    (mentor: Mentor, label: OptionLabel) =>
+      mentor.specialties.map((topic) => label("mentorTopic", topic)).join(", "),
+  ],
   ["experience", (mentor: Mentor) => mentor.experienceLevel],
   ["sector", (mentor: Mentor) => mentor.sectorExperience],
   ["stages", (mentor: Mentor) => mentor.startupStages],
-  ["meetingMode", (mentor: Mentor) => mentor.meetingMode],
+  [
+    "meetingMode",
+    (mentor: Mentor, label: OptionLabel) =>
+      mentor.meetingMode && label("meetingFormat", mentor.meetingMode),
+  ],
   ["availability", (mentor: Mentor) => mentor.availabilityLabel],
   ["style", (mentor: Mentor) => mentor.mentoringStyle],
 ] as const;
 
 export default async function MentorComparisonPage() {
-  const [t, { mentors, error }] = await Promise.all([
+  const [t, tOption, { mentors, error }] = await Promise.all([
     getTranslations("mentorCompare"),
+    getTranslations("optionValues"),
     loadMentors(),
   ]);
+  // Same fallback as useOptionLabel: values the list doesn't know show as stored.
+  const optionLabel: OptionLabel = (group, value) => {
+    const key = `${group}.${value}` as Parameters<typeof tOption>[0];
+    return tOption.has(key) ? tOption(key) : value;
+  };
   const visibleMentors = mentors.slice(0, 3);
 
   return (
@@ -75,7 +93,7 @@ export default async function MentorComparisonPage() {
                     <td className="p-4 text-[#777]">{t(`rows.${row}`)}</td>
                     {visibleMentors.map((mentor) => (
                       <td key={mentor.id} className="p-4 text-[#444]">
-                        {value(mentor) || t("notSpecified")}
+                        {value(mentor, optionLabel) || t("notSpecified")}
                       </td>
                     ))}
                   </tr>
