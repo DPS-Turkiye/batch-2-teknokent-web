@@ -13,6 +13,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { MENTOR_ACCEPT_MESSAGE } from "@/lib/const/mentorships";
 import { formatSlotDateTime } from "@/lib/format";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
@@ -62,14 +63,13 @@ export function useDecision() {
     setActionError("");
 
     try {
-      // The default reply is saved as the message the mentee reads, so it stays Turkish like other saved texts.
       await decisionMutation.mutateAsync({
         id: selectedRequest.id,
         status: decisionStatuses[activeMode],
         message:
           decisionMessage ||
           (activeMode === MentorDecisionMode.Accept
-            ? "Talebiniz kabul edildi."
+            ? MENTOR_ACCEPT_MESSAGE
             : "Detaylı bilgi rica ederim."),
       });
 

@@ -177,10 +177,10 @@ export const MENTORSHIPS_TABS = [
 ] as const;
 
 export const MENTOR_MENTORSHIPS_TABS = [
-  [MentorshipWorkspaceTab.Requests, "Talepler"],
-  [MentorshipWorkspaceTab.Active, "Aktif"],
-  [MentorshipWorkspaceTab.Regular, "Düzenli"],
-  [MentorshipWorkspaceTab.History, "Geçmiş"],
+  MentorshipWorkspaceTab.Requests,
+  MentorshipWorkspaceTab.Active,
+  MentorshipWorkspaceTab.Regular,
+  MentorshipWorkspaceTab.History,
 ] as const;
 
 export const MENTORSHIP_LIST_PAGE_SIZE = 7;

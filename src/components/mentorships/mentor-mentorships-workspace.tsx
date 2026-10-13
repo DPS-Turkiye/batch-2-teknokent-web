@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { Sparkles } from "lucide-react";
 
@@ -33,7 +34,7 @@ import {
 } from "@/lib/const";
 import {
   MENTOR_ACCENT_STYLE,
-  PAST_MENTORSHIP_LABELS,
+  MENTOR_ACCEPT_MESSAGE,
 } from "@/lib/const/mentorships";
 import { formatMeetingShort } from "@/lib/format";
 import { normalizeMeetLink } from "@/lib/meet-link";
@@ -65,6 +66,8 @@ import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export function MentorMentorshipsWorkspace() {
+  const t = useTranslations("mentorMentorships");
+  const tTabs = useTranslations("mentorships.tabs");
   const { meetings, meetingsError, meetingsLoading, setTab, tab } =
     useMentorshipWorkspace();
   const queryClient = useQueryClient();
@@ -89,7 +92,7 @@ export function MentorMentorshipsWorkspace() {
     setActionError("");
     const message = slot
       ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
-      : "Talebiniz kabul edildi.";
+      : MENTOR_ACCEPT_MESSAGE;
     const normalizedLink = normalizeMeetLink(meetLink);
     const documents = normalizeDocumentTitles(requestedDocuments);
     try {
@@ -121,9 +124,7 @@ export function MentorMentorshipsWorkspace() {
       setTab(MentorshipWorkspaceTab.Active);
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : "Talep kabul edilemedi. Lütfen tekrar dene.",
+        caught instanceof Error ? caught.message : t("acceptFailed"),
       );
     }
   }
@@ -148,9 +149,7 @@ export function MentorMentorshipsWorkspace() {
       setReviewing(null);
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : "Öneriler gönderilemedi. Lütfen tekrar dene.",
+        caught instanceof Error ? caught.message : t("proposeFailed"),
       );
     }
   }
@@ -170,11 +169,7 @@ export function MentorMentorshipsWorkspace() {
       });
       setReviewing(null);
     } catch (caught) {
-      setActionError(
-        caught instanceof Error
-          ? caught.message
-          : "Soru gönderilemedi. Lütfen tekrar dene.",
-      );
+      setActionError(caught instanceof Error ? caught.message : t("askFailed"));
     }
   }
 
@@ -212,9 +207,7 @@ export function MentorMentorshipsWorkspace() {
       setEditingLink(null);
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : "Meet linki kaydedilemedi. Lütfen tekrar dene.",
+        caught instanceof Error ? caught.message : t("linkFailed"),
       );
     } finally {
       setLinkSaving(false);
@@ -226,15 +219,15 @@ export function MentorMentorshipsWorkspace() {
       <div style={MENTOR_ACCENT_STYLE}>
         <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
           <h1 className="text-[28px] font-medium text-[#22262b]">
-            Mentorluklarım
+            {t("title")}
           </h1>
 
           <div
             className="mt-[22px] grid grid-cols-4"
             role="tablist"
-            aria-label="Mentorluk görünümleri"
+            aria-label={t("tabsLabel")}
           >
-            {MENTOR_MENTORSHIPS_TABS.map(([id, label]) => (
+            {MENTOR_MENTORSHIPS_TABS.map((id) => (
               <button
                 key={id}
                 type="button"
@@ -248,14 +241,14 @@ export function MentorMentorshipsWorkspace() {
                     : "border-b border-[#e4e7ea] text-[#676e78] hover:text-[#515861]")
                 }
               >
-                {label}
+                {tTabs(id)}
               </button>
             ))}
           </div>
 
           {meetingsLoading && tab !== MentorshipWorkspaceTab.Regular ? (
             <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-              Yükleniyor...
+              {t("loading")}
             </div>
           ) : meetingsError && tab !== MentorshipWorkspaceTab.Regular ? (
             <div className="mt-5 rounded-[20px] border border-red-200 bg-red-50 p-6 text-center text-sm text-red-700">
@@ -338,6 +331,7 @@ function RequestsTab({
 }: {
   onReview: (request: MentorshipRequest) => void;
 }) {
+  const t = useTranslations("mentorMentorships");
   const [page, setPage] = useState(1);
   const { error, isLoading, requests, totalPages } = useMentorshipRequestsPage(
     UserRole.Mentor,
@@ -348,7 +342,7 @@ function RequestsTab({
   if (isLoading) {
     return (
       <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-        Yükleniyor...
+        {t("loading")}
       </div>
     );
   }
@@ -360,12 +354,14 @@ function RequestsTab({
     );
   }
   if (requests.length === 0) {
-    return <EmptyState message="Şu an bekleyen bir talebin yok." />;
+    return <EmptyState message={t("requests.empty")} />;
   }
 
   return (
     <section className="mt-5">
-      <h2 className="text-lg font-semibold text-[#22262b]">Yeni talepler</h2>
+      <h2 className="text-lg font-semibold text-[#22262b]">
+        {t("requests.title")}
+      </h2>
       <div className="mt-[22px] grid gap-[22px]">
         {requests.map((request) => (
           <IncomingRequestCard
@@ -379,7 +375,7 @@ function RequestsTab({
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
-        label="Talepler sayfaları"
+        label={t("requests.pages")}
       />
     </section>
   );
@@ -392,6 +388,8 @@ function IncomingRequestCard({
   request: MentorshipRequest;
   onReview: () => void;
 }) {
+  const t = useTranslations("mentorMentorships");
+  const locale = useLocale();
   const person = mentorWorkspacePerson(request);
   const outcome = requestExpectedOutcome(request);
   const waitingForMentee =
@@ -402,13 +400,15 @@ function IncomingRequestCard({
       <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
         <div className="flex min-w-0 flex-1 flex-col justify-between">
           <h3 className="text-[19px] font-semibold text-[#22262b]">
-            {mentorWorkspaceName(request)}
+            {mentorWorkspaceName(request, t("startupFallback"))}
           </h3>
           {person ? (
             <p className="mt-1 text-[13px] text-[#676e78]">{person}</p>
           ) : null}
           <p className="mt-auto pt-6 text-xs text-[#676e78]">
-            Talep gönderildi: {formatRequestSentAt(request.createdAt)}
+            {t("requests.sentAt", {
+              when: formatRequestSentAt(request.createdAt, new Date(), locale),
+            })}
           </p>
         </div>
         <div className="flex min-w-0 flex-1 flex-col items-end gap-6">
@@ -420,26 +420,26 @@ function IncomingRequestCard({
             )}
             {outcome ? (
               <p className="mt-4 text-[13px] text-[#676e78]">
-                Beklenen çıktı: {outcome}
+                {t("requests.outcome", { outcome })}
               </p>
             ) : null}
             {waitingForMentee ? (
               <p className="mt-4 text-[13px] font-medium text-[#26a4ff]">
-                Alternatif saatlerin mentee tarafından seçilmesi bekleniyor.
+                {t("requests.waitingForMentee")}
               </p>
             ) : request.status === MentorshipRequestStatus.Accepted ? (
               <p className="mt-4 text-[13px] font-medium text-[#676e78]">
-                Onaylandı — görüşme saati kaydı bekleniyor
+                {t("requests.acceptedWaiting")}
               </p>
             ) : null}
           </div>
           {waitingForMentee ? (
             <span className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#676e78]">
-              Mentee yanıtı bekleniyor
+              {t("requests.menteeReply")}
             </span>
           ) : request.status === MentorshipRequestStatus.Accepted ? (
             <span className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg border border-[#e4e7ea] px-4 text-[13px] font-medium text-[#676e78]">
-              Görüşme kaydı bekleniyor
+              {t("requests.meetingRecord")}
             </span>
           ) : (
             <button
@@ -447,7 +447,7 @@ function IncomingRequestCard({
               onClick={onReview}
               className="inline-flex min-h-[38px] min-w-[110px] items-center justify-center rounded-lg bg-[#26a4ff] px-4 text-[13px] font-medium text-white hover:bg-[#1598ef]"
             >
-              Talebi incele
+              {t("requests.review")}
             </button>
           )}
         </div>
@@ -463,6 +463,8 @@ function ActiveTab({
   meetings: MeetingItem[];
   onEditMeetLink: (request: MentorshipRequest) => void;
 }) {
+  const t = useTranslations("mentorMentorships");
+  const locale = useLocale();
   const [page, setPage] = useState(1);
   const { error, isLoading, requests, totalPages } = useMentorshipRequestsPage(
     UserRole.Mentor,
@@ -473,7 +475,7 @@ function ActiveTab({
   if (isLoading) {
     return (
       <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-        Yükleniyor...
+        {t("loading")}
       </div>
     );
   }
@@ -487,10 +489,12 @@ function ActiveTab({
 
   return (
     <section className="mt-5">
-      <h2 className="text-lg font-medium text-[#22262b]">Aktif mentorluklar</h2>
+      <h2 className="text-lg font-medium text-[#22262b]">
+        {t("active.title")}
+      </h2>
       {requests.length === 0 ? (
         <div className="mt-4 rounded-[10px] border border-[#e4e7ea] bg-white px-6 py-[87px] text-center text-[17px] font-medium text-[#22262b]">
-          Aktif Mentörlüğünüz Bulunmamaktadır
+          {t("active.empty")}
         </div>
       ) : (
         <>
@@ -506,7 +510,7 @@ function ActiveTab({
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h3 className="truncate text-[17px] font-medium text-[#22262b]">
-                        {mentorWorkspaceName(request)}
+                        {mentorWorkspaceName(request, t("startupFallback"))}
                       </h3>
                       <p className="mt-0.5 truncate text-xs text-[#676e78]">
                         {mentorWorkspacePerson(request) || request.supportArea}
@@ -516,7 +520,7 @@ function ActiveTab({
                       href={activeMentorshipHref(request, meeting, true)}
                       className="shrink-0 text-[13px] font-medium text-[#26a4ff]"
                     >
-                      Mentorluğa git →
+                      {t("active.open")}
                     </Link>
                   </div>
                   <span className="mt-2.5 inline-flex rounded-[14px] bg-[#e6f1f8] px-3 py-[7px] text-xs font-medium text-[#26a4ff]">
@@ -530,23 +534,25 @@ function ActiveTab({
                   </div>
                   <div className="mt-2">
                     <p className="text-[11px] text-[#858c96]">
-                      {meeting ? "İlk görüşme" : "Görüşme"}
+                      {meeting ? t("active.firstMeeting") : t("active.meeting")}
                     </p>
                     {meeting ? (
                       <Link
                         href={meetingCallHref(meeting.id)}
                         className="mt-0.5 block text-[13px] font-medium text-[#22262b] hover:text-[#26a4ff]"
                       >
-                        {formatMeetingShort(meeting.scheduledAt)}
+                        {formatMeetingShort(meeting.scheduledAt, locale)}
                       </Link>
                     ) : (
                       <p className="mt-0.5 text-[13px] font-medium text-[#22262b]">
-                        Henüz planlanmadı
+                        {t("active.notPlanned")}
                       </p>
                     )}
                   </div>
                   <div className="mt-3 border-t border-[#e4e7ea] pt-3">
-                    <p className="text-[11px] text-[#858c96]">Meet linki</p>
+                    <p className="text-[11px] text-[#858c96]">
+                      {t("active.meetLink")}
+                    </p>
                     <MeetLinkDisplay
                       meetLink={meeting?.meetLink}
                       className="mt-1"
@@ -557,8 +563,8 @@ function ActiveTab({
                       className="mt-2 text-[13px] font-medium text-[#26a4ff]"
                     >
                       {meeting?.meetLink
-                        ? "Meet linkini düzenle"
-                        : "Meet linki ekle"}
+                        ? t("active.editLink")
+                        : t("active.addLink")}
                     </button>
                   </div>
                 </article>
@@ -569,7 +575,7 @@ function ActiveTab({
             page={page}
             totalPages={totalPages}
             onPageChange={setPage}
-            label="Aktif mentorluk sayfaları"
+            label={t("active.pages")}
           />
         </>
       )}
@@ -578,6 +584,7 @@ function ActiveTab({
 }
 
 function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
+  const t = useTranslations("mentorMentorships");
   const [page, setPage] = useState(1);
   const { error, isLoading, requests, totalPages } = useMentorshipRequestsPage(
     UserRole.Mentor,
@@ -588,7 +595,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
   if (isLoading) {
     return (
       <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-        Yükleniyor...
+        {t("loading")}
       </div>
     );
   }
@@ -610,7 +617,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
           height={28}
         />
         <p className="text-sm font-medium text-[#4a5059]">
-          {PAST_MENTORSHIP_LABELS.empty}
+          {t("history.empty")}
         </p>
       </div>
     );
@@ -631,7 +638,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
         page={page}
         totalPages={totalPages}
         onPageChange={setPage}
-        label="Geçmiş mentorluk sayfaları"
+        label={t("history.pages")}
       />
     </section>
   );
@@ -644,11 +651,13 @@ function PastMentorshipRow({
   request: MentorshipRequest;
   meetings: MeetingItem[];
 }) {
-  const name = mentorWorkspaceName(request);
+  const t = useTranslations("mentorMentorships");
+  const locale = useLocale();
+  const name = mentorWorkspaceName(request, t("startupFallback"));
   const person = mentorWorkspacePerson(request);
   const ended = endedMeetingsForRequest(meetings, request);
   const latest = ended[0];
-  const period = mentorshipPeriodLabel(meetings, request);
+  const period = mentorshipPeriodLabel(meetings, request, locale);
   const detailHref = latest
     ? meetingAboutHref(latest.id)
     : mentorRequestStartupHref(request.id);
@@ -658,7 +667,7 @@ function PastMentorshipRow({
       <div className="relative">
         <Link
           href={detailHref}
-          aria-label={PAST_MENTORSHIP_LABELS.history(name)}
+          aria-label={t("history.open", { name })}
           className="absolute inset-0"
         />
         <div className="pointer-events-none flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -679,7 +688,7 @@ function PastMentorshipRow({
             {period ? (
               <div className="min-w-0">
                 <p className="text-[11px] leading-4 text-[#858c96]">
-                  {PAST_MENTORSHIP_LABELS.period}
+                  {t("history.period")}
                 </p>
                 <p className="text-[13px] font-medium leading-[19px] text-[#4a5059]">
                   {period}
@@ -688,7 +697,7 @@ function PastMentorshipRow({
             ) : null}
             <div className="min-w-0">
               <p className="text-[11px] leading-4 text-[#858c96]">
-                {PAST_MENTORSHIP_LABELS.topics}
+                {t("history.topics")}
               </p>
               <p className="truncate text-[13px] font-medium leading-[19px] text-[#4a5059]">
                 {mentorshipTopics(meetings, request)}
@@ -700,7 +709,7 @@ function PastMentorshipRow({
               href={mentorRequestStartupHref(request.id)}
               className="pointer-events-auto relative z-10 hover:underline"
             >
-              {PAST_MENTORSHIP_LABELS.files}
+              {t("history.files")}
             </Link>
             <Image
               src="/mentorships/expand-right.svg"
@@ -726,10 +735,10 @@ function PastMentorshipRow({
                   width={24}
                   height={24}
                 />
-                {PAST_MENTORSHIP_LABELS.transcript}
+                {t("history.transcript")}
                 {ended.length > 1 ? (
                   <span className="truncate text-xs text-[#858c96]">
-                    · {formatMeetingShort(meeting.scheduledAt)}
+                    · {formatMeetingShort(meeting.scheduledAt, locale)}
                   </span>
                 ) : null}
               </span>

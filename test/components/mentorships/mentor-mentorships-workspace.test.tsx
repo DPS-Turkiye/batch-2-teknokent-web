@@ -12,7 +12,7 @@ import {
 import { updateMeeting } from "@/lib/client/meetings";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { upcomingPreferenceDays } from "@/lib/mentor-availability-days";
-import { freezeDate, renderWithQueryClient } from "@test/test-utils";
+import { freezeDate, InLocale, renderWithQueryClient } from "@test/test-utils";
 
 afterEach(() => {
   vi.useRealTimers();
@@ -377,6 +377,32 @@ describe("MentorMentorshipsWorkspace", () => {
       requestedDocuments: ["Pitch deck"],
     });
     expect(logMentorshipMeeting).not.toHaveBeenCalled();
+  });
+
+  it("reads in English, review dialog included", async () => {
+    const user = userEvent.setup();
+    mockRequests([request()]);
+
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorMentorshipsWorkspace />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "My mentorships" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("tab", { name: "Requests" }));
+    expect(
+      await screen.findByRole("heading", { name: "New requests" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Review request" }));
+    expect(screen.getByText("Request details")).toBeInTheDocument();
+    expect(screen.getByText("Times the mentee prefers")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Propose my own time" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Accept" })).toBeInTheDocument();
   });
 
   it("shows waiting state when mentor already proposed alternative times", async () => {

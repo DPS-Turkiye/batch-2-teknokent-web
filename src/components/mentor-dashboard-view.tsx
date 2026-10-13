@@ -625,6 +625,7 @@ function RequestDrawer({
   );
   const preferredSlotLabels = parsePreferredSlotsFromMessage(
     request.requesterMessage,
+    locale,
   ).map((slot) => slot.label);
   const focusAreas = [
     request.supportArea,

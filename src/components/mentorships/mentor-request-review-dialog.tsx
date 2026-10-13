@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
@@ -32,6 +33,7 @@ import {
 
 type ReviewMode = "accept" | "propose" | "info";
 
+// Sent as the mentor's question, so it stays Turkish like other saved texts.
 const DOCUMENTS_ONLY_QUESTION =
   "Görüşmeden önce aşağıdaki belgeleri paylaşır mısın?";
 
@@ -57,8 +59,14 @@ export function MentorRequestReviewDialog({
   onPropose: (slots: PreferredSlot[], requestedDocuments: string[]) => void;
   onAskInfo: (question: string, requestedDocuments: string[]) => void;
 }) {
-  const slots = parsePreferredSlotsFromMessage(request.requesterMessage);
-  const dayOptions = upcomingPreferenceDays();
+  const t = useTranslations("mentorMentorships.review");
+  const tName = useTranslations("mentorMentorships");
+  const locale = useLocale();
+  const slots = parsePreferredSlotsFromMessage(
+    request.requesterMessage,
+    locale,
+  );
+  const dayOptions = upcomingPreferenceDays(new Date(), 14, locale);
   const [mode, setMode] = useState<ReviewMode>("accept");
   const [selectedKey, setSelectedKey] = useState("");
   const [meetLink, setMeetLink] = useState("");
@@ -101,13 +109,13 @@ export function MentorRequestReviewDialog({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-              Talep detayı
+              {t("eyebrow")}
             </p>
             <h2
               id="mentor-request-review-title"
               className="mt-1 text-[28px] font-semibold leading-tight text-[#22262b]"
             >
-              {mentorWorkspaceName(request)}
+              {mentorWorkspaceName(request, tName("startupFallback"))}
             </h2>
             {person ? (
               <p className="mt-1 text-sm text-[#676e78]">{person}</p>
@@ -116,7 +124,7 @@ export function MentorRequestReviewDialog({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="grid size-6 place-items-center text-[#676e78] hover:text-[#22262b]"
           >
             <X className="size-6" />
@@ -129,12 +137,10 @@ export function MentorRequestReviewDialog({
 
         <div className="mt-5">
           <h3 className="text-base font-medium text-[#22262b]">
-            Mentee’nin tercih ettiği saatler
+            {t("preferredTitle")}
           </h3>
           {slots.length === 0 ? (
-            <p className="mt-2 text-sm text-[#676e78]">
-              Bu talepte tercih saati belirtilmemiş.
-            </p>
+            <p className="mt-2 text-sm text-[#676e78]">{t("noPreferred")}</p>
           ) : (
             <div className="mt-3 grid gap-2">
               {slots.map((slot, index) => {
@@ -168,21 +174,16 @@ export function MentorRequestReviewDialog({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <h3 className="text-base font-medium text-[#22262b]">
-                Saatleri beğenmediysen kendi gün ve saatini öner
+                {t("proposeTitle")}
               </h3>
-              <p className="mt-1 text-xs text-[#858c96]">
-                En az bir öneri yeterli. Daha fazla ekleyebilirsin. Saatler tam
-                (10:00) veya buçuk (10:30) ve en erken 4 saat sonrası olmalı.
-              </p>
+              <p className="mt-1 text-xs text-[#858c96]">{t("proposeHint")}</p>
             </div>
             <button
               type="button"
               onClick={() => setMode(mode === "propose" ? "accept" : "propose")}
               className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
             >
-              {mode === "propose"
-                ? "Mentee saatlerine dön"
-                : "Kendi saatimi öner"}
+              {mode === "propose" ? t("backToMentee") : t("proposeOwn")}
             </button>
           </div>
 
@@ -193,16 +194,18 @@ export function MentorRequestReviewDialog({
                   key={index}
                   className="flex flex-wrap items-center gap-2 text-xs text-[#676e78]"
                 >
-                  <span className="w-16">{index + 1}. öneri</span>
+                  <span className="w-16">
+                    {t("slot", { number: index + 1 })}
+                  </span>
                   <select
                     value={slot.date}
-                    aria-label={`${index + 1}. öneri günü`}
+                    aria-label={t("slotDay", { number: index + 1 })}
                     onChange={(event) =>
                       updateProposedSlot(index, { date: event.target.value })
                     }
                     className="min-h-9 min-w-[132px] flex-1 rounded-lg border border-[#d4d8dd] px-2.5 text-sm text-[#22262b] outline-none"
                   >
-                    <option value="">Gün seç</option>
+                    <option value="">{t("pickDay")}</option>
                     {dayOptions.map((day) => (
                       <option key={day.value} value={day.value}>
                         {day.label}
@@ -213,7 +216,7 @@ export function MentorRequestReviewDialog({
                     type="time"
                     step={1800}
                     value={slot.time}
-                    aria-label={`${index + 1}. öneri saati`}
+                    aria-label={t("slotTime", { number: index + 1 })}
                     onChange={(event) =>
                       updateProposedSlot(index, { time: event.target.value })
                     }
@@ -236,7 +239,7 @@ export function MentorRequestReviewDialog({
                   }
                   className="mt-1 text-left text-[13px] font-medium text-[var(--ms-accent,#e86f22)]"
                 >
-                  + Bir tane daha ekle
+                  {t("addSlot")}
                 </button>
               ) : null}
             </div>
@@ -247,7 +250,7 @@ export function MentorRequestReviewDialog({
           <>
             <label className="mt-5 block">
               <span className="text-base font-medium text-[#22262b]">
-                Meet linki
+                {t("meetLink")}
               </span>
               <input
                 type="text"
@@ -268,14 +271,14 @@ export function MentorRequestReviewDialog({
         {mode === "info" ? (
           <label className="mt-5 block">
             <span className="text-base font-medium text-[#22262b]">
-              Startup’a sorun
+              {t("askTitle")}
             </span>
             <textarea
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
               rows={4}
               maxLength={5000}
-              placeholder="Karar vermeden önce öğrenmek istediklerini yaz."
+              placeholder={t("askPlaceholder")}
               className="mt-2 w-full rounded-lg border border-[#d4d8dd] px-3.5 py-2.5 text-sm text-[#22262b] outline-none"
             />
           </label>
@@ -295,13 +298,13 @@ export function MentorRequestReviewDialog({
 
         <div className="mt-5 flex flex-wrap justify-end gap-2">
           <SecondaryButton href={mentorRequestStartupHref(request.id)}>
-            Startup’ı görüntüle
+            {t("viewStartup")}
           </SecondaryButton>
-          <SecondaryButton onClick={onClose}>Vazgeç</SecondaryButton>
+          <SecondaryButton onClick={onClose}>{t("cancel")}</SecondaryButton>
           <SecondaryButton
             onClick={() => setMode(mode === "info" ? "accept" : "info")}
           >
-            {mode === "info" ? "Geri dön" : "Bilgi iste"}
+            {mode === "info" ? t("back") : t("askInfo")}
           </SecondaryButton>
           {mode === "info" ? (
             <PrimaryButton
@@ -313,7 +316,7 @@ export function MentorRequestReviewDialog({
                 )
               }
             >
-              {isPending ? "Gönderiliyor…" : "Gönder"}
+              {isPending ? t("sending") : t("send")}
             </PrimaryButton>
           ) : mode === "propose" ? (
             <PrimaryButton
@@ -325,7 +328,7 @@ export function MentorRequestReviewDialog({
                 )
               }
             >
-              {isPending ? "Gönderiliyor…" : "Önerileri gönder"}
+              {isPending ? t("sending") : t("sendProposals")}
             </PrimaryButton>
           ) : (
             <PrimaryButton
@@ -339,7 +342,7 @@ export function MentorRequestReviewDialog({
                 )
               }
             >
-              {isPending ? "Kabul ediliyor…" : "Kabul et"}
+              {isPending ? t("accepting") : t("accept")}
             </PrimaryButton>
           )}
         </div>

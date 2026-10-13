@@ -9,20 +9,9 @@ export const MENTOR_ACCENT_STYLE = {
   "--ms-accent-border": "#95cdff",
 } as CSSProperties;
 
-export const MENTORSHIP_PERIOD_FORMAT = new Intl.DateTimeFormat("tr-TR", {
-  month: "short",
-  year: "numeric",
-});
-
-export const PAST_MENTORSHIP_LABELS = {
-  empty: "Henüz tamamlanan bir mentorluk yok.",
-  period: "Dönem",
-  topics: "Konular",
-  notes: "Notlar",
-  files: "Dosyalar",
-  transcript: "Toplantı Transkripti",
-  history: (name: string) => `${name} mentorluk geçmişi`,
-} as const;
+// Saved as the message the mentee reads, so these stay Turkish like other saved texts.
+export const MENTOR_ACCEPT_MESSAGE = "Talebiniz kabul edildi.";
+export const MENTOR_DECLINE_MESSAGE = "Şu an uygun değilim.";
 
 export const MENTORSHIPS_ACTIVE_HREF = "/mentorships?tab=active";
 export const MENTORSHIPS_HISTORY_HREF = "/mentorships?tab=history";

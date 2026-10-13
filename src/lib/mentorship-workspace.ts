@@ -3,7 +3,6 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { MENTORSHIP_PERIOD_FORMAT } from "@/lib/const/mentorships";
 import { meetingCallHref as callHref } from "@/lib/meeting-context";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
 
@@ -146,18 +145,21 @@ export function endedMeetingsForRequest(
 export function mentorshipPeriodLabel(
   meetings: MeetingItem[],
   request: MentorshipRequest,
+  locale: string,
 ) {
+  const format = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    year: "numeric",
+  });
   const times = meetingsForRequest(meetings, request)
     .map((meeting) => new Date(meeting.scheduledAt).getTime())
     .filter((time) => !Number.isNaN(time));
   if (times.length === 0) {
     const created = new Date(request.createdAt);
-    return Number.isNaN(created.getTime())
-      ? ""
-      : MENTORSHIP_PERIOD_FORMAT.format(created);
+    return Number.isNaN(created.getTime()) ? "" : format.format(created);
   }
-  const first = MENTORSHIP_PERIOD_FORMAT.format(new Date(Math.min(...times)));
-  const last = MENTORSHIP_PERIOD_FORMAT.format(new Date(Math.max(...times)));
+  const first = format.format(new Date(Math.min(...times)));
+  const last = format.format(new Date(Math.max(...times)));
   return first === last ? first : `${first} – ${last}`;
 }
 
@@ -184,12 +186,15 @@ export function requestProgressPercent(
   return Math.min(90, 8 + completed * 18);
 }
 
-export function mentorWorkspaceName(request: MentorshipRequest) {
+export function mentorWorkspaceName(
+  request: MentorshipRequest,
+  fallback: string,
+) {
   return (
     request.organizationName ||
     request.requestedForName ||
     request.requesterName ||
-    "Girişim"
+    fallback
   );
 }
 
