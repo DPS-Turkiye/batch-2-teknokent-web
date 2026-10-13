@@ -7,10 +7,10 @@ import {
 } from "@/components/onboarding/onboarding-ui";
 import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
-import { MEETING_FREQUENCY_LABELS } from "@/interfaces/mentor";
 import { MentorOnboardingStep } from "@/interfaces/mentor-onboarding";
 import { weekSummary, weeklyCapacity } from "@/lib/mentor-onboarding";
 import { truncate } from "@/lib/utils";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useLocale, useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
@@ -18,6 +18,8 @@ const TONE = OnboardingTone.Mentor;
 export function MentorReviewStep({ wizard }: { wizard: MentorOnboarding }) {
   const locale = useLocale();
   const copy = useTranslations("mentorReview");
+  const tOptions = useTranslations("options");
+  const optionLabel = useOptionLabel();
   const { draft, goToStep } = wizard;
   const { profile } = draft;
   const capacity = weeklyCapacity(draft);
@@ -79,9 +81,9 @@ export function MentorReviewStep({ wizard }: { wizard: MentorOnboarding }) {
           {
             label: copy("meeting"),
             value: [
-              `${draft.durationMinutes} dk`,
-              MEETING_FREQUENCY_LABELS[draft.frequency],
-              draft.format,
+              tOptions("minutes", { count: draft.durationMinutes }),
+              tOptions(`meetingFrequency.${draft.frequency}`),
+              optionLabel("meetingFormat", draft.format),
             ].join(" · "),
           },
           { label: copy("responseTime"), value: draft.responseTime },

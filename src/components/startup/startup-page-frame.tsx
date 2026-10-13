@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { StartupTabs } from "@/components/startup/startup-tabs";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 
 export const startupPrimaryActionClass =
@@ -23,6 +24,7 @@ export function StartupPageFrame({
   children: ReactNode;
 }) {
   const t = useTranslations("startupFrame");
+  const optionLabel = useOptionLabel();
   const header = useStartupHeader();
 
   return (
@@ -65,7 +67,7 @@ export function StartupPageFrame({
                 <span
                   className={`${chipClass} border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]`}
                 >
-                  {header.fundingStage}
+                  {optionLabel("fundingStage", header.fundingStage)}
                 </span>
               ) : null}
             </div>

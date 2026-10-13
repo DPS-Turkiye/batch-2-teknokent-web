@@ -8,6 +8,7 @@ import {
   EditableInfoChips,
   EditableInfoField,
 } from "@/components/profile/editable-info-field";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useStartupProfile } from "@/hooks/use-startup-profile";
 import { StartupFundingStage } from "@/interfaces/organization";
 import { STARTUP_STAGE_OPTIONS } from "@/interfaces/signup";
@@ -20,6 +21,7 @@ import { toFoundedYear, toFundingStage } from "@/lib/profile-validation";
  */
 export function StartupProfileSection() {
   const t = useTranslations("profileSections");
+  const optionLabel = useOptionLabel();
   const {
     draft,
     setField,
@@ -165,7 +167,7 @@ export function StartupProfileSection() {
               <option value="">{t("notSpecified")}</option>
               {STARTUP_STAGE_OPTIONS.map((stage) => (
                 <option key={stage} value={stage}>
-                  {stage}
+                  {optionLabel("stage", stage)}
                 </option>
               ))}
             </select>
@@ -206,7 +208,7 @@ export function StartupProfileSection() {
               <option value="">{t("notSpecified")}</option>
               {Object.values(StartupFundingStage).map((stage) => (
                 <option key={stage} value={stage}>
-                  {stage}
+                  {optionLabel("fundingStage", stage)}
                 </option>
               ))}
             </select>

@@ -9,6 +9,7 @@ import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { usePasswordReset } from "@/hooks/use-password-reset";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
@@ -28,6 +29,7 @@ import { initials } from "@/lib/utils";
 export function usePersonalProfilePage() {
   const t = useTranslations("personalProfile");
   const texts = { t, locale: useLocale() };
+  const optionLabel = useOptionLabel();
   const session = useAppSession();
   const { showToast } = useToast();
   const profile = usePersonalProfile();
@@ -54,7 +56,10 @@ export function usePersonalProfilePage() {
       ? { label: t("inMentorship"), tone: ProfileChipTone.Active }
       : null,
     header.fundingStage
-      ? { label: header.fundingStage, tone: ProfileChipTone.Neutral }
+      ? {
+          label: optionLabel("fundingStage", header.fundingStage),
+          tone: ProfileChipTone.Neutral,
+        }
       : null,
   ].filter((chip): chip is ProfileChip => chip !== null);
 
@@ -95,9 +100,13 @@ export function usePersonalProfilePage() {
           logoUrl: header.logoUrl,
           summary: startupSummary(
             {
-              fundingStage: header.fundingStage,
+              fundingStage:
+                header.fundingStage &&
+                optionLabel("fundingStage", header.fundingStage),
               teamSize: overview.teamSize,
-              maturity: overview.profile?.maturity ?? null,
+              maturity: overview.profile?.maturity
+                ? optionLabel("stage", overview.profile.maturity)
+                : null,
             },
             texts,
           ),

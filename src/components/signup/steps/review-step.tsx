@@ -9,11 +9,7 @@ import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
-import {
-  CONTACT_PREFERENCE_LABELS,
-  SignupStep,
-  StartupDocumentKind,
-} from "@/interfaces/signup";
+import { SignupStep, StartupDocumentKind } from "@/interfaces/signup";
 import { truncate } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -22,6 +18,7 @@ const TONE = OnboardingTone.Mentee;
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const t = useTranslations();
   const copy = useTranslations("signupReview");
+  const tOptions = useTranslations("options");
   const NOT_UPLOADED = copy("notUploaded");
   const { draft, goToStep, setConsent } = wizard;
   const { personal, startup, documents } = draft;
@@ -64,7 +61,7 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
           {
             label: copy("contact"),
             value: personal.contactPreferences
-              .map((value) => CONTACT_PREFERENCE_LABELS[value])
+              .map((value) => tOptions(`contactPreference.${value}`))
               .join(", "),
           },
         ]}

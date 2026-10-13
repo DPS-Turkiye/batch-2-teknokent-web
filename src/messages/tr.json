@@ -2284,5 +2284,102 @@
     "increase": "{label} artır",
     "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
     "backToMentorships": "Mentorluklarıma dön"
+  },
+  "optionValues": {
+    "stage": {
+      "Fikir": "Fikir",
+      "Prototip": "Prototip",
+      "MVP": "MVP",
+      "Gelir": "Gelir",
+      "Büyüme": "Büyüme"
+    },
+    "stageDescription": {
+      "Fikir": "Problemi ve çözüm fikrini doğruluyorsun.",
+      "Prototip": "Çözümün ilk çalışan halini deniyorsun.",
+      "MVP": "Ürünün ilk kullanıcılarla yayında.",
+      "Gelir": "Ürünün gelir getirmeye başladı.",
+      "Büyüme": "Kullanıcı ve gelir büyümesine odaklanıyorsun."
+    },
+    "supportArea": {
+      "Ürün & UX": "Ürün & UX",
+      "Value Proposition": "Value Proposition",
+      "User Research": "User Research",
+      "Finans": "Finans",
+      "Pazarlama": "Pazarlama",
+      "Büyüme": "Büyüme",
+      "Satış": "Satış",
+      "Hukuk": "Hukuk",
+      "Teknoloji": "Teknoloji",
+      "Yatırım": "Yatırım"
+    },
+    "mentorTopic": {
+      "UX Stratejisi": "UX Stratejisi",
+      "Product Design": "Product Design",
+      "User Research": "User Research",
+      "Design Systems": "Design Systems",
+      "Product Validation": "Product Validation",
+      "UX/UI Review": "UX/UI Review",
+      "Product Experience": "Product Experience",
+      "Büyüme": "Büyüme",
+      "Finans": "Finans",
+      "Pazarlama": "Pazarlama",
+      "Satış": "Satış",
+      "Teknoloji": "Teknoloji"
+    },
+    "meetingFormat": {
+      "Online": "Online",
+      "Yüz yüze": "Yüz yüze",
+      "Her ikisi de": "Her ikisi de"
+    },
+    "responseTime": {
+      "Aynı gün": "Aynı gün",
+      "1–2 gün": "1–2 gün",
+      "3–5 gün": "3–5 gün"
+    },
+    "fundingStage": {
+      "Kendi kaynaklarıyla": "Kendi kaynaklarıyla",
+      "Pre-seed": "Pre-seed",
+      "Seed": "Seed",
+      "Seri A": "Seri A",
+      "Seri B ve sonrası": "Seri B ve sonrası"
+    }
+  },
+  "options": {
+    "contactPreference": {
+      "IN_APP_MESSAGE": "Uygulama içi mesaj",
+      "VIDEO_CALL": "Video görüşme",
+      "EMAIL": "E-posta",
+      "IN_PERSON": "Yüz yüze"
+    },
+    "meetingFrequency": {
+      "WEEKLY": "Haftada 1",
+      "BIWEEKLY": "2 haftada 1",
+      "MONTHLY": "Ayda 1",
+      "AS_NEEDED": "İhtiyaca göre"
+    },
+    "prepFile": {
+      "REQUIRED": "Zorunlu",
+      "OPTIONAL": "İsteğe bağlı",
+      "NOT_NEEDED": "Gerekmiyor"
+    },
+    "language": {
+      "TURKISH": "Türkçe",
+      "ENGLISH": "İngilizce",
+      "GERMAN": "Almanca",
+      "FRENCH": "Fransızca",
+      "SPANISH": "İspanyolca",
+      "ARABIC": "Arapça",
+      "RUSSIAN": "Rusça"
+    },
+    "weekday": {
+      "MONDAY": "Pazartesi",
+      "TUESDAY": "Salı",
+      "WEDNESDAY": "Çarşamba",
+      "THURSDAY": "Perşembe",
+      "FRIDAY": "Cuma",
+      "SATURDAY": "Cumartesi",
+      "SUNDAY": "Pazar"
+    },
+    "minutes": "{count} dk"
   }
 }
