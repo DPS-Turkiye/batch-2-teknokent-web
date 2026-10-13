@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";
@@ -23,16 +24,19 @@ export function ActiveMentorships({
   nextMeetingByRequest: Record<string, MeetingItem>;
   loading: boolean;
 }) {
+  const t = useTranslations("menteeHome");
+  const locale = useLocale();
   return (
     <section
       aria-labelledby="home-active-title"
       className="flex flex-col gap-3"
     >
-      <SectionHeader id="home-active-title" title="Aktif Mentorluklar" />
+      <SectionHeader id="home-active-title" title={t("active.title")} />
       {requests.slice(0, MENTORSHIP_LIMIT).map((request) => {
         const footer = activeMentorshipFooter(
           openActionCountByRequest[request.id] ?? 0,
           nextMeetingByRequest[request.id] ?? null,
+          { t, locale },
         );
         return (
           <article
@@ -66,10 +70,10 @@ export function ActiveMentorships({
               )}
               <Link
                 href={`/mentorships?tab=${MentorshipWorkspaceTab.Active}`}
-                aria-label={`Mentorluğa git: ${request.mentorName}`}
+                aria-label={t("active.goToLabel", { name: request.mentorName })}
                 className="inline-flex shrink-0 items-center gap-1 text-[12.5px] font-semibold leading-[18.75px] text-[#565e68] hover:text-[#22262b]"
               >
-                Mentorluğa git
+                {t("active.goTo")}
                 <Image
                   src="/mentee-dashboard/home/chevron.svg"
                   alt=""
@@ -83,10 +87,7 @@ export function ActiveMentorships({
         );
       })}
       {requests.length === 0 && (
-        <SectionPlaceholder
-          loading={loading}
-          emptyText="Henüz aktif mentorluk yok."
-        />
+        <SectionPlaceholder loading={loading} emptyText={t("active.empty")} />
       )}
     </section>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
@@ -19,6 +20,8 @@ export function UpcomingMeetings({
   requestsById: Record<string, MentorshipRequest>;
   loading: boolean;
 }) {
+  const t = useTranslations("menteeHome");
+  const locale = useLocale();
   return (
     <section
       aria-labelledby="home-upcoming-title"
@@ -26,9 +29,9 @@ export function UpcomingMeetings({
     >
       <SectionHeader
         id="home-upcoming-title"
-        title="Yaklaşan görüşmeler"
+        title={t("upcoming.title")}
         href="/calendar"
-        linkText="Takvimi aç"
+        linkText={t("upcoming.openCalendar")}
       />
       {meetings.slice(0, MEETING_LIMIT).map((meeting) => {
         const request = meeting.mentorshipRequestId
@@ -47,14 +50,14 @@ export function UpcomingMeetings({
                     .join(" · ")}
                 </p>
                 <h3 className="truncate text-[15px] font-semibold leading-[22px] text-[#22262b]">
-                  {meeting.agenda || "Mentorluk görüşmesi"}
+                  {meeting.agenda || t("meetingFallback")}
                 </h3>
                 <p className="text-xs leading-[18px] text-[#858c96]">
-                  {meetingWhenLabel(meeting)}
+                  {meetingWhenLabel(meeting, { t, locale })}
                 </p>
               </div>
               <span className="shrink-0 rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-2.5 py-1 text-[11.5px] font-medium leading-[17px] text-[#676e78]">
-                Planlandı
+                {t("upcoming.planned")}
               </span>
             </div>
             <div className="flex flex-wrap justify-end gap-2">
@@ -62,28 +65,25 @@ export function UpcomingMeetings({
                 href="/messages"
                 className="inline-flex items-center justify-center rounded-full border border-[#d4d8dd] bg-white px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-[#4a5059] hover:bg-[#f8f9fa]"
               >
-                Mentora mesaj
+                {t("messageMentor")}
               </Link>
               <RescheduleMeetingButton
                 meeting={meeting}
-                pairLabel={meeting.mentorName ?? "Mentor"}
+                pairLabel={meeting.mentorName ?? t("mentorFallback")}
                 className="inline-flex items-center justify-center rounded-full border border-[#d4d8dd] bg-white px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-[#4a5059] hover:bg-[#f8f9fa]"
               />
               <Link
                 href={meetingCallHref(meeting.id)}
                 className="inline-flex items-center justify-center rounded-full bg-[#ffb28a] px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-white hover:bg-[#f79a6b]"
               >
-                Görüşmeye katıl
+                {t("joinMeeting")}
               </Link>
             </div>
           </article>
         );
       })}
       {meetings.length === 0 && (
-        <SectionPlaceholder
-          loading={loading}
-          emptyText="Başka yaklaşan görüşmen yok."
-        />
+        <SectionPlaceholder loading={loading} emptyText={t("upcoming.empty")} />
       )}
     </section>
   );

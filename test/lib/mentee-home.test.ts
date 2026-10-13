@@ -1,11 +1,12 @@
+import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
+  type HomeTexts,
   dueState,
   meetingDayLabel,
   meetingWhenLabel,
@@ -14,6 +15,8 @@ import {
   sentRequestState,
   writeDismissedHomeTasks,
 } from "@/lib/mentee-home";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 import {
   menteeActionItemFixture as actionItem,
@@ -23,37 +26,51 @@ import {
 
 const now = new Date(2026, 8, 14, 10, 0);
 
+function homeTexts(locale: "tr" | "en"): HomeTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "menteeHome",
+    }),
+    locale,
+  };
+}
+const texts = homeTexts("tr");
+
 describe("dueState", () => {
   it("marks past days overdue and today's date as today", () => {
-    expect(dueState("2026-09-13", now)).toEqual({
+    expect(dueState("2026-09-13", texts, now)).toEqual({
       tone: DueTone.Overdue,
       label: "Gecikti",
     });
-    expect(dueState("2026-09-14", now)).toEqual({
+    expect(dueState("2026-09-14", texts, now)).toEqual({
       tone: DueTone.Today,
       label: "Bugün",
     });
   });
 
   it("shows the day and month for later dates", () => {
-    expect(dueState("2026-09-18", now)).toEqual({
+    expect(dueState("2026-09-18", texts, now)).toEqual({
       tone: DueTone.Upcoming,
       label: "18 Eylül",
     });
   });
 
   it("treats a missing or unreadable date as undated", () => {
-    expect(dueState(null, now).tone).toBe(DueTone.None);
-    expect(dueState("not-a-date", now).tone).toBe(DueTone.None);
+    expect(dueState(null, texts, now).tone).toBe(DueTone.None);
+    expect(dueState("not-a-date", texts, now).tone).toBe(DueTone.None);
   });
 
   it("reads a full timestamp in the viewer's own day", () => {
-    expect(dueState(new Date(2026, 8, 14, 23, 30).toISOString(), now)).toEqual({
+    expect(
+      dueState(new Date(2026, 8, 14, 23, 30).toISOString(), texts, now),
+    ).toEqual({
       tone: DueTone.Today,
       label: "Bugün",
     });
     expect(
-      dueState(new Date(2026, 8, 15, 0, 30).toISOString(), now).label,
+      dueState(new Date(2026, 8, 15, 0, 30).toISOString(), texts, now).label,
     ).toBe("15 Eylül");
   });
 });
@@ -63,6 +80,7 @@ describe("meetingWhenLabel", () => {
     expect(
       meetingWhenLabel(
         meeting({ meetLink: "https://meet.google.com/abc-defg-hij" }),
+        texts,
         now,
       ),
     ).toBe("Yarın · 14:00 · 45 dk · Online");
@@ -75,6 +93,7 @@ describe("meetingWhenLabel", () => {
           scheduledAt: new Date(2026, 8, 14, 16, 30).toISOString(),
           durationMinutes: 30,
         }),
+        texts,
         now,
       ),
     ).toBe("Bugün · 16:30 · 30 dk");
@@ -87,9 +106,20 @@ describe("meetingWhenLabel", () => {
           scheduledAt: new Date(2026, 8, 20, 9, 30).toISOString(),
           durationMinutes: 60,
         }),
+        texts,
         now,
       ),
     ).toBe("20 Eylül · 09:30 · 60 dk");
+  });
+
+  it("writes the label in English", () => {
+    expect(
+      meetingWhenLabel(
+        meeting({ meetLink: "https://meet.google.com/abc-defg-hij" }),
+        homeTexts("en"),
+        now,
+      ),
+    ).toBe("Tomorrow · 02:00 PM · 45 min · Online");
   });
 });
 
@@ -98,6 +128,7 @@ describe("meetingDayLabel", () => {
     expect(
       meetingDayLabel(
         meeting({ scheduledAt: new Date(2026, 7, 18, 10).toISOString() }),
+        "tr",
       ),
     ).toBe("18 Ağustos 2026");
   });
@@ -160,6 +191,7 @@ describe("buildHomeTasks", () => {
         }),
       ],
       actionItemRequestIds: { a1: "r3", a2: "r3" },
+      texts,
       now,
     });
 
@@ -193,6 +225,7 @@ describe("buildHomeTasks", () => {
       meetings: [],
       actionItems: [actionItem({ ownerName: "Kerem Yıldırım", dueDate: null })],
       actionItemRequestIds: {},
+      texts,
       now,
     });
 
@@ -226,16 +259,17 @@ describe("buildHomeTasks", () => {
           status: MeetingStatus.Completed,
         }),
       ],
+      texts,
       now,
     });
 
     expect(task).toMatchObject({
       id: "feedback-ended-1",
       kind: HomeTaskKind.MeetingFeedback,
-      title: HOME_TASK_LABELS.feedbackTitle,
+      title: "Toplantıyı değerlendir",
       subtitle: "Selin Kaya · KPI görüşmesi",
       dueTone: DueTone.Overdue,
-      actionLabel: HOME_TASK_LABELS.feedbackAction,
+      actionLabel: "Değerlendir",
       href: "/meetings/research/feedback?id=ended-1",
     });
   });
@@ -254,6 +288,7 @@ describe("buildHomeTasks", () => {
         }),
       ],
       dismissedTaskIds: ["feedback-ended-1"],
+      texts,
       now,
     });
 
@@ -280,6 +315,7 @@ describe("buildHomeTasks on a shared day", () => {
       meetings: [],
       actionItems: [actionItem({ dueDate: "2026-09-14" })],
       actionItemRequestIds: {},
+      texts,
       now,
     });
 
@@ -292,7 +328,7 @@ describe("buildHomeTasks on a shared day", () => {
 
 describe("activeMentorshipFooter", () => {
   it("prefers open actions, then the next meeting", () => {
-    expect(activeMentorshipFooter(1, null)).toEqual({
+    expect(activeMentorshipFooter(1, null, texts)).toEqual({
       hasOpenActions: true,
       label: "1 açık aksiyon",
     });
@@ -300,14 +336,24 @@ describe("activeMentorshipFooter", () => {
       activeMentorshipFooter(
         0,
         meeting({ scheduledAt: new Date(2026, 7, 30, 10).toISOString() }),
+        texts,
       ),
     ).toEqual({
       hasOpenActions: false,
       label: "Sonraki görüşme · 30 Ağustos",
     });
-    expect(activeMentorshipFooter(0, null)).toEqual({
+    expect(activeMentorshipFooter(0, null, texts)).toEqual({
       hasOpenActions: false,
       label: "Planlı görüşme yok",
     });
+  });
+
+  it("counts open actions in English", () => {
+    expect(activeMentorshipFooter(2, null, homeTexts("en")).label).toBe(
+      "2 open actions",
+    );
+    expect(activeMentorshipFooter(1, null, homeTexts("en")).label).toBe(
+      "1 open action",
+    );
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import {
@@ -25,6 +26,7 @@ export function TaskNotebookDialog({
   requestId: string;
   onClose: () => void;
 }) {
+  const tCommon = useTranslations("common");
   const notebook = useTaskNotebook(requestId);
 
   return (
@@ -36,7 +38,7 @@ export function TaskNotebookDialog({
       <button
         type="button"
         onClick={onClose}
-        aria-label="Kapat"
+        aria-label={tCommon("close")}
         className="absolute right-4 top-5 z-10 grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f3f4f6] hover:text-[#22262b]"
       >
         <X className="size-4" />

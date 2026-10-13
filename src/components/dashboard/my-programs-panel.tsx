@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
@@ -16,6 +17,7 @@ export function MyProgramsPanel({
 }: {
   variant?: "mentee" | "mentor";
 }) {
+  const t = useTranslations("myPrograms");
   const session = useAppSession();
   const orgPrograms = useOrganizationPrograms({
     enabled: variant === "mentee",
@@ -49,19 +51,13 @@ export function MyProgramsPanel({
       aria-labelledby="home-programs-title"
       className="flex flex-col gap-3"
     >
-      <SectionHeader id="home-programs-title" title="Programlarım" />
+      <SectionHeader id="home-programs-title" title={t("title")} />
       {loading ? (
         <SectionPlaceholder loading emptyText="" />
       ) : error ? (
-        <SectionPlaceholder
-          loading={false}
-          emptyText="Programlar yüklenemedi."
-        />
+        <SectionPlaceholder loading={false} emptyText={t("failed")} />
       ) : items.length === 0 ? (
-        <SectionPlaceholder
-          loading={false}
-          emptyText="Henüz bir programa dahil değilsin."
-        />
+        <SectionPlaceholder loading={false} emptyText={t("empty")} />
       ) : (
         <div className="space-y-[10px]">
           {items.map((program) => (
@@ -76,8 +72,8 @@ export function MyProgramsPanel({
                 </p>
                 <p className="mt-0.5 text-xs leading-[18px] text-[#7a828d]">
                   {session?.role === UserRole.Mentor
-                    ? "Program detayını gör"
-                    : "Programdaki kişileri gör"}
+                    ? t("mentorLink")
+                    : t("menteeLink")}
                 </p>
               </div>
               <span className="shrink-0 text-[12.5px] font-semibold text-[#565e68]">

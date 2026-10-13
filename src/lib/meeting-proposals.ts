@@ -8,18 +8,21 @@ export const PROPOSAL_DURATIONS = [30, 45, 60, 90] as const;
 export const DEFAULT_PROPOSAL_DURATION = 45;
 export const MAX_PROPOSAL_AGENDA = 500;
 
-const WHEN = new Intl.DateTimeFormat("tr-TR", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-  hour: "2-digit",
-  minute: "2-digit",
-  timeZone: "Europe/Istanbul",
-});
+/** "18 Eylül Perşembe 10:30" */
+export function proposalWhen(proposal: MeetingProposal, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Istanbul",
+  }).format(new Date(proposal.scheduledAt));
+}
 
 /** "18 Eylül Perşembe 10:30 · 45 dk" */
 export function proposalWhenLabel(proposal: MeetingProposal) {
-  return `${WHEN.format(new Date(proposal.scheduledAt)).replace(",", "")} · ${proposal.durationMinutes} dk`;
+  return `${proposalWhen(proposal, "tr")} · ${proposal.durationMinutes} dk`;
 }
 
 export function openProposal(proposals: MeetingProposal[]) {

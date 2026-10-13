@@ -1,8 +1,9 @@
-export function dayGreeting(now = new Date()) {
+/** Which `common.greeting` fits the hour. */
+export function dayPart(now = new Date()) {
   const hour = now.getHours();
-  if (hour >= 5 && hour < 12) return "Günaydın";
-  if (hour >= 12 && hour < 18) return "İyi günler";
-  return "İyi akşamlar";
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 18) return "afternoon";
+  return "evening";
 }
 
 /** A calendar-day string ("2026-09-15") at local midnight, so it never shows as the day before. */
@@ -10,16 +11,16 @@ export function calendarDay(value: string) {
   return new Date(`${value}T00:00:00`);
 }
 
-export function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+export function formatDateTime(value: string, locale = "tr") {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "long",
     timeStyle: "short",
   }).format(new Date(value));
 }
 
 /** "2 Eylül 2026" */
-export function formatLongDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+export function formatLongDate(value: string, locale = "tr") {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -27,16 +28,16 @@ export function formatLongDate(value: string) {
 }
 
 /** "30 Ağu" */
-export function formatDayMonth(date: Date) {
-  return new Intl.DateTimeFormat("tr-TR", {
+export function formatDayMonth(date: Date, locale = "tr") {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
   }).format(date);
 }
 
 /** "12 Eyl 2026" */
-export function formatShortDate(value: string) {
-  return new Intl.DateTimeFormat("tr-TR", { dateStyle: "medium" }).format(
+export function formatShortDate(value: string, locale = "tr") {
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(
     new Date(value),
   );
 }

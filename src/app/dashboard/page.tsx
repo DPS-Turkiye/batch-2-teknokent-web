@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { AppShell } from "@/components/hoc/app-shell";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
@@ -16,6 +18,7 @@ import { useHomeTaskNotebook } from "@/hooks/use-task-notebook";
 import { AppArea } from "@/types/app-area";
 
 export default function DashboardPage() {
+  const t = useTranslations("menteeHome");
   const data = useDashboardData();
   const notebook = useHomeTaskNotebook();
   return (
@@ -23,12 +26,15 @@ export default function DashboardPage() {
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-7 px-4 pb-[72px] pt-3 sm:px-8">
         <h1 className="text-[28px] font-semibold leading-[41px] text-[#22262b]">
           {data.displayName
-            ? `${data.greeting}, ${data.displayName}`
+            ? t("greetingWithName", {
+                greeting: data.greeting,
+                name: data.displayName,
+              })
             : data.greeting}
         </h1>
         {data.isFallback && (
           <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-800">
-            Veriler yüklenemedi. Daha sonra yeniden dene.
+            {t("loadFailed")}
           </p>
         )}
         <NextMeetingHero meeting={data.nextMeeting} loading={data.isLoading} />

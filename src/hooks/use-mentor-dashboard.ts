@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueries } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -22,9 +23,10 @@ import {
   mentorWeekMeetingCount,
 } from "@/lib/mentor-dashboard";
 import { pickUpcomingMeetings } from "@/lib/upcoming-meetings";
-import { dayGreeting } from "@/lib/utils";
+import { dayPart } from "@/lib/utils";
 
 export function useMentorDashboard() {
+  const tCommon = useTranslations("common");
   const session = useAppSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
@@ -98,7 +100,7 @@ export function useMentorDashboard() {
 
   return {
     firstName: session?.fullName?.trim().split(/\s+/)[0] || "Mentor",
-    greeting: dayGreeting(),
+    greeting: tCommon(`greeting.${dayPart()}`),
     nextMeeting: upcomingMeetings[0],
     todayActions: mentorTodayActions(awaitingReview, openActionItems),
     pending: requests.filter(
