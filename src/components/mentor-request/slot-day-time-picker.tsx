@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
@@ -18,14 +19,20 @@ export function SlotDayTimePicker({
   disabled: boolean;
   onPick: (slotId: string) => void;
 }) {
-  const days = slotsByDay(slots);
+  const t = useTranslations("mentorRequest.slots");
+  const locale = useLocale();
+  const days = slotsByDay(slots, locale);
   const [dayKey, setDayKey] = useState("");
   const day = days.find((candidate) => candidate.key === dayKey) ?? days[0];
   if (!day) return null;
 
   return (
     <div className="mt-4">
-      <div role="group" aria-label="Gün seç" className="flex flex-wrap gap-2">
+      <div
+        role="group"
+        aria-label={t("pickDay")}
+        className="flex flex-wrap gap-2"
+      >
         {days.map((candidate) => {
           const selected = candidate.key === day.key;
           return (
@@ -47,7 +54,7 @@ export function SlotDayTimePicker({
       </div>
       <div
         role="group"
-        aria-label={`${day.label} saatleri`}
+        aria-label={t("dayTimes", { day: day.label })}
         className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4"
       >
         {day.slots.map((slot) => (
@@ -58,7 +65,10 @@ export function SlotDayTimePicker({
             onClick={() => onPick(slot.id)}
             className={`${chipClass} border-[#e5e7eb] bg-white text-left hover:border-[#555]`}
           >
-            {slotTimeLabel(slot.startsAt)} · {slot.durationMinutes} dk
+            {t("slot", {
+              time: slotTimeLabel(slot.startsAt, locale),
+              minutes: slot.durationMinutes,
+            })}
           </button>
         ))}
       </div>

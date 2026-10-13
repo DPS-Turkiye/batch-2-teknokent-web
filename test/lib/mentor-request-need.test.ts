@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,6 +8,7 @@ import {
   expertiseForNeed,
   MENTOR_REQUEST_NEED_DRAFT_KEY,
   messageForNeedGoals,
+  needLabels,
   needTitleForSummary,
   parseNeedDraft,
   readNeedDraft,
@@ -17,6 +19,7 @@ import {
   toggleNeedGoal,
   writeNeedDraft,
 } from "@/lib/mentor-request-need";
+import en from "@/messages/en.json";
 
 describe("mentor-request-need", () => {
   it("maps Figma topics onto existing support areas", () => {
@@ -109,6 +112,33 @@ describe("mentor-request-need", () => {
         noneSummary: "",
       }),
     ).toContain("ilk adımlarda");
+  });
+
+  it("shows the preset texts in English but saves the Turkish ones", () => {
+    const english = needLabels(
+      createTranslator({
+        locale: "en",
+        messages: en,
+        namespace: "mentorRequest",
+      }),
+    );
+    const need = {
+      topicId: "product",
+      otherSummary: "",
+      situationId: "focus",
+      noneSummary: "",
+    };
+
+    expect(summaryForNeed(need, english)).toBe(
+      "We have lots of ideas but can't prioritize them.",
+    );
+    expect(summaryForNeed(need)).toBe(
+      "Birçok fikir var ama önceliklendiremiyoruz.",
+    );
+    expect(needTitleForSummary("product", "", english)).toBe("Product");
+    expect(messageForNeedGoals(["decision", "roadmap"], "", english)).toBe(
+      "Make a decision, Build a roadmap",
+    );
   });
 
   it("round-trips a draft through sessionStorage", () => {

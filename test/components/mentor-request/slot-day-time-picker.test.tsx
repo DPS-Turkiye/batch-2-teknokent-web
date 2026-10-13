@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { SlotDayTimePicker } from "@/components/mentor-request/slot-day-time-picker";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { slotDayLabel, slotTimeLabel } from "@/lib/mentor-availability-days";
+import { InLocale } from "@test/test-utils";
 
 function slot(
   id: string,
@@ -22,6 +23,18 @@ const slots = [
 ];
 
 describe("SlotDayTimePicker", () => {
+  it("names the days and lengths in English", () => {
+    render(
+      <InLocale locale="en">
+        <SlotDayTimePicker slots={slots} disabled={false} onPick={vi.fn()} />
+      </InLocale>,
+    );
+
+    const days = within(screen.getByRole("group", { name: "Pick a day" }));
+    expect(days.getByRole("button", { name: "7 Wed" })).toBeInTheDocument();
+    expect(screen.getByText(/45 min/)).toBeInTheDocument();
+  });
+
   it("shows a day row, then the chosen day's free times, and books the one picked", async () => {
     const user = userEvent.setup();
     const onPick = vi.fn();

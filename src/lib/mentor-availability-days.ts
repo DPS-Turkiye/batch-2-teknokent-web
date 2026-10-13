@@ -1,6 +1,5 @@
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 
-const WEEKDAY_SHORT = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"];
 const WEEKDAY_LONG = [
   "Pazar",
   "Pazartesi",
@@ -28,28 +27,39 @@ export function parseLocalDate(value: string) {
   return new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
 }
 
-export function upcomingPreferenceDays(now = new Date(), count = 14) {
+export function upcomingPreferenceDays(
+  now = new Date(),
+  count = 14,
+  locale = "tr",
+) {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
+  const label = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    weekday: "long",
+  });
   return Array.from({ length: count }, (_, offset) => {
     const day = new Date(start);
     day.setDate(start.getDate() + offset);
-    return {
-      value: toDateInputValue(day),
-      label: `${day.getDate()} ${WEEKDAY_LONG[day.getDay()]}`,
-    };
+    return { value: toDateInputValue(day), label: label.format(day) };
   });
 }
 
-export function slotDayLabel(startsAt: string | Date) {
+/** "12 Pzt" / "12 Mon" */
+export function slotDayLabel(startsAt: string | Date, locale = "tr") {
   const date = typeof startsAt === "string" ? new Date(startsAt) : startsAt;
-  return `${date.getDate()} ${WEEKDAY_SHORT[date.getDay()]}`;
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    weekday: "short",
+  }).format(date);
 }
 
-export function slotTimeLabel(startsAt: string) {
-  return new Intl.DateTimeFormat("tr-TR", {
+/** "14:15" in every language: the slot chips are too narrow for "02:15 PM". */
+export function slotTimeLabel(startsAt: string, locale = "tr") {
+  return new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
+    hourCycle: "h23",
   }).format(new Date(startsAt));
 }
 
@@ -57,6 +67,7 @@ export function availabilityColumns(
   slots: readonly MentorAvailabilitySlot[],
   now = new Date(),
   columnCount = 5,
+  locale = "tr",
 ) {
   const start = new Date(now);
   start.setHours(0, 0, 0, 0);
@@ -89,7 +100,7 @@ export function availabilityColumns(
     if (daySlots.length === 0) continue;
     columns.push({
       key: day.toISOString(),
-      label: slotDayLabel(day),
+      label: slotDayLabel(day, locale),
       slots: daySlots.slice(0, 5),
     });
   }
@@ -119,7 +130,10 @@ export function dateFromStartsAt(startsAt: string) {
 }
 
 /** Free slots grouped by local day, soonest first: pick a day, then a time. */
-export function slotsByDay(slots: readonly MentorAvailabilitySlot[]) {
+export function slotsByDay(
+  slots: readonly MentorAvailabilitySlot[],
+  locale = "tr",
+) {
   const days = new Map<
     string,
     { key: string; label: string; slots: MentorAvailabilitySlot[] }
@@ -133,7 +147,7 @@ export function slotsByDay(slots: readonly MentorAvailabilitySlot[]) {
     const key = dateFromStartsAt(slot.startsAt);
     const day = days.get(key) ?? {
       key,
-      label: slotDayLabel(slot.startsAt),
+      label: slotDayLabel(slot.startsAt, locale),
       slots: [],
     };
     day.slots.push(slot);

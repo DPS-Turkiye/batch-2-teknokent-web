@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import {
-  headingForPickFilter,
   MENTOR_PICK_FILTERS,
   type MentorPickFilterId,
 } from "@/lib/mentor-request-pick";
@@ -26,39 +26,40 @@ export function MentorPickStep({
   mentorId: string;
   onFilterChange: (filter: MentorPickFilterId) => void;
 }) {
+  const t = useTranslations("mentorRequest.pick");
   return (
     <div>
       <div
         className="mb-5 flex flex-wrap gap-2"
         role="tablist"
-        aria-label="Mentor listesi"
+        aria-label={t("listLabel")}
       >
         {MENTOR_PICK_FILTERS.map((item) => {
-          const selected = filter === item.id;
+          const selected = filter === item;
           return (
             <button
-              key={item.id}
+              key={item}
               type="button"
               role="tab"
               aria-selected={selected}
-              onClick={() => onFilterChange(item.id)}
+              onClick={() => onFilterChange(item)}
               className={`rounded-full border px-4 py-2 text-xs ${
                 selected
                   ? "border-[#e86f22] bg-[#e86f22] text-white"
                   : "border-[#e5e7eb] bg-white"
               }`}
             >
-              {item.label}
+              {t(`filters.${item}`)}
             </button>
           );
         })}
       </div>
       <h2 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#999]">
-        {headingForPickFilter(filter)}
+        {filter === "recommended" ? t("headingRecommended") : t("headingAll")}
       </h2>
       {isMatching ? (
         <p className="mb-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-xs text-blue-800">
-          Talep ve girişim profiliniz kullanılarak öneriler hazırlanıyor…
+          {t("matching")}
         </p>
       ) : null}
       {matchingError ? (
@@ -66,14 +67,12 @@ export function MentorPickStep({
           role="alert"
           className="mb-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700"
         >
-          {matchingError} Tümü listesinden seçim yapabilirsiniz.
+          {t("matchingFailed", { error: matchingError })}
         </p>
       ) : null}
       {listedMentors.length === 0 && !isMatching ? (
         <p className="rounded-lg border border-[#e5e7eb] bg-white px-4 py-6 text-sm text-[#777]">
-          {filter === "recommended"
-            ? "Bu ihtiyaca göre önerilen mentor bulunamadı. Tümü listesine bakabilirsiniz."
-            : "Bu filtreye uyan mentor yok."}
+          {filter === "recommended" ? t("emptyRecommended") : t("emptyFilter")}
         </p>
       ) : null}
       <div className="space-y-3">
@@ -121,7 +120,7 @@ export function MentorPickStep({
               </div>
               {item.recommendationReasons.length > 0 ? (
                 <div className="rounded-md bg-[#f9fafb] p-3">
-                  <strong className="text-xs">Neden önerildi?</strong>
+                  <strong className="text-xs">{t("why")}</strong>
                   <ul className="mt-2 space-y-1 text-xs text-[#777]">
                     {item.recommendationReasons.map((reason) => (
                       <li key={reason} className="flex items-start gap-1.5">
@@ -134,7 +133,7 @@ export function MentorPickStep({
               ) : null}
               <div className="mt-4">
                 <span className="inline-flex min-h-10 items-center justify-center rounded-lg border border-[#e4e7ea] bg-white px-4 text-sm font-semibold text-[#3c424a]">
-                  Profili Gör
+                  {t("viewProfile")}
                 </span>
               </div>
             </Link>

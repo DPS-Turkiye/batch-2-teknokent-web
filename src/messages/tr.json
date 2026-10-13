@@ -929,5 +929,140 @@
     "empty": "Henüz bir programa dahil değilsin.",
     "mentorLink": "Program detayını gör",
     "menteeLink": "Programdaki kişileri gör"
+  },
+  "mentorRequest": {
+    "steps": {
+      "label": "İhtiyaç belirleme adımları",
+      "topic": "Konu",
+      "situation": "Durum",
+      "goal": "Hedef",
+      "summary": "Özet"
+    },
+    "topics": {
+      "product": {
+        "title": "Ürün",
+        "description": "Ne yapacağımızı veya nasıl geliştireceğimizi netleştiremiyoruz."
+      },
+      "customer": {
+        "title": "Müşteri",
+        "description": "Doğru kullanıcıya ulaşıp ulaşmadığımızdan emin değiliz."
+      },
+      "growth": {
+        "title": "Büyüme & Satış",
+        "description": "Kullanıcı veya müşteri kazanmakta zorlanıyoruz."
+      },
+      "finance": {
+        "title": "İş Modeli & Finans",
+        "description": "Nasıl para kazanacağımızı veya finansal planı netleştiremiyoruz."
+      },
+      "investment": {
+        "title": "Yatırım",
+        "description": "Yatırıma nasıl hazırlanacağımızı bilmiyoruz."
+      },
+      "team": {
+        "title": "Ekip & Operasyon",
+        "description": "Ekip, rol veya süreçlerde tıkanıyoruz."
+      },
+      "other": {
+        "title": "Başka bir konu",
+        "description": "Bunlara uymuyorsa kısa şekilde kendin anlatabilirsin."
+      }
+    },
+    "situations": {
+      "value": {
+        "title": "Kullanıcı ürünün değerini anlamıyor",
+        "description": "Ürünü kullanmaya başlıyor ama neden devam etmesi gerektiği net değil."
+      },
+      "onboarding": {
+        "title": "Onboarding sırasında kullanıcı kaybediyoruz",
+        "description": "Kullanıcıların önemli bir kısmı ilk adımlarda bırakıyor."
+      },
+      "focus": {
+        "title": "Hangi özelliğe odaklanacağımızı bilmiyoruz",
+        "description": "Birçok fikir var ama önceliklendiremiyoruz."
+      },
+      "problem": {
+        "title": "Doğru problemi çözüp çözmediğimizden emin değiliz",
+        "description": "Kullanıcı ihtiyacını yeterince doğrulayamadık."
+      },
+      "positioning": {
+        "title": "Konumlandırmamız net değil",
+        "description": "Ürünü nasıl anlatacağımızı ve rakiplerden nasıl ayrışacağımızı bilmiyoruz."
+      },
+      "none": {
+        "title": "Bunlardan hiçbiri",
+        "description": "Kısaca kendim anlatacağım."
+      }
+    },
+    "goals": {
+      "decision": "Bir karar vermek",
+      "next-steps": "Bir sonraki adımları belirlemek",
+      "evaluate": "Mevcut yaklaşımı değerlendirmek",
+      "options": "Yeni seçenekler görmek",
+      "roadmap": "Yol haritası oluşturmak",
+      "feedback": "Bir çalışmaya feedback almak"
+    },
+    "describeBriefly": "Kısaca anlat",
+    "topicStep": {
+      "heading": "Şu an seni en çok zorlayan şey ne?",
+      "placeholder": "İhtiyacını kendi cümlelerinle yaz…"
+    },
+    "situationStep": {
+      "heading": "Hangisi yaşadığın duruma daha yakın?",
+      "placeholder": "Yaşadığın durumu kendi cümlelerinle yaz…"
+    },
+    "goalStep": {
+      "heading": "Bu görüşmenin sonunda neyin netleşmesini istersin?",
+      "hint": "Bir veya iki sonuç seç. Mentorla görüşmenin hedefini böylece netleştirebiliriz.",
+      "noteLabel": "Eklemek istediğin bir şey var mı?",
+      "notePlaceholder": "Örn. Geçen ay onboarding'i değiştirdik ama kullanıcı kaybı devam etti."
+    },
+    "summaryStep": {
+      "heading": "Seni doğru anladık mı?",
+      "hint": "Mentor eşleşmesini bu özete göre yapacağız. İstersen geri dönüp düzenleyebilirsin.",
+      "fromProfile": "Profilinden otomatik getirildi",
+      "need": "İhtiyacın",
+      "editNeed": "İhtiyacını düzenle",
+      "problem": "Temel problem",
+      "editProblem": "Temel problemi düzenle",
+      "outcome": "Görüşmeden beklediğin",
+      "editOutcome": "Hedefi düzenle",
+      "edit": "Düzenle",
+      "expertise": "Sana uygun mentor uzmanlıkları"
+    },
+    "saveDraft": "Taslak Olarak Kaydet",
+    "back": "Geri",
+    "preparing": "Öneriler hazırlanıyor…",
+    "continue": "Devam et",
+    "pick": {
+      "listLabel": "Mentor listesi",
+      "filters": {
+        "recommended": "Önerilen",
+        "all": "Tümü",
+        "expertise": "Uzmanlık",
+        "availability": "Müsaitlik",
+        "online": "Online",
+        "in-person": "Yüz yüze"
+      },
+      "headingRecommended": "En Uygun Mentorlar",
+      "headingAll": "Tüm Mentorlar",
+      "matching": "Talep ve girişim profiliniz kullanılarak öneriler hazırlanıyor…",
+      "matchingFailed": "{error} Tümü listesinden seçim yapabilirsiniz.",
+      "emptyRecommended": "Bu ihtiyaca göre önerilen mentor bulunamadı. Tümü listesine bakabilirsiniz.",
+      "emptyFilter": "Bu filtreye uyan mentor yok.",
+      "why": "Neden önerildi?",
+      "viewProfile": "Profili Gör"
+    },
+    "slots": {
+      "pickDay": "Gün seç",
+      "dayTimes": "{day} saatleri",
+      "slot": "{time} · {minutes} dk"
+    }
+  },
+  "loadErrors": {
+    "mentors": "Mentorlar yüklenemedi.",
+    "noConfirmedProfile": "Onaylanmış girişim profili bulunamadı; kuruluş bilgileri gösteriliyor.",
+    "profileUnavailable": "Profil hizmeti yanıt vermedi; kuruluş bilgileri gösteriliyor.",
+    "startup": "Girişim bilgileri yüklenemedi."
   }
 }

@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState, useSyncExternalStore } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -23,6 +24,7 @@ import {
   MENTOR_REQUEST_NEED_TOPICS,
   expertiseForNeed,
   messageForNeedGoals,
+  needLabels,
   needTitleForSummary,
   readNeedDraft,
   startupContextLine,
@@ -58,6 +60,7 @@ export function MentorRequestFlow({
   startup: StartupContext;
   startupLoadError?: string;
 }) {
+  const t = useTranslations("mentorRequest");
   const router = useRouter();
   const params = useSearchParams();
   const requestedStep = Number(params.get("step"));
@@ -110,12 +113,9 @@ export function MentorRequestFlow({
     localGoalIds ?? storedNeedDraft?.goalIds ?? DEFAULT_NEED_GOAL_IDS;
   const goalNote = localGoalNote ?? storedNeedDraft?.goalNote ?? "";
   const area = supportAreaForNeedTopic(topicId);
-  const summary = summaryForNeed({
-    topicId,
-    otherSummary,
-    situationId,
-    noneSummary,
-  });
+  const need = { topicId, otherSummary, situationId, noneSummary };
+  const summary = summaryForNeed(need);
+  const labels = needLabels(t);
   const [mentorId, setMentorId] = useState(() => initialMentors[0]?.id ?? "");
   const [pickingMentor, setPickingMentor] = useState(false);
   const [mentorPickFilter, setMentorPickFilter] = useState<MentorPickFilterId>(
@@ -272,9 +272,9 @@ export function MentorRequestFlow({
                 startup.stage,
                 startup.sector,
               ])}
-              needTitle={needTitleForSummary(topicId, otherSummary)}
-              problem={summary}
-              outcome={messageForNeedGoals(goalIds, goalNote)}
+              needTitle={needTitleForSummary(topicId, otherSummary, labels)}
+              problem={summaryForNeed(need, labels)}
+              outcome={messageForNeedGoals(goalIds, goalNote, labels)}
               expertise={expertiseForNeed(situationId)}
               onEditNeed={() => goToNeedWizardStep(0)}
               onEditProblem={() => goToNeedWizardStep(1)}
@@ -287,10 +287,10 @@ export function MentorRequestFlow({
         <div className="mt-8 flex items-center justify-between border-t border-[#eee] pt-5">
           {isNeedWizardStep ? (
             <SecondaryButton onClick={handleSaveNeedDraft}>
-              Taslak Olarak Kaydet
+              {t("saveDraft")}
             </SecondaryButton>
           ) : (
-            <SecondaryButton onClick={goBack}>Geri</SecondaryButton>
+            <SecondaryButton onClick={goBack}>{t("back")}</SecondaryButton>
           )}
           {pickingMentor ? null : (
             <PrimaryButton
@@ -307,8 +307,8 @@ export function MentorRequestFlow({
               onClick={() => void advanceStep()}
             >
               {step === MentorRequestStep.MentorSelect && isMatching
-                ? "Öneriler hazırlanıyor…"
-                : "Devam et"}
+                ? t("preparing")
+                : t("continue")}
             </PrimaryButton>
           )}
         </div>

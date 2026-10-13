@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { MENTOR_REQUEST_NEED_STEPPER } from "@/lib/mentor-request-need";
 
 export function NeedWizardStepper({
@@ -7,9 +9,10 @@ export function NeedWizardStepper({
   current: number;
   onSelectStep?: (index: number) => void;
 }) {
+  const t = useTranslations("mentorRequest.steps");
   return (
-    <ol className="flex w-full" aria-label="İhtiyaç belirleme adımları">
-      {MENTOR_REQUEST_NEED_STEPPER.map((label, index) => {
+    <ol className="flex w-full" aria-label={t("label")}>
+      {MENTOR_REQUEST_NEED_STEPPER.map((step, index) => {
         const active = index === current;
         const canGoBack = Boolean(onSelectStep) && index < current;
         const className = `flex w-full items-center justify-center gap-1 border-b pb-1 text-xs font-medium ${
@@ -26,11 +29,11 @@ export function NeedWizardStepper({
             >
               {index + 1}
             </span>
-            {label}
+            {t(step)}
           </>
         );
         return (
-          <li key={label} className="min-w-0 flex-1">
+          <li key={step} className="min-w-0 flex-1">
             {canGoBack ? (
               <button
                 type="button"
