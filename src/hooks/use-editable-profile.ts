@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/providers/toast-provider";
@@ -21,6 +22,7 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
   toDraft: (loaded: TLoaded) => TDraft;
   validate: (draft: TDraft) => Partial<Record<keyof TDraft, string>>;
 }) {
+  const t = useTranslations("profileSections");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   // Wrapped so React Query's context never reaches a loader's optional
@@ -45,10 +47,9 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});
       setSaved(true);
-      showToast({ message: "Değişiklikleriniz kaydedildi.", tone: "success" });
+      showToast({ message: t("savedToast"), tone: "success" });
     },
-    onError: () =>
-      showToast({ message: "Değişiklikler kaydedilemedi.", tone: "error" }),
+    onError: () => showToast({ message: t("saveFailedToast"), tone: "error" }),
   });
 
   const loaded = query.data;

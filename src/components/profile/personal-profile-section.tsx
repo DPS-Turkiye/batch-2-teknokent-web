@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { cardClass, cardHeadingClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import {
@@ -15,6 +17,7 @@ import { normalizePhoneInput } from "@/lib/phone";
  * and never shown again.
  */
 export function PersonalProfileSection() {
+  const t = useTranslations("profileSections");
   const {
     draft,
     setField,
@@ -31,8 +34,8 @@ export function PersonalProfileSection() {
   if (isLoading) {
     return (
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Kişisel bilgilerim</h2>
-        <p className="text-sm text-[#676e78]">Bilgiler yükleniyor…</p>
+        <h2 className={cardHeadingClass}>{t("personalTitle")}</h2>
+        <p className="text-sm text-[#676e78]">{t("loading")}</p>
       </section>
     );
   }
@@ -40,10 +43,8 @@ export function PersonalProfileSection() {
   if (loadError || !draft) {
     return (
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Kişisel bilgilerim</h2>
-        <p className="text-sm text-[#b91c1c]">
-          {loadError ?? "Bilgiler yüklenemedi."}
-        </p>
+        <h2 className={cardHeadingClass}>{t("personalTitle")}</h2>
+        <p className="text-sm text-[#b91c1c]">{loadError ?? t("loadFailed")}</p>
       </section>
     );
   }
@@ -52,14 +53,12 @@ export function PersonalProfileSection() {
     <section className={cardClass}>
       <div className="flex items-center justify-between gap-3">
         <div>
-          <h2 className={cardHeadingClass}>Kişisel bilgilerim</h2>
-          <p className="mt-1 text-xs text-[#676e78]">
-            Kayıt sırasında girdiğin bilgiler.
-          </p>
+          <h2 className={cardHeadingClass}>{t("personalTitle")}</h2>
+          <p className="mt-1 text-xs text-[#676e78]">{t("personalHint")}</p>
         </div>
         {saved ? (
           <span className="rounded-full bg-[#ecfdf3] px-2.5 py-1 text-xs font-medium text-[#15803d]">
-            Kaydedildi
+            {t("saved")}
           </span>
         ) : null}
       </div>
@@ -67,7 +66,7 @@ export function PersonalProfileSection() {
       <div className="grid gap-3 sm:grid-cols-2">
         <EditableInfoField
           id="profile-full-name"
-          label="Ad soyad"
+          label={t("fullName")}
           value={draft.fullName}
           required
           error={fieldErrors.fullName}
@@ -76,8 +75,8 @@ export function PersonalProfileSection() {
         />
         <EditableInfoField
           id="profile-job-title"
-          label="Rol"
-          placeholder="Startup'taki rolün"
+          label={t("role")}
+          placeholder={t("rolePlaceholder")}
           value={draft.jobTitle ?? ""}
           error={fieldErrors.jobTitle}
           maxLength={255}
@@ -88,7 +87,7 @@ export function PersonalProfileSection() {
       <div className="grid gap-3 sm:grid-cols-2">
         <EditableInfoField
           id="profile-phone"
-          label="Telefon"
+          label={t("phone")}
           value={draft.phone ?? ""}
           inputMode="tel"
           maxLength={16}
@@ -97,7 +96,7 @@ export function PersonalProfileSection() {
         />
         <EditableInfoField
           id="profile-linkedin"
-          label="LinkedIn"
+          label={t("linkedin")}
           placeholder="linkedin.com/in/…"
           value={draft.linkedinUrl ?? ""}
           error={fieldErrors.linkedinUrl}
@@ -108,9 +107,9 @@ export function PersonalProfileSection() {
 
       <EditableInfoField
         id="profile-bio"
-        label="Kısa tanıtım"
+        label={t("bio")}
         multiline
-        placeholder="Kendini birkaç cümleyle anlat."
+        placeholder={t("bioPlaceholder")}
         value={draft.bio ?? ""}
         error={fieldErrors.bio}
         maxLength={5000}
@@ -118,7 +117,7 @@ export function PersonalProfileSection() {
       />
 
       <EditableInfoChips
-        label="Uzmanlık alanları"
+        label={t("expertise")}
         values={draft.expertise}
         error={fieldErrors.expertise}
         onChange={(values) => setField("expertise", values)}
@@ -128,7 +127,7 @@ export function PersonalProfileSection() {
 
       <div className="flex justify-end border-t border-[#f1f3f5] pt-4">
         <PrimaryButton onClick={save} disabled={!canSave}>
-          {isSaving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
+          {isSaving ? t("saving") : t("save")}
         </PrimaryButton>
       </div>
     </section>

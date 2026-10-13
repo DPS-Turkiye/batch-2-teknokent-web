@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowRight, UserPlus } from "lucide-react";
 
@@ -10,6 +11,7 @@ import { initials } from "@/lib/utils";
 const PREVIEW_LIMIT = 4;
 
 export function TeamSummarySection() {
+  const t = useTranslations("profileSections");
   const membersQuery = useOrganizationMembers();
   const members = membersQuery.data ?? [];
   const preview = members.slice(0, PREVIEW_LIMIT);
@@ -18,32 +20,30 @@ export function TeamSummarySection() {
   return (
     <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-base font-semibold text-[#364153]">Ekibim</h2>
+        <h2 className="text-base font-semibold text-[#364153]">{t("team")}</h2>
         <Link
           href="/startup/team"
           className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#c85816] hover:underline"
         >
-          Ekibi yönet <ArrowRight className="size-3.5" aria-hidden />
+          {t("manageTeam")} <ArrowRight className="size-3.5" aria-hidden />
         </Link>
       </div>
 
       {membersQuery.isLoading ? (
-        <p className="mt-4 text-sm text-[#6a7282]">Ekip yükleniyor…</p>
+        <p className="mt-4 text-sm text-[#6a7282]">{t("teamLoading")}</p>
       ) : membersQuery.error ? (
         <p className="mt-4 text-sm text-[#b91c1c]">
           {membersQuery.error.message}
         </p>
       ) : members.length === 0 ? (
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <p className="text-sm text-[#6a7282]">
-            Henüz eklenmiş bir ekip üyesi yok.
-          </p>
+          <p className="text-sm text-[#6a7282]">{t("noMembers")}</p>
           <Link
             href="/startup/team"
             className="inline-flex min-h-9 items-center gap-2 rounded-lg border border-[#e4e7ea] px-3 text-xs font-semibold text-[#3c424a] hover:border-[#f2b78f]"
           >
             <UserPlus className="size-3.5" aria-hidden />
-            Ekip üyesi davet et
+            {t("invite")}
           </Link>
         </div>
       ) : (
@@ -66,7 +66,9 @@ export function TeamSummarySection() {
             </div>
           ))}
           {remaining > 0 ? (
-            <p className="text-xs text-[#6a7282]">ve {remaining} kişi daha</p>
+            <p className="text-xs text-[#6a7282]">
+              {t("more", { count: remaining })}
+            </p>
           ) : null}
         </div>
       )}

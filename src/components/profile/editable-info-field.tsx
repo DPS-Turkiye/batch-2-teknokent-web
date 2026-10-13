@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Pencil } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   type InputHTMLAttributes,
   useLayoutEffect,
@@ -92,6 +93,7 @@ export function EditableInfoField({
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   maxLength?: number;
 }) {
+  const t = useTranslations("profileSections");
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -148,7 +150,7 @@ export function EditableInfoField({
         <button
           type="button"
           onClick={() => setIsEditing((current) => !current)}
-          aria-label={`${label} alanını ${isEditing ? "düzenlemeyi bitir" : "düzenle"}`}
+          aria-label={t(isEditing ? "finishField" : "editField", { label })}
           className={editButtonClass}
         >
           {isEditing ? (
@@ -156,7 +158,7 @@ export function EditableInfoField({
           ) : (
             <Pencil className="size-3.5" aria-hidden />
           )}
-          {isEditing ? "Bitti" : "Düzenle"}
+          {isEditing ? t("done") : t("edit")}
         </button>
       </div>
     </div>
@@ -174,6 +176,7 @@ export function EditableInfoChips({
   onChange: (values: string[]) => void;
   error?: string;
 }) {
+  const t = useTranslations("profileSections");
   const [isEditing, setIsEditing] = useState(false);
 
   return (
@@ -188,7 +191,7 @@ export function EditableInfoChips({
         <button
           type="button"
           onClick={() => setIsEditing((current) => !current)}
-          aria-label={`${label} alanını ${isEditing ? "düzenlemeyi bitir" : "düzenle"}`}
+          aria-label={t(isEditing ? "finishField" : "editField", { label })}
           className={editButtonClass}
         >
           {isEditing ? (
@@ -196,7 +199,7 @@ export function EditableInfoChips({
           ) : (
             <Pencil className="size-3.5" aria-hidden />
           )}
-          {isEditing ? "Bitti" : "Düzenle"}
+          {isEditing ? t("done") : t("edit")}
         </button>
       </div>
 
