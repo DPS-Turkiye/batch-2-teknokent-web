@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { UserRole } from "@/interfaces/session";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const getRegularMentorships = vi.fn();
 const searchOrganizations = vi.fn();
@@ -51,6 +51,21 @@ describe("RegularMentorshipsTab", () => {
       { id: "org-2", name: "Nova Labs" },
       { id: "org-3", name: "Orbit AI" },
     ]);
+  });
+
+  it("reads in English", async () => {
+    getRegularMentorships.mockResolvedValue([mentorship({ daysPerWeek: 2 })]);
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <RegularMentorshipsTab role={UserRole.Mentee} />
+      </InLocale>,
+    );
+
+    expect(
+      await screen.findByText("Leyla Aksoy · 2 days a week"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Sep 1, 2026 – Dec 20, 2026")).toBeInTheDocument();
+    expect(screen.getByText("50%")).toBeInTheDocument();
   });
 
   it("lists regular mentorships with progress", async () => {

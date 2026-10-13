@@ -169,11 +169,11 @@ export const MENTORSHIPS_REQUEST_STATUS_LABELS = {
 } satisfies Record<MentorshipRequestStatus, string>;
 
 export const MENTORSHIPS_TABS = [
-  [MentorshipWorkspaceTab.MentorPool, "Mentor Havuzu"],
-  [MentorshipWorkspaceTab.Active, "Aktif"],
-  [MentorshipWorkspaceTab.Requests, "Talepler"],
-  [MentorshipWorkspaceTab.Regular, "Düzenli"],
-  [MentorshipWorkspaceTab.History, "Geçmiş"],
+  MentorshipWorkspaceTab.MentorPool,
+  MentorshipWorkspaceTab.Active,
+  MentorshipWorkspaceTab.Requests,
+  MentorshipWorkspaceTab.Regular,
+  MentorshipWorkspaceTab.History,
 ] as const;
 
 export const MENTOR_MENTORSHIPS_TABS = [
@@ -186,8 +186,6 @@ export const MENTOR_MENTORSHIPS_TABS = [
 export const MENTORSHIP_LIST_PAGE_SIZE = 7;
 
 export const CALENDAR_SUPPORT_AREA = "Takvim toplantısı";
-
-export const MEET_LINK_MISSING_MESSAGE = "Meet linki henüz koyulmadı";
 
 export const MEETING_CONTEXT_DAY_TODAY = "Bugün";
 

@@ -11,6 +11,13 @@ export function calendarDay(value: string) {
   return new Date(`${value}T00:00:00`);
 }
 
+/** "12 Eyl 2026" for a calendar-day string ("2026-09-12"); the string itself when unreadable. */
+export function formatCalendarDay(value: string, locale = "tr") {
+  const date = calendarDay(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
+}
+
 export function formatDateTime(value: string, locale = "tr") {
   return new Intl.DateTimeFormat(locale, {
     dateStyle: "long",

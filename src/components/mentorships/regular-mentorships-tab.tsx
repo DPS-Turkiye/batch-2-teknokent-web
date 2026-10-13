@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
@@ -11,19 +12,9 @@ import {
   searchOrganizations,
   startRegularMentorship,
 } from "@/lib/client/mentorships";
+import { formatCalendarDay } from "@/lib/utils";
 
 export const REGULAR_MENTORSHIPS_QUERY_KEY = ["regular-mentorships"] as const;
-
-function formatDate(value: string | null) {
-  if (!value) return "Süresiz";
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("tr-TR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
 
 export function RegularMentorshipsTab({
   role,
@@ -32,6 +23,7 @@ export function RegularMentorshipsTab({
   role: UserRole.Mentee | UserRole.Mentor;
   canStart?: boolean;
 }) {
+  const t = useTranslations("regularMentorships");
   const [startOpen, setStartOpen] = useState(false);
   const query = useQuery({
     queryKey: [...REGULAR_MENTORSHIPS_QUERY_KEY, role],
@@ -41,7 +33,7 @@ export function RegularMentorshipsTab({
   if (query.isLoading) {
     return (
       <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-        Yükleniyor...
+        {t("loading")}
       </div>
     );
   }
@@ -58,23 +50,21 @@ export function RegularMentorshipsTab({
   return (
     <section className="mt-5">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-lg font-medium text-[#22262b]">
-          Düzenli mentorlükler
-        </h2>
+        <h2 className="text-lg font-medium text-[#22262b]">{t("title")}</h2>
         {canStart ? (
           <button
             type="button"
             onClick={() => setStartOpen(true)}
             className="inline-flex min-h-[38px] items-center justify-center rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 text-[13px] font-medium text-white hover:bg-[var(--ms-accent-hover,#ce5e19)]"
           >
-            Düzenli mentorlük başlat
+            {t("start")}
           </button>
         ) : null}
       </div>
 
       {items.length === 0 ? (
         <div className="mt-4 rounded-[10px] border border-[#e4e7ea] bg-white px-6 py-[72px] text-center text-[17px] font-medium text-[#22262b]">
-          Düzenli mentorlüğünüz bulunmamaktadır
+          {t("empty")}
         </div>
       ) : (
         <div className="mt-4 grid gap-4">
@@ -99,6 +89,10 @@ function RegularMentorshipCard({
 }: {
   mentorship: RegularMentorship;
 }) {
+  const t = useTranslations("regularMentorships");
+  const locale = useLocale();
+  const day = (value: string | null) =>
+    value ? formatCalendarDay(value, locale) : t("noEnd");
   return (
     <Link
       href={`/mentorships/regular/${encodeURIComponent(mentorship.id)}`}
@@ -110,21 +104,23 @@ function RegularMentorshipCard({
             {mentorship.organizationName}
           </h3>
           <p className="mt-1 text-[13px] text-[#676e78]">
-            {mentorship.mentorName} · Haftada {mentorship.daysPerWeek} gün
+            {t("perWeek", {
+              mentor: mentorship.mentorName,
+              days: mentorship.daysPerWeek,
+            })}
           </p>
           <p className="mt-1 text-xs text-[#858c96]">
-            {formatDate(mentorship.startDate)} –{" "}
-            {formatDate(mentorship.endDate)}
+            {day(mentorship.startDate)} – {day(mentorship.endDate)}
           </p>
         </div>
         <span className="shrink-0 text-[13px] font-medium text-[var(--ms-accent,#e86f22)]">
-          Hedefleri aç →
+          {t("openGoals")}
         </span>
       </div>
       <div className="mt-4">
         <div className="mb-1 flex items-center justify-between text-xs text-[#676e78]">
-          <span>İlerleme</span>
-          <span>%{mentorship.progressPercent}</span>
+          <span>{t("progress")}</span>
+          <span>{t("percent", { value: mentorship.progressPercent })}</span>
         </div>
         <div className="h-2 overflow-hidden rounded-full bg-[#eef1f4]">
           <div
@@ -144,6 +140,7 @@ function StartRegularMentorshipDialog({
   onClose: () => void;
   onCreated: () => void;
 }) {
+  const t = useTranslations("regularMentorships");
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [organizationId, setOrganizationId] = useState("");
@@ -175,7 +172,7 @@ function StartRegularMentorshipDialog({
       onCreated();
     },
     onError: (caught: Error) => {
-      setError(caught.message || "Başlatılamadı.");
+      setError(caught.message || t("startFailed"));
     },
   });
 
@@ -191,28 +188,25 @@ function StartRegularMentorshipDialog({
           id="start-regular-title"
           className="text-lg font-semibold text-[#22262b]"
         >
-          Düzenli mentorlük başlat
+          {t("start")}
         </h2>
-        <p className="mt-1 text-sm text-[#676e78]">
-          Startup seç, başlangıç–bitiş tarihlerini ve haftalık gün sayısını
-          belirle. Takvimde checkbox’lar bu aralıkta görünür.
-        </p>
+        <p className="mt-1 text-sm text-[#676e78]">{t("startHint")}</p>
 
         <label className="mt-5 block text-xs font-medium text-[#515861]">
-          Startup ara
+          {t("searchStartup")}
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="mt-1 w-full rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm"
-            placeholder="Startup adı..."
+            placeholder={t("startupPlaceholder")}
           />
         </label>
 
         <div className="mt-3 max-h-40 overflow-y-auto rounded-lg border border-[#e4e7ea]">
           {orgsQuery.isLoading ? (
-            <p className="p-3 text-sm text-[#676e78]">Yükleniyor...</p>
+            <p className="p-3 text-sm text-[#676e78]">{t("loading")}</p>
           ) : filtered.length === 0 ? (
-            <p className="p-3 text-sm text-[#676e78]">Startup bulunamadı.</p>
+            <p className="p-3 text-sm text-[#676e78]">{t("noStartup")}</p>
           ) : (
             filtered.map((org) => (
               <button
@@ -234,7 +228,7 @@ function StartRegularMentorshipDialog({
 
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           <label className="block text-xs font-medium text-[#515861]">
-            Başlangıç tarihi
+            {t("startDate")}
             <input
               type="date"
               value={startDate}
@@ -250,7 +244,7 @@ function StartRegularMentorshipDialog({
             />
           </label>
           <label className="block text-xs font-medium text-[#515861]">
-            Bitiş tarihi
+            {t("endDate")}
             <input
               type="date"
               value={endDate}
@@ -261,7 +255,7 @@ function StartRegularMentorshipDialog({
             />
           </label>
           <label className="block text-xs font-medium text-[#515861]">
-            Haftada kaç gün
+            {t("daysPerWeek")}
             <input
               type="number"
               min={1}
@@ -289,7 +283,7 @@ function StartRegularMentorshipDialog({
             onClick={onClose}
             className="rounded-lg border border-[#e4e7ea] px-4 py-2 text-sm text-[#515861]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -298,7 +292,7 @@ function StartRegularMentorshipDialog({
             }
             onClick={() => {
               if (endDate < startDate) {
-                setError("Bitiş tarihi başlangıçtan önce olamaz.");
+                setError(t("endBeforeStart"));
                 return;
               }
               setError("");
@@ -311,7 +305,7 @@ function StartRegularMentorshipDialog({
             }}
             className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
           >
-            {mutation.isPending ? "Kaydediliyor..." : "Başlat"}
+            {mutation.isPending ? t("saving") : t("startAction")}
           </button>
         </div>
       </div>

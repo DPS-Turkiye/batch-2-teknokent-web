@@ -1,6 +1,6 @@
 "use client";
 
-import { MEET_LINK_MISSING_MESSAGE } from "@/lib/const";
+import { useTranslations } from "next-intl";
 import { meetLinkHref } from "@/lib/meet-link";
 
 export function MeetLinkDisplay({
@@ -10,10 +10,11 @@ export function MeetLinkDisplay({
   meetLink?: string | null;
   className?: string;
 }) {
+  const t = useTranslations("meetLink");
   if (!meetLink) {
     return (
       <p className={`text-[13px] text-[#858c96] ${className}`}>
-        {MEET_LINK_MISSING_MESSAGE}
+        {t("missing")}
       </p>
     );
   }
