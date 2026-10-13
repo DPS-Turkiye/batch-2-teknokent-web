@@ -1463,5 +1463,46 @@
       "addGoogle": "Add to Google Calendar",
       "downloadIcs": "Download iCal (.ics)"
     }
+  },
+  "messagesPage": {
+    "search": "Search mentors or topics…",
+    "loading": "Loading…",
+    "noMessages": "No messages yet",
+    "noMatch": "No conversations match your search.",
+    "locked": "Messaging opens once a mentorship is accepted.",
+    "sharedFile": "Shared file · {time}",
+    "pick": "Pick a conversation.",
+    "mentorOf": "{area} mentor",
+    "activeMentorship": "Active mentorship",
+    "emptyThread": "No messages in this mentorship yet.",
+    "placeholder": "Write a message…",
+    "shareFile": "Share a file",
+    "send": "Send"
+  },
+  "programThreads": {
+    "label": "Program messages",
+    "title": "Program",
+    "coordinator": "Coordinator · {name}",
+    "noMessages": "No messages yet",
+    "unread": "{count, plural, one {# unread message} other {# unread messages}}",
+    "loading": "Loading…",
+    "empty": "No messages with the coordinator yet.",
+    "sendFailed": "Couldn't send the message. Please try again.",
+    "placeholder": "Write to the coordinator…",
+    "inputLabel": "Message to the coordinator",
+    "send": "Send"
+  },
+  "announcements": {
+    "label": "Announcements",
+    "title": "Announcements",
+    "threadName": "{program} — Announcements",
+    "audience": "{teams, plural, one {# team} other {# teams}} · {mentors, plural, one {# mentor} other {# mentors}}",
+    "none": "No announcements yet",
+    "empty": "No announcements yet.",
+    "authorFallback": "Coordinator",
+    "inputLabel": "Announcement",
+    "placeholder": "Write an announcement to every team and mentor in the program…",
+    "send": "Announce",
+    "readOnly": "Announcements are read-only. Use the Program conversation to write to the coordinator."
   }
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import type { ProgramThreads } from "@/hooks/use-program-threads";
 import {
   conversationTime,
@@ -20,11 +22,13 @@ export function ProgramThreadList({
   accent: Accent;
   onSelect: (id: string) => void;
 }) {
+  const t = useTranslations("programThreads");
+  const locale = useLocale();
   if (!threads.threads.length) return null;
   return (
-    <section aria-label="Program mesajları">
+    <section aria-label={t("label")}>
       <h2 className="border-t border-[#eef0f3] px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wide text-[#858c96]">
-        Program
+        {t("title")}
       </h2>
       <ul>
         {threads.threads.map((thread) => {
@@ -50,21 +54,25 @@ export function ProgramThreadList({
                       {thread.programName}
                     </b>
                     <span className="shrink-0 text-[10px] text-[#858c96]">
-                      {conversationTime(thread.lastMessageAt)}
+                      {conversationTime(
+                        thread.lastMessageAt,
+                        new Date(),
+                        locale,
+                      )}
                     </span>
                   </span>
                   <span className="mt-0.5 block truncate text-[10.5px] text-[#676e78]">
-                    Koordinatör · {thread.coordinatorName}
+                    {t("coordinator", { name: thread.coordinatorName })}
                   </span>
                   <span className="mt-1 block truncate text-[10.5px] text-[#858c96]">
-                    {thread.lastMessagePreview ?? "Henüz mesaj yok"}
+                    {thread.lastMessagePreview ?? t("noMessages")}
                   </span>
                 </span>
                 {unread ? (
                   <span
                     className="grid min-w-5 place-items-center rounded-full px-1.5 text-[10px] font-semibold text-white"
                     style={{ backgroundColor: accent.strong }}
-                    aria-label={`${unread} okunmamış mesaj`}
+                    aria-label={t("unread", { count: unread })}
                   >
                     {unread}
                   </span>
@@ -88,6 +96,8 @@ export function ProgramThreadPane({
   accent: Accent;
   className?: string;
 }) {
+  const t = useTranslations("programThreads");
+  const locale = useLocale();
   const thread = threads.active;
   if (!thread) return null;
   return (
@@ -95,12 +105,12 @@ export function ProgramThreadPane({
       <header className="border-b border-[#e4e7ea] px-6 py-4">
         <h2 className="text-[15px] font-semibold">{thread.programName}</h2>
         <p className="mt-0.5 text-[12px] text-[#676e78]">
-          Koordinatör · {thread.coordinatorName}
+          {t("coordinator", { name: thread.coordinatorName })}
         </p>
       </header>
       <div className="min-h-[240px] flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {threads.messagesLoading ? (
-          <p className="text-[12px] text-[#858c96]">Yükleniyor…</p>
+          <p className="text-[12px] text-[#858c96]">{t("loading")}</p>
         ) : threads.messages.length ? (
           threads.messages.map((message) => (
             <article
@@ -121,20 +131,16 @@ export function ProgramThreadPane({
                 <p className="whitespace-pre-wrap">{message.body}</p>
               </div>
               <time className="mt-1 text-[10px] text-[#858c96]">
-                {messageTime(message.createdAt)}
+                {messageTime(message.createdAt, locale)}
               </time>
             </article>
           ))
         ) : (
-          <p className="text-[12px] text-[#858c96]">
-            Koordinatörle henüz mesaj yok.
-          </p>
+          <p className="text-[12px] text-[#858c96]">{t("empty")}</p>
         )}
       </div>
       {threads.sendError ? (
-        <p className="px-6 text-[12px] text-red-700">
-          Mesaj gönderilemedi. Tekrar deneyin.
-        </p>
+        <p className="px-6 text-[12px] text-red-700">{t("sendFailed")}</p>
       ) : null}
       <form
         onSubmit={(event) => {
@@ -147,8 +153,8 @@ export function ProgramThreadPane({
           value={threads.draft}
           onChange={(event) => threads.setDraft(event.target.value)}
           maxLength={MAX_MESSAGE_LENGTH}
-          placeholder="Koordinatöre yaz…"
-          aria-label="Koordinatöre mesaj"
+          placeholder={t("placeholder")}
+          aria-label={t("inputLabel")}
           className="h-9 min-w-0 flex-1 rounded-full bg-[#f6f7f9] px-4 text-[13px] outline-none placeholder:text-[#858c96]"
         />
         <button
@@ -157,7 +163,7 @@ export function ProgramThreadPane({
           style={{ backgroundColor: accent.strong }}
           className="h-9 rounded-full px-[18px] text-[13px] font-semibold text-white disabled:opacity-50"
         >
-          Gönder
+          {t("send")}
         </button>
       </form>
     </section>

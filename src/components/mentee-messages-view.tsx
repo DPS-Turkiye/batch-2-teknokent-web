@@ -2,6 +2,7 @@
 
 import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -22,7 +23,7 @@ import type {
 } from "@/interfaces/mentorship-request";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
-import { initials } from "@/lib/utils";
+import { formatDayMonth, initials, relativeDayLabel } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
@@ -32,18 +33,20 @@ function lastMessage(request: MentorshipRequest) {
   return request.messages.at(-1) ?? null;
 }
 
-function timeLabel(value: string) {
+function timeLabel(value: string, locale: string) {
   const date = new Date(value);
   const now = new Date();
   if (date.toDateString() === now.toDateString())
-    return date.toLocaleTimeString("tr-TR", {
+    return date.toLocaleTimeString(locale, {
       hour: "2-digit",
       minute: "2-digit",
     });
   const yesterday = new Date(now);
   yesterday.setDate(now.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) return "Dün";
-  return date.toLocaleDateString("tr-TR", { day: "numeric", month: "short" });
+  if (date.toDateString() === yesterday.toDateString()) {
+    return relativeDayLabel(-1, locale);
+  }
+  return formatDayMonth(date, locale);
 }
 
 function ConversationList({
@@ -65,6 +68,8 @@ function ConversationList({
   onOpenProgramThread: (id: string) => void;
   onOpenAnnouncements: (programId: string) => void;
 }) {
+  const t = useTranslations("messagesPage");
+  const locale = useLocale();
   const [search, setSearch] = useState("");
   const shown = useMemo(() => {
     const query = search.trim().toLocaleLowerCase("tr-TR");
@@ -86,13 +91,13 @@ function ConversationList({
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Mentor veya konu ara…"
+            placeholder={t("search")}
             className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[#666b75]"
           />
         </label>
       </div>
       {isLoading ? (
-        <p className="px-6 py-5 text-xs text-[#666b75]">Yükleniyor…</p>
+        <p className="px-6 py-5 text-xs text-[#666b75]">{t("loading")}</p>
       ) : shown.length ? (
         <ul>
           {shown.map((request) => {
@@ -117,7 +122,7 @@ function ConversationList({
                       </strong>
                       {last ? (
                         <time className="shrink-0 text-[11px] text-[#666b75]">
-                          {timeLabel(last.createdAt)}
+                          {timeLabel(last.createdAt, locale)}
                         </time>
                       ) : null}
                     </span>
@@ -127,7 +132,7 @@ function ConversationList({
                     <span
                       className={`block truncate text-xs ${selected ? "text-[#1a1a1a]" : "text-[#666b75]"}`}
                     >
-                      {last ? withoutSlotLines(last.body) : "Henüz mesaj yok"}
+                      {last ? withoutSlotLines(last.body) : t("noMessages")}
                     </span>
                   </span>
                   {selected && last ? (
@@ -140,9 +145,7 @@ function ConversationList({
         </ul>
       ) : (
         <p className="px-6 py-5 text-xs leading-5 text-[#666b75]">
-          {conversations.length
-            ? "Aramanla eşleşen konuşma yok."
-            : "Mesajlaşma, bir mentorluk kabul edildiğinde açılır."}
+          {conversations.length ? t("noMatch") : t("locked")}
         </p>
       )}
       <ProgramThreadList
@@ -167,6 +170,8 @@ function MessageBubble({
   message: RequestMessage;
   own: boolean;
 }) {
+  const t = useTranslations("messagesPage");
+  const locale = useLocale();
   const fileName = sharedFileName(message.body);
   if (fileName) {
     return (
@@ -180,7 +185,7 @@ function MessageBubble({
               {fileName}
             </strong>
             <small className="text-[11px] text-[#666b75]">
-              Paylaşılan dosya · {timeLabel(message.createdAt)}
+              {t("sharedFile", { time: timeLabel(message.createdAt, locale) })}
             </small>
           </span>
         </div>
@@ -195,7 +200,7 @@ function MessageBubble({
         {withoutSlotLines(message.body)}
       </p>
       <time className="mt-1 text-[11px] text-[#666b75]">
-        {timeLabel(message.createdAt)}
+        {timeLabel(message.createdAt, locale)}
       </time>
     </article>
   );
@@ -206,6 +211,7 @@ function Conversation({
 }: {
   messages: ReturnType<typeof useMenteeMessages>;
 }) {
+  const t = useTranslations("messagesPage");
   const fileInput = useRef<HTMLInputElement>(null);
   const active = messages.active;
   if (messages.announcements.active)
@@ -227,7 +233,7 @@ function Conversation({
   if (!active)
     return (
       <section className="grid h-full place-items-center text-sm text-[#666b75]">
-        Bir konuşma seçin.
+        {t("pick")}
       </section>
     );
   return (
@@ -238,10 +244,10 @@ function Conversation({
         </h1>
         <div className="mt-1 flex items-center gap-2">
           <span className="text-[13px] text-[#666b75]">
-            {active.supportArea} Mentoru
+            {t("mentorOf", { area: active.supportArea })}
           </span>
           <span className="rounded-full bg-[#fdebdd] px-2.5 py-1 text-[11px] font-medium text-[#e86f22]">
-            Aktif Mentorluk
+            {t("activeMentorship")}
           </span>
         </div>
       </header>
@@ -256,9 +262,7 @@ function Conversation({
               />
             ))
           ) : (
-            <p className="text-xs text-[#666b75]">
-              Bu mentorlukta henüz mesaj yok.
-            </p>
+            <p className="text-xs text-[#666b75]">{t("emptyThread")}</p>
           )}
         </div>
         <form
@@ -274,14 +278,14 @@ function Conversation({
               onChange={(event) =>
                 messages.messageForm.setReply(event.target.value)
               }
-              placeholder="Mesaj yaz…"
+              placeholder={t("placeholder")}
               className="min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-[#666b75]"
             />
             <button
               type="button"
               onClick={() => fileInput.current?.click()}
               disabled={messages.fileUpload.isPending}
-              aria-label="Dosya paylaş"
+              aria-label={t("shareFile")}
               className="text-[#666b75] disabled:opacity-50"
             >
               <Paperclip className="size-[17px]" />
@@ -306,7 +310,7 @@ function Conversation({
             }
             className="h-9 rounded-full bg-[#e86f22] px-[18px] text-[13px] font-semibold text-white disabled:opacity-50"
           >
-            Gönder
+            {t("send")}
           </button>
         </form>
       </div>
