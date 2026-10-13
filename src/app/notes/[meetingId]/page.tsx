@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { MeetingNoteRoomView } from "@/components/notes/meeting-note-room-view";
 
-export const metadata: Metadata = {
-  title: "Toplantı Not Defteri | Teknokent",
-  description: "Aynı toplantıdaki herkesin ortak düzenlediği not defteri.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return { title: t("notebook"), description: t("notebookDescription") };
+}
 
 export default async function MeetingNotePage({
   params,

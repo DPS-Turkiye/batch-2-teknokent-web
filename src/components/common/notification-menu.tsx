@@ -3,14 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Bell, Check, Trash2, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 
-function notificationTime(value: string) {
+function notificationTime(locale: string, value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "";
-  return new Intl.DateTimeFormat("tr-TR", {
+  return new Intl.DateTimeFormat(locale, {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
@@ -25,6 +26,8 @@ export function NotificationMenu({
   minimal?: boolean;
   appearance?: "default" | "admin";
 }) {
+  const t = useTranslations("notificationMenu");
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const {
@@ -56,7 +59,7 @@ export function NotificationMenu({
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        aria-label="Bildirimler"
+        aria-label={t("label")}
         aria-expanded={open}
         aria-haspopup="dialog"
         onClick={() => setOpen((current) => !current)}
@@ -90,21 +93,21 @@ export function NotificationMenu({
       {open ? (
         <section
           role="dialog"
-          aria-label="Bildirimler"
+          aria-label={t("label")}
           className="fixed inset-x-3 top-20 z-50 overflow-hidden rounded-2xl border border-[#e4e7ea] bg-white shadow-2xl sm:absolute sm:left-auto sm:right-0 sm:top-12 sm:w-[380px]"
         >
           <header className="flex items-center justify-between border-b border-[#eef0f2] px-4 py-3">
             <div>
               <h2 className="text-sm font-semibold text-[#22262b]">
-                Bildirimler
+                {t("title")}
               </h2>
               <p className="text-xs text-[#858c96]">
-                {unreadCount} okunmamış bildirim
+                {t("unread", { count: unreadCount })}
               </p>
             </div>
             <button
               type="button"
-              aria-label="Bildirimleri kapat"
+              aria-label={t("close")}
               onClick={() => setOpen(false)}
               className="grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f5f6f7]"
             >
@@ -117,18 +120,18 @@ export function NotificationMenu({
                 role="status"
                 className="px-4 py-8 text-center text-sm text-[#858c96]"
               >
-                Bildirimler yükleniyor…
+                {t("loading")}
               </p>
             ) : error ? (
               <p
                 role="alert"
                 className="px-4 py-8 text-center text-sm text-[#b42318]"
               >
-                Bildirimler yüklenemedi.
+                {t("failed")}
               </p>
             ) : notifications.length === 0 ? (
               <p className="px-4 py-8 text-center text-sm text-[#858c96]">
-                Henüz bildiriminiz yok.
+                {t("empty")}
               </p>
             ) : (
               notifications.map((notification) => (
@@ -170,13 +173,15 @@ export function NotificationMenu({
                       )}
                       <div className="mt-2 flex items-center justify-between gap-2">
                         <time className="text-[11px] text-[#858c96]">
-                          {notificationTime(notification.createdAt)}
+                          {notificationTime(locale, notification.createdAt)}
                         </time>
                         <span className="flex gap-1">
                           {!notification.readAt ? (
                             <button
                               type="button"
-                              aria-label={`Okundu olarak işaretle: ${notification.title}`}
+                              aria-label={t("markRead", {
+                                title: notification.title,
+                              })}
                               onClick={() => void markRead(notification.id)}
                               className="grid size-7 place-items-center rounded-full text-[#676e78] hover:bg-white hover:text-[#23824b]"
                             >
@@ -185,7 +190,9 @@ export function NotificationMenu({
                           ) : null}
                           <button
                             type="button"
-                            aria-label={`Bildirimi sil: ${notification.title}`}
+                            aria-label={t("delete", {
+                              title: notification.title,
+                            })}
                             onClick={() =>
                               void deleteNotification(notification.id)
                             }

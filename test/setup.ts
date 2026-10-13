@@ -70,3 +70,9 @@ vi.mock("next-intl", async (importOriginal) => {
     },
   };
 });
+
+// Plain modules (lib/client, lib/firebase) read error texts through clientText(); the app's root
+// layout hands them the translator, so each test starts with the Turkish one.
+const { clientTextsIn } = await import("@test/client-texts");
+clientTextsIn("tr");
+afterEach(() => clientTextsIn("tr"));

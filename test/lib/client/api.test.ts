@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { AxiosResponse } from "axios";
 
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { clientTextsIn } from "@test/client-texts";
 
 function response<T>(status: number, data: T): AxiosResponse<T> {
   return { status, data } as AxiosResponse<T>;
@@ -18,6 +19,20 @@ describe("requireSuccess", () => {
         response(403, { message: "This account is awaiting approval" }),
       ),
     ).toThrow(/yetkin yok/);
+  });
+
+  it("words its fallbacks in English when that is the chosen language", () => {
+    clientTextsIn("en");
+    expect(() => requireSuccess(response(404, {}))).toThrow(
+      "The record you are looking for was not found.",
+    );
+    expect(() =>
+      requireSuccess({
+        status: 429,
+        data: {},
+        headers: { "x-rate-limit-retry-after-seconds": "61" },
+      } as unknown as AxiosResponse),
+    ).toThrow("Too many attempts. Try again in 2 minutes.");
   });
 
   it("keeps a Turkish backend message", () => {

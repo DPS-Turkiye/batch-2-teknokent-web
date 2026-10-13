@@ -4,6 +4,7 @@ import { getPublicBackendUrl } from "@/lib/const";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
+import { clientText } from "@/i18n/client-texts";
 
 export type StoredDocument = {
   id: string;
@@ -64,7 +65,7 @@ export async function uploadDocument(
 ) {
   const token = idToken ?? (await currentIdToken());
   if (!token) {
-    throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+    throw new Error(clientText("sessionExpired"));
   }
   const data = new FormData();
   data.set("file", file);

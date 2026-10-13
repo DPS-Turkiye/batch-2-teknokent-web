@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
-import { getLocale } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Inter } from "next/font/google";
 
+import { ClientTexts } from "@/i18n/client-texts";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
@@ -17,14 +18,13 @@ const inter = Inter({
   variable: "--font-mentor-inter",
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "Mentorluk ve Girişim Programları Platformu",
-    template: "%s | ODTÜ Teknokent",
-  },
-  description:
-    "ODTÜ Teknokent mentorluk, eğitim ve girişim programları platformu.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return {
+    title: { default: t("defaultTitle"), template: t("titleTemplate") },
+    description: t("description"),
+  };
+}
 
 export default async function RootLayout({
   children,
@@ -43,6 +43,7 @@ export default async function RootLayout({
         className="flex min-h-full flex-col font-sans"
       >
         <NextIntlClientProvider>
+          <ClientTexts />
           <QueryProvider>
             <ToastProvider>
               <DocumentPreviewProvider>

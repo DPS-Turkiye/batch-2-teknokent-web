@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { AppArea } from "@/types/app-area";
 
-export const metadata: Metadata = {
-  title: "Startup’ım",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return { title: t("startup") };
+}
 
 export default function StartupLayout({
   children,

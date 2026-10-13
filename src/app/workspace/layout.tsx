@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "Çalışma Alanı",
-  description: "Program and role workspace selection.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("metadata");
+  return { title: t("workspace") };
+}
 
 export default function WorkspaceLayout({
   children,

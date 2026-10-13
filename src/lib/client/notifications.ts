@@ -4,11 +4,12 @@ import type { NotificationPreferences } from "@/interfaces/notification";
 import type { DashboardNotification } from "@/types/landing";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
+import { clientText } from "@/i18n/client-texts";
 
 async function authorization() {
   const token = await currentIdToken();
   if (!token) {
-    throw new Error("Bildirimler için oturum açmanız gerekiyor.");
+    throw new Error(clientText("notificationsSignIn"));
   }
   return { Authorization: `Bearer ${token}` };
 }

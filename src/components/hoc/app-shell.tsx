@@ -17,6 +17,7 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { ReactNode, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
@@ -37,6 +38,7 @@ import { UserRole } from "@/interfaces/session";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
+import type { Messages } from "next-intl";
 
 interface AppShellProps {
   menteeHome?: boolean;
@@ -48,23 +50,25 @@ interface AppShellProps {
   subtitle?: string;
   title?: string;
 }
+type NavLabel = keyof Messages["appShell"]["nav"];
+
 type NavigationItem = {
   id: AppArea;
-  label: string;
+  label: NavLabel;
   href: string;
   icon: LucideIcon;
 };
 
 const MENTORS_NAV: NavigationItem = {
   id: AppArea.Mentors,
-  label: "Mentörler",
+  label: "mentors",
   href: "/mentors",
   icon: GraduationCap,
 };
 
 const NOTES_NAV: NavigationItem = {
   id: AppArea.Notes,
-  label: "Toplantı Notlarım",
+  label: "notes",
   href: "/notes",
   icon: NotebookPen,
 };
@@ -77,7 +81,7 @@ function buildNavigation(
     return [
       {
         id: AppArea.Admin,
-        label: "Başvurular",
+        label: "applications",
         href: "/admin",
         icon: ClipboardList,
       },
@@ -87,7 +91,7 @@ function buildNavigation(
     return [
       {
         id: AppArea.Programs,
-        label: "Programlar",
+        label: "programs",
         href: "/programs",
         icon: FolderKanban,
       },
@@ -98,47 +102,47 @@ function buildNavigation(
     return [
       {
         id: AppArea.MentorDashboard,
-        label: "Anasayfa",
+        label: "homeRevised",
         href: "/mentor-dashboard",
         icon: Home,
       },
       {
         id: AppArea.Mentorships,
-        label: "Mentorlüklerim",
+        label: "mentorMentorships",
         href: "/mentorships",
         icon: Lightbulb,
       },
       {
         id: AppArea.Calendar,
-        label: "Takvim",
+        label: "calendar",
         href: "/mentor-dashboard/calendar",
         icon: CalendarDays,
       },
       {
         id: AppArea.Meetings,
-        label: "Mesajlar",
+        label: "messages",
         href: "/mentor-dashboard/messages",
         icon: MessageCircle,
       },
     ];
-  const menteeNavigation = [
-    { id: AppArea.Home, label: "Ana Sayfa", href: "/dashboard", icon: Home },
+  const menteeNavigation: NavigationItem[] = [
+    { id: AppArea.Home, label: "home", href: "/dashboard", icon: Home },
     {
       id: AppArea.Mentorships,
-      label: "Mentorluklarım",
+      label: "mentorships",
       href: "/mentorships",
       icon: Users,
     },
     {
       id: AppArea.Calendar,
-      label: "Takvim",
+      label: "calendar",
       href: "/calendar",
       icon: CalendarDays,
     },
-    { id: AppArea.Startup, label: "Startup’ım", href: "/startup", icon: Star },
+    { id: AppArea.Startup, label: "startup", href: "/startup", icon: Star },
     {
       id: AppArea.Meetings,
-      label: "Mesajlar",
+      label: "messages",
       href: "/messages",
       icon: MessageCircle,
     },
@@ -146,7 +150,7 @@ function buildNavigation(
   ];
   return menteeHome
     ? menteeNavigation.map((item, index) =>
-        index === 0 ? { ...item, label: "Anasayfa" } : item,
+        index === 0 ? { ...item, label: "homeRevised" as const } : item,
       )
     : menteeNavigation;
 }
@@ -161,6 +165,7 @@ export function AppShell({
   subtitle,
   title,
 }: AppShellProps) {
+  const t = useTranslations("appShell");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [confirmLogout, setConfirmLogout] = useState(false);
   const [accountDialog, setAccountDialog] = useState<AccountDialog | null>(
@@ -169,13 +174,8 @@ export function AppShell({
   const session = useAppSession();
   const { logout } = useSession();
   const photo = useProfilePhoto();
-  const {
-    homeHref,
-    profileHref,
-    roleLabel,
-    showNotificationBadge,
-    usesRoleSubtitle,
-  } = roleWorkspace(session?.role);
+  const { homeHref, profileHref, showNotificationBadge, usesRoleSubtitle } =
+    roleWorkspace(session?.role);
   const isMentor = session?.role === UserRole.Mentor || mentorHome;
   // A page opts out by passing menteeHome={false}; omitting it gives every
   // mentee the revised frame, so a new page cannot forget to ask for it.
@@ -185,9 +185,9 @@ export function AppShell({
     menteeFrame,
   );
   const usesRevisedNav = isMentor || menteeFrame;
-  const displayName = session?.fullName ?? "Kullanıcı";
+  const displayName = session?.fullName ?? t("fallbackName");
   const displayOrganization = usesRoleSubtitle
-    ? roleLabel
+    ? t(`roles.${session?.role ?? UserRole.Mentee}`)
     : (session?.organizationName ?? "");
 
   async function handleLogout() {
@@ -210,7 +210,7 @@ export function AppShell({
           </div>
           <nav
             className={`mx-auto hidden items-center rounded-full bg-[#fcfcfd] lg:flex ${usesRevisedNav ? "gap-4 p-2 shadow-[0_7px_14.5px_rgba(100,100,111,0.10)]" : "border border-[#e4e7ea] p-1"}`}
-            aria-label="Ana menü"
+            aria-label={t("mainMenu")}
           >
             {navigation.map((item) => {
               const selected = item.id === active;
@@ -223,7 +223,7 @@ export function AppShell({
                   className={`flex items-center justify-center gap-2 rounded-full text-[13px] font-medium transition ${usesRevisedNav ? (isMentor ? "h-[42px] w-[160px] px-3" : "h-[42px] px-3.5") : "h-10 gap-1.5 px-3 xl:gap-2 xl:px-4"} ${selected ? (isMentor ? "bg-[#26a4ff] text-white" : menteeFrame ? "bg-[#e5701d] text-white" : "bg-[#fdebdd] text-[#c85816]") : "text-[#676e78] hover:bg-white hover:text-[#22262b]"}`}
                 >
                   <Icon className="size-4" strokeWidth={1.8} aria-hidden />
-                  {item.label}
+                  {t(`nav.${item.label}`)}
                 </Link>
               );
             })}
@@ -249,7 +249,7 @@ export function AppShell({
             <button
               type="button"
               onClick={() => setMobileOpen(true)}
-              aria-label="Menüyü aç"
+              aria-label={t("openMenu")}
               className="grid size-10 place-items-center rounded-full border border-[#e4e7ea] lg:hidden"
             >
               <Menu className="size-5" />
@@ -272,7 +272,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setMobileOpen(false)}
-                aria-label="Menüyü kapat"
+                aria-label={t("closeMenu")}
                 className="grid size-10 place-items-center rounded-full border border-[#e4e7ea]"
               >
                 <X className="size-5" />
@@ -287,7 +287,7 @@ export function AppShell({
                   className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#fdebdd] hover:text-[#c85816]"
                 >
                   <item.icon className="size-4" />
-                  {item.label}
+                  {t(`nav.${item.label}`)}
                 </Link>
               ))}
             </nav>
@@ -303,7 +303,7 @@ export function AppShell({
                     {displayName}
                   </strong>
                   <span className="block truncate text-[10px] text-[#858c96]">
-                    Profilim
+                    {t("profile")}
                   </span>
                 </span>
               </Link>
@@ -316,7 +316,7 @@ export function AppShell({
                 className="mt-1 flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#c24135] hover:bg-red-50"
               >
                 <LogOut className="size-4" />
-                Çıkış yap
+                {t("logout")}
               </button>
             </div>
           </aside>
@@ -337,25 +337,23 @@ export function AppShell({
             className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl"
           >
             <h2 id="logout-dialog-title" className="text-base font-semibold">
-              Çıkış yapmak istiyor musunuz?
+              {t("logoutTitle")}
             </h2>
-            <p className="mt-2 text-sm text-[#676e78]">
-              Devam ederseniz yeniden giriş yapmanız gerekir.
-            </p>
+            <p className="mt-2 text-sm text-[#676e78]">{t("logoutBody")}</p>
             <div className="mt-6 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setConfirmLogout(false)}
                 className="rounded-lg border border-[#d6dade] px-4 py-2 text-xs font-semibold text-[#515861]"
               >
-                Vazgeç
+                {t("cancel")}
               </button>
               <button
                 type="button"
                 onClick={() => void handleLogout()}
                 className="rounded-lg bg-[#c24135] px-4 py-2 text-xs font-semibold text-white"
               >
-                Çıkış yap
+                {t("logout")}
               </button>
             </div>
           </section>
@@ -367,7 +365,7 @@ export function AppShell({
             {backHref ? (
               <Link
                 href={backHref}
-                aria-label="Geri dön"
+                aria-label={t("back")}
                 className="text-xl text-[#858c96]"
               >
                 ←
