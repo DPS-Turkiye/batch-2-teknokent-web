@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import type { OrganizationMember } from "@/interfaces/organization-member";
+import { InLocale } from "@test/test-utils";
 
 const mockUseOrganizationMembers = vi.fn();
 
@@ -32,6 +33,27 @@ function membersResult(overrides: Record<string, unknown> = {}) {
 beforeEach(() => mockUseOrganizationMembers.mockReset());
 
 describe("TeamSummarySection", () => {
+  it("reads in English", () => {
+    mockUseOrganizationMembers.mockReturnValue(
+      membersResult({
+        data: [1, 2, 3, 4, 5, 6].map((index) =>
+          member({ id: `member-${index}` }),
+        ),
+      }),
+    );
+
+    render(
+      <InLocale locale="en">
+        <TeamSummarySection />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "My team" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("and 2 more")).toBeInTheDocument();
+  });
+
   // The Diğer menu used to be the only route to /team. Now that Ekibim lives
   // inside Startup'ım, this is what keeps /team from becoming orphaned.
   it("links to /team so the page is reachable without the Diğer menu", () => {

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { ChangeEvent, useRef, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -26,7 +27,20 @@ import { AppArea } from "@/types/app-area";
 type ProfileTarget = { kind: "self" } | { kind: "existing"; appUserId: string };
 
 type EditableProfile = Record<string, string>;
-type ProfileFieldDefinition = [string, string, "input" | "textarea"];
+type ProfileFieldKey =
+  | "professional_summary"
+  | "current_role"
+  | "desired_role"
+  | "industries"
+  | "technologies"
+  | "skills_to_develop"
+  | "startup_name"
+  | "startup_summary"
+  | "stage"
+  | "business_model"
+  | "sectors"
+  | "target_markets";
+type ProfileFieldDefinition = [ProfileFieldKey, "input" | "textarea"];
 type TechnologyInference = {
   tag: string;
   type: "EXPLICIT_RECOVERY" | "DERIVED_CAPABILITY";
@@ -43,21 +57,21 @@ function list(value: unknown) {
 function profileFields(profileType: ProfileType): ProfileFieldDefinition[] {
   return profileType === "individual_mentee"
     ? [
-        ["professional_summary", "Profesyonel özet", "textarea"],
-        ["current_role", "Mevcut rol", "input"],
-        ["desired_role", "Hedef rol", "input"],
-        ["industries", "Sektörler (virgülle ayırın)", "input"],
-        ["technologies", "Teknolojiler (virgülle ayırın)", "input"],
-        ["skills_to_develop", "Geliştirmek istediğiniz beceriler", "input"],
+        ["professional_summary", "textarea"],
+        ["current_role", "input"],
+        ["desired_role", "input"],
+        ["industries", "input"],
+        ["technologies", "input"],
+        ["skills_to_develop", "input"],
       ]
     : [
-        ["startup_name", "Girişim adı", "input"],
-        ["startup_summary", "Girişim özeti", "textarea"],
-        ["stage", "Girişim aşaması", "input"],
-        ["business_model", "İş modeli", "input"],
-        ["sectors", "Sektörler (virgülle ayırın)", "input"],
-        ["target_markets", "Hedef pazarlar (virgülle ayırın)", "input"],
-        ["technologies", "Teknolojiler (virgülle ayırın)", "input"],
+        ["startup_name", "input"],
+        ["startup_summary", "textarea"],
+        ["stage", "input"],
+        ["business_model", "input"],
+        ["sectors", "input"],
+        ["target_markets", "input"],
+        ["technologies", "input"],
       ];
 }
 
@@ -137,6 +151,8 @@ function technologyInferences(
 }
 
 export function ProfileAnalysisView() {
+  const t = useTranslations("profileAnalysis");
+  const locale = useLocale();
   const [target, setTarget] = useState<ProfileTarget>({ kind: "self" });
   const membersQuery = useOrganizationMembers();
   const inviteQuery = useOrganizationInvite();
@@ -187,7 +203,7 @@ export function ProfileAnalysisView() {
       setConsentAccepted(false);
       setShowManualForm(false);
     } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Profil işlenemedi.");
+      setError(reason instanceof Error ? reason.message : t("processFailed"));
       setShowManualForm(true);
     }
   }
@@ -201,23 +217,18 @@ export function ProfileAnalysisView() {
   );
 
   return (
-    <AppShell
-      active={AppArea.Startup}
-      title="Girişim Profili"
-      backHref="/dashboard"
-    >
+    <AppShell active={AppArea.Startup} title={t("title")} backHref="/dashboard">
       <main className="mx-auto w-full max-w-4xl space-y-6 px-4 pb-10 pt-8 sm:px-8">
         <section className="rounded-2xl bg-[#45454d] p-6 text-white sm:p-8">
-          <h1 className="text-2xl font-semibold">Profilini oluştur</h1>
+          <h1 className="text-2xl font-semibold">{t("heading")}</h1>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-white/90">
-            CV’nizi veya pitch deck’inizi yükleyin. Yapılandırılmış profil
-            kaydedilir ve mentor önerileri için kullanılır.
+            {t("intro")}
           </p>
         </section>
 
         <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
           <h2 className="text-base font-semibold text-[#364153]">
-            Kimin için?
+            {t("forWhom")}
           </h2>
           <fieldset className="mt-4 flex flex-col gap-3 text-sm text-[#364153]">
             <label className="flex items-center gap-2">
@@ -228,7 +239,7 @@ export function ProfileAnalysisView() {
                 onChange={() => setTarget({ kind: "self" })}
                 type="radio"
               />
-              Kendim
+              {t("self")}
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -245,7 +256,7 @@ export function ProfileAnalysisView() {
                 }}
                 type="radio"
               />
-              Mevcut ekip üyesi
+              {t("existingMember")}
             </label>
             {target.kind === "existing" ? (
               membersQuery.data && membersQuery.data.length > 0 ? (
@@ -268,12 +279,12 @@ export function ProfileAnalysisView() {
                 </select>
               ) : (
                 <p className="ml-6 text-xs text-[#6a7282]">
-                  Henüz eklenmiş bir ekip üyesi yok.{" "}
+                  {t("noMembers")}{" "}
                   <Link
                     className="font-medium text-[#4f39f6] hover:underline"
                     href="/startup/team"
                   >
-                    Davet kodunu paylaş
+                    {t("shareInvite")}
                   </Link>
                   .
                 </p>
@@ -281,14 +292,13 @@ export function ProfileAnalysisView() {
             ) : null}
             <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#f8f9fa] p-3">
               <p className="text-xs font-medium text-[#364153]">
-                Ekibe katılmak için davet kodu
+                {t("inviteTitle")}
               </p>
               <p className="mt-1 text-[11px] text-[#6a7282]">
-                Arkadaşın /invite sayfasında bu kodla kayıt olur. Kod yalnızca
-                startup liderinde görünür.
+                {t("inviteHint")}
               </p>
               {inviteQuery.isLoading ? (
-                <p className="mt-2 text-xs text-[#6a7282]">Yükleniyor...</p>
+                <p className="mt-2 text-xs text-[#6a7282]">{t("loading")}</p>
               ) : inviteQuery.error ? (
                 <p className="mt-2 text-xs text-red-600">
                   {inviteQuery.error.message}
@@ -309,7 +319,7 @@ export function ProfileAnalysisView() {
                     }}
                     className="rounded-md border border-[#d1d5db] bg-white px-2 py-1 text-xs font-medium text-[#364153]"
                   >
-                    {copied ? "Kopyalandı" : "Kopyala"}
+                    {copied ? t("copied") : t("copy")}
                   </button>
                 </div>
               )}
@@ -318,10 +328,10 @@ export function ProfileAnalysisView() {
         </section>
 
         <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
-          <h2 className="text-base font-semibold text-[#364153]">PDF yükle</h2>
-          <p className="mt-1 text-sm text-[#6a7282]">
-            Yalnızca PDF, en fazla 50 MB.
-          </p>
+          <h2 className="text-base font-semibold text-[#364153]">
+            {t("uploadPdf")}
+          </h2>
+          <p className="mt-1 text-sm text-[#6a7282]">{t("pdfOnly")}</p>
           <fieldset className="mt-4 flex flex-wrap gap-4 text-sm text-[#364153]">
             <label className="flex items-center gap-2">
               <input
@@ -331,7 +341,7 @@ export function ProfileAnalysisView() {
                 onChange={() => setProfileType("individual_mentee")}
                 type="radio"
               />
-              Kişisel CV
+              {t("personalCv")}
             </label>
             <label className="flex items-center gap-2">
               <input
@@ -341,21 +351,15 @@ export function ProfileAnalysisView() {
                 onChange={() => setProfileType("mentee")}
                 type="radio"
               />
-              Girişim pitch deck’i
+              {t("pitchDeck")}
             </label>
           </fieldset>
           <fieldset className="mt-4">
             <legend className="text-sm font-medium text-[#364153]">
-              Yerel OCR seviyesi
+              {t("ocrLevel")}
             </legend>
             <div className="mt-2 flex flex-wrap gap-4 text-sm text-[#4b5563]">
-              {(
-                [
-                  ["auto", "Otomatik"],
-                  ["force", "OCR’ı zorla"],
-                  ["off", "Kapalı"],
-                ] as Array<[OcrMode, string]>
-              ).map(([value, label]) => (
+              {(["auto", "force", "off"] as OcrMode[]).map((value) => (
                 <label key={value} className="flex items-center gap-2">
                   <input
                     checked={ocrMode === value}
@@ -364,14 +368,11 @@ export function ProfileAnalysisView() {
                     onChange={() => setOcrMode(value)}
                     type="radio"
                   />
-                  {label}
+                  {t(`ocr.${value}`)}
                 </label>
               ))}
             </div>
-            <p className="mt-2 text-xs text-[#6a7282]">
-              Karmaşık sütunlu veya taranmış kişisel CV’lerde “OCR’ı zorla”
-              seçeneğini kullanın.
-            </p>
+            <p className="mt-2 text-xs text-[#6a7282]">{t("ocrHint")}</p>
           </fieldset>
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
             <input
@@ -387,7 +388,7 @@ export function ProfileAnalysisView() {
               onClick={upload}
               className="shrink-0 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {processing ? "Profil çıkarılıyor…" : "Profili Çıkar"}
+              {processing ? t("extracting") : t("extract")}
             </PrimaryButton>
           </div>
           <label className="mt-4 flex items-start gap-2 rounded-lg bg-[#f8fafc] p-3 text-xs leading-5 text-[#4b5563]">
@@ -397,25 +398,15 @@ export function ProfileAnalysisView() {
               onChange={(event) => setConsentAccepted(event.target.checked)}
               type="checkbox"
             />
-            <span>
-              Belgemdeki bilgilerin profil çıkarma ve mentor eşleştirme amacıyla
-              işlenmesini onaylıyorum; e-posta, telefon ve kimlik numaralarının
-              harici AI çağrısından önce yerel olarak maskeleneceğini anlıyorum.
-            </span>
+            <span>{t("consent")}</span>
           </label>
-          <p className="mt-3 text-xs text-[#6a7282]">
-            Uygulama akışı yalnızca yerel olarak çıkarılmış ve kişisel verileri
-            maskelenmiş metni kullanır; orijinal PDF harici AI servisine
-            gönderilmez.
-          </p>
+          <p className="mt-3 text-xs text-[#6a7282]">{t("localOnly")}</p>
           <button
             className="mt-3 text-sm font-medium text-[#4f39f6] hover:underline"
             onClick={() => setShowManualForm((visible) => !visible)}
             type="button"
           >
-            {showManualForm
-              ? "Manuel formu kapat"
-              : "Bilgileri PDF olmadan manuel gir"}
+            {showManualForm ? t("closeManual") : t("openManual")}
           </button>
         </section>
 
@@ -426,7 +417,7 @@ export function ProfileAnalysisView() {
         )}
         {profileQuery.error ? (
           <p className="rounded-lg border border-[#fecaca] bg-[#fff1f2] p-4 text-sm text-[#b42318]">
-            Kaydedilen profil yüklenemedi: {profileQuery.error.message}
+            {t("savedLoadFailed", { error: profileQuery.error.message })}
           </p>
         ) : null}
 
@@ -444,27 +435,28 @@ export function ProfileAnalysisView() {
         ) : null}
 
         {profileQuery.isLoading ? (
-          <p className="text-sm text-[#6a7282]">Kaydedilmiş profil aranıyor…</p>
+          <p className="text-sm text-[#6a7282]">{t("searching")}</p>
         ) : analysis ? (
           <>
             <section className="rounded-xl border border-[#e5e7eb] bg-white p-5">
               <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
                 <div>
                   <h2 className="text-base font-semibold text-[#364153]">
-                    Çıkarılan {isIndividual ? "CV profili" : "girişim profili"}
+                    {isIndividual ? t("extractedCv") : t("extractedStartup")}
                   </h2>
                   <p className="mt-1 text-sm text-[#6a7282]">
                     {analysis.sourceFilename}
                   </p>
                 </div>
                 <span className="text-xs text-[#99a1af]">
-                  Kaydedildi:{" "}
-                  {new Intl.DateTimeFormat("tr-TR", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }).format(new Date(analysis.createdAt))}
+                  {t("savedAt", {
+                    date: new Intl.DateTimeFormat(locale, {
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    }).format(new Date(analysis.createdAt)),
+                  })}
                 </span>
               </div>
               {analysis.consentAcceptedAt ? (
@@ -477,26 +469,26 @@ export function ProfileAnalysisView() {
                 {String(
                   (isIndividual
                     ? profile.professional_summary
-                    : profile.startup_summary) ?? "Özet bulunamadı.",
+                    : profile.startup_summary) ?? t("noSummary"),
                 )}
               </p>
               <div className="mt-5 grid gap-5 sm:grid-cols-2">
                 <ProfileField
-                  label={isIndividual ? "Uzmanlık alanları" : "Sektör"}
+                  label={isIndividual ? t("expertise") : t("sector")}
                   values={sectors}
                 />
-                <ProfileField label="Teknolojiler" values={technologies} />
+                <ProfileField label={t("technologies")} values={technologies} />
               </div>
               {isIndividual && (
                 <p className="mt-5 text-sm text-[#4b5563]">
-                  <strong>Mevcut / hedef rol:</strong>{" "}
-                  {String(profile.current_role ?? "Belirtilmedi")} /{" "}
-                  {String(profile.desired_role ?? "Belirtilmedi")}
+                  <strong>{t("roles")}</strong>{" "}
+                  {String(profile.current_role ?? t("notSpecified"))} /{" "}
+                  {String(profile.desired_role ?? t("notSpecified"))}
                 </p>
               )}
               {needs.length > 0 && (
                 <p className="mt-5 text-sm text-[#4b5563]">
-                  <strong>Destek ihtiyacı:</strong> {needs.join(", ")}
+                  <strong>{t("supportNeeds")}</strong> {needs.join(", ")}
                 </p>
               )}
               {analysis.status === "DRAFT" ? (
@@ -510,15 +502,14 @@ export function ProfileAnalysisView() {
                 />
               ) : (
                 <p className="mt-5 text-sm font-medium text-[#008236]">
-                  Profil onaylandı ve eşleşmeye hazır.
+                  {t("confirmed")}
                 </p>
               )}
             </section>
           </>
         ) : (
           <section className="rounded-xl border border-dashed border-[#cbd5e1] bg-white p-8 text-center text-sm text-[#6a7282]">
-            Henüz kaydedilmiş bir girişim profili yok. İlk PDF’yi yükleyerek
-            başlayın.
+            {t("noProfile")}
           </section>
         )}
 
@@ -533,7 +524,7 @@ export function ProfileAnalysisView() {
             className="font-medium text-[#4f39f6] hover:underline"
             href="/dashboard"
           >
-            Panele dön
+            {t("backToPanel")}
           </Link>
         </p>
       </main>
@@ -554,6 +545,7 @@ function ProfileReview({
   onClear: () => void;
   onConfirmed: (analysis: Analysis) => void;
 }) {
+  const t = useTranslations("profileAnalysis");
   const [draft, setDraft] = useState(() =>
     editableProfile(profile, profileType),
   );
@@ -571,9 +563,7 @@ function ProfileReview({
       });
       onConfirmed(confirmed);
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
-      );
+      setError(reason instanceof Error ? reason.message : t("saveFailed"));
     }
   }
 
@@ -585,20 +575,15 @@ function ProfileReview({
 
   return (
     <div className="mt-6 border-t border-[#e5e7eb] pt-5">
-      <h3 className="text-sm font-semibold text-[#364153]">
-        Profili gözden geçir
-      </h3>
-      <p className="mt-1 text-xs text-[#6a7282]">
-        Eşleşmeye gönderilmeden önce AI çıktısını düzeltin ve onaylayın.
-      </p>
+      <h3 className="text-sm font-semibold text-[#364153]">{t("review")}</h3>
+      <p className="mt-1 text-xs text-[#6a7282]">{t("reviewHint")}</p>
       {inferredTechnologies.length > 0 ? (
         <div className="mt-4 rounded-lg border border-[#fde68a] bg-[#fffbeb] p-4">
           <p className="text-sm font-semibold text-[#92400e]">
-            Teknoloji kontrol katmanının önerileri
+            {t("suggestions")}
           </p>
           <p className="mt-1 text-xs leading-5 text-[#a16207]">
-            Bunlar CV’deki proje ve deneyim kanıtlarından eklendi. Teknolojiler
-            alanından kaldırabilir veya onaylayabilirsiniz.
+            {t("suggestionsHint")}
           </p>
           <ul className="mt-3 space-y-3">
             {inferredTechnologies.map((inference) => (
@@ -606,9 +591,9 @@ function ProfileReview({
                 <strong>{inference.tag}</strong>
                 <span className="ml-2 rounded bg-[#fef3c7] px-1.5 py-0.5 text-[10px] font-medium">
                   {inference.type === "EXPLICIT_RECOVERY"
-                    ? "CV kanıtından bulundu"
-                    : "Kanıttan türetildi"}
-                  {` · ${inference.confidence === "HIGH" ? "yüksek" : "orta"}`}
+                    ? t("fromCv")
+                    : t("derived")}
+                  {` · ${inference.confidence === "HIGH" ? t("high") : t("medium")}`}
                 </span>
                 <p className="mt-1 leading-5 text-[#92400e]">
                   “{inference.evidence}”
@@ -631,12 +616,10 @@ function ProfileReview({
           onClick={clearFields}
           type="button"
         >
-          Temizle
+          {t("clear")}
         </button>
         <PrimaryButton disabled={confirmMutation.isPending} onClick={confirm}>
-          {confirmMutation.isPending
-            ? "Kaydediliyor…"
-            : "Profili Onayla ve Kaydet"}
+          {confirmMutation.isPending ? t("saving") : t("confirm")}
         </PrimaryButton>
       </div>
     </div>
@@ -655,6 +638,7 @@ function ManualProfileForm({
   const [draft, setDraft] = useState<EditableProfile>(() =>
     editableProfile({}, profileType),
   );
+  const t = useTranslations("profileAnalysis");
   const createMutation = useCreateManualProfile();
   const [error, setError] = useState("");
 
@@ -668,21 +652,16 @@ function ManualProfileForm({
       });
       onSaved(saved);
     } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Profil kaydedilemedi.",
-      );
+      setError(reason instanceof Error ? reason.message : t("saveFailed"));
     }
   }
 
   return (
     <section className="rounded-xl border border-[#c7d2fe] bg-[#f8faff] p-5">
       <h2 className="text-base font-semibold text-[#364153]">
-        Profili manuel oluştur
+        {t("manualTitle")}
       </h2>
-      <p className="mt-1 text-sm text-[#6a7282]">
-        PDF işlenemezse gerekli bilgileri burada tamamlayıp doğrudan
-        onaylayabilirsiniz.
-      </p>
+      <p className="mt-1 text-sm text-[#6a7282]">{t("manualHint")}</p>
       <ProfileEditorFields
         draft={draft}
         fields={profileFields(profileType)}
@@ -694,9 +673,7 @@ function ManualProfileForm({
         disabled={createMutation.isPending}
         onClick={save}
       >
-        {createMutation.isPending
-          ? "Kaydediliyor…"
-          : "Manuel Profili Onayla ve Kaydet"}
+        {createMutation.isPending ? t("saving") : t("confirmManual")}
       </PrimaryButton>
     </section>
   );
@@ -711,14 +688,15 @@ function ProfileEditorFields({
   fields: ProfileFieldDefinition[];
   onChange: (draft: EditableProfile) => void;
 }) {
+  const t = useTranslations("profileAnalysis.fields");
   return (
     <div className="mt-4 grid gap-3">
-      {fields.map(([key, label, kind]) => (
+      {fields.map(([key, kind]) => (
         <label
           key={key}
           className="grid gap-1 text-sm font-medium text-[#4b5563]"
         >
-          <span>{label}</span>
+          <span>{t(key)}</span>
           {kind === "textarea" ? (
             <textarea
               className="min-h-24 rounded-md border border-[#d1d5db] bg-white p-2 text-sm font-normal"
@@ -743,6 +721,7 @@ function ProfileEditorFields({
 }
 
 function PrivacySummary({ value }: { value: Analysis["redactionSummary"] }) {
+  const t = useTranslations("profileAnalysis");
   let summary: Record<string, number> = {};
   try {
     const parsed =
@@ -759,13 +738,13 @@ function PrivacySummary({ value }: { value: Analysis["redactionSummary"] }) {
   const total = typeof summary.total === "number" ? summary.total : 0;
   return (
     <p className="rounded-lg bg-[#ecfdf3] p-3 text-xs text-[#087443]">
-      Yerel gizlilik kontrolü tamamlandı: {total} kişisel veri öğesi harici AI
-      çağrısından önce maskelendi.
+      {t("privacy", { total })}
     </p>
   );
 }
 
 function OcrSummary({ value }: { value: Analysis["ocrSummary"] }) {
+  const t = useTranslations("profileAnalysis");
   let summary: Record<string, unknown> = {};
   try {
     const parsed =
@@ -782,28 +761,28 @@ function OcrSummary({ value }: { value: Analysis["ocrSummary"] }) {
   const reason = String(summary.reason ?? "not-needed");
   const language = summary.language ? ` · ${String(summary.language)}` : "";
   const status = applied
-    ? "uygulandı"
+    ? t("ocrStatus.applied")
     : reason === "runtime-unavailable" || reason === "failed"
-      ? "uygulanamadı"
+      ? t("ocrStatus.failed")
       : mode === "off"
-        ? "kapalı"
-        : "gerekli görülmedi";
+        ? t("ocrStatus.off")
+        : t("ocrStatus.notNeeded");
   return (
     <p className="rounded-lg bg-[#eff6ff] p-3 text-xs text-[#1d4ed8]">
-      Yerel OCR: {status} ({mode}
-      {language}).
+      {t("ocrSummary", { status, mode, language })}
     </p>
   );
 }
 
 function ProfileField({ label, values }: { label: string; values: string[] }) {
+  const t = useTranslations("profileAnalysis");
   return (
     <div>
       <p className="text-xs font-medium uppercase tracking-wide text-[#99a1af]">
         {label}
       </p>
       <p className="mt-2 text-sm text-[#4b5563]">
-        {values.length ? values.join(" · ") : "Belirtilmedi"}
+        {values.length ? values.join(" · ") : t("notSpecified")}
       </p>
     </div>
   );

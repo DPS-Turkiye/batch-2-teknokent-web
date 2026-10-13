@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { cardClass, cardHeadingClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import {
@@ -17,6 +19,7 @@ import { toFoundedYear, toFundingStage } from "@/lib/profile-validation";
  * founder edits what they originally typed, in the shape they typed it.
  */
 export function StartupProfileSection() {
+  const t = useTranslations("profileSections");
   const {
     draft,
     setField,
@@ -33,8 +36,8 @@ export function StartupProfileSection() {
   if (isLoading) {
     return (
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Startup bilgilerim</h2>
-        <p className="text-sm text-[#676e78]">Bilgiler yükleniyor…</p>
+        <h2 className={cardHeadingClass}>{t("startupTitle")}</h2>
+        <p className="text-sm text-[#676e78]">{t("loading")}</p>
       </section>
     );
   }
@@ -42,10 +45,8 @@ export function StartupProfileSection() {
   if (loadError || !draft) {
     return (
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Startup bilgilerim</h2>
-        <p className="text-sm text-[#b91c1c]">
-          {loadError ?? "Bilgiler yüklenemedi."}
-        </p>
+        <h2 className={cardHeadingClass}>{t("startupTitle")}</h2>
+        <p className="text-sm text-[#b91c1c]">{loadError ?? t("loadFailed")}</p>
       </section>
     );
   }
@@ -55,14 +56,12 @@ export function StartupProfileSection() {
       <section className={cardClass}>
         <div className="flex items-center justify-between gap-3">
           <div>
-            <h2 className={cardHeadingClass}>Temel bilgiler</h2>
-            <p className="mt-1 text-xs text-[#676e78]">
-              Kayıt sırasında girdiğin startup bilgileri.
-            </p>
+            <h2 className={cardHeadingClass}>{t("basics")}</h2>
+            <p className="mt-1 text-xs text-[#676e78]">{t("startupHint")}</p>
           </div>
           {saved ? (
             <span className="rounded-full bg-[#ecfdf3] px-2.5 py-1 text-xs font-medium text-[#15803d]">
-              Kaydedildi
+              {t("saved")}
             </span>
           ) : null}
         </div>
@@ -70,7 +69,7 @@ export function StartupProfileSection() {
         <div className="grid gap-3 sm:grid-cols-2">
           <EditableInfoField
             id="startup-name"
-            label="Startup adı"
+            label={t("startupName")}
             value={draft.name}
             required
             error={fieldErrors.name}
@@ -79,7 +78,7 @@ export function StartupProfileSection() {
           />
           <EditableInfoField
             id="startup-website"
-            label="Web sitesi"
+            label={t("website")}
             placeholder="ornek.com"
             value={draft.website ?? ""}
             error={fieldErrors.website}
@@ -90,8 +89,8 @@ export function StartupProfileSection() {
 
         <EditableInfoField
           id="startup-tagline"
-          label="Tek satırlık tanım"
-          placeholder="Ne yaptığınızı bir cümlede anlatın."
+          label={t("oneLiner")}
+          placeholder={t("oneLinerPlaceholder")}
           value={draft.description ?? ""}
           error={fieldErrors.description}
           maxLength={5000}
@@ -100,11 +99,11 @@ export function StartupProfileSection() {
       </section>
 
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Girişim hakkında</h2>
+        <h2 className={cardHeadingClass}>{t("aboutStartup")}</h2>
 
         <EditableInfoField
           id="startup-problem"
-          label="Hangi problemi çözüyorsunuz?"
+          label={t("problem")}
           multiline
           value={draft.problem ?? ""}
           error={fieldErrors.problem}
@@ -113,7 +112,7 @@ export function StartupProfileSection() {
         />
         <EditableInfoField
           id="startup-solution"
-          label="Çözümünüz"
+          label={t("solution")}
           multiline
           value={draft.solution ?? ""}
           error={fieldErrors.solution}
@@ -122,7 +121,7 @@ export function StartupProfileSection() {
         />
         <EditableInfoField
           id="startup-current-solution"
-          label="Mevcut çözüm"
+          label={t("currentSolution")}
           multiline
           value={draft.currentSolution ?? ""}
           error={fieldErrors.currentSolution}
@@ -131,7 +130,7 @@ export function StartupProfileSection() {
         />
         <EditableInfoField
           id="startup-target-user"
-          label="Hedef kullanıcı"
+          label={t("targetUser")}
           multiline
           value={draft.targetUser ?? ""}
           error={fieldErrors.targetUser}
@@ -142,7 +141,7 @@ export function StartupProfileSection() {
         <div className="grid gap-3 sm:grid-cols-2">
           <EditableInfoField
             id="startup-sector"
-            label="Sektör"
+            label={t("sector")}
             value={draft.sector ?? ""}
             error={fieldErrors.sector}
             maxLength={255}
@@ -153,7 +152,7 @@ export function StartupProfileSection() {
               htmlFor="startup-maturity"
               className="block text-xs font-medium text-[#676e78]"
             >
-              Aşama
+              {t("stage")}
             </label>
             <select
               id="startup-maturity"
@@ -163,7 +162,7 @@ export function StartupProfileSection() {
               }
               className="mt-1.5 w-full rounded-lg border border-[#e4e7ea] bg-white px-2.5 py-2 text-sm text-[#22262b] focus:border-[#e86f22] focus:outline-none"
             >
-              <option value="">Belirtilmedi</option>
+              <option value="">{t("notSpecified")}</option>
               {STARTUP_STAGE_OPTIONS.map((stage) => (
                 <option key={stage} value={stage}>
                   {stage}
@@ -181,7 +180,7 @@ export function StartupProfileSection() {
         <div className="grid gap-3 sm:grid-cols-2">
           <EditableInfoField
             id="startup-founded-year"
-            label="Kuruluş yılı"
+            label={t("foundedYear")}
             placeholder="2026"
             inputMode="numeric"
             value={draft.foundedYear != null ? String(draft.foundedYear) : ""}
@@ -194,7 +193,7 @@ export function StartupProfileSection() {
               htmlFor="startup-funding-stage"
               className="block text-xs font-medium text-[#676e78]"
             >
-              Yatırım aşaması
+              {t("fundingStage")}
             </label>
             <select
               id="startup-funding-stage"
@@ -204,7 +203,7 @@ export function StartupProfileSection() {
               }
               className="mt-1.5 w-full rounded-lg border border-[#e4e7ea] bg-white px-2.5 py-2 text-sm text-[#22262b] focus:border-[#e86f22] focus:outline-none"
             >
-              <option value="">Belirtilmedi</option>
+              <option value="">{t("notSpecified")}</option>
               {Object.values(StartupFundingStage).map((stage) => (
                 <option key={stage} value={stage}>
                   {stage}
@@ -221,7 +220,7 @@ export function StartupProfileSection() {
 
         <EditableInfoField
           id="startup-program-level"
-          label="Program seviyesi"
+          label={t("programLevel")}
           value={draft.programLevel ?? ""}
           error={fieldErrors.programLevel}
           maxLength={255}
@@ -230,9 +229,9 @@ export function StartupProfileSection() {
       </section>
 
       <section className={cardClass}>
-        <h2 className={cardHeadingClass}>Destek alanları</h2>
+        <h2 className={cardHeadingClass}>{t("supportAreas")}</h2>
         <EditableInfoChips
-          label="Destek alanları"
+          label={t("supportAreas")}
           values={draft.supportAreas}
           error={fieldErrors.supportAreas}
           onChange={(values) => setField("supportAreas", values)}
@@ -244,7 +243,7 @@ export function StartupProfileSection() {
 
         <div className="flex justify-end border-t border-[#f1f3f5] pt-4">
           <PrimaryButton onClick={save} disabled={!canSave}>
-            {isSaving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
+            {isSaving ? t("saving") : t("save")}
           </PrimaryButton>
         </div>
       </section>
