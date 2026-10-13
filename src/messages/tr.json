@@ -2591,5 +2591,28 @@
       "empty": "Bu hafta için aktif düzenli mentorlük yok.",
       "perWeek": "Haftada {count} gün"
     }
+  },
+  "mentorMessages": {
+    "title": "Mesajlar",
+    "subtitle": "Mentee ve koordinatörlerle konuşurken mentorluk bağlamını kaybetme.",
+    "conversations": "Konuşmalar",
+    "search": "Mentee veya startup ara",
+    "loading": "Yükleniyor...",
+    "noConversations": "Açık bir mentorluk talebi olunca konuşmalar burada görünür.",
+    "noMatch": "Aramanla eşleşen konuşma yok.",
+    "noMessageYet": "Henüz mesaj yok",
+    "menteeFallback": "Mentee",
+    "mentorshipFallback": "Mentorluk",
+    "pickTitle": "Bir konuşma seç",
+    "pickBody": "Soldaki listeden bir mentee seçtiğinde ilgili mentorluk bağlamı da burada görünür.",
+    "shareFile": "Dosya paylaş",
+    "planMeeting": "Toplantı planla",
+    "relatedMentorship": "İlgili mentorluk · {name}",
+    "noMeeting": "Planlanmış görüşme yok",
+    "openMentorship": "Mentorluk detayına git →",
+    "noMessages": "Bu mentorlukta henüz mesaj yok.",
+    "placeholder": "Mesaj yaz…",
+    "pickFile": "Dosya seç",
+    "send": "Gönder"
   }
 }

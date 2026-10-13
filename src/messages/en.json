@@ -2591,5 +2591,28 @@
       "empty": "No active regular mentorships this week.",
       "perWeek": "{count, plural, one {# day} other {# days}} a week"
     }
+  },
+  "mentorMessages": {
+    "title": "Messages",
+    "subtitle": "Keep the mentorship context in view while you talk with mentees and coordinators.",
+    "conversations": "Conversations",
+    "search": "Search mentees or startups",
+    "loading": "Loading...",
+    "noConversations": "Conversations show up here once there's an open mentorship request.",
+    "noMatch": "No conversations match your search.",
+    "noMessageYet": "No messages yet",
+    "menteeFallback": "Mentee",
+    "mentorshipFallback": "Mentorship",
+    "pickTitle": "Pick a conversation",
+    "pickBody": "Pick a mentee from the list on the left to see the mentorship context here too.",
+    "shareFile": "Share a file",
+    "planMeeting": "Plan a meeting",
+    "relatedMentorship": "Mentorship · {name}",
+    "noMeeting": "No meeting planned",
+    "openMentorship": "Go to the mentorship →",
+    "noMessages": "No messages in this mentorship yet.",
+    "placeholder": "Write a message…",
+    "pickFile": "Choose a file",
+    "send": "Send"
   }
 }

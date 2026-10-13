@@ -3,6 +3,7 @@
 import { ChevronRight, Mail, Search, Upload } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -26,8 +27,8 @@ import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 const ACCENT = { strong: "#26a4ff", soft: "#f2f8fc" };
 
-function participantOf(request: MentorshipRequest) {
-  return request.requesterName ?? request.organizationName ?? "Mentee";
+function participantOf(request: MentorshipRequest, fallback: string) {
+  return request.requesterName ?? request.organizationName ?? fallback;
 }
 
 function contextOf(request: MentorshipRequest) {
@@ -42,8 +43,8 @@ function lastMessageOf(request: MentorshipRequest) {
     : null;
 }
 
-function clockLabel(iso: string) {
-  return new Date(iso).toLocaleTimeString("tr-TR", {
+function clockLabel(iso: string, locale: string) {
+  return new Date(iso).toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -68,40 +69,45 @@ function ConversationList({
   onOpenProgramThread: (id: string) => void;
   onOpenAnnouncements: (programId: string) => void;
 }) {
+  const t = useTranslations("mentorMessages");
+  const locale = useLocale();
+  const fallback = t("menteeFallback");
   const [search, setSearch] = useState("");
   const shown = useMemo(
     () =>
       conversations.filter((request) =>
-        [participantOf(request), contextOf(request), request.summary ?? ""]
+        [
+          participantOf(request, fallback),
+          contextOf(request),
+          request.summary ?? "",
+        ]
           .join(" ")
-          .toLocaleLowerCase("tr-TR")
-          .includes(search.toLocaleLowerCase("tr-TR")),
+          .toLocaleLowerCase(locale)
+          .includes(search.toLocaleLowerCase(locale)),
       ),
-    [conversations, search],
+    [conversations, search, fallback, locale],
   );
   return (
     <aside className="overflow-hidden rounded-[12px] border border-[#e4e7ea] bg-white">
       <div className="h-[100px] px-4 pt-4">
-        <h2 className="text-[15px] font-semibold">Konuşmalar</h2>
+        <h2 className="text-[15px] font-semibold">{t("conversations")}</h2>
         <label className="mt-3 flex h-[37px] items-center gap-2 rounded-lg border border-[#e4e7ea] bg-[#f6f7f9] px-3">
           <Search className="size-[15px] text-[#676e78]" strokeWidth={1.6} />
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="min-w-0 flex-1 bg-transparent text-xs outline-none placeholder:text-[#858c96]"
-            placeholder="Mentee veya startup ara"
+            placeholder={t("search")}
           />
         </label>
       </div>
       {isLoading ? (
         <p className="border-t border-[#eef0f3] p-4 text-xs text-[#858c96]">
-          Yükleniyor...
+          {t("loading")}
         </p>
       ) : shown.length === 0 ? (
         <p className="border-t border-[#eef0f3] p-4 text-xs text-[#858c96]">
-          {conversations.length === 0
-            ? "Açık bir mentorluk talebi olunca konuşmalar burada görünür."
-            : "Aramanla eşleşen konuşma yok."}
+          {conversations.length === 0 ? t("noConversations") : t("noMatch")}
         </p>
       ) : (
         <ul>
@@ -116,16 +122,16 @@ function ConversationList({
                   <span
                     className={`grid size-[34px] shrink-0 place-items-center rounded-full text-[10px] font-medium ${activeId === request.id ? "bg-[#e7f5ff] text-[#26a4ff]" : "bg-[#f3f4f6] text-[#676e78]"}`}
                   >
-                    {initials(participantOf(request)) || "MN"}
+                    {initials(participantOf(request, fallback)) || "MN"}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="flex justify-between">
                       <b className="text-[13px] font-semibold">
-                        {participantOf(request)}
+                        {participantOf(request, fallback)}
                       </b>
                       {last ? (
                         <span className="text-[10px] text-[#858c96]">
-                          {clockLabel(last.createdAt)}
+                          {clockLabel(last.createdAt, locale)}
                         </span>
                       ) : null}
                     </span>
@@ -133,7 +139,7 @@ function ConversationList({
                       {contextOf(request)}
                     </span>
                     <span className="mt-1 block truncate text-[10.5px] text-[#858c96]">
-                      {last ? withoutSlotLines(last.body) : "Henüz mesaj yok"}
+                      {last ? withoutSlotLines(last.body) : t("noMessageYet")}
                     </span>
                   </span>
                 </button>
@@ -158,14 +164,14 @@ function ConversationList({
 }
 
 function EmptyConversation() {
+  const t = useTranslations("mentorMessages");
   return (
     <section className="grid min-h-[341px] place-items-center rounded-[12px] border border-[#e4e7ea] bg-white text-center">
       <div>
         <Mail className="mx-auto size-9" strokeWidth={1.3} />
-        <h2 className="mt-3 text-base font-semibold">Bir konuşma seç</h2>
+        <h2 className="mt-3 text-base font-semibold">{t("pickTitle")}</h2>
         <p className="mx-auto mt-3 max-w-[360px] text-[12px] leading-5 text-[#676e78]">
-          Soldaki listeden bir mentee seçtiğinde ilgili mentorluk bağlamı da
-          burada görünür.
+          {t("pickBody")}
         </p>
       </div>
     </section>
@@ -187,18 +193,19 @@ function ActiveConversation({
   onShareFile: (file: File) => void;
   isSharing: boolean;
 }) {
+  const t = useTranslations("mentorMessages");
+  const locale = useLocale();
+  const participant = participantOf(request, t("menteeFallback"));
   const fileInput = useRef<HTMLInputElement>(null);
   return (
     <section className="overflow-hidden rounded-[12px] border border-[#e4e7ea] bg-white">
       <header className="flex h-[75px] items-center justify-between px-5">
         <div className="flex items-center gap-3">
           <span className="grid size-[38px] place-items-center rounded-full bg-[#e7f5ff] text-[10px] font-medium text-[#26a4ff]">
-            {initials(participantOf(request)) || "MN"}
+            {initials(participant) || "MN"}
           </span>
           <div>
-            <h2 className="text-[15px] font-semibold">
-              {participantOf(request)}
-            </h2>
+            <h2 className="text-[15px] font-semibold">{participant}</h2>
             <p className="mt-0.5 text-[11px] text-[#676e78]">
               {contextOf(request)}
             </p>
@@ -210,13 +217,13 @@ function ActiveConversation({
             disabled={isSharing}
             className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px] disabled:opacity-50"
           >
-            Dosya paylaş
+            {t("shareFile")}
           </button>
           <Link
             href="/mentor-dashboard/calendar"
             className="rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[12.5px]"
           >
-            Toplantı planla
+            {t("planMeeting")}
           </Link>
           <ChevronRight className="size-[18px]" strokeWidth={1.5} />
         </div>
@@ -225,24 +232,24 @@ function ActiveConversation({
         <div className="flex h-[62px] items-center justify-between rounded-lg bg-[#f2f8fc] px-4">
           <div>
             <p className="text-[10px] font-semibold uppercase text-[#26a4ff]">
-              İlgili mentorluk · {request.organizationName ?? "Mentorluk"}
+              {t("relatedMentorship", {
+                name: request.organizationName ?? t("mentorshipFallback"),
+              })}
             </p>
             <p className="mt-1 text-[12px] text-[#4a5059]">
-              {meetingLabel ?? "Planlanmış görüşme yok"}
+              {meetingLabel ?? t("noMeeting")}
             </p>
           </div>
           <Link
             href={mentorRequestStartupHref(request.id)}
             className="text-[12px] font-medium text-[#26a4ff]"
           >
-            Mentorluk detayına git →
+            {t("openMentorship")}
           </Link>
         </div>
         <div className="mt-4 space-y-4">
           {request.messages.length === 0 ? (
-            <p className="text-[12px] text-[#858c96]">
-              Bu mentorlukta henüz mesaj yok.
-            </p>
+            <p className="text-[12px] text-[#858c96]">{t("noMessages")}</p>
           ) : (
             request.messages.map((message) => {
               const own = message.authorId === viewerUserId;
@@ -262,7 +269,7 @@ function ActiveConversation({
                     <p>{withoutSlotLines(message.body)}</p>
                   </div>
                   <time className="mt-1 text-[9.5px] text-[#858c96]">
-                    {clockLabel(message.createdAt)}
+                    {clockLabel(message.createdAt, locale)}
                   </time>
                 </article>
               );
@@ -280,14 +287,14 @@ function ActiveConversation({
             value={messageForm.message}
             onChange={(event) => messageForm.setMessage(event.target.value)}
             className="min-w-0 flex-1 text-[12px] outline-none placeholder:text-[#858c96]"
-            placeholder="Mesaj yaz…"
+            placeholder={t("placeholder")}
           />
           <input
             ref={fileInput}
             type="file"
             accept={DOCUMENT_UPLOAD_ACCEPT}
             className="hidden"
-            aria-label="Dosya seç"
+            aria-label={t("pickFile")}
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) onShareFile(file);
@@ -300,7 +307,7 @@ function ActiveConversation({
             disabled={messageForm.isSending || !messageForm.message.trim()}
             className="rounded-full bg-[#26a4ff] px-4 py-2.5 text-[12.5px] text-white disabled:bg-[#c9cdd2]"
           >
-            Gönder
+            {t("send")}
           </button>
         </form>
       </div>
@@ -309,6 +316,7 @@ function ActiveConversation({
 }
 
 export function MentorMessagesView() {
+  const t = useTranslations("mentorMessages");
   const params = useSearchParams();
   const preferredRequestId = params.get("request") ?? params.get("id");
   const messages = useMentorMessages(
@@ -321,10 +329,10 @@ export function MentorMessagesView() {
     <AppShell active={AppArea.Meetings} mentorHome>
       <main className="mx-auto w-full max-w-[1276px] px-6 pb-[72px] pt-3">
         <header>
-          <h1 className="text-[28px] font-semibold leading-[42px]">Mesajlar</h1>
-          <p className="mt-1 text-[13px] text-[#676e78]">
-            Mentee ve koordinatörlerle konuşurken mentorluk bağlamını kaybetme.
-          </p>
+          <h1 className="text-[28px] font-semibold leading-[42px]">
+            {t("title")}
+          </h1>
+          <p className="mt-1 text-[13px] text-[#676e78]">{t("subtitle")}</p>
         </header>
         {messages.error ? (
           <p className="mt-5 rounded-lg border border-[#f2b78f] bg-[#fff9f5] p-4 text-xs text-[#a65a15]">
