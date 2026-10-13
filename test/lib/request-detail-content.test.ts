@@ -1,13 +1,16 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { REQUEST_DETAIL_LABELS } from "@/lib/const";
+import { needLabels } from "@/lib/mentor-request-need";
+import en from "@/messages/en.json";
 import {
   buildRequestDetailContent,
   isNeedOriginRequest,
+  RequestDetailFieldKey,
 } from "@/lib/request-detail-content";
 
 function request(
@@ -42,11 +45,11 @@ describe("request-detail-content", () => {
     expect(isNeedOriginRequest(item)).toBe(true);
     const detail = buildRequestDetailContent(item);
     expect(detail.origin).toBe("need");
-    expect(detail.fields.map((field) => field.label)).toEqual([
-      REQUEST_DETAIL_LABELS.needTopic,
-      REQUEST_DETAIL_LABELS.needProblem,
-      REQUEST_DETAIL_LABELS.needOutcome,
-      REQUEST_DETAIL_LABELS.supportArea,
+    expect(detail.fields.map((field) => field.key)).toEqual([
+      RequestDetailFieldKey.NeedTopic,
+      RequestDetailFieldKey.NeedProblem,
+      RequestDetailFieldKey.NeedOutcome,
+      RequestDetailFieldKey.SupportArea,
     ]);
   });
 
@@ -70,10 +73,10 @@ describe("request-detail-content", () => {
     );
 
     expect(detail.origin).toBe("profile");
-    expect(detail.fields.map((field) => field.label)).toEqual([
-      REQUEST_DETAIL_LABELS.profileTopic,
-      REQUEST_DETAIL_LABELS.profileStuck,
-      REQUEST_DETAIL_LABELS.profileOutcome,
+    expect(detail.fields.map((field) => field.key)).toEqual([
+      RequestDetailFieldKey.ProfileTopic,
+      RequestDetailFieldKey.ProfileStuck,
+      RequestDetailFieldKey.ProfileOutcome,
     ]);
   });
 
@@ -89,8 +92,47 @@ describe("request-detail-content", () => {
 
     expect(
       detail.fields.find(
-        (field) => field.label === REQUEST_DETAIL_LABELS.profileOutcome,
+        (field) => field.key === RequestDetailFieldKey.ProfileOutcome,
       )?.value,
     ).toBe("İlk finansal modelin çerçevesi");
+  });
+
+  it("shows the saved preset texts in English and leaves typed text as written", () => {
+    const detail = buildRequestDetailContent(
+      request({
+        summary:
+          "Ürünü kullanmaya başlıyor ama neden devam etmesi gerektiği net değil.",
+        supportArea: "Ürün ve ürün yönetimi",
+        expectedOutcome:
+          "Bir karar vermek, Yol haritası oluşturmak\nKendi notum",
+      }),
+      {
+        labels: needLabels(
+          createTranslator({
+            locale: "en",
+            messages: en,
+            namespace: "mentorRequest",
+          }),
+        ),
+        locale: "en",
+      },
+    );
+
+    expect(detail.fields).toEqual([
+      { key: RequestDetailFieldKey.NeedTopic, value: "Product" },
+      {
+        key: RequestDetailFieldKey.NeedProblem,
+        value:
+          "They start using the product but it's not clear why they should keep going.",
+      },
+      {
+        key: RequestDetailFieldKey.NeedOutcome,
+        value: "Make a decision, Build a roadmap\nKendi notum",
+      },
+      {
+        key: RequestDetailFieldKey.SupportArea,
+        value: "Ürün ve ürün yönetimi",
+      },
+    ]);
   });
 });

@@ -16,7 +16,7 @@ import {
 } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
 const { searchParams } = vi.hoisted(() => ({
@@ -155,6 +155,22 @@ describe("RequestStatusPage", () => {
     expect(
       screen.queryByRole("button", { name: "Yanıt Bekleniyor" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <RequestStatusPage />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Request details")).toBeInTheDocument();
+    expect(screen.getByText("Where are we stuck?")).toBeInTheDocument();
+    expect(screen.getByText("The mentor's question:")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Write your reply…"),
+    ).toBeInTheDocument();
+    expect(screen.getAllByText("More info requested")).not.toHaveLength(0);
   });
 
   it("shows the mentor's question and lets the mentee type a reply", async () => {

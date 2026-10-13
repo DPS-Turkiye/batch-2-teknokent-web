@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Suspense, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
 
@@ -12,30 +13,22 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import {
-  MENTEE_REQUESTS_HREF,
-  MENTEE_REQUEST_DETAIL_LABELS as LABELS,
-  MENTEE_REQUEST_STATUS_LABELS,
-} from "@/lib/const";
+import { MENTEE_REQUESTS_HREF } from "@/lib/const";
 import {
   parseProposedSlotsFromMessage,
   requestOutcomeFromMessage,
 } from "@/lib/mentor-availability-days";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { menteeRequestOwnerLabel } from "@/lib/mentorship-workspace";
-import { initials } from "@/lib/utils";
+import { formatDateTime, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
-const sentAtFormat = new Intl.DateTimeFormat("tr-TR", {
-  dateStyle: "long",
-  timeStyle: "short",
-});
-
 function Shell({ children }: { children: ReactNode }) {
+  const t = useTranslations("requestDetail");
   return (
     <AppShell
       active={AppArea.Mentorships}
-      title={LABELS.title}
+      title={t("title")}
       backHref={MENTEE_REQUESTS_HREF}
     >
       <div className="mx-auto max-w-[960px] px-4 py-6 sm:px-8">{children}</div>
@@ -57,29 +50,33 @@ function InfoRow({ label, children }: { label: string; children: ReactNode }) {
 }
 
 function OtherDetails({ request }: { request: MentorshipRequest }) {
+  const t = useTranslations("requestDetail");
+  const tStatus = useTranslations("requestStatus");
+  const locale = useLocale();
   const owner = menteeRequestOwnerLabel(request);
   const mentorNote = requestOutcomeFromMessage(request.mentorMessage);
-  const proposedSlots = parseProposedSlotsFromMessage(request.mentorMessage);
+  const proposedSlots = parseProposedSlotsFromMessage(
+    request.mentorMessage,
+    locale,
+  );
 
   return (
     <dl className="mt-4 grid gap-3 sm:grid-cols-2">
-      <InfoRow label={LABELS.status}>
-        {MENTEE_REQUEST_STATUS_LABELS[request.status]}
+      <InfoRow label={t("status")}>{tStatus(`long.${request.status}`)}</InfoRow>
+      <InfoRow label={t("sentAt")}>
+        {formatDateTime(request.createdAt, locale)}
       </InfoRow>
-      <InfoRow label={LABELS.sentAt}>
-        {sentAtFormat.format(new Date(request.createdAt))}
-      </InfoRow>
-      {owner ? <InfoRow label={LABELS.requester}>{owner}</InfoRow> : null}
+      {owner ? <InfoRow label={t("requester")}>{owner}</InfoRow> : null}
       {request.organizationName ? (
-        <InfoRow label={LABELS.startup}>{request.organizationName}</InfoRow>
+        <InfoRow label={t("startup")}>{request.organizationName}</InfoRow>
       ) : null}
       {request.plannedSessionCount ? (
-        <InfoRow label={LABELS.plannedSessions}>
+        <InfoRow label={t("plannedSessions")}>
           {request.plannedSessionCount}
         </InfoRow>
       ) : null}
       {proposedSlots.length > 0 ? (
-        <InfoRow label={LABELS.proposedSlots}>
+        <InfoRow label={t("proposedSlots")}>
           <ul className="space-y-1">
             {proposedSlots.map((slot, index) => (
               <li key={`${slot.label}-${index}`}>{slot.label}</li>
@@ -88,11 +85,11 @@ function OtherDetails({ request }: { request: MentorshipRequest }) {
         </InfoRow>
       ) : null}
       {mentorNote ? (
-        <InfoRow label={LABELS.mentorMessage}>{mentorNote}</InfoRow>
+        <InfoRow label={t("mentorMessage")}>{mentorNote}</InfoRow>
       ) : null}
       {request.status === MentorshipRequestStatus.Declined &&
       request.rejectionReason ? (
-        <InfoRow label={LABELS.rejectionReason}>
+        <InfoRow label={t("rejectionReason")}>
           {request.rejectionReason}
         </InfoRow>
       ) : null}
@@ -101,6 +98,7 @@ function OtherDetails({ request }: { request: MentorshipRequest }) {
 }
 
 function RequestDetailContent() {
+  const t = useTranslations("requestDetail");
   const params = useSearchParams();
   const requestId = params.get("id") ?? params.get("request");
   const requestQuery = useMentorshipRequest(requestId);
@@ -110,12 +108,12 @@ function RequestDetailContent() {
     return (
       <Shell>
         <section className="rounded-lg border border-[#e5e7eb] bg-white p-6 text-center">
-          <p className="text-sm font-medium text-[#22262b]">{LABELS.missing}</p>
+          <p className="text-sm font-medium text-[#22262b]">{t("missing")}</p>
           <SecondaryButton
             href={MENTEE_REQUESTS_HREF}
             className="mt-4 inline-flex"
           >
-            {LABELS.backToRequests}
+            {t("backToRequests")}
           </SecondaryButton>
         </section>
       </Shell>
@@ -135,7 +133,7 @@ function RequestDetailContent() {
   if (!request) {
     return (
       <Shell>
-        <p className="text-sm text-[#777]">{LABELS.loading}</p>
+        <p className="text-sm text-[#777]">{t("loading")}</p>
       </Shell>
     );
   }
@@ -146,7 +144,7 @@ function RequestDetailContent() {
         <Avatar initials={initials(request.mentorName) || "MN"} />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-medium uppercase tracking-wide text-[#858c96]">
-            {LABELS.mentor}
+            {t("mentor")}
           </p>
           <h2 className="truncate text-sm font-semibold text-[#22262b]">
             {request.mentorName}
@@ -156,13 +154,13 @@ function RequestDetailContent() {
           </p>
         </div>
         <SecondaryButton href={mentorProfileHref(request.mentorId)}>
-          {LABELS.mentorProfile}
+          {t("mentorProfile")}
         </SecondaryButton>
       </section>
 
       <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
         <h3 className="text-base font-semibold text-[#22262b]">
-          {LABELS.requestSection}
+          {t("requestSection")}
         </h3>
         <RequestDetailsPanel
           request={request}
@@ -173,7 +171,7 @@ function RequestDetailContent() {
 
       <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
         <h3 className="text-base font-semibold text-[#22262b]">
-          {LABELS.otherSection}
+          {t("otherSection")}
         </h3>
         <OtherDetails request={request} />
       </section>
@@ -182,11 +180,12 @@ function RequestDetailContent() {
 }
 
 export default function MenteeRequestDetailPage() {
+  const t = useTranslations("requestDetail");
   return (
     <Suspense
       fallback={
         <Shell>
-          <p className="text-sm text-[#777]">{LABELS.loading}</p>
+          <p className="text-sm text-[#777]">{t("loading")}</p>
         </Shell>
       }
     >

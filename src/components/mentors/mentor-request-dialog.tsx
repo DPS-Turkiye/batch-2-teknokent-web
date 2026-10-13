@@ -81,7 +81,7 @@ export function MentorRequestDialog({
   const durationMinutes =
     slots.find((slot) => !slot.booked)?.durationMinutes ?? 45;
   const summaryWhen = preferredSlots
-    .map(formatPreferredSlot)
+    .map((slot) => formatPreferredSlot(slot))
     .filter(Boolean)
     .join(" · ");
 

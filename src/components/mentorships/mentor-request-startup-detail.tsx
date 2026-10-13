@@ -35,10 +35,7 @@ import { logMentorshipMeeting } from "@/lib/client/mentor-requests";
 import { getOrganizationById } from "@/lib/client/organization";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getOrganizationDocuments } from "@/lib/client/startup-documents";
-import {
-  MENTORSHIP_MEETING_DURATION_MINUTES,
-  REQUEST_DETAIL_LABELS,
-} from "@/lib/const";
+import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
 import {
   MENTOR_REQUEST_STARTUP_LABELS,
   MENTORSHIP_REQUEST_STATUS_CHIPS,
@@ -62,7 +59,10 @@ import {
   mentorWorkspaceName,
   mentorWorkspacePerson,
 } from "@/lib/mentorship-workspace";
-import { buildRequestDetailContent } from "@/lib/request-detail-content";
+import {
+  buildRequestDetailContent,
+  RequestDetailFieldKey,
+} from "@/lib/request-detail-content";
 import { formatFileSize, formatLongDate, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -81,14 +81,14 @@ function needText(request: MentorshipRequest) {
   const detail = buildRequestDetailContent(request);
   const primary = detail.fields.find(
     (field) =>
-      field.label === REQUEST_DETAIL_LABELS.needProblem ||
-      field.label === REQUEST_DETAIL_LABELS.profileStuck,
+      field.key === RequestDetailFieldKey.NeedProblem ||
+      field.key === RequestDetailFieldKey.ProfileStuck,
   );
   if (primary?.value) return primary.value;
   const outcome = detail.fields.find(
     (field) =>
-      field.label === REQUEST_DETAIL_LABELS.needOutcome ||
-      field.label === REQUEST_DETAIL_LABELS.profileOutcome,
+      field.key === RequestDetailFieldKey.NeedOutcome ||
+      field.key === RequestDetailFieldKey.ProfileOutcome,
   );
   return (
     outcome?.value ||

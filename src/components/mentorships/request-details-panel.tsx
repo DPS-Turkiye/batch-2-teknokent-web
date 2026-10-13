@@ -1,10 +1,17 @@
+import { useLocale, useTranslations } from "next-intl";
+
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import {
-  REQUEST_DETAIL_HIGHLIGHT_LABELS,
-  REQUEST_DETAIL_LABELS,
-} from "@/lib/const";
+import { needLabels } from "@/lib/mentor-request-need";
 import { formatRequestSentAt } from "@/lib/mentorship-workspace";
-import { buildRequestDetailContent } from "@/lib/request-detail-content";
+import {
+  buildRequestDetailContent,
+  RequestDetailFieldKey,
+} from "@/lib/request-detail-content";
+
+const HIGHLIGHTED_FIELDS: readonly RequestDetailFieldKey[] = [
+  RequestDetailFieldKey.NeedProblem,
+  RequestDetailFieldKey.ProfileStuck,
+];
 
 export function RequestDetailsPanel({
   request,
@@ -17,23 +24,27 @@ export function RequestDetailsPanel({
   showPreferredSlots?: boolean;
   className?: string;
 }) {
-  const detail = buildRequestDetailContent(request);
+  const t = useTranslations("requestDetail");
+  const tNeed = useTranslations("mentorRequest");
+  const locale = useLocale();
+  const detail = buildRequestDetailContent(request, {
+    labels: needLabels(tNeed),
+    locale,
+  });
 
   return (
     <div className={`space-y-3 text-sm text-[#676e78] ${className}`}>
       {detail.fields.map((field) => (
         <div
-          key={field.label}
+          key={field.key}
           className={
-            (REQUEST_DETAIL_HIGHLIGHT_LABELS as readonly string[]).includes(
-              field.label,
-            )
+            HIGHLIGHTED_FIELDS.includes(field.key)
               ? "rounded-[20px] border border-[var(--ms-accent,#e86f22)] px-6 py-5 text-[#22262b]"
               : "rounded-[10px] border border-[#e4e7ea] px-3.5 py-3"
           }
         >
           <p className="text-[11px] font-medium uppercase tracking-wide text-[#858c96]">
-            {field.label}
+            {t(`fields.${field.key}`)}
           </p>
           <p className="mt-1 whitespace-pre-wrap text-[#22262b]">
             {field.value}
@@ -42,13 +53,15 @@ export function RequestDetailsPanel({
       ))}
       {showSentAt ? (
         <p className="rounded-[10px] border border-[#e4e7ea] px-3.5 py-3">
-          Talep gönderildi: {formatRequestSentAt(request.createdAt)}
+          {t("sentAtLine", {
+            when: formatRequestSentAt(request.createdAt, new Date(), locale),
+          })}
         </p>
       ) : null}
       {showPreferredSlots && detail.preferredSlots.length > 0 ? (
         <div className="rounded-[10px] border border-[#e4e7ea] px-3.5 py-3">
           <p className="text-[11px] font-medium uppercase tracking-wide text-[#858c96]">
-            {REQUEST_DETAIL_LABELS.preferredSlots}
+            {t("fields.preferredSlots")}
           </p>
           <ul className="mt-2 space-y-1 text-[#22262b]">
             {detail.preferredSlots.map((slot, index) => (

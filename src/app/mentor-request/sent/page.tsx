@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { Suspense } from "react";
 import { redirect, useSearchParams } from "next/navigation";
 
@@ -10,20 +11,13 @@ import { SecondaryButton } from "@/components/common/secondary-button";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
 import { Info } from "@/components/product-view-shared";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
-const statusLabels: Record<MentorshipRequestStatus, string> = {
-  [MentorshipRequestStatus.Accepted]: "Kabul edildi",
-  [MentorshipRequestStatus.CounterProposed]: "Saat önerildi",
-  [MentorshipRequestStatus.Declined]: "Uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
-  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-};
-
 function RequestSentContent() {
+  const t = useTranslations("requestSent");
+  const tStatus = useTranslations("requestStatus");
+  const locale = useLocale();
   const id = useSearchParams().get("request");
   const requestQuery = useMentorshipRequest(id);
   const request = requestQuery.data;
@@ -39,31 +33,35 @@ function RequestSentContent() {
           ✓
         </span>
         <h1 className="mt-5 text-2xl font-semibold text-[#171717]">
-          Mentorluk talebiniz gönderildi
+          {t("title")}
         </h1>
-        <p className="mt-2 text-sm text-[#777]">
-          Mentor talebinizi değerlendirdiğinde size bildirim göndereceğiz.
-        </p>
+        <p className="mt-2 text-sm text-[#777]">{t("body")}</p>
         {request ? (
           <div className="mt-7 w-full space-y-4 text-left">
             <dl className="grid w-full grid-cols-2 gap-5 rounded-lg border border-[#e5e7eb] bg-white p-5 text-sm">
-              <Info label="Mentor" value={request.mentorName} />
+              <Info label={t("mentor")} value={request.mentorName} />
               <Info
-                label="Talep konusu"
+                label={t("topic")}
                 value={detail?.topic || request.supportArea}
               />
               <Info
-                label="Gönderilme tarihi"
-                value={new Intl.DateTimeFormat("tr-TR", {
+                label={t("sentAt")}
+                value={new Intl.DateTimeFormat(locale, {
                   dateStyle: "long",
                 }).format(new Date(request.createdAt))}
               />
-              <Info label="Beklenen yanıt süresi" value="~24 saat" />
-              <Info label="Talep durumu" value={statusLabels[request.status]} />
+              <Info
+                label={t("expectedReply")}
+                value={t("expectedReplyValue")}
+              />
+              <Info
+                label={t("status")}
+                value={tStatus(`short.${request.status}`)}
+              />
             </dl>
             <section className="rounded-lg border border-[#e5e7eb] bg-white p-5">
               <h2 className="text-sm font-semibold text-[#171717]">
-                Talep özeti
+                {t("summary")}
               </h2>
               <RequestDetailsPanel
                 request={request}
@@ -77,40 +75,37 @@ function RequestSentContent() {
             {requestQuery.error.message}
           </p>
         ) : requestQuery.isLoading ? (
-          <p className="mt-7 text-sm text-[#777]">Talep yükleniyor…</p>
+          <p className="mt-7 text-sm text-[#777]">{t("loading")}</p>
         ) : (
-          <p className="mt-7 text-sm text-[#777]">
-            Talep bilgisi bulunamadı. Gönderdiğin talepleri &quot;Taleplerime
-            Git&quot; ile görebilirsin.
-          </p>
+          <p className="mt-7 text-sm text-[#777]">{t("notFound")}</p>
         )}
         <div className="mt-6 grid w-full gap-2">
           <PrimaryButton
             href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
             className="w-full"
           >
-            Talep Detaylarını Gör
+            {t("viewDetails")}
           </PrimaryButton>
           <SecondaryButton
             href={`/mentorships?tab=${MentorshipWorkspaceTab.Requests}`}
             className="w-full"
           >
-            Taleplerime Git
+            {t("myRequests")}
           </SecondaryButton>
           <SecondaryButton
             href="/dashboard"
             className="w-full border-0 bg-transparent"
           >
-            Ana Sayfaya Dön
+            {t("home")}
           </SecondaryButton>
         </div>
         <p className="mt-6 text-xs text-[#aaa]">
-          Fikrinizi değiştirdiniz mi?{" "}
+          {t("changedMind")}{" "}
           <Link
             href={`/mentor-request/status?request=${encodeURIComponent(id)}`}
             className="text-[#555] underline-offset-2 hover:underline"
           >
-            Talebi geri çek
+            {t("withdraw")}
           </Link>
         </p>
       </div>
@@ -119,11 +114,12 @@ function RequestSentContent() {
 }
 
 export default function RequestSentPage() {
+  const t = useTranslations("requestSent");
   return (
     <Suspense
       fallback={
         <div className="grid min-h-screen place-items-center text-sm text-[#777]">
-          Talep yükleniyor…
+          {t("loading")}
         </div>
       }
     >

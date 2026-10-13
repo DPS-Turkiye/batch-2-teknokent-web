@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, FileUp, Upload } from "lucide-react";
@@ -46,15 +47,6 @@ import { mentorProfileHref } from "@/lib/mentor-profile-request";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
-const statusLabels: Record<MentorshipRequestStatus, string> = {
-  [MentorshipRequestStatus.Accepted]: "Kabul Edildi",
-  [MentorshipRequestStatus.CounterProposed]: "Saat Önerildi",
-  [MentorshipRequestStatus.Declined]: "Uygun Değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Ek Bilgi İstendi",
-  [MentorshipRequestStatus.Pending]: "Yanıt Bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri Çekildi",
-};
-
 const statusTones: Record<
   MentorshipRequestStatus,
   "amber" | "gray" | "green" | "purple"
@@ -68,16 +60,17 @@ const statusTones: Record<
 };
 
 export default function RequestStatusPage() {
+  const t = useTranslations("requestStatusPage");
   return (
     <Suspense
       fallback={
         <AppShell
           active={AppArea.Mentorships}
-          title="Talep Detayı"
+          title={t("title")}
           backHref="/mentorships?tab=requests"
         >
           <p className="mx-auto max-w-[960px] px-4 py-6 text-sm text-[#777] sm:px-8">
-            Talep yükleniyor…
+            {t("loading")}
           </p>
         </AppShell>
       }
@@ -88,6 +81,9 @@ export default function RequestStatusPage() {
 }
 
 function RequestStatusContent() {
+  const t = useTranslations("requestStatusPage");
+  const tStatus = useTranslations("requestStatus");
+  const locale = useLocale();
   const router = useRouter();
   const params = useSearchParams();
   const { session } = useSession();
@@ -131,7 +127,10 @@ function RequestStatusContent() {
   const acceptProposalMutation = useAcceptProposedSlot(selectedId);
   const [selectedProposalKey, setSelectedProposalKey] = useState("");
   const [proposalError, setProposalError] = useState("");
-  const proposedSlots = parseProposedSlotsFromMessage(request?.mentorMessage);
+  const proposedSlots = parseProposedSlotsFromMessage(
+    request?.mentorMessage,
+    locale,
+  );
   const selectedProposal = proposedSlots.find(
     (slot) => (preferredSlotKey(slot) || slot.label) === selectedProposalKey,
   );
@@ -157,9 +156,7 @@ function RequestStatusContent() {
       router.push("/mentorships");
     } catch (caught) {
       setProposalError(
-        caught instanceof Error
-          ? caught.message
-          : "Saat kabul edilemedi. Lütfen tekrar dene.",
+        caught instanceof Error ? caught.message : t("acceptFailed"),
       );
     }
   }
@@ -167,7 +164,7 @@ function RequestStatusContent() {
   return (
     <AppShell
       active={AppArea.Mentorships}
-      title="Talep Detayı"
+      title={t("title")}
       backHref="/mentorships?tab=requests"
     >
       <div className="mx-auto max-w-[960px] px-4 py-6 sm:px-8">
@@ -177,21 +174,19 @@ function RequestStatusContent() {
           </p>
         ) : null}
         {selectedId && !request && !requestQuery.error ? (
-          <p className="mt-4 text-sm text-[#777]">Talep yükleniyor…</p>
+          <p className="mt-4 text-sm text-[#777]">{t("loading")}</p>
         ) : null}
         {!selectedId && !requestsQuery.isLoading ? (
           <section className="mt-4 rounded-lg border border-[#e5e7eb] bg-white p-6 text-center">
             <p className="text-sm font-medium text-[#22262b]">
-              Görüntülenecek bir talep seçilmedi.
+              {t("noneSelected")}
             </p>
-            <p className="mt-1 text-xs text-[#777]">
-              Taleplerinden birini seçerek detayına gidebilirsin.
-            </p>
+            <p className="mt-1 text-xs text-[#777]">{t("noneSelectedHint")}</p>
             <SecondaryButton
               href="/mentorships?tab=requests"
               className="mt-4 inline-flex"
             >
-              Taleplerime Git
+              {t("myRequests")}
             </SecondaryButton>
           </section>
         ) : null}
@@ -206,21 +201,23 @@ function RequestStatusContent() {
                     {request.mentorName}
                   </h2>
                   <p className="mt-1 text-xs text-[#777]">
-                    {request.supportArea} · Gönderildi:{" "}
-                    {new Intl.DateTimeFormat("tr-TR", {
-                      dateStyle: "long",
-                    }).format(new Date(request.createdAt))}
+                    {t("sent", {
+                      area: request.supportArea,
+                      date: new Intl.DateTimeFormat(locale, {
+                        dateStyle: "long",
+                      }).format(new Date(request.createdAt)),
+                    })}
                   </p>
                 </div>
                 <Badge tone={statusTones[request.status]}>
-                  {statusLabels[request.status]}
+                  {tStatus(`badge.${request.status}`)}
                 </Badge>
               </div>
             </section>
 
             <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
               <h3 className="text-base font-semibold text-[#22262b]">
-                Talep bilgileri
+                {t("info")}
               </h3>
               <RequestDetailsPanel
                 request={request}
@@ -243,17 +240,17 @@ function RequestStatusContent() {
             <section className="mt-3 rounded-lg border border-[#e5e7eb] bg-white p-4">
               {request.status === MentorshipRequestStatus.Pending ? (
                 <div>
-                  <h3 className="text-lg font-semibold">Yanıt bekleniyor</h3>
-                  <p className="mt-2 text-sm text-[#777]">
-                    Mentor talebinizi henüz yanıtlamadı.
-                  </p>
+                  <h3 className="text-lg font-semibold">{t("pendingTitle")}</h3>
+                  <p className="mt-2 text-sm text-[#777]">{t("pendingBody")}</p>
                 </div>
               ) : null}
 
               {request.status === MentorshipRequestStatus.MoreInfoRequested ? (
                 <div>
-                  <Badge tone="amber">Ek bilgi istendi</Badge>
-                  <p className="mt-4 text-sm font-semibold">Mentorun sorusu:</p>
+                  <Badge tone="amber">{t("moreInfo")}</Badge>
+                  <p className="mt-4 text-sm font-semibold">
+                    {t("mentorQuestion")}
+                  </p>
                   <blockquote className="mt-2 rounded-md bg-[#f9fafb] p-4 text-sm italic leading-6 text-[#555]">
                     {request.messages.find(
                       (message) =>
@@ -261,12 +258,12 @@ function RequestStatusContent() {
                         MentorshipRequestMessageType.MentorQuestion,
                     )?.body ??
                       request.mentorMessage ??
-                      "Ek bilgi talep edildi."}
+                      t("moreInfoFallback")}
                   </blockquote>
                   <textarea
                     value={reply}
                     onChange={(event) => setReply(event.target.value)}
-                    placeholder="Yanıtınızı yazın…"
+                    placeholder={t("replyPlaceholder")}
                     className="mt-4 min-h-28 w-full rounded-md border border-[#e5e7eb] p-3 text-sm"
                   />
                   <div className="mt-3 flex justify-end">
@@ -274,7 +271,7 @@ function RequestStatusContent() {
                       disabled={!reply.trim() || isSending}
                       onClick={() => void sendReply()}
                     >
-                      {isSending ? "Gönderiliyor…" : "Yanıtı Gönder"}
+                      {isSending ? t("sending") : t("sendReply")}
                     </PrimaryButton>
                   </div>
                   {replyError ? (
@@ -288,14 +285,14 @@ function RequestStatusContent() {
               {request.status === MentorshipRequestStatus.CounterProposed ? (
                 <div>
                   <h3 className="text-lg font-semibold">
-                    Mentör tarafından şu saatler önerildi
+                    {t("proposedTitle")}
                   </h3>
                   <p className="mt-2 text-sm text-[#777]">
-                    Birini seçip kabul ettiğinde mentorluk aktif olur.
+                    {t("proposedHint")}
                   </p>
                   {proposedSlots.length === 0 ? (
                     <p className="mt-4 text-sm text-[#777]">
-                      Önerilen saat bulunamadı.
+                      {t("noProposed")}
                     </p>
                   ) : (
                     <div className="mt-4 grid gap-2">
@@ -328,8 +325,8 @@ function RequestStatusContent() {
                       onClick={() => void acceptMentorProposal()}
                     >
                       {acceptProposalMutation.isPending
-                        ? "Kabul ediliyor…"
-                        : "Saati kabul et"}
+                        ? t("accepting")
+                        : t("accept")}
                     </PrimaryButton>
                   </div>
                   {proposalError ? (
@@ -344,16 +341,14 @@ function RequestStatusContent() {
                 <div>
                   {scheduledSlotId ? (
                     <div>
-                      <Badge tone="green">Toplantı planlandı</Badge>
+                      <Badge tone="green">{t("meetingPlanned")}</Badge>
                       <p className="mt-3 text-sm text-[#555]">
-                        Seçtiğiniz zaman dilimi için toplantınız oluşturuldu.
+                        {t("meetingCreated")}
                       </p>
                     </div>
                   ) : (
                     <>
-                      <h3 className="text-lg font-semibold">
-                        Toplantı zamanı seçin
-                      </h3>
+                      <h3 className="text-lg font-semibold">{t("pickTime")}</h3>
                       <SlotDayTimePicker
                         slots={availabilityQuery.data ?? []}
                         disabled={isBooking}
@@ -362,7 +357,7 @@ function RequestStatusContent() {
                       {!availabilityQuery.isLoading &&
                       !availabilityQuery.data?.length ? (
                         <p className="mt-3 text-sm text-[#777]">
-                          Mentor henüz müsaitlik zamanı paylaşmadı.
+                          {t("noAvailability")}
                         </p>
                       ) : null}
                       {scheduleError ? (
@@ -385,25 +380,23 @@ function RequestStatusContent() {
                           </span>
                           <div className="min-w-0 flex-1">
                             <h3 className="text-sm font-semibold">
-                              Görüşme dosyanı paylaş
+                              {t("shareFile")}
                             </h3>
                             <p className="mt-1 text-xs text-[#676e78]">
-                              PDF veya DOCX · En fazla 25 MB. Dosya güvenli
-                              şekilde yüklenir ve mentora mesaj olarak
-                              bildirilir.
+                              {t("shareFileHint")}
                             </p>
                           </div>
                           <label className="inline-flex min-h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-[#e86f22] px-4 text-xs font-semibold text-white">
                             <Upload className="size-4" />
                             {fileUpload.isPending
-                              ? "Yükleniyor…"
-                              : "Dosya yükle"}
+                              ? t("uploading")
+                              : t("upload")}
                             <input
                               type="file"
                               accept={DOCUMENT_UPLOAD_ACCEPT}
                               disabled={fileUpload.isPending}
                               className="hidden"
-                              aria-label="Mentorluk dosyası yükle"
+                              aria-label={t("uploadLabel")}
                               onChange={(event) => {
                                 const file = event.target.files?.[0];
                                 if (file) void fileUpload.mutateAsync(file);
@@ -417,7 +410,9 @@ function RequestStatusContent() {
                             <span className="truncate font-medium">
                               {fileUpload.data.stored.originalFilename}
                             </span>
-                            <span className="ml-auto shrink-0">Gönderildi</span>
+                            <span className="ml-auto shrink-0">
+                              {t("uploaded")}
+                            </span>
                           </div>
                         ) : null}
                         {fileUpload.error ? (
@@ -427,7 +422,7 @@ function RequestStatusContent() {
                         ) : null}
                       </div>
                       <h3 className="mt-6 text-sm font-semibold">
-                        Mentor ile mesajlaş
+                        {t("chat")}
                       </h3>
                       <div className="mt-3">
                         <ConversationThread
@@ -447,10 +442,12 @@ function RequestStatusContent() {
 
               {request.status === MentorshipRequestStatus.Declined ? (
                 <div>
-                  <h3 className="text-lg font-semibold">Uygun değil</h3>
-                  <p className="mt-3 text-sm text-[#777]">Neden uygun değil:</p>
+                  <h3 className="text-lg font-semibold">
+                    {t("declinedTitle")}
+                  </h3>
+                  <p className="mt-3 text-sm text-[#777]">{t("declinedWhy")}</p>
                   <p className="mt-1 text-sm">
-                    {request.rejectionReason ?? "Gerekçe belirtilmedi."}
+                    {request.rejectionReason ?? t("noReason")}
                   </p>
                   <div className="mt-5 space-y-3">
                     {alternativesQuery.data?.map((mentor) => (
@@ -468,7 +465,7 @@ function RequestStatusContent() {
                           </p>
                         </div>
                         <PrimaryButton href={mentorProfileHref(mentor.id)}>
-                          Profili gör
+                          {t("viewProfile")}
                         </PrimaryButton>
                       </div>
                     ))}
@@ -485,11 +482,11 @@ function RequestStatusContent() {
                   onClick={() => void withdrawMutation.mutateAsync()}
                 >
                   {withdrawMutation.isPending
-                    ? "Geri çekiliyor…"
-                    : "Talebi Geri Çek"}
+                    ? t("withdrawing")
+                    : t("withdraw")}
                 </SecondaryButton>
                 <SecondaryButton href="/mentors/compare">
-                  Alternatif Mentorları Görüntüle
+                  {t("alternatives")}
                 </SecondaryButton>
               </div>
             ) : null}

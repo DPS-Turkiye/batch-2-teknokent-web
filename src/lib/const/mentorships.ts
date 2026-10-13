@@ -1,7 +1,5 @@
 import type { CSSProperties } from "react";
 
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-
 export const MENTOR_ACCENT_STYLE = {
   "--ms-accent": "#26a4ff",
   "--ms-accent-hover": "#1598ef",
@@ -34,34 +32,3 @@ export const MENTOR_PROFILE_HISTORY_PAGE_SIZE = 5;
 export const MENTOR_PROFILE_HISTORY_PAGER_LABEL = "Mentorluk geçmişi sayfaları";
 
 export const MENTEE_REQUESTS_HREF = "/mentorships?tab=requests";
-
-export const MENTEE_REQUEST_STATUS_LABELS: Record<
-  MentorshipRequestStatus,
-  string
-> = {
-  [MentorshipRequestStatus.Accepted]: "Kabul edildi",
-  [MentorshipRequestStatus.CounterProposed]: "Mentör yeni saat önerdi",
-  [MentorshipRequestStatus.Declined]: "Mentör uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Mentör ek bilgi istedi",
-  [MentorshipRequestStatus.Pending]: "Mentörün yanıtı bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-};
-
-export const MENTEE_REQUEST_DETAIL_LABELS = {
-  title: "Talep Bilgileri",
-  loading: "Talep yükleniyor…",
-  missing: "Görüntülenecek bir talep seçilmedi.",
-  backToRequests: "Taleplerime Git",
-  requestSection: "Talepte girilenler",
-  otherSection: "Diğer bilgiler",
-  mentor: "Mentör",
-  status: "Durum",
-  requester: "Talebi oluşturan",
-  startup: "Startup",
-  sentAt: "Gönderildi",
-  plannedSessions: "Planlanan görüşme sayısı",
-  mentorMessage: "Mentörün mesajı",
-  proposedSlots: "Mentörün önerdiği saatler",
-  rejectionReason: "Uygun olmama gerekçesi",
-  mentorProfile: "Mentör profilini gör",
-} as const;
