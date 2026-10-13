@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { EditorContent, useEditor } from "@tiptap/react";
@@ -46,6 +47,7 @@ export function MeetingNoteEditor({
   persistFullState,
   footer,
 }: MeetingNoteEditorProps) {
+  const t = useTranslations("notes");
   const noteQuery = useMeetingNote(meetingId);
   const saveNote = useSaveMeetingNote(meetingId);
   const session = useAppSession();
@@ -170,10 +172,10 @@ export function MeetingNoteEditor({
   }, [editor]);
 
   const statusLabel = saveNote.isPending
-    ? "Yedekleniyor…"
+    ? t("saving")
     : hasUnsavedSnapshot
-      ? "Yedeklenmedi"
-      : "Yedeklendi";
+      ? t("unsaved")
+      : t("saved");
 
   return (
     <section className="flex min-h-[36rem] flex-1 flex-col rounded-xl border border-[#e86f22] bg-white p-3">
@@ -186,9 +188,9 @@ export function MeetingNoteEditor({
       </div>
 
       {documentStatus === DocumentStatus.Failed ? (
-        <p className="text-sm text-[#9b2c2c]">Not defteri şu an açılamıyor.</p>
+        <p className="text-sm text-[#9b2c2c]">{t("failed")}</p>
       ) : documentStatus === DocumentStatus.Loading ? (
-        <p className="text-sm text-[#8a8a8a]">Not yükleniyor…</p>
+        <p className="text-sm text-[#8a8a8a]">{t("loading")}</p>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EditorContent

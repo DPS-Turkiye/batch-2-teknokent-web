@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useMeetings } from "@/hooks/use-meetings";
@@ -59,6 +60,11 @@ function monthKey(meeting: MeetingItem) {
 
 /** The Toplantılar tab: its meetings in three views, plus what each card needs. */
 export function useStartupMeetings() {
+  const t = useTranslations("startupMeetings");
+  const tNotes = useTranslations("notes");
+  const locale = useLocale();
+  const untitled = tNotes("untitled");
+  const unnamed = t("mentorFallback");
   const meetingsQuery = useMeetings();
   const mentorsQuery = useMentors();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
@@ -112,15 +118,24 @@ export function useStartupMeetings() {
     });
   }, [mentorsQuery.data, requestsQuery.data, documentsQuery.data]);
 
-  const topics = useMemo(() => groupMeetingsByTopic(meetings), [meetings]);
-  const mentors = useMemo(() => groupMeetingsByMentor(meetings), [meetings]);
+  const topics = useMemo(
+    () => groupMeetingsByTopic(meetings, new Date(), untitled),
+    [meetings, untitled],
+  );
+  const mentors = useMemo(
+    () => groupMeetingsByMentor(meetings, new Date(), unnamed),
+    [meetings, unnamed],
+  );
   const selectedTopic = useMemo(
     () =>
       [...topics, ...mentors].find((stack) => stack.key === selectedTopicKey) ??
       null,
     [topics, mentors, selectedTopicKey],
   );
-  const years = useMemo(() => groupMeetingsByYear(meetings), [meetings]);
+  const years = useMemo(
+    () => groupMeetingsByYear(meetings, locale),
+    [meetings, locale],
+  );
 
   const defaultMonth = useMemo(() => {
     const meeting = focusMeeting(meetings);

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import {
   MeetingFiles,
@@ -19,7 +20,6 @@ import {
 } from "@/hooks/use-startup-meeting-notes";
 import type { MeetingDetails } from "@/hooks/use-startup-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { TODO_NOTEBOOK_LABELS } from "@/lib/const/notes";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   meetingNotebookHref,
@@ -76,17 +76,19 @@ export function MeetingNotesPanel({
   onSelectMeeting: (meetingId: string) => void;
   otherMeetings: MeetingItem[];
 }) {
+  const t = useTranslations("startupMeetings");
+  const tNotes = useTranslations("notes");
   const notes = useStartupMeetingNotes(meeting.id);
   const openTodos = useOpenTodoCounts(otherMeetings.map((other) => other.id));
   const { files, mentorTitle } = details(meeting);
   const preview = notePreview(notes.noteContent);
   const notebookHref = meetingNotebookHref(meeting.id);
-  const title = meetingTitle(meeting);
+  const title = meetingTitle(meeting, tNotes("untitled"));
 
   return (
     <div className="space-y-6">
       <section
-        aria-label={`${title} notları`}
+        aria-label={t("notesOf", { title })}
         className="space-y-3 rounded-[24px] bg-[#fff4ec] p-6"
       >
         <h2 className="text-xl leading-7 text-[#22262b]">{title}</h2>
@@ -95,13 +97,13 @@ export function MeetingNotesPanel({
             <div className="space-y-2.5 rounded-xl border border-[#e86f22] p-3">
               <p className="text-sm leading-5 text-[#676e78]">
                 {notes.noteLoading
-                  ? "Not yükleniyor…"
-                  : preview || "Bu toplantı için henüz not yazılmadı."}{" "}
+                  ? tNotes("loading")
+                  : preview || t("noteEmpty")}{" "}
                 <Link
                   href={notebookHref}
                   className="text-[#aeb4bc] hover:text-[#e86f22]"
                 >
-                  …Not ekle
+                  {t("addNote")}
                 </Link>
               </p>
               <div className="flex flex-wrap justify-end gap-3">
@@ -109,14 +111,14 @@ export function MeetingNotesPanel({
                   accept="image/png,image/jpeg,image/webp"
                   disabled={notes.isUploading}
                   icon="/startup/photo-upload.svg"
-                  label="Fotoğraf Yükle"
+                  label={tNotes("photo")}
                   onFile={notes.uploadPhoto}
                 />
                 <UploadButton
                   accept={DOCUMENT_UPLOAD_ACCEPT}
                   disabled={notes.isUploading}
                   icon="/startup/file-upload.svg"
-                  label="Dosya yükle"
+                  label={tNotes("file")}
                   onFile={notes.uploadFile}
                 />
               </div>
@@ -136,7 +138,7 @@ export function MeetingNotesPanel({
                 width={24}
                 height={24}
               />
-              Toplantı Transkripti
+              {t("transcript")}
             </Link>
           </div>
 
@@ -177,8 +179,8 @@ export function MeetingNotesPanel({
                 <input
                   value={notes.todoDraft}
                   onChange={(event) => notes.setTodoDraft(event.target.value)}
-                  placeholder={TODO_NOTEBOOK_LABELS.add}
-                  aria-label={TODO_NOTEBOOK_LABELS.add}
+                  placeholder={tNotes("todo.add")}
+                  aria-label={tNotes("todo.add")}
                   disabled={notes.isAddingTodo}
                   className="min-w-0 flex-1 bg-transparent text-base leading-6 text-[#636e7d] outline-none placeholder:text-[#aeb4bc]"
                 />
@@ -199,7 +201,7 @@ export function MeetingNotesPanel({
                 className="w-full space-y-3 rounded-xl border border-[#e4e7ea] bg-white p-3 text-left hover:border-[#fbe2d0]"
               >
                 <h3 className="text-xl leading-7 text-[#858c96]">
-                  {meetingTitle(other)}
+                  {meetingTitle(other, tNotes("untitled"))}
                 </h3>
                 <MeetingPerson
                   meeting={other}
@@ -209,7 +211,7 @@ export function MeetingNotesPanel({
                   <MeetingWhen meeting={other} timing={meetingTiming(other)} />
                   {openTodos.get(other.id) ? (
                     <span className="rounded-full border border-[#f97316] bg-white px-2.5 py-1 text-[11px] font-medium text-[#f97316]">
-                      Görevler tamamlanmadı
+                      {t("tasksOpen")}
                     </span>
                   ) : null}
                 </div>

@@ -11,7 +11,6 @@ import {
 } from "@/components/notes/todo-notebook";
 import { useTaskNotebook } from "@/hooks/use-task-notebook";
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { TODO_NOTEBOOK_LABELS } from "@/lib/const/notes";
 import { type HomeTask, homeTaskId } from "@/lib/mentee-home";
 import { HomeTaskKind } from "@/types/mentee-home";
 
@@ -27,6 +26,7 @@ export function TaskNotebookDialog({
   onClose: () => void;
 }) {
   const tCommon = useTranslations("common");
+  const t = useTranslations("notes.todo");
   const notebook = useTaskNotebook(requestId);
 
   return (
@@ -45,13 +45,9 @@ export function TaskNotebookDialog({
       </button>
       <TodoNotebook titleId={TITLE_ID} className="h-[440px]">
         {notebook.isLoading ? (
-          <p className="p-3 text-sm text-[#8a8a8a]">
-            {TODO_NOTEBOOK_LABELS.loading}
-          </p>
+          <p className="p-3 text-sm text-[#8a8a8a]">{t("loading")}</p>
         ) : notebook.isError ? (
-          <p className="p-3 text-sm text-[#9b2c2c]">
-            {TODO_NOTEBOOK_LABELS.error}
-          </p>
+          <p className="p-3 text-sm text-[#9b2c2c]">{t("error")}</p>
         ) : (
           <>
             <ul>

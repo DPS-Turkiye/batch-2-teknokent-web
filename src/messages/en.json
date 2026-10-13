@@ -1504,5 +1504,81 @@
     "placeholder": "Write an announcement to every team and mentor in the program…",
     "send": "Announce",
     "readOnly": "Announcements are read-only. Use the Program conversation to write to the coordinator."
+  },
+  "notes": {
+    "breadcrumb": "Breadcrumb",
+    "home": "Home",
+    "title": "Meeting notes",
+    "untitled": "Meeting",
+    "realtime": {
+      "connecting": "Connecting",
+      "connected": "Live",
+      "offline": "Offline"
+    },
+    "photo": "Upload photo",
+    "file": "Upload file",
+    "saving": "Backing up…",
+    "unsaved": "Not backed up",
+    "saved": "Backed up",
+    "failed": "The notebook can't be opened right now.",
+    "loading": "Loading note…",
+    "offline": "Offline · the last saved copy is read-only. Refresh to write together again.",
+    "sameMentor": "Other meeting notes with the same mentor",
+    "tasksOpen": "Tasks not done",
+    "fileAdded": "File added to the meeting.",
+    "uploadFailed": "Couldn't upload the file.",
+    "todo": {
+      "title": "To do",
+      "loading": "Loading the list…",
+      "error": "The list can't be opened right now.",
+      "add": "Add a task",
+      "remove": "Delete item",
+      "edit": "Edit item",
+      "aiTag": "AI",
+      "aiTagHint": "Added from the meeting report"
+    },
+    "share": {
+      "sentReadOnly": "Sent by the mentor · read-only",
+      "report": "Meeting report",
+      "reportSent": "The mentor added it below the notebook · read-only",
+      "noTopicDate": "No topic or date given",
+      "decisions": "Decisions",
+      "actions": "Actions",
+      "failed": "Couldn't load what the mentor sent.",
+      "loading": "Loading…",
+      "transcriptTitle": "Meeting transcript",
+      "reportTitle": "Meeting report",
+      "noTranscript": "The mentor hasn't sent a transcript yet.",
+      "noReport": "The mentor hasn't sent a report yet."
+    }
+  },
+  "startupMeetings": {
+    "loading": "Loading meetings…",
+    "toolbar": "Meeting view",
+    "list": "List view",
+    "grid": "Card view",
+    "views": {
+      "topic": "Topic",
+      "time": "Time",
+      "notes": "Meeting notes",
+      "mentor": "Mentor"
+    },
+    "empty": "No meetings yet.",
+    "plan": "Plan a meeting from the calendar",
+    "mentorFallback": "Mentor",
+    "lastMeeting": "Last meeting",
+    "timing": {
+      "upcoming": "Upcoming",
+      "held": "Held"
+    },
+    "openTopic": "Open notes for {title}",
+    "notesOf": "Notes for {title}",
+    "noteEmpty": "No notes for this meeting yet.",
+    "addNote": "…Add a note",
+    "transcript": "Meeting transcript",
+    "tasksOpen": "Tasks not done",
+    "count": "{count, plural, one {# meeting} other {# meetings}}",
+    "yearMeetings": "{year} meetings",
+    "close": "Close"
   }
 }

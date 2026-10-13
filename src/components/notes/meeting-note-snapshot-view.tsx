@@ -2,6 +2,7 @@
 
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useMeetingNote } from "@/hooks/use-meeting-notes";
@@ -15,6 +16,7 @@ export function MeetingNoteSnapshotView({
   meetingId,
   footer,
 }: MeetingNoteSnapshotViewProps) {
+  const t = useTranslations("notes");
   const noteQuery = useMeetingNote(meetingId);
   const content = noteQuery.data?.content ?? "";
 
@@ -36,15 +38,12 @@ export function MeetingNoteSnapshotView({
 
   return (
     <section className="flex min-h-[36rem] flex-1 flex-col rounded-xl border border-[#e86f22] bg-white p-3">
-      <p className="mb-3 shrink-0 text-xs text-[#aeb4bc]">
-        Bağlantı yok · son kayıt salt okunur. Yenileyince birlikte
-        yazabilirsiniz.
-      </p>
+      <p className="mb-3 shrink-0 text-xs text-[#aeb4bc]">{t("offline")}</p>
 
       {noteQuery.isLoading ? (
-        <p className="text-sm text-[#8a8a8a]">Not yükleniyor…</p>
+        <p className="text-sm text-[#8a8a8a]">{t("loading")}</p>
       ) : noteQuery.isError ? (
-        <p className="text-sm text-[#9b2c2c]">Not defteri şu an açılamıyor.</p>
+        <p className="text-sm text-[#9b2c2c]">{t("failed")}</p>
       ) : (
         <div className="min-h-0 flex-1 overflow-y-auto">
           <EditorContent

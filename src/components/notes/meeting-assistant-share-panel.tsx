@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
@@ -33,11 +34,10 @@ function ShareFold({
 }
 
 function TranscriptBlock({ lines }: { lines: TranscriptLine[] }) {
+  const t = useTranslations("notes.share");
   return (
     <div>
-      <p className="text-[11px] text-[#858c96]">
-        Mentör gönderdi · salt okunur
-      </p>
+      <p className="text-[11px] text-[#858c96]">{t("sentReadOnly")}</p>
       <ol className={`mt-3 space-y-3 ${TRANSCRIPT_SCROLL_CLASS}`}>
         {lines.map((line) => (
           <li key={line.id} className="text-sm">
@@ -59,6 +59,7 @@ export function ReportBlock({
   report: MeetingReport;
   compact?: boolean;
 }) {
+  const t = useTranslations("notes.share");
   const topics = report.topicsDiscussed ?? [];
   const decisions = report.decisions ?? [];
   const actions = report.actionItems ?? [];
@@ -72,25 +73,21 @@ export function ReportBlock({
       }
     >
       {compact ? (
-        <p className="text-[11px] text-[#858c96]">
-          Mentör gönderdi · salt okunur
-        </p>
+        <p className="text-[11px] text-[#858c96]">{t("sentReadOnly")}</p>
       ) : (
         <>
           <h2 className="text-sm font-semibold text-[#22262b]">
-            Toplantı raporu
+            {t("report")}
           </h2>
-          <p className="mt-0.5 text-[11px] text-[#858c96]">
-            Mentör not defterinin altına gönderdi · salt okunur
-          </p>
+          <p className="mt-0.5 text-[11px] text-[#858c96]">{t("reportSent")}</p>
         </>
       )}
       <h3 className="mt-3 text-sm font-semibold text-[#22262b]">
-        {report.title || "Toplantı raporu"}
+        {report.title || t("report")}
       </h3>
       <p className="mt-1 text-xs text-[#858c96]">
         {[report.topic, report.meetingDate].filter(Boolean).join(" · ") ||
-          "Konu / tarih belirtilmedi"}
+          t("noTopicDate")}
       </p>
       <p className="mt-3 text-sm leading-relaxed text-[#22262b]">
         {report.summary}
@@ -105,7 +102,7 @@ export function ReportBlock({
       {decisions.length ? (
         <div className="mt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#858c96]">
-            Kararlar
+            {t("decisions")}
           </p>
           <ul className="mt-1 list-disc space-y-1 pl-4 text-sm text-[#22262b]">
             {decisions.map((item) => (
@@ -117,7 +114,7 @@ export function ReportBlock({
       {actions.length ? (
         <div className="mt-3">
           <p className="text-[11px] font-semibold uppercase tracking-wide text-[#858c96]">
-            Aksiyonlar
+            {t("actions")}
           </p>
           <ul className="mt-1 space-y-1 text-sm text-[#22262b]">
             {actions.map((item, index) => (
@@ -162,15 +159,12 @@ function ShareBody({
   empty: string;
   children: ReactNode | null;
 }) {
+  const t = useTranslations("notes.share");
   if (isError) {
-    return (
-      <p className="text-sm text-[#9b2c2c]">
-        Mentörün gönderdiği içerik şu an yüklenemedi.
-      </p>
-    );
+    return <p className="text-sm text-[#9b2c2c]">{t("failed")}</p>;
   }
   if (isLoading) {
-    return <p className="text-sm text-[#858c96]">Yükleniyor…</p>;
+    return <p className="text-sm text-[#858c96]">{t("loading")}</p>;
   }
   if (!children) {
     return <p className="text-sm text-[#858c96]">{empty}</p>;
@@ -183,6 +177,7 @@ export function MeetingAssistantSharePanel({
 }: {
   meetingId: string;
 }) {
+  const t = useTranslations("notes.share");
   const shareQuery = useAssistantShare(meetingId, {
     refetchWhileIncomplete: true,
   });
@@ -192,20 +187,20 @@ export function MeetingAssistantSharePanel({
 
   return (
     <div className="space-y-2">
-      <ShareFold icon="/startup/transcript.svg" title="Toplantı Transkripti">
+      <ShareFold icon="/startup/transcript.svg" title={t("transcriptTitle")}>
         <ShareBody
           isError={shareQuery.isError}
           isLoading={shareQuery.isLoading}
-          empty="Mentör henüz transkript göndermedi."
+          empty={t("noTranscript")}
         >
           {transcript?.length ? <TranscriptBlock lines={transcript} /> : null}
         </ShareBody>
       </ShareFold>
-      <ShareFold icon="/startup/paper.svg" title="Toplantı Raporu">
+      <ShareFold icon="/startup/paper.svg" title={t("reportTitle")}>
         <ShareBody
           isError={shareQuery.isError}
           isLoading={shareQuery.isLoading}
-          empty="Mentör henüz rapor göndermedi."
+          empty={t("noReport")}
         >
           {report ? <ReportBlock report={report} compact /> : null}
         </ShareBody>

@@ -8,27 +8,19 @@ export enum StartupMeetingView {
   Mentor = "mentor",
 }
 
-export const STARTUP_MEETING_VIEW_LABELS: Record<StartupMeetingView, string> = {
-  [StartupMeetingView.Topic]: "Konu",
-  [StartupMeetingView.Time]: "Zaman",
-  [StartupMeetingView.Notes]: "Toplantı Notları",
-  [StartupMeetingView.Mentor]: "Mentor",
-};
-
 export enum MeetingTiming {
   Upcoming = "upcoming",
   Held = "held",
 }
 
-export const MEETING_TIMING_LABELS: Record<MeetingTiming, string> = {
-  [MeetingTiming.Upcoming]: "Yaklaşan",
-  [MeetingTiming.Held]: "Gerçekleşti",
-};
-
 const UNTITLED_MEETING = "Toplantı";
 
-export function meetingTitle(meeting: MeetingItem) {
-  return meeting.agenda?.trim() || UNTITLED_MEETING;
+/** The agenda, or `untitled` (the page's "Toplantı") when there is none. */
+export function meetingTitle(
+  meeting: MeetingItem,
+  untitled = UNTITLED_MEETING,
+) {
+  return meeting.agenda?.trim() || untitled;
 }
 
 export function meetingTiming(meeting: MeetingItem, now = new Date()) {
@@ -77,6 +69,7 @@ export type MeetingTopic = {
 export function groupMeetingsByTopic(
   meetings: MeetingItem[],
   now = new Date(),
+  untitled = UNTITLED_MEETING,
 ): MeetingTopic[] {
   const groups = new Map<string, MeetingItem[]>();
   for (const meeting of meetings) {
@@ -94,7 +87,7 @@ export function groupMeetingsByTopic(
     const upcoming = ahead.at(-1) ?? null;
     return {
       key,
-      title: meetingTitle(upcoming ?? sorted[0]),
+      title: meetingTitle(upcoming ?? sorted[0], untitled),
       meetings: sorted,
       latest: sorted[0],
       upcoming,
@@ -108,6 +101,7 @@ export function groupMeetingsByTopic(
 export function groupMeetingsByMentor(
   meetings: MeetingItem[],
   now = new Date(),
+  unnamed = "Mentor",
 ): MeetingTopic[] {
   const groups = new Map<string, MeetingItem[]>();
   for (const meeting of meetings) {
@@ -123,7 +117,7 @@ export function groupMeetingsByMentor(
     const upcoming = ahead.at(-1) ?? null;
     return {
       key,
-      title: (upcoming ?? sorted[0]).mentorName?.trim() || "Mentor",
+      title: (upcoming ?? sorted[0]).mentorName?.trim() || unnamed,
       meetings: sorted,
       latest: sorted[0],
       upcoming,
@@ -159,9 +153,11 @@ export type MeetingYear = {
   months: MeetingMonth[];
 };
 
-const monthName = new Intl.DateTimeFormat("tr-TR", { month: "long" });
-
-export function groupMeetingsByYear(meetings: MeetingItem[]): MeetingYear[] {
+export function groupMeetingsByYear(
+  meetings: MeetingItem[],
+  locale = "tr",
+): MeetingYear[] {
+  const monthName = new Intl.DateTimeFormat(locale, { month: "long" });
   const months = new Map<string, MeetingItem[]>();
   for (const meeting of meetings) {
     const date = new Date(meeting.scheduledAt);
@@ -180,7 +176,7 @@ export function groupMeetingsByYear(meetings: MeetingItem[]): MeetingYear[] {
       ...(years.get(year) ?? []),
       {
         key,
-        label: label.charAt(0).toLocaleUpperCase("tr-TR") + label.slice(1),
+        label: label.charAt(0).toLocaleUpperCase(locale) + label.slice(1),
         meetings: items,
       },
     ]);
