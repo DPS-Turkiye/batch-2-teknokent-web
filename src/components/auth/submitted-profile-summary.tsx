@@ -2,8 +2,7 @@
 
 import { useSubmittedProfile } from "@/hooks/use-submitted-profile";
 import { CONTACT_PREFERENCE_LABELS } from "@/interfaces/signup";
-import type { DocumentKind } from "@/interfaces/startup-document";
-import { DOCUMENT_KIND_LABELS } from "@/lib/startup-files";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { formatFileSize } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 
@@ -24,6 +23,7 @@ export function SubmittedProfileSummary({
   organizationName?: string | null;
 }) {
   const copy = useTranslations("submittedProfile");
+  const tKinds = useTranslations("documentKinds");
   const { profile, documents, isLoading, isError } = useSubmittedProfile();
 
   return (
@@ -72,8 +72,11 @@ export function SubmittedProfileSummary({
                 >
                   <span className="min-w-0 truncate text-[#1f2328]">
                     <span className="font-medium">
-                      {DOCUMENT_KIND_LABELS[document.kind as DocumentKind] ??
-                        document.kind}
+                      {Object.values(DocumentKind).includes(
+                        document.kind as DocumentKind,
+                      )
+                        ? tKinds(document.kind as DocumentKind)
+                        : document.kind}
                     </span>
                     {" · "}
                     {document.originalFilename}

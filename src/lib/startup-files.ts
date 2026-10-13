@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import type { DocumentRequestItem } from "@/interfaces/document-request";
 import {
   DocumentKind,
@@ -13,14 +15,6 @@ export enum StartupFileFilter {
   Pending = "pending",
 }
 
-export const STARTUP_FILE_FILTER_LABELS: Record<StartupFileFilter, string> = {
-  [StartupFileFilter.All]: "Tümü",
-  [StartupFileFilter.Mentorship]: "Mentorluk dosyaları",
-  [StartupFileFilter.Program]: "Program",
-  [StartupFileFilter.Startup]: "Startup dokümanları",
-  [StartupFileFilter.Pending]: "Bekleyen talep",
-};
-
 export enum StartupFileStatus {
   Sent = "sent",
   Waiting = "waiting",
@@ -29,28 +23,10 @@ export enum StartupFileStatus {
   FromMentor = "from-mentor",
 }
 
-export const STARTUP_FILE_STATUS_LABELS: Record<StartupFileStatus, string> = {
-  [StartupFileStatus.Sent]: "Gönderildi",
-  [StartupFileStatus.Waiting]: "Bekliyor",
-  [StartupFileStatus.Current]: "Güncel",
-  [StartupFileStatus.Reviewed]: "İncelendi",
-  [StartupFileStatus.FromMentor]: "Mentordan geldi",
-};
-
-export const DOCUMENT_KIND_LABELS: Record<DocumentKind, string> = {
-  [DocumentKind.Cv]: "CV",
-  [DocumentKind.Canvas]: "Business Model Canvas",
-  [DocumentKind.PitchDeck]: "Pitch Deck",
-  [DocumentKind.Mvp]: "MVP Dokümanı",
-  [DocumentKind.Validation]: "Doğrulama çıktısı",
-  [DocumentKind.Homework]: "Ödev",
-  [DocumentKind.MeetingFile]: "Toplantı dosyası",
-  [DocumentKind.NotePhoto]: "Toplantı fotoğrafı",
-  [DocumentKind.Other]: "Diğer",
-  [DocumentKind.Logo]: "Logo",
-  [DocumentKind.Avatar]: "Profil fotoğrafı",
-  [DocumentKind.ProfilePdf]: "Profil PDF'i",
-  [DocumentKind.RequestedDoc]: "İstenen belge",
+/** The Dosyalar tab's translator and language, for the labels built here. */
+export type StartupFilesTexts = {
+  t: ReturnType<typeof useTranslations<"startupFiles">>;
+  locale: string;
 };
 
 /** What a startup can upload from the Dosyalar tab. */
@@ -79,25 +55,34 @@ export type StartupFileRow = {
   pendingRequest?: DocumentRequestItem;
 };
 
-function requestContext(item: DocumentRequestItem, programName: string | null) {
+function requestContext(
+  item: DocumentRequestItem,
+  programName: string | null,
+  { t }: StartupFilesTexts,
+) {
   if (item.programId) {
     return {
       filter: StartupFileFilter.Program,
-      related: programName ?? "Program talebi",
+      related: programName ?? t("programRequest"),
     };
   }
   return {
     filter: StartupFileFilter.Mentorship,
-    related: item.meetingId ? "Görüşme belgesi" : "Mentorluk belgesi",
+    related: item.meetingId ? t("meetingDoc") : t("mentorshipDoc"),
   };
 }
 
-function meetingLabel(document: StartupDocument) {
+function meetingLabel(
+  document: StartupDocument,
+  { t, locale }: StartupFilesTexts,
+) {
   const when = document.meetingScheduledAt
-    ? `${formatDayMonth(new Date(document.meetingScheduledAt))} görüşmesi`
+    ? t("meetingOn", {
+        date: formatDayMonth(new Date(document.meetingScheduledAt), locale),
+      })
     : null;
   return (
-    [document.meetingAgenda, when].filter(Boolean).join(" · ") || "Görüşme"
+    [document.meetingAgenda, when].filter(Boolean).join(" · ") || t("meeting")
   );
 }
 
@@ -114,12 +99,15 @@ export function buildStartupFileRows({
   requests,
   teamMemberIds,
   programName,
+  texts,
 }: {
   documents: StartupDocument[];
   requests: DocumentRequestItem[];
   teamMemberIds: Set<string>;
   programName: string | null;
+  texts: StartupFilesTexts;
 }): StartupFileRow[] {
+  const { t } = texts;
   const documentsById = new Map(
     documents.map((document) => [document.id, document]),
   );
@@ -127,8 +115,8 @@ export function buildStartupFileRows({
   const rows: StartupFileRow[] = [];
 
   for (const item of requests) {
-    const { filter, related } = requestContext(item, programName);
-    const source = `${item.createdByName} istedi`;
+    const { filter, related } = requestContext(item, programName, texts);
+    const source = t("requested", { name: item.createdByName });
     if (item.uploads.length === 0) {
       rows.push({
         key: `request:${item.id}`,
@@ -169,7 +157,7 @@ export function buildStartupFileRows({
     if (answered.has(document.id) || document.kind === DocumentKind.Cv) {
       continue;
     }
-    const name = document.uploadedByName ?? "Bilinmeyen kişi";
+    const name = document.uploadedByName ?? t("unknownPerson");
     // This is the startup's own list, so a file with no recorded uploader is theirs.
     const fromTeam =
       document.uploadedById == null || teamMemberIds.has(document.uploadedById);
@@ -184,8 +172,10 @@ export function buildStartupFileRows({
       rows.push({
         ...base,
         filters: [StartupFileFilter.Mentorship],
-        source: `${name} paylaştı`,
-        related: document.meetingId ? meetingLabel(document) : "Mentor dosyası",
+        source: t("shared", { name }),
+        related: document.meetingId
+          ? meetingLabel(document, texts)
+          : t("mentorFile"),
         status: StartupFileStatus.FromMentor,
         ownDocument: null,
       });
@@ -193,8 +183,8 @@ export function buildStartupFileRows({
       rows.push({
         ...base,
         filters: [StartupFileFilter.Mentorship],
-        source: `${name} paylaştı`,
-        related: meetingLabel(document),
+        source: t("shared", { name }),
+        related: meetingLabel(document, texts),
         status: reviewStatus(document) ?? StartupFileStatus.Current,
         ownDocument: document,
       });
@@ -202,8 +192,8 @@ export function buildStartupFileRows({
       rows.push({
         ...base,
         filters: [StartupFileFilter.Startup],
-        source: `${name} yükledi`,
-        related: "Startup dokümanı",
+        source: t("uploaded", { name }),
+        related: t("startupDoc"),
         status: reviewStatus(document) ?? StartupFileStatus.Current,
         ownDocument: document,
       });
@@ -234,7 +224,10 @@ export function countRowsByFilter(
 }
 
 /** The request due soonest that nothing has been uploaded for, as one sentence. */
-export function pendingRequestNotice(requests: DocumentRequestItem[]) {
+export function pendingRequestNotice(
+  requests: DocumentRequestItem[],
+  { t, locale }: StartupFilesTexts,
+) {
   const [first] = requests
     .filter((item) => item.uploads.length === 0)
     .sort((left, right) =>
@@ -243,8 +236,11 @@ export function pendingRequestNotice(requests: DocumentRequestItem[]) {
       ),
     );
   if (!first) return null;
-  const due = first.dueDate
-    ? ` Son tarih ${formatLongDate(calendarDay(first.dueDate).toISOString())}.`
-    : "";
-  return `“${first.title}” ${first.createdByName} tarafından talep edildi, henüz yüklenmedi.${due}`;
+  const values = { title: first.title, name: first.createdByName };
+  return first.dueDate
+    ? t("pendingNoticeDue", {
+        ...values,
+        date: formatLongDate(calendarDay(first.dueDate).toISOString(), locale),
+      })
+    : t("pendingNotice", values);
 }

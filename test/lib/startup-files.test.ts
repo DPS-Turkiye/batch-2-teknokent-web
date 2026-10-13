@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import type {
@@ -12,8 +13,23 @@ import {
   rowsForFilter,
   StartupFileFilter,
   StartupFileStatus,
+  type StartupFilesTexts,
 } from "@/lib/startup-files";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import { documentFixture } from "@test/fixtures/startup-files";
+
+function filesTexts(locale: "tr" | "en"): StartupFilesTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "startupFiles",
+    }),
+    locale,
+  };
+}
+const texts = filesTexts("tr");
 
 const TEAM = new Set(["user-1"]);
 
@@ -59,6 +75,7 @@ describe("buildStartupFileRows", () => {
       requests: [requestItem("flow-request", { uploads: [upload("flow")] })],
       teamMemberIds: TEAM,
       programName: null,
+      texts,
     });
 
     expect(rows).toHaveLength(1);
@@ -80,6 +97,7 @@ describe("buildStartupFileRows", () => {
       requests: [requestItem("flow-request", { uploads: [upload("flow")] })],
       teamMemberIds: TEAM,
       programName: null,
+      texts,
     });
 
     expect(rows[0].status).toBe(StartupFileStatus.Reviewed);
@@ -98,6 +116,7 @@ describe("buildStartupFileRows", () => {
       ],
       teamMemberIds: TEAM,
       programName: "METU Stars 2026",
+      texts,
     });
 
     expect(rows[0]).toMatchObject({
@@ -133,6 +152,7 @@ describe("buildStartupFileRows", () => {
       requests: [],
       teamMemberIds: TEAM,
       programName: null,
+      texts,
     });
 
     expect(rows.map((row) => row.key)).toEqual([
@@ -171,6 +191,7 @@ describe("buildStartupFileRows", () => {
       requests: [],
       teamMemberIds: TEAM,
       programName: null,
+      texts,
     });
 
     expect(row).toMatchObject({
@@ -189,6 +210,7 @@ describe("filtering the table", () => {
       requests: [requestItem("deck", { programId: "program-1" })],
       teamMemberIds: TEAM,
       programName: null,
+      texts,
     });
 
     expect(countRowsByFilter(rows)).toEqual({
@@ -208,32 +230,49 @@ describe("filtering the table", () => {
 describe("pendingRequestNotice", () => {
   it("names the unanswered request due soonest", () => {
     expect(
-      pendingRequestNotice([
-        requestItem("report", { title: "Rapor", dueDate: "2026-09-10" }),
-        requestItem("deck", {
-          title: "pitch-deck-v3.pdf",
-          createdByName: "METU Stars",
-          dueDate: "2026-08-28",
-        }),
-        requestItem("done", {
-          dueDate: "2026-08-01",
-          uploads: [upload("done")],
-        }),
-      ]),
+      pendingRequestNotice(
+        [
+          requestItem("report", { title: "Rapor", dueDate: "2026-09-10" }),
+          requestItem("deck", {
+            title: "pitch-deck-v3.pdf",
+            createdByName: "METU Stars",
+            dueDate: "2026-08-28",
+          }),
+          requestItem("done", {
+            dueDate: "2026-08-01",
+            uploads: [upload("done")],
+          }),
+        ],
+        texts,
+      ),
     ).toBe(
       "“pitch-deck-v3.pdf” METU Stars tarafından talep edildi, henüz yüklenmedi. Son tarih 28 Ağustos 2026.",
     );
   });
 
   it("leaves the date out when the request has none", () => {
-    expect(pendingRequestNotice([requestItem("cv", { title: "CV" })])).toBe(
-      "“CV” Nihan Öztürk tarafından talep edildi, henüz yüklenmedi.",
-    );
+    expect(
+      pendingRequestNotice([requestItem("cv", { title: "CV" })], texts),
+    ).toBe("“CV” Nihan Öztürk tarafından talep edildi, henüz yüklenmedi.");
   });
 
   it("has nothing to say when every request is answered", () => {
     expect(
-      pendingRequestNotice([requestItem("done", { uploads: [upload("x")] })]),
+      pendingRequestNotice(
+        [requestItem("done", { uploads: [upload("x")] })],
+        texts,
+      ),
     ).toBeNull();
+  });
+
+  it("writes the notice in English", () => {
+    expect(
+      pendingRequestNotice(
+        [requestItem("cv", { title: "CV", dueDate: "2026-08-28" })],
+        filesTexts("en"),
+      ),
+    ).toBe(
+      "Nihan Öztürk asked for “CV”; it hasn't been uploaded yet. Due August 28, 2026.",
+    );
   });
 });

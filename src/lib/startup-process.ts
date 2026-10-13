@@ -1,7 +1,6 @@
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
-  type ProcessAssignment,
   type StartupProcess,
   type StartupRound,
   StartupStage,
@@ -9,77 +8,53 @@ import {
 } from "@/interfaces/startup-process";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 
-export const STARTUP_STAGE_LABELS: Record<StartupStage, string> = {
-  [StartupStage.Problem]: "Problem",
-  [StartupStage.Solution]: "Çözüm",
-  [StartupStage.Mvp]: "MVP",
-  [StartupStage.BusinessModel]: "İş Modeli",
-  [StartupStage.Market]: "Pazar",
-  [StartupStage.Finance]: "Finans",
-  [StartupStage.Pitch]: "Pitch",
-};
-
 export enum ChipTone {
   Amber = "amber",
   Gray = "gray",
   Green = "green",
 }
 
-export const ASSIGNMENT_STATUS_CHIPS: Record<
-  ActionItemStatus,
-  { label: string; tone: ChipTone }
-> = {
-  [ActionItemStatus.Open]: { label: "Yüklenmedi", tone: ChipTone.Amber },
-  [ActionItemStatus.InProgress]: {
-    label: "Devam ediyor",
-    tone: ChipTone.Gray,
-  },
-  [ActionItemStatus.Completed]: { label: "Tamamlandı", tone: ChipTone.Green },
-  [ActionItemStatus.Cancelled]: { label: "İptal edildi", tone: ChipTone.Gray },
+export const ASSIGNMENT_STATUS_TONES: Record<ActionItemStatus, ChipTone> = {
+  [ActionItemStatus.Open]: ChipTone.Amber,
+  [ActionItemStatus.InProgress]: ChipTone.Gray,
+  [ActionItemStatus.Completed]: ChipTone.Green,
+  [ActionItemStatus.Cancelled]: ChipTone.Gray,
 };
 
 /** "2 · 31 Ağu" within one month, "28 Tem · 5 Ağu" across two. */
-export function formatRoundRange(startsOn: string, endsOn: string) {
+export function formatRoundRange(
+  startsOn: string,
+  endsOn: string,
+  locale = "tr",
+) {
   const start = calendarDay(startsOn);
   const end = calendarDay(endsOn);
   const sameMonth =
     start.getFullYear() === end.getFullYear() &&
     start.getMonth() === end.getMonth();
-  const from = sameMonth ? String(start.getDate()) : formatDayMonth(start);
-  return `${from} · ${formatDayMonth(end)}`;
+  const from = sameMonth
+    ? String(start.getDate())
+    : formatDayMonth(start, locale);
+  return `${from} · ${formatDayMonth(end, locale)}`;
 }
 
 /** "12 Haz – 8 Tem 2026" */
-export function formatStageRange(startsOn: string, endsOn: string) {
-  const end = calendarDay(endsOn);
-  return `${formatDayMonth(calendarDay(startsOn))} – ${formatDayMonth(end)} ${end.getFullYear()}`;
-}
-
-/** "Teslim 30 Ağu" */
-export function formatDueLabel(dueDate: string) {
-  return `Teslim ${formatDayMonth(calendarDay(dueDate))}`;
-}
-
-function sourceKind(role: UserRole | null) {
-  if (role === UserRole.Mentor) return "mentorluk ödevi";
-  if (role === UserRole.Coordinator || role === UserRole.Admin) {
-    return "program ödevi";
-  }
-  return "startup ödevi";
-}
-
-/** "Çağrı Yılmaz · mentorluk ödevi · MVP test turu" */
-export function assignmentSource(
-  assignment: ProcessAssignment,
-  roundName: string | null,
+export function formatStageRange(
+  startsOn: string,
+  endsOn: string,
+  locale = "tr",
 ) {
-  return [
-    assignment.createdByName,
-    sourceKind(assignment.createdByRole),
-    roundName,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const end = calendarDay(endsOn);
+  return `${formatDayMonth(calendarDay(startsOn), locale)} – ${formatDayMonth(end, locale)} ${end.getFullYear()}`;
+}
+
+/** Who set an assignment, as a `startupProcess.source` key. */
+export function assignmentSourceKind(role: UserRole | null) {
+  if (role === UserRole.Mentor) return "mentor" as const;
+  if (role === UserRole.Coordinator || role === UserRole.Admin) {
+    return "program" as const;
+  }
+  return "startup" as const;
 }
 
 export type CompletedStageRow = {
@@ -110,13 +85,16 @@ export function completedStages(process: StartupProcess): CompletedStageRow[] {
     });
 }
 
+/** The card's button, as a `startupProcess.action` key. */
+export type StageAction = "current" | "completed" | "continue" | "start";
+
 export type StageCard = {
   stage: StartupStage;
   state: StartupStageState;
   done: number;
   total: number;
   percent: number;
-  action: string;
+  action: StageAction;
 };
 
 /** One Süreç card per stage: how many of its Ödevler are done, cancelled ones left out. */
@@ -136,14 +114,14 @@ export function stageCards(process: StartupProcess): StageCard[] {
         : state === StartupStageState.Completed
           ? 100
           : 0;
-    const action =
+    const action: StageAction =
       state === StartupStageState.Current
-        ? "Mevcut aşama"
+        ? "current"
         : state === StartupStageState.Completed
-          ? "Tamamlandı"
+          ? "completed"
           : done > 0
-            ? "Devam et"
-            : "Başla";
+            ? "continue"
+            : "start";
     return { stage, state, done, total: own.length, percent, action };
   });
 }

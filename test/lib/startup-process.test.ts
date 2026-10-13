@@ -9,15 +9,14 @@ import {
   StartupStageState,
 } from "@/interfaces/startup-process";
 import {
-  ASSIGNMENT_STATUS_CHIPS,
-  assignmentSource,
+  ASSIGNMENT_STATUS_TONES,
+  assignmentSourceKind,
+  ChipTone,
   completedStages,
-  formatDueLabel,
   formatRoundRange,
   formatStageRange,
   roundForStage,
   stageCards,
-  STARTUP_STAGE_LABELS,
 } from "@/lib/startup-process";
 
 function assignment(
@@ -50,62 +49,35 @@ describe("formatRoundRange", () => {
   });
 });
 
-describe("formatStageRange and formatDueLabel", () => {
+describe("formatStageRange", () => {
   it("dates a finished stage with its year", () => {
     expect(formatStageRange("2026-06-12", "2026-07-08")).toBe(
       "12 Haz – 8 Tem 2026",
     );
   });
 
-  it("labels a due date", () => {
-    expect(formatDueLabel("2026-08-30")).toBe("Teslim 30 Ağu");
-  });
-});
-
-describe("STARTUP_STAGE_LABELS", () => {
-  it("labels every stage in Turkish", () => {
-    expect(STARTUP_STAGE_LABELS[StartupStage.BusinessModel]).toBe("İş Modeli");
-    expect(Object.keys(STARTUP_STAGE_LABELS)).toHaveLength(7);
-  });
-});
-
-describe("ASSIGNMENT_STATUS_CHIPS", () => {
-  it("says an open Ödev is not uploaded yet", () => {
-    expect(ASSIGNMENT_STATUS_CHIPS[ActionItemStatus.Open].label).toBe(
-      "Yüklenmedi",
-    );
-    expect(ASSIGNMENT_STATUS_CHIPS[ActionItemStatus.Completed].label).toBe(
-      "Tamamlandı",
+  it("writes the months in English", () => {
+    expect(formatStageRange("2026-06-12", "2026-07-08", "en")).toBe(
+      "Jun 12 – Jul 8 2026",
     );
   });
 });
 
-describe("assignmentSource", () => {
-  it("says who set the Ödev, what kind it is and its round", () => {
-    expect(assignmentSource(assignment(), "MVP test turu")).toBe(
-      "Çağrı Yılmaz · mentorluk ödevi · MVP test turu",
+describe("ASSIGNMENT_STATUS_TONES", () => {
+  it("marks an open Ödev amber and a finished one green", () => {
+    expect(ASSIGNMENT_STATUS_TONES[ActionItemStatus.Open]).toBe(ChipTone.Amber);
+    expect(ASSIGNMENT_STATUS_TONES[ActionItemStatus.Completed]).toBe(
+      ChipTone.Green,
     );
   });
+});
 
-  it("calls one from a coordinator a program Ödev", () => {
-    expect(
-      assignmentSource(
-        assignment({
-          createdByName: "Ece Koordinatör",
-          createdByRole: UserRole.Coordinator,
-        }),
-        null,
-      ),
-    ).toBe("Ece Koordinatör · program ödevi");
-  });
-
-  it("falls back to a startup Ödev when the creator is unknown", () => {
-    expect(
-      assignmentSource(
-        assignment({ createdByName: null, createdByRole: null }),
-        null,
-      ),
-    ).toBe("startup ödevi");
+describe("assignmentSourceKind", () => {
+  it("tells a mentor's, the program's and the startup's own Ödev apart", () => {
+    expect(assignmentSourceKind(UserRole.Mentor)).toBe("mentor");
+    expect(assignmentSourceKind(UserRole.Coordinator)).toBe("program");
+    expect(assignmentSourceKind(UserRole.Admin)).toBe("program");
+    expect(assignmentSourceKind(null)).toBe("startup");
   });
 });
 
@@ -214,28 +186,28 @@ describe("stageCards", () => {
         done: 0,
         total: 0,
         percent: 100,
-        action: "Tamamlandı",
+        action: "completed",
       },
       {
         stage: StartupStage.Mvp,
         done: 1,
         total: 2,
         percent: 50,
-        action: "Mevcut aşama",
+        action: "current",
       },
       {
         stage: StartupStage.Market,
         done: 1,
         total: 3,
         percent: 33,
-        action: "Devam et",
+        action: "continue",
       },
       {
         stage: StartupStage.Pitch,
         done: 0,
         total: 0,
         percent: 0,
-        action: "Başla",
+        action: "start",
       },
     ]);
   });

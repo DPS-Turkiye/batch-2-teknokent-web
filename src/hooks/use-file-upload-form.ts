@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -10,6 +11,7 @@ import { uploadDocument } from "@/lib/client/documents";
 
 /** The "Dosya Yükle" dialog: which kind of file, which file, and the upload. */
 export function useFileUploadForm() {
+  const t = useTranslations("startupFiles.toasts");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -24,11 +26,11 @@ export function useFileUploadForm() {
         queryKey: STARTUP_DOCUMENTS_QUERY_KEY,
       });
       setIsOpen(false);
-      showToast({ message: "Dosya yüklendi.", tone: "success" });
+      showToast({ message: t("uploaded"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: error instanceof Error ? error.message : "Dosya yüklenemedi.",
+        message: error instanceof Error ? error.message : t("uploadFailed"),
         tone: "error",
       }),
   });

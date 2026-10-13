@@ -2,6 +2,7 @@
 
 import { Check, ChevronRight } from "lucide-react";
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   StartupPageFrame,
@@ -15,15 +16,14 @@ import {
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
 import {
-  ASSIGNMENT_STATUS_CHIPS,
-  assignmentSource,
+  ASSIGNMENT_STATUS_TONES,
+  assignmentSourceKind,
   ChipTone,
-  formatDueLabel,
   formatRoundRange,
   formatStageRange,
   type StageCard,
-  STARTUP_STAGE_LABELS,
 } from "@/lib/startup-process";
+import { calendarDay, formatDayMonth } from "@/lib/utils";
 
 const cardClass =
   "space-y-3.5 rounded-xl border border-[#e4e7ea] bg-white px-[22px] py-5";
@@ -50,11 +50,13 @@ function StageCardButton({
   selected: boolean;
   onSelect: () => void;
 }) {
-  const label = STARTUP_STAGE_LABELS[card.stage];
+  const t = useTranslations("startupProcess");
+  const tStages = useTranslations("startupStages");
+  const label = tStages(card.stage);
   const count =
     card.total > 0
-      ? `${card.done} / ${card.total} tamamlandı`
-      : "Henüz ödev yok";
+      ? t("doneCount", { done: card.done, total: card.total })
+      : t("noAssignments");
   const completed = card.state === StartupStageState.Completed;
   const current = card.state === StartupStageState.Current;
   const actionTone = selected
@@ -123,7 +125,9 @@ function StageCardButton({
           className={`flex h-10 w-full items-center gap-1.5 rounded-[10px] px-3 text-[13px] font-semibold ${actionTone}`}
         >
           {completed ? <Check aria-hidden className="size-4" /> : null}
-          <span className="flex-1 truncate text-left">{card.action}</span>
+          <span className="flex-1 truncate text-left">
+            {t(`action.${card.action}`)}
+          </span>
           {completed || current ? null : (
             <ChevronRight aria-hidden className="size-4" />
           )}
@@ -144,7 +148,9 @@ function AssignmentRow({
   isUploading: boolean;
   onUpload: (file: File) => void;
 }) {
-  const chip = ASSIGNMENT_STATUS_CHIPS[assignment.status];
+  const t = useTranslations("startupProcess");
+  const locale = useLocale();
+  const tone = ASSIGNMENT_STATUS_TONES[assignment.status];
   const canUpload =
     assignment.status === ActionItemStatus.Open ||
     assignment.status === ActionItemStatus.InProgress;
@@ -166,25 +172,27 @@ function AssignmentRow({
       <div className="flex flex-wrap items-center gap-2.5">
         {assignment.dueDate ? (
           <span className="text-[11.5px] leading-[17px] text-[#858c96]">
-            {formatDueLabel(assignment.dueDate)}
+            {t("due", {
+              date: formatDayMonth(calendarDay(assignment.dueDate), locale),
+            })}
           </span>
         ) : null}
         <span
-          className={`rounded-full border px-2.5 py-1 text-[11.5px] font-medium leading-[17px] ${CHIP_TONES[chip.tone]}`}
+          className={`rounded-full border px-2.5 py-1 text-[11.5px] font-medium leading-[17px] ${CHIP_TONES[tone]}`}
         >
-          {chip.label}
+          {t(`assignmentStatus.${assignment.status}`)}
         </span>
         {canUpload ? (
           <label
             className={`${startupPrimaryActionClass} cursor-pointer ${isUploading ? "opacity-60" : ""}`}
           >
-            {isUploading ? "Yükleniyor…" : "Ödev yükle"}
+            {isUploading ? t("uploading") : t("upload")}
             <input
               type="file"
               className="sr-only"
               accept={DOCUMENT_UPLOAD_ACCEPT}
               disabled={isUploading}
-              aria-label={`${assignment.title} için ödev yükle`}
+              aria-label={t("uploadLabel", { title: assignment.title })}
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 event.target.value = "";
@@ -199,12 +207,15 @@ function AssignmentRow({
 }
 
 export function StartupProcessView() {
+  const t = useTranslations("startupProcess");
+  const tStages = useTranslations("startupStages");
+  const locale = useLocale();
   const process = useStartupProcess();
 
   if (process.isLoading) {
     return (
       <StartupPageFrame>
-        <p className="py-10 text-sm text-[#858c96]">Süreç yükleniyor…</p>
+        <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>
       </StartupPageFrame>
     );
   }
@@ -226,7 +237,7 @@ export function StartupProcessView() {
   return (
     <StartupPageFrame>
       <div className="space-y-5">
-        <section aria-label="Aşamalar">
+        <section aria-label={t("stages")}>
           <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
             {process.stageCards.map((card, index) => (
               <li key={card.stage}>
@@ -242,7 +253,7 @@ export function StartupProcessView() {
         </section>
 
         <section
-          aria-label="Odak turu"
+          aria-label={t("focus")}
           className="space-y-3 rounded-[10px] bg-[#fff4ec] px-6 py-5"
         >
           {round ? (
@@ -259,14 +270,12 @@ export function StartupProcessView() {
                     width={24}
                     height={24}
                   />
-                  {formatRoundRange(round.startsOn, round.endsOn)}
+                  {formatRoundRange(round.startsOn, round.endsOn, locale)}
                 </span>
               </div>
             </>
           ) : (
-            <p className="text-sm text-[#676e78]">
-              Bu aşama için henüz bir tur planlanmadı.
-            </p>
+            <p className="text-sm text-[#676e78]">{t("noRound")}</p>
           )}
         </section>
 
@@ -274,10 +283,10 @@ export function StartupProcessView() {
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <h2 id="startup-assignments" className={cardTitleClass}>
-                Bu aşamadaki ödevlerin
+                {t("assignments")}
               </h2>
               <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-                Her ödevin kimden geldiği ve neye bağlı olduğu satırda yazıyor.
+                {t("assignmentsHint")}
               </p>
             </div>
             {process.totalAssignments > 0 ? (
@@ -288,25 +297,28 @@ export function StartupProcessView() {
                 className="shrink-0 text-[12.5px] font-medium leading-[19px] text-[#9e4400] hover:underline"
               >
                 {process.showAll
-                  ? "Bu aşama →"
-                  : `Tümü (${process.totalAssignments}) →`}
+                  ? t("thisStage")
+                  : t("all", { count: process.totalAssignments })}
               </button>
             ) : null}
           </div>
           {process.assignments.length === 0 ? (
-            <p className="text-sm text-[#858c96]">
-              Bu aşama için henüz ödev yok.
-            </p>
+            <p className="text-sm text-[#858c96]">{t("stageEmpty")}</p>
           ) : (
             <ul className="space-y-3">
               {process.assignments.map((assignment) => (
                 <AssignmentRow
                   key={assignment.id}
                   assignment={assignment}
-                  source={assignmentSource(
-                    assignment,
+                  source={[
+                    assignment.createdByName,
+                    t(
+                      `source.${assignmentSourceKind(assignment.createdByRole)}`,
+                    ),
                     process.roundName(assignment.roundId),
-                  )}
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                   isUploading={process.uploadingAssignmentId === assignment.id}
                   onUpload={(file) =>
                     process.uploadAssignment(assignment.id, file)
@@ -322,12 +334,10 @@ export function StartupProcessView() {
           className={cardClass}
         >
           <h2 id="startup-completed-stages" className={cardTitleClass}>
-            Tamamlanan aşamalar
+            {t("completedStages")}
           </h2>
           {process.completedStages.length === 0 ? (
-            <p className="text-sm text-[#858c96]">
-              Henüz tamamlanan bir aşama yok.
-            </p>
+            <p className="text-sm text-[#858c96]">{t("noCompleted")}</p>
           ) : (
             <ul className="space-y-3">
               {process.completedStages.map((row) => (
@@ -342,13 +352,17 @@ export function StartupProcessView() {
                       width={16}
                       height={16}
                     />
-                    {STARTUP_STAGE_LABELS[row.stage]}
+                    {tStages(row.stage)}
                   </span>
                   <span className="flex gap-5 text-xs leading-[18px] text-[#858c96]">
                     {row.startsOn && row.endsOn ? (
-                      <span>{formatStageRange(row.startsOn, row.endsOn)}</span>
+                      <span>
+                        {formatStageRange(row.startsOn, row.endsOn, locale)}
+                      </span>
                     ) : null}
-                    <span>{row.completedAssignments} ödev tamamlandı</span>
+                    <span>
+                      {t("completedCount", { count: row.completedAssignments })}
+                    </span>
                   </span>
                 </li>
               ))}

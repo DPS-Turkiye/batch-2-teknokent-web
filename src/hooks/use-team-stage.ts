@@ -1,21 +1,18 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
 import { StartupStage } from "@/interfaces/startup-process";
 import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
-import { STARTUP_STAGE_LABELS } from "@/lib/startup-process";
-
-const STAGE_OPTIONS = Object.values(StartupStage).map((stage) => ({
-  stage,
-  label: STARTUP_STAGE_LABELS[stage],
-}));
 
 /** "Aşamayı güncelle" in the Takımlar drawer: a coordinator moves a team to another stage. */
 export function useTeamStage(programId: string, organizationId: string) {
+  const tStages = useTranslations("startupStages");
+  const tProcess = useTranslations("startupProcess");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const queryKey = [
@@ -36,17 +33,20 @@ export function useTeamStage(programId: string, organizationId: string) {
     onSuccess: (process) => {
       queryClient.setQueryData(queryKey, process);
       setDraft(null);
-      showToast({ message: "Aşama güncellendi.", tone: "success" });
+      showToast({ message: tProcess("stageUpdated"), tone: "success" });
     },
   });
 
   const current = query.data?.currentStage ?? null;
 
   return {
-    currentLabel: current ? STARTUP_STAGE_LABELS[current] : null,
+    currentLabel: current ? tStages(current) : null,
     isLoading: query.isLoading,
     loadFailed: Boolean(query.error),
-    options: STAGE_OPTIONS,
+    options: Object.values(StartupStage).map((stage) => ({
+      stage,
+      label: tStages(stage),
+    })),
     draft,
     isEditing: draft !== null,
     startEditing: () => {
