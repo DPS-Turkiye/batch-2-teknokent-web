@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 import { MentorRequestFlow } from "@/components/mentor-request/mentor-request-flow";
 import { loadMentors } from "@/lib/mentors";
@@ -13,8 +14,9 @@ export default async function MentorRequestPage() {
   if (!session?.organizationId) {
     redirect("/login");
   }
-  const [{ mentors, error: mentorError }, { startup, error: startupError }] =
+  const [t, { mentors, error: mentorError }, { startup, error: startupError }] =
     await Promise.all([
+      getTranslations("loadErrors"),
       loadMentors(),
       loadStartupContext(session.organizationId),
     ]);
@@ -23,9 +25,9 @@ export default async function MentorRequestPage() {
     <Suspense>
       <MentorRequestFlow
         mentors={mentors}
-        mentorLoadError={mentorError}
+        mentorLoadError={mentorError ? t("mentors") : undefined}
         startup={startup}
-        startupLoadError={startupError}
+        startupLoadError={startupError ? t(startupError) : undefined}
       />
     </Suspense>
   );

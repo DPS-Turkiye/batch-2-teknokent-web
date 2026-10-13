@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { MentorPickStep } from "@/components/mentor-request/mentor-pick-step";
 import type { MentorPickFilterId } from "@/lib/mentor-request-pick";
 import { mentorProfile } from "@test/fixtures/mentors";
+import { InLocale } from "@test/test-utils";
 
 const nihan = {
   ...mentorProfile,
@@ -17,6 +18,30 @@ const nihan = {
 };
 
 describe("MentorPickStep", () => {
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <MentorPickStep
+          filter="recommended"
+          listedMentors={[]}
+          mentorId=""
+          onFilterChange={vi.fn()}
+        />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("tab", { name: "Recommended" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Best-matched mentors" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/No mentors were suggested for this need/),
+    ).toBeInTheDocument();
+  });
+
   it("marks Önerilen as the default tab", () => {
     render(
       <MentorPickStep

@@ -929,5 +929,140 @@
     "empty": "You're not in a program yet.",
     "mentorLink": "See program details",
     "menteeLink": "See who's in the program"
+  },
+  "mentorRequest": {
+    "steps": {
+      "label": "Steps to describe your need",
+      "topic": "Topic",
+      "situation": "Situation",
+      "goal": "Goal",
+      "summary": "Summary"
+    },
+    "topics": {
+      "product": {
+        "title": "Product",
+        "description": "We can't pin down what to build or how to develop it."
+      },
+      "customer": {
+        "title": "Customer",
+        "description": "We're not sure we're reaching the right users."
+      },
+      "growth": {
+        "title": "Growth & Sales",
+        "description": "We're struggling to win users or customers."
+      },
+      "finance": {
+        "title": "Business Model & Finance",
+        "description": "We can't pin down how we'll make money or our financial plan."
+      },
+      "investment": {
+        "title": "Investment",
+        "description": "We don't know how to get ready for investment."
+      },
+      "team": {
+        "title": "Team & Operations",
+        "description": "We're stuck on the team, roles or processes."
+      },
+      "other": {
+        "title": "Something else",
+        "description": "If none of these fit, describe it briefly yourself."
+      }
+    },
+    "situations": {
+      "value": {
+        "title": "Users don't see the product's value",
+        "description": "They start using the product but it's not clear why they should keep going."
+      },
+      "onboarding": {
+        "title": "We lose users during onboarding",
+        "description": "Many users drop off in the first steps."
+      },
+      "focus": {
+        "title": "We don't know which feature to focus on",
+        "description": "We have lots of ideas but can't prioritize them."
+      },
+      "problem": {
+        "title": "We're not sure we're solving the right problem",
+        "description": "We haven't validated the user need well enough."
+      },
+      "positioning": {
+        "title": "Our positioning isn't clear",
+        "description": "We don't know how to describe the product or stand out from competitors."
+      },
+      "none": {
+        "title": "None of these",
+        "description": "I'll describe it briefly myself."
+      }
+    },
+    "goals": {
+      "decision": "Make a decision",
+      "next-steps": "Set the next steps",
+      "evaluate": "Evaluate our current approach",
+      "options": "See new options",
+      "roadmap": "Build a roadmap",
+      "feedback": "Get feedback on a piece of work"
+    },
+    "describeBriefly": "Describe it briefly",
+    "topicStep": {
+      "heading": "What's challenging you most right now?",
+      "placeholder": "Describe your need in your own words…"
+    },
+    "situationStep": {
+      "heading": "Which is closest to your situation?",
+      "placeholder": "Describe your situation in your own words…"
+    },
+    "goalStep": {
+      "heading": "What should be clear by the end of this meeting?",
+      "hint": "Pick one or two outcomes so we can set a clear goal for the meeting.",
+      "noteLabel": "Anything you'd like to add?",
+      "notePlaceholder": "E.g. We changed onboarding last month but are still losing users."
+    },
+    "summaryStep": {
+      "heading": "Did we get you right?",
+      "hint": "We'll match you with mentors based on this summary. You can go back and edit it.",
+      "fromProfile": "Filled in from your profile",
+      "need": "Your need",
+      "editNeed": "Edit your need",
+      "problem": "Core problem",
+      "editProblem": "Edit the core problem",
+      "outcome": "What you expect from the meeting",
+      "editOutcome": "Edit the goal",
+      "edit": "Edit",
+      "expertise": "Mentor expertise that fits you"
+    },
+    "saveDraft": "Save as draft",
+    "back": "Back",
+    "preparing": "Preparing suggestions…",
+    "continue": "Continue",
+    "pick": {
+      "listLabel": "Mentor list",
+      "filters": {
+        "recommended": "Recommended",
+        "all": "All",
+        "expertise": "Expertise",
+        "availability": "Availability",
+        "online": "Online",
+        "in-person": "In person"
+      },
+      "headingRecommended": "Best-matched mentors",
+      "headingAll": "All mentors",
+      "matching": "Preparing suggestions from your request and startup profile…",
+      "matchingFailed": "{error} You can pick from the All list.",
+      "emptyRecommended": "No mentors were suggested for this need. Have a look at the All list.",
+      "emptyFilter": "No mentors match this filter.",
+      "why": "Why suggested?",
+      "viewProfile": "View profile"
+    },
+    "slots": {
+      "pickDay": "Pick a day",
+      "dayTimes": "Times on {day}",
+      "slot": "{time} · {minutes} min"
+    }
+  },
+  "loadErrors": {
+    "mentors": "Couldn't load mentors.",
+    "noConfirmedProfile": "No confirmed startup profile found; showing your organization's details.",
+    "profileUnavailable": "The profile service didn't respond; showing your organization's details.",
+    "startup": "Couldn't load your startup's details."
   }
 }

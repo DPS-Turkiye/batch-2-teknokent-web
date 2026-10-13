@@ -1,8 +1,10 @@
+import type { useTranslations } from "next-intl";
+
 export const MENTOR_REQUEST_NEED_STEPPER = [
-  "Konu",
-  "Durum",
-  "Hedef",
-  "Özet",
+  "topic",
+  "situation",
+  "goal",
+  "summary",
 ] as const;
 
 export const MENTOR_REQUEST_NEED_DRAFT_KEY = "mentor-request-need-draft";
@@ -150,6 +152,32 @@ export function isNeedGoalId(value: string): value is MentorRequestNeedGoalId {
   return GOAL_IDS.has(value);
 }
 
+/** Texts of the preset choices: the page shows them translated, the request saves the Turkish ones. */
+export type NeedLabels = {
+  topicTitle: (id: MentorRequestNeedTopicId) => string;
+  topicDescription: (id: MentorRequestNeedTopicId) => string;
+  situationDescription: (id: MentorRequestNeedSituationId) => string;
+  goalLabel: (id: MentorRequestNeedGoalId) => string;
+};
+
+const SAVED_NEED_LABELS: NeedLabels = {
+  topicTitle: (id) => needTopicById(id).title,
+  topicDescription: (id) => needTopicById(id).description,
+  situationDescription: (id) => needSituationById(id).description,
+  goalLabel: (id) => needGoalById(id).label,
+};
+
+export function needLabels(
+  t: ReturnType<typeof useTranslations<"mentorRequest">>,
+): NeedLabels {
+  return {
+    topicTitle: (id) => t(`topics.${id}.title`),
+    topicDescription: (id) => t(`topics.${id}.description`),
+    situationDescription: (id) => t(`situations.${id}.description`),
+    goalLabel: (id) => t(`goals.${id}`),
+  };
+}
+
 export function needTopicById(topicId: string) {
   return (
     MENTOR_REQUEST_NEED_TOPICS.find((topic) => topic.id === topicId) ??
@@ -161,9 +189,15 @@ export function supportAreaForNeedTopic(topicId: string) {
   return needTopicById(topicId).supportArea;
 }
 
-export function summaryForNeedTopic(topicId: string, otherSummary: string) {
+export function summaryForNeedTopic(
+  topicId: string,
+  otherSummary: string,
+  labels = SAVED_NEED_LABELS,
+) {
   const topic = needTopicById(topicId);
-  return topic.id === "other" ? otherSummary.trim() : topic.description;
+  return topic.id === "other"
+    ? otherSummary.trim()
+    : labels.topicDescription(topic.id);
 }
 
 export function canContinueNeedStep(topicId: string, otherSummary: string) {
@@ -183,21 +217,31 @@ export function needSituationById(situationId: string) {
 export function summaryForNeedSituation(
   situationId: string,
   noneSummary: string,
+  labels = SAVED_NEED_LABELS,
 ) {
   const situation = needSituationById(situationId);
-  return situation.id === "none" ? noneSummary.trim() : situation.description;
+  return situation.id === "none"
+    ? noneSummary.trim()
+    : labels.situationDescription(situation.id);
 }
 
-export function summaryForNeed(input: {
-  topicId: string;
-  otherSummary: string;
-  situationId: string;
-  noneSummary: string;
-}) {
+export function summaryForNeed(
+  input: {
+    topicId: string;
+    otherSummary: string;
+    situationId: string;
+    noneSummary: string;
+  },
+  labels = SAVED_NEED_LABELS,
+) {
   if (isNeedSituationId(input.situationId)) {
-    return summaryForNeedSituation(input.situationId, input.noneSummary);
+    return summaryForNeedSituation(
+      input.situationId,
+      input.noneSummary,
+      labels,
+    );
   }
-  return summaryForNeedTopic(input.topicId, input.otherSummary);
+  return summaryForNeedTopic(input.topicId, input.otherSummary, labels);
 }
 
 export function canContinueSituationStep(
@@ -236,12 +280,13 @@ export function canContinueGoalStep(goalIds: readonly string[]) {
 export function messageForNeedGoals(
   goalIds: readonly string[],
   goalNote: string,
+  labels = SAVED_NEED_LABELS,
 ) {
-  const labels = goalIds
+  const goals = goalIds
     .filter((id) => isNeedGoalId(id))
-    .map((id) => needGoalById(id).label);
+    .map((id) => labels.goalLabel(id));
   const note = goalNote.trim();
-  return [labels.join(", "), note].filter(Boolean).join("\n");
+  return [goals.join(", "), note].filter(Boolean).join("\n");
 }
 
 const EXPERTISE_BY_SITUATION: Record<MentorRequestNeedSituationId, string[]> = {
@@ -265,12 +310,16 @@ export function expertiseForNeed(situationId: string) {
   return EXPERTISE_BY_SITUATION[situationId];
 }
 
-export function needTitleForSummary(topicId: string, otherSummary: string) {
+export function needTitleForSummary(
+  topicId: string,
+  otherSummary: string,
+  labels = SAVED_NEED_LABELS,
+) {
   const topic = needTopicById(topicId);
   if (topic.id === "other") {
-    return otherSummary.trim() || topic.title;
+    return otherSummary.trim() || labels.topicTitle(topic.id);
   }
-  return topic.title;
+  return labels.topicTitle(topic.id);
 }
 
 export function startupContextLine(parts: Array<string | undefined>) {

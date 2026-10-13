@@ -1,15 +1,15 @@
 import type { MentorProfile } from "@/interfaces/mentor";
 
 export const MENTOR_PICK_FILTERS = [
-  { id: "recommended", label: "Önerilen" },
-  { id: "all", label: "Tümü" },
-  { id: "expertise", label: "Uzmanlık" },
-  { id: "availability", label: "Müsaitlik" },
-  { id: "online", label: "Online" },
-  { id: "in-person", label: "Yüz yüze" },
+  "recommended",
+  "all",
+  "expertise",
+  "availability",
+  "online",
+  "in-person",
 ] as const;
 
-export type MentorPickFilterId = (typeof MENTOR_PICK_FILTERS)[number]["id"];
+export type MentorPickFilterId = (typeof MENTOR_PICK_FILTERS)[number];
 
 export const DEFAULT_MENTOR_PICK_FILTER: MentorPickFilterId = "recommended";
 
@@ -39,8 +39,4 @@ export function mentorsForPickFilter(
         return mode.includes("yüz yüze") || mode.includes("in person");
       });
   }
-}
-
-export function headingForPickFilter(filter: MentorPickFilterId) {
-  return filter === "recommended" ? "En Uygun Mentorlar" : "Tüm Mentorlar";
 }

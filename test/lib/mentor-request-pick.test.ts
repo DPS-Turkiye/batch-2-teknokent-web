@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  headingForPickFilter,
-  mentorsForPickFilter,
-} from "@/lib/mentor-request-pick";
+import { mentorsForPickFilter } from "@/lib/mentor-request-pick";
 import { mentorProfile } from "@test/fixtures/mentors";
 
 const nihan = {
@@ -35,8 +32,6 @@ describe("mentor-request-pick", () => {
         (mentor) => mentor.id,
       ),
     ).toEqual(["mentor-nihan", "mentor-ali"]);
-    expect(headingForPickFilter("recommended")).toBe("En Uygun Mentorlar");
-    expect(headingForPickFilter("all")).toBe("Tüm Mentorlar");
   });
 
   it("filters Online and Yüz yüze from the full list", () => {

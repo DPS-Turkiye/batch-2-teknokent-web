@@ -1,4 +1,5 @@
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { NeedWizardStepper } from "@/components/mentor-request/need-wizard-stepper";
 import {
@@ -19,12 +20,13 @@ export function NeedSituationStep({
   onNoneSummaryChange: (value: string) => void;
   onSelectStep?: (index: number) => void;
 }) {
+  const t = useTranslations("mentorRequest");
   return (
     <div>
       <NeedWizardStepper current={1} onSelectStep={onSelectStep} />
 
       <h1 className="mt-8 text-[30px] font-semibold leading-tight text-[#676e78]">
-        Hangisi yaşadığın duruma daha yakın?
+        {t("situationStep.heading")}
       </h1>
 
       <div className="mt-5 grid gap-2.5">
@@ -44,10 +46,10 @@ export function NeedSituationStep({
             >
               <span className="min-w-0 flex-1">
                 <strong className="block text-[15px] font-medium text-[#22262b]">
-                  {situation.title}
+                  {t(`situations.${situation.id}.title`)}
                 </strong>
                 <span className="mt-1 block text-xs leading-4 text-[#676e78]">
-                  {situation.description}
+                  {t(`situations.${situation.id}.description`)}
                 </span>
               </span>
               {selected ? (
@@ -63,12 +65,12 @@ export function NeedSituationStep({
       {situationId === "none" ? (
         <label className="mt-3 block rounded-[10px] border border-[#e4e7ea] bg-white p-4">
           <span className="text-xs font-semibold uppercase text-[#777]">
-            Kısaca anlat
+            {t("describeBriefly")}
           </span>
           <textarea
             value={noneSummary}
             onChange={(event) => onNoneSummaryChange(event.target.value)}
-            placeholder="Yaşadığın durumu kendi cümlelerinle yaz…"
+            placeholder={t("situationStep.placeholder")}
             className="mt-3 min-h-24 w-full resize-none bg-transparent text-sm outline-none placeholder:text-[#ccc]"
           />
         </label>

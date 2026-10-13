@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { NeedWizardStepper } from "@/components/mentor-request/need-wizard-stepper";
 import {
   MENTOR_REQUEST_NEED_GOALS,
@@ -17,17 +19,15 @@ export function NeedGoalStep({
   onGoalNoteChange: (value: string) => void;
   onSelectStep?: (index: number) => void;
 }) {
+  const t = useTranslations("mentorRequest");
   return (
     <div>
       <NeedWizardStepper current={2} onSelectStep={onSelectStep} />
 
       <h1 className="mt-8 text-[30px] font-semibold leading-tight text-[#676e78]">
-        Bu görüşmenin sonunda neyin netleşmesini istersin?
+        {t("goalStep.heading")}
       </h1>
-      <p className="mt-1.5 text-sm text-[#676e78]">
-        Bir veya iki sonuç seç. Mentorla görüşmenin hedefini böylece
-        netleştirebiliriz.
-      </p>
+      <p className="mt-1.5 text-sm text-[#676e78]">{t("goalStep.hint")}</p>
 
       <div className="mt-6 flex flex-wrap gap-2.5">
         {MENTOR_REQUEST_NEED_GOALS.map((goal) => {
@@ -44,7 +44,7 @@ export function NeedGoalStep({
                   : "border-[#e4e7ea] bg-[#fcfcfd] text-[#676e78] hover:border-[#f2b78f]"
               }`}
             >
-              {goal.label}
+              {t(`goals.${goal.id}`)}
             </button>
           );
         })}
@@ -52,12 +52,12 @@ export function NeedGoalStep({
 
       <label className="mt-9 block">
         <span className="text-[15px] font-medium text-[#22262b]">
-          Eklemek istediğin bir şey var mı?
+          {t("goalStep.noteLabel")}
         </span>
         <textarea
           value={goalNote}
           onChange={(event) => onGoalNoteChange(event.target.value)}
-          placeholder="Örn. Geçen ay onboarding'i değiştirdik ama kullanıcı kaybı devam etti."
+          placeholder={t("goalStep.notePlaceholder")}
           className="mt-3 min-h-[150px] w-full resize-none rounded-[10px] border border-[#e4e7ea] bg-white px-4 py-3.5 text-[13px] text-[#22262b] outline-none placeholder:text-[#858c96]"
         />
       </label>

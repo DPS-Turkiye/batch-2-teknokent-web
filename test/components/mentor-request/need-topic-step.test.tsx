@@ -3,8 +3,35 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { NeedTopicStep } from "@/components/mentor-request/need-topic-step";
+import { InLocale } from "@test/test-utils";
 
 describe("NeedTopicStep", () => {
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <NeedTopicStep
+          topicId="other"
+          otherSummary=""
+          onSelectTopic={vi.fn()}
+          onOtherSummaryChange={vi.fn()}
+        />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", {
+        name: "What's challenging you most right now?",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Topic")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /Something else/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(
+      screen.getByPlaceholderText("Describe your need in your own words…"),
+    ).toBeInTheDocument();
+  });
+
   it("renders the Figma Konu step copy and topics", () => {
     render(
       <NeedTopicStep

@@ -39,9 +39,16 @@ function textList(value: unknown): string[] {
     : [];
 }
 
+/** Keys of `loadErrors`; the page shows the text in its own language. */
+export enum StartupContextError {
+  NoConfirmedProfile = "noConfirmedProfile",
+  ProfileUnavailable = "profileUnavailable",
+  Failed = "startup",
+}
+
 export async function loadStartupContext(organizationId: string): Promise<{
   startup: StartupContext;
-  error?: string;
+  error?: StartupContextError;
 }> {
   try {
     const [organizationResponse, profileResponse] = await Promise.all([
@@ -89,12 +96,13 @@ export async function loadStartupContext(organizationId: string): Promise<{
       },
       error:
         profileResponse.status === 404
-          ? "Onaylanmış girişim profili bulunamadı; kuruluş bilgileri gösteriliyor."
+          ? StartupContextError.NoConfirmedProfile
           : profileResponse.status === 200
             ? undefined
-            : `Profil hizmeti HTTP ${profileResponse.status} yanıtı verdi; kuruluş bilgileri gösteriliyor.`,
+            : StartupContextError.ProfileUnavailable,
     };
   } catch (error) {
+    console.error("Startup context failed to load", error);
     return {
       startup: {
         organizationId,
@@ -105,10 +113,7 @@ export async function loadStartupContext(organizationId: string): Promise<{
         technologies: [],
         confirmedProfile: false,
       },
-      error:
-        error instanceof Error
-          ? error.message
-          : "Girişim bilgileri yüklenemedi.",
+      error: StartupContextError.Failed,
     };
   }
 }

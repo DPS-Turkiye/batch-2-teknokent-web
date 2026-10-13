@@ -18,6 +18,7 @@ import {
   slotFromStartsAt,
   timeFromStartsAt,
   upcomingPreferenceDays,
+  slotTimeLabel,
 } from "@/lib/mentor-availability-days";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { freezeDate } from "@test/test-utils";
@@ -243,5 +244,13 @@ describe("preferred day and time slots", () => {
       },
       { date: "2026-09-13", time: "10:30", label: "13 Eylül Pazar · 10:30" },
     ]);
+  });
+});
+
+describe("slotTimeLabel", () => {
+  it("uses the 24-hour clock in English too", () => {
+    const at = new Date(2026, 9, 13, 14, 15).toISOString();
+    expect(slotTimeLabel(at, "en")).toBe("14:15");
+    expect(slotTimeLabel(at, "tr")).toBe("14:15");
   });
 });
