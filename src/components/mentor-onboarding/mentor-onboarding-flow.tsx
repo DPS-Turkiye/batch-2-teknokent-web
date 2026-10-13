@@ -21,45 +21,25 @@ import {
   MENTOR_STEPS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 
-const STEP_COPY: Record<
-  MentorOnboardingStep,
-  { title: string; subtitle: string; note: string }
-> = {
-  [MentorOnboardingStep.Profile]: {
-    title: "Uzmanlık profilini oluştur",
-    subtitle: "Startuplar mentor havuzunda seni bu bilgilerle görecek.",
-    note: "Uzmanlık profilin, koordinatör onayından sonra tüm startuplar tarafından mentor havuzunda görülür.",
-  },
-  [MentorOnboardingStep.Areas]: {
-    title: "Hangi konularda mentorluk vereceksin?",
-    subtitle:
-      "Startupların sana gönderdiği talepler bu seçimlere göre filtrelenir.",
-    note: "Seçtiğin alanlar mentor havuzundaki filtrelerde ve “bu mentor neden önerildi” açıklamasında kullanılır.",
-  },
-  [MentorOnboardingStep.Availability]: {
-    title: "Müsaitliğini ve kapasiteni belirle",
-    subtitle:
-      "Startuplar yalnızca açık bıraktığın saatler için görüşme önerebilir.",
-    note: "Müsaitliğin startuplara yalnızca boş slot olarak görünür; takvimindeki diğer görüşmeler gizlidir.",
-  },
-  [MentorOnboardingStep.Review]: {
-    title: "Gözden geçir ve gönder",
-    subtitle:
-      "Startupların mentor havuzunda göreceği profil bu. Gönderdikten sonra düzenleyebilirsin.",
-    note: "Profilin önce koordinatör tarafından incelenir, onaylandıktan sonra mentor havuzunda yayınlanır.",
-  },
-};
-
-const NEXT_STEPS = [
-  "Onaylandığında profilin mentor havuzunda yayınlanır ve startuplar sana mentorluk talebi gönderebilir.",
-  "Gelen talepleri Mentorluklarım altındaki Talepler sekmesinden inceleyip kabul edersin.",
-  "Müsaitliğini ve kapasiteni istediğin zaman profilinden güncelleyebilirsin.",
-];
+const STEP_KEYS = {
+  [MentorOnboardingStep.Profile]: "profile",
+  [MentorOnboardingStep.Areas]: "areas",
+  [MentorOnboardingStep.Availability]: "availability",
+  [MentorOnboardingStep.Review]: "review",
+} as const satisfies Record<MentorOnboardingStep, string>;
 
 export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
+  const text = useTranslations("mentorOnboarding");
+  const flow = useTranslations("signupWizard");
+  const railSteps = MENTOR_STEPS.map((item) => ({
+    ...item,
+    title: text(`steps.${STEP_KEYS[item.step]}.railTitle`),
+    hint: text(`steps.${STEP_KEYS[item.step]}.railHint`),
+  }));
   const wizard = useMentorOnboarding({ fullName });
   const { step, phase } = wizard;
   const { exit, exiting } = useOnboardingExit(wizard.saveDraft);
@@ -69,17 +49,17 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
       <OnboardingSubmittedView
         tone={TONE}
         name={`${wizard.draft.firstName} ${wizard.draft.lastName}`.trim()}
-        title="Mentor profilin koordinatöre gönderildi"
+        title={text("submittedTitle")}
         submittedAt={wizard.submittedAt}
-        lastStepLabel="Mentor profilin havuza alınır"
-        nextSteps={NEXT_STEPS}
+        lastStepLabel={text("lastStepLabel")}
+        nextSteps={text.raw("nextSteps")}
         onSignOut={exit}
         signingOut={exiting}
       />
     );
   }
 
-  const copy = STEP_COPY[step];
+  const stepKey = STEP_KEYS[step];
   const onFormScreen =
     step !== MentorOnboardingStep.Profile || phase === IntroPhase.Review;
 
@@ -87,7 +67,7 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
     <OnboardingLayout
       topbar={
         <OnboardingTopbar
-          exitLabel="Kaydet ve çık"
+          exitLabel={flow("saveAndExit")}
           onExit={exit}
           exiting={exiting}
         />
@@ -95,15 +75,15 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
       rail={
         <OnboardingRail
           tone={TONE}
-          steps={MENTOR_STEPS}
+          steps={railSteps}
           currentIndex={MENTOR_STEP_ORDER.indexOf(step)}
-          note={copy.note}
+          note={text(`steps.${stepKey}.note`)}
           showProgress
           onStepClick={(index) => wizard.goToStep(MENTOR_STEP_ORDER[index])}
         />
       }
-      title={copy.title}
-      subtitle={copy.subtitle}
+      title={text(`steps.${stepKey}.title`)}
+      subtitle={text(`steps.${stepKey}.subtitle`)}
       footer={
         <OnboardingFooter
           tone={TONE}
@@ -113,10 +93,10 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           saveDisabled={wizard.isSaving}
           primaryLabel={
             wizard.isSaving
-              ? "Gönderiliyor…"
+              ? flow("sending")
               : wizard.isLastStep
-                ? "Koordinatöre gönder"
-                : "Devam et"
+                ? flow("sendToCoordinator")
+                : flow("continue")
           }
           onPrimary={wizard.isLastStep ? wizard.complete : wizard.goNext}
           primaryDisabled={
@@ -125,7 +105,7 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           status={
             wizard.draftSavedAt ? (
               <span role="status" className="text-xs text-[#676e78]">
-                Taslak kaydedildi.
+                {flow("draftSaved")}
               </span>
             ) : null
           }

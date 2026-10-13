@@ -1,0 +1,669 @@
+{
+  "language": {
+    "label": "Dil",
+    "tr": "Türkçe",
+    "en": "English"
+  },
+  "login": {
+    "title": "Menton’a hoş geldin",
+    "email": "E-posta",
+    "emailPlaceholder": "ornek@email.com",
+    "password": "Şifre",
+    "forgotPassword": "Şifremi unuttum",
+    "submit": "Giriş yap",
+    "submitting": "Giriş yapılıyor…",
+    "newHere": "Menton’a yeni misin?",
+    "signUp": "Kayıt Ol",
+    "invite": "Bir davet aldın mı? Davet kodunla devam et"
+  },
+  "auth": {
+    "firstName": "Ad",
+    "firstNamePlaceholder": "Adınız",
+    "lastName": "Soyad",
+    "lastNamePlaceholder": "Soyadınız",
+    "email": "E-posta",
+    "emailPlaceholder": "ornek@email.com",
+    "phone": "Telefon",
+    "password": "Şifre",
+    "passwordConfirm": "Şifre tekrar",
+    "passwordConfirmPlaceholder": "Şifrenizi tekrarlayın",
+    "passwordsMismatch": "Şifreler eşleşmiyor.",
+    "creatingAccount": "Hesap oluşturuluyor…",
+    "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
+    "signIn": "Giriş yap",
+    "shellImageAlt": "menton ile doğru mentörle eşleş"
+  },
+  "register": {
+    "titleMentor": "Mentor olarak menton’a katıl",
+    "titleStartup": "Startup’ınla menton’a katıl",
+    "submit": "Hesap oluştur ve devam et",
+    "howItWorks": "Nasıl çalışır?",
+    "haveAccount": "Zaten hesabın var mı?",
+    "menteeSteps": [
+      "Hesabını oluştur",
+      "E-postanı doğrula",
+      "Startup profilini tamamla",
+      "Koordinatör onayını bekle"
+    ],
+    "mentorSteps": [
+      "Hesabını oluştur",
+      "E-postanı doğrula",
+      "CV'nden mentor profilini oluştur",
+      "Onaydan sonra eşleşmelere başla"
+    ]
+  },
+  "invite": {
+    "title": "Davet kodunla ekibe katıl",
+    "intro": "Kodu startup'ının kurucusundan alırsın. Kodla oluşturulan hesaplar ayrıca onay beklemez.",
+    "code": "Davet kodu",
+    "submit": "Ekibe katıl",
+    "noCode": "Davet kodun yok mu?",
+    "backToLogin": "Giriş ekranına dön"
+  },
+  "verifyEmail": {
+    "title": "E-postanı doğrula",
+    "sentBefore": "",
+    "sentAfter": " adresine bir doğrulama linki gönderdik. Maildeki linke tıklayınca devam edebilirsin.",
+    "notVerified": "E-posta henüz doğrulanmadı. Maildeki linke tıklayıp tekrar deneyin.",
+    "resent": "Doğrulama mailini yeniden gönderdik.",
+    "checking": "Kontrol ediliyor…",
+    "confirm": "Maili doğruladım, devam et",
+    "resending": "Gönderiliyor…",
+    "resend": "Yeniden gönder"
+  },
+  "applicationTimeline": {
+    "completed": "Profil tamamlandı",
+    "sent": "Koordinatöre gönderildi",
+    "reviewed": "İncelendi",
+    "active": "Startup aktif",
+    "approvedDetail": "Profilin onaylandı. Giriş yaparak çalışma alanını açabilirsin.",
+    "rejected": "Başvuru onaylanmadı",
+    "rejectedDetail": "Koordinatör başvurunu onaylamadı. Ayrıntı için info@metu.edu.tr adresine yazabilirsin.",
+    "willActivate": "Startup aktif olacak",
+    "reviewing": "İnceleniyor",
+    "reviewingDetail": "Profilin koordinatörler tarafından incelenir. Genellikle 1-3 iş günü sürer."
+  },
+  "submittedProfile": {
+    "title": "Gönderilen profil",
+    "loading": "Yükleniyor…",
+    "unavailable": "Gönderilen profil şu an okunamadı.",
+    "fullName": "Ad soyad",
+    "startup": "Startup",
+    "role": "Rol / unvan",
+    "linkedin": "LinkedIn",
+    "bio": "Kısa tanıtım",
+    "contact": "İletişim tercihi",
+    "files": "Dosyalar"
+  },
+  "roleSelect": {
+    "title": "menton’a nasıl katılmak istiyorsun?",
+    "intro": "Seçimin hesabının nasıl kurulacağını belirler. Sonradan değiştirebilirsin.",
+    "setupSteps": "Kurulum adımları",
+    "haveCode": "Davet kodun mu var?",
+    "codeLink": "Kodunla doğrudan devam edebilirsin.",
+    "exit": "Çıkış yap",
+    "cards": {
+      "founder": {
+        "badge": "Girişimci",
+        "title": "Startup’ımla katılmak istiyorum",
+        "description": "Kişisel ve startup profilini oluşturursun, koordinatör onayından sonra mentor havuzuna erişirsin.",
+        "steps": [
+          "Kişisel profil",
+          "Startup profili ve ekip",
+          "Kanvas, pitch deck, prototip",
+          "Koordinatör onayı"
+        ],
+        "action": "Girişimci olarak devam et"
+      },
+      "mentor": {
+        "badge": "Mentor",
+        "title": "Mentor olmak istiyorum",
+        "description": "Uzmanlık alanlarını ve müsaitliğini tanımlarsın, sana uygun startuplardan mentorluk talebi gelir.",
+        "steps": [
+          "Uzmanlık profili",
+          "Mentorluk alanları",
+          "Haftalık müsaitlik ve kapasite",
+          "Koordinatör onayı"
+        ],
+        "action": "Mentor olarak devam et"
+      }
+    }
+  },
+  "signupFlow": {
+    "resumeTitle": "Mentor hesabını tamamla",
+    "resumeIntro": "Mentor profilini açmadan önce hesap bilgilerini tamamla.",
+    "fullName": "Ad soyad",
+    "resumeSubmit": "Mentor profiline devam et",
+    "checkingSession": "Oturum bilgileri kontrol ediliyor…",
+    "preparingMentor": "Mentor hesabı hazırlanıyor…",
+    "retry": "Tekrar dene"
+  },
+  "signupWizard": {
+    "steps": {
+      "personal": {
+        "title": "Kişisel profilini oluştur",
+        "subtitle": "Mentorlar seni bu bilgilerle tanıyacak. Sonradan düzenleyebilirsin.",
+        "railTitle": "Kişisel profilin",
+        "railHint": "Mentorlar seni bu bilgilerle tanır"
+      },
+      "startup": {
+        "title": "Startup profilini oluştur",
+        "subtitle": "Koordinatör ve mentorlar startupını bu sayfadan tanıyacak.",
+        "railTitle": "Startup profilin",
+        "railHint": "Koordinatör ve mentorlar görür"
+      },
+      "documents": {
+        "title": "Dosyalarını yükle",
+        "subtitle": "Hepsi isteğe bağlı. Yüklediklerin ilk görüşmeyi çok hızlandırır.",
+        "railTitle": "Dosyalar",
+        "railHint": "Kanvas, pitch deck, prototip"
+      },
+      "review": {
+        "title": "Gözden geçir ve gönder",
+        "subtitle": "Koordinatöre göndermeden önce bilgileri kontrol et. Gönderdikten sonra düzenleme talebi gerekebilir.",
+        "railTitle": "Gözden geçir ve gönder",
+        "railHint": "Koordinatör onayına gider"
+      }
+    },
+    "railNote": "Kişisel profilin yalnızca eşleştiğin mentorlar ve program koordinatörü tarafından görülür.",
+    "nextSteps": [
+      "Onaylanırsa startupın mentor havuzunda görünür ve mentorlara talep gönderebilirsin.",
+      "Düzenleme istenirse e-postayla bilgilendirilirsin; talep edilen alanlar profilde işaretli gelir.",
+      "İnceleme sürerken profilde büyük değişiklik yapamazsın, dosya eklemeye devam edebilirsin."
+    ],
+    "submittedTitle": "{name} profili koordinatöre gönderildi",
+    "submittedFallbackName": "Startup",
+    "lastStepLabel": "Startup profilin yayına alınır",
+    "saveAndExit": "Kaydet ve çık",
+    "sending": "Gönderiliyor…",
+    "sendToCoordinator": "Koordinatöre gönder",
+    "continue": "Devam et",
+    "draftSaved": "Taslak kaydedildi."
+  },
+  "signupSteps": {
+    "basics": "Temel bilgiler",
+    "role": "Startup’taki rolün",
+    "rolePlaceholder": "Örn. Product Designer · Kurucu ortak",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "linkedin.com/in/kullanici-adi",
+    "bio": "Kısa tanıtım",
+    "bioSubtitle": "Mentorun seninle ilk görüşmeden önce okuyacağı iki cümle.",
+    "bioHint": "Mentorlar bu metni arama sonuçlarında görür",
+    "cvTitle": "CV (isteğe bağlı)",
+    "cvSubtitle": "Yüklersen mentorun geçmişini hızlıca görür. Zorunlu değil.",
+    "cvPick": "CV dosyası seç",
+    "cvReading": "CV okunuyor, boş alanların dolduruluyor…",
+    "contact": "İletişim tercihin",
+    "contactSubtitle": "Mentorunla nasıl iletişim kurmayı tercih edersin?",
+    "logo": "Startup logosu",
+    "logoPlaceholder": "Logo",
+    "startupName": "Startup adı",
+    "oneLiner": "Tek satırlık tanım",
+    "oneLinerHint": "Mentor havuzunda startupının altında bu cümle görünür",
+    "website": "Web sitesi",
+    "websitePlaceholder": "ornek.com",
+    "foundedYear": "Kuruluş yılı",
+    "programAndStage": "Program ve aşama",
+    "programAndStageSubtitle": "Doğru mentorla eşleşmen için en belirleyici iki bilgi.",
+    "program": "Program",
+    "programsLoading": "Programlar yükleniyor…",
+    "independent": "Bağımsız",
+    "stage": "Girişim aşaması",
+    "team": "Ekip",
+    "teamSubtitle": "Ekip üyeleri startup profilinde listelenir. Davet koduyla katıldıklarında hesaplarına bağlanır.",
+    "addMember": "+ Üye ekle",
+    "remove": "Kaldır",
+    "removeMember": "{name} üyesini kaldır",
+    "memberName": "Ad soyad",
+    "memberRole": "Rol",
+    "cancel": "Vazgeç",
+    "add": "Ekle",
+    "supportAreas": "Mentor desteği istediğin alanlar",
+    "supportAreasSubtitle": "En fazla {max} alan seç. Mentor önerileri buna göre sıralanır.",
+    "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır."
+  },
+  "signupDocuments": {
+    "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
+    "canvasHelp": "PDF veya DOCX · en fazla 25 MB",
+    "pitchSubtitle": "Sunum dosyan. Mentorun startupını hızlıca anlamasını sağlar.",
+    "pitchHelp": "PDF veya PPTX · en fazla 25 MB",
+    "pickFile": "{title} dosyası seç",
+    "mvpTitle": "MVP / Prototip",
+    "mvpSubtitle": "Yayındaki ürünün bağlantısı ya da prototip dosyası.",
+    "link": "Bağlantı",
+    "mvpPlaceholder": "ornek.app veya Figma prototip linki",
+    "mvpPick": "MVP / Prototip dosyası seç",
+    "optionalNote": "Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da dosya ekleyebilirsin."
+  },
+  "signupReview": {
+    "personal": "Kişisel profil",
+    "startup": "Startup profili",
+    "files": "Dosyalar",
+    "fullName": "Ad soyad",
+    "role": "Rol",
+    "bio": "Kısa tanıtım",
+    "contact": "İletişim tercihi",
+    "startupName": "Startup",
+    "tagline": "Tanım",
+    "programStage": "Program · Aşama",
+    "team": "Ekip",
+    "teamCount": "{count} üye",
+    "supportAreas": "Destek alanları",
+    "mvp": "MVP / Prototip",
+    "notUploaded": "Yüklenmedi",
+    "missingTitle": "Pitch deck ve prototip yüklemeden de gönderebilirsin",
+    "missingBody": "Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya bakıyor. Sonradan da ekleyebilirsin.",
+    "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum."
+  },
+  "onboarding": {
+    "exiting": "Çıkılıyor…",
+    "progress": "Profil kurulumu ilerlemesi",
+    "stepsLabel": "Profil kurulum adımları",
+    "done": "Tamamlandı",
+    "whoSees": "BU BİLGİLERİ KİM GÖRÜR?",
+    "back": "← Geri",
+    "saveDraft": "Taslak olarak kaydet",
+    "completed": "Profil tamamlandı",
+    "sent": "Koordinatöre gönderildi",
+    "reviewing": "İnceleniyor",
+    "youAreHere": "Şu an bu adımdasın",
+    "signOut": "Çıkış yap",
+    "whatsNext": "SIRADA NE VAR?",
+    "viewSubmitted": "Gönderilen profili görüntüle",
+    "backHome": "Ana sayfaya dön",
+    "orPick": "veya cihazından seç",
+    "fileTooBig": "Dosya boyutu {limit} sınırını aşamaz.",
+    "uploadedBefore": "Daha önce yüklendi",
+    "selected": "Seçildi",
+    "uploaded": "Yüklendi",
+    "removeFile": "{name} dosyasını kaldır",
+    "change": "{label} değiştir",
+    "pick": "{label} seç",
+    "remove": "Kaldır",
+    "changeShort": "Değiştir",
+    "drop": "Dosyayı sürükleyip bırak",
+    "imageTooBig": "Görsel en fazla 5 MB olabilir."
+  },
+  "mentorOnboarding": {
+    "steps": {
+      "profile": {
+        "title": "Uzmanlık profilini oluştur",
+        "subtitle": "Startuplar mentor havuzunda seni bu bilgilerle görecek.",
+        "note": "Uzmanlık profilin, koordinatör onayından sonra tüm startuplar tarafından mentor havuzunda görülür.",
+        "railTitle": "Uzmanlık profilin",
+        "railHint": "Startuplar seni bununla görür"
+      },
+      "areas": {
+        "title": "Hangi konularda mentorluk vereceksin?",
+        "subtitle": "Startupların sana gönderdiği talepler bu seçimlere göre filtrelenir.",
+        "note": "Seçtiğin alanlar mentor havuzundaki filtrelerde ve “bu mentor neden önerildi” açıklamasında kullanılır.",
+        "railTitle": "Mentorluk alanların",
+        "railHint": "Eşleşme buna göre kurulur"
+      },
+      "availability": {
+        "title": "Müsaitliğini ve kapasiteni belirle",
+        "subtitle": "Startuplar yalnızca açık bıraktığın saatler için görüşme önerebilir.",
+        "note": "Müsaitliğin startuplara yalnızca boş slot olarak görünür; takvimindeki diğer görüşmeler gizlidir.",
+        "railTitle": "Müsaitlik ve kapasite",
+        "railHint": "Talepler buna göre gelir"
+      },
+      "review": {
+        "title": "Gözden geçir ve gönder",
+        "subtitle": "Startupların mentor havuzunda göreceği profil bu. Gönderdikten sonra düzenleyebilirsin.",
+        "note": "Profilin önce koordinatör tarafından incelenir, onaylandıktan sonra mentor havuzunda yayınlanır.",
+        "railTitle": "Gözden geçir ve gönder",
+        "railHint": "Koordinatör onayına gider"
+      }
+    },
+    "nextSteps": [
+      "Onaylandığında profilin mentor havuzunda yayınlanır ve startuplar sana mentorluk talebi gönderebilir.",
+      "Gelen talepleri Mentorluklarım altındaki Talepler sekmesinden inceleyip kabul edersin.",
+      "Müsaitliğini ve kapasiteni istediğin zaman profilinden güncelleyebilirsin."
+    ],
+    "submittedTitle": "Mentor profilin koordinatöre gönderildi",
+    "lastStepLabel": "Mentor profilin havuza alınır"
+  },
+  "mentorSteps": {
+    "uploadCv": "CV’nizi yükleyin",
+    "uploadHint": "PDF veya DOCX · Maks. 25 MB",
+    "cvPick": "CV dosyası seç",
+    "manual": "Bilgilerimi manuel gireceğim",
+    "parsing": "Deneyim, rol ve uzmanlık alanları çıkarılıyor…",
+    "parsingHint": "Bu işlem genellikle birkaç saniye sürer.",
+    "role": "Görev",
+    "organization": "Kurum",
+    "period": "Dönem",
+    "periodPlaceholder": "2022–2026",
+    "summary": "Kısa açıklama",
+    "delete": "Sil",
+    "done": "Bitti",
+    "basics": "Temel bilgiler",
+    "photo": "Profil fotoğrafı",
+    "photoPlaceholder": "Foto",
+    "photoNote": "Profil fotoğrafı olan mentorlara gelen talep sayısı belirgin şekilde daha yüksek.",
+    "title": "Unvanın",
+    "titlePlaceholder": "Örn. UX/UI & Ürün Stratejisi Mentoru",
+    "experience": "Deneyim",
+    "experiencePlaceholder": "Örn. 12 yıl",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "linkedin.com/in/kullanici-adi",
+    "cv": "CV",
+    "about": "Hakkında",
+    "aboutSubtitle": "Startuplar mentor havuzunda önce bu metni okuyacak.",
+    "aboutHint": "Mentor havuzunda arama sonuçlarında görünür",
+    "experienceSubtitle": "En fazla {max, plural, =3 {üç} other {#}} görev ekle. Profilinde kronolojik listelenir.",
+    "addExperience": "+ Deneyim ekle",
+    "edit": "Düzenle",
+    "editExperience": "{title} düzenle",
+    "newExperience": "Yeni deneyim",
+    "topics": "Mentorluk konuların",
+    "topicsSubtitle": "En fazla {max} konu seç. Daha az seçmek eşleşme kalitesini artırır.",
+    "stagesTitle": "Hangi aşamadaki girişimlerle çalışırsın?",
+    "stagesSubtitle": "Aşamaya uymayan talepler sana gönderilmez.",
+    "stagesLabel": "Girişim aşamaları",
+    "offeringsTitle": "Bu mentorlukta neler yapabilirsin?",
+    "offeringsSubtitle": "Startup profilinde madde madde görünür. Talep gönderirken bunu okurlar.",
+    "addOffering": "+ Madde ekle",
+    "remove": "Kaldır",
+    "removeOffering": "{offering} maddesini kaldır",
+    "newOffering": "Yeni madde",
+    "offeringPlaceholder": "Örn. Değer önerisini netleştirme",
+    "cancel": "Vazgeç",
+    "add": "Ekle",
+    "noOfferings": "Henüz madde eklemedin."
+  },
+  "mentorAvailability": {
+    "weekly": "Haftalık uygunluk",
+    "weeklySubtitle": "Tekrarlayan uygunluk. Tek seferlik değişiklikleri sonradan takvimden yapabilirsin.",
+    "dayAvailable": "{day} uygun",
+    "dayStart": "{day} başlangıç",
+    "dayEnd": "{day} bitiş",
+    "endAfterStart": "Bitiş saati başlangıçtan sonra olmalı.",
+    "capacity": "Kapasite",
+    "capacitySubtitle": "Aynı anda kaç startupla çalışabileceğini belirle. Limit dolduğunda yeni talep gelmez.",
+    "capacityLimit": "Eş zamanlı mentorluk limiti",
+    "startupUnit": "startup",
+    "duration": "Varsayılan görüşme süresi",
+    "frequency": "Görüşme sıklığı tercihin",
+    "buffer": "İki görüşme arası tampon",
+    "formatTitle": "Görüşme formatı ve yanıt süresi",
+    "format": "Format",
+    "formatLabel": "Görüşme formatı",
+    "responseQuestion": "Taleplere genellikle ne kadar sürede yanıt verirsin?",
+    "responseLabel": "Yanıt süresi"
+  },
+  "mentorReview": {
+    "profile": "Uzmanlık profili",
+    "fullName": "Ad soyad",
+    "title": "Unvan",
+    "companyExperience": "Kurum · Deneyim",
+    "about": "Hakkında",
+    "experience": "Deneyim",
+    "rolesAdded": "{count} görev eklendi",
+    "areas": "Mentorluk alanları",
+    "topics": "Konular",
+    "stage": "Girişim aşaması",
+    "offerings": "Çalışılabilecek konular",
+    "offeringCount": "{count} madde",
+    "availability": "Müsaitlik ve kapasite",
+    "weekly": "Haftalık uygunluk",
+    "concurrent": "Eş zamanlı mentorluk",
+    "capacityValue": "{count} startup",
+    "meeting": "Görüşme",
+    "responseTime": "Yanıt süresi",
+    "hoursTitle": "Haftada yaklaşık {hours} saat ayırmış oluyorsun",
+    "hoursBody": "Seçtiğin uygunluk ve {minutes} dakikalık görüşme süresiyle haftada en fazla {meetings} görüşme planlanabilir. Kapasiteni sonradan profilinden değiştirebilirsin.",
+    "consent": "Mentorluk ilkelerini okudum ve kabul ediyorum. Profilimin koordinatör tarafından incelenmesini onaylıyorum."
+  },
+  "publicSession": {
+    "continueAs": "{name} olarak devam et",
+    "signIn": "Giriş Yap"
+  },
+  "landing": {
+    "nav": {
+      "how": "Nasıl işler?",
+      "announcements": "Duyurular",
+      "compare": "Mentorluk mu, eğitim mi?",
+      "faq": "SSS"
+    },
+    "hero": {
+      "eyebrow": "ODTÜ Teknokent",
+      "headline": "Girişiminiz için doğru desteğe, doğru zamanda ulaşın",
+      "accentPrefix": "doğru",
+      "lead": "ODTÜ Teknokent programlarını, mentorluk görüşmelerini, eğitimleri ve girişiminizin ilerleme sürecini tek bir platform üzerinden takip edin.",
+      "note": "Platforma yalnızca davet edildiğiniz veya kayıtlı olduğunuz rol ile giriş yapabilirsiniz.",
+      "sceneTitle": "3 adımda başla",
+      "sceneSteps": [
+        "Profilini oluştur",
+        "İhtiyacını tamamla",
+        "Doğru mentor ile buluş"
+      ],
+      "match": {
+        "title": "Eşleşme kuruldu",
+        "detail": "Nihan Öztürk · UX/UI & Ürün"
+      }
+    },
+    "announcements": {
+      "application": {
+        "tag": "Başvuru",
+        "date": "27 Temmuz 2026",
+        "title": "Yeni dönem başvuruları açıldı",
+        "text": "Programın yeni başvuru tarihlerini ve katılım koşullarını inceleyin."
+      },
+      "training": {
+        "tag": "Eğitim",
+        "date": "3 Ağustos 2026",
+        "title": "Ürün geliştirme eğitimi",
+        "text": "Ürün fikrinin doğrulanması ve ilk ürün sürecine yönelik grup eğitimi."
+      },
+      "support": {
+        "tag": "Destek programı",
+        "date": "Başvurular açık",
+        "title": "TÜBİTAK BİGG başvuruları",
+        "text": "Başvuru sürecinde gerekli belgeleri ve takvimi program sayfasından takip edin."
+      }
+    },
+    "howSteps": [
+      {
+        "title": "İhtiyacını belirt",
+        "text": "Destek almak istediğiniz konuyu ve mevcut probleminizi paylaşın."
+      },
+      {
+        "title": "Uygun mentorla eşleş",
+        "text": "Uzmanlık alanınıza ve girişiminizin aşamasına uygun mentorla eşleşin."
+      },
+      {
+        "title": "Görüşmeni gerçekleştir",
+        "text": "Görüşme sırasında ihtiyaçlarınızı, riskleri ve olası çözüm yollarını değerlendirin."
+      },
+      {
+        "title": "Aksiyonlarını takip et",
+        "text": "Görüşme sonunda belirlenen görevleri ve sonraki adımları platform üzerinden takip edin."
+      }
+    ],
+    "stageRoles": {
+      "mentor": "Mentor",
+      "mentee": "Mentee / Startup"
+    },
+    "typedProblem": "Onboarding akışımızda değer önerimizi ilk ekranda net anlatamıyoruz; kullanıcılar ilk adımda ayrılıyor.",
+    "topics": {
+      "productUx": "Ürün & UX",
+      "finance": "Finans",
+      "valueProposition": "Değer önerisi",
+      "mvp": "MVP aşaması",
+      "legal": "Hukuk"
+    },
+    "matches": {
+      "nihan": {
+        "field": "UX/UI & Ürün Stratejisi",
+        "pill": "Önerilen"
+      },
+      "cagri": {
+        "field": "Finans & Business Model",
+        "pill": "Müsait · Çar"
+      },
+      "deniz": {
+        "field": "Büyüme Stratejisi",
+        "pill": "2 slot"
+      }
+    },
+    "matchReason": "Ürün konumlandırma ve onboarding ihtiyacın, Nihan’ın erken aşama ekiplerle yürüttüğü value proposition çalışmalarıyla örtüşüyor.",
+    "agenda": [
+      "Mevcut kullanıcı akışının gözden geçirilmesi",
+      "Değer önerisi taslağının kritiği",
+      "Riskler ve olası çözüm yolları",
+      "Sonraki iki haftanın işleri"
+    ],
+    "tasks": {
+      "financialModel": {
+        "title": "Finansal model taslağı",
+        "source": "Çağrı Yılmaz · mentorluk ödevi",
+        "status": "Yüklenmedi"
+      },
+      "acquisition": {
+        "title": "Acquisition kanalı analizi",
+        "source": "METU Stars · program ödevi",
+        "status": "Devam ediyor"
+      },
+      "b2b2c": {
+        "title": "B2B2C hipotezi",
+        "source": "Selin Kaya · mentorluk ödevi",
+        "status": "Tamamlandı"
+      }
+    },
+    "compare": {
+      "mentoring": {
+        "title": "Mentorluk",
+        "text": "Girişimin mevcut durumuna ve ihtiyacına göre şekillenen; bireysel veya ekip odaklı destek sürecidir.",
+        "points": [
+          "Girişime özel ilerler",
+          "Problem ve karar odaklıdır",
+          "Birebir veya küçük ekip görüşmesi",
+          "Görüşme sonunda aksiyonlar oluşturulabilir"
+        ]
+      },
+      "training": {
+        "title": "Eğitim",
+        "text": "Belirli bir konuda bilgi ve beceri kazandırmak için hazırlanan yapılandırılmış içeriklerden oluşur.",
+        "points": [
+          "Belirli bir konuya odaklanır",
+          "Bireysel veya grup olarak düzenlenebilir",
+          "Online veya yüz yüze gerçekleştirilebilir",
+          "Ödev ve eğitim materyalleri içerebilir"
+        ]
+      }
+    },
+    "faqs": [
+      {
+        "question": "Platforma kimler giriş yapabilir?",
+        "answer": "Platforma ODTÜ Teknokent programlarına kabul edilen girişimler ile program ekibi tarafından davet edilen mentorlar, eğitmenler ve koordinatörler giriş yapabilir. Kayıt herkese açık değildir; davet edildiğiniz rol ile giriş yaparsınız."
+      },
+      {
+        "question": "Mentorumu nasıl bulabilirim?",
+        "answer": "Destek almak istediğiniz konuyu ve mevcut probleminizi paylaştığınızda, uzmanlık alanı, girişim aşaması ve uygunluk bilgisine göre mentor önerileri görürsünüz. Her öneri, neden size uygun olduğunu açıklayan kısa bir gerekçeyle birlikte gelir."
+      },
+      {
+        "question": "Bir programa nasıl katılabilirim?",
+        "answer": "Program başvuruları, başvuru dönemlerinde Duyurular bölümünden paylaşılır. Başvurunuz kabul edildiğinde, platforma giriş yapabilmeniz için e-posta adresinize bir davet gönderilir."
+      },
+      {
+        "question": "Eğitim ve mentorluk arasındaki fark nedir?",
+        "answer": "Mentorluk, girişiminizin mevcut durumuna göre şekillenen ve karar almaya odaklanan birebir veya küçük ekip görüşmeleridir. Eğitim ise belirli bir konuda bilgi ve beceri kazandırmak için hazırlanmış yapılandırılmış içeriktir. Belirli bir probleminiz varsa mentorluk, bir konuyu baştan öğrenmek istiyorsanız eğitim daha uygundur."
+      },
+      {
+        "question": "Birden fazla programda yer alabilir miyim?",
+        "answer": "Bu, programların katılım koşullarına bağlıdır. Aynı dönemde birden fazla programda yer alıp alamayacağınızı ilgili programın koşullarından veya program ekibinden öğrenebilirsiniz."
+      },
+      {
+        "question": "Mentorluk görüşmeleri nasıl planlanır?",
+        "answer": "Görüşmeler, mentorun uygun zamanları üzerinden planlanır. Her görüşme bir gündem, önceki görüşmenin notları ve görüşme öncesinde tamamlanması gereken maddelerle birlikte oluşturulur; böylece iki taraf da hazırlıklı katılır."
+      },
+      {
+        "question": "Davet e-postamı bulamıyorum, ne yapmalıyım?",
+        "answer": "Önce gereksiz (spam) ve promosyon klasörlerinizi kontrol edin. E-postayı yine bulamazsanız, programınızın koordinatörüyle iletişime geçerek davetin yeniden gönderilmesini isteyebilirsiniz."
+      },
+      {
+        "question": "Platformdaki bilgilerimi kimler görebilir?",
+        "answer": "Görüşme notları, görev detayları ve paylaştığınız belgeler yalnızca sizin ve ilgili mentorunuzun erişimindedir. Program yönetimi içerik detaylarını görmez; yalnızca iletişim sıklığı ve görev tamamlama oranı gibi özet göstergeleri görür."
+      }
+    ],
+    "cta": {
+      "title": "Programınıza ve çalışma alanınıza erişin",
+      "text": "Mentorluk görüşmelerinizi, eğitimlerinizi ve girişim sürecinizi tek bir yerden takip edin."
+    },
+    "footer": {
+      "tagline": "Mentorluk ve Girişim Programları Platformu.",
+      "text": "ODTÜ Teknokent girişimlerine mentorluk, eğitim ve program yönetimi hizmetleri sunan dijital platform.",
+      "copyright": "© 2026 ODTÜ Teknokent. Tüm hakları saklıdır.",
+      "columns": {
+        "platform": {
+          "title": "Platform",
+          "links": {
+            "mentoring": "Mentorluk nedir?",
+            "programs": "Programlar",
+            "trainings": "Eğitimler",
+            "announcements": "Duyurular"
+          }
+        },
+        "support": {
+          "title": "Destek",
+          "links": {
+            "help": "Yardım Merkezi",
+            "faq": "Sıkça Sorulan Sorular",
+            "contact": "İletişim"
+          }
+        },
+        "legal": {
+          "title": "Yasal",
+          "links": {
+            "privacy": "Gizlilik",
+            "terms": "Kullanım Koşulları",
+            "kvkk": "KVKK"
+          }
+        }
+      }
+    },
+    "ui": {
+      "open": "Açık",
+      "augustShort": "3 Ağu",
+      "viewDetails": "Detayları görüntüle",
+      "viewAllAnnouncements": "Tüm duyuruları görüntüle",
+      "announcementsEyebrow": "Duyurular",
+      "compareEyebrow": "Karşılaştırma",
+      "whichSupport": "Hangi desteğe ihtiyacım olduğunu nasıl anlarım?",
+      "howEyebrow": "Mentorluk",
+      "supportTopic": "Destek almak istediğin konu",
+      "currentProblem": "Mevcut problemin",
+      "session": "4. seans / 6",
+      "agendaLabel": "Gündem",
+      "faqEyebrow": "SSS",
+      "homeLabel": "menton ana sayfa",
+      "mainMenu": "Ana menü",
+      "howItWorks": "Nasıl işler?",
+      "howTitleStart": "Mentorluk süreci",
+      "howTitleEnd": "nasıl işler?",
+      "howLead": "Mentorluk, girişiminizin karşılaştığı problemleri deneyimli kişilerle değerlendirmenizi, farklı bakış açıları kazanmanızı ve sonraki adımlarınızı netleştirmenizi sağlar.",
+      "howStepsLabel": "Mentorluk adımları",
+      "autoplaying": "Otomatik oynatılıyor · adıma tıklayarak geçebilirsin",
+      "paused": "Duraklatıldı · adımlar arasında tıklayarak gezinebilirsin",
+      "sendRequest": "Talebi gönder",
+      "whyRecommended": "Neden önerildi?",
+      "meetingWhen": "30 Ağustos · 14:00 · 45 dk",
+      "meetingTitle": "Ürün konumlandırma kararları",
+      "stageTasks": "Bu aşamadaki görevlerin",
+      "stageName": "MVP · Value proposition & onboarding",
+      "stageProgress": "Aşama ilerlemesi",
+      "compareTitleStart": "Mentorluk ve eğitim",
+      "compareTitleEnd": "arasındaki fark nedir?",
+      "announcementsTitle": "Son gelişmeler",
+      "announcementsLead": "Programlar, eğitimler ve etkinliklerle ilgili son gelişmeleri takip edin.",
+      "announcementsLabel": "Duyurular (üzerine gelince durur)",
+      "mockApplication": "Başvuru dönemi",
+      "mockTraining": "Grup eğitimi",
+      "mockDocuments": "Başvuru belgeleri",
+      "faqTitleStart": "Sıkça sorulan",
+      "faqTitleEnd": "sorular",
+      "faqLead": "Aradığın cevabı bulamazsan program ekibine platform içinden ulaşabilirsin."
+    }
+  }
+}

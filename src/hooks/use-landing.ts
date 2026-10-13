@@ -10,11 +10,8 @@ import {
   useState,
 } from "react";
 
-import {
-  LANDING_AGENDA,
-  LANDING_STEP_MS,
-  LANDING_TYPED_PROBLEM,
-} from "@/lib/const/landing";
+import { LANDING_STEP_MS } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 function prefersReducedMotion() {
   return (
@@ -120,6 +117,8 @@ export function useLandingHero(stepCount: number) {
  * and pane animations restart.
  */
 export function useLandingSteps(count: number) {
+  const { typedProblem, agenda } = useLandingContent();
+  const agendaCount = agenda.length;
   const stageRef = useRef<HTMLDivElement>(null);
   const stepRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [index, setIndex] = useState(0);
@@ -176,18 +175,18 @@ export function useLandingSteps(count: number) {
     let typedLength = 0;
     const timer = window.setInterval(
       () => {
-        typedLength = still ? LANDING_TYPED_PROBLEM.length : typedLength + 2;
-        setTyped(LANDING_TYPED_PROBLEM.slice(0, typedLength));
-        if (typedLength >= LANDING_TYPED_PROBLEM.length) clearInterval(timer);
+        typedLength = still ? typedProblem.length : typedLength + 2;
+        setTyped(typedProblem.slice(0, typedLength));
+        if (typedLength >= typedProblem.length) clearInterval(timer);
       },
       still ? 0 : 16,
     );
     return () => clearInterval(timer);
-  }, [index, cycle, still]);
+  }, [index, cycle, still, typedProblem]);
 
   useEffect(() => {
     if (index !== 2) return;
-    const timers = LANDING_AGENDA.map((_, item) =>
+    const timers = Array.from({ length: agendaCount }, (_, item) =>
       window.setTimeout(
         () => setChecked(item + 1),
         still ? 0 : 300 + item * 620,
@@ -197,7 +196,7 @@ export function useLandingSteps(count: number) {
       timers.forEach(clearTimeout);
       setChecked(0);
     };
-  }, [index, cycle, still]);
+  }, [index, cycle, still, agendaCount]);
 
   const onKeyDown = (step: number, event: KeyboardEvent<HTMLButtonElement>) => {
     const forward = event.key === "ArrowDown" || event.key === "ArrowRight";

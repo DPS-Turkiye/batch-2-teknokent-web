@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale } from "next-intl/server";
 import { Inter } from "next/font/google";
 
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -24,14 +26,15 @@ export const metadata: Metadata = {
     "ODTÜ Teknokent mentorluk, eğitim ve girişim programları platformu.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
     <html
-      lang="tr"
+      lang={locale}
       className={`h-full antialiased ${inter.variable}`}
       data-scroll-behavior="smooth"
     >
@@ -39,13 +42,15 @@ export default function RootLayout({
         suppressHydrationWarning
         className="flex min-h-full flex-col font-sans"
       >
-        <QueryProvider>
-          <ToastProvider>
-            <DocumentPreviewProvider>
-              <SessionProvider>{children}</SessionProvider>
-            </DocumentPreviewProvider>
-          </ToastProvider>
-        </QueryProvider>
+        <NextIntlClientProvider>
+          <QueryProvider>
+            <ToastProvider>
+              <DocumentPreviewProvider>
+                <SessionProvider>{children}</SessionProvider>
+              </DocumentPreviewProvider>
+            </ToastProvider>
+          </QueryProvider>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

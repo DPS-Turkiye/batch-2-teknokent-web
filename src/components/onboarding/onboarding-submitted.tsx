@@ -9,6 +9,7 @@ import {
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 import { formatDateTime, initials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 interface TimelineRow {
   label: string;
@@ -36,18 +37,19 @@ export function OnboardingSubmittedView({
   onSignOut: () => void;
   signingOut?: boolean;
 }) {
+  const copy = useTranslations("onboarding");
   const theme = ONBOARDING_TONES[tone];
   const stamp = formatDateTime(submittedAt.toISOString());
   const timeline: TimelineRow[] = [
-    { label: "Profil tamamlandı", detail: stamp, icon: theme.timelineDone[0] },
+    { label: copy("completed"), detail: stamp, icon: theme.timelineDone[0] },
     {
-      label: "Koordinatöre gönderildi",
+      label: copy("sent"),
       detail: stamp,
       icon: theme.timelineDone[1],
     },
     {
-      label: "İnceleniyor",
-      detail: "Şu an bu adımdasın",
+      label: copy("reviewing"),
+      detail: copy("youAreHere"),
       icon: theme.timelineCurrent,
       current: true,
     },
@@ -57,7 +59,7 @@ export function OnboardingSubmittedView({
   return (
     <div className="flex min-h-screen flex-col bg-white text-[#22262b]">
       <OnboardingTopbar
-        exitLabel="Çıkış yap"
+        exitLabel={copy("signOut")}
         onExit={onSignOut}
         exiting={signingOut}
       />
@@ -134,7 +136,7 @@ export function OnboardingSubmittedView({
           <p
             className={`text-[10.5px] font-semibold leading-4 ${theme.nextStepsTitle}`}
           >
-            SIRADA NE VAR?
+            {copy("whatsNext")}
           </p>
           <ul className="flex flex-col gap-3">
             {nextSteps.map((item) => (
@@ -156,13 +158,13 @@ export function OnboardingSubmittedView({
             href="/application-status"
             className="rounded-full border border-[#d4d8dd] bg-white px-5 py-[11px] text-[13px] font-medium leading-5 text-[#4a5059] hover:bg-[#f8f9fa]"
           >
-            Gönderilen profili görüntüle
+            {copy("viewSubmitted")}
           </Link>
           <Link
             href="/"
             className={`rounded-full px-5 py-[11px] text-[13px] font-medium leading-5 text-white ${theme.bg} ${theme.bgHover}`}
           >
-            Ana sayfaya dön
+            {copy("backHome")}
           </Link>
         </div>
       </main>

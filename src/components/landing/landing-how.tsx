@@ -4,19 +4,11 @@ import type { CSSProperties } from "react";
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingSteps } from "@/hooks/use-landing";
-import {
-  LANDING_AGENDA,
-  LANDING_HOW_STEPS,
-  LANDING_MATCH_REASON,
-  LANDING_MATCHES,
-  LANDING_MENTOR_STEPS,
-  LANDING_STAGE_ROLES,
-  LANDING_STEP_MS,
-  LANDING_TASKS,
-  LANDING_TOPIC_CHIPS,
-} from "@/lib/const/landing";
+import { LANDING_MENTOR_STEPS, LANDING_STEP_MS } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 export function LandingHow() {
+  const landing = useLandingContent();
   const {
     stageRef,
     stepRefs,
@@ -28,32 +20,30 @@ export function LandingHow() {
     show,
     onKeyDown,
     togglePlay,
-  } = useLandingSteps(LANDING_HOW_STEPS.length);
+  } = useLandingSteps(landing.howSteps.length);
   const paneClass = (pane: number) => cx("pane", current === pane && "on");
   const role = LANDING_MENTOR_STEPS.has(current)
-    ? LANDING_STAGE_ROLES.mentor
-    : LANDING_STAGE_ROLES.mentee;
+    ? landing.stageRoles.mentor
+    : landing.stageRoles.mentee;
 
   return (
     <section className={cx("how")} id="nasil">
       <div className={cx("wrap")}>
         <div className={cx("sec-head")}>
-          <div className={cx("eyebrow", "rv")}>Mentorluk</div>
+          <div className={cx("eyebrow", "rv")}>{landing.ui.howEyebrow}</div>
           <h2 className={cx("h2", "rvt")}>
             <span className={cx("mask")}>
-              <span>Mentorluk süreci</span>
+              <span>{landing.ui.howTitleStart}</span>
             </span>{" "}
             <span className={cx("mask")}>
-              <span>nasıl işler?</span>
+              <span>{landing.ui.howTitleEnd}</span>
             </span>
           </h2>
           <p
             className={cx("lead", "rv")}
             style={{ "--d": "120ms" } as CSSProperties}
           >
-            Mentorluk, girişiminizin karşılaştığı problemleri deneyimli
-            kişilerle değerlendirmenizi, farklı bakış açıları kazanmanızı ve
-            sonraki adımlarınızı netleştirmenizi sağlar.
+            {landing.ui.howLead}
           </p>
         </div>
         <div className={cx("how-grid")} data-role={role.key}>
@@ -65,9 +55,9 @@ export function LandingHow() {
               <div
                 className={cx("steps")}
                 role="tablist"
-                aria-label="Mentorluk adımları"
+                aria-label={landing.ui.howStepsLabel}
               >
-                {LANDING_HOW_STEPS.map((step, index) => {
+                {landing.howSteps.map((step, index) => {
                   const on = current === index;
                   return (
                     <button
@@ -121,9 +111,7 @@ export function LandingHow() {
                   </svg>
                 </button>
                 <span>
-                  {playing
-                    ? "Otomatik oynatılıyor · adıma tıklayarak geçebilirsin"
-                    : "Duraklatıldı · adımlar arasında tıklayarak gezinebilirsin"}
+                  {playing ? landing.ui.autoplaying : landing.ui.paused}
                 </span>
               </div>
             </div>
@@ -150,9 +138,9 @@ export function LandingHow() {
               aria-labelledby="st-0"
             >
               <div className={cx("gcard")}>
-                <div className={cx("glab")}>Destek almak istediğin konu</div>
+                <div className={cx("glab")}>{landing.ui.supportTopic}</div>
                 <div className={cx("chips")}>
-                  {LANDING_TOPIC_CHIPS.map((chip) => (
+                  {landing.topicChips.map((chip) => (
                     <span
                       key={chip.label}
                       className={cx("c", chip.selected && "sel")}
@@ -163,11 +151,11 @@ export function LandingHow() {
                 </div>
               </div>
               <div className={cx("gcard")}>
-                <div className={cx("glab")}>Mevcut problemin</div>
+                <div className={cx("glab")}>{landing.ui.currentProblem}</div>
                 <div className={cx("type")}>{typed}</div>
                 <div className={cx("sendrow")}>
                   <span className={cx("mini-btn")}>
-                    Talebi gönder <ArrowIcon size={14} />
+                    {landing.ui.sendRequest} <ArrowIcon size={14} />
                   </span>
                 </div>
               </div>
@@ -180,7 +168,7 @@ export function LandingHow() {
               aria-labelledby="st-1"
             >
               <div className={cx("mrows")}>
-                {LANDING_MATCHES.map((match) => (
+                {landing.matches.map((match) => (
                   <div
                     key={match.name}
                     className={cx("mrow", match.selected && "sel")}
@@ -203,8 +191,8 @@ export function LandingHow() {
                 ))}
               </div>
               <div className={cx("why")}>
-                <b>Neden önerildi?</b>
-                {LANDING_MATCH_REASON}
+                <b>{landing.ui.whyRecommended}</b>
+                {landing.matchReason}
               </div>
             </div>
 
@@ -217,14 +205,14 @@ export function LandingHow() {
               <div className={cx("gcard")}>
                 <div className={cx("head2")}>
                   <div>
-                    <small>30 Ağustos · 14:00 · 45 dk</small>
-                    <b>Ürün konumlandırma kararları</b>
+                    <small>{landing.ui.meetingWhen}</small>
+                    <b>{landing.ui.meetingTitle}</b>
                   </div>
-                  <span className={cx("pill", "or")}>4. seans / 6</span>
+                  <span className={cx("pill", "or")}>{landing.ui.session}</span>
                 </div>
-                <div className={cx("glab")}>Gündem</div>
+                <div className={cx("glab")}>{landing.ui.agendaLabel}</div>
                 <ul className={cx("ag")}>
-                  {LANDING_AGENDA.map((item, index) => (
+                  {landing.agenda.map((item, index) => (
                     <li key={item} className={cx(index < checked && "ck")}>
                       <span className={cx("bx")}>
                         <CheckIcon size={12} strokeWidth={3} />
@@ -245,12 +233,12 @@ export function LandingHow() {
               <div className={cx("gcard")}>
                 <div className={cx("head2")}>
                   <div>
-                    <small>Bu aşamadaki görevlerin</small>
-                    <b>MVP · Value proposition &amp; onboarding</b>
+                    <small>{landing.ui.stageTasks}</small>
+                    <b>{landing.ui.stageName}</b>
                   </div>
                   <span className={cx("pill", "ok")}>3 / 4</span>
                 </div>
-                {LANDING_TASKS.map((task) => (
+                {landing.tasks.map((task) => (
                   <div key={task.title} className={cx("task")}>
                     <div className={cx("who")}>
                       {task.title}
@@ -263,7 +251,7 @@ export function LandingHow() {
                   <i />
                 </div>
                 <div className={cx("prow")}>
-                  <span>Aşama ilerlemesi</span>
+                  <span>{landing.ui.stageProgress}</span>
                   <span>%75</span>
                 </div>
               </div>

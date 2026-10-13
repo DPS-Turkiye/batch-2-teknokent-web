@@ -3,20 +3,22 @@ import type { CSSProperties } from "react";
 
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
-import { LANDING_ANNOUNCEMENTS, LANDING_PHOTOS } from "@/lib/const/landing";
+import { LANDING_PHOTOS } from "@/lib/const/landing";
 import { type LandingAnnouncement, LandingMock } from "@/types/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 const CALENDAR_DAYS = 21;
 const CALENDAR_TODAY = 12;
 const CALENDAR_RANGE_END = 19;
 
 function Mock({ mock }: { mock: LandingMock }) {
+  const landing = useLandingContent();
   if (mock === LandingMock.Calendar) {
     return (
       <div className={cx("mock")}>
         <div className={cx("mh")}>
-          <span>Başvuru dönemi</span>
-          <span className={cx("pill", "or")}>Açık</span>
+          <span>{landing.ui.mockApplication}</span>
+          <span className={cx("pill", "or")}>{landing.ui.open}</span>
         </div>
         <div className={cx("cal")}>
           {Array.from({ length: CALENDAR_DAYS }, (_, day) => (
@@ -37,8 +39,8 @@ function Mock({ mock }: { mock: LandingMock }) {
     return (
       <div className={cx("mock")}>
         <div className={cx("mh")}>
-          <span>Grup eğitimi</span>
-          <span className={cx("pill", "bl")}>3 Ağu</span>
+          <span>{landing.ui.mockTraining}</span>
+          <span className={cx("pill", "bl")}>{landing.ui.augustShort}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <div className={cx("avs")}>
@@ -57,7 +59,7 @@ function Mock({ mock }: { mock: LandingMock }) {
   return (
     <div className={cx("mock")}>
       <div className={cx("mh")}>
-        <span>Başvuru belgeleri</span>
+        <span>{landing.ui.mockDocuments}</span>
         <span className={cx("pill")}>2 / 3</span>
       </div>
       {["100%", "70%", "50%"].map((width, row) => (
@@ -79,6 +81,7 @@ function AnnouncementCard({
   item: LandingAnnouncement;
   hidden: boolean;
 }) {
+  const landing = useLandingContent();
   return (
     <article className={cx("acard")} aria-hidden={hidden || undefined}>
       <div
@@ -102,7 +105,7 @@ function AnnouncementCard({
           href="#duyurular"
           tabIndex={hidden ? -1 : undefined}
         >
-          Detayları görüntüle <ArrowIcon />
+          {landing.ui.viewDetails} <ArrowIcon />
         </a>
       </div>
     </article>
@@ -111,36 +114,35 @@ function AnnouncementCard({
 
 /** The track holds the list four times over: two visible copies and two for the seamless loop. */
 export function LandingAnnouncements() {
+  const landing = useLandingContent();
   const rows = [false, false, true, true];
   return (
     <section className={cx("ann")} id="duyurular">
       <div className={cx("wrap", "ann-head")}>
         <div className={cx("sec-head")}>
-          <div className={cx("eyebrow", "rv")}>Duyurular</div>
+          <div className={cx("eyebrow", "rv")}>
+            {landing.ui.announcementsEyebrow}
+          </div>
           <h2 className={cx("h2", "rvt")}>
             <span className={cx("mask")}>
-              <span>Son gelişmeler</span>
+              <span>{landing.ui.announcementsTitle}</span>
             </span>
           </h2>
           <p
             className={cx("lead", "rv")}
             style={{ "--d": "120ms" } as CSSProperties}
           >
-            Programlar, eğitimler ve etkinliklerle ilgili son gelişmeleri takip
-            edin.
+            {landing.ui.announcementsLead}
           </p>
         </div>
         <a className={cx("link", "rv")} href="#duyurular">
-          Tüm duyuruları görüntüle <ArrowIcon />
+          {landing.ui.viewAllAnnouncements} <ArrowIcon />
         </a>
       </div>
-      <div
-        className={cx("marquee")}
-        aria-label="Duyurular (üzerine gelince durur)"
-      >
+      <div className={cx("marquee")} aria-label={landing.ui.announcementsLabel}>
         <div className={cx("track")}>
           {rows.flatMap((hidden, copy) =>
-            LANDING_ANNOUNCEMENTS.map((item) => (
+            landing.announcements.map((item) => (
               <AnnouncementCard
                 key={`${copy}-${item.title}`}
                 item={item}

@@ -26,12 +26,11 @@ import {
   TAGLINE_MAX_LENGTH,
 } from "@/interfaces/signup";
 import { initials } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const theme = ONBOARDING_TONES[TONE];
 const inputClass = `${onboardingInputClass} ${theme.focus}`;
-/** "Bağımsız" is the no-program answer, sent as a null program id. */
-const INDEPENDENT = "Bağımsız";
 
 function Avatar({ name }: { name: string }) {
   return (
@@ -45,6 +44,10 @@ function Avatar({ name }: { name: string }) {
 }
 
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
+  const t = useTranslations();
+  const copy = useTranslations("signupSteps");
+  // The no-program answer, sent as a null program id.
+  const INDEPENDENT = copy("independent");
   const {
     draft,
     updateStartup,
@@ -75,17 +78,17 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
 
   return (
     <>
-      <OnboardingCard title="Temel bilgiler">
+      <OnboardingCard title={copy("basics")}>
         <div className="flex items-center gap-4">
           <OnboardingImagePicker
-            label="Startup logosu"
-            placeholder="Logo"
+            label={copy("logo")}
+            placeholder={copy("logoPlaceholder")}
             file={startup.logo}
             onChange={(file) => updateStartup("logo", file)}
           />
           <OnboardingField
             id="signup-startup-name"
-            label="Startup adı"
+            label={copy("startupName")}
             required
             tone={TONE}
           >
@@ -99,7 +102,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         </div>
         <OnboardingField
           id="signup-tagline"
-          label="Tek satırlık tanım"
+          label={copy("oneLiner")}
           required
           tone={TONE}
         >
@@ -112,23 +115,27 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           />
         </OnboardingField>
         <OnboardingCounter
-          hint="Mentor havuzunda startupının altında bu cümle görünür"
+          hint={copy("oneLinerHint")}
           length={startup.tagline.length}
           max={TAGLINE_MAX_LENGTH}
         />
         <div className="flex flex-col gap-3.5 sm:flex-row">
-          <OnboardingField id="signup-website" label="Web sitesi" tone={TONE}>
+          <OnboardingField
+            id="signup-website"
+            label={copy("website")}
+            tone={TONE}
+          >
             <input
               id="signup-website"
               className={inputClass}
-              placeholder="ornek.com"
+              placeholder={copy("websitePlaceholder")}
               value={startup.website}
               onChange={(event) => updateStartup("website", event.target.value)}
             />
           </OnboardingField>
           <OnboardingField
             id="signup-founded-year"
-            label="Kuruluş yılı"
+            label={copy("foundedYear")}
             tone={TONE}
           >
             <input
@@ -150,29 +157,29 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title="Program ve aşama"
-        subtitle="Doğru mentorla eşleşmen için en belirleyici iki bilgi."
+        title={copy("programAndStage")}
+        subtitle={copy("programAndStageSubtitle")}
       >
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          Program
+          {copy("program")}
         </p>
         {programs.isLoading ? (
-          <p className="text-xs text-[#676e78]">Programlar yükleniyor…</p>
+          <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
         ) : (
           <OnboardingChips
             tone={TONE}
-            label="Program"
+            label={copy("program")}
             options={programOptions}
             selected={selectedProgram ? [selectedProgram] : []}
             onToggle={chooseProgram}
           />
         )}
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          Girişim aşaması
+          {copy("stage")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label="Girişim aşaması"
+          label={copy("stage")}
           options={STARTUP_STAGE_OPTIONS}
           selected={
             startup.maturity
@@ -194,12 +201,12 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title="Ekip"
-        subtitle="Ekip üyeleri startup profilinde listelenir. Davet koduyla katıldıklarında hesaplarına bağlanır."
+        title={copy("team")}
+        subtitle={copy("teamSubtitle")}
         action={
           memberForm.open ? null : (
             <OnboardingTextAction tone={TONE} onClick={memberForm.openForm}>
-              + Üye ekle
+              {copy("addMember")}
             </OnboardingTextAction>
           )
         }
@@ -218,8 +225,8 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         {startup.teamMembers.map((member, index) => (
           <OnboardingListRow
             key={`${member.fullName}-${index}`}
-            actionLabel="Kaldır"
-            actionAriaLabel={`${member.fullName} üyesini kaldır`}
+            actionLabel={copy("remove")}
+            actionAriaLabel={copy("removeMember", { name: member.fullName })}
             onAction={() => removeTeamMember(index)}
           >
             <Avatar name={member.fullName} />
@@ -239,7 +246,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             <div className="flex flex-col gap-3 sm:flex-row">
               <OnboardingField
                 id="team-member-name"
-                label="Ad soyad"
+                label={copy("memberName")}
                 required
                 tone={TONE}
               >
@@ -252,7 +259,11 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
                   }
                 />
               </OnboardingField>
-              <OnboardingField id="team-member-role" label="Rol" tone={TONE}>
+              <OnboardingField
+                id="team-member-role"
+                label={copy("memberRole")}
+                tone={TONE}
+              >
                 <input
                   id="team-member-role"
                   className={inputClass}
@@ -263,7 +274,11 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
                 />
               </OnboardingField>
             </div>
-            <OnboardingField id="team-member-email" label="E-posta" tone={TONE}>
+            <OnboardingField
+              id="team-member-email"
+              label={t("auth.email")}
+              tone={TONE}
+            >
               <input
                 id="team-member-email"
                 type="email"
@@ -285,14 +300,14 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
                 onClick={memberForm.cancel}
                 className="rounded-full px-4 py-2 text-[12.5px] font-medium text-[#4a5059] hover:bg-[#f8f9fa]"
               >
-                Vazgeç
+                {copy("cancel")}
               </button>
               <button
                 type="button"
                 onClick={memberForm.submit}
                 className={`rounded-full px-4 py-2 text-[12.5px] font-medium text-white ${theme.bg} ${theme.bgHover}`}
               >
-                Ekle
+                {copy("add")}
               </button>
             </div>
           </div>
@@ -300,12 +315,12 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingCard
-        title="Mentor desteği istediğin alanlar"
-        subtitle={`En fazla ${MAX_SUPPORT_AREAS} alan seç. Mentor önerileri buna göre sıralanır.`}
+        title={copy("supportAreas")}
+        subtitle={copy("supportAreasSubtitle", { max: MAX_SUPPORT_AREAS })}
       >
         <OnboardingChips
           tone={TONE}
-          label="Mentor desteği istediğin alanlar"
+          label={copy("supportAreas")}
           options={SUPPORT_AREA_OPTIONS}
           selected={
             startup.supportAreas as (typeof SUPPORT_AREA_OPTIONS)[number][]
@@ -314,8 +329,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         />
         {wizard.supportAreaLimitReached ? (
           <OnboardingNote>
-            En fazla {MAX_SUPPORT_AREAS} alan seçebilirsin. Değiştirmek için
-            birini kaldır.
+            {copy("supportAreasLimit", { max: MAX_SUPPORT_AREAS })}
           </OnboardingNote>
         ) : null}
       </OnboardingCard>

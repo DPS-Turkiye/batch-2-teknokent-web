@@ -3,13 +3,14 @@ import Link from "next/link";
 import { ArrowIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingPointerEffects } from "@/hooks/use-landing";
-import { LANDING_CTA } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 export function LandingCta({
   login,
 }: {
   login: { href: string; label: string };
 }) {
+  const landing = useLandingContent();
   const pointer = useLandingPointerEffects();
   return (
     <section className={cx("cta")}>
@@ -17,8 +18,8 @@ export function LandingCta({
         <div className={cx("cta-box", "rv")} onPointerMove={pointer.spotlight}>
           <div className={cx("spot")} />
           <div className={cx("grain")} style={{ zIndex: -1, opacity: 0.35 }} />
-          <h2>{LANDING_CTA.title}</h2>
-          <p>{LANDING_CTA.text}</p>
+          <h2>{landing.cta.title}</h2>
+          <p>{landing.cta.text}</p>
           <div className={cx("row")}>
             <Link
               className={cx("btn", "btn-white")}
@@ -34,7 +35,7 @@ export function LandingCta({
               onPointerMove={pointer.magnet}
               onPointerLeave={pointer.reset}
             >
-              Nasıl işler?
+              {landing.ui.howItWorks}
             </a>
           </div>
         </div>

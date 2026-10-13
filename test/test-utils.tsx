@@ -4,6 +4,9 @@ import type { ReactElement, ReactNode } from "react";
 import { vi } from "vitest";
 import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
+import { NextIntlClientProvider } from "next-intl";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 
 /**
  * Fixes "now" for code that checks how far away a time is. Only Date is faked, so
@@ -44,4 +47,22 @@ export function renderWithQueryClient(
     queryClient,
     ...render(ui, { wrapper: Wrapper, ...options }),
   };
+}
+
+/** Renders its children in the given language, the way the root layout's provider does. */
+export function InLocale({
+  locale,
+  children,
+}: {
+  locale: "tr" | "en";
+  children: ReactNode;
+}) {
+  return (
+    <NextIntlClientProvider
+      locale={locale}
+      messages={locale === "en" ? en : tr}
+    >
+      {children}
+    </NextIntlClientProvider>
+  );
 }

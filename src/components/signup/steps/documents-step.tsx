@@ -14,6 +14,7 @@ import {
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { StartupDocumentKind } from "@/interfaces/signup";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
@@ -21,27 +22,28 @@ const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
 const FILE_CARDS: {
   kind: StartupDocumentKind;
   title: string;
-  subtitle: string;
+  subtitle: "canvasSubtitle" | "pitchSubtitle";
   accept: string;
-  helpText: string;
+  helpText: "canvasHelp" | "pitchHelp";
 }[] = [
   {
     kind: StartupDocumentKind.Canvas,
     title: "Business Model Canvas",
-    subtitle: "İş modelini tek sayfada özetleyen doküman.",
+    subtitle: "canvasSubtitle",
     accept: ".pdf,.docx",
-    helpText: "PDF veya DOCX · en fazla 25 MB",
+    helpText: "canvasHelp",
   },
   {
     kind: StartupDocumentKind.PitchDeck,
     title: "Pitch Deck",
-    subtitle: "Sunum dosyan. Mentorun startupını hızlıca anlamasını sağlar.",
+    subtitle: "pitchSubtitle",
     accept: ".pdf,.pptx",
-    helpText: "PDF veya PPTX · en fazla 25 MB",
+    helpText: "pitchHelp",
   },
 ];
 
 export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
+  const copy = useTranslations("signupDocuments");
   const { draft, setDocument, setMvpUrl } = wizard;
   const stored = useStoredDocuments();
 
@@ -51,34 +53,31 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
         <OnboardingCard
           key={card.kind}
           title={card.title}
-          subtitle={card.subtitle}
+          subtitle={copy(card.subtitle)}
         >
           <OnboardingFileField
-            label={`${card.title} dosyası seç`}
+            label={copy("pickFile", { title: card.title })}
             file={draft.documents[card.kind] ?? null}
             onChange={(file) => setDocument(card.kind, file)}
             accept={card.accept}
-            helpText={card.helpText}
+            helpText={copy(card.helpText)}
             storedName={stored.byKind(card.kind)?.originalFilename ?? null}
           />
         </OnboardingCard>
       ))}
 
-      <OnboardingCard
-        title="MVP / Prototip"
-        subtitle="Yayındaki ürünün bağlantısı ya da prototip dosyası."
-      >
-        <OnboardingField id="signup-mvp-url" label="Bağlantı" tone={TONE}>
+      <OnboardingCard title={copy("mvpTitle")} subtitle={copy("mvpSubtitle")}>
+        <OnboardingField id="signup-mvp-url" label={copy("link")} tone={TONE}>
           <input
             id="signup-mvp-url"
             className={inputClass}
-            placeholder="ornek.app veya Figma prototip linki"
+            placeholder={copy("mvpPlaceholder")}
             value={draft.mvpUrl}
             onChange={(event) => setMvpUrl(event.target.value)}
           />
         </OnboardingField>
         <OnboardingFileField
-          label="MVP / Prototip dosyası seç"
+          label={copy("mvpPick")}
           file={draft.documents[StartupDocumentKind.Mvp] ?? null}
           onChange={(file) => setDocument(StartupDocumentKind.Mvp, file)}
           accept=".pdf,.docx,.pptx"
@@ -90,8 +89,7 @@ export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
       </OnboardingCard>
 
       <OnboardingNote icon="/onboarding/info-done.svg">
-        Şimdi yüklemek zorunda değilsin. Startup profilin onaylandıktan sonra da
-        dosya ekleyebilirsin.
+        {copy("optionalNote")}
       </OnboardingNote>
     </>
   );

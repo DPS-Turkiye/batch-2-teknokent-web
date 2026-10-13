@@ -26,6 +26,7 @@ import {
   MEETING_FORMAT_OPTIONS,
   RESPONSE_TIME_OPTIONS,
 } from "@/interfaces/mentor-onboarding";
+import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 const focus = ONBOARDING_TONES[TONE].focus;
@@ -55,14 +56,15 @@ export function MentorAvailabilityStep({
 }: {
   wizard: MentorOnboarding;
 }) {
+  const copy = useTranslations("mentorAvailability");
   const { draft, update, updateDay } = wizard;
 
   return (
     <>
       <OnboardingCard
         rounded="rounded-xl"
-        title="Haftalık uygunluk"
-        subtitle="Tekrarlayan uygunluk. Tek seferlik değişiklikleri sonradan takvimden yapabilirsin."
+        title={copy("weekly")}
+        subtitle={copy("weeklySubtitle")}
       >
         <ul className="flex flex-col gap-4">
           {WEEKDAY_ORDER.map((day) => {
@@ -80,7 +82,7 @@ export function MentorAvailabilityStep({
                 <div className="flex items-center gap-3">
                   <ToggleSwitch
                     checked={slot.enabled}
-                    label={`${WEEKDAY_LABELS[day]} uygun`}
+                    label={copy("dayAvailable", { day: WEEKDAY_LABELS[day] })}
                     onChange={() => updateDay(day, { enabled: !slot.enabled })}
                   />
                   <span
@@ -96,7 +98,9 @@ export function MentorAvailabilityStep({
                     <input
                       type="time"
                       step={900}
-                      aria-label={`${WEEKDAY_LABELS[day]} başlangıç`}
+                      aria-label={copy("dayStart", {
+                        day: WEEKDAY_LABELS[day],
+                      })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.start}
                       onChange={(event) =>
@@ -107,7 +111,7 @@ export function MentorAvailabilityStep({
                     <input
                       type="time"
                       step={900}
-                      aria-label={`${WEEKDAY_LABELS[day]} bitiş`}
+                      aria-label={copy("dayEnd", { day: WEEKDAY_LABELS[day] })}
                       className={`${smallInput} w-[84px] text-center`}
                       value={slot.end}
                       onChange={(event) =>
@@ -120,7 +124,7 @@ export function MentorAvailabilityStep({
                 )}
                 {invalid ? (
                   <p role="alert" className="w-full text-xs text-[#b42318]">
-                    Bitiş saati başlangıçtan sonra olmalı.
+                    {copy("endAfterStart")}
                   </p>
                 ) : null}
               </li>
@@ -131,10 +135,10 @@ export function MentorAvailabilityStep({
 
       <OnboardingCard
         rounded="rounded-xl"
-        title="Kapasite"
-        subtitle="Aynı anda kaç startupla çalışabileceğini belirle. Limit dolduğunda yeni talep gelmez."
+        title={copy("capacity")}
+        subtitle={copy("capacitySubtitle")}
       >
-        <SettingRow id="mentor-capacity" label="Eş zamanlı mentorluk limiti">
+        <SettingRow id="mentor-capacity" label={copy("capacityLimit")}>
           <div className="flex items-center gap-2">
             <input
               id="mentor-capacity"
@@ -157,11 +161,11 @@ export function MentorAvailabilityStep({
               }
             />
             <span className="text-[12.5px] font-medium text-[#22262b]">
-              startup
+              {copy("startupUnit")}
             </span>
           </div>
         </SettingRow>
-        <SettingRow id="mentor-duration" label="Varsayılan görüşme süresi">
+        <SettingRow id="mentor-duration" label={copy("duration")}>
           <select
             id="mentor-duration"
             className={`${smallInput} w-full`}
@@ -177,7 +181,7 @@ export function MentorAvailabilityStep({
             ))}
           </select>
         </SettingRow>
-        <SettingRow id="mentor-frequency" label="Görüşme sıklığı tercihin">
+        <SettingRow id="mentor-frequency" label={copy("frequency")}>
           <select
             id="mentor-frequency"
             className={`${smallInput} w-full`}
@@ -193,7 +197,7 @@ export function MentorAvailabilityStep({
             ))}
           </select>
         </SettingRow>
-        <SettingRow id="mentor-buffer" label="İki görüşme arası tampon">
+        <SettingRow id="mentor-buffer" label={copy("buffer")}>
           <select
             id="mentor-buffer"
             className={`${smallInput} w-full`}
@@ -211,26 +215,23 @@ export function MentorAvailabilityStep({
         </SettingRow>
       </OnboardingCard>
 
-      <OnboardingCard
-        rounded="rounded-xl"
-        title="Görüşme formatı ve yanıt süresi"
-      >
+      <OnboardingCard rounded="rounded-xl" title={copy("formatTitle")}>
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          Format
+          {copy("format")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label="Görüşme formatı"
+          label={copy("formatLabel")}
           options={MEETING_FORMAT_OPTIONS}
           selected={[draft.format as (typeof MEETING_FORMAT_OPTIONS)[number]]}
           onToggle={(value) => update("format", value)}
         />
         <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          Taleplere genellikle ne kadar sürede yanıt verirsin?
+          {copy("responseQuestion")}
         </p>
         <OnboardingChips
           tone={TONE}
-          label="Yanıt süresi"
+          label={copy("responseLabel")}
           options={RESPONSE_TIME_OPTIONS}
           selected={[
             draft.responseTime as (typeof RESPONSE_TIME_OPTIONS)[number],

@@ -1,28 +1,26 @@
 import { cx } from "@/components/landing/landing-styles";
 import type { useLandingFaq } from "@/hooks/use-landing";
-import { LANDING_FAQS } from "@/lib/const/landing";
+import { useLandingContent } from "@/hooks/use-landing-content";
 
 export function LandingFaq({ faq }: { faq: ReturnType<typeof useLandingFaq> }) {
+  const landing = useLandingContent();
   return (
     <section id="sss" className={cx("faq-section")}>
       <div className={cx("wrap", "faq-grid")}>
         <div className={cx("faq-side")}>
-          <div className={cx("eyebrow", "rv")}>SSS</div>
+          <div className={cx("eyebrow", "rv")}>{landing.ui.faqEyebrow}</div>
           <h2 className={cx("h2", "rvt")}>
             <span className={cx("mask")}>
-              <span>Sıkça sorulan</span>
+              <span>{landing.ui.faqTitleStart}</span>
             </span>{" "}
             <span className={cx("mask")}>
-              <span>sorular</span>
+              <span>{landing.ui.faqTitleEnd}</span>
             </span>
           </h2>
-          <p className={cx("lead", "rv")}>
-            Aradığın cevabı bulamazsan program ekibine platform içinden
-            ulaşabilirsin.
-          </p>
+          <p className={cx("lead", "rv")}>{landing.ui.faqLead}</p>
         </div>
         <div className={cx("faq", "rv")}>
-          {LANDING_FAQS.map((item, index) => {
+          {landing.faqs.map((item, index) => {
             const open = faq.isOpen(index);
             return (
               <div key={item.question} className={cx("q", open && "open")}>

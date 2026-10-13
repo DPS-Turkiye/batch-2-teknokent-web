@@ -7,7 +7,9 @@ import {
   reloadAndCheckEmailVerified,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
+import { InLocale } from "@test/test-utils";
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 vi.mock("@/lib/firebase/auth", () => ({
   reloadAndCheckEmailVerified: vi.fn(),
   resendVerificationEmail: vi.fn(),
@@ -36,6 +38,26 @@ describe("VerifyEmailView", () => {
       expect(resendVerificationEmail).toHaveBeenCalledTimes(1),
     );
     expect(screen.getByRole("status")).toHaveTextContent(/yeniden gönderdik/);
+  });
+
+  it("reads in English when that is the chosen language", () => {
+    render(
+      <InLocale locale="en">
+        <VerifyEmailView email="gulse@dongu.co" onVerified={vi.fn()} />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Verify your email" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/We sent a verification link to/),
+    ).toHaveTextContent(
+      "We sent a verification link to gulse@dongu.co. Click the link in the email to continue.",
+    );
+    expect(
+      screen.getByRole("button", { name: "Send again" }),
+    ).toBeInTheDocument();
   });
 
   it("continues only after Firebase says the address is verified", async () => {

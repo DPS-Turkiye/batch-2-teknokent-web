@@ -1,0 +1,669 @@
+{
+  "language": {
+    "label": "Language",
+    "tr": "Türkçe",
+    "en": "English"
+  },
+  "login": {
+    "title": "Welcome to Menton",
+    "email": "Email",
+    "emailPlaceholder": "name@email.com",
+    "password": "Password",
+    "forgotPassword": "Forgot password?",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "newHere": "New to Menton?",
+    "signUp": "Sign up",
+    "invite": "Got an invitation? Continue with your invite code"
+  },
+  "auth": {
+    "firstName": "First name",
+    "firstNamePlaceholder": "Your first name",
+    "lastName": "Last name",
+    "lastNamePlaceholder": "Your last name",
+    "email": "Email",
+    "emailPlaceholder": "name@email.com",
+    "phone": "Phone",
+    "password": "Password",
+    "passwordConfirm": "Confirm password",
+    "passwordConfirmPlaceholder": "Repeat your password",
+    "passwordsMismatch": "Passwords do not match.",
+    "creatingAccount": "Creating your account…",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "signIn": "Sign in",
+    "shellImageAlt": "Find the right mentor with menton"
+  },
+  "register": {
+    "titleMentor": "Join menton as a mentor",
+    "titleStartup": "Join menton with your startup",
+    "submit": "Create account and continue",
+    "howItWorks": "How does it work?",
+    "haveAccount": "Already have an account?",
+    "menteeSteps": [
+      "Create your account",
+      "Verify your email",
+      "Complete your startup profile",
+      "Wait for coordinator approval"
+    ],
+    "mentorSteps": [
+      "Create your account",
+      "Verify your email",
+      "Build your mentor profile from your CV",
+      "Start matching once you are approved"
+    ]
+  },
+  "invite": {
+    "title": "Join your team with an invite code",
+    "intro": "You get the code from your startup's founder. Accounts created with a code do not need separate approval.",
+    "code": "Invite code",
+    "submit": "Join the team",
+    "noCode": "No invite code?",
+    "backToLogin": "Back to sign in"
+  },
+  "verifyEmail": {
+    "title": "Verify your email",
+    "sentBefore": "We sent a verification link to ",
+    "sentAfter": ". Click the link in the email to continue.",
+    "notVerified": "Your email is not verified yet. Click the link in the email and try again.",
+    "resent": "We sent the verification email again.",
+    "checking": "Checking…",
+    "confirm": "I've verified my email, continue",
+    "resending": "Sending…",
+    "resend": "Send again"
+  },
+  "applicationTimeline": {
+    "completed": "Profile completed",
+    "sent": "Sent to the coordinator",
+    "reviewed": "Reviewed",
+    "active": "Startup active",
+    "approvedDetail": "Your profile was approved. Sign in to open your workspace.",
+    "rejected": "Application not approved",
+    "rejectedDetail": "The coordinator did not approve your application. Write to info@metu.edu.tr for details.",
+    "willActivate": "Startup will become active",
+    "reviewing": "Under review",
+    "reviewingDetail": "Coordinators review your profile. This usually takes 1–3 business days."
+  },
+  "submittedProfile": {
+    "title": "Submitted profile",
+    "loading": "Loading…",
+    "unavailable": "The submitted profile cannot be read right now.",
+    "fullName": "Full name",
+    "startup": "Startup",
+    "role": "Role / title",
+    "linkedin": "LinkedIn",
+    "bio": "Short bio",
+    "contact": "Contact preference",
+    "files": "Files"
+  },
+  "roleSelect": {
+    "title": "How would you like to join menton?",
+    "intro": "Your choice sets up your account. You can change it later.",
+    "setupSteps": "Setup steps",
+    "haveCode": "Have an invite code?",
+    "codeLink": "Continue straight away with your code.",
+    "exit": "Sign out",
+    "cards": {
+      "founder": {
+        "badge": "Founder",
+        "title": "I want to join with my startup",
+        "description": "You create your personal and startup profiles; after coordinator approval you get access to the mentor pool.",
+        "steps": [
+          "Personal profile",
+          "Startup profile and team",
+          "Canvas, pitch deck, prototype",
+          "Coordinator approval"
+        ],
+        "action": "Continue as a founder"
+      },
+      "mentor": {
+        "badge": "Mentor",
+        "title": "I want to become a mentor",
+        "description": "You set your areas of expertise and availability, and matching startups send you mentorship requests.",
+        "steps": [
+          "Expertise profile",
+          "Mentorship areas",
+          "Weekly availability and capacity",
+          "Coordinator approval"
+        ],
+        "action": "Continue as a mentor"
+      }
+    }
+  },
+  "signupFlow": {
+    "resumeTitle": "Complete your mentor account",
+    "resumeIntro": "Complete your account details before opening your mentor profile.",
+    "fullName": "Full name",
+    "resumeSubmit": "Continue to mentor profile",
+    "checkingSession": "Checking your session…",
+    "preparingMentor": "Preparing your mentor account…",
+    "retry": "Try again"
+  },
+  "signupWizard": {
+    "steps": {
+      "personal": {
+        "title": "Create your personal profile",
+        "subtitle": "Mentors will get to know you through this. You can edit it later.",
+        "railTitle": "Your personal profile",
+        "railHint": "Mentors get to know you through this"
+      },
+      "startup": {
+        "title": "Create your startup profile",
+        "subtitle": "Coordinators and mentors will get to know your startup on this page.",
+        "railTitle": "Your startup profile",
+        "railHint": "Seen by coordinators and mentors"
+      },
+      "documents": {
+        "title": "Upload your files",
+        "subtitle": "All optional. What you upload makes the first meeting much faster.",
+        "railTitle": "Files",
+        "railHint": "Canvas, pitch deck, prototype"
+      },
+      "review": {
+        "title": "Review and submit",
+        "subtitle": "Check your details before sending them to the coordinator. After sending, changes may need an edit request.",
+        "railTitle": "Review and submit",
+        "railHint": "Goes to coordinator approval"
+      }
+    },
+    "railNote": "Your personal profile is only seen by the mentors you match with and the program coordinator.",
+    "nextSteps": [
+      "If approved, your startup appears in the mentor pool and you can send requests to mentors.",
+      "If changes are requested, you get an email; the requested fields are marked in your profile.",
+      "While the review is in progress you cannot make big profile changes, but you can keep adding files."
+    ],
+    "submittedTitle": "{name} profile sent to the coordinator",
+    "submittedFallbackName": "Startup",
+    "lastStepLabel": "Your startup profile goes live",
+    "saveAndExit": "Save and exit",
+    "sending": "Sending…",
+    "sendToCoordinator": "Send to coordinator",
+    "continue": "Continue",
+    "draftSaved": "Draft saved."
+  },
+  "signupSteps": {
+    "basics": "Basics",
+    "role": "Your role in the startup",
+    "rolePlaceholder": "E.g. Product Designer · Co-founder",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "linkedin.com/in/username",
+    "bio": "Short bio",
+    "bioSubtitle": "Two sentences your mentor reads before your first meeting.",
+    "bioHint": "Mentors see this text in search results",
+    "cvTitle": "CV (optional)",
+    "cvSubtitle": "If you upload it, your mentor quickly sees your background. Not required.",
+    "cvPick": "Choose CV file",
+    "cvReading": "Reading your CV and filling in the empty fields…",
+    "contact": "Your contact preference",
+    "contactSubtitle": "How would you like to keep in touch with your mentor?",
+    "logo": "Startup logo",
+    "logoPlaceholder": "Logo",
+    "startupName": "Startup name",
+    "oneLiner": "One-line description",
+    "oneLinerHint": "This sentence appears under your startup in the mentor pool",
+    "website": "Website",
+    "websitePlaceholder": "example.com",
+    "foundedYear": "Year founded",
+    "programAndStage": "Program and stage",
+    "programAndStageSubtitle": "The two things that matter most for matching you with the right mentor.",
+    "program": "Program",
+    "programsLoading": "Loading programs…",
+    "independent": "Independent",
+    "stage": "Startup stage",
+    "team": "Team",
+    "teamSubtitle": "Team members are listed on the startup profile. They are linked to their accounts when they join with the invite code.",
+    "addMember": "+ Add member",
+    "remove": "Remove",
+    "removeMember": "Remove {name}",
+    "memberName": "Full name",
+    "memberRole": "Role",
+    "cancel": "Cancel",
+    "add": "Add",
+    "supportAreas": "Areas where you want mentor support",
+    "supportAreasSubtitle": "Pick up to {max} areas. Mentor suggestions are ordered by them.",
+    "supportAreasLimit": "You can pick up to {max} areas. Remove one to change."
+  },
+  "signupDocuments": {
+    "canvasSubtitle": "A one-page summary of your business model.",
+    "canvasHelp": "PDF or DOCX · up to 25 MB",
+    "pitchSubtitle": "Your presentation. It helps your mentor understand your startup quickly.",
+    "pitchHelp": "PDF or PPTX · up to 25 MB",
+    "pickFile": "Choose {title} file",
+    "mvpTitle": "MVP / Prototype",
+    "mvpSubtitle": "A link to your live product or a prototype file.",
+    "link": "Link",
+    "mvpPlaceholder": "example.app or a Figma prototype link",
+    "mvpPick": "Choose MVP / prototype file",
+    "optionalNote": "You don't have to upload now. You can add files after your startup profile is approved too."
+  },
+  "signupReview": {
+    "personal": "Personal profile",
+    "startup": "Startup profile",
+    "files": "Files",
+    "fullName": "Full name",
+    "role": "Role",
+    "bio": "Short bio",
+    "contact": "Contact preference",
+    "startupName": "Startup",
+    "tagline": "Description",
+    "programStage": "Program · Stage",
+    "team": "Team",
+    "teamCount": "{count, plural, one {# member} other {# members}}",
+    "supportAreas": "Support areas",
+    "mvp": "MVP / Prototype",
+    "notUploaded": "Not uploaded",
+    "missingTitle": "You can submit without a pitch deck and prototype",
+    "missingBody": "But mentors look at these two files most when they evaluate your startup. You can add them later too.",
+    "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile."
+  },
+  "onboarding": {
+    "exiting": "Signing out…",
+    "progress": "Profile setup progress",
+    "stepsLabel": "Profile setup steps",
+    "done": "Done",
+    "whoSees": "WHO SEES THIS?",
+    "back": "← Back",
+    "saveDraft": "Save as draft",
+    "completed": "Profile completed",
+    "sent": "Sent to the coordinator",
+    "reviewing": "Under review",
+    "youAreHere": "You are at this step now",
+    "signOut": "Sign out",
+    "whatsNext": "WHAT'S NEXT?",
+    "viewSubmitted": "View submitted profile",
+    "backHome": "Back to home",
+    "orPick": "or choose from your device",
+    "fileTooBig": "The file cannot be larger than {limit}.",
+    "uploadedBefore": "Uploaded earlier",
+    "selected": "Selected",
+    "uploaded": "Uploaded",
+    "removeFile": "Remove {name}",
+    "change": "Change {label}",
+    "pick": "Choose {label}",
+    "remove": "Remove",
+    "changeShort": "Change",
+    "drop": "Drag and drop a file",
+    "imageTooBig": "The image can be at most 5 MB."
+  },
+  "mentorOnboarding": {
+    "steps": {
+      "profile": {
+        "title": "Create your expertise profile",
+        "subtitle": "Startups will see you in the mentor pool through this.",
+        "note": "After coordinator approval, every startup can see your expertise profile in the mentor pool.",
+        "railTitle": "Your expertise profile",
+        "railHint": "Startups see you through this"
+      },
+      "areas": {
+        "title": "Which topics will you mentor on?",
+        "subtitle": "Requests startups send you are filtered by these choices.",
+        "note": "The areas you pick are used in the mentor pool filters and in the “why this mentor” explanation.",
+        "railTitle": "Your mentorship areas",
+        "railHint": "Matching is based on this"
+      },
+      "availability": {
+        "title": "Set your availability and capacity",
+        "subtitle": "Startups can only propose meetings in the hours you leave open.",
+        "note": "Startups only see your availability as free slots; your other meetings stay hidden.",
+        "railTitle": "Availability and capacity",
+        "railHint": "Requests arrive based on this"
+      },
+      "review": {
+        "title": "Review and submit",
+        "subtitle": "This is the profile startups will see in the mentor pool. You can edit it after submitting.",
+        "note": "A coordinator reviews your profile first; once approved it is published in the mentor pool.",
+        "railTitle": "Review and submit",
+        "railHint": "Goes to coordinator approval"
+      }
+    },
+    "nextSteps": [
+      "Once approved, your profile is published in the mentor pool and startups can send you mentorship requests.",
+      "You review and accept incoming requests in the Requests tab under My Mentorships.",
+      "You can update your availability and capacity from your profile at any time."
+    ],
+    "submittedTitle": "Your mentor profile was sent to the coordinator",
+    "lastStepLabel": "Your mentor profile joins the pool"
+  },
+  "mentorSteps": {
+    "uploadCv": "Upload your CV",
+    "uploadHint": "PDF or DOCX · Max. 25 MB",
+    "cvPick": "Choose CV file",
+    "manual": "I'll enter my details manually",
+    "parsing": "Extracting experience, roles and areas of expertise…",
+    "parsingHint": "This usually takes a few seconds.",
+    "role": "Role",
+    "organization": "Organization",
+    "period": "Period",
+    "periodPlaceholder": "2022–2026",
+    "summary": "Short description",
+    "delete": "Delete",
+    "done": "Done",
+    "basics": "Basics",
+    "photo": "Profile photo",
+    "photoPlaceholder": "Photo",
+    "photoNote": "Mentors with a profile photo get noticeably more requests.",
+    "title": "Your title",
+    "titlePlaceholder": "E.g. UX/UI & Product Strategy Mentor",
+    "experience": "Experience",
+    "experiencePlaceholder": "E.g. 12 years",
+    "linkedin": "LinkedIn",
+    "linkedinPlaceholder": "linkedin.com/in/username",
+    "cv": "CV",
+    "about": "About",
+    "aboutSubtitle": "Startups read this text first in the mentor pool.",
+    "aboutHint": "Shown in search results in the mentor pool",
+    "experienceSubtitle": "Add up to {max, plural, =3 {three} other {#}} roles. They are listed chronologically on your profile.",
+    "addExperience": "+ Add experience",
+    "edit": "Edit",
+    "editExperience": "Edit {title}",
+    "newExperience": "New experience",
+    "topics": "Your mentorship topics",
+    "topicsSubtitle": "Pick up to {max} topics. Picking fewer improves matching quality.",
+    "stagesTitle": "Which stages do you work with?",
+    "stagesSubtitle": "Requests that don't fit the stage are not sent to you.",
+    "stagesLabel": "Startup stages",
+    "offeringsTitle": "What can you offer in this mentorship?",
+    "offeringsSubtitle": "Shown as a list on your profile. Startups read it before sending a request.",
+    "addOffering": "+ Add item",
+    "remove": "Remove",
+    "removeOffering": "Remove {offering}",
+    "newOffering": "New item",
+    "offeringPlaceholder": "E.g. Sharpening the value proposition",
+    "cancel": "Cancel",
+    "add": "Add",
+    "noOfferings": "You haven't added any items yet."
+  },
+  "mentorAvailability": {
+    "weekly": "Weekly availability",
+    "weeklySubtitle": "Repeating availability. You can make one-off changes later in your calendar.",
+    "dayAvailable": "{day} available",
+    "dayStart": "{day} start",
+    "dayEnd": "{day} end",
+    "endAfterStart": "The end time must be after the start time.",
+    "capacity": "Capacity",
+    "capacitySubtitle": "Set how many startups you can work with at the same time. No new requests arrive when the limit is reached.",
+    "capacityLimit": "Concurrent mentorship limit",
+    "startupUnit": "startups",
+    "duration": "Default meeting length",
+    "frequency": "Your preferred meeting frequency",
+    "buffer": "Buffer between two meetings",
+    "formatTitle": "Meeting format and response time",
+    "format": "Format",
+    "formatLabel": "Meeting format",
+    "responseQuestion": "How quickly do you usually reply to requests?",
+    "responseLabel": "Response time"
+  },
+  "mentorReview": {
+    "profile": "Expertise profile",
+    "fullName": "Full name",
+    "title": "Title",
+    "companyExperience": "Organization · Experience",
+    "about": "About",
+    "experience": "Experience",
+    "rolesAdded": "{count, plural, one {# role} other {# roles}} added",
+    "areas": "Mentorship areas",
+    "topics": "Topics",
+    "stage": "Startup stage",
+    "offerings": "What you can offer",
+    "offeringCount": "{count, plural, one {# item} other {# items}}",
+    "availability": "Availability and capacity",
+    "weekly": "Weekly availability",
+    "concurrent": "Concurrent mentorships",
+    "capacityValue": "{count, plural, one {# startup} other {# startups}}",
+    "meeting": "Meeting",
+    "responseTime": "Response time",
+    "hoursTitle": "You are setting aside about {hours} hours a week",
+    "hoursBody": "With your availability and {minutes}-minute meetings, up to {meetings} meetings a week can be scheduled. You can change your capacity later from your profile.",
+    "consent": "I have read and accept the mentorship principles, and I agree to the coordinator reviewing my profile."
+  },
+  "publicSession": {
+    "continueAs": "Continue as {name}",
+    "signIn": "Sign in"
+  },
+  "landing": {
+    "nav": {
+      "how": "How it works",
+      "announcements": "Announcements",
+      "compare": "Mentoring or training?",
+      "faq": "FAQ"
+    },
+    "hero": {
+      "eyebrow": "ODTÜ Teknokent",
+      "headline": "Get the right support for your startup, at the right time",
+      "accentPrefix": "right",
+      "lead": "Follow ODTÜ Teknokent programs, mentorship meetings, trainings and your startup's progress on one platform.",
+      "note": "You can only sign in with the role you were invited to or registered with.",
+      "sceneTitle": "Start in 3 steps",
+      "sceneSteps": [
+        "Create your profile",
+        "Complete your need",
+        "Meet the right mentor"
+      ],
+      "match": {
+        "title": "Match made",
+        "detail": "Nihan Öztürk · UX/UI & Product"
+      }
+    },
+    "announcements": {
+      "application": {
+        "tag": "Application",
+        "date": "27 July 2026",
+        "title": "Applications for the new term are open",
+        "text": "Review the program's new application dates and participation requirements."
+      },
+      "training": {
+        "tag": "Training",
+        "date": "3 August 2026",
+        "title": "Product development training",
+        "text": "A group training on validating a product idea and building the first product."
+      },
+      "support": {
+        "tag": "Support program",
+        "date": "Applications open",
+        "title": "TÜBİTAK BİGG applications",
+        "text": "Follow the required documents and the schedule for the application on the program page."
+      }
+    },
+    "howSteps": [
+      {
+        "title": "Share your need",
+        "text": "Tell us the topic you want support on and the problem you face."
+      },
+      {
+        "title": "Match with the right mentor",
+        "text": "Get matched with a mentor who fits your field and your startup's stage."
+      },
+      {
+        "title": "Hold your meeting",
+        "text": "In the meeting, go through your needs, the risks and the possible solutions."
+      },
+      {
+        "title": "Track your actions",
+        "text": "Follow the tasks and next steps agreed in the meeting on the platform."
+      }
+    ],
+    "stageRoles": {
+      "mentor": "Mentor",
+      "mentee": "Mentee / Startup"
+    },
+    "typedProblem": "Our onboarding flow doesn't explain our value proposition on the first screen; users leave at the first step.",
+    "topics": {
+      "productUx": "Product & UX",
+      "finance": "Finance",
+      "valueProposition": "Value proposition",
+      "mvp": "MVP stage",
+      "legal": "Legal"
+    },
+    "matches": {
+      "nihan": {
+        "field": "UX/UI & Product Strategy",
+        "pill": "Recommended"
+      },
+      "cagri": {
+        "field": "Finance & Business Model",
+        "pill": "Free · Wed"
+      },
+      "deniz": {
+        "field": "Growth Strategy",
+        "pill": "2 slots"
+      }
+    },
+    "matchReason": "Your product positioning and onboarding need matches the value proposition work Nihan has done with early-stage teams.",
+    "agenda": [
+      "Review the current user flow",
+      "Critique the value proposition draft",
+      "Risks and possible solutions",
+      "Work for the next two weeks"
+    ],
+    "tasks": {
+      "financialModel": {
+        "title": "Financial model draft",
+        "source": "Çağrı Yılmaz · mentorship task",
+        "status": "Not uploaded"
+      },
+      "acquisition": {
+        "title": "Acquisition channel analysis",
+        "source": "METU Stars · program task",
+        "status": "In progress"
+      },
+      "b2b2c": {
+        "title": "B2B2C hypothesis",
+        "source": "Selin Kaya · mentorship task",
+        "status": "Done"
+      }
+    },
+    "compare": {
+      "mentoring": {
+        "title": "Mentoring",
+        "text": "Individual or team-focused support shaped by your startup's current situation and needs.",
+        "points": [
+          "Tailored to your startup",
+          "Focused on problems and decisions",
+          "One-to-one or small-team meetings",
+          "Actions can be agreed at the end of a meeting"
+        ]
+      },
+      "training": {
+        "title": "Training",
+        "text": "Structured content designed to build knowledge and skills on a specific topic.",
+        "points": [
+          "Focused on a specific topic",
+          "Run for individuals or groups",
+          "Held online or in person",
+          "Can include assignments and training materials"
+        ]
+      }
+    },
+    "faqs": [
+      {
+        "question": "Who can sign in to the platform?",
+        "answer": "Startups accepted into ODTÜ Teknokent programs, and the mentors, trainers and coordinators invited by the program team, can sign in. Registration is not open to everyone; you sign in with the role you were invited to."
+      },
+      {
+        "question": "How do I find my mentor?",
+        "answer": "When you share the topic you want support on and the problem you face, you see mentor suggestions based on expertise, startup stage and availability. Each suggestion comes with a short reason explaining why it fits you."
+      },
+      {
+        "question": "How can I join a program?",
+        "answer": "Program applications are shared in the Announcements section during application periods. When your application is accepted, an invitation is sent to your email so you can sign in."
+      },
+      {
+        "question": "What is the difference between training and mentoring?",
+        "answer": "Mentoring is one-to-one or small-team meetings shaped by your startup's current situation and focused on decisions. Training is structured content designed to build knowledge and skills on a topic. If you have a specific problem, mentoring fits better; if you want to learn a topic from scratch, training does."
+      },
+      {
+        "question": "Can I take part in more than one program?",
+        "answer": "That depends on each program's participation requirements. You can learn whether you can join more than one program in the same period from the program's requirements or the program team."
+      },
+      {
+        "question": "How are mentorship meetings scheduled?",
+        "answer": "Meetings are scheduled from the mentor's available times. Each meeting comes with an agenda, the notes of the previous meeting and the items to finish beforehand, so both sides arrive prepared."
+      },
+      {
+        "question": "I can't find my invitation email. What should I do?",
+        "answer": "First check your spam and promotions folders. If you still can't find it, contact your program's coordinator and ask them to send the invitation again."
+      },
+      {
+        "question": "Who can see my information on the platform?",
+        "answer": "Meeting notes, task details and the documents you share are only visible to you and your mentor. Program management does not see the content; it only sees summary indicators such as how often you meet and how many tasks are completed."
+      }
+    ],
+    "cta": {
+      "title": "Access your program and your workspace",
+      "text": "Follow your mentorship meetings, trainings and startup journey in one place."
+    },
+    "footer": {
+      "tagline": "Mentorship and Startup Programs Platform.",
+      "text": "The digital platform offering mentorship, training and program management to ODTÜ Teknokent startups.",
+      "copyright": "© 2026 ODTÜ Teknokent. All rights reserved.",
+      "columns": {
+        "platform": {
+          "title": "Platform",
+          "links": {
+            "mentoring": "What is mentoring?",
+            "programs": "Programs",
+            "trainings": "Trainings",
+            "announcements": "Announcements"
+          }
+        },
+        "support": {
+          "title": "Support",
+          "links": {
+            "help": "Help Center",
+            "faq": "Frequently Asked Questions",
+            "contact": "Contact"
+          }
+        },
+        "legal": {
+          "title": "Legal",
+          "links": {
+            "privacy": "Privacy",
+            "terms": "Terms of Use",
+            "kvkk": "KVKK (data protection)"
+          }
+        }
+      }
+    },
+    "ui": {
+      "open": "Open",
+      "augustShort": "3 Aug",
+      "viewDetails": "View details",
+      "viewAllAnnouncements": "View all announcements",
+      "announcementsEyebrow": "Announcements",
+      "compareEyebrow": "Comparison",
+      "whichSupport": "How do I know which support I need?",
+      "howEyebrow": "Mentoring",
+      "supportTopic": "The topic you want support on",
+      "currentProblem": "Your current problem",
+      "session": "Session 4 / 6",
+      "agendaLabel": "Agenda",
+      "faqEyebrow": "FAQ",
+      "homeLabel": "menton home",
+      "mainMenu": "Main menu",
+      "howItWorks": "How it works",
+      "howTitleStart": "How does",
+      "howTitleEnd": "mentoring work?",
+      "howLead": "Mentoring lets you work through your startup's problems with experienced people, gain new perspectives and clarify your next steps.",
+      "howStepsLabel": "Mentoring steps",
+      "autoplaying": "Playing automatically · click a step to jump to it",
+      "paused": "Paused · click between the steps to browse",
+      "sendRequest": "Send request",
+      "whyRecommended": "Why recommended?",
+      "meetingWhen": "30 August · 14:00 · 45 min",
+      "meetingTitle": "Product positioning decisions",
+      "stageTasks": "Your tasks at this stage",
+      "stageName": "MVP · Value proposition & onboarding",
+      "stageProgress": "Stage progress",
+      "compareTitleStart": "What is the difference between",
+      "compareTitleEnd": "mentoring and training?",
+      "announcementsTitle": "Latest news",
+      "announcementsLead": "Follow the latest news about programs, trainings and events.",
+      "announcementsLabel": "Announcements (pauses on hover)",
+      "mockApplication": "Application period",
+      "mockTraining": "Group training",
+      "mockDocuments": "Application documents",
+      "faqTitleStart": "Frequently asked",
+      "faqTitleEnd": "questions",
+      "faqLead": "If you can't find your answer, reach the program team from inside the platform."
+    }
+  }
+}

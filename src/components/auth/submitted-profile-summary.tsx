@@ -5,6 +5,7 @@ import { CONTACT_PREFERENCE_LABELS } from "@/interfaces/signup";
 import type { DocumentKind } from "@/interfaces/startup-document";
 import { DOCUMENT_KIND_LABELS } from "@/lib/startup-files";
 import { formatFileSize } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -22,6 +23,7 @@ export function SubmittedProfileSummary({
 }: {
   organizationName?: string | null;
 }) {
+  const copy = useTranslations("submittedProfile");
   const { profile, documents, isLoading, isError } = useSubmittedProfile();
 
   return (
@@ -33,35 +35,33 @@ export function SubmittedProfileSummary({
         id="submitted-profile-title"
         className="text-[11px] font-semibold uppercase tracking-wider text-[#a4aab2]"
       >
-        Gönderilen profil
+        {copy("title")}
       </h2>
       {isLoading ? (
         <p role="status" className="mt-3 text-xs text-[#676e78]">
-          Yükleniyor…
+          {copy("loading")}
         </p>
       ) : isError || !profile ? (
-        <p className="mt-3 text-xs text-[#676e78]">
-          Gönderilen profil şu an okunamadı.
-        </p>
+        <p className="mt-3 text-xs text-[#676e78]">{copy("unavailable")}</p>
       ) : (
         <>
           <dl className="mt-2 divide-y divide-[#f1f2f4]">
-            <Row label="Ad soyad" value={profile.fullName} />
+            <Row label={copy("fullName")} value={profile.fullName} />
             {organizationName ? (
-              <Row label="Startup" value={organizationName} />
+              <Row label={copy("startup")} value={organizationName} />
             ) : null}
-            <Row label="Rol / unvan" value={profile.jobTitle ?? ""} />
-            <Row label="LinkedIn" value={profile.linkedinUrl ?? ""} />
-            <Row label="Kısa tanıtım" value={profile.bio ?? ""} />
+            <Row label={copy("role")} value={profile.jobTitle ?? ""} />
+            <Row label={copy("linkedin")} value={profile.linkedinUrl ?? ""} />
+            <Row label={copy("bio")} value={profile.bio ?? ""} />
             <Row
-              label="İletişim tercihi"
+              label={copy("contact")}
               value={(profile.contactPreferences ?? [])
                 .map((preference) => CONTACT_PREFERENCE_LABELS[preference])
                 .join(", ")}
             />
           </dl>
           <h3 className="mt-5 text-xs font-semibold text-[#1f2328]">
-            Dosyalar
+            {copy("files")}
           </h3>
           {documents.length ? (
             <ul className="mt-2 flex flex-col gap-2">
