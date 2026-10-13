@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
@@ -37,6 +38,7 @@ export function useDocumentUrl(documentId: string | undefined) {
 }
 
 export function useOpenDocument() {
+  const t = useTranslations("startupFiles.toasts");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const showPreview = useShowDocumentPreview();
@@ -53,11 +55,11 @@ export function useOpenDocument() {
           showPreview({ ...link, id: documentId });
           return;
         }
-        showToast({ message: "Dosya açılamadı.", tone: "error" });
+        showToast({ message: t("openFailed"), tone: "error" });
       } catch {
-        showToast({ message: "Dosya açılamadı.", tone: "error" });
+        showToast({ message: t("openFailed"), tone: "error" });
       }
     },
-    [queryClient, showPreview, showToast],
+    [queryClient, showPreview, showToast, t],
   );
 }

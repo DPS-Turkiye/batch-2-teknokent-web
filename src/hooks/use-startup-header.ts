@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { useOrganizationPrograms } from "@/hooks/use-programs";
@@ -13,11 +14,11 @@ import { STARTUP_PROFILE_QUERY_KEY } from "@/hooks/use-startup-profile";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { getStartupProfile } from "@/lib/client/organization";
 import { getStartupProcess } from "@/lib/client/startup-process";
-import { STARTUP_STAGE_LABELS } from "@/lib/startup-process";
 import { initials } from "@/lib/utils";
 
 /** The Startup'ım header: the startup, its program and its two status chips. */
 export function useStartupHeader() {
+  const tStages = useTranslations("startupStages");
   const profileQuery = useQuery({
     queryKey: STARTUP_PROFILE_QUERY_KEY,
     queryFn: getStartupProfile,
@@ -56,6 +57,6 @@ export function useStartupHeader() {
     logoUrl: logoQuery.data?.url ?? null,
     name: profile?.name ?? null,
     programName: program?.name ?? null,
-    stageName: stage ? STARTUP_STAGE_LABELS[stage] : null,
+    stageName: stage ? tStages(stage) : null,
   };
 }

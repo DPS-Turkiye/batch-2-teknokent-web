@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -40,6 +41,8 @@ export type ShareableMentor = { id: string; name: string };
 
 /** The Dosyalar tab: the file table, its filters, sharing and deleting. */
 export function useStartupFiles() {
+  const t = useTranslations("startupFiles");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const documentsQuery = useStartupDocuments();
@@ -71,14 +74,15 @@ export function useStartupFiles() {
           (membersQuery.data ?? []).map((member) => member.id),
         ),
         programName,
+        texts: { t, locale },
       }),
-    [documents, documentRequests, membersQuery.data, programName],
+    [documents, documentRequests, membersQuery.data, programName, t, locale],
   );
   const rows = useMemo(() => rowsForFilter(allRows, filter), [allRows, filter]);
   const counts = useMemo(() => countRowsByFilter(allRows), [allRows]);
   const pendingNotice = useMemo(
-    () => pendingRequestNotice(documentRequests),
-    [documentRequests],
+    () => pendingRequestNotice(documentRequests, { t, locale }),
+    [documentRequests, t, locale],
   );
   // Only mentors the startup is working with can be sent a file.
   const mentors = useMemo(() => {
@@ -107,11 +111,11 @@ export function useStartupFiles() {
     }) => shareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: "Dosya mentorla paylaşıldı.", tone: "success" });
+      showToast({ message: t("toasts.shared"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Dosya paylaşılamadı."),
+        message: errorMessage(error, t("toasts.shareFailed")),
         tone: "error",
       }),
   });
@@ -126,11 +130,11 @@ export function useStartupFiles() {
     }) => unshareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: "Paylaşım kaldırıldı.", tone: "success" });
+      showToast({ message: t("toasts.unshared"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Paylaşım kaldırılamadı."),
+        message: errorMessage(error, t("toasts.unshareFailed")),
         tone: "error",
       }),
   });
@@ -156,11 +160,11 @@ export function useStartupFiles() {
       void queryClient.invalidateQueries({
         queryKey: STARTUP_DOCUMENT_REQUESTS_QUERY_KEY,
       });
-      showToast({ message: "Dosya yüklendi.", tone: "success" });
+      showToast({ message: t("toasts.uploaded"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Dosya yüklenemedi."),
+        message: errorMessage(error, t("toasts.uploadFailed")),
         tone: "error",
       }),
   });
@@ -170,11 +174,11 @@ export function useStartupFiles() {
     onSuccess: () => {
       setDeletingId(null);
       void refresh();
-      showToast({ message: "Dosya silindi.", tone: "success" });
+      showToast({ message: t("toasts.deleted"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Dosya silinemedi."),
+        message: errorMessage(error, t("toasts.deleteFailed")),
         tone: "error",
       }),
   });

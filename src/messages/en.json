@@ -1699,5 +1699,149 @@
       "rotated": "New invite code generated.",
       "rotateFailed": "Couldn't generate a new code."
     }
+  },
+  "documentKinds": {
+    "cv": "CV",
+    "canvas": "Business Model Canvas",
+    "pitch-deck": "Pitch Deck",
+    "mvp": "MVP document",
+    "validation": "Validation output",
+    "homework": "Assignment",
+    "meeting-file": "Meeting file",
+    "note-photo": "Meeting photo",
+    "other": "Other",
+    "logo": "Logo",
+    "avatar": "Profile photo",
+    "profile-pdf": "Profile PDF",
+    "requested-doc": "Requested document"
+  },
+  "startupStages": {
+    "PROBLEM": "Problem",
+    "SOLUTION": "Solution",
+    "MVP": "MVP",
+    "BUSINESS_MODEL": "Business model",
+    "MARKET": "Market",
+    "FINANCE": "Finance",
+    "PITCH": "Pitch"
+  },
+  "startupFiles": {
+    "filters": {
+      "all": "All",
+      "mentorship": "Mentorship files",
+      "program": "Program",
+      "startup": "Startup documents",
+      "pending": "Pending requests"
+    },
+    "filterCount": "{label} ({count})",
+    "status": {
+      "sent": "Sent",
+      "waiting": "Waiting",
+      "current": "Current",
+      "reviewed": "Reviewed",
+      "from-mentor": "From the mentor"
+    },
+    "programRequest": "Program request",
+    "meetingDoc": "Meeting document",
+    "mentorshipDoc": "Mentorship document",
+    "meetingOn": "Meeting on {date}",
+    "meeting": "Meeting",
+    "unknownPerson": "Unknown person",
+    "requested": "Requested by {name}",
+    "shared": "Shared by {name}",
+    "uploaded": "Uploaded by {name}",
+    "mentorFile": "Mentor file",
+    "startupDoc": "Startup document",
+    "pendingNotice": "{name} asked for “{title}”; it hasn't been uploaded yet.",
+    "pendingNoticeDue": "{name} asked for “{title}”; it hasn't been uploaded yet. Due {date}.",
+    "actionsLabel": "Actions for {name}",
+    "view": "View",
+    "share": "Share with a mentor",
+    "delete": "Delete",
+    "uploading": "Uploading…",
+    "upload": "Upload",
+    "uploadLabel": "Upload {title}",
+    "uploadFile": "Upload file",
+    "loading": "Loading files…",
+    "filterLabel": "File filter",
+    "columns": {
+      "file": "File",
+      "source": "Source",
+      "related": "Related mentorship / meeting",
+      "date": "Date",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "empty": "No files in this filter.",
+    "notUploaded": "Not uploaded yet",
+    "uploadDialog": {
+      "kind": "File type",
+      "file": "File",
+      "hint": "PDF, DOCX, XLSX or PPTX · up to 25 MB",
+      "cancel": "Cancel"
+    },
+    "shareDialog": {
+      "noMentors": "There's no mentor you can share files with. Mentors show up here once a mentorship is accepted.",
+      "stop": "Stop sharing",
+      "share": "Share",
+      "close": "Close"
+    },
+    "deleteDialog": {
+      "title": "Delete this file?",
+      "body": "{name} will be deleted for good, and the mentors it was shared with won't see it anymore.",
+      "cancel": "Cancel",
+      "deleting": "Deleting…",
+      "delete": "Delete"
+    },
+    "toasts": {
+      "shared": "File shared with the mentor.",
+      "shareFailed": "Couldn't share the file.",
+      "unshared": "Sharing stopped.",
+      "unshareFailed": "Couldn't stop sharing.",
+      "uploaded": "File uploaded.",
+      "uploadFailed": "Couldn't upload the file.",
+      "deleted": "File deleted.",
+      "deleteFailed": "Couldn't delete the file.",
+      "openFailed": "Couldn't open the file."
+    }
+  },
+  "startupProcess": {
+    "assignmentStatus": {
+      "OPEN": "Not uploaded",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Completed",
+      "CANCELLED": "Cancelled"
+    },
+    "action": {
+      "current": "Current stage",
+      "completed": "Completed",
+      "continue": "Continue",
+      "start": "Start"
+    },
+    "source": {
+      "mentor": "mentorship assignment",
+      "program": "program assignment",
+      "startup": "startup assignment"
+    },
+    "doneCount": "{done} / {total} done",
+    "noAssignments": "No assignments yet",
+    "due": "Due {date}",
+    "uploading": "Uploading…",
+    "upload": "Upload assignment",
+    "uploadLabel": "Upload the assignment for {title}",
+    "loading": "Loading the process…",
+    "stages": "Stages",
+    "focus": "Focus round",
+    "noRound": "No round planned for this stage yet.",
+    "assignments": "Your assignments in this stage",
+    "assignmentsHint": "Each row says who the assignment came from and what it belongs to.",
+    "thisStage": "This stage →",
+    "all": "All ({count}) →",
+    "stageEmpty": "No assignments for this stage yet.",
+    "completedStages": "Completed stages",
+    "noCompleted": "No completed stages yet.",
+    "completedCount": "{count, plural, one {# assignment done} other {# assignments done}}",
+    "uploaded": "Assignment uploaded.",
+    "uploadFailed": "Couldn't upload the assignment.",
+    "stageUpdated": "Stage updated."
   }
 }

@@ -1699,5 +1699,149 @@
       "rotated": "Yeni davet kodu üretildi.",
       "rotateFailed": "Yeni kod üretilemedi."
     }
+  },
+  "documentKinds": {
+    "cv": "CV",
+    "canvas": "Business Model Canvas",
+    "pitch-deck": "Pitch Deck",
+    "mvp": "MVP Dokümanı",
+    "validation": "Doğrulama çıktısı",
+    "homework": "Ödev",
+    "meeting-file": "Toplantı dosyası",
+    "note-photo": "Toplantı fotoğrafı",
+    "other": "Diğer",
+    "logo": "Logo",
+    "avatar": "Profil fotoğrafı",
+    "profile-pdf": "Profil PDF'i",
+    "requested-doc": "İstenen belge"
+  },
+  "startupStages": {
+    "PROBLEM": "Problem",
+    "SOLUTION": "Çözüm",
+    "MVP": "MVP",
+    "BUSINESS_MODEL": "İş Modeli",
+    "MARKET": "Pazar",
+    "FINANCE": "Finans",
+    "PITCH": "Pitch"
+  },
+  "startupFiles": {
+    "filters": {
+      "all": "Tümü",
+      "mentorship": "Mentorluk dosyaları",
+      "program": "Program",
+      "startup": "Startup dokümanları",
+      "pending": "Bekleyen talep"
+    },
+    "filterCount": "{label} ({count})",
+    "status": {
+      "sent": "Gönderildi",
+      "waiting": "Bekliyor",
+      "current": "Güncel",
+      "reviewed": "İncelendi",
+      "from-mentor": "Mentordan geldi"
+    },
+    "programRequest": "Program talebi",
+    "meetingDoc": "Görüşme belgesi",
+    "mentorshipDoc": "Mentorluk belgesi",
+    "meetingOn": "{date} görüşmesi",
+    "meeting": "Görüşme",
+    "unknownPerson": "Bilinmeyen kişi",
+    "requested": "{name} istedi",
+    "shared": "{name} paylaştı",
+    "uploaded": "{name} yükledi",
+    "mentorFile": "Mentor dosyası",
+    "startupDoc": "Startup dokümanı",
+    "pendingNotice": "“{title}” {name} tarafından talep edildi, henüz yüklenmedi.",
+    "pendingNoticeDue": "“{title}” {name} tarafından talep edildi, henüz yüklenmedi. Son tarih {date}.",
+    "actionsLabel": "{name} işlemleri",
+    "view": "Görüntüle",
+    "share": "Mentorla paylaş",
+    "delete": "Sil",
+    "uploading": "Yükleniyor…",
+    "upload": "Yükle",
+    "uploadLabel": "{title} yükle",
+    "uploadFile": "Dosya yükle",
+    "loading": "Dosyalar yükleniyor…",
+    "filterLabel": "Dosya filtresi",
+    "columns": {
+      "file": "Dosya",
+      "source": "Kaynak",
+      "related": "İlgili mentorluk / görüşme",
+      "date": "Tarih",
+      "status": "Durum",
+      "actions": "İşlemler"
+    },
+    "empty": "Bu filtrede dosya yok.",
+    "notUploaded": "Henüz yüklenmedi",
+    "uploadDialog": {
+      "kind": "Dosya türü",
+      "file": "Dosya",
+      "hint": "PDF, DOCX, XLSX veya PPTX · en fazla 25 MB",
+      "cancel": "Vazgeç"
+    },
+    "shareDialog": {
+      "noMentors": "Dosya paylaşabileceğin bir mentor yok. Kabul edilmiş bir mentorluk başlattığında burada görünür.",
+      "stop": "Paylaşımı kaldır",
+      "share": "Paylaş",
+      "close": "Kapat"
+    },
+    "deleteDialog": {
+      "title": "Dosyayı silmek istiyor musun?",
+      "body": "{name} kalıcı olarak silinir ve paylaşıldığı mentorlar da artık göremez.",
+      "cancel": "Vazgeç",
+      "deleting": "Siliniyor…",
+      "delete": "Sil"
+    },
+    "toasts": {
+      "shared": "Dosya mentorla paylaşıldı.",
+      "shareFailed": "Dosya paylaşılamadı.",
+      "unshared": "Paylaşım kaldırıldı.",
+      "unshareFailed": "Paylaşım kaldırılamadı.",
+      "uploaded": "Dosya yüklendi.",
+      "uploadFailed": "Dosya yüklenemedi.",
+      "deleted": "Dosya silindi.",
+      "deleteFailed": "Dosya silinemedi.",
+      "openFailed": "Dosya açılamadı."
+    }
+  },
+  "startupProcess": {
+    "assignmentStatus": {
+      "OPEN": "Yüklenmedi",
+      "IN_PROGRESS": "Devam ediyor",
+      "COMPLETED": "Tamamlandı",
+      "CANCELLED": "İptal edildi"
+    },
+    "action": {
+      "current": "Mevcut aşama",
+      "completed": "Tamamlandı",
+      "continue": "Devam et",
+      "start": "Başla"
+    },
+    "source": {
+      "mentor": "mentorluk ödevi",
+      "program": "program ödevi",
+      "startup": "startup ödevi"
+    },
+    "doneCount": "{done} / {total} tamamlandı",
+    "noAssignments": "Henüz ödev yok",
+    "due": "Teslim {date}",
+    "uploading": "Yükleniyor…",
+    "upload": "Ödev yükle",
+    "uploadLabel": "{title} için ödev yükle",
+    "loading": "Süreç yükleniyor…",
+    "stages": "Aşamalar",
+    "focus": "Odak turu",
+    "noRound": "Bu aşama için henüz bir tur planlanmadı.",
+    "assignments": "Bu aşamadaki ödevlerin",
+    "assignmentsHint": "Her ödevin kimden geldiği ve neye bağlı olduğu satırda yazıyor.",
+    "thisStage": "Bu aşama →",
+    "all": "Tümü ({count}) →",
+    "stageEmpty": "Bu aşama için henüz ödev yok.",
+    "completedStages": "Tamamlanan aşamalar",
+    "noCompleted": "Henüz tamamlanan bir aşama yok.",
+    "completedCount": "{count} ödev tamamlandı",
+    "uploaded": "Ödev yüklendi.",
+    "uploadFailed": "Ödev yüklenemedi.",
+    "stageUpdated": "Aşama güncellendi."
   }
 }

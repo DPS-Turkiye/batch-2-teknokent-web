@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -17,12 +18,7 @@ import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
 import type { StartupDocument } from "@/interfaces/startup-document";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
-import {
-  STARTUP_FILE_FILTER_LABELS,
-  STARTUP_FILE_STATUS_LABELS,
-  StartupFileFilter,
-  StartupFileStatus,
-} from "@/lib/startup-files";
+import { StartupFileFilter, StartupFileStatus } from "@/lib/startup-files";
 import { formatDayMonth, formatFileSize } from "@/lib/utils";
 
 const chipClass =
@@ -57,6 +53,7 @@ function FileMenu({
   onOpen: () => void;
   onShare: () => void;
 }) {
+  const t = useTranslations("startupFiles");
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -88,7 +85,7 @@ function FileMenu({
         type="button"
         aria-haspopup="menu"
         aria-expanded={isOpen}
-        aria-label={`${document.originalFilename} işlemleri`}
+        aria-label={t("actionsLabel", { name: document.originalFilename })}
         onClick={() => setIsOpen((open) => !open)}
         className="grid size-7 place-items-center rounded-md hover:bg-[#f8f9fa]"
       >
@@ -105,7 +102,7 @@ function FileMenu({
             className={`${item} text-[#515861]`}
             onClick={choose(onOpen)}
           >
-            Görüntüle
+            {t("view")}
           </button>
           <button
             role="menuitem"
@@ -113,7 +110,7 @@ function FileMenu({
             className={`${item} text-[#515861]`}
             onClick={choose(onShare)}
           >
-            Mentorla paylaş
+            {t("share")}
           </button>
           <button
             role="menuitem"
@@ -121,7 +118,7 @@ function FileMenu({
             className={`${item} text-[#c24135]`}
             onClick={choose(onDelete)}
           >
-            Sil
+            {t("delete")}
           </button>
         </div>
       ) : null}
@@ -138,17 +135,18 @@ function RequestUploadButton({
   isUploading: boolean;
   onFile: (file: File) => void;
 }) {
+  const t = useTranslations("startupFiles");
   return (
     <label
       className={`inline-flex min-h-8 cursor-pointer items-center rounded-lg border border-[#e86f22] px-3 text-xs font-semibold text-[#c85816] hover:bg-[#fff9f5] ${
         isUploading ? "pointer-events-none opacity-60" : ""
       }`}
     >
-      {isUploading ? "Yükleniyor…" : "Yükle"}
+      {isUploading ? t("uploading") : t("upload")}
       <input
         type="file"
         accept={DOCUMENT_UPLOAD_ACCEPT}
-        aria-label={`${title} yükle`}
+        aria-label={t("uploadLabel", { title })}
         disabled={isUploading}
         className="sr-only"
         onChange={(event) => {
@@ -162,6 +160,8 @@ function RequestUploadButton({
 }
 
 export function StartupFilesView() {
+  const t = useTranslations("startupFiles");
+  const locale = useLocale();
   const files = useStartupFiles();
   const uploadForm = useFileUploadForm();
   const openDocument = useOpenDocument();
@@ -172,14 +172,14 @@ export function StartupFilesView() {
       onClick={uploadForm.open}
       className={startupPrimaryActionClass}
     >
-      Dosya yükle
+      {t("uploadFile")}
     </button>
   );
 
   if (files.isLoading) {
     return (
       <StartupPageFrame action={uploadAction}>
-        <p className="py-10 text-sm text-[#858c96]">Dosyalar yükleniyor…</p>
+        <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>
       </StartupPageFrame>
     );
   }
@@ -201,7 +201,7 @@ export function StartupFilesView() {
       <div className="space-y-6">
         <div
           role="toolbar"
-          aria-label="Dosya filtresi"
+          aria-label={t("filterLabel")}
           className="flex flex-wrap gap-2"
         >
           {Object.values(StartupFileFilter).map((filter) => {
@@ -214,7 +214,10 @@ export function StartupFilesView() {
                 onClick={() => files.setFilter(filter)}
                 className={`${chipClass} transition ${filterChipClass(filter, selected)}`}
               >
-                {STARTUP_FILE_FILTER_LABELS[filter]} ({files.counts[filter]})
+                {t("filterCount", {
+                  label: t(`filters.${filter}`),
+                  count: files.counts[filter],
+                })}
               </button>
             );
           })}
@@ -225,22 +228,22 @@ export function StartupFilesView() {
             <thead className="bg-[#f8f9fa] text-[11px] font-semibold leading-[17px] text-[#858c96]">
               <tr>
                 <th scope="col" className="px-5 py-3">
-                  Dosya
+                  {t("columns.file")}
                 </th>
                 <th scope="col" className="px-2 py-3">
-                  Kaynak
+                  {t("columns.source")}
                 </th>
                 <th scope="col" className="px-2 py-3">
-                  İlgili mentorluk / görüşme
+                  {t("columns.related")}
                 </th>
                 <th scope="col" className="px-2 py-3">
-                  Tarih
+                  {t("columns.date")}
                 </th>
                 <th scope="col" className="px-2 py-3">
-                  Durum
+                  {t("columns.status")}
                 </th>
                 <th scope="col" className="w-12 px-2 py-3">
-                  <span className="sr-only">İşlemler</span>
+                  <span className="sr-only">{t("columns.actions")}</span>
                 </th>
               </tr>
             </thead>
@@ -248,7 +251,7 @@ export function StartupFilesView() {
               {files.rows.length === 0 ? (
                 <tr className="border-t border-[#eceef0]">
                   <td colSpan={6} className="px-5 py-6 text-sm text-[#858c96]">
-                    Bu filtrede dosya yok.
+                    {t("empty")}
                   </td>
                 </tr>
               ) : (
@@ -283,7 +286,7 @@ export function StartupFilesView() {
                             <span className="block text-[11.5px] leading-[17px] text-[#858c96]">
                               {row.sizeBytes != null
                                 ? formatFileSize(row.sizeBytes)
-                                : "Henüz yüklenmedi"}
+                                : t("notUploaded")}
                             </span>
                           </div>
                         </div>
@@ -295,13 +298,13 @@ export function StartupFilesView() {
                         {row.related}
                       </td>
                       <td className="px-2 py-3.5 text-[12.5px] leading-[19px] text-[#676e78]">
-                        {formatDayMonth(new Date(row.date))}
+                        {formatDayMonth(new Date(row.date), locale)}
                       </td>
                       <td className="px-2 py-3.5">
                         <span
                           className={`${chipClass} ${STATUS_TONES[row.status]}`}
                         >
-                          {STARTUP_FILE_STATUS_LABELS[row.status]}
+                          {t(`status.${row.status}`)}
                         </span>
                       </td>
                       <td className="px-2 py-3.5">

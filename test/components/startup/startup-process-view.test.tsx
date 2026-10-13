@@ -12,7 +12,7 @@ import {
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/startup/startup-page-frame", () => ({
   StartupPageFrame: ({ children }: { children: ReactNode }) => (
@@ -95,7 +95,7 @@ function state(overrides: Partial<Process> = {}): Process {
         done: 4,
         total: 4,
         percent: 100,
-        action: "Tamamlandı",
+        action: "completed",
       },
       {
         stage: StartupStage.Mvp,
@@ -103,7 +103,7 @@ function state(overrides: Partial<Process> = {}): Process {
         done: 3,
         total: 4,
         percent: 75,
-        action: "Mevcut aşama",
+        action: "current",
       },
       {
         stage: StartupStage.BusinessModel,
@@ -111,7 +111,7 @@ function state(overrides: Partial<Process> = {}): Process {
         done: 0,
         total: 0,
         percent: 0,
-        action: "Başla",
+        action: "start",
       },
     ],
     toggleShowAll,
@@ -126,6 +126,24 @@ describe("StartupProcessView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useStartupProcess).mockReturnValue(state());
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <StartupProcessView />
+      </InLocale>,
+    );
+
+    const stages = within(screen.getByRole("region", { name: "Stages" }));
+    const mvp = stages.getByRole("button", { name: "MVP · 3 / 4 done" });
+    expect(within(mvp).getByText("Current stage")).toBeInTheDocument();
+    expect(
+      stages.getByRole("button", {
+        name: "Business model · No assignments yet",
+      }),
+    ).toHaveTextContent("Start");
+    expect(screen.getByText("2 · Aug 31")).toBeInTheDocument();
   });
 
   it("shows a card per stage with the chosen stage's round", () => {

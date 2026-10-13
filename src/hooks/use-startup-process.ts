@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -21,6 +22,7 @@ export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
 /** The Süreç tab: the stage cards, the chosen stage's round and its Ödevler. */
 export function useStartupProcess() {
+  const t = useTranslations("startupProcess");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [showAll, setShowAll] = useState(false);
@@ -43,11 +45,11 @@ export function useStartupProcess() {
     },
     onSuccess: (process) => {
       queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
-      showToast({ message: "Ödev yüklendi.", tone: "success" });
+      showToast({ message: t("uploaded"), tone: "success" });
     },
     onError: (error) =>
       showToast({
-        message: error instanceof Error ? error.message : "Ödev yüklenemedi.",
+        message: error instanceof Error ? error.message : t("uploadFailed"),
         tone: "error",
       }),
   });

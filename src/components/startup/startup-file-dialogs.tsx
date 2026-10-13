@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { DangerButton } from "@/components/common/danger-button";
 import { fieldClass, labelClass } from "@/components/common/form-field";
 import { ModalDialog } from "@/components/common/modal-dialog";
@@ -11,20 +13,22 @@ import type {
   DocumentKind,
   StartupDocument,
 } from "@/interfaces/startup-document";
-import { DOCUMENT_KIND_LABELS, UPLOADABLE_KINDS } from "@/lib/startup-files";
-import { DOCUMENT_UPLOAD_ACCEPT, DOCUMENT_UPLOAD_HINT } from "@/lib/const";
+import { UPLOADABLE_KINDS } from "@/lib/startup-files";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 type UploadForm = ReturnType<typeof useFileUploadForm>;
 
 export function FileUploadDialog({ form }: { form: UploadForm }) {
+  const t = useTranslations("startupFiles");
+  const tKinds = useTranslations("documentKinds");
   if (!form.isOpen) return null;
   return (
     <ModalDialog labelledBy="file-upload-title" onClose={form.close}>
       <h2 id="file-upload-title" className="text-base font-semibold">
-        Dosya yükle
+        {t("uploadFile")}
       </h2>
       <label className="block">
-        <span className={labelClass}>Dosya türü</span>
+        <span className={labelClass}>{t("uploadDialog.kind")}</span>
         <select
           className={fieldClass}
           value={form.kind}
@@ -32,13 +36,13 @@ export function FileUploadDialog({ form }: { form: UploadForm }) {
         >
           {UPLOADABLE_KINDS.map((kind) => (
             <option key={kind} value={kind}>
-              {DOCUMENT_KIND_LABELS[kind]}
+              {tKinds(kind)}
             </option>
           ))}
         </select>
       </label>
       <label className="block">
-        <span className={labelClass}>Dosya</span>
+        <span className={labelClass}>{t("uploadDialog.file")}</span>
         <input
           type="file"
           accept={DOCUMENT_UPLOAD_ACCEPT}
@@ -46,11 +50,13 @@ export function FileUploadDialog({ form }: { form: UploadForm }) {
           onChange={(event) => form.setFile(event.target.files?.[0] ?? null)}
         />
       </label>
-      <p className="-mt-2 text-xs text-[#858c96]">{DOCUMENT_UPLOAD_HINT}</p>
+      <p className="-mt-2 text-xs text-[#858c96]">{t("uploadDialog.hint")}</p>
       <div className="flex justify-end gap-2">
-        <SecondaryButton onClick={form.close}>Vazgeç</SecondaryButton>
+        <SecondaryButton onClick={form.close}>
+          {t("uploadDialog.cancel")}
+        </SecondaryButton>
         <PrimaryButton onClick={form.submit} disabled={!form.canSubmit}>
-          {form.isUploading ? "Yükleniyor…" : "Yükle"}
+          {form.isUploading ? t("uploading") : t("upload")}
         </PrimaryButton>
       </div>
     </ModalDialog>
@@ -72,23 +78,21 @@ export function ShareDocumentDialog({
   onShare: (mentorId: string) => void;
   onStopSharing: (mentorId: string) => void;
 }) {
+  const t = useTranslations("startupFiles");
   if (!document) return null;
   const sharedWith = new Set(document.shares.map((share) => share.mentorId));
   return (
     <ModalDialog labelledBy="file-share-title" onClose={onClose}>
       <div>
         <h2 id="file-share-title" className="text-base font-semibold">
-          Mentorla paylaş
+          {t("share")}
         </h2>
         <p className="mt-1 truncate text-xs text-[#858c96]">
           {document.originalFilename}
         </p>
       </div>
       {mentors.length === 0 ? (
-        <p className="text-sm text-[#676e78]">
-          Dosya paylaşabileceğin bir mentor yok. Kabul edilmiş bir mentorluk
-          başlattığında burada görünür.
-        </p>
+        <p className="text-sm text-[#676e78]">{t("shareDialog.noMentors")}</p>
       ) : (
         <ul className="divide-y divide-[#e4e7ea]">
           {mentors.map((mentor) => (
@@ -102,14 +106,14 @@ export function ShareDocumentDialog({
                   disabled={isBusy}
                   onClick={() => onStopSharing(mentor.id)}
                 >
-                  Paylaşımı kaldır
+                  {t("shareDialog.stop")}
                 </SecondaryButton>
               ) : (
                 <PrimaryButton
                   disabled={isBusy}
                   onClick={() => onShare(mentor.id)}
                 >
-                  Paylaş
+                  {t("shareDialog.share")}
                 </PrimaryButton>
               )}
             </li>
@@ -117,7 +121,9 @@ export function ShareDocumentDialog({
         </ul>
       )}
       <div className="flex justify-end">
-        <SecondaryButton onClick={onClose}>Kapat</SecondaryButton>
+        <SecondaryButton onClick={onClose}>
+          {t("shareDialog.close")}
+        </SecondaryButton>
       </div>
     </ModalDialog>
   );
@@ -134,20 +140,20 @@ export function DeleteDocumentDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const t = useTranslations("startupFiles.deleteDialog");
   if (!document) return null;
   return (
     <ModalDialog labelledBy="file-delete-title" onClose={onCancel}>
       <h2 id="file-delete-title" className="text-base font-semibold">
-        Dosyayı silmek istiyor musun?
+        {t("title")}
       </h2>
       <p className="text-sm text-[#676e78]">
-        {document.originalFilename} kalıcı olarak silinir ve paylaşıldığı
-        mentorlar da artık göremez.
+        {t("body", { name: document.originalFilename })}
       </p>
       <div className="flex justify-end gap-2">
-        <SecondaryButton onClick={onCancel}>Vazgeç</SecondaryButton>
+        <SecondaryButton onClick={onCancel}>{t("cancel")}</SecondaryButton>
         <DangerButton disabled={isDeleting} onClick={onConfirm}>
-          {isDeleting ? "Siliniyor…" : "Sil"}
+          {isDeleting ? t("deleting") : t("delete")}
         </DangerButton>
       </div>
     </ModalDialog>
