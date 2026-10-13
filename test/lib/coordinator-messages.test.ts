@@ -111,4 +111,17 @@ describe("coordinator messages", () => {
       "Bugün",
     );
   });
+
+  it("formats times in English", () => {
+    const now = new Date(2026, 8, 24, 12, 0);
+    expect(
+      conversationTime(new Date(2026, 8, 23, 18, 0).toISOString(), now, "en"),
+    ).toBe("Yesterday");
+    expect(
+      conversationTime(new Date(2026, 8, 21, 9, 0).toISOString(), now, "en"),
+    ).toBe("Mon");
+    expect(
+      messageDayLabel(new Date(2026, 8, 24, 9).toISOString(), now, "en"),
+    ).toBe("Today");
+  });
 });

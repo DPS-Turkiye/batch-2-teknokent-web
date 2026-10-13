@@ -15,6 +15,7 @@ import {
   programAnnouncement,
 } from "@test/fixtures/program-announcements";
 import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -66,6 +67,21 @@ describe("MenteeMessagesView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     search = new URLSearchParams();
+  });
+
+  it("reads in English", () => {
+    mockMessages();
+    render(
+      <InLocale locale="en">
+        <MenteeMessagesView />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Active mentorship")).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Search mentors or topics…"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
 
   it("shows the mentorship thread when no program thread is open", () => {

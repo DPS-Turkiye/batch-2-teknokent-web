@@ -11,6 +11,15 @@ export function calendarDay(value: string) {
   return new Date(`${value}T00:00:00`);
 }
 
+/** "Bugün" / "Dün" / "Today" / "Yesterday" for a day offset (0, -1), capitalized for a label. */
+export function relativeDayLabel(offset: number, locale = "tr") {
+  const text = new Intl.RelativeTimeFormat(locale, { numeric: "auto" }).format(
+    offset,
+    "day",
+  );
+  return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
+}
+
 /** "12 Eyl 2026" for a calendar-day string ("2026-09-12"); the string itself when unreadable. */
 export function formatCalendarDay(value: string, locale = "tr") {
   const date = calendarDay(value);

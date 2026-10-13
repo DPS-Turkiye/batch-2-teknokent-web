@@ -6,7 +6,7 @@ import {
   type CoordinatorMentorship,
   CoordinatorMentorshipHealth,
 } from "@/interfaces/coordinator-mentorship";
-import { formatDayMonth } from "@/lib/utils";
+import { formatDayMonth, relativeDayLabel } from "@/lib/utils";
 
 export enum MessageFilter {
   All = "ALL",
@@ -131,11 +131,12 @@ export function messagesSubtitle(
   return parts.join(" · ");
 }
 
-const TIME = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-const WEEKDAY = new Intl.DateTimeFormat("tr-TR", { weekday: "short" });
+function clock(at: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(at);
+}
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -148,26 +149,38 @@ function daysAgo(value: Date, now: Date) {
 }
 
 /** "10:24" today, "Dün", "Pzt" within the week, then "12 Eyl". */
-export function conversationTime(value: string | null, now = new Date()) {
+export function conversationTime(
+  value: string | null,
+  now = new Date(),
+  locale = "tr",
+) {
   if (!value) return "";
   const at = new Date(value);
   const days = daysAgo(at, now);
-  if (days <= 0) return TIME.format(at);
-  if (days === 1) return "Dün";
-  if (days < 7) return WEEKDAY.format(at).replace(".", "");
-  return formatDayMonth(at);
+  if (days <= 0) return clock(at, locale);
+  if (days === 1) return relativeDayLabel(-1, locale);
+  if (days < 7) {
+    return new Intl.DateTimeFormat(locale, { weekday: "short" })
+      .format(at)
+      .replace(".", "");
+  }
+  return formatDayMonth(at, locale);
 }
 
 /** The separator above a day's messages: "Bugün", "Dün" or "12 Eyl". */
-export function messageDayLabel(value: string, now = new Date()) {
+export function messageDayLabel(
+  value: string,
+  now = new Date(),
+  locale = "tr",
+) {
   const days = daysAgo(new Date(value), now);
-  if (days <= 0) return "Bugün";
-  if (days === 1) return "Dün";
-  return formatDayMonth(new Date(value));
+  if (days <= 0) return relativeDayLabel(0, locale);
+  if (days === 1) return relativeDayLabel(-1, locale);
+  return formatDayMonth(new Date(value), locale);
 }
 
-export function messageTime(value: string) {
-  return TIME.format(new Date(value));
+export function messageTime(value: string, locale = "tr") {
+  return clock(new Date(value), locale);
 }
 
 export const MAX_MESSAGE_LENGTH = 4000;

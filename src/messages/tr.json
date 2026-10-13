@@ -1463,5 +1463,46 @@
       "addGoogle": "Google Takvime Ekle",
       "downloadIcs": "iCal (.ics) İndir"
     }
+  },
+  "messagesPage": {
+    "search": "Mentor veya konu ara…",
+    "loading": "Yükleniyor…",
+    "noMessages": "Henüz mesaj yok",
+    "noMatch": "Aramanla eşleşen konuşma yok.",
+    "locked": "Mesajlaşma, bir mentorluk kabul edildiğinde açılır.",
+    "sharedFile": "Paylaşılan dosya · {time}",
+    "pick": "Bir konuşma seçin.",
+    "mentorOf": "{area} Mentoru",
+    "activeMentorship": "Aktif Mentorluk",
+    "emptyThread": "Bu mentorlukta henüz mesaj yok.",
+    "placeholder": "Mesaj yaz…",
+    "shareFile": "Dosya paylaş",
+    "send": "Gönder"
+  },
+  "programThreads": {
+    "label": "Program mesajları",
+    "title": "Program",
+    "coordinator": "Koordinatör · {name}",
+    "noMessages": "Henüz mesaj yok",
+    "unread": "{count} okunmamış mesaj",
+    "loading": "Yükleniyor…",
+    "empty": "Koordinatörle henüz mesaj yok.",
+    "sendFailed": "Mesaj gönderilemedi. Tekrar deneyin.",
+    "placeholder": "Koordinatöre yaz…",
+    "inputLabel": "Koordinatöre mesaj",
+    "send": "Gönder"
+  },
+  "announcements": {
+    "label": "Duyurular",
+    "title": "Duyurular",
+    "threadName": "{program} — Duyuru",
+    "audience": "{teams} takım · {mentors} mentor",
+    "none": "Henüz duyuru yok",
+    "empty": "Henüz duyuru yok.",
+    "authorFallback": "Koordinatör",
+    "inputLabel": "Duyuru",
+    "placeholder": "Programdaki tüm takımlara ve mentorlara duyuru yaz…",
+    "send": "Duyur",
+    "readOnly": "Duyurular yalnızca okunur. Koordinatöre yazmak için Program konuşmasını kullan."
   }
 }
