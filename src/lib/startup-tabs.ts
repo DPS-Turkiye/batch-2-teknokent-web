@@ -8,7 +8,6 @@ export enum StartupTab {
 
 export type StartupTabLink = {
   id: StartupTab;
-  label: string;
   href: string;
 };
 
@@ -17,8 +16,8 @@ export type StartupTabLink = {
  * /startup/meetings page still works.
  */
 export const STARTUP_TABS: StartupTabLink[] = [
-  { id: StartupTab.Profile, label: "Profil", href: "/startup" },
-  { id: StartupTab.Process, label: "Süreç", href: "/startup/process" },
-  { id: StartupTab.Files, label: "Dosyalar", href: "/startup/files" },
-  { id: StartupTab.Team, label: "Ekip", href: "/startup/team" },
+  { id: StartupTab.Profile, href: "/startup" },
+  { id: StartupTab.Process, href: "/startup/process" },
+  { id: StartupTab.Files, href: "/startup/files" },
+  { id: StartupTab.Team, href: "/startup/team" },
 ];

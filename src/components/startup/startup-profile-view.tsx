@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
@@ -55,34 +56,38 @@ function Card({
   );
 }
 
-function sessionsLabel(row: ActiveMentorshipRow) {
-  const sessions =
-    row.plannedSessions != null
-      ? `${row.heldSessions} / ${row.plannedSessions} seans`
-      : `${row.heldSessions} seans`;
-  const next = row.nextMeetingAt
-    ? `sonraki ${formatDayMonth(new Date(row.nextMeetingAt))}`
-    : null;
-  return [row.supportArea, sessions, next].filter(Boolean).join(" · ");
-}
-
 export function StartupProfileView() {
+  const t = useTranslations("startupProfile");
+  const locale = useLocale();
+  const sessionsLabel = (row: ActiveMentorshipRow) => {
+    const sessions =
+      row.plannedSessions != null
+        ? t("sessionsPlanned", {
+            held: row.heldSessions,
+            planned: row.plannedSessions,
+          })
+        : t("sessions", { held: row.heldSessions });
+    const next = row.nextMeetingAt
+      ? t("next", {
+          date: formatDayMonth(new Date(row.nextMeetingAt), locale),
+        })
+      : null;
+    return [row.supportArea, sessions, next].filter(Boolean).join(" · ");
+  };
   const overview = useStartupOverview();
   const statusForm = useStartupStatusForm(overview.profile);
   const openDocument = useOpenDocument();
 
   const editAction = (
     <Link href="/profile" className={startupSecondaryActionClass}>
-      Profili düzenle
+      {t("edit")}
     </Link>
   );
 
   if (overview.isLoading) {
     return (
       <StartupPageFrame action={editAction}>
-        <p className="py-10 text-sm text-[#858c96]">
-          Startup profili yükleniyor…
-        </p>
+        <p className="py-10 text-sm text-[#858c96]">{t("loading")}</p>
       </StartupPageFrame>
     );
   }
@@ -93,7 +98,7 @@ export function StartupProfileView() {
           role="alert"
           className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
         >
-          {overview.error?.message ?? "Startup profili bulunamadı."}
+          {overview.error?.message ?? t("notFound")}
         </p>
       </StartupPageFrame>
     );
@@ -103,18 +108,23 @@ export function StartupProfileView() {
   const percent = profile.completionPercent;
   const facts: [string, string | null][] = [
     [
-      "Kuruluş",
+      t("facts.founded"),
       profile.foundedYear != null ? String(profile.foundedYear) : null,
     ],
     [
-      "Aşama",
+      t("facts.stage"),
       [overview.stageName, profile.fundingStage].filter(Boolean).join(" · ") ||
         null,
     ],
-    ["Sektör", profile.sector],
-    ["Program", overview.programName],
-    ["Web", profile.website],
-    ["Ekip", overview.teamSize != null ? `${overview.teamSize} kişi` : null],
+    [t("facts.sector"), profile.sector],
+    [t("facts.program"), overview.programName],
+    [t("facts.web"), profile.website],
+    [
+      t("facts.team"),
+      overview.teamSize != null
+        ? t("teamSize", { count: overview.teamSize })
+        : null,
+    ],
   ];
 
   return (
@@ -123,29 +133,29 @@ export function StartupProfileView() {
         <div className="min-w-0 space-y-[18px]">
           <Card
             id="startup-about"
-            title="Startup hakkında"
-            hint="Mentorlar seni mentor havuzunda bu metinle görüyor."
+            title={t("about")}
+            hint={t("aboutHint")}
             action={
               <Link href="/profile" className={cardLinkClass}>
-                Düzenle
+                {t("editLink")}
               </Link>
             }
           >
             <p className={bodyClass}>
-              {profile.description ?? "Henüz bir tanıtım yazısı eklenmedi."}
+              {profile.description ?? t("noDescription")}
             </p>
           </Card>
 
           <Card
             id="startup-status"
-            title="Ürün durumu"
+            title={t("status")}
             action={
               <button
                 type="button"
                 onClick={statusForm.open}
                 className={cardLinkClass}
               >
-                Güncelle
+                {t("update")}
               </button>
             }
           >
@@ -153,26 +163,27 @@ export function StartupProfileView() {
               <span
                 className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
               >
-                {profile.maturity ?? "Aşama belirtilmedi"}
+                {profile.maturity ?? t("noMaturity")}
               </span>
               <span className={cardHintClass}>
                 {[
                   profile.statusVersion,
-                  `son güncelleme ${formatLongDate(profile.updatedAt)}`,
+                  t("updatedOn", {
+                    date: formatLongDate(profile.updatedAt, locale),
+                  }),
                 ]
                   .filter(Boolean)
                   .join(" · ")}
               </span>
             </div>
             <p className={bodyClass}>
-              {profile.statusSummary ??
-                "Henüz bir durum güncellemesi eklenmedi."}
+              {profile.statusSummary ?? t("noStatus")}
             </p>
             {percent != null ? (
               <>
                 <div
                   role="progressbar"
-                  aria-label="Tamamlanma oranı"
+                  aria-label={t("completion")}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={percent}
@@ -186,11 +197,11 @@ export function StartupProfileView() {
                 <div className="flex items-start justify-between">
                   <span className="text-xs leading-[18px] text-[#676e78]">
                     {overview.stageName
-                      ? `${overview.stageName} tamamlanma`
-                      : "Tamamlanma"}
+                      ? t("stageCompletion", { stage: overview.stageName })
+                      : t("completionShort")}
                   </span>
                   <span className="text-[12.5px] font-medium leading-[19px] text-[#9e4400]">
-                    %{percent}
+                    {t("percent", { value: percent })}
                   </span>
                 </div>
               </>
@@ -200,7 +211,7 @@ export function StartupProfileView() {
           <Card
             id="startup-canvas"
             title="Business Model Canvas"
-            hint="İş modelini tek sayfada özetleyen çalışma dosyan."
+            hint={t("canvasHint")}
             action={
               canvas ? (
                 <button
@@ -208,11 +219,11 @@ export function StartupProfileView() {
                   onClick={() => void openDocument(canvas.id)}
                   className={cardLinkClass}
                 >
-                  Görüntüle
+                  {t("view")}
                 </button>
               ) : (
                 <Link href="/startup/files" className={cardLinkClass}>
-                  Yükle →
+                  {t("upload")}
                 </Link>
               )
             }
@@ -232,7 +243,9 @@ export function StartupProfileView() {
                     </p>
                     <p className="truncate text-[11.5px] leading-[17px] text-[#676e78]">
                       {[
-                        `Son güncelleme ${formatLongDate(canvas.createdAt)}`,
+                        t("canvasUpdated", {
+                          date: formatLongDate(canvas.createdAt, locale),
+                        }),
                         canvas.uploadedByName,
                       ]
                         .filter(Boolean)
@@ -243,21 +256,19 @@ export function StartupProfileView() {
                 <span
                   className={`${chipClass} shrink-0 border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]`}
                 >
-                  Güncel
+                  {t("current")}
                 </span>
               </div>
             ) : (
               <p className="text-sm text-[#858c96]">
-                {overview.documentsLoading
-                  ? "Dosyalar yükleniyor…"
-                  : "Henüz bir kanvas yüklenmedi."}
+                {overview.documentsLoading ? t("filesLoading") : t("noCanvas")}
               </p>
             )}
           </Card>
         </div>
 
         <div className="min-w-0 space-y-[18px]">
-          <Card id="startup-facts" title="Künye">
+          <Card id="startup-facts" title={t("factsTitle")}>
             <dl className="space-y-3.5">
               {facts.map(([label, value]) => (
                 <div
@@ -277,20 +288,20 @@ export function StartupProfileView() {
 
           <Card
             id="startup-mentorships"
-            title="Aktif mentorlukların"
-            hint="Mentorluk detayları Mentorluklarım altında."
+            title={t("mentorships")}
+            hint={t("mentorshipsHint")}
             action={
               <Link href="/mentorships" className={cardLinkClass}>
-                Mentorluklarım →
+                {t("mentorshipsLink")}
               </Link>
             }
           >
             {overview.mentorshipsLoading ? (
-              <p className="text-sm text-[#858c96]">Mentorluklar yükleniyor…</p>
-            ) : overview.mentorships.length === 0 ? (
               <p className="text-sm text-[#858c96]">
-                Henüz aktif bir mentorluğun yok.
+                {t("mentorshipsLoading")}
               </p>
+            ) : overview.mentorships.length === 0 ? (
+              <p className="text-sm text-[#858c96]">{t("noMentorships")}</p>
             ) : (
               <ul className="space-y-3.5">
                 {overview.mentorships.map((row) => (

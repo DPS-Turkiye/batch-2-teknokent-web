@@ -7,7 +7,7 @@ import { StartupTeamView } from "@/components/startup/startup-team-view";
 import { usePendingMembers } from "@/hooks/use-pending-members";
 import { useStartupTeam } from "@/hooks/use-startup-team";
 import { memberFixture } from "@test/fixtures/startup-team";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/startup/startup-page-frame", () => ({
   StartupPageFrame: ({
@@ -117,6 +117,21 @@ describe("StartupTeamView", () => {
     expect(within(first).getByText("Yönetici")).toBeInTheDocument();
     expect(within(second).getByText("Üye")).toBeInTheDocument();
     expect(within(second).queryByText(/Katılım/)).not.toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    vi.mocked(useStartupTeam).mockReturnValue(state());
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <StartupTeamView />
+      </InLocale>,
+    );
+
+    const [first, second] = screen.getAllByRole("listitem");
+    expect(within(first).getByText("CEO · Founder")).toBeInTheDocument();
+    expect(within(first).getByText("Joined: Jun 12, 2026")).toBeInTheDocument();
+    expect(within(first).getByText("Admin")).toBeInTheDocument();
+    expect(within(second).getByText("Member")).toBeInTheDocument();
   });
 
   it("offers removal only where it is allowed", async () => {

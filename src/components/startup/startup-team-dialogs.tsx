@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { DangerButton } from "@/components/common/danger-button";
 import { fieldClass, labelClass } from "@/components/common/form-field";
 import { ModalDialog } from "@/components/common/modal-dialog";
@@ -12,6 +14,7 @@ import { MemberFormMode } from "@/lib/startup-team";
 type Team = ReturnType<typeof useStartupTeam>;
 
 export function MemberFormDialog({ team }: { team: Team }) {
+  const t = useTranslations("startupTeam");
   const { draft } = team;
   if (!draft) return null;
   const adding = draft.mode === MemberFormMode.Add;
@@ -25,10 +28,10 @@ export function MemberFormDialog({ team }: { team: Team }) {
         }}
       >
         <h2 id="member-form-title" className="text-base font-semibold">
-          {adding ? "Ekip üyesi ekle" : "Ekip üyesini düzenle"}
+          {adding ? t("add") : t("editTitle")}
         </h2>
         <label className="block">
-          <span className={labelClass}>Ad soyad</span>
+          <span className={labelClass}>{t("fullName")}</span>
           <input
             className={fieldClass}
             value={draft.fullName}
@@ -37,7 +40,7 @@ export function MemberFormDialog({ team }: { team: Team }) {
           />
         </label>
         <label className="block">
-          <span className={labelClass}>E-posta</span>
+          <span className={labelClass}>{t("email")}</span>
           <input
             className={fieldClass}
             type="email"
@@ -48,7 +51,7 @@ export function MemberFormDialog({ team }: { team: Team }) {
           />
         </label>
         <label className="block">
-          <span className={labelClass}>Ünvan</span>
+          <span className={labelClass}>{t("jobTitle")}</span>
           <input
             className={fieldClass}
             value={draft.jobTitle}
@@ -63,9 +66,11 @@ export function MemberFormDialog({ team }: { team: Team }) {
           </p>
         ) : null}
         <div className="flex justify-end gap-2">
-          <SecondaryButton onClick={team.closeForm}>Vazgeç</SecondaryButton>
+          <SecondaryButton onClick={team.closeForm}>
+            {t("cancel")}
+          </SecondaryButton>
           <PrimaryButton type="submit" disabled={team.isSaving}>
-            {team.isSaving ? "Kaydediliyor…" : adding ? "Ekle" : "Kaydet"}
+            {team.isSaving ? t("saving") : adding ? t("addAction") : t("save")}
           </PrimaryButton>
         </div>
       </form>
@@ -84,20 +89,20 @@ export function RemoveMemberDialog({
   onCancel: () => void;
   onConfirm: () => void;
 }) {
+  const t = useTranslations("startupTeam");
   if (!member) return null;
   return (
     <ModalDialog labelledBy="member-remove-title" onClose={onCancel}>
       <h2 id="member-remove-title" className="text-base font-semibold">
-        Ekip üyesini çıkarmak istiyor musun?
+        {t("removeTitle")}
       </h2>
       <p className="text-sm text-[#676e78]">
-        {member.fullName} ekipten çıkarılır. Hesabı silinmez, yalnızca bu
-        startup ile bağı kalkar.
+        {t("removeBody", { name: member.fullName })}
       </p>
       <div className="flex justify-end gap-2">
-        <SecondaryButton onClick={onCancel}>Vazgeç</SecondaryButton>
+        <SecondaryButton onClick={onCancel}>{t("cancel")}</SecondaryButton>
         <DangerButton disabled={isRemoving} onClick={onConfirm}>
-          {isRemoving ? "Çıkarılıyor…" : "Çıkar"}
+          {isRemoving ? t("removing") : t("remove")}
         </DangerButton>
       </div>
     </ModalDialog>

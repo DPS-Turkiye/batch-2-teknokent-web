@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -20,12 +21,10 @@ const EMPTY_DRAFT: StartupStatusDraft = {
   completionPercent: "",
 };
 
-function percentError(value: string) {
-  if (value.trim() === "") return null;
+function isValidPercent(value: string) {
+  if (value.trim() === "") return true;
   const percent = Number(value);
-  return Number.isInteger(percent) && percent >= 0 && percent <= 100
-    ? null
-    : "Tamamlanma oranı 0 ile 100 arasında bir tam sayı olmalı.";
+  return Number.isInteger(percent) && percent >= 0 && percent <= 100;
 }
 
 function draftFrom(profile: StartupProfile | null): StartupStatusDraft {
@@ -42,6 +41,7 @@ function draftFrom(profile: StartupProfile | null): StartupStatusDraft {
 
 /** The "Durumu güncelle" dialog: its open state, draft and save. */
 export function useStartupStatusForm(profile: StartupProfile | null) {
+  const t = useTranslations("startupProfile.statusDialog");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [isOpen, setIsOpen] = useState(false);
@@ -52,13 +52,14 @@ export function useStartupStatusForm(profile: StartupProfile | null) {
     onSuccess: (saved) => {
       queryClient.setQueryData(STARTUP_PROFILE_QUERY_KEY, saved);
       setIsOpen(false);
-      showToast({ message: "Startup durumu güncellendi.", tone: "success" });
+      showToast({ message: t("saved"), tone: "success" });
     },
-    onError: () =>
-      showToast({ message: "Startup durumu kaydedilemedi.", tone: "error" }),
+    onError: () => showToast({ message: t("saveFailed"), tone: "error" }),
   });
 
-  const error = percentError(draft.completionPercent);
+  const error = isValidPercent(draft.completionPercent)
+    ? null
+    : t("percentInvalid");
 
   function open() {
     setDraft(draftFrom(profile));
