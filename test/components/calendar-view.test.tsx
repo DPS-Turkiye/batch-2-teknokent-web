@@ -142,7 +142,7 @@ describe("CalendarView", () => {
     ).toHaveTextContent("Nihan Öztürk");
     await user.click(screen.getByRole("button", { name: "Sonraki hafta" }));
     expect(
-      screen.getByRole("heading", { name: "31–4 Eylül 2026" }),
+      screen.getByRole("heading", { name: /^31 Ağustos\s–\s4 Eylül 2026$/ }),
     ).toBeInTheDocument();
   });
 
@@ -213,7 +213,7 @@ describe("CalendarView", () => {
       ).toBeInTheDocument(),
     );
     expect(
-      within(prep).getByText("Cuma 28 Ağustos · Nihan Öztürk görüşmesi"),
+      within(prep).getByText("28 Ağustos Cuma · Nihan Öztürk görüşmesi"),
     ).toBeInTheDocument();
     expect(within(prep).getByText("Gecikti")).toBeInTheDocument();
     expect(

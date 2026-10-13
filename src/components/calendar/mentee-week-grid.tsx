@@ -1,7 +1,9 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import type { MeetingItem } from "@/interfaces/meeting";
-import { DAY_SHORT_LABELS } from "@/lib/calendar";
+import { shortWeekday } from "@/lib/calendar";
 import {
   type CalendarEntry,
   CalendarEntryKind,
@@ -31,6 +33,8 @@ export function MenteeWeekGrid({
   today: Date;
   onSelectMeeting: (meeting: MeetingItem) => void;
 }) {
+  const t = useTranslations("calendar");
+  const locale = useLocale();
   const columnHeight = DAY_HEADER_HEIGHT + hours.length * HOUR_ROW_HEIGHT;
 
   return (
@@ -62,7 +66,7 @@ export function MenteeWeekGrid({
                 style={{ height: DAY_HEADER_HEIGHT }}
               >
                 <span className="text-[11.5px] leading-4 text-[#676e78]">
-                  {DAY_SHORT_LABELS[index]}
+                  {shortWeekday(day, locale)}
                 </span>
                 <span
                   className={`text-[13px] leading-[18px] ${isToday ? "font-semibold text-[#c95c18]" : "font-medium text-[#22262b]"}`}
@@ -94,7 +98,7 @@ export function MenteeWeekGrid({
                         key={entry.id}
                         type="button"
                         onClick={() => onSelectMeeting(meeting)}
-                        aria-label={`${entry.title} detayını aç`}
+                        aria-label={t("openDetail", { title: entry.title })}
                         className={className}
                         style={style}
                       >

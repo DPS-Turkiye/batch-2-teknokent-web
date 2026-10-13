@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { CalendarImportModal } from "@/components/calendar/calendar-import-modal";
@@ -26,6 +27,7 @@ const chevronButton =
   "grid size-8 place-items-center rounded-full transition hover:bg-[#f8f9fa]";
 
 export function CalendarView() {
+  const t = useTranslations("calendar");
   const importState = useCalendarImport();
   const calendar = useMenteeCalendar(importState.importedMeetings);
   const [showImportModal, setShowImportModal] = useState(false);
@@ -43,7 +45,7 @@ export function CalendarView() {
         <header className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
             <h1 className="text-[28px] font-semibold leading-[39px] text-[#22262b]">
-              Takvim
+              {t("title")}
             </h1>
             <p className="text-[13px] leading-[18px] text-[#676e78]">
               {calendar.summary}
@@ -55,13 +57,13 @@ export function CalendarView() {
               onClick={() => setShowImportModal(true)}
               className={pillButton}
             >
-              Google Takvimden Aktar
+              {t("importGoogle")}
             </button>
             <Link
               href="/mentor-request"
               className="rounded-full bg-[#e86f22] px-4 py-2.5 text-[12.5px] font-medium leading-[18px] text-white transition hover:bg-[#ce5e19]"
             >
-              Görüşme talep et
+              {t("requestMeeting")}
             </Link>
           </div>
         </header>
@@ -88,7 +90,7 @@ export function CalendarView() {
                 <button
                   type="button"
                   onClick={calendar.previous}
-                  aria-label="Önceki hafta"
+                  aria-label={t("previousWeek")}
                   className={chevronButton}
                 >
                   <Image
@@ -104,12 +106,12 @@ export function CalendarView() {
                   onClick={calendar.today}
                   className={pillButton}
                 >
-                  Bugün
+                  {t("today")}
                 </button>
                 <button
                   type="button"
                   onClick={calendar.next}
-                  aria-label="Sonraki hafta"
+                  aria-label={t("nextWeek")}
                   className={chevronButton}
                 >
                   <Image
@@ -128,15 +130,15 @@ export function CalendarView() {
                 role="alert"
                 className="rounded-xl border border-[#f4c6a7] bg-[#fdebdd] p-4 text-xs text-[#b94f12]"
               >
-                Takvim yüklenemedi: {calendar.loadError.message}
+                {t("loadFailed", { error: calendar.loadError.message })}
               </p>
             ) : calendar.isLoading ? (
               <p className="py-10 text-center text-xs text-[#676e78]">
-                Takvim yükleniyor…
+                {t("loading")}
               </p>
             ) : calendar.filter === CalendarFilter.Program ? (
               <p className="rounded-xl bg-[#f3f4f6] p-4 text-center text-xs text-[#676e78]">
-                Program etkinlikleri henüz tanımlı değil.
+                {t("noProgram")}
               </p>
             ) : (
               <MenteeWeekGrid

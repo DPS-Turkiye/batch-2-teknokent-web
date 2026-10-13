@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { SecondaryButton } from "@/components/common/secondary-button";
 
 export function CalendarImportModal({
@@ -17,22 +18,21 @@ export function CalendarImportModal({
   onImportFile: (file: File) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("calendar");
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
       <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl sm:p-8">
         <div className="flex items-start justify-between border-b border-[#f1f2f4] pb-4">
           <div>
             <h3 className="text-xl font-bold text-[#22262b]">
-              Google Takvimden Aktar
+              {t("importGoogle")}
             </h3>
-            <p className="mt-1 text-xs text-[#676e78]">
-              Harici takviminizdeki etkinlikleri takviminize aktarın.
-            </p>
+            <p className="mt-1 text-xs text-[#676e78]">{t("import.body")}</p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("import.close")}
             className="text-[#a4aab2] hover:text-[#676e78]"
           >
             ✕
@@ -56,7 +56,7 @@ export function CalendarImportModal({
 
           <div className="rounded-xl border border-[#e4e7ea] bg-[#f8f9fa] p-5">
             <p className="text-center font-semibold text-[#22262b]">
-              Google hesabınızla bağlanın
+              {t("import.connect")}
             </p>
             <div className="mt-3 flex justify-center">
               <button
@@ -65,17 +65,18 @@ export function CalendarImportModal({
                 onClick={onSyncWithGoogle}
                 className="rounded-xl bg-[#2f7ff0] px-6 py-3 text-xs font-bold text-white transition hover:bg-[#1f6fe0] disabled:opacity-50"
               >
-                {importing
-                  ? "Bağlanılıyor…"
-                  : "Google ile Oturum Aç ve Takvimimi Aktar"}
+                {importing ? t("import.connecting") : t("import.signIn")}
               </button>
             </div>
           </div>
 
           <div className="space-y-3 rounded-xl border border-dashed border-[#e4e7ea] p-6 text-center">
             <p className="font-semibold text-[#22262b]">
-              Ya da bir <code className="rounded bg-[#f1f2f4] px-1">.ics</code>{" "}
-              dosyası yükleyin:
+              {t.rich("import.orIcs", {
+                code: (chunks) => (
+                  <code className="rounded bg-[#f1f2f4] px-1">{chunks}</code>
+                ),
+              })}
             </p>
             <input
               type="file"
@@ -91,7 +92,9 @@ export function CalendarImportModal({
         </div>
 
         <div className="flex justify-end border-t border-[#f1f2f4] pt-4">
-          <SecondaryButton onClick={onClose}>Kapat</SecondaryButton>
+          <SecondaryButton onClick={onClose}>
+            {t("import.close")}
+          </SecondaryButton>
         </div>
       </div>
     </div>

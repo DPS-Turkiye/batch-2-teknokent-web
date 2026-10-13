@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 
 import { useCreateMeeting } from "@/hooks/use-meetings";
@@ -24,6 +25,7 @@ import {
  * ID) but told the user the opposite of what happened.
  */
 export function useCalendarImport() {
+  const t = useTranslations("calendar.import");
   const { mutateAsync: createMeeting } = useCreateMeeting();
   const [importedMeetings, setImportedMeetings] = useState<MeetingItem[]>([]);
   const [importing, setImporting] = useState(false);
@@ -64,9 +66,7 @@ export function useCalendarImport() {
     setError(null);
     setSuccessMessage(null);
     if (!getGoogleClientId()) {
-      setError(
-        "Google entegrasyonu bu ortamda yapılandırılmamış. NEXT_PUBLIC_GOOGLE_CLIENT_ID ayarlanmadan gerçek bir hesap bağlanamaz.",
-      );
+      setError(t("notConfigured"));
       return;
     }
     setImporting(true);
@@ -75,19 +75,13 @@ export function useCalendarImport() {
       const events = await fetchGoogleCalendarEvents(token);
       addImported(events);
       await persist(events);
-      setSuccessMessage(
-        `Google Takvim bağlandı, ${events.length} etkinlik aktarıldı.`,
-      );
+      setSuccessMessage(t("connected", { count: events.length }));
     } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Google Takvim ile bağlantı kurulamadı.",
-      );
+      setError(reason instanceof Error ? reason.message : t("connectFailed"));
     } finally {
       setImporting(false);
     }
-  }, [addImported, persist]);
+  }, [addImported, persist, t]);
 
   const importFile = useCallback(
     async (file: File) => {
@@ -98,21 +92,19 @@ export function useCalendarImport() {
         const text = await file.text();
         const events = parseICalText(text);
         if (events.length === 0) {
-          setError(
-            "Geçerli bir etkinlik bulunamadı. Google Takvim'den dışa aktarılmış bir .ics dosyası seçin.",
-          );
+          setError(t("noEvents"));
           return;
         }
         addImported(events);
         await persist(events);
-        setSuccessMessage(`${events.length} etkinlik içe aktarıldı.`);
+        setSuccessMessage(t("imported", { count: events.length }));
       } catch {
-        setError("Dosya okunamadı.");
+        setError(t("readFailed"));
       } finally {
         setImporting(false);
       }
     },
-    [addImported, persist],
+    [addImported, persist, t],
   );
 
   return {

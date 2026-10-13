@@ -62,11 +62,16 @@ export function hourOf(iso: string) {
   return new Date(iso).getHours();
 }
 
-export function timeLabel(iso: string) {
-  return new Date(iso).toLocaleTimeString("tr-TR", {
+export function timeLabel(iso: string, locale = "tr") {
+  return new Date(iso).toLocaleTimeString(locale, {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** "Pzt" / "Mon" */
+export function shortWeekday(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, { weekday: "short" }).format(date);
 }
 
 export function isSameDay(iso: string, day: Date) {

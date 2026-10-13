@@ -1,6 +1,8 @@
 "use client";
 
-import { CalendarFilter, CALENDAR_FILTER_LABELS } from "@/lib/calendar";
+import { useTranslations } from "next-intl";
+
+import type { CalendarFilter } from "@/lib/calendar";
 
 export function FilterPills({
   filter,
@@ -11,6 +13,7 @@ export function FilterPills({
   options: CalendarFilter[];
   onChange: (filter: CalendarFilter) => void;
 }) {
+  const t = useTranslations("calendar.filters");
   return (
     <div className="flex flex-wrap gap-2">
       {options.map((option) => (
@@ -25,7 +28,7 @@ export function FilterPills({
               : "border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78] hover:text-[#22262b]"
           }`}
         >
-          {CALENDAR_FILTER_LABELS[option]}
+          {t(option)}
         </button>
       ))}
     </div>

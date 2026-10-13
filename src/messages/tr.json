@@ -786,6 +786,13 @@
       "too-many-requests": "Çok fazla deneme yapıldı. Biraz bekleyip tekrar deneyin.",
       "network-request-failed": "Bağlantı kurulamadı. Tekrar deneyin.",
       "missing-email": "E-posta adresinizi girin."
+    },
+    "googleCalendar": {
+      "popupBlocked": "Açılır pencere engellendi. Tarayıcında açılır pencerelere izin verip tekrar dene.",
+      "missingClientId": "Google Meet oluşturmak için NEXT_PUBLIC_GOOGLE_CLIENT_ID tanımlayın.",
+      "meetCreateFailed": "Google Meet etkinliği oluşturulamadı. Google iznini kontrol edin.",
+      "meetLinkMissing": "Google Meet bağlantısı alınamadı.",
+      "fetchFailed": "Google Takvim API'sinden takvim verileri çekilemedi. Lütfen erişim tokenınızı kontrol edin."
     }
   },
   "metadata": {
@@ -1381,5 +1388,80 @@
     "eyebrow": "Mentor havuzu",
     "title": "Mentörler",
     "intro": "Sistemdeki onaylı mentörleri incele. Birine tıklayınca profiline gidersin."
+  },
+  "calendar": {
+    "title": "Takvim",
+    "importGoogle": "Google Takvimden Aktar",
+    "requestMeeting": "Görüşme talep et",
+    "previousWeek": "Önceki hafta",
+    "today": "Bugün",
+    "nextWeek": "Sonraki hafta",
+    "loadFailed": "Takvim yüklenemedi: {error}",
+    "loading": "Takvim yükleniyor…",
+    "noProgram": "Program etkinlikleri henüz tanımlı değil.",
+    "filters": {
+      "all": "Tümü",
+      "mentorship": "Mentorluk",
+      "program": "Program",
+      "availability": "Müsaitlik",
+      "deliverable": "Teslim"
+    },
+    "summary": "Bu hafta {parts}",
+    "mentorships": "{count} mentorluk görüşmesi",
+    "programs": "{count} program etkinliği",
+    "deliverables": "{count} teslim",
+    "meetingFallback": "Görüşme",
+    "meetingTitleFallback": "Mentorluk görüşmesi",
+    "mentorshipDetail": "{mentor} · mentorluk",
+    "mentorshipOnly": "mentorluk",
+    "deliverable": "Teslim",
+    "deliverableDetail": "Teslim tarihi",
+    "openDetail": "{title} detayını aç",
+    "prep": {
+      "title": "Hazırlık bekleyen",
+      "loading": "Hazırlık yükleniyor…",
+      "empty": "Bu görüşme için bekleyen bir hazırlık yok.",
+      "status": {
+        "overdue": "Gecikti",
+        "in-progress": "Devam ediyor"
+      },
+      "complete": "Hazırlığı tamamla",
+      "openNotes": "Toplantı notlarını aç",
+      "heading": "{day} · {mentor} görüşmesi"
+    },
+    "upcoming": {
+      "title": "Sıradaki etkinlikler",
+      "deliverablesFailed": "Teslimler yüklenemedi; liste eksik olabilir.",
+      "loading": "Etkinlikler yükleniyor…",
+      "empty": "Yaklaşan bir etkinlik yok."
+    },
+    "import": {
+      "body": "Harici takviminizdeki etkinlikleri takviminize aktarın.",
+      "connect": "Google hesabınızla bağlanın",
+      "connecting": "Bağlanılıyor…",
+      "signIn": "Google ile Oturum Aç ve Takvimimi Aktar",
+      "orIcs": "Ya da bir <code>.ics</code> dosyası yükleyin:",
+      "close": "Kapat",
+      "notConfigured": "Google entegrasyonu bu ortamda yapılandırılmamış. NEXT_PUBLIC_GOOGLE_CLIENT_ID ayarlanmadan gerçek bir hesap bağlanamaz.",
+      "connected": "Google Takvim bağlandı, {count} etkinlik aktarıldı.",
+      "connectFailed": "Google Takvim ile bağlantı kurulamadı.",
+      "noEvents": "Geçerli bir etkinlik bulunamadı. Google Takvim'den dışa aktarılmış bir .ics dosyası seçin.",
+      "imported": "{count} etkinlik içe aktarıldı.",
+      "readFailed": "Dosya okunamadı."
+    },
+    "detail": {
+      "fallback": "Toplantı",
+      "when": "Zaman:",
+      "duration": "Süre:",
+      "minutes": "{count} dakika",
+      "mentor": "Mentor:",
+      "noLink": "Bu toplantı için henüz bir görüşme bağlantısı yok.",
+      "prepare": "Toplantıya hazırlan",
+      "close": "Kapat"
+    },
+    "sync": {
+      "addGoogle": "Google Takvime Ekle",
+      "downloadIcs": "iCal (.ics) İndir"
+    }
   }
 }
