@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
@@ -18,6 +19,7 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { UserRole } from "@/interfaces/session";
 import { getMeetingRoom } from "@/lib/client/meetings";
 import {
@@ -26,6 +28,7 @@ import {
   meetingInviteeLabels,
   meetingScheduleLabel,
 } from "@/lib/meeting-context";
+import { needLabels } from "@/lib/mentor-request-need";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { MENTORSHIPS_HISTORY_HREF } from "@/lib/const";
 import { initials } from "@/lib/utils";
@@ -47,6 +50,13 @@ function ContextCard({
 }
 
 function MeetingAboutContent() {
+  const t = useTranslations("meetingPages.about");
+  const tContext = useTranslations("meetingPages.context");
+  const tCall = useTranslations("meetingPages.call");
+  const tStatus = useTranslations("meetingPages.status");
+  const tNeed = useTranslations("mentorRequest");
+  const locale = useLocale();
+  const texts = { t: tContext, locale };
   const session = useAppSession();
   const isMentor = session?.role === UserRole.Mentor;
   const { error, isLoading, meeting } = useMeetingLifecycle();
@@ -62,14 +72,19 @@ function MeetingAboutContent() {
   const request = requestQuery.data ?? null;
   const calendarMode = isCalendarOriginRequest(request);
   const requestDetail =
-    request && !calendarMode ? buildRequestDetailContent(request) : null;
+    request && !calendarMode
+      ? buildRequestDetailContent(request, {
+          labels: needLabels(tNeed),
+          locale,
+        })
+      : null;
 
   if (!meeting) {
     return (
       <AppShell
         active={AppArea.Mentorships}
         mentorHome={isMentor}
-        title="Görüşme bilgisi"
+        title={t("title")}
         backHref={MENTORSHIPS_HISTORY_HREF}
       >
         <MeetingUnavailable error={error} isLoading={isLoading} />
@@ -81,6 +96,7 @@ function MeetingAboutContent() {
     meeting,
     request,
     Boolean(isMentor),
+    texts,
   );
   const organizationId = meeting.organizationId || request?.organizationId;
   const startupTitle =
@@ -91,21 +107,21 @@ function MeetingAboutContent() {
     ) : (
       counterpart
     );
-  const schedule = meetingScheduleLabel(meeting);
-  const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
+  const schedule = meetingScheduleLabel(meeting, texts);
+  const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting], texts);
   const report = shareQuery.data?.report ?? null;
   const hasNotes = Boolean(meeting.notes?.trim() || meeting.outcomes?.trim());
   const requestTopic =
     requestDetail?.topic ||
     request?.supportArea ||
     meeting.agenda ||
-    "Mentorluk görüşmesi";
+    t("topicFallback");
 
   return (
     <AppShell
       active={AppArea.Mentorships}
       mentorHome={isMentor}
-      title="Görüşme bilgisi"
+      title={t("title")}
       backHref={MENTORSHIPS_HISTORY_HREF}
     >
       <MentorAccent enabled={Boolean(isMentor)}>
@@ -116,7 +132,7 @@ function MeetingAboutContent() {
               href={MENTORSHIPS_HISTORY_HREF}
               className="text-[#858c96] hover:text-[#22262b]"
             >
-              Geçmiş
+              {t("breadcrumb")}
             </Link>
             <span className="text-[#858c96]">›</span>
             <span className="font-medium text-[#22262b]">{startupTitle}</span>
@@ -130,7 +146,7 @@ function MeetingAboutContent() {
             />
             <div className="min-w-0">
               <h1 className="text-[28px] font-medium leading-tight text-[#22262b]">
-                {startupTitle} ile Mentorluk Görüşmesi
+                {tCall.rich("heading", { name: () => startupTitle })}
               </h1>
               <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
                 {requestTopic}
@@ -139,17 +155,24 @@ function MeetingAboutContent() {
                 <p className="mt-1 text-[13px] text-[#858c96]">{schedule}</p>
               ) : null}
               <p className="mt-1 text-[13px] text-[#858c96]">
-                {meeting.durationMinutes} dk · {String(meeting.status)}
+                {t("meta", {
+                  minutes: meeting.durationMinutes,
+                  status: Object.values(MeetingStatus).includes(
+                    meeting.status as MeetingStatus,
+                  )
+                    ? tStatus(meeting.status as MeetingStatus)
+                    : String(meeting.status),
+                })}
               </p>
             </div>
           </section>
 
           <div className="mt-6 grid gap-[18px] lg:grid-cols-2">
-            <ContextCard title="Davetliler">
+            <ContextCard title={t("invitees")}>
               {roomQuery.isLoading ? (
-                <p>Yükleniyor...</p>
+                <p>{t("loading")}</p>
               ) : invitees.length === 0 ? (
-                <p>Davetli bilgisi bulunamadı.</p>
+                <p>{t("noInvitees")}</p>
               ) : (
                 <ul className="space-y-2 text-[#22262b]">
                   {invitees.map((label) => (
@@ -160,7 +183,7 @@ function MeetingAboutContent() {
             </ContextCard>
 
             {request && !calendarMode ? (
-              <ContextCard title="Talep özeti">
+              <ContextCard title={tCall("requestSummary")}>
                 <RequestDetailsPanel
                   request={request}
                   showSentAt={false}
@@ -168,17 +191,17 @@ function MeetingAboutContent() {
                 />
               </ContextCard>
             ) : (
-              <ContextCard title="Talep bilgileri">
-                <p>Bu toplantı için talep özeti bulunmuyor.</p>
+              <ContextCard title={tCall("requestInfo")}>
+                <p>{t("noRequest")}</p>
               </ContextCard>
             )}
 
             {hasNotes ? (
-              <ContextCard title="Kayıtlı notlar">
+              <ContextCard title={t("savedNotes")}>
                 {meeting.notes?.trim() ? (
                   <div className="mb-3">
                     <p className="text-[11px] font-medium text-[#858c96]">
-                      Notlar
+                      {t("notes")}
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-[#22262b]">
                       {meeting.notes}
@@ -188,7 +211,7 @@ function MeetingAboutContent() {
                 {meeting.outcomes?.trim() ? (
                   <div>
                     <p className="text-[11px] font-medium text-[#858c96]">
-                      Sonuçlar
+                      {t("outcomes")}
                     </p>
                     <p className="mt-1 whitespace-pre-wrap text-[#22262b]">
                       {meeting.outcomes}
@@ -212,18 +235,18 @@ function MeetingAboutContent() {
 
           <div className="mt-[18px]">
             {shareQuery.isLoading ? (
-              <ContextCard title="Toplantı raporu">
-                <p>Yükleniyor...</p>
+              <ContextCard title={t("report")}>
+                <p>{t("loading")}</p>
               </ContextCard>
             ) : shareQuery.isError ? (
-              <ContextCard title="Toplantı raporu">
-                <p className="text-[#9b2c2c]">Rapor şu an yüklenemedi.</p>
+              <ContextCard title={t("report")}>
+                <p className="text-[#9b2c2c]">{t("reportFailed")}</p>
               </ContextCard>
             ) : report ? (
               <ReportBlock report={report} />
             ) : (
-              <ContextCard title="Toplantı raporu">
-                <p>Bu toplantı için rapor paylaşılmamış.</p>
+              <ContextCard title={t("report")}>
+                <p>{t("noReport")}</p>
               </ContextCard>
             )}
           </div>
@@ -234,11 +257,12 @@ function MeetingAboutContent() {
 }
 
 export default function MeetingAboutPage() {
+  const t = useTranslations("meetingPages.about");
   return (
     <Suspense
       fallback={
         <div className="grid min-h-screen place-items-center bg-[#f7f7f8] text-sm text-[#676e78]">
-          Görüşme bilgisi yükleniyor…
+          {t("pageLoading")}
         </div>
       }
     >

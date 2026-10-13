@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export function MeetingUnavailable({
   error,
@@ -7,11 +8,12 @@ export function MeetingUnavailable({
   error: unknown;
   isLoading: boolean;
 }) {
+  const t = useTranslations("meetingPages.unavailable");
   const message = isLoading
-    ? "Toplantı yükleniyor…"
+    ? t("loading")
     : error
-      ? "Toplantı bilgileri yüklenemedi. Lütfen tekrar deneyin."
-      : "Görüntülenecek toplantı bulunamadı.";
+      ? t("failed")
+      : t("notFound");
 
   return (
     <section className="mx-auto mt-10 max-w-xl rounded-2xl border border-[#e4e7ea] bg-white p-8 text-center shadow-sm">
@@ -21,7 +23,7 @@ export function MeetingUnavailable({
           href="/meetings"
           className="mt-5 inline-flex min-h-11 items-center rounded-xl bg-[#e86f22] px-5 text-sm font-semibold text-white"
         >
-          Toplantılara dön
+          {t("back")}
         </Link>
       ) : null}
     </section>

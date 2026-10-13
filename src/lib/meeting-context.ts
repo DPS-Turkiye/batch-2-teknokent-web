@@ -1,13 +1,16 @@
+import type { useTranslations } from "next-intl";
+
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
-import {
-  CALENDAR_SUPPORT_AREA,
-  MEETING_CONTEXT_DAY_TODAY,
-  MEETING_CONTEXT_FALLBACKS,
-  MEETING_CONTEXT_STATUS_LABELS,
-} from "@/lib/const";
+import { CALENDAR_SUPPORT_AREA } from "@/lib/const";
 import { requestOutcomeFromMessage } from "@/lib/mentor-availability-days";
+
+/** The meeting pages' translator and language, for the labels built here. */
+export type MeetingContextTexts = {
+  t: ReturnType<typeof useTranslations<"meetingPages.context">>;
+  locale: string;
+};
 
 export function meetingCallHref(meetingId: string) {
   return `/meetings/research?id=${encodeURIComponent(meetingId)}`;
@@ -52,7 +55,11 @@ function istanbulDayKey(value: Date) {
   }).format(value);
 }
 
-export function meetingScheduleLabel(meeting: MeetingItem, now = new Date()) {
+export function meetingScheduleLabel(
+  meeting: MeetingItem,
+  { t, locale }: MeetingContextTexts,
+  now = new Date(),
+) {
   const start = new Date(meeting.scheduledAt);
   if (Number.isNaN(start.getTime())) return "";
   const end = new Date(
@@ -60,14 +67,14 @@ export function meetingScheduleLabel(meeting: MeetingItem, now = new Date()) {
   );
   const sameDay = istanbulDayKey(start) === istanbulDayKey(now);
   const dayLabel = sameDay
-    ? MEETING_CONTEXT_DAY_TODAY
-    : new Intl.DateTimeFormat("tr-TR", {
+    ? t("today")
+    : new Intl.DateTimeFormat(locale, {
         timeZone: "Europe/Istanbul",
         day: "numeric",
         month: "short",
         year: "numeric",
       }).format(start);
-  const time = new Intl.DateTimeFormat("tr-TR", {
+  const time = new Intl.DateTimeFormat(locale, {
     timeZone: "Europe/Istanbul",
     hour: "2-digit",
     minute: "2-digit",
@@ -76,14 +83,14 @@ export function meetingScheduleLabel(meeting: MeetingItem, now = new Date()) {
   const status = String(meeting.status).toUpperCase();
   const statusLabel =
     status === MeetingStatus.Completed
-      ? MEETING_CONTEXT_STATUS_LABELS.completed
+      ? t("completed")
       : status === MeetingStatus.Cancelled
-        ? MEETING_CONTEXT_STATUS_LABELS.cancelled
+        ? t("cancelled")
         : now.getTime() >= start.getTime() && now.getTime() <= end.getTime()
-          ? MEETING_CONTEXT_STATUS_LABELS.started
+          ? t("started")
           : now.getTime() < start.getTime()
-            ? MEETING_CONTEXT_STATUS_LABELS.planned
-            : MEETING_CONTEXT_STATUS_LABELS.expired;
+            ? t("planned")
+            : t("expired");
   return `${dayLabel} · ${range} · ${statusLabel}`;
 }
 
@@ -91,6 +98,7 @@ export function meetingCounterpartName(
   meeting: MeetingItem,
   request: MentorshipRequest | null | undefined,
   viewerIsMentor: boolean,
+  { t }: MeetingContextTexts,
 ) {
   if (viewerIsMentor) {
     return (
@@ -98,14 +106,10 @@ export function meetingCounterpartName(
       meeting.organizationName ||
       request?.requestedForName ||
       request?.requesterName ||
-      MEETING_CONTEXT_FALLBACKS.organization
+      t("organization")
     );
   }
-  return (
-    meeting.mentorName ||
-    request?.mentorName ||
-    MEETING_CONTEXT_FALLBACKS.mentor
-  );
+  return meeting.mentorName || request?.mentorName || t("mentor");
 }
 
 export function requestAgendaLines(
@@ -153,13 +157,15 @@ export function isFirstMeetingWithMentor(
   );
 }
 
-export function meetingInviteeLabels(room: MeetingItem[]) {
+export function meetingInviteeLabels(
+  room: MeetingItem[],
+  { t }: MeetingContextTexts,
+) {
   const seen = new Set<string>();
   const labels: string[] = [];
   for (const item of room) {
-    const mentor = item.mentorName?.trim() || MEETING_CONTEXT_FALLBACKS.mentor;
-    const org =
-      item.organizationName?.trim() || MEETING_CONTEXT_FALLBACKS.startup;
+    const mentor = item.mentorName?.trim() || t("mentor");
+    const org = item.organizationName?.trim() || t("startup");
     const label = `${mentor} · ${org}`;
     if (seen.has(label)) continue;
     seen.add(label);

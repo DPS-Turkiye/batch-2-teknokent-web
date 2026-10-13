@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { AppShell } from "@/components/hoc/app-shell";
@@ -34,6 +35,7 @@ import {
   meetingScheduleLabel,
   programsForOrganization,
 } from "@/lib/meeting-context";
+import { needLabels } from "@/lib/mentor-request-need";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
@@ -54,6 +56,11 @@ function ContextCard({
 }
 
 function MeetingDetailContent() {
+  const t = useTranslations("meetingPages.call");
+  const tContext = useTranslations("meetingPages.context");
+  const tNeed = useTranslations("mentorRequest");
+  const locale = useLocale();
+  const texts = { t: tContext, locale };
   const session = useAppSession();
   const isMentor = session?.role === UserRole.Mentor;
   const { error, isLoading, meeting } = useMeetingLifecycle();
@@ -64,7 +71,12 @@ function MeetingDetailContent() {
   const request = requestQuery.data ?? null;
   const calendarMode = isCalendarOriginRequest(request);
   const requestDetail =
-    request && !calendarMode ? buildRequestDetailContent(request) : null;
+    request && !calendarMode
+      ? buildRequestDetailContent(request, {
+          labels: needLabels(tNeed),
+          locale,
+        })
+      : null;
   const roomQuery = useQuery({
     queryKey: ["meeting-room", meeting?.id],
     queryFn: () => getMeetingRoom(meeting!.id),
@@ -86,7 +98,7 @@ function MeetingDetailContent() {
       <AppShell
         active={AppArea.Mentorships}
         mentorHome={isMentor}
-        title="Mentorluk Görüşmesi"
+        title={t("title")}
         backHref={MENTORSHIPS_ACTIVE_HREF}
       >
         <MeetingUnavailable error={error} isLoading={isLoading} />
@@ -98,8 +110,9 @@ function MeetingDetailContent() {
     meeting,
     request,
     Boolean(isMentor),
+    texts,
   );
-  const schedule = meetingScheduleLabel(meeting);
+  const schedule = meetingScheduleLabel(meeting, texts);
   const relatedPrograms = isMentor
     ? programsForOrganization(
         mentorProgramsQuery.data,
@@ -113,7 +126,8 @@ function MeetingDetailContent() {
     meetingsQuery.data ?? [],
     meeting,
   );
-  const mentorLabel = meeting.mentorName || request?.mentorName || "Mentor";
+  const mentorLabel =
+    meeting.mentorName || request?.mentorName || tContext("mentor");
   const ownerLabel = request?.requestedForName || request?.requesterName || "";
   const startupLabel =
     meeting.organizationName || request?.organizationName || "—";
@@ -134,22 +148,24 @@ function MeetingDetailContent() {
     ) : (
       counterpart
     );
-  const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting]);
+  const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting], texts);
+  const supportArea = request?.supportArea?.trim();
   const calendarTopic =
     meeting.agenda?.trim() ||
-    request?.supportArea?.trim() ||
-    CALENDAR_SUPPORT_AREA;
+    (supportArea && supportArea !== CALENDAR_SUPPORT_AREA
+      ? supportArea
+      : tContext("calendarTopic"));
   const requestTopic =
     requestDetail?.topic ||
     request?.supportArea ||
     meeting.agenda ||
-    "Mentorluk";
+    t("topicFallback");
 
   return (
     <AppShell
       active={AppArea.Mentorships}
       mentorHome={isMentor}
-      title="Mentorluk Görüşmesi"
+      title={t("title")}
       backHref={MENTORSHIPS_ACTIVE_HREF}
     >
       <MentorAccent enabled={Boolean(isMentor)}>
@@ -160,7 +176,7 @@ function MeetingDetailContent() {
               href={MENTORSHIPS_ACTIVE_HREF}
               className="text-[#858c96] hover:text-[#22262b]"
             >
-              Mentorluklarım
+              {t("breadcrumb")}
             </Link>
             <span className="text-[#858c96]">›</span>
             <span className="font-medium text-[#22262b]">{startupTitle}</span>
@@ -175,7 +191,7 @@ function MeetingDetailContent() {
               />
               <div className="min-w-0">
                 <h1 className="text-[28px] font-medium leading-tight text-[#22262b]">
-                  {startupTitle} ile Mentorluk Görüşmesi
+                  {t.rich("heading", { name: () => startupTitle })}
                 </h1>
                 <p className="mt-1.5 text-[15px] font-medium text-[#676e78]">
                   {calendarMode ? calendarTopic : requestTopic}
@@ -186,7 +202,7 @@ function MeetingDetailContent() {
               </div>
             </div>
             <div className="w-full max-w-[325px] shrink-0 sm:pt-10">
-              <p className="text-[11px] text-[#858c96]">Meet linki</p>
+              <p className="text-[11px] text-[#858c96]">{t("meetLink")}</p>
               <MeetLinkDisplay meetLink={meeting.meetLink} className="mt-1" />
             </div>
           </section>
@@ -194,7 +210,7 @@ function MeetingDetailContent() {
           {!calendarMode && request ? (
             <div className="mt-6 grid gap-[18px] lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
               <div className="space-y-[18px]">
-                <ContextCard title="Talep özeti">
+                <ContextCard title={t("requestSummary")}>
                   <RequestDetailsPanel
                     request={request}
                     showSentAt={false}
@@ -203,78 +219,82 @@ function MeetingDetailContent() {
                 </ContextCard>
               </div>
               <div className="space-y-[18px]">
-                <ContextCard title="Talep bilgileri">
+                <ContextCard title={t("requestInfo")}>
                   <dl className="space-y-3 text-[13px]">
                     <div>
-                      <dt className="text-[#858c96]">Talep eden</dt>
+                      <dt className="text-[#858c96]">{t("requester")}</dt>
                       <dd className="mt-0.5 font-medium text-[#22262b]">
                         {ownerLabel || "—"}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-[#858c96]">Startup</dt>
+                      <dt className="text-[#858c96]">{t("startup")}</dt>
                       <dd className="mt-0.5 font-medium text-[#22262b]">
                         {linkedStartupName}
                       </dd>
                     </div>
                     <div>
-                      <dt className="text-[#858c96]">Mentor</dt>
+                      <dt className="text-[#858c96]">{t("mentor")}</dt>
                       <dd className="mt-0.5 font-medium text-[#22262b]">
                         {mentorLabel}
                       </dd>
                     </div>
                   </dl>
                 </ContextCard>
-                <ContextCard title="Önceki bağlam">
+                <ContextCard title={t("previous")}>
                   <p>
                     {firstMeeting
-                      ? `Bu, ${mentorLabel} ile ilk görüşmeniz.`
-                      : `${mentorLabel} ile daha önce görüşme yapılmış.`}
+                      ? t("firstMeeting", { name: mentorLabel })
+                      : t("metBefore", { name: mentorLabel })}
                   </p>
                 </ContextCard>
               </div>
             </div>
           ) : (
             <div className="mt-6 grid gap-[18px] lg:grid-cols-2">
-              <ContextCard title="Meet linki">
+              <ContextCard title={t("meetLink")}>
                 <MeetLinkDisplay meetLink={meeting.meetLink} />
               </ContextCard>
-              <ContextCard title="Toplantı zamanı">
+              <ContextCard title={t("meetingTime")}>
                 <dl className="space-y-3 text-[13px]">
                   <div>
-                    <dt className="text-[#858c96]">Zaman</dt>
+                    <dt className="text-[#858c96]">{t("time")}</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
                       {schedule || "—"}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[#858c96]">Süre</dt>
+                    <dt className="text-[#858c96]">{t("duration")}</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
-                      {meeting.durationMinutes} dk
+                      {t("minutes", { count: meeting.durationMinutes })}
                     </dd>
                   </div>
                   <div>
-                    <dt className="text-[#858c96]">Konu</dt>
+                    <dt className="text-[#858c96]">{t("topic")}</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
                       {calendarTopic}
                     </dd>
                   </div>
                 </dl>
               </ContextCard>
-              <ContextCard title="Kimler katılıyor?">
+              <ContextCard title={t("who")}>
                 {invitees.length === 0 ? (
                   <ul className="space-y-2 text-[13px] text-[#22262b]">
                     <li>
-                      <span className="text-[#858c96]">Mentor: </span>
+                      <span className="text-[#858c96]">{t("mentorLabel")}</span>
                       {mentorLabel}
                     </li>
                     <li>
-                      <span className="text-[#858c96]">Startup: </span>
+                      <span className="text-[#858c96]">
+                        {t("startupLabel")}
+                      </span>
                       {linkedStartupName}
                     </li>
                     {ownerLabel ? (
                       <li>
-                        <span className="text-[#858c96]">Kişi: </span>
+                        <span className="text-[#858c96]">
+                          {t("personLabel")}
+                        </span>
                         {ownerLabel}
                       </li>
                     ) : null}
@@ -297,40 +317,40 @@ function MeetingDetailContent() {
                   </ul>
                 )}
               </ContextCard>
-              <ContextCard title="Gündem">
+              <ContextCard title={t("agenda")}>
                 <p className="whitespace-pre-wrap leading-6">
                   {meeting.agenda?.trim() ||
                     request?.summary?.trim() ||
-                    "Bu görüşme için gündem eklenmemiş."}
+                    t("noAgenda")}
                 </p>
               </ContextCard>
-              <ContextCard title="Startup">
+              <ContextCard title={t("startup")}>
                 <dl className="space-y-3 text-[13px]">
                   <div>
-                    <dt className="text-[#858c96]">Ad</dt>
+                    <dt className="text-[#858c96]">{t("name")}</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
                       {linkedStartupName}
                     </dd>
                   </div>
                   {ownerLabel ? (
                     <div>
-                      <dt className="text-[#858c96]">İlgili kişi</dt>
+                      <dt className="text-[#858c96]">{t("contact")}</dt>
                       <dd className="mt-0.5 font-medium text-[#22262b]">
                         {ownerLabel}
                       </dd>
                     </div>
                   ) : null}
                   <div>
-                    <dt className="text-[#858c96]">Mentor</dt>
+                    <dt className="text-[#858c96]">{t("mentor")}</dt>
                     <dd className="mt-0.5 font-medium text-[#22262b]">
                       {mentorLabel}
                     </dd>
                   </div>
                 </dl>
               </ContextCard>
-              <ContextCard title="Programlar">
+              <ContextCard title={t("programs")}>
                 {relatedPrograms.length === 0 ? (
-                  <p>Bu startup için eşleşen program bulunamadı.</p>
+                  <p>{t("noPrograms")}</p>
                 ) : (
                   <ul className="list-disc space-y-1 pl-5 text-[#22262b]">
                     {relatedPrograms.map((program) => (
@@ -359,11 +379,12 @@ function MeetingDetailContent() {
 }
 
 export default function MeetingDetailPage() {
+  const t = useTranslations("meetingPages.call");
   return (
     <Suspense
       fallback={
         <div className="grid min-h-screen place-items-center bg-[#f7f7f8] text-sm text-[#676e78]">
-          Toplantı yükleniyor…
+          {t("loading")}
         </div>
       }
     >
