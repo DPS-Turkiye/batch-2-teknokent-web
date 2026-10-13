@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
@@ -8,12 +9,27 @@ import {
 import {
   isProfileOriginRequest,
   meetingCallHref,
+  type MeetingContextTexts,
   meetingInviteeLabels,
   meetingScheduleLabel,
   requestAgendaLines,
   requestExpectedOutcome,
   splitContextLines,
 } from "@/lib/meeting-context";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+function contextTexts(locale: "tr" | "en"): MeetingContextTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "meetingPages.context",
+    }),
+    locale,
+  };
+}
+const texts = contextTexts("tr");
 
 const meeting: MeetingItem = {
   id: "m-1",
@@ -116,6 +132,7 @@ describe("meeting-context helpers", () => {
   it("formats the schedule label for today", () => {
     const label = meetingScheduleLabel(
       meeting,
+      texts,
       new Date("2026-09-14T12:00:00+03:00"),
     );
     expect(label).toContain("Bugün");
@@ -123,27 +140,40 @@ describe("meeting-context helpers", () => {
     expect(label).toContain("15:45");
   });
 
+  it("formats the schedule label in English", () => {
+    const label = meetingScheduleLabel(
+      meeting,
+      contextTexts("en"),
+      new Date("2026-09-14T12:00:00+03:00"),
+    );
+    expect(label).toContain("Today");
+    expect(label).toContain("Scheduled");
+  });
+
   it("lists unique room invitees", () => {
     expect(
-      meetingInviteeLabels([
-        {
-          ...meeting,
-          mentorName: "Deniz Kaya",
-          organizationName: "Nova",
-        },
-        {
-          ...meeting,
-          id: "m-2",
-          mentorName: "Deniz Kaya",
-          organizationName: "Nova",
-        },
-        {
-          ...meeting,
-          id: "m-3",
-          mentorName: "Ayşe",
-          organizationName: "Orbit",
-        },
-      ]),
+      meetingInviteeLabels(
+        [
+          {
+            ...meeting,
+            mentorName: "Deniz Kaya",
+            organizationName: "Nova",
+          },
+          {
+            ...meeting,
+            id: "m-2",
+            mentorName: "Deniz Kaya",
+            organizationName: "Nova",
+          },
+          {
+            ...meeting,
+            id: "m-3",
+            mentorName: "Ayşe",
+            organizationName: "Orbit",
+          },
+        ],
+        texts,
+      ),
     ).toEqual(["Deniz Kaya · Nova", "Ayşe · Orbit"]);
   });
 });

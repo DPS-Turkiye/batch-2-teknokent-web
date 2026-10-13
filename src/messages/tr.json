@@ -2098,5 +2098,154 @@
     "edit": "Düzenle",
     "savedToast": "Değişiklikleriniz kaydedildi.",
     "saveFailedToast": "Değişiklikler kaydedilemedi."
+  },
+  "meetingPages": {
+    "status": {
+      "CANCELLED": "İptal edildi",
+      "COMPLETED": "Tamamlandı",
+      "GOOGLE_CALENDAR": "Google Takvim",
+      "SCHEDULED": "Planlandı"
+    },
+    "context": {
+      "today": "Bugün",
+      "completed": "Tamamlandı",
+      "cancelled": "İptal edildi",
+      "started": "Görüşme başladı",
+      "planned": "Planlandı",
+      "expired": "Süre doldu",
+      "organization": "Girişim",
+      "mentor": "Mentor",
+      "startup": "Startup",
+      "calendarTopic": "Takvim toplantısı"
+    },
+    "unavailable": {
+      "loading": "Toplantı yükleniyor…",
+      "failed": "Toplantı bilgileri yüklenemedi. Lütfen tekrar deneyin.",
+      "notFound": "Görüntülenecek toplantı bulunamadı.",
+      "back": "Toplantılara dön"
+    },
+    "call": {
+      "title": "Mentorluk Görüşmesi",
+      "breadcrumb": "Mentorluklarım",
+      "heading": "<name></name> ile Mentorluk Görüşmesi",
+      "meetLink": "Meet linki",
+      "requestSummary": "Talep özeti",
+      "requestInfo": "Talep bilgileri",
+      "requester": "Talep eden",
+      "startup": "Startup",
+      "mentor": "Mentor",
+      "previous": "Önceki bağlam",
+      "firstMeeting": "Bu, {name} ile ilk görüşmeniz.",
+      "metBefore": "{name} ile daha önce görüşme yapılmış.",
+      "meetingTime": "Toplantı zamanı",
+      "time": "Zaman",
+      "duration": "Süre",
+      "minutes": "{count} dk",
+      "topic": "Konu",
+      "who": "Kimler katılıyor?",
+      "mentorLabel": "Mentor: ",
+      "startupLabel": "Startup: ",
+      "personLabel": "Kişi: ",
+      "agenda": "Gündem",
+      "noAgenda": "Bu görüşme için gündem eklenmemiş.",
+      "name": "Ad",
+      "contact": "İlgili kişi",
+      "programs": "Programlar",
+      "noPrograms": "Bu startup için eşleşen program bulunamadı.",
+      "loading": "Toplantı yükleniyor…",
+      "topicFallback": "Mentorluk"
+    },
+    "about": {
+      "title": "Görüşme bilgisi",
+      "breadcrumb": "Geçmiş",
+      "topicFallback": "Mentorluk görüşmesi",
+      "meta": "{minutes} dk · {status}",
+      "invitees": "Davetliler",
+      "loading": "Yükleniyor...",
+      "noInvitees": "Davetli bilgisi bulunamadı.",
+      "noRequest": "Bu toplantı için talep özeti bulunmuyor.",
+      "savedNotes": "Kayıtlı notlar",
+      "notes": "Notlar",
+      "outcomes": "Sonuçlar",
+      "report": "Toplantı raporu",
+      "reportFailed": "Rapor şu an yüklenemedi.",
+      "noReport": "Bu toplantı için rapor paylaşılmamış.",
+      "pageLoading": "Görüşme bilgisi yükleniyor…"
+    },
+    "feedback": {
+      "title": "Görüşmeyi Değerlendir",
+      "readOnlyTitle": "Değerlendirmen",
+      "loading": "Değerlendirme yükleniyor…",
+      "sentTitle": "Değerlendirmen gönderildi",
+      "sentBody": "Geri bildirimin mentorluk deneyimini geliştirmek için kullanılacak. Aynı görüşmeyi yeniden değerlendiremezsin.",
+      "back": "Mentorluklarıma dön",
+      "breadcrumb": "Mentorluklarım",
+      "readOnlyHeading": "Gönderdiğin değerlendirme",
+      "heading": "Bu görüşme sana ne kadar yardımcı oldu?",
+      "readOnlyIntro": "{name} ile yaptığın görüşmeye bıraktığın cevaplar. Değerlendirme gönderildikten sonra değiştirilemez.",
+      "intro": "{name} ile yaptığın görüşmenin sana sağladığı netlik ve ilerlemeyi değerlendirmek için birkaç kısa soru.",
+      "locked": "Bu değerlendirme kilitli. Aynı görüşme için yeni bir değerlendirme gönderilemez.",
+      "purpose": "Bu değerlendirme mentoru puanlamak için değil, mentorluk deneyiminin sana ne kadar yardımcı olduğunu anlamak için kullanılır.",
+      "questions": {
+        "nextSteps": {
+          "prompt": "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
+          "low": "1 — Hiç netleşmedi",
+          "high": "5 — Tamamen netleşti"
+        },
+        "fit": {
+          "prompt": "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
+          "low": "1 — Hiç uygun değildi",
+          "high": "5 — Tamamen uygundu"
+        },
+        "expression": {
+          "prompt": "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
+          "low": "1 — Hiç katılmıyorum",
+          "high": "5 — Tamamen katılıyorum"
+        },
+        "confidence": {
+          "prompt": "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
+          "low": "1 — Azaldı",
+          "high": "5 — Belirgin şekilde arttı"
+        }
+      },
+      "benefitsTitle": "Bu görüşmede sana en çok ne yardımcı oldu?",
+      "benefits": {
+        "priorities": "Önceliklerimi netleştirmek",
+        "finance": "Finansal modeli anlamak",
+        "assumptions": "Varsayımlarımı sorgulamak",
+        "actions": "Somut aksiyonlar belirlemek",
+        "perspective": "Yeni bir bakış açısı kazanmak",
+        "resources": "Kaynak / bağlantı önerileri"
+      },
+      "noteLabel": "Bir sonraki görüşmede farklı olmasını istediğin bir şey var mı? (opsiyonel)",
+      "noNote": "Not bırakılmamış.",
+      "notePlaceholder": "Örn. Bir sonraki görüşmede maliyet kalemlerini daha detaylı ele almak istiyorum.",
+      "sending": "Gönderiliyor...",
+      "send": "Değerlendirmeyi gönder",
+      "later": "Daha sonra",
+      "noMeeting": "Değerlendirilecek toplantı bulunamadı.",
+      "saveFailed": "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.",
+      "sentToast": "Değerlendirmen gönderildi."
+    },
+    "summary": {
+      "title": "Görüşme Özeti",
+      "minutes": "{count} dk",
+      "heading": "Görüşme notlarını tamamla",
+      "intro": "Toplantıda aldığın notları kontrol et. Kararları ve sonraki aksiyonları netleştirerek görüşmeyi tamamla.",
+      "discussed": "1. Konuşulanlar",
+      "noNotes": "Görüşme notu eklenmedi.",
+      "decisions": "2. Alınan kararlar",
+      "noDecisions": "Karar eklenmedi.",
+      "info": "Görüşme bilgileri",
+      "duration": "Süre",
+      "status": "Durum",
+      "saving": "Kaydediliyor…",
+      "complete": "Görüşmeyi tamamla",
+      "loading": "Görüşme özeti yükleniyor…",
+      "notesSaved": "Görüşme notları kaydedildi.",
+      "notesFailed": "Görüşme notları kaydedilemedi.",
+      "completed": "Görüşme tamamlandı.",
+      "completeFailed": "Görüşme tamamlanamadı."
+    }
   }
 }

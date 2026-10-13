@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -38,6 +39,7 @@ function splitFeedbackBenefits(benefits: string[]) {
 }
 
 export function useMeetingLifecycle() {
+  const t = useTranslations("meetingPages.summary");
   const { showToast } = useToast();
   const router = useRouter();
   const params = useSearchParams();
@@ -72,10 +74,10 @@ export function useMeetingLifecycle() {
         notes: draft.notes,
         outcomes: draft.outcomes,
       });
-      showToast({ message: "Görüşme notları kaydedildi.", tone: "success" });
+      showToast({ message: t("notesSaved"), tone: "success" });
       router.push(meetingHref("/meetings/research/summary"));
     } catch {
-      showToast({ message: "Görüşme notları kaydedilemedi.", tone: "error" });
+      showToast({ message: t("notesFailed"), tone: "error" });
     }
   }
 
@@ -87,10 +89,10 @@ export function useMeetingLifecycle() {
         outcomes: draft.outcomes,
         status: MeetingStatus.Completed,
       });
-      showToast({ message: "Görüşme tamamlandı.", tone: "success" });
+      showToast({ message: t("completed"), tone: "success" });
       router.push(meetingHref("/meetings/research/feedback"));
     } catch {
-      showToast({ message: "Görüşme tamamlanamadı.", tone: "error" });
+      showToast({ message: t("completeFailed"), tone: "error" });
     }
   }
 
@@ -111,6 +113,7 @@ export function useMeetingLifecycle() {
 }
 
 export function useMeetingFeedback(meetingId: string | null) {
+  const t = useTranslations("meetingPages.feedback");
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [draftRatings, setDraftRatings] = useState<number[]>(() =>
@@ -176,7 +179,7 @@ export function useMeetingFeedback(meetingId: string | null) {
   async function submit() {
     if (!canSubmit) return;
     if (!meetingId) {
-      setSubmitError("Değerlendirilecek toplantı bulunamadı.");
+      setSubmitError(t("noMeeting"));
       return;
     }
     setSubmitError("");
@@ -193,11 +196,11 @@ export function useMeetingFeedback(meetingId: string | null) {
       await queryClient.invalidateQueries({
         queryKey: ["meeting-feedback", meetingId],
       });
-      showToast({ message: "Değerlendirmen gönderildi.", tone: "success" });
+      showToast({ message: t("sentToast"), tone: "success" });
     } catch {
-      setSubmitError("Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.");
+      setSubmitError(t("saveFailed"));
       showToast({
-        message: "Değerlendirme kaydedilemedi. Lütfen tekrar deneyin.",
+        message: t("saveFailed"),
         tone: "error",
       });
     } finally {

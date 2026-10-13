@@ -2098,5 +2098,154 @@
     "edit": "Edit",
     "savedToast": "Your changes were saved.",
     "saveFailedToast": "Couldn't save the changes."
+  },
+  "meetingPages": {
+    "status": {
+      "CANCELLED": "Cancelled",
+      "COMPLETED": "Completed",
+      "GOOGLE_CALENDAR": "Google Calendar",
+      "SCHEDULED": "Scheduled"
+    },
+    "context": {
+      "today": "Today",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "started": "In progress",
+      "planned": "Scheduled",
+      "expired": "Time's up",
+      "organization": "Startup",
+      "mentor": "Mentor",
+      "startup": "Startup",
+      "calendarTopic": "Calendar meeting"
+    },
+    "unavailable": {
+      "loading": "Loading the meeting…",
+      "failed": "Couldn't load the meeting. Please try again.",
+      "notFound": "No meeting to show.",
+      "back": "Back to meetings"
+    },
+    "call": {
+      "title": "Mentoring session",
+      "breadcrumb": "My mentorships",
+      "heading": "Mentoring session with <name></name>",
+      "meetLink": "Meet link",
+      "requestSummary": "Request summary",
+      "requestInfo": "Request details",
+      "requester": "Requested by",
+      "startup": "Startup",
+      "mentor": "Mentor",
+      "previous": "Earlier context",
+      "firstMeeting": "This is your first meeting with {name}.",
+      "metBefore": "You've met {name} before.",
+      "meetingTime": "Meeting time",
+      "time": "Time",
+      "duration": "Length",
+      "minutes": "{count} min",
+      "topic": "Topic",
+      "who": "Who's joining?",
+      "mentorLabel": "Mentor: ",
+      "startupLabel": "Startup: ",
+      "personLabel": "Person: ",
+      "agenda": "Agenda",
+      "noAgenda": "No agenda added for this meeting.",
+      "name": "Name",
+      "contact": "Contact person",
+      "programs": "Programs",
+      "noPrograms": "No matching program found for this startup.",
+      "loading": "Loading the meeting…",
+      "topicFallback": "Mentorship"
+    },
+    "about": {
+      "title": "About the meeting",
+      "breadcrumb": "History",
+      "topicFallback": "Mentoring session",
+      "meta": "{minutes} min · {status}",
+      "invitees": "Invitees",
+      "loading": "Loading...",
+      "noInvitees": "No invitee details found.",
+      "noRequest": "There's no request summary for this meeting.",
+      "savedNotes": "Saved notes",
+      "notes": "Notes",
+      "outcomes": "Outcomes",
+      "report": "Meeting report",
+      "reportFailed": "Couldn't load the report right now.",
+      "noReport": "No report was shared for this meeting.",
+      "pageLoading": "Loading the meeting details…"
+    },
+    "feedback": {
+      "title": "Rate the meeting",
+      "readOnlyTitle": "Your rating",
+      "loading": "Loading the rating…",
+      "sentTitle": "Your rating was sent",
+      "sentBody": "Your feedback will be used to improve the mentoring experience. You can't rate the same meeting again.",
+      "back": "Back to my mentorships",
+      "breadcrumb": "My mentorships",
+      "readOnlyHeading": "The rating you sent",
+      "heading": "How much did this meeting help you?",
+      "readOnlyIntro": "Your answers for the meeting with {name}. A rating can't be changed once it's sent.",
+      "intro": "A few short questions about how much clarity and progress the meeting with {name} gave you.",
+      "locked": "This rating is locked. A new rating can't be sent for the same meeting.",
+      "purpose": "This isn't for scoring the mentor; it helps us understand how much the mentoring helped you.",
+      "questions": {
+        "nextSteps": {
+          "prompt": "How clear were your next steps by the end of the meeting?",
+          "low": "1 — Not clear at all",
+          "high": "5 — Completely clear"
+        },
+        "fit": {
+          "prompt": "How well did the advice fit your startup's current stage?",
+          "low": "1 — Not at all",
+          "high": "5 — Perfectly"
+        },
+        "expression": {
+          "prompt": "I could share my ideas, questions and concerns freely.",
+          "low": "1 — Strongly disagree",
+          "high": "5 — Strongly agree"
+        },
+        "confidence": {
+          "prompt": "How did your confidence that you can make progress on this change after the meeting?",
+          "low": "1 — It went down",
+          "high": "5 — It went up a lot"
+        }
+      },
+      "benefitsTitle": "What helped you most in this meeting?",
+      "benefits": {
+        "priorities": "Clarifying my priorities",
+        "finance": "Understanding the financial model",
+        "assumptions": "Questioning my assumptions",
+        "actions": "Setting concrete actions",
+        "perspective": "Gaining a new perspective",
+        "resources": "Resource / contact suggestions"
+      },
+      "noteLabel": "Anything you'd like to be different in the next meeting? (optional)",
+      "noNote": "No note left.",
+      "notePlaceholder": "E.g. I'd like to go through the cost items in more detail next time.",
+      "sending": "Sending...",
+      "send": "Send rating",
+      "later": "Later",
+      "noMeeting": "No meeting to rate.",
+      "saveFailed": "Couldn't save the rating. Please try again.",
+      "sentToast": "Your rating was sent."
+    },
+    "summary": {
+      "title": "Meeting summary",
+      "minutes": "{count} min",
+      "heading": "Finish the meeting notes",
+      "intro": "Check the notes you took in the meeting. Pin down the decisions and next actions to finish the meeting.",
+      "discussed": "1. What was discussed",
+      "noNotes": "No meeting notes added.",
+      "decisions": "2. Decisions",
+      "noDecisions": "No decisions added.",
+      "info": "Meeting details",
+      "duration": "Length",
+      "status": "Status",
+      "saving": "Saving…",
+      "complete": "Finish the meeting",
+      "loading": "Loading the meeting summary…",
+      "notesSaved": "Meeting notes saved.",
+      "notesFailed": "Couldn't save the meeting notes.",
+      "completed": "Meeting finished.",
+      "completeFailed": "Couldn't finish the meeting."
+    }
   }
 }

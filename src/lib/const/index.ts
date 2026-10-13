@@ -187,22 +187,6 @@ export const MENTORSHIP_LIST_PAGE_SIZE = 7;
 
 export const CALENDAR_SUPPORT_AREA = "Takvim toplantısı";
 
-export const MEETING_CONTEXT_DAY_TODAY = "Bugün";
-
-export const MEETING_CONTEXT_STATUS_LABELS = {
-  completed: "Tamamlandı",
-  cancelled: "İptal edildi",
-  started: "Görüşme başladı",
-  planned: "Planlandı",
-  expired: "Süre doldu",
-} as const;
-
-export const MEETING_CONTEXT_FALLBACKS = {
-  organization: "Girişim",
-  mentor: "Mentor",
-  startup: "Startup",
-} as const;
-
 export const MENTOR_DASHBOARD_FILTER_STATUSES: Record<
   Exclude<MentorRequestFilter, MentorRequestFilter.All>,
   MentorshipRequestStatus
@@ -294,24 +278,28 @@ export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
 
 export const MEETING_FEEDBACK_QUESTIONS = [
   {
+    id: "nextSteps",
     prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
     short: "Sonraki adımlar netleşti",
     low: "1 — Hiç netleşmedi",
     high: "5 — Tamamen netleşti",
   },
   {
+    id: "fit",
     prompt: "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
     short: "Öneriler aşamaya uygundu",
     low: "1 — Hiç uygun değildi",
     high: "5 — Tamamen uygundu",
   },
   {
+    id: "expression",
     prompt: "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
     short: "Rahatça ifade edebildi",
     low: "1 — Hiç katılmıyorum",
     high: "5 — Tamamen katılıyorum",
   },
   {
+    id: "confidence",
     prompt:
       "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
     short: "İlerleme güveni",
@@ -327,6 +315,16 @@ export const MEETING_FEEDBACK_BENEFITS = [
   "Somut aksiyonlar belirlemek",
   "Yeni bir bakış açısı kazanmak",
   "Kaynak / bağlantı önerileri",
+] as const;
+
+/** The `meetingPages.feedback.benefits` key of each benefit above, in the same order; the Turkish text is what gets saved. */
+export const MEETING_FEEDBACK_BENEFIT_IDS = [
+  "priorities",
+  "finance",
+  "assumptions",
+  "actions",
+  "perspective",
+  "resources",
 ] as const;
 
 export const SITE_NAV_ITEMS = [
