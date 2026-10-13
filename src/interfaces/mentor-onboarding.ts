@@ -8,31 +8,11 @@ export enum MentorOnboardingStep {
   Review = 4,
 }
 
-export const MENTOR_STEPS: {
-  step: MentorOnboardingStep;
-  title: string;
-  hint: string;
-}[] = [
-  {
-    step: MentorOnboardingStep.Profile,
-    title: "Uzmanlık profilin",
-    hint: "Startuplar seni bununla görür",
-  },
-  {
-    step: MentorOnboardingStep.Areas,
-    title: "Mentorluk alanların",
-    hint: "Eşleşme buna göre kurulur",
-  },
-  {
-    step: MentorOnboardingStep.Availability,
-    title: "Müsaitlik ve kapasite",
-    hint: "Talepler buna göre gelir",
-  },
-  {
-    step: MentorOnboardingStep.Review,
-    title: "Gözden geçir ve gönder",
-    hint: "Koordinatör onayına gider",
-  },
+export const MENTOR_STEPS: { step: MentorOnboardingStep }[] = [
+  { step: MentorOnboardingStep.Profile },
+  { step: MentorOnboardingStep.Areas },
+  { step: MentorOnboardingStep.Availability },
+  { step: MentorOnboardingStep.Review },
 ];
 
 export const MENTOR_STEP_ORDER = MENTOR_STEPS.map((item) => item.step);

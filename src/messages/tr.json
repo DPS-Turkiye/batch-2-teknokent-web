@@ -322,7 +322,8 @@
       "Müsaitliğini ve kapasiteni istediğin zaman profilinden güncelleyebilirsin."
     ],
     "submittedTitle": "Mentor profilin koordinatöre gönderildi",
-    "lastStepLabel": "Mentor profilin havuza alınır"
+    "lastStepLabel": "Mentor profilin havuza alınır",
+    "cvUnreadable": "CV’nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz."
   },
   "mentorSteps": {
     "uploadCv": "CV’nizi yükleyin",

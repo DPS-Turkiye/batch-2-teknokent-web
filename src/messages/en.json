@@ -322,7 +322,8 @@
       "You can update your availability and capacity from your profile at any time."
     ],
     "submittedTitle": "Your mentor profile was sent to the coordinator",
-    "lastStepLabel": "Your mentor profile joins the pool"
+    "lastStepLabel": "Your mentor profile joins the pool",
+    "cvUnreadable": "We couldn't read your CV; you can enter your details below yourself."
   },
   "mentorSteps": {
     "uploadCv": "Upload your CV",

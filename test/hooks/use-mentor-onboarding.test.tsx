@@ -290,7 +290,7 @@ describe("useMentorOnboarding — reading the CV", () => {
     );
 
     await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
-    expect(result.current.parseNote).toContain("CV'nizi okuyamadık");
+    expect(result.current.parseNote).toContain("CV’nizi okuyamadık");
     expect(result.current.draft.profile.title).toBe("");
   });
 
