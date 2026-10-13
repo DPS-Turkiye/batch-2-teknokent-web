@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 /**
@@ -14,13 +15,14 @@ export function EditableChips({
   label,
   values,
   onChange,
-  placeholder = "Ekle…",
+  placeholder,
 }: {
   label: string;
   values: string[];
   onChange: (values: string[]) => void;
   placeholder?: string;
 }) {
+  const t = useTranslations("editableChips");
   const [draft, setDraft] = useState("");
 
   function add() {
@@ -45,10 +47,7 @@ export function EditableChips({
         className="flex flex-wrap items-center gap-2"
       >
         {values.length === 0 ? (
-          <p className="text-xs text-[#858c96]">
-            Henüz bir alan eklenmedi. CV yükleyerek otomatik doldurabilir veya
-            elle ekleyebilirsin.
-          </p>
+          <p className="text-xs text-[#858c96]">{t("empty")}</p>
         ) : null}
         {values.map((value) => (
           <span
@@ -59,7 +58,7 @@ export function EditableChips({
             <button
               type="button"
               onClick={() => remove(value)}
-              aria-label={`${value} alanını kaldır`}
+              aria-label={t("remove", { value })}
               className="grid size-4 place-items-center rounded-full text-[#c85816] transition hover:bg-[#f7d9c4]"
             >
               <X className="size-3" aria-hidden />
@@ -70,9 +69,9 @@ export function EditableChips({
 
       <div className="mt-2.5 flex gap-2">
         <input
-          aria-label={`${label} ekle`}
+          aria-label={t("addLabel", { label })}
           value={draft}
-          placeholder={placeholder}
+          placeholder={placeholder ?? t("add")}
           onChange={(event) => setDraft(event.target.value)}
           onKeyDown={(event) => {
             if (event.key === "Enter") {

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
@@ -24,20 +25,22 @@ import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
 type PageData = ReturnType<typeof usePersonalProfilePage>;
 
 function EditLink({ page, label }: { page: PageData; label: string }) {
+  const t = useTranslations("personalProfile");
   if (page.isEditing) return null;
   return (
     <button
       type="button"
       onClick={page.startEditing}
-      aria-label={`${label} düzenle`}
+      aria-label={t("editLabel", { label })}
       className={linkClass}
     >
-      Düzenle
+      {t("edit")}
     </button>
   );
 }
 
 function Header({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   const fileRef = useRef<HTMLInputElement>(null);
 
   return (
@@ -48,13 +51,13 @@ function Header({ page }: { page: PageData }) {
             initials={page.initials}
             photoUrl={page.photo.photoUrl}
             className="size-[88px] text-[26px]"
-            label={`${page.fullName} profil fotoğrafı`}
+            label={t("photoLabel", { name: page.fullName })}
           />
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
             disabled={page.photo.isUploading}
-            aria-label="Profil fotoğrafı yükle"
+            aria-label={t("uploadPhoto")}
             className="absolute bottom-0.5 right-[-4px] grid size-6 place-items-center rounded-full disabled:opacity-60"
           >
             <Image
@@ -69,7 +72,7 @@ function Header({ page }: { page: PageData }) {
             ref={fileRef}
             type="file"
             accept={PROFILE_PHOTO_TYPES.join(",")}
-            aria-label="Profil fotoğrafı dosyası"
+            aria-label={t("photoFile")}
             className="sr-only"
             tabIndex={-1}
             onChange={(event) => {
@@ -111,7 +114,7 @@ function Header({ page }: { page: PageData }) {
               disabled={page.isSaving}
               className={`rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[#4a5059] disabled:opacity-50 ${buttonTextClass}`}
             >
-              Vazgeç
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -119,7 +122,7 @@ function Header({ page }: { page: PageData }) {
               disabled={!page.canSave}
               className={`rounded-full bg-[#e86f22] px-4 py-2.5 text-white disabled:bg-[#c9cdd2] ${buttonTextClass}`}
             >
-              {page.isSaving ? "Kaydediliyor…" : "Kaydet"}
+              {page.isSaving ? t("saving") : t("save")}
             </button>
           </>
         ) : (
@@ -129,14 +132,14 @@ function Header({ page }: { page: PageData }) {
               onClick={page.showComingSoon}
               className={`rounded-full border border-[#d4d8dd] bg-white px-4 py-2.5 text-[#4a5059] ${buttonTextClass}`}
             >
-              Hesap ayarları
+              {t("accountSettings")}
             </button>
             <button
               type="button"
               onClick={page.startEditing}
               className={`rounded-full bg-[#e86f22] px-4 py-2.5 text-white ${buttonTextClass}`}
             >
-              Profili düzenle
+              {t("editProfile")}
             </button>
           </>
         )}
@@ -146,17 +149,18 @@ function Header({ page }: { page: PageData }) {
 }
 
 function CvCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   const cv = usePersonalCv(page.draft, page.setField);
   return (
-    <Card title="CV">
+    <Card title={t("cv")}>
       <CvFileSection
         cv={cv}
         accent="orange"
-        whoSees="Sadece sen ve startup ekibin görür."
-        filledMessage="CV okundu. Rol, Hakkımda ve uzmanlık alanlarını kontrol edip Kaydet'e bas."
+        whoSees={t("cvWhoSees")}
+        filledMessage={t("cvFilled")}
       />
       <EditableChips
-        label="Uzmanlık alanları"
+        label={t("expertise")}
         values={cv.expertise}
         onChange={cv.setExpertise}
       />
@@ -165,12 +169,16 @@ function CvCard({ page }: { page: PageData }) {
 }
 
 function AboutCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   const bio = page.draft?.bio ?? "";
   return (
-    <Card title="Hakkımda" action={<EditLink page={page} label="Hakkımda" />}>
+    <Card
+      title={t("about")}
+      action={<EditLink page={page} label={t("about")} />}
+    >
       {page.isEditing ? (
         <label className="block text-[11.5px] text-[#676e78]">
-          Hakkımda
+          {t("about")}
           <textarea
             value={bio}
             maxLength={5000}
@@ -180,7 +188,7 @@ function AboutCard({ page }: { page: PageData }) {
         </label>
       ) : (
         <p className="whitespace-pre-line text-[13px] leading-5 text-[#4a5059]">
-          {bio || "Henüz hakkında bilgisi eklenmedi."}
+          {bio || t("noBio")}
         </p>
       )}
     </Card>
@@ -188,14 +196,15 @@ function AboutCard({ page }: { page: PageData }) {
 }
 
 function StartupCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   if (!page.startup) return null;
   const { startup } = page;
   return (
     <Card
-      title="Startup’ım"
+      title={t("startup")}
       action={
         <Link href="/startup" className={linkClass}>
-          Startup profiline git →
+          {t("startupLink")}
         </Link>
       }
     >
@@ -203,7 +212,7 @@ function StartupCard({ page }: { page: PageData }) {
         {startup.logoUrl ? (
           <span
             role="img"
-            aria-label={`${startup.name} logosu`}
+            aria-label={t("logo", { name: startup.name })}
             className="size-10 shrink-0 rounded-[10px] border border-[#e4e7ea] bg-contain bg-center bg-no-repeat"
             style={{ backgroundImage: `url("${startup.logoUrl}")` }}
           />
@@ -231,19 +240,20 @@ function StartupCard({ page }: { page: PageData }) {
 }
 
 function MentorshipsCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   return (
     <Card
-      title="Aktif mentorluklarım"
+      title={t("mentorships")}
       action={
         <Link href="/mentorships" className={linkClass}>
-          Tümü →
+          {t("all")}
         </Link>
       }
     >
       {page.mentorshipsLoading ? (
-        <p className={emptyClass}>Yükleniyor...</p>
+        <p className={emptyClass}>{t("loading")}</p>
       ) : page.mentorships.length === 0 ? (
-        <p className={emptyClass}>Henüz aktif bir mentorluğun yok.</p>
+        <p className={emptyClass}>{t("noMentorships")}</p>
       ) : (
         <ul className="flex flex-col gap-3">
           {page.mentorships.map((row) => (
@@ -292,12 +302,16 @@ function MentorshipsCard({ page }: { page: PageData }) {
 }
 
 function ContactCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   return (
-    <Card title="İletişim" action={<EditLink page={page} label="İletişim" />}>
+    <Card
+      title={t("contact")}
+      action={<EditLink page={page} label={t("contact")} />}
+    >
       {page.isEditing && page.draft ? (
         <div className="flex flex-col gap-3">
           <label className="block text-[11.5px] text-[#676e78]">
-            Ad soyad
+            {t("fullName")}
             <input
               value={page.draft.fullName}
               maxLength={255}
@@ -314,7 +328,7 @@ function ContactCard({ page }: { page: PageData }) {
             </p>
           ) : null}
           <label className="block text-[11.5px] text-[#676e78]">
-            Rol
+            {t("role")}
             <input
               value={page.draft.jobTitle ?? ""}
               maxLength={255}
@@ -328,13 +342,13 @@ function ContactCard({ page }: { page: PageData }) {
       ) : (
         <dl className="flex flex-col gap-3">
           <div className={rowClass}>
-            <dt className="text-[12px] text-[#676e78]">E-posta</dt>
+            <dt className="text-[12px] text-[#676e78]">{t("email")}</dt>
             <dd className="text-right font-medium text-[#4a5059]">
               {page.email || "—"}
             </dd>
           </div>
           <div className={rowClass}>
-            <dt className="text-[12px] text-[#676e78]">Rol</dt>
+            <dt className="text-[12px] text-[#676e78]">{t("role")}</dt>
             <dd className="text-right font-medium text-[#4a5059]">
               {page.role || "—"}
             </dd>
@@ -346,19 +360,20 @@ function ContactCard({ page }: { page: PageData }) {
 }
 
 function AccountCard({ page }: { page: PageData }) {
+  const t = useTranslations("personalProfile");
   return (
-    <Card title="Hesap">
+    <Card title={t("account")}>
       <dl className="flex flex-col gap-3">
         <div className={rowClass}>
-          <dt className="text-[#4a5059]">Bildirimler</dt>
-          <dd className="text-[12px] text-[#858c96]">Uygulama içi</dd>
+          <dt className="text-[#4a5059]">{t("notifications")}</dt>
+          <dd className="text-[12px] text-[#858c96]">{t("inApp")}</dd>
         </div>
         <div className={rowClass}>
-          <dt className="text-[#4a5059]">Takvim senkronu</dt>
-          <dd className="text-[12px] text-[#858c96]">Bağlı değil</dd>
+          <dt className="text-[#4a5059]">{t("calendarSync")}</dt>
+          <dd className="text-[12px] text-[#858c96]">{t("notConnected")}</dd>
         </div>
         <div className={rowClass}>
-          <dt className="text-[#4a5059]">Şifre</dt>
+          <dt className="text-[#4a5059]">{t("password")}</dt>
           <dd>
             <button
               type="button"
@@ -366,9 +381,7 @@ function AccountCard({ page }: { page: PageData }) {
               disabled={page.isSendingReset || !page.email}
               className="text-[12px]! font-medium! leading-[19px]! text-[#9e4400] disabled:opacity-50"
             >
-              {page.isSendingReset
-                ? "Gönderiliyor…"
-                : "Sıfırlama e-postası gönder"}
+              {page.isSendingReset ? t("sending") : t("sendReset")}
             </button>
           </dd>
         </div>
@@ -378,15 +391,18 @@ function AccountCard({ page }: { page: PageData }) {
 }
 
 export function PersonalProfileView() {
+  const t = useTranslations("personalProfile");
   const page = usePersonalProfilePage();
 
   return (
     <AppShell menteeHome>
       {page.isLoading ? (
-        <p className="p-10 text-center text-sm text-[#858c96]">Yükleniyor...</p>
+        <p className="p-10 text-center text-sm text-[#858c96]">
+          {t("loading")}
+        </p>
       ) : page.loadError || !page.draft ? (
         <p className="p-10 text-center text-sm text-[#b3261e]">
-          {page.loadError ?? "Profil yüklenemedi."}
+          {page.loadError ?? t("loadFailed")}
         </p>
       ) : (
         <main className="mx-auto flex w-full max-w-[1440px] flex-col gap-[22px] px-4 pb-[72px] pt-3 sm:px-8 xl:px-[106px]">

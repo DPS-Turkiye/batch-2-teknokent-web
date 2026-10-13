@@ -1,12 +1,11 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { PhotoAvatar } from "@/components/common/avatar";
 import { ProfileCard } from "@/components/profile/profile-card";
 import type { BackendUser } from "@/interfaces/session";
 import type { UserProfile } from "@/interfaces/user-profile";
-import { USER_ROLE_LABELS } from "@/lib/const/programs";
 import {
-  PERSON_PROFILE_VIEW_LABELS as LABELS,
   PROFILE_CHIP_CLASSES,
   PROFILE_LINK_CLASS,
   PROFILE_ROW_CLASS,
@@ -23,6 +22,7 @@ export function PersonProfileView({
   profile: UserProfile | null;
   startupHref: string | null;
 }) {
+  const t = useTranslations("personProfile");
   const fullName = profile?.fullName || user.fullName;
   const jobTitle = profile?.jobTitle || user.jobTitle || "";
   const subtitle = [jobTitle, user.organizationName]
@@ -37,7 +37,7 @@ export function PersonProfileView({
           initials={initials(fullName)}
           photoUrl={null}
           className="size-[88px] shrink-0 text-[26px]"
-          label={`${fullName} profil fotoğrafı`}
+          label={t("photoLabel", { name: fullName })}
         />
         <div className="flex min-w-0 flex-col gap-2">
           <h1 className="break-words text-[28px] font-semibold leading-[1.5] text-[#22262b]">
@@ -52,7 +52,7 @@ export function PersonProfileView({
             <li
               className={`rounded-full border px-3 py-[5px] text-xs font-medium leading-[19px] ${PROFILE_CHIP_CLASSES[ProfileChipTone.Neutral]}`}
             >
-              {USER_ROLE_LABELS[user.role]}
+              {t(`roles.${user.role}`)}
             </li>
           </ul>
         </div>
@@ -60,13 +60,13 @@ export function PersonProfileView({
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_400px]">
         <div className="flex flex-col gap-[18px]">
-          <ProfileCard title={LABELS.about}>
+          <ProfileCard title={t("about")}>
             <p className="whitespace-pre-line text-[13px] leading-5 text-[#4a5059]">
-              {profile?.bio?.trim() || LABELS.noBio}
+              {profile?.bio?.trim() || t("noBio")}
             </p>
           </ProfileCard>
           {expertise.length > 0 ? (
-            <ProfileCard title={LABELS.expertise}>
+            <ProfileCard title={t("expertise")}>
               <ul className="flex flex-wrap gap-2">
                 {expertise.map((item) => (
                   <li
@@ -81,11 +81,11 @@ export function PersonProfileView({
           ) : null}
           {user.organizationName ? (
             <ProfileCard
-              title={LABELS.startup}
+              title={t("startup")}
               action={
                 startupHref ? (
                   <Link href={startupHref} className={PROFILE_LINK_CLASS}>
-                    {LABELS.startupLink}
+                    {t("startupLink")}
                   </Link>
                 ) : undefined
               }
@@ -105,10 +105,10 @@ export function PersonProfileView({
           ) : null}
         </div>
         <aside className="flex flex-col gap-[18px]">
-          <ProfileCard title={LABELS.contact}>
+          <ProfileCard title={t("contact")}>
             <dl className="flex flex-col gap-3">
               <div className={PROFILE_ROW_CLASS}>
-                <dt className="text-[12px] text-[#676e78]">{LABELS.email}</dt>
+                <dt className="text-[12px] text-[#676e78]">{t("email")}</dt>
                 <dd className="min-w-0 truncate text-right font-medium text-[#4a5059]">
                   {user.email ? (
                     <a
@@ -118,20 +118,20 @@ export function PersonProfileView({
                       {user.email}
                     </a>
                   ) : (
-                    LABELS.dash
+                    "—"
                   )}
                 </dd>
               </div>
               <div className={PROFILE_ROW_CLASS}>
-                <dt className="text-[12px] text-[#676e78]">{LABELS.role}</dt>
+                <dt className="text-[12px] text-[#676e78]">{t("role")}</dt>
                 <dd className="text-right font-medium text-[#4a5059]">
-                  {jobTitle || LABELS.dash}
+                  {jobTitle || "—"}
                 </dd>
               </div>
               {profile?.linkedinUrl ? (
                 <div className={PROFILE_ROW_CLASS}>
                   <dt className="text-[12px] text-[#676e78]">
-                    {LABELS.linkedin}
+                    {t("linkedin")}
                   </dt>
                   <dd>
                     <a
@@ -140,7 +140,7 @@ export function PersonProfileView({
                       rel="noopener noreferrer"
                       className={PROFILE_LINK_CLASS}
                     >
-                      {LABELS.linkedinOpen}
+                      {t("linkedinOpen")}
                     </a>
                   </dd>
                 </div>
