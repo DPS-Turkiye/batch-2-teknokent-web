@@ -2,6 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { ApplicationStatusTimeline } from "@/components/auth/application-status-timeline";
 import { AuthShell } from "@/components/auth/auth-shell";
@@ -9,20 +10,15 @@ import { SubmittedProfileSummary } from "@/components/auth/submitted-profile-sum
 import { useAccountStatus } from "@/hooks/use-account-status";
 import { UserAccountStatus } from "@/interfaces/session";
 
-const STATUS_LABEL: Record<UserAccountStatus, string> = {
-  [UserAccountStatus.Pending]: "Koordinatör incelemesinde",
-  [UserAccountStatus.Approved]: "Onaylandı",
-  [UserAccountStatus.Rejected]: "Onaylanmadı",
-};
-
 export default function ApplicationStatusPage() {
+  const t = useTranslations("applicationStatus");
   const { account, isLoading, isSignedOut } = useAccountStatus();
 
   if (isLoading) {
     return (
       <AuthShell>
         <p className="py-12 text-center text-sm text-[#676e78]">
-          Yükleniyor...
+          {t("loading")}
         </p>
       </AuthShell>
     );
@@ -33,17 +29,14 @@ export default function ApplicationStatusPage() {
       <AuthShell>
         <div className="space-y-4 py-10 text-center">
           <h1 className="text-xl font-bold text-[#22262b]">
-            Başvuru durumunu görmek için giriş yap
+            {t("signedOutTitle")}
           </h1>
-          <p className="text-sm text-[#676e78]">
-            Durumunu görüntüleyebilmemiz için hesabınla yeniden giriş yapman
-            gerekiyor.
-          </p>
+          <p className="text-sm text-[#676e78]">{t("signedOutBody")}</p>
           <Link
             href="/login"
             className="inline-flex rounded-xl bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#c85816]"
           >
-            Giriş yap
+            {t("signIn")}
           </Link>
         </div>
       </AuthShell>
@@ -65,7 +58,7 @@ export default function ApplicationStatusPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-base font-semibold">{displayName}</h1>
                 <span className="rounded-full bg-[#fdebdd] px-2.5 py-1 text-[11px] font-semibold text-[#c85816]">
-                  {STATUS_LABEL[status]}
+                  {t(`status.${status}`)}
                 </span>
               </div>
               <p className="mt-1 text-[11px] text-[#858c96]">{account.email}</p>
@@ -75,7 +68,7 @@ export default function ApplicationStatusPage() {
 
         <section className="rounded-2xl border border-[#e4e7ea] bg-white p-5 sm:p-6">
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[#a4aab2]">
-            Süreç
+            {t("process")}
           </h2>
           <ApplicationStatusTimeline status={status} />
         </section>
@@ -87,7 +80,7 @@ export default function ApplicationStatusPage() {
             href="/login"
             className="inline-flex rounded-xl bg-[#e86f22] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#c85816]"
           >
-            Giriş yap
+            {t("signIn")}
           </Link>
         ) : null}
 
@@ -96,7 +89,7 @@ export default function ApplicationStatusPage() {
           className="inline-flex items-center gap-1.5 px-1 text-xs font-semibold text-[#e86f22] hover:text-[#c85816]"
         >
           <ArrowLeft className="size-3.5" />
-          Ana sayfaya dön
+          {t("home")}
         </Link>
       </div>
     </AuthShell>

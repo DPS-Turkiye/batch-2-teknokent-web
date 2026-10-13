@@ -2247,5 +2247,21 @@
       "completed": "Görüşme tamamlandı.",
       "completeFailed": "Görüşme tamamlanamadı."
     }
+  },
+  "applicationStatus": {
+    "status": {
+      "PENDING": "Koordinatör incelemesinde",
+      "APPROVED": "Onaylandı",
+      "REJECTED": "Onaylanmadı"
+    },
+    "loading": "Yükleniyor...",
+    "signedOutTitle": "Başvuru durumunu görmek için giriş yap",
+    "signedOutBody": "Durumunu görüntüleyebilmemiz için hesabınla yeniden giriş yapman gerekiyor.",
+    "signIn": "Giriş yap",
+    "process": "Süreç",
+    "home": "Ana sayfaya dön"
+  },
+  "workspace": {
+    "opening": "Çalışma alanınız açılıyor…"
   }
 }

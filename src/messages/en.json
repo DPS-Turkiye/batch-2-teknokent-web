@@ -2247,5 +2247,21 @@
       "completed": "Meeting finished.",
       "completeFailed": "Couldn't finish the meeting."
     }
+  },
+  "applicationStatus": {
+    "status": {
+      "PENDING": "Under coordinator review",
+      "APPROVED": "Approved",
+      "REJECTED": "Not approved"
+    },
+    "loading": "Loading...",
+    "signedOutTitle": "Sign in to see your application status",
+    "signedOutBody": "Sign in to your account again so we can show your status.",
+    "signIn": "Sign in",
+    "process": "Process",
+    "home": "Back to the home page"
+  },
+  "workspace": {
+    "opening": "Opening your workspace…"
   }
 }
