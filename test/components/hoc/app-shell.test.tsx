@@ -642,10 +642,10 @@ describe("AppShell in English", () => {
 
     const nav = screen.getByRole("navigation", { name: "Main menu" });
     expect(
-      within(nav).getByRole("link", { name: "My mentorships" }),
+      within(nav).getByRole("link", { name: "Mentorships" }),
     ).toHaveAttribute("aria-current", "page");
     expect(
-      within(nav).getByRole("link", { name: "My startup" }),
+      within(nav).getByRole("link", { name: "Startup" }),
     ).toBeInTheDocument();
 
     await user.click(

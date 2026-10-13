@@ -670,12 +670,12 @@
     "nav": {
       "home": "Home",
       "homeRevised": "Home",
-      "mentorships": "My mentorships",
-      "mentorMentorships": "My mentorships",
+      "mentorships": "Mentorships",
+      "mentorMentorships": "Mentorships",
       "calendar": "Calendar",
-      "startup": "My startup",
+      "startup": "Startup",
       "messages": "Messages",
-      "notes": "My meeting notes",
+      "notes": "Notes",
       "mentors": "Mentors",
       "programs": "Programs",
       "applications": "Applications"
