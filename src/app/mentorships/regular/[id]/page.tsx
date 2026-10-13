@@ -2,6 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -20,20 +21,14 @@ import {
   updateRegularMentorship,
 } from "@/lib/client/mentorships";
 import { MENTORSHIPS_REGULAR_HREF } from "@/lib/const";
+import { formatCalendarDay } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
-function formatDateLabel(value: string | null) {
-  if (!value) return "Süresiz";
-  const date = new Date(`${value}T00:00:00`);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString("tr-TR", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
-}
-
 export default function RegularMentorshipDetailPage() {
+  const t = useTranslations("regularMentorships");
+  const locale = useLocale();
+  const day = (value: string | null) =>
+    value ? formatCalendarDay(value, locale) : t("noEnd");
   const params = useParams<{ id: string }>();
   const id = params.id;
   const router = useRouter();
@@ -127,10 +122,10 @@ export default function RegularMentorshipDetailPage() {
           <MentorshipsBackLink href={MENTORSHIPS_REGULAR_HREF} />
 
           {query.isLoading ? (
-            <p className="mt-8 text-sm text-[#676e78]">Yükleniyor...</p>
+            <p className="mt-8 text-sm text-[#676e78]">{t("loading")}</p>
           ) : query.error || !mentorship ? (
             <p className="mt-8 text-sm text-red-600">
-              {query.error?.message ?? "Mentorlük bulunamadı."}
+              {query.error?.message ?? t("notFound")}
             </p>
           ) : (
             <>
@@ -148,12 +143,13 @@ export default function RegularMentorshipDetailPage() {
                     )}
                   </h1>
                   <p className="mt-1 text-sm text-[#676e78]">
-                    {mentorship.mentorName} · Haftada {mentorship.daysPerWeek}{" "}
-                    gün
+                    {t("perWeek", {
+                      mentor: mentorship.mentorName,
+                      days: mentorship.daysPerWeek,
+                    })}
                   </p>
                   <p className="mt-1 text-xs text-[#858c96]">
-                    {formatDateLabel(mentorship.startDate)} –{" "}
-                    {formatDateLabel(mentorship.endDate)}
+                    {day(mentorship.startDate)} – {day(mentorship.endDate)}
                   </p>
                 </div>
                 {isMentor ? (
@@ -171,24 +167,20 @@ export default function RegularMentorshipDetailPage() {
                       }}
                       className="rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm font-medium text-[#515861]"
                     >
-                      {editing ? "Vazgeç" : "Düzenle"}
+                      {editing ? t("cancel") : t("edit")}
                     </button>
                     <button
                       type="button"
                       disabled={removeMentorship.isPending}
                       onClick={() => {
-                        if (
-                          !window.confirm(
-                            "Bu düzenli mentorlüğü silmek istediğine emin misin?",
-                          )
-                        ) {
+                        if (!window.confirm(t("confirmDelete"))) {
                           return;
                         }
                         removeMentorship.mutate();
                       }}
                       className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
-                      {removeMentorship.isPending ? "Siliniyor..." : "Sil"}
+                      {removeMentorship.isPending ? t("deleting") : t("delete")}
                     </button>
                   </div>
                 ) : null}
@@ -200,18 +192,18 @@ export default function RegularMentorshipDetailPage() {
                   onSubmit={(event) => {
                     event.preventDefault();
                     if (!startDate) {
-                      setError("Başlangıç tarihi gerekli.");
+                      setError(t("startRequired"));
                       return;
                     }
                     saveDetails.mutate();
                   }}
                 >
                   <h2 className="text-sm font-semibold text-[#22262b]">
-                    Mentorlük bilgilerini düzenle
+                    {t("editTitle")}
                   </h2>
                   <div className="mt-4 grid gap-3 sm:grid-cols-3">
                     <label className="block text-xs font-medium text-[#515861]">
-                      Başlangıç
+                      {t("startShort")}
                       <input
                         type="date"
                         value={startDate}
@@ -221,7 +213,7 @@ export default function RegularMentorshipDetailPage() {
                       />
                     </label>
                     <label className="block text-xs font-medium text-[#515861]">
-                      Bitiş
+                      {t("endShort")}
                       <input
                         type="date"
                         value={endDate}
@@ -231,7 +223,7 @@ export default function RegularMentorshipDetailPage() {
                       />
                     </label>
                     <label className="block text-xs font-medium text-[#515861]">
-                      Haftada gün
+                      {t("daysShort")}
                       <input
                         type="number"
                         min={1}
@@ -254,16 +246,16 @@ export default function RegularMentorshipDetailPage() {
                     disabled={saveDetails.isPending}
                     className="mt-4 rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                   >
-                    {saveDetails.isPending ? "Kaydediliyor..." : "Kaydet"}
+                    {saveDetails.isPending ? t("saving") : t("save")}
                   </button>
                 </form>
               ) : null}
 
               <div className="mt-6 rounded-[16px] border border-[#e4e7ea] bg-white p-5">
                 <div className="mb-2 flex items-center justify-between text-sm text-[#676e78]">
-                  <span>İlerleme</span>
+                  <span>{t("progress")}</span>
                   <span className="font-medium text-[#22262b]">
-                    %{mentorship.progressPercent}
+                    {t("percent", { value: mentorship.progressPercent })}
                   </span>
                 </div>
                 <div className="h-2.5 overflow-hidden rounded-full bg-[#eef1f4]">
@@ -286,12 +278,12 @@ export default function RegularMentorshipDetailPage() {
 
               <section className="mt-8">
                 <h2 className="text-lg font-semibold text-[#22262b]">
-                  Hedefler
+                  {t("goals")}
                 </h2>
                 <ul className="mt-4 space-y-3">
                   {mentorship.goalItems.length === 0 ? (
                     <li className="rounded-xl border border-dashed border-[#e4e7ea] px-4 py-6 text-sm text-[#676e78]">
-                      Henüz hedef eklenmemiş.
+                      {t("noGoals")}
                     </li>
                   ) : (
                     mentorship.goalItems.map((goal) => (
@@ -338,7 +330,7 @@ export default function RegularMentorshipDetailPage() {
                     <input
                       value={title}
                       onChange={(event) => setTitle(event.target.value)}
-                      placeholder="Yeni hedef..."
+                      placeholder={t("newGoal")}
                       className="min-w-0 flex-1 rounded-lg border border-[#e4e7ea] px-3 py-2 text-sm"
                     />
                     <button
@@ -346,7 +338,7 @@ export default function RegularMentorshipDetailPage() {
                       disabled={addGoal.isPending || !title.trim()}
                       className="rounded-lg bg-[var(--ms-accent,#e86f22)] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
                     >
-                      Hedef ekle
+                      {t("addGoal")}
                     </button>
                   </form>
                 ) : null}

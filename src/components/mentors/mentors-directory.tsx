@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ChevronRight, Filter, Search, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
@@ -19,10 +20,7 @@ import {
 } from "@/lib/mentor-directory";
 import { mentorProfileHref } from "@/lib/mentor-profile-request";
 
-const SORT_LABELS: Record<MentorSort, string> = {
-  best: "En uygun",
-  name: "İsim",
-};
+const SORTS: MentorSort[] = ["best", "name"];
 
 export function MentorsDirectory({
   embedded = false,
@@ -33,6 +31,7 @@ export function MentorsDirectory({
   error?: string;
   mentors?: MentorProfile[];
 }) {
+  const t = useTranslations("mentorsDirectory");
   const shouldFetch = mentorsProp === undefined;
   const mentorsQuery = useMentors({ enabled: shouldFetch });
   const mentors = useMemo(
@@ -41,9 +40,7 @@ export function MentorsDirectory({
   );
   const error =
     errorProp ??
-    (mentorsQuery.error instanceof Error
-      ? "Mentörler yüklenemedi. Listeyi yenilemeyi dene."
-      : undefined);
+    (mentorsQuery.error instanceof Error ? t("loadFailed") : undefined);
   const isLoading = shouldFetch && mentorsQuery.isLoading;
 
   const [filters, setFilters] = useState<MentorDirectoryFilters>(
@@ -75,15 +72,15 @@ export function MentorsDirectory({
             type="search"
             value={filters.query}
             onChange={(event) => patch({ query: event.target.value })}
-            placeholder="Mentor, uzmanlık veya konu ara..."
-            aria-label="Mentör ara"
+            placeholder={t("searchPlaceholder")}
+            aria-label={t("searchLabel")}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
           {filters.query ? (
             <button
               type="button"
               onClick={() => patch({ query: "" })}
-              aria-label="Aramayı temizle"
+              aria-label={t("clearSearch")}
               className="grid size-7 place-items-center rounded-full text-[#858c96] hover:bg-white hover:text-[#22262b]"
             >
               <X className="size-4" />
@@ -95,12 +92,15 @@ export function MentorsDirectory({
           <Filter className="size-4 text-[#c85816]" aria-hidden />
           {filters.specialty ? (
             <FilterChip
-              label={`Uzmanlık - ${filters.specialty}`}
+              label={t("chip", {
+                filter: t("specialty"),
+                value: filters.specialty,
+              })}
               onRemove={() => patch({ specialty: "" })}
             />
           ) : (
             <FilterSelect
-              label="Uzmanlık"
+              label={t("specialty")}
               value={filters.specialty}
               options={specialties}
               onChange={(specialty) => patch({ specialty })}
@@ -108,12 +108,15 @@ export function MentorsDirectory({
           )}
           {filters.startupStage ? (
             <FilterChip
-              label={`Girişim aşaması - ${filters.startupStage}`}
+              label={t("chip", {
+                filter: t("stage"),
+                value: filters.startupStage,
+              })}
               onRemove={() => patch({ startupStage: "" })}
             />
           ) : (
             <FilterSelect
-              label="Girişim aşaması"
+              label={t("stage")}
               value={filters.startupStage}
               options={stages}
               onChange={(startupStage) => patch({ startupStage })}
@@ -121,12 +124,15 @@ export function MentorsDirectory({
           )}
           {filters.availability ? (
             <FilterChip
-              label={`Müsaitlik - ${filters.availability}`}
+              label={t("chip", {
+                filter: t("availability"),
+                value: filters.availability,
+              })}
               onRemove={() => patch({ availability: "" })}
             />
           ) : moreFilters || filters.availability ? (
             <FilterSelect
-              label="Müsaitlik"
+              label={t("availability")}
               value={filters.availability}
               options={availabilityOptions}
               onChange={(availability) => patch({ availability })}
@@ -137,22 +143,22 @@ export function MentorsDirectory({
               onClick={() => setMoreFilters(true)}
               className="rounded-full border border-[#f2b78f] px-3 py-1.5 text-xs font-medium text-[#c85816]"
             >
-              + Daha fazla
+              {t("more")}
             </button>
           )}
           <label className="ml-auto flex items-center gap-2 text-xs font-medium text-[#515861]">
-            Sırala:
+            {t("sortBy")}
             <select
-              aria-label="Sırala"
+              aria-label={t("sortLabel")}
               value={filters.sort}
               onChange={(event) =>
                 patch({ sort: event.target.value as MentorSort })
               }
               className="bg-transparent font-semibold text-[#22262b] outline-none"
             >
-              {Object.entries(SORT_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
+              {SORTS.map((sort) => (
+                <option key={sort} value={sort}>
+                  {t(`sort.${sort}`)}
                 </option>
               ))}
             </select>
@@ -171,7 +177,7 @@ export function MentorsDirectory({
 
       {isLoading ? (
         <p className="border-t border-[#eef0f2] px-5 py-10 text-center text-sm text-[#676e78]">
-          Yükleniyor...
+          {t("loading")}
         </p>
       ) : visible.length === 0 ? (
         <p className="border-t border-[#eef0f2] px-5 py-10 text-center text-sm text-[#676e78]">
@@ -179,8 +185,8 @@ export function MentorsDirectory({
           filters.specialty ||
           filters.startupStage ||
           filters.availability
-            ? "Aramanıza uyan mentör bulunamadı."
-            : "Henüz listelenecek mentör yok."}
+            ? t("noMatch")
+            : t("empty")}
         </p>
       ) : (
         <ul>
@@ -216,14 +222,11 @@ export function MentorsDirectory({
   return (
     <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
       <div className="mb-6">
-        <p className="text-sm font-medium text-[#e86f22]">Mentor havuzu</p>
+        <p className="text-sm font-medium text-[#e86f22]">{t("eyebrow")}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">
-          Mentörler
+          {t("title")}
         </h1>
-        <p className="mt-2 text-sm text-[#676e78]">
-          Sistemdeki onaylı mentörleri incele. Birine tıklayınca profiline
-          gidersin.
-        </p>
+        <p className="mt-2 text-sm text-[#676e78]">{t("intro")}</p>
       </div>
       {panel}
     </div>

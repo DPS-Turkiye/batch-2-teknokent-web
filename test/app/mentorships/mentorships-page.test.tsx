@@ -12,7 +12,7 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { mentorProfile } from "@test/fixtures/mentors";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const pagesByTab = vi.hoisted(() => ({
   active: [] as MentorshipRequest[],
@@ -115,6 +115,22 @@ describe("MentorshipsPage", () => {
       isLoading: false,
       error: null,
     } as never);
+  });
+
+  it("reads in English", async () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorshipsPage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("tab", { name: "Mentor pool" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Looking for a new mentor?")).toBeInTheDocument();
+    expect(
+      await screen.findByText("You have no active mentorships"),
+    ).toBeInTheDocument();
   });
 
   function openMeeting(

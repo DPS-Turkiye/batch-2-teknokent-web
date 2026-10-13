@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
 import { getMeetingFeedback } from "@/lib/client/meetings";
 import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
@@ -13,6 +14,7 @@ type MeetingFeedbackHistoryLinkProps = {
 export function MeetingFeedbackHistoryLink({
   meetingId,
 }: MeetingFeedbackHistoryLinkProps) {
+  const t = useTranslations("feedbackLink");
   const feedbackQuery = useQuery({
     queryKey: ["meeting-feedback", meetingId],
     queryFn: () => getMeetingFeedback(meetingId),
@@ -20,10 +22,10 @@ export function MeetingFeedbackHistoryLink({
 
   const hasFeedback = Boolean(feedbackQuery.data);
   const label = feedbackQuery.isPending
-    ? "Kontrol ediliyor…"
+    ? t("checking")
     : hasFeedback
-      ? "Değerlendirmeyi gör"
-      : "Görüşmeyi değerlendir";
+      ? t("view")
+      : t("rate");
 
   return (
     <Link
