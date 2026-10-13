@@ -11,7 +11,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -189,6 +189,29 @@ describe("MentorDashboardView", () => {
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getByText("İyi akşamlar, Nihan")).toBeInTheDocument();
+  });
+
+  it("reads in English, drawer included", () => {
+    mockDashboard({
+      greeting: "Good evening",
+      decision: decisionState(request()),
+    });
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorDashboardView />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Good evening, Nihan")).toBeInTheDocument();
+    expect(screen.getByText("Waiting on you today")).toBeInTheDocument();
+    expect(screen.getByText("Startup work")).toBeInTheDocument();
+    expect(screen.getByText("Meetings awaiting review")).toBeInTheDocument();
+    expect(screen.getByText("Send me the transcript")).toBeInTheDocument();
+    const drawer = screen.getByRole("dialog", { name: "Mentorship request" });
+    expect(within(drawer).getByText("MENTORING NEED")).toBeInTheDocument();
+    expect(
+      within(drawer).getByRole("button", { name: "Accept mentorship" }),
+    ).toBeInTheDocument();
   });
 
   it("renders every dashboard section", () => {

@@ -2381,5 +2381,123 @@
       "SUNDAY": "Sunday"
     },
     "minutes": "{count} min"
+  },
+  "mentorHome": {
+    "greetingWithName": "{greeting}, {name}",
+    "summary": "{active} active mentorships · {pending} new requests",
+    "manageAvailability": "Manage availability",
+    "loading": "Loading...",
+    "lastMeeting": "Last meeting {when}",
+    "nextMeeting": "Next meeting {when}",
+    "minutes": "{count} min",
+    "online": "Online",
+    "fallback": {
+      "mentorship": "Mentorship",
+      "meeting": "Mentoring session",
+      "startup": "Startup"
+    },
+    "banner": {
+      "label": "Next meeting",
+      "hint": "Add the Meet link to get an editable transcript after the meeting.",
+      "join": "Join meeting",
+      "linkLabel": "Meeting link",
+      "transcript": "Send me the transcript",
+      "updateFailed": "Couldn't update the meeting.",
+      "linkSaved": "Meeting link saved."
+    },
+    "quick": {
+      "planMeeting": "Plan a meeting",
+      "planMeetingHint": "Set up a new session with a mentee",
+      "sendMessage": "Send a message",
+      "sendMessageHint": "A quick note to an active mentee",
+      "requestFile": "Request a file",
+      "requestFileHint": "Ask a startup for a document"
+    },
+    "today": {
+      "title": "Waiting on you today",
+      "all": "All ({count})",
+      "empty": "Nothing waiting.",
+      "awaitingReview": "{agenda} · awaiting your review",
+      "evaluate": "Review",
+      "overdue": "Overdue",
+      "remind": "Remind",
+      "open": "Open"
+    },
+    "upcoming": {
+      "title": "Upcoming meetings",
+      "all": "All meetings →",
+      "empty": "No upcoming meetings.",
+      "message": "Message",
+      "join": "Join meeting",
+      "detail": "Details"
+    },
+    "startups": {
+      "title": "Startup work",
+      "all": "All mentorships →",
+      "empty": "No active mentorships.",
+      "progress": "Mentorship progress",
+      "noWork": "No tasks yet",
+      "open": "Go to mentorship →",
+      "tasks": "Assigned tasks",
+      "newTask": "Assign a task",
+      "noTasks": "No tasks assigned in this mentorship.",
+      "due": "Due {date}",
+      "taskFallback": "Assigned task",
+      "files": "Files",
+      "requestFile": "Request a file",
+      "filesFailed": "Couldn't load the files.",
+      "noFiles": "No file requests in this mentorship.",
+      "sendMessage": "Send a message",
+      "planMeeting": "Plan a meeting"
+    },
+    "actionStatus": {
+      "OPEN": "Open",
+      "IN_PROGRESS": "In progress",
+      "COMPLETED": "Done",
+      "CANCELLED": "Cancelled"
+    },
+    "files": {
+      "uploadedBy": "Uploaded by {name} · {size} · {date}",
+      "requestedBy": "Requested by {name} · {date}",
+      "uploaded": "Uploaded",
+      "waiting": "Waiting"
+    },
+    "requests": {
+      "title": "Mentorship requests",
+      "all": "All ({count}) →",
+      "empty": "No pending mentorship requests.",
+      "new": "New",
+      "reviewed": "Reviewed",
+      "review": "Review request"
+    },
+    "reviews": {
+      "title": "Meetings awaiting review",
+      "empty": "No meetings awaiting review.",
+      "noNote": "No notes added",
+      "awaiting": "Awaiting review",
+      "addNote": "Add meeting notes",
+      "complete": "Complete the review"
+    },
+    "drawer": {
+      "title": "Mentorship request",
+      "close": "Close request details",
+      "new": "New",
+      "requestedAt": "Requested: {date}",
+      "startup": "STARTUP",
+      "need": "MENTORING NEED",
+      "whyMe": "WHY ME?",
+      "preferredSlots": "PREFERRED TIMES",
+      "focus": "FOCUS AREA",
+      "files": "ATTACHED FILES",
+      "decline": "Decline",
+      "sendMessage": "Send a message",
+      "accept": "Accept mentorship"
+    }
+  },
+  "mentorDecision": {
+    "accepted": "Mentorship request accepted.",
+    "answered": "Mentorship request answered.",
+    "failed": "Couldn't complete that.",
+    "answerFailed": "Couldn't answer the mentorship request."
   }
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { useToast } from "@/components/providers/toast-provider";
 
@@ -21,6 +22,8 @@ const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
 };
 
 export function useDecision() {
+  const t = useTranslations("mentorDecision");
+  const locale = useLocale();
   const { showToast } = useToast();
   const decisionMutation = useMentorRequestDecision();
   const [selectedRequest, setSelectedRequest] =
@@ -36,7 +39,7 @@ export function useDecision() {
     showAvailabilityStep,
   );
   const selectedSlots = (availabilityQuery.data ?? []).map((slot) =>
-    formatSlotDateTime(slot.startsAt),
+    formatSlotDateTime(slot.startsAt, locale),
   );
 
   function selectRequest(request: MentorshipRequest) {
@@ -59,6 +62,7 @@ export function useDecision() {
     setActionError("");
 
     try {
+      // The default reply is saved as the message the mentee reads, so it stays Turkish like other saved texts.
       await decisionMutation.mutateAsync({
         id: selectedRequest.id,
         status: decisionStatuses[activeMode],
@@ -71,20 +75,18 @@ export function useDecision() {
 
       if (activeMode === MentorDecisionMode.Accept) {
         showToast({
-          message: "Mentorluk talebi kabul edildi.",
+          message: t("accepted"),
           tone: "success",
         });
         setShowAvailabilityStep(true);
       } else {
-        showToast({ message: "Mentorluk talebi yanıtlandı.", tone: "success" });
+        showToast({ message: t("answered"), tone: "success" });
         closeDecision();
       }
       return true;
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "İşlem tamamlanamadı.",
-      );
-      showToast({ message: "Mentorluk talebi yanıtlanamadı.", tone: "error" });
+      setActionError(error instanceof Error ? error.message : t("failed"));
+      showToast({ message: t("answerFailed"), tone: "error" });
       return false;
     }
   }

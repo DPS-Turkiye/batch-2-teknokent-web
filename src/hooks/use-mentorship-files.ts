@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 
 import { listDocumentRequests } from "@/lib/client/document-requests";
 import { mentorshipFileRow } from "@/lib/mentor-dashboard";
@@ -14,6 +15,8 @@ export function useMentorshipFiles(
   mentorshipRequestId: string,
   enabled: boolean,
 ) {
+  const t = useTranslations("mentorHome");
+  const locale = useLocale();
   const query = useQuery({
     queryKey: mentorshipFilesQueryKey(mentorshipRequestId),
     queryFn: () => listDocumentRequests({ mentorshipRequestId }),
@@ -21,7 +24,9 @@ export function useMentorshipFiles(
   });
 
   return {
-    files: (query.data ?? []).map(mentorshipFileRow),
+    files: (query.data ?? []).map((item) =>
+      mentorshipFileRow(item, { t, locale }),
+    ),
     isLoading: query.isLoading,
     hasFailed: Boolean(query.error),
   };
