@@ -49,6 +49,7 @@ export function platformLabel(platform: string): MeetingPlatform {
 
 export function toAssistantMeeting(
   item: MeetingItem,
+  { meetingFallback, locale }: { meetingFallback: string; locale: string },
   now = Date.now(),
 ): Meeting {
   const parsed = parseMeetingUrl(item.meetLink ?? "");
@@ -58,14 +59,12 @@ export function toAssistantMeeting(
   return {
     id: item.id,
     title:
-      item.agenda?.trim() ||
-      item.organizationName?.trim() ||
-      "Mentorluk görüşmesi",
+      item.agenda?.trim() || item.organizationName?.trim() || meetingFallback,
     platform: platformLabel(parsed?.platform ?? "google_meet"),
     platformKey: parsed?.platform ?? "",
     nativeMeetingId: parsed?.nativeMeetingId ?? "",
     status: assistantStatusFor(item, now),
-    when: formatSlotDateTime(item.scheduledAt),
+    when: formatSlotDateTime(item.scheduledAt, locale),
     participants,
   };
 }

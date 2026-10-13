@@ -852,6 +852,13 @@
       "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
       "roleTitle": "Her deneyim için bir ünvan gir.",
       "programRole": "Program rolü en fazla {max} karakter olabilir."
+    },
+    "assistant": {
+      "network": "ağ hatası",
+      "sendFailed": "Toplantı asistanı gönderilemedi.",
+      "stopFailed": "Toplantı asistanı durdurulamadı.",
+      "transcriptFailed": "Toplantı transkripti alınamadı.",
+      "reportFailed": "Toplantı raporu oluşturulamadı."
     }
   },
   "metadata": {
@@ -2965,5 +2972,68 @@
     "loading": "Görüşme yükleniyor…",
     "notFound": "Görüşme bulunamadı.",
     "minutes": "{count} dk"
+  },
+  "assistant": {
+    "brand": "Toplantı",
+    "brandSuffix": "asistanı",
+    "meetingsTab": "Toplantılar",
+    "meetingsHeading": "toplantılar",
+    "linkPlaceholder": "Toplantı linki yapıştır…",
+    "addBot": "Bot ekle",
+    "loadingMeetings": "Toplantılar yükleniyor…",
+    "noMeetings": "Kayıtlı toplantı yok. Takvimden toplantı oluştur veya link yapıştır.",
+    "userFallback": "Kullanıcı",
+    "pickMeeting": "Bir toplantı seç veya link yapıştırarak bot ekle.",
+    "live": "Canlı",
+    "status": {
+      "scheduled": "Planlandı",
+      "joining": "Katılıyor",
+      "active": "Canlı",
+      "completed": "Bitti",
+      "failed": "Hata"
+    },
+    "notebookMeeting": "Not defteri toplantısı",
+    "pickNotebook": "Not defteri toplantısı seç…",
+    "meetingFallback": "Mentorluk görüşmesi",
+    "sendTranscriptHint": "Menteenin not defterinin altına gönder",
+    "sendTranscript": "Transkripti gönder",
+    "sendReport": "Raporu gönder",
+    "stop": "Asistanı durdur",
+    "stopHint": "Transkripti görmek ve rapor oluşturmak için <b>Asistanı durdur</b> düğmesine basın. Asistan durunca transkript kilitlenir ve rapor otomatik üretilir.",
+    "transcript": "Transkript",
+    "editable": "Düzenlenebilir",
+    "shared": "Menteenin not defterinin altına gönderildi.",
+    "emptyLive": "Konuşmalar burada birikir. Transkripti kilitlemek ve raporu üretmek için Asistanı durdur düğmesine basın.",
+    "emptyIdle": "Henüz transkript yok. Asistan toplantıya katılınca canlı konuşmalar burada akacak.",
+    "speaker": "Konuşmacı",
+    "line": "Transkript satırı",
+    "deleteLine": "Satırı sil",
+    "report": "Toplantı raporu",
+    "reportStale": "Transkript değişti. Raporu güncellemek için tekrar üret.",
+    "generating": "Üretiliyor…",
+    "generate": "Rapor üret",
+    "reportEmpty": "Transkripti kilitlemek ve raporu otomatik üretmek için Asistanı durdur düğmesine basın. Menteenin not defterinin altına düşmesi için gönderin.",
+    "summary": "Özet",
+    "now": "Şimdi",
+    "newBot": "Yeni toplantı botu",
+    "sendFailed": "Toplantı asistanı gönderilemedi.",
+    "reportNeedsTranscript": "Rapor için önce transkript gerekli.",
+    "reportFailed": "Toplantı raporu oluşturulamadı.",
+    "stopNotMarked": "Bot durduruldu ama toplantı sunucuda bitti olarak işaretlenemedi. Sayfayı yenileyip tekrar Asistanı durdur düğmesine basın.",
+    "stopFailed": "Toplantı asistanı durdurulamadı.",
+    "transcriptShareFailed": "Transkript gönderilemedi.",
+    "reportShareFailed": "Rapor gönderilemedi.",
+    "botSent": "Bot gönderildi — toplantıda kabul et; transcript burada görünecek.",
+    "reportView": {
+      "noTopic": "Konu / tarih transcript’ten çıkarılamadı",
+      "summary": "Özet",
+      "noSummary": "Özet üretilemedi.",
+      "topics": "Konuşulan konular",
+      "decisions": "Kararlar",
+      "actions": "Aksiyonlar",
+      "risks": "Riskler / engeller",
+      "nextSteps": "Sonraki adımlar",
+      "none": "Belirtilmedi."
+    }
   }
 }

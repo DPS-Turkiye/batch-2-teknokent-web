@@ -374,27 +374,22 @@ export const ACCEPTED_CALENDAR_DAYS = [
 
 export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
   [MeetingStatus.Scheduled]: {
-    label: "Planlandı",
     color: "var(--ma-blue)",
     bg: "var(--ma-bluebg)",
   },
   [MeetingStatus.Joining]: {
-    label: "Katılıyor",
     color: "var(--ma-accent)",
     bg: "var(--ma-accentbg)",
   },
   [MeetingStatus.Active]: {
-    label: "Canlı",
     color: "var(--ma-green)",
     bg: "var(--ma-greenbg)",
   },
   [MeetingStatus.Completed]: {
-    label: "Bitti",
     color: "var(--ma-green)",
     bg: "var(--ma-greenbg)",
   },
   [MeetingStatus.Failed]: {
-    label: "Hata",
     color: "var(--ma-danger)",
     bg: "var(--ma-dangerbg)",
   },

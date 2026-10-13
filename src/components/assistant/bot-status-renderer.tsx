@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import { BotStatus } from "@/types/assistant";
 
 export function BotStatusRenderer({
@@ -7,10 +9,11 @@ export function BotStatusRenderer({
   status: BotStatus | null;
   error: string | null;
 }) {
+  const t = useTranslations("assistant");
   if (status === BotStatus.Ok) {
     return (
       <p className="mt-1.5 text-[11px] leading-snug text-[var(--ma-green)]">
-        Bot gönderildi — toplantıda kabul et; transcript burada görünecek.
+        {t("botSent")}
       </p>
     );
   }
@@ -18,7 +21,7 @@ export function BotStatusRenderer({
   if (status === BotStatus.Err) {
     return (
       <p className="mt-1.5 text-[11px] leading-snug text-[var(--ma-danger)]">
-        {error ?? "Toplantı asistanı gönderilemedi."}
+        {error ?? t("sendFailed")}
       </p>
     );
   }

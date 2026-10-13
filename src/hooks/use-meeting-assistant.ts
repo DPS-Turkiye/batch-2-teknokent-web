@@ -39,6 +39,7 @@ import {
   type MeetingReport,
   type TranscriptLine,
 } from "@/types/assistant";
+import { useLocale, useTranslations } from "next-intl";
 import {
   FormEvent,
   useCallback,
@@ -128,6 +129,12 @@ function publishableTranscript(lines: TranscriptLine[]) {
 }
 
 export function useMeetingAssistant(requestedMeetingId?: string) {
+  const t = useTranslations("assistant");
+  const locale = useLocale();
+  const meetingTexts = useMemo(
+    () => ({ meetingFallback: t("meetingFallback"), locale }),
+    [t, locale],
+  );
   const platformMeetingsQuery = useMeetings();
   const calendarItems = useMemo(
     () => platformMeetingsQuery.data ?? [],
@@ -171,9 +178,12 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           isAssistantCalendarMeeting(item) || item.id === requestedMeetingId,
       )
       .map((item) =>
-        withAssistantOverlay(toAssistantMeeting(item), overlays[item.id]),
+        withAssistantOverlay(
+          toAssistantMeeting(item, meetingTexts),
+          overlays[item.id],
+        ),
       );
-  }, [calendarItems, overlays, requestedMeetingId]);
+  }, [calendarItems, overlays, requestedMeetingId, meetingTexts]);
 
   const meetings = useMemo(() => {
     const calendarIds = new Set(calendarMeetings.map((item) => item.id));
@@ -342,10 +352,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           : undefined;
         const next: Meeting = {
           id: persistId ?? result.id ?? `m${Date.now()}`,
-          title:
-            calendarItem?.agenda?.trim() ||
-            result.title ||
-            "Yeni toplantı botu",
+          title: calendarItem?.agenda?.trim() || result.title || t("newBot"),
           platform: platformLabel(result.platform),
           platformKey: result.platform,
           nativeMeetingId: result.nativeMeetingId,
@@ -353,9 +360,11 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
             result.status === "joining"
               ? MeetingStatus.Joining
               : MeetingStatus.Scheduled,
-          when: calendarItem ? toAssistantMeeting(calendarItem).when : "Şimdi",
+          when: calendarItem
+            ? toAssistantMeeting(calendarItem, meetingTexts).when
+            : t("now"),
           participants: calendarItem
-            ? toAssistantMeeting(calendarItem).participants
+            ? toAssistantMeeting(calendarItem, meetingTexts).participants
             : [],
         };
 
@@ -398,18 +407,14 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           markTranscriptBotSent(persistId, false);
         }
         setBotStatus(BotStatus.Err);
-        setBotError(
-          error instanceof Error
-            ? error.message
-            : "Toplantı asistanı gönderilemedi.",
-        );
+        setBotError(error instanceof Error ? error.message : t("sendFailed"));
         window.setTimeout(() => setBotStatus(null), 5000);
         return false;
       } finally {
         sendingBotRef.current = false;
       }
     },
-    [calendarItems],
+    [calendarItems, meetingTexts, t],
   );
 
   useEffect(() => {
@@ -479,7 +484,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       ).filter((line) => line.text.trim());
       if (segments.length === 0) {
         setReportStatus(BotStatus.Err);
-        setReportError("Rapor için önce transkript gerekli.");
+        setReportError(t("reportNeedsTranscript"));
         window.setTimeout(() => setReportStatus(null), 6000);
         return;
       }
@@ -513,9 +518,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           autoReportAttemptedRef.current[target.id] = false;
           setReportStatus(BotStatus.Err);
           setReportError(
-            error instanceof Error
-              ? error.message
-              : "Toplantı raporu oluşturulamadı.",
+            error instanceof Error ? error.message : t("reportFailed"),
           );
           window.setTimeout(() => setReportStatus(null), 6000);
         } finally {
@@ -525,7 +528,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       reportInFlightRef.current[target.id] = run;
       return run;
     },
-    [selected],
+    [selected, t],
   );
 
   const selectedTranscriptFingerprint = selectedTranscript
@@ -611,9 +614,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
         window.setTimeout(() => setBotStatus(null), 4000);
       } else {
         setBotStatus(BotStatus.Err);
-        setBotError(
-          "Bot durduruldu ama toplantı sunucuda bitti olarak işaretlenemedi. Sayfayı yenileyip tekrar Stop bot düğmesine basın.",
-        );
+        setBotError(t("stopNotMarked"));
         window.setTimeout(() => setBotStatus(null), 8000);
       }
 
@@ -622,11 +623,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       }
     } catch (error) {
       setBotStatus(BotStatus.Err);
-      setBotError(
-        error instanceof Error
-          ? error.message
-          : "Toplantı asistanı durdurulamadı.",
-      );
+      setBotError(error instanceof Error ? error.message : t("stopFailed"));
       window.setTimeout(() => setBotStatus(null), 5000);
     }
   };
@@ -668,7 +665,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     } catch (error) {
       setShareStatus(BotStatus.Err);
       setShareError(
-        error instanceof Error ? error.message : "Transkript gönderilemedi.",
+        error instanceof Error ? error.message : t("transcriptShareFailed"),
       );
       window.setTimeout(() => setShareStatus(null), 6000);
     }
@@ -685,7 +682,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     } catch (error) {
       setShareStatus(BotStatus.Err);
       setShareError(
-        error instanceof Error ? error.message : "Rapor gönderilemedi.",
+        error instanceof Error ? error.message : t("reportShareFailed"),
       );
       window.setTimeout(() => setShareStatus(null), 6000);
     }

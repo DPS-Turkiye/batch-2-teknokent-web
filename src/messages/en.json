@@ -852,6 +852,13 @@
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
       "programRole": "A program role can be at most {max} characters."
+    },
+    "assistant": {
+      "network": "network error",
+      "sendFailed": "Couldn't send the meeting assistant.",
+      "stopFailed": "Couldn't stop the meeting assistant.",
+      "transcriptFailed": "Couldn't get the meeting transcript.",
+      "reportFailed": "Couldn't create the meeting report."
     }
   },
   "metadata": {
@@ -2965,5 +2972,68 @@
     "loading": "Loading the meeting…",
     "notFound": "Meeting not found.",
     "minutes": "{count} min"
+  },
+  "assistant": {
+    "brand": "Meeting",
+    "brandSuffix": "assistant",
+    "meetingsTab": "Meetings",
+    "meetingsHeading": "meetings",
+    "linkPlaceholder": "Paste a meeting link…",
+    "addBot": "Add bot",
+    "loadingMeetings": "Loading meetings…",
+    "noMeetings": "No saved meetings. Create one from the calendar or paste a link.",
+    "userFallback": "User",
+    "pickMeeting": "Pick a meeting, or paste a link to add the bot.",
+    "live": "Live",
+    "status": {
+      "scheduled": "Scheduled",
+      "joining": "Joining",
+      "active": "Live",
+      "completed": "Done",
+      "failed": "Error"
+    },
+    "notebookMeeting": "Notebook meeting",
+    "pickNotebook": "Pick the notebook meeting…",
+    "meetingFallback": "Mentoring session",
+    "sendTranscriptHint": "Send to the bottom of the mentee's notebook",
+    "sendTranscript": "Send transcript",
+    "sendReport": "Send report",
+    "stop": "Stop the assistant",
+    "stopHint": "To see the transcript and create a report, press <b>Stop the assistant</b>. Once it stops, the transcript is locked and the report is created automatically.",
+    "transcript": "Transcript",
+    "editable": "Editable",
+    "shared": "Sent to the bottom of the mentee's notebook.",
+    "emptyLive": "The conversation collects here. Press Stop the assistant to lock the transcript and create the report.",
+    "emptyIdle": "No transcript yet. Once the assistant joins the meeting, the live conversation will show up here.",
+    "speaker": "Speaker",
+    "line": "Transcript line",
+    "deleteLine": "Delete line",
+    "report": "Meeting report",
+    "reportStale": "The transcript changed. Create the report again to update it.",
+    "generating": "Creating…",
+    "generate": "Create report",
+    "reportEmpty": "Press Stop the assistant to lock the transcript and create the report automatically. Send it so it lands at the bottom of the mentee's notebook.",
+    "summary": "Summary",
+    "now": "Now",
+    "newBot": "New meeting bot",
+    "sendFailed": "Couldn't send the meeting assistant.",
+    "reportNeedsTranscript": "The report needs a transcript first.",
+    "reportFailed": "Couldn't create the meeting report.",
+    "stopNotMarked": "The bot stopped, but the meeting couldn't be marked as finished on the server. Refresh the page and press Stop the assistant again.",
+    "stopFailed": "Couldn't stop the meeting assistant.",
+    "transcriptShareFailed": "Couldn't send the transcript.",
+    "reportShareFailed": "Couldn't send the report.",
+    "botSent": "Bot sent — admit it in the meeting; the transcript will show up here.",
+    "reportView": {
+      "noTopic": "Couldn't find the topic or date in the transcript",
+      "summary": "Summary",
+      "noSummary": "No summary was produced.",
+      "topics": "Topics discussed",
+      "decisions": "Decisions",
+      "actions": "Action items",
+      "risks": "Risks / blockers",
+      "nextSteps": "Next steps",
+      "none": "None noted."
+    }
   }
 }

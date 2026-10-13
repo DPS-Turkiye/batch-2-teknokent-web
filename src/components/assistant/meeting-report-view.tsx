@@ -1,3 +1,5 @@
+import { useTranslations } from "next-intl";
+
 import type { MeetingReport } from "@/types/assistant";
 
 type Props = {
@@ -22,8 +24,9 @@ function Section({
 }
 
 function BulletList({ items }: { items: string[] }) {
+  const t = useTranslations("assistant.reportView");
   if (items.length === 0) {
-    return <p className="text-[12.5px] text-[var(--ma-t3)]">Belirtilmedi.</p>;
+    return <p className="text-[12.5px] text-[var(--ma-t3)]">{t("none")}</p>;
   }
   return (
     <ul className="space-y-1.5">
@@ -41,6 +44,7 @@ function BulletList({ items }: { items: string[] }) {
 }
 
 export function MeetingReportView({ report }: Props) {
+  const t = useTranslations("assistant");
   const topicsDiscussed = report.topicsDiscussed ?? [];
   const decisions = report.decisions ?? [];
   const actionItems = report.actionItems ?? [];
@@ -51,31 +55,33 @@ export function MeetingReportView({ report }: Props) {
     <div className="rounded-[10px] border border-[var(--ma-line)] bg-[var(--ma-panel)] px-4 py-3.5">
       <div className="min-w-0">
         <h3 className="text-[14px] font-semibold text-[var(--ma-t1)]">
-          {report.title || "Toplantı raporu"}
+          {report.title || t("report")}
         </h3>
         <p className="mt-1 text-[12px] text-[var(--ma-t3)]">
           {[report.topic, report.meetingDate].filter(Boolean).join(" · ") ||
-            "Konu / tarih transcript’ten çıkarılamadı"}
+            t("reportView.noTopic")}
         </p>
       </div>
 
-      <Section title="Özet">
+      <Section title={t("reportView.summary")}>
         <p className="text-[13px] leading-relaxed text-[var(--ma-t1)]">
-          {report.summary || "Özet üretilemedi."}
+          {report.summary || t("reportView.noSummary")}
         </p>
       </Section>
 
-      <Section title="Konuşulan konular">
+      <Section title={t("reportView.topics")}>
         <BulletList items={topicsDiscussed} />
       </Section>
 
-      <Section title="Kararlar">
+      <Section title={t("reportView.decisions")}>
         <BulletList items={decisions} />
       </Section>
 
-      <Section title="Aksiyonlar">
+      <Section title={t("reportView.actions")}>
         {actionItems.length === 0 ? (
-          <p className="text-[12.5px] text-[var(--ma-t3)]">Belirtilmedi.</p>
+          <p className="text-[12.5px] text-[var(--ma-t3)]">
+            {t("reportView.none")}
+          </p>
         ) : (
           <ul className="space-y-2">
             {actionItems.map((item, index) => (
@@ -95,11 +101,11 @@ export function MeetingReportView({ report }: Props) {
         )}
       </Section>
 
-      <Section title="Riskler / engeller">
+      <Section title={t("reportView.risks")}>
         <BulletList items={risksOrBlockers} />
       </Section>
 
-      <Section title="Sonraki adımlar">
+      <Section title={t("reportView.nextSteps")}>
         <BulletList items={nextSteps} />
       </Section>
     </div>
