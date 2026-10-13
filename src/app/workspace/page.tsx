@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect } from "react";
 
 import { MentonWordmark } from "@/components/common/menton-wordmark";
@@ -15,6 +16,7 @@ import { workspaceForSession } from "@/lib/role-workspace";
  * they know the role.
  */
 export default function WorkspacePage() {
+  const t = useTranslations("workspace");
   const router = useRouter();
   const session = useAppSession();
   const { homeHref } = workspaceForSession(session);
@@ -32,7 +34,7 @@ export default function WorkspacePage() {
       </header>
       <main className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-[1180px] items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
         <p aria-live="polite" className="text-sm text-zinc-600">
-          Çalışma alanınız açılıyor…
+          {t("opening")}
         </p>
       </main>
     </div>

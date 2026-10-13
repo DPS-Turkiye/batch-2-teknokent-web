@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -157,6 +158,7 @@ export function useRequestFileUpload(
   id: string | null,
   role: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
 ) {
+  const t = useTranslations("sharedUi");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   return useMutation({
@@ -178,8 +180,7 @@ export function useRequestFileUpload(
     },
     onError: (error) =>
       showToast({
-        message:
-          error instanceof Error ? error.message : "Dosya gönderilemedi.",
+        message: error instanceof Error ? error.message : t("fileSendFailed"),
         tone: "error",
       }),
   });

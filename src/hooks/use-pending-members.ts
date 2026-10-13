@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -14,6 +15,7 @@ export const PENDING_MEMBERS_QUERY_KEY = [
 
 /** Teammates listed at signup who have not joined with the invite code yet. */
 export function usePendingMembers() {
+  const t = useTranslations("sharedUi");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const query = useQuery({
@@ -28,14 +30,14 @@ export function usePendingMembers() {
         queryKey: PENDING_MEMBERS_QUERY_KEY,
       });
       showToast({
-        message: "Bekleyen üye listeden çıkarıldı.",
+        message: t("pendingRemoved"),
         tone: "success",
       });
     },
     onError: (error) =>
       showToast({
         message:
-          error instanceof Error ? error.message : "Bekleyen üye çıkarılamadı.",
+          error instanceof Error ? error.message : t("pendingRemoveFailed"),
         tone: "error",
       }),
   });

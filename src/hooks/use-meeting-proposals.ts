@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
@@ -181,6 +182,7 @@ export type MentorshipMeetingProposals = ReturnType<
  * moves once they confirm. The proposer's side counts as already accepted.
  */
 export function useRescheduleMeeting(meeting: MeetingItem) {
+  const t = useTranslations("sharedUi");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [composing, setComposing] = useState(false);
@@ -202,7 +204,7 @@ export function useRescheduleMeeting(meeting: MeetingItem) {
         queryKey: MEETING_PROPOSALS_QUERY_KEY,
       });
       showToast({
-        message: "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
+        message: t("rescheduleProposed"),
         tone: "success",
       });
     },

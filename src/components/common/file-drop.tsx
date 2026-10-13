@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { FileText, Upload, X } from "lucide-react";
 import { ChangeEvent, useRef, useState } from "react";
 
@@ -13,7 +14,7 @@ export function FileDrop({
   onChange,
   alreadyStored,
   accept = ".pdf,.docx",
-  helpText = "PDF veya DOCX · En fazla 25 MB",
+  helpText,
   maxBytes = DOCUMENT_MAX_BYTES,
 }: {
   file: UploadedFile | null;
@@ -21,16 +22,17 @@ export function FileDrop({
   onChange: (file: UploadedFile | null) => void;
   alreadyStored?: { name: string } | null;
   accept?: string;
-  helpText?: string;
+  helpText: string;
   maxBytes?: number;
 }) {
+  const t = useTranslations("sharedUi");
   const inputRef = useRef<HTMLInputElement>(null);
   const [error, setError] = useState<string | null>(null);
 
   function takeFile(selected: File | undefined) {
     if (!selected) return;
     if (selected.size > maxBytes) {
-      setError(`Dosya boyutu ${formatFileSize(maxBytes)} sınırını aşamaz.`);
+      setError(t("tooBig", { max: formatFileSize(maxBytes) }));
       return;
     }
 
@@ -53,7 +55,7 @@ export function FileDrop({
               {alreadyStored.name}
             </span>
             <span className="block text-[11px] text-[#858c96]">
-              Zaten yüklendi
+              {t("alreadyUploaded")}
             </span>
           </span>
         </div>
@@ -62,7 +64,7 @@ export function FileDrop({
           onClick={() => inputRef.current?.click()}
           className="mt-2 text-[11px] font-medium text-[#c85816] hover:underline"
         >
-          Yerine başka bir dosya seç
+          {t("chooseAnother")}
         </button>
         <input
           ref={inputRef}
@@ -99,7 +101,7 @@ export function FileDrop({
             setError(null);
             onChange(null);
           }}
-          aria-label={`${file.name} dosyasını kaldır`}
+          aria-label={t("removeFile", { name: file.name })}
           className="grid size-7 place-items-center rounded-full text-[#858c96] hover:bg-[#f8f9fa] hover:text-[#22262b]"
         >
           <X className="size-4" />
@@ -118,13 +120,13 @@ export function FileDrop({
       className="rounded-xl border border-dashed border-[#d6dade] bg-white px-4 py-6 text-center"
     >
       <Upload className="mx-auto size-5 text-[#858c96]" strokeWidth={1.8} />
-      <p className="mt-2 text-xs text-[#676e78]">Dosyayı sürükleyip bırakın</p>
+      <p className="mt-2 text-xs text-[#676e78]">{t("dragDrop")}</p>
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
         className="mt-3 inline-flex min-h-9 items-center rounded-lg border border-[#e86f22] bg-white px-4 text-xs font-semibold text-[#c85816] transition hover:bg-[#fff9f5]"
       >
-        Dosya seç
+        {t("chooseFile")}
       </button>
       <p className="mt-3 text-[11px] text-[#858c96]">{helpText}</p>
       {error ? (

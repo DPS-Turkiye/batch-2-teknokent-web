@@ -233,7 +233,8 @@
     "link": "Link",
     "mvpPlaceholder": "example.app or a Figma prototype link",
     "mvpPick": "Choose MVP / prototype file",
-    "optionalNote": "You don't have to upload now. You can add files after your startup profile is approved too."
+    "optionalNote": "You don't have to upload now. You can add files after your startup profile is approved too.",
+    "mvpHelp": "PDF, DOCX or PPTX · up to 25 MB"
   },
   "signupReview": {
     "personal": "Personal profile",
@@ -2247,5 +2248,41 @@
       "completed": "Meeting finished.",
       "completeFailed": "Couldn't finish the meeting."
     }
+  },
+  "applicationStatus": {
+    "status": {
+      "PENDING": "Under coordinator review",
+      "APPROVED": "Approved",
+      "REJECTED": "Not approved"
+    },
+    "loading": "Loading...",
+    "signedOutTitle": "Sign in to see your application status",
+    "signedOutBody": "Sign in to your account again so we can show your status.",
+    "signIn": "Sign in",
+    "process": "Process",
+    "home": "Back to the home page"
+  },
+  "workspace": {
+    "opening": "Opening your workspace…"
+  },
+  "sharedUi": {
+    "download": "Download",
+    "previewFailed": "The file can't be previewed. Try downloading it.",
+    "fileLoading": "Loading file…",
+    "pendingRemoved": "Removed from the waiting list.",
+    "pendingRemoveFailed": "Couldn't remove them from the waiting list.",
+    "fileSendFailed": "Couldn't send the file.",
+    "tooBig": "The file can't be larger than {max}.",
+    "alreadyUploaded": "Already uploaded",
+    "chooseAnother": "Choose a different file",
+    "removeFile": "Remove {name}",
+    "dragDrop": "Drag and drop the file",
+    "chooseFile": "Choose file",
+    "profilePhoto": "Profile photo",
+    "required": "This field is required.",
+    "decrease": "Decrease {label}",
+    "increase": "Increase {label}",
+    "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
+    "backToMentorships": "Back to my mentorships"
   }
 }
