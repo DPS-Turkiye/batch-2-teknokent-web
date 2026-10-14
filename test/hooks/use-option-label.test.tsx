@@ -2,7 +2,7 @@ import { renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 
-import { useOptionLabel } from "@/hooks/use-option-label";
+import { useOptionLabel, useTopicLabel } from "@/hooks/use-option-label";
 import { InLocale } from "@test/test-utils";
 
 function english({ children }: { children: ReactNode }) {
@@ -36,5 +36,15 @@ describe("useOptionLabel", () => {
       "Kuantum Bilişim",
     );
     expect(result.current("responseTime", "~4 saat")).toBe("~4 saat");
+  });
+});
+
+describe("useTopicLabel", () => {
+  it("finds a saved topic among the support areas or the mentor topics", () => {
+    const { result } = renderHook(() => useTopicLabel(), { wrapper: english });
+
+    expect(result.current("Ürün & UX")).toBe("Product & UX");
+    expect(result.current("UX Stratejisi")).toBe("UX Strategy");
+    expect(result.current("Kuantum Bilişim")).toBe("Kuantum Bilişim");
   });
 });

@@ -1,5 +1,6 @@
 import { useLocale, useTranslations } from "next-intl";
 
+import { useTopicLabel } from "@/hooks/use-option-label";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { needLabels } from "@/lib/mentor-request-need";
 import { formatRequestSentAt } from "@/lib/mentorship-workspace";
@@ -27,9 +28,11 @@ export function RequestDetailsPanel({
   const t = useTranslations("requestDetail");
   const tNeed = useTranslations("mentorRequest");
   const locale = useLocale();
+  const topicLabel = useTopicLabel();
   const detail = buildRequestDetailContent(request, {
     labels: needLabels(tNeed),
     locale,
+    topicLabel,
   });
 
   return (

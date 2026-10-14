@@ -16,6 +16,7 @@ import { DocumentRequestChecklist } from "@/components/mentorships/document-requ
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import { useTopicLabel } from "@/hooks/use-option-label";
 import {
   useMentorRequestDecision,
   useMentorshipRequest,
@@ -103,6 +104,7 @@ export function MentorRequestStartupDetail({
 }) {
   const t = useTranslations("mentorMentorships.startup");
   const locale = useLocale();
+  const topicLabel = useTopicLabel();
   const router = useRouter();
   const queryClient = useQueryClient();
   const openDocument = useOpenDocument();
@@ -475,7 +477,7 @@ export function MentorRequestStartupDetail({
                             key={tag}
                             className="rounded-full border border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-2.5 py-1 text-[11.5px] font-medium leading-[17px] text-[var(--ms-accent-strong,#9e4400)]"
                           >
-                            {tag}
+                            {topicLabel(tag)}
                           </span>
                         ))
                       ) : (

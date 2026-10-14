@@ -24,3 +24,12 @@ export function useOptionLabel() {
     return t.has(key) ? t(key) : value;
   };
 }
+
+/** A saved request topic, which may come from the support areas or the mentor topics. */
+export function useTopicLabel() {
+  const optionLabel = useOptionLabel();
+  return (value: string) => {
+    const area = optionLabel("supportArea", value);
+    return area !== value ? area : optionLabel("mentorTopic", value);
+  };
+}

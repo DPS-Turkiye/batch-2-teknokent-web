@@ -1,6 +1,7 @@
 "use client";
 
 import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import {
   createContext,
   type ReactNode,
@@ -12,11 +13,7 @@ import {
   useState,
 } from "react";
 
-import {
-  TRANSCRIPT_BOT_FULL_EVENT,
-  TRANSCRIPT_BOT_FULL_MESSAGE,
-  TRANSCRIPT_BOT_FULL_TITLE,
-} from "@/lib/transcript-bot";
+import { TRANSCRIPT_BOT_FULL_EVENT } from "@/lib/transcript-bot";
 
 type ToastTone = "success" | "error" | "info";
 type ToastAction = { label: string; onClick: () => void };
@@ -47,6 +44,7 @@ const toneIcons = {
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {
+  const t = useTranslations("sharedUi");
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(0);
   const dismiss = useCallback((id: number) => {
@@ -67,20 +65,20 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     const announce = () =>
       showToast({
         tone: "error",
-        title: TRANSCRIPT_BOT_FULL_TITLE,
-        message: TRANSCRIPT_BOT_FULL_MESSAGE,
+        title: t("botFullTitle"),
+        message: t("botFullMessage"),
       });
     window.addEventListener(TRANSCRIPT_BOT_FULL_EVENT, announce);
     return () =>
       window.removeEventListener(TRANSCRIPT_BOT_FULL_EVENT, announce);
-  }, [showToast]);
+  }, [showToast, t]);
   const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (
     <ToastContext.Provider value={value}>
       {children}
       <div
-        aria-label="İşlem bildirimleri"
+        aria-label={t("toastRegion")}
         className="pointer-events-none fixed inset-x-4 bottom-4 z-[100] flex flex-col items-center gap-2"
       >
         {toasts.map((toast) =>

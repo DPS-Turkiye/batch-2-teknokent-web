@@ -8,6 +8,7 @@ import {
 import { needLabels } from "@/lib/mentor-request-need";
 import en from "@/messages/en.json";
 import {
+  needTopicTitleForSupportArea,
   buildRequestDetailContent,
   isNeedOriginRequest,
   RequestDetailFieldKey,
@@ -134,5 +135,16 @@ describe("request-detail-content", () => {
         value: "Ürün ve ürün yönetimi",
       },
     ]);
+  });
+});
+
+describe("needTopicTitleForSupportArea", () => {
+  it("passes a topic outside the wizard's list to the page's topic label", () => {
+    expect(
+      needTopicTitleForSupportArea("UX Stratejisi", undefined, (value) =>
+        value === "UX Stratejisi" ? "UX Strategy" : value,
+      ),
+    ).toBe("UX Strategy");
+    expect(needTopicTitleForSupportArea("UX Stratejisi")).toBe("UX Stratejisi");
   });
 });
