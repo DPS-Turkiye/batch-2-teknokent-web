@@ -3657,5 +3657,68 @@
       "save": "Kaydet",
       "saveFailed": "Aşama güncellenemedi. Tekrar dene."
     }
+  },
+  "programLaunch": {
+    "steps": {
+      "BASICS": {
+        "label": "Temel bilgiler",
+        "hint": "Ad, tarih, koordinatör",
+        "title": "Temel bilgiler",
+        "note": "Programın adı, dönemi ve kimlerin yöneteceği."
+      },
+      "RULES": {
+        "label": "Mentorluk kuralları",
+        "hint": "Kapasite ve eşikler",
+        "title": "Mentorluk kuralları",
+        "note": "Kapasite ve uyarı eşikleri. Program başladıktan sonra Program Ayarları’ndan değiştirebilirsiniz."
+      },
+      "TEAMS": {
+        "label": "Takımlar",
+        "hint": "Takım ve yetkililer",
+        "title": "Takımlar ve yetkililer",
+        "note": "Her takıma bir katılım kodu üretilir. Kodu takım yetkilisiyle paylaşın; yetkili bu kodla kaydolur ve ekip üyeleriyle paylaşır."
+      }
+    },
+    "problems": {
+      "MISSING_NAME": "Takım adı gerekli",
+      "INVALID_EMAIL": "Geçersiz e-posta",
+      "DUPLICATE_EMAIL": "Bu e-posta başka satırda var"
+    },
+    "breadcrumb": "Konum",
+    "myPrograms": "Programlarım",
+    "newProgram": "Yeni program",
+    "stepOf": "Adım {current} / {total}",
+    "cancel": "Vazgeç",
+    "back": "Geri",
+    "creating": "Oluşturuluyor…",
+    "create": "Programı oluştur ve kodları üret",
+    "continue": "Devam: {step}",
+    "name": "Program adı",
+    "namePlaceholder": "METU BİGG 2026",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "coordinators": "Koordinatörler",
+    "you": "{name} (sen)",
+    "youFallback": "Siz",
+    "coordinatorsHint": "Diğer koordinatörleri program oluşturulduktan sonra Program Ayarları’ndan ekleyebilirsiniz.",
+    "description": "Kısa açıklama",
+    "optional": "opsiyonel",
+    "teamCount": "{count} takım",
+    "importCsv": "CSV içe aktar",
+    "addRow": "Satır ekle",
+    "teamName": "Takım adı",
+    "leadEmail": "Takım yetkilisi e-postası",
+    "code": "Üretilecek kod",
+    "delete": "Sil",
+    "teamNameRow": "Takım adı {n}",
+    "leadEmailRow": "Takım yetkilisi e-postası {n}",
+    "leadEmailPlaceholder": "yetkili@ornek.com",
+    "deleteRow": "{n}. satırı sil",
+    "codesNote": "Kodlar program oluşturulunca üretilir ve Takımlar sekmesinden kopyalanır. Yetkili kodla kaydolduğunda takım “Katıldı” olur; üyeler aynı kodla katıldıkça ekip sayısı güncellenir. Takım eklemeyi sonraya da bırakabilirsiniz.",
+    "createdWithTeams": "{name} oluşturuldu. {count} takımın kodu Takımlar sekmesinde hazır.",
+    "created": "{name} oluşturuldu.",
+    "createFailed": "Program oluşturulamadı.",
+    "csvEmpty": "Dosyada “takım adı, e-posta” satırı bulunamadı.",
+    "rowErrors": "{count} satırda hata var."
   }
 }

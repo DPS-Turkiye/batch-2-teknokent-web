@@ -3657,5 +3657,68 @@
       "save": "Save",
       "saveFailed": "Couldn't update the stage. Try again."
     }
+  },
+  "programLaunch": {
+    "steps": {
+      "BASICS": {
+        "label": "Basics",
+        "hint": "Name, dates, coordinator",
+        "title": "Basics",
+        "note": "The program's name, its period and who runs it."
+      },
+      "RULES": {
+        "label": "Mentorship rules",
+        "hint": "Capacity and thresholds",
+        "title": "Mentorship rules",
+        "note": "Capacity and warning thresholds. You can change them in Program settings after the program starts."
+      },
+      "TEAMS": {
+        "label": "Teams",
+        "hint": "Teams and leads",
+        "title": "Teams and leads",
+        "note": "Each team gets a join code. Share it with the team lead; the lead signs up with it and shares it with the team."
+      }
+    },
+    "problems": {
+      "MISSING_NAME": "Team name required",
+      "INVALID_EMAIL": "Invalid email",
+      "DUPLICATE_EMAIL": "This email is on another row"
+    },
+    "breadcrumb": "Breadcrumb",
+    "myPrograms": "My programs",
+    "newProgram": "New program",
+    "stepOf": "Step {current} / {total}",
+    "cancel": "Cancel",
+    "back": "Back",
+    "creating": "Creating…",
+    "create": "Create the program and its codes",
+    "continue": "Next: {step}",
+    "name": "Program name",
+    "namePlaceholder": "METU BİGG 2026",
+    "start": "Start",
+    "end": "End",
+    "coordinators": "Coordinators",
+    "you": "{name} (you)",
+    "youFallback": "You",
+    "coordinatorsHint": "You can add other coordinators in Program settings once the program is created.",
+    "description": "Short description",
+    "optional": "optional",
+    "teamCount": "{count, plural, one {# team} other {# teams}}",
+    "importCsv": "Import CSV",
+    "addRow": "Add a row",
+    "teamName": "Team name",
+    "leadEmail": "Team lead's email",
+    "code": "Code to create",
+    "delete": "Delete",
+    "teamNameRow": "Team name {n}",
+    "leadEmailRow": "Team lead's email {n}",
+    "leadEmailPlaceholder": "lead@example.com",
+    "deleteRow": "Delete row {n}",
+    "codesNote": "Codes are created with the program and can be copied from the Teams tab. A team becomes “Joined” when its lead signs up with the code; the member count updates as members join with the same code. You can also add teams later.",
+    "createdWithTeams": "{name} created. Codes for {count, plural, one {# team} other {# teams}} are ready in the Teams tab.",
+    "created": "{name} created.",
+    "createFailed": "Couldn't create the program.",
+    "csvEmpty": "No “team name, email” rows found in the file.",
+    "rowErrors": "{count, plural, one {# row has} other {# rows have}} errors."
   }
 }

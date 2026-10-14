@@ -18,17 +18,9 @@ export enum LaunchStep {
 }
 
 export const LAUNCH_STEPS = [
-  {
-    id: LaunchStep.Basics,
-    label: "Temel bilgiler",
-    hint: "Ad, tarih, koordinatör",
-  },
-  {
-    id: LaunchStep.Rules,
-    label: "Mentorluk kuralları",
-    hint: "Kapasite ve eşikler",
-  },
-  { id: LaunchStep.Teams, label: "Takımlar", hint: "Takım ve yetkililer" },
+  LaunchStep.Basics,
+  LaunchStep.Rules,
+  LaunchStep.Teams,
 ] as const;
 
 export type LaunchRules = Pick<
@@ -90,12 +82,6 @@ export enum TeamRowProblem {
   InvalidEmail = "INVALID_EMAIL",
   DuplicateEmail = "DUPLICATE_EMAIL",
 }
-
-export const TEAM_ROW_PROBLEM_LABELS: Record<TeamRowProblem, string> = {
-  [TeamRowProblem.MissingName]: "Takım adı gerekli",
-  [TeamRowProblem.InvalidEmail]: "Geçersiz e-posta",
-  [TeamRowProblem.DuplicateEmail]: "Bu e-posta başka satırda var",
-};
 
 function isBlankRow(row: TeamRowDraft) {
   return !row.teamName.trim() && !row.leadEmail.trim();

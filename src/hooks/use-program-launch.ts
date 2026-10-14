@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
@@ -29,6 +30,7 @@ import { errorMessage } from "@/lib/utils";
 
 /** The three-step "Yeni program" wizard; the program and its team codes are created in one request at the end. */
 export function useProgramLaunch() {
+  const t = useTranslations("programLaunch");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
@@ -38,7 +40,7 @@ export function useProgramLaunch() {
   const [error, setError] = useState<string | null>(null);
 
   const problems = teamRowProblems(draft.teams);
-  const stepIndex = LAUNCH_STEPS.findIndex((item) => item.id === step);
+  const stepIndex = LAUNCH_STEPS.indexOf(step);
 
   const create = useMutation({
     mutationFn: () => createCoordinatorProgram(createProgramInput(draft)),
@@ -54,16 +56,18 @@ export function useProgramLaunch() {
       showToast({
         message:
           teams > 0
-            ? `${detail.program.name} oluşturuldu. ${teams} takımın kodu Takımlar sekmesinde hazır.`
-            : `${detail.program.name} oluşturuldu.`,
+            ? t("createdWithTeams", {
+                name: detail.program.name,
+                count: teams,
+              })
+            : t("created", { name: detail.program.name }),
         tone: "success",
       });
       router.push(
         `/coordinator/programs/${encodeURIComponent(detail.program.id)}`,
       );
     },
-    onError: (failure) =>
-      setError(errorMessage(failure, "Program oluşturulamadı.")),
+    onError: (failure) => setError(errorMessage(failure, t("createFailed"))),
   });
 
   const update = (patch: Partial<LaunchDraft>) => {
@@ -74,7 +78,7 @@ export function useProgramLaunch() {
     update({ teams: teams.slice(0, MAX_LAUNCH_TEAMS) });
 
   return {
-    ownerName: session?.fullName ?? "Siz",
+    ownerName: session?.fullName ?? t("youFallback"),
     step,
     stepIndex,
     draft,
@@ -100,7 +104,7 @@ export function useProgramLaunch() {
     importCsv: async (file: File) => {
       const rows = parseTeamsCsv(await file.text());
       if (rows.length === 0) {
-        setError("Dosyada “takım adı, e-posta” satırı bulunamadı.");
+        setError(t("csvEmpty"));
         return;
       }
       setTeams([...filledTeamRows(draft.teams), ...rows]);
@@ -111,19 +115,19 @@ export function useProgramLaunch() {
     creating: create.isPending,
     back: () => {
       setError(null);
-      if (stepIndex > 0) setStep(LAUNCH_STEPS[stepIndex - 1].id);
+      if (stepIndex > 0) setStep(LAUNCH_STEPS[stepIndex - 1]);
     },
     next: () => {
       const problem = step === LaunchStep.Basics ? basicsError(draft) : null;
       setError(problem);
       if (!problem && stepIndex < LAUNCH_STEPS.length - 1) {
-        setStep(LAUNCH_STEPS[stepIndex + 1].id);
+        setStep(LAUNCH_STEPS[stepIndex + 1]);
       }
     },
     submit: () => {
       const problem =
         basicsError(draft) ??
-        (problems.size > 0 ? `${problems.size} satırda hata var.` : null);
+        (problems.size > 0 ? t("rowErrors", { count: problems.size }) : null);
       setError(problem);
       if (!problem) create.mutate();
     },
