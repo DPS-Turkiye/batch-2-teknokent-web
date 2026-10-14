@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
@@ -18,7 +19,6 @@ import {
   MAX_PHASES,
   ProgramTab,
   RULE_LIMITS,
-  SETTINGS_SECTION_LABELS,
   SettingsSection,
   stepDays,
 } from "@/lib/coordinator-program-detail";
@@ -49,6 +49,8 @@ function SettingsBody({
   programId: string;
   detail: CoordinatorProgramDetail;
 }) {
+  const t = useTranslations("programSettings");
+  const tRule = useTranslations("programRules");
   const settings = useProgramSettings(programId, detail);
   const archived = detail.program.lifecycle === ProgramLifecycle.Completed;
   const draft = settings.draft;
@@ -56,7 +58,7 @@ function SettingsBody({
   return (
     <div className="grid gap-6 lg:grid-cols-[240px_minmax(0,1fr)]">
       <nav
-        aria-label="Ayar bölümleri"
+        aria-label={t("sectionsLabel")}
         className="lg:sticky lg:top-6 lg:self-start"
       >
         <ul className="space-y-1">
@@ -72,7 +74,7 @@ function SettingsBody({
                     : "text-[#676e78]"
                 }`}
               >
-                {SETTINGS_SECTION_LABELS[section]}
+                {t(`sections.${section}`)}
               </a>
             </li>
           ))}
@@ -82,15 +84,17 @@ function SettingsBody({
       <div className="min-w-0 space-y-5">
         {archived ? (
           <p className="rounded-2xl bg-[#f4f5f7] px-5 py-3 text-[13px] text-[#676e78]">
-            Bu program arşivlendi ve salt okunur. Değiştirmek için aşağıdan
-            yeniden açın.
+            {t("archivedNote")}
           </p>
         ) : null}
 
-        <Section id={SettingsSection.General} title="Genel bilgiler">
+        <Section
+          id={SettingsSection.General}
+          title={t(`sections.${SettingsSection.General}`)}
+        >
           <Row>
             <label className="block text-[12.5px] font-medium text-[#676e78]">
-              Program adı
+              {t("name")}
               <input
                 value={draft.name}
                 maxLength={255}
@@ -104,7 +108,7 @@ function SettingsBody({
           </Row>
           <Row>
             <label className="block text-[12.5px] font-medium text-[#676e78]">
-              Açıklama
+              {t("description")}
               <textarea
                 value={draft.description ?? ""}
                 maxLength={2000}
@@ -120,7 +124,7 @@ function SettingsBody({
           <Row>
             <div className="grid gap-4 sm:grid-cols-2">
               <label className="block text-[12.5px] font-medium text-[#676e78]">
-                Başlangıç
+                {t("start")}
                 <input
                   type="date"
                   value={draft.startDate ?? ""}
@@ -132,7 +136,7 @@ function SettingsBody({
                 />
               </label>
               <label className="block text-[12.5px] font-medium text-[#676e78]">
-                Bitiş
+                {t("end")}
                 <input
                   type="date"
                   value={draft.endDate ?? ""}
@@ -147,11 +151,9 @@ function SettingsBody({
           </Row>
           <Row>
             <p className="text-[13.5px] font-medium text-[#22262b]">
-              Program fazları
+              {t("phases")}
             </p>
-            <p className="text-[12.5px] text-[#858c96]">
-              Genel Bakış ve Programlarım’daki faz çubuğu bu sırayı izler.
-            </p>
+            <p className="text-[12.5px] text-[#858c96]">{t("phasesHint")}</p>
             <ol className="mt-3 space-y-2">
               {draft.phases.map((phase, index) => (
                 <li
@@ -159,11 +161,11 @@ function SettingsBody({
                   className="grid gap-2 rounded-2xl border border-[#f0f2f4] p-3 sm:grid-cols-[1fr_150px_150px_auto]"
                 >
                   <input
-                    aria-label={`${index + 1}. faz adı`}
+                    aria-label={t("phaseName", { n: index + 1 })}
                     value={phase.name}
                     maxLength={120}
                     disabled={archived}
-                    placeholder="Faz adı"
+                    placeholder={t("phaseNamePlaceholder")}
                     onChange={(event) =>
                       settings.updatePhase(phase.key, {
                         name: event.target.value,
@@ -173,7 +175,7 @@ function SettingsBody({
                   />
                   <input
                     type="date"
-                    aria-label={`${index + 1}. faz başlangıcı`}
+                    aria-label={t("phaseStart", { n: index + 1 })}
                     value={phase.startDate ?? ""}
                     disabled={archived}
                     onChange={(event) =>
@@ -185,7 +187,7 @@ function SettingsBody({
                   />
                   <input
                     type="date"
-                    aria-label={`${index + 1}. faz bitişi`}
+                    aria-label={t("phaseEnd", { n: index + 1 })}
                     value={phase.endDate ?? ""}
                     disabled={archived}
                     onChange={(event) =>
@@ -197,21 +199,21 @@ function SettingsBody({
                   />
                   <span className="flex items-center gap-1">
                     <IconButton
-                      label={`${index + 1}. fazı yukarı taşı`}
+                      label={t("phaseUp", { n: index + 1 })}
                       disabled={archived || index === 0}
                       onClick={() => settings.movePhase(index, -1)}
                     >
                       <ArrowUp className="size-4" />
                     </IconButton>
                     <IconButton
-                      label={`${index + 1}. fazı aşağı taşı`}
+                      label={t("phaseDown", { n: index + 1 })}
                       disabled={archived || index === draft.phases.length - 1}
                       onClick={() => settings.movePhase(index, 1)}
                     >
                       <ArrowDown className="size-4" />
                     </IconButton>
                     <IconButton
-                      label={`${index + 1}. fazı sil`}
+                      label={t("phaseRemove", { n: index + 1 })}
                       disabled={archived}
                       onClick={() => settings.removePhase(phase.key)}
                     >
@@ -227,7 +229,7 @@ function SettingsBody({
               onClick={settings.addPhase}
               className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] text-[#22262b] disabled:text-[#aeb4bc]"
             >
-              <Plus aria-hidden className="size-4" /> Faz ekle
+              <Plus aria-hidden className="size-4" /> {t("addPhase")}
             </button>
           </Row>
         </Section>
@@ -240,13 +242,13 @@ function SettingsBody({
 
         <Section
           id={SettingsSection.Rules}
-          title="Mentorluk kuralları"
-          note="Bu eşikler Anasayfa’daki “Mentorluk sağlığı” ve “Öncelikli aksiyonlar” hesaplarını belirler."
+          title={t(`sections.${SettingsSection.Rules}`)}
+          note={t("rulesNote")}
         >
           <Row>
             <RuleStepper
-              title="Hedef görüşme sıklığı"
-              hint="Takımların mentorlarıyla görüşmesi beklenen aralık"
+              title={tRule("meetingFrequency")}
+              hint={tRule("meetingFrequencyHint")}
               value={draft.meetingFrequencyDays}
               disabled={archived}
               onChange={(delta) =>
@@ -262,8 +264,8 @@ function SettingsBody({
           </Row>
           <Row>
             <RuleStepper
-              title="“Uzun süredir görüşme yok” eşiği"
-              hint="Bu süreyi aşan mentorluklar riskli olarak işaretlenir"
+              title={tRule("stale")}
+              hint={tRule("staleHint")}
               value={draft.staleAfterDays}
               disabled={archived}
               onChange={(delta) =>
@@ -279,8 +281,8 @@ function SettingsBody({
           </Row>
           <Row>
             <RuleStepper
-              title="İletişim kopukluğu uyarısı"
-              hint="Takım ile mentor arasında bu süre boyunca mesaj ya da görüşme olmazsa işaretlenir"
+              title={tRule("communicationGap")}
+              hint={tRule("communicationGapHint")}
               value={draft.communicationGapDays}
               disabled={archived}
               onChange={(delta) =>
@@ -296,8 +298,8 @@ function SettingsBody({
           </Row>
           <Row>
             <RuleStepper
-              title="Çözülmemiş darboğaz uyarısı"
-              hint="Bu süreden uzun açık kalan darboğazlar öne çıkarılır"
+              title={tRule("bottleneck")}
+              hint={tRule("bottleneckHint")}
               value={draft.bottleneckFlagDays}
               disabled={archived}
               onChange={(delta) =>
@@ -313,10 +315,10 @@ function SettingsBody({
           </Row>
           <Row>
             <RuleStepper
-              title="Varsayılan mentor kapasitesi"
-              hint="Bir mentorun aynı anda üstlenebileceği takım sayısı"
+              title={tRule("capacity")}
+              hint={tRule("capacityHint")}
               value={draft.defaultMentorCapacity}
-              unit="takım"
+              unit={tRule("teams")}
               disabled={archived}
               onChange={(delta) =>
                 settings.update({
@@ -331,8 +333,8 @@ function SettingsBody({
           </Row>
           <Row>
             <Toggle
-              title="Görüşme notu zorunlu"
-              hint="Görüşme sonrası not girilmezse aksiyon oluşur"
+              title={tRule("noteRequired")}
+              hint={tRule("noteRequiredHint")}
               checked={draft.meetingNoteRequired}
               disabled={archived}
               onChange={(value) =>
@@ -342,8 +344,8 @@ function SettingsBody({
           </Row>
           <Row>
             <Toggle
-              title="Otomatik eşleşme önerileri"
-              hint="Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur"
+              title={tRule("autoMatch")}
+              hint={tRule("autoMatchHint")}
               checked={draft.autoMatchSuggestions}
               disabled={archived}
               onChange={(value) =>
@@ -367,7 +369,7 @@ function SettingsBody({
             disabled={!settings.dirty || settings.saving}
             className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -375,7 +377,7 @@ function SettingsBody({
             disabled={archived || !settings.dirty || settings.saving}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {settings.saving ? "Kaydediliyor…" : "Değişiklikleri kaydet"}
+            {settings.saving ? t("saving") : t("save")}
           </button>
         </div>
       </div>
@@ -392,14 +394,15 @@ function CoordinatorsSection({
   detail: CoordinatorProgramDetail;
   archived: boolean;
 }) {
+  const t = useTranslations("programSettings");
   const team = useProgramCoordinators(programId, detail.coordinators);
   return (
     <Section
       id={SettingsSection.Coordinators}
-      title="Koordinatörler"
-      note="Programı birlikte yöneten koordinatörler. Programı oluşturan kişi çıkarılamaz."
+      title={t(`sections.${SettingsSection.Coordinators}`)}
+      note={t("coordinatorsNote")}
     >
-      <ul aria-label="Programın koordinatörleri">
+      <ul aria-label={t("coordinatorsList")}>
         {team.coordinators.map((coordinator) => (
           <li key={coordinator.id}>
             <Row>
@@ -408,7 +411,7 @@ function CoordinatorsSection({
                   {coordinator.fullName}
                   {coordinator.owner ? (
                     <span className="ml-2 rounded-full bg-[#f4f5f7] px-2 py-0.5 text-[11.5px] text-[#676e78]">
-                      Programı oluşturan
+                      {t("owner")}
                     </span>
                   ) : null}
                 </span>
@@ -417,10 +420,12 @@ function CoordinatorsSection({
                     type="button"
                     disabled={archived || team.busy}
                     onClick={() => team.remove(coordinator.id)}
-                    aria-label={`${coordinator.fullName} programdan çıkar`}
+                    aria-label={t("removeLabel", {
+                      name: coordinator.fullName,
+                    })}
                     className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] text-[#d9464b] disabled:text-[#aeb4bc]"
                   >
-                    Çıkar
+                    {t("remove")}
                   </button>
                 ) : null}
               </div>
@@ -432,17 +437,11 @@ function CoordinatorsSection({
         {team.picking ? (
           <div className="space-y-2">
             {team.candidatesLoading ? (
-              <p className="text-[13px] text-[#858c96]">Yükleniyor…</p>
+              <p className="text-[13px] text-[#858c96]">{t("loading")}</p>
             ) : team.candidates.length === 0 ? (
-              <p className="text-[13px] text-[#858c96]">
-                Eklenebilecek başka onaylı koordinatör yok. Yönetici,
-                Kullanıcılar’dan yeni koordinatör ekleyebilir.
-              </p>
+              <p className="text-[13px] text-[#858c96]">{t("noCandidates")}</p>
             ) : (
-              <ul
-                aria-label="Eklenebilecek koordinatörler"
-                className="flex flex-wrap gap-2"
-              >
+              <ul aria-label={t("candidates")} className="flex flex-wrap gap-2">
                 {team.candidates.map((candidate) => (
                   <li key={candidate.id}>
                     <button
@@ -462,7 +461,7 @@ function CoordinatorsSection({
               onClick={team.closePicker}
               className="text-[12.5px] text-[#676e78]"
             >
-              Vazgeç
+              {t("cancel")}
             </button>
           </div>
         ) : (
@@ -472,7 +471,7 @@ function CoordinatorsSection({
             onClick={team.openPicker}
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] text-[#22262b] disabled:text-[#aeb4bc]"
           >
-            <Plus aria-hidden className="size-4" /> Koordinatör ekle
+            <Plus aria-hidden className="size-4" /> {t("addCoordinator")}
           </button>
         )}
       </Row>
@@ -487,6 +486,7 @@ function ArchiveSection({
   programId: string;
   archived: boolean;
 }) {
+  const t = useTranslations("programSettings");
   const archive = useProgramArchive(programId, archived);
   return (
     <section
@@ -498,17 +498,15 @@ function ArchiveSection({
         id="archive-title"
         className="border-b border-[#f7e3e3] px-6 py-5 text-[16px] font-semibold text-[#22262b]"
       >
-        Tehlikeli bölge
+        {t("danger")}
       </h2>
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5">
         <span>
           <span className="block text-[13.5px] text-[#22262b]">
-            {archived ? "Programı yeniden aç" : "Programı arşivle"}
+            {archived ? t("reopenTitle") : t("archiveTitle")}
           </span>
           <span className="block text-[12.5px] text-[#858c96]">
-            {archived
-              ? "Program yeniden düzenlenebilir olur."
-              : "Program salt okunur olur. Mentorluklar takım ve mentorla sürer."}
+            {archived ? t("reopenHint") : t("archiveHint")}
           </span>
         </span>
         {archived ? (
@@ -518,17 +516,17 @@ function ArchiveSection({
             onClick={archive.restore}
             className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
           >
-            Yeniden aç
+            {t("reopen")}
           </button>
         ) : archive.confirming ? (
           <span className="flex items-center gap-2">
-            <span className="text-[12.5px] text-[#d9464b]">Emin misiniz?</span>
+            <span className="text-[12.5px] text-[#d9464b]">{t("sure")}</span>
             <button
               type="button"
               onClick={archive.cancel}
               className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px]"
             >
-              Vazgeç
+              {t("cancel")}
             </button>
             <button
               type="button"
@@ -536,7 +534,7 @@ function ArchiveSection({
               onClick={archive.archive}
               className="rounded-full bg-[#d9464b] px-3 py-1.5 text-[12.5px] font-medium text-white"
             >
-              Evet, arşivle
+              {t("confirmArchive")}
             </button>
           </span>
         ) : (
@@ -545,7 +543,7 @@ function ArchiveSection({
             onClick={archive.ask}
             className="rounded-full bg-[#fdeeee] px-4 py-2 text-[13px] font-medium text-[#d9464b]"
           >
-            Programı arşivle
+            {t("archive")}
           </button>
         )}
       </div>

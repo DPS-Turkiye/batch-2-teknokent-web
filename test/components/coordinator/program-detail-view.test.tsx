@@ -110,6 +110,28 @@ describe("coordinator program detail", () => {
     );
   });
 
+  it("reads Program Ayarları in English", async () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramSettingsView programId="program-1" />
+      </InLocale>,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Save changes" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("navigation", { name: "Settings sections" }),
+    ).toHaveTextContent("Mentorship rules");
+    expect(screen.getByText("Target meeting frequency")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: "Target meeting frequency: increase",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Danger zone")).toBeInTheDocument();
+  });
+
   it("saves the rules and only replaces phases when they changed", async () => {
     vi.mocked(updateCoordinatorProgram).mockResolvedValue(
       coordinatorProgramDetail(),

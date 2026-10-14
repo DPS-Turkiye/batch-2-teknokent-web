@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -64,6 +65,7 @@ export function useProgramSettings(
   programId: string,
   detail: CoordinatorProgramDetail,
 ) {
+  const t = useTranslations("programSettings");
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const [section, setSection] = useState(SettingsSection.General);
@@ -89,10 +91,9 @@ export function useProgramSettings(
     onSuccess: (saved) => {
       cache.put(saved);
       setDraft(settingsDraftOf(saved));
-      showToast({ message: "Program ayarları kaydedildi.", tone: "success" });
+      showToast({ message: t("saved"), tone: "success" });
     },
-    onError: (failure) =>
-      setError(errorMessage(failure, "Program ayarları kaydedilemedi.")),
+    onError: (failure) => setError(errorMessage(failure, t("saveFailed"))),
   });
 
   const update = (patch: Partial<ProgramSettingsDraft>) => {
@@ -139,6 +140,7 @@ export function useProgramCoordinators(
   programId: string,
   coordinators: CoordinatorRef[],
 ) {
+  const t = useTranslations("programSettings");
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const [picking, setPicking] = useState(false);
@@ -149,7 +151,7 @@ export function useProgramCoordinators(
   });
   const onError = (failure: Error) =>
     showToast({
-      message: errorMessage(failure, "Koordinatör güncellenemedi."),
+      message: errorMessage(failure, t("coordinatorFailed")),
       tone: "error",
     });
   const add = useMutation({
@@ -180,6 +182,7 @@ export function useProgramCoordinators(
 
 /** Arşiv: archiving asks for confirmation; restoring does not. */
 export function useProgramArchive(programId: string, archived: boolean) {
+  const t = useTranslations("programSettings");
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const [confirming, setConfirming] = useState(false);
@@ -190,13 +193,13 @@ export function useProgramArchive(programId: string, archived: boolean) {
       cache.put(saved);
       setConfirming(false);
       showToast({
-        message: value ? "Program arşivlendi." : "Program yeniden açıldı.",
+        message: value ? t("archived") : t("reopened"),
         tone: "success",
       });
     },
     onError: (failure) =>
       showToast({
-        message: errorMessage(failure, "Program arşivlenemedi."),
+        message: errorMessage(failure, t("archiveFailed")),
         tone: "error",
       }),
   });

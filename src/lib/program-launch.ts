@@ -1,3 +1,4 @@
+import { clientText } from "@/i18n/client-texts";
 import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
   type CoordinatorProgramDetail,
@@ -73,11 +74,11 @@ export function emptyLaunchDraft(): LaunchDraft {
 
 export const MAX_LAUNCH_TEAMS = 200;
 
-/** The first problem with step 1, in Turkish, or null. */
+/** The first problem with step 1, or null. */
 export function basicsError(draft: LaunchDraft) {
-  if (!draft.name.trim()) return "Program adı gerekli.";
+  if (!draft.name.trim()) return clientText("programSettings.nameRequired");
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    return "Program bitişi başlangıçtan önce olamaz.";
+    return clientText("programSettings.endBeforeStart");
   }
   return null;
 }

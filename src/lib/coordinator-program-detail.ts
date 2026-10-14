@@ -1,3 +1,4 @@
+import { clientText } from "@/i18n/client-texts";
 import type {
   CoordinatorProgramDetail,
   ProgramPhaseInput,
@@ -20,13 +21,6 @@ export enum SettingsSection {
   Rules = "RULES",
   Archive = "ARCHIVE",
 }
-
-export const SETTINGS_SECTION_LABELS: Record<SettingsSection, string> = {
-  [SettingsSection.General]: "Genel bilgiler",
-  [SettingsSection.Coordinators]: "Koordinatörler",
-  [SettingsSection.Rules]: "Mentorluk kuralları",
-  [SettingsSection.Archive]: "Arşiv",
-};
 
 export function programTabs(
   detail: CoordinatorProgramDetail,
@@ -236,19 +230,21 @@ export function movePhase(phases: PhaseDraft[], index: number, step: -1 | 1) {
 
 export const MAX_PHASES = 12;
 
-/** The first problem with the draft, in Turkish, or null when it can be saved. */
+/** The first problem with the draft, or null when it can be saved. */
 export function settingsDraftError(draft: ProgramSettingsDraft) {
-  if (!draft.name.trim()) return "Program adı gerekli.";
+  if (!draft.name.trim()) return clientText("programSettings.nameRequired");
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    return "Program bitişi başlangıçtan önce olamaz.";
+    return clientText("programSettings.endBeforeStart");
   }
   if (draft.phases.length > MAX_PHASES) {
-    return `En fazla ${MAX_PHASES} faz eklenebilir.`;
+    return clientText("programSettings.tooManyPhases", { max: MAX_PHASES });
   }
   for (const phase of draft.phases) {
-    if (!phase.name.trim()) return "Her fazın bir adı olmalı.";
+    if (!phase.name.trim()) return clientText("programSettings.phaseName");
     if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
-      return `“${phase.name.trim()}” fazı başlamadan bitemez.`;
+      return clientText("programSettings.phaseDates", {
+        name: phase.name.trim(),
+      });
     }
   }
   return null;
