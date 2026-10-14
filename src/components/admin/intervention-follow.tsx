@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
 import { Check, X } from "lucide-react";
+import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import {
@@ -32,6 +33,7 @@ export function NotifyInterventionDialog({
   onClose: () => void;
   onOpened: () => void;
 }) {
+  const t = useTranslations("interventionFollow");
   const open = useOpenIntervention();
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -46,12 +48,15 @@ export function NotifyInterventionDialog({
       });
       onOpened();
     } catch (caught) {
-      setError(errorMessage(caught, "Bildirim gönderilemedi."));
+      setError(errorMessage(caught, t("notifyFailed")));
     }
   }
 
   return (
-    <AdminOverlay label={`${coordinatorName} için bildirim`} onClose={onClose}>
+    <AdminOverlay
+      label={t("notifyLabel", { name: coordinatorName })}
+      onClose={onClose}
+    >
       <form
         className="flex max-h-[min(720px,calc(100vh-2rem))] w-full max-w-[560px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_16px_48px_rgba(33,38,43,0.16)]"
         onClick={(event) => event.stopPropagation()}
@@ -63,16 +68,15 @@ export function NotifyInterventionDialog({
         <div className="flex items-start gap-3 px-7 pt-7">
           <div className="min-w-0 flex-1">
             <h2 className="text-[20px] leading-[1.3] font-semibold text-[#22262b]">
-              {coordinatorName} için bildirim
+              {t("notifyLabel", { name: coordinatorName })}
             </h2>
             <p className="mt-1.5 text-[13px] leading-[1.45] text-[#676e78]">
-              {pair} · {programName}. Koordinatöre uygulama içi bildirim gider
-              ve bu mentorluk takibe alınır.
+              {t("notifyBody", { pair, program: programName })}
             </p>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={onClose}
             className="grid size-[34px] shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#676e78]"
           >
@@ -82,7 +86,7 @@ export function NotifyInterventionDialog({
         <div className="space-y-4 overflow-y-auto px-7 py-5">
           <section className="rounded-2xl bg-[#f7f8fa] px-4 py-3">
             <p className="text-[11px] font-semibold tracking-[0.04em] text-[#858c96]">
-              SİNYALLER
+              {t("signals")}
             </p>
             <dl className="mt-2 space-y-2">
               {signals.map((signal) => (
@@ -100,17 +104,17 @@ export function NotifyInterventionDialog({
           </section>
           <section>
             <p className="text-[12.5px] font-medium text-[#22262b]">
-              Önerilen aksiyon
+              {t("suggestedAction")}
             </p>
             <p className="mt-2 rounded-2xl border border-[#f0b9b5] bg-[#fff5f4] px-4 py-3 text-[13.5px] font-medium text-[#9f2d26]">
-              {INTERVENTION_ACTION}
+              {t("action")}
             </p>
             <p className="mt-1.5 text-[12px] text-[#858c96]">
-              Bu bir hatırlatma metnidir. Süre dolunca kendiliğinden kapanmaz.
+              {t("actionNote")}
             </p>
           </section>
           <label className="block text-[12.5px] font-medium text-[#676e78]">
-            Not
+            {t("note")}
             <textarea
               value={note}
               maxLength={500}
@@ -126,14 +130,14 @@ export function NotifyInterventionDialog({
             onClick={onClose}
             className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={open.isPending}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {open.isPending ? "Gönderiliyor…" : "Bildir ve takibe al"}
+            {open.isPending ? t("sending") : t("notify")}
           </button>
         </div>
       </form>
@@ -158,26 +162,28 @@ export function InterventionDrawer({
   onClose: () => void;
   onResolved: () => void;
 }) {
+  const t = useTranslations("interventionFollow");
+  const locale = useLocale();
   const resolve = useResolveIntervention();
   const [error, setError] = useState<string | null>(null);
   const steps = [
     {
-      title: "Koordinatöre bildirildi",
-      detail: `${intervention.openedByName} · ${stamp(intervention.openedAt)}`,
+      title: t("notified"),
+      detail: `${intervention.openedByName} · ${stamp(intervention.openedAt, locale)}`,
       done: true,
     },
     {
-      title: "Koordinatör gördü",
+      title: t("seen"),
       detail: intervention.readAt
-        ? `${intervention.coordinatorName} · ${stamp(intervention.readAt)}`
-        : "Henüz bildirimi açmadı",
+        ? `${intervention.coordinatorName} · ${stamp(intervention.readAt, locale)}`
+        : t("notSeen"),
       done: intervention.readAt != null,
     },
     {
-      title: "Görüşme planlandı",
+      title: t("planned"),
       detail: intervention.plannedMeetingAt
-        ? stamp(intervention.plannedMeetingAt)
-        : "Bildirimden sonra planlanmış görüşme yok",
+        ? stamp(intervention.plannedMeetingAt, locale)
+        : t("notPlanned"),
       done: intervention.plannedMeetingAt != null,
     },
   ];
@@ -191,7 +197,7 @@ export function InterventionDrawer({
     >
       <aside
         role="dialog"
-        aria-label={`${pair} takibi`}
+        aria-label={t("followLabel", { pair })}
         className="admin-drawer-in flex h-full w-full max-w-[460px] flex-col rounded-l-[28px] bg-white shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
       >
@@ -212,18 +218,20 @@ export function InterventionDrawer({
                 </p>
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#e8f3ff] px-2 py-0.5 text-[11.5px] font-medium text-[#2f7de1]">
                   <span className="size-1.5 rounded-full bg-[#2f7de1]" />
-                  Takipte
+                  {t("tracked")}
                 </span>
               </div>
               <p className="mt-0.5 truncate text-[12.5px] text-[#858c96]">
-                Müdahale · {programName} · sorumlu:{" "}
-                {intervention.coordinatorName}
+                {t("subtitle", {
+                  program: programName,
+                  coordinator: intervention.coordinatorName,
+                })}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={onClose}
             className="grid size-[34px] shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#676e78]"
           >
@@ -233,7 +241,7 @@ export function InterventionDrawer({
         <div className="flex-1 space-y-6 overflow-y-auto px-6 py-5">
           <section>
             <p className="text-[11px] font-semibold tracking-[0.06em] text-[#858c96]">
-              ZAMAN ÇİZELGESİ
+              {t("timeline")}
             </p>
             <ol className="mt-3">
               {steps.map((step, index) => (
@@ -261,13 +269,13 @@ export function InterventionDrawer({
             </ol>
             {intervention.note ? (
               <p className="text-[12.5px] leading-[1.45] text-[#676e78]">
-                Not · {intervention.note}
+                {t("noteLine", { note: intervention.note })}
               </p>
             ) : null}
           </section>
           <section>
             <p className="text-[11px] font-semibold tracking-[0.06em] text-[#858c96]">
-              SİNYALLER
+              {t("signals")}
             </p>
             <dl className="mt-2 space-y-2.5 rounded-2xl bg-[#f7f8fa] px-4 py-3.5">
               {signals.map((signal) => (
@@ -298,7 +306,7 @@ export function InterventionDrawer({
             }
             className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
           >
-            Koordinatöre git
+            {t("goToCoordinator")}
           </Link>
           <button
             type="button"
@@ -308,12 +316,12 @@ export function InterventionDrawer({
               void resolve
                 .mutateAsync(intervention.id)
                 .then(onResolved, (caught: unknown) => {
-                  setError(errorMessage(caught, "Takip kapatılamadı."));
+                  setError(errorMessage(caught, t("resolveFailed")));
                 });
             }}
             className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {resolve.isPending ? "Kaydediliyor…" : "Çözüldü olarak işaretle"}
+            {resolve.isPending ? t("saving") : t("resolve")}
           </button>
         </div>
       </aside>
@@ -350,8 +358,8 @@ function StepMark({ done, current }: { done: boolean; current: boolean }) {
   );
 }
 
-function stamp(value: string) {
-  return new Date(value).toLocaleString("tr-TR", {
+function stamp(value: string, locale: string) {
+  return new Date(value).toLocaleString(locale, {
     day: "numeric",
     month: "short",
     hour: "2-digit",

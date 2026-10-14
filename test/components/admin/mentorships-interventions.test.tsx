@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MentorshipsView } from "@/components/admin/mentorships-view";
 import type { AdminIntervention } from "@/interfaces/admin-intervention";
 import type { AdminOverview } from "@/interfaces/admin-overview";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const harness = vi.hoisted(() => ({
   follow: [] as AdminIntervention[],
@@ -134,6 +134,28 @@ describe("Mentorship interventions", () => {
     );
     expect(screen.getByText("Kerem Tan ↔ Nova")).toBeInTheDocument();
     expect(screen.queryByText("Ayşe Demir ↔ Lumen")).not.toBeInTheDocument();
+  });
+
+  it("reads in English, drawer included", async () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorshipsView tab="interventions" />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Following")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Notify the coordinator" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Needs intervention")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Details" }));
+    expect(
+      screen.getByRole("dialog", { name: "Following Kerem Tan ↔ Nova" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Hasn't opened the notification yet"),
+    ).toBeInTheDocument();
   });
 
   it("drops a read follow-up from the unanswered filter and opens its drawer", async () => {

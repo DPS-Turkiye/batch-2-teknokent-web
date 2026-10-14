@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useMemo, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import {
   daysSince,
@@ -18,6 +18,7 @@ import {
 } from "@/components/admin/intervention-follow";
 import { useAdminInterventions } from "@/hooks/use-admin-interventions";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useToast } from "@/components/providers/toast-provider";
 import type {
   AdminMentorship,
@@ -28,40 +29,55 @@ import type {
 } from "@/interfaces/admin-overview";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import { initials } from "@/lib/utils";
+import type messages from "@/messages/tr.json";
 
 export type MentorshipTab = "overview" | "interventions" | "matching";
 
-const ALL_SCOPE = "Tüm Programlar";
-const ALL_PROGRAMS = "Tümü";
+type MentorshipsT = ReturnType<typeof useTranslations<"adminMentorships">>;
+type InterventionFilter =
+  keyof (typeof messages)["adminMentorships"]["interventionFilters"];
+type MatchingFilter =
+  keyof (typeof messages)["adminMentorships"]["matchingFilters"];
+
+/** The empty value of the scope and program selects: every program. */
+const ALL = "";
+const INTERVENTION_FILTERS: InterventionFilter[] = [
+  "ALL",
+  "CRITICAL",
+  "BOTTLENECK",
+  "UNANSWERED",
+  "ASSIGNED",
+];
 
 export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
+  const t = useTranslations("adminMentorships");
   const query = useAdminOverview();
-  const [scope, setScope] = useState(ALL_SCOPE);
+  const [scope, setScope] = useState(ALL);
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const data = query.data;
   const programs = programsInScope(data, scope);
   const live = programs.filter((program) => program.status === "ACTIVE");
-  const attention = interventionRows(data, live);
+  const attention = interventionRows(data, live, t);
   const waiting = waitingTeams(data, live);
   const tabs = [
     {
       id: "overview" as const,
       href: "/admin/mentorships",
-      label: "Genel Bakış",
+      label: t("tabs.overview"),
     },
     {
       id: "interventions" as const,
       href: "/admin/mentorships/interventions",
-      label: "Müdahale Gerekenler",
+      label: t("tabs.interventions"),
       count: attention.length,
       alert: true,
     },
     {
       id: "matching" as const,
       href: "/admin/mentorships/matching",
-      label: "Eşleşmeler",
+      label: t("tabs.matching"),
       count: waiting.length,
       alert: false,
     },
@@ -136,6 +152,7 @@ function Overview({
   data: AdminOverview;
   programs: AdminProgram[];
 }) {
+  const t = useTranslations("adminMentorships");
   const live = programs.filter((program) => program.status === "ACTIVE");
   const active = activeMentorships(data, live);
   const gaps = active
@@ -144,9 +161,9 @@ function Overview({
   const averageGap = gaps.length
     ? Math.round(gaps.reduce((sum, value) => sum + value, 0) / gaps.length)
     : null;
-  const rows = interventionRows(data, live);
-  const critical = rows.filter((row) => row.kind === "kritik");
-  const watch = rows.filter((row) => row.kind === "darboğaz");
+  const rows = interventionRows(data, live, t);
+  const critical = rows.filter((row) => row.kind === "critical");
+  const watch = rows.filter((row) => row.kind === "bottleneck");
   const criticalPrograms = new Set(critical.map((row) => row.programName));
   const activePrograms = new Set(
     active
@@ -158,39 +175,41 @@ function Overview({
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
-          title="Aktif mentorluk"
+          title={t("stats.active")}
           value={String(active.length)}
-          detail={`${activePrograms.size} program`}
+          detail={t("stats.programs", { count: activePrograms.size })}
         />
         <Stat
-          title="Müdahale gerekli"
+          title={t("stats.intervention")}
           value={String(critical.length)}
-          detail={`${criticalPrograms.size} programda`}
+          detail={t("stats.inPrograms", { count: criticalPrograms.size })}
           dot="#d9464b"
           href="/admin/mentorships/interventions"
         />
         <Stat
-          title="Takip gerekli"
+          title={t("stats.followUp")}
           value={String(watch.length)}
-          detail="açık darboğaz"
+          detail={t("stats.openBottleneck")}
           dot="#ffab3d"
-          href="/admin/mentorships/interventions?filter=darboğaz"
+          href="/admin/mentorships/interventions?filter=BOTTLENECK"
         />
         <Stat
-          title="Ort. görüşme aralığı"
-          value={averageGap == null ? "—" : `${averageGap} gün`}
-          detail={gaps.length ? "hedef 14 gün" : "görüşme kaydı yok"}
+          title={t("stats.averageGap")}
+          value={
+            averageGap == null ? "—" : t("stats.days", { count: averageGap })
+          }
+          detail={gaps.length ? t("stats.target14") : t("stats.noMeetings")}
         />
       </div>
       <section className="overflow-hidden rounded-[28px] border border-[#e9ecef] bg-white">
         <div className="flex flex-wrap items-center justify-between gap-3 px-5 pt-5 pb-3">
           <h2 className="text-[15px] font-semibold text-[#22262b]">
-            Program bazında sağlık
+            {t("healthByProgram")}
           </h2>
           <p className="flex items-center gap-3 text-[12px] text-[#858c96]">
-            <Legend color="#a4e901" label="Sağlıklı" />
-            <Legend color="#ffab3d" label="Takip" />
-            <Legend color="#d9464b" label="Riskli" />
+            <Legend color="#a4e901" label={t("healthy")} />
+            <Legend color="#ffab3d" label={t("followUp")} />
+            <Legend color="#d9464b" label={t("risky")} />
           </p>
         </div>
         <div className="overflow-x-auto">
@@ -198,15 +217,15 @@ function Overview({
             <div
               className={`${overviewCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
             >
-              <span>Program</span>
-              <span>Koordinatör</span>
-              <span>Aktif</span>
-              <span>Dağılım</span>
-              <span>Riskli</span>
+              <span>{t("overviewColumns.program")}</span>
+              <span>{t("overviewColumns.coordinator")}</span>
+              <span>{t("overviewColumns.active")}</span>
+              <span>{t("overviewColumns.distribution")}</span>
+              <span>{t("overviewColumns.risky")}</span>
               <span />
             </div>
             {programs.length === 0 ? (
-              <EmptyNote>Bu kapsamda program yok.</EmptyNote>
+              <EmptyNote>{t("noProgramsInScope")}</EmptyNote>
             ) : (
               programs.map((program) => (
                 <ProgramHealthRow
@@ -219,9 +238,9 @@ function Overview({
           </div>
         </div>
         <p className="flex flex-wrap items-center justify-end gap-4 px-5 py-3 text-[12px] text-[#858c96]">
-          <Legend color="#a4e901" label="Sağlıklı" />
-          <Legend color="#ffab3d" label="Takip gerekli" />
-          <Legend color="#d9464b" label="Riskli (14+ gün görüşme yok)" />
+          <Legend color="#a4e901" label={t("healthy")} />
+          <Legend color="#ffab3d" label={t("followUpNeeded")} />
+          <Legend color="#d9464b" label={t("riskyLong")} />
         </p>
       </section>
     </div>
@@ -235,6 +254,7 @@ function ProgramHealthRow({
   program: AdminProgram;
   data: AdminOverview;
 }) {
+  const t = useTranslations("adminMentorships");
   const completed = program.status === "COMPLETED";
   const health = completed
     ? { green: 0, amber: 0, red: 0 }
@@ -253,7 +273,7 @@ function ProgramHealthRow({
       </span>
       <span>
         {completed ? (
-          <span className="text-[13px] text-[#858c96]">Tamamlandı</span>
+          <span className="text-[13px] text-[#858c96]">{t("completed")}</span>
         ) : (
           <HealthBar
             green={health.green}
@@ -274,7 +294,7 @@ function ProgramHealthRow({
           href={`/admin/mentorships/interventions?program=${encodeURIComponent(program.name)}`}
           className="text-[13px] font-medium text-[#22262b]"
         >
-          Mentorlukları gör →
+          {t("seeMentorships")}
         </Link>
       </span>
     </div>
@@ -288,15 +308,18 @@ function Interventions({
   data: AdminOverview;
   programs: AdminProgram[];
 }) {
+  const t = useTranslations("adminMentorships");
   const params = useSearchParams();
   const follow = useAdminInterventions();
   const { showToast } = useToast();
-  const [filter, setFilter] = useState(params.get("filter") ?? "Tümü");
-  const [program, setProgram] = useState(params.get("program") ?? ALL_PROGRAMS);
+  const [filter, setFilter] = useState<InterventionFilter>(
+    INTERVENTION_FILTERS.find((id) => id === params.get("filter")) ?? "ALL",
+  );
+  const [program, setProgram] = useState(params.get("program") ?? ALL);
   const [search, setSearch] = useState("");
   const [notifyId, setNotifyId] = useState<string | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const rows = interventionRows(data, programs);
+  const rows = interventionRows(data, programs, t);
   const openFollow = new Map(
     (follow.data ?? [])
       .filter((item) => item.resolvedAt == null)
@@ -308,24 +331,28 @@ function Interventions({
     const item = tracked(row);
     return item != null && item.readAt == null;
   };
-  const counts = {
-    Tümü: rows.length,
-    Kritik: rows.filter((row) => row.kind === "kritik" && !tracked(row)).length,
-    Darboğaz: rows.filter((row) => row.kind === "darboğaz" && !tracked(row))
+  const counts: Record<InterventionFilter, number> = {
+    ALL: rows.length,
+    CRITICAL: rows.filter((row) => row.kind === "critical" && !tracked(row))
       .length,
-    "Koordinatör yanıtı yok": rows.filter(unanswered).length,
-    Atanmış: rows.filter((row) => tracked(row) != null).length,
+    BOTTLENECK: rows.filter((row) => row.kind === "bottleneck" && !tracked(row))
+      .length,
+    UNANSWERED: rows.filter(unanswered).length,
+    ASSIGNED: rows.filter((row) => tracked(row) != null).length,
   };
   const visible = rows.filter((row) => {
-    if (filter === "Kritik" && (row.kind !== "kritik" || tracked(row))) {
+    if (filter === "CRITICAL" && (row.kind !== "critical" || tracked(row))) {
       return false;
     }
-    if (filter === "Darboğaz" && (row.kind !== "darboğaz" || tracked(row))) {
+    if (
+      filter === "BOTTLENECK" &&
+      (row.kind !== "bottleneck" || tracked(row))
+    ) {
       return false;
     }
-    if (filter === "Koordinatör yanıtı yok" && !unanswered(row)) return false;
-    if (filter === "Atanmış" && !tracked(row)) return false;
-    if (program !== ALL_PROGRAMS && row.programName !== program) return false;
+    if (filter === "UNANSWERED" && !unanswered(row)) return false;
+    if (filter === "ASSIGNED" && !tracked(row)) return false;
+    if (program !== ALL && row.programName !== program) return false;
     return `${row.mentorName} ${row.teamName} ${row.programName} ${row.issue}`
       .toLocaleLowerCase("tr")
       .includes(search.toLocaleLowerCase("tr"));
@@ -338,19 +365,17 @@ function Interventions({
   return (
     <div className="space-y-4">
       <FilterBar
-        filters={[
-          "Tümü",
-          "Kritik",
-          "Darboğaz",
-          "Koordinatör yanıtı yok",
-          "Atanmış",
-        ]}
-        counts={counts}
+        filters={INTERVENTION_FILTERS.map((id) => ({
+          id,
+          label: t(`interventionFilters.${id}`),
+          count: counts[id],
+          dot: id === "CRITICAL",
+        }))}
         filter={filter}
-        onFilter={setFilter}
+        onFilter={(value) => setFilter(value as InterventionFilter)}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Mentor, takım veya program ara"
+        searchPlaceholder={t("searchInterventions")}
         program={program}
         programs={programs.map((item) => item.name)}
         onProgram={setProgram}
@@ -359,21 +384,21 @@ function Interventions({
         <div
           className={`${interventionCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
         >
-          <span>Mentorluk</span>
-          <span>Durum</span>
-          <span>Program</span>
-          <span>Sorun</span>
-          <span>Süre</span>
-          <span>Koordinatör</span>
+          <span>{t("interventionColumns.mentorship")}</span>
+          <span>{t("interventionColumns.status")}</span>
+          <span>{t("interventionColumns.program")}</span>
+          <span>{t("interventionColumns.issue")}</span>
+          <span>{t("interventionColumns.duration")}</span>
+          <span>{t("interventionColumns.coordinator")}</span>
           <span />
         </div>
         {visible.length === 0 ? (
           <EmptyNote>
-            {filter === "Koordinatör yanıtı yok"
-              ? "Açılmamış bildirim yok."
-              : filter === "Atanmış"
-                ? "Takipte mentorluk yok."
-                : "Bu filtrede müdahale yok."}
+            {filter === "UNANSWERED"
+              ? t("noUnopened")
+              : filter === "ASSIGNED"
+                ? t("noTracked")
+                : t("noInterventions")}
           </EmptyNote>
         ) : (
           visible.map((row) => (
@@ -388,10 +413,10 @@ function Interventions({
                 </span>
               </span>
               {tracked(row) ? (
-                <StatusPill tone="track">Takipte</StatusPill>
+                <StatusPill tone="track">{t("tracked")}</StatusPill>
               ) : (
-                <StatusPill tone={row.kind === "kritik" ? "red" : "amber"}>
-                  {row.kind === "kritik" ? "Kritik" : "Darboğaz"}
+                <StatusPill tone={row.kind === "critical" ? "red" : "amber"}>
+                  {row.kind === "critical" ? t("critical") : t("bottleneck")}
                 </StatusPill>
               )}
               <span className="truncate text-[13px] text-[#676e78]">
@@ -402,10 +427,10 @@ function Interventions({
               </span>
               <span
                 className={`text-[13px] font-medium ${
-                  row.kind === "kritik" ? "text-[#d9464b]" : "text-[#b7791f]"
+                  row.kind === "critical" ? "text-[#d9464b]" : "text-[#b7791f]"
                 }`}
               >
-                {row.days == null ? "—" : `${row.days} gün`}
+                {row.days == null ? "—" : t("stats.days", { count: row.days })}
               </span>
               <span className="truncate text-[13px] text-[#22262b]">
                 {row.coordinatorName}
@@ -417,26 +442,26 @@ function Interventions({
                     onClick={() => setDetailId(tracked(row)?.id ?? null)}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
                   >
-                    Detay
+                    {t("detail")}
                   </button>
                 ) : row.mentorshipId ? (
                   <button
                     type="button"
                     onClick={() => setNotifyId(row.mentorshipId)}
                     className={`inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[12.5px] font-medium ${
-                      row.kind === "kritik"
+                      row.kind === "critical"
                         ? "bg-[#22262b] text-white"
                         : "border border-[#e9ecef] bg-white text-[#22262b]"
                     }`}
                   >
-                    Koordinatöre bildir
+                    {t("notifyCoordinator")}
                   </button>
                 ) : (
                   <Link
                     href={coordinatorHref(row.coordinatorId)}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
                   >
-                    Koordinatöre git
+                    {t("goToCoordinator")}
                   </Link>
                 )}
               </span>
@@ -449,16 +474,14 @@ function Interventions({
         error={follow.error instanceof Error ? follow.error : null}
       />
       <p className="rounded-2xl bg-[#f7f8fa] px-4 py-3 text-[12.5px] leading-[1.5] text-[#676e78]">
-        Bildir, program koordinatörüne uygulama içi bildirim yazar. Yeniden
-        atama bu ekrandan yapılmaz. Liste, 14 gündür görüşmesi olmayan aktif
-        mentorlukları ve açık darboğazları gösterir.
+        {t("interventionsNote")}
       </p>
       {notifyRow?.mentorshipId ? (
         <NotifyInterventionDialog
           coordinatorName={notifyRow.coordinatorName}
           pair={`${notifyRow.mentorName} ↔ ${notifyRow.teamName}`}
           programName={notifyRow.programName}
-          signals={signalsOf(notifyRow)}
+          signals={signalsOf(notifyRow, t)}
           mentorshipId={notifyRow.mentorshipId}
           onClose={() => setNotifyId(null)}
           onOpened={() => {
@@ -466,8 +489,8 @@ function Interventions({
             const pair = `${notifyRow.mentorName} ↔ ${notifyRow.teamName}`;
             setNotifyId(null);
             showToast({
-              title: `${name} bilgilendirildi`,
-              message: `${pair} takibe alındı.`,
+              title: t("notifiedTitle", { name }),
+              message: t("notifiedBody", { pair }),
               tone: "success",
             });
           }}
@@ -479,12 +502,12 @@ function Interventions({
           mentorName={detail.row.mentorName}
           teamName={detail.row.teamName}
           programName={detail.row.programName}
-          signals={signalsOf(detail.row)}
+          signals={signalsOf(detail.row, t)}
           onClose={() => setDetailId(null)}
           onResolved={() => {
             setDetailId(null);
             showToast({
-              message: "Takip çözüldü olarak kapatıldı.",
+              message: t("resolved"),
               tone: "success",
             });
           }}
@@ -501,10 +524,12 @@ function Matching({
   data: AdminOverview;
   programs: AdminProgram[];
 }) {
-  const [filter, setFilter] = useState("Bekleyen");
-  const [program, setProgram] = useState(ALL_PROGRAMS);
+  const t = useTranslations("adminMentorships");
+  const optionLabel = useOptionLabel();
+  const [filter, setFilter] = useState<MatchingFilter>("WAITING");
+  const [program, setProgram] = useState(ALL);
   const [search, setSearch] = useState("");
-  const [sort, setSort] = useState("Bekleme süresi");
+  const [sort, setSort] = useState<"WAIT" | "NAME">("WAIT");
   const waiting = waitingTeams(data, programs);
   const matched = matchedThisWeek(data, programs);
   const declined = declinedRequests(data, programs);
@@ -517,71 +542,82 @@ function Matching({
       ) / 10
     : null;
   const waitingPrograms = new Set(waiting.map((item) => item.programName));
-  const counts = {
-    Bekleyen: waiting.length,
-    "Bu hafta": matched.length,
-    Reddedilen: declined.length,
+  const counts: Record<MatchingFilter, number> = {
+    WAITING: waiting.length,
+    THIS_WEEK: matched.length,
+    DECLINED: declined.length,
   };
-  const visible = useMemo(() => {
+  const visible = (() => {
     const source =
-      filter === "Bu hafta"
+      filter === "THIS_WEEK"
         ? matched
-        : filter === "Reddedilen"
+        : filter === "DECLINED"
           ? declined
           : waiting;
     const rows = source.filter((item) => {
-      if (program !== ALL_PROGRAMS && item.programName !== program) {
+      if (program !== ALL && item.programName !== program) {
         return false;
       }
       return `${item.teamName} ${item.programName} ${item.need}`
         .toLocaleLowerCase("tr")
         .includes(search.toLocaleLowerCase("tr"));
     });
-    if (sort === "Ada göre") {
+    if (sort === "NAME") {
       return [...rows].sort((a, b) =>
         a.teamName.localeCompare(b.teamName, "tr"),
       );
     }
     return [...rows].sort((a, b) => (b.waitDays ?? -1) - (a.waitDays ?? -1));
-  }, [declined, filter, matched, program, search, sort, waiting]);
+  })();
 
   return (
     <div className="space-y-4">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
-          title="Eşleşme bekleyen takım"
+          title={t("stats.waitingTeams")}
           value={String(waiting.length)}
-          detail={`${waitingPrograms.size} programda`}
+          detail={t("stats.inPrograms", { count: waitingPrograms.size })}
           dot="#d9464b"
         />
         <Stat
-          title="Ort. bekleme süresi"
-          value={averageWait == null ? "—" : `${averageWait} gün`}
-          detail={averageWait == null ? "talep tarihi yok" : "hedef ≤ 3 gün"}
+          title={t("stats.averageWait")}
+          value={
+            averageWait == null ? "—" : t("stats.days", { count: averageWait })
+          }
+          detail={
+            averageWait == null ? t("stats.noRequestDate") : t("stats.target3")
+          }
         />
         <Stat
-          title="Bu hafta yapılan eşleşme"
+          title={t("stats.matchedThisWeek")}
           value={String(matched.length)}
-          detail="son 7 günde başlayan"
+          detail={t("stats.startedLast7")}
         />
         <Stat
-          title="Reddedilen talep"
+          title={t("stats.declined")}
           value={String(declined.length)}
-          detail={declined.length ? "reddedilen talep" : "reddedilen talep yok"}
+          detail={
+            declined.length ? t("stats.declined") : t("stats.declinedNone")
+          }
         />
       </div>
       <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center">
         <FilterPills
-          filters={["Bekleyen", "Bu hafta", "Reddedilen"]}
-          counts={counts}
+          filters={(["WAITING", "THIS_WEEK", "DECLINED"] as const).map(
+            (id) => ({
+              id,
+              label: t(`matchingFilters.${id}`),
+              count: counts[id],
+            }),
+          )}
           filter={filter}
-          onFilter={setFilter}
+          onFilter={(value) => setFilter(value as MatchingFilter)}
         />
         <div className="flex flex-1 flex-wrap items-center justify-end gap-2.5">
           <SearchBox
             value={search}
             onChange={setSearch}
-            placeholder="Takım ara"
+            placeholder={t("searchTeams")}
           />
           <ProgramSelect
             value={program}
@@ -589,15 +625,17 @@ function Matching({
             onChange={setProgram}
           />
           <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
-            <span className="text-[#858c96]">Sırala:</span>
+            <span className="text-[#858c96]">{t("sortBy")}</span>
             <select
-              aria-label="Sırala"
+              aria-label={t("sortLabel")}
               value={sort}
-              onChange={(event) => setSort(event.target.value)}
+              onChange={(event) =>
+                setSort(event.target.value as "WAIT" | "NAME")
+              }
               className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
             >
-              <option>Bekleme süresi</option>
-              <option>Ada göre</option>
+              <option value="WAIT">{t("sorts.WAIT")}</option>
+              <option value="NAME">{t("sorts.NAME")}</option>
             </select>
             <AdminIcon
               src="/admin/chevron-down-sm.svg"
@@ -611,16 +649,16 @@ function Matching({
         <div
           className={`${matchingCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
         >
-          <span>Takım</span>
-          <span>Program</span>
-          <span>İhtiyaç</span>
-          <span>Bekleme</span>
-          <span>Öneri</span>
-          <span>Koordinatör</span>
+          <span>{t("matchingColumns.team")}</span>
+          <span>{t("matchingColumns.program")}</span>
+          <span>{t("matchingColumns.need")}</span>
+          <span>{t("matchingColumns.wait")}</span>
+          <span>{t("matchingColumns.suggestion")}</span>
+          <span>{t("matchingColumns.coordinator")}</span>
           <span />
         </div>
         {visible.length === 0 ? (
-          <EmptyNote>Bu filtrede kayıt yok.</EmptyNote>
+          <EmptyNote>{t("noRecords")}</EmptyNote>
         ) : (
           visible.map((item) => (
             <div
@@ -641,14 +679,16 @@ function Matching({
               <span>
                 {item.need ? (
                   <span className="inline-flex rounded-full bg-[#fff1ec] px-2.5 py-1 text-[11.5px] font-medium text-[#e0522a]">
-                    {item.need}
+                    {optionLabel("supportArea", item.need)}
                   </span>
                 ) : (
                   <span className="text-[13px] text-[#aeb4bc]">—</span>
                 )}
               </span>
               <span className="text-[13px] font-medium text-[#22262b]">
-                {item.waitDays == null ? "—" : `${item.waitDays} gün`}
+                {item.waitDays == null
+                  ? "—"
+                  : t("stats.days", { count: item.waitDays })}
               </span>
               <span className="text-[13px] text-[#aeb4bc]">—</span>
               <span className="min-w-0">
@@ -657,21 +697,21 @@ function Matching({
                 </span>
                 {item.missingAccess ? (
                   <span className="block text-[12px] text-[#b7791f]">
-                    erişim yok
+                    {t("noAccess")}
                   </span>
                 ) : null}
               </span>
               <span className="flex justify-end">
-                {filter === "Bekleyen" ? (
+                {filter === "WAITING" ? (
                   <Link
                     href={coordinatorHref(item.coordinatorId)}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
                   >
-                    Koordinatöre git
+                    {t("goToCoordinator")}
                   </Link>
                 ) : (
                   <span className="text-[13px] text-[#858c96]">
-                    {filter === "Bu hafta" ? "Eşleşti" : "Reddedildi"}
+                    {filter === "THIS_WEEK" ? t("matched") : t("declinedLabel")}
                   </span>
                 )}
               </span>
@@ -692,18 +732,21 @@ function ScopeSelect({
   programs: string[];
   onChange: (value: string) => void;
 }) {
+  const t = useTranslations("adminMentorships");
   return (
     <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
-      <span className="text-[#858c96]">Kapsam:</span>
+      <span className="text-[#858c96]">{t("scope")}</span>
       <select
-        aria-label="Kapsam"
+        aria-label={t("scope")}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
-        <option>{ALL_SCOPE}</option>
+        <option value={ALL}>{t("allScope")}</option>
         {programs.map((name) => (
-          <option key={name}>{name}</option>
+          <option key={name} value={name}>
+            {name}
+          </option>
         ))}
       </select>
       <AdminIcon src="/admin/chevron-down-sm.svg" width={16} height={16} />
@@ -713,7 +756,6 @@ function ScopeSelect({
 
 function FilterBar({
   filters,
-  counts,
   filter,
   onFilter,
   search,
@@ -723,8 +765,7 @@ function FilterBar({
   programs,
   onProgram,
 }: {
-  filters: string[];
-  counts: Record<string, number>;
+  filters: FilterOption[];
   filter: string;
   onFilter: (value: string) => void;
   search: string;
@@ -736,12 +777,7 @@ function FilterBar({
 }) {
   return (
     <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center">
-      <FilterPills
-        filters={filters}
-        counts={counts}
-        filter={filter}
-        onFilter={onFilter}
-      />
+      <FilterPills filters={filters} filter={filter} onFilter={onFilter} />
       <div className="flex flex-1 flex-wrap items-center justify-end gap-2.5">
         <SearchBox
           value={search}
@@ -758,20 +794,20 @@ function FilterBar({
   );
 }
 
+type FilterOption = { id: string; label: string; count: number; dot?: boolean };
+
 function FilterPills({
   filters,
-  counts,
   filter,
   onFilter,
 }: {
-  filters: string[];
-  counts: Record<string, number>;
+  filters: FilterOption[];
   filter: string;
   onFilter: (value: string) => void;
 }) {
   return (
     <div className="flex w-max max-w-full gap-1 overflow-x-auto rounded-full bg-[#f5f6f8] p-1">
-      {filters.map((id) => {
+      {filters.map(({ id, label, count, dot }) => {
         const selected = id === filter;
         return (
           <button
@@ -784,15 +820,15 @@ function FilterPills({
                 : "text-[#676e78]"
             }`}
           >
-            {id === "Kritik" ? (
+            {dot ? (
               <span
                 aria-hidden
                 className="size-[7px] rounded-full bg-[#d9464b]"
               />
             ) : null}
-            {id}
+            {label}
             <span className="text-[12px] font-medium text-[#858c96]">
-              {counts[id] ?? 0}
+              {count}
             </span>
           </button>
         );
@@ -832,18 +868,21 @@ function ProgramSelect({
   programs: string[];
   onChange: (value: string) => void;
 }) {
+  const t = useTranslations("adminMentorships");
   return (
     <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
-      <span className="text-[#858c96]">Program:</span>
+      <span className="text-[#858c96]">{t("program")}</span>
       <select
-        aria-label="Program"
+        aria-label={t("programLabel")}
         value={value}
         onChange={(event) => onChange(event.target.value)}
         className="max-w-[160px] appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
-        <option>{ALL_PROGRAMS}</option>
+        <option value={ALL}>{t("allPrograms")}</option>
         {programs.map((name) => (
-          <option key={name}>{name}</option>
+          <option key={name} value={name}>
+            {name}
+          </option>
         ))}
       </select>
       <AdminIcon src="/admin/chevron-down-sm.svg" width={16} height={16} />
@@ -968,6 +1007,7 @@ function CoordinatorName({
   data: AdminOverview;
 }) {
   const tCommon = useTranslations("adminCommon");
+  const t = useTranslations("adminMentorships");
   const coordinator = data.users.find(
     (user) => user.id === program.coordinatorId,
   );
@@ -983,7 +1023,9 @@ function CoordinatorName({
           {label}
         </span>
         {missing ? (
-          <span className="block text-[12px] text-[#b7791f]">erişim yok</span>
+          <span className="block text-[12px] text-[#b7791f]">
+            {t("noAccess")}
+          </span>
         ) : null}
       </span>
     </span>
@@ -1032,28 +1074,28 @@ function StatusPill({
   );
 }
 
-function signalsOf(row: InterventionRow) {
+function signalsOf(row: InterventionRow, t: MentorshipsT) {
   const stale = row.days != null && row.days >= 14;
   const signals: { label: string; value: string; alert?: boolean }[] = [
     {
-      label: "Son görüşme",
+      label: t("signals.lastMeeting"),
       value:
         row.days == null
           ? "—"
-          : row.issue.includes("Görüşme kaydı yok")
-            ? "Kayıt yok"
-            : `${row.days} gün önce`,
-      alert: stale || row.issue.includes("Görüşme kaydı yok"),
+          : row.noMeeting
+            ? t("signals.noRecord")
+            : t("signals.daysAgo", { days: row.days }),
+      alert: stale || row.noMeeting,
     },
   ];
   if (row.goalTotal != null && row.goalTotal > 0) {
     signals.push({
-      label: "Görev",
+      label: t("signals.tasks"),
       value: `${row.goalDone ?? 0} / ${row.goalTotal}`,
       alert: (row.goalDone ?? 0) === 0,
     });
   }
-  signals.push({ label: "Sorun", value: row.issue });
+  signals.push({ label: t("signals.issue"), value: row.issue });
   return signals;
 }
 
@@ -1089,13 +1131,15 @@ const matchingCols =
 type InterventionRow = {
   id: string;
   mentorshipId: string | null;
-  kind: "kritik" | "darboğaz";
+  kind: "critical" | "bottleneck";
   mentorName: string;
   teamName: string;
   programName: string;
   coordinatorName: string;
   coordinatorId: string | null;
   issue: string;
+  /** A critical pair that has never met; the issue then starts with "no meeting recorded". */
+  noMeeting: boolean;
   days: number | null;
   goalDone: number | null;
   goalTotal: number | null;
@@ -1113,7 +1157,7 @@ type MatchRow = {
 };
 
 function programsInScope(data: AdminOverview, scope: string) {
-  if (scope === ALL_SCOPE) return data.programs;
+  if (scope === ALL) return data.programs;
   return data.programs.filter((program) => program.name === scope);
 }
 
@@ -1153,6 +1197,7 @@ function hasBottleneck(data: AdminOverview, organizationId: string) {
 function interventionRows(
   data: AdminOverview,
   programs: AdminProgram[],
+  t: MentorshipsT,
 ): InterventionRow[] {
   const ids = organizationIds(programs);
   const covered = new Set<string>();
@@ -1167,7 +1212,7 @@ function interventionRows(
     rows.push({
       id: item.id,
       mentorshipId: item.id,
-      kind: "kritik",
+      kind: "critical",
       mentorName: item.mentorName,
       teamName: item.organizationName,
       programName: program?.name ?? "—",
@@ -1175,10 +1220,11 @@ function interventionRows(
       coordinatorId: program?.coordinatorId ?? null,
       issue: [
         item.daysSinceMeeting == null
-          ? "Görüşme kaydı yok"
-          : `Son görüşme ${item.daysSinceMeeting} gün önce`,
+          ? t("noMeetingRecord")
+          : t("lastMeeting", { days: item.daysSinceMeeting }),
         ...blocks.map((block) => block.title),
       ].join(" · "),
+      noMeeting: item.daysSinceMeeting == null,
       days: item.daysSinceMeeting ?? daysSince(item.startDate),
       goalDone: item.goalDone ?? null,
       goalTotal: item.goalTotal ?? null,
@@ -1206,13 +1252,14 @@ function interventionRows(
     rows.push({
       id: blocks.map((block) => block.id).join(":"),
       mentorshipId: mentorship?.id ?? null,
-      kind: "darboğaz",
-      mentorName: mentorship?.mentorName ?? "Mentor yok",
+      kind: "bottleneck",
+      mentorName: mentorship?.mentorName ?? t("noMentor"),
       teamName: blocks[0].organizationName,
       programName: program?.name ?? "—",
       coordinatorName: program?.coordinatorName ?? "—",
       coordinatorId: program?.coordinatorId ?? null,
       issue: blocks.map((block) => block.title).join(" · "),
+      noMeeting: false,
       days: daysSinceInstant(oldest),
       goalDone: mentorship?.goalDone ?? null,
       goalTotal: mentorship?.goalTotal ?? null,
