@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -20,11 +21,27 @@ import {
   notesSummary,
   sortMentorships,
   topicOptions,
+  type MentorshipTexts,
 } from "@/lib/coordinator-mentorships";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import {
   coordinatorMentorship,
   coordinatorMentorshipDetail,
 } from "@test/fixtures/coordinator-mentorships";
+
+function texts(locale: "tr" | "en"): MentorshipTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "coordinatorMentorships",
+    }),
+    locale,
+  };
+}
+const trTexts = texts("tr");
+const { t } = trTexts;
 
 const lumen = coordinatorMentorship();
 const kavun = coordinatorMentorship({
@@ -50,12 +67,22 @@ const terra = coordinatorMentorship({
 describe("coordinator mentorships", () => {
   it("counts each health bucket for the filter pills", () => {
     expect(
-      healthFilterOptions([lumen, kavun, terra]).map((option) => option.label),
+      healthFilterOptions([lumen, kavun, terra], t).map(
+        (option) => option.label,
+      ),
     ).toEqual([
       "Tümü 3",
       "Müdahale gerekli 1",
       "Takip gerekli 0",
       "Sağlıklı 1",
+    ]);
+    expect(
+      healthFilterOptions([lumen], texts("en").t).map((option) => option.label),
+    ).toEqual([
+      "All 1",
+      "Needs intervention 1",
+      "Needs follow-up 0",
+      "Healthy 0",
     ]);
   });
 
@@ -87,20 +114,34 @@ describe("coordinator mentorships", () => {
 
   it("labels the table cells", () => {
     const now = new Date(2026, 8, 24, 10, 0);
-    expect(lastMeetingLabel(lumen)).toBe("18 gün önce");
-    expect(lastMeetingLabel(terra)).toBe("—");
-    expect(nextMeetingLabel(lumen, now)).toBe("Planlanmadı");
-    expect(nextMeetingLabel(terra, now)).toBe("Eşleşme onayı bekleniyor");
+    expect(lastMeetingLabel(lumen, trTexts)).toBe("18 gün önce");
+    expect(lastMeetingLabel(lumen, texts("en"))).toBe("18 days ago");
+    expect(lastMeetingLabel(terra, trTexts)).toBe("—");
+    expect(nextMeetingLabel(lumen, trTexts, now)).toBe("Planlanmadı");
+    expect(nextMeetingLabel(terra, trTexts, now)).toBe(
+      "Eşleşme onayı bekleniyor",
+    );
     expect(
       nextMeetingLabel(
         coordinatorMentorship({
           nextMeetingAt: new Date(2026, 8, 25, 14, 0).toISOString(),
         }),
+        trTexts,
         now,
       ),
     ).toBe("Yarın · 14:00");
-    expect(actionsLabel(lumen)).toBe("2 açık · 1 gecikmiş");
-    expect(actionsLabel(coordinatorMentorship({ overdueActions: 0 }))).toBe(
+    expect(
+      nextMeetingLabel(
+        coordinatorMentorship({
+          nextMeetingAt: new Date(2026, 8, 25, 14, 0).toISOString(),
+        }),
+        texts("en"),
+        now,
+      ),
+    ).toBe("Tomorrow · 02:00 PM");
+    expect(actionsLabel(lumen, t)).toBe("2 açık · 1 gecikmiş");
+    expect(actionsLabel(lumen, texts("en").t)).toBe("2 open · 1 overdue");
+    expect(actionsLabel(coordinatorMentorship({ overdueActions: 0 }), t)).toBe(
       "2 açık",
     );
     expect(
@@ -110,29 +151,38 @@ describe("coordinator mentorships", () => {
           overdueActions: 0,
           missingNotes: 1,
         }),
+        t,
       ),
     ).toBe("Not eksik");
   });
 
   it("builds the drawer summary", () => {
     const detail = coordinatorMentorshipDetail();
-    expect(cadenceAlert(detail)?.title).toBe(
+    expect(cadenceAlert(detail, trTexts)?.title).toBe(
       "18 gündür görüşme yok · sıradaki planlanmadı",
     );
-    expect(cadenceAlert(detail)?.body).toContain("Eşik 14 gün.");
-    expect(cadenceAlert(detail)?.body).toContain("1 aksiyonun süresi geçti.");
+    expect(cadenceAlert(detail, trTexts)?.body).toContain("Eşik 14 gün.");
+    expect(cadenceAlert(detail, trTexts)?.body).toContain(
+      "1 aksiyonun süresi geçti.",
+    );
+    expect(cadenceAlert(detail, texts("en"))?.title).toBe(
+      "No meeting for 18 days · next not scheduled",
+    );
     expect(
-      cadenceAlert(coordinatorMentorshipDetail({ mentorship: kavun })),
+      cadenceAlert(coordinatorMentorshipDetail({ mentorship: kavun }), trTexts),
     ).toBeNull();
     expect(goalPercent(detail)).toBe(58);
     expect(goalPercent(coordinatorMentorshipDetail({ goalsTotal: 0 }))).toBe(0);
-    expect(notesSummary(detail)).toMatch(
+    expect(notesSummary(detail, trTexts)).toMatch(
       /^4 görüşmenin 4'i için not girildi · son 4 Eylül 2026$/,
     );
-    expect(notesSummary(coordinatorMentorshipDetail({ pastMeetings: 0 }))).toBe(
-      "Henüz tamamlanan görüşme yok.",
+    expect(notesSummary(detail, texts("en"))).toBe(
+      "Notes taken for 4 of 4 meetings · last September 4, 2026",
     );
-    expect(mentorLoadLabel(detail)).toBe("Satış & GTM · 2/3 yük");
+    expect(
+      notesSummary(coordinatorMentorshipDetail({ pastMeetings: 0 }), trTexts),
+    ).toBe("Henüz tamamlanan görüşme yok.");
+    expect(mentorLoadLabel(detail, t)).toBe("Satış & GTM · 2/3 yük");
     expect(coordinatorMessageHref("program-1", "mentor-1")).toBe(
       "/coordinator/messages?program=program-1&mentor=mentor-1",
     );

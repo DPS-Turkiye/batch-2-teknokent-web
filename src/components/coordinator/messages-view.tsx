@@ -2,6 +2,7 @@
 
 import { ArrowRight, SendHorizontal, X } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import {
@@ -33,14 +34,9 @@ import {
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { CoordinatorProgram } from "@/interfaces/coordinator-program";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
-import {
-  HEALTH_LABELS,
-  HEALTH_TONES,
-  nextMeetingLabel,
-} from "@/lib/coordinator-mentorships";
+import { HEALTH_TONES, nextMeetingLabel } from "@/lib/coordinator-mentorships";
 import {
   conversationTime,
-  COUNTERPART_LABELS,
   isUnread,
   MAX_MESSAGE_LENGTH,
   messageDayLabel,
@@ -61,25 +57,26 @@ function counterpartTone(
 }
 
 export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
+  const t = useTranslations("coordinatorMessages");
   const messages = useCoordinatorMessages(link);
   const programName =
     messages.programOptions.find((program) => program.id === messages.programId)
-      ?.name ?? "Tüm programlar";
+      ?.name ?? t("allPrograms");
 
   return (
     <div className="space-y-6">
       <PageHeading
         eyebrow={programName}
-        title="Mesajlar"
+        title={t("title")}
         subtitle={messages.subtitle}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <PillSelect
-              label="Program:"
+              label={t("program")}
               value={messages.programId ?? ""}
               onChange={(value) => messages.setProgramId(value || null)}
               options={[
-                { value: "", label: "Tüm programlar" },
+                { value: "", label: t("allPrograms") },
                 ...messages.programOptions.map((program) => ({
                   value: program.id,
                   label: program.name,
@@ -87,7 +84,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
               ]}
             />
             <SolidButton onClick={messages.openComposer}>
-              + Yeni mesaj
+              {t("newMessage")}
             </SolidButton>
           </div>
         }
@@ -102,7 +99,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
           <SearchField
             value={messages.search}
             onChange={messages.setSearch}
-            placeholder="Kişi, takım veya mesaj ara"
+            placeholder={t("search")}
           />
           <div className="mt-3">
             <FilterPills
@@ -121,9 +118,9 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
               />
             </div>
           ) : messages.visible.length === 0 && messages.conversations.data ? (
-            <EmptyNote>Henüz bir konuşma yok.</EmptyNote>
+            <EmptyNote>{t("noConversations")}</EmptyNote>
           ) : (
-            <ul aria-label="Konuşmalar" className="mt-3 space-y-1">
+            <ul aria-label={t("conversations")} className="mt-3 space-y-1">
               {messages.visible.map((conversation) => (
                 <ConversationRow
                   key={conversation.id}
@@ -158,7 +155,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
                   <h2 className="flex items-center gap-2 text-[15px] font-medium text-[#22262b]">
                     {messages.open.counterpartName}
                     <StatusChip tone={counterpartTone(messages.open)}>
-                      {COUNTERPART_LABELS[messages.open.counterpartType]}
+                      {t(`counterpart.${messages.open.counterpartType}`)}
                     </StatusChip>
                   </h2>
                   <p className="truncate text-[12.5px] text-[#858c96]">
@@ -181,14 +178,14 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
               >
                 <div className="flex items-end gap-2 rounded-[22px] border border-[#e9ecef] px-4 py-2">
                   <label className="sr-only" htmlFor="coordinator-message">
-                    Mesaj
+                    {t("message")}
                   </label>
                   <textarea
                     id="coordinator-message"
                     value={messages.draft}
                     maxLength={MAX_MESSAGE_LENGTH}
                     rows={1}
-                    placeholder="Mesaj yazın…"
+                    placeholder={t("placeholder")}
                     onChange={(event) => messages.setDraft(event.target.value)}
                     onKeyDown={(event) => {
                       if (event.key === "Enter" && !event.shiftKey) {
@@ -200,7 +197,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
                   />
                   <button
                     type="submit"
-                    aria-label="Gönder"
+                    aria-label={t("send")}
                     disabled={!messages.canSend}
                     className="grid size-9 shrink-0 place-items-center rounded-full bg-[#22262b] text-white disabled:bg-[#d7dbe0]"
                   >
@@ -216,7 +213,7 @@ export function CoordinatorMessagesView({ link }: { link: MessagesDeepLink }) {
             </>
           ) : (
             <div className="grid flex-1 place-items-center p-8 text-center text-[13.5px] text-[#858c96]">
-              Bir konuşma seçin ya da yeni bir mesaj başlatın.
+              {t("pickConversation")}
             </div>
           )}
         </section>
@@ -256,6 +253,8 @@ function ConversationRow({
   unread: boolean;
   onOpen: () => void;
 }) {
+  const t = useTranslations("coordinatorMessages");
+  const locale = useLocale();
   const mentor =
     conversation.counterpartType === CoordinatorConversationCounterpart.Mentor;
   return (
@@ -279,7 +278,7 @@ function ConversationRow({
               {conversation.counterpartName}
             </span>
             <span className="shrink-0 text-[11.5px] text-[#858c96]">
-              {conversationTime(conversation.lastMessageAt)}
+              {conversationTime(conversation.lastMessageAt, new Date(), locale)}
             </span>
           </span>
           <span
@@ -289,12 +288,12 @@ function ConversationRow({
           </span>
           <span className="flex items-center gap-2">
             <span className="block flex-1 truncate text-[12.5px] text-[#676e78]">
-              {conversation.lastMessagePreview ?? "Henüz mesaj yok"}
+              {conversation.lastMessagePreview ?? t("noMessages")}
             </span>
             {unread ? (
               <span
                 role="status"
-                aria-label="okunmadı"
+                aria-label={t("unread")}
                 className={`size-2 shrink-0 rounded-full ${mentor ? "bg-[#26a4ff]" : "bg-[#f97316]"}`}
               />
             ) : null}
@@ -314,18 +313,21 @@ function Thread({
   isLoading: boolean;
   error: Error | null;
 }) {
+  const t = useTranslations("coordinatorMessages");
+  const locale = useLocale();
+  const dayOf = (value: string) => messageDayLabel(value, new Date(), locale);
   return (
     <div className="flex-1 space-y-3 overflow-y-auto px-6 py-5">
       <QueryNotice isLoading={isLoading} error={error} />
       {!isLoading && !error && messages.length === 0 ? (
         <p className="py-10 text-center text-[13px] text-[#858c96]">
-          İlk mesajı siz yazın.
+          {t("writeFirst")}
         </p>
       ) : null}
       {messages.map((message, index) => {
-        const day = messageDayLabel(message.createdAt);
+        const day = dayOf(message.createdAt);
         const showDay =
-          index === 0 || messageDayLabel(messages[index - 1].createdAt) !== day;
+          index === 0 || dayOf(messages[index - 1].createdAt) !== day;
         return (
           <div key={message.id}>
             {showDay ? (
@@ -354,7 +356,7 @@ function Thread({
                 <p
                   className={`mt-1.5 text-[11px] ${message.mine ? "text-white/60" : "text-[#aeb4bc]"}`}
                 >
-                  {messageTime(message.createdAt)}
+                  {messageTime(message.createdAt, locale)}
                 </p>
               </div>
             </div>
@@ -372,21 +374,22 @@ function RelatedPanel({
   conversation: CoordinatorConversation;
   related: CoordinatorMentorship[];
 }) {
+  const t = useTranslations("coordinatorMessages");
+  const tRow = useTranslations("coordinatorMentorships");
+  const locale = useLocale();
   const mentor =
     conversation.counterpartType === CoordinatorConversationCounterpart.Mentor;
   return (
     <aside
-      aria-label="İlgili mentorluklar"
+      aria-label={t("related")}
       className="hidden space-y-5 border-l border-[#eef0f2] p-5 xl:block"
     >
       <section>
         <h2 className="mb-3 text-[11.5px] font-medium uppercase tracking-[0.04em] text-[#858c96]">
-          İlgili mentorluklar
+          {t("related")}
         </h2>
         {related.length === 0 ? (
-          <p className="text-[12.5px] text-[#858c96]">
-            Bu programda mentorluk yok.
-          </p>
+          <p className="text-[12.5px] text-[#858c96]">{t("noRelated")}</p>
         ) : (
           <ul className="space-y-3">
             {related.map((row) => (
@@ -399,20 +402,23 @@ function RelatedPanel({
                     ↔ {mentor ? row.organizationName : row.mentorName}
                   </p>
                   <StatusChip tone={HEALTH_TONES[row.health]}>
-                    {HEALTH_LABELS[row.health]}
+                    {tRow(`health.${row.health}`)}
                   </StatusChip>
                 </div>
                 <p className="mt-1 text-[12px] text-[#858c96]">
                   {row.daysSinceLastMeeting != null &&
                   row.daysSinceLastMeeting >= 7
-                    ? `${row.daysSinceLastMeeting} gündür görüşme yok`
-                    : `Sıradaki: ${nextMeetingLabel(row)}`}
+                    ? t("silentDays", { days: row.daysSinceLastMeeting })
+                    : t("nextMeeting", {
+                        when: nextMeetingLabel(row, { t: tRow, locale }),
+                      })}
                 </p>
                 <Link
                   href={mentorshipHref(row.id)}
                   className="mt-2 inline-flex items-center gap-1 text-[12.5px] text-[#676e78]"
                 >
-                  Mentorluğu aç <ArrowRight aria-hidden className="size-3.5" />
+                  {t("openMentorship")}{" "}
+                  <ArrowRight aria-hidden className="size-3.5" />
                 </Link>
               </li>
             ))}
@@ -421,17 +427,19 @@ function RelatedPanel({
       </section>
       <section>
         <h2 className="mb-3 text-[11.5px] font-medium uppercase tracking-[0.04em] text-[#858c96]">
-          {COUNTERPART_LABELS[conversation.counterpartType]}
+          {t(`counterpart.${conversation.counterpartType}`)}
         </h2>
         <dl className="space-y-2 text-[12.5px]">
           <div className="flex justify-between gap-3">
-            <dt className="text-[#858c96]">{mentor ? "Yük" : "Mentorlar"}</dt>
+            <dt className="text-[#858c96]">
+              {mentor ? t("load") : t("mentors")}
+            </dt>
             <dd className="text-right text-[#22262b]">
-              {related.length} mentorluk
+              {t("mentorshipCount", { count: related.length })}
             </dd>
           </div>
           <div className="flex justify-between gap-3">
-            <dt className="text-[#858c96]">Program</dt>
+            <dt className="text-[#858c96]">{t("programLabel")}</dt>
             <dd className="text-right text-[#22262b]">
               {conversation.programName}
             </dd>
@@ -457,6 +465,7 @@ function NewMessageDialog({
   onStart: (input: StartCoordinatorConversationInput) => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("coordinatorMessages");
   const [programId, setProgramId] = useState(
     initialProgramId ?? programs[0]?.id ?? "",
   );
@@ -473,7 +482,7 @@ function NewMessageDialog({
       <form
         role="dialog"
         aria-modal="true"
-        aria-label="Yeni mesaj"
+        aria-label={t("dialog.title")}
         onSubmit={(event) => {
           event.preventDefault();
           if (!chosen) return;
@@ -493,14 +502,18 @@ function NewMessageDialog({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-[17px] font-semibold text-[#22262b]">
-            Yeni mesaj
+            {t("dialog.title")}
           </h2>
-          <button type="button" aria-label="Kapat" onClick={onClose}>
+          <button
+            type="button"
+            aria-label={t("dialog.close")}
+            onClick={onClose}
+          >
             <X aria-hidden className="size-4 text-[#858c96]" />
           </button>
         </div>
         <label className="block text-[12.5px] text-[#676e78]">
-          Program
+          {t("dialog.program")}
           <select
             value={programId}
             onChange={(event) => {
@@ -509,7 +522,7 @@ function NewMessageDialog({
             }}
             className={field}
           >
-            <option value="">Seçin</option>
+            <option value="">{t("dialog.choose")}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -518,7 +531,7 @@ function NewMessageDialog({
           </select>
         </label>
         <label className="block text-[12.5px] text-[#676e78]">
-          Kime
+          {t("dialog.to")}
           <select
             value={target}
             onChange={(event) => setTarget(event.target.value)}
@@ -526,14 +539,14 @@ function NewMessageDialog({
             className={field}
           >
             <option value="">
-              {detail.isLoading ? "Yükleniyor…" : "Takım veya mentor seçin"}
+              {detail.isLoading ? t("dialog.loading") : t("dialog.pickTarget")}
             </option>
             {targets.map((option) => (
               <option
                 key={`${option.type}:${option.id}`}
                 value={`${option.type}:${option.id}`}
               >
-                {option.name} · {COUNTERPART_LABELS[option.type]}
+                {option.name} · {t(`counterpart.${option.type}`)}
               </option>
             ))}
           </select>
@@ -549,14 +562,14 @@ function NewMessageDialog({
             onClick={onClose}
             className="h-10 rounded-full border border-[#e9ecef] px-4 text-[13px]"
           >
-            Vazgeç
+            {t("dialog.cancel")}
           </button>
           <button
             type="submit"
             disabled={!chosen || starting}
             className="h-10 rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:bg-[#858c96]"
           >
-            {starting ? "Açılıyor…" : "Konuşmayı aç"}
+            {starting ? t("dialog.opening") : t("dialog.open")}
           </button>
         </div>
       </form>

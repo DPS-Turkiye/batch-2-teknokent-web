@@ -15,7 +15,7 @@ import {
   coordinatorMentorshipDetail,
 } from "@test/fixtures/coordinator-mentorships";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-mentorships", () => ({
   getCoordinatorMentorships: vi.fn(),
@@ -62,6 +62,41 @@ describe("CoordinatorMentorshipsView", () => {
     expect(
       screen.getByRole("button", { name: "Ayşe Demir ↔ Kavun incele" }),
     ).toHaveTextContent("İncele");
+  });
+
+  it("reads in English, drawer included", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <CoordinatorMentorshipsView initialSelectedId={null} />
+      </InLocale>,
+    );
+
+    expect(await screen.findByText("2 open · 1 overdue")).toBeInTheDocument();
+    expect(screen.getByText("18 days ago")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Needs intervention 1" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Open actions")).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Intervene: Ayşe Demir ↔ Lumen" }),
+    );
+    const dialog = await screen.findByRole("dialog", {
+      name: "Mentorship details",
+    });
+    expect(
+      await within(dialog).findByText(
+        "No meeting for 18 days · next not scheduled",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getAllByRole("button", { name: "Remind both sides" })
+        .length,
+    ).toBeGreaterThan(0);
+    expect(
+      within(dialog).getByRole("tab", { name: "Summary" }),
+    ).toBeInTheDocument();
   });
 
   it("narrows to the mentorships that need an intervention", async () => {
