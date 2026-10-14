@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import {
@@ -31,12 +32,17 @@ import type {
   AdminOverview,
   AdminProgram,
 } from "@/interfaces/admin-overview";
-import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
-import { COORDINATOR_UNASSIGNED } from "@/lib/admin-coordinators";
+import { ProgramStatus } from "@/interfaces/program";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
-const SCOPE = ["Tüm Programlar", "Aktif", "Tamamlanan"] as const;
+type HomeT = ReturnType<typeof useTranslations<"adminHome">>;
+
+enum Scope {
+  All = "ALL",
+  Active = "ACTIVE",
+  Completed = "COMPLETED",
+}
 
 export function AdminHomeView() {
   const query = useAdminOverview();
@@ -47,10 +53,11 @@ export function AdminHomeView() {
 }
 
 function Home({ data }: { data: AdminOverview }) {
+  const t = useTranslations("adminHome");
   const waiting = unmatchedStartups(data);
   const mentors = pendingMentors(data);
   const access = pendingMemberships(data);
-  const rows = useMemo(() => interventionRows(data), [data]);
+  const rows = useMemo(() => interventionRows(data, t), [data, t]);
   const [openId, setOpenId] = useState<string | null>(
     rows.find((row) => row.kind === "bottleneck")?.id ?? null,
   );
@@ -58,38 +65,40 @@ function Home({ data }: { data: AdminOverview }) {
   const alerts = [
     {
       value: waiting.length,
-      title: "Eşleşme bekleyen takımlar",
+      title: t("alerts.waitingTitle"),
       detail: waiting.length
-        ? `${new Set(waiting.map((item) => item.programName)).size} programda`
-        : "Bekleyen takım yok",
+        ? t("alerts.waitingDetail", {
+            count: new Set(waiting.map((item) => item.programName)).size,
+          })
+        : t("alerts.waitingNone"),
       href: "/admin/mentorships/matching",
-      action: "İncele →",
+      action: t("alerts.review"),
       border: "border-[#26a4ff]",
     },
     {
       value: mentors.length,
-      title: "Onay bekleyen mentor",
-      detail: mentors.length ? "hesap onayı bekliyor" : "Bekleyen mentor yok",
+      title: t("alerts.mentorsTitle"),
+      detail: mentors.length
+        ? t("alerts.mentorsDetail")
+        : t("alerts.mentorsNone"),
       href: "/admin/users/mentors",
-      action: "İncele →",
+      action: t("alerts.review"),
       border: "border-[#f97316]",
     },
     {
       value: access.length,
-      title: "Erişim gönderilmedi",
-      detail: access.length
-        ? "programa davet edilmiş, kabul etmemiş mentor"
-        : "Bekleyen davet yok",
+      title: t("alerts.accessTitle"),
+      detail: access.length ? t("alerts.accessDetail") : t("alerts.accessNone"),
       href: "/admin/users/mentors",
-      action: "Erişim yönetimi →",
+      action: t("alerts.accessAction"),
       border: "border-[#d9464b]",
     },
     {
       value: 0,
-      title: "Program son tarihi",
-      detail: "Yaklaşan kapanış yok",
+      title: t("alerts.deadlineTitle"),
+      detail: t("alerts.deadlineNone"),
       href: "/admin/programs",
-      action: "Programı aç →",
+      action: t("alerts.openProgram"),
       border: "border-[#e9ecef]",
     },
   ];
@@ -121,20 +130,18 @@ function Home({ data }: { data: AdminOverview }) {
       <section className="space-y-4 py-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-[20px] font-semibold leading-[1.3]">
-            Müdahale gerekenler
+            {t("interventions")}
           </h2>
           <Link
             href="/admin/mentorships/interventions"
             className="text-[13px] font-medium"
           >
-            Tüm müdahale gerekenler →
+            {t("allInterventions")}
           </Link>
         </div>
         <div className="rounded-3xl border border-[#e9ecef] bg-white p-2">
           {rows.length === 0 ? (
-            <EmptyNote>
-              Görüşmesi geciken mentorluk veya açık darboğaz yok.
-            </EmptyNote>
+            <EmptyNote>{t("noInterventions")}</EmptyNote>
           ) : (
             rows.map((row) => (
               <InterventionRow
@@ -164,6 +171,7 @@ function InterventionRow({
   open: boolean;
   onToggle: () => void;
 }) {
+  const t = useTranslations("adminHome");
   return (
     <div className={open ? "" : "border-b border-[#f0f2f4] last:border-0"}>
       <div className="flex flex-col gap-3 px-4 py-3.5 lg:flex-row lg:items-center lg:gap-4">
@@ -186,7 +194,7 @@ function InterventionRow({
         </span>
         <ToneChip tone={row.tone} label={row.label} />
         {row.kind === "bottleneck" ? (
-          <OutlinePill onClick={onToggle}>İncele</OutlinePill>
+          <OutlinePill onClick={onToggle}>{t("review")}</OutlinePill>
         ) : (
           <Link href={row.href} className={pillClass}>
             {row.action}
@@ -195,7 +203,7 @@ function InterventionRow({
         <button
           type="button"
           aria-expanded={open}
-          aria-label={open ? "Satırı kapat" : "Satırı aç"}
+          aria-label={open ? t("closeRow") : t("openRow")}
           onClick={onToggle}
           className="grid size-[18px] shrink-0 place-items-center"
         >
@@ -224,7 +232,7 @@ function InterventionRow({
           </div>
           <div className="min-w-0 flex-1 rounded-[18px] border border-[#26a4ff] px-4 py-3.5">
             <p className="text-[11.5px] font-medium text-[#858c96]">
-              Mentor havuzu
+              {t("mentorPool")}
             </p>
             <p className="mt-2 flex items-center gap-2 text-[13px] font-medium">
               <Asset src="/admin/dot-blue.svg" className="size-2" />
@@ -243,7 +251,7 @@ function InterventionRow({
           </div>
           <div className="min-w-0 flex-1 rounded-[18px] border border-[#e4e7ea] px-4 py-3.5">
             <p className="text-[11.5px] font-medium text-[#858c96]">
-              Olası aksiyon
+              {t("possibleAction")}
             </p>
             <p className="mt-2 max-w-[300px] text-[12.5px] leading-[1.45]">
               {row.detail.action}
@@ -256,9 +264,10 @@ function InterventionRow({
 }
 
 function ProgramsSection({ data }: { data: AdminOverview }) {
+  const t = useTranslations("adminHome");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [scope, setScope] = useState<(typeof SCOPE)[number]>("Tüm Programlar");
+  const [scope, setScope] = useState(Scope.All);
   const [creating, setCreating] = useState(false);
   const [name, setName] = useState("");
   const create = useMutation({
@@ -269,41 +278,47 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
       await queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
-      showToast({ message: `${program.name} oluşturuldu.`, tone: "success" });
+      showToast({
+        message: t("created", { name: program.name }),
+        tone: "success",
+      });
     },
     onError: (error) => {
       showToast({
-        message:
-          error instanceof Error ? error.message : "Program oluşturulamadı.",
+        message: error instanceof Error ? error.message : t("createFailed"),
         tone: "error",
       });
     },
   });
   const programs = data.programs.filter((program) => {
-    if (scope === "Aktif") return program.status === "ACTIVE";
-    if (scope === "Tamamlanan") return program.status === "COMPLETED";
+    if (scope === Scope.Active) return program.status === ProgramStatus.Active;
+    if (scope === Scope.Completed) {
+      return program.status === ProgramStatus.Completed;
+    }
     return true;
   });
 
   return (
     <section className="space-y-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-[16px] font-semibold leading-[1.3]">Programlar</h2>
+        <h2 className="text-[16px] font-semibold leading-[1.3]">
+          {t("programs")}
+        </h2>
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 rounded-full border border-[#e9ecef] bg-white py-2.5 pr-3.5 pl-4">
             <span className="text-[13px] leading-[1.3] text-[#858c96]">
-              Kapsam:
+              {t("scope")}
             </span>
             <select
-              aria-label="Program kapsamı"
+              aria-label={t("scopeLabel")}
               value={scope}
-              onChange={(event) =>
-                setScope(event.target.value as (typeof SCOPE)[number])
-              }
+              onChange={(event) => setScope(event.target.value as Scope)}
               className="appearance-none bg-transparent text-[13.5px] leading-[1.3] font-medium text-[#22262b] outline-none"
             >
-              {SCOPE.map((option) => (
-                <option key={option}>{option}</option>
+              {Object.values(Scope).map((option) => (
+                <option key={option} value={option}>
+                  {t(`scopes.${option}`)}
+                </option>
               ))}
             </select>
             <Asset src="/admin/chevron-down-sm.svg" className="size-4" />
@@ -319,12 +334,12 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Program adı"
+                placeholder={t("programName")}
                 className="h-11 rounded-full border border-[#e9ecef] px-4 text-[13px] outline-none"
               />
-              <SolidButton type="submit">Kaydet</SolidButton>
+              <SolidButton type="submit">{t("save")}</SolidButton>
               <OutlineButton onClick={() => setCreating(false)}>
-                Vazgeç
+                {t("cancel")}
               </OutlineButton>
             </form>
           ) : (
@@ -333,7 +348,7 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
               onClick={() => setCreating(true)}
               className="inline-flex items-center justify-center rounded-full border border-[#e9ecef] bg-white px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-[#22262b]"
             >
-              + Yeni Program
+              {t("newProgram")}
             </button>
           )}
         </div>
@@ -344,16 +359,16 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
             <div
               className={`${programCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] leading-[1.3] font-medium text-[#858c96]`}
             >
-              <span>Program</span>
-              <span>Açık sorun</span>
-              <span>Koordinatör</span>
-              <span>Faz</span>
-              <span>Takım · Mentor</span>
-              <span>Mentorluk sağlığı</span>
+              <span>{t("columns.program")}</span>
+              <span>{t("columns.issues")}</span>
+              <span>{t("columns.coordinator")}</span>
+              <span>{t("columns.phase")}</span>
+              <span>{t("columns.teamsMentors")}</span>
+              <span>{t("columns.health")}</span>
               <span />
             </div>
             {programs.length === 0 ? (
-              <EmptyNote>Henüz program yok.</EmptyNote>
+              <EmptyNote>{t("noPrograms")}</EmptyNote>
             ) : (
               programs.map((program) => (
                 <ProgramRow key={program.id} program={program} data={data} />
@@ -373,6 +388,9 @@ function ProgramRow({
   program: AdminProgram;
   data: AdminOverview;
 }) {
+  const t = useTranslations("adminHome");
+  const tCommon = useTranslations("adminCommon");
+  const locale = useLocale();
   const health = programHealth(program, data);
   const issues = health.red + health.amber;
   return (
@@ -397,12 +415,12 @@ function ProgramRow({
         ) : null}
         {program.coordinatorName ?? (
           <span className="font-medium text-[#b7791f]">
-            {COORDINATOR_UNASSIGNED}
+            {tCommon("unassigned")}
           </span>
         )}
       </span>
       <span className="text-[13px] leading-[1.3] text-[#676e78]">
-        {phaseLabel(program, data)}
+        {phaseLabel(program, data, t, locale)}
       </span>
       <span className="text-[13px] leading-[1.3] font-medium text-[#22262b]">
         {program.startupCount} · {program.acceptedMentorCount}
@@ -494,7 +512,8 @@ function IssueCount({ count }: { count: number }) {
 }
 
 function ProgramStatusChip({ status }: { status: AdminProgram["status"] }) {
-  const active = status === "ACTIVE";
+  const t = useTranslations("adminCommon");
+  const active = status === ProgramStatus.Active;
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium ${
@@ -506,7 +525,7 @@ function ProgramStatusChip({ status }: { status: AdminProgram["status"] }) {
         width={6}
         height={6}
       />
-      {PROGRAM_STATUS_LABELS[status as ProgramStatus]}
+      {t(`programStatus.${status as ProgramStatus}`)}
     </span>
   );
 }
@@ -525,9 +544,12 @@ function HealthBar({
     { key: "amber", count: amber, color: "#ffab3d" },
     { key: "red", count: red, color: "#d9464b" },
   ].filter((part) => part.count > 0);
+  const t = useTranslations("adminHome");
   const total = green + amber + red;
   if (total === 0) {
-    return <span className="text-[12.5px] text-[#aeb4bc]">Başlamadı</span>;
+    return (
+      <span className="text-[12.5px] text-[#aeb4bc]">{t("notStarted")}</span>
+    );
   }
   const usable = 170 - (parts.length - 1) * 3;
   return (
@@ -591,7 +613,7 @@ type Intervention = {
   };
 };
 
-function interventionRows(data: AdminOverview): Intervention[] {
+function interventionRows(data: AdminOverview, t: HomeT): Intervention[] {
   const pairs = data.mentorships
     .filter((item) => needsAttention(item))
     .map((item) => {
@@ -600,25 +622,30 @@ function interventionRows(data: AdminOverview): Intervention[] {
       return {
         id: item.id,
         kind: "pair" as const,
-        title: `${days} gündür görüşme yok — ${item.mentorName} ↔ ${item.organizationName}`,
-        subtitle: `${program?.name ?? "Program yok"} · kritik ilişki · sıradaki görüşme planlanmadı`,
+        title: t("pair.title", {
+          days,
+          mentor: item.mentorName,
+          team: item.organizationName,
+        }),
+        subtitle: t("pair.subtitle", {
+          program: program?.name ?? t("pair.noProgram"),
+        }),
         owner: program?.coordinatorName ?? item.mentorName,
         tone: "red" as const,
-        label: "Kritik",
-        action: "Koordinatöre git",
+        label: t("critical"),
+        action: t("pair.action"),
         href: program?.coordinatorId
           ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
           : "/admin/users",
         detail: {
-          leftTitle: "İlgili takım",
+          leftTitle: t("pair.leftTitle"),
           chips: [item.organizationName],
-          pool: `Hedef ilerlemesi %${item.progressPercent}`,
+          pool: t("pair.progress", { percent: item.progressPercent }),
           poolNote:
             item.daysSinceMeeting == null
-              ? "Kayıtlı görüşme yok"
-              : `Son görüşme ${item.daysSinceMeeting} gün önce`,
-          action:
-            "Koordinatörden bu çift için yeni bir görüşme planlamasını iste.",
+              ? t("pair.noMeeting")
+              : t("pair.lastMeeting", { days: item.daysSinceMeeting }),
+          action: t("pair.suggestion"),
         },
       };
     });
@@ -651,23 +678,30 @@ function interventionRows(data: AdminOverview): Intervention[] {
       kind: "bottleneck" as const,
       title:
         items.length > 1
-          ? `Tekrarlayan darboğaz — ${items.length} takımda ${first.title.toLocaleLowerCase("tr")}`
+          ? t("bottleneck.recurring", {
+              count: items.length,
+              title: first.title.toLocaleLowerCase("tr"),
+            })
           : first.title,
       owner: programs[0]?.coordinatorName ?? first.organizationName,
       tone: critical ? ("red" as const) : ("amber" as const),
-      label: critical ? "Kritik" : "Dikkat",
-      action: "İncele",
+      label: critical ? t("critical") : t("attention"),
+      action: t("review"),
       href: "/admin/mentorships/interventions",
       detail: {
-        leftTitle: "Etkilenen takımlar",
+        leftTitle: t("bottleneck.leftTitle"),
         chips: items.map((item) => item.organizationName),
-        pool: `Kabul edilmiş mentor: ${accepted}`,
-        demand: demand ? `· talep ${demand}` : undefined,
+        pool: t("bottleneck.accepted", { count: accepted }),
+        demand: demand ? t("bottleneck.demand", { count: demand }) : undefined,
         poolNote: programs.some((program) => program.pendingMentorCount > 0)
-          ? `${programs.reduce((sum, program) => sum + program.pendingMentorCount, 0)} davet henüz kabul edilmedi`
+          ? t("bottleneck.pendingInvites", {
+              count: programs.reduce(
+                (sum, program) => sum + program.pendingMentorCount,
+                0,
+              ),
+            })
           : undefined,
-        action:
-          "Bu takımlar için mentor daveti veya ek bir görüşme planlanabilir.",
+        action: t("bottleneck.suggestion"),
       },
     };
   });
@@ -684,19 +718,18 @@ function interventionRows(data: AdminOverview): Intervention[] {
     return {
       id: `access:${programName}`,
       kind: "access" as const,
-      title: `Koordinatör müdahalesi gerekenler — ${items.length} ilişki`,
-      subtitle: `${programName} · davet kabul edilmedi`,
-      owner: program?.coordinatorName ?? "Koordinatör",
+      title: t("access.title", { count: items.length }),
+      subtitle: t("access.subtitle", { program: programName }),
+      owner: program?.coordinatorName ?? t("access.ownerFallback"),
       tone: "neutral" as const,
-      label: "Bekliyor",
-      action: "Görevlendir",
+      label: t("waiting"),
+      action: t("access.action"),
       href: "/admin/users/mentors",
       detail: {
-        leftTitle: "Davet bekleyen mentorlar",
+        leftTitle: t("access.leftTitle"),
         chips: items.map((item) => item.fullName),
-        pool: `Bekleyen davet: ${items.length}`,
-        action:
-          "Mentorların program davetini kabul etmesi veya yeni bir mentor atanması gerekiyor.",
+        pool: t("access.pending", { count: items.length }),
+        action: t("access.suggestion"),
       },
     };
   });
@@ -720,20 +753,25 @@ function programHealth(program: AdminProgram, data: AdminOverview) {
   return { green, amber, red };
 }
 
-function phaseLabel(program: AdminProgram, data: AdminOverview) {
-  if (program.status === "COMPLETED") return "Tamamlandı";
+function phaseLabel(
+  program: AdminProgram,
+  data: AdminOverview,
+  t: HomeT,
+  locale: string,
+) {
+  if (program.status === ProgramStatus.Completed) return t("phaseCompleted");
   const starts = program.startups
     .map((startup) => activeMentorshipFor(data, startup.id)?.startDate)
     .filter((value): value is string => Boolean(value));
   if (starts.length === 0) {
     const created = new Date(program.createdAt);
-    const when = created.toLocaleDateString("tr-TR", {
+    const date = created.toLocaleDateString(locale, {
       day: "numeric",
       month: "short",
     });
-    return `Kurulum · ${when}`;
+    return t("phaseSetup", { date });
   }
   const earliest = starts.reduce((min, value) => (value < min ? value : min));
   const weeks = Math.max(1, Math.ceil(daysSince(earliest) / 7));
-  return `Mentorluk · hafta ${weeks}`;
+  return t("phaseMentoring", { weeks });
 }

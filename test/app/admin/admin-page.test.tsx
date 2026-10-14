@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import AdminPage from "@/app/admin/page";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type { AdminOverview } from "@/interfaces/admin-overview";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: vi.fn(),
@@ -34,5 +34,22 @@ describe("AdminPage", () => {
     expect(screen.getByText("Eşleşme bekleyen takımlar")).toBeInTheDocument();
     expect(screen.getByText("Henüz program yok.")).toBeInTheDocument();
     expect(screen.queryByText("METU Stars 2026")).not.toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <AdminPage />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Teams waiting for a match")).toBeInTheDocument();
+    expect(screen.getByText("No programs yet.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Program scope" }),
+    ).toHaveDisplayValue("All programs");
+    expect(
+      screen.getByText("No overdue mentorship meetings or open bottlenecks."),
+    ).toBeInTheDocument();
   });
 });

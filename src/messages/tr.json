@@ -3911,5 +3911,96 @@
     "memberCount": "{count} kişi",
     "memberFallback": "Üye",
     "founder": "Kurucu"
+  },
+  "adminCommon": {
+    "programStatus": {
+      "ACTIVE": "Aktif",
+      "COMPLETED": "Tamamlandı"
+    },
+    "unassigned": "Atanmadı"
+  },
+  "adminHome": {
+    "alerts": {
+      "waitingTitle": "Eşleşme bekleyen takımlar",
+      "waitingDetail": "{count} programda",
+      "waitingNone": "Bekleyen takım yok",
+      "mentorsTitle": "Onay bekleyen mentor",
+      "mentorsDetail": "hesap onayı bekliyor",
+      "mentorsNone": "Bekleyen mentor yok",
+      "accessTitle": "Erişim gönderilmedi",
+      "accessDetail": "programa davet edilmiş, kabul etmemiş mentor",
+      "accessNone": "Bekleyen davet yok",
+      "deadlineTitle": "Program son tarihi",
+      "deadlineNone": "Yaklaşan kapanış yok",
+      "review": "İncele →",
+      "accessAction": "Erişim yönetimi →",
+      "openProgram": "Programı aç →"
+    },
+    "interventions": "Müdahale gerekenler",
+    "allInterventions": "Tüm müdahale gerekenler →",
+    "noInterventions": "Görüşmesi geciken mentorluk veya açık darboğaz yok.",
+    "review": "İncele",
+    "closeRow": "Satırı kapat",
+    "openRow": "Satırı aç",
+    "mentorPool": "Mentor havuzu",
+    "possibleAction": "Olası aksiyon",
+    "created": "{name} oluşturuldu.",
+    "createFailed": "Program oluşturulamadı.",
+    "programs": "Programlar",
+    "scope": "Kapsam:",
+    "scopeLabel": "Program kapsamı",
+    "scopes": {
+      "ALL": "Tüm Programlar",
+      "ACTIVE": "Aktif",
+      "COMPLETED": "Tamamlanan"
+    },
+    "programName": "Program adı",
+    "save": "Kaydet",
+    "cancel": "Vazgeç",
+    "newProgram": "+ Yeni Program",
+    "columns": {
+      "program": "Program",
+      "issues": "Açık sorun",
+      "coordinator": "Koordinatör",
+      "phase": "Faz",
+      "teamsMentors": "Takım · Mentor",
+      "health": "Mentorluk sağlığı"
+    },
+    "noPrograms": "Henüz program yok.",
+    "notStarted": "Başlamadı",
+    "pair": {
+      "title": "{days} gündür görüşme yok — {mentor} ↔ {team}",
+      "subtitle": "{program} · kritik ilişki · sıradaki görüşme planlanmadı",
+      "noProgram": "Program yok",
+      "action": "Koordinatöre git",
+      "leftTitle": "İlgili takım",
+      "progress": "Hedef ilerlemesi %{percent}",
+      "noMeeting": "Kayıtlı görüşme yok",
+      "lastMeeting": "Son görüşme {days} gün önce",
+      "suggestion": "Koordinatörden bu çift için yeni bir görüşme planlamasını iste."
+    },
+    "bottleneck": {
+      "recurring": "Tekrarlayan darboğaz — {count} takımda {title}",
+      "leftTitle": "Etkilenen takımlar",
+      "accepted": "Kabul edilmiş mentor: {count}",
+      "demand": "· talep {count}",
+      "pendingInvites": "{count} davet henüz kabul edilmedi",
+      "suggestion": "Bu takımlar için mentor daveti veya ek bir görüşme planlanabilir."
+    },
+    "access": {
+      "title": "Koordinatör müdahalesi gerekenler — {count} ilişki",
+      "subtitle": "{program} · davet kabul edilmedi",
+      "ownerFallback": "Koordinatör",
+      "action": "Görevlendir",
+      "leftTitle": "Davet bekleyen mentorlar",
+      "pending": "Bekleyen davet: {count}",
+      "suggestion": "Mentorların program davetini kabul etmesi veya yeni bir mentor atanması gerekiyor."
+    },
+    "critical": "Kritik",
+    "attention": "Dikkat",
+    "waiting": "Bekliyor",
+    "phaseCompleted": "Tamamlandı",
+    "phaseSetup": "Kurulum · {date}",
+    "phaseMentoring": "Mentorluk · hafta {weeks}"
   }
 }

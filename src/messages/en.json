@@ -3911,5 +3911,96 @@
     "memberCount": "{count, plural, one {# person} other {# people}}",
     "memberFallback": "Member",
     "founder": "Founder"
+  },
+  "adminCommon": {
+    "programStatus": {
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed"
+    },
+    "unassigned": "Not assigned"
+  },
+  "adminHome": {
+    "alerts": {
+      "waitingTitle": "Teams waiting for a match",
+      "waitingDetail": "in {count, plural, one {# program} other {# programs}}",
+      "waitingNone": "No teams waiting",
+      "mentorsTitle": "Mentors to approve",
+      "mentorsDetail": "accounts waiting for approval",
+      "mentorsNone": "No mentors waiting",
+      "accessTitle": "Access not granted",
+      "accessDetail": "mentors invited to a program who haven't accepted",
+      "accessNone": "No pending invitations",
+      "deadlineTitle": "Program deadline",
+      "deadlineNone": "No program closing soon",
+      "review": "Review →",
+      "accessAction": "Manage access →",
+      "openProgram": "Open the program →"
+    },
+    "interventions": "Needs intervention",
+    "allInterventions": "Everything that needs intervention →",
+    "noInterventions": "No overdue mentorship meetings or open bottlenecks.",
+    "review": "Review",
+    "closeRow": "Collapse the row",
+    "openRow": "Expand the row",
+    "mentorPool": "Mentor pool",
+    "possibleAction": "Possible action",
+    "created": "{name} created.",
+    "createFailed": "Couldn't create the program.",
+    "programs": "Programs",
+    "scope": "Scope:",
+    "scopeLabel": "Program scope",
+    "scopes": {
+      "ALL": "All programs",
+      "ACTIVE": "Active",
+      "COMPLETED": "Completed"
+    },
+    "programName": "Program name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "newProgram": "+ New program",
+    "columns": {
+      "program": "Program",
+      "issues": "Open issues",
+      "coordinator": "Coordinator",
+      "phase": "Phase",
+      "teamsMentors": "Teams · Mentors",
+      "health": "Mentorship health"
+    },
+    "noPrograms": "No programs yet.",
+    "notStarted": "Not started",
+    "pair": {
+      "title": "No meeting for {days, plural, one {# day} other {# days}} — {mentor} ↔ {team}",
+      "subtitle": "{program} · critical pair · next meeting not scheduled",
+      "noProgram": "No program",
+      "action": "Go to the coordinator",
+      "leftTitle": "Team involved",
+      "progress": "Goal progress {percent}%",
+      "noMeeting": "No recorded meeting",
+      "lastMeeting": "Last meeting {days, plural, one {# day} other {# days}} ago",
+      "suggestion": "Ask the coordinator to plan a new meeting for this pair."
+    },
+    "bottleneck": {
+      "recurring": "Recurring bottleneck — {title} in {count, plural, one {# team} other {# teams}}",
+      "leftTitle": "Teams affected",
+      "accepted": "Accepted mentors: {count}",
+      "demand": "· demand {count}",
+      "pendingInvites": "{count, plural, one {# invitation hasn't} other {# invitations haven't}} been accepted yet",
+      "suggestion": "A mentor invitation or an extra meeting could be planned for these teams."
+    },
+    "access": {
+      "title": "Needs a coordinator — {count, plural, one {# relationship} other {# relationships}}",
+      "subtitle": "{program} · invitation not accepted",
+      "ownerFallback": "Coordinator",
+      "action": "Assign",
+      "leftTitle": "Mentors with pending invitations",
+      "pending": "Pending invitations: {count}",
+      "suggestion": "The mentors need to accept the program invitation, or a new mentor needs to be assigned."
+    },
+    "critical": "Critical",
+    "attention": "Attention",
+    "waiting": "Waiting",
+    "phaseCompleted": "Completed",
+    "phaseSetup": "Setup · {date}",
+    "phaseMentoring": "Mentoring · week {weeks}"
   }
 }
