@@ -1,3 +1,6 @@
+import type { useTranslations } from "next-intl";
+
+import { clientText } from "@/i18n/client-texts";
 import type {
   CoordinatorCalendar,
   CoordinatorCalendarConflict,
@@ -17,10 +20,9 @@ export enum CalendarView {
   List = "LIST",
 }
 
-export const CALENDAR_VIEW_LABELS: Record<CalendarView, string> = {
-  [CalendarView.Week]: "Hafta",
-  [CalendarView.Month]: "Ay",
-  [CalendarView.List]: "Liste",
+export type CalendarTexts = {
+  t: ReturnType<typeof useTranslations<"coordinatorCalendar">>;
+  locale: string;
 };
 
 /** The week grid runs 09:00–19:00; earlier or later items stick to its edges. */
@@ -28,24 +30,12 @@ export const GRID_START_HOUR = 9;
 export const GRID_HOURS = 10;
 const DEFAULT_MINUTES = 60;
 
-const WEEKDAY = new Intl.DateTimeFormat("tr-TR", { weekday: "short" });
-const DAY_MONTH = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-const MONTH_YEAR = new Intl.DateTimeFormat("tr-TR", {
-  month: "long",
-  year: "numeric",
-});
-const LONG_DAY = new Intl.DateTimeFormat("tr-TR", {
-  weekday: "long",
-  day: "numeric",
-  month: "long",
-});
-const TIME = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
+function clock(locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 export function addDays(date: Date, days: number) {
   const next = new Date(date);
@@ -85,17 +75,20 @@ export function viewRange(view: CalendarView, anchor: Date) {
   return { from: isoDay(days[0]), to: isoDay(days[days.length - 1]) };
 }
 
-/** "14 – 20 Eylül 2026", "28 Eylül – 4 Ekim 2026" or "Eylül 2026". */
-export function rangeLabel(view: CalendarView, anchor: Date) {
-  if (view === CalendarView.Month) return MONTH_YEAR.format(anchor);
-  const days = viewDays(view, anchor);
-  const first = days[0];
-  const last = days[6];
-  const year = last.getFullYear();
-  if (first.getMonth() === last.getMonth()) {
-    return `${first.getDate()} – ${DAY_MONTH.format(last)} ${year}`;
+/** "14–20 Eylül 2026", "28 Eylül – 4 Ekim 2026" or "Eylül 2026". */
+export function rangeLabel(view: CalendarView, anchor: Date, locale: string) {
+  if (view === CalendarView.Month) {
+    return new Intl.DateTimeFormat(locale, {
+      month: "long",
+      year: "numeric",
+    }).format(anchor);
   }
-  return `${DAY_MONTH.format(first)} – ${DAY_MONTH.format(last)} ${year}`;
+  const days = viewDays(view, anchor);
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).formatRange(days[0], days[6]);
 }
 
 export function shiftAnchor(view: CalendarView, anchor: Date, step: 1 | -1) {
@@ -109,16 +102,22 @@ export function sameDay(a: Date, b: Date) {
   return isoDay(a) === isoDay(b);
 }
 
-export function weekdayLabel(date: Date) {
-  return WEEKDAY.format(date).replace(".", "");
+export function weekdayLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, { weekday: "short" })
+    .format(date)
+    .replace(".", "");
 }
 
-export function timeLabel(value: string) {
-  return TIME.format(new Date(value));
+export function timeLabel(value: string, locale: string) {
+  return clock(locale).format(new Date(value));
 }
 
-export function longDayLabel(date: Date) {
-  return LONG_DAY.format(date);
+export function longDayLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  }).format(date);
 }
 
 function itemEnd(item: CoordinatorCalendarItem) {
@@ -129,13 +128,13 @@ function itemEnd(item: CoordinatorCalendarItem) {
 }
 
 /** "Çar 16 Eyl · 14:00–15:00", or just the day and time for a deadline. */
-export function slotLabel(item: CoordinatorCalendarItem) {
+export function slotLabel(item: CoordinatorCalendarItem, locale: string) {
   const start = new Date(item.startsAt);
-  const day = `${weekdayLabel(start)} ${formatDayMonth(start)}`;
+  const day = `${weekdayLabel(start, locale)} ${formatDayMonth(start, locale)}`;
   const end = itemEnd(item);
   return end
-    ? `${day} · ${TIME.format(start)}–${TIME.format(end)}`
-    : `${day} · ${TIME.format(start)}`;
+    ? `${day} · ${clock(locale).formatRange(start, end)}`
+    : `${day} · ${clock(locale).format(start)}`;
 }
 
 export function itemsOnDay(items: CoordinatorCalendarItem[], day: Date) {
@@ -178,23 +177,24 @@ export function placeDayItems(items: CoordinatorCalendarItem[]): PlacedItem[] {
 export function conflictSummary(
   conflict: CoordinatorCalendarConflict,
   items: CoordinatorCalendarItem[],
+  { t, locale }: CalendarTexts,
 ) {
   const meetings = conflict.meetingIds
     .map((id) => items.find((item) => item.id === id))
     .filter((item): item is CoordinatorCalendarItem => !!item);
   const names = meetings.map(
     (item) =>
-      `${item.organizationName ?? item.title} (${timeLabel(item.startsAt)})`,
+      `${item.organizationName ?? item.title} (${timeLabel(item.startsAt, locale)})`,
   );
-  const joined =
-    names.length > 1
-      ? `${names.slice(0, -1).join(", ")} ve ${names[names.length - 1]}`
-      : (names[0] ?? "");
-  const day = meetings[0] ? weekdayLabel(new Date(meetings[0].startsAt)) : "";
+  const day = meetings[0]
+    ? weekdayLabel(new Date(meetings[0].startsAt), locale)
+    : "";
   return {
-    heading: `${conflict.meetingIds.length} çakışma`,
+    heading: t("conflictHeading", { count: conflict.meetingIds.length }),
     who: day ? `${conflict.mentorName} · ${day}` : conflict.mentorName,
-    body: `${joined} görüşmeleri üst üste bindi.`,
+    body: t("conflictBody", {
+      names: new Intl.ListFormat(locale, { type: "conjunction" }).format(names),
+    }),
   };
 }
 
@@ -224,13 +224,15 @@ export function emptyEventDraft(programId: string, day: Date): EventDraft {
   };
 }
 
-/** The first problem with the draft, in Turkish, or null when it can be saved. */
+/** The first problem with the draft, or null when it can be saved. */
 export function eventDraftError(draft: EventDraft) {
-  if (!draft.programId) return "Bir program seçin.";
-  if (!draft.title.trim()) return "Başlık girin.";
-  if (!draft.day || !draft.startTime) return "Tarih ve saat seçin.";
+  if (!draft.programId) return clientText("coordinatorEvent.pickProgram");
+  if (!draft.title.trim()) return clientText("coordinatorEvent.title");
+  if (!draft.day || !draft.startTime) {
+    return clientText("coordinatorEvent.when");
+  }
   if (draft.endTime && draft.endTime <= draft.startTime) {
-    return "Bitiş saati başlangıçtan sonra olmalı.";
+    return clientText("coordinatorEvent.endAfterStart");
   }
   return null;
 }
@@ -255,10 +257,16 @@ export function isRecordingFull(
 }
 
 /** "Kayıt botu 1/2", or "dolu" once every bot slot at that time is taken. */
-export function recordingNote(item: CoordinatorCalendarItem, capacity: number) {
+export function recordingNote(
+  item: CoordinatorCalendarItem,
+  capacity: number,
+  t: CalendarTexts["t"],
+) {
   if (item.recordingLoad == null || capacity <= 0) return null;
-  const load = `Kayıt botu ${item.recordingLoad}/${capacity}`;
-  return isRecordingFull(item, capacity) ? `${load} · dolu` : load;
+  const values = { load: item.recordingLoad, capacity };
+  return isRecordingFull(item, capacity)
+    ? t("recordingFull", values)
+    : t("recording", values);
 }
 
 export function fullRecordingCount(data: CoordinatorCalendar) {
@@ -271,6 +279,7 @@ export function fullRecordingCount(data: CoordinatorCalendar) {
 export function proposalItems(
   proposals: MeetingProposal[],
   range: { from: string; to: string },
+  title: string,
 ): CoordinatorCalendarItem[] {
   return proposals
     .filter(
@@ -283,7 +292,7 @@ export function proposalItems(
       id: `proposal-${proposal.id}`,
       proposalId: proposal.id,
       kind: CoordinatorAgendaKind.Meeting,
-      title: "Önerilen slot",
+      title,
       startsAt: proposal.scheduledAt,
       endsAt: new Date(
         new Date(proposal.scheduledAt).getTime() +

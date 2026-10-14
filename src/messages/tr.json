@@ -860,6 +860,12 @@
       "stopFailed": "Toplantı asistanı durdurulamadı.",
       "transcriptFailed": "Toplantı transkripti alınamadı.",
       "reportFailed": "Toplantı raporu oluşturulamadı."
+    },
+    "coordinatorEvent": {
+      "pickProgram": "Bir program seçin.",
+      "title": "Başlık girin.",
+      "when": "Tarih ve saat seçin.",
+      "endAfterStart": "Bitiş saati başlangıçtan sonra olmalı."
     }
   },
   "metadata": {
@@ -3105,5 +3111,68 @@
     "noActions": "Şu an bekleyen bir aksiyon yok.",
     "waitingToday": "bugün",
     "waitingDays": "{days} gündür bekliyor"
+  },
+  "coordinatorCalendar": {
+    "views": {
+      "WEEK": "Hafta",
+      "MONTH": "Ay",
+      "LIST": "Liste"
+    },
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "today": "Bugün",
+    "viewGroup": "Görünüm",
+    "program": "Program:",
+    "allPrograms": "Tüm programlar",
+    "addEvent": "+ Etkinlik ekle",
+    "thisMonth": "Bu ay",
+    "thisWeek": "Bu hafta",
+    "meetingKind": "Mentorluk görüşmesi",
+    "eventKind": "Etkinlik",
+    "deadlineKind": "Deadline",
+    "conflict": "Çakışma",
+    "proposedSlot": "Önerilen slot",
+    "mentorFallback": "Mentor",
+    "teamFallback": "Takım",
+    "closesAt": "kapanış {time}",
+    "recordingFullShort": "Kayıt dolu",
+    "moreItems": "+{count} kayıt",
+    "emptyList": "Bu hafta takvimde kayıt yok.",
+    "topic": "Konu: {topic}",
+    "sequence": "{n}. görüşme",
+    "itemDetail": "Kayıt detayı",
+    "closeDetail": "Detayı kapat",
+    "awaitingApproval": "Mentor ve takım yetkilisinin onayı bekleniyor",
+    "onlineMeet": "Online · Google Meet",
+    "meeting": "Görüşme",
+    "openMentorship": "Mentorluğu aç",
+    "message": "Mesaj",
+    "recording": "Kayıt botu {load}/{capacity}",
+    "recordingFull": "Kayıt botu {load}/{capacity} · dolu",
+    "capacityTitle": "Kayıt botu kapasitesi dolu",
+    "capacityBody": "Aynı anda en fazla {capacity} görüşme kaydedilebiliyor. Bu aralıkta {full} görüşmenin saatinde kapasite dolu; bu saatlere eklenen yeni kayıtlı görüşmelere bot katılamaz.",
+    "conflictHeading": "{count} çakışma",
+    "conflictBody": "{names} görüşmeleri üst üste bindi.",
+    "reschedule": "Yeniden planla",
+    "askMentor": "Mentora sor",
+    "unscheduled": "Planlanmamış (riskli)",
+    "itemCount": "{count} kayıt",
+    "openList": "Liste görünümünde aç",
+    "form": {
+      "title": "Etkinlik ekle",
+      "close": "Kapat",
+      "program": "Program",
+      "choose": "Seçin",
+      "eventTitle": "Başlık",
+      "kind": "Tür",
+      "date": "Tarih",
+      "time": "Saat",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "description": "Açıklama",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet"
+    }
   }
 }

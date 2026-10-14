@@ -860,6 +860,12 @@
       "stopFailed": "Couldn't stop the meeting assistant.",
       "transcriptFailed": "Couldn't get the meeting transcript.",
       "reportFailed": "Couldn't create the meeting report."
+    },
+    "coordinatorEvent": {
+      "pickProgram": "Choose a program.",
+      "title": "Enter a title.",
+      "when": "Choose a date and time.",
+      "endAfterStart": "The end time must be after the start time."
     }
   },
   "metadata": {
@@ -3105,5 +3111,68 @@
     "noActions": "No actions are waiting right now.",
     "waitingToday": "today",
     "waitingDays": "waiting for {days, plural, one {# day} other {# days}}"
+  },
+  "coordinatorCalendar": {
+    "views": {
+      "WEEK": "Week",
+      "MONTH": "Month",
+      "LIST": "List"
+    },
+    "previous": "Previous",
+    "next": "Next",
+    "today": "Today",
+    "viewGroup": "View",
+    "program": "Program:",
+    "allPrograms": "All programs",
+    "addEvent": "+ Add event",
+    "thisMonth": "This month",
+    "thisWeek": "This week",
+    "meetingKind": "Mentorship meeting",
+    "eventKind": "Event",
+    "deadlineKind": "Deadline",
+    "conflict": "Conflict",
+    "proposedSlot": "Proposed slot",
+    "mentorFallback": "Mentor",
+    "teamFallback": "Team",
+    "closesAt": "closes {time}",
+    "recordingFullShort": "Recording full",
+    "moreItems": "+{count} more",
+    "emptyList": "Nothing on the calendar this week.",
+    "topic": "Topic: {topic}",
+    "sequence": "Meeting {n}",
+    "itemDetail": "Item details",
+    "closeDetail": "Close details",
+    "awaitingApproval": "Waiting for the mentor and the team lead to confirm",
+    "onlineMeet": "Online · Google Meet",
+    "meeting": "Meeting",
+    "openMentorship": "Open the mentorship",
+    "message": "Message",
+    "recording": "Recording bot {load}/{capacity}",
+    "recordingFull": "Recording bot {load}/{capacity} · full",
+    "capacityTitle": "Recording bot capacity is full",
+    "capacityBody": "At most {capacity, plural, one {# meeting} other {# meetings}} can be recorded at the same time. In this period {full, plural, one {# meeting is} other {# meetings are}} at a full time slot; the bot can't join new recorded meetings added at those times.",
+    "conflictHeading": "{count, plural, one {# conflict} other {# conflicts}}",
+    "conflictBody": "The meetings with {names} overlap.",
+    "reschedule": "Reschedule",
+    "askMentor": "Ask the mentor",
+    "unscheduled": "Not scheduled (at risk)",
+    "itemCount": "{count, plural, one {# item} other {# items}}",
+    "openList": "Open in list view",
+    "form": {
+      "title": "Add event",
+      "close": "Close",
+      "program": "Program",
+      "choose": "Choose",
+      "eventTitle": "Title",
+      "kind": "Type",
+      "date": "Date",
+      "time": "Time",
+      "start": "Start",
+      "end": "End",
+      "description": "Description",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save"
+    }
   }
 }
