@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
@@ -23,6 +24,7 @@ import {
 import { useToast } from "@/components/providers/toast-provider";
 import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import type {
   AdminOverview,
@@ -32,6 +34,7 @@ import type {
 } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
 import { errorMessage, initials } from "@/lib/utils";
+import type messages from "@/messages/tr.json";
 
 export type UserTab = "coordinators" | "mentors" | "teams";
 
@@ -39,7 +42,12 @@ const PAGE_SIZE = 7;
 
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
 
+type UsersT = ReturnType<typeof useTranslations<"adminUsers">>;
+type Filter = keyof (typeof messages)["adminUsers"]["filters"];
+type Section = keyof (typeof messages)["adminUsers"]["sections"];
+
 export function UsersView({ tab }: { tab: UserTab }) {
+  const t = useTranslations("adminUsers");
   const query = useAdminOverview();
   const focusUserId = useSearchParams().get("user");
   const [inviteOpen, setInviteOpen] = useState(false);
@@ -51,20 +59,20 @@ export function UsersView({ tab }: { tab: UserTab }) {
     {
       id: "coordinators" as const,
       href: "/admin/users",
-      label: "Koordinatörler",
+      label: t("tabs.coordinators"),
       count: coordinatorsOf(data).length,
     },
     {
       id: "mentors" as const,
       href: "/admin/users/mentors",
-      label: "Mentorlar",
+      label: t("tabs.mentors"),
       count: mentorsOf(data).length,
       dot: "#26a4ff",
     },
     {
       id: "teams" as const,
       href: "/admin/users/teams",
-      label: "Takımlar",
+      label: t("tabs.teams"),
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
@@ -78,7 +86,7 @@ export function UsersView({ tab }: { tab: UserTab }) {
           onClick={() => setInviteOpen(true)}
           className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-white"
         >
-          + Koordinatör ekle
+          {t("addCoordinator")}
         </button>
       </div>
       <div className="flex border-b border-[#e9ecef]">
@@ -143,12 +151,13 @@ function CoordinatorsTable({
   data: AdminOverview;
   focusUserId: string | null;
 }) {
+  const t = useTranslations("adminUsers");
   const users = coordinatorsOf(data);
   const decide = useDecidePendingAccount();
   const access = useCoordinatorAccess();
   const { showToast } = useToast();
-  const [filter, setFilter] = useState("Tümü");
-  const [program, setProgram] = useState("Tümü");
+  const [filter, setFilter] = useState<Filter>("ALL");
+  const [program, setProgram] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -161,21 +170,21 @@ function CoordinatorsTable({
     if (focused?.status === "PENDING") setReviewId(focused.id);
     else if (focused) setSelectedId(focused.id);
   }
-  const counts = {
-    Tümü: users.length,
-    Aktif: users.filter((user) => user.status === "APPROVED").length,
-    "Onay bekliyor": users.filter((user) => user.status === "PENDING").length,
-    "Erişim gönderilmedi": 0,
-    Pasif: users.filter((user) => user.status === "REJECTED").length,
+  const counts: Partial<Record<Filter, number>> = {
+    ALL: users.length,
+    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
+    PENDING: users.filter((user) => user.status === "PENDING").length,
+    NO_ACCESS: 0,
+    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
   };
   const rows = useMemo(() => {
     return users.filter((user) => {
-      if (filter === "Aktif" && user.status !== "APPROVED") return false;
-      if (filter === "Onay bekliyor" && user.status !== "PENDING") return false;
-      if (filter === "Pasif" && user.status !== "REJECTED") return false;
-      if (filter === "Erişim gönderilmedi") return false;
+      if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
+      if (filter === "PENDING" && user.status !== "PENDING") return false;
+      if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
+      if (filter === "NO_ACCESS") return false;
       if (
-        program !== "Tümü" &&
+        program &&
         !programsForCoordinator(data, user.id).some(
           (item) => item.name === program,
         )
@@ -202,13 +211,13 @@ function CoordinatorsTable({
         setReviewId(null);
         setApproveId(null);
         showToast({
-          message: `${user.fullName} reddedildi.`,
+          message: t("rejected", { name: user.fullName }),
           tone: "success",
         });
       })
       .catch((error: unknown) =>
         showToast({
-          message: errorMessage(error, "Karar kaydedilemedi."),
+          message: errorMessage(error, t("decideFailed")),
           tone: "error",
         }),
       );
@@ -217,13 +226,7 @@ function CoordinatorsTable({
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={[
-          "Tümü",
-          "Aktif",
-          "Onay bekliyor",
-          "Erişim gönderilmedi",
-          "Pasif",
-        ]}
+        filters={["ALL", "ACTIVE", "PENDING", "NO_ACCESS", "INACTIVE"]}
         counts={counts}
         filter={filter}
         onFilter={(value) => {
@@ -235,7 +238,7 @@ function CoordinatorsTable({
           setSearch(value);
           setPage(0);
         }}
-        searchPlaceholder="Koordinatör ara"
+        searchPlaceholder={t("searchCoordinators")}
         program={program}
         programs={data.programs.map((item) => item.name)}
         onProgram={(value) => {
@@ -247,19 +250,19 @@ function CoordinatorsTable({
         <div
           className={`${coordCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
         >
-          <span>Koordinatör</span>
-          <span>Erişim</span>
-          <span>Atanmış programlar</span>
-          <span>Program</span>
-          <span>Son aktivite</span>
+          <span>{t("coordinatorColumns.coordinator")}</span>
+          <span>{t("coordinatorColumns.access")}</span>
+          <span>{t("coordinatorColumns.programs")}</span>
+          <span>{t("coordinatorColumns.programCount")}</span>
+          <span>{t("coordinatorColumns.activity")}</span>
           <span />
         </div>
         {visible.length === 0 ? (
-          <EmptyNote>Bu filtrede koordinatör yok.</EmptyNote>
+          <EmptyNote>{t("noCoordinators")}</EmptyNote>
         ) : (
           visible.map((user) => {
             const programs = programsForCoordinator(data, user.id);
-            const activity = relativeTime(user.createdAt);
+            const activity = relativeTime(user.createdAt, t);
             return (
               <div
                 key={user.id}
@@ -272,7 +275,7 @@ function CoordinatorsTable({
                   status={user.status}
                   passwordSet={user.passwordSet}
                 />
-                <ProgramChips programs={programs} />
+                <ProgramChips programs={programs} empty={t("unassigned")} />
                 <span className="text-[13.5px] font-medium text-[#22262b]">
                   {programs.length}
                 </span>
@@ -292,14 +295,14 @@ function CoordinatorsTable({
                         onClick={() => reject(user)}
                         className="rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
                       >
-                        Reddet
+                        {t("reject")}
                       </button>
                       <button
                         type="button"
                         onClick={() => setReviewId(user.id)}
                         className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
                       >
-                        Onayla
+                        {t("approve")}
                       </button>
                     </>
                   ) : (
@@ -308,7 +311,7 @@ function CoordinatorsTable({
                   <RowMenu
                     items={[
                       {
-                        label: "Detay",
+                        label: t("detail"),
                         onClick: () =>
                           user.status === "PENDING"
                             ? setReviewId(user.id)
@@ -317,7 +320,7 @@ function CoordinatorsTable({
                       ...(user.status === "APPROVED"
                         ? [
                             {
-                              label: "Pasife al",
+                              label: t("deactivate"),
                               onClick: () => access.setAccess(user.id, false),
                             },
                           ]
@@ -325,7 +328,7 @@ function CoordinatorsTable({
                       ...(user.status === "REJECTED"
                         ? [
                             {
-                              label: "Yeniden etkinleştir",
+                              label: t("reactivate"),
                               onClick: () => access.setAccess(user.id, true),
                             },
                           ]
@@ -342,7 +345,7 @@ function CoordinatorsTable({
         total={rows.length}
         page={page}
         onPage={setPage}
-        noun="koordinatör"
+        noun="coordinators"
       />
       {selected ? (
         <CoordinatorDrawer
@@ -355,7 +358,7 @@ function CoordinatorsTable({
         <CoordinatorApplicationDialog
           user={review}
           programs={programsForCoordinator(data, review.id)}
-          appliedLabel={relativeTime(review.createdAt)?.label ?? null}
+          appliedLabel={relativeTime(review.createdAt, t)?.label ?? null}
           busy={decide.isPending}
           onClose={() => setReviewId(null)}
           onReject={() => reject(review)}
@@ -375,13 +378,13 @@ function CoordinatorsTable({
             const id = approving.id;
             setApproveId(null);
             showToast({
-              title: `${name} onaylandı`,
+              title: t("approvedTitle", { name }),
               message: already
-                ? `Zaten ${programName} programının koordinatörü.`
-                : `${programName} programına atandı.`,
+                ? t("alreadyCoordinator", { program: programName })
+                : t("assignedTo", { program: programName }),
               tone: "success",
               action: {
-                label: "Detay",
+                label: t("detail"),
                 onClick: () => setSelectedId(id),
               },
             });
@@ -403,11 +406,13 @@ function MentorsTable({
   data: AdminOverview;
   focusUserId: string | null;
 }) {
+  const t = useTranslations("adminUsers");
+  const optionLabel = useOptionLabel();
   const users = mentorsOf(data);
   const decide = useDecidePendingAccount();
   const { showToast } = useToast();
-  const [filter, setFilter] = useState("Tümü");
-  const [program, setProgram] = useState("Tümü");
+  const [filter, setFilter] = useState<Filter>("ALL");
+  const [program, setProgram] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -423,26 +428,22 @@ function MentorsTable({
         (mentor) => mentor.mentorId === user.id && mentor.status === "PENDING",
       ),
     );
-  const counts = {
-    Tümü: users.length,
-    Aktif: users.filter((user) => user.status === "APPROVED").length,
-    "Onay bekliyor": users.filter((user) => user.status === "PENDING").length,
-    "Davet bekliyor": users.filter(
-      (user) => user.status === "APPROVED" && invited(user),
-    ).length,
-    Pasif: users.filter((user) => user.status === "REJECTED").length,
+  const counts: Partial<Record<Filter, number>> = {
+    ALL: users.length,
+    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
+    PENDING: users.filter((user) => user.status === "PENDING").length,
+    INVITED: users.filter((user) => user.status === "APPROVED" && invited(user))
+      .length,
+    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
   };
   const rows = users.filter((user) => {
-    if (filter === "Aktif" && user.status !== "APPROVED") return false;
-    if (filter === "Onay bekliyor" && user.status !== "PENDING") return false;
-    if (filter === "Pasif" && user.status !== "REJECTED") return false;
-    if (
-      filter === "Davet bekliyor" &&
-      !(user.status === "APPROVED" && invited(user))
-    )
+    if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
+    if (filter === "PENDING" && user.status !== "PENDING") return false;
+    if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
+    if (filter === "INVITED" && !(user.status === "APPROVED" && invited(user)))
       return false;
     if (
-      program !== "Tümü" &&
+      program &&
       !programsForMentor(data, user.id).some((item) => item.name === program)
     ) {
       return false;
@@ -457,7 +458,7 @@ function MentorsTable({
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={["Tümü", "Aktif", "Onay bekliyor", "Davet bekliyor", "Pasif"]}
+        filters={["ALL", "ACTIVE", "PENDING", "INVITED", "INACTIVE"]}
         counts={counts}
         filter={filter}
         onFilter={(value) => {
@@ -469,7 +470,7 @@ function MentorsTable({
           setSearch(value);
           setPage(0);
         }}
-        searchPlaceholder="Mentor veya uzmanlık ara"
+        searchPlaceholder={t("searchMentors")}
         program={program}
         programs={data.programs.map((item) => item.name)}
         onProgram={(value) => {
@@ -481,16 +482,16 @@ function MentorsTable({
         <div
           className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
         >
-          <span>Mentor</span>
-          <span>Durum</span>
-          <span>Uyarı</span>
-          <span>Uzmanlık</span>
-          <span>Programlar</span>
-          <span>Mentorluk yükü</span>
+          <span>{t("mentorColumns.mentor")}</span>
+          <span>{t("mentorColumns.status")}</span>
+          <span>{t("mentorColumns.warning")}</span>
+          <span>{t("mentorColumns.expertise")}</span>
+          <span>{t("mentorColumns.programs")}</span>
+          <span>{t("mentorColumns.load")}</span>
           <span />
         </div>
         {visible.length === 0 ? (
-          <EmptyNote>Bu filtrede mentor yok.</EmptyNote>
+          <EmptyNote>{t("noMentors")}</EmptyNote>
         ) : (
           visible.map((user) => {
             const programs = programsForMentor(data, user.id);
@@ -517,18 +518,18 @@ function MentorsTable({
               >
                 <PersonCell user={user} tone="mentor" />
                 {user.status === "PENDING" ? (
-                  <StatusPill tone="amber">Onay bekliyor</StatusPill>
+                  <StatusPill tone="amber">{t("pending")}</StatusPill>
                 ) : user.status === "REJECTED" ? (
-                  <StatusPill tone="neutral">Pasif</StatusPill>
+                  <StatusPill tone="neutral">{t("inactive")}</StatusPill>
                 ) : pendingInvite ? (
-                  <StatusPill tone="blue">Davet gönderildi</StatusPill>
+                  <StatusPill tone="blue">{t("inviteSent")}</StatusPill>
                 ) : (
-                  <StatusPill tone="green">Aktif</StatusPill>
+                  <StatusPill tone="green">{t("active")}</StatusPill>
                 )}
                 <span>
                   {stale ? (
                     <span className="rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
-                      Görüşme yok
+                      {t("noMeeting")}
                     </span>
                   ) : (
                     <span className="text-[13px] text-[#aeb4bc]">—</span>
@@ -543,12 +544,12 @@ function MentorsTable({
                         key={item}
                         className="rounded-full bg-[#fff1ec] px-2.5 py-1 text-[11.5px] font-medium text-[#e0522a]"
                       >
-                        {item}
+                        {optionLabel("mentorTopic", item)}
                       </span>
                     ))
                   )}
                 </span>
-                <ProgramChips programs={programs} empty="Atanmamış" />
+                <ProgramChips programs={programs} empty={t("unassigned")} />
                 <LoadBar count={load.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
                   {user.status === "PENDING" ? (
@@ -561,8 +562,8 @@ function MentorsTable({
                             showToast({
                               message:
                                 status === UserAccountStatus.Approved
-                                  ? `${user.fullName} onaylandı.`
-                                  : `${user.fullName} reddedildi.`,
+                                  ? t("approved", { name: user.fullName })
+                                  : t("rejected", { name: user.fullName }),
                               tone: "success",
                             }),
                           )
@@ -571,7 +572,7 @@ function MentorsTable({
                               message:
                                 error instanceof Error
                                   ? error.message
-                                  : "Karar kaydedilemedi.",
+                                  : t("decideFailed"),
                               tone: "error",
                             }),
                           )
@@ -583,7 +584,7 @@ function MentorsTable({
                   <RowMenu
                     items={[
                       {
-                        label: "Detay",
+                        label: t("detail"),
                         onClick: () => setSelectedId(user.id),
                       },
                     ]}
@@ -594,7 +595,7 @@ function MentorsTable({
           })
         )}
       </TableCard>
-      <Pager total={rows.length} page={page} onPage={setPage} noun="mentor" />
+      <Pager total={rows.length} page={page} onPage={setPage} noun="mentors" />
       {selected ? (
         <MentorDrawer
           user={selected}
@@ -612,9 +613,10 @@ function MentorsTable({
 }
 
 function TeamsTable({ data }: { data: AdminOverview }) {
+  const t = useTranslations("adminUsers");
   const teams = startupsOf(data);
-  const [filter, setFilter] = useState("Tümü");
-  const [program, setProgram] = useState("Tümü");
+  const [filter, setFilter] = useState<Filter>("ALL");
+  const [program, setProgram] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
@@ -624,17 +626,17 @@ function TeamsTable({ data }: { data: AdminOverview }) {
   };
   const waiting = (startup: AdminStartup) =>
     !activeMentorshipFor(data, startup.id);
-  const counts = {
-    Tümü: teams.length,
-    "Aktif mentorluk": teams.filter((startup) => !waiting(startup)).length,
-    "Eşleşme bekliyor": teams.filter(waiting).length,
-    Riskli: teams.filter(risky).length,
+  const counts: Partial<Record<Filter, number>> = {
+    ALL: teams.length,
+    MENTORED: teams.filter((startup) => !waiting(startup)).length,
+    WAITING: teams.filter(waiting).length,
+    RISKY: teams.filter(risky).length,
   };
   const rows = teams.filter((startup) => {
-    if (filter === "Aktif mentorluk" && waiting(startup)) return false;
-    if (filter === "Eşleşme bekliyor" && !waiting(startup)) return false;
-    if (filter === "Riskli" && !risky(startup)) return false;
-    if (program !== "Tümü" && startup.programName !== program) return false;
+    if (filter === "MENTORED" && waiting(startup)) return false;
+    if (filter === "WAITING" && !waiting(startup)) return false;
+    if (filter === "RISKY" && !risky(startup)) return false;
+    if (program && startup.programName !== program) return false;
     return `${startup.name} ${startup.founderName ?? ""} ${startup.programName}`
       .toLocaleLowerCase("tr")
       .includes(search.toLocaleLowerCase("tr"));
@@ -648,7 +650,7 @@ function TeamsTable({ data }: { data: AdminOverview }) {
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={["Tümü", "Aktif mentorluk", "Eşleşme bekliyor", "Riskli"]}
+        filters={["ALL", "MENTORED", "WAITING", "RISKY"]}
         counts={counts}
         filter={filter}
         onFilter={(value) => {
@@ -660,7 +662,7 @@ function TeamsTable({ data }: { data: AdminOverview }) {
           setSearch(value);
           setPage(0);
         }}
-        searchPlaceholder="Takım veya yetkili ara"
+        searchPlaceholder={t("searchTeams")}
         program={program}
         programs={data.programs.map((item) => item.name)}
         onProgram={(value) => {
@@ -672,17 +674,17 @@ function TeamsTable({ data }: { data: AdminOverview }) {
         <div
           className={`${teamCols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] font-medium text-[#858c96]`}
         >
-          <span>Takım</span>
-          <span>Mentorluk durumu</span>
-          <span>Sağlık</span>
-          <span>Program</span>
-          <span>Takım yetkilisi</span>
-          <span>Ekip</span>
-          <span>Mentor</span>
+          <span>{t("teamColumns.team")}</span>
+          <span>{t("teamColumns.mentorship")}</span>
+          <span>{t("teamColumns.health")}</span>
+          <span>{t("teamColumns.program")}</span>
+          <span>{t("teamColumns.lead")}</span>
+          <span>{t("teamColumns.team2")}</span>
+          <span>{t("teamColumns.mentor")}</span>
           <span />
         </div>
         {visible.length === 0 ? (
-          <EmptyNote>Bu filtrede takım yok.</EmptyNote>
+          <EmptyNote>{t("noTeams")}</EmptyNote>
         ) : (
           visible.map((startup) => {
             const mentorship = activeMentorshipFor(data, startup.id);
@@ -707,28 +709,30 @@ function TeamsTable({ data }: { data: AdminOverview }) {
                       {startup.name}
                     </span>
                     <span className="block truncate text-[12px] text-[#858c96]">
-                      {startup.sector ?? "Sektör yok"}
+                      {startup.sector ?? t("noSector")}
                     </span>
                   </span>
                 </span>
                 {mentorship ? (
                   <StatusPill tone={attention ? "amber" : "green"}>
-                    {mentorship.status === "ACTIVE" ? "Aktif" : "Planlandı"}
+                    {mentorship.status === "ACTIVE"
+                      ? t("active")
+                      : t("planned")}
                   </StatusPill>
                 ) : (
-                  <StatusPill tone="amber">Eşleşme bekliyor</StatusPill>
+                  <StatusPill tone="amber">{t("waiting")}</StatusPill>
                 )}
                 <span>
                   {!mentorship ? (
                     <span className="text-[13px] text-[#aeb4bc]">—</span>
                   ) : attention ? (
-                    <StatusPill tone="red">Riskli</StatusPill>
+                    <StatusPill tone="red">{t("health.RISKY")}</StatusPill>
                   ) : blocked ? (
                     <span className="rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
-                      Takip
+                      {t("health.FOLLOW_UP")}
                     </span>
                   ) : (
-                    <StatusPill tone="green">Sağlıklı</StatusPill>
+                    <StatusPill tone="green">{t("health.HEALTHY")}</StatusPill>
                   )}
                 </span>
                 <span>
@@ -743,11 +747,13 @@ function TeamsTable({ data }: { data: AdminOverview }) {
                         {startup.founderName}
                       </span>
                       <span className="block truncate text-[12px] text-[#858c96]">
-                        {startup.founderJobTitle ?? "Yetkili"}
+                        {startup.founderJobTitle ?? t("leadFallback")}
                       </span>
                     </>
                   ) : (
-                    <span className="text-[13px] text-[#aeb4bc]">Atanmadı</span>
+                    <span className="text-[13px] text-[#aeb4bc]">
+                      {t("notAssigned")}
+                    </span>
                   )}
                 </span>
                 <span className="text-[13.5px] font-medium text-[#22262b]">
@@ -764,7 +770,9 @@ function TeamsTable({ data }: { data: AdminOverview }) {
                       </span>
                     </>
                   ) : (
-                    <span className="text-[13px] text-[#aeb4bc]">Atanmadı</span>
+                    <span className="text-[13px] text-[#aeb4bc]">
+                      {t("notAssigned")}
+                    </span>
                   )}
                 </span>
                 <span className="flex justify-end">
@@ -779,7 +787,7 @@ function TeamsTable({ data }: { data: AdminOverview }) {
           })
         )}
       </TableCard>
-      <Pager total={rows.length} page={page} onPage={setPage} noun="takım" />
+      <Pager total={rows.length} page={page} onPage={setPage} noun="teams" />
       {selected ? (
         <TeamDrawer
           startup={selected}
@@ -800,10 +808,11 @@ function CoordinatorDrawer({
   programs: AdminProgram[];
   onClose: () => void;
 }) {
-  const [section, setSection] = useState("Genel Bakış");
+  const t = useTranslations("adminUsers");
+  const [section, setSection] = useState<Section>("OVERVIEW");
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
-  const activity = relativeTime(user.createdAt);
+  const activity = relativeTime(user.createdAt, t);
 
   function requestClose() {
     if (closing.current) return;
@@ -835,7 +844,9 @@ function CoordinatorDrawer({
                 <p className="text-[18px] font-semibold text-[#22262b]">
                   {user.fullName}
                 </p>
-                <span className="text-[12px] text-[#858c96]">Koordinatör</span>
+                <span className="text-[12px] text-[#858c96]">
+                  {t("roleCoordinator")}
+                </span>
                 <AccessChip
                   status={user.status}
                   passwordSet={user.passwordSet}
@@ -845,14 +856,14 @@ function CoordinatorDrawer({
                 {user.email}
               </p>
               <p className="text-[12px] text-[#858c96]">
-                {programs.length} program
-                {activity ? ` · kayıt ${activity.label}` : ""}
+                {t("programCount", { count: programs.length })}
+                {activity ? t("registered", { when: activity.label }) : ""}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={requestClose}
             className="grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f5f6f8]"
           >
@@ -860,40 +871,34 @@ function CoordinatorDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {["Genel Bakış", "Atanmış Programlar", "Erişim", "Aktivite"].map(
+          {(["OVERVIEW", "ASSIGNED", "ACCESS", "ACTIVITY"] as const).map(
             (item) => (
-              <button
+              <SectionTab
                 key={item}
-                type="button"
+                label={t(`sections.${item}`)}
+                active={section === item}
                 onClick={() => setSection(item)}
-                className={`pb-3 text-[13px] ${
-                  section === item
-                    ? "border-b-2 border-[#22262b] font-medium text-[#22262b]"
-                    : "text-[#858c96]"
-                }`}
-              >
-                {item}
-              </button>
+              />
             ),
           )}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "Genel Bakış" ? (
+          {section === "OVERVIEW" ? (
             <div className="space-y-3">
               <p>
-                <span className="text-[#858c96]">E-posta · </span>
+                <span className="text-[#858c96]">{t("email")}</span>
                 {user.email}
               </p>
               <p>
-                <span className="text-[#858c96]">Unvan · </span>
+                <span className="text-[#858c96]">{t("jobTitle")}</span>
                 {user.jobTitle ?? "—"}
               </p>
-              <ProgramChips programs={programs} />
+              <ProgramChips programs={programs} empty={t("unassigned")} />
             </div>
           ) : null}
-          {section === "Atanmış Programlar" ? (
+          {section === "ASSIGNED" ? (
             programs.length === 0 ? (
-              <p className="text-[#858c96]">Atanmış program yok.</p>
+              <p className="text-[#858c96]">{t("noPrograms")}</p>
             ) : (
               <ul className="space-y-2">
                 {programs.map((item) => (
@@ -903,29 +908,30 @@ function CoordinatorDrawer({
                   >
                     <p className="font-medium">{item.name}</p>
                     <p className="text-[12.5px] text-[#858c96]">
-                      {item.startupCount} takım · {item.acceptedMentorCount}{" "}
-                      mentor
+                      {t("teamsMentors", {
+                        teams: item.startupCount,
+                        mentors: item.acceptedMentorCount,
+                      })}
                     </p>
                   </li>
                 ))}
               </ul>
             )
           ) : null}
-          {section === "Erişim" ? (
+          {section === "ACCESS" ? (
             <div className="space-y-3">
               <AccessChip status={user.status} passwordSet={user.passwordSet} />
               <p className="text-[13px] leading-[1.5] text-[#676e78]">
-                Pasife alınan koordinatör giriş yapamaz; programları ve
-                mesajları olduğu gibi kalır.
+                {t("accessNote")}
               </p>
               <CoordinatorAccessControl id={user.id} status={user.status} />
             </div>
           ) : null}
-          {section === "Aktivite" ? (
+          {section === "ACTIVITY" ? (
             <p className="text-[#676e78]">
               {activity
-                ? `Hesap ${activity.label} oluşturuldu.`
-                : "Kayıt tarihi yok."}
+                ? t("createdAt", { when: activity.label })
+                : t("noCreatedAt")}
             </p>
           ) : null}
         </div>
@@ -945,10 +951,12 @@ function MentorDrawer({
   mentorships: AdminOverview["mentorships"];
   onClose: () => void;
 }) {
-  const [section, setSection] = useState("Genel Bakış");
+  const t = useTranslations("adminUsers");
+  const optionLabel = useOptionLabel();
+  const [section, setSection] = useState<Section>("OVERVIEW");
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
-  const activity = relativeTime(user.createdAt);
+  const activity = relativeTime(user.createdAt, t);
   const stale = mentorships.some(
     (item) => item.status === "ACTIVE" && needsAttention(item),
   );
@@ -983,7 +991,9 @@ function MentorDrawer({
                 <p className="text-[18px] font-semibold text-[#22262b]">
                   {user.fullName}
                 </p>
-                <span className="text-[12px] text-[#858c96]">Mentor</span>
+                <span className="text-[12px] text-[#858c96]">
+                  {t("roleMentor")}
+                </span>
                 <AccessChip
                   status={user.status}
                   passwordSet={user.passwordSet}
@@ -993,14 +1003,14 @@ function MentorDrawer({
                 {user.email}
               </p>
               <p className="text-[12px] text-[#858c96]">
-                {mentorships.length} mentorluk
-                {activity ? ` · kayıt ${activity.label}` : ""}
+                {t("mentorshipCount", { count: mentorships.length })}
+                {activity ? t("registered", { when: activity.label }) : ""}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={requestClose}
             className="grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f5f6f8]"
           >
@@ -1008,58 +1018,52 @@ function MentorDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {["Genel Bakış", "Programlar", "Mentorluklar", "Aktivite"].map(
+          {(["OVERVIEW", "PROGRAMS", "MENTORSHIPS", "ACTIVITY"] as const).map(
             (item) => (
-              <button
+              <SectionTab
                 key={item}
-                type="button"
+                label={t(`sections.${item}`)}
+                active={section === item}
                 onClick={() => setSection(item)}
-                className={`pb-3 text-[13px] ${
-                  section === item
-                    ? "border-b-2 border-[#22262b] font-medium text-[#22262b]"
-                    : "text-[#858c96]"
-                }`}
-              >
-                {item}
-              </button>
+              />
             ),
           )}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "Genel Bakış" ? (
+          {section === "OVERVIEW" ? (
             <div className="space-y-3">
               <p>
-                <span className="text-[#858c96]">E-posta · </span>
+                <span className="text-[#858c96]">{t("email")}</span>
                 {user.email}
               </p>
               <p>
-                <span className="text-[#858c96]">Unvan · </span>
+                <span className="text-[#858c96]">{t("jobTitle")}</span>
                 {user.jobTitle ?? "—"}
               </p>
               <div className="flex flex-wrap gap-1.5">
                 {(user.expertise ?? []).length === 0 ? (
-                  <span className="text-[#aeb4bc]">Uzmanlık yok</span>
+                  <span className="text-[#aeb4bc]">{t("noExpertise")}</span>
                 ) : (
                   user.expertise?.map((item) => (
                     <span
                       key={item}
                       className="rounded-full bg-[#fff1ec] px-2.5 py-1 text-[11.5px] font-medium text-[#e0522a]"
                     >
-                      {item}
+                      {optionLabel("mentorTopic", item)}
                     </span>
                   ))
                 )}
               </div>
               {stale ? (
                 <span className="inline-flex rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
-                  Görüşme yok
+                  {t("noMeeting")}
                 </span>
               ) : null}
             </div>
           ) : null}
-          {section === "Programlar" ? (
+          {section === "PROGRAMS" ? (
             programs.length === 0 ? (
-              <p className="text-[#858c96]">Atanmış program yok.</p>
+              <p className="text-[#858c96]">{t("noPrograms")}</p>
             ) : (
               <ul className="space-y-2">
                 {programs.map((item) => (
@@ -1072,17 +1076,17 @@ function MentorDrawer({
                       {item.mentors.find(
                         (mentor) => mentor.mentorId === user.id,
                       )?.status === "PENDING"
-                        ? "Davet bekliyor"
-                        : "Kabul edildi"}
+                        ? t("invitePending")
+                        : t("accepted")}
                     </p>
                   </li>
                 ))}
               </ul>
             )
           ) : null}
-          {section === "Mentorluklar" ? (
+          {section === "MENTORSHIPS" ? (
             mentorships.length === 0 ? (
-              <p className="text-[#858c96]">Aktif mentorluk yok.</p>
+              <p className="text-[#858c96]">{t("noActiveMentorship")}</p>
             ) : (
               <ul className="space-y-2">
                 {mentorships.map((item) => (
@@ -1092,21 +1096,21 @@ function MentorDrawer({
                   >
                     <p className="font-medium">{item.organizationName}</p>
                     <p className="text-[12.5px] text-[#858c96]">
-                      {item.status === "ACTIVE" ? "Aktif" : "Planlandı"}
+                      {item.status === "ACTIVE" ? t("active") : t("planned")}
                       {item.daysSinceMeeting == null
                         ? ""
-                        : ` · son görüşme ${item.daysSinceMeeting} gün önce`}
+                        : t("lastMeeting", { days: item.daysSinceMeeting })}
                     </p>
                   </li>
                 ))}
               </ul>
             )
           ) : null}
-          {section === "Aktivite" ? (
+          {section === "ACTIVITY" ? (
             <p className="text-[#676e78]">
               {activity
-                ? `Hesap ${activity.label} oluşturuldu.`
-                : "Kayıt tarihi yok."}
+                ? t("createdAt", { when: activity.label })
+                : t("noCreatedAt")}
             </p>
           ) : null}
         </div>
@@ -1124,7 +1128,9 @@ function TeamDrawer({
   data: AdminOverview;
   onClose: () => void;
 }) {
-  const [section, setSection] = useState("Genel Bakış");
+  const t = useTranslations("adminUsers");
+  const optionLabel = useOptionLabel();
+  const [section, setSection] = useState<Section>("OVERVIEW");
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
   const mentorship = activeMentorshipFor(data, startup.id);
@@ -1141,10 +1147,10 @@ function TeamDrawer({
   const health = !mentorship
     ? null
     : attention
-      ? "Riskli"
+      ? ("RISKY" as const)
       : bottlenecks.length > 0
-        ? "Takip"
-        : "Sağlıklı";
+        ? ("FOLLOW_UP" as const)
+        : ("HEALTHY" as const);
 
   function requestClose() {
     if (closing.current) return;
@@ -1176,35 +1182,39 @@ function TeamDrawer({
                 <p className="text-[18px] font-semibold text-[#22262b]">
                   {startup.name}
                 </p>
-                <span className="text-[12px] text-[#858c96]">Takım</span>
+                <span className="text-[12px] text-[#858c96]">
+                  {t("roleTeam")}
+                </span>
                 {health ? (
                   <StatusPill
                     tone={
-                      health === "Riskli"
+                      health === "RISKY"
                         ? "red"
-                        : health === "Takip"
+                        : health === "FOLLOW_UP"
                           ? "amber"
                           : "green"
                     }
                   >
-                    {health}
+                    {t(`health.${health}`)}
                   </StatusPill>
                 ) : (
-                  <StatusPill tone="amber">Eşleşme bekliyor</StatusPill>
+                  <StatusPill tone="amber">{t("waiting")}</StatusPill>
                 )}
               </div>
               <p className="truncate text-[12.5px] text-[#858c96]">
-                {startup.sector ?? "Sektör yok"}
+                {startup.sector ?? t("noSector")}
               </p>
               <p className="text-[12px] text-[#858c96]">
                 {startup.programName}
-                {members.length > 0 ? ` · ${members.length} kişi` : ""}
+                {members.length > 0
+                  ? t("people", { count: members.length })
+                  : ""}
               </p>
             </div>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={requestClose}
             className="grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f5f6f8]"
           >
@@ -1212,47 +1222,41 @@ function TeamDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {["Genel Bakış", "Ekip", "Mentorluk"].map((item) => (
-            <button
+          {(["OVERVIEW", "TEAM", "MENTORSHIP"] as const).map((item) => (
+            <SectionTab
               key={item}
-              type="button"
+              label={t(`sections.${item}`)}
+              active={section === item}
               onClick={() => setSection(item)}
-              className={`pb-3 text-[13px] ${
-                section === item
-                  ? "border-b-2 border-[#22262b] font-medium text-[#22262b]"
-                  : "text-[#858c96]"
-              }`}
-            >
-              {item}
-            </button>
+            />
           ))}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "Genel Bakış" ? (
+          {section === "OVERVIEW" ? (
             <div className="space-y-3">
               <p>
-                <span className="text-[#858c96]">Program · </span>
+                <span className="text-[#858c96]">{t("programField")}</span>
                 {startup.programName}
               </p>
               <p>
-                <span className="text-[#858c96]">Sektör · </span>
+                <span className="text-[#858c96]">{t("sectorField")}</span>
                 {startup.sector ?? "—"}
               </p>
               <p>
-                <span className="text-[#858c96]">Yetkili · </span>
+                <span className="text-[#858c96]">{t("leadField")}</span>
                 {startup.founderName
                   ? `${startup.founderName}${startup.founderJobTitle ? ` · ${startup.founderJobTitle}` : ""}`
-                  : "Atanmadı"}
+                  : t("notAssigned")}
               </p>
               <p>
-                <span className="text-[#858c96]">Mentor · </span>
-                {mentorship?.mentorName ?? "Atanmadı"}
+                <span className="text-[#858c96]">{t("mentorField")}</span>
+                {mentorship?.mentorName ?? t("notAssigned")}
               </p>
             </div>
           ) : null}
-          {section === "Ekip" ? (
+          {section === "TEAM" ? (
             members.length === 0 ? (
-              <p className="text-[#858c96]">Kayıtlı üye yok.</p>
+              <p className="text-[#858c96]">{t("noMembers")}</p>
             ) : (
               <ul className="space-y-2">
                 {members.map((member) => (
@@ -1270,20 +1274,22 @@ function TeamDrawer({
               </ul>
             )
           ) : null}
-          {section === "Mentorluk" ? (
+          {section === "MENTORSHIP" ? (
             <div className="space-y-4">
               {mentorship ? (
                 <div className="rounded-[20px] border border-[#e9ecef] px-4 py-3">
                   <p className="font-medium">{mentorship.mentorName}</p>
                   <p className="text-[12.5px] text-[#858c96]">
-                    {mentorship.status === "ACTIVE" ? "Aktif" : "Planlandı"}
+                    {mentorship.status === "ACTIVE"
+                      ? t("active")
+                      : t("planned")}
                     {mentorship.daysSinceMeeting == null
                       ? ""
-                      : ` · son görüşme ${mentorship.daysSinceMeeting} gün önce`}
+                      : t("lastMeeting", { days: mentorship.daysSinceMeeting })}
                   </p>
                 </div>
               ) : (
-                <p className="text-[#858c96]">Eşleşme bekliyor.</p>
+                <p className="text-[#858c96]">{t("waitingMatch")}</p>
               )}
               {bottlenecks.length > 0 ? (
                 <ul className="space-y-2">
@@ -1308,7 +1314,9 @@ function TeamDrawer({
                       className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
                     >
                       <p className="font-medium">
-                        {item.supportArea ?? "Destek talebi"}
+                        {item.supportArea
+                          ? optionLabel("supportArea", item.supportArea)
+                          : t("supportRequest")}
                       </p>
                       <p className="text-[12.5px] text-[#858c96]">
                         {item.status}
@@ -1337,10 +1345,10 @@ function Toolbar({
   programs,
   onProgram,
 }: {
-  filters: string[];
-  counts: Record<string, number>;
-  filter: string;
-  onFilter: (value: string) => void;
+  filters: Filter[];
+  counts: Partial<Record<Filter, number>>;
+  filter: Filter;
+  onFilter: (value: Filter) => void;
   search: string;
   onSearch: (value: string) => void;
   searchPlaceholder: string;
@@ -1348,6 +1356,7 @@ function Toolbar({
   programs: string[];
   onProgram: (value: string) => void;
 }) {
+  const t = useTranslations("adminUsers");
   return (
     <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center">
       <div className="flex w-max max-w-full gap-1 overflow-x-auto rounded-full bg-[#f5f6f8] p-1">
@@ -1364,7 +1373,7 @@ function Toolbar({
                   : "text-[#676e78]"
               }`}
             >
-              {id}
+              {t(`filters.${id}`)}
               <span className="text-[12px] font-medium text-[#858c96]">
                 {counts[id] ?? 0}
               </span>
@@ -1383,16 +1392,18 @@ function Toolbar({
           />
         </label>
         <label className="flex items-center gap-2 rounded-full border border-[#e9ecef] bg-white py-2.5 pr-3.5 pl-4">
-          <span className="text-[13px] text-[#858c96]">Program:</span>
+          <span className="text-[13px] text-[#858c96]">{t("program")}</span>
           <select
-            aria-label="Program"
+            aria-label={t("programLabel")}
             value={program}
             onChange={(event) => onProgram(event.target.value)}
             className="appearance-none bg-transparent text-[13.5px] font-medium text-[#22262b] outline-none"
           >
-            <option>Tümü</option>
+            <option value="">{t("all")}</option>
             {programs.map((name) => (
-              <option key={name}>{name}</option>
+              <option key={name} value={name}>
+                {name}
+              </option>
             ))}
           </select>
           <AdminIcon src="/admin/chevron-down-sm.svg" width={16} height={16} />
@@ -1434,10 +1445,10 @@ function PersonCell({
 
 function ProgramChips({
   programs,
-  empty = "Atanmamış",
+  empty,
 }: {
   programs: { id: string; name: string }[];
-  empty?: string;
+  empty: string;
 }) {
   if (programs.length === 0) {
     return <span className="text-[13px] text-[#aeb4bc]">{empty}</span>;
@@ -1463,13 +1474,17 @@ function AccessChip({
   status: AdminUser["status"];
   passwordSet?: AdminUser["passwordSet"];
 }) {
+  const t = useTranslations("adminUsers");
   // An added coordinator is approved at once but cannot sign in before the e-mailed link sets a password.
   if (status === "APPROVED" && passwordSet === false)
-    return <StatusPill tone="amber">Şifre belirlenmedi</StatusPill>;
-  if (status === "APPROVED") return <StatusPill tone="green">Aktif</StatusPill>;
-  if (status === "PENDING")
-    return <StatusPill tone="amber">Onay bekliyor</StatusPill>;
-  return <StatusPill tone="neutral">Pasif</StatusPill>;
+    return <StatusPill tone="amber">{t("passwordNotSet")}</StatusPill>;
+  if (status === "APPROVED") {
+    return <StatusPill tone="green">{t("active")}</StatusPill>;
+  }
+  if (status === "PENDING") {
+    return <StatusPill tone="amber">{t("pending")}</StatusPill>;
+  }
+  return <StatusPill tone="neutral">{t("inactive")}</StatusPill>;
 }
 
 function StatusPill({
@@ -1522,6 +1537,7 @@ function RowMenu({
 }: {
   items: { label: string; onClick: () => void }[];
 }) {
+  const t = useTranslations("adminUsers");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -1538,7 +1554,7 @@ function RowMenu({
     <div className="relative" ref={ref}>
       <button
         type="button"
-        aria-label="Diğer işlemler"
+        aria-label={t("moreActions")}
         aria-expanded={open}
         onClick={() => setOpen((current) => !current)}
         className="grid size-8 place-items-center"
@@ -1567,13 +1583,38 @@ function RowMenu({
 }
 
 function DetailButton({ onClick }: { onClick?: () => void }) {
+  const t = useTranslations("adminUsers");
   return (
     <button
       type="button"
       onClick={onClick}
       className="rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium text-[#22262b]"
     >
-      Detay
+      {t("detail")}
+    </button>
+  );
+}
+
+function SectionTab({
+  label,
+  active,
+  onClick,
+}: {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`pb-3 text-[13px] ${
+        active
+          ? "border-b-2 border-[#22262b] font-medium text-[#22262b]"
+          : "text-[#858c96]"
+      }`}
+    >
+      {label}
     </button>
   );
 }
@@ -1585,6 +1626,7 @@ function DecideButtons({
   busy: boolean;
   onDecide: (status: AccountDecision) => void;
 }) {
+  const t = useTranslations("adminUsers");
   return (
     <>
       <button
@@ -1593,7 +1635,7 @@ function DecideButtons({
         onClick={() => onDecide(UserAccountStatus.Rejected)}
         className="rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
       >
-        Reddet
+        {t("reject")}
       </button>
       <button
         type="button"
@@ -1601,7 +1643,7 @@ function DecideButtons({
         onClick={() => onDecide(UserAccountStatus.Approved)}
         className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white disabled:opacity-50"
       >
-        Onayla
+        {t("approve")}
       </button>
     </>
   );
@@ -1626,15 +1668,19 @@ function Pager({
   total: number;
   page: number;
   onPage: (page: number) => void;
-  noun: string;
+  noun: keyof (typeof messages)["adminUsers"]["nouns"];
 }) {
+  const t = useTranslations("adminUsers");
+  const label = t(`nouns.${noun}`, { count: total });
   const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const start = total === 0 ? 0 : page * PAGE_SIZE + 1;
   const end = Math.min(total, (page + 1) * PAGE_SIZE);
   return (
     <div className="flex items-center justify-between text-[12.5px] text-[#858c96]">
       <span>
-        {total === 0 ? `0 ${noun}` : `${start}–${end} / ${total} ${noun}`}
+        {total === 0
+          ? t("rangeEmpty", { noun: label })
+          : t("range", { start, end, total, noun: label })}
       </span>
       <span className="flex items-center gap-2">
         <button
@@ -1643,35 +1689,34 @@ function Pager({
           onClick={() => onPage(page - 1)}
           className="disabled:opacity-40"
         >
-          Önceki
+          {t("previous")}
         </button>
-        <span>
-          Sayfa {page + 1} / {pages}
-        </span>
+        <span>{t("page", { page: page + 1, pages })}</span>
         <button
           type="button"
           disabled={page + 1 >= pages}
           onClick={() => onPage(page + 1)}
           className="disabled:opacity-40"
         >
-          Sonraki
+          {t("next")}
         </button>
       </span>
     </div>
   );
 }
 
-function relativeTime(value?: string | null) {
+function relativeTime(value: string | null | undefined, t: UsersT) {
   if (!value) return null;
   const then = new Date(value).getTime();
   if (Number.isNaN(then)) return null;
   const minutes = Math.floor((Date.now() - then) / 60000);
-  let label = "Az önce";
-  if (minutes >= 60 * 24 * 2)
-    label = `${Math.floor(minutes / (60 * 24))} gün önce`;
-  else if (minutes >= 60 * 24) label = "Dün";
-  else if (minutes >= 60) label = `${Math.floor(minutes / 60)} saat önce`;
-  else if (minutes >= 1) label = `${minutes} dk önce`;
+  let label = t("justNow");
+  if (minutes >= 60 * 24 * 2) {
+    label = t("daysAgo", { count: Math.floor(minutes / (60 * 24)) });
+  } else if (minutes >= 60 * 24) label = t("yesterday");
+  else if (minutes >= 60) {
+    label = t("hoursAgo", { count: Math.floor(minutes / 60) });
+  } else if (minutes >= 1) label = t("minutesAgo", { count: minutes });
   return { label, stale: minutes >= 60 * 24 * 7 };
 }
 
