@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorFrame } from "@/components/coordinator/coordinator-frame";
 import { type AppSession, UserRole } from "@/interfaces/session";
+import { InLocale } from "@test/test-utils";
 
 const mockSession = vi.fn<() => AppSession | null>();
 const replace = vi.fn();
@@ -67,6 +68,30 @@ describe("CoordinatorFrame", () => {
     expect(menu).not.toHaveTextContent("Yakında");
     expect(screen.getByText("Koordinatör")).toBeInTheDocument();
     expect(screen.getByText("Programlar içeriği")).toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    mockSession.mockReturnValue(session(UserRole.Coordinator));
+
+    render(
+      <InLocale locale="en">
+        <CoordinatorFrame>
+          <p>Programs</p>
+        </CoordinatorFrame>
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("navigation", { name: "Coordinator menu" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "My programs" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByText("Coordinator")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Open menu" }),
+    ).toBeInTheDocument();
   });
 
   it("lets an admin in too", () => {

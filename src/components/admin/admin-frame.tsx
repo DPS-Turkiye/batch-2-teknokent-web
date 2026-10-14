@@ -8,31 +8,31 @@ import { UserRole } from "@/interfaces/session";
 const NAV: RoleNavItem[] = [
   {
     href: "/admin",
-    label: "Anasayfa",
+    label: "home",
     icon: "/admin/nav-home.svg",
     match: (path) => path === "/admin",
   },
   {
     href: "/admin/programs",
-    label: "Programlar",
+    label: "programs",
     icon: "/admin/nav-folder.svg",
     match: (path) => path.startsWith("/admin/programs"),
   },
   {
     href: "/admin/users",
-    label: "Kullanıcılar",
+    label: "users",
     icon: "/admin/nav-users.svg",
     match: (path) => path.startsWith("/admin/users"),
   },
   {
     href: "/admin/mentorships",
-    label: "Mentorluklar",
+    label: "mentorships",
     icon: "/admin/nav-lamp.svg",
     match: (path) => path.startsWith("/admin/mentorships"),
   },
   {
     href: "/admin/reporting",
-    label: "Raporlama",
+    label: "reporting",
     icon: "/admin/nav-chart.svg",
     match: (path) => path.startsWith("/admin/reporting"),
   },
@@ -45,7 +45,7 @@ export function AdminFrame({ children }: { children: ReactNode }) {
     <RoleFrame
       allowedRoles={ADMIN_ONLY}
       homeHref="/admin"
-      menuLabel="Admin menüsü"
+      menuLabel="adminMenu"
       nav={NAV}
     >
       {children}

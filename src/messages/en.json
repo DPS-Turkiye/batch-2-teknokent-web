@@ -3040,5 +3040,70 @@
       "nextSteps": "Next steps",
       "none": "None noted."
     }
+  },
+  "roleFrame": {
+    "soon": "Coming soon",
+    "coordinatorMenu": "Coordinator menu",
+    "adminMenu": "Admin menu",
+    "nav": {
+      "home": "Home",
+      "myPrograms": "My programs",
+      "programs": "Programs",
+      "users": "Users",
+      "mentorships": "Mentorships",
+      "calendar": "Calendar",
+      "messages": "Messages",
+      "reporting": "Reporting"
+    }
+  },
+  "coordinatorHome": {
+    "kinds": {
+      "MEETING": "Meeting",
+      "EVENT": "Event",
+      "DEADLINE": "Deadline",
+      "ACTION": "Action"
+    },
+    "allDay": "During the day",
+    "metrics": {
+      "active": "Active mentorships",
+      "activeNote": "{teams, plural, one {# team} other {# teams}} · {mentors, plural, one {# mentor} other {# mentors}}",
+      "stale": "No meeting for a long time",
+      "staleNote": "meeting threshold passed",
+      "overdue": "Overdue actions",
+      "overdueNote": "past their due date",
+      "bottlenecks": "New / recurring bottlenecks",
+      "bottlenecksNote": "on the team's side",
+      "slowMentors": "Attendance / communication issues",
+      "slowMentorsNote": "on the mentor's side"
+    },
+    "week": "Today / This week",
+    "today": "Today",
+    "thisWeek": "This week",
+    "nextMeeting": "Next meeting",
+    "onlineMeet": "Online · Google Meet",
+    "meeting": "Meeting",
+    "sequence": "Meeting {n}",
+    "mentor": "Mentor",
+    "mentorWithTitle": "Mentor · {title}",
+    "team": "Team",
+    "teamWithFounder": "Team · {founder}",
+    "join": "Join the meeting",
+    "noMeeting": "No meeting is scheduled.",
+    "emptyAgenda": "Nothing is planned in this period.",
+    "actions": "Actions",
+    "program": "Program:",
+    "allPrograms": "All programs",
+    "pendingMentors": "Mentors yet to reply",
+    "pendingMentorsSummary": "{count, plural, one {# mentor} other {# mentors}} · a program invitation or join request is waiting",
+    "awaitingTeams": "Teams waiting for a match",
+    "awaitingTeamsSummary": "{count, plural, one {# team} other {# teams}} · no mentor assigned · the oldest {days, plural, one {# day} other {# days}} ago",
+    "missingNotes": "Missing meeting notes",
+    "missingNotesSummary": "{count, plural, one {# meeting} other {# meetings}} · no notes in the last 14 days",
+    "waiting": "Waiting",
+    "attention": "Attention",
+    "match": "Match",
+    "noActions": "No actions are waiting right now.",
+    "waitingToday": "today",
+    "waitingDays": "waiting for {days, plural, one {# day} other {# days}}"
   }
 }

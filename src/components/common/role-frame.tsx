@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AdminIcon } from "@/components/admin/admin-ui";
@@ -13,12 +14,13 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import type { UserRole } from "@/interfaces/session";
+import type messages from "@/messages/tr.json";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 
 export type RoleNavItem = {
   href: string;
-  label: string;
+  label: keyof (typeof messages)["roleFrame"]["nav"];
   icon: string;
   match: (path: string) => boolean;
   /** Shown but not yet clickable: the screen has a design but no page yet. */
@@ -38,13 +40,14 @@ export function RoleFrame({
 }: {
   allowedRoles: UserRole[];
   homeHref: string;
-  menuLabel: string;
+  menuLabel: "coordinatorMenu" | "adminMenu";
   nav: RoleNavItem[];
   children: ReactNode;
 }) {
   const session = useAppSession();
   const { isLoading } = useSession();
   const router = useRouter();
+  const t = useTranslations("common");
   const allowed = session != null && allowedRoles.includes(session.role);
 
   useEffect(() => {
@@ -57,7 +60,7 @@ export function RoleFrame({
   if (isLoading || !allowed) {
     return (
       <div className="grid min-h-screen place-items-center bg-white text-sm text-[#858c96]">
-        Yükleniyor…
+        {t("loading")}
       </div>
     );
   }
@@ -76,17 +79,20 @@ function RoleShell({
   children,
 }: {
   homeHref: string;
-  menuLabel: string;
+  menuLabel: "coordinatorMenu" | "adminMenu";
   nav: RoleNavItem[];
   children: ReactNode;
 }) {
   const pathname = usePathname();
   const session = useAppSession();
   const { logout } = useSession();
+  const t = useTranslations("appShell");
+  const tFrame = useTranslations("roleFrame");
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const workspace = roleWorkspace(session?.role);
-  const name = session?.fullName ?? workspace.roleLabel;
+  const roleLabel = session ? t(`roles.${session.role}`) : workspace.roleLabel;
+  const name = session?.fullName ?? roleLabel;
   const mark = initials(name) || "AD";
 
   async function handleLogout() {
@@ -100,7 +106,7 @@ function RoleShell({
         <div className="mx-auto flex h-[76px] max-w-[1440px] items-center justify-between gap-3 px-4 sm:h-[106px] sm:px-8 lg:px-12">
           <MentonWordmark href={homeHref} />
           <nav
-            aria-label={menuLabel}
+            aria-label={tFrame(menuLabel)}
             className="hidden items-center gap-1 rounded-full border border-[#f0f2f4] bg-[#fcfcfd] p-2 shadow-[0_8px_24px_rgba(33,38,43,0.06)] lg:flex"
           >
             {nav.map((item) => (
@@ -130,7 +136,7 @@ function RoleShell({
                     {name}
                   </span>
                   <span className="block text-[11px] text-[#858c96]">
-                    {workspace.roleLabel}
+                    {roleLabel}
                   </span>
                 </span>
                 <AdminIcon
@@ -152,7 +158,7 @@ function RoleShell({
                     className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
                   >
                     <LogOut className="size-4" />
-                    Çıkış yap
+                    {t("logout")}
                   </button>
                 </div>
               ) : null}
@@ -160,7 +166,7 @@ function RoleShell({
             <button
               type="button"
               className="grid size-10 place-items-center rounded-full border border-[#e9ecef] lg:hidden"
-              aria-label={menuOpen ? "Menüyü kapat" : "Menüyü aç"}
+              aria-label={menuOpen ? t("closeMenu") : t("openMenu")}
               onClick={() => setMenuOpen((open) => !open)}
             >
               {menuOpen ? (
@@ -173,7 +179,7 @@ function RoleShell({
         </div>
         {menuOpen ? (
           <nav
-            aria-label={menuLabel}
+            aria-label={tFrame(menuLabel)}
             className="space-y-1 border-t border-[#f0f2f4] px-4 py-3 lg:hidden"
           >
             {nav.map((item) =>
@@ -184,7 +190,7 @@ function RoleShell({
                   className="flex items-center gap-2 rounded-2xl px-3 py-3 text-sm text-[#cfd4da]"
                 >
                   <NavGlyph src={item.icon} />
-                  {item.label}
+                  {tFrame(`nav.${item.label}`)}
                   <SoonBadge />
                 </span>
               ) : (
@@ -200,7 +206,7 @@ function RoleShell({
                   }`}
                 >
                   <NavGlyph src={item.icon} />
-                  {item.label}
+                  {tFrame(`nav.${item.label}`)}
                 </Link>
               ),
             )}
@@ -215,15 +221,16 @@ function RoleShell({
 }
 
 function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
+  const t = useTranslations("roleFrame");
   if (item.disabled) {
     return (
       <span
         aria-disabled="true"
-        title="Yakında"
+        title={t("soon")}
         className="flex cursor-default items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] text-[#cfd4da]"
       >
         <NavGlyph src={item.icon} />
-        {item.label}
+        {t(`nav.${item.label}`)}
       </span>
     );
   }
@@ -238,15 +245,16 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
       }`}
     >
       <NavGlyph src={item.icon} />
-      {item.label}
+      {t(`nav.${item.label}`)}
     </Link>
   );
 }
 
 function SoonBadge() {
+  const t = useTranslations("roleFrame");
   return (
     <span className="ml-auto rounded-full bg-[#f4f5f7] px-2 py-0.5 text-[11px] text-[#858c96]">
-      Yakında
+      {t("soon")}
     </span>
   );
 }

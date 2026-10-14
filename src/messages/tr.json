@@ -3040,5 +3040,70 @@
       "nextSteps": "Sonraki adımlar",
       "none": "Belirtilmedi."
     }
+  },
+  "roleFrame": {
+    "soon": "Yakında",
+    "coordinatorMenu": "Koordinatör menüsü",
+    "adminMenu": "Admin menüsü",
+    "nav": {
+      "home": "Anasayfa",
+      "myPrograms": "Programlarım",
+      "programs": "Programlar",
+      "users": "Kullanıcılar",
+      "mentorships": "Mentorluklar",
+      "calendar": "Takvim",
+      "messages": "Mesajlar",
+      "reporting": "Raporlama"
+    }
+  },
+  "coordinatorHome": {
+    "kinds": {
+      "MEETING": "Görüşme",
+      "EVENT": "Etkinlik",
+      "DEADLINE": "Deadline",
+      "ACTION": "Aksiyon"
+    },
+    "allDay": "Gün içinde",
+    "metrics": {
+      "active": "Aktif mentorluk",
+      "activeNote": "{teams} takım · {mentors} mentor",
+      "stale": "Uzun süredir görüşme yok",
+      "staleNote": "görüşme eşiği aşıldı",
+      "overdue": "Geciken aksiyonlar",
+      "overdueNote": "son tarihi geçmiş",
+      "bottlenecks": "Yeni / tekrarlayan darboğaz",
+      "bottlenecksNote": "takım kaynaklı",
+      "slowMentors": "Katılım / iletişim problemi",
+      "slowMentorsNote": "mentor kaynaklı"
+    },
+    "week": "Bugün / Bu Hafta",
+    "today": "Bugün",
+    "thisWeek": "Bu hafta",
+    "nextMeeting": "Sıradaki görüşme",
+    "onlineMeet": "Online · Google Meet",
+    "meeting": "Görüşme",
+    "sequence": "{n}. görüşme",
+    "mentor": "Mentor",
+    "mentorWithTitle": "Mentor · {title}",
+    "team": "Takım",
+    "teamWithFounder": "Takım · {founder}",
+    "join": "Görüşmeye katıl",
+    "noMeeting": "Planlanmış bir görüşme yok.",
+    "emptyAgenda": "Bu aralıkta planlanmış bir şey yok.",
+    "actions": "Aksiyonlar",
+    "program": "Program:",
+    "allPrograms": "Tüm programlar",
+    "pendingMentors": "Yanıt bekleyen mentor",
+    "pendingMentorsSummary": "{count} mentor · program daveti veya katılım isteği bekliyor",
+    "awaitingTeams": "Eşleşme bekleyen takım",
+    "awaitingTeamsSummary": "{count} takım · mentor ataması yapılmadı · en eskisi {days} gün önce",
+    "missingNotes": "Eksik görüşme çıktısı",
+    "missingNotesSummary": "{count} görüşme · son 14 günde not girilmedi",
+    "waiting": "Bekliyor",
+    "attention": "Dikkat",
+    "match": "Eşleştir",
+    "noActions": "Şu an bekleyen bir aksiyon yok.",
+    "waitingToday": "bugün",
+    "waitingDays": "{days} gündür bekliyor"
   }
 }

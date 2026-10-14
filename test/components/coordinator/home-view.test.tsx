@@ -9,7 +9,7 @@ import {
 } from "@/interfaces/coordinator-overview";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import { getCoordinatorOverview } from "@/lib/client/coordinator-overview";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-overview", () => ({
   getCoordinatorOverview: vi.fn(),
@@ -97,6 +97,32 @@ describe("CoordinatorHomeView", () => {
     ).toHaveAttribute("href", "https://meet.google.com/abc-defg-hij");
     expect(screen.getByText("Ara Rapor Teslimi")).toBeInTheDocument();
     expect(screen.getByText("Deadline")).toBeInTheDocument();
+  });
+
+  it("reads in English", async () => {
+    vi.mocked(getCoordinatorOverview).mockResolvedValue(overview());
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <CoordinatorHomeView />
+      </InLocale>,
+    );
+
+    expect(await screen.findByText("Active mentorships")).toBeInTheDocument();
+    expect(screen.getByText("36 teams · 28 mentors")).toBeInTheDocument();
+    expect(
+      screen.getByText("Online · Google Meet · Meeting 3"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Join the meeting" }),
+    ).toBeInTheDocument();
+    const row = screen.getByRole("button", {
+      name: /Teams waiting for a match/,
+    });
+    expect(row).toHaveTextContent("the oldest 4 days ago");
+    await user.click(row);
+    expect(screen.getByText("waiting for 4 days")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Match" })).toBeInTheDocument();
   });
 
   it("switches to today's agenda", async () => {

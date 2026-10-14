@@ -1,19 +1,19 @@
-import {
-  type CoordinatorAgendaItem,
-  CoordinatorAgendaKind,
-  type CoordinatorNextMeeting,
+import type { useTranslations } from "next-intl";
+
+import type {
+  CoordinatorAgendaItem,
+  CoordinatorNextMeeting,
 } from "@/interfaces/coordinator-overview";
+import { relativeDayLabel } from "@/lib/utils";
 
 export enum AgendaWindow {
   Today = "TODAY",
   Week = "WEEK",
 }
 
-export const AGENDA_KIND_LABELS: Record<CoordinatorAgendaKind, string> = {
-  [CoordinatorAgendaKind.Meeting]: "Görüşme",
-  [CoordinatorAgendaKind.Event]: "Etkinlik",
-  [CoordinatorAgendaKind.Deadline]: "Deadline",
-  [CoordinatorAgendaKind.Action]: "Aksiyon",
+export type CoordinatorHomeTexts = {
+  t: ReturnType<typeof useTranslations<"coordinatorHome">>;
+  locale: string;
 };
 
 function sameDay(a: Date, b: Date) {
@@ -31,41 +31,51 @@ export function agendaForToday(
   return agenda.filter((item) => sameDay(new Date(item.at), now));
 }
 
-const DAY_MONTH = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "short",
-});
-const TIME = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
+function dayMonth(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "short",
+  }).format(date);
+}
+
+function clock(locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 /** "Bugün" or "17 Eyl", and the time unless the item is a due date. */
-export function agendaWhen(item: CoordinatorAgendaItem, now = new Date()) {
+export function agendaWhen(
+  item: CoordinatorAgendaItem,
+  { t, locale }: CoordinatorHomeTexts,
+  now = new Date(),
+) {
   const at = new Date(item.at);
   return {
-    day: sameDay(at, now) ? "Bugün" : DAY_MONTH.format(at),
-    time: item.allDay ? "Gün içinde" : TIME.format(at),
+    day: sameDay(at, now) ? relativeDayLabel(0, locale) : dayMonth(at, locale),
+    time: item.allDay ? t("allDay") : clock(locale).format(at),
   };
 }
 
 /** "Yarın · 14:00–15:00" for the next-meeting chip. */
 export function meetingSlotLabel(
   meeting: CoordinatorNextMeeting,
+  locale: string,
   now = new Date(),
 ) {
   const start = new Date(meeting.scheduledAt);
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   const day = sameDay(start, now)
-    ? "Bugün"
+    ? relativeDayLabel(0, locale)
     : sameDay(start, tomorrow)
-      ? "Yarın"
-      : DAY_MONTH.format(start);
+      ? relativeDayLabel(1, locale)
+      : dayMonth(start, locale);
   const end = new Date(
     start.getTime() + (meeting.durationMinutes ?? 60) * 60_000,
   );
-  return `${day} · ${TIME.format(start)}–${TIME.format(end)}`;
+  return `${day} · ${clock(locale).formatRange(start, end)}`;
 }
 
 export function hasOpenActions(actions: {
