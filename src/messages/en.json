@@ -4407,5 +4407,133 @@
     "resolveFailed": "Couldn't close the follow-up.",
     "saving": "Saving…",
     "resolve": "Mark as resolved"
+  },
+  "adminReporting": {
+    "ranges": {
+      "8": "Last 8 weeks",
+      "13": "Quarter",
+      "all": "Whole program"
+    },
+    "tabs": {
+      "program": "Program reports",
+      "health": "Mentorship health",
+      "activity": "System activity"
+    },
+    "noProgram": "No program",
+    "program": "Program:",
+    "programLabel": "Program",
+    "export": "Export",
+    "privacy": "Reports show rates and counts. Meeting notes, transcripts, task titles and bottleneck texts aren't on this screen.",
+    "whatVisible": "What's visible?",
+    "whatVisibleLink": "What's visible? →",
+    "whatVisibleBody": "Programs, matches, weekly meeting counts, the share of goals completed, open bottleneck counts and post-meeting survey scores. Meeting notes, transcripts, task titles and written survey notes aren't shown.",
+    "ok": "OK",
+    "kpis": {
+      "meetingRate": "Meetings held",
+      "noPlanned": "no meetings planned in this window",
+      "noMeetingDates": "meeting dates aren't available",
+      "rateDetail": "completed {completed} · planned {planned}",
+      "communication": "Communication intensity",
+      "noMessages": "no message records",
+      "tasks": "Task completion",
+      "noGoals": "no goal records",
+      "goalsDetail": "{done}/{total} goals",
+      "satisfaction": "Satisfaction",
+      "flags": "Active flags",
+      "flagsDetail": "{red} red · {amber} yellow",
+      "flagsThisWeek": "{red} red · {amber} yellow · {week} this week"
+    },
+    "heatmap": {
+      "title": "Meetings · match × week",
+      "hint": "Each cell is the number of meetings completed that week. No scores are recorded.",
+      "held": "Meeting held",
+      "missed": "No meeting",
+      "unknown": "No data",
+      "empty": "No active mentorships in this program.",
+      "pair": "Match",
+      "week": "W{n}",
+      "flag": "Flag",
+      "tip": "{pair}\n{week}\nCompleted meetings: {completed}\nOpen bottlenecks: {bottlenecks}",
+      "noMeeting": "no meeting",
+      "bottleneck": "bottleneck",
+      "summary": "{withMeeting, plural, one {# match} other {# matches}} met in this window · {total} active"
+    },
+    "pair": {
+      "coordinator": " · coordinator {name}",
+      "trend": "Communication trend",
+      "trendHint": "Days since the last meeting",
+      "burn": "Meeting build-up",
+      "planned": "Planned",
+      "completed": "Completed",
+      "days": "Days",
+      "goal": "Goal",
+      "lastMeeting": "Last meeting",
+      "noRecord": "no record",
+      "daysAgo": "{days, plural, one {# day} other {# days}} ago",
+      "openBottlenecks": "Open bottlenecks",
+      "flag": "Flag",
+      "staleFlag": "no meeting for 14+ days",
+      "goToCoordinator": "Go to the coordinator",
+      "goToMentorship": "Go to the mentorship"
+    },
+    "flags": {
+      "title": "Automatic flags",
+      "hint": "Based on the meeting-day threshold, open bottlenecks and the goal rate.",
+      "stale": "No meeting for 14 days",
+      "bottleneck": "Open bottleneck",
+      "lowGoals": "Goal progress under 50%",
+      "count": "{count, plural, one {# match} other {# matches}}"
+    },
+    "exports": {
+      "title": "Ready reports",
+      "summary": "Program summary",
+      "meetings": "Mentorship meeting summary",
+      "counts": "Count summary"
+    },
+    "csv": {
+      "program": "Program",
+      "coordinator": "Coordinator",
+      "teams": "Teams",
+      "mentors": "Mentors",
+      "pendingInvites": "Pending invitations",
+      "mentor": "Mentor",
+      "team": "Team",
+      "lastMeetingDays": "Last meeting (days)",
+      "goalsDone": "Goals done",
+      "goalsTotal": "Goals total",
+      "openBottlenecks": "Open bottlenecks",
+      "activePairs": "Active matches",
+      "stale": "No meeting for 14+ days",
+      "withBottleneck": "With an open bottleneck"
+    },
+    "activity": {
+      "meetings": "Meetings",
+      "meetingsDetail": "{completed} of {total} records completed",
+      "noMeetingDates": "meeting dates aren't available",
+      "bottlenecks": "Bottlenecks opened",
+      "bottlenecksDetail": "in this window, no titles",
+      "accounts": "New accounts",
+      "accountsDetail": "users created in this window"
+    }
+  },
+  "meetingRatings": {
+    "title": "Meeting ratings",
+    "hint": "From the teams' post-meeting survey; scores only (1–5).",
+    "rated": "{rated}/{held} meetings",
+    "responseRate": " · {rate}% responded",
+    "noneHeld": "No meetings were held in this window.",
+    "noneRated": "{count, plural, one {# meeting was} other {# meetings were}} held; no ratings yet.",
+    "distribution": "Score distribution",
+    "answers": "{surveys, plural, one {# survey} other {# surveys}} · {answers, plural, one {# answer} other {# answers}}",
+    "loading": "loading",
+    "noMeetings": "no meetings in this window",
+    "noRatings": "no ratings yet",
+    "ratedDetail": "{rated}/{held} meetings rated",
+    "questions": {
+      "nextSteps": "Next steps got clearer",
+      "fit": "Advice fit the stage",
+      "expression": "Could speak freely",
+      "confidence": "Confidence to progress"
+    }
   }
 }

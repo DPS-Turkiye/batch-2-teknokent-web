@@ -1,5 +1,7 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import { QueryNotice } from "@/components/admin/admin-ui";
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 import {
@@ -19,32 +21,36 @@ export function MeetingRatingsSection({
   isLoading: boolean;
   error: Error | null;
 }) {
+  const t = useTranslations("meetingRatings");
+  const tQuestions = useTranslations("meetingPages.feedback.questions");
+  const locale = useLocale();
   const rate = ratings ? ratingResponseRate(ratings) : null;
   const answers =
     ratings?.distribution.reduce((sum, count) => sum + count, 0) ?? 0;
   return (
     <section
-      aria-label="Görüşme değerlendirmeleri"
+      aria-label={t("title")}
       className="rounded-[28px] border border-[#e9ecef] bg-white p-5"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-[15px] font-semibold text-[#22262b]">
-            Görüşme değerlendirmeleri
+            {t("title")}
           </h2>
-          <p className="mt-1 text-[12.5px] text-[#858c96]">
-            Takımların görüşme sonrası anketinden; yalnızca puanlar (1–5).
-          </p>
+          <p className="mt-1 text-[12.5px] text-[#858c96]">{t("hint")}</p>
         </div>
         {ratings && ratings.average != null ? (
           <div className="text-right">
             <p className="text-[28px] leading-none font-semibold text-[#22262b]">
-              {formatRating(ratings.average)}
+              {formatRating(ratings.average, locale)}
               <span className="text-[15px] font-medium text-[#858c96]">/5</span>
             </p>
             <p className="mt-1.5 text-[12px] text-[#858c96]">
-              {ratings.ratedMeetingCount}/{ratings.heldMeetingCount} görüşme
-              {rate != null ? ` · %${rate} yanıt` : ""}
+              {t("rated", {
+                rated: ratings.ratedMeetingCount,
+                held: ratings.heldMeetingCount,
+              })}
+              {rate != null ? t("responseRate", { rate }) : ""}
             </p>
           </div>
         ) : null}
@@ -57,20 +63,20 @@ export function MeetingRatingsSection({
       ) : ratings.average == null ? (
         <p className="mt-4 rounded-2xl border border-[#f0f2f4] px-4 py-3 text-[13px] text-[#858c96]">
           {ratings.heldMeetingCount === 0
-            ? "Bu pencerede gerçekleşen görüşme yok."
-            : `${ratings.heldMeetingCount} görüşme gerçekleşti; henüz değerlendirme yok.`}
+            ? t("noneHeld")
+            : t("noneRated", { count: ratings.heldMeetingCount })}
         </p>
       ) : (
         <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(240px,0.8fr)]">
           <ul className="space-y-2">
             {ratingQuestionRows(ratings).map((row) => (
               <li
-                key={row.label}
-                title={row.prompt}
+                key={row.id}
+                title={tQuestions(`${row.id}.prompt`)}
                 className="flex items-center gap-3 rounded-2xl border border-[#f0f2f4] px-4 py-3"
               >
                 <span className="min-w-0 flex-1 truncate text-[13.5px] text-[#22262b]">
-                  {row.label}
+                  {t(`questions.${row.id}`)}
                 </span>
                 <span
                   aria-hidden
@@ -82,13 +88,13 @@ export function MeetingRatingsSection({
                   />
                 </span>
                 <span className="w-9 text-right text-[13px] font-medium text-[#676e78]">
-                  {formatRating(row.average)}
+                  {formatRating(row.average, locale)}
                 </span>
               </li>
             ))}
           </ul>
           <div className="rounded-2xl border border-[#f0f2f4] px-4 py-3">
-            <p className="text-[12.5px] text-[#676e78]">Puan dağılımı</p>
+            <p className="text-[12.5px] text-[#676e78]">{t("distribution")}</p>
             <ul className="mt-2 space-y-1.5">
               {SCORES.map((score) => {
                 const count = ratings.distribution[score - 1] ?? 0;
@@ -112,7 +118,7 @@ export function MeetingRatingsSection({
               })}
             </ul>
             <p className="mt-2 text-[12px] text-[#858c96]">
-              {ratings.feedbackCount} anket · {answers} yanıt
+              {t("answers", { surveys: ratings.feedbackCount, answers })}
             </p>
           </div>
         </div>

@@ -4407,5 +4407,133 @@
     "resolveFailed": "Takip kapatılamadı.",
     "saving": "Kaydediliyor…",
     "resolve": "Çözüldü olarak işaretle"
+  },
+  "adminReporting": {
+    "ranges": {
+      "8": "Son 8 hafta",
+      "13": "Çeyrek",
+      "all": "Program boyu"
+    },
+    "tabs": {
+      "program": "Program Raporları",
+      "health": "Mentorluk Sağlığı",
+      "activity": "Sistem Aktivitesi"
+    },
+    "noProgram": "Program yok",
+    "program": "Program:",
+    "programLabel": "Program",
+    "export": "Dışa aktar",
+    "privacy": "Raporlar oran ve sayı içerir. Görüşme notu, transkript, görev başlığı ve darboğaz metni bu ekranda yok.",
+    "whatVisible": "Neler görünür?",
+    "whatVisibleLink": "Neler görünür? →",
+    "whatVisibleBody": "Program, eşleşme, haftalık görüşme sayısı, tamamlanan hedef oranı, açık darboğaz sayısı ve görüşme sonrası anket puanları. Görüşme notu, transkript, görev başlığı ve anketteki yazılı notlar görünmez.",
+    "ok": "Tamam",
+    "kpis": {
+      "meetingRate": "Görüşme gerçekleşme",
+      "noPlanned": "bu pencerede planlı görüşme yok",
+      "noMeetingDates": "görüşme tarihi gelmiyor",
+      "rateDetail": "tamamlanan {completed} · planlanan {planned}",
+      "communication": "İletişim yoğunluğu",
+      "noMessages": "mesaj kaydı yok",
+      "tasks": "Görev tamamlama",
+      "noGoals": "hedef kaydı yok",
+      "goalsDetail": "{done}/{total} hedef",
+      "satisfaction": "Memnuniyet",
+      "flags": "Aktif bayrak",
+      "flagsDetail": "{red} kırmızı · {amber} sarı",
+      "flagsThisWeek": "{red} kırmızı · {amber} sarı · {week} bu hafta"
+    },
+    "heatmap": {
+      "title": "Görüşme · eşleşme × hafta",
+      "hint": "Hücre, o hafta tamamlanan görüşme sayısı. Skor kaydı yok.",
+      "held": "Görüşme var",
+      "missed": "Görüşme yok",
+      "unknown": "Veri yok",
+      "empty": "Bu programda aktif mentorluk yok.",
+      "pair": "Eşleşme",
+      "week": "H{n}",
+      "flag": "Bayrak",
+      "tip": "{pair}\n{week}\nTamamlanan görüşme: {completed}\nAçık darboğaz: {bottlenecks}",
+      "noMeeting": "görüşme yok",
+      "bottleneck": "darboğaz",
+      "summary": "{withMeeting} eşleşmede bu pencerede görüşme var · {total} aktif"
+    },
+    "pair": {
+      "coordinator": " · koordinatör {name}",
+      "trend": "İletişim trendi",
+      "trendHint": "Son görüşmeden geçen gün",
+      "burn": "Görüşme birikimi",
+      "planned": "Planlanan",
+      "completed": "Tamamlanan",
+      "days": "Gün",
+      "goal": "Hedef",
+      "lastMeeting": "Son görüşme",
+      "noRecord": "kayıt yok",
+      "daysAgo": "{days} gün önce",
+      "openBottlenecks": "Açık darboğaz",
+      "flag": "Bayrak",
+      "staleFlag": "14+ gün görüşme yok",
+      "goToCoordinator": "Koordinatöre git",
+      "goToMentorship": "Mentorluğa git"
+    },
+    "flags": {
+      "title": "Otomatik bayraklar",
+      "hint": "Eşik görüşme günü, açık darboğaz sayısı ve hedef oranından gelir.",
+      "stale": "14 gündür görüşme yok",
+      "bottleneck": "Açık darboğaz",
+      "lowGoals": "Hedef ilerlemesi %50 altında",
+      "count": "{count} eşleşme"
+    },
+    "exports": {
+      "title": "Hazır raporlar",
+      "summary": "Program özeti",
+      "meetings": "Mentorluk görüşme özeti",
+      "counts": "Sayı özeti"
+    },
+    "csv": {
+      "program": "Program",
+      "coordinator": "Koordinatör",
+      "teams": "Takım",
+      "mentors": "Mentor",
+      "pendingInvites": "Bekleyen davet",
+      "mentor": "Mentor",
+      "team": "Takım",
+      "lastMeetingDays": "Son görüşme (gün)",
+      "goalsDone": "Hedef tamam",
+      "goalsTotal": "Hedef toplam",
+      "openBottlenecks": "Açık darboğaz",
+      "activePairs": "Aktif eşleşme",
+      "stale": "14+ gün görüşme yok",
+      "withBottleneck": "Açık darboğazı olan"
+    },
+    "activity": {
+      "meetings": "Görüşme",
+      "meetingsDetail": "{total} kaydın {completed} tanesi tamamlandı",
+      "noMeetingDates": "görüşme tarihi gelmiyor",
+      "bottlenecks": "Açılan darboğaz",
+      "bottlenecksDetail": "bu pencerede, başlık yok",
+      "accounts": "Yeni hesap",
+      "accountsDetail": "bu pencerede oluşturulan kullanıcı"
+    }
+  },
+  "meetingRatings": {
+    "title": "Görüşme değerlendirmeleri",
+    "hint": "Takımların görüşme sonrası anketinden; yalnızca puanlar (1–5).",
+    "rated": "{rated}/{held} görüşme",
+    "responseRate": " · %{rate} yanıt",
+    "noneHeld": "Bu pencerede gerçekleşen görüşme yok.",
+    "noneRated": "{count} görüşme gerçekleşti; henüz değerlendirme yok.",
+    "distribution": "Puan dağılımı",
+    "answers": "{surveys} anket · {answers} yanıt",
+    "loading": "yükleniyor",
+    "noMeetings": "bu pencerede görüşme yok",
+    "noRatings": "henüz değerlendirme yok",
+    "ratedDetail": "{rated}/{held} görüşme değerlendirildi",
+    "questions": {
+      "nextSteps": "Sonraki adımlar netleşti",
+      "fit": "Öneriler aşamaya uygundu",
+      "expression": "Rahatça ifade edebildi",
+      "confidence": "İlerleme güveni"
+    }
   }
 }

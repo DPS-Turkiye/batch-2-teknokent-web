@@ -1,10 +1,12 @@
+import type { useTranslations } from "next-intl";
+
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 import { MEETING_FEEDBACK_QUESTIONS } from "@/lib/const";
 
-/** "4,3" — one decimal, Turkish comma. */
-export function formatRating(value: number | null | undefined) {
+/** "4,3" — one decimal, in the page's number format. */
+export function formatRating(value: number | null | undefined, locale: string) {
   if (value == null) return "—";
-  return value.toLocaleString("tr-TR", {
+  return value.toLocaleString(locale, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
   });
@@ -19,27 +21,30 @@ export function ratingResponseRate(ratings: ProgramMeetingRatings) {
 }
 
 /** The "Memnuniyet" KPI of the report. */
-export function satisfactionKpi(ratings: ProgramMeetingRatings | undefined) {
-  if (!ratings) return { value: "—", detail: "yükleniyor" };
+export function satisfactionKpi(
+  ratings: ProgramMeetingRatings | undefined,
+  t: ReturnType<typeof useTranslations<"meetingRatings">>,
+  locale: string,
+) {
+  if (!ratings) return { value: "—", detail: t("loading") };
   if (ratings.average == null) {
     return {
       value: "—",
-      detail:
-        ratings.heldMeetingCount === 0
-          ? "bu pencerede görüşme yok"
-          : "henüz değerlendirme yok",
+      detail: ratings.heldMeetingCount === 0 ? t("noMeetings") : t("noRatings"),
     };
   }
   return {
-    value: `${formatRating(ratings.average)}/5`,
-    detail: `${ratings.ratedMeetingCount}/${ratings.heldMeetingCount} görüşme değerlendirildi`,
+    value: `${formatRating(ratings.average, locale)}/5`,
+    detail: t("ratedDetail", {
+      rated: ratings.ratedMeetingCount,
+      held: ratings.heldMeetingCount,
+    }),
   };
 }
 
 export function ratingQuestionRows(ratings: ProgramMeetingRatings) {
   return MEETING_FEEDBACK_QUESTIONS.map((question, index) => ({
-    label: question.short,
-    prompt: question.prompt,
+    id: question.id,
     average: ratings.questionAverages[index] ?? null,
   }));
 }

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { createPortal } from "react-dom";
+import { useLocale, useTranslations } from "next-intl";
 import { useId, useState, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import {
   Area,
   AreaChart,
@@ -39,12 +40,9 @@ import { initials } from "@/lib/utils";
 
 type RangeId = "8" | "13" | "all";
 type TabId = "program" | "health" | "activity";
+type ReportingT = ReturnType<typeof useTranslations<"adminReporting">>;
 
-const RANGES: { id: RangeId; label: string }[] = [
-  { id: "8", label: "Son 8 hafta" },
-  { id: "13", label: "Çeyrek" },
-  { id: "all", label: "Program boyu" },
-];
+const RANGES: RangeId[] = ["8", "13", "all"];
 
 export function ReportingView() {
   const query = useAdminOverview();
@@ -65,6 +63,7 @@ export function ProgramReporting({
   data: AdminOverview;
   fixedProgram?: boolean;
 }) {
+  const t = useTranslations("adminReporting");
   const [programId, setProgramId] = useState<string | null>(null);
   const [range, setRange] = useState<RangeId>("8");
   const [tab, setTab] = useState<TabId>("program");
@@ -91,16 +90,16 @@ export function ProgramReporting({
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="text-[13px] text-[#858c96]">
           {program
-            ? `${program.name} · ${RANGES.find((item) => item.id === range)?.label}`
-            : "Program yok"}
+            ? `${program.name} · ${t(`ranges.${range}`)}`
+            : t("noProgram")}
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <label
             className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
           >
-            <span className="text-[#858c96]">Program:</span>
+            <span className="text-[#858c96]">{t("program")}</span>
             <select
-              aria-label="Program"
+              aria-label={t("programLabel")}
               value={program?.id ?? ""}
               onChange={(event) => {
                 setProgramId(event.target.value);
@@ -123,41 +122,35 @@ export function ProgramReporting({
           <div className="flex rounded-full bg-[#f5f6f8] p-1">
             {RANGES.map((item) => (
               <button
-                key={item.id}
+                key={item}
                 type="button"
-                onClick={() => setRange(item.id)}
+                onClick={() => setRange(item)}
                 className={`rounded-full px-3.5 py-[7px] text-[13px] ${
-                  range === item.id
+                  range === item
                     ? "bg-white font-medium text-[#22262b] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
                     : "text-[#676e78]"
                 }`}
               >
-                {item.label}
+                {t(`ranges.${item}`)}
               </button>
             ))}
           </div>
           <button
             type="button"
             onClick={() =>
-              downloadCsv("program-ozeti.csv", programSummaryRows(program))
+              downloadCsv("program-ozeti.csv", programSummaryRows(program, t))
             }
             className="rounded-full border border-[#e9ecef] bg-white px-4 py-[10px] text-[13px] font-medium text-[#22262b]"
           >
-            Dışa aktar
+            {t("export")}
           </button>
         </div>
       </div>
 
       <div className="flex border-b border-[#e9ecef]">
-        {(
-          [
-            ["program", "Program Raporları"],
-            ["health", "Mentorluk Sağlığı"],
-            ["activity", "Sistem Aktivitesi"],
-          ] as const
-        )
-          .filter(([id]) => !(fixedProgram && id === "activity"))
-          .map(([id, label]) => (
+        {(["program", "health", "activity"] as const)
+          .filter((id) => !(fixedProgram && id === "activity"))
+          .map((id) => (
             <button
               key={id}
               type="button"
@@ -169,7 +162,7 @@ export function ProgramReporting({
                   tab === id ? "font-semibold text-[#22262b]" : "text-[#676e78]"
                 }`}
               >
-                {label}
+                {t(`tabs.${id}`)}
               </span>
               <span
                 className={`h-[2.5px] w-full rounded-sm ${tab === id ? "bg-[#22262b]" : ""}`}
@@ -184,20 +177,19 @@ export function ProgramReporting({
         <>
           <div className="flex items-start justify-between gap-4 rounded-2xl bg-[#f7f8fa] px-4 py-3">
             <p className="text-[12.5px] leading-[1.5] text-[#676e78]">
-              Raporlar oran ve sayı içerir. Görüşme notu, transkript, görev
-              başlığı ve darboğaz metni bu ekranda yok.
+              {t("privacy")}
             </p>
             <button
               type="button"
               onClick={() =>
                 setNotice({
-                  title: "Neler görünür?",
-                  body: "Program, eşleşme, haftalık görüşme sayısı, tamamlanan hedef oranı, açık darboğaz sayısı ve görüşme sonrası anket puanları. Görüşme notu, transkript, görev başlığı ve anketteki yazılı notlar görünmez.",
+                  title: t("whatVisible"),
+                  body: t("whatVisibleBody"),
                 })
               }
               className="shrink-0 text-[12.5px] font-medium text-[#22262b]"
             >
-              Neler görünür? →
+              {t("whatVisibleLink")}
             </button>
           </div>
           {tab === "program" ? (
@@ -258,7 +250,7 @@ export function ProgramReporting({
               onClick={() => setNotice(null)}
               className="mt-5 rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
             >
-              Tamam
+              {t("ok")}
             </button>
           </div>
         </AdminOverlay>
@@ -280,7 +272,10 @@ function Kpis({
   meetingsKnown: boolean;
   ratings: ProgramMeetingRatings | undefined;
 }) {
-  const satisfaction = satisfactionKpi(ratings);
+  const t = useTranslations("adminReporting.kpis");
+  const tRatings = useTranslations("meetingRatings");
+  const locale = useLocale();
+  const satisfaction = satisfactionKpi(ratings, tRatings, locale);
   const rate = meetingRate(pairs, data.meetings ?? [], weeks);
   const goals = goalRate(pairs);
   const flags = flagCounts(pairs);
@@ -294,35 +289,46 @@ function Kpis({
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <Kpi
-        title="Görüşme gerçekleşme"
-        value={rate == null ? "—" : `%${rate.percent}`}
+        title={t("meetingRate")}
+        value={rate == null ? "—" : percent(rate.percent, locale)}
         detail={
           rate == null
             ? meetingsKnown
-              ? "bu pencerede planlı görüşme yok"
-              : "görüşme tarihi gelmiyor"
-            : `tamamlanan ${rate.completed} · planlanan ${rate.planned}`
+              ? t("noPlanned")
+              : t("noMeetingDates")
+            : t("rateDetail", {
+                completed: rate.completed,
+                planned: rate.planned,
+              })
         }
       />
-      <Kpi title="İletişim yoğunluğu" value="—" detail="mesaj kaydı yok" />
+      <Kpi title={t("communication")} value="—" detail={t("noMessages")} />
       <Kpi
-        title="Görev tamamlama"
-        value={goals == null ? "—" : `%${goals.percent}`}
+        title={t("tasks")}
+        value={goals == null ? "—" : percent(goals.percent, locale)}
         detail={
           goals == null
-            ? "hedef kaydı yok"
-            : `${goals.done}/${goals.total} hedef`
+            ? t("noGoals")
+            : t("goalsDetail", { done: goals.done, total: goals.total })
         }
       />
       <Kpi
-        title="Memnuniyet"
+        title={t("satisfaction")}
         value={satisfaction.value}
         detail={satisfaction.detail}
       />
       <Kpi
-        title="Aktif bayrak"
+        title={t("flags")}
         value={String(flags.red + flags.amber)}
-        detail={`${flags.red} kırmızı · ${flags.amber} sarı${openedThisWeek ? ` · ${openedThisWeek} bu hafta` : ""}`}
+        detail={
+          openedThisWeek
+            ? t("flagsThisWeek", {
+                red: flags.red,
+                amber: flags.amber,
+                week: openedThisWeek,
+              })
+            : t("flagsDetail", { red: flags.red, amber: flags.amber })
+        }
         valueClass={flags.red > 0 ? "text-[#d9464b]" : undefined}
       />
     </div>
@@ -344,6 +350,8 @@ function Heatmap({
   selectedId: string | null;
   onSelect: (id: string) => void;
 }) {
+  const t = useTranslations("adminReporting.heatmap");
+  const locale = useLocale();
   const withMeeting = pairs.filter((pair) =>
     weeks.some(
       (week) => cellState(pair, week, meetings, meetingsKnown) === "held",
@@ -360,35 +368,33 @@ function Heatmap({
       <div className="flex flex-wrap items-end justify-between gap-3 px-5 pt-5">
         <div>
           <h2 className="text-[15px] font-semibold text-[#22262b]">
-            Görüşme · eşleşme × hafta
+            {t("title")}
           </h2>
-          <p className="mt-1 text-[12.5px] text-[#858c96]">
-            Hücre, o hafta tamamlanan görüşme sayısı. Skor kaydı yok.
-          </p>
+          <p className="mt-1 text-[12.5px] text-[#858c96]">{t("hint")}</p>
         </div>
         <p className="flex flex-wrap gap-3 text-[12px] text-[#858c96]">
-          <Swatch color="#e7f6d4" label="Görüşme var" />
-          <Swatch color="#fde8e8" label="Görüşme yok" />
-          <Swatch color="#f5f6f8" label="Veri yok" />
+          <Swatch color="#e7f6d4" label={t("held")} />
+          <Swatch color="#fde8e8" label={t("missed")} />
+          <Swatch color="#f5f6f8" label={t("unknown")} />
         </p>
       </div>
       {pairs.length === 0 ? (
-        <EmptyNote>Bu programda aktif mentorluk yok.</EmptyNote>
+        <EmptyNote>{t("empty")}</EmptyNote>
       ) : (
         <div className="overflow-x-auto px-3 pb-2">
           <table className="w-full min-w-[760px] border-separate border-spacing-1">
             <thead>
               <tr className="text-[11px] font-medium text-[#858c96]">
-                <th className="px-2 py-2 text-left font-medium">Eşleşme</th>
+                <th className="px-2 py-2 text-left font-medium">{t("pair")}</th>
                 {weeks.map((week, index) => (
                   <th
                     key={week.toISOString()}
                     className="px-1 py-2 font-medium"
                   >
-                    H{index + 1}
+                    {t("week", { n: index + 1 })}
                   </th>
                 ))}
-                <th className="px-2 py-2 font-medium">Bayrak</th>
+                <th className="px-2 py-2 font-medium">{t("flag")}</th>
               </tr>
             </thead>
             <tbody>
@@ -422,7 +428,12 @@ function Heatmap({
                       meetings,
                       "COMPLETED",
                     );
-                    const body = `${pair.mentorName} ↔ ${pair.organizationName}\n${weekLabel(week)}\nTamamlanan görüşme: ${meetingsKnown ? count : "—"}\nAçık darboğaz: ${pair.bottlenecks}`;
+                    const body = t("tip", {
+                      pair: `${pair.mentorName} ↔ ${pair.organizationName}`,
+                      week: weekLabel(week, locale),
+                      completed: meetingsKnown ? count : "—",
+                      bottlenecks: pair.bottlenecks,
+                    });
                     return (
                       <td key={week.toISOString()} className="px-0.5 py-1">
                         <button
@@ -453,9 +464,9 @@ function Heatmap({
                   })}
                   <td className="px-2 py-1 text-center text-[12px]">
                     {pair.stale ? (
-                      <span className="text-[#d9464b]">görüşme yok</span>
+                      <span className="text-[#d9464b]">{t("noMeeting")}</span>
                     ) : pair.bottlenecks > 0 ? (
-                      <span className="text-[#b7791f]">darboğaz</span>
+                      <span className="text-[#b7791f]">{t("bottleneck")}</span>
                     ) : (
                       <span className="text-[#aeb4bc]">—</span>
                     )}
@@ -484,7 +495,7 @@ function Heatmap({
           )
         : null}
       <p className="px-5 py-3 text-[12px] text-[#858c96]">
-        {withMeeting} eşleşmede bu pencerede görüşme var · {pairs.length} aktif
+        {t("summary", { withMeeting, total: pairs.length })}
       </p>
     </section>
   );
@@ -501,6 +512,8 @@ function PairDetail({
   meetings: AdminMeetingMark[];
   program: AdminProgram | null;
 }) {
+  const t = useTranslations("adminReporting.pair");
+  const tHeat = useTranslations("adminReporting.heatmap");
   const gaps = weeks.map((week) => gapAtWeekEnd(pair, week, meetings));
   const completed = cumulative(pair, weeks, meetings, "COMPLETED");
   const planned = weeks.map((_, index) => {
@@ -512,7 +525,7 @@ function PairDetail({
   });
   const goals = pair.goalTotal > 0 ? `${pair.goalDone}/${pair.goalTotal}` : "—";
   const rows = weeks.map((_, index) => ({
-    week: `H${index + 1}`,
+    week: tHeat("week", { n: index + 1 }),
     gap: gaps[index],
     planned: planned[index],
     completed: completed[index],
@@ -527,40 +540,39 @@ function PairDetail({
           </p>
           <p className="text-[12.5px] text-[#858c96]">
             {program?.name}
-            {program ? ` · koordinatör ${program.coordinatorName}` : ""}
+            {program
+              ? t("coordinator", { name: program.coordinatorName ?? "—" })
+              : ""}
           </p>
         </div>
       </div>
       <div className="mt-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_220px]">
-        <ChartCard title="İletişim trendi" detail="Son görüşmeden geçen gün">
+        <ChartCard title={t("trend")} detail={t("trendHint")}>
           <GapLine rows={rows} />
         </ChartCard>
         <ChartCard
-          title="Görüşme birikimi"
+          title={t("burn")}
           legend={
             <span className="flex gap-3 text-[11px] text-[#858c96]">
-              <LegendDot color="#c6ef6a" label="Planlanan" />
-              <LegendDot color="#2f9e6b" label="Tamamlanan" />
+              <LegendDot color="#c6ef6a" label={t("planned")} />
+              <LegendDot color="#2f9e6b" label={t("completed")} />
             </span>
           }
         >
           <BurnChart rows={rows} />
         </ChartCard>
         <dl className="space-y-2 self-center text-[13px]">
-          <Row label="Hedef" value={goals} />
+          <Row label={t("goal")} value={goals} />
           <Row
-            label="Son görüşme"
+            label={t("lastMeeting")}
             value={
               pair.daysSinceMeeting == null
-                ? "kayıt yok"
-                : `${pair.daysSinceMeeting} gün önce`
+                ? t("noRecord")
+                : t("daysAgo", { days: pair.daysSinceMeeting })
             }
           />
-          <Row label="Açık darboğaz" value={String(pair.bottlenecks)} />
-          <Row
-            label="Bayrak"
-            value={pair.stale ? "14+ gün görüşme yok" : "—"}
-          />
+          <Row label={t("openBottlenecks")} value={String(pair.bottlenecks)} />
+          <Row label={t("flag")} value={pair.stale ? t("staleFlag") : "—"} />
         </dl>
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
@@ -572,13 +584,13 @@ function PairDetail({
           }
           className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
         >
-          Koordinatöre git
+          {t("goToCoordinator")}
         </Link>
         <Link
           href={`/admin/mentorships/interventions?program=${encodeURIComponent(program?.name ?? "")}`}
           className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
         >
-          Mentorluğa git
+          {t("goToMentorship")}
         </Link>
       </div>
     </section>
@@ -646,6 +658,7 @@ function gapTop(rows: WeekPoint[]) {
 }
 
 function GapLine({ rows }: { rows: WeekPoint[] }) {
+  const t = useTranslations("adminReporting.pair");
   const top = gapTop(rows);
   return (
     <div className="mt-2 h-[190px] w-full">
@@ -673,7 +686,7 @@ function GapLine({ rows }: { rows: WeekPoint[] }) {
           <Line
             type="monotone"
             dataKey="gap"
-            name="Gün"
+            name={t("days")}
             stroke="#22262b"
             strokeWidth={2}
             connectNulls={false}
@@ -687,6 +700,7 @@ function GapLine({ rows }: { rows: WeekPoint[] }) {
 }
 
 function BurnChart({ rows }: { rows: WeekPoint[] }) {
+  const t = useTranslations("adminReporting.pair");
   const fillId = useId().replace(/:/g, "");
   return (
     <div className="mt-2 h-[190px] w-full">
@@ -719,7 +733,7 @@ function BurnChart({ rows }: { rows: WeekPoint[] }) {
           <Area
             type="monotone"
             dataKey="planned"
-            name="Planlanan"
+            name={t("planned")}
             stroke="#c6ef6a"
             strokeWidth={2}
             fill={`url(#${fillId})`}
@@ -728,7 +742,7 @@ function BurnChart({ rows }: { rows: WeekPoint[] }) {
           <Area
             type="monotone"
             dataKey="completed"
-            name="Tamamlanan"
+            name={t("completed")}
             stroke="#2f9e6b"
             strokeWidth={2}
             fill="transparent"
@@ -742,17 +756,18 @@ function BurnChart({ rows }: { rows: WeekPoint[] }) {
 }
 
 function Flags({ pairs }: { pairs: Pair[] }) {
+  const t = useTranslations("adminReporting.flags");
   const rows = [
     {
-      label: "14 gündür görüşme yok",
+      label: t("stale"),
       count: pairs.filter((pair) => pair.stale).length,
     },
     {
-      label: "Açık darboğaz",
+      label: t("bottleneck"),
       count: pairs.filter((pair) => pair.bottlenecks > 0).length,
     },
     {
-      label: "Hedef ilerlemesi %50 altında",
+      label: t("lowGoals"),
       count: pairs.filter(
         (pair) => pair.goalTotal > 0 && pair.goalDone / pair.goalTotal < 0.5,
       ).length,
@@ -760,12 +775,8 @@ function Flags({ pairs }: { pairs: Pair[] }) {
   ];
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
-      <h2 className="text-[15px] font-semibold text-[#22262b]">
-        Otomatik bayraklar
-      </h2>
-      <p className="mt-1 text-[12.5px] text-[#858c96]">
-        Eşik görüşme günü, açık darboğaz sayısı ve hedef oranından gelir.
-      </p>
+      <h2 className="text-[15px] font-semibold text-[#22262b]">{t("title")}</h2>
+      <p className="mt-1 text-[12.5px] text-[#858c96]">{t("hint")}</p>
       <ul className="mt-4 space-y-2">
         {rows.map((row) => (
           <li
@@ -774,7 +785,7 @@ function Flags({ pairs }: { pairs: Pair[] }) {
           >
             <span className="text-[13.5px] text-[#22262b]">{row.label}</span>
             <span className="text-[13px] font-medium text-[#676e78]">
-              {row.count} eşleşme
+              {t("count", { count: row.count })}
             </span>
           </li>
         ))}
@@ -790,27 +801,28 @@ function Exports({
   program: AdminProgram | null;
   pairs: Pair[];
 }) {
+  const t = useTranslations("adminReporting");
   const items = [
     {
-      label: "Program özeti",
+      label: t("exports.summary"),
       file: "program-ozeti.csv",
-      rows: programSummaryRows(program),
+      rows: programSummaryRows(program, t),
     },
     {
-      label: "Mentorluk görüşme özeti",
+      label: t("exports.meetings"),
       file: "gorusme-ozeti.csv",
-      rows: meetingSummaryRows(pairs),
+      rows: meetingSummaryRows(pairs, t),
     },
     {
-      label: "Sayı özeti",
+      label: t("exports.counts"),
       file: "sayi-ozeti.csv",
-      rows: countSummaryRows(pairs),
+      rows: countSummaryRows(pairs, t),
     },
   ];
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
       <h2 className="text-[15px] font-semibold text-[#22262b]">
-        Hazır raporlar
+        {t("exports.title")}
       </h2>
       <ul className="mt-4 space-y-2">
         {items.map((item) => (
@@ -824,7 +836,7 @@ function Exports({
               onClick={() => downloadCsv(item.file, item.rows)}
               className="rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] font-medium text-[#22262b]"
             >
-              Dışa aktar
+              {t("export")}
             </button>
           </li>
         ))}
@@ -833,9 +845,18 @@ function Exports({
   );
 }
 
-function programSummaryRows(program: AdminProgram | null): string[][] {
+function programSummaryRows(
+  program: AdminProgram | null,
+  t: ReportingT,
+): string[][] {
   return [
-    ["Program", "Koordinatör", "Takım", "Mentor", "Bekleyen davet"],
+    [
+      t("csv.program"),
+      t("csv.coordinator"),
+      t("csv.teams"),
+      t("csv.mentors"),
+      t("csv.pendingInvites"),
+    ],
     [
       program?.name ?? "",
       program?.coordinatorName ?? "",
@@ -846,15 +867,15 @@ function programSummaryRows(program: AdminProgram | null): string[][] {
   ];
 }
 
-function meetingSummaryRows(pairs: Pair[]): string[][] {
+function meetingSummaryRows(pairs: Pair[], t: ReportingT): string[][] {
   return [
     [
-      "Mentor",
-      "Takım",
-      "Son görüşme (gün)",
-      "Hedef tamam",
-      "Hedef toplam",
-      "Açık darboğaz",
+      t("csv.mentor"),
+      t("csv.team"),
+      t("csv.lastMeetingDays"),
+      t("csv.goalsDone"),
+      t("csv.goalsTotal"),
+      t("csv.openBottlenecks"),
     ],
     ...pairs.map((pair) => [
       pair.mentorName,
@@ -867,9 +888,9 @@ function meetingSummaryRows(pairs: Pair[]): string[][] {
   ];
 }
 
-function countSummaryRows(pairs: Pair[]): string[][] {
+function countSummaryRows(pairs: Pair[], t: ReportingT): string[][] {
   return [
-    ["Aktif eşleşme", "14+ gün görüşme yok", "Açık darboğazı olan"],
+    [t("csv.activePairs"), t("csv.stale"), t("csv.withBottleneck")],
     [
       String(pairs.length),
       String(pairs.filter((pair) => pair.stale).length),
@@ -903,6 +924,7 @@ function Activity({
   program: AdminProgram | null;
   weeks: Date[];
 }) {
+  const t = useTranslations("adminReporting.activity");
   const from = weeks[0];
   const pairs = program ? pairsIn(data, program) : [];
   const ids = new Set(pairs.map((pair) => pair.organizationId));
@@ -923,23 +945,23 @@ function Activity({
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <Kpi
-        title="Görüşme"
+        title={t("meetings")}
         value={data.meetings ? String(completed) : "—"}
         detail={
           data.meetings
-            ? `${meetings.length} kaydın ${completed} tanesi tamamlandı`
-            : "görüşme tarihi gelmiyor"
+            ? t("meetingsDetail", { total: meetings.length, completed })
+            : t("noMeetingDates")
         }
       />
       <Kpi
-        title="Açılan darboğaz"
+        title={t("bottlenecks")}
         value={String(bottlenecks)}
-        detail="bu pencerede, başlık yok"
+        detail={t("bottlenecksDetail")}
       />
       <Kpi
-        title="Yeni hesap"
+        title={t("accounts")}
         value={String(users)}
-        detail="bu pencerede oluşturulan kullanıcı"
+        detail={t("accountsDetail")}
       />
     </div>
   );
@@ -1210,13 +1232,18 @@ function addDays(date: Date, days: number) {
   return copy;
 }
 
-function weekLabel(week: Date) {
-  const end = addDays(week, 6);
-  const format = new Intl.DateTimeFormat("tr-TR", {
+function weekLabel(week: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
     day: "numeric",
     month: "short",
-  });
-  return `${format.format(week)} – ${format.format(end)}`;
+  }).formatRange(week, addDays(week, 6));
+}
+
+/** "%75" in Turkish, "75%" in English. */
+function percent(value: number, locale: string) {
+  return new Intl.NumberFormat(locale, { style: "percent" }).format(
+    value / 100,
+  );
 }
 
 function daysSinceInstant(value: string) {

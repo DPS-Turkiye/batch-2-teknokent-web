@@ -277,21 +277,18 @@ export const MEETING_FEEDBACK_QUESTIONS = [
   {
     id: "nextSteps",
     prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
-    short: "Sonraki adımlar netleşti",
     low: "1 — Hiç netleşmedi",
     high: "5 — Tamamen netleşti",
   },
   {
     id: "fit",
     prompt: "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
-    short: "Öneriler aşamaya uygundu",
     low: "1 — Hiç uygun değildi",
     high: "5 — Tamamen uygundu",
   },
   {
     id: "expression",
     prompt: "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
-    short: "Rahatça ifade edebildi",
     low: "1 — Hiç katılmıyorum",
     high: "5 — Tamamen katılıyorum",
   },
@@ -299,7 +296,6 @@ export const MEETING_FEEDBACK_QUESTIONS = [
     id: "confidence",
     prompt:
       "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
-    short: "İlerleme güveni",
     low: "1 — Azaldı",
     high: "5 — Belirgin şekilde arttı",
   },
