@@ -19,7 +19,7 @@ import {
 import { StartupStage } from "@/interfaces/startup-process";
 import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -94,6 +94,29 @@ describe("ProgramTeamsView", () => {
     );
     expect(screen.queryByText("Deniz Arı")).not.toBeInTheDocument();
     expect(screen.getByText("ali@pusula.io")).toBeInTheDocument();
+  });
+
+  it("reads in English", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramTeamsView programId="program-1" />
+      </InLocale>,
+    );
+
+    expect(await screen.findByText("Deniz Arı")).toBeInTheDocument();
+    expect(
+      screen.getByText(/leads joined · 1 team waiting/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("3 members")).toBeInTheDocument();
+    expect(screen.getByText("Lead joined")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send the code" }),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Add a team/ }));
+    expect(screen.getByRole("form", { name: "New team" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Team lead's email")).toBeInTheDocument();
   });
 
   it("emails a waiting team's code and shows when it went out", async () => {

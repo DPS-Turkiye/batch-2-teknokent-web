@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import { clientText } from "@/i18n/client-texts";
 import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
@@ -180,18 +182,18 @@ function teamFilterOf(team: ProgramTeam) {
   return isTeamProblem(team) ? TeamFilter.Problem : TeamFilter.Waiting;
 }
 
-export function teamFilterOptions(teams: ProgramTeam[]) {
-  const count = (filter: TeamFilter) =>
-    teams.filter((team) => teamFilterOf(team) === filter).length;
-  return [
-    { id: TeamFilter.All, label: `Tümü ${teams.length}` },
-    { id: TeamFilter.Joined, label: `Katıldı ${count(TeamFilter.Joined)}` },
-    {
-      id: TeamFilter.Waiting,
-      label: `Yetkili bekleniyor ${count(TeamFilter.Waiting)}`,
-    },
-    { id: TeamFilter.Problem, label: `Sorunlu ${count(TeamFilter.Problem)}` },
-  ];
+export type TeamsT = ReturnType<typeof useTranslations<"programTeams">>;
+
+export function teamFilterOptions(teams: ProgramTeam[], t: TeamsT) {
+  return Object.values(TeamFilter).map((id) => ({
+    id,
+    label: t(`filters.${id}`, {
+      count:
+        id === TeamFilter.All
+          ? teams.length
+          : teams.filter((team) => teamFilterOf(team) === id).length,
+    }),
+  }));
 }
 
 export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
@@ -200,9 +202,12 @@ export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
 }
 
 /** "Gönderildi 19 Eyl · ali@pusula.io" once the code has been emailed. */
-export function codeSentLabel(team: ProgramTeam) {
+export function codeSentLabel(team: ProgramTeam, t: TeamsT, locale: string) {
   if (!team.codeSentAt) return null;
-  return `Gönderildi ${formatDayMonth(new Date(team.codeSentAt))} · ${team.leadEmail ?? ""}`.trim();
+  return t("codeSent", {
+    date: formatDayMonth(new Date(team.codeSentAt), locale),
+    email: team.leadEmail ?? "",
+  }).trim();
 }
 
 const DAY = 24 * 60 * 60 * 1000;

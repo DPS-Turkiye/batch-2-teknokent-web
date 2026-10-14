@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { EmptyNote } from "@/components/admin/admin-ui";
 import { useTeamStage } from "@/hooks/use-team-stage";
 import type { StartupStage } from "@/interfaces/startup-process";
@@ -15,16 +17,17 @@ export function TeamStage({
   programId: string;
   organizationId: string;
 }) {
+  const t = useTranslations("programTeams.stage");
   const stage = useTeamStage(programId, organizationId);
 
-  if (stage.isLoading) return <EmptyNote>Aşama yükleniyor…</EmptyNote>;
-  if (stage.loadFailed) return <EmptyNote>Aşama yüklenemedi.</EmptyNote>;
+  if (stage.isLoading) return <EmptyNote>{t("loading")}</EmptyNote>;
+  if (stage.loadFailed) return <EmptyNote>{t("loadFailed")}</EmptyNote>;
 
   return (
     <div className="rounded-2xl border border-[#e9ecef] p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="text-[15px] font-semibold text-[#22262b]">
-          {stage.currentLabel ?? "Aşama seçilmedi"}
+          {stage.currentLabel ?? t("none")}
         </p>
         {stage.isEditing ? null : (
           <button
@@ -32,14 +35,14 @@ export function TeamStage({
             onClick={stage.startEditing}
             className={`${pillClass} border border-[#e9ecef] text-[#22262b]`}
           >
-            Aşamayı güncelle
+            {t("update")}
           </button>
         )}
       </div>
       {stage.isEditing ? (
         <div className="mt-3 flex flex-wrap items-end gap-2">
           <label className="flex min-w-0 flex-1 flex-col gap-1 text-[12px] text-[#676e78]">
-            Yeni aşama
+            {t("newStage")}
             <select
               value={stage.draft ?? ""}
               onChange={(event) =>
@@ -59,7 +62,7 @@ export function TeamStage({
             onClick={stage.cancelEditing}
             className={`${pillClass} text-[#676e78]`}
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -67,13 +70,13 @@ export function TeamStage({
             disabled={!stage.canSave}
             className={`${pillClass} bg-[#22262b] text-white`}
           >
-            {stage.isSaving ? "Kaydediliyor…" : "Kaydet"}
+            {stage.isSaving ? t("saving") : t("save")}
           </button>
         </div>
       ) : null}
       {stage.saveFailed ? (
         <p role="alert" className="mt-2 text-[12.5px] text-[#d9464b]">
-          Aşama güncellenemedi. Tekrar dene.
+          {t("saveFailed")}
         </p>
       ) : null}
     </div>
