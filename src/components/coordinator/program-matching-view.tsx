@@ -8,6 +8,7 @@ import {
   X,
 } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import {
@@ -21,6 +22,7 @@ import {
 import { FirstStepsDrawer } from "@/components/coordinator/first-steps-drawer";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { MAX_COORDINATOR_NOTE } from "@/hooks/use-coordinator-notes";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramMatching } from "@/hooks/use-program-matching";
 import type {
   MatchCandidate,
@@ -35,14 +37,20 @@ import {
   loadShare,
   MatchTab,
   matchTabOptions,
-  NEED_SOURCE_NOTES,
-  needLabel,
   teamMeta,
   waitingLabel,
 } from "@/lib/program-matching";
 import { formatLongDate, initials } from "@/lib/utils";
 
 type Matching = ReturnType<typeof useProgramMatching>;
+
+/** The team's mentorship topic, shown in the page's language; saved topics keep their Turkish text. */
+function useNeedLabel() {
+  const t = useTranslations("programMatching");
+  const optionLabel = useOptionLabel();
+  return (team: WaitingTeam) =>
+    team.needTopic ? optionLabel("mentorTopic", team.needTopic) : t("noNeed");
+}
 
 export function ProgramMatchingView({
   programId,
@@ -67,6 +75,7 @@ function MatchingBody({
   programId: string;
   initialTeamId?: string;
 }) {
+  const t = useTranslations("programMatching");
   const matching = useProgramMatching(programId, initialTeamId);
   const overview = matching.overview.data;
 
@@ -75,7 +84,7 @@ function MatchingBody({
       <FilterPills
         value={matching.tab}
         onChange={matching.setTab}
-        options={matchTabOptions(overview)}
+        options={matchTabOptions(overview, t)}
       />
       <QueryNotice
         isLoading={matching.overview.isLoading}
@@ -88,30 +97,33 @@ function MatchingBody({
         >
           <Check aria-hidden className="size-4" />
           <b>
-            {matching.matched.team} ↔ {matching.matched.mentor} eşleşti
+            {t("matched", {
+              team: matching.matched.team,
+              mentor: matching.matched.mentor,
+            })}
           </b>
-          · bildirimler gönderildi
+          {t("notified")}
           {matching.hasFirstSteps ? (
             <button
               type="button"
               onClick={matching.openFirstSteps}
               className="ml-auto font-medium underline"
             >
-              İlk adımlar
+              {t("firstSteps")}
             </button>
           ) : (
             <Link
               href="/coordinator/mentorships"
               className="ml-auto font-medium underline"
             >
-              Mentorluğu aç
+              {t("openMentorship")}
             </Link>
           )}
         </p>
       ) : null}
       {overview && matching.tab === MatchTab.Waiting ? (
         matching.waiting.length === 0 ? (
-          <EmptyNote>Eşleşme bekleyen takım yok.</EmptyNote>
+          <EmptyNote>{t("noWaiting")}</EmptyNote>
         ) : (
           <div className="grid gap-5 lg:grid-cols-[360px_minmax(0,1fr)]">
             <WaitingList matching={matching} />
@@ -122,10 +134,10 @@ function MatchingBody({
         )
       ) : null}
       {overview && matching.tab === MatchTab.Active ? (
-        <MatchList matches={overview.active} empty="Henüz aktif eşleşme yok." />
+        <MatchList matches={overview.active} empty={t("noActive")} />
       ) : null}
       {overview && matching.tab === MatchTab.Past ? (
-        <MatchList matches={overview.past} empty="Geçmiş eşleşme yok." />
+        <MatchList matches={overview.past} empty={t("noPast")} />
       ) : null}
       {matching.firstSteps ? (
         <FirstStepsDrawer
@@ -146,19 +158,23 @@ function MatchingBody({
 }
 
 function WaitingList({ matching }: { matching: Matching }) {
+  const t = useTranslations("programMatching");
+  const needLabel = useNeedLabel();
   const oldest = matching.waiting[0];
   return (
     <section
-      aria-label="Eşleşme bekleyen takımlar"
+      aria-label={t("waitingTeams")}
       className="self-start rounded-[28px] border border-[#e9ecef] bg-white p-4"
     >
       <div className="px-2 pb-3">
         <h2 className="text-[15px] font-semibold text-[#22262b]">
-          Eşleşme bekleyen takımlar
+          {t("waitingTeams")}
         </h2>
         <p className="text-[12.5px] text-[#858c96]">
-          {matching.waiting.length} takım · en eskisi{" "}
-          {waitingLabel(oldest.waitingDays)}
+          {t("waitingSummary", {
+            count: matching.waiting.length,
+            oldest: waitingLabel(oldest.waitingDays, t),
+          })}
         </p>
       </div>
       <ul className="space-y-1">
@@ -185,7 +201,7 @@ function WaitingList({ matching }: { matching: Matching }) {
                   <span
                     className={`block truncate text-[12.5px] ${selected ? "text-[#c95c18]" : "text-[#858c96]"}`}
                   >
-                    İhtiyaç: {needLabel(team)}
+                    {t("need", { need: needLabel(team) })}
                   </span>
                 </span>
                 <StatusChip
@@ -197,7 +213,7 @@ function WaitingList({ matching }: { matching: Matching }) {
                         : "neutral"
                   }
                 >
-                  {waitingLabel(team.waitingDays)}
+                  {waitingLabel(team.waitingDays, t)}
                 </StatusChip>
               </button>
             </li>
@@ -215,6 +231,14 @@ function TeamPanel({
   matching: Matching;
   team: WaitingTeam;
 }) {
+  const t = useTranslations("programMatching");
+  const needLabel = useNeedLabel();
+  const optionLabel = useOptionLabel();
+  const meta = teamMeta(
+    team,
+    team.stage ? optionLabel("stage", team.stage) : null,
+    t,
+  );
   const suggestions = matching.suggestions.data;
   return (
     <div className="min-w-0 space-y-5">
@@ -224,45 +248,43 @@ function TeamPanel({
           <div className="min-w-0">
             <h2 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold text-[#22262b]">
               {team.name}
-              <StatusChip tone="orange">Takım</StatusChip>
+              <StatusChip tone="orange">{t("team")}</StatusChip>
               <StatusChip tone="red">
                 {team.waitingDays === 0
-                  ? "bugün eklendi"
-                  : `${team.waitingDays} gündür bekliyor`}
+                  ? t("addedToday")
+                  : t("waitingDays", { days: team.waitingDays })}
               </StatusChip>
             </h2>
-            {teamMeta(team) ? (
-              <p className="text-[13px] text-[#676e78]">{teamMeta(team)}</p>
-            ) : null}
+            {meta ? <p className="text-[13px] text-[#676e78]">{meta}</p> : null}
           </div>
         </div>
         <dl className="mt-4 grid gap-4 text-[13.5px] sm:grid-cols-2">
           <div>
-            <dt className="text-[12px] text-[#858c96]">Mentorluk konusu</dt>
+            <dt className="text-[12px] text-[#858c96]">{t("topic")}</dt>
             <dd className="text-[#22262b]">{needLabel(team)}</dd>
           </div>
           <div>
-            <dt className="text-[12px] text-[#858c96]">Mevcut ihtiyaç</dt>
+            <dt className="text-[12px] text-[#858c96]">{t("currentNeed")}</dt>
             <dd className="text-[#22262b]">{team.needText ?? "—"}</dd>
           </div>
         </dl>
         <p className="mt-3 text-[12px] text-[#858c96]">
-          {NEED_SOURCE_NOTES[team.needSource]}
+          {t(`needSource.${team.needSource}`)}
         </p>
       </section>
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="text-[16px] font-semibold text-[#22262b]">
-          Önerilen mentorlar{" "}
+          {t("suggested")}{" "}
           <span className="text-[13px] font-normal text-[#858c96]">
-            Uzmanlık ve takım ihtiyacına göre sıralandı
+            {t("suggestedHint")}
           </span>
         </h3>
         <div className="w-full sm:w-[320px]">
           <SearchField
             value={matching.search}
             onChange={matching.setSearch}
-            placeholder="Havuzdan mentor ara ve manuel eşleştir"
+            placeholder={t("search")}
           />
         </div>
       </div>
@@ -273,9 +295,9 @@ function TeamPanel({
       />
       {matching.search ? (
         matching.searchResults.length === 0 ? (
-          <EmptyNote>Havuzda bu aramayla eşleşen mentor yok.</EmptyNote>
+          <EmptyNote>{t("noSearchMatch")}</EmptyNote>
         ) : (
-          <ul className="space-y-3" aria-label="Havuz arama sonuçları">
+          <ul className="space-y-3" aria-label={t("searchResults")}>
             {matching.searchResults.map((candidate) => (
               <CandidateCard
                 key={candidate.mentorId}
@@ -286,12 +308,9 @@ function TeamPanel({
           </ul>
         )
       ) : suggestions && suggestions.recommended.length === 0 ? (
-        <EmptyNote>
-          Programın mentor havuzunda uygun mentor yok. Mentor Havuzu’ndan mentor
-          davet edebilirsiniz.
-        </EmptyNote>
+        <EmptyNote>{t("noSuggestions")}</EmptyNote>
       ) : (
-        <ul className="space-y-3" aria-label="Önerilen mentorlar">
+        <ul className="space-y-3" aria-label={t("suggested")}>
           {suggestions?.recommended.map((candidate, index) => (
             <CandidateCard
               key={candidate.mentorId}
@@ -315,6 +334,8 @@ function CandidateCard({
   rank?: number;
   onMatch: () => void;
 }) {
+  const t = useTranslations("programMatching");
+  const optionLabel = useOptionLabel();
   const [open, setOpen] = useState(rank === 1);
   const full = isFull(candidate);
   return (
@@ -326,31 +347,38 @@ function CandidateCard({
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-2 text-[15px] font-semibold text-[#22262b]">
             {candidate.fullName}
-            <StatusChip tone="blue">Mentor</StatusChip>
+            <StatusChip tone="blue">{t("mentor")}</StatusChip>
             {rank ? (
               <span className="text-[12px] font-medium text-[#1a7fcc]">
-                {rank}. öneri
+                {t("rank", { n: rank })}
               </span>
             ) : null}
           </p>
           <p className="truncate text-[12.5px] text-[#858c96]">
-            {candidate.title || candidate.specialties.slice(0, 2).join(" · ")}
+            {candidate.title ||
+              candidate.specialties
+                .slice(0, 2)
+                .map((tag) => optionLabel("mentorTopic", tag))
+                .join(" · ")}
           </p>
         </div>
         <div className="w-[150px] text-[12px] text-[#858c96]">
-          Müsaitlik
+          {t("availability")}
           <span className="mt-1 block">
             {full ? (
-              <StatusChip tone="amber">Kapasite dolu</StatusChip>
+              <StatusChip tone="amber">{t("full")}</StatusChip>
             ) : (
               <span className="text-[12.5px] text-[#22262b]">
-                {candidate.availability ?? "Belirtilmedi"}
+                {candidate.availability ?? t("notGiven")}
               </span>
             )}
           </span>
         </div>
         <div className="w-[110px] text-[12px] text-[#858c96]">
-          Yük · {candidate.activeTeams}/{candidate.capacity}
+          {t("load", {
+            active: candidate.activeTeams,
+            capacity: candidate.capacity,
+          })}
           <span className="mt-1.5 block h-1.5 overflow-hidden rounded-full bg-[#f0f2f4]">
             <span
               className={`block h-full rounded-full ${full ? "bg-[#ffa94d]" : "bg-[#26a4ff]"}`}
@@ -361,14 +389,14 @@ function CandidateCard({
         <button
           type="button"
           onClick={onMatch}
-          aria-label={`${candidate.fullName} ile eşleştir`}
+          aria-label={t("matchWith", { name: candidate.fullName })}
           className={`rounded-full px-4 py-2 text-[13px] font-medium ${
             full
               ? "border border-[#e9ecef] bg-white text-[#22262b]"
               : "bg-[#22262b] text-white"
           }`}
         >
-          Eşleştir
+          {t("match")}
         </button>
       </div>
       {candidate.reasons.length > 0 ? (
@@ -379,7 +407,7 @@ function CandidateCard({
             onClick={() => setOpen(!open)}
             className="inline-flex items-center gap-1 text-[13px] font-medium text-[#1a7fcc]"
           >
-            Neden uygun?
+            {t("why")}
             <ChevronDown
               aria-hidden
               className={`size-3.5 transition ${open ? "rotate-180" : ""}`}
@@ -413,6 +441,8 @@ function ConfirmDialog({
   team: WaitingTeam;
   candidate: MatchCandidate;
 }) {
+  const t = useTranslations("programMatching");
+  const needLabel = useNeedLabel();
   const full = isFull(candidate);
   const fillsUp = candidate.activeTeams + 1 === candidate.capacity;
   return (
@@ -422,23 +452,23 @@ function ConfirmDialog({
       onClick={matching.closeConfirm}
     >
       <section
-        aria-label="Eşleşmeyi onayla"
+        aria-label={t("confirmTitle")}
         className="w-full max-w-[600px] rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3">
           <div>
             <h2 className="text-[20px] font-semibold text-[#22262b]">
-              Eşleşmeyi onayla
+              {t("confirmTitle")}
             </h2>
             <p className="mt-1 text-[13.5px] text-[#676e78]">
-              Onayladığında mentorluk hemen başlar ve iki tarafa bildirim gider.
+              {t("confirmBody")}
             </p>
           </div>
           <button
             type="button"
             onClick={matching.closeConfirm}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="grid size-8 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78]"
           >
             <X aria-hidden className="size-4" />
@@ -450,10 +480,12 @@ function ConfirmDialog({
               {team.name}
             </p>
             <p className="text-[12.5px] text-[#c95c18]">
-              Takım{team.leadName ? ` · ${team.leadName}` : ""}
+              {team.leadName
+                ? t("teamWithLead", { name: team.leadName })
+                : t("team")}
             </p>
             <p className="mt-2 text-[13px] text-[#22262b]">
-              İhtiyaç: {needLabel(team)}
+              {t("need", { need: needLabel(team) })}
             </p>
           </div>
           <ArrowLeftRight
@@ -464,9 +496,9 @@ function ConfirmDialog({
             <p className="text-[15px] font-semibold text-[#22262b]">
               {candidate.fullName}
             </p>
-            <p className="text-[12.5px] text-[#1a7fcc]">Mentor</p>
+            <p className="text-[12.5px] text-[#1a7fcc]">{t("mentor")}</p>
             <p className="mt-2 text-[13px] text-[#b7791f]">
-              {loadAfterMatch(candidate)}
+              {loadAfterMatch(candidate, t)}
             </p>
           </div>
         </div>
@@ -477,12 +509,12 @@ function ConfirmDialog({
           >
             <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
             {full
-              ? `${candidate.fullName}’ın kapasitesi zaten dolu; bu eşleşmeyle kapasitesinin üzerine çıkacak.`
-              : `Bu eşleşmeyle ${candidate.fullName}’ın kapasitesi dolacak.`}
+              ? t("overCapacity", { name: candidate.fullName })
+              : t("fillsUp", { name: candidate.fullName })}
           </p>
         ) : null}
         <fieldset className="mt-5 space-y-3 rounded-2xl border border-[#e9ecef] p-4">
-          <legend className="sr-only">Eşleşmeyle birlikte</legend>
+          <legend className="sr-only">{t("withMatch")}</legend>
           <label className="flex items-center gap-2 text-[13.5px] text-[#22262b]">
             <input
               type="checkbox"
@@ -490,21 +522,20 @@ function ConfirmDialog({
               onChange={(event) => matching.setIntroOn(event.target.checked)}
               className="size-4 accent-[#22262b]"
             />
-            İlk tanışma görüşmesi öner
+            {t("proposeIntro")}
           </label>
           {matching.introOn ? (
             <div className="ml-6 space-y-1">
               <input
                 type="datetime-local"
                 required
-                aria-label="Tanışma zamanı"
+                aria-label={t("introTime")}
                 value={matching.introAt}
                 onChange={(event) => matching.setIntroAt(event.target.value)}
                 className="h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13px]"
               />
               <p className="text-[12px] text-[#858c96]">
-                {INTRO_MEETING_MINUTES} dk · mentor ve takım yetkilisi ayrı ayrı
-                onaylar.
+                {t("introNote", { minutes: INTRO_MEETING_MINUTES })}
               </p>
             </div>
           ) : null}
@@ -515,16 +546,16 @@ function ConfirmDialog({
               onChange={(event) => matching.setNoteOn(event.target.checked)}
               className="size-4 accent-[#22262b]"
             />
-            Koordinatör notu ekle
+            {t("addNote")}
           </label>
           {matching.noteOn ? (
             <textarea
-              aria-label="Koordinatör notu"
+              aria-label={t("note")}
               value={matching.note}
               onChange={(event) => matching.setNote(event.target.value)}
               maxLength={MAX_COORDINATOR_NOTE}
               rows={2}
-              placeholder="Yalnızca koordinatörler görür."
+              placeholder={t("notePlaceholder")}
               className="ml-6 w-[calc(100%-1.5rem)] rounded-xl border border-[#e9ecef] px-3 py-2 text-[13px]"
             />
           ) : null}
@@ -535,7 +566,7 @@ function ConfirmDialog({
             onClick={matching.closeConfirm}
             className="rounded-full border border-[#e9ecef] px-5 py-2.5 text-[13.5px] text-[#22262b]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -543,7 +574,7 @@ function ConfirmDialog({
             disabled={matching.matching}
             className="rounded-full bg-[#22262b] px-5 py-2.5 text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {matching.matching ? "Eşleştiriliyor…" : "Eşleşmeyi onayla"}
+            {matching.matching ? t("matching") : t("confirmTitle")}
           </button>
         </div>
       </section>
@@ -558,6 +589,7 @@ function MatchList({
   matches: ProgramMatch[];
   empty: string;
 }) {
+  const locale = useLocale();
   if (matches.length === 0) return <EmptyNote>{empty}</EmptyNote>;
   return (
     <ul className="divide-y divide-[#f0f2f4] rounded-[28px] border border-[#e9ecef] bg-white">
@@ -570,8 +602,8 @@ function MatchList({
             {match.teamName} ↔ {match.mentorName}
           </span>
           <span className="text-[12.5px] text-[#858c96]">
-            {formatLongDate(match.startDate)}
-            {match.endDate ? ` – ${formatLongDate(match.endDate)}` : ""}
+            {formatLongDate(match.startDate, locale)}
+            {match.endDate ? ` – ${formatLongDate(match.endDate, locale)}` : ""}
           </span>
         </li>
       ))}

@@ -22,7 +22,7 @@ import {
 } from "@/lib/client/meeting-proposals";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -127,6 +127,32 @@ describe("ProgramMatchingView", () => {
     ).toBeInTheDocument();
     expect(getMatchSuggestions).toHaveBeenCalledWith("program-1", "lumen");
     expect(await screen.findByText("1. öneri")).toBeInTheDocument();
+  });
+
+  it("reads in English, confirmation included", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramMatchingView programId="program-1" />
+      </InLocale>,
+    );
+
+    await user.click(
+      await screen.findByRole("button", { name: "Match with Nihan Öztürk" }),
+    );
+    const dialog = screen.getByRole("region", { name: "Confirm the match" });
+    expect(
+      within(dialog).getByText("Load 3/4 → will be 4/4"),
+    ).toBeInTheDocument();
+    expect(within(dialog).getByRole("alert")).toHaveTextContent(
+      "This match fills Nihan Öztürk's capacity.",
+    );
+    expect(
+      within(dialog).getByLabelText("Propose an intro meeting"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Teams waiting for a match" }),
+    ).toBeInTheDocument();
   });
 
   it("warns when a match fills a mentor's capacity and confirms it", async () => {

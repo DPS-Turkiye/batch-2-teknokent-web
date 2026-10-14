@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,10 +12,22 @@ import {
   findMatch,
   isFull,
   loadAfterMatch,
-  needLabel,
   teamMeta,
   waitingLabel,
 } from "@/lib/program-matching";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "programMatching",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "programMatching",
+});
 
 const candidate: MatchCandidate = {
   mentorId: "nihan",
@@ -40,12 +53,14 @@ const team: WaitingTeam = {
 
 describe("program matching helpers", () => {
   it("describes load, capacity and the team", () => {
-    expect(loadAfterMatch(candidate)).toBe("Yük 3/4 → 4/4 olacak");
+    expect(loadAfterMatch(candidate, t)).toBe("Yük 3/4 → 4/4 olacak");
+    expect(loadAfterMatch(candidate, tEn)).toBe("Load 3/4 → will be 4/4");
     expect(isFull(candidate)).toBe(false);
     expect(isFull({ ...candidate, activeTeams: 4 })).toBe(true);
-    expect(teamMeta(team)).toBe("E-ticaret · Yetkili: Mert Aydın");
-    expect(needLabel(team)).toBe("İhtiyaç belirtilmedi");
-    expect(waitingLabel(0)).toBe("bugün");
+    expect(teamMeta(team, null, t)).toBe("E-ticaret · Yetkili: Mert Aydın");
+    expect(teamMeta(team, null, tEn)).toBe("E-ticaret · Lead: Mert Aydın");
+    expect(waitingLabel(0, t)).toBe("bugün");
+    expect(waitingLabel(3, tEn)).toBe("3 days");
   });
 
   it("searches the pool by name, title or specialty", () => {
