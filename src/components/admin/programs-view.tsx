@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import {
@@ -21,21 +22,33 @@ import {
   useAdminOverview,
 } from "@/hooks/use-admin-overview";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
-import { PROGRAM_STATUS_LABELS, ProgramStatus } from "@/interfaces/program";
+import { ProgramStatus } from "@/interfaces/program";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
-const FILTERS = ["Tümü", "Aktif", "Yaklaşan", "Tamamlanan"] as const;
-const SORTS = ["Açık sorun", "Takım", "Ad"] as const;
+enum Filter {
+  All = "ALL",
+  Active = "ACTIVE",
+  Upcoming = "UPCOMING",
+  Completed = "COMPLETED",
+}
+
+enum Sort {
+  Issues = "ISSUES",
+  Teams = "TEAMS",
+  Name = "NAME",
+}
 
 export function ProgramsView() {
+  const t = useTranslations("adminPrograms");
+  const unassigned = useTranslations("adminCommon")("unassigned");
   const query = useAdminOverview();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [filter, setFilter] = useState<(typeof FILTERS)[number]>("Tümü");
-  const [coordinator, setCoordinator] = useState("Tümü");
-  const [sort, setSort] = useState<(typeof SORTS)[number]>("Açık sorun");
+  const [filter, setFilter] = useState(Filter.All);
+  const [coordinator, setCoordinator] = useState("");
+  const [sort, setSort] = useState(Sort.Issues);
   const [search, setSearch] = useState("");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
@@ -47,12 +60,14 @@ export function ProgramsView() {
       await queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
-      showToast({ message: `${program.name} oluşturuldu.`, tone: "success" });
+      showToast({
+        message: t("created", { name: program.name }),
+        tone: "success",
+      });
     },
     onError: (error) => {
       showToast({
-        message:
-          error instanceof Error ? error.message : "Program oluşturulamadı.",
+        message: error instanceof Error ? error.message : t("createFailed"),
         tone: "error",
       });
     },
@@ -62,13 +77,17 @@ export function ProgramsView() {
   const rows = useMemo(() => {
     if (!data) return [];
     const filtered = data.programs.filter((program) => {
-      if (filter === "Aktif" && program.status !== "ACTIVE") return false;
-      if (filter === "Tamamlanan" && program.status !== "COMPLETED")
+      if (filter === Filter.Active && program.status !== ProgramStatus.Active)
         return false;
-      if (filter === "Yaklaşan") return false;
       if (
-        coordinator !== "Tümü" &&
-        programCoordinatorLabel(program) !== coordinator
+        filter === Filter.Completed &&
+        program.status !== ProgramStatus.Completed
+      )
+        return false;
+      if (filter === Filter.Upcoming) return false;
+      if (
+        coordinator &&
+        programCoordinatorLabel(program, unassigned) !== coordinator
       )
         return false;
       return program.name
@@ -76,27 +95,31 @@ export function ProgramsView() {
         .includes(search.toLocaleLowerCase("tr"));
     });
     return filtered.sort((left, right) => {
-      if (sort === "Takım") return right.startupCount - left.startupCount;
-      if (sort === "Ad") return left.name.localeCompare(right.name, "tr");
+      if (sort === Sort.Teams) return right.startupCount - left.startupCount;
+      if (sort === Sort.Name) return left.name.localeCompare(right.name, "tr");
       return issueCount(right, data) - issueCount(left, data);
     });
-  }, [coordinator, data, filter, search, sort]);
+  }, [coordinator, data, filter, search, sort, unassigned]);
 
   if (!data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
 
-  const counts = {
-    Tümü: data.programs.length,
-    Aktif: data.programs.filter((item) => item.status === "ACTIVE").length,
-    Yaklaşan: 0,
-    Tamamlanan: data.programs.filter((item) => item.status === "COMPLETED")
-      .length,
+  const counts: Record<Filter, number> = {
+    [Filter.All]: data.programs.length,
+    [Filter.Active]: data.programs.filter(
+      (item) => item.status === ProgramStatus.Active,
+    ).length,
+    [Filter.Upcoming]: 0,
+    [Filter.Completed]: data.programs.filter(
+      (item) => item.status === ProgramStatus.Completed,
+    ).length,
   };
   const coordinators = [
-    "Tümü",
     ...new Set(
-      data.programs.map((program) => programCoordinatorLabel(program)),
+      data.programs.map((program) =>
+        programCoordinatorLabel(program, unassigned),
+      ),
     ),
   ];
 
@@ -104,7 +127,7 @@ export function ProgramsView() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
         <div className="flex w-max gap-1 rounded-full bg-[#f5f6f8] p-1">
-          {FILTERS.map((id) => {
+          {Object.values(Filter).map((id) => {
             const selected = id === filter;
             return (
               <button
@@ -117,7 +140,7 @@ export function ProgramsView() {
                     : "text-[#676e78]"
                 }`}
               >
-                {id}
+                {t(`filters.${id}`)}
                 <span className="text-[12px] font-medium text-[#858c96]">
                   {counts[id]}
                 </span>
@@ -131,21 +154,27 @@ export function ProgramsView() {
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Program ara"
+              placeholder={t("search")}
               className="w-full bg-transparent text-[13.5px] text-[#22262b] outline-none placeholder:text-[#aeb4bc]"
             />
           </label>
           <SelectPill
-            label="Koordinatör:"
+            label={t("coordinator")}
             value={coordinator}
             onChange={setCoordinator}
-            options={coordinators}
+            options={[
+              { value: "", label: t("all") },
+              ...coordinators.map((name) => ({ value: name, label: name })),
+            ]}
           />
           <SelectPill
-            label="Sırala:"
+            label={t("sortBy")}
             value={sort}
-            onChange={(value) => setSort(value as (typeof SORTS)[number])}
-            options={[...SORTS]}
+            onChange={(value) => setSort(value as Sort)}
+            options={Object.values(Sort).map((value) => ({
+              value,
+              label: t(`sorts.${value}`),
+            }))}
           />
           {creating ? (
             <form
@@ -158,17 +187,17 @@ export function ProgramsView() {
               <input
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Program adı"
+                placeholder={t("programName")}
                 className="h-[42px] rounded-full border border-[#e9ecef] px-4 text-[13px] outline-none"
               />
               <button
                 type="submit"
                 className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
               >
-                Kaydet
+                {t("save")}
               </button>
               <OutlineButton onClick={() => setCreating(false)}>
-                Vazgeç
+                {t("cancel")}
               </OutlineButton>
             </form>
           ) : (
@@ -177,7 +206,7 @@ export function ProgramsView() {
               onClick={() => setCreating(true)}
               className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-white"
             >
-              + Yeni Program
+              {t("newProgram")}
             </button>
           )}
         </div>
@@ -189,17 +218,17 @@ export function ProgramsView() {
             <div
               className={`${cols} border-b border-[#f0f2f4] px-5 py-3 text-[12px] leading-[1.3] font-medium text-[#858c96]`}
             >
-              <span>Program</span>
-              <span>Açık sorun</span>
-              <span>Koordinatör</span>
-              <span>Tarih · faz</span>
-              <span>Takım</span>
-              <span>Mentor</span>
-              <span>Mentorluk sağlığı</span>
+              <span>{t("columns.program")}</span>
+              <span>{t("columns.issues")}</span>
+              <span>{t("columns.coordinator")}</span>
+              <span>{t("columns.datePhase")}</span>
+              <span>{t("columns.teams")}</span>
+              <span>{t("columns.mentors")}</span>
+              <span>{t("columns.health")}</span>
               <span />
             </div>
             {rows.length === 0 ? (
-              <EmptyNote>Bu filtrede program yok.</EmptyNote>
+              <EmptyNote>{t("empty")}</EmptyNote>
             ) : (
               rows.map((program) => (
                 <ProgramRow key={program.id} program={program} data={data} />
@@ -219,6 +248,9 @@ function ProgramRow({
   program: AdminProgram;
   data: AdminOverview;
 }) {
+  const t = useTranslations("adminPrograms");
+  const unassigned = useTranslations("adminCommon")("unassigned");
+  const locale = useLocale();
   const issues = issueCount(program, data);
   const health = programHealth(program, data);
   const coordinator = data.users.find(
@@ -249,16 +281,16 @@ function ProgramRow({
         <span
           className={`truncate text-[13px] leading-[1.3] ${missingAccess || !program.coordinatorName ? "text-[#b7791f]" : "text-[#22262b]"}`}
         >
-          {programCoordinatorLabel(program)}
+          {programCoordinatorLabel(program, unassigned)}
         </span>
         {missingAccess ? (
           <span className="shrink-0 rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium text-[#b7791f]">
-            Erişim yok
+            {t("noAccess")}
           </span>
         ) : null}
       </span>
       <span className="truncate text-[12.5px] leading-[1.3] text-[#676e78]">
-        {phaseLabel(program, data)}
+        {phaseLabel(program, data, t, locale)}
       </span>
       <span className="text-[13px] leading-[1.3] font-medium text-[#22262b]">
         {program.startupCount === 0 ? "—" : program.startupCount}
@@ -281,7 +313,9 @@ function ProgramRow({
           onClick={() => setAssigning(true)}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium whitespace-nowrap text-[#22262b]"
         >
-          {program.coordinatorName ? "Koordinatör ekle" : "Koordinatör ata"}
+          {program.coordinatorName
+            ? t("addCoordinator")
+            : t("assignCoordinator")}
         </button>
         {assigning ? (
           <AssignCoordinatorDialog
@@ -294,7 +328,7 @@ function ProgramRow({
           href={`/programs/${program.id}`}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium text-[#22262b]"
         >
-          Aç
+          {t("open")}
         </Link>
         <Asset src="/admin/overflow.svg" className="h-8 w-[38px]" />
       </span>
@@ -311,7 +345,7 @@ function SelectPill({
   label: string;
   value: string;
   onChange: (value: string) => void;
-  options: string[];
+  options: { value: string; label: string }[];
 }) {
   return (
     <label className="flex items-center gap-2 rounded-full border border-[#e9ecef] bg-white py-2.5 pr-3.5 pl-4">
@@ -323,7 +357,9 @@ function SelectPill({
         className="appearance-none bg-transparent text-[13.5px] leading-[1.3] font-medium text-[#22262b] outline-none"
       >
         {options.map((option) => (
-          <option key={option}>{option}</option>
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
         ))}
       </select>
       <Asset src="/admin/chevron-down-sm.svg" className="size-4" />
@@ -332,7 +368,8 @@ function SelectPill({
 }
 
 function StatusPill({ status }: { status: AdminProgram["status"] }) {
-  const active = status === "ACTIVE";
+  const t = useTranslations("adminCommon");
+  const active = status === ProgramStatus.Active;
   return (
     <span
       className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium ${
@@ -344,12 +381,13 @@ function StatusPill({ status }: { status: AdminProgram["status"] }) {
         width={6}
         height={6}
       />
-      {PROGRAM_STATUS_LABELS[status as ProgramStatus]}
+      {t(`programStatus.${status as ProgramStatus}`)}
     </span>
   );
 }
 
 function IssuePill({ count }: { count: number }) {
+  const t = useTranslations("adminPrograms");
   if (count === 0) {
     return <span className="text-[13px] text-[#aeb4bc]">—</span>;
   }
@@ -363,7 +401,7 @@ function IssuePill({ count }: { count: number }) {
     <span
       className={`inline-flex rounded-full px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium ${style}`}
     >
-      {count} sorun
+      {t("issueCount", { count })}
     </span>
   );
 }
@@ -382,9 +420,12 @@ function HealthBar({
     { key: "amber", count: amber, color: "#ffab3d" },
     { key: "red", count: red, color: "#d9464b" },
   ].filter((part) => part.count > 0);
+  const t = useTranslations("adminPrograms");
   const total = green + amber + red;
   if (total === 0) {
-    return <span className="text-[12.5px] text-[#aeb4bc]">Başlamadı</span>;
+    return (
+      <span className="text-[12.5px] text-[#aeb4bc]">{t("notStarted")}</span>
+    );
   }
   const usable = 150 - (parts.length - 1) * 3;
   return (
@@ -435,15 +476,22 @@ function programHealth(program: AdminProgram, data: AdminOverview) {
   return { green, amber, red };
 }
 
-function phaseLabel(program: AdminProgram, data: AdminOverview) {
+function phaseLabel(
+  program: AdminProgram,
+  data: AdminOverview,
+  t: ReturnType<typeof useTranslations<"adminPrograms">>,
+  locale: string,
+) {
   const created = new Date(program.createdAt);
   const month = created
-    .toLocaleDateString("tr-TR", { month: "short" })
+    .toLocaleDateString(locale, { month: "short" })
     .replace(".", "");
-  const year = created.getFullYear();
-  if (program.status === "COMPLETED") return `${month} ${year} · Tamamlandı`;
+  const date = `${month} ${created.getFullYear()}`;
+  if (program.status === ProgramStatus.Completed) {
+    return t("phaseCompleted", { date });
+  }
   const mentoring = program.startups.some((startup) =>
     activeMentorshipFor(data, startup.id),
   );
-  return `${month} ${year} · ${mentoring ? "Mentorluk" : "Kurulum"}`;
+  return mentoring ? t("phaseMentoring", { date }) : t("phaseSetup", { date });
 }

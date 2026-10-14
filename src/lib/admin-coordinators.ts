@@ -1,9 +1,10 @@
+import type { useTranslations } from "next-intl";
+
 import {
   type CoordinatorAccount,
   type CoordinatorCandidate,
   CoordinatorCandidateStatus,
 } from "@/interfaces/admin-coordinator";
-import { UserRole } from "@/interfaces/session";
 
 const ASSIGNABLE = new Set([
   CoordinatorCandidateStatus.New,
@@ -15,42 +16,29 @@ export function isAssignable(candidate: CoordinatorCandidate | undefined) {
   return !!candidate && ASSIGNABLE.has(candidate.status);
 }
 
-const ROLE_LABELS: Record<UserRole, string> = {
-  [UserRole.Admin]: "yönetici",
-  [UserRole.Coordinator]: "koordinatör",
-  [UserRole.Mentor]: "mentor",
-  [UserRole.Mentee]: "girişimci",
-};
+export type CoordinatorsT = ReturnType<
+  typeof useTranslations<"adminCoordinators">
+>;
 
 /** What saving will do, or why it can't, in the admin's words. */
-export function candidateMessage(candidate: CoordinatorCandidate) {
-  const name = candidate.fullName ?? candidate.email;
-  switch (candidate.status) {
-    case CoordinatorCandidateStatus.New:
-      return "Bu e-posta için yeni bir koordinatör hesabı açılacak ve kişiye şifresini belirlemesi için bir e-posta gönderilecek.";
-    case CoordinatorCandidateStatus.Promotable:
-      return `${name} şu an ${candidate.role ? ROLE_LABELS[candidate.role] : "kullanıcı"}. Kaydederseniz rolü koordinatör olarak değişir.`;
-    case CoordinatorCandidateStatus.Reactivatable:
-      return `${name} pasif bir koordinatör. Kaydederseniz yeniden etkinleşir.`;
-    case CoordinatorCandidateStatus.AlreadyCoordinator:
-      return `${name} zaten koordinatör.`;
-    case CoordinatorCandidateStatus.Admin:
-      return "Bu e-posta bir yöneticiye ait.";
-    case CoordinatorCandidateStatus.TeamMember:
-      return `${name} bir startup ekibinde. Takım üyeleri koordinatör yapılamaz.`;
-    case CoordinatorCandidateStatus.MentorInMentorship:
-      return `${name} planlı ya da aktif bir mentorluk yürütüyor. Mentorlukları bitmeden koordinatör yapılamaz.`;
-  }
+export function candidateMessage(
+  candidate: CoordinatorCandidate,
+  t: CoordinatorsT,
+) {
+  return t(`candidate.${candidate.status}`, {
+    name: candidate.fullName ?? candidate.email,
+    role: candidate.role ? t(`roles.${candidate.role}`) : t("userFallback"),
+  });
 }
 
-export function addedMessage(account: CoordinatorAccount) {
+export function addedMessage(account: CoordinatorAccount, t: CoordinatorsT) {
   switch (account.outcome) {
     case CoordinatorCandidateStatus.Promotable:
-      return `${account.fullName} artık koordinatör.`;
+      return t("promoted", { name: account.fullName });
     case CoordinatorCandidateStatus.Reactivatable:
-      return `${account.fullName} yeniden etkinleştirildi.`;
+      return t("reactivated", { name: account.fullName });
     default:
-      return `${account.fullName} eklendi. Şifre belirleme e-postası ${account.email} adresine gönderildi.`;
+      return t("added", { name: account.fullName, email: account.email });
   }
 }
 
@@ -59,11 +47,10 @@ export function nameRequired(candidate: CoordinatorCandidate | undefined) {
   return candidate?.status === CoordinatorCandidateStatus.New;
 }
 
-export const COORDINATOR_UNASSIGNED = "Atanmadı";
-
 /** A program's coordinators in the admin lists, or "Atanmadı". */
-export function programCoordinatorLabel(program: {
-  coordinatorName: string | null;
-}) {
-  return program.coordinatorName ?? COORDINATOR_UNASSIGNED;
+export function programCoordinatorLabel(
+  program: { coordinatorName: string | null },
+  unassigned: string,
+) {
+  return program.coordinatorName ?? unassigned;
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import {
   useCoordinatorAccess,
   useCoordinatorPasswordSetup,
@@ -14,6 +16,7 @@ export function CoordinatorAccessControl({
   id: string;
   status: string;
 }) {
+  const t = useTranslations("adminCoordinators");
   const access = useCoordinatorAccess();
   const setup = useCoordinatorPasswordSetup();
   if (status === UserAccountStatus.Pending) return null;
@@ -30,7 +33,7 @@ export function CoordinatorAccessControl({
             : "bg-[#22262b] text-white"
         }`}
       >
-        {active ? "Pasife al" : "Yeniden etkinleştir"}
+        {active ? t("deactivate") : t("reactivate")}
       </button>
       {active ? (
         <button
@@ -39,7 +42,7 @@ export function CoordinatorAccessControl({
           onClick={() => setup.resend(id)}
           className="rounded-full border border-[#e9ecef] bg-white px-4 py-2 text-[13px] font-medium text-[#22262b] disabled:opacity-60"
         >
-          Şifre e-postasını tekrar gönder
+          {t("resendSetup")}
         </button>
       ) : null}
     </div>

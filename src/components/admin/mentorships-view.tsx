@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo, useState, type ReactNode } from "react";
 
 import {
@@ -966,18 +967,20 @@ function CoordinatorName({
   program: AdminProgram;
   data: AdminOverview;
 }) {
+  const tCommon = useTranslations("adminCommon");
   const coordinator = data.users.find(
     (user) => user.id === program.coordinatorId,
   );
   const missing = coordinator != null && coordinator.status !== "APPROVED";
+  const label = programCoordinatorLabel(program, tCommon("unassigned"));
   return (
     <span className="flex min-w-0 items-center gap-2">
       <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#fbe2d0] text-[10px] font-semibold text-[#ffab3d]">
-        {initials(programCoordinatorLabel(program))}
+        {initials(label)}
       </span>
       <span className="min-w-0">
         <span className="block truncate text-[13px] text-[#22262b]">
-          {programCoordinatorLabel(program)}
+          {label}
         </span>
         {missing ? (
           <span className="block text-[12px] text-[#b7791f]">erişim yok</span>

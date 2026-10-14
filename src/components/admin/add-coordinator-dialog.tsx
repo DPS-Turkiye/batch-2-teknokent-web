@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import { useAddCoordinatorForm } from "@/hooks/use-admin-coordinators";
 import { candidateMessage, isAssignable } from "@/lib/admin-coordinators";
@@ -8,12 +10,13 @@ const FIELD =
   "mt-1.5 h-11 w-full rounded-2xl border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
 
 export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("adminCoordinators");
   const form = useAddCoordinatorForm(onClose);
 
   return (
-    <AdminOverlay label="Koordinatör ekle" onClose={onClose}>
+    <AdminOverlay label={t("addTitle")} onClose={onClose}>
       <form
-        aria-label="Koordinatör ekle"
+        aria-label={t("addTitle")}
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {
@@ -22,12 +25,10 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
         }}
       >
         <h2 className="text-[18px] font-semibold text-[#22262b]">
-          Koordinatör ekle
+          {t("addTitle")}
         </h2>
         <p className="mt-2 text-[13.5px] leading-[1.5] text-[#676e78]">
-          Yeni biri için hesap açılır; kayıtlı bir mentor ya da girişimci ise
-          rolü koordinatör olur. Mentorlar ve takımlar kendileri kayıt olur ve
-          bu listede onay bekler.
+          {t("addBody")}
         </p>
 
         <CoordinatorEmailFields form={form} />
@@ -38,14 +39,14 @@ export function AddCoordinatorDialog({ onClose }: { onClose: () => void }) {
             onClick={onClose}
             className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={!form.canSave}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {form.saving ? "Kaydediliyor…" : "Kaydet"}
+            {form.saving ? t("saving") : t("save")}
           </button>
         </div>
       </form>
@@ -59,11 +60,12 @@ export function CoordinatorEmailFields({
 }: {
   form: ReturnType<typeof useAddCoordinatorForm>;
 }) {
+  const t = useTranslations("adminCoordinators");
   const candidate = form.candidate;
   return (
     <>
       <label className="mt-5 block text-[12.5px] font-medium text-[#676e78]">
-        E-posta
+        {t("email")}
         <input
           type="email"
           autoComplete="off"
@@ -74,7 +76,7 @@ export function CoordinatorEmailFields({
       </label>
       {form.needsName ? (
         <label className="mt-4 block text-[12.5px] font-medium text-[#676e78]">
-          Ad soyad
+          {t("fullName")}
           <input
             value={form.fullName}
             maxLength={255}
@@ -91,12 +93,12 @@ export function CoordinatorEmailFields({
               isAssignable(candidate) ? "text-[#1d3a5f]" : "text-[#d9464b]"
             }
           >
-            {candidateMessage(candidate)}
+            {candidateMessage(candidate, t)}
           </p>
         ) : form.checkError ? (
           <p className="text-[#d9464b]">{form.checkError.message}</p>
         ) : form.checking ? (
-          <p className="text-[#858c96]">Kontrol ediliyor…</p>
+          <p className="text-[#858c96]">{t("checking")}</p>
         ) : null}
       </div>
     </>
