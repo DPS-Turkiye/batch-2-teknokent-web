@@ -1,3 +1,4 @@
+import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
   type CoordinatorProgramDetail,
   type CreateProgramInput,
@@ -226,6 +227,7 @@ export type SetupStep = {
 export function setupSteps(
   detail: CoordinatorProgramDetail,
   teams: ProgramTeam[],
+  t: ProgramsT,
 ): SetupStep[] | null {
   if (detail.program.lifecycle === ProgramLifecycle.Completed) return null;
   const base = `/coordinator/programs/${encodeURIComponent(detail.program.id)}`;
@@ -235,43 +237,46 @@ export function setupSteps(
   const steps: SetupStep[] = [
     {
       key: "created",
-      title: "Program oluşturuldu",
-      detail: "Temel bilgiler ve mentorluk kuralları",
+      title: t("setup.createdTitle"),
+      detail: t("setup.createdDetail"),
       done: true,
-      link: { label: "Gör", href: `${base}/settings` },
+      link: { label: t("setup.see"), href: `${base}/settings` },
     },
     {
       key: "teams",
       title:
         teams.length > 0
-          ? `${teams.length} takım eklendi, kodlar hazır`
-          : "Takımları ekle",
+          ? t("setup.teamsTitle", { count: teams.length })
+          : t("setup.teamsEmptyTitle"),
       detail:
         teams.length > 0
-          ? `${joined} yetkili katıldı · ${teams.length - joined} bekleniyor`
-          : "Her takım yetkilisi için bir katılım kodu üretilir",
+          ? t("setup.teamsDetail", {
+              joined,
+              waiting: teams.length - joined,
+            })
+          : t("setup.teamsEmptyDetail"),
       done: teams.length > 0,
       link: {
-        label: teams.length > 0 ? "Gör" : "Takım ekle",
+        label: teams.length > 0 ? t("setup.see") : t("setup.addTeam"),
         href: `${base}/teams`,
       },
     },
     {
       key: "mentors",
-      title: "Mentor havuzunu oluştur",
+      title: t("setup.mentorsTitle"),
       detail:
         detail.program.mentorCount > 0
-          ? `${detail.program.mentorCount} mentor havuzda`
-          : "Henüz mentor yok",
+          ? t("setup.mentorsDetail", { count: detail.program.mentorCount })
+          : t("setup.mentorsEmpty"),
       done: detail.program.mentorCount > 0,
-      link: { label: "Mentor davet et", href: `${base}/mentors` },
+      link: { label: t("setup.inviteMentor"), href: `${base}/mentors` },
     },
     {
       key: "matching",
-      title: "Eşleşmeleri başlat",
-      detail: "Havuz hazır olunca öneriler açılır",
+      title: t("setup.matchingTitle"),
+      detail: t("setup.matchingDetail"),
       done: detail.program.activeMentorshipCount > 0,
-      link: { label: "Eşleştir", href: `${base}/matching` },
+      link: { label: t("setup.match"), href: `${base}/matching` },
     },
   ];
   return steps.every((step) => step.done) ? null : steps;

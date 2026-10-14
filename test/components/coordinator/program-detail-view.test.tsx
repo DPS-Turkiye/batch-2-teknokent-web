@@ -15,7 +15,7 @@ import {
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -51,6 +51,27 @@ describe("coordinator program detail", () => {
     expect(
       within(setup).getByRole("link", { name: "Takım ekle" }),
     ).toHaveAttribute("href", "/coordinator/programs/program-1/teams");
+  });
+
+  it("reads Genel Bakış in English", async () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramOverviewView programId="program-1" />
+      </InLocale>,
+    );
+
+    expect(
+      await screen.findByText(/Coordinators: Elif Demir, Burcu Şen/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Week 6 / 16")).toBeInTheDocument();
+    const actions = screen.getByRole("list", { name: "Waiting work" });
+    expect(
+      within(actions).getByText("4 meetings: notes missing"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /Program settings/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Team & mentor distribution")).toBeInTheDocument();
   });
 
   it("shows Genel Bakış: phases, health, actions, dates and distribution", async () => {

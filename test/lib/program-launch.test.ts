@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -20,6 +21,20 @@ import {
   teamRowProblems,
 } from "@/lib/program-launch";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "coordinatorPrograms",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "coordinatorPrograms",
+});
 
 function team(overrides: Partial<ProgramTeam> = {}): ProgramTeam {
   return {
@@ -141,10 +156,13 @@ describe("program launch helpers", () => {
     const fresh = coordinatorProgramDetail();
     fresh.program.mentorCount = 0;
     fresh.program.activeMentorshipCount = 0;
-    const steps = setupSteps(fresh, [team()]);
+    const steps = setupSteps(fresh, [team()], t);
 
     expect(steps?.map((step) => step.done)).toEqual([true, true, false, false]);
     expect(steps?.[1].detail).toBe("0 yetkili katıldı · 1 bekleniyor");
-    expect(setupSteps(coordinatorProgramDetail(), [team()])).toBeNull();
+    expect(setupSteps(fresh, [team()], tEn)?.[1].detail).toBe(
+      "0 leads joined · 1 waiting",
+    );
+    expect(setupSteps(coordinatorProgramDetail(), [team()], t)).toBeNull();
   });
 });

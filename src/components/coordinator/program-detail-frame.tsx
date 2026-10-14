@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
@@ -15,14 +16,12 @@ import {
   programTabs,
 } from "@/lib/coordinator-program-detail";
 
-const LIFECYCLE: Record<
-  ProgramLifecycle,
-  { label: string; tone: "green" | "blue" | "neutral" }
-> = {
-  [ProgramLifecycle.Active]: { label: "Aktif", tone: "green" },
-  [ProgramLifecycle.Upcoming]: { label: "Yaklaşan", tone: "blue" },
-  [ProgramLifecycle.Completed]: { label: "Arşivlendi", tone: "neutral" },
-};
+const LIFECYCLE_TONES: Record<ProgramLifecycle, "green" | "blue" | "neutral"> =
+  {
+    [ProgramLifecycle.Active]: "green",
+    [ProgramLifecycle.Upcoming]: "blue",
+    [ProgramLifecycle.Completed]: "neutral",
+  };
 
 /** The program's header, counts and tabs; each tab page renders inside it. */
 export function ProgramDetailFrame({
@@ -34,21 +33,22 @@ export function ProgramDetailFrame({
   tab: ProgramTab;
   children: (detail: CoordinatorProgramDetail) => ReactNode;
 }) {
+  const t = useTranslations("coordinatorPrograms");
+  const locale = useLocale();
   const query = useCoordinatorProgram(programId);
   const detail = query.data;
   if (!detail) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const program = detail.program;
-  const lifecycle = LIFECYCLE[program.lifecycle];
 
   return (
     <div className="space-y-6">
       <nav
-        aria-label="Konum"
+        aria-label={t("breadcrumb")}
         className="flex items-center gap-1.5 text-[13px] text-[#858c96]"
       >
-        <Link href="/coordinator/programs">Programlarım</Link>
+        <Link href="/coordinator/programs">{t("myPrograms")}</Link>
         <ChevronRight aria-hidden className="size-3.5" />
         <span className="text-[#22262b]">{program.name}</span>
       </nav>
@@ -60,41 +60,54 @@ export function ProgramDetailFrame({
         <div className="min-w-0 flex-1">
           <h1 className="flex flex-wrap items-center gap-3 text-[28px] font-semibold tracking-[-0.03em] text-[#22262b]">
             {program.name}
-            <StatusChip tone={lifecycle.tone}>{lifecycle.label}</StatusChip>
+            <StatusChip tone={LIFECYCLE_TONES[program.lifecycle]}>
+              {t(`lifecycle.${program.lifecycle}`)}
+            </StatusChip>
           </h1>
           <p className="mt-1 text-[13.5px] text-[#676e78]">
-            {programHeaderLine(detail)}
+            {programHeaderLine(detail, t, locale)}
           </p>
         </div>
         <Link
           href={`/coordinator/programs/${encodeURIComponent(programId)}/report`}
           className="shrink-0 rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] font-medium text-[#22262b]"
         >
-          Program raporu
+          {t("report")}
         </Link>
       </header>
 
       <ul className="flex flex-wrap gap-2 text-[13.5px]">
-        <Pill dot="#ff6a3d" value={program.teamCount} label="Takım" />
-        <Pill dot="#26a4ff" value={program.mentorCount} label="Mentor" />
-        <Pill value={program.activeMentorshipCount} label="Aktif mentorluk" />
+        <Pill
+          dot="#ff6a3d"
+          value={program.teamCount}
+          label={t("pills.teams")}
+        />
+        <Pill
+          dot="#26a4ff"
+          value={program.mentorCount}
+          label={t("pills.mentors")}
+        />
+        <Pill
+          value={program.activeMentorshipCount}
+          label={t("pills.activeMentorships")}
+        />
         <Pill
           dot="#ff6a3d"
           value={program.awaitingMatchCount}
-          label="Eşleşme bekleyen"
+          label={t("pills.awaitingMatch")}
         />
       </ul>
 
       <div
         role="tablist"
-        aria-label="Program bölümleri"
+        aria-label={t("sections")}
         className="flex overflow-x-auto border-b border-[#e9ecef]"
       >
         {programTabs(detail, programId).map((item) => {
           const active = item.id === tab;
           const content = (
             <>
-              {item.label}
+              {t(`tabs.${item.id}`)}
               {item.count != null ? (
                 <span className="rounded-full bg-[#f4f5f7] px-2 py-0.5 text-[11.5px] text-[#676e78]">
                   {item.count}
@@ -123,7 +136,7 @@ export function ProgramDetailFrame({
               role="tab"
               aria-selected={false}
               aria-disabled="true"
-              title="Yakında"
+              title={t("soon")}
               className={`${className} cursor-not-allowed opacity-60`}
             >
               {content}

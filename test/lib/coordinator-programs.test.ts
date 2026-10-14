@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
@@ -12,6 +13,20 @@ import {
   ProgramListFilter,
 } from "@/lib/coordinator-programs";
 import { coordinatorProgram, phase } from "@test/fixtures/coordinator-programs";
+
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "coordinatorPrograms",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "coordinatorPrograms",
+});
 
 const active = coordinatorProgram({ id: "a", name: "METU Stars 2026" });
 const upcoming = coordinatorProgram({
@@ -29,7 +44,10 @@ const all = [active, upcoming, completed];
 
 describe("coordinator program helpers", () => {
   it("labels each filter with its count", () => {
-    expect(programFilterOptions(all).map((option) => option.label)).toEqual([
+    expect(
+      programFilterOptions(all, tEn).map((option) => option.label),
+    ).toEqual(["All 3", "Active 1", "Upcoming 1", "Completed 1"]);
+    expect(programFilterOptions(all, t).map((option) => option.label)).toEqual([
       "Tümü 3",
       "Aktif 1",
       "Yaklaşan 1",
@@ -52,10 +70,13 @@ describe("coordinator program helpers", () => {
   });
 
   it("formats a program's months, and nothing without dates", () => {
-    expect(formatMonthRange("2026-02-01", "2026-12-10")).toBe(
+    expect(formatMonthRange("2026-02-01", "2026-12-10", "tr")).toBe(
       "Şub 2026 – Ara 2026",
     );
-    expect(formatMonthRange(null, null)).toBe("");
+    expect(formatMonthRange("2026-02-01", "2026-12-10", "en")).toBe(
+      "Feb 2026 – Dec 2026",
+    );
+    expect(formatMonthRange(null, null, "tr")).toBe("");
   });
 
   it("counts whole days until a start date, never negative", () => {
