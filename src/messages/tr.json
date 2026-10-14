@@ -3887,5 +3887,29 @@
     "notePlaceholder": "Yalnızca koordinatörler görür.",
     "cancel": "Vazgeç",
     "matching": "Eşleştiriliyor…"
+  },
+  "programReport": {
+    "breadcrumb": "Konum",
+    "myPrograms": "Programlarım",
+    "programFallback": "Program",
+    "title": "Program raporu",
+    "subtitle": "{name} · oranlar, sayılar ve görüşme değerlendirmeleri"
+  },
+  "programDetail": {
+    "home": "Anasayfa",
+    "programs": "Programlarım",
+    "loading": "Program yükleniyor…",
+    "notFound": "Program bulunamadı.",
+    "programEyebrow": "Program",
+    "coordinator": "Koordinatör",
+    "mentors": "Mentorlar",
+    "noMentors": "Henüz kabul edilmiş mentor yok.",
+    "mentorRole": "Mentor",
+    "startups": "Startuplar",
+    "noStartups": "Programda henüz startup yok.",
+    "noMembers": "Ekip üyesi yok.",
+    "memberCount": "{count} kişi",
+    "memberFallback": "Üye",
+    "founder": "Kurucu"
   }
 }

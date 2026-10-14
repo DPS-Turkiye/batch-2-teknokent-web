@@ -3887,5 +3887,29 @@
     "notePlaceholder": "Only coordinators can see this.",
     "cancel": "Cancel",
     "matching": "Matching…"
+  },
+  "programReport": {
+    "breadcrumb": "Breadcrumb",
+    "myPrograms": "My programs",
+    "programFallback": "Program",
+    "title": "Program report",
+    "subtitle": "{name} · rates, numbers and meeting ratings"
+  },
+  "programDetail": {
+    "home": "Home",
+    "programs": "My programs",
+    "loading": "Loading the program…",
+    "notFound": "Program not found.",
+    "programEyebrow": "Program",
+    "coordinator": "Coordinator",
+    "mentors": "Mentors",
+    "noMentors": "No accepted mentors yet.",
+    "mentorRole": "Mentor",
+    "startups": "Startups",
+    "noStartups": "No startups in the program yet.",
+    "noMembers": "No team members.",
+    "memberCount": "{count, plural, one {# person} other {# people}}",
+    "memberFallback": "Member",
+    "founder": "Founder"
   }
 }
