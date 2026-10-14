@@ -126,7 +126,10 @@ export async function currentFirebaseAccount(): Promise<{
 }
 
 export async function currentIdToken(): Promise<string | null> {
-  const user = firebaseAuth().currentUser;
+  const auth = firebaseAuth();
+  // Right after a page load currentUser is null until Firebase restores the saved session.
+  await auth.authStateReady();
+  const user = auth.currentUser;
   return user ? user.getIdToken() : null;
 }
 
