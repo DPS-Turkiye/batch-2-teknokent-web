@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
@@ -11,6 +12,19 @@ import {
   poolFilterOptions,
   poolRowNote,
 } from "@/lib/mentor-pool";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "programMentors",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "programMentors",
+});
 
 function row(overrides: Partial<MentorPoolRow> = {}): MentorPoolRow {
   return {
@@ -59,7 +73,13 @@ const rows = [
 
 describe("mentor pool helpers", () => {
   it("counts each filter and narrows by status, expertise, capacity and search", () => {
-    expect(poolFilterOptions(rows).map((option) => option.label)).toEqual([
+    expect(poolFilterOptions(rows, tEn).map((option) => option.label)).toEqual([
+      "All 4",
+      "Active 2",
+      "Invited 1",
+      "To approve 1",
+    ]);
+    expect(poolFilterOptions(rows, t).map((option) => option.label)).toEqual([
       "Tümü 4",
       "Aktif 2",
       "Davet bekliyor 1",
@@ -91,9 +111,10 @@ describe("mentor pool helpers", () => {
 
   it("describes invites and pending checks by their age", () => {
     const now = new Date("2026-09-26T09:00:00Z");
-    expect(poolRowNote(rows[3], now)).toBe("5 gün önce · 2 gün kaldı");
-    expect(poolRowNote(rows[2], now)).toBe("Uzmanlık doğrulaması · 5 gün");
-    expect(poolRowNote(rows[0], now)).toBeNull();
+    expect(poolRowNote(rows[3], t, now)).toBe("5 gün önce · 2 gün kaldı");
+    expect(poolRowNote(rows[3], tEn, now)).toBe("5 days ago · 2 days left");
+    expect(poolRowNote(rows[2], t, now)).toBe("Uzmanlık doğrulaması · 5 gün");
+    expect(poolRowNote(rows[0], t, now)).toBeNull();
     expect(loadShare(rows[0])).toBe(75);
   });
 

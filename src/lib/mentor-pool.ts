@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
 import { SignupRole } from "@/interfaces/signup";
 import { daysWaiting } from "@/lib/program-launch";
@@ -15,11 +17,7 @@ export enum CapacityFilter {
   Full = "FULL",
 }
 
-export const CAPACITY_FILTER_LABELS: Record<CapacityFilter, string> = {
-  [CapacityFilter.All]: "Tümü",
-  [CapacityFilter.Available]: "Yeri var",
-  [CapacityFilter.Full]: "Dolu",
-};
+export type PoolT = ReturnType<typeof useTranslations<"programMentors">>;
 
 const INVITE_STATUSES = new Set([
   MentorPoolStatus.Invited,
@@ -31,25 +29,16 @@ const ACTIVE_STATUSES = new Set([
   MentorPoolStatus.Full,
 ]);
 
-export const POOL_STATUS_CHIPS: Record<
+export const POOL_STATUS_TONES: Record<
   MentorPoolStatus,
-  { label: string; tone: "green" | "amber" | "blue" | "red" }
+  "green" | "amber" | "blue" | "red"
 > = {
-  [MentorPoolStatus.Active]: { label: "Aktif", tone: "green" },
-  [MentorPoolStatus.Full]: { label: "Kapasite dolu", tone: "amber" },
-  [MentorPoolStatus.AwaitingApproval]: {
-    label: "Onay bekliyor",
-    tone: "amber",
-  },
-  [MentorPoolStatus.Invited]: { label: "Davet gönderildi", tone: "blue" },
-  [MentorPoolStatus.InviteExpiring]: {
-    label: "Davet süresi doluyor",
-    tone: "amber",
-  },
-  [MentorPoolStatus.InviteExpired]: {
-    label: "Davet süresi doldu",
-    tone: "red",
-  },
+  [MentorPoolStatus.Active]: "green",
+  [MentorPoolStatus.Full]: "amber",
+  [MentorPoolStatus.AwaitingApproval]: "amber",
+  [MentorPoolStatus.Invited]: "blue",
+  [MentorPoolStatus.InviteExpiring]: "amber",
+  [MentorPoolStatus.InviteExpired]: "red",
 };
 
 function matchesFilter(row: MentorPoolRow, filter: PoolFilter) {
@@ -65,21 +54,13 @@ function matchesFilter(row: MentorPoolRow, filter: PoolFilter) {
   }
 }
 
-export function poolFilterOptions(rows: MentorPoolRow[]) {
-  const count = (filter: PoolFilter) =>
-    rows.filter((row) => matchesFilter(row, filter)).length;
-  return [
-    { id: PoolFilter.All, label: `Tümü ${rows.length}` },
-    { id: PoolFilter.Active, label: `Aktif ${count(PoolFilter.Active)}` },
-    {
-      id: PoolFilter.Invited,
-      label: `Davet bekliyor ${count(PoolFilter.Invited)}`,
-    },
-    {
-      id: PoolFilter.AwaitingApproval,
-      label: `Onay bekliyor ${count(PoolFilter.AwaitingApproval)}`,
-    },
-  ];
+export function poolFilterOptions(rows: MentorPoolRow[], t: PoolT) {
+  return Object.values(PoolFilter).map((id) => ({
+    id,
+    label: t(`filters.${id}`, {
+      count: rows.filter((row) => matchesFilter(row, id)).length,
+    }),
+  }));
 }
 
 /** Every expertise tag in the pool, for the "Uzmanlık" select. */
@@ -127,12 +108,14 @@ export function filterPool(
 const DAY = 24 * 60 * 60 * 1000;
 
 /** The "Mentorluk yükü" cell for rows that have no load bar yet. */
-export function poolRowNote(row: MentorPoolRow, now = new Date()) {
+export function poolRowNote(row: MentorPoolRow, t: PoolT, now = new Date()) {
   const since = daysWaiting(row.since, now);
-  const ago = since === 0 ? "bugün" : `${since} gün önce`;
+  const ago = since === 0 ? t("today") : t("daysAgo", { days: since });
   switch (row.status) {
     case MentorPoolStatus.AwaitingApproval:
-      return `Uzmanlık doğrulaması · ${since === 0 ? "bugün" : `${since} gün`}`;
+      return t("verification", {
+        when: since === 0 ? t("today") : t("days", { days: since }),
+      });
     case MentorPoolStatus.Invited:
       return ago;
     case MentorPoolStatus.InviteExpiring: {
@@ -144,10 +127,10 @@ export function poolRowNote(row: MentorPoolRow, now = new Date()) {
             ),
           )
         : 0;
-      return `${ago} · ${left} gün kaldı`;
+      return t("expiring", { ago, left });
     }
     case MentorPoolStatus.InviteExpired:
-      return "Süresi doldu";
+      return t("expired");
     default:
       return null;
   }

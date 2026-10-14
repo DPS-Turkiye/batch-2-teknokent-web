@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, Plus, ShieldCheck, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
@@ -9,11 +10,12 @@ import {
   FilterPills,
   QueryNotice,
   SearchField,
-  SelectPill,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { PillSelect } from "@/components/coordinator/pill-select";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { useMentorPool, useMentorReview } from "@/hooks/use-mentor-pool";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   type CoordinatorProgramDetail,
   ProgramLifecycle,
@@ -21,16 +23,13 @@ import {
 import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import {
-  CAPACITY_FILTER_LABELS,
   CapacityFilter,
   loadShare,
-  POOL_STATUS_CHIPS,
+  POOL_STATUS_TONES,
   poolRowNote,
   rowKey,
 } from "@/lib/mentor-pool";
 import { formatLongDate, initials } from "@/lib/utils";
-
-const ALL = "Tümü";
 
 export function ProgramMentorsView({ programId }: { programId: string }) {
   return (
@@ -49,11 +48,10 @@ function PoolBody({
   programId: string;
   detail: CoordinatorProgramDetail;
 }) {
+  const t = useTranslations("programMentors");
+  const optionLabel = useOptionLabel();
   const pool = useMentorPool(programId);
   const archived = detail.program.lifecycle === ProgramLifecycle.Completed;
-  const capacityLabels = Object.values(CapacityFilter).map(
-    (value) => CAPACITY_FILTER_LABELS[value],
-  );
 
   return (
     <div className="space-y-5">
@@ -68,26 +66,29 @@ function PoolBody({
             <SearchField
               value={pool.search}
               onChange={pool.setSearch}
-              placeholder="Mentor veya uzmanlık ara"
+              placeholder={t("search")}
             />
           </div>
-          <SelectPill
-            label="Uzmanlık:"
-            value={pool.expertise || ALL}
-            options={[ALL, ...pool.expertiseOptions]}
-            onChange={(value) => pool.setExpertise(value === ALL ? "" : value)}
+          <PillSelect
+            label={t("expertise")}
+            value={pool.expertise}
+            options={[
+              { value: "", label: t("all") },
+              ...pool.expertiseOptions.map((tag) => ({
+                value: tag,
+                label: optionLabel("mentorTopic", tag),
+              })),
+            ]}
+            onChange={pool.setExpertise}
           />
-          <SelectPill
-            label="Kapasite:"
-            value={CAPACITY_FILTER_LABELS[pool.capacity]}
-            options={capacityLabels}
-            onChange={(label) =>
-              pool.setCapacity(
-                Object.values(CapacityFilter).find(
-                  (value) => CAPACITY_FILTER_LABELS[value] === label,
-                ) ?? CapacityFilter.All,
-              )
-            }
+          <PillSelect
+            label={t("capacity")}
+            value={pool.capacity}
+            options={Object.values(CapacityFilter).map((value) => ({
+              value,
+              label: t(`capacityFilters.${value}`),
+            }))}
+            onChange={(value) => pool.setCapacity(value as CapacityFilter)}
           />
           {archived ? null : (
             <button
@@ -95,7 +96,7 @@ function PoolBody({
               onClick={pool.openInvite}
               className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white"
             >
-              <Plus aria-hidden className="size-4" /> Mentor davet et
+              <Plus aria-hidden className="size-4" /> {t("invite")}
             </button>
           )}
         </div>
@@ -104,9 +105,7 @@ function PoolBody({
       <QueryNotice isLoading={pool.query.isLoading} error={pool.query.error} />
       {pool.query.isSuccess && pool.visible.length === 0 ? (
         <EmptyNote>
-          {pool.rows.length === 0
-            ? "Havuzda henüz mentor yok. “Mentor davet et” ile e-postasını girin."
-            : "Bu filtreyle eşleşen mentor yok."}
+          {pool.rows.length === 0 ? t("empty") : t("noMatch")}
         </EmptyNote>
       ) : null}
 
@@ -115,13 +114,17 @@ function PoolBody({
           <table className="w-full min-w-[980px] text-left text-[13.5px]">
             <thead className="text-[12.5px] text-[#858c96]">
               <tr className="border-b border-[#f0f2f4]">
-                <th className="px-6 py-4 font-normal">Mentor</th>
-                <th className="px-4 py-4 font-normal">Durum</th>
-                <th className="px-4 py-4 font-normal">Uzmanlık</th>
-                <th className="px-4 py-4 font-normal">Programlar</th>
-                <th className="px-4 py-4 font-normal">Mentorluk yükü</th>
+                <th className="px-6 py-4 font-normal">{t("columns.mentor")}</th>
+                <th className="px-4 py-4 font-normal">{t("columns.status")}</th>
+                <th className="px-4 py-4 font-normal">
+                  {t("columns.expertise")}
+                </th>
+                <th className="px-4 py-4 font-normal">
+                  {t("columns.programs")}
+                </th>
+                <th className="px-4 py-4 font-normal">{t("columns.load")}</th>
                 <th className="px-6 py-4">
-                  <span className="sr-only">İşlemler</span>
+                  <span className="sr-only">{t("columns.actions")}</span>
                 </th>
               </tr>
             </thead>
@@ -137,7 +140,10 @@ function PoolBody({
             </tbody>
           </table>
           <p className="border-t border-[#f0f2f4] px-6 py-4 text-[12.5px] text-[#858c96]">
-            {pool.rows.length} mentordan {pool.visible.length} gösteriliyor
+            {t("showing", {
+              total: pool.rows.length,
+              shown: pool.visible.length,
+            })}
           </p>
         </div>
       ) : null}
@@ -168,8 +174,9 @@ function PoolRow({
   pool: Pool;
   archived: boolean;
 }) {
-  const chip = POOL_STATUS_CHIPS[row.status];
-  const note = poolRowNote(row);
+  const t = useTranslations("programMentors");
+  const optionLabel = useOptionLabel();
+  const note = poolRowNote(row, t);
   const name = row.fullName ?? row.email;
   const hasLoad =
     row.status === MentorPoolStatus.Active ||
@@ -181,7 +188,7 @@ function PoolRow({
           <Avatar initials={initials(name) || "?"} tone="blue" size="lg" />
           <span className="min-w-0">
             <span className="block truncate text-[#22262b]">
-              {row.fullName ?? "Kayıt bekleniyor"}
+              {row.fullName ?? t("awaitingSignup")}
             </span>
             <span className="block truncate text-[12.5px] text-[#858c96]">
               {row.email}
@@ -190,7 +197,9 @@ function PoolRow({
         </span>
       </td>
       <td className="px-4 py-4">
-        <StatusChip tone={chip.tone}>{chip.label}</StatusChip>
+        <StatusChip tone={POOL_STATUS_TONES[row.status]}>
+          {t(`status.${row.status}`)}
+        </StatusChip>
       </td>
       <td className="px-4 py-4">
         <span className="flex flex-wrap gap-1.5">
@@ -201,7 +210,7 @@ function PoolRow({
                   key={tag}
                   className="rounded-full border border-[#e9ecef] px-2.5 py-1 text-[12px] text-[#22262b]"
                 >
-                  {tag}
+                  {optionLabel("mentorTopic", tag)}
                 </span>
               ))}
         </span>
@@ -222,7 +231,7 @@ function PoolRow({
                 style={{ width: `${loadShare(row)}%` }}
               />
             </span>
-            {row.activeTeams}/{row.capacity} mentorluk
+            {t("load", { active: row.activeTeams, capacity: row.capacity })}
           </span>
         ) : (
           <span className="text-[12.5px] text-[#858c96]">{note}</span>
@@ -246,6 +255,7 @@ function RowActions({
   pool: Pool;
   archived: boolean;
 }) {
+  const t = useTranslations("programMentors");
   if (archived) return null;
   const outline =
     "rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50";
@@ -257,7 +267,7 @@ function RowActions({
           onClick={() => pool.openReview(row.mentorId as string)}
           className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
         >
-          İncele
+          {t("review")}
         </button>
       );
     case MentorPoolStatus.Invited:
@@ -272,14 +282,14 @@ function RowActions({
               onClick={() => pool.renew(row)}
               className={outline}
             >
-              Tekrar gönder
+              {t("resend")}
             </button>
           ) : null}
           <button
             type="button"
             disabled={pool.busy}
             onClick={() => pool.takeBack(row)}
-            aria-label={`${row.fullName ?? row.email} davetini geri al`}
+            aria-label={t("takeBack", { name: row.fullName ?? row.email })}
             className="grid size-9 place-items-center rounded-full text-[#858c96] hover:bg-[#f4f5f7] disabled:opacity-50"
           >
             <X aria-hidden className="size-4" />
@@ -292,6 +302,7 @@ function RowActions({
 }
 
 function InviteDialog({ pool }: { pool: Pool }) {
+  const t = useTranslations("programMentors");
   return (
     <dialog
       open
@@ -299,7 +310,7 @@ function InviteDialog({ pool }: { pool: Pool }) {
       onClick={pool.closeInvite}
     >
       <form
-        aria-label="Mentor davet et"
+        aria-label={t("invite")}
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {
@@ -308,20 +319,18 @@ function InviteDialog({ pool }: { pool: Pool }) {
         }}
       >
         <h2 className="text-[18px] font-semibold text-[#22262b]">
-          Mentor davet et
+          {t("invite")}
         </h2>
         <p className="mt-2 text-[13.5px] leading-[1.5] text-[#676e78]">
-          Kayıtlı bir mentor ise davet ona gider ve kabul edince havuza eklenir.
-          Hesabı yoksa 7 gün geçerli bir kayıt bağlantısı kopyalanır; bağlantıyı
-          siz paylaşırsınız.
+          {t("inviteBody")}
         </p>
         <label className="mt-5 block text-[12.5px] font-medium text-[#676e78]">
-          E-posta
+          {t("email")}
           <input
             type="email"
             value={pool.email}
             onChange={(event) => pool.setEmail(event.target.value)}
-            placeholder="mentor@ornek.com"
+            placeholder={t("emailPlaceholder")}
             autoFocus
             className="mt-1.5 h-11 w-full rounded-2xl border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]"
           />
@@ -337,14 +346,14 @@ function InviteDialog({ pool }: { pool: Pool }) {
             onClick={pool.closeInvite}
             className="rounded-full px-4 py-2.5 text-[13px] text-[#22262b]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={pool.sending}
             className="rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {pool.sending ? "Gönderiliyor…" : "Davet et"}
+            {pool.sending ? t("sending") : t("send")}
           </button>
         </div>
       </form>
@@ -365,6 +374,9 @@ function ReviewDialog({
   onClose: () => void;
   onDone: (rows: MentorPoolRow[]) => void;
 }) {
+  const t = useTranslations("programMentors.reviewDialog");
+  const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const review = useMentorReview(programId, mentorId, onDone);
   const data = review.review;
   const teams = detail.awaitingTeams.slice(0, 3).map((team) => team.name);
@@ -376,7 +388,7 @@ function ReviewDialog({
       onClick={onClose}
     >
       <section
-        aria-label="Uzmanlık doğrulama"
+        aria-label={t("label")}
         className="flex max-h-[92vh] w-full max-w-[620px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
       >
@@ -399,18 +411,18 @@ function ReviewDialog({
                 <div className="min-w-0 flex-1">
                   <h2 className="flex flex-wrap items-center gap-2 text-[18px] font-semibold text-[#22262b]">
                     {data.fullName}
-                    <StatusChip tone="blue">Mentor</StatusChip>
-                    <StatusChip tone="amber">Onay bekliyor</StatusChip>
+                    <StatusChip tone="blue">{t("mentor")}</StatusChip>
+                    <StatusChip tone="amber">{t("awaiting")}</StatusChip>
                   </h2>
                   <p className="mt-0.5 text-[12.5px] text-[#858c96]">
-                    {data.viaInvite ? "Davetle kayıt" : "Katılım isteği"} ·{" "}
-                    {formatLongDate(data.requestedAt)} · {data.email}
+                    {data.viaInvite ? t("viaInvite") : t("joinRequest")} ·{" "}
+                    {formatLongDate(data.requestedAt, locale)} · {data.email}
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={onClose}
-                  aria-label="Kapat"
+                  aria-label={t("close")}
                   className="grid size-8 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78]"
                 >
                   <X aria-hidden className="size-4" />
@@ -419,17 +431,16 @@ function ReviewDialog({
 
               <p className="flex gap-2 rounded-2xl bg-[#fff6e5] px-4 py-3 text-[13px] text-[#6b4a12]">
                 <ShieldCheck aria-hidden className="mt-0.5 size-4 shrink-0" />
-                Beyan edilen uzmanlık programın ihtiyacıyla uyumlu mu?
-                Onaylarsan mentor havuza eklenir.
+                {t("question")}
               </p>
 
               <div>
                 <h3 className="mb-2 text-[12px] font-medium tracking-wide text-[#858c96] uppercase">
-                  Beyan edilen uzmanlık
+                  {t("declared")}
                 </h3>
                 {data.expertise.length === 0 ? (
                   <p className="text-[13px] text-[#858c96]">
-                    Henüz uzmanlık seçmedi.
+                    {t("noExpertise")}
                   </p>
                 ) : (
                   <span className="flex flex-wrap gap-1.5">
@@ -438,7 +449,7 @@ function ReviewDialog({
                         key={tag}
                         className="rounded-full bg-[#eaf6ff] px-2.5 py-1 text-[12px] text-[#1583d6]"
                       >
-                        {tag}
+                        {optionLabel("mentorTopic", tag)}
                       </span>
                     ))}
                   </span>
@@ -447,21 +458,17 @@ function ReviewDialog({
 
               <div>
                 <h3 className="mb-2 text-[12px] font-medium tracking-wide text-[#858c96] uppercase">
-                  Doğrulama
+                  {t("checks")}
                 </h3>
                 <ul className="divide-y divide-[#f0f2f4] rounded-2xl border border-[#e9ecef]">
                   <CheckRow
                     done={data.emailVerified}
-                    title="E-posta doğrulandı"
-                    hint={
-                      data.viaInvite
-                        ? "davet bağlantısıyla"
-                        : "hesabıyla giriş yaptı"
-                    }
+                    title={t("emailVerified")}
+                    hint={data.viaInvite ? t("viaLink") : t("signedIn")}
                   />
                   <CheckRow
                     done={Boolean(data.linkedinUrl)}
-                    title="LinkedIn profili bağlı"
+                    title={t("linkedin")}
                     hint={
                       data.linkedinUrl ? (
                         <a
@@ -470,20 +477,20 @@ function ReviewDialog({
                           rel="noreferrer"
                           className="underline"
                         >
-                          {data.professionalTitle || "Profili aç"}
+                          {data.professionalTitle || t("openProfile")}
                         </a>
                       ) : (
-                        "profilinde LinkedIn yok"
+                        t("noLinkedin")
                       )
                     }
                   />
                   <CheckRow
                     done={Boolean(data.invitedBy)}
-                    title="Referans"
+                    title={t("reference")}
                     hint={
                       data.invitedBy
-                        ? `${data.invitedBy} (koordinatör) davet etti`
-                        : "davetsiz katılım isteği"
+                        ? t("invitedBy", { name: data.invitedBy })
+                        : t("noReference")
                     }
                   />
                   <li className="px-4 py-3">
@@ -498,10 +505,10 @@ function ReviewDialog({
                       />
                       <span>
                         <span className="block text-[13.5px] text-[#22262b]">
-                          Uzmanlık alanları onayı
+                          {t("expertiseOk")}
                         </span>
                         <span className="block text-[12px] text-[#858c96]">
-                          senin kararın
+                          {t("yourCall")}
                         </span>
                       </span>
                     </label>
@@ -511,16 +518,19 @@ function ReviewDialog({
 
               <div>
                 <h3 className="mb-2 text-[12px] font-medium tracking-wide text-[#858c96] uppercase">
-                  Katılım tercihi
+                  {t("preferences")}
                 </h3>
                 <dl className="space-y-2 rounded-2xl bg-[#f7f8f9] px-4 py-3 text-[13px]">
-                  <Pref label="Müsaitlik" value={data.availability ?? "—"} />
                   <Pref
-                    label="Önerilen kapasite"
-                    value={`${data.capacity} takım`}
+                    label={t("availability")}
+                    value={data.availability ?? "—"}
                   />
                   <Pref
-                    label="Eşleşme bekleyen takımlar"
+                    label={t("suggestedCapacity")}
+                    value={t("capacityValue", { count: data.capacity })}
+                  />
+                  <Pref
+                    label={t("waitingTeams")}
                     value={teams.length > 0 ? teams.join(", ") : "—"}
                   />
                 </dl>
@@ -534,14 +544,14 @@ function ReviewDialog({
                 onClick={review.reject}
                 className="rounded-full px-4 py-2.5 text-[13px] text-[#22262b] disabled:opacity-50"
               >
-                Reddet
+                {t("reject")}
               </button>
               {review.moreInfoHref ? (
                 <a
                   href={review.moreInfoHref}
                   className="rounded-full border border-[#e9ecef] px-4 py-2.5 text-[13px] text-[#22262b]"
                 >
-                  Ek bilgi iste
+                  {t("moreInfo")}
                 </a>
               ) : null}
               <button
@@ -550,7 +560,7 @@ function ReviewDialog({
                 onClick={review.approve}
                 className="ml-auto rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
               >
-                Onayla ve havuza ekle
+                {t("approve")}
               </button>
             </footer>
           </>
@@ -569,6 +579,7 @@ function CheckRow({
   title: string;
   hint: ReactNode;
 }) {
+  const t = useTranslations("programMentors.reviewDialog");
   return (
     <li className="flex items-start gap-3 px-4 py-3">
       <span
@@ -582,7 +593,7 @@ function CheckRow({
       <span>
         <span className="block text-[13.5px] text-[#22262b]">
           {title}
-          <span className="sr-only">{done ? " (tamam)" : " (eksik)"}</span>
+          <span className="sr-only">{done ? t("done") : t("missing")}</span>
         </span>
         <span className="block text-[12px] text-[#858c96]">{hint}</span>
       </span>

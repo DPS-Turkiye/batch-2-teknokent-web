@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -36,6 +37,7 @@ async function copyInviteLink(code: string) {
 
 /** Mentor Havuzu: the pool with its filters, inviting, and the invites still waiting. */
 export function useMentorPool(programId: string) {
+  const t = useTranslations("programMentors");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const query = useQuery({
@@ -73,18 +75,18 @@ export function useMentorPool(programId: string) {
       if (link?.inviteCode) {
         await copyInviteLink(link.inviteCode);
         showToast({
-          message: `Davet bağlantısı ${value.trim()} adresine e-postayla gönderildi ve kopyalandı; 7 gün geçerli.`,
+          message: t("invitedLink", { email: value.trim() }),
           tone: "success",
         });
       } else {
         showToast({
-          message: "Davet gönderildi. Mentor kabul edince havuza eklenir.",
+          message: t("invited"),
           tone: "success",
         });
       }
     },
     onError: (failure) =>
-      setInviteError(errorMessage(failure, "Mentor davet edilemedi.")),
+      setInviteError(errorMessage(failure, t("inviteFailed"))),
   });
   const renew = useMutation({
     mutationFn: (row: MentorPoolRow) =>
@@ -93,12 +95,11 @@ export function useMentorPool(programId: string) {
       saved(rows);
       await copyInviteLink(row.inviteCode as string);
       showToast({
-        message:
-          "Bağlantı 7 gün daha geçerli; yeniden e-postayla gönderildi ve kopyalandı.",
+        message: t("renewed"),
         tone: "success",
       });
     },
-    onError: onError("Davet yenilenemedi."),
+    onError: onError(t("renewFailed")),
   });
   const takeBack = useMutation({
     mutationFn: (row: MentorPoolRow) =>
@@ -107,9 +108,9 @@ export function useMentorPool(programId: string) {
         : withdrawProgramMentorInvite(programId, row.mentorId as string),
     onSuccess: (rows) => {
       saved(rows);
-      showToast({ message: "Davet geri alındı.", tone: "success" });
+      showToast({ message: t("takenBack"), tone: "success" });
     },
-    onError: onError("Davet geri alınamadı."),
+    onError: onError(t("takeBackFailed")),
   });
 
   const rows = query.data ?? [];
@@ -119,7 +120,7 @@ export function useMentorPool(programId: string) {
     visible: filterPool(rows, { filter, search, expertise, capacity }),
     filter,
     setFilter,
-    filterOptions: poolFilterOptions(rows),
+    filterOptions: poolFilterOptions(rows, t),
     search,
     setSearch,
     expertise,
@@ -145,7 +146,7 @@ export function useMentorPool(programId: string) {
     inviteError,
     sendInvite: () => {
       if (!isEmailAddress(email)) {
-        setInviteError("Geçerli bir e-posta adresi girin.");
+        setInviteError(t("invalidEmail"));
         return;
       }
       invite.mutate(email);
@@ -154,7 +155,7 @@ export function useMentorPool(programId: string) {
     copyLink: async (row: MentorPoolRow) => {
       if (!row.inviteCode) return;
       await copyInviteLink(row.inviteCode);
-      showToast({ message: "Davet bağlantısı kopyalandı.", tone: "success" });
+      showToast({ message: t("linkCopied"), tone: "success" });
     },
     renew: (row: MentorPoolRow) => renew.mutate(row),
     takeBack: (row: MentorPoolRow) => takeBack.mutate(row),
@@ -172,6 +173,7 @@ export function useMentorReview(
   mentorId: string,
   onDone: (rows: MentorPoolRow[]) => void,
 ) {
+  const t = useTranslations("programMentors.reviewDialog");
   const { showToast } = useToast();
   const [expertiseConfirmed, setExpertiseConfirmed] = useState(false);
   const query = useQuery({
@@ -183,15 +185,15 @@ export function useMentorReview(
       decideProgramMentor(programId, mentorId, accepted),
     onSuccess: (rows, accepted) => {
       onDone(rows);
-      const name = query.data?.fullName ?? "Mentor";
+      const name = query.data?.fullName ?? t("nameFallback");
       showToast({
-        message: accepted ? `${name} havuza eklendi.` : `${name} reddedildi.`,
+        message: accepted ? t("added", { name }) : t("rejected", { name }),
         tone: "success",
       });
     },
     onError: (failure) =>
       showToast({
-        message: errorMessage(failure, "Karar kaydedilemedi."),
+        message: errorMessage(failure, t("decideFailed")),
         tone: "error",
       }),
   });
@@ -206,7 +208,7 @@ export function useMentorReview(
     deciding: decide.isPending,
     moreInfoHref: review
       ? `mailto:${review.email}?${new URLSearchParams({
-          subject: "Mentor başvurunuz hakkında",
+          subject: t("mailSubject"),
         })}`
       : null,
   };
