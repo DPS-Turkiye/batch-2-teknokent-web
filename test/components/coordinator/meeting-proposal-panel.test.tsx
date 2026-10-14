@@ -9,6 +9,7 @@ import {
   meetingProposal,
   mentorshipProposalsStub,
 } from "@test/fixtures/meeting-proposals";
+import { InLocale } from "@test/test-utils";
 
 describe("MeetingProposalPanel", () => {
   it("offers Görüşme planla when nothing is open", async () => {
@@ -52,6 +53,31 @@ describe("MeetingProposalPanel", () => {
     );
 
     expect(screen.getByText(/Ayşe Demir,/)).toHaveTextContent("“Seyahatteyim”");
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <MeetingProposalPanel
+          proposals={mentorshipProposalsStub({
+            declined: meetingProposal({
+              status: MeetingProposalStatus.Declined,
+              declinedByName: "Ayşe Demir",
+              declineReason: "Seyahatteyim",
+            }),
+          })}
+        />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByText(
+        "Ayşe Demir said Thursday, October 1 at 10:30 AM · 45 min doesn't work for them: “Seyahatteyim”",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Plan a meeting" }),
+    ).toBeInTheDocument();
   });
 });
 

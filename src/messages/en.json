@@ -1001,7 +1001,15 @@
     "minutes": "{minutes} min",
     "topic": "Topic (optional)",
     "topicPlaceholder": "E.g. cash flow model",
-    "submit": "Propose to both sides"
+    "submit": "Propose to both sides",
+    "intro": {
+      "none": "Not proposed yet",
+      "confirmed": "{when} · both sides confirmed",
+      "pending": "{when} proposed · waiting for replies",
+      "declined": "{when} proposal was declined",
+      "declinedReason": "{when} proposal was declined: {reason}",
+      "withdrawn": "Proposal withdrawn"
+    }
   },
   "myPrograms": {
     "title": "My programs",
@@ -3318,5 +3326,48 @@
       "opening": "Opening…",
       "open": "Open the conversation"
     }
+  },
+  "proposalPanel": {
+    "reminded": "Reminded",
+    "remind": "Remind",
+    "withdraw": "Withdraw the proposal",
+    "someone": "One side",
+    "declined": "{name} said {when} doesn't work for them.",
+    "declinedReason": "{name} said {when} doesn't work for them: “{reason}”",
+    "none": "No open meeting proposal.",
+    "plan": "Plan a meeting"
+  },
+  "coordinatorNotes": {
+    "label": "Coordinator note",
+    "placeholder": "Only coordinators can see this.",
+    "save": "Save the note",
+    "cancel": "Cancel",
+    "authorFallback": "Coordinator",
+    "delete": "Delete the note",
+    "empty": "No coordinator notes yet."
+  },
+  "firstSteps": {
+    "close": "Close",
+    "title": "First steps",
+    "new": "New",
+    "matchedToday": "matched today",
+    "progress": "First steps · {done}/4",
+    "matched": "Match confirmed",
+    "matchedAt": "today {time}",
+    "notified": "Notifications sent",
+    "lead": "{name} (lead)",
+    "team": "the team",
+    "intro": "Intro meeting",
+    "reminded": "Reminded",
+    "remind": "Remind",
+    "plan": "Plan a meeting",
+    "firstNote": "First meeting notes",
+    "firstNoteDetail": "the mentor adds them after the meeting",
+    "parties": "Parties",
+    "mentorLoad": "Mentor · {load}",
+    "teamLabel": "Team",
+    "teamWithLead": "Team · {name}",
+    "calendar": "See it in the calendar →",
+    "message": "Send a message"
   }
 }

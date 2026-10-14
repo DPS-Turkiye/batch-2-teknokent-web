@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { ChevronDown, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
 type AdminIconProps = {
@@ -289,8 +290,9 @@ export function QueryNotice({
   isLoading: boolean;
   error: Error | null;
 }) {
+  const t = useTranslations("common");
   if (isLoading) {
-    return <p className="text-sm text-[#858c96]">Yükleniyor…</p>;
+    return <p className="text-sm text-[#858c96]">{t("loading")}</p>;
   }
   if (error) {
     return <p className="text-sm text-[#d9464b]">{error.message}</p>;

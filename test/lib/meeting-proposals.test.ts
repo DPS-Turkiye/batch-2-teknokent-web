@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { MeetingStatus } from "@/interfaces/meeting";
@@ -10,15 +11,32 @@ import {
   lastDeclined,
   openProposal,
   proposalWhenLabel,
-  sideLabel,
+  type ProposalTexts,
 } from "@/lib/meeting-proposals";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
 
+function texts(locale: "tr" | "en"): ProposalTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "meetingProposals",
+    }),
+    locale,
+  };
+}
+const trTexts = texts("tr");
+
 describe("meeting proposal helpers", () => {
   it("labels the time with the length", () => {
-    expect(proposalWhenLabel(meetingProposal())).toBe(
+    expect(proposalWhenLabel(meetingProposal(), trTexts)).toBe(
       "1 Ekim Perşembe 10:30 · 45 dk",
+    );
+    expect(proposalWhenLabel(meetingProposal(), texts("en"))).toBe(
+      "Thursday, October 1 at 10:30 AM · 45 min",
     );
   });
 
@@ -38,11 +56,6 @@ describe("meeting proposal helpers", () => {
     expect(lastDeclined([confirmed, declined])).toBeNull();
   });
 
-  it("says whether a side has answered", () => {
-    expect(sideLabel(null)).toBe("Yanıt bekleniyor");
-    expect(sideLabel("2026-09-27T09:00:00Z")).toBe("Onayladı");
-  });
-
   it("defaults a new proposal to tomorrow at 10:00", () => {
     const start = defaultProposalStart(new Date(2026, 8, 27, 15, 42));
     expect([start.getDate(), start.getHours(), start.getMinutes()]).toEqual([
@@ -51,14 +64,16 @@ describe("meeting proposal helpers", () => {
   });
 
   it("turns the newest proposal into the İlk adımlar meeting step", () => {
-    expect(introStep(null)).toEqual({
+    expect(introStep(null, trTexts)).toEqual({
       state: StepState.Todo,
       detail: "Henüz önerilmedi",
     });
-    expect(introStep(meetingProposal()).state).toBe(StepState.Waiting);
+    expect(introStep(meetingProposal(), trTexts).state).toBe(StepState.Waiting);
     expect(
-      introStep(meetingProposal({ status: MeetingProposalStatus.Confirmed }))
-        .state,
+      introStep(
+        meetingProposal({ status: MeetingProposalStatus.Confirmed }),
+        trTexts,
+      ).state,
     ).toBe(StepState.Done);
     expect(
       introStep(
@@ -66,11 +81,13 @@ describe("meeting proposal helpers", () => {
           status: MeetingProposalStatus.Declined,
           declineReason: "Seyahatteyim",
         }),
+        trTexts,
       ),
     ).toEqual({
       state: StepState.Todo,
       detail: "1 Ekim Perşembe 10:30 · 45 dk önerisi reddedildi: Seyahatteyim",
     });
+    expect(introStep(null, texts("en")).detail).toBe("Not proposed yet");
   });
 
   it("only moves a planned meeting that hasn't started", () => {

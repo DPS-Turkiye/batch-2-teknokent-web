@@ -1,7 +1,9 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
-import { proposalWhenLabel, sideLabel } from "@/lib/meeting-proposals";
+import { proposalWhenLabel } from "@/lib/meeting-proposals";
 
 /** The drawer's "Görüşme önerisi" block: the open proposal and who has confirmed it, or the last decline. */
 export function MeetingProposalPanel({
@@ -9,6 +11,8 @@ export function MeetingProposalPanel({
 }: {
   proposals: MentorshipMeetingProposals;
 }) {
+  const t = useTranslations("proposalPanel");
+  const texts = { t: useTranslations("meetingProposals"), locale: useLocale() };
   const open = proposals.open;
   const declined = proposals.declined;
   return (
@@ -16,7 +20,7 @@ export function MeetingProposalPanel({
       {open ? (
         <>
           <p className="text-[13.5px] font-medium text-[#22262b]">
-            {proposalWhenLabel(open)}
+            {proposalWhenLabel(open, texts)}
           </p>
           {open.agenda ? (
             <p className="mt-0.5 text-[12px] text-[#858c96]">{open.agenda}</p>
@@ -38,7 +42,7 @@ export function MeetingProposalPanel({
               disabled={proposals.reminding || proposals.reminded}
               className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] px-4 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
             >
-              {proposals.reminded ? "Hatırlatıldı" : "Hatırlat"}
+              {proposals.reminded ? t("reminded") : t("remind")}
             </button>
             <button
               type="button"
@@ -46,7 +50,7 @@ export function MeetingProposalPanel({
               disabled={proposals.withdrawing}
               className="inline-flex h-9 items-center rounded-full px-3 text-[12.5px] text-[#676e78] disabled:text-[#aeb4bc]"
             >
-              Öneriyi geri çek
+              {t("withdraw")}
             </button>
           </div>
         </>
@@ -54,21 +58,26 @@ export function MeetingProposalPanel({
         <>
           {declined ? (
             <p className="mb-3 rounded-xl bg-[#fdeeee] px-3 py-2 text-[12.5px] text-[#22262b]">
-              {declined.declinedByName ?? "Bir taraf"},{" "}
-              {proposalWhenLabel(declined)} önerisine uygun olmadığını söyledi
-              {declined.declineReason ? `: “${declined.declineReason}”` : "."}
+              {declined.declineReason
+                ? t("declinedReason", {
+                    name: declined.declinedByName ?? t("someone"),
+                    when: proposalWhenLabel(declined, texts),
+                    reason: declined.declineReason,
+                  })
+                : t("declined", {
+                    name: declined.declinedByName ?? t("someone"),
+                    when: proposalWhenLabel(declined, texts),
+                  })}
             </p>
           ) : (
-            <p className="mb-3 text-[12.5px] text-[#858c96]">
-              Açık bir görüşme önerisi yok.
-            </p>
+            <p className="mb-3 text-[12.5px] text-[#858c96]">{t("none")}</p>
           )}
           <button
             type="button"
             onClick={proposals.openComposer}
             className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
           >
-            Görüşme planla
+            {t("plan")}
           </button>
         </>
       )}
@@ -82,9 +91,10 @@ export function MeetingProposalPanel({
 }
 
 function SideState({ acceptedAt }: { acceptedAt: string | null }) {
+  const t = useTranslations("meetingProposals");
   return (
     <span className={acceptedAt ? "text-[#1f8a4c]" : "text-[#b7791f]"}>
-      {sideLabel(acceptedAt)}
+      {acceptedAt ? t("accepted") : t("awaiting")}
     </span>
   );
 }

@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import {
   type MeetingProposal,
@@ -7,6 +9,11 @@ import {
 export const PROPOSAL_DURATIONS = [30, 45, 60, 90] as const;
 export const DEFAULT_PROPOSAL_DURATION = 45;
 export const MAX_PROPOSAL_AGENDA = 500;
+
+export type ProposalTexts = {
+  t: ReturnType<typeof useTranslations<"meetingProposals">>;
+  locale: string;
+};
 
 /** "18 Eylül Perşembe 10:30" */
 export function proposalWhen(proposal: MeetingProposal, locale: string) {
@@ -20,8 +27,14 @@ export function proposalWhen(proposal: MeetingProposal, locale: string) {
 }
 
 /** "18 Eylül Perşembe 10:30 · 45 dk" */
-export function proposalWhenLabel(proposal: MeetingProposal) {
-  return `${proposalWhen(proposal, "tr")} · ${proposal.durationMinutes} dk`;
+export function proposalWhenLabel(
+  proposal: MeetingProposal,
+  { t, locale }: ProposalTexts,
+) {
+  return t("when", {
+    when: proposalWhen(proposal, locale),
+    minutes: proposal.durationMinutes,
+  });
 }
 
 export function openProposal(proposals: MeetingProposal[]) {
@@ -36,10 +49,6 @@ export function openProposal(proposals: MeetingProposal[]) {
 export function lastDeclined(proposals: MeetingProposal[]) {
   const latest = proposals[0];
   return latest?.status === MeetingProposalStatus.Declined ? latest : null;
-}
-
-export function sideLabel(acceptedAt: string | null) {
-  return acceptedAt ? "Onayladı" : "Yanıt bekleniyor";
 }
 
 /** Tomorrow at 10:00, as a datetime-local value. */
@@ -57,24 +66,27 @@ export enum StepState {
 }
 
 /** The "Tanışma görüşmesi" step of İlk adımlar, from the mentorship's newest proposal. */
-export function introStep(latest: MeetingProposal | null) {
-  if (!latest) return { state: StepState.Todo, detail: "Henüz önerilmedi" };
-  const when = proposalWhenLabel(latest);
+export function introStep(
+  latest: MeetingProposal | null,
+  texts: ProposalTexts,
+) {
+  const { t } = texts;
+  if (!latest) return { state: StepState.Todo, detail: t("intro.none") };
+  const when = proposalWhenLabel(latest, texts);
   switch (latest.status) {
     case MeetingProposalStatus.Confirmed:
-      return { state: StepState.Done, detail: `${when} · iki taraf onayladı` };
+      return { state: StepState.Done, detail: t("intro.confirmed", { when }) };
     case MeetingProposalStatus.Pending:
-      return {
-        state: StepState.Waiting,
-        detail: `${when} önerildi · yanıt bekleniyor`,
-      };
+      return { state: StepState.Waiting, detail: t("intro.pending", { when }) };
     case MeetingProposalStatus.Declined:
       return {
         state: StepState.Todo,
-        detail: `${when} önerisi reddedildi${latest.declineReason ? `: ${latest.declineReason}` : ""}`,
+        detail: latest.declineReason
+          ? t("intro.declinedReason", { when, reason: latest.declineReason })
+          : t("intro.declined", { when }),
       };
     default:
-      return { state: StepState.Todo, detail: "Öneri geri çekildi" };
+      return { state: StepState.Todo, detail: t("intro.withdrawn") };
   }
 }
 

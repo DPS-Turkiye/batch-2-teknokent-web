@@ -1001,7 +1001,15 @@
     "minutes": "{minutes} dk",
     "topic": "Konu (isteğe bağlı)",
     "topicPlaceholder": "Örn. Nakit akışı modeli",
-    "submit": "İki tarafa öner"
+    "submit": "İki tarafa öner",
+    "intro": {
+      "none": "Henüz önerilmedi",
+      "confirmed": "{when} · iki taraf onayladı",
+      "pending": "{when} önerildi · yanıt bekleniyor",
+      "declined": "{when} önerisi reddedildi",
+      "declinedReason": "{when} önerisi reddedildi: {reason}",
+      "withdrawn": "Öneri geri çekildi"
+    }
   },
   "myPrograms": {
     "title": "Programlarım",
@@ -3318,5 +3326,48 @@
       "opening": "Açılıyor…",
       "open": "Konuşmayı aç"
     }
+  },
+  "proposalPanel": {
+    "reminded": "Hatırlatıldı",
+    "remind": "Hatırlat",
+    "withdraw": "Öneriyi geri çek",
+    "someone": "Bir taraf",
+    "declined": "{name}, {when} önerisine uygun olmadığını söyledi.",
+    "declinedReason": "{name}, {when} önerisine uygun olmadığını söyledi: “{reason}”",
+    "none": "Açık bir görüşme önerisi yok.",
+    "plan": "Görüşme planla"
+  },
+  "coordinatorNotes": {
+    "label": "Koordinatör notu",
+    "placeholder": "Yalnızca koordinatörler görür.",
+    "save": "Notu kaydet",
+    "cancel": "Vazgeç",
+    "authorFallback": "Koordinatör",
+    "delete": "Notu sil",
+    "empty": "Henüz koordinatör notu yok."
+  },
+  "firstSteps": {
+    "close": "Kapat",
+    "title": "İlk adımlar",
+    "new": "Yeni",
+    "matchedToday": "bugün eşleşti",
+    "progress": "İlk adımlar · {done}/4",
+    "matched": "Eşleşme onaylandı",
+    "matchedAt": "bugün {time}",
+    "notified": "Bildirimler gönderildi",
+    "lead": "{name} (yetkili)",
+    "team": "takım",
+    "intro": "Tanışma görüşmesi",
+    "reminded": "Hatırlatıldı",
+    "remind": "Hatırlat",
+    "plan": "Görüşme planla",
+    "firstNote": "İlk görüşme notu",
+    "firstNoteDetail": "görüşmeden sonra mentor girer",
+    "parties": "Taraflar",
+    "mentorLoad": "Mentor · {load}",
+    "teamLabel": "Takım",
+    "teamWithLead": "Takım · {name}",
+    "calendar": "Takvimde gör →",
+    "message": "Mesaj gönder"
   }
 }
