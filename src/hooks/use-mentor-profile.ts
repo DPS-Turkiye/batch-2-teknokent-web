@@ -2,7 +2,9 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useToast } from "@/components/providers/toast-provider";
+import { clientText } from "@/i18n/client-texts";
 
 import {
   type MeetingFrequency,
@@ -13,7 +15,6 @@ import {
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
   type Weekday,
-  WEEKDAY_LABELS,
   WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import {
@@ -180,7 +181,7 @@ export function mentorProfileFormError(form: MentorProfileForm) {
     capacity !== null &&
     (!Number.isInteger(capacity) || capacity < 1 || capacity > 50)
   ) {
-    return "Mentee kapasitesi 1 ile 50 arasında olmalı.";
+    return clientText("mentorProfile.capacity");
   }
   if (
     form.experiences.some(
@@ -188,19 +189,22 @@ export function mentorProfileFormError(form: MentorProfileForm) {
         !isBlankExperience(experience) && !experience.title.trim(),
     )
   ) {
-    return "Her deneyim için bir ünvan gir.";
+    return clientText("mentorProfile.roleTitle");
   }
   if (
     form.programRoles.some(
       (programRole) => programRole.role.trim().length > MAX_PROGRAM_ROLE_LENGTH,
     )
   ) {
-    return `Program rolü en fazla ${MAX_PROGRAM_ROLE_LENGTH} karakter olabilir.`;
+    return clientText("mentorProfile.programRole", {
+      max: MAX_PROGRAM_ROLE_LENGTH,
+    });
   }
   return "";
 }
 
 export function useMentorProfileForm(profile: MentorProfile) {
+  const t = useTranslations("mentorProfile");
   const { showToast } = useToast();
   const updateProfileMutation = useUpdateMentorProfile();
   const [form, setForm] = useState<MentorProfileForm>(() =>
@@ -336,10 +340,10 @@ export function useMentorProfileForm(profile: MentorProfile) {
         ),
       });
       setSaveSuccess(true);
-      showToast({ message: "Mentor profiliniz kaydedildi.", tone: "success" });
+      showToast({ message: t("saved"), tone: "success" });
       return true;
     } catch (error) {
-      const message = errorMessage(error, "Profil kaydedilemedi.");
+      const message = errorMessage(error, t("saveFailed"));
       setSaveError(message);
       showToast({ message, tone: "error" });
       return false;
@@ -455,6 +459,8 @@ export function useAvailabilitySlotForm() {
 
 /** The "Müsaitliği düzenle" modal: weekly ranges, defaults and unavailable dates. */
 export function useAvailabilitySettingsForm(onSaved: () => void) {
+  const t = useTranslations("mentorProfile.dialog");
+  const tOptions = useTranslations("options");
   const { showToast } = useToast();
   const settingsQuery = useMentorAvailabilitySettings();
   const updateSettings = useUpdateMentorAvailabilitySettings();
@@ -602,16 +608,10 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
     try {
       await updateSettings.mutateAsync(toAvailabilityPayload(draft));
       setEdits(null);
-      showToast({
-        message: "Müsaitlik ayarların kaydedildi.",
-        tone: "success",
-      });
+      showToast({ message: t("saved"), tone: "success" });
       onSaved();
     } catch (saveError) {
-      const message = errorMessage(
-        saveError,
-        "Müsaitlik ayarları kaydedilemedi.",
-      );
+      const message = errorMessage(saveError, t("saveFailed"));
       setError(message);
       showToast({ message, tone: "error" });
     }
@@ -624,7 +624,7 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
     days: draft
       ? WEEKDAY_ORDER.map((day) => ({
           day,
-          label: WEEKDAY_LABELS[day],
+          label: tOptions(`weekday.${day}`),
           ranges: rangesForDay(draft, day),
         }))
       : [],
@@ -633,7 +633,7 @@ export function useAvailabilitySettingsForm(onSaved: () => void) {
     exception,
     isAddingException,
     isSaving: updateSettings.isPending,
-    loadError: settingsQuery.error ? "Müsaitlik ayarları yüklenemedi." : null,
+    loadError: settingsQuery.error ? t("loadFailed") : null,
     openExceptionForm,
     removeException,
     removeRange,

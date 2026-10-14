@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -24,13 +25,6 @@ import { initials as toInitials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
-
-const ACTION_ITEM_LABELS: Record<ActionItemStatus, string> = {
-  [ActionItemStatus.Open]: "Açık",
-  [ActionItemStatus.InProgress]: "Devam ediyor",
-  [ActionItemStatus.Completed]: "Tamamlandı",
-  [ActionItemStatus.Cancelled]: "İptal edildi",
-};
 
 const ACTION_ITEM_TONES: Record<
   ActionItemStatus,
@@ -202,10 +196,11 @@ function NextMeetingBanner({
   startup: string;
   when: string;
 }) {
+  const t = useTranslations("mentorHome.banner");
   const meeting = useMentorNextMeeting(nextMeeting);
   return (
     <section
-      aria-label="Sıradaki görüşme"
+      aria-label={t("label")}
       className="relative isolate overflow-hidden rounded-[20px] bg-[#26a4ff] px-4 py-[42px] sm:px-[47px]"
     >
       <span
@@ -224,8 +219,7 @@ function NextMeetingBanner({
               </p>
             </div>
             <p className="max-w-[474px] text-sm leading-5 text-white">
-              Meet linkini ekleyerek görüşme sonrası düzenlenebilir bir
-              transkript oluştur.
+              {t("hint")}
             </p>
           </div>
           <div className="flex flex-col items-end gap-3">
@@ -239,7 +233,7 @@ function NextMeetingBanner({
                 rel="noreferrer"
                 className="inline-flex min-h-[34px] items-center rounded-full bg-[#26a4ff] px-[14px] text-[12.5px]! font-medium! leading-[18px]! text-white"
               >
-                Görüşmeye katıl
+                {t("join")}
               </a>
             ) : null}
           </div>
@@ -250,7 +244,7 @@ function NextMeetingBanner({
             onChange={(event) => meeting.setLink(event.target.value)}
             onBlur={() => void meeting.saveLink()}
             disabled={meeting.isSaving}
-            aria-label="Görüşme linki"
+            aria-label={t("linkLabel")}
             placeholder="http//"
             className="w-full rounded-xl bg-white p-[10px] text-sm! leading-5! text-[#22262b] placeholder:text-[#aeb4bc]"
           />
@@ -262,7 +256,7 @@ function NextMeetingBanner({
               disabled={meeting.isSaving}
               className="size-[18px] rounded border border-[#d4d8dd] accent-[#26a4ff]"
             />
-            Transkript gönderilsin
+            {t("transcript")}
           </label>
         </div>
       </div>
@@ -285,6 +279,7 @@ function MeetingCard({
   chip: string;
   join?: boolean;
 }) {
+  const t = useTranslations("mentorHome.upcoming");
   return (
     <article className="flex min-w-0 flex-col gap-6 rounded-[20px] border border-[#e4e7ea] bg-white px-[18px] py-4">
       <div className="flex items-start justify-between gap-6">
@@ -304,9 +299,11 @@ function MeetingCard({
         </div>
       </div>
       <div className="flex justify-end gap-2">
-        <PillButton href="/mentor-dashboard/messages">Mesaj</PillButton>
+        <PillButton href="/mentor-dashboard/messages">
+          {t("message")}
+        </PillButton>
         <PillButton href="/mentor-dashboard/calendar" soft>
-          {join ? "Toplantıya katıl" : "Detay"}
+          {join ? t("join") : t("detail")}
         </PillButton>
       </div>
     </article>
@@ -370,6 +367,8 @@ function StartupCard({
   expanded?: boolean;
   onToggle?: () => void;
 }) {
+  const t = useTranslations("mentorHome");
+  const locale = useLocale();
   const { files, isLoading, hasFailed } = useMentorshipFiles(
     id,
     Boolean(expanded),
@@ -398,7 +397,7 @@ function StartupCard({
         <span className="flex shrink-0 items-center gap-[10px]">
           {expanded ? (
             <span className="text-[11px] leading-4 text-[#858c96]">
-              Mentorluk ilerlemesi
+              {t("startups.progress")}
             </span>
           ) : null}
           <FigmaIcon
@@ -416,25 +415,29 @@ function StartupCard({
         </div>
       )}
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs leading-[17px] text-[#676e78]">
-        <span>{ratio ? `${ratio.done}/${ratio.total}` : "Henüz iş yok"}</span>
+        <span>
+          {ratio ? `${ratio.done}/${ratio.total}` : t("startups.noWork")}
+        </span>
         <Link
           href={href}
           className="text-[12.5px]! font-medium! leading-[18px]! text-[#26a4ff]"
         >
-          Mentorluğa git →
+          {t("startups.open")}
         </Link>
       </div>
       {expanded ? (
         <div className="flex flex-col gap-[14px] border-t border-[#eceef0] pt-[14px]">
           <div className="flex items-center justify-between text-[12.5px] leading-[18px]">
-            <h4 className="font-semibold text-[#4a5059]">Atanan işler</h4>
+            <h4 className="font-semibold text-[#4a5059]">
+              {t("startups.tasks")}
+            </h4>
             <Link href={href} className="font-medium text-[#26a4ff]">
-              Yeni iş ata
+              {t("startups.newTask")}
             </Link>
           </div>
           {actionItems.length === 0 ? (
             <p className="text-[12px] text-[#858c96]">
-              Bu mentorlukta atanmış iş yok.
+              {t("startups.noTasks")}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -444,28 +447,34 @@ function StartupCard({
                   title={item.title}
                   detail={
                     item.dueDate
-                      ? `Teslim ${formatSlotDateTime(item.dueDate)}`
-                      : (item.ownerName ?? "Atanan iş")
+                      ? t("startups.due", {
+                          date: formatSlotDateTime(item.dueDate, locale),
+                        })
+                      : (item.ownerName ?? t("startups.taskFallback"))
                   }
-                  status={ACTION_ITEM_LABELS[item.status]}
+                  status={t(`actionStatus.${item.status}`)}
                   tone={ACTION_ITEM_TONES[item.status]}
                 />
               ))}
             </div>
           )}
           <div className="flex items-center justify-between text-[12.5px] leading-[18px]">
-            <h4 className="font-semibold text-[#4a5059]">Dosyalar</h4>
+            <h4 className="font-semibold text-[#4a5059]">
+              {t("startups.files")}
+            </h4>
             <Link href={href} className="font-medium text-[#26a4ff]">
-              Dosya iste
+              {t("startups.requestFile")}
             </Link>
           </div>
           {isLoading ? (
-            <p className="text-[12px] text-[#858c96]">Yükleniyor...</p>
+            <p className="text-[12px] text-[#858c96]">{t("loading")}</p>
           ) : hasFailed ? (
-            <p className="text-[12px] text-[#a65a15]">Dosyalar yüklenemedi.</p>
+            <p className="text-[12px] text-[#a65a15]">
+              {t("startups.filesFailed")}
+            </p>
           ) : files.length === 0 ? (
             <p className="text-[12px] text-[#858c96]">
-              Bu mentorlukta dosya talebi yok.
+              {t("startups.noFiles")}
             </p>
           ) : (
             <div className="flex flex-col gap-2">
@@ -475,17 +484,17 @@ function StartupCard({
                   title={file.title}
                   detail={file.detail}
                   status={file.status}
-                  tone={file.status === "Yüklendi" ? "green" : "amber"}
+                  tone={file.uploaded ? "green" : "amber"}
                 />
               ))}
             </div>
           )}
           <div className="flex gap-2 pt-1">
             <PillButton href="/mentor-dashboard/messages">
-              Mesaj gönder
+              {t("startups.sendMessage")}
             </PillButton>
             <PillButton href="/mentor-dashboard/calendar" primary>
-              Toplantı planla
+              {t("startups.planMeeting")}
             </PillButton>
           </div>
         </div>
@@ -513,6 +522,7 @@ function RequestCard({
   fresh?: boolean;
   onReview: () => void;
 }) {
+  const t = useTranslations("mentorHome.requests");
   return (
     <article className="rounded-[20px] border border-[#e4e7ea] bg-white p-4">
       <div className="flex items-center justify-between gap-3">
@@ -530,7 +540,7 @@ function RequestCard({
           </div>
         </div>
         <Chip tone={fresh ? "blue" : "gray"}>
-          {fresh ? "Yeni" : "İncelendi"}
+          {fresh ? t("new") : t("reviewed")}
         </Chip>
       </div>
       <p className="mt-[10px] text-xs leading-[17px] text-[#676e78]">{areas}</p>
@@ -539,7 +549,7 @@ function RequestCard({
           {time}
         </time>
         <PillButton soft onClick={onReview}>
-          Talebi incele
+          {t("review")}
         </PillButton>
       </div>
     </article>
@@ -604,15 +614,18 @@ function RequestDrawer({
       window.removeEventListener("keydown", close);
     };
   }, [onClose]);
+  const t = useTranslations("mentorHome");
+  const locale = useLocale();
   const { files } = useMentorshipFiles(request.id, true);
   const snapshot = request.recommendationSnapshot;
   const startup =
-    request.organizationName ?? request.requesterName ?? "Startup";
+    request.organizationName ?? request.requesterName ?? t("fallback.startup");
   const context = [snapshot?.startupStage, snapshot?.startupSector].filter(
     Boolean,
   );
   const preferredSlotLabels = parsePreferredSlotsFromMessage(
     request.requesterMessage,
+    locale,
   ).map((slot) => slot.label);
   const focusAreas = [
     request.supportArea,
@@ -621,10 +634,10 @@ function RequestDrawer({
   // requesterMessage carries the machine-written "Tercih edilen saatler:" and
   // "preferredSlots:" lines, which read as the mentee's own words when shown raw.
   const sections = [
-    ["STARTUP", snapshot?.startupSummary],
-    ["MENTORLUK İHTİYACI", request.summary],
-    ["NEDEN BEN?", requestExpectedOutcome(request)],
-    ["TERCİH EDİLEN SAATLER", preferredSlotLabels.join(" · ")],
+    [t("drawer.startup"), snapshot?.startupSummary],
+    [t("drawer.need"), request.summary],
+    [t("drawer.whyMe"), requestExpectedOutcome(request)],
+    [t("drawer.preferredSlots"), preferredSlotLabels.join(" · ")],
   ].filter(([, copy]) => Boolean(copy));
   return (
     <div
@@ -642,12 +655,12 @@ function RequestDrawer({
             id="request-drawer-title"
             className="text-base font-semibold leading-6"
           >
-            Mentorluk talebi
+            {t("drawer.title")}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Talep detayını kapat"
+            aria-label={t("drawer.close")}
           >
             <FigmaIcon name="close" size={20} />
           </button>
@@ -669,12 +682,14 @@ function RequestDrawer({
                 ) : null}
               </div>
             </div>
-            <Chip>Yeni</Chip>
+            <Chip>{t("drawer.new")}</Chip>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-[#f5faff] bg-[#f2f8fc] px-3 py-[10px] text-xs leading-[18px]">
             <span className="text-[#4a5059]">{context.join(" · ")}</span>
             <span className="text-[#676e78]">
-              Talep: {formatSlotDateTime(request.createdAt)}
+              {t("drawer.requestedAt", {
+                date: formatSlotDateTime(request.createdAt, locale),
+              })}
             </span>
           </div>
           {sections.map(([label, copy]) => (
@@ -690,7 +705,7 @@ function RequestDrawer({
           {focusAreas.length ? (
             <div>
               <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
-                ODAK ALANI
+                {t("drawer.focus")}
               </h4>
               <div className="mt-2 flex flex-wrap gap-2">
                 {focusAreas.map((area) => (
@@ -702,7 +717,7 @@ function RequestDrawer({
           {files.length ? (
             <div>
               <h4 className="text-[11px] font-semibold leading-[17px] text-[#858c96]">
-                EKLENEN DOSYALAR
+                {t("drawer.files")}
               </h4>
               <div className="mt-2 flex flex-col gap-2">
                 {files.map((file) => (
@@ -711,7 +726,7 @@ function RequestDrawer({
                     title={file.title}
                     detail={file.detail}
                     status={file.status}
-                    tone={file.status === "Yüklendi" ? "green" : "amber"}
+                    tone={file.uploaded ? "green" : "amber"}
                   />
                 ))}
               </div>
@@ -721,10 +736,10 @@ function RequestDrawer({
         <footer className="flex flex-wrap items-center justify-between gap-3 px-7 pb-5 pt-4">
           <div className="flex gap-3">
             <PillButton onClick={() => onDecide(MentorDecisionMode.Decline)}>
-              Reddet
+              {t("drawer.decline")}
             </PillButton>
             <PillButton soft href="/mentor-dashboard/messages">
-              Mesaj gönder
+              {t("drawer.sendMessage")}
             </PillButton>
           </div>
           <button
@@ -733,7 +748,7 @@ function RequestDrawer({
             onClick={() => onDecide(MentorDecisionMode.Accept)}
             className="min-h-[39px] min-w-[234px] rounded-full bg-[#26a4ff] px-4 text-[12.5px]! font-medium! leading-[19px]! text-white disabled:bg-[#c9cdd2]"
           >
-            Mentorluğu kabul et
+            {t("drawer.accept")}
           </button>
         </footer>
       </section>
@@ -765,6 +780,9 @@ export function MentorDashboardView() {
     meetingsQuery,
     decision,
   } = useMentorDashboard();
+  const t = useTranslations("mentorHome");
+  const locale = useLocale();
+  const texts = { t, locale };
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const selectedRequest = decision.selectedRequest;
   const detailedState = Boolean(expandedId) || Boolean(selectedRequest);
@@ -781,17 +799,20 @@ export function MentorDashboardView() {
         >
           <div>
             <h1 className="text-[28px] font-semibold leading-[41px] text-[#22262b]">
-              {greeting}, {firstName}
+              {t("greetingWithName", { greeting, name: firstName })}
             </h1>
             {detailedState ? (
               <p className="mt-1 text-[13px] leading-[19px] text-[#676e78]">
-                {accepted.length} aktif mentorluk · {pending.length} yeni talep
+                {t("summary", {
+                  active: accepted.length,
+                  pending: pending.length,
+                })}
               </p>
             ) : null}
           </div>
           <PillButton href="/mentor-profile">
             <span className="flex items-center gap-2">
-              <FigmaIcon name="calendar" size={16} /> Müsaitliği yönet
+              <FigmaIcon name="calendar" size={16} /> {t("manageAvailability")}
             </span>
           </PillButton>
         </header>
@@ -800,8 +821,8 @@ export function MentorDashboardView() {
             <NextMeetingBanner
               key={nextMeeting.id}
               nextMeeting={nextMeeting}
-              startup={nextMeeting.organizationName ?? "Mentorluk"}
-              when={meetingWhenLabel(nextMeeting)}
+              startup={nextMeeting.organizationName ?? t("fallback.mentorship")}
+              when={meetingWhenLabel(nextMeeting, texts)}
             />
           </div>
         ) : null}
@@ -811,21 +832,21 @@ export function MentorDashboardView() {
         <div className="mt-7 grid gap-3 md:grid-cols-3">
           <QuickAction
             icon="calendar-fill"
-            title="Toplantı planla"
-            detail="Mentee ile yeni görüşme aç"
+            title={t("quick.planMeeting")}
+            detail={t("quick.planMeetingHint")}
             selected
             href="/mentor-dashboard/calendar"
           />
           <QuickAction
             icon="message"
-            title="Mesaj gönder"
-            detail="Aktif mentiye hızlı mesaj"
+            title={t("quick.sendMessage")}
+            detail={t("quick.sendMessageHint")}
             href="/mentor-dashboard/messages"
           />
           <QuickAction
             icon="paper"
-            title="Dosya iste"
-            detail="Startup’tan doküman talep et"
+            title={t("quick.requestFile")}
+            detail={t("quick.requestFileHint")}
             href="/mentorships"
           />
         </div>
@@ -834,15 +855,17 @@ export function MentorDashboardView() {
             <section>
               <SectionHeading
                 action={
-                  <Link href="/mentorships">Tümü ({todayActions.length})</Link>
+                  <Link href="/mentorships">
+                    {t("today.all", { count: todayActions.length })}
+                  </Link>
                 }
               >
-                Bugün aksiyon bekleyen
+                {t("today.title")}
               </SectionHeading>
               {isLoadingActionItems ? (
-                <ListNote>Yükleniyor...</ListNote>
+                <ListNote>{t("loading")}</ListNote>
               ) : todayActions.length === 0 ? (
-                <ListNote>Bekleyen bir iş yok.</ListNote>
+                <ListNote>{t("today.empty")}</ListNote>
               ) : (
                 <div className="overflow-hidden rounded-[20px] border border-[#e4e7ea] bg-white">
                   {todayActions.slice(0, 4).map((row) => (
@@ -863,29 +886,35 @@ export function MentorDashboardView() {
               <SectionHeading
                 action={
                   <Link href="/mentor-dashboard/calendar">
-                    Tüm toplantılar →
+                    {t("upcoming.all")}
                   </Link>
                 }
               >
-                Yaklaşan görüşmeler
+                {t("upcoming.title")}
               </SectionHeading>
               {meetingsQuery.isLoading ? (
-                <ListNote>Yükleniyor...</ListNote>
+                <ListNote>{t("loading")}</ListNote>
               ) : upcomingMeetings.length === 0 ? (
-                <ListNote>Yaklaşan görüşme bulunmuyor.</ListNote>
+                <ListNote>{t("upcoming.empty")}</ListNote>
               ) : (
                 <div className="grid gap-6 sm:grid-cols-2">
                   {upcomingMeetings.slice(0, 2).map((meeting) => (
                     <MeetingCard
                       key={meeting.id}
-                      startup={meeting.organizationName ?? "Mentorluk"}
-                      title={meeting.agenda ?? "Mentorluk görüşmesi"}
-                      when={`${formatMeetingShort(meeting.scheduledAt)}${
+                      startup={
+                        meeting.organizationName ?? t("fallback.mentorship")
+                      }
+                      title={meeting.agenda ?? t("fallback.meeting")}
+                      when={[
+                        formatMeetingShort(meeting.scheduledAt, locale),
                         meeting.durationMinutes
-                          ? ` · ${meeting.durationMinutes} dk`
-                          : ""
-                      } · Online`}
-                      chip={meetingDayLabel(meeting.scheduledAt)}
+                          ? t("minutes", { count: meeting.durationMinutes })
+                          : null,
+                        t("online"),
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                      chip={meetingDayLabel(meeting.scheduledAt, locale)}
                       join={Boolean(meeting.meetLink)}
                     />
                   ))}
@@ -894,22 +923,22 @@ export function MentorDashboardView() {
             </section>
             <section>
               <SectionHeading
-                action={<Link href="/mentorships">Tüm mentorluklar →</Link>}
+                action={<Link href="/mentorships">{t("startups.all")}</Link>}
               >
-                Startup çalışmaları
+                {t("startups.title")}
               </SectionHeading>
               <div className="flex flex-col gap-[10px]">
                 {requestsQuery.isLoading ? (
-                  <ListNote>Yükleniyor...</ListNote>
+                  <ListNote>{t("loading")}</ListNote>
                 ) : mentorships.length === 0 ? (
-                  <ListNote>Aktif mentorluk yok.</ListNote>
+                  <ListNote>{t("startups.empty")}</ListNote>
                 ) : (
                   mentorships.map(
                     ({ request, actionItems, progress, ratio }) => {
                       const startup =
                         request.organizationName ??
                         request.requesterName ??
-                        "Startup";
+                        t("fallback.startup");
                       return (
                         <StartupCard
                           key={request.id}
@@ -941,22 +970,24 @@ export function MentorDashboardView() {
             <section>
               <SectionHeading
                 action={
-                  <button type="button">Tümü ({pending.length}) →</button>
+                  <button type="button">
+                    {t("requests.all", { count: pending.length })}
+                  </button>
                 }
               >
-                Mentorluk talepleri
+                {t("requests.title")}
               </SectionHeading>
               <div className="space-y-[10px]">
                 {requestsQuery.isLoading ? (
-                  <ListNote>Yükleniyor...</ListNote>
+                  <ListNote>{t("loading")}</ListNote>
                 ) : pending.length === 0 ? (
-                  <ListNote>Bekleyen mentorluk talebi yok.</ListNote>
+                  <ListNote>{t("requests.empty")}</ListNote>
                 ) : (
                   pending.map((request) => {
                     const startup =
                       request.organizationName ??
                       request.requesterName ??
-                      "Startup";
+                      t("fallback.startup");
                     return (
                       <RequestCard
                         key={request.id}
@@ -964,7 +995,7 @@ export function MentorDashboardView() {
                         initials={toInitials(startup) || "MN"}
                         person={request.requesterName ?? ""}
                         areas={request.supportArea}
-                        time={formatSlotDateTime(request.createdAt)}
+                        time={formatSlotDateTime(request.createdAt, locale)}
                         fresh
                         onReview={() => decision.selectRequest(request)}
                       />
@@ -974,12 +1005,12 @@ export function MentorDashboardView() {
               </div>
             </section>
             <section>
-              <SectionHeading>Değerlendirme bekleyen görüşmeler</SectionHeading>
+              <SectionHeading>{t("reviews.title")}</SectionHeading>
               <div className="space-y-[10px]">
                 {meetingsQuery.isLoading ? (
-                  <ListNote>Yükleniyor...</ListNote>
+                  <ListNote>{t("loading")}</ListNote>
                 ) : awaitingReview.length === 0 ? (
-                  <ListNote>Değerlendirme bekleyen görüşme yok.</ListNote>
+                  <ListNote>{t("reviews.empty")}</ListNote>
                 ) : (
                   awaitingReview
                     .slice(0, 4)
@@ -988,16 +1019,18 @@ export function MentorDashboardView() {
                         key={meeting.id}
                         title={
                           meeting.outcomes?.trim()
-                            ? "Not eklenmedi"
-                            : "Değerlendirme bekliyor"
+                            ? t("reviews.noNote")
+                            : t("reviews.awaiting")
                         }
-                        startup={meeting.organizationName ?? "Mentorluk"}
-                        meeting={meeting.agenda ?? "Mentorluk görüşmesi"}
-                        time={formatSlotDateTime(meeting.scheduledAt)}
+                        startup={
+                          meeting.organizationName ?? t("fallback.mentorship")
+                        }
+                        meeting={meeting.agenda ?? t("fallback.meeting")}
+                        time={formatSlotDateTime(meeting.scheduledAt, locale)}
                         action={
                           meeting.outcomes?.trim()
-                            ? "Görüşme notu ekle"
-                            : "Değerlendirmeyi tamamla"
+                            ? t("reviews.addNote")
+                            : t("reviews.complete")
                         }
                         href={
                           meeting.outcomes?.trim()

@@ -7,7 +7,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -41,6 +41,21 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 }));
 
 describe("MentorRequestStartupDetail", () => {
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <MentorRequestStartupDetail requestId="req-1" />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Accept mentorship" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("New request")).toBeInTheDocument();
+    expect(screen.getByText("About the startup")).toBeInTheDocument();
+    expect(screen.getByText("Team members")).toBeInTheDocument();
+  });
+
   it("shows the startup in the mentor's blue accent", () => {
     renderWithQueryClient(<MentorRequestStartupDetail requestId="req-1" />);
 

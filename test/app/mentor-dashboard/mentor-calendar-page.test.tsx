@@ -8,6 +8,8 @@ import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { Weekday, type MentorAvailabilityRule } from "@/interfaces/mentor";
 import { CalendarFilter } from "@/lib/calendar";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
+import tr from "@/messages/tr.json";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/reschedule-meeting-button", () => ({
   RescheduleMeetingButton: () => <button type="button">Yeni saat öner</button>,
@@ -114,6 +116,11 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
     ...value,
     availabilityRows: weeklyAvailabilityRows(
       value.rules as MentorAvailabilityRule[],
+      {
+        weekday: (day) => tr.options.weekday[day],
+        otherDays: "Diğer günler",
+        closed: "Kapalı",
+      },
     ),
   };
   vi.mocked(useMentorCalendar).mockReturnValue(
@@ -124,12 +131,38 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
 
 function grid() {
   return screen
-    .getByRole("heading", { name: "14–18 Eylül" })
+    .getByRole("heading", { name: /^14\s–\s18 Eylül$/ })
     .closest("section") as HTMLElement;
 }
 
 describe("MentorCalendarPage", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("reads in English", () => {
+    mockCalendar();
+    render(
+      <InLocale locale="en">
+        <MentorCalendarPage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Calendar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("This week 1 meeting · 1 program · 3 free slots"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /^September 14\s–\s18$/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Availability" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Mon")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Next meetings" }),
+    ).toBeInTheDocument();
+  });
 
   it("summarises the week from real counts", () => {
     mockCalendar();

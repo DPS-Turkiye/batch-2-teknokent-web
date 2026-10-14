@@ -1,38 +1,43 @@
+import type { useTranslations } from "next-intl";
+
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { formatMeetingShort } from "@/lib/format";
 import { isMeetingEnded } from "@/lib/mentorship-workspace";
-import { formatFileSize, formatShortDate } from "@/lib/utils";
+import { formatFileSize, formatShortDate, relativeDayLabel } from "@/lib/utils";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
+
+/** The mentor home's translator and language, for the labels built here. */
+export type MentorHomeTexts = {
+  t: ReturnType<typeof useTranslations<"mentorHome">>;
+  locale: string;
+};
 
 /** A past meeting is the last one, not the next one. */
 export function conversationMeetingLabel(
   meeting: MeetingItem | null,
+  { t, locale }: MentorHomeTexts,
   now = new Date(),
 ) {
   if (!meeting) return null;
-  const when = formatMeetingShort(meeting.scheduledAt);
+  const when = formatMeetingShort(meeting.scheduledAt, locale);
   return isMeetingEnded(meeting, now)
-    ? `Son görüşme ${when}`
-    : `Sonraki görüşme ${when}`;
+    ? t("lastMeeting", { when })
+    : t("nextMeeting", { when });
 }
 
-/** Calendar weeks follow the availability service's Istanbul business timezone. */
+/** Monday-to-Sunday in the browser's zone. */
 export function mentorWeekMeetingCount(
   meetings: MeetingItem[],
   now = new Date(),
 ) {
-  const day = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "Europe/Istanbul",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(now);
-  const start = new Date(`${day}T00:00:00+03:00`);
-  const weekday = new Date(`${day}T12:00:00Z`).getUTCDay();
-  start.setUTCDate(start.getUTCDate() - ((weekday + 6) % 7));
-  const end = start.getTime() + 7 * 86_400_000;
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  const endDay = new Date(start);
+  endDay.setDate(endDay.getDate() + 7);
+  const end = endDay.getTime();
   return meetings.filter((meeting) => {
     const time = Date.parse(meeting.scheduledAt);
     return (
@@ -83,28 +88,37 @@ export function mentorshipTaskRatio(items: ActionItem[]) {
 const DAY_MS = 86_400_000;
 
 /** "Bugün", "Yarın", or "12 Eyl" for anything further out. */
-export function meetingDayLabel(startsAt: string, now = new Date()) {
+export function meetingDayLabel(
+  startsAt: string,
+  locale: string,
+  now = new Date(),
+) {
   const startOfToday = new Date(now);
   startOfToday.setHours(0, 0, 0, 0);
   const days = Math.floor(
     (Date.parse(startsAt) - startOfToday.getTime()) / DAY_MS,
   );
-  if (days === 0) return "Bugün";
-  if (days === 1) return "Yarın";
-  return formatShortDate(startsAt);
+  if (days === 0 || days === 1) return relativeDayLabel(days, locale);
+  return formatShortDate(startsAt, locale);
 }
 
 /** "Yarın · 14:00 · 45 dk · Online" for the next meeting banner. */
-export function meetingWhenLabel(meeting: MeetingItem, now = new Date()) {
-  const time = new Intl.DateTimeFormat("tr-TR", {
+export function meetingWhenLabel(
+  meeting: MeetingItem,
+  { t, locale }: MentorHomeTexts,
+  now = new Date(),
+) {
+  const time = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(meeting.scheduledAt));
   return [
-    meetingDayLabel(meeting.scheduledAt, now),
+    meetingDayLabel(meeting.scheduledAt, locale, now),
     time,
-    meeting.durationMinutes ? `${meeting.durationMinutes} dk` : null,
-    "Online",
+    meeting.durationMinutes
+      ? t("minutes", { count: meeting.durationMinutes })
+      : null,
+    t("online"),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -127,15 +141,18 @@ export type MentorTodayAction = {
 export function mentorTodayActions(
   awaitingReview: MeetingItem[],
   openActionItems: ActionItem[],
+  { t }: Pick<MentorHomeTexts, "t">,
   now = new Date(),
 ): MentorTodayAction[] {
   const meetingRows = awaitingReview.map((meeting) => ({
     id: meeting.id,
     icon: "star" as const,
-    startup: meeting.organizationName ?? "Mentorluk",
-    detail: `${meeting.agenda ?? "Mentorluk görüşmesi"} · değerlendirme bekliyor`,
+    startup: meeting.organizationName ?? t("fallback.mentorship"),
+    detail: t("today.awaitingReview", {
+      agenda: meeting.agenda ?? t("fallback.meeting"),
+    }),
     chip: null,
-    action: "Değerlendir",
+    action: t("today.evaluate"),
     href: mentorMeetingEvaluationHref(meeting.id),
   }));
   const itemRows = openActionItems.map((item) => {
@@ -143,10 +160,10 @@ export function mentorTodayActions(
     return {
       id: item.id,
       icon: "paper" as const,
-      startup: item.organizationName ?? "Mentorluk",
+      startup: item.organizationName ?? t("fallback.mentorship"),
       detail: item.title,
-      chip: overdue ? "Gecikti" : null,
-      action: overdue ? "Hatırlat" : "Aç",
+      chip: overdue ? t("today.overdue") : null,
+      action: overdue ? t("today.remind") : t("today.open"),
       href: "/mentorships",
     };
   });
@@ -157,27 +174,38 @@ export type MentorshipFileRow = {
   id: string;
   title: string;
   detail: string;
-  status: "Yüklendi" | "Bekliyor";
+  uploaded: boolean;
+  status: string;
 };
 
 /** A requested file, shown as uploaded once the startup has answered it. */
 export function mentorshipFileRow(
   item: DocumentRequestItem,
+  { t, locale }: MentorHomeTexts,
 ): MentorshipFileRow {
   const upload = item.uploads.at(-1);
   if (upload) {
     return {
       id: item.id,
       title: upload.originalFilename,
-      detail: `${upload.uploadedByName} yükledi · ${formatFileSize(upload.sizeBytes)} · ${formatShortDate(upload.createdAt)}`,
-      status: "Yüklendi",
+      detail: t("files.uploadedBy", {
+        name: upload.uploadedByName,
+        size: formatFileSize(upload.sizeBytes),
+        date: formatShortDate(upload.createdAt, locale),
+      }),
+      uploaded: true,
+      status: t("files.uploaded"),
     };
   }
   return {
     id: item.id,
     title: item.title,
-    detail: `${item.createdByName} talep etti · ${formatShortDate(item.createdAt)}`,
-    status: "Bekliyor",
+    detail: t("files.requestedBy", {
+      name: item.createdByName,
+      date: formatShortDate(item.createdAt, locale),
+    }),
+    uploaded: false,
+    status: t("files.waiting"),
   };
 }
 

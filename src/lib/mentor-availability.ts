@@ -4,7 +4,8 @@ import type {
   UpdateMentorAvailabilitySettingsPayload,
   Weekday,
 } from "@/interfaces/mentor";
-import { WEEKDAY_LABELS, WEEKDAY_ORDER } from "@/interfaces/mentor";
+import { clientText } from "@/i18n/client-texts";
+import { WEEKDAY_ORDER } from "@/interfaces/mentor";
 import { calendarDay } from "@/lib/utils";
 
 /** One weekly time range as the editor holds it; `key` is stable across edits. */
@@ -44,28 +45,19 @@ export type NumberFieldBounds = { min: number; max: number; step: number };
 /** Bounds match UpdateMentorAvailabilitySettingsRequest on the backend. */
 export const AVAILABILITY_NUMBER_FIELDS: ({
   field: AvailabilityNumberField;
-  label: string;
-  unit?: string;
+  inMinutes?: boolean;
 } & NumberFieldBounds)[] = [
-  {
-    field: "menteeCapacity",
-    label: "Eş zamanlı mentorluk limiti",
-    min: 1,
-    max: 50,
-    step: 1,
-  },
+  { field: "menteeCapacity", min: 1, max: 50, step: 1 },
   {
     field: "defaultMeetingDurationMinutes",
-    label: "Varsayılan görüşme süresi",
-    unit: "dk",
+    inMinutes: true,
     min: 15,
     max: 480,
     step: 15,
   },
   {
     field: "meetingBufferMinutes",
-    label: "İki görüşme arası tampon",
-    unit: "dk",
+    inMinutes: true,
     min: 0,
     max: 240,
     step: 5,
@@ -148,37 +140,38 @@ export function availabilityDraftError(
 ) {
   for (const day of WEEKDAY_ORDER) {
     const ranges = rangesForDay(draft, day);
+    const dayLabel = clientText(`availability.weekday.${day}`);
     for (const [index, range] of ranges.entries()) {
       if (
         !range.startTime ||
         !range.endTime ||
         range.endTime <= range.startTime
       ) {
-        return `${WEEKDAY_LABELS[day]}: bitiş saati başlangıçtan sonra olmalı.`;
+        return clientText("availability.endBeforeStart", { day: dayLabel });
       }
       const next = ranges[index + 1];
       if (next && next.startTime < range.endTime) {
-        return `${WEEKDAY_LABELS[day]}: saat aralıkları çakışıyor.`;
+        return clientText("availability.overlap", { day: dayLabel });
       }
     }
   }
   if (draft.ranges.length > 21) {
-    return "En fazla 21 saat aralığı ekleyebilirsin.";
+    return clientText("availability.tooManyRanges");
   }
   if (
     (capacityRequired || draft.menteeCapacity.trim()) &&
     !wholeNumberBetween(draft.menteeCapacity, 1, 50)
   ) {
-    return "Eş zamanlı mentorluk limiti 1 ile 50 arasında olmalı.";
+    return clientText("availability.capacity");
   }
   if (!wholeNumberBetween(draft.defaultMeetingDurationMinutes, 15, 480)) {
-    return "Varsayılan görüşme süresi 15 ile 480 dakika arasında olmalı.";
+    return clientText("availability.duration");
   }
   if (!wholeNumberBetween(draft.meetingBufferMinutes, 0, 240)) {
-    return "İki görüşme arası tampon 0 ile 240 dakika arasında olmalı.";
+    return clientText("availability.buffer");
   }
   if (draft.exceptions.length > 30) {
-    return "En fazla 30 tarih ekleyebilirsin.";
+    return clientText("availability.tooManyDates");
   }
   return null;
 }
@@ -188,9 +181,9 @@ export function exceptionError(
   exception: MentorAvailabilityException,
   existing: MentorAvailabilityException[],
 ) {
-  if (!exception.startsOn) return "Bir başlangıç tarihi seç.";
+  if (!exception.startsOn) return clientText("availability.pickStart");
   if (exception.endsOn < exception.startsOn) {
-    return "Bitiş tarihi başlangıçtan önce olamaz.";
+    return clientText("availability.endBeforeStartDate");
   }
   if (
     existing.some(
@@ -199,37 +192,24 @@ export function exceptionError(
         item.endsOn === exception.endsOn,
     )
   ) {
-    return "Bu tarih aralığı zaten ekli.";
+    return clientText("availability.duplicateDates");
   }
   return null;
 }
 
-const DAY_MONTH = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-
 /** "21–25 Eylül · İzin", "3 Ekim", "30 Eylül – 2 Ekim"; the year only when it isn't this year. */
 export function exceptionLabel(
   exception: MentorAvailabilityException,
+  locale: string,
   now = new Date(),
 ) {
   const start = calendarDay(exception.startsOn);
   const end = calendarDay(exception.endsOn);
-  let range: string;
-  if (exception.endsOn === exception.startsOn) {
-    range = DAY_MONTH.format(start);
-  } else if (
-    start.getFullYear() === end.getFullYear() &&
-    start.getMonth() === end.getMonth()
-  ) {
-    range = `${start.getDate()}–${DAY_MONTH.format(end)}`;
-  } else {
-    range = `${DAY_MONTH.format(start)} – ${DAY_MONTH.format(end)}`;
-  }
-  if (end.getFullYear() !== now.getFullYear()) {
-    range = `${range} ${end.getFullYear()}`;
-  }
+  const range = new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+    year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
+  }).formatRange(start, end);
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 

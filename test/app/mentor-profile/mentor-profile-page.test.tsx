@@ -15,12 +15,13 @@ import {
   MentorLanguage,
   type MentorProfile,
   PrepFileRequirement,
-  WEEKDAY_LABELS,
   WEEKDAY_ORDER,
   Weekday,
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
 import type { AvailabilityDraft } from "@/lib/mentor-availability";
+import tr from "@/messages/tr.json";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -240,7 +241,7 @@ function mockAll(
     ...availabilityActions,
     days: WEEKDAY_ORDER.map((day) => ({
       day,
-      label: WEEKDAY_LABELS[day],
+      label: tr.options.weekday[day],
       ranges: draft.ranges.filter((range) => range.dayOfWeek === day),
     })),
     draft,
@@ -314,6 +315,37 @@ describe("MentorProfilePage", () => {
     mockAll({ profileQuery: { data: undefined, error: new Error("x") } });
     render(<MentorProfilePage />);
     expect(screen.getByText("Mentor profili yüklenemedi.")).toBeInTheDocument();
+  });
+
+  it("reads in English, availability editor included", async () => {
+    const user = userEvent.setup();
+    mockAll();
+    render(
+      <InLocale locale="en">
+        <MentorProfilePage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Edit profile" }),
+    ).toBeInTheDocument();
+    for (const title of [
+      "About",
+      "Mentoring topics",
+      "How I work",
+      "Mentorship history",
+      "Meeting preferences",
+      "Programs",
+    ]) {
+      expect(screen.getByRole("heading", { name: title })).toBeInTheDocument();
+    }
+    await user.click(screen.getByRole("button", { name: "Edit availability" }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(
+      dialog.getByRole("heading", { name: "Edit availability" }),
+    ).toBeInTheDocument();
+    expect(dialog.getByText("WEEKLY AVAILABILITY")).toBeInTheDocument();
+    expect(dialog.getByText("Concurrent mentorship limit")).toBeInTheDocument();
   });
 
   it("introduces the mentor with their programs and availability", () => {
@@ -651,7 +683,7 @@ describe("MentorProfilePage", () => {
     const dialog = within(await openEditor(user));
     await user.click(
       dialog.getByRole("button", {
-        name: /^1–3 Ekim( 2026)? · İzin tarihini kaldır$/,
+        name: /^1\s–\s3 Ekim( 2026)? · İzin tarihini kaldır$/,
       }),
     );
     await user.click(dialog.getByRole("button", { name: "Tarih ekle" }));

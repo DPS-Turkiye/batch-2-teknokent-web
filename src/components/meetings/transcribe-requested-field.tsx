@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 export function TranscribeRequestedField({
   checked,
   onChange,
@@ -7,6 +9,7 @@ export function TranscribeRequestedField({
   checked: boolean;
   onChange: (checked: boolean) => void;
 }) {
+  const t = useTranslations("meetingFields.transcribe");
   return (
     <>
       <label className="mt-5 flex cursor-pointer items-start gap-3 rounded-xl border border-[#e4e7ea] p-3">
@@ -18,11 +21,10 @@ export function TranscribeRequestedField({
         />
         <span>
           <span className="block text-sm font-semibold text-[#22262b]">
-            Toplantının transkriptinin çıkarılmasını istiyorum
+            {t("label")}
           </span>
           <span className="mt-1 block text-xs leading-5 text-[#676e78]">
-            İşaretlersen Meet linki Toplantı Asistanı listesine düşer; toplantı
-            saatinde bot otomatik katılır.
+            {t("hint")}
           </span>
         </span>
       </label>
@@ -31,8 +33,7 @@ export function TranscribeRequestedField({
           role="status"
           className="mt-2 rounded-xl bg-[var(--ms-accent-faint,#fff9f5)] px-3 py-2 text-xs leading-5 text-[var(--ms-accent-strong,#c85816)]"
         >
-          Toplantı sonrası Toplantı Asistanı&apos;ndan toplantı raporunu ve
-          transkripti menteelerinize gönderebilirsiniz.
+          {t("after")}
         </p>
       ) : null}
     </>

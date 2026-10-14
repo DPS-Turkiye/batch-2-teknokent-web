@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { NumberStepper } from "@/components/common/number-stepper";
@@ -26,6 +27,8 @@ const pillButtonClass =
 const smallButtonClass = "text-xs! font-medium! leading-[18px]!";
 
 export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("mentorProfile.dialog");
+  const locale = useLocale();
   const availability = useAvailabilitySettingsForm(onClose);
   const { draft } = availability;
 
@@ -41,16 +44,16 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
             id="availability-title"
             className="text-[19px] font-semibold leading-[29px] text-[#22262b]"
           >
-            Müsaitliği düzenle
+            {t("title")}
           </h2>
           <p className="text-[12.5px] leading-[19px] text-[#676e78]">
-            Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.
+            {t("subtitle")}
           </p>
         </div>
         <button
           type="button"
           onClick={onClose}
-          aria-label="Düzenlemeyi kapat"
+          aria-label={t("close")}
           className="grid size-5 shrink-0 place-items-center"
         >
           <Image
@@ -68,11 +71,11 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
             {availability.loadError}
           </p>
         ) : !draft ? (
-          <p className="text-xs text-[#858c96]">Yükleniyor...</p>
+          <p className="text-xs text-[#858c96]">{t("loading")}</p>
         ) : (
           <>
             <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>HAFTALIK UYGUNLUK</h3>
+              <h3 className={sectionLabelClass}>{t("weekly")}</h3>
               <ul className="flex flex-col gap-2.5">
                 {availability.days.map(({ day, label, ranges }) => {
                   const open = ranges.length > 0;
@@ -84,7 +87,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                       <div className="flex items-center gap-3">
                         <ToggleSwitch
                           checked={open}
-                          label={`${label} uygun`}
+                          label={t("dayOpen", { day: label })}
                           onChange={() => availability.toggleDay(day)}
                         />
                         <span
@@ -97,7 +100,10 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                         <div className="ml-auto flex flex-col items-end gap-2">
                           {ranges.map((range, index) => {
                             const first = index === 0;
-                            const name = `${label} ${index + 1}. aralık`;
+                            const name = t("range", {
+                              day: label,
+                              number: index + 1,
+                            });
                             return (
                               <div
                                 key={range.key}
@@ -105,7 +111,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                               >
                                 <input
                                   type="time"
-                                  aria-label={`${name} başlangıç`}
+                                  aria-label={t("rangeStart", { range: name })}
                                   value={range.startTime}
                                   onChange={(event) =>
                                     availability.updateRange(
@@ -121,7 +127,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                                 </span>
                                 <input
                                   type="time"
-                                  aria-label={`${name} bitiş`}
+                                  aria-label={t("rangeEnd", { range: name })}
                                   value={range.endTime}
                                   onChange={(event) =>
                                     availability.updateRange(
@@ -136,7 +142,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                                   <button
                                     type="button"
                                     onClick={() => availability.addRange(day)}
-                                    aria-label={`${label} için saat aralığı ekle`}
+                                    aria-label={t("addRange", { day: label })}
                                     className={iconButtonClass}
                                   >
                                     <Image
@@ -152,7 +158,9 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                                     onClick={() =>
                                       availability.removeRange(range.key)
                                     }
-                                    aria-label={`${name} kaldır`}
+                                    aria-label={t("removeRange", {
+                                      range: name,
+                                    })}
                                     className={iconButtonClass}
                                   >
                                     <Image
@@ -169,7 +177,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                         </div>
                       ) : (
                         <span className="text-[12.5px] leading-[19px] text-[#858c96]">
-                          Kapalı
+                          {t("closed")}
                         </span>
                       )}
                     </li>
@@ -179,22 +187,22 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
             </section>
 
             <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>KAPASİTE VE VARSAYILANLAR</h3>
+              <h3 className={sectionLabelClass}>{t("defaults")}</h3>
               {AVAILABILITY_NUMBER_FIELDS.map(
-                ({ field, label, min, max, unit }) => (
+                ({ field, min, max, inMinutes }) => (
                   <div
                     key={field}
                     className="flex items-center justify-between gap-4"
                   >
                     <span className="text-[13px] leading-5 text-[#4a5059]">
-                      {label}
+                      {t(field)}
                     </span>
                     <NumberStepper
-                      label={label}
+                      label={t(field)}
                       value={draft[field]}
                       min={min}
                       max={max}
-                      unit={unit}
+                      unit={inMinutes ? t("minutesUnit") : undefined}
                       onChange={(value) => availability.setNumber(field, value)}
                       onStep={(direction) =>
                         availability.stepNumber(field, direction)
@@ -206,10 +214,10 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
             </section>
 
             <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>UYGUN OLMADIĞIN TARİHLER</h3>
+              <h3 className={sectionLabelClass}>{t("unavailable")}</h3>
               <div className="flex flex-wrap items-center gap-2">
                 {draft.exceptions.map((item, index) => {
-                  const text = exceptionLabel(item);
+                  const text = exceptionLabel(item, locale);
                   return (
                     <span
                       key={`${item.startsOn}-${item.endsOn}`}
@@ -220,7 +228,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                       <button
                         type="button"
                         onClick={() => availability.removeException(index)}
-                        aria-label={`${text} tarihini kaldır`}
+                        aria-label={t("removeDate", { date: text })}
                         className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full border border-[#d4d8dd] bg-white text-[#4a5059] opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                       >
                         <X className="size-2.5" strokeWidth={2.5} />
@@ -240,7 +248,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                       width={14}
                       height={14}
                     />
-                    Tarih ekle
+                    {t("addDate")}
                   </button>
                 )}
               </div>
@@ -248,7 +256,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                 <div className="grid gap-2 rounded-xl border border-[#e4e7ea] p-3 sm:grid-cols-3">
                   <input
                     type="date"
-                    aria-label="Başlangıç tarihi"
+                    aria-label={t("startDate")}
                     value={availability.exception.startsOn}
                     onChange={(event) =>
                       availability.setExceptionField(
@@ -260,7 +268,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                   />
                   <input
                     type="date"
-                    aria-label="Bitiş tarihi"
+                    aria-label={t("endDate")}
                     value={availability.exception.endsOn}
                     onChange={(event) =>
                       availability.setExceptionField(
@@ -271,7 +279,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                     className={fieldClass}
                   />
                   <input
-                    aria-label="İstisna nedeni"
+                    aria-label={t("reason")}
                     value={availability.exception.reason}
                     onChange={(event) =>
                       availability.setExceptionField(
@@ -279,7 +287,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                         event.target.value,
                       )
                     }
-                    placeholder="Neden (isteğe bağlı)"
+                    placeholder={t("reasonPlaceholder")}
                     className={fieldClass}
                   />
                   <div className="flex justify-end gap-2 sm:col-span-3">
@@ -288,14 +296,14 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
                       onClick={availability.closeExceptionForm}
                       className={`rounded-full border border-[#d4d8dd] bg-white px-3 py-1.5 text-[#4a5059] ${smallButtonClass}`}
                     >
-                      İptal
+                      {t("cancelDate")}
                     </button>
                     <button
                       type="button"
                       onClick={availability.addException}
                       className={`rounded-full bg-[#26a4ff] px-3 py-1.5 text-white ${smallButtonClass}`}
                     >
-                      Tarihi ekle
+                      {t("confirmDate")}
                     </button>
                   </div>
                 </div>
@@ -311,16 +319,14 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
       </div>
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eceef0] px-6 pb-5 pt-4">
-        <p className="text-xs leading-[18px] text-[#676e78]">
-          Değişiklikler yaklaşan görüşmeleri etkilemez.
-        </p>
+        <p className="text-xs leading-[18px] text-[#676e78]">{t("footer")}</p>
         <div className="flex gap-2.5">
           <button
             type="button"
             onClick={onClose}
             className={`${pillButtonClass} border border-[#d4d8dd] bg-white text-[#4a5059]`}
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="button"
@@ -328,7 +334,7 @@ export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
             disabled={!draft || availability.isSaving}
             className={`${pillButtonClass} bg-[#26a4ff] text-white disabled:opacity-50`}
           >
-            {availability.isSaving ? "Kaydediliyor…" : "Kaydet"}
+            {availability.isSaving ? t("saving") : t("save")}
           </button>
         </div>
       </footer>

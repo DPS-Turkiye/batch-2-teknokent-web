@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MeetingEvaluationView } from "@/components/mentor-evaluation/meeting-evaluation-view";
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/hooks/use-mentor-meeting-evaluation", () => ({
   useMentorMeetingEvaluation: vi.fn(),
@@ -77,6 +78,23 @@ describe("MeetingEvaluationView", () => {
       "href",
       "/mentor-dashboard",
     );
+  });
+
+  it("reads in English and still sends the saved Turkish quality", async () => {
+    const user = userEvent.setup();
+    render(
+      <InLocale locale="en">
+        <MeetingEvaluationView meetingId="m1" />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "How did this meeting go?" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Partly" })).toBeInTheDocument();
+    expect(screen.getByText("0/3 questions answered")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Engaged" }));
+    expect(handlers.toggleQuality).toHaveBeenCalledWith("Aktif katılım");
   });
 
   it("passes each answer to the hook", async () => {

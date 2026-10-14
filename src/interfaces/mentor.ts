@@ -43,13 +43,6 @@ export enum PrepFileRequirement {
   NotNeeded = "NOT_NEEDED",
 }
 
-export const PREP_FILE_REQUIREMENT_LABELS: Record<PrepFileRequirement, string> =
-  {
-    [PrepFileRequirement.Required]: "Zorunlu",
-    [PrepFileRequirement.Optional]: "İsteğe bağlı",
-    [PrepFileRequirement.NotNeeded]: "Gerekmiyor",
-  };
-
 export enum MentorLanguage {
   Turkish = "TURKISH",
   English = "ENGLISH",
@@ -59,16 +52,6 @@ export enum MentorLanguage {
   Arabic = "ARABIC",
   Russian = "RUSSIAN",
 }
-
-export const MENTOR_LANGUAGE_LABELS: Record<MentorLanguage, string> = {
-  [MentorLanguage.Turkish]: "Türkçe",
-  [MentorLanguage.English]: "İngilizce",
-  [MentorLanguage.German]: "Almanca",
-  [MentorLanguage.French]: "Fransızca",
-  [MentorLanguage.Spanish]: "İspanyolca",
-  [MentorLanguage.Arabic]: "Arapça",
-  [MentorLanguage.Russian]: "Rusça",
-};
 
 /** A program the mentor has joined, with the mentor's own role in it. */
 export interface MentorProgram {
@@ -149,16 +132,6 @@ export enum Weekday {
   Saturday = "SATURDAY",
   Sunday = "SUNDAY",
 }
-
-export const WEEKDAY_LABELS: Record<Weekday, string> = {
-  [Weekday.Monday]: "Pazartesi",
-  [Weekday.Tuesday]: "Salı",
-  [Weekday.Wednesday]: "Çarşamba",
-  [Weekday.Thursday]: "Perşembe",
-  [Weekday.Friday]: "Cuma",
-  [Weekday.Saturday]: "Cumartesi",
-  [Weekday.Sunday]: "Pazar",
-};
 
 export const WEEKDAY_ORDER: Weekday[] = [
   Weekday.Monday,

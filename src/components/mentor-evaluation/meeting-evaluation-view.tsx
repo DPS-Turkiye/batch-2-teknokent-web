@@ -2,13 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
 import {
-  MENTOR_EVALUATION_LABELS as LABELS,
   MENTOR_EVALUATION_NOTE_MAX_LENGTH,
   MENTOR_EVALUATION_QUALITIES,
+  MENTOR_EVALUATION_QUALITY_IDS,
   MENTOR_EVALUATION_QUESTION_COUNT,
   OUTCOME_CLARITY_OPTIONS,
 } from "@/lib/const/mentor-evaluation";
@@ -31,6 +32,7 @@ function StartupAvatar({ initials }: { initials: string }) {
 }
 
 function Breadcrumb({ startupName }: { startupName: string }) {
+  const t = useTranslations("mentorEvaluation");
   const chevron = (
     <Image
       src="/mentor-evaluation/chevron-right.svg"
@@ -42,11 +44,11 @@ function Breadcrumb({ startupName }: { startupName: string }) {
   );
   return (
     <nav
-      aria-label="Konum"
+      aria-label={t("breadcrumb")}
       className="flex items-center gap-1.5 text-[12.5px] text-[#4a5059]"
     >
       <Link href="/mentorships" className="text-[#676e78] hover:underline">
-        {LABELS.breadcrumbRoot}
+        {t("breadcrumbRoot")}
       </Link>
       {startupName ? (
         <>
@@ -56,7 +58,7 @@ function Breadcrumb({ startupName }: { startupName: string }) {
       ) : null}
       {chevron}
       <span aria-current="page" className="font-medium">
-        {LABELS.breadcrumbPage}
+        {t("breadcrumbPage")}
       </span>
     </nav>
   );
@@ -79,6 +81,7 @@ function Card({
 }
 
 export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
+  const t = useTranslations("mentorEvaluation");
   const evaluation = useMentorMeetingEvaluation(meetingId);
   const { answers } = evaluation;
 
@@ -86,7 +89,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
     return (
       <div className="mx-auto w-full max-w-[680px] px-4 pb-16 pt-3 sm:px-0">
         <p className="py-10 text-sm text-[#858c96]">
-          {evaluation.isLoading ? LABELS.loading : LABELS.notFound}
+          {evaluation.isLoading ? t("loading") : t("notFound")}
         </p>
       </div>
     );
@@ -107,10 +110,10 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
           </span>
           <div className="flex flex-col items-center gap-2">
             <h1 className="text-[22px] font-semibold text-[#22262b]">
-              {LABELS.sentTitle}
+              {t("sentTitle")}
             </h1>
             <p className="max-w-[420px] text-[13.5px] leading-5 text-[#676e78]">
-              {LABELS.sentBody}
+              {t("sentBody")}
             </p>
           </div>
           <p className="flex items-center gap-2 rounded-full bg-[#f3f4f6] py-1.5 pl-2 pr-3 text-xs text-[#676e78]">
@@ -122,10 +125,10 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
               href="/mentorships"
               className={`${primaryButtonClass} bg-[#26a4ff] text-white hover:bg-[#1592ec]`}
             >
-              {LABELS.backToMentorships}
+              {t("backToMentorships")}
             </Link>
             <Link href="/mentor-dashboard" className={secondaryButtonClass}>
-              {LABELS.home}
+              {t("home")}
             </Link>
           </div>
         </Card>
@@ -140,7 +143,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
       <Breadcrumb startupName={evaluation.startupName} />
       <header className="flex flex-col gap-2.5">
         <h1 className="text-[28px] font-semibold text-[#22262b]">
-          {LABELS.title}
+          {t("title")}
         </h1>
         <p className="flex items-center gap-2.5 text-[13px] text-[#858c96]">
           <StartupAvatar initials={evaluation.startupInitials} />
@@ -157,12 +160,12 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
             height={16}
             className="shrink-0"
           />
-          {LABELS.info}
+          {t("info")}
         </p>
 
         <fieldset className="flex flex-col items-center gap-3">
           <legend className={`${questionClass} mb-3 text-center`}>
-            {LABELS.preparedness}
+            {t("preparedness")}
           </legend>
           <div className="flex gap-2.5">
             {RATING_VALUES.map((value) => {
@@ -172,7 +175,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
                   key={value}
                   type="button"
                   aria-pressed={selected}
-                  aria-label={`${value} / 5`}
+                  aria-label={t("rating", { value })}
                   onClick={() => evaluation.setPreparedness(value)}
                   className={`grid size-9 place-items-center rounded-full border-[1.5px] text-sm font-semibold transition ${selected ? "border-[#26a4ff] bg-[#26a4ff] text-white" : "border-[#e4e7ea] bg-white text-[#676e78] hover:border-[#26a4ff]"}`}
                 >
@@ -182,22 +185,20 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
             })}
           </div>
           <div className="flex w-full max-w-[340px] justify-between text-[11px] text-[#858c96]">
-            <span>{LABELS.preparednessLow}</span>
-            <span>{LABELS.preparednessHigh}</span>
+            <span>{t("preparednessLow")}</span>
+            <span>{t("preparednessHigh")}</span>
           </div>
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
           <legend className="mb-3 flex w-full items-end gap-3">
-            <span className={`${questionClass} flex-1`}>
-              {LABELS.qualities}
-            </span>
+            <span className={`${questionClass} flex-1`}>{t("qualities")}</span>
             <span className="shrink-0 text-xs text-[#858c96]">
-              {LABELS.qualitiesHint}
+              {t("qualitiesHint")}
             </span>
           </legend>
           <div className="flex flex-wrap gap-2">
-            {MENTOR_EVALUATION_QUALITIES.map((quality) => {
+            {MENTOR_EVALUATION_QUALITIES.map((quality, index) => {
               const selected = answers.qualities.includes(quality);
               return (
                 <button
@@ -207,7 +208,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
                   onClick={() => evaluation.toggleQuality(quality)}
                   className={`rounded-full border px-3.5 py-2 text-[12.5px] font-medium transition ${selected ? "border-[#26a4ff] bg-[#26a4ff] text-white" : "border-[#d4d8dd] bg-white text-[#4a5059] hover:border-[#26a4ff]"}`}
                 >
-                  {quality}
+                  {t(`quality.${MENTOR_EVALUATION_QUALITY_IDS[index]}`)}
                 </button>
               );
             })}
@@ -215,19 +216,19 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
         </fieldset>
 
         <fieldset className="flex flex-col gap-3">
-          <legend className={`${questionClass} mb-3`}>{LABELS.clarity}</legend>
+          <legend className={`${questionClass} mb-3`}>{t("clarity")}</legend>
           <div className="flex gap-1 rounded-full border border-[#e4e7ea] bg-[#f3f4f6] p-1">
             {OUTCOME_CLARITY_OPTIONS.map((option) => {
-              const selected = answers.clarity === option.value;
+              const selected = answers.clarity === option;
               return (
                 <button
-                  key={option.value}
+                  key={option}
                   type="button"
                   aria-pressed={selected}
-                  onClick={() => evaluation.setClarity(option.value)}
+                  onClick={() => evaluation.setClarity(option)}
                   className={`flex-1 rounded-full py-[9px] text-[13px] font-medium transition ${selected ? "bg-[#26a4ff] text-white" : "text-[#4a5059] hover:bg-white"}`}
                 >
-                  {option.label}
+                  {t(`clarityOption.${option}`)}
                 </button>
               );
             })}
@@ -236,16 +237,14 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
 
         <label className="flex flex-col gap-2">
           <span className={questionClass}>
-            {LABELS.note}{" "}
-            <span className="font-normal text-[#858c96]">
-              {LABELS.optional}
-            </span>
+            {t("note")}{" "}
+            <span className="font-normal text-[#858c96]">{t("optional")}</span>
           </span>
           <textarea
             value={answers.note}
             onChange={(event) => evaluation.setNote(event.target.value)}
             maxLength={MENTOR_EVALUATION_NOTE_MAX_LENGTH}
-            placeholder={LABELS.notePlaceholder}
+            placeholder={t("notePlaceholder")}
             className="h-[84px] w-full resize-none rounded-xl border border-[#e4e7ea] bg-white px-3.5 py-3 text-[13px] leading-[19px] text-[#22262b] outline-none placeholder:text-[#aeb4bc] focus:border-[#26a4ff]"
           />
         </label>
@@ -258,10 +257,10 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
               disabled={!evaluation.canSubmit}
               className={`${primaryButtonClass} bg-[#26a4ff] text-white hover:bg-[#1592ec] disabled:bg-[#f3f4f6] disabled:text-[#aeb4bc]`}
             >
-              {evaluation.isSubmitting ? LABELS.submitting : LABELS.submit}
+              {evaluation.isSubmitting ? t("submitting") : t("submit")}
             </button>
             <Link href="/mentor-dashboard" className={secondaryButtonClass}>
-              {LABELS.later}
+              {t("later")}
             </Link>
           </div>
           <p
@@ -275,8 +274,10 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
                 height={14}
               />
             ) : null}
-            {evaluation.answered}/{MENTOR_EVALUATION_QUESTION_COUNT} soru
-            yanıtlandı
+            {t("answered", {
+              answered: evaluation.answered,
+              total: MENTOR_EVALUATION_QUESTION_COUNT,
+            })}
           </p>
         </div>
         {evaluation.error ? (

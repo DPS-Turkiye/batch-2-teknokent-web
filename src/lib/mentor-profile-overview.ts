@@ -1,19 +1,26 @@
+import type { useTranslations } from "next-intl";
+
+import type { useOptionLabel } from "@/hooks/use-option-label";
 import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
 import {
-  MEETING_FREQUENCY_LABELS,
-  MENTOR_LANGUAGE_LABELS,
   type MentorAvailabilityRule,
   type MentorAvailabilitySettings,
   type MentorLanguage,
   type MentorProfile,
   type MentorProgram,
-  PREP_FILE_REQUIREMENT_LABELS,
-  WEEKDAY_LABELS,
+  type Weekday,
   WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { PROGRAM_STATUS_LABELS } from "@/interfaces/program";
 import { toTimeInput } from "@/lib/mentor-availability";
+
+/** The profile page's translators and language, for the labels built here. */
+export type MentorProfileTexts = {
+  t: ReturnType<typeof useTranslations<"mentorProfile">>;
+  tOptions: ReturnType<typeof useTranslations<"options">>;
+  optionLabel: ReturnType<typeof useOptionLabel>;
+  locale: string;
+};
 
 export type LabelValue = { label: string; value: string; muted?: boolean };
 
@@ -25,14 +32,17 @@ export type MentorshipHistoryRow = {
   rating: string | null;
 };
 
-const RATING = new Intl.NumberFormat("tr-TR", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-
 /** "4,8" for a 1–5 average; null before the first feedback. */
-export function ratingLabel(average: number | null | undefined) {
-  return average == null ? null : RATING.format(average);
+export function ratingLabel(
+  average: number | null | undefined,
+  locale: string,
+) {
+  return average == null
+    ? null
+    : new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }).format(average);
 }
 
 /** "Design / UX Mentor · Döngü Labs · 12 yıl" */
@@ -56,6 +66,7 @@ export function completedSessionCount(meetings: MeetingItem[]) {
 /** "8 ay", "2 yıl", counted from the first accepted mentorship; null without one. */
 export function mentorshipDurationLabel(
   accepted: MentorshipRequest[],
+  { t }: Pick<MentorProfileTexts, "t">,
   now = new Date(),
 ) {
   if (accepted.length === 0) return null;
@@ -68,30 +79,24 @@ export function mentorshipDurationLabel(
     start.getMonth();
   // A month only counts once its day has come round again: Aug 31 → Sep 1 is a day, not a month.
   if (now.getDate() < start.getDate()) months -= 1;
-  if (months < 1) return "1 aydan az";
-  if (months < 12) return `${months} ay`;
-  return `${Math.floor(months / 12)} yıl`;
+  if (months < 1) return t("stats.lessThanMonth");
+  if (months < 12) return t("stats.months", { count: months });
+  return t("stats.years", { count: Math.floor(months / 12) });
 }
 
-const MONTH = new Intl.DateTimeFormat("tr-TR", { month: "short" });
-const MONTH_YEAR = new Intl.DateTimeFormat("tr-TR", {
-  month: "short",
-  year: "numeric",
-});
-
 /** "Mar – Haz 2026", "Kas 2025 – Şub 2026", or "Mar 2026" within one month. */
-function periodLabel(start: Date, end: Date) {
-  const sameYear = start.getFullYear() === end.getFullYear();
-  if (sameYear && start.getMonth() === end.getMonth()) {
-    return MONTH_YEAR.format(start);
-  }
-  return `${(sameYear ? MONTH : MONTH_YEAR).format(start)} – ${MONTH_YEAR.format(end)}`;
+function periodLabel(start: Date, end: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    month: "short",
+    year: "numeric",
+  }).formatRange(start, end);
 }
 
 /** Accepted mentorships, each with its period and completed sessions. */
 export function mentorshipHistory(
   accepted: MentorshipRequest[],
   meetings: MeetingItem[],
+  { t, locale }: Pick<MentorProfileTexts, "t" | "locale">,
   ratingByRequest: Record<string, number> = {},
 ): MentorshipHistoryRow[] {
   const completed = completedMeetings(meetings);
@@ -110,23 +115,30 @@ export function mentorshipHistory(
         [request.organizationName, request.requesterName]
           .filter(Boolean)
           .join(" · ") || request.supportArea,
-      detail: `${periodLabel(new Date(start), new Date(end))} · ${sessions.length} seans`,
-      rating: ratingLabel(ratingByRequest[request.id]),
+      detail: `${periodLabel(new Date(start), new Date(end), locale)} · ${t("history.sessions", { count: sessions.length })}`,
+      rating: ratingLabel(ratingByRequest[request.id], locale),
     };
   });
 }
 
 /** One bullet per line of the mentor's working style, then sector and stages. */
-export function workingStyleBullets(profile: MentorProfile) {
+export function workingStyleBullets(
+  profile: MentorProfile,
+  { t }: Pick<MentorProfileTexts, "t">,
+) {
   const bullets = (profile.mentoringStyle ?? "")
     .split(/\n|•/)
     .map((line) => line.trim())
     .filter(Boolean);
   if (profile.sectorExperience?.trim()) {
-    bullets.push(`Sektör deneyimi: ${profile.sectorExperience.trim()}`);
+    bullets.push(
+      t("style.sectorBullet", { value: profile.sectorExperience.trim() }),
+    );
   }
   if (profile.startupStages?.trim()) {
-    bullets.push(`Çalıştığı aşamalar: ${profile.startupStages.trim()}`);
+    bullets.push(
+      t("style.stagesBullet", { value: profile.startupStages.trim() }),
+    );
   }
   return bullets;
 }
@@ -135,23 +147,31 @@ export function workingStyleBullets(profile: MentorProfile) {
 export function meetingPreferenceRows(
   profile: MentorProfile,
   settings: MentorAvailabilitySettings | undefined,
+  { t, tOptions, optionLabel }: MentorProfileTexts,
 ): LabelValue[] {
   const rows: LabelValue[] = [
     {
-      label: "Varsayılan süre",
-      value: settings ? `${settings.defaultMeetingDurationMinutes} dk` : "",
-    },
-    { label: "Format", value: profile.meetingMode },
-    {
-      label: "Görüşme sıklığı",
-      value: profile.meetingFrequency
-        ? MEETING_FREQUENCY_LABELS[profile.meetingFrequency]
+      label: t("prefs.duration"),
+      value: settings
+        ? t("prefs.minutes", { count: settings.defaultMeetingDurationMinutes })
         : "",
     },
     {
-      label: "Ön hazırlık dosyası",
+      label: t("prefs.format"),
+      value: profile.meetingMode
+        ? optionLabel("meetingFormat", profile.meetingMode)
+        : "",
+    },
+    {
+      label: t("prefs.frequency"),
+      value: profile.meetingFrequency
+        ? tOptions(`meetingFrequency.${profile.meetingFrequency}`)
+        : "",
+    },
+    {
+      label: t("prefs.prepFile"),
       value: profile.prepFileRequirement
-        ? PREP_FILE_REQUIREMENT_LABELS[profile.prepFileRequirement]
+        ? tOptions(`prepFile.${profile.prepFileRequirement}`)
         : "",
     },
   ];
@@ -159,22 +179,35 @@ export function meetingPreferenceRows(
 }
 
 /** "Türkçe · İngilizce", or "" when the mentor has not chosen any. */
-export function languagesLabel(languages: MentorLanguage[] | undefined) {
+export function languagesLabel(
+  languages: MentorLanguage[] | undefined,
+  { tOptions }: Pick<MentorProfileTexts, "tOptions">,
+) {
   return (languages ?? [])
-    .map((language) => MENTOR_LANGUAGE_LABELS[language])
+    .map((language) => tOptions(`language.${language}`))
     .join(" · ");
 }
 
 /** "Aktif · Design mentor", or just the status when the mentor has no role there. */
-export function programDetail(program: MentorProgram) {
-  return [PROGRAM_STATUS_LABELS[program.status], program.role?.trim()]
+export function programDetail(
+  program: MentorProgram,
+  { t }: Pick<MentorProfileTexts, "t">,
+) {
+  return [t(`programs.status.${program.status}`), program.role?.trim()]
     .filter(Boolean)
     .join(" · ");
 }
 
+export type WeeklyAvailabilityTexts = {
+  weekday: (day: Weekday) => string;
+  otherDays: string;
+  closed: string;
+};
+
 /** "Salı 09:00–10:00, 14:00–17:00" per open day, then "Diğer günler Kapalı". */
 export function weeklyAvailabilityRows(
   rules: MentorAvailabilityRule[],
+  { weekday, otherDays, closed }: WeeklyAvailabilityTexts,
 ): LabelValue[] {
   const rows: LabelValue[] = WEEKDAY_ORDER.flatMap((day) => {
     const ranges = rules
@@ -184,11 +217,11 @@ export function weeklyAvailabilityRows(
         (rule) => `${toTimeInput(rule.startTime)}–${toTimeInput(rule.endTime)}`,
       );
     return ranges.length > 0
-      ? [{ label: WEEKDAY_LABELS[day], value: ranges.join(", ") }]
+      ? [{ label: weekday(day), value: ranges.join(", ") }]
       : [];
   });
   if (rows.length > 0 && rows.length < WEEKDAY_ORDER.length) {
-    rows.push({ label: "Diğer günler", value: "Kapalı", muted: true });
+    rows.push({ label: otherDays, value: closed, muted: true });
   }
   return rows;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -13,6 +14,7 @@ import type { MeetingItem } from "@/interfaces/meeting";
  * the meeting id, so a different meeting starts from that meeting's own link.
  */
 export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
+  const t = useTranslations("mentorHome.banner");
   const { showToast } = useToast();
   const updateMeeting = useUpdateMeeting(meeting?.id);
   const [link, setLink] = useState(meeting?.meetLink ?? "");
@@ -28,8 +30,7 @@ export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
       return true;
     } catch (error) {
       showToast({
-        message:
-          error instanceof Error ? error.message : "Görüşme güncellenemedi.",
+        message: error instanceof Error ? error.message : t("updateFailed"),
         tone: "error",
       });
       return false;
@@ -41,7 +42,7 @@ export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
     if (!meeting || meetLink === savedLink) return;
     if (await save({ meetLink })) {
       setSavedLink(meetLink);
-      showToast({ message: "Görüşme linki kaydedildi.", tone: "success" });
+      showToast({ message: t("linkSaved"), tone: "success" });
     }
   };
 

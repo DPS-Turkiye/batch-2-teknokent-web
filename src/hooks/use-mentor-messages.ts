@@ -1,5 +1,6 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -23,6 +24,8 @@ export function useMentorMessages(
   preferredRequestId?: string | null,
   linkedThreadId: string | null = null,
 ) {
+  const t = useTranslations("mentorHome");
+  const locale = useLocale();
   const { session } = useSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
@@ -70,7 +73,7 @@ export function useMentorMessages(
     error: requestsQuery.error,
     fileUpload,
     isLoading: requestsQuery.isLoading,
-    meetingLabel: conversationMeetingLabel(activeMeeting),
+    meetingLabel: conversationMeetingLabel(activeMeeting, { t, locale }),
     messageForm,
     programThreads,
     announcements,

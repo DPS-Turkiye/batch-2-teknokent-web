@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -37,8 +38,10 @@ import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getOrganizationDocuments } from "@/lib/client/startup-documents";
 import { MENTORSHIP_MEETING_DURATION_MINUTES } from "@/lib/const";
 import {
-  MENTOR_REQUEST_STARTUP_LABELS,
-  MENTORSHIP_REQUEST_STATUS_CHIPS,
+  MENTOR_ACCEPT_MESSAGE,
+  MENTOR_DECLINE_MESSAGE,
+} from "@/lib/const/mentorships";
+import {
   STARTUP_INFO_BODY_CLASS,
   STARTUP_INFO_CARD_CLASS,
   STARTUP_INFO_CARD_HINT_CLASS,
@@ -77,7 +80,7 @@ function focusTags(profile: StartupProfile | null, request: MentorshipRequest) {
   return [...new Set(tags)];
 }
 
-function needText(request: MentorshipRequest) {
+function needText(request: MentorshipRequest, fallback: string) {
   const detail = buildRequestDetailContent(request);
   const primary = detail.fields.find(
     (field) =>
@@ -90,15 +93,7 @@ function needText(request: MentorshipRequest) {
       field.key === RequestDetailFieldKey.NeedOutcome ||
       field.key === RequestDetailFieldKey.ProfileOutcome,
   );
-  return (
-    outcome?.value ||
-    request.summary?.trim() ||
-    MENTOR_REQUEST_STARTUP_LABELS.noNeed
-  );
-}
-
-function statusChip(status: MentorshipRequestStatus) {
-  return MENTORSHIP_REQUEST_STATUS_CHIPS[status];
+  return outcome?.value || request.summary?.trim() || fallback;
 }
 
 export function MentorRequestStartupDetail({
@@ -106,6 +101,8 @@ export function MentorRequestStartupDetail({
 }: {
   requestId: string;
 }) {
+  const t = useTranslations("mentorMentorships.startup");
+  const locale = useLocale();
   const router = useRouter();
   const queryClient = useQueryClient();
   const openDocument = useOpenDocument();
@@ -176,7 +173,7 @@ export function MentorRequestStartupDetail({
     setActionError("");
     const message = slot
       ? `Görüşme saati: ${preferredSlotMachineValue(slot)}`
-      : MENTOR_REQUEST_STARTUP_LABELS.acceptDefaultMessage;
+      : MENTOR_ACCEPT_MESSAGE;
     const normalizedLink = normalizeMeetLink(meetLink);
     const documentTitles = normalizeDocumentTitles(requestedDocuments);
     try {
@@ -208,9 +205,7 @@ export function MentorRequestStartupDetail({
       router.push("/mentorships?tab=active");
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : MENTOR_REQUEST_STARTUP_LABELS.acceptError,
+        caught instanceof Error ? caught.message : t("acceptFailed"),
       );
     }
   }
@@ -232,9 +227,7 @@ export function MentorRequestStartupDetail({
       router.push("/mentorships?tab=requests");
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : MENTOR_REQUEST_STARTUP_LABELS.proposeError,
+        caught instanceof Error ? caught.message : t("proposeFailed"),
       );
     }
   }
@@ -252,11 +245,7 @@ export function MentorRequestStartupDetail({
       setReviewing(false);
       router.push("/mentorships?tab=requests");
     } catch (caught) {
-      setActionError(
-        caught instanceof Error
-          ? caught.message
-          : MENTOR_REQUEST_STARTUP_LABELS.askInfoError,
-      );
+      setActionError(caught instanceof Error ? caught.message : t("askFailed"));
     }
   }
 
@@ -267,21 +256,19 @@ export function MentorRequestStartupDetail({
       await decisionMutation.mutateAsync({
         id: request.id,
         status: MentorshipRequestStatus.Declined,
-        message: MENTOR_REQUEST_STARTUP_LABELS.declineMessage,
+        message: MENTOR_DECLINE_MESSAGE,
       });
       router.push("/mentorships?tab=requests");
     } catch (caught) {
       setActionError(
-        caught instanceof Error
-          ? caught.message
-          : MENTOR_REQUEST_STARTUP_LABELS.declineError,
+        caught instanceof Error ? caught.message : t("declineFailed"),
       );
     }
   }
 
   const startupName = request
-    ? mentorWorkspaceName(request)
-    : MENTOR_REQUEST_STARTUP_LABELS.startupFallback;
+    ? mentorWorkspaceName(request, t("startupFallback"))
+    : t("startupFallback");
   const person = request ? mentorWorkspacePerson(request) : "";
   const contactLine = [
     person,
@@ -299,11 +286,11 @@ export function MentorRequestStartupDetail({
       <MentorAccent enabled>
         <div className="mx-auto w-full max-w-[1228px] px-4 pb-16 pt-3 sm:px-8 lg:px-[106px]">
           <nav
-            aria-label="Sayfa yolu"
+            aria-label={t("breadcrumb")}
             className="flex flex-wrap items-center gap-1.5 text-[12.5px] leading-[19px] text-[#676e78]"
           >
             <Link href="/mentorships" className="hover:text-[#22262b]">
-              {MENTOR_REQUEST_STARTUP_LABELS.mentorships}
+              {t("mentorships")}
             </Link>
             <Image
               src="/startup/expand-muted.svg"
@@ -316,7 +303,7 @@ export function MentorRequestStartupDetail({
               href="/mentorships?tab=requests"
               className="hover:text-[#22262b]"
             >
-              {MENTOR_REQUEST_STARTUP_LABELS.requests}
+              {t("requests")}
             </Link>
             <Image
               src="/startup/expand-muted.svg"
@@ -337,16 +324,13 @@ export function MentorRequestStartupDetail({
           </nav>
 
           {isLoading ? (
-            <p className="mt-10 text-sm text-[#858c96]">
-              {MENTOR_REQUEST_STARTUP_LABELS.loading}
-            </p>
+            <p className="mt-10 text-sm text-[#858c96]">{t("loading")}</p>
           ) : !request ? (
             <p
               role="alert"
               className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             >
-              {requestQuery.error?.message ??
-                MENTOR_REQUEST_STARTUP_LABELS.notFound}
+              {requestQuery.error?.message ?? t("notFound")}
             </p>
           ) : (
             <>
@@ -368,7 +352,7 @@ export function MentorRequestStartupDetail({
                         </p>
                       ) : null}
                       <span className="rounded-full border border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-2.5 py-1 text-[11.5px] font-medium leading-[18px] text-[var(--ms-accent,#e86f22)]">
-                        {statusChip(request.status)}
+                        {t(`status.${request.status}`)}
                       </span>
                     </div>
                   </div>
@@ -380,14 +364,14 @@ export function MentorRequestStartupDetail({
                       disabled={decisionMutation.isPending}
                       className="rounded-full px-4 py-2.5 text-[12.5px]"
                     >
-                      {MENTOR_REQUEST_STARTUP_LABELS.decline}
+                      {t("decline")}
                     </SecondaryButton>
                   ) : null}
                   <SecondaryButton
                     href={mentorRequestMessagesHref(request.id)}
                     className="rounded-full border-[var(--ms-accent-soft,#fdebdd)] bg-[var(--ms-accent-faint,#fff4ec)] px-4 py-2.5 text-[12.5px] text-[var(--ms-accent,#e86f22)] hover:border-[var(--ms-accent,#e86f22)] hover:bg-[var(--ms-accent-soft,#fdebdd)] hover:text-[var(--ms-accent-hover,#c85816)]"
                   >
-                    {MENTOR_REQUEST_STARTUP_LABELS.message}
+                    {t("message")}
                   </SecondaryButton>
                   {canDecide ? (
                     <PrimaryButton
@@ -398,7 +382,7 @@ export function MentorRequestStartupDetail({
                       disabled={decisionMutation.isPending}
                       className="rounded-full px-4 py-2.5 text-[12.5px]"
                     >
-                      {MENTOR_REQUEST_STARTUP_LABELS.accept}
+                      {t("accept")}
                     </PrimaryButton>
                   ) : null}
                 </div>
@@ -412,30 +396,28 @@ export function MentorRequestStartupDetail({
 
               <div className="mt-[22px] grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                 <Metric
-                  label={MENTOR_REQUEST_STARTUP_LABELS.stage}
-                  value={
-                    profile?.fundingStage ||
-                    profile?.maturity ||
-                    MENTOR_REQUEST_STARTUP_LABELS.dash
-                  }
+                  label={t("stage")}
+                  value={profile?.fundingStage || profile?.maturity || "—"}
                 />
                 <Metric
-                  label={MENTOR_REQUEST_STARTUP_LABELS.sector}
+                  label={t("sector")}
                   value={
                     profile?.sector ||
                     request.recommendationSnapshot?.startupSector ||
-                    MENTOR_REQUEST_STARTUP_LABELS.dash
+                    "—"
                   }
                 />
                 <Metric
-                  label={MENTOR_REQUEST_STARTUP_LABELS.program}
-                  value={
-                    profile?.programLevel || MENTOR_REQUEST_STARTUP_LABELS.dash
-                  }
+                  label={t("program")}
+                  value={profile?.programLevel || "—"}
                 />
                 <Metric
-                  label={MENTOR_REQUEST_STARTUP_LABELS.requestDate}
-                  value={formatRequestSentAt(request.createdAt)}
+                  label={t("requestDate")}
+                  value={formatRequestSentAt(
+                    request.createdAt,
+                    new Date(),
+                    locale,
+                  )}
                 />
               </div>
 
@@ -443,12 +425,12 @@ export function MentorRequestStartupDetail({
                 <div className="min-w-0 space-y-[18px]">
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.about}
+                      {t("about")}
                     </h2>
                     <p className={STARTUP_INFO_BODY_CLASS}>
                       {profile?.description?.trim() ||
                         request.recommendationSnapshot?.startupSummary?.trim() ||
-                        MENTOR_REQUEST_STARTUP_LABELS.noDescription}
+                        t("noDescription")}
                     </p>
                   </section>
 
@@ -456,10 +438,10 @@ export function MentorRequestStartupDetail({
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                          {MENTOR_REQUEST_STARTUP_LABELS.canvas}
+                          {t("canvas")}
                         </h2>
                         <p className={`mt-1 ${STARTUP_INFO_CARD_HINT_CLASS}`}>
-                          {MENTOR_REQUEST_STARTUP_LABELS.canvasHint}
+                          {t("canvasHint")}
                         </p>
                       </div>
                       {canvas ? (
@@ -468,7 +450,7 @@ export function MentorRequestStartupDetail({
                           onClick={() => void openDocument(canvas.id)}
                           className="shrink-0 text-[12.5px] font-medium text-[var(--ms-accent-strong,#9e4400)] hover:underline"
                         >
-                          {MENTOR_REQUEST_STARTUP_LABELS.view}
+                          {t("view")}
                         </button>
                       ) : null}
                     </div>
@@ -478,15 +460,13 @@ export function MentorRequestStartupDetail({
                         onOpen={() => void openDocument(canvas.id)}
                       />
                     ) : (
-                      <p className={STARTUP_INFO_BODY_CLASS}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.noCanvas}
-                      </p>
+                      <p className={STARTUP_INFO_BODY_CLASS}>{t("noCanvas")}</p>
                     )}
                   </section>
 
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.focus}
+                      {t("focus")}
                     </h2>
                     <div className="flex flex-wrap gap-2">
                       {tags.length > 0 ? (
@@ -500,7 +480,7 @@ export function MentorRequestStartupDetail({
                         ))
                       ) : (
                         <p className={STARTUP_INFO_BODY_CLASS}>
-                          {MENTOR_REQUEST_STARTUP_LABELS.noFocus}
+                          {t("noFocus")}
                         </p>
                       )}
                     </div>
@@ -508,12 +488,12 @@ export function MentorRequestStartupDetail({
 
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.need}
+                      {t("need")}
                     </h2>
                     <p
                       className={`${STARTUP_INFO_BODY_CLASS} whitespace-pre-wrap`}
                     >
-                      {needText(request)}
+                      {needText(request, t("noNeed"))}
                     </p>
                   </section>
                 </div>
@@ -521,12 +501,10 @@ export function MentorRequestStartupDetail({
                 <aside className="space-y-[18px]">
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.files}
+                      {t("files")}
                     </h2>
                     {files.length === 0 ? (
-                      <p className={STARTUP_INFO_BODY_CLASS}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.noFiles}
-                      </p>
+                      <p className={STARTUP_INFO_BODY_CLASS}>{t("noFiles")}</p>
                     ) : (
                       <div className="space-y-2.5">
                         {files.map((document) => (
@@ -549,12 +527,10 @@ export function MentorRequestStartupDetail({
 
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {MENTOR_REQUEST_STARTUP_LABELS.team}
+                      {t("team")}
                     </h2>
                     {members.length === 0 ? (
-                      <p className={STARTUP_INFO_BODY_CLASS}>
-                        {MENTOR_REQUEST_STARTUP_LABELS.noTeam}
-                      </p>
+                      <p className={STARTUP_INFO_BODY_CLASS}>{t("noTeam")}</p>
                     ) : (
                       <div className="space-y-3">
                         {members.map((member) => (
@@ -622,11 +598,13 @@ function FileRow({
   document: StartupDocument;
   onOpen: () => void;
 }) {
+  const t = useTranslations("mentorMentorships.startup");
+  const locale = useLocale();
   const meta = [
     formatFileSize(document.sizeBytes),
     document.uploadedByName
-      ? `${document.uploadedByName} yükledi`
-      : `Son güncelleme ${formatLongDate(document.createdAt)}`,
+      ? t("uploadedBy", { name: document.uploadedByName })
+      : t("updatedAt", { date: formatLongDate(document.createdAt, locale) }),
   ]
     .filter(Boolean)
     .join(" · ");
@@ -653,7 +631,7 @@ function FileRow({
       <button
         type="button"
         onClick={onOpen}
-        aria-label={`${document.originalFilename} dosyasını görüntüle`}
+        aria-label={t("viewFile", { name: document.originalFilename })}
         className="grid size-8 shrink-0 place-items-center rounded-lg text-[#676e78] hover:bg-[#f7f8f9] hover:text-[#22262b]"
       >
         <Image
@@ -669,9 +647,8 @@ function FileRow({
 }
 
 function MemberRow({ member }: { member: OrganizationMember }) {
-  const roleLabel = member.founder
-    ? MENTOR_REQUEST_STARTUP_LABELS.manager
-    : MENTOR_REQUEST_STARTUP_LABELS.member;
+  const t = useTranslations("mentorMentorships.startup");
+  const roleLabel = member.founder ? t("manager") : t("member");
   return (
     <Link
       href={programPersonHref({ userId: member.id })}
@@ -686,12 +663,9 @@ function MemberRow({ member }: { member: OrganizationMember }) {
             {member.fullName}
           </p>
           <p className="truncate text-[11.5px] leading-[17px] text-[#858c96]">
-            {[
-              member.jobTitle,
-              member.founder ? MENTOR_REQUEST_STARTUP_LABELS.founder : null,
-            ]
+            {[member.jobTitle, member.founder ? t("founder") : null]
               .filter(Boolean)
-              .join(" · ") || MENTOR_REQUEST_STARTUP_LABELS.member}
+              .join(" · ") || t("member")}
           </p>
         </div>
       </div>

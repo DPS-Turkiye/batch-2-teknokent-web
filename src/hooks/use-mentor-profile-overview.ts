@@ -1,9 +1,12 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorRating } from "@/hooks/use-mentor-rating";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type { MentorProfile } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramStatus } from "@/interfaces/program";
@@ -31,6 +34,12 @@ function countLabel(count: number | undefined) {
 
 /** Everything the mentor's own profile page shows besides the editable form. */
 export function useMentorProfileOverview(profile: MentorProfile) {
+  const t = useTranslations("mentorProfile");
+  const tSchedule = useTranslations("mentorSchedule");
+  const tOptions = useTranslations("options");
+  const optionLabel = useOptionLabel();
+  const locale = useLocale();
+  const texts = { t, tOptions, optionLabel, locale };
   const settingsQuery = useMentorAvailabilitySettings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
@@ -51,7 +60,7 @@ export function useMentorProfileOverview(profile: MentorProfile) {
   );
   // Active programs come first, as in the design; the backend orders by name.
   const programs = (profile.programs ?? [])
-    .map((program) => ({ ...program, detail: programDetail(program) }))
+    .map((program) => ({ ...program, detail: programDetail(program, texts) }))
     .sort(
       (left, right) =>
         Number(left.status !== ProgramStatus.Active) -
@@ -64,44 +73,48 @@ export function useMentorProfileOverview(profile: MentorProfile) {
       (program) => program.status === ProgramStatus.Active,
     ),
     programs,
-    languages: languagesLabel(profile.languages),
+    languages: languagesLabel(profile.languages, texts),
     stats: [
       {
-        label: "Aktif mentorluk",
+        label: t("stats.active"),
         value: countLabel(profile.activeMenteeCount),
       },
       {
-        label: "Tamamlanan",
+        label: t("stats.completed"),
         value: countLabel(profile.completedMentorshipCount),
       },
       {
-        label: "Toplam seans",
+        label: t("stats.sessions"),
         value: meetingsQuery.isLoading
           ? LOADING
           : String(completedSessionCount(meetings)),
       },
       {
-        label: "Ortalama değerlendirme",
+        label: t("stats.rating"),
         value: ratingQuery.isLoading
           ? LOADING
-          : (ratingLabel(ratingQuery.data?.average) ?? MISSING),
+          : (ratingLabel(ratingQuery.data?.average, locale) ?? MISSING),
       },
       {
-        label: "Mentorluk süresi",
+        label: t("stats.duration"),
         value: requestsQuery.isLoading
           ? LOADING
-          : (mentorshipDurationLabel(accepted) ?? MISSING),
+          : (mentorshipDurationLabel(accepted, texts) ?? MISSING),
       },
     ],
-    weeklyAvailability: weeklyAvailabilityRows(settings?.rules ?? []),
+    weeklyAvailability: weeklyAvailabilityRows(settings?.rules ?? [], {
+      weekday: (day) => tOptions(`weekday.${day}`),
+      otherDays: tSchedule("otherDays"),
+      closed: tSchedule("closed"),
+    }),
     capacityLabel: menteeLoadLabel({
       ...profile,
       menteeCapacity: settings?.menteeCapacity ?? profile.menteeCapacity,
     }),
     isAvailabilityLoading: settingsQuery.isLoading,
-    preferences: meetingPreferenceRows(profile, settings),
-    workingStyle: workingStyleBullets(profile),
-    history: mentorshipHistory(accepted, meetings, ratingByRequest),
+    preferences: meetingPreferenceRows(profile, settings, texts),
+    workingStyle: workingStyleBullets(profile, texts),
+    history: mentorshipHistory(accepted, meetings, texts, ratingByRequest),
     isHistoryLoading: requestsQuery.isLoading || meetingsQuery.isLoading,
   };
 }

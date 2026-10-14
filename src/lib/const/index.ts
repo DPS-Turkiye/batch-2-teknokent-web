@@ -177,10 +177,10 @@ export const MENTORSHIPS_TABS = [
 ] as const;
 
 export const MENTOR_MENTORSHIPS_TABS = [
-  [MentorshipWorkspaceTab.Requests, "Talepler"],
-  [MentorshipWorkspaceTab.Active, "Aktif"],
-  [MentorshipWorkspaceTab.Regular, "Düzenli"],
-  [MentorshipWorkspaceTab.History, "Geçmiş"],
+  MentorshipWorkspaceTab.Requests,
+  MentorshipWorkspaceTab.Active,
+  MentorshipWorkspaceTab.Regular,
+  MentorshipWorkspaceTab.History,
 ] as const;
 
 export const MENTORSHIP_LIST_PAGE_SIZE = 7;
@@ -205,9 +205,6 @@ export const MENTOR_DASHBOARD_FILTER_OPTIONS = [
   [MentorRequestFilter.Accepted, "Kabul Edilenler"],
   [MentorRequestFilter.Declined, "Uygun Değil"],
 ] as const;
-
-export const CREATE_MEETING_NO_STARTUP_MESSAGE =
-  "Toplantı oluşturmak için kabul edilmiş bir mentorluk veya katıldığınız programdaki bir startup gerekir.";
 
 export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [];
 
@@ -377,27 +374,22 @@ export const ACCEPTED_CALENDAR_DAYS = [
 
 export const MEETING_STATUS_META: Record<MeetingStatus, MeetingStatusMeta> = {
   [MeetingStatus.Scheduled]: {
-    label: "Planlandı",
     color: "var(--ma-blue)",
     bg: "var(--ma-bluebg)",
   },
   [MeetingStatus.Joining]: {
-    label: "Katılıyor",
     color: "var(--ma-accent)",
     bg: "var(--ma-accentbg)",
   },
   [MeetingStatus.Active]: {
-    label: "Canlı",
     color: "var(--ma-green)",
     bg: "var(--ma-greenbg)",
   },
   [MeetingStatus.Completed]: {
-    label: "Bitti",
     color: "var(--ma-green)",
     bg: "var(--ma-greenbg)",
   },
   [MeetingStatus.Failed]: {
-    label: "Hata",
     color: "var(--ma-danger)",
     bg: "var(--ma-dangerbg)",
   },

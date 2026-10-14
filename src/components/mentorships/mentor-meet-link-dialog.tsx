@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
@@ -29,6 +30,8 @@ export function MentorMeetLinkDialog({
   onClose: () => void;
   onSave: () => void;
 }) {
+  const t = useTranslations("mentorMentorships.meetLinkDialog");
+  const tName = useTranslations("mentorMentorships");
   return (
     <div
       className="fixed inset-0 z-50 grid place-items-center bg-[#32373e]/70 p-4"
@@ -44,26 +47,28 @@ export function MentorMeetLinkDialog({
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-              Aktif mentorluk
+              {t("eyebrow")}
             </p>
             <h2
               id="mentor-meet-link-title"
               className="mt-1 text-[22px] font-semibold text-[#22262b]"
             >
-              {mentorWorkspaceName(request)}
+              {mentorWorkspaceName(request, tName("startupFallback"))}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="grid size-6 place-items-center text-[#676e78] hover:text-[#22262b]"
           >
             <X className="size-6" />
           </button>
         </div>
         <label className="mt-5 block">
-          <span className="text-sm font-medium text-[#22262b]">Meet linki</span>
+          <span className="text-sm font-medium text-[#22262b]">
+            {t("label")}
+          </span>
           <input
             type="text"
             value={meetLink}
@@ -82,9 +87,9 @@ export function MentorMeetLinkDialog({
           </p>
         ) : null}
         <div className="mt-5 flex justify-end gap-2">
-          <SecondaryButton onClick={onClose}>Vazgeç</SecondaryButton>
+          <SecondaryButton onClick={onClose}>{t("cancel")}</SecondaryButton>
           <PrimaryButton disabled={isPending} onClick={onSave}>
-            {isPending ? "Kaydediliyor…" : "Kaydet"}
+            {isPending ? t("saving") : t("save")}
           </PrimaryButton>
         </div>
       </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useMeetings } from "@/hooks/use-meetings";
@@ -22,6 +23,8 @@ export const meetingFeedbackQueryKey = (meetingId: string) =>
 
 /** The mentor's three-question evaluation of one held meeting. */
 export function useMentorMeetingEvaluation(meetingId: string) {
+  const t = useTranslations("mentorEvaluation");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const meetingsQuery = useMeetings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
@@ -64,7 +67,12 @@ export function useMentorMeetingEvaluation(meetingId: string) {
     isSubmitting: submit.isPending,
     isSent: Boolean(feedbackQuery.data) || submit.isSuccess,
     meeting,
-    meta: meeting ? evaluationMeetingMeta(meeting, request) : "",
+    meta: meeting
+      ? evaluationMeetingMeta(meeting, request, {
+          minutes: (count) => t("minutes", { count }),
+          locale,
+        })
+      : "",
     startupInitials: initials(startupName),
     startupName,
     setClarity: (clarity: OutcomeClarity) =>

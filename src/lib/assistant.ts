@@ -1,5 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
 
+import { clientText } from "@/i18n/client-texts";
 import {
   amplifyBlockedMessage,
   jsonFitsAmplifyWaf,
@@ -61,7 +62,7 @@ function wrapAssistantError(error: unknown, fallback: string): never {
     throw new Error(
       readAssistantError(
         error.response?.data,
-        `${fallback} (${error.response?.status ?? "ağ hatası"})`,
+        `${fallback} (${error.response?.status ?? clientText("assistant.network")})`,
       ),
     );
   }
@@ -72,10 +73,10 @@ export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
     return requireAssistantOk(
       await httpClient.post<AddBotResult>(getBotApiUrl(), { meetingUrl }),
-      "Toplantı asistanı gönderilemedi.",
+      clientText("assistant.sendFailed"),
     );
   } catch (error) {
-    wrapAssistantError(error, "Toplantı asistanı gönderilemedi.");
+    wrapAssistantError(error, clientText("assistant.sendFailed"));
   }
 }
 
@@ -86,10 +87,10 @@ export async function stopMeetingBot(
   try {
     requireAssistantOk(
       await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId)),
-      "Toplantı asistanı durdurulamadı.",
+      clientText("assistant.stopFailed"),
     );
   } catch (error) {
-    wrapAssistantError(error, "Toplantı asistanı durdurulamadı.");
+    wrapAssistantError(error, clientText("assistant.stopFailed"));
   }
 }
 
@@ -102,11 +103,11 @@ export async function fetchTranscript(
       await httpClient.get<{ segments?: TranscriptSegment[] }>(
         getTranscriptApiUrl(platform, nativeMeetingId),
       ),
-      "Toplantı transkripti alınamadı.",
+      clientText("assistant.transcriptFailed"),
     );
     return data?.segments ?? [];
   } catch (error) {
-    wrapAssistantError(error, "Toplantı transkripti alınamadı.");
+    wrapAssistantError(error, clientText("assistant.transcriptFailed"));
   }
 }
 
@@ -126,9 +127,9 @@ export async function generateMeetingReport(
         body,
         { timeout: UPLOAD_TIMEOUT_MS },
       ),
-      "Toplantı raporu oluşturulamadı.",
+      clientText("assistant.reportFailed"),
     );
   } catch (error) {
-    wrapAssistantError(error, "Toplantı raporu oluşturulamadı.");
+    wrapAssistantError(error, clientText("assistant.reportFailed"));
   }
 }

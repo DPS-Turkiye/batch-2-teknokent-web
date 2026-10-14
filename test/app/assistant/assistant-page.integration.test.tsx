@@ -14,6 +14,7 @@ import {
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
 import { createAxiosResponse } from "@test/fixtures/health";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -69,6 +70,22 @@ describe("AssistantPage integration", () => {
     vi.mocked(httpClient.patch).mockResolvedValue(
       createAxiosResponse({ id: "meeting-1" }, 200),
     );
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <AssistantPage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByPlaceholderText("Paste a meeting link…"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add bot" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Meetings" }),
+    ).toBeInTheDocument();
   });
 
   it("adds a meeting from UI through assistant lib client", async () => {

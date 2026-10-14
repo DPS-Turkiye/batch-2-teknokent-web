@@ -40,7 +40,6 @@ export type MeetingStatusBg =
   | "var(--ma-dangerbg)";
 
 export type MeetingStatusMeta = {
-  label: string;
   color: MeetingStatusColor;
   bg: MeetingStatusBg;
 };

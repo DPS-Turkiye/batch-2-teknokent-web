@@ -16,6 +16,7 @@ import {
   programThreadsStub,
 } from "@test/fixtures/coordinator-conversations";
 import { myAnnouncementsStub } from "@test/fixtures/program-announcements";
+import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -133,6 +134,27 @@ function list() {
 
 describe("MentorMessagesPage", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("reads in English", () => {
+    mockMessages({ meetingLabel: "Next meeting Sep 14 · 02:00 PM" });
+    render(
+      <InLocale locale="en">
+        <MentorMessagesPage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Messages" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByPlaceholderText("Search mentees or startups"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Mentorship · Döngü")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Share a file" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
+  });
 
   it("lists accepted mentorships as conversations", () => {
     mockMessages();

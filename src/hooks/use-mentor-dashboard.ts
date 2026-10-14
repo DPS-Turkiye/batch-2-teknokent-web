@@ -27,6 +27,7 @@ import { dayPart } from "@/lib/utils";
 
 export function useMentorDashboard() {
   const tCommon = useTranslations("common");
+  const t = useTranslations("mentorHome");
   const session = useAppSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
@@ -102,7 +103,7 @@ export function useMentorDashboard() {
     firstName: session?.fullName?.trim().split(/\s+/)[0] || "Mentor",
     greeting: tCommon(`greeting.${dayPart()}`),
     nextMeeting: upcomingMeetings[0],
-    todayActions: mentorTodayActions(awaitingReview, openActionItems),
+    todayActions: mentorTodayActions(awaitingReview, openActionItems, { t }),
     pending: requests.filter(
       (request) => request.status === MentorshipRequestStatus.Pending,
     ),

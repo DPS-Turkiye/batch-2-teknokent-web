@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
@@ -14,7 +15,22 @@ import {
   mentorshipTaskRatio,
   mentorTodayActions,
   mentorWeekMeetingCount,
+  type MentorHomeTexts,
 } from "@/lib/mentor-dashboard";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+function homeTexts(locale: "tr" | "en"): MentorHomeTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "mentorHome",
+    }),
+    locale,
+  };
+}
+const texts = homeTexts("tr");
 
 function item(overrides: Partial<ActionItem> = {}): ActionItem {
   return {
@@ -57,23 +73,34 @@ describe("conversationMeetingLabel", () => {
 
   it("calls a past meeting the last one, not the next one", () => {
     expect(
-      conversationMeetingLabel(meeting("2026-09-11T12:35:00.000Z"), now),
+      conversationMeetingLabel(meeting("2026-09-11T12:35:00.000Z"), texts, now),
     ).toMatch(/^Son görüşme /);
   });
 
   it("calls an upcoming meeting the next one", () => {
     expect(
-      conversationMeetingLabel(meeting("2026-09-24T09:00:00.000Z"), now),
+      conversationMeetingLabel(meeting("2026-09-24T09:00:00.000Z"), texts, now),
     ).toMatch(/^Sonraki görüşme /);
   });
 
+  it("reads in English", () => {
+    expect(
+      conversationMeetingLabel(
+        meeting("2026-09-24T09:00:00.000Z"),
+        homeTexts("en"),
+        now,
+      ),
+    ).toMatch(/^Next meeting Sep 24/);
+  });
+
   it("returns nothing without a meeting", () => {
-    expect(conversationMeetingLabel(null, now)).toBeNull();
+    expect(conversationMeetingLabel(null, texts, now)).toBeNull();
   });
 });
 
 describe("mentorWeekMeetingCount", () => {
-  it("uses Monday-to-Sunday Istanbul boundaries, includes completed meetings, and excludes cancelled ones", () => {
+  // The test run's zone is Europe/Istanbul (vitest.config.mts), so the week edges below are Istanbul midnights.
+  it("uses Monday-to-Sunday boundaries in the browser's zone, includes completed meetings, and excludes cancelled ones", () => {
     const meetings = [
       meeting("2026-09-06T20:59:59Z"),
       meeting("2026-09-06T21:00:00Z", MeetingStatus.Completed),
@@ -87,7 +114,7 @@ describe("mentorWeekMeetingCount", () => {
       mentorWeekMeetingCount(meetings, new Date("2026-09-09T12:00:00Z")),
     ).toBe(3);
   });
-  it("changes week at midnight in Istanbul even while UTC is still Sunday", () => {
+  it("changes week at local midnight even while UTC is still Sunday", () => {
     const meetings = [meeting("2026-09-13T21:00:00Z")];
     expect(
       mentorWeekMeetingCount(meetings, new Date("2026-09-13T21:01:00Z")),
@@ -124,18 +151,27 @@ describe("meetingDayLabel and meetingWhenLabel", () => {
   const now = new Date(2026, 8, 11, 9, 0, 0);
 
   it("names today and tomorrow, then falls back to the date", () => {
-    expect(meetingDayLabel(at(11, 15), now)).toBe("Bugün");
-    expect(meetingDayLabel(at(12, 15), now)).toBe("Yarın");
-    expect(meetingDayLabel(at(20, 15), now)).toMatch(/Eyl/);
+    expect(meetingDayLabel(at(11, 15), "tr", now)).toBe("Bugün");
+    expect(meetingDayLabel(at(12, 15), "tr", now)).toBe("Yarın");
+    expect(meetingDayLabel(at(20, 15), "tr", now)).toMatch(/Eyl/);
+    expect(meetingDayLabel(at(12, 15), "en", now)).toBe("Tomorrow");
   });
 
   it("reads out the whole slot", () => {
     expect(
       meetingWhenLabel(
         { ...pastMeeting({ scheduledAt: at(12, 14) }), durationMinutes: 45 },
+        texts,
         now,
       ),
     ).toBe("Yarın · 14:00 · 45 dk · Online");
+    expect(
+      meetingWhenLabel(
+        { ...pastMeeting({ scheduledAt: at(12, 14) }), durationMinutes: 45 },
+        homeTexts("en"),
+        now,
+      ),
+    ).toBe("Tomorrow · 02:00 PM · 45 min · Online");
   });
 });
 
@@ -157,6 +193,7 @@ describe("mentorTodayActions", () => {
           dueDate: "2026-09-01T09:00:00.000Z",
         }),
       ],
+      texts,
       new Date("2026-09-11T09:00:00.000Z"),
     );
 
@@ -186,6 +223,7 @@ describe("mentorTodayActions", () => {
     const [row] = mentorTodayActions(
       [],
       [item({ id: "a2", dueDate: "2026-09-30T09:00:00.000Z" })],
+      texts,
       new Date("2026-09-11T09:00:00.000Z"),
     );
 
@@ -213,42 +251,53 @@ describe("mentorshipFileRow", () => {
   };
 
   it("reads as waiting until the startup answers", () => {
-    expect(mentorshipFileRow(request)).toEqual({
+    expect(mentorshipFileRow(request, texts)).toEqual({
       id: "req-1",
       title: "kullanici-akisi-v2.pdf",
       detail: expect.stringContaining("Nihan talep etti · "),
+      uploaded: false,
       status: "Bekliyor",
     });
   });
 
+  it("reads in English", () => {
+    const row = mentorshipFileRow(request, homeTexts("en"));
+    expect(row.detail).toBe("Requested by Nihan · Sep 11, 2026");
+    expect(row.status).toBe("Waiting");
+  });
+
   it("switches to the newest upload once one arrives", () => {
-    const row = mentorshipFileRow({
-      ...request,
-      uploads: [
-        {
-          id: "u1",
-          storedDocumentId: "d1",
-          originalFilename: "eski.pdf",
-          contentType: "application/pdf",
-          sizeBytes: 1024,
-          uploadedById: "mentee-1",
-          uploadedByName: "Gülse",
-          createdAt: "2026-09-12T09:00:00.000Z",
-        },
-        {
-          id: "u2",
-          storedDocumentId: "d2",
-          originalFilename: "onboarding-v4.fig",
-          contentType: "application/octet-stream",
-          sizeBytes: 8_600_000,
-          uploadedById: "mentee-1",
-          uploadedByName: "Gülse",
-          createdAt: "2026-09-13T09:00:00.000Z",
-        },
-      ],
-    });
+    const row = mentorshipFileRow(
+      {
+        ...request,
+        uploads: [
+          {
+            id: "u1",
+            storedDocumentId: "d1",
+            originalFilename: "eski.pdf",
+            contentType: "application/pdf",
+            sizeBytes: 1024,
+            uploadedById: "mentee-1",
+            uploadedByName: "Gülse",
+            createdAt: "2026-09-12T09:00:00.000Z",
+          },
+          {
+            id: "u2",
+            storedDocumentId: "d2",
+            originalFilename: "onboarding-v4.fig",
+            contentType: "application/octet-stream",
+            sizeBytes: 8_600_000,
+            uploadedById: "mentee-1",
+            uploadedByName: "Gülse",
+            createdAt: "2026-09-13T09:00:00.000Z",
+          },
+        ],
+      },
+      texts,
+    );
 
     expect(row.title).toBe("onboarding-v4.fig");
+    expect(row.uploaded).toBe(true);
     expect(row.status).toBe("Yüklendi");
     expect(row.detail).toContain("Gülse yükledi");
   });

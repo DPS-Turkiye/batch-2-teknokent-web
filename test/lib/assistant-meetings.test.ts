@@ -27,6 +27,8 @@ function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   };
 }
 
+const texts = { meetingFallback: "Mentorluk görüşmesi", locale: "tr" };
+
 describe("parseMeetingUrl", () => {
   it("parses a Google Meet link", () => {
     expect(parseMeetingUrl("https://meet.google.com/aaa-bbbb-ccc")).toEqual({
@@ -53,7 +55,7 @@ describe("assistant calendar meetings", () => {
   it("marks a past meeting as completed so its transcript can stay in the list", () => {
     const now = Date.parse("2026-09-02T14:00:00.000Z");
     expect(assistantStatusFor(meeting(), now)).toBe(AssistantStatus.Completed);
-    expect(toAssistantMeeting(meeting(), now)).toMatchObject({
+    expect(toAssistantMeeting(meeting(), texts, now)).toMatchObject({
       id: "meeting-1",
       title: "Ürün roadmap",
       nativeMeetingId: "aaa-bbbb-ccc",
@@ -72,7 +74,7 @@ describe("assistant calendar meetings", () => {
 
   it("keeps a ended meeting completed even if the bot overlay is still joining", () => {
     const now = Date.parse("2026-09-02T14:00:00.000Z");
-    const mapped = toAssistantMeeting(meeting(), now);
+    const mapped = toAssistantMeeting(meeting(), texts, now);
     expect(
       withAssistantOverlay(mapped, { status: AssistantStatus.Joining }).status,
     ).toBe(AssistantStatus.Completed);

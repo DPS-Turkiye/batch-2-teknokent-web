@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
+import { clientText } from "@/i18n/client-texts";
 import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
   IntroPhase,
@@ -81,14 +83,14 @@ function toggle<T>(list: T[], value: T) {
 
 async function requireToken() {
   const idToken = await currentIdToken();
-  if (!idToken)
-    throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+  if (!idToken) throw new Error(clientText("sessionExpired"));
   return idToken;
 }
 
 export function useMentorOnboarding(
   account: { fullName: string } = { fullName: "" },
 ) {
+  const t = useTranslations("mentorOnboarding");
   const [step, setStep] = useState<MentorOnboardingStep>(
     MentorOnboardingStep.Profile,
   );
@@ -167,45 +169,46 @@ export function useMentorOnboarding(
     [],
   );
 
-  const uploadCv = useCallback(async (file: UploadedFile) => {
-    setDraft((current) => ({ ...current, cv: file }));
-    setUploadError("");
-    setParseNote("");
-    if (!file.file) {
-      setPhase(IntroPhase.Review);
-      return;
-    }
-    setPhase(IntroPhase.Parsing);
-    try {
-      const idToken = await requireToken();
-      const stored = await uploadDocument(file.file, "cv", idToken);
-      setCvUploaded(true);
-      setDraft((current) => ({ ...current, cvStoredName: file.name }));
-      try {
-        const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
-        setDraft((current) => {
-          const names =
-            current.firstName.trim() || !cv.fullName
-              ? {}
-              : splitName(cv.fullName);
-          return {
-            ...current,
-            ...names,
-            about: current.about.trim() ? current.about : cv.about,
-            profile: fillOnboardingProfile(current.profile, cv),
-          };
-        });
-      } catch {
-        setParseNote(
-          "CV'nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz.",
-        );
+  const uploadCv = useCallback(
+    async (file: UploadedFile) => {
+      setDraft((current) => ({ ...current, cv: file }));
+      setUploadError("");
+      setParseNote("");
+      if (!file.file) {
+        setPhase(IntroPhase.Review);
+        return;
       }
-      setPhase(IntroPhase.Review);
-    } catch (error) {
-      setUploadError(describeAuthError(error));
-      setPhase(IntroPhase.Upload);
-    }
-  }, []);
+      setPhase(IntroPhase.Parsing);
+      try {
+        const idToken = await requireToken();
+        const stored = await uploadDocument(file.file, "cv", idToken);
+        setCvUploaded(true);
+        setDraft((current) => ({ ...current, cvStoredName: file.name }));
+        try {
+          const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
+          setDraft((current) => {
+            const names =
+              current.firstName.trim() || !cv.fullName
+                ? {}
+                : splitName(cv.fullName);
+            return {
+              ...current,
+              ...names,
+              about: current.about.trim() ? current.about : cv.about,
+              profile: fillOnboardingProfile(current.profile, cv),
+            };
+          });
+        } catch {
+          setParseNote(t("cvUnreadable"));
+        }
+        setPhase(IntroPhase.Review);
+      } catch (error) {
+        setUploadError(describeAuthError(error));
+        setPhase(IntroPhase.Upload);
+      }
+    },
+    [t],
+  );
 
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);
 

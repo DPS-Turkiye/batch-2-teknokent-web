@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -16,8 +17,6 @@ import { getOrganizationById } from "@/lib/client/organization";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getOrganizationDocuments } from "@/lib/client/startup-documents";
 import {
-  MENTOR_REQUEST_STARTUP_LABELS,
-  ORGANIZATION_STARTUP_LABELS,
   STARTUP_INFO_BODY_CLASS,
   STARTUP_INFO_CARD_CLASS,
   STARTUP_INFO_CARD_TITLE_CLASS,
@@ -31,6 +30,8 @@ export function OrganizationStartupDetail({
 }: {
   organizationId: string;
 }) {
+  const t = useTranslations("organizationStartup");
+  const locale = useLocale();
   const session = useAppSession();
   const openDocument = useOpenDocument();
   const isMentor = session?.role === UserRole.Mentor;
@@ -89,11 +90,11 @@ export function OrganizationStartupDetail({
       <div className="mx-auto w-full max-w-[960px] px-4 pb-16 pt-3 sm:px-8">
         <nav className="flex flex-wrap items-center gap-1.5 text-[12.5px] text-[#676e78]">
           <Link href={homeHref} className="hover:text-[#22262b]">
-            {ORGANIZATION_STARTUP_LABELS.home}
+            {t("home")}
           </Link>
           <span>›</span>
           <span className="font-medium text-[#4a5059]">
-            {profile?.name ?? MENTOR_REQUEST_STARTUP_LABELS.startupFallback}
+            {profile?.name ?? t("startupFallback")}
           </span>
         </nav>
 
@@ -102,19 +103,16 @@ export function OrganizationStartupDetail({
             role="alert"
             className="mt-10 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800"
           >
-            {ORGANIZATION_STARTUP_LABELS.mentorOnly}
+            {t("mentorOnly")}
           </p>
         ) : isLoading ? (
-          <p className="mt-10 text-sm text-[#858c96]">
-            {ORGANIZATION_STARTUP_LABELS.loading}
-          </p>
+          <p className="mt-10 text-sm text-[#858c96]">{t("loading")}</p>
         ) : !profile ? (
           <p
             role="alert"
             className="mt-10 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
           >
-            {profileQuery.error?.message ??
-              ORGANIZATION_STARTUP_LABELS.notFound}
+            {profileQuery.error?.message ?? t("notFound")}
           </p>
         ) : (
           <>
@@ -129,27 +127,20 @@ export function OrganizationStartupDetail({
                 <p className="mt-1 text-sm text-[#676e78]">
                   {[profile.sector, profile.fundingStage || profile.maturity]
                     .filter(Boolean)
-                    .join(" · ") || ORGANIZATION_STARTUP_LABELS.profileFallback}
+                    .join(" · ") || t("profileFallback")}
                 </p>
               </div>
             </header>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               <Metric
-                label={ORGANIZATION_STARTUP_LABELS.stage}
-                value={
-                  profile.fundingStage ||
-                  profile.maturity ||
-                  ORGANIZATION_STARTUP_LABELS.dash
-                }
+                label={t("stage")}
+                value={profile.fundingStage || profile.maturity || "—"}
               />
+              <Metric label={t("sector")} value={profile.sector || "—"} />
               <Metric
-                label={ORGANIZATION_STARTUP_LABELS.sector}
-                value={profile.sector || ORGANIZATION_STARTUP_LABELS.dash}
-              />
-              <Metric
-                label={ORGANIZATION_STARTUP_LABELS.program}
-                value={profile.programLevel || ORGANIZATION_STARTUP_LABELS.dash}
+                label={t("program")}
+                value={profile.programLevel || "—"}
               />
             </div>
 
@@ -157,17 +148,16 @@ export function OrganizationStartupDetail({
               <div className="space-y-[18px]">
                 <section className={STARTUP_INFO_CARD_CLASS}>
                   <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                    {ORGANIZATION_STARTUP_LABELS.about}
+                    {t("about")}
                   </h2>
                   <p className={STARTUP_INFO_BODY_CLASS}>
-                    {profile.description?.trim() ||
-                      ORGANIZATION_STARTUP_LABELS.noDescription}
+                    {profile.description?.trim() || t("noDescription")}
                   </p>
                 </section>
                 <section className={STARTUP_INFO_CARD_CLASS}>
                   <div className="flex items-start justify-between gap-3">
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {ORGANIZATION_STARTUP_LABELS.canvas}
+                      {t("canvas")}
                     </h2>
                     {canvas ? (
                       <button
@@ -175,7 +165,7 @@ export function OrganizationStartupDetail({
                         onClick={() => void openDocument(canvas.id)}
                         className="text-[12.5px] font-medium text-[#9e4400] hover:underline"
                       >
-                        {ORGANIZATION_STARTUP_LABELS.view}
+                        {t("view")}
                       </button>
                     ) : null}
                   </div>
@@ -184,15 +174,13 @@ export function OrganizationStartupDetail({
                       {canvas.originalFilename}
                     </p>
                   ) : (
-                    <p className={STARTUP_INFO_BODY_CLASS}>
-                      {ORGANIZATION_STARTUP_LABELS.noCanvas}
-                    </p>
+                    <p className={STARTUP_INFO_BODY_CLASS}>{t("noCanvas")}</p>
                   )}
                 </section>
                 {files.length > 0 ? (
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                      {ORGANIZATION_STARTUP_LABELS.files}
+                      {t("files")}
                     </h2>
                     <ul className="space-y-2">
                       {files.map((document) => (
@@ -208,7 +196,7 @@ export function OrganizationStartupDetail({
                               </span>
                               <span className="block truncate text-[11.5px] text-[#858c96]">
                                 {formatFileSize(document.sizeBytes)} ·{" "}
-                                {formatLongDate(document.createdAt)}
+                                {formatLongDate(document.createdAt, locale)}
                               </span>
                             </span>
                             <Image
@@ -226,13 +214,9 @@ export function OrganizationStartupDetail({
                 ) : null}
               </div>
               <aside className={STARTUP_INFO_CARD_CLASS}>
-                <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>
-                  {ORGANIZATION_STARTUP_LABELS.team}
-                </h2>
+                <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>{t("team")}</h2>
                 {members.length === 0 ? (
-                  <p className={STARTUP_INFO_BODY_CLASS}>
-                    {ORGANIZATION_STARTUP_LABELS.noTeam}
-                  </p>
+                  <p className={STARTUP_INFO_BODY_CLASS}>{t("noTeam")}</p>
                 ) : (
                   <ul className="space-y-3">
                     {members.map((member) => (
@@ -259,6 +243,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function MemberRow({ member }: { member: OrganizationMember }) {
+  const t = useTranslations("organizationStartup");
   return (
     <Link
       href={programPersonHref({ userId: member.id })}
@@ -272,12 +257,9 @@ function MemberRow({ member }: { member: OrganizationMember }) {
           {member.fullName}
         </span>
         <span className="block truncate text-[11.5px] text-[#858c96]">
-          {[
-            member.jobTitle,
-            member.founder ? ORGANIZATION_STARTUP_LABELS.founder : null,
-          ]
+          {[member.jobTitle, member.founder ? t("founder") : null]
             .filter(Boolean)
-            .join(" · ") || ORGANIZATION_STARTUP_LABELS.memberFallback}
+            .join(" · ") || t("memberFallback")}
         </span>
       </span>
     </Link>
