@@ -30,6 +30,8 @@ export type RequestDetailField = {
 export type RequestDetailDisplay = {
   labels: NeedLabels;
   locale: string;
+  /** For a topic outside the request wizard's list (one picked from the profile). */
+  topicLabel?: (value: string) => string;
 };
 
 export type RequestDetailContent = {
@@ -42,11 +44,12 @@ export type RequestDetailContent = {
 export function needTopicTitleForSupportArea(
   supportArea: string,
   labels?: NeedLabels,
+  topicLabel: (value: string) => string = (value) => value,
 ) {
   const match = MENTOR_REQUEST_NEED_TOPICS.find(
     (topic) => topic.supportArea === supportArea,
   );
-  if (!match) return supportArea;
+  if (!match) return topicLabel(supportArea);
   return labels ? labels.topicTitle(match.id) : match.title;
 }
 
@@ -124,6 +127,7 @@ export function buildRequestDetailContent(
   const topic = needTopicTitleForSupportArea(
     request.supportArea,
     display?.labels,
+    display?.topicLabel,
   );
   const summary = presetSummary(request.summary?.trim() ?? "", display?.labels);
 

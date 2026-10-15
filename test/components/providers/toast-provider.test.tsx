@@ -3,10 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { ToastProvider, useToast } from "@/components/providers/toast-provider";
-import {
-  TRANSCRIPT_BOT_FULL_EVENT,
-  TRANSCRIPT_BOT_FULL_MESSAGE,
-} from "@/lib/transcript-bot";
+import { TRANSCRIPT_BOT_FULL_EVENT } from "@/lib/transcript-bot";
+import { InLocale } from "@test/test-utils";
 
 function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
   const { showToast } = useToast();
@@ -76,7 +74,26 @@ describe("ToastProvider", () => {
     });
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      TRANSCRIPT_BOT_FULL_MESSAGE,
+      "kayıt botu şu anda bu görüşmeye katılamıyor",
     );
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <ToastProvider>
+          <span />
+        </ToastProvider>
+      </InLocale>,
+    );
+
+    act(() => {
+      window.dispatchEvent(new Event(TRANSCRIPT_BOT_FULL_EVENT));
+    });
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "The recording bot can't join right now",
+    );
+    expect(screen.getByLabelText("Notifications")).toBeInTheDocument();
   });
 });
