@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import {
   meetingSummary,
@@ -19,17 +20,18 @@ export function useMobileHome() {
   const meetingsQuery = useMeetings();
   const { unreadCount } = useDashboardNotifications();
   const isOnline = useOnlineStatus();
+  const texts = useMobileTexts();
 
   const nextMeeting = useMemo(
     () =>
       dashboard.nextMeeting
-        ? meetingSummary(dashboard.nextMeeting, meetingsQuery.data ?? [])
+        ? meetingSummary(dashboard.nextMeeting, meetingsQuery.data ?? [], texts)
         : null,
-    [dashboard.nextMeeting, meetingsQuery.data],
+    [dashboard.nextMeeting, meetingsQuery.data, texts],
   );
   const messages = useMemo(
-    () => messagePreviews(dashboard.requests),
-    [dashboard.requests],
+    () => messagePreviews(dashboard.requests, texts),
+    [dashboard.requests, texts],
   );
 
   return {

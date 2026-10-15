@@ -21,6 +21,7 @@ import {
   weekStrip,
 } from "@/lib/mobile-calendar";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 // Wednesday 23 September 2026, 14:00.
 const NOW = new Date(2026, 8, 23, 14, 0);
@@ -70,6 +71,7 @@ const ENTRIES = agendaEntries(
     }),
   ],
   [programEvent(), DEADLINE],
+  mobileTexts(),
 );
 
 describe("agendaEntries", () => {
@@ -153,6 +155,7 @@ describe("canJoin", () => {
     const [entry] = agendaEntries(
       [menteeMeetingFixture({ scheduledAt: NOW.toISOString() })],
       [],
+      mobileTexts(),
     );
 
     expect(canJoin(entry!, NOW)).toBe(false);
@@ -165,8 +168,12 @@ describe("detail texts", () => {
 
     expect(entryTimeLine(meeting)).toBe("Perşembe 24 Eylül · 14:00–15:00");
     expect(entryTimeHint(meeting, NOW)).toBe("60 dk · yarın");
-    expect(meetingLinkLabel("https://meet.google.com/abc")).toBe("Google Meet");
-    expect(meetingLinkLabel("https://zoom.us/j/1")).toBe("zoom.us");
+    expect(
+      meetingLinkLabel("https://meet.google.com/abc", mobileTexts().t),
+    ).toBe("Google Meet");
+    expect(meetingLinkLabel("https://zoom.us/j/1", mobileTexts().t)).toBe(
+      "zoom.us",
+    );
   });
 });
 

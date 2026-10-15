@@ -20,8 +20,11 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 12, 0);
+const TR = mobileTexts("tr");
+const EN = mobileTexts("en");
 const MENTOR_ID = "mentor-1";
 
 const ATLAS = menteeRequestFixture({
@@ -90,7 +93,13 @@ function program(name: string, mentorStatus: ProgramMentorStatus): Program {
 
 describe("mentorMeetingSummary", () => {
   it("names the startup, the topic and the meeting count, and the Meet link", () => {
-    const summary = mentorMeetingSummary(MEETINGS[1]!, MEETINGS, [ATLAS], NOW);
+    const summary = mentorMeetingSummary(
+      MEETINGS[1]!,
+      MEETINGS,
+      [ATLAS],
+      TR,
+      NOW,
+    );
 
     expect(summary).toMatchObject({
       startupName: "Atlas AI",
@@ -98,6 +107,15 @@ describe("mentorMeetingSummary", () => {
       detail: "Positioning · 2. görüşme",
       timeLine: "Bugün · 16:30–17:15 · Google Meet",
       href: "/m/calendar?meeting=next",
+    });
+  });
+
+  it("builds the same summary in English", () => {
+    expect(
+      mentorMeetingSummary(MEETINGS[1]!, MEETINGS, [ATLAS], EN, NOW),
+    ).toMatchObject({
+      detail: "Positioning · Meeting 2",
+      timeLine: "Today · 04:30 PM–05:15 PM · Google Meet",
     });
   });
 });
@@ -112,6 +130,7 @@ describe("mentorStartupRows", () => {
         program("METU Stars 2026", ProgramMentorStatus.Accepted),
       ],
       MENTOR_ID,
+      TR,
       NOW,
     );
 
@@ -120,12 +139,25 @@ describe("mentorStartupRows", () => {
       ["Lumen", null, "Sonraki görüşme planlanmadı"],
     ]);
     expect(rows[1]?.planned).toBe(false);
+
+    const english = mentorStartupRows(
+      [LUMEN, ATLAS],
+      MEETINGS,
+      [],
+      MENTOR_ID,
+      EN,
+      NOW,
+    );
+    expect(english.map((row) => row.next)).toEqual([
+      "Next: Today 04:30 PM",
+      "No next meeting planned",
+    ]);
   });
 });
 
 describe("mentorMessagePreviews", () => {
   it("shows startup conversations with messages and their unread counts", () => {
-    const previews = mentorMessagePreviews([ATLAS, LUMEN], NOW);
+    const previews = mentorMessagePreviews([ATLAS, LUMEN], TR, NOW);
 
     expect(previews).toHaveLength(1);
     expect(previews[0]).toMatchObject({

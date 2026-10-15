@@ -17,6 +17,7 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 12, 0);
 
@@ -54,7 +55,14 @@ const MEETINGS = [
 
 describe("activeStartupCards", () => {
   it("flags a startup with no meeting for a week and puts it first", () => {
-    const cards = activeStartupCards([ATLAS, LUMEN], MEETINGS, [], "m1", NOW);
+    const cards = activeStartupCards(
+      [ATLAS, LUMEN],
+      MEETINGS,
+      [],
+      "m1",
+      mobileTexts(),
+      NOW,
+    );
 
     expect(
       cards.map((card) => [card.name, card.health, card.nextLine]),
@@ -132,6 +140,7 @@ describe("startupDetail", () => {
         }),
       ],
       frequency: MeetingFrequency.Biweekly,
+      texts: mobileTexts(),
       now: NOW,
     });
 
@@ -166,6 +175,7 @@ describe("startupDetail", () => {
         documents: [],
         actionItems: [],
         frequency: null,
+        texts: mobileTexts(),
         now: NOW,
       }),
     ).toBeNull();

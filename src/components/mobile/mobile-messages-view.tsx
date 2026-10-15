@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { MobileScreenHeader } from "@/components/mobile/mobile-app-shell";
 import {
@@ -34,6 +35,7 @@ function ConversationRow({
   conversation: MobileConversation;
   isMentor: boolean;
 }) {
+  const t = useTranslations("mobile.home");
   const unread = conversation.unreadCount > 0;
   const look =
     conversation.kind === MobileConversationKind.Program ||
@@ -90,7 +92,9 @@ function ConversationRow({
           {unread ? (
             <span
               className="rounded-full bg-[var(--mobile-accent)] px-[7px] py-0.5 text-[11.5px] font-semibold text-white"
-              aria-label={`${conversation.unreadCount} okunmamış mesaj`}
+              aria-label={t("unreadMessages", {
+                count: conversation.unreadCount,
+              })}
             >
               {conversation.unreadCount}
             </span>
@@ -102,11 +106,12 @@ function ConversationRow({
 }
 
 export function MobileMessagesView() {
+  const t = useTranslations("mobile.messages");
   const messages = useMobileMessages();
 
   return (
     <>
-      <MobileScreenHeader title="Mesajlar" />
+      <MobileScreenHeader title={t("title")} />
       <div className="flex flex-col gap-3.5">
         <label className="flex h-[46px] items-center gap-2.5 rounded-2xl bg-[#f5f6f8] px-4">
           <Image src="/mobile/icon-search.svg" alt="" width={20} height={20} />
@@ -123,22 +128,19 @@ export function MobileMessagesView() {
         {messages.isLoading ? (
           <MobileListSkeleton />
         ) : messages.isError ? (
-          <MobileErrorState
-            title="Mesajlar yüklenemedi."
-            onRetry={messages.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={messages.retry} />
         ) : messages.conversations.length === 0 ? (
           <MobileEmptyState
             icon="/mobile/icon-messages.svg"
-            title="Henüz mesajın yok"
-            description="Mentorluk başladığında konuşmaların burada görünecek."
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
           />
         ) : messages.shown.length === 0 ? (
           <p className="py-6 text-center text-[13.5px] leading-[1.35] text-[#858c96]">
-            “{messages.query}” ile eşleşen konuşma yok.
+            {t("noMatch", { query: messages.query })}
           </p>
         ) : (
-          <ul aria-label="Konuşmalar">
+          <ul aria-label={t("conversations")}>
             {messages.shown.map((conversation) => (
               <ConversationRow
                 key={`${conversation.kind}-${conversation.id}`}

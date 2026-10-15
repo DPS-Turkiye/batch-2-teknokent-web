@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { getRegularMentorships } from "@/lib/client/mentorships";
@@ -24,6 +25,7 @@ export const MENTOR_REGULAR_MENTORSHIPS_QUERY_KEY = [
 
 export function useMobileStartups() {
   const { session } = useSession();
+  const texts = useMobileTexts();
   const [tab, setTab] = useState(StartupTab.Active);
   const [query, setQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
@@ -46,6 +48,7 @@ export function useMobileStartups() {
       meetings.data ?? [],
       programs.data ?? [],
       session?.userId ?? "",
+      texts,
     );
     return {
       active: activeCards,
@@ -54,7 +57,14 @@ export function useMobileStartups() {
         new Set(activeCards.map((card) => card.id)),
       ),
     };
-  }, [requests.data, meetings.data, programs.data, mentorships.data, session]);
+  }, [
+    requests.data,
+    meetings.data,
+    programs.data,
+    mentorships.data,
+    session,
+    texts,
+  ]);
 
   const needle = query.trim().toLocaleLowerCase("tr-TR");
   const shown = (tab === StartupTab.Active ? active : past).filter(

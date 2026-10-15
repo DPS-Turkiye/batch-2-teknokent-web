@@ -8,6 +8,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { MEETING_PROPOSALS_QUERY_KEY } from "@/hooks/use-meeting-proposals";
 import { useMeetings } from "@/hooks/use-meetings";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
 import { MobileConversationKind } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
@@ -60,6 +61,7 @@ export function useMobileCalendar() {
   }, []);
 
   const { session } = useSession();
+  const texts = useMobileTexts();
   const isMentor = session?.role === UserRole.Mentor;
   const range = useMemo(() => eventRangeFor(month), [month]);
   const meetings = useMeetings();
@@ -80,10 +82,10 @@ export function useMobileCalendar() {
   });
 
   const entries = useMemo(() => {
-    const all = agendaEntries(meetings.data ?? [], events.data ?? []);
+    const all = agendaEntries(meetings.data ?? [], events.data ?? [], texts);
     if (!isMentor) return all;
     return [
-      ...mentorAgendaEntries(all, requests.data ?? []),
+      ...mentorAgendaEntries(all, requests.data ?? [], texts),
       ...mentorAwaitingEntries(proposals.data ?? [], requests.data ?? [], now),
     ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
   }, [
@@ -93,6 +95,7 @@ export function useMobileCalendar() {
     requests.data,
     proposals.data,
     now,
+    texts,
   ]);
 
   // A link from Home opens that meeting once the meetings have loaded.
@@ -137,7 +140,7 @@ export function useMobileCalendar() {
           link: open.meeting?.meetLink
             ? {
                 href: open.meeting.meetLink,
-                label: meetingLinkLabel(open.meeting.meetLink),
+                label: meetingLinkLabel(open.meeting.meetLink, texts.t),
                 text: meetingLinkText(open.meeting.meetLink),
               }
             : null,
@@ -153,6 +156,7 @@ export function useMobileCalendar() {
                 requests: requests.data ?? [],
                 members: members.data ?? [],
                 mentorName: session?.fullName ?? "",
+                texts,
                 now,
               })
             : null,

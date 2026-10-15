@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 
 import {
@@ -25,6 +26,7 @@ type ChatMessage = Extract<
 >;
 
 function Bubble({ message }: { message: ChatMessage }) {
+  const t = useTranslations("mobile.chat");
   return (
     <li className={`flex w-full ${message.mine ? "justify-end" : ""}`}>
       <div
@@ -49,7 +51,7 @@ function Bubble({ message }: { message: ChatMessage }) {
                 {message.fileName}
               </span>
               <span className="text-[11.5px] text-[#858c96]">
-                Paylaşılan dosya
+                {t("sharedFile")}
               </span>
             </span>
           </span>
@@ -67,7 +69,7 @@ function Bubble({ message }: { message: ChatMessage }) {
           {message.read ? (
             <Image
               src="/mobile/icon-read.svg"
-              alt="Okundu"
+              alt={t("read")}
               width={14}
               height={14}
             />
@@ -85,6 +87,8 @@ export function MobileChatView({
   kind: MobileConversationKind;
   id: string;
 }) {
+  const t = useTranslations("mobile.chat");
+  const tHome = useTranslations("mobile.home");
   const chat = useMobileChat(kind, id);
   const fileInput = useRef<HTMLInputElement>(null);
   const bottom = useRef<HTMLDivElement>(null);
@@ -99,7 +103,7 @@ export function MobileChatView({
       <header className="sticky top-0 z-10 flex items-center gap-3 border-b border-[#f0f2f4] bg-white pt-[calc(4px+env(safe-area-inset-top))] pr-4 pb-2.5 pl-3">
         <Link
           href={chat.backHref}
-          aria-label="Mesajlara dön"
+          aria-label={t("back")}
           className="flex size-11 shrink-0 items-center justify-center rounded-full"
         >
           <Image src="/mobile/icon-back.svg" alt="" width={22} height={22} />
@@ -133,7 +137,7 @@ export function MobileChatView({
 
       {chat.topics.length > 1 ? (
         <nav
-          aria-label="Konular"
+          aria-label={t("topics")}
           className="flex gap-2 overflow-x-auto border-b border-[#f0f2f4] px-4 py-2.5"
         >
           {chat.topics.map((topic) => (
@@ -151,7 +155,9 @@ export function MobileChatView({
               {topic.topic}
               {topic.unreadCount > 0 ? (
                 <span
-                  aria-label={`${topic.unreadCount} okunmamış mesaj`}
+                  aria-label={tHome("unreadMessages", {
+                    count: topic.unreadCount,
+                  })}
                   className="rounded-full bg-[var(--mobile-accent)] px-1.5 text-[11px] font-semibold text-white"
                 >
                   {topic.unreadCount}
@@ -174,7 +180,7 @@ export function MobileChatView({
             {chat.strip.label}
           </p>
           <Link href={chat.strip.href} className="font-semibold text-[#676e78]">
-            Detay
+            {t("detail")}
           </Link>
         </div>
       ) : null}
@@ -183,21 +189,18 @@ export function MobileChatView({
         {chat.isLoading ? (
           <MobileListSkeleton />
         ) : chat.isError ? (
-          <MobileErrorState
-            title="Mesajlar yüklenemedi."
-            onRetry={chat.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={chat.retry} />
         ) : chat.notFound ? (
           <MobileErrorState
-            title="Konuşma bulunamadı."
-            description="Bu konuşma artık erişilebilir değil."
+            title={t("notFound")}
+            description={t("notFoundDescription")}
           />
         ) : chat.items.length === 0 ? (
           <p className="py-10 text-center text-[13.5px] leading-[1.35] text-[#858c96]">
-            İlk mesajı sen yaz.
+            {t("writeFirst")}
           </p>
         ) : (
-          <ol aria-label="Mesajlar" className="flex flex-col gap-2.5">
+          <ol aria-label={t("messages")} className="flex flex-col gap-2.5">
             {chat.items.map((item) =>
               item.kind === MobileChatItemKind.Day ? (
                 <li key={item.id} className="flex justify-center">
@@ -226,7 +229,7 @@ export function MobileChatView({
             role="alert"
             className="text-[12.5px] leading-[1.35] text-[#d9464b]"
           >
-            Mesaj gönderilemedi. Tekrar dene.
+            {t("sendError")}
           </p>
         ) : null}
         {chat.canSend ? (
@@ -237,9 +240,7 @@ export function MobileChatView({
                   type="button"
                   onClick={() => fileInput.current?.click()}
                   disabled={chat.isUploading}
-                  aria-label={
-                    chat.isUploading ? "Dosya yükleniyor" : "Dosya ekle"
-                  }
+                  aria-label={chat.isUploading ? t("uploading") : t("attach")}
                   className="flex size-11 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
                 >
                   <Image
@@ -265,19 +266,19 @@ export function MobileChatView({
               </>
             ) : null}
             <label className="flex h-[46px] min-w-0 flex-1 items-center rounded-full bg-[#f5f6f8] px-4">
-              <span className="sr-only">Mesaj</span>
+              <span className="sr-only">{t("message")}</span>
               <input
                 value={chat.draft}
                 onChange={(event) => chat.setDraft(event.target.value)}
                 maxLength={MAX_CHAT_MESSAGE_LENGTH}
-                placeholder="Mesaj yaz…"
+                placeholder={t("placeholder")}
                 className="min-w-0 flex-1 bg-transparent text-[15px] leading-[1.35] text-[#22262b] outline-none placeholder:text-[#858c96] focus-visible:outline-none!"
               />
             </label>
             <button
               type="submit"
               disabled={!chat.draft.trim() || chat.isSending}
-              aria-label="Gönder"
+              aria-label={t("send")}
               className="flex size-[46px] shrink-0 items-center justify-center rounded-full bg-[var(--mobile-accent)] disabled:opacity-50"
             >
               <Image

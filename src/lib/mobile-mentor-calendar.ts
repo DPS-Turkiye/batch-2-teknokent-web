@@ -18,6 +18,7 @@ import {
   startsInLabel,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
+import type { MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
 import { mentorMeetingSummary } from "@/lib/mobile-mentor-home";
 import { initials } from "@/lib/utils";
@@ -49,6 +50,7 @@ function startupName(meeting: MeetingItem, request?: MentorshipRequest) {
 export function mentorAgendaEntries(
   entries: MobileAgendaEntry[],
   requests: MentorshipRequest[],
+  texts: MobileTexts,
 ): MobileAgendaEntry[] {
   return entries.map((entry) => {
     const meeting = entry.meeting;
@@ -59,7 +61,7 @@ export function mentorAgendaEntries(
       ...entry,
       title: name,
       detail: [
-        request?.supportArea ?? meetingTitle(meeting),
+        request?.supportArea ?? meetingTitle(meeting, texts.t),
         request?.requesterName,
         meeting.meetLink ? "Online" : null,
       ]
@@ -167,6 +169,7 @@ export function mentorEntryDetail(input: {
   requests: MentorshipRequest[];
   members: OrganizationMember[];
   mentorName: string;
+  texts: MobileTexts;
   now: Date;
 }): MentorEntryDetail | null {
   const { entry, now } = input;
@@ -187,8 +190,13 @@ export function mentorEntryDetail(input: {
     },
     self: { name: input.mentorName, initials: initials(input.mentorName) },
     topic: {
-      title: mentorMeetingSummary(meeting, input.meetings, input.requests, now)
-        .detail,
+      title: mentorMeetingSummary(
+        meeting,
+        input.meetings,
+        input.requests,
+        input.texts,
+        now,
+      ).detail,
       agenda: meeting.agenda?.trim()
         ? `Gündem: ${meeting.agenda.trim()}`
         : null,

@@ -15,6 +15,7 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 16, 25);
 
@@ -39,9 +40,11 @@ const REQUEST = menteeRequestFixture({
 
 describe("mentorAgendaEntries", () => {
   it("names meetings by startup, topic and the person who asked", () => {
-    const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), [
-      REQUEST,
-    ]);
+    const [entry] = mentorAgendaEntries(
+      agendaEntries([MEETING], [], mobileTexts()),
+      [REQUEST],
+      mobileTexts(),
+    );
 
     expect(entry).toMatchObject({
       title: "Döngü Labs",
@@ -51,14 +54,22 @@ describe("mentorAgendaEntries", () => {
   });
 
   it("falls back to the agenda when the request is not loaded", () => {
-    const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), []);
+    const [entry] = mentorAgendaEntries(
+      agendaEntries([MEETING], [], mobileTexts()),
+      [],
+      mobileTexts(),
+    );
 
     expect(entry?.detail).toBe("değer önerisi · Online");
   });
 });
 
 describe("mentorEntryDetail", () => {
-  const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), [REQUEST]);
+  const [entry] = mentorAgendaEntries(
+    agendaEntries([MEETING], [], mobileTexts()),
+    [REQUEST],
+    mobileTexts(),
+  );
 
   it("builds the sheet with the team, the mentor and the topic", () => {
     expect(
@@ -71,6 +82,7 @@ describe("mentorEntryDetail", () => {
           { id: "u2", fullName: "Can Er" },
         ] as never,
         mentorName: "Nihan Öztürk",
+        texts: mobileTexts(),
         now: NOW,
       }),
     ).toEqual({
@@ -98,6 +110,7 @@ describe("mentorEntryDetail", () => {
       requests: [REQUEST],
       members: [],
       mentorName: "Nihan Öztürk",
+      texts: mobileTexts(),
       now: new Date(2026, 8, 23, 18, 0),
     });
 
@@ -108,7 +121,7 @@ describe("mentorEntryDetail", () => {
 
 describe("startsInLabel", () => {
   it("counts down in minutes, hours and days", () => {
-    const [entry] = agendaEntries([MEETING], []);
+    const [entry] = agendaEntries([MEETING], [], mobileTexts());
 
     expect(startsInLabel(entry!, NOW)).toBe("5 dk sonra");
     expect(startsInLabel(entry!, new Date(2026, 8, 23, 17, 0))).toBe("şimdi");

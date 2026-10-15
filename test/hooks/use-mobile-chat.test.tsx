@@ -33,7 +33,7 @@ import {
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
-import { createTestQueryClient } from "@test/test-utils";
+import { createTestQueryClient, InLocale } from "@test/test-utils";
 
 let role = UserRole.Mentee;
 let meetings = [menteeMeetingFixture()];
@@ -66,6 +66,16 @@ function wrapper({ children }: { children: ReactNode }) {
     <QueryClientProvider client={createTestQueryClient()}>
       {children}
     </QueryClientProvider>
+  );
+}
+
+function englishWrapper({ children }: { children: ReactNode }) {
+  return (
+    <InLocale locale="en">
+      <QueryClientProvider client={createTestQueryClient()}>
+        {children}
+      </QueryClientProvider>
+    </InLocale>
   );
 }
 
@@ -344,5 +354,18 @@ describe("useMobileChat for a Duyurular thread", () => {
     expect(result.current.canSend).toBe(false);
     expect(result.current.closedNote).toMatch(/yalnızca okunur/);
     expect(getCoordinatorConversations).not.toHaveBeenCalled();
+  });
+
+  it("names the thread, its audience and why it is read-only in English", async () => {
+    vi.mocked(getMyAnnouncements).mockResolvedValue([programAnnouncement()]);
+    const { result } = renderHook(
+      () => useMobileChat(MobileConversationKind.Announcement, "program-1"),
+      { wrapper: englishWrapper },
+    );
+
+    await waitFor(() => expect(result.current.header).not.toBeNull());
+    expect(result.current.header?.name).toBe("METU Stars 2026 — Announcements");
+    expect(result.current.header?.subtitle).toBe("42 teams · 28 mentors");
+    expect(result.current.closedNote).toMatch(/Announcements are read-only/);
   });
 });

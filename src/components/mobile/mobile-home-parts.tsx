@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { MobileAccountButton } from "@/components/mobile/mobile-account-button";
@@ -16,18 +17,19 @@ export function HomeHeader({
   firstName: string;
   hasUnreadNotifications: boolean;
 }) {
+  const t = useTranslations("mobile.home");
   return (
     <header className="flex items-center justify-between">
       <h1 className="text-lg leading-[1.35] text-[#858c96]">
-        {firstName ? `Merhaba, ${firstName}` : "Merhaba"}
+        {firstName ? t("greeting", { name: firstName }) : t("greetingNoName")}
       </h1>
       <div className="flex items-center gap-2">
         <Link
           href={MOBILE_NOTIFICATIONS}
           aria-label={
             hasUnreadNotifications
-              ? "Bildirimler, okunmamış bildirim var"
-              : "Bildirimler"
+              ? t("notificationsUnread")
+              : t("notifications")
           }
           className="relative flex size-11 items-center justify-center rounded-full bg-[#f5f6f8]"
         >
@@ -54,6 +56,8 @@ export function HomeSection({
   allHref: string;
   children: ReactNode;
 }) {
+  const t = useTranslations("mobile.home");
+  const locale = useLocale();
   return (
     <section className="flex flex-col gap-1.5" aria-label={title}>
       <div className="flex items-center justify-between leading-[1.35]">
@@ -61,9 +65,11 @@ export function HomeSection({
         <Link
           href={allHref}
           className="text-sm font-medium text-[#676e78]"
-          aria-label={`Tüm ${title.toLocaleLowerCase("tr-TR")}`}
+          aria-label={t("seeAllLabel", {
+            section: title.toLocaleLowerCase(locale),
+          })}
         >
-          Tümü
+          {t("seeAll")}
         </Link>
       </div>
       {children}
@@ -81,6 +87,7 @@ export function HomeMessageRow({
   unreadCount?: number;
   squareAvatar?: boolean;
 }) {
+  const t = useTranslations("mobile.home");
   return (
     <li>
       <Link href={message.href} className="flex items-center gap-3 py-3">
@@ -113,7 +120,7 @@ export function HomeMessageRow({
           <span className="text-xs text-[#858c96]">{message.time}</span>
           {unreadCount > 0 ? (
             <span
-              aria-label={`${unreadCount} okunmamış mesaj`}
+              aria-label={t("unreadMessages", { count: unreadCount })}
               className="rounded-full bg-[var(--mobile-accent)] px-[7px] py-px text-[11px] font-semibold text-white"
             >
               {unreadCount}

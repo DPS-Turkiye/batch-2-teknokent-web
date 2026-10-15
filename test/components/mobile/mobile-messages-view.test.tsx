@@ -8,6 +8,7 @@ import {
   MobileConversationKind,
   type MobileConversation,
 } from "@/interfaces/mobile";
+import { InLocale } from "@test/test-utils";
 
 type Messages = ReturnType<typeof useMobileMessages>;
 
@@ -109,6 +110,38 @@ describe("MobileMessagesView", () => {
     render(<MobileMessagesView />);
 
     expect(screen.getByText("Henüz mesajın yok")).toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileMessagesView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Messages" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "Conversations" })).toBeVisible();
+  });
+
+  it("explains an empty inbox and a search with no match in English", () => {
+    state = messagesState({ conversations: [], shown: [] });
+    const { unmount } = render(
+      <InLocale locale="en">
+        <MobileMessagesView />
+      </InLocale>,
+    );
+    expect(screen.getByText("No messages yet")).toBeInTheDocument();
+    unmount();
+
+    state = messagesState({ query: "zz", shown: [] });
+    render(
+      <InLocale locale="en">
+        <MobileMessagesView />
+      </InLocale>,
+    );
+    expect(
+      screen.getByText("No conversations match “zz”."),
+    ).toBeInTheDocument();
   });
 
   it("offers a retry when both sources fail", async () => {

@@ -6,6 +6,7 @@ import { MobileCalendarView } from "@/components/mobile/mobile-calendar-view";
 import type { useMobileCalendar } from "@/hooks/use-mobile-calendar";
 import { agendaEntries, MobileAgendaKind } from "@/lib/mobile-calendar";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 type Calendar = ReturnType<typeof useMobileCalendar>;
 
@@ -22,6 +23,7 @@ const [MEETING] = agendaEntries(
     }),
   ],
   [],
+  mobileTexts(),
 );
 
 const openEntry = vi.fn();

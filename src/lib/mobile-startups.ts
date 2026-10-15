@@ -17,6 +17,7 @@ import {
   MOBILE_CALENDAR,
   MOBILE_STARTUPS,
   mobileChatHref,
+  type MobileTexts,
   webHref,
 } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
@@ -101,6 +102,7 @@ function activeCard(
   meetings: MeetingItem[],
   programs: Program[],
   mentorId: string,
+  texts: MobileTexts,
   now: Date,
 ): StartupCard {
   const name = request.organizationName ?? request.requesterName ?? "Startup";
@@ -108,7 +110,7 @@ function activeCard(
   let nextLine: string;
   let health = StartupHealth.Active;
   if (next) {
-    const when = meetingDayAndTime(next, now);
+    const when = meetingDayAndTime(next, texts.locale, now);
     nextLine = `${when.day} · ${when.time} · ${request.supportArea}`;
   } else {
     const quietDays = daysSinceLastMeeting(
@@ -142,6 +144,7 @@ export function activeStartupCards(
   meetings: MeetingItem[],
   programs: Program[],
   mentorId: string,
+  texts: MobileTexts,
   now = new Date(),
 ) {
   const organizationIds = [
@@ -157,7 +160,7 @@ export function activeStartupCards(
     .flatMap((id) => {
       const request = latestAccepted(requests, id);
       return request
-        ? [activeCard(request, meetings, programs, mentorId, now)]
+        ? [activeCard(request, meetings, programs, mentorId, texts, now)]
         : [];
     })
     .sort(
@@ -232,6 +235,7 @@ export function startupDetail(input: {
   documents: StartupDocument[];
   actionItems: ActionItem[];
   frequency: MeetingFrequency | null;
+  texts: MobileTexts;
   now?: Date;
 }): StartupDetail | null {
   const now = input.now ?? new Date();
@@ -242,6 +246,7 @@ export function startupDetail(input: {
     input.meetings,
     input.programs,
     input.mentorId,
+    input.texts,
     now,
   );
   const next = upcomingFor(input.meetings, input.organizationId, now);
@@ -275,7 +280,7 @@ export function startupDetail(input: {
       : MOBILE_CALENDAR,
     upcoming: next
       ? {
-          when: `${meetingDayAndTime(next, now).day} · ${time.format(
+          when: `${meetingDayAndTime(next, input.texts.locale, now).day} · ${time.format(
             new Date(next.scheduledAt),
           )}–${time.format(new Date(endOf(next)))}`,
           detail: [

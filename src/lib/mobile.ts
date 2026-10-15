@@ -1,9 +1,43 @@
+import type { useTranslations } from "next-intl";
+
 import {
   MobileConversationKind,
   MobileTab,
   type MobileTabLink,
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
+
+/** The phone screens' translator and language, for the labels built in lib/mobile-*. */
+export type MobileTexts = {
+  t: ReturnType<typeof useTranslations<"mobile">>;
+  locale: string;
+  /** A saved request topic in the page's language (useTopicLabel). */
+  topicLabel: (value: string) => string;
+};
+
+/** "14:00" */
+export function mobileClock(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+/** "24 Eylül" / "September 24" */
+export function mobileDayMonth(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+/** "Perşembe 24 Eylül" / "Thursday, September 24" */
+export function mobileLongDay(date: Date, { t, locale }: MobileTexts) {
+  return t("dates.longDay", {
+    weekday: new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date),
+    date: mobileDayMonth(date, locale),
+  });
+}
 
 export const MOBILE_HOME = "/m";
 export const MOBILE_LOGIN = "/m/login";

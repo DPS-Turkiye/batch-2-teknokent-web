@@ -9,6 +9,7 @@ import {
 import type { useMobileHome } from "@/hooks/use-mobile-home";
 import { UserRole } from "@/interfaces/session";
 import { DueTone } from "@/types/mentee-home";
+import { InLocale } from "@test/test-utils";
 
 type Home = ReturnType<typeof useMobileHome>;
 
@@ -92,6 +93,48 @@ describe("MobileHomeView", () => {
     expect(
       within(card).getByRole("link", { name: "Görüşme detayları" }),
     ).toHaveAttribute("href", "/m/calendar?meeting=m1");
+  });
+
+  it("reads in English", () => {
+    home = homeState({ hasUnreadNotifications: true });
+    render(
+      <InLocale locale="en">
+        <MobileHomeView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Hi, Gamze" })).toBeVisible();
+    const card = screen.getByRole("article", { name: "Next meeting" });
+    expect(within(card).getByText("NEXT MEETING")).toBeInTheDocument();
+    expect(
+      within(card).getByRole("link", { name: "Meeting details" }),
+    ).toHaveAttribute("href", "/m/calendar?meeting=m1");
+    const tasks = screen.getByRole("region", { name: "To do" });
+    expect(
+      within(tasks).getByRole("link", { name: "All to do" }),
+    ).toHaveAttribute("href", "/m/tasks");
+    expect(screen.getByRole("region", { name: "Messages" })).toBeVisible();
+    expect(
+      screen.getByRole("link", {
+        name: "Notifications, you have unread notifications",
+      }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Account" })).toBeVisible();
+  });
+
+  it("explains an empty home in English", () => {
+    home = homeState({ nextMeeting: null, tasks: [], messages: [] });
+    render(
+      <InLocale locale="en">
+        <MobileHomeView />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByText("You have no meetings planned."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Nothing to do right now.")).toBeInTheDocument();
+    expect(screen.getByText("No messages yet.")).toBeInTheDocument();
   });
 
   it("lists the tasks and messages with links to their tabs", () => {

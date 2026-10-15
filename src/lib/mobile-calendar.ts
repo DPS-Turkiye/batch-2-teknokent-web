@@ -9,6 +9,7 @@ import {
   startOfWeek,
   weekDays,
 } from "@/lib/calendar";
+import type { MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
 
 export enum MobileAgendaKind {
@@ -94,7 +95,10 @@ export function longDay(date: Date) {
   return `${weekday.format(date)} ${dayMonth.format(date)}`;
 }
 
-function meetingEntry(meeting: MeetingItem): MobileAgendaEntry {
+function meetingEntry(
+  meeting: MeetingItem,
+  t: MobileTexts["t"],
+): MobileAgendaEntry {
   const startsAt = new Date(meeting.scheduledAt);
   const people = [
     meeting.mentorName ?? "Mentör",
@@ -107,7 +111,7 @@ function meetingEntry(meeting: MeetingItem): MobileAgendaEntry {
     endsAt: new Date(startsAt.getTime() + meeting.durationMinutes * MINUTE_MS),
     time: time.format(startsAt),
     length: `${meeting.durationMinutes} dk`,
-    title: meetingTitle(meeting),
+    title: meetingTitle(meeting, t),
     detail: meeting.meetLink ? `${people} · Online` : people,
     meeting,
     event: null,
@@ -155,6 +159,7 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
 export function agendaEntries(
   meetings: MeetingItem[],
   events: MemberProgramEvent[],
+  { t }: MobileTexts,
 ) {
   return [
     ...meetings
@@ -162,7 +167,7 @@ export function agendaEntries(
         (meeting) =>
           String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled,
       )
-      .map(meetingEntry),
+      .map((meeting) => meetingEntry(meeting, t)),
     ...events.map(programEntry),
   ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 }
@@ -286,12 +291,12 @@ export const ENTRY_KIND_LABELS: Record<MobileAgendaKind, string> = {
 };
 
 /** "Google Meet" for a Meet link, otherwise the link's host. */
-export function meetingLinkLabel(link: string) {
+export function meetingLinkLabel(link: string, t: MobileTexts["t"]) {
   try {
     const host = new URL(link).hostname.replace(/^www\./, "");
     return host === "meet.google.com" ? "Google Meet" : host;
   } catch {
-    return "Toplantı bağlantısı";
+    return t("meeting.linkFallback");
   }
 }
 

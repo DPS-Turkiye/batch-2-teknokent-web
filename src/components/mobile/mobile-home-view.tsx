@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import {
   HomeHeader,
@@ -36,6 +37,7 @@ const DUE_CHIP_CLASS: Record<DueTone, string> = {
 };
 
 function NextMeetingCard({ meeting }: { meeting: MobileMeetingSummary }) {
+  const t = useTranslations("mobile.home");
   return (
     <div className="relative -mx-2 p-2">
       <Image
@@ -46,11 +48,11 @@ function NextMeetingCard({ meeting }: { meeting: MobileMeetingSummary }) {
         priority
       />
       <article
-        aria-label="Sıradaki görüşme"
+        aria-label={t("nextMeeting")}
         className="relative flex flex-col gap-3.5 overflow-hidden rounded-[24px] border border-white/20 bg-black/5 p-5 text-white"
       >
         <div className="flex items-center justify-between gap-3 leading-[1.35]">
-          <p className="text-[11.5px] font-semibold">SIRADAKİ GÖRÜŞME</p>
+          <p className="text-[11.5px] font-semibold">{t("nextMeetingCaps")}</p>
           <span className="rounded-full bg-white/10 px-2.5 py-[5px] text-xs font-medium">
             {meeting.whenChip}
           </span>
@@ -82,7 +84,7 @@ function NextMeetingCard({ meeting }: { meeting: MobileMeetingSummary }) {
           href={meeting.href}
           variant={MobileButtonVariant.Secondary}
         >
-          Görüşme detayları
+          {t("meetingDetails")}
         </MobileButtonLink>
       </article>
     </div>
@@ -116,6 +118,7 @@ function TaskRow({ task, last }: { task: MobileTaskPreview; last: boolean }) {
 }
 
 export function MobileHomeView() {
+  const t = useTranslations("mobile.home");
   const home = useMobileHome();
 
   return (
@@ -127,31 +130,28 @@ export function MobileHomeView() {
         />
 
         {home.isOnline ? null : (
-          <MobileOfflineBanner detail="Gösterilenler son kaydedilen bilgiler." />
+          <MobileOfflineBanner detail={t("offlineDetail")} />
         )}
 
         {home.isLoading ? (
           <MobileListSkeleton />
         ) : home.isError ? (
-          <MobileErrorState
-            title="Ana sayfa yüklenemedi."
-            onRetry={home.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={home.retry} />
         ) : home.nextMeeting ? (
           <NextMeetingCard meeting={home.nextMeeting} />
         ) : (
           <MobileEmptyState
-            title="Planlanmış görüşmen yok."
-            description="Yeni bir görüşme planlandığında burada görünecek."
+            title={t("noMeeting")}
+            description={t("noMeetingHint")}
           />
         )}
       </div>
 
       {home.isLoading || home.isError ? null : (
         <>
-          <HomeSection title="Yapılacaklar" allHref={MOBILE_TASKS}>
+          <HomeSection title={t("tasks")} allHref={MOBILE_TASKS}>
             {home.isLoadingTasks ? (
-              <MobileListSkeleton label="Yapılacaklar yükleniyor" />
+              <MobileListSkeleton label={t("tasksLoading")} />
             ) : home.tasks.length > 0 ? (
               <ul>
                 {home.tasks.map((task, index) => (
@@ -163,11 +163,11 @@ export function MobileHomeView() {
                 ))}
               </ul>
             ) : (
-              <QuietLine>Şu an yapılacak bir şey yok.</QuietLine>
+              <QuietLine>{t("noTasks")}</QuietLine>
             )}
           </HomeSection>
 
-          <HomeSection title="Mesajlar" allHref={MOBILE_MESSAGES}>
+          <HomeSection title={t("messages")} allHref={MOBILE_MESSAGES}>
             {home.messages.length > 0 ? (
               <ul>
                 {home.messages.map((message) => (
@@ -175,7 +175,7 @@ export function MobileHomeView() {
                 ))}
               </ul>
             ) : (
-              <QuietLine>Henüz mesaj yok.</QuietLine>
+              <QuietLine>{t("noMessages")}</QuietLine>
             )}
           </HomeSection>
         </>

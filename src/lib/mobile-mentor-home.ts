@@ -6,7 +6,12 @@ import {
 import type { MobileMessagePreview } from "@/interfaces/mobile";
 import { ProgramMentorStatus, type Program } from "@/interfaces/program";
 import { UserRole } from "@/interfaces/session";
-import { MOBILE_CALENDAR, MOBILE_STARTUPS } from "@/lib/mobile";
+import {
+  MOBILE_CALENDAR,
+  MOBILE_STARTUPS,
+  mobileClock,
+  type MobileTexts,
+} from "@/lib/mobile";
 import { meetingLinkLabel } from "@/lib/mobile-calendar";
 import { meetingDayAndTime, meetingTitle } from "@/lib/mobile-home";
 import { groupedMentorshipConversations } from "@/lib/mobile-messages";
@@ -16,10 +21,6 @@ import { initials } from "@/lib/utils";
 export const MENTOR_HOME_MESSAGE_LIMIT = 2;
 
 const MINUTE_MS = 60_000;
-const time = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
 
 export type MentorMeetingSummary = {
   id: string;
@@ -76,8 +77,10 @@ export function mentorMeetingSummary(
   meeting: MeetingItem,
   meetings: MeetingItem[],
   requests: MentorshipRequest[],
+  texts: MobileTexts,
   now = new Date(),
 ): MentorMeetingSummary {
+  const { t, locale } = texts;
   const request = requests.find(
     (item) => item.id === meeting.mentorshipRequestId,
   );
@@ -88,16 +91,19 @@ export function mentorMeetingSummary(
   ).length;
   const start = new Date(meeting.scheduledAt);
   const parts = [
-    meetingDayAndTime(meeting, now).day,
-    `${time.format(start)}–${time.format(new Date(endOf(meeting)))}`,
+    meetingDayAndTime(meeting, locale, now).day,
+    `${mobileClock(start, locale)}–${mobileClock(new Date(endOf(meeting)), locale)}`,
   ];
-  if (meeting.meetLink) parts.push(meetingLinkLabel(meeting.meetLink));
-  const startupName = meeting.organizationName ?? "Startup";
+  if (meeting.meetLink) parts.push(meetingLinkLabel(meeting.meetLink, t));
+  const startupName = meeting.organizationName ?? t("meeting.startup");
+  const topic = request
+    ? texts.topicLabel(request.supportArea)
+    : meetingTitle(meeting, t);
   return {
     id: meeting.id,
     startupName,
     startupInitials: initials(startupName),
-    detail: `${request?.supportArea ?? meetingTitle(meeting)} · ${ordinal}. görüşme`,
+    detail: `${topic} · ${t("meeting.ordinal", { ordinal })}`,
     timeLine: parts.join(" · "),
     href: `${MOBILE_CALENDAR}?meeting=${encodeURIComponent(meeting.id)}`,
   };
@@ -128,8 +134,10 @@ export function mentorStartupRows(
   meetings: MeetingItem[],
   programs: Program[],
   mentorId: string,
+  texts: MobileTexts,
   now = new Date(),
 ): MentorStartupRow[] {
+  const { t, locale } = texts;
   const byOrganization = new Map<string, MentorshipRequest>();
   for (const request of requests) {
     if (
@@ -140,17 +148,16 @@ export function mentorStartupRows(
     }
   }
   const rows = [...byOrganization.values()].map((request) => {
-    const name = request.organizationName ?? request.requesterName ?? "Startup";
+    const name =
+      request.organizationName ?? request.requesterName ?? t("meeting.startup");
     const next = upcomingFor(meetings, request.organizationId, now);
-    const when = next ? meetingDayAndTime(next, now) : null;
+    const when = next ? meetingDayAndTime(next, locale, now) : null;
     const row: MentorStartupRow = {
       id: request.organizationId,
       name,
       initials: initials(name),
       program: programNameFor(programs, request.organizationId, mentorId),
-      next: when
-        ? `Sonraki: ${when.day} ${when.time}`
-        : "Sonraki görüşme planlanmadı",
+      next: when ? t("home.nextPlanned", when) : t("home.notPlanned"),
       planned: Boolean(next),
       href: `${MOBILE_STARTUPS}/${encodeURIComponent(request.organizationId)}`,
     };
@@ -168,11 +175,13 @@ export function mentorStartupRows(
 
 export function mentorMessagePreviews(
   requests: MentorshipRequest[],
+  texts: MobileTexts,
   now = new Date(),
 ): MentorMessagePreview[] {
   return groupedMentorshipConversations(
     requests.filter((request) => request.messages.length > 0),
     UserRole.Mentor,
+    texts,
     now,
   )
     .slice(0, MENTOR_HOME_MESSAGE_LIMIT)

@@ -8,6 +8,7 @@ import {
   MobileChatItemKind,
   MobileConversationKind,
 } from "@/interfaces/mobile";
+import { InLocale } from "@test/test-utils";
 
 type Chat = ReturnType<typeof useMobileChat>;
 
@@ -150,6 +151,23 @@ describe("MobileChatView", () => {
     expect(
       screen.queryByRole("button", { name: "Dosya ekle" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("labels the header, the strip and the composer in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileChatView kind={MobileConversationKind.Mentorship} id="r1" />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Back to messages" }),
+    ).toHaveAttribute("href", "/m/messages");
+    expect(screen.getByRole("link", { name: "Details" })).toBeVisible();
+    expect(screen.getByPlaceholderText("Write a message…")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Attach file" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Send" })).toBeEnabled();
+    expect(screen.getByText("Shared file")).toBeInTheDocument();
   });
 
   it("explains a closed conversation instead of the composer", () => {
