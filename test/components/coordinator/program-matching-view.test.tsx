@@ -50,7 +50,7 @@ const overview: MatchingOverview = {
       leadName: "Mert Aydın",
       waitingDays: 4,
       needSource: MatchNeedSource.Request,
-      needTopic: "Pazarlama stratejisi",
+      needTopic: "Ürün & UX, Satış",
       needText: "İlk 1.000 kullanıcıya ulaşma kanalları",
     },
     {
@@ -152,6 +152,9 @@ describe("ProgramMatchingView", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("region", { name: "Teams waiting for a match" }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Need: Product & UX, Sales"),
     ).toBeInTheDocument();
   });
 

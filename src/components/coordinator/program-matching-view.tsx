@@ -44,12 +44,17 @@ import { formatLongDate, initials } from "@/lib/utils";
 
 type Matching = ReturnType<typeof useProgramMatching>;
 
-/** The team's mentorship topic, shown in the page's language; saved topics keep their Turkish text. */
+/** The team's need: support areas (several joined with ", " when they come from the profile), in the page's language. */
 function useNeedLabel() {
   const t = useTranslations("programMatching");
   const optionLabel = useOptionLabel();
   return (team: WaitingTeam) =>
-    team.needTopic ? optionLabel("mentorTopic", team.needTopic) : t("noNeed");
+    team.needTopic
+      ? team.needTopic
+          .split(", ")
+          .map((area) => optionLabel("supportArea", area))
+          .join(", ")
+      : t("noNeed");
 }
 
 export function ProgramMatchingView({
