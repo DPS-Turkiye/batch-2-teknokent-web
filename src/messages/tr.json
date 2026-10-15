@@ -4702,6 +4702,39 @@
       "legendMeeting": "Görüşme",
       "legendEvent": "Etkinlik",
       "backToToday": "Bugüne dön"
+    },
+    "tasks": {
+      "title": "Görevler",
+      "loadError": "Görevler yüklenemedi.",
+      "tabOpen": "Yapılacak",
+      "tabDone": "Tamamlanan",
+      "emptyOpenTitle": "Şimdilik yapılacak bir görevin yok.",
+      "emptyOpenDescription": "Mentorun yeni bir görev atadığında burada görünecek.",
+      "emptyDoneTitle": "Henüz tamamlanan görev yok.",
+      "emptyDoneDescription": "Bitirdiğin görevler burada birikir.",
+      "doneList": "Tamamlanan görevler",
+      "saveError": "Görev güncellenemedi. Tekrar dene.",
+      "completedToast": "Görev tamamlandı · mentöre bildirildi",
+      "undo": "Geri al",
+      "checkboxOpen": "{title}: tamamla",
+      "checkboxDone": "{title}: tamamlandı",
+      "assignedBy": "{name} atadı · {date}",
+      "markDone": "Tamamlandı olarak işaretle",
+      "rateOnWeb": "Web’de değerlendir",
+      "submitOnWeb": "Web’de teslim et",
+      "messageMentor": "Mentora mesaj gönder",
+      "noDate": "Tarih yok",
+      "mentorshipChip": "{topic} mentorluğu",
+      "processChip": "Süreç görevi",
+      "feedbackTitle": "Toplantıyı değerlendir",
+      "groups": {
+        "overdue": "Gecikmiş",
+        "today": "Bugün",
+        "week": "Bu hafta",
+        "later": "Daha sonra",
+        "feedback": "Değerlendirmeler",
+        "program": "Program"
+      }
     }
   }
 }

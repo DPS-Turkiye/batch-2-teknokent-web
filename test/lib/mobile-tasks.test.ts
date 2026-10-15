@@ -17,9 +17,12 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 // Wednesday 23 September 2026.
 const TODAY = new Date(2026, 8, 23, 12, 0);
+const TR = mobileTexts("tr");
+const EN = mobileTexts("en");
 
 const REQUEST = menteeRequestFixture({
   id: "r1",
@@ -113,15 +116,23 @@ const TASKS = collectTasks(
     feedbackMeetings: [RATING_MEETING],
   },
   TODAY,
+  TR,
 );
 
 describe("dueLabel", () => {
   it("names nearby days and dates the rest", () => {
-    expect(dueLabel(new Date(2026, 8, 22), TODAY)).toBe("Dün");
-    expect(dueLabel(new Date(2026, 8, 23), TODAY)).toBe("Bugün");
-    expect(dueLabel(new Date(2026, 8, 24), TODAY)).toBe("Yarın");
-    expect(dueLabel(new Date(2026, 8, 25), TODAY)).toBe("25 Eylül");
-    expect(dueLabel(null, TODAY)).toBe("Tarih yok");
+    expect(dueLabel(new Date(2026, 8, 22), TODAY, TR)).toBe("Dün");
+    expect(dueLabel(new Date(2026, 8, 23), TODAY, TR)).toBe("Bugün");
+    expect(dueLabel(new Date(2026, 8, 24), TODAY, TR)).toBe("Yarın");
+    expect(dueLabel(new Date(2026, 8, 25), TODAY, TR)).toBe("25 Eylül");
+    expect(dueLabel(null, TODAY, TR)).toBe("Tarih yok");
+  });
+
+  it("names them in English", () => {
+    expect(dueLabel(new Date(2026, 8, 22), TODAY, EN)).toBe("Yesterday");
+    expect(dueLabel(new Date(2026, 8, 24), TODAY, EN)).toBe("Tomorrow");
+    expect(dueLabel(new Date(2026, 8, 25), TODAY, EN)).toBe("September 25");
+    expect(dueLabel(null, TODAY, EN)).toBe("No date");
   });
 });
 
@@ -162,7 +173,7 @@ describe("collectTasks", () => {
 
 describe("groupOpenTasks and completedTasks", () => {
   it("groups by urgency and keeps program deadlines apart", () => {
-    const groups = groupOpenTasks(TASKS, TODAY);
+    const groups = groupOpenTasks(TASKS, TODAY, TR.t);
 
     expect(
       groups.map((group) => [
@@ -178,6 +189,9 @@ describe("groupOpenTasks and completedTasks", () => {
       ["Program", ["Ara rapor teslimi"]],
     ]);
     expect(groups[0]?.urgent).toBe(true);
+    expect(
+      groupOpenTasks(TASKS, TODAY, EN.t).map((group) => group.label),
+    ).toEqual(["Overdue", "Today", "This week", "Later", "Ratings", "Program"]);
   });
 
   it("lists the completed ones separately", () => {
@@ -189,11 +203,15 @@ describe("groupOpenTasks and completedTasks", () => {
 
 describe("meetingFeedbackTask", () => {
   it("is due when the meeting ended and is rated on the web", () => {
-    const task = meetingFeedbackTask(RATING_MEETING, TODAY);
+    const task = meetingFeedbackTask(RATING_MEETING, TODAY, TR);
 
     expect(task.source).toBe(MobileTaskSource.Feedback);
     expect(task.meta).toBe("15 Eylül · Leyla Aksoy");
     expect(task.chips).toEqual(["Yatırımcı sunumu"]);
     expect(task.webHref).toBe("/meetings/research/feedback?id=m1&web=1");
+    expect(meetingFeedbackTask(RATING_MEETING, TODAY, EN)).toMatchObject({
+      title: "Rate the meeting",
+      meta: "September 15 · Leyla Aksoy",
+    });
   });
 });

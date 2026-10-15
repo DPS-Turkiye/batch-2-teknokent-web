@@ -4702,6 +4702,39 @@
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
       "backToToday": "Back to today"
+    },
+    "tasks": {
+      "title": "Tasks",
+      "loadError": "Couldn't load tasks.",
+      "tabOpen": "To do",
+      "tabDone": "Done",
+      "emptyOpenTitle": "You have no tasks for now.",
+      "emptyOpenDescription": "New tasks from your mentor will show up here.",
+      "emptyDoneTitle": "No completed tasks yet.",
+      "emptyDoneDescription": "Tasks you finish collect here.",
+      "doneList": "Completed tasks",
+      "saveError": "Couldn't update the task. Try again.",
+      "completedToast": "Task completed · your mentor was notified",
+      "undo": "Undo",
+      "checkboxOpen": "{title}: complete",
+      "checkboxDone": "{title}: completed",
+      "assignedBy": "Assigned by {name} · {date}",
+      "markDone": "Mark as completed",
+      "rateOnWeb": "Rate on the web",
+      "submitOnWeb": "Submit on the web",
+      "messageMentor": "Message your mentor",
+      "noDate": "No date",
+      "mentorshipChip": "{topic} mentorship",
+      "processChip": "Process task",
+      "feedbackTitle": "Rate the meeting",
+      "groups": {
+        "overdue": "Overdue",
+        "today": "Today",
+        "week": "This week",
+        "later": "Later",
+        "feedback": "Ratings",
+        "program": "Program"
+      }
     }
   }
 }

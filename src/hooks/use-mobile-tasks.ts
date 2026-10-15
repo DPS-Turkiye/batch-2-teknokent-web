@@ -15,6 +15,7 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { MEMBER_PROGRAM_EVENTS_QUERY_KEY } from "@/hooks/use-mobile-calendar";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -58,6 +59,7 @@ export function useMobileTasks() {
   const [openId, setOpenId] = useState<string | null>(null);
   const [justCompleted, setJustCompleted] = useState<MobileTask | null>(null);
   const [range] = useState(deadlineWindow);
+  const texts = useMobileTexts();
 
   const requests = useMentorshipRequests(UserRole.Mentee);
   const accepted = useMemo(
@@ -114,6 +116,7 @@ export function useMobileTasks() {
           feedbackMeetings: unratedMeetings,
         },
         new Date(),
+        texts,
       ),
     [
       accepted,
@@ -121,9 +124,10 @@ export function useMobileTasks() {
       process.data,
       deadlines.data,
       unratedMeetings,
+      texts,
     ],
   );
-  const groups = groupOpenTasks(tasks, new Date());
+  const groups = groupOpenTasks(tasks, new Date(), texts.t);
   const done = completedTasks(tasks);
 
   const setStatus = useMutation({
