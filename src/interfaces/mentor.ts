@@ -30,13 +30,6 @@ export enum MeetingFrequency {
   AsNeeded = "AS_NEEDED",
 }
 
-export const MEETING_FREQUENCY_LABELS: Record<MeetingFrequency, string> = {
-  [MeetingFrequency.Weekly]: "Haftada 1",
-  [MeetingFrequency.Biweekly]: "2 haftada 1",
-  [MeetingFrequency.Monthly]: "Ayda 1",
-  [MeetingFrequency.AsNeeded]: "İhtiyaca göre",
-};
-
 export enum PrepFileRequirement {
   Required = "REQUIRED",
   Optional = "OPTIONAL",

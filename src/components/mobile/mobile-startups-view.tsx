@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { MobileScreenHeader } from "@/components/mobile/mobile-app-shell";
 import {
@@ -10,11 +11,7 @@ import {
   MobileListSkeleton,
 } from "@/components/mobile/mobile-states";
 import { StartupTab, useMobileStartups } from "@/hooks/use-mobile-startups";
-import {
-  STARTUP_HEALTH_LABELS,
-  StartupHealth,
-  type StartupCard,
-} from "@/lib/mobile-startups";
+import { StartupHealth, type StartupCard } from "@/lib/mobile-startups";
 
 export const HEALTH_CHIP_CLASS: Record<StartupHealth, string> = {
   [StartupHealth.Active]: "bg-[#eaf7f0] text-[#2f9e6b]",
@@ -23,12 +20,13 @@ export const HEALTH_CHIP_CLASS: Record<StartupHealth, string> = {
 };
 
 export function HealthChip({ health }: { health: StartupHealth }) {
+  const t = useTranslations("mobile.startups.health");
   return (
     <span
       className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-[5px] text-xs leading-[1.35] font-medium ${HEALTH_CHIP_CLASS[health]}`}
     >
       <span className="size-1.5 rounded-full bg-current" />
-      {STARTUP_HEALTH_LABELS[health]}
+      {t(health)}
     </span>
   );
 }
@@ -79,21 +77,26 @@ function StartupCardView({ card }: { card: StartupCard }) {
 }
 
 export function MobileStartupsView() {
+  const t = useTranslations("mobile.startups");
   const startups = useMobileStartups();
   const tabs = [
-    { tab: StartupTab.Active, label: "Aktif", count: startups.counts.active },
-    { tab: StartupTab.Past, label: "Geçmiş", count: startups.counts.past },
+    {
+      tab: StartupTab.Active,
+      label: t("tabActive"),
+      count: startups.counts.active,
+    },
+    { tab: StartupTab.Past, label: t("tabPast"), count: startups.counts.past },
   ];
 
   return (
     <>
       <MobileScreenHeader
-        title="Startuplarım"
+        title={t("title")}
         action={
           <button
             type="button"
             onClick={startups.toggleSearch}
-            aria-label={startups.isSearching ? "Aramayı kapat" : "Startup ara"}
+            aria-label={startups.isSearching ? t("closeSearch") : t("search")}
             aria-expanded={startups.isSearching}
             className="flex size-11 items-center justify-center rounded-full bg-[#f5f6f8]"
           >
@@ -109,13 +112,13 @@ export function MobileStartupsView() {
       <div className="flex flex-col gap-4">
         {startups.isSearching ? (
           <label className="flex h-[46px] items-center gap-2.5 rounded-2xl bg-[#f5f6f8] px-4">
-            <span className="sr-only">Startup ara</span>
+            <span className="sr-only">{t("search")}</span>
             <input
               type="search"
               autoFocus
               value={startups.query}
               onChange={(event) => startups.setQuery(event.target.value)}
-              placeholder="Startup ara"
+              placeholder={t("search")}
               className="min-w-0 flex-1 bg-transparent text-[15px] leading-[1.35] text-[#22262b] outline-none placeholder:text-[#858c96] focus-visible:outline-none!"
             />
           </label>
@@ -151,30 +154,27 @@ export function MobileStartupsView() {
         {startups.isLoading ? (
           <MobileListSkeleton />
         ) : startups.isError ? (
-          <MobileErrorState
-            title="Startuplar yüklenemedi."
-            onRetry={startups.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={startups.retry} />
         ) : startups.shown.length === 0 ? (
           startups.query ? (
             <p className="py-6 text-center text-[13.5px] leading-[1.35] text-[#858c96]">
-              “{startups.query}” ile eşleşen startup yok.
+              {t("noMatch", { query: startups.query })}
             </p>
           ) : startups.tab === StartupTab.Active ? (
             <MobileEmptyState
               icon="/mobile/icon-startups.svg"
-              title="Henüz aktif bir mentorluk ilişkiniz bulunmuyor."
-              description="Koordinatör seni bir startup ile eşleştirdiğinde burada görünecek."
+              title={t("emptyActiveTitle")}
+              description={t("emptyActiveDescription")}
             />
           ) : (
             <MobileEmptyState
               icon="/mobile/icon-startups.svg"
-              title="Geçmiş mentorluk yok."
-              description="Biten mentorlukların burada listelenir."
+              title={t("emptyPastTitle")}
+              description={t("emptyPastDescription")}
             />
           )
         ) : (
-          <ul aria-label="Startuplar" className="flex flex-col gap-4">
+          <ul aria-label={t("list")} className="flex flex-col gap-4">
             {startups.shown.map((card) => (
               <StartupCardView key={card.id} card={card} />
             ))}

@@ -4735,6 +4735,62 @@
         "feedback": "Ratings",
         "program": "Program"
       }
+    },
+    "startups": {
+      "title": "My startups",
+      "list": "Startups",
+      "search": "Search startups",
+      "closeSearch": "Close search",
+      "tabActive": "Active",
+      "tabPast": "Past",
+      "loadError": "Couldn't load startups.",
+      "noMatch": "No startups match “{query}”.",
+      "emptyActiveTitle": "You don't have an active mentorship yet.",
+      "emptyActiveDescription": "It will show up here once a coordinator matches you with a startup.",
+      "emptyPastTitle": "No past mentorships.",
+      "emptyPastDescription": "Mentorships that ended are listed here.",
+      "health": {
+        "active": "Active",
+        "attention": "Attention",
+        "past": "Completed"
+      },
+      "noMeetingYet": "no meeting yet",
+      "quietDays": "{days, plural, one {no meeting for # day} other {no meeting for # days}}",
+      "notPlanned": "Not planned",
+      "ended": "Ended",
+      "endedOn": "Ended · {date}",
+      "ago": {
+        "today": "today",
+        "yesterday": "yesterday",
+        "days": "{days, plural, one {# day ago} other {# days ago}}"
+      },
+      "topic": "Topic",
+      "started": "Started",
+      "frequency": "Meeting frequency",
+      "notSpecified": "Not specified",
+      "tasksDone": "{done} / {total} completed",
+      "noTasks": "No tasks yet",
+      "files": "{count, plural, one {# file} other {# files}} · latest {when}",
+      "noFiles": "No files yet"
+    },
+    "startup": {
+      "back": "Back to startups",
+      "loadError": "Couldn't load the startup.",
+      "noActive": "You don't have an active mentorship with this startup.",
+      "noActiveDescription": "Details of past mentorships are on the web.",
+      "message": "Message",
+      "meetings": "Meetings",
+      "upcoming": "Upcoming meeting",
+      "upcomingCaps": "UPCOMING MEETING",
+      "info": "Mentorship details",
+      "team": "Team",
+      "teamLead": "Team lead",
+      "teamMembers": "{count, plural, one {# team member} other {# team members}}",
+      "actions": "Tasks & files",
+      "tasks": "Assigned tasks",
+      "files": "Files",
+      "notesOnWeb": "Meeting notes and ratings are on the web.",
+      "openOnWeb": "Open on Web"
     }
   }
 }

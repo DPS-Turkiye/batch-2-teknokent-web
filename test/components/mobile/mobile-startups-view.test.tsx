@@ -8,6 +8,7 @@ import {
   type useMobileStartups,
 } from "@/hooks/use-mobile-startups";
 import { StartupHealth } from "@/lib/mobile-startups";
+import { InLocale } from "@test/test-utils";
 
 type Startups = ReturnType<typeof useMobileStartups>;
 
@@ -81,6 +82,26 @@ describe("MobileStartupsView", () => {
 
     expect(setTab).toHaveBeenCalledWith(StartupTab.Past);
     expect(toggleSearch).toHaveBeenCalled();
+  });
+
+  it("names the tabs, the status chips and the search in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileStartupsView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "My startups" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: /Active/ })).toBeVisible();
+    expect(screen.getByRole("tab", { name: /Past/ })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Search startups" }),
+    ).toBeVisible();
+    const cards = within(
+      screen.getByRole("list", { name: "Startups" }),
+    ).getAllByRole("link");
+    expect(cards[0]).toHaveTextContent("Attention");
+    expect(cards[1]).toHaveTextContent("Active");
   });
 
   it("explains an empty list of active startups", () => {

@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileStartupView } from "@/components/mobile/mobile-startup-view";
 import type { useMobileStartup } from "@/hooks/use-mobile-startup";
 import { StartupHealth } from "@/lib/mobile-startups";
+import { InLocale } from "@test/test-utils";
 
 type Startup = ReturnType<typeof useMobileStartup>;
 
@@ -107,6 +108,31 @@ describe("MobileStartupView", () => {
     expect(screen.getByRole("link", { name: "Mesaj" })).toHaveAttribute(
       "data-next-link",
     );
+  });
+
+  it("labels the actions, sections and web links in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileStartupView organizationId="atlas" />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("link", { name: "Back to startups" }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Message" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Meetings" })).toBeVisible();
+    expect(
+      screen.getByRole("region", { name: "Upcoming meeting" }),
+    ).toHaveTextContent("UPCOMING MEETING");
+    expect(
+      screen.getByRole("region", { name: "Mentorship details" }),
+    ).toBeVisible();
+    expect(screen.getByText("Team lead")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /2 team members/ }),
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open on Web" })).toBeVisible();
   });
 
   it("unfolds the team members", async () => {

@@ -4735,6 +4735,62 @@
         "feedback": "Değerlendirmeler",
         "program": "Program"
       }
+    },
+    "startups": {
+      "title": "Startuplarım",
+      "list": "Startuplar",
+      "search": "Startup ara",
+      "closeSearch": "Aramayı kapat",
+      "tabActive": "Aktif",
+      "tabPast": "Geçmiş",
+      "loadError": "Startuplar yüklenemedi.",
+      "noMatch": "“{query}” ile eşleşen startup yok.",
+      "emptyActiveTitle": "Henüz aktif bir mentorluk ilişkiniz bulunmuyor.",
+      "emptyActiveDescription": "Koordinatör seni bir startup ile eşleştirdiğinde burada görünecek.",
+      "emptyPastTitle": "Geçmiş mentorluk yok.",
+      "emptyPastDescription": "Biten mentorlukların burada listelenir.",
+      "health": {
+        "active": "Aktif",
+        "attention": "Dikkat",
+        "past": "Tamamlandı"
+      },
+      "noMeetingYet": "henüz görüşme yok",
+      "quietDays": "{days} gündür görüşme yok",
+      "notPlanned": "Planlanmadı",
+      "ended": "Bitti",
+      "endedOn": "Bitti · {date}",
+      "ago": {
+        "today": "bugün",
+        "yesterday": "dün",
+        "days": "{days} gün önce"
+      },
+      "topic": "Konu",
+      "started": "Başlangıç",
+      "frequency": "Görüşme sıklığı",
+      "notSpecified": "Belirtilmedi",
+      "tasksDone": "{done} / {total} tamamlandı",
+      "noTasks": "Henüz görev yok",
+      "files": "{count} dosya · son {when}",
+      "noFiles": "Henüz dosya yok"
+    },
+    "startup": {
+      "back": "Startuplara dön",
+      "loadError": "Startup yüklenemedi.",
+      "noActive": "Bu startup ile aktif bir mentorluğun yok.",
+      "noActiveDescription": "Geçmiş mentorlukların ayrıntıları web üzerinde.",
+      "message": "Mesaj",
+      "meetings": "Görüşmeler",
+      "upcoming": "Yaklaşan görüşme",
+      "upcomingCaps": "YAKLAŞAN GÖRÜŞME",
+      "info": "Mentorluk bilgileri",
+      "team": "Takım",
+      "teamLead": "Takım yetkilisi",
+      "teamMembers": "{count} ekip üyesi",
+      "actions": "Aksiyonlar & dosyalar",
+      "tasks": "Verilen görevler",
+      "files": "Dosyalar",
+      "notesOnWeb": "Görüşme notları ve değerlendirmeler web’de.",
+      "openOnWeb": "Web’de Aç"
     }
   }
 }

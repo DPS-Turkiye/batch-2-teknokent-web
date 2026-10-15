@@ -55,6 +55,7 @@ export function useMobileStartups() {
       past: pastStartupCards(
         mentorships.data ?? [],
         new Set(activeCards.map((card) => card.id)),
+        texts,
       ),
     };
   }, [
@@ -66,9 +67,10 @@ export function useMobileStartups() {
     texts,
   ]);
 
-  const needle = query.trim().toLocaleLowerCase("tr-TR");
+  const needle = query.trim().toLocaleLowerCase(texts.locale);
   const shown = (tab === StartupTab.Active ? active : past).filter(
-    (card) => !needle || card.name.toLocaleLowerCase("tr-TR").includes(needle),
+    (card) =>
+      !needle || card.name.toLocaleLowerCase(texts.locale).includes(needle),
   );
 
   return {

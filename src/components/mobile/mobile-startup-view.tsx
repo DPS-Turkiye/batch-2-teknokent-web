@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
@@ -64,6 +65,7 @@ export function MobileStartupView({
 }: {
   organizationId: string;
 }) {
+  const t = useTranslations("mobile.startup");
   const startup = useMobileStartup(organizationId);
   const detail = startup.detail;
 
@@ -72,21 +74,18 @@ export function MobileStartupView({
       <MobileTopBar
         title=""
         backHref={startup.backHref}
-        backLabel="Startuplara dön"
+        backLabel={t("back")}
         tone="white"
       />
       <div className="flex flex-col gap-5 px-5 pb-10">
         {startup.isLoading ? (
           <MobileListSkeleton />
         ) : startup.isError ? (
-          <MobileErrorState
-            title="Startup yüklenemedi."
-            onRetry={startup.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={startup.retry} />
         ) : !detail ? (
           <MobileErrorState
-            title="Bu startup ile aktif bir mentorluğun yok."
-            description="Geçmiş mentorlukların ayrıntıları web üzerinde."
+            title={t("noActive")}
+            description={t("noActiveDescription")}
           />
         ) : (
           <>
@@ -118,7 +117,7 @@ export function MobileStartupView({
                   width={18}
                   height={18}
                 />
-                Mesaj
+                {t("message")}
               </Link>
               <Link
                 href={detail.meetingsHref}
@@ -130,17 +129,17 @@ export function MobileStartupView({
                   width={18}
                   height={18}
                 />
-                Görüşmeler
+                {t("meetings")}
               </Link>
             </div>
 
             {detail.upcoming ? (
               <section
-                aria-label="Yaklaşan görüşme"
+                aria-label={t("upcoming")}
                 className="flex flex-col gap-3 rounded-[24px] bg-[var(--mobile-accent)] p-[18px] leading-[1.35] text-white"
               >
                 <p className="text-xs font-semibold tracking-wide">
-                  YAKLAŞAN GÖRÜŞME
+                  {t("upcomingCaps")}
                 </p>
                 <div className="flex flex-col gap-1">
                   <p className="text-[17px] font-semibold">
@@ -151,7 +150,7 @@ export function MobileStartupView({
               </section>
             ) : null}
 
-            <Group title="Mentorluk bilgileri">
+            <Group title={t("info")}>
               <dl className={`${CARD_CLASS} divide-y divide-[#f0f2f4] py-1`}>
                 {detail.info.map((row) => (
                   <div
@@ -167,7 +166,7 @@ export function MobileStartupView({
               </dl>
             </Group>
 
-            <Group title="Takım">
+            <Group title={t("team")}>
               <div className={`${CARD_CLASS} divide-y divide-[#f0f2f4] py-1`}>
                 {detail.lead ? (
                   <div className="flex items-center gap-3 px-[18px] py-3.5">
@@ -185,7 +184,7 @@ export function MobileStartupView({
                       ) : null}
                     </div>
                     <span className="shrink-0 rounded-full bg-[#fff1ec] px-2.5 py-[5px] text-xs font-medium text-[#e0522a]">
-                      Takım yetkilisi
+                      {t("teamLead")}
                     </span>
                   </div>
                 ) : null}
@@ -208,7 +207,7 @@ export function MobileStartupView({
                         ))}
                       </span>
                       <span className="flex-1 text-[15px] leading-[1.35] text-[#22262b]">
-                        {detail.members.count} ekip üyesi
+                        {t("teamMembers", { count: detail.members.count })}
                       </span>
                       <Image
                         src="/mobile/icon-chevron-down.svg"
@@ -230,17 +229,17 @@ export function MobileStartupView({
               </div>
             </Group>
 
-            <Group title="Aksiyonlar & dosyalar">
+            <Group title={t("actions")}>
               <ul className={`${CARD_CLASS} divide-y divide-[#f0f2f4] py-1`}>
                 <LinkRow
                   icon="/mobile/notice-task.svg"
-                  title="Verilen görevler"
+                  title={t("tasks")}
                   detail={detail.tasks}
                   href={detail.notesHref}
                 />
                 <LinkRow
                   icon="/mobile/icon-file.svg"
-                  title="Dosyalar"
+                  title={t("files")}
                   detail={detail.files}
                   href={detail.notesHref}
                 />
@@ -248,14 +247,12 @@ export function MobileStartupView({
             </Group>
 
             <div className="flex items-center gap-3 rounded-[18px] bg-[#f5f6f8] px-4 py-3 text-[13px] leading-[1.35]">
-              <p className="min-w-0 flex-1 text-[#676e78]">
-                Görüşme notları ve değerlendirmeler web’de.
-              </p>
+              <p className="min-w-0 flex-1 text-[#676e78]">{t("notesOnWeb")}</p>
               <a
                 href={detail.notesHref}
                 className="shrink-0 font-semibold text-[#22262b]"
               >
-                Web’de Aç
+                {t("openOnWeb")}
               </a>
             </div>
           </>
