@@ -41,20 +41,20 @@ describe("isPhoneUserAgent", () => {
 
 describe("mobileTabsFor", () => {
   it("gives a mentee Görevler as the third tab", () => {
-    expect(mobileTabsFor(UserRole.Mentee).map((tab) => tab.label)).toEqual([
-      "Ana Sayfa",
-      "Takvim",
-      "Görevler",
-      "Mesajlar",
+    expect(mobileTabsFor(UserRole.Mentee).map((link) => link.tab)).toEqual([
+      MobileTab.Home,
+      MobileTab.Calendar,
+      MobileTab.Tasks,
+      MobileTab.Messages,
     ]);
   });
 
   it("gives a mentor Startuplar as the third tab", () => {
-    expect(mobileTabsFor(UserRole.Mentor).map((tab) => tab.label)).toEqual([
-      "Ana Sayfa",
-      "Takvim",
-      "Startuplar",
-      "Mesajlar",
+    expect(mobileTabsFor(UserRole.Mentor).map((link) => link.tab)).toEqual([
+      MobileTab.Home,
+      MobileTab.Calendar,
+      MobileTab.Startups,
+      MobileTab.Messages,
     ]);
   });
 });

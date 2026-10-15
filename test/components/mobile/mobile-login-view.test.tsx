@@ -8,6 +8,7 @@ import {
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
+import { InLocale } from "@test/test-utils";
 
 const push = vi.fn();
 const replace = vi.fn();
@@ -63,6 +64,30 @@ describe("Phone login", () => {
     expect(signUp).toHaveAttribute("href", "/signup?web=1");
     // A next/link would be prefetched while the login is on screen.
     expect(signUp).not.toHaveAttribute("data-next-link");
+  });
+
+  it("renders the login frame in English", async () => {
+    const user = userEvent.setup();
+    render(
+      <InLocale locale="en">
+        <MobileLoginPage />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Sign in to your account" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText("Password")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Sign In" })).toBeVisible();
+    expect(
+      screen.getByRole("link", { name: /Sign up on the web/ }),
+    ).toHaveAttribute("href", "/signup?web=1");
+
+    await user.click(screen.getByRole("button", { name: "Forgot password" }));
+    expect(
+      screen.getByRole("dialog", { name: "Reset your password" }),
+    ).toHaveTextContent("We'll send a reset link");
   });
 
   it("opens the phone home after signing in", async () => {

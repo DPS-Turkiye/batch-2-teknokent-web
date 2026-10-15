@@ -4535,5 +4535,48 @@
       "expression": "Rahatça ifade edebildi",
       "confidence": "İlerleme güveni"
     }
+  },
+  "mobile": {
+    "shell": {
+      "mainMenu": "Ana menü",
+      "back": "Geri",
+      "account": "Hesap",
+      "tabs": {
+        "home": "Ana Sayfa",
+        "calendar": "Takvim",
+        "tasks": "Görevler",
+        "startups": "Startuplar",
+        "messages": "Mesajlar"
+      }
+    },
+    "states": {
+      "loading": "Yükleniyor",
+      "errorDescription": "Bir sorun oluştu. Tekrar dener misin?",
+      "retry": "Tekrar dene",
+      "offlineTitle": "Bağlantı yok",
+      "offlineDetail": "İnternet bağlantını kontrol et.",
+      "refresh": "Yenile"
+    },
+    "login": {
+      "title": "Hesabınıza giriş yapın",
+      "subtitle": "Menton hesabınızla devam edin.",
+      "email": "E-posta",
+      "password": "Şifre",
+      "showPassword": "Şifreyi göster",
+      "hidePassword": "Şifreyi gizle",
+      "forgotPassword": "Şifremi unuttum",
+      "submit": "Giriş Yap",
+      "submitting": "Giriş yapılıyor…",
+      "noAccount": "Henüz Menton hesabınız yok mu?",
+      "whySignupOnWeb": "Kayıt neden web’de?",
+      "signUpOnWeb": "Web üzerinden kayıt olun",
+      "signupInfo": "Menton hesapları program başvurusu ve koordinatör onayından sonra açılır. Bu adımlar web’de tamamlanır; uygulama mevcut hesabınla giriş yapman içindir.",
+      "signUpOnWebShort": "Web’de kayıt ol",
+      "close": "Kapat",
+      "resetTitle": "Şifreni sıfırla",
+      "resetDescription": "Hesabına bağlı e-postaya sıfırlama bağlantısı gönderelim.",
+      "sendLink": "Bağlantı gönder",
+      "cancel": "Vazgeç"
+    }
   }
 }

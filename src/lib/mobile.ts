@@ -80,35 +80,30 @@ export const SIGNUP_ON_WEB_HREF = webHref("/signup");
 
 const HOME_TAB: MobileTabLink = {
   tab: MobileTab.Home,
-  label: "Ana Sayfa",
   href: MOBILE_HOME,
   icon: "/mobile/icon-home.svg",
 };
 
 const CALENDAR_TAB: MobileTabLink = {
   tab: MobileTab.Calendar,
-  label: "Takvim",
   href: MOBILE_CALENDAR,
   icon: "/mobile/icon-calendar.svg",
 };
 
 const MESSAGES_TAB: MobileTabLink = {
   tab: MobileTab.Messages,
-  label: "Mesajlar",
   href: MOBILE_MESSAGES,
   icon: "/mobile/icon-messages.svg",
 };
 
 const TASKS_TAB: MobileTabLink = {
   tab: MobileTab.Tasks,
-  label: "Görevler",
   href: MOBILE_TASKS,
   icon: "/mobile/icon-tasks.svg",
 };
 
 const STARTUPS_TAB: MobileTabLink = {
   tab: MobileTab.Startups,
-  label: "Startuplar",
   href: MOBILE_STARTUPS,
   icon: "/mobile/icon-startups.svg",
 };

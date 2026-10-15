@@ -8,6 +8,7 @@ import {
   MobileOfflineBanner,
 } from "@/components/mobile/mobile-states";
 import { useOnlineStatus } from "@/hooks/use-online-status";
+import { InLocale } from "@test/test-utils";
 
 describe("mobile states", () => {
   it("renders an empty state", () => {
@@ -43,6 +44,22 @@ describe("mobile states", () => {
     expect(screen.getByRole("status")).toHaveTextContent("Bağlantı yok");
     await user.click(screen.getByRole("button", { name: "Yenile" }));
     expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
+  it("shows the error and offline defaults in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileErrorState title="Calendar couldn't load" onRetry={vi.fn()} />
+        <MobileOfflineBanner onRefresh={vi.fn()} />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Something went wrong. Could you try again?",
+    );
+    expect(screen.getByRole("button", { name: "Try again" })).toBeVisible();
+    expect(screen.getByRole("status")).toHaveTextContent("No connection");
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeVisible();
   });
 });
 

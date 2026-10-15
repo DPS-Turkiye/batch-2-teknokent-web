@@ -4535,5 +4535,48 @@
       "expression": "Could speak freely",
       "confidence": "Confidence to progress"
     }
+  },
+  "mobile": {
+    "shell": {
+      "mainMenu": "Main menu",
+      "back": "Back",
+      "account": "Account",
+      "tabs": {
+        "home": "Home",
+        "calendar": "Calendar",
+        "tasks": "Tasks",
+        "startups": "Startups",
+        "messages": "Messages"
+      }
+    },
+    "states": {
+      "loading": "Loading",
+      "errorDescription": "Something went wrong. Could you try again?",
+      "retry": "Try again",
+      "offlineTitle": "No connection",
+      "offlineDetail": "Check your internet connection.",
+      "refresh": "Refresh"
+    },
+    "login": {
+      "title": "Sign in to your account",
+      "subtitle": "Continue with your Menton account.",
+      "email": "Email",
+      "password": "Password",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password",
+      "forgotPassword": "Forgot password",
+      "submit": "Sign In",
+      "submitting": "Signing in…",
+      "noAccount": "Don't have a Menton account yet?",
+      "whySignupOnWeb": "Why is sign-up on the web?",
+      "signUpOnWeb": "Sign up on the web",
+      "signupInfo": "Menton accounts open after a program application and coordinator approval. These steps are completed on the web; the app is for signing in with your existing account.",
+      "signUpOnWebShort": "Sign up on the web",
+      "close": "Close",
+      "resetTitle": "Reset your password",
+      "resetDescription": "We'll send a reset link to the email on your account.",
+      "sendLink": "Send link",
+      "cancel": "Cancel"
+    }
   }
 }

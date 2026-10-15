@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
@@ -54,6 +55,7 @@ function BrandVisual() {
 }
 
 export function MobileLoginView() {
+  const t = useTranslations("mobile.login");
   const login = useMobileLogin();
 
   if (login.needsEmailVerification) {
@@ -72,12 +74,8 @@ export function MobileLoginView() {
       <BrandVisual />
       <div className="relative -mt-12 flex flex-col gap-[22px] px-6 pb-10">
         <header className="flex flex-col gap-1.5 leading-[1.35]">
-          <h1 className="text-[26px] font-bold text-[#22262b]">
-            Hesabınıza giriş yapın
-          </h1>
-          <p className="text-[15px] text-[#676e78]">
-            Menton hesabınızla devam edin.
-          </p>
+          <h1 className="text-[26px] font-bold text-[#22262b]">{t("title")}</h1>
+          <p className="text-[15px] text-[#676e78]">{t("subtitle")}</p>
         </header>
 
         <form
@@ -88,7 +86,7 @@ export function MobileLoginView() {
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <label htmlFor="mobile-login-email" className={LABEL_CLASS}>
-                E-posta
+                {t("email")}
               </label>
               <div className={`${FIELD_CLASS} border-[#e9ecef]`}>
                 <input
@@ -106,7 +104,7 @@ export function MobileLoginView() {
 
             <div className="flex flex-col gap-2">
               <label htmlFor="mobile-login-password" className={LABEL_CLASS}>
-                Şifre
+                {t("password")}
               </label>
               <div
                 className={`${FIELD_CLASS} ${
@@ -131,7 +129,7 @@ export function MobileLoginView() {
                   type="button"
                   onClick={login.togglePassword}
                   aria-label={
-                    login.showPassword ? "Şifreyi gizle" : "Şifreyi göster"
+                    login.showPassword ? t("hidePassword") : t("showPassword")
                   }
                   aria-pressed={login.showPassword}
                   className="flex size-11 shrink-0 items-center justify-center -mr-3"
@@ -167,7 +165,7 @@ export function MobileLoginView() {
                 onClick={() => login.openSheet(MobileLoginSheet.PasswordReset)}
                 className="text-sm leading-[1.35] font-medium text-[#22262b]"
               >
-                Şifremi unuttum
+                {t("forgotPassword")}
               </button>
             </div>
           </div>
@@ -177,7 +175,7 @@ export function MobileLoginView() {
             variant={MobileButtonVariant.Neutral}
             disabled={login.isVerifying}
           >
-            {login.isVerifying ? "Giriş yapılıyor…" : "Giriş Yap"}
+            {login.isVerifying ? t("submitting") : t("submit")}
           </MobileButton>
         </form>
 
@@ -187,9 +185,9 @@ export function MobileLoginView() {
             onClick={() => login.openSheet(MobileLoginSheet.SignupInfo)}
             className="flex items-center gap-1.5 text-sm leading-[1.35] text-[#676e78]"
           >
-            Henüz Menton hesabınız yok mu?
+            {t("noAccount")}
             <Image src="/mobile/icon-info.svg" alt="" width={16} height={16} />
-            <span className="sr-only">Kayıt neden web’de?</span>
+            <span className="sr-only">{t("whySignupOnWeb")}</span>
           </button>
           <a
             href={SIGNUP_ON_WEB_HREF}
@@ -197,7 +195,7 @@ export function MobileLoginView() {
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-[15px] leading-[1.35] font-semibold text-[#22262b]"
           >
-            Web üzerinden kayıt olun
+            {t("signUpOnWeb")}
             <Image src="/mobile/icon-ext.svg" alt="" width={16} height={16} />
           </a>
         </div>
@@ -218,12 +216,10 @@ export function MobileLoginView() {
               id="signup-info-title"
               className="text-xl leading-[1.35] font-semibold text-[#22262b]"
             >
-              Kayıt neden web’de?
+              {t("whySignupOnWeb")}
             </h2>
             <p className="text-[14.5px] leading-[1.5] text-[#676e78]">
-              Menton hesapları program başvurusu ve koordinatör onayından sonra
-              açılır. Bu adımlar web’de tamamlanır; uygulama mevcut hesabınla
-              giriş yapman içindir.
+              {t("signupInfo")}
             </p>
           </div>
           <MobileButtonLink href={SIGNUP_ON_WEB_HREF} external>
@@ -233,13 +229,13 @@ export function MobileLoginView() {
               width={18}
               height={18}
             />
-            Web’de kayıt ol
+            {t("signUpOnWebShort")}
           </MobileButtonLink>
           <MobileButton
             variant={MobileButtonVariant.Ghost}
             onClick={login.closeSheet}
           >
-            Kapat
+            {t("close")}
           </MobileButton>
         </BottomSheet>
       ) : null}
@@ -254,15 +250,15 @@ export function MobileLoginView() {
               id="password-reset-title"
               className="text-xl leading-[1.35] font-semibold text-[#22262b]"
             >
-              Şifreni sıfırla
+              {t("resetTitle")}
             </h2>
             <p className="text-[14.5px] leading-[1.5] text-[#676e78]">
-              Hesabına bağlı e-postaya sıfırlama bağlantısı gönderelim.
+              {t("resetDescription")}
             </p>
           </div>
           <div className="flex flex-col gap-2">
             <label htmlFor="mobile-reset-email" className={LABEL_CLASS}>
-              E-posta
+              {t("email")}
             </label>
             <div className={`${FIELD_CLASS} border-[#e9ecef]`}>
               <input
@@ -294,13 +290,13 @@ export function MobileLoginView() {
             ) : null}
           </div>
           <MobileButton onClick={login.sendPasswordReset}>
-            Bağlantı gönder
+            {t("sendLink")}
           </MobileButton>
           <MobileButton
             variant={MobileButtonVariant.Ghost}
             onClick={login.closeSheet}
           >
-            Vazgeç
+            {t("cancel")}
           </MobileButton>
         </BottomSheet>
       ) : null}

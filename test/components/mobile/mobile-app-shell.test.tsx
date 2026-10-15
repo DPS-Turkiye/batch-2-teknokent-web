@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MobileAppShell } from "@/components/mobile/mobile-app-shell";
 import { type AppSession, UserRole } from "@/interfaces/session";
+import { InLocale } from "@test/test-utils";
 
 const replace = vi.fn();
 let pathname = "/m";
@@ -68,6 +69,23 @@ describe("MobileAppShell", () => {
       "page",
     );
     expect(screen.getByText("Ekran içeriği")).toBeInTheDocument();
+  });
+
+  it("names the tabs in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileAppShell>
+          <p>Screen</p>
+        </MobileAppShell>
+      </InLocale>,
+    );
+
+    const nav = screen.getByRole("navigation", { name: "Main menu" });
+    expect(
+      within(nav)
+        .getAllByRole("link")
+        .map((link) => link.textContent),
+    ).toEqual(["Home", "Calendar", "Tasks", "Messages"]);
   });
 
   it("gives a mentor Startuplar instead of Görevler", () => {
