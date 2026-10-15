@@ -125,7 +125,7 @@ function AgendaCard({
         nextLabel ? tone.card : "bg-[#f5f6f8]"
       }`}
     >
-      <span className="flex w-[52px] shrink-0 flex-col gap-0.5 leading-[1.35]">
+      <span className="flex min-w-[52px] shrink-0 flex-col gap-0.5 leading-[1.35] whitespace-nowrap">
         <span className="text-[15px] font-semibold text-[#22262b]">
           {entry.time}
         </span>
