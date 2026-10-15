@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -19,6 +20,7 @@ export function useMobileAccount() {
   const router = useRouter();
   const { session, logout } = useSession();
   const push = usePushDevice();
+  const t = useTranslations("mobile");
   const [isSigningOut, setIsSigningOut] = useState(false);
   const role = session?.role;
 
@@ -34,7 +36,7 @@ export function useMobileAccount() {
   return {
     avatarClass: accountAvatarClass(role),
     backHref: MOBILE_HOME,
-    chip: session ? accountChip(session) : "",
+    chip: session ? accountChip(session, t) : "",
     email: session?.email ?? "",
     fullName: session?.fullName ?? "",
     initials: initials(session?.fullName ?? ""),
@@ -42,6 +44,6 @@ export function useMobileAccount() {
     ...notifications,
     push,
     signOut,
-    webEdit: webEditLinkFor(role),
+    webEdit: webEditLinkFor(role, t),
   };
 }

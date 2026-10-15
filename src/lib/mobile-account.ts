@@ -3,42 +3,27 @@ import type {
   NotificationPreferences,
 } from "@/interfaces/notification";
 import { type AppSession, UserRole } from "@/interfaces/session";
-import { webHref } from "@/lib/mobile";
+import { type MobileTexts, webHref } from "@/lib/mobile";
 
-export type PreferenceRow = {
-  key: NotificationPreferenceKey;
-  label: string;
-  hint?: string;
-};
+/** A switch's label and hint are `accountDialogs.preferences.{key}`, shared with the web menu. */
+export type PreferenceRow = { key: NotificationPreferenceKey };
 
 const MENTEE_ROWS: PreferenceRow[] = [
-  { key: "messages", label: "Mesajlar" },
-  {
-    key: "meetingReminders",
-    label: "Görüşme hatırlatmaları",
-    hint: "30 dk önce",
-  },
-  { key: "newTasks", label: "Yeni görev atandığında" },
-  { key: "taskDeadlines", label: "Görev son tarihi", hint: "1 gün önce" },
+  { key: "messages" },
+  { key: "meetingReminders" },
+  { key: "newTasks" },
+  { key: "taskDeadlines" },
 ];
 
 const MENTOR_ROWS: PreferenceRow[] = [
-  { key: "messages", label: "Mesajlar" },
-  {
-    key: "meetingReminders",
-    label: "Görüşme hatırlatmaları",
-    hint: "30 dk önce",
-  },
-  { key: "meetingChanges", label: "Görüşme değişiklikleri" },
-  {
-    key: "startupActivity",
-    label: "Startup aktiviteleri",
-    hint: "dosya yükleme, görev tamamlama",
-  },
+  { key: "messages" },
+  { key: "meetingReminders" },
+  { key: "meetingChanges" },
+  { key: "startupActivity" },
 ];
 
 // Coordinators and admins only get messages; their other notices are GENERAL, which cannot be muted.
-const STAFF_ROWS: PreferenceRow[] = [{ key: "messages", label: "Mesajlar" }];
+const STAFF_ROWS: PreferenceRow[] = [{ key: "messages" }];
 
 export function preferenceRowsFor(role?: UserRole | null) {
   if (role === UserRole.Mentor) return MENTOR_ROWS;
@@ -56,7 +41,7 @@ export function toggledPreferences(
 }
 
 /** "Atlas AI · Takım yetkilisi" for a mentee, "Mentor · UX/UI" for a mentor. */
-export function accountChip(session: AppSession) {
+export function accountChip(session: AppSession, t: MobileTexts["t"]) {
   if (session.role !== UserRole.Mentor) {
     return [session.organizationName, session.jobTitle]
       .filter(Boolean)
@@ -64,9 +49,10 @@ export function accountChip(session: AppSession) {
   }
   // A mentor whose title is just "Mentor" would read "Mentor · Mentor".
   const title = session.jobTitle?.trim();
+  const mentor = t("meeting.mentor");
   return title && title.toLocaleLowerCase("tr-TR") !== "mentor"
-    ? `Mentor · ${title}`
-    : "Mentor";
+    ? `${mentor} · ${title}`
+    : mentor;
 }
 
 export function accountAvatarClass(role?: UserRole | null) {
@@ -75,16 +61,19 @@ export function accountAvatarClass(role?: UserRole | null) {
     : "bg-[#fff1ec] text-[#e0522a]";
 }
 
-export function webEditLinkFor(role?: UserRole | null) {
+export function webEditLinkFor(
+  role: UserRole | null | undefined,
+  t: MobileTexts["t"],
+) {
   return role === UserRole.Mentor
     ? {
-        title: "Müsaitlik ve uzmanlık",
-        hint: "Takvim müsaitliği ve profil web üzerinden düzenlenir.",
+        title: t("account.webEditMentor"),
+        hint: t("account.webEditMentorHint"),
         href: webHref("/mentor-profile"),
       }
     : {
-        title: "Profil bilgilerini düzenle",
-        hint: "Profil, startup ve dosyalar web üzerinden düzenlenir.",
+        title: t("account.webEditMentee"),
+        hint: t("account.webEditMenteeHint"),
         href: webHref("/profile"),
       };
 }

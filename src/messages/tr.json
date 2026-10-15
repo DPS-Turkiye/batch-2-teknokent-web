@@ -4791,6 +4791,50 @@
       "files": "Dosyalar",
       "notesOnWeb": "Görüşme notları ve değerlendirmeler web’de.",
       "openOnWeb": "Web’de Aç"
+    },
+    "account": {
+      "title": "Hesap",
+      "backHome": "Ana sayfaya dön",
+      "notifications": "Bildirimler",
+      "notificationsCaps": "BİLDİRİMLER",
+      "preferencesLoading": "Bildirim ayarları yükleniyor",
+      "preferencesFailed": "Bildirim ayarları yüklenemedi.",
+      "saveFailed": "Ayar kaydedilemedi. Tekrar dene.",
+      "openOnWeb": "Web’de Aç",
+      "signOut": "Çıkış yap",
+      "signingOut": "Çıkış yapılıyor…",
+      "pushTitle": "Bu cihazda bildirimler",
+      "pushFailed": "Açılamadı. Tekrar dene.",
+      "pushEnable": "Aç",
+      "push": {
+        "checking": "Kontrol ediliyor…",
+        "unsupported": "Bu tarayıcı bildirimleri desteklemiyor.",
+        "needs-install": "iPhone’da bildirim için Paylaş → Ana Ekrana Ekle ile Menton’u ekle.",
+        "off": "Telefonuna anlık bildirim gelsin.",
+        "on": "Açık",
+        "blocked": "Tarayıcı ayarlarından bildirim izni ver."
+      },
+      "webEditMentor": "Müsaitlik ve uzmanlık",
+      "webEditMentorHint": "Takvim müsaitliği ve profil web üzerinden düzenlenir.",
+      "webEditMentee": "Profil bilgilerini düzenle",
+      "webEditMenteeHint": "Profil, startup ve dosyalar web üzerinden düzenlenir."
+    },
+    "notifications": {
+      "title": "Bildirimler",
+      "backHome": "Ana sayfaya dön",
+      "markAllRead": "Tümü okundu",
+      "loadError": "Bildirimler yüklenemedi.",
+      "emptyTitle": "Bildirim yok",
+      "emptyDescription": "Yeni bir mesaj, görev ya da görüşme olduğunda burada görünecek.",
+      "unread": "Okunmadı",
+      "today": "Bugün",
+      "earlier": "Önceki",
+      "age": {
+        "now": "Şimdi",
+        "minutes": "{minutes} dk",
+        "hours": "{hours} sa",
+        "days": "{days} gün"
+      }
     }
   }
 }

@@ -2,6 +2,7 @@
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import {
@@ -19,6 +20,7 @@ import type { DashboardNotification } from "@/types/landing";
 export function useMobileNotifications() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const t = useTranslations("mobile");
   const notifications = useDashboardNotifications();
   const markAll = useMutation({
     mutationFn: markAllNotificationsRead,
@@ -27,8 +29,8 @@ export function useMobileNotifications() {
   });
 
   const groups = useMemo(
-    () => groupNotifications(notifications.notifications),
-    [notifications.notifications],
+    () => groupNotifications(notifications.notifications, t),
+    [notifications.notifications, t],
   );
 
   const open = (notification: DashboardNotification) => {

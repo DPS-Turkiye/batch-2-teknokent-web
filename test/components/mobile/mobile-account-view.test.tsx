@@ -6,6 +6,7 @@ import { MobileAccountView } from "@/components/mobile/mobile-account-view";
 import type { useMobileAccount } from "@/hooks/use-mobile-account";
 import { PushDeviceState } from "@/hooks/use-push-device";
 import { preferenceRowsFor } from "@/lib/mobile-account";
+import { InLocale } from "@test/test-utils";
 
 type Account = ReturnType<typeof useMobileAccount>;
 
@@ -73,6 +74,31 @@ describe("MobileAccountView", () => {
     expect(
       screen.getByRole("switch", { name: "Görev son tarihi" }),
     ).not.toBeChecked();
+  });
+
+  it("labels the switches, push row and sign-out in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileAccountView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Account" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Back to home" })).toBeVisible();
+    expect(screen.getByRole("switch", { name: "Messages" })).toBeChecked();
+    expect(
+      screen.getByRole("switch", { name: "Task due date" }),
+    ).not.toBeChecked();
+    expect(screen.getByText("1 day before")).toBeInTheDocument();
+    expect(
+      screen.getByText("Notifications on this device"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Get instant notifications on your phone."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Turn on" })).toBeVisible();
+    expect(screen.getByRole("link", { name: "Open on Web" })).toBeVisible();
+    expect(screen.getByRole("button", { name: "Sign out" })).toBeVisible();
   });
 
   it("flips a switch", async () => {

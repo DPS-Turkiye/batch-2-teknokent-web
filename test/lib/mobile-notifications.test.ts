@@ -7,8 +7,11 @@ import {
   notificationAge,
   notificationTone,
 } from "@/lib/mobile-notifications";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 25, 12, 0);
+const TR = mobileTexts("tr");
+const EN = mobileTexts("en");
 
 function notification(id: string, createdAt: Date) {
   return {
@@ -54,23 +57,37 @@ describe("notificationTone", () => {
 describe("notificationAge", () => {
   it("counts minutes, hours, then days", () => {
     expect(
-      notificationAge(new Date(2026, 8, 25, 11, 59, 30).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 25, 11, 59, 30).toISOString(), TR, NOW),
     ).toBe("Şimdi");
     expect(
-      notificationAge(new Date(2026, 8, 25, 11, 48).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 25, 11, 48).toISOString(), TR, NOW),
     ).toBe("12 dk");
     expect(
-      notificationAge(new Date(2026, 8, 25, 9, 0).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 25, 9, 0).toISOString(), TR, NOW),
     ).toBe("3 sa");
     expect(
-      notificationAge(new Date(2026, 8, 24, 20, 0).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 24, 20, 0).toISOString(), TR, NOW),
     ).toBe("Dün");
     expect(
-      notificationAge(new Date(2026, 8, 23, 20, 0).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 23, 20, 0).toISOString(), TR, NOW),
     ).toBe("2 gün");
     expect(
-      notificationAge(new Date(2026, 8, 10, 9, 0).toISOString(), NOW),
+      notificationAge(new Date(2026, 8, 10, 9, 0).toISOString(), TR, NOW),
     ).toBe("10 Eyl");
+  });
+
+  it("counts them in English", () => {
+    const age = (date: Date) => notificationAge(date.toISOString(), EN, NOW);
+    expect(age(new Date(2026, 8, 25, 11, 48))).toBe("12 min");
+    expect(age(new Date(2026, 8, 24, 20, 0))).toBe("Yesterday");
+    expect(age(new Date(2026, 8, 10, 9, 0))).toBe("Sep 10");
+    expect(
+      groupNotifications(
+        [notification("old", new Date(2026, 8, 20))],
+        EN.t,
+        NOW,
+      ).map((group) => group.label),
+    ).toEqual(["Earlier"]);
   });
 });
 
@@ -82,6 +99,7 @@ describe("groupNotifications", () => {
         notification("morning", new Date(2026, 8, 25, 9, 0)),
         notification("noon", new Date(2026, 8, 25, 11, 0)),
       ],
+      TR.t,
       NOW,
     );
 
@@ -95,9 +113,11 @@ describe("groupNotifications", () => {
 
   it("drops an empty group", () => {
     expect(
-      groupNotifications([notification("old", new Date(2026, 8, 20))], NOW).map(
-        (group) => group.label,
-      ),
+      groupNotifications(
+        [notification("old", new Date(2026, 8, 20))],
+        TR.t,
+        NOW,
+      ).map((group) => group.label),
     ).toEqual(["Önceki"]);
   });
 });

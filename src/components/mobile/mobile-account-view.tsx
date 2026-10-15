@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileToggle } from "@/components/mobile/mobile-toggle";
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar";
@@ -8,29 +10,20 @@ import { PushDeviceState } from "@/hooks/use-push-device";
 
 const CARD_CLASS = "w-full rounded-[24px] bg-white";
 
-const PUSH_HINTS: Record<PushDeviceState, string> = {
-  [PushDeviceState.Checking]: "Kontrol ediliyor…",
-  [PushDeviceState.Unsupported]: "Bu tarayıcı bildirimleri desteklemiyor.",
-  [PushDeviceState.NeedsInstall]:
-    "iPhone’da bildirim için Paylaş → Ana Ekrana Ekle ile Menton’u ekle.",
-  [PushDeviceState.Off]: "Telefonuna anlık bildirim gelsin.",
-  [PushDeviceState.On]: "Açık",
-  [PushDeviceState.Blocked]: "Tarayıcı ayarlarından bildirim izni ver.",
-};
-
 function PushDeviceRow({
   push,
 }: {
   push: ReturnType<typeof useMobileAccount>["push"];
 }) {
+  const t = useTranslations("mobile.account");
   return (
     <div className="flex items-center gap-3 px-[18px] py-3.5">
       <div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-[1.35]">
         <p className="text-[15px] font-medium text-[#22262b]">
-          Bu cihazda bildirimler
+          {t("pushTitle")}
         </p>
         <p className="text-[12.5px] text-[#858c96]">
-          {push.failed ? "Açılamadı. Tekrar dene." : PUSH_HINTS[push.state]}
+          {push.failed ? t("pushFailed") : t(`push.${push.state}`)}
         </p>
       </div>
       {push.state === PushDeviceState.Off ? (
@@ -40,7 +33,7 @@ function PushDeviceRow({
           disabled={push.isEnabling}
           className="shrink-0 rounded-full bg-[var(--mobile-accent)] px-4 py-2.5 text-[13.5px] leading-[1.35] font-semibold text-white disabled:opacity-50"
         >
-          Aç
+          {t("pushEnable")}
         </button>
       ) : null}
     </div>
@@ -48,14 +41,16 @@ function PushDeviceRow({
 }
 
 export function MobileAccountView() {
+  const t = useTranslations("mobile.account");
+  const tPreferences = useTranslations("accountDialogs.preferences");
   const account = useMobileAccount();
 
   return (
     <div className="min-h-dvh bg-[#fbfbfc]">
       <MobileTopBar
-        title="Hesap"
+        title={t("title")}
         backHref={account.backHref}
-        backLabel="Ana sayfaya dön"
+        backLabel={t("backHome")}
         tone="white"
       />
       <div className="flex flex-col gap-6 px-5 pt-2 pb-10">
@@ -78,15 +73,18 @@ export function MobileAccountView() {
           ) : null}
         </section>
 
-        <section className="flex flex-col gap-2" aria-label="Bildirimler">
+        <section
+          className="flex flex-col gap-2"
+          aria-label={t("notifications")}
+        >
           <h2 className="text-[13px] leading-[1.35] font-semibold text-[#858c96]">
-            BİLDİRİMLER
+            {t("notificationsCaps")}
           </h2>
           <div className={`${CARD_CLASS} py-1`}>
             <PushDeviceRow push={account.push} />
           </div>
           {account.preferencesLoading ? (
-            <MobileListSkeleton label="Bildirim ayarları yükleniyor" />
+            <MobileListSkeleton label={t("preferencesLoading")} />
           ) : account.preferences ? (
             <ul className={`${CARD_CLASS} divide-y divide-[#f0f2f4] py-1`}>
               {account.rows.map((row) => (
@@ -96,14 +94,16 @@ export function MobileAccountView() {
                 >
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5 leading-[1.35]">
                     <p className="text-[15px] font-medium text-[#22262b]">
-                      {row.label}
+                      {tPreferences(`${row.key}.label`)}
                     </p>
-                    {row.hint ? (
-                      <p className="text-[12.5px] text-[#858c96]">{row.hint}</p>
+                    {tPreferences(`${row.key}.hint`) ? (
+                      <p className="text-[12.5px] text-[#858c96]">
+                        {tPreferences(`${row.key}.hint`)}
+                      </p>
                     ) : null}
                   </div>
                   <MobileToggle
-                    label={row.label}
+                    label={tPreferences(`${row.key}.label`)}
                     checked={account.preferences?.[row.key] ?? false}
                     onChange={() => account.toggle(row.key)}
                   />
@@ -112,7 +112,7 @@ export function MobileAccountView() {
             </ul>
           ) : (
             <p className="text-[13px] leading-[1.35] text-[#d9464b]">
-              Bildirim ayarları yüklenemedi.
+              {t("preferencesFailed")}
             </p>
           )}
           {account.saveFailed ? (
@@ -120,7 +120,7 @@ export function MobileAccountView() {
               role="alert"
               className="text-[12.5px] leading-[1.35] text-[#d9464b]"
             >
-              Ayar kaydedilemedi. Tekrar dene.
+              {t("saveFailed")}
             </p>
           ) : null}
         </section>
@@ -140,7 +140,7 @@ export function MobileAccountView() {
             href={account.webEdit.href}
             className="shrink-0 rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] leading-[1.35] font-semibold text-[#22262b]"
           >
-            Web’de Aç
+            {t("openOnWeb")}
           </a>
         </section>
 
@@ -150,7 +150,7 @@ export function MobileAccountView() {
           disabled={account.isSigningOut}
           className={`${CARD_CLASS} px-[18px] py-4 text-[15px] leading-[1.35] font-semibold text-[#d9464b] disabled:opacity-50`}
         >
-          {account.isSigningOut ? "Çıkış yapılıyor…" : "Çıkış yap"}
+          {account.isSigningOut ? t("signingOut") : t("signOut")}
         </button>
       </div>
     </div>

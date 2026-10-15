@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   MobileEmptyState,
@@ -19,6 +20,8 @@ function NotificationRow({
   notification: DashboardNotification;
   onOpen: () => void;
 }) {
+  const t = useTranslations("mobile");
+  const locale = useLocale();
   const unread = !notification.readAt;
   const tone = notificationTone(notification.category);
   return (
@@ -49,12 +52,12 @@ function NotificationRow({
         </span>
         <span className="flex shrink-0 flex-col items-end gap-2 leading-[1.35]">
           <span className="text-xs text-[#858c96]">
-            {notificationAge(notification.createdAt)}
+            {notificationAge(notification.createdAt, { t, locale })}
           </span>
           {unread ? (
             <span
               className="size-2 rounded-full bg-[var(--mobile-accent)]"
-              aria-label="Okunmadı"
+              aria-label={t("notifications.unread")}
             />
           ) : null}
         </span>
@@ -64,14 +67,15 @@ function NotificationRow({
 }
 
 export function MobileNotificationsView() {
+  const t = useTranslations("mobile.notifications");
   const notifications = useMobileNotifications();
 
   return (
     <div className="min-h-dvh bg-white">
       <MobileTopBar
-        title="Bildirimler"
+        title={t("title")}
         backHref={notifications.backHref}
-        backLabel="Ana sayfaya dön"
+        backLabel={t("backHome")}
         action={
           notifications.hasUnread ? (
             <button
@@ -80,7 +84,7 @@ export function MobileNotificationsView() {
               disabled={notifications.isMarkingAll}
               className="text-[13.5px] leading-[1.35] font-medium whitespace-nowrap text-[#676e78] disabled:opacity-50"
             >
-              Tümü okundu
+              {t("markAllRead")}
             </button>
           ) : null
         }
@@ -89,12 +93,12 @@ export function MobileNotificationsView() {
         {notifications.isLoading ? (
           <MobileListSkeleton />
         ) : notifications.isError ? (
-          <MobileErrorState title="Bildirimler yüklenemedi." />
+          <MobileErrorState title={t("loadError")} />
         ) : notifications.groups.length === 0 ? (
           <MobileEmptyState
             icon="/mobile/icon-bell.svg"
-            title="Bildirim yok"
-            description="Yeni bir mesaj, görev ya da görüşme olduğunda burada görünecek."
+            title={t("emptyTitle")}
+            description={t("emptyDescription")}
           />
         ) : (
           notifications.groups.map((group) => (

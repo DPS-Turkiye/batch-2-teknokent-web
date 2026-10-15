@@ -4791,6 +4791,50 @@
       "files": "Files",
       "notesOnWeb": "Meeting notes and ratings are on the web.",
       "openOnWeb": "Open on Web"
+    },
+    "account": {
+      "title": "Account",
+      "backHome": "Back to home",
+      "notifications": "Notifications",
+      "notificationsCaps": "NOTIFICATIONS",
+      "preferencesLoading": "Loading notification settings",
+      "preferencesFailed": "Couldn't load notification settings.",
+      "saveFailed": "Couldn't save the setting. Try again.",
+      "openOnWeb": "Open on Web",
+      "signOut": "Sign out",
+      "signingOut": "Signing out…",
+      "pushTitle": "Notifications on this device",
+      "pushFailed": "Couldn't turn them on. Try again.",
+      "pushEnable": "Turn on",
+      "push": {
+        "checking": "Checking…",
+        "unsupported": "This browser doesn't support notifications.",
+        "needs-install": "To get notifications on iPhone, add Menton with Share → Add to Home Screen.",
+        "off": "Get instant notifications on your phone.",
+        "on": "On",
+        "blocked": "Allow notifications in your browser settings."
+      },
+      "webEditMentor": "Availability and expertise",
+      "webEditMentorHint": "Calendar availability and your profile are edited on the web.",
+      "webEditMentee": "Edit profile details",
+      "webEditMenteeHint": "Your profile, startup and files are edited on the web."
+    },
+    "notifications": {
+      "title": "Notifications",
+      "backHome": "Back to home",
+      "markAllRead": "Mark all read",
+      "loadError": "Couldn't load notifications.",
+      "emptyTitle": "No notifications",
+      "emptyDescription": "New messages, tasks and meetings will show up here.",
+      "unread": "Unread",
+      "today": "Today",
+      "earlier": "Earlier",
+      "age": {
+        "now": "Now",
+        "minutes": "{minutes} min",
+        "hours": "{hours} h",
+        "days": "{days} d"
+      }
     }
   }
 }
