@@ -22,7 +22,6 @@ import {
   agendaDays,
   agendaEntries,
   canJoin,
-  ENTRY_KIND_LABELS,
   entryTimeHint,
   entryTimeLine,
   eventRangeFor,
@@ -36,7 +35,6 @@ import {
   weekStrip,
 } from "@/lib/mobile-calendar";
 import {
-  AWAITING_APPROVAL_LABEL,
   mentorAgendaEntries,
   mentorAwaitingEntries,
   mentorEntryDetail,
@@ -86,7 +84,12 @@ export function useMobileCalendar() {
     if (!isMentor) return all;
     return [
       ...mentorAgendaEntries(all, requests.data ?? [], texts),
-      ...mentorAwaitingEntries(proposals.data ?? [], requests.data ?? [], now),
+      ...mentorAwaitingEntries(
+        proposals.data ?? [],
+        requests.data ?? [],
+        texts,
+        now,
+      ),
     ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
   }, [
     meetings.data,
@@ -127,16 +130,16 @@ export function useMobileCalendar() {
   });
 
   return {
-    agenda: agendaDays(selected, entries, now),
+    agenda: agendaDays(selected, entries, now, texts),
     closeEntry: () => setOpenId(null),
     detail: open
       ? {
           entry: open,
           kindLabel: open.awaitingApproval
-            ? AWAITING_APPROVAL_LABEL
-            : ENTRY_KIND_LABELS[open.kind],
-          timeLine: entryTimeLine(open),
-          timeHint: entryTimeHint(open, now),
+            ? texts.t("calendar.awaitingApproval")
+            : texts.t(`calendar.kinds.${open.kind}`),
+          timeLine: entryTimeLine(open, texts),
+          timeHint: entryTimeHint(open, now, texts.t),
           link: open.meeting?.meetLink
             ? {
                 href: open.meeting.meetLink,
@@ -167,7 +170,7 @@ export function useMobileCalendar() {
     isLoading: meetings.isLoading,
     month: {
       isOpen: isMonthOpen,
-      label: monthLabel(month),
+      label: monthLabel(month, texts.locale),
       cells: monthCells(month, entries, selected, now),
       open: () => setIsMonthOpen(true),
       close: () => setIsMonthOpen(false),
@@ -183,14 +186,14 @@ export function useMobileCalendar() {
       },
     },
     nextId: next?.id ?? null,
-    nextLabel: next ? nextEntryLabel(next, now) : null,
+    nextLabel: next ? nextEntryLabel(next, now, texts.t) : null,
     openEntry: (id: string) => setOpenId(id),
     retry: () => {
       void meetings.refetch();
       void events.refetch();
     },
     selectDay,
-    strip: weekStrip(selected, entries, now),
-    title: monthLabel(selected),
+    strip: weekStrip(selected, entries, now, texts.locale),
+    title: monthLabel(selected, texts.locale),
   };
 }

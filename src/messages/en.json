@@ -4653,6 +4653,55 @@
       "read": "Read",
       "announcementsReadOnly": "Announcements are read-only; you can write to the coordinator in the Program conversation.",
       "closed": "This conversation is closed; no new messages can be sent."
+    },
+    "calendar": {
+      "title": "Calendar",
+      "week": "Week",
+      "day": "{weekday} {day}",
+      "dayToday": "{weekday} {day}, today",
+      "loadError": "Couldn't load the calendar.",
+      "emptyTitle": "Nothing planned this week.",
+      "emptyDescription": "Tap the dates to look at another day or month.",
+      "minutes": "{minutes} min",
+      "deadlineDetail": "{program} · deadline",
+      "kinds": {
+        "meeting": "Mentorship meeting",
+        "event": "Program event",
+        "deadline": "Deadline"
+      },
+      "startsIn": {
+        "now": "now",
+        "minutes": "in {minutes} min",
+        "hours": "{hours, plural, one {in # hour} other {in # hours}}",
+        "tomorrow": "tomorrow",
+        "days": "{days, plural, one {in # day} other {in # days}}"
+      },
+      "when": {
+        "today": "today",
+        "tomorrow": "tomorrow",
+        "past": "past"
+      },
+      "nextLabel": "Next · {when}",
+      "awaitingApproval": "Awaiting approval",
+      "awaitingDetail": "{topic} · proposed time · awaiting approval",
+      "proposalTopic": "Meeting proposal",
+      "members": "{count, plural, one {# member} other {# members}}",
+      "leadAndMembers": "{lead} (lead) + {count, plural, one {# member} other {# members}}",
+      "lead": "{lead} (lead)",
+      "agendaLine": "Agenda: {agenda}",
+      "agenda": "Agenda",
+      "description": "Description",
+      "youMentor": "You · Mentor",
+      "sendMessage": "Send message",
+      "join": "Join meeting",
+      "joinOpensBefore": "The link opens {minutes} min before the meeting",
+      "noLink": "This meeting has no link yet",
+      "previousMonth": "Previous month",
+      "nextMonth": "Next month",
+      "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+      "legendMeeting": "Meeting",
+      "legendEvent": "Event",
+      "backToToday": "Back to today"
     }
   }
 }

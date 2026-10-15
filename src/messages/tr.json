@@ -4653,6 +4653,55 @@
       "read": "Okundu",
       "announcementsReadOnly": "Duyurular yalnızca okunur; koordinatöre Program konuşmasından yazabilirsin.",
       "closed": "Bu konuşma kapandı; yeni mesaj gönderilemez."
+    },
+    "calendar": {
+      "title": "Takvim",
+      "week": "Hafta",
+      "day": "{weekday} {day}",
+      "dayToday": "{weekday} {day}, bugün",
+      "loadError": "Takvim yüklenemedi.",
+      "emptyTitle": "Bu hafta planlı bir şey yok.",
+      "emptyDescription": "Başka bir güne ya da aya bakmak için tarihlere dokun.",
+      "minutes": "{minutes} dk",
+      "deadlineDetail": "{program} · son tarih",
+      "kinds": {
+        "meeting": "Mentorluk görüşmesi",
+        "event": "Program etkinliği",
+        "deadline": "Son tarih"
+      },
+      "startsIn": {
+        "now": "şimdi",
+        "minutes": "{minutes} dk sonra",
+        "hours": "{hours} saat sonra",
+        "tomorrow": "yarın",
+        "days": "{days} gün sonra"
+      },
+      "when": {
+        "today": "bugün",
+        "tomorrow": "yarın",
+        "past": "geçti"
+      },
+      "nextLabel": "Sıradaki · {when}",
+      "awaitingApproval": "Onay bekliyor",
+      "awaitingDetail": "{topic} · önerilen saat · onay bekliyor",
+      "proposalTopic": "Görüşme önerisi",
+      "members": "{count} üye",
+      "leadAndMembers": "{lead} (yetkili) + {count} üye",
+      "lead": "{lead} (yetkili)",
+      "agendaLine": "Gündem: {agenda}",
+      "agenda": "Gündem",
+      "description": "Açıklama",
+      "youMentor": "Sen · Mentor",
+      "sendMessage": "Mesaj gönder",
+      "join": "Toplantıya katıl",
+      "joinOpensBefore": "Bağlantı görüşmeden {minutes} dk önce aktif olur",
+      "noLink": "Bu görüşmenin henüz bağlantısı yok",
+      "previousMonth": "Önceki ay",
+      "nextMonth": "Sonraki ay",
+      "monthWeekdays": ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"],
+      "legendMeeting": "Görüşme",
+      "legendEvent": "Etkinlik",
+      "backToToday": "Bugüne dön"
     }
   }
 }

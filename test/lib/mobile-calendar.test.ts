@@ -93,7 +93,7 @@ describe("agendaEntries", () => {
 
 describe("weekStrip", () => {
   it("lays out Monday to Sunday with today selected and each day's kinds", () => {
-    const strip = weekStrip(new Date(2026, 8, 23), ENTRIES, NOW);
+    const strip = weekStrip(new Date(2026, 8, 23), ENTRIES, NOW, "tr");
 
     expect(strip.map((day) => `${day.weekday} ${day.dayNumber}`)).toEqual([
       "Pzt 21",
@@ -107,25 +107,43 @@ describe("weekStrip", () => {
     expect(strip[2]).toMatchObject({ isToday: true, isSelected: true });
     expect(strip[3]?.kinds).toEqual([MobileAgendaKind.Meeting]);
     expect(strip[5]?.isWeekend).toBe(true);
+    expect(
+      weekStrip(new Date(2026, 8, 23), ENTRIES, NOW, "en").map(
+        (day) => day.weekday,
+      ),
+    ).toEqual(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]);
   });
 });
 
 describe("agendaDays and dayHeading", () => {
   it("lists the selected day and the rest of its week that have entries", () => {
-    const days = agendaDays(new Date(2026, 8, 23), ENTRIES, NOW);
+    const days = agendaDays(new Date(2026, 8, 23), ENTRIES, NOW, mobileTexts());
 
     expect(days.map((day) => day.heading)).toEqual([
       "Bugün · Çarşamba 23 Eylül",
       "Yarın · Perşembe 24 Eylül",
       "Cuma 25 Eylül",
     ]);
+    expect(
+      agendaDays(new Date(2026, 8, 23), ENTRIES, NOW, mobileTexts("en")).map(
+        (day) => day.heading,
+      ),
+    ).toEqual([
+      "Today · Wednesday, September 23",
+      "Tomorrow · Thursday, September 24",
+      "Friday, September 25",
+    ]);
   });
 
   it("starts from a later selected day", () => {
     expect(
-      agendaDays(new Date(2026, 8, 25), ENTRIES, NOW).map((day) => day.heading),
+      agendaDays(new Date(2026, 8, 25), ENTRIES, NOW, mobileTexts()).map(
+        (day) => day.heading,
+      ),
     ).toEqual(["Cuma 25 Eylül"]);
-    expect(dayHeading(new Date(2026, 8, 30), NOW)).toBe("Çarşamba 30 Eylül");
+    expect(dayHeading(new Date(2026, 8, 30), NOW, mobileTexts())).toBe(
+      "Çarşamba 30 Eylül",
+    );
   });
 });
 
@@ -134,11 +152,16 @@ describe("next entry", () => {
     const next = nextEntry(ENTRIES, NOW);
 
     expect(next?.title).toBe("Ürün-Pazar Uyumu Atölyesi");
-    expect(nextEntryLabel(next!, NOW)).toBe("Sıradaki · 2 saat sonra");
-    expect(nextEntryLabel(next!, new Date(2026, 8, 23, 15, 45))).toBe(
+    const { t } = mobileTexts();
+    expect(nextEntryLabel(next!, NOW, t)).toBe("Sıradaki · 2 saat sonra");
+    expect(nextEntryLabel(next!, new Date(2026, 8, 23, 15, 45), t)).toBe(
       "Sıradaki · 15 dk sonra",
     );
-    expect(nextEntryLabel(ENTRIES[1]!, NOW)).toBe("Sıradaki · yarın");
+    expect(nextEntryLabel(ENTRIES[1]!, NOW, t)).toBe("Sıradaki · yarın");
+
+    const en = mobileTexts("en").t;
+    expect(nextEntryLabel(next!, NOW, en)).toBe("Next · in 2 hours");
+    expect(nextEntryLabel(ENTRIES[1]!, NOW, en)).toBe("Next · tomorrow");
   });
 });
 
@@ -166,8 +189,13 @@ describe("detail texts", () => {
   it("describes the time and the link", () => {
     const meeting = ENTRIES[1]!;
 
-    expect(entryTimeLine(meeting)).toBe("Perşembe 24 Eylül · 14:00–15:00");
-    expect(entryTimeHint(meeting, NOW)).toBe("60 dk · yarın");
+    expect(entryTimeLine(meeting, mobileTexts())).toBe(
+      "Perşembe 24 Eylül · 14:00–15:00",
+    );
+    expect(entryTimeHint(meeting, NOW, mobileTexts().t)).toBe("60 dk · yarın");
+    expect(entryTimeLine(meeting, mobileTexts("en"))).toBe(
+      "Thursday, September 24 · 02:00 PM–03:00 PM",
+    );
     expect(
       meetingLinkLabel("https://meet.google.com/abc", mobileTexts().t),
     ).toBe("Google Meet");

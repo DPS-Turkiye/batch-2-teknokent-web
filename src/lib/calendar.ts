@@ -22,31 +22,6 @@ export const MENTEE_CALENDAR_FILTERS = [
   CalendarFilter.Deliverable,
 ];
 
-export const DAY_SHORT_LABELS = [
-  "Pzt",
-  "Sal",
-  "Çar",
-  "Per",
-  "Cum",
-  "Cmt",
-  "Paz",
-] as const;
-
-export const MONTH_LABELS = [
-  "Ocak",
-  "Şubat",
-  "Mart",
-  "Nisan",
-  "Mayıs",
-  "Haziran",
-  "Temmuz",
-  "Ağustos",
-  "Eylül",
-  "Ekim",
-  "Kasım",
-  "Aralık",
-] as const;
-
 export function hourOf(iso: string) {
   return new Date(iso).getHours();
 }
@@ -123,8 +98,12 @@ export function monthGridCells(monthDate: Date): MonthCell[] {
   return cells;
 }
 
-export function monthLabel(date: Date) {
-  return `${MONTH_LABELS[date.getMonth()]} ${date.getFullYear()}`;
+/** "Ekim 2026" / "October 2026" */
+export function monthLabel(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric",
+  }).format(date);
 }
 
 export const MEETING_PICKER_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
