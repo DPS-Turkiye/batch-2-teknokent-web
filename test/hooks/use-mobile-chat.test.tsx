@@ -248,6 +248,19 @@ describe("useMobileChat for a mentorship thread", () => {
 
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.canSend).toBe(false);
+    expect(result.current.closedNote).toMatch(/kapandı/);
+  });
+
+  it("does not call the thread closed while it is still loading", () => {
+    vi.mocked(getMentorRequest).mockReturnValue(new Promise(() => {}));
+    const { result } = renderHook(
+      () => useMobileChat(MobileConversationKind.Mentorship, "r1"),
+      { wrapper },
+    );
+
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.canSend).toBe(false);
+    expect(result.current.closedNote).toBeNull();
   });
 });
 
