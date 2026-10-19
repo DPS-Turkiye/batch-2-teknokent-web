@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
@@ -7,6 +8,19 @@ import {
   ratingResponseRate,
   satisfactionKpi,
 } from "@/lib/meeting-ratings";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "meetingRatings",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "meetingRatings",
+});
 
 function ratings(
   overrides: Partial<ProgramMeetingRatings> = {},
@@ -24,10 +38,11 @@ function ratings(
 }
 
 describe("meeting ratings", () => {
-  it("writes an average with one decimal and a Turkish comma", () => {
-    expect(formatRating(4.25)).toBe("4,3");
-    expect(formatRating(4)).toBe("4,0");
-    expect(formatRating(null)).toBe("—");
+  it("writes an average with one decimal in the page's number format", () => {
+    expect(formatRating(4.25, "tr")).toBe("4,3");
+    expect(formatRating(4, "tr")).toBe("4,0");
+    expect(formatRating(4.25, "en")).toBe("4.3");
+    expect(formatRating(null, "tr")).toBe("—");
   });
 
   it("gives the share of held meetings a mentee rated", () => {
@@ -36,26 +51,32 @@ describe("meeting ratings", () => {
   });
 
   it("fills the Memnuniyet KPI, or says why it is empty", () => {
-    expect(satisfactionKpi(ratings())).toEqual({
+    expect(satisfactionKpi(ratings(), t, "tr")).toEqual({
       value: "4,3/5",
       detail: "9/12 görüşme değerlendirildi",
     });
+    expect(satisfactionKpi(ratings(), tEn, "en")).toEqual({
+      value: "4.3/5",
+      detail: "9/12 meetings rated",
+    });
     expect(
-      satisfactionKpi(ratings({ average: null, ratedMeetingCount: 0 })).detail,
+      satisfactionKpi(ratings({ average: null, ratedMeetingCount: 0 }), t, "tr")
+        .detail,
     ).toBe("henüz değerlendirme yok");
     expect(
-      satisfactionKpi(ratings({ average: null, heldMeetingCount: 0 })).detail,
+      satisfactionKpi(ratings({ average: null, heldMeetingCount: 0 }), t, "tr")
+        .detail,
     ).toBe("bu pencerede görüşme yok");
-    expect(satisfactionKpi(undefined).value).toBe("—");
+    expect(satisfactionKpi(undefined, t, "tr").value).toBe("—");
   });
 
-  it("labels each question's average, including an unanswered one", () => {
+  it("lists each question's average, including an unanswered one", () => {
     const rows = ratingQuestionRows(ratings());
-    expect(rows.map((row) => row.label)).toEqual([
-      "Sonraki adımlar netleşti",
-      "Öneriler aşamaya uygundu",
-      "Rahatça ifade edebildi",
-      "İlerleme güveni",
+    expect(rows.map((row) => row.id)).toEqual([
+      "nextSteps",
+      "fit",
+      "expression",
+      "confidence",
     ]);
     expect(rows[2].average).toBeNull();
   });

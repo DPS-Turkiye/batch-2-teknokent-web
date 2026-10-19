@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { CoordinatorEmailFields } from "@/components/admin/add-coordinator-dialog";
@@ -18,6 +19,7 @@ export function AssignCoordinatorDialog({
   programName: string;
   onClose: () => void;
 }) {
+  const t = useTranslations("adminCoordinators");
   const assign = useAssignProgramCoordinator(programId, onClose);
   const invite = useAddCoordinatorForm(onClose, programId);
   const [emailChosen, setEmailChosen] = useState(false);
@@ -28,9 +30,9 @@ export function AssignCoordinatorDialog({
   const saving = byEmail ? invite.saving : assign.saving;
 
   return (
-    <AdminOverlay label="Koordinatör ata" onClose={onClose}>
+    <AdminOverlay label={t("assignTitle")} onClose={onClose}>
       <form
-        aria-label="Koordinatör ata"
+        aria-label={t("assignTitle")}
         className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-[0_16px_48px_rgba(33,38,43,0.14)]"
         onClick={(event) => event.stopPropagation()}
         onSubmit={(event) => {
@@ -41,19 +43,16 @@ export function AssignCoordinatorDialog({
         }}
       >
         <h2 className="text-[18px] font-semibold text-[#22262b]">
-          Koordinatör ata
+          {t("assignTitle")}
         </h2>
         <p className="mt-2 text-[13.5px] leading-[1.5] text-[#676e78]">
-          {programName} programına koordinatör ekle. Programın kurallarını ve
-          takımlarını koordinatör yönetir.
+          {t("assignBody", { program: programName })}
         </p>
 
         {byEmail ? (
           <>
             <p className="mt-4 text-[13px] leading-[1.5] text-[#676e78]">
-              {noCandidates
-                ? "Onaylı koordinatör yok. E-posta ile ekle: sistemde yoksa hesap açılır ve şifre belirleme e-postası gider."
-                : "Sistemde yoksa hesap açılır ve şifre belirleme e-postası gider; kayıtlı bir mentor ya da girişimci ise rolü koordinatör olur."}
+              {noCandidates ? t("noCandidates") : t("byEmailHint")}
             </p>
             <CoordinatorEmailFields form={invite} />
             {noCandidates ? null : (
@@ -62,14 +61,14 @@ export function AssignCoordinatorDialog({
                 onClick={() => setEmailChosen(false)}
                 className="text-[13px] font-medium text-[#22262b] underline"
               >
-                Listeden seç
+                {t("pickFromList")}
               </button>
             )}
           </>
         ) : (
           <div className="mt-5 text-[13px]">
             {assign.isLoading ? (
-              <p className="text-[#858c96]">Yükleniyor…</p>
+              <p className="text-[#858c96]">{t("loading")}</p>
             ) : assign.loadError ? (
               <p className="text-[#d9464b]">{assign.loadError.message}</p>
             ) : (
@@ -96,7 +95,7 @@ export function AssignCoordinatorDialog({
               onClick={() => setEmailChosen(true)}
               className="mt-3 font-medium text-[#22262b] underline"
             >
-              Listede yok mu? E-posta ile ekle
+              {t("notListed")}
             </button>
           </div>
         )}
@@ -107,14 +106,14 @@ export function AssignCoordinatorDialog({
             onClick={onClose}
             className="rounded-full border border-[#e9ecef] px-5 py-[11px] text-[13.5px] font-medium text-[#22262b]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={!canSave}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {saving ? "Ekleniyor…" : "Programa ekle"}
+            {saving ? t("adding") : t("addToProgram")}
           </button>
         </div>
       </form>

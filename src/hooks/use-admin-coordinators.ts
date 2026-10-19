@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -30,6 +31,7 @@ const CHECK_DELAY_MS = 400;
  * With a programId the new coordinator is also added to that program.
  */
 export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
+  const t = useTranslations("adminCoordinators");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [fullName, setFullName] = useState("");
@@ -69,12 +71,12 @@ export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
       void queryClient.invalidateQueries({ queryKey: CANDIDATE_QUERY_KEY });
-      showToast({ message: addedMessage(account), tone: "success" });
+      showToast({ message: addedMessage(account, t), tone: "success" });
       onDone();
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Koordinatör eklenemedi."),
+        message: errorMessage(error, t("addFailed")),
         tone: "error",
       }),
   });
@@ -99,6 +101,7 @@ export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
 
 /** "Pasife al" / "Yeniden etkinleştir" in a coordinator's drawer. */
 export function useCoordinatorAccess() {
+  const t = useTranslations("adminCoordinators");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const mutation = useMutation({
@@ -110,14 +113,14 @@ export function useCoordinatorAccess() {
       });
       showToast({
         message: active
-          ? `${account.fullName} yeniden etkinleştirildi.`
-          : `${account.fullName} pasife alındı; artık giriş yapamaz.`,
+          ? t("reactivated", { name: account.fullName })
+          : t("deactivated", { name: account.fullName }),
         tone: "success",
       });
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Erişim değiştirilemedi."),
+        message: errorMessage(error, t("accessFailed")),
         tone: "error",
       }),
   });
@@ -129,17 +132,18 @@ export function useCoordinatorAccess() {
 
 /** "Şifre e-postasını tekrar gönder": a fresh password setup link for a coordinator who lost the first one. */
 export function useCoordinatorPasswordSetup() {
+  const t = useTranslations("adminCoordinators");
   const { showToast } = useToast();
   const mutation = useMutation({
     mutationFn: (id: string) => resendCoordinatorPasswordSetup(id),
     onSuccess: (account) =>
       showToast({
-        message: `Şifre belirleme e-postası ${account.email} adresine gönderildi.`,
+        message: t("setupSent", { email: account.email }),
         tone: "success",
       }),
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "E-posta gönderilemedi."),
+        message: errorMessage(error, t("setupFailed")),
         tone: "error",
       }),
   });
@@ -154,6 +158,7 @@ export function useAssignProgramCoordinator(
   programId: string,
   onDone: () => void,
 ) {
+  const t = useTranslations("adminCoordinators");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -167,12 +172,12 @@ export function useAssignProgramCoordinator(
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
-      showToast({ message: "Koordinatör programa eklendi.", tone: "success" });
+      showToast({ message: t("assigned"), tone: "success" });
       onDone();
     },
     onError: (error) =>
       showToast({
-        message: errorMessage(error, "Koordinatör eklenemedi."),
+        message: errorMessage(error, t("addFailed")),
         tone: "error",
       }),
   });

@@ -2,6 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, ChevronRight, Shield, X } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { AdminIcon, AdminOverlay } from "@/components/admin/admin-ui";
@@ -13,12 +14,12 @@ import { addProgramCoordinator } from "@/lib/client/coordinator-programs";
 import { errorMessage, initials } from "@/lib/utils";
 
 const CAPABILITIES = [
-  "Program ayarları",
-  "Takvim ve etkinlik",
-  "Mentorluklar",
-  "Mesajlar",
-  "Programı arşivle",
-];
+  "settings",
+  "calendar",
+  "mentorships",
+  "messages",
+  "archive",
+] as const;
 
 export function CoordinatorApplicationDialog({
   user,
@@ -37,25 +38,29 @@ export function CoordinatorApplicationDialog({
   onReject: () => void;
   onApprove: () => void;
 }) {
+  const t = useTranslations("coordinatorApproval");
   const domain = user.email.split("@")[1] ?? user.email;
   const checks = [
     {
-      title: "Kayıtlı e-posta",
+      title: t("registeredEmail"),
       detail: domain,
     },
     programs.length === 0
       ? {
-          title: "Başka programa atanmamış",
-          detail: "çakışan koordinatörlük yok",
+          title: t("noOtherProgram"),
+          detail: t("noConflict"),
         }
       : {
-          title: `${programs.length} programa atanmış`,
+          title: t("assignedPrograms", { count: programs.length }),
           detail: programs.map((program) => program.name).join(", "),
         },
   ];
 
   return (
-    <AdminOverlay label={`${user.fullName} başvurusu`} onClose={onClose}>
+    <AdminOverlay
+      label={t("applicationLabel", { name: user.fullName })}
+      onClose={onClose}
+    >
       <div
         className="flex max-h-[min(720px,calc(100vh-2rem))] w-full max-w-[580px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_16px_48px_rgba(33,38,43,0.16)]"
         onClick={(event) => event.stopPropagation()}
@@ -70,21 +75,21 @@ export function CoordinatorApplicationDialog({
                 {user.fullName}
               </p>
               <span className="rounded-full bg-[#f5f6f8] px-2.5 py-1 text-[11.5px] font-medium text-[#676e78]">
-                Koordinatör başvurusu
+                {t("application")}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
                 <span className="size-1.5 rounded-full bg-[#b7791f]" />
-                Onay bekliyor
+                {t("pending")}
               </span>
             </div>
             <p className="mt-1 truncate text-[12.5px] text-[#858c96]">
               {user.email}
-              {appliedLabel ? ` · başvuru ${appliedLabel}` : ""}
+              {appliedLabel ? t("appliedAt", { when: appliedLabel }) : ""}
             </p>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             onClick={onClose}
             className="grid size-[34px] shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#676e78]"
           >
@@ -96,29 +101,31 @@ export function CoordinatorApplicationDialog({
           <div className="flex items-start gap-2.5 rounded-[20px] bg-[#fff6e5] px-4 py-3.5">
             <Shield className="mt-0.5 size-[18px] shrink-0 text-[#b7791f]" />
             <p className="text-[13px] leading-[1.3] font-medium text-[#22262b]">
-              Bu kişiyi koordinatör olarak onaylayacaksan bir program
-              seçeceksin. Hesaba uygulama içi bildirim gider.
+              {t("approveHint")}
             </p>
           </div>
 
           <section className="space-y-2.5">
             <h2 className="text-[12px] font-semibold tracking-wide text-[#858c96]">
-              BAŞVURU
+              {t("applicationSection")}
             </h2>
             <dl className="space-y-2.5 rounded-[20px] bg-[#f7f8fa] px-4 py-3.5 text-[12.5px]">
               <Fact
-                label="Kurum"
-                value={user.organizationName ?? "Belirtilmedi"}
+                label={t("organization")}
+                value={user.organizationName ?? t("notGiven")}
               />
-              <Fact label="Unvan" value={user.jobTitle ?? "Belirtilmedi"} />
-              <Fact label="Rol" value="Program koordinatörü" />
-              <Fact label="E-posta" value={user.email} />
+              <Fact
+                label={t("jobTitle")}
+                value={user.jobTitle ?? t("notGiven")}
+              />
+              <Fact label={t("role")} value={t("roleValue")} />
+              <Fact label={t("email")} value={user.email} />
             </dl>
           </section>
 
           <section className="space-y-2.5">
             <h2 className="text-[12px] font-semibold tracking-wide text-[#858c96]">
-              KAYIT
+              {t("registrationSection")}
             </h2>
             <ul className="overflow-hidden rounded-[20px] border border-[#e9ecef]">
               {checks.map((item) => (
@@ -150,7 +157,7 @@ export function CoordinatorApplicationDialog({
             onClick={onReject}
             className="rounded-full px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
           >
-            Reddet
+            {t("reject")}
           </button>
           <button
             type="button"
@@ -158,7 +165,7 @@ export function CoordinatorApplicationDialog({
             onClick={onApprove}
             className="inline-flex items-center gap-1.5 rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white disabled:opacity-50"
           >
-            Onayla
+            {t("approve")}
             <ChevronRight className="size-3.5" />
           </button>
         </div>
@@ -180,6 +187,7 @@ export function ApproveCoordinatorDialog({
   onApproved: (programName: string, already?: boolean) => void;
   onFailed: (message: string) => void;
 }) {
+  const t = useTranslations("coordinatorApproval");
   const decide = useDecidePendingAccount();
   const queryClient = useQueryClient();
   const [programId, setProgramId] = useState<string | null>(null);
@@ -205,7 +213,7 @@ export function ApproveCoordinatorDialog({
       });
     } catch (error) {
       setSaving(false);
-      onFailed(errorMessage(error, "Onay kaydedilemedi."));
+      onFailed(errorMessage(error, t("approveFailed")));
       return;
     }
     if (selected.coordinatorId === user.id) {
@@ -222,7 +230,7 @@ export function ApproveCoordinatorDialog({
       });
       onApproved(selected.name);
     } catch (error) {
-      const detail = errorMessage(error, "Atama kaydedilemedi.");
+      const detail = errorMessage(error, t("assignFailed"));
       if (detail.includes("zaten bu programın koordinatörü")) {
         await queryClient.invalidateQueries({
           queryKey: ADMIN_OVERVIEW_QUERY_KEY,
@@ -231,13 +239,13 @@ export function ApproveCoordinatorDialog({
         return;
       }
       setSaving(false);
-      onFailed(`${user.fullName} onaylandı, programa atanamadı. ${detail}`);
+      onFailed(t("approvedNotAssigned", { name: user.fullName, detail }));
     }
   }
 
   return (
     <AdminOverlay
-      label={`${user.fullName} onay`}
+      label={t("approvalLabel", { name: user.fullName })}
       className="z-[60]"
       onClose={() => {
         if (!saving) onClose();
@@ -254,16 +262,15 @@ export function ApproveCoordinatorDialog({
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <h2 className="text-[20px] leading-[1.3] font-semibold text-[#22262b]">
-              {user.fullName} için koordinatör onayı
+              {t("approvalTitle", { name: user.fullName })}
             </h2>
             <p className="mt-1.5 text-[13px] leading-[1.45] text-[#676e78]">
-              Onaydan sonra hesaba uygulama içi bildirim gider ve seçtiğin
-              programın koordinatörü olur.
+              {t("approvalBody")}
             </p>
           </div>
           <button
             type="button"
-            aria-label="Kapat"
+            aria-label={t("close")}
             disabled={saving}
             onClick={onClose}
             className="grid size-[34px] shrink-0 place-items-center rounded-full bg-[#f5f6f8] text-[#676e78] disabled:opacity-50"
@@ -274,16 +281,16 @@ export function ApproveCoordinatorDialog({
 
         <div className="space-y-2">
           <div className="flex gap-1.5 text-[12.5px]">
-            <span className="font-medium text-[#22262b]">Atanacak program</span>
-            <span className="text-[#858c96]">aranabilir</span>
+            <span className="font-medium text-[#22262b]">{t("program")}</span>
+            <span className="text-[#858c96]">{t("searchable")}</span>
           </div>
           <div className="relative">
             <label className="flex items-center gap-2 rounded-full border border-[#e9ecef] py-[11px] pr-3.5 pl-4">
               <AdminIcon src="/admin/search.svg" width={16} height={16} />
               <input
-                aria-label="Atanacak program"
+                aria-label={t("program")}
                 value={openList ? query : (selected?.name ?? query)}
-                placeholder="Program ara"
+                placeholder={t("searchProgram")}
                 onFocus={() => {
                   setOpenList(true);
                   setQuery(selected?.name ?? "");
@@ -300,7 +307,7 @@ export function ApproveCoordinatorDialog({
               <ul className="absolute z-10 mt-2 max-h-48 w-full overflow-y-auto rounded-2xl border border-[#e9ecef] bg-white p-1 shadow-[0_8px_24px_rgba(33,38,43,0.12)]">
                 {matches.length === 0 ? (
                   <li className="px-3 py-2 text-[13px] text-[#858c96]">
-                    Program yok.
+                    {t("noProgram")}
                   </li>
                 ) : (
                   matches.map((program) => {
@@ -318,7 +325,7 @@ export function ApproveCoordinatorDialog({
                           className="block w-full rounded-xl px-3 py-2 text-left text-[13.5px] font-medium text-[#22262b] hover:bg-[#f5f6f8] disabled:text-[#858c96] disabled:hover:bg-transparent"
                         >
                           {program.name}
-                          {already ? " · zaten koordinatör" : ""}
+                          {already ? t("alreadyCoordinator") : ""}
                         </button>
                       </li>
                     );
@@ -331,7 +338,7 @@ export function ApproveCoordinatorDialog({
 
         <div className="space-y-2">
           <p className="text-[12.5px] font-medium text-[#22262b]">
-            Koordinatör yetkisi
+            {t("permissions")}
           </p>
           <div className="flex flex-wrap gap-2">
             {CAPABILITIES.map((item) => (
@@ -339,7 +346,7 @@ export function ApproveCoordinatorDialog({
                 key={item}
                 className="rounded-full bg-[#eaf7f0] px-2.5 py-1 text-[11.5px] font-medium text-[#2f9e6b]"
               >
-                ✓ {item}
+                ✓ {t(`capabilities.${item}`)}
               </span>
             ))}
           </div>
@@ -352,14 +359,14 @@ export function ApproveCoordinatorDialog({
             onClick={onClose}
             className="rounded-full border border-[#e9ecef] bg-white px-5 py-[11px] text-[13.5px] font-medium text-[#22262b] disabled:opacity-50"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={!selected || saving}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
-            {saving ? "Kaydediliyor…" : "Onayla ve programa ata"}
+            {saving ? t("saving") : t("confirm")}
           </button>
         </div>
       </form>

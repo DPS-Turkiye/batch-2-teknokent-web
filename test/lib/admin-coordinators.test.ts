@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -7,13 +8,25 @@ import {
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   addedMessage,
-  COORDINATOR_UNASSIGNED,
   programCoordinatorLabel,
   candidateMessage,
   isAssignable,
   nameRequired,
 } from "@/lib/admin-coordinators";
 import { isEmailAddress } from "@/lib/utils";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "adminCoordinators",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "adminCoordinators",
+});
 
 function candidate(
   status: CoordinatorCandidateStatus,
@@ -55,16 +68,25 @@ describe("admin coordinators", () => {
     expect(isAssignable(undefined)).toBe(false);
   });
 
-  it("explains what saving will do in Turkish", () => {
+  it("explains what saving will do", () => {
     expect(
-      candidateMessage(candidate(CoordinatorCandidateStatus.New)),
+      candidateMessage(candidate(CoordinatorCandidateStatus.New), t),
     ).toContain("şifresini belirlemesi için bir e-posta");
     expect(
       candidateMessage(
         candidate(CoordinatorCandidateStatus.Promotable, UserRole.Mentor),
+        t,
       ),
     ).toBe(
       "Ayşe Demir şu an mentor. Kaydederseniz rolü koordinatör olarak değişir.",
+    );
+    expect(
+      candidateMessage(
+        candidate(CoordinatorCandidateStatus.Promotable, UserRole.Mentor),
+        tEn,
+      ),
+    ).toBe(
+      "Ayşe Demir is currently a mentor. If you save, their role changes to coordinator.",
     );
     expect(
       candidateMessage(
@@ -72,11 +94,13 @@ describe("admin coordinators", () => {
           CoordinatorCandidateStatus.MentorInMentorship,
           UserRole.Mentor,
         ),
+        t,
       ),
     ).toContain("Mentorlukları bitmeden koordinatör yapılamaz");
     expect(
       candidateMessage(
         candidate(CoordinatorCandidateStatus.TeamMember, UserRole.Mentee),
+        t,
       ),
     ).toContain("Takım üyeleri koordinatör yapılamaz");
   });
@@ -95,15 +119,21 @@ describe("admin coordinators", () => {
       status: UserAccountStatus.Approved,
       outcome: CoordinatorCandidateStatus.New,
     };
-    expect(addedMessage(account)).toContain(
+    expect(addedMessage(account, t)).toContain(
       "Şifre belirleme e-postası elif@teknokent.org adresine gönderildi.",
     );
     expect(
-      addedMessage({
-        ...account,
-        outcome: CoordinatorCandidateStatus.Promotable,
-      }),
+      addedMessage(
+        { ...account, outcome: CoordinatorCandidateStatus.Promotable },
+        t,
+      ),
     ).toBe("Elif Demir artık koordinatör.");
+    expect(
+      addedMessage(
+        { ...account, outcome: CoordinatorCandidateStatus.Promotable },
+        tEn,
+      ),
+    ).toBe("Elif Demir is now a coordinator.");
   });
 
   it("recognises an email address loosely", () => {
@@ -115,11 +145,11 @@ describe("admin coordinators", () => {
 
 describe("program coordinator helpers", () => {
   it("names the assigned coordinators, or says none is assigned", () => {
-    expect(programCoordinatorLabel({ coordinatorName: "Elif Demir" })).toBe(
-      "Elif Demir",
-    );
-    expect(programCoordinatorLabel({ coordinatorName: null })).toBe(
-      COORDINATOR_UNASSIGNED,
+    expect(
+      programCoordinatorLabel({ coordinatorName: "Elif Demir" }, "Atanmadı"),
+    ).toBe("Elif Demir");
+    expect(programCoordinatorLabel({ coordinatorName: null }, "Atanmadı")).toBe(
+      "Atanmadı",
     );
   });
 });

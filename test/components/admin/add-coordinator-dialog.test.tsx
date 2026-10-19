@@ -12,7 +12,7 @@ import {
   resendCoordinatorPasswordSetup,
   setCoordinatorAccess,
 } from "@/lib/client/admin-coordinators";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-coordinators", () => ({
   getCoordinatorCandidate: vi.fn(),
@@ -60,6 +60,33 @@ describe("AddCoordinatorDialog", () => {
       email: "elif@teknokent.org",
     });
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+  });
+
+  it("reads in English", async () => {
+    vi.mocked(getCoordinatorCandidate).mockResolvedValue({
+      email: "ayse@mentor.com",
+      status: CoordinatorCandidateStatus.Promotable,
+      userId: "user-1",
+      fullName: "Ayşe Demir",
+      role: UserRole.Mentor,
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <AddCoordinatorDialog onClose={vi.fn()} />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Add a coordinator" }),
+    ).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Email"), "ayse@mentor.com");
+    expect(
+      await screen.findByText(
+        "Ayşe Demir is currently a mentor. If you save, their role changes to coordinator.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeEnabled();
   });
 
   it("promotes an existing mentor without asking for a name", async () => {

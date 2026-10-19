@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { UsersView } from "@/components/admin/users-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const coordinator = (overrides: Partial<AdminUser>): AdminUser => ({
   id: "c1",
@@ -60,5 +60,23 @@ describe("UsersView", () => {
     expect(
       within(rowOf("Burcu Şen")).queryByText("Şifre belirlenmedi"),
     ).toBeNull();
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <UsersView tab="coordinators" />
+      </InLocale>,
+    );
+
+    expect(
+      within(rowOf("Ayla Bekler")).getByText("Password not set"),
+    ).toBeInTheDocument();
+    expect(within(rowOf("Burcu Şen")).getByText("Active")).toBeInTheDocument();
+    expect(screen.getByText("Assigned programs")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "+ Add a coordinator" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/\/ 2 coordinators$/)).toBeInTheDocument();
   });
 });

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportingView } from "@/components/admin/reporting-view";
 import { useProgramMeetingRatings } from "@/hooks/use-program-report";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 import {
   programMeetingRatings,
   reportOverview,
@@ -44,6 +44,24 @@ describe("admin Raporlama", () => {
       "program-1",
       expect.stringMatching(/^\d{4}-\d{2}-\d{2}$/),
     );
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ReportingView />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("4.3/5")).toBeInTheDocument();
+    expect(screen.getByText("9/12 meetings rated")).toBeInTheDocument();
+    expect(
+      screen.getByRole("region", { name: "Meeting ratings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "System activity" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Next steps got clearer")).toBeInTheDocument();
   });
 
   it("lets the admin pick any program and see Sistem Aktivitesi", () => {
