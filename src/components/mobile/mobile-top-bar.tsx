@@ -1,12 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 /** Back button, centred title and an optional action, for screens outside the tab bar. */
 export function MobileTopBar({
   title,
   backHref,
-  backLabel = "Geri",
+  backLabel,
   action,
   tone = "grey",
 }: {
@@ -16,11 +17,12 @@ export function MobileTopBar({
   action?: ReactNode;
   tone?: "grey" | "white";
 }) {
+  const t = useTranslations("mobile.shell");
   return (
     <header className="sticky top-0 z-10 flex items-center gap-3 bg-inherit px-4 pt-[calc(4px+env(safe-area-inset-top))] pb-2">
       <Link
         href={backHref}
-        aria-label={backLabel}
+        aria-label={backLabel ?? t("back")}
         className={`flex size-11 shrink-0 items-center justify-center rounded-full ${
           tone === "white" ? "bg-white" : "bg-[#f5f6f8]"
         }`}

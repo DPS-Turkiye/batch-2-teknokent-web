@@ -4,8 +4,6 @@ import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
 import {
   CalendarFilter,
-  DAY_SHORT_LABELS,
-  MONTH_LABELS,
   hourOf,
   isSameDay,
   monthGridCells,
@@ -16,20 +14,6 @@ import {
   weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
-
-describe("calendar labels", () => {
-  it("starts the week on Monday and covers all seven days", () => {
-    expect(DAY_SHORT_LABELS).toHaveLength(7);
-    expect(DAY_SHORT_LABELS[0]).toBe("Pzt");
-    expect(DAY_SHORT_LABELS[6]).toBe("Paz");
-  });
-
-  it("has twelve months in order", () => {
-    expect(MONTH_LABELS).toHaveLength(12);
-    expect(MONTH_LABELS[0]).toBe("Ocak");
-    expect(MONTH_LABELS[11]).toBe("Aralık");
-  });
-});
 
 describe("calendar helpers", () => {
   it("reads the local hour from an ISO timestamp", () => {
@@ -102,7 +86,8 @@ describe("week and month grid helpers", () => {
     expect(cells.length % 7).toBe(0);
   });
 
-  it("labels the month in Turkish", () => {
-    expect(monthLabel(new Date(2026, 8, 15))).toBe("Eylül 2026");
+  it("labels the month in Turkish and English", () => {
+    expect(monthLabel(new Date(2026, 8, 15), "tr")).toBe("Eylül 2026");
+    expect(monthLabel(new Date(2026, 8, 15), "en")).toBe("September 2026");
   });
 });

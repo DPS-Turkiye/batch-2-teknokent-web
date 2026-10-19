@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -8,6 +9,7 @@ import { actionItemsQueryKey } from "@/hooks/use-action-items";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MENTOR_PROFILE_QUERY_KEY } from "@/hooks/use-mentor-profile";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { ORGANIZATION_MEMBERS_QUERY_KEY } from "@/hooks/use-organization-members";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -22,6 +24,8 @@ import { startupDetail } from "@/lib/mobile-startups";
 
 export function useMobileStartup(organizationId: string) {
   const { session } = useSession();
+  const texts = useMobileTexts();
+  const tOptions = useTranslations("options");
   const [membersOpen, setMembersOpen] = useState(false);
   const requests = useMentorshipRequests(UserRole.Mentor);
   const meetings = useMeetings();
@@ -71,7 +75,10 @@ export function useMobileStartup(organizationId: string) {
         members: members.data ?? [],
         documents: documents.data ?? [],
         actionItems: actionItems.data ?? [],
-        frequency: profile.data?.meetingFrequency ?? null,
+        frequencyLabel: profile.data?.meetingFrequency
+          ? tOptions(`meetingFrequency.${profile.data.meetingFrequency}`)
+          : null,
+        texts,
       }),
     [
       organizationId,
@@ -83,6 +90,8 @@ export function useMobileStartup(organizationId: string) {
       documents.data,
       actionItems.data,
       profile.data,
+      texts,
+      tOptions,
     ],
   );
 

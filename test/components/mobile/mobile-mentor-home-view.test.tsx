@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MobileMentorHomeView } from "@/components/mobile/mobile-mentor-home-view";
 import type { useMobileMentorHome } from "@/hooks/use-mobile-mentor-home";
+import { InLocale } from "@test/test-utils";
 
 type Home = ReturnType<typeof useMobileMentorHome>;
 
@@ -70,6 +71,23 @@ function homeState(overrides: Partial<Home> = {}): Home {
 
 beforeEach(() => {
   home = homeState();
+});
+
+describe("MobileMentorHomeView in English", () => {
+  it("names the card, the sections and the unread badge in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileMentorHomeView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Hi, Nihan" })).toBeVisible();
+    const card = screen.getByRole("article", { name: "Next meeting" });
+    expect(within(card).getByText("Next Meeting")).toBeInTheDocument();
+    expect(within(card).getByRole("link", { name: "Details" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "My startups" })).toBeVisible();
+    expect(screen.getByRole("region", { name: "Messages" })).toBeVisible();
+  });
 });
 
 describe("MobileMentorHomeView", () => {

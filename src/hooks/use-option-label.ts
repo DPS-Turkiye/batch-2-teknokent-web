@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useCallback } from "react";
 
 /** The option lists whose values are saved as their Turkish text (`optionValues` in the messages). */
 export type OptionGroup =
@@ -19,17 +20,23 @@ export type OptionGroup =
  */
 export function useOptionLabel() {
   const t = useTranslations("optionValues");
-  return (group: OptionGroup, value: string) => {
-    const key = `${group}.${value}` as Parameters<typeof t>[0];
-    return t.has(key) ? t(key) : value;
-  };
+  return useCallback(
+    (group: OptionGroup, value: string) => {
+      const key = `${group}.${value}` as Parameters<typeof t>[0];
+      return t.has(key) ? t(key) : value;
+    },
+    [t],
+  );
 }
 
 /** A saved request topic, which may come from the support areas or the mentor topics. */
 export function useTopicLabel() {
   const optionLabel = useOptionLabel();
-  return (value: string) => {
-    const area = optionLabel("supportArea", value);
-    return area !== value ? area : optionLabel("mentorTopic", value);
-  };
+  return useCallback(
+    (value: string) => {
+      const area = optionLabel("supportArea", value);
+      return area !== value ? area : optionLabel("mentorTopic", value);
+    },
+    [optionLabel],
+  );
 }

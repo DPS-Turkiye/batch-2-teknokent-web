@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { MobileButtonLink } from "@/components/mobile/mobile-button";
 import {
@@ -45,11 +46,12 @@ function CardArt() {
 }
 
 function NextMeetingCard({ meeting }: { meeting: MentorMeetingSummary }) {
+  const t = useTranslations("mobile.home");
   return (
     <div className="relative -mx-2 p-2">
       <CardArt />
       <article
-        aria-label="Sıradaki görüşme"
+        aria-label={t("nextMeeting")}
         className="relative flex flex-col gap-3.5 overflow-hidden rounded-[24px] border border-white/50 bg-black/10 p-5 text-white"
       >
         <div className="flex items-center gap-3">
@@ -62,7 +64,7 @@ function NextMeetingCard({ meeting }: { meeting: MentorMeetingSummary }) {
                 {meeting.startupName}
               </h2>
               <span className="shrink-0 rounded-full bg-white/10 px-1.5 py-0.5 text-[11.5px]">
-                Sıradaki Görüşme
+                {t("nextMeetingChip")}
               </span>
             </div>
             <p className="truncate text-[13px]">{meeting.detail}</p>
@@ -81,7 +83,7 @@ function NextMeetingCard({ meeting }: { meeting: MentorMeetingSummary }) {
           href={meeting.href}
           variant={MobileButtonVariant.Secondary}
         >
-          Detaylar
+          {t("details")}
         </MobileButtonLink>
       </article>
     </div>
@@ -130,6 +132,7 @@ function StartupRow({
 }
 
 export function MobileMentorHomeView() {
+  const t = useTranslations("mobile.home");
   const home = useMobileMentorHome();
 
   return (
@@ -140,28 +143,25 @@ export function MobileMentorHomeView() {
           hasUnreadNotifications={home.hasUnreadNotifications}
         />
         {home.isOnline ? null : (
-          <MobileOfflineBanner detail="Gösterilenler son kaydedilen bilgiler." />
+          <MobileOfflineBanner detail={t("offlineDetail")} />
         )}
         {home.isLoading ? (
           <MobileListSkeleton />
         ) : home.isError ? (
-          <MobileErrorState
-            title="Ana sayfa yüklenemedi."
-            onRetry={home.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={home.retry} />
         ) : home.nextMeeting ? (
           <NextMeetingCard meeting={home.nextMeeting} />
         ) : (
           <MobileEmptyState
-            title="Planlanmış görüşmen yok."
-            description="Bir startup görüşme planladığında burada görünecek."
+            title={t("noMeeting")}
+            description={t("noMeetingHintMentor")}
           />
         )}
       </div>
 
       {home.isLoading || home.isError ? null : (
         <>
-          <HomeSection title="Startuplarım" allHref={MOBILE_STARTUPS}>
+          <HomeSection title={t("myStartups")} allHref={MOBILE_STARTUPS}>
             {home.startups.length > 0 ? (
               <ul>
                 {home.startups.map((startup, index) => (
@@ -173,11 +173,11 @@ export function MobileMentorHomeView() {
                 ))}
               </ul>
             ) : (
-              <QuietLine>Henüz mentorluk yaptığın bir startup yok.</QuietLine>
+              <QuietLine>{t("noStartups")}</QuietLine>
             )}
           </HomeSection>
 
-          <HomeSection title="Mesajlar" allHref={MOBILE_MESSAGES}>
+          <HomeSection title={t("messages")} allHref={MOBILE_MESSAGES}>
             {home.messages.length > 0 ? (
               <ul>
                 {home.messages.map(({ message, unreadCount }) => (
@@ -190,7 +190,7 @@ export function MobileMentorHomeView() {
                 ))}
               </ul>
             ) : (
-              <QuietLine>Henüz mesaj yok.</QuietLine>
+              <QuietLine>{t("noMessages")}</QuietLine>
             )}
           </HomeSection>
         </>

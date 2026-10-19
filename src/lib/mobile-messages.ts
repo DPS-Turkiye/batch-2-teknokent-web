@@ -23,14 +23,11 @@ import {
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
 import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
-import { mobileChatHref } from "@/lib/mobile";
+import { mobileChatHref, type MobileTexts } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
-import { announcementThreadName } from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
 
 export type MessagingRole = UserRole.Mentee | UserRole.Mentor;
-
-const NO_MESSAGES_YET = "Henüz mesaj yok";
 
 type ChatLine = {
   id: string;
@@ -77,11 +74,13 @@ function latestMessage(request: MentorshipRequest) {
 export function mentorshipConversation(
   request: MentorshipRequest,
   role: MessagingRole,
+  { t, locale, topicLabel }: MobileTexts,
   now = new Date(),
 ): MobileConversation {
   const isStartup = role === UserRole.Mentor;
+  const startup = t("meeting.startup");
   const name = isStartup
-    ? (request.organizationName ?? request.requesterName ?? "Startup")
+    ? (request.organizationName ?? request.requesterName ?? startup)
     : request.mentorName;
   const last = latestMessage(request);
   const lastAt = last?.createdAt ?? request.createdAt;
@@ -90,12 +89,12 @@ export function mentorshipConversation(
     kind: MobileConversationKind.Mentorship,
     name,
     initials: initials(name),
-    tag: isStartup ? (request.requesterName ?? "Startup") : "Mentor",
+    tag: isStartup ? (request.requesterName ?? startup) : t("meeting.mentor"),
     isStartup,
     lastAt,
-    time: conversationTime(lastAt, now),
+    time: conversationTime(lastAt, now, locale),
     // Several requests can share a mentor; the topic tells the empty ones apart.
-    preview: last ? previewOf(last.body) : request.supportArea,
+    preview: last ? previewOf(last.body) : topicLabel(request.supportArea),
     unreadCount: mentorshipUnreadCount(request, role),
     href: mobileChatHref(MobileConversationKind.Mentorship, request.id),
   };
@@ -110,12 +109,13 @@ function threadKey(request: MentorshipRequest, role: MessagingRole) {
 export function groupedMentorshipConversations(
   requests: MentorshipRequest[],
   role: MessagingRole,
+  texts: MobileTexts,
   now = new Date(),
 ) {
   const groups = new Map<string, MobileConversation>();
   for (const request of requests) {
     if (!mentorshipRequestAllowsMessaging(request.status)) continue;
-    const conversation = mentorshipConversation(request, role, now);
+    const conversation = mentorshipConversation(request, role, texts, now);
     const key = threadKey(request, role);
     const held = groups.get(key);
     groups.set(
@@ -144,6 +144,7 @@ export function threadTopics(
   requests: MentorshipRequest[],
   current: MentorshipRequest,
   role: MessagingRole,
+  texts: MobileTexts,
 ): ThreadTopic[] {
   const key = threadKey(current, role);
   return newestFirst(
@@ -153,12 +154,13 @@ export function threadTopics(
           threadKey(request, role) === key &&
           mentorshipRequestAllowsMessaging(request.status),
       )
-      .map((request) => mentorshipConversation(request, role)),
+      .map((request) => mentorshipConversation(request, role, texts)),
   ).map((conversation) => ({
     id: conversation.id,
-    topic:
+    topic: texts.topicLabel(
       requests.find((request) => request.id === conversation.id)?.supportArea ??
-      "",
+        "",
+    ),
     unreadCount: conversation.unreadCount,
     href: conversation.href,
     isCurrent: conversation.id === current.id,
@@ -167,6 +169,7 @@ export function threadTopics(
 
 export function programConversation(
   conversation: CoordinatorConversation,
+  { t, locale }: MobileTexts,
   now = new Date(),
 ): MobileConversation {
   return {
@@ -174,11 +177,11 @@ export function programConversation(
     kind: MobileConversationKind.Program,
     name: conversation.programName,
     initials: initials(conversation.programName),
-    tag: "Program",
+    tag: t("messages.programTag"),
     isStartup: false,
     lastAt: conversation.lastMessageAt ?? "",
-    time: conversationTime(conversation.lastMessageAt, now),
-    preview: conversation.lastMessagePreview ?? NO_MESSAGES_YET,
+    time: conversationTime(conversation.lastMessageAt, now, locale),
+    preview: conversation.lastMessagePreview ?? t("messages.noMessagesYet"),
     unreadCount: conversation.unreadCount ?? (conversation.unread ? 1 : 0),
     href: mobileChatHref(MobileConversationKind.Program, conversation.id),
   };
@@ -193,13 +196,14 @@ export function newestFirst(conversations: MobileConversation[]) {
 export function searchConversations(
   conversations: MobileConversation[],
   query: string,
+  locale: string,
 ) {
-  const needle = query.trim().toLocaleLowerCase("tr-TR");
+  const needle = query.trim().toLocaleLowerCase(locale);
   if (!needle) return conversations;
   // A startup thread is also found by the person who wrote in.
   return conversations.filter((conversation) =>
     [conversation.name, conversation.isStartup ? conversation.tag : ""].some(
-      (text) => text.toLocaleLowerCase("tr-TR").includes(needle),
+      (text) => text.toLocaleLowerCase(locale).includes(needle),
     ),
   );
 }
@@ -207,12 +211,13 @@ export function searchConversations(
 function withDaySeparators(
   lines: ChatLine[],
   otherReadAt: string | null | undefined,
+  locale: string,
   now: Date,
 ): MobileChatItem[] {
   const items: MobileChatItem[] = [];
   let lastDay = "";
   for (const line of lines) {
-    const day = messageDayLabel(line.createdAt, now);
+    const day = messageDayLabel(line.createdAt, now, locale);
     if (day !== lastDay) {
       items.push({
         kind: MobileChatItemKind.Day,
@@ -227,7 +232,7 @@ function withDaySeparators(
       mine: line.mine,
       body: line.body,
       fileName: sharedFileName(line.body),
-      time: messageTime(line.createdAt),
+      time: messageTime(line.createdAt, locale),
       read: readBy(line, otherReadAt),
     });
   }
@@ -239,6 +244,7 @@ export function mentorshipChatItems(
   request: MentorshipRequest,
   role: MessagingRole,
   viewerId: string,
+  locale: string,
   now = new Date(),
 ) {
   const otherReadAt =
@@ -252,54 +258,60 @@ export function mentorshipChatItems(
       mine: message.authorId === viewerId,
       body: withoutSlotLines(message.body),
     }));
-  return withDaySeparators(lines, otherReadAt, now);
+  return withDaySeparators(lines, otherReadAt, locale, now);
 }
 
 export function programChatItems(
   messages: CoordinatorMessage[],
   otherSideReadAt: string | null | undefined,
+  locale: string,
   now = new Date(),
 ) {
-  return withDaySeparators(messages, otherSideReadAt, now);
+  return withDaySeparators(messages, otherSideReadAt, locale, now);
 }
 
 /** Mentors: "METU Stars 2026 · Gamze Kozak", or the topic when no program is known. */
 export function mentorshipChatSubtitle(
   request: MentorshipRequest,
   role: MessagingRole,
+  { t, topicLabel }: MobileTexts,
   programName: string | null = null,
 ) {
-  if (role !== UserRole.Mentor) return `Mentor · ${request.supportArea}`;
-  return [
-    programName,
-    request.requesterName,
-    programName ? null : request.supportArea,
-  ]
+  const topic = topicLabel(request.supportArea);
+  if (role !== UserRole.Mentor) return `${t("meeting.mentor")} · ${topic}`;
+  return [programName, request.requesterName, programName ? null : topic]
     .filter(Boolean)
     .join(" · ");
 }
 
-export function nextMeetingStrip(meeting: MeetingItem, now = new Date()) {
-  const when = meetingDayAndTime(meeting, now);
-  return `Sıradaki görüşme: ${when.day} ${when.time}`;
+export function nextMeetingStrip(
+  meeting: MeetingItem,
+  { t, locale }: MobileTexts,
+  now = new Date(),
+) {
+  return t(
+    "messages.nextMeetingStrip",
+    meetingDayAndTime(meeting, locale, now),
+  );
 }
 
 /** A program's read-only Duyurular thread in the phone's Mesajlar. */
 export function announcementConversation(
   thread: AnnouncementThread,
+  { t, locale }: MobileTexts,
   now = new Date(),
 ): MobileConversation {
   const lastAt = thread.latest?.createdAt ?? "";
   return {
     id: thread.programId,
     kind: MobileConversationKind.Announcement,
-    name: announcementThreadName(thread.programName),
+    name: t("messages.announcementThread", { program: thread.programName }),
     initials: initials(thread.programName),
-    tag: "Duyuru",
+    tag: t("messages.announcementTag"),
     isStartup: false,
     lastAt,
-    time: conversationTime(lastAt || null, now),
-    preview: thread.latest?.body ?? NO_MESSAGES_YET,
+    time: conversationTime(lastAt || null, now, locale),
+    preview: thread.latest?.body ?? t("messages.noMessagesYet"),
     unreadCount: 0,
     href: mobileChatHref(MobileConversationKind.Announcement, thread.programId),
   };
@@ -307,6 +319,7 @@ export function announcementConversation(
 
 export function announcementChatItems(
   thread: AnnouncementThread,
+  locale: string,
   now = new Date(),
 ) {
   const lines = [...thread.announcements].reverse().map((announcement) => ({
@@ -315,5 +328,5 @@ export function announcementChatItems(
     mine: false,
     body: announcement.body,
   }));
-  return withDaySeparators(lines, null, now);
+  return withDaySeparators(lines, null, locale, now);
 }

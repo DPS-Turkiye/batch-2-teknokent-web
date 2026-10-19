@@ -1,12 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { useMeetings } from "@/hooks/use-meetings";
 import { messagingRoleFor } from "@/hooks/use-mobile-messages";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import {
@@ -46,11 +48,7 @@ import {
   threadTopics,
 } from "@/lib/mobile-messages";
 import { programNameFor } from "@/lib/mobile-mentor-home";
-import {
-  announcementThreadName,
-  announcementThreads,
-  audienceLabel,
-} from "@/lib/program-announcements";
+import { announcementThreads } from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
 
 const POLL_MS = 10_000;
@@ -61,6 +59,9 @@ const mentorshipRequestKey = (id: string) => ["mentorship-request", id];
 export function useMobileChat(kind: MobileConversationKind, id: string) {
   const queryClient = useQueryClient();
   const { session } = useSession();
+  const texts = useMobileTexts();
+  const { t, locale } = texts;
+  const tAnnouncements = useTranslations("announcements");
   const role = messagingRoleFor(session?.role);
   const viewerId = session?.userId ?? "";
   const isMentorship = kind === MobileConversationKind.Mentorship;
@@ -176,7 +177,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
 
   const header = useMemo(() => {
     if (isMentorship && request.data) {
-      const conversation = mentorshipConversation(request.data, role);
+      const conversation = mentorshipConversation(request.data, role, texts);
       const programName = conversation.isStartup
         ? programNameFor(
             startupPrograms.data ?? [],
@@ -188,15 +189,28 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
         name: conversation.name,
         initials: conversation.initials,
         isStartup: conversation.isStartup,
-        subtitle: mentorshipChatSubtitle(request.data, role, programName),
+        subtitle: mentorshipChatSubtitle(
+          request.data,
+          role,
+          texts,
+          programName,
+        ),
       };
     }
     if (isAnnouncement && announcementThread) {
+      const latest = announcementThread.latest;
       return {
-        name: announcementThreadName(announcementThread.programName),
+        name: t("messages.announcementThread", {
+          program: announcementThread.programName,
+        }),
         initials: initials(announcementThread.programName),
         isStartup: false,
-        subtitle: audienceLabel(announcementThread.latest),
+        subtitle: latest
+          ? tAnnouncements("audience", {
+              teams: latest.teamCount,
+              mentors: latest.mentorCount,
+            })
+          : tAnnouncements("none"),
       };
     }
     if (isProgram && program) {
@@ -204,7 +218,9 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
         name: program.programName,
         initials: initials(program.programName),
         isStartup: false,
-        subtitle: `Koordinatör · ${program.coordinatorName}`,
+        subtitle: t("messages.coordinatorSubtitle", {
+          name: program.coordinatorName,
+        }),
       };
     }
     return null;
@@ -218,22 +234,26 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     role,
     startupPrograms.data,
     viewerId,
+    texts,
+    t,
+    tAnnouncements,
   ]);
 
   const items = useMemo(() => {
     if (isAnnouncement) {
       return announcementThread
-        ? announcementChatItems(announcementThread)
+        ? announcementChatItems(announcementThread, locale)
         : [];
     }
     if (isMentorship) {
       return request.data
-        ? mentorshipChatItems(request.data, role, viewerId)
+        ? mentorshipChatItems(request.data, role, viewerId, locale)
         : [];
     }
     return programChatItems(
       programMessages.data ?? [],
       program?.otherSideReadAt,
+      locale,
     );
   }, [
     isAnnouncement,
@@ -244,6 +264,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     viewerId,
     programMessages.data,
     program?.otherSideReadAt,
+    locale,
   ]);
 
   const meeting =
@@ -253,7 +274,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   const strip =
     meeting && !isMeetingEnded(meeting)
       ? {
-          label: nextMeetingStrip(meeting),
+          label: nextMeetingStrip(meeting, texts),
           href: `${MOBILE_CALENDAR}?meeting=${encodeURIComponent(meeting.id)}`,
         }
       : null;
@@ -279,8 +300,8 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     backHref: MOBILE_MESSAGES,
     canAttach: isMentorship,
     closedNote: isAnnouncement
-      ? "Duyurular yalnızca okunur; koordinatöre Program konuşmasından yazabilirsin."
-      : "Bu konuşma kapandı; yeni mesaj gönderilemez.",
+      ? t("chat.announcementsReadOnly")
+      : t("chat.closed"),
     canSend: isMentorship
       ? Boolean(
           request.data && mentorshipRequestAllowsMessaging(request.data.status),
@@ -291,7 +312,7 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     header,
     topics:
       isMentorship && request.data
-        ? threadTopics(siblings.data ?? [], request.data, role)
+        ? threadTopics(siblings.data ?? [], request.data, role, texts)
         : [],
     isError,
     isLoading,

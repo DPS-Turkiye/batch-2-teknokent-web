@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MobileNotificationsView } from "@/components/mobile/mobile-notifications-view";
 import type { useMobileNotifications } from "@/hooks/use-mobile-notifications";
 import { NotificationCategory } from "@/interfaces/notification";
+import { InLocale } from "@test/test-utils";
 
 type Notifications = ReturnType<typeof useMobileNotifications>;
 
@@ -66,6 +67,21 @@ describe("MobileNotificationsView", () => {
     expect(within(today).getByLabelText("Okunmadı")).toBeInTheDocument();
     const earlier = screen.getByRole("region", { name: "Önceki" });
     expect(within(earlier).queryByLabelText("Okunmadı")).toBeNull();
+  });
+
+  it("labels the screen and the unread dots in English", () => {
+    render(
+      <InLocale locale="en">
+        <MobileNotificationsView />
+      </InLocale>,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Notifications" }),
+    ).toBeVisible();
+    expect(screen.getByRole("button", { name: "Mark all read" })).toBeVisible();
+    expect(screen.getByLabelText("Unread")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Back to home" })).toBeVisible();
   });
 
   it("opens a notification when tapped", async () => {

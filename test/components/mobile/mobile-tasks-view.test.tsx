@@ -9,6 +9,7 @@ import {
   MobileTaskTone,
   type MobileTask,
 } from "@/interfaces/mobile";
+import { InLocale } from "@test/test-utils";
 
 type Tasks = ReturnType<typeof useMobileTasks>;
 
@@ -165,6 +166,38 @@ describe("MobileTasksView", () => {
         name: "Tamamlandı olarak işaretle",
       }),
     ).toBeNull();
+  });
+
+  it("labels the tabs, the checkbox and the sheet in English", () => {
+    tasks = tasksState({ selected: MENTOR_TASK, justCompleted: MENTOR_TASK });
+    render(
+      <InLocale locale="en">
+        <MobileTasksView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Tasks" })).toBeVisible();
+    expect(screen.getByRole("tab", { name: /To do/ })).toBeVisible();
+    expect(screen.getByRole("tab", { name: /Done/ })).toBeVisible();
+    expect(
+      screen.getByRole("checkbox", {
+        name: "Müşteri görüşme notlarını özetle: complete",
+      }),
+    ).toBeInTheDocument();
+    const sheet = screen.getByRole("dialog");
+    expect(
+      within(sheet).getByText("Assigned by Nihan Öztürk · 19 Eylül"),
+    ).toBeInTheDocument();
+    expect(
+      within(sheet).getByRole("button", { name: "Mark as completed" }),
+    ).toBeVisible();
+    expect(
+      within(sheet).getByRole("link", { name: "Message your mentor" }),
+    ).toBeVisible();
+    expect(
+      screen.getByText("Task completed · your mentor was notified"),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Undo" })).toBeVisible();
   });
 
   it("offers to undo a completion", async () => {

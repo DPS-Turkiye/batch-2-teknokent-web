@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { MaskIcon } from "@/components/mobile/mask-icon";
 import type { MobileTab, MobileTabLink } from "@/interfaces/mobile";
@@ -12,9 +13,10 @@ export function MobileTabBar({
   activeTab?: MobileTab;
   badges?: Partial<Record<MobileTab, number>>;
 }) {
+  const t = useTranslations("mobile.shell");
   return (
     <nav
-      aria-label="Ana menü"
+      aria-label={t("mainMenu")}
       className="fixed inset-x-0 bottom-0 z-40 mx-auto w-full max-w-[480px] px-3 pb-[calc(12px+env(safe-area-inset-bottom))] drop-shadow-[0px_7px_14.5px_rgba(100,100,111,0.2)]"
     >
       <ul className="flex rounded-[30px] bg-white p-2">
@@ -40,7 +42,7 @@ export function MobileTabBar({
                     </span>
                   ) : null}
                 </span>
-                {link.label}
+                {t(`tabs.${link.tab}`)}
               </Link>
             </li>
           );

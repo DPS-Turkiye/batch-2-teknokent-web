@@ -7,6 +7,7 @@ import { useSession } from "@/components/providers/session-provider";
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { useOnlineStatus } from "@/hooks/use-online-status";
 import { PROGRAMS_QUERY_KEY } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
@@ -31,6 +32,7 @@ export function useMobileMentorHome() {
   });
   const { unreadCount } = useDashboardNotifications();
   const isOnline = useOnlineStatus();
+  const texts = useMobileTexts();
 
   const view = useMemo(() => {
     const allRequests = requests.data ?? [];
@@ -38,17 +40,18 @@ export function useMobileMentorHome() {
     const next = pickUpcomingMeetings(allMeetings).nextMeeting;
     return {
       nextMeeting: next
-        ? mentorMeetingSummary(next, allMeetings, allRequests)
+        ? mentorMeetingSummary(next, allMeetings, allRequests, texts)
         : null,
       startups: mentorStartupRows(
         allRequests,
         allMeetings,
         programs.data ?? [],
         session?.userId ?? "",
+        texts,
       ),
-      messages: mentorMessagePreviews(allRequests),
+      messages: mentorMessagePreviews(allRequests, texts),
     };
-  }, [requests.data, meetings.data, programs.data, session?.userId]);
+  }, [requests.data, meetings.data, programs.data, session?.userId, texts]);
 
   return {
     ...view,

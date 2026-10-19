@@ -1,17 +1,19 @@
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 
 const CARD_CLASS =
   "flex w-full flex-col gap-3 rounded-[24px] border border-[#e9ecef] bg-white p-5";
 
 const SKELETON_OPACITY = ["", "opacity-75", "opacity-50"];
 
-export function MobileListSkeleton({
-  label = "Yükleniyor",
-}: {
-  label?: string;
-}) {
+export function MobileListSkeleton({ label }: { label?: string }) {
+  const t = useTranslations("mobile.states");
   return (
-    <div className={CARD_CLASS} role="status" aria-label={label}>
+    <div
+      className={CARD_CLASS}
+      role="status"
+      aria-label={label ?? t("loading")}
+    >
       {SKELETON_OPACITY.map((opacity) => (
         <div
           key={opacity || "full"}
@@ -59,13 +61,14 @@ export function MobileEmptyState({
 
 export function MobileErrorState({
   title,
-  description = "Bir sorun oluştu. Tekrar dener misin?",
+  description,
   onRetry,
 }: {
   title: string;
   description?: string;
   onRetry?: () => void;
 }) {
+  const t = useTranslations("mobile.states");
   return (
     <div className={`${CARD_CLASS} items-center text-center`} role="alert">
       <span className="flex size-[52px] items-center justify-center rounded-[20px] bg-[#fdeeee]">
@@ -80,7 +83,7 @@ export function MobileErrorState({
         {title}
       </p>
       <p className="text-[13.5px] leading-[1.35] text-[#676e78]">
-        {description}
+        {description ?? t("errorDescription")}
       </p>
       {onRetry ? (
         <button
@@ -88,7 +91,7 @@ export function MobileErrorState({
           onClick={onRetry}
           className="rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] leading-[1.35] font-semibold text-[#22262b]"
         >
-          Tekrar dene
+          {t("retry")}
         </button>
       ) : null}
     </div>
@@ -96,12 +99,13 @@ export function MobileErrorState({
 }
 
 export function MobileOfflineBanner({
-  detail = "İnternet bağlantını kontrol et.",
+  detail,
   onRefresh,
 }: {
   detail?: string;
   onRefresh?: () => void;
 }) {
+  const t = useTranslations("mobile.states");
   return (
     <div
       role="status"
@@ -110,9 +114,11 @@ export function MobileOfflineBanner({
       <Image src="/mobile/icon-info-muted.svg" alt="" width={20} height={20} />
       <div className="flex min-w-0 flex-1 flex-col gap-[3px] leading-[1.35]">
         <p className="text-[14.5px] font-semibold text-[#22262b]">
-          Bağlantı yok
+          {t("offlineTitle")}
         </p>
-        <p className="truncate text-[12.5px] text-[#858c96]">{detail}</p>
+        <p className="truncate text-[12.5px] text-[#858c96]">
+          {detail ?? t("offlineDetail")}
+        </p>
       </div>
       {onRefresh ? (
         <button
@@ -120,7 +126,7 @@ export function MobileOfflineBanner({
           onClick={onRefresh}
           className="text-[13.5px] leading-[1.35] font-semibold text-[#22262b]"
         >
-          Yenile
+          {t("refresh")}
         </button>
       ) : null}
     </div>

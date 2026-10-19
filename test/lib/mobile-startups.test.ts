@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
-import { MeetingFrequency } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import type { StartupDocument } from "@/interfaces/startup-document";
@@ -17,6 +16,7 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 12, 0);
 
@@ -54,7 +54,14 @@ const MEETINGS = [
 
 describe("activeStartupCards", () => {
   it("flags a startup with no meeting for a week and puts it first", () => {
-    const cards = activeStartupCards([ATLAS, LUMEN], MEETINGS, [], "m1", NOW);
+    const cards = activeStartupCards(
+      [ATLAS, LUMEN],
+      MEETINGS,
+      [],
+      "m1",
+      mobileTexts(),
+      NOW,
+    );
 
     expect(
       cards.map((card) => [card.name, card.health, card.nextLine]),
@@ -89,51 +96,61 @@ describe("pastStartupCards", () => {
         mentorship("now", "ACTIVE"),
       ],
       new Set(["atlas"]),
+      mobileTexts(),
     );
 
     expect(cards.map((card) => [card.name, card.nextLine])).toEqual([
       ["OLD", "Bitti · 31 Ağustos 2026"],
     ]);
+    expect(
+      pastStartupCards(
+        [mentorship("old", "COMPLETED")],
+        new Set(),
+        mobileTexts("en"),
+      )[0]?.nextLine,
+    ).toBe("Ended · August 31, 2026");
   });
 });
 
 describe("startupDetail", () => {
+  const atlasInput = {
+    organizationId: "atlas",
+    requests: [ATLAS],
+    meetings: MEETINGS,
+    programs: [],
+    mentorId: "m1",
+    members: [
+      { id: "u2", email: "b@x", fullName: "Barış Arslan", role: "MENTEE" },
+      {
+        id: "u1",
+        email: "g@x",
+        fullName: "Gamze Kozak",
+        role: "MENTEE",
+        jobTitle: "CEO & Co-founder",
+        founder: true,
+      },
+    ],
+    documents: [
+      { createdAt: "2026-09-21T10:00:00Z" },
+      { createdAt: "2026-09-01T10:00:00Z" },
+    ] as StartupDocument[],
+    actionItems: [
+      menteeActionItemFixture({
+        id: "a",
+        status: ActionItemStatus.Completed,
+      }),
+      menteeActionItemFixture({ id: "b" }),
+      menteeActionItemFixture({
+        id: "c",
+        status: ActionItemStatus.Cancelled,
+      }),
+    ],
+    frequencyLabel: "2 haftada 1",
+    now: NOW,
+  };
+
   it("summarises the mentorship, team, tasks and files", () => {
-    const detail = startupDetail({
-      organizationId: "atlas",
-      requests: [ATLAS],
-      meetings: MEETINGS,
-      programs: [],
-      mentorId: "m1",
-      members: [
-        { id: "u2", email: "b@x", fullName: "Barış Arslan", role: "MENTEE" },
-        {
-          id: "u1",
-          email: "g@x",
-          fullName: "Gamze Kozak",
-          role: "MENTEE",
-          jobTitle: "CEO & Co-founder",
-          founder: true,
-        },
-      ],
-      documents: [
-        { createdAt: "2026-09-21T10:00:00Z" },
-        { createdAt: "2026-09-01T10:00:00Z" },
-      ] as StartupDocument[],
-      actionItems: [
-        menteeActionItemFixture({
-          id: "a",
-          status: ActionItemStatus.Completed,
-        }),
-        menteeActionItemFixture({ id: "b" }),
-        menteeActionItemFixture({
-          id: "c",
-          status: ActionItemStatus.Cancelled,
-        }),
-      ],
-      frequency: MeetingFrequency.Biweekly,
-      now: NOW,
-    });
+    const detail = startupDetail({ ...atlasInput, texts: mobileTexts() });
 
     expect(detail).toMatchObject({
       chatHref: "/m/messages/mentorship/r-atlas",
@@ -154,6 +171,28 @@ describe("startupDetail", () => {
     });
   });
 
+  it("summarises it in English", () => {
+    const detail = startupDetail({
+      ...atlasInput,
+      frequencyLabel: null,
+      texts: mobileTexts("en"),
+    });
+
+    expect(detail).toMatchObject({
+      upcoming: {
+        when: "Tomorrow · 02:00 PM–03:00 PM",
+        detail: "Ürün stratejisi · Meeting 1 · Online",
+      },
+      info: [
+        { label: "Topic", value: "Ürün stratejisi" },
+        { label: "Started", value: "June 2, 2026" },
+        { label: "Meeting frequency", value: "Not specified" },
+      ],
+      tasks: "1 / 2 completed",
+      files: "2 files · latest 2 days ago",
+    });
+  });
+
   it("has nothing for a startup without an active mentorship", () => {
     expect(
       startupDetail({
@@ -165,7 +204,8 @@ describe("startupDetail", () => {
         members: [],
         documents: [],
         actionItems: [],
-        frequency: null,
+        frequencyLabel: null,
+        texts: mobileTexts(),
         now: NOW,
       }),
     ).toBeNull();

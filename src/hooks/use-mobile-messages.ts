@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useSession } from "@/components/providers/session-provider";
 import { COORDINATOR_CONVERSATIONS_QUERY_KEY } from "@/hooks/use-coordinator-messages";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
+import { useMobileTexts } from "@/hooks/use-mobile-texts";
 import { ANNOUNCEMENTS_QUERY_KEY } from "@/hooks/use-program-announcements";
 import { UserRole } from "@/interfaces/session";
 import { getCoordinatorConversations } from "@/lib/client/coordinator-conversations";
@@ -33,6 +34,7 @@ export function useMobileConversations() {
   const { session } = useSession();
   const enabled = hasMobileApp(session?.role);
   const role = messagingRoleFor(session?.role);
+  const texts = useMobileTexts();
   const requests = useQuery({
     queryKey: mentorshipRequestsQueryKey(role),
     queryFn: () => getMentorRequests(role),
@@ -56,15 +58,15 @@ export function useMobileConversations() {
   const conversations = useMemo(
     () =>
       newestFirst([
-        ...groupedMentorshipConversations(requests.data ?? [], role),
+        ...groupedMentorshipConversations(requests.data ?? [], role, texts),
         ...(programs.data ?? []).map((conversation) =>
-          programConversation(conversation),
+          programConversation(conversation, texts),
         ),
         ...announcementThreads(announcements.data ?? []).map((thread) =>
-          announcementConversation(thread),
+          announcementConversation(thread, texts),
         ),
       ]),
-    [requests.data, programs.data, announcements.data, role],
+    [requests.data, programs.data, announcements.data, role, texts],
   );
 
   return {
@@ -86,6 +88,7 @@ export function useMobileConversations() {
 
 export function useMobileMessages() {
   const base = useMobileConversations();
+  const { t, locale } = useMobileTexts();
   const { session } = useSession();
   const [query, setQuery] = useState("");
   const isMentor = session?.role === UserRole.Mentor;
@@ -93,9 +96,11 @@ export function useMobileMessages() {
   return {
     ...base,
     isMentor,
-    searchLabel: isMentor ? "Startup veya kişi ara" : "Kişi ara",
+    searchLabel: isMentor
+      ? t("messages.searchMentor")
+      : t("messages.searchMentee"),
     query,
     setQuery,
-    shown: searchConversations(base.conversations, query),
+    shown: searchConversations(base.conversations, query, locale),
   };
 }

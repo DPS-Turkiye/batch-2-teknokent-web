@@ -1,10 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  announcementThreadName,
-  announcementThreads,
-  audienceLabel,
-} from "@/lib/program-announcements";
+import { announcementThreads } from "@/lib/program-announcements";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
 
 describe("program announcement helpers", () => {
@@ -28,13 +24,5 @@ describe("program announcement helpers", () => {
       "a3",
       "a1",
     ]);
-  });
-
-  it("names the thread and its audience", () => {
-    expect(announcementThreadName("METU Stars 2026")).toBe(
-      "METU Stars 2026 — Duyuru",
-    );
-    expect(audienceLabel(programAnnouncement())).toBe("42 takım · 28 mentor");
-    expect(audienceLabel(null)).toBe("Henüz duyuru yok");
   });
 });

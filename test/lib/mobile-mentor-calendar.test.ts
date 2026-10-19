@@ -15,6 +15,7 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 16, 25);
 
@@ -39,9 +40,11 @@ const REQUEST = menteeRequestFixture({
 
 describe("mentorAgendaEntries", () => {
   it("names meetings by startup, topic and the person who asked", () => {
-    const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), [
-      REQUEST,
-    ]);
+    const [entry] = mentorAgendaEntries(
+      agendaEntries([MEETING], [], mobileTexts()),
+      [REQUEST],
+      mobileTexts(),
+    );
 
     expect(entry).toMatchObject({
       title: "Döngü Labs",
@@ -51,14 +54,22 @@ describe("mentorAgendaEntries", () => {
   });
 
   it("falls back to the agenda when the request is not loaded", () => {
-    const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), []);
+    const [entry] = mentorAgendaEntries(
+      agendaEntries([MEETING], [], mobileTexts()),
+      [],
+      mobileTexts(),
+    );
 
     expect(entry?.detail).toBe("değer önerisi · Online");
   });
 });
 
 describe("mentorEntryDetail", () => {
-  const [entry] = mentorAgendaEntries(agendaEntries([MEETING], []), [REQUEST]);
+  const [entry] = mentorAgendaEntries(
+    agendaEntries([MEETING], [], mobileTexts()),
+    [REQUEST],
+    mobileTexts(),
+  );
 
   it("builds the sheet with the team, the mentor and the topic", () => {
     expect(
@@ -71,6 +82,7 @@ describe("mentorEntryDetail", () => {
           { id: "u2", fullName: "Can Er" },
         ] as never,
         mentorName: "Nihan Öztürk",
+        texts: mobileTexts(),
         now: NOW,
       }),
     ).toEqual({
@@ -91,6 +103,32 @@ describe("mentorEntryDetail", () => {
     });
   });
 
+  it("builds the sheet's people, countdown and agenda in English", () => {
+    const detail = mentorEntryDetail({
+      entry: entry!,
+      meetings: [MEETING],
+      requests: [REQUEST],
+      members: [
+        { id: "u1", fullName: "Gülse Buran", founder: true },
+        { id: "u2", fullName: "Can Er" },
+      ] as never,
+      mentorName: "Nihan Öztürk",
+      texts: mobileTexts("en"),
+      now: NOW,
+    });
+
+    expect(detail).toMatchObject({
+      startsIn: "in 5 min",
+      timeLine: "Today · 04:30 PM–05:15 PM",
+      timeHint: "45 dk",
+      startup: { people: "Gülse Buran (lead) + 1 member" },
+      topic: {
+        title: "Positioning · Meeting 1",
+        agenda: "Agenda: değer önerisi",
+      },
+    });
+  });
+
   it("names the requester as lead until the members load, and drops the countdown once over", () => {
     const detail = mentorEntryDetail({
       entry: entry!,
@@ -98,6 +136,7 @@ describe("mentorEntryDetail", () => {
       requests: [REQUEST],
       members: [],
       mentorName: "Nihan Öztürk",
+      texts: mobileTexts(),
       now: new Date(2026, 8, 23, 18, 0),
     });
 
@@ -108,11 +147,17 @@ describe("mentorEntryDetail", () => {
 
 describe("startsInLabel", () => {
   it("counts down in minutes, hours and days", () => {
-    const [entry] = agendaEntries([MEETING], []);
+    const [entry] = agendaEntries([MEETING], [], mobileTexts());
 
-    expect(startsInLabel(entry!, NOW)).toBe("5 dk sonra");
-    expect(startsInLabel(entry!, new Date(2026, 8, 23, 17, 0))).toBe("şimdi");
-    expect(startsInLabel(entry!, new Date(2026, 8, 22, 16, 30))).toBe("yarın");
+    const { t } = mobileTexts();
+    expect(startsInLabel(entry!, NOW, t)).toBe("5 dk sonra");
+    expect(startsInLabel(entry!, new Date(2026, 8, 23, 17, 0), t)).toBe(
+      "şimdi",
+    );
+    expect(startsInLabel(entry!, new Date(2026, 8, 22, 16, 30), t)).toBe(
+      "yarın",
+    );
+    expect(startsInLabel(entry!, NOW, mobileTexts("en").t)).toBe("in 5 min");
   });
 });
 
@@ -150,6 +195,7 @@ describe("mentorAwaitingEntries", () => {
           requesterMessage: "preferredSlots:2026-09-27T11:00",
         }),
       ],
+      mobileTexts(),
       NOW,
     );
 

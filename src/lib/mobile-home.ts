@@ -7,27 +7,22 @@ import type {
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import type { HomeTask } from "@/lib/mentee-home";
-import { MOBILE_CALENDAR, MOBILE_TASKS } from "@/lib/mobile";
+import {
+  MOBILE_CALENDAR,
+  MOBILE_TASKS,
+  mobileClock,
+  mobileDayMonth,
+  mobileLongDay,
+  type MobileTexts,
+} from "@/lib/mobile";
 import { groupedMentorshipConversations } from "@/lib/mobile-messages";
 import { visibleMeetings } from "@/lib/startup-meetings";
-import { initials } from "@/lib/utils";
+import { initials, relativeDayLabel } from "@/lib/utils";
 
 export const HOME_TASK_LIMIT = 3;
 export const HOME_MESSAGE_LIMIT = 2;
 
-const DEFAULT_MEETING_TITLE = "Mentorluk görüşmesi";
-const DEFAULT_MENTOR_NAME = "Mentörün";
 const DAY_MS = 86_400_000;
-
-const time = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-const dayMonth = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-const weekday = new Intl.DateTimeFormat("tr-TR", { weekday: "long" });
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -40,35 +35,45 @@ function dayOffset(date: Date, now: Date) {
 }
 
 /** "Bugün", "Yarın" or "24 Eylül", and "14:00". */
-export function meetingDayAndTime(meeting: MeetingItem, now = new Date()) {
+export function meetingDayAndTime(
+  meeting: MeetingItem,
+  locale: string,
+  now = new Date(),
+) {
   const start = new Date(meeting.scheduledAt);
   const offset = dayOffset(start, now);
   const day =
-    offset === 0 ? "Bugün" : offset === 1 ? "Yarın" : dayMonth.format(start);
-  return { day, time: time.format(start) };
+    offset === 0 || offset === 1
+      ? relativeDayLabel(offset, locale)
+      : mobileDayMonth(start, locale);
+  return { day, time: mobileClock(start, locale) };
 }
 
 /** "Bugün · 14:00", "Yarın · 14:00", then "24 Eylül · 14:00". */
-export function meetingWhenChip(meeting: MeetingItem, now = new Date()) {
-  const when = meetingDayAndTime(meeting, now);
+export function meetingWhenChip(
+  meeting: MeetingItem,
+  locale: string,
+  now = new Date(),
+) {
+  const when = meetingDayAndTime(meeting, locale, now);
   return `${when.day} · ${when.time}`;
 }
 
 /** "Perşembe 24 Eylül · 14:00–15:00 · Online" */
-export function meetingTimeLine(meeting: MeetingItem) {
+export function meetingTimeLine(meeting: MeetingItem, texts: MobileTexts) {
   const start = new Date(meeting.scheduledAt);
   const end = new Date(start.getTime() + meeting.durationMinutes * 60_000);
   const parts = [
-    `${weekday.format(start)} ${dayMonth.format(start)}`,
-    `${time.format(start)}–${time.format(end)}`,
+    mobileLongDay(start, texts),
+    `${mobileClock(start, texts.locale)}–${mobileClock(end, texts.locale)}`,
   ];
-  if (meeting.meetLink) parts.push("Online");
+  if (meeting.meetLink) parts.push(texts.t("meeting.online"));
   return parts.join(" · ");
 }
 
-export function meetingTitle(meeting: MeetingItem) {
+export function meetingTitle(meeting: MeetingItem, t: MobileTexts["t"]) {
   const firstLine = meeting.agenda?.split("\n")[0]?.trim();
-  return firstLine || DEFAULT_MEETING_TITLE;
+  return firstLine || t("meeting.defaultTitle");
 }
 
 // Counts every non-cancelled meeting with the same mentor up to this one.
@@ -83,18 +88,21 @@ function meetingOrdinal(meeting: MeetingItem, meetings: MeetingItem[]) {
 export function meetingSummary(
   meeting: MeetingItem,
   meetings: MeetingItem[],
+  texts: MobileTexts,
   now = new Date(),
 ): MobileMeetingSummary {
-  const mentorName = meeting.mentorName || DEFAULT_MENTOR_NAME;
+  const { t } = texts;
+  const mentorName = meeting.mentorName || t("meeting.yourMentor");
   const ordinal = meeting.mentorId ? meetingOrdinal(meeting, meetings) : 0;
   return {
     id: meeting.id,
-    title: meetingTitle(meeting),
-    whenChip: meetingWhenChip(meeting, now),
+    title: meetingTitle(meeting, t),
+    whenChip: meetingWhenChip(meeting, texts.locale, now),
     mentorName,
     mentorInitials: initials(mentorName),
-    mentorDetail: ordinal > 0 ? `${ordinal}. görüşme` : "Mentor",
-    timeLine: meetingTimeLine(meeting),
+    mentorDetail:
+      ordinal > 0 ? t("meeting.ordinal", { ordinal }) : t("meeting.mentor"),
+    timeLine: meetingTimeLine(meeting, texts),
     href: `${MOBILE_CALENDAR}?meeting=${encodeURIComponent(meeting.id)}`,
   };
 }
@@ -113,11 +121,13 @@ export function taskPreviews(tasks: HomeTask[]): MobileTaskPreview[] {
 /** The latest message of each thread that can still be written in, newest first, as Mesajlar lists them. */
 export function messagePreviews(
   requests: MentorshipRequest[],
+  texts: MobileTexts,
   now = new Date(),
 ): MobileMessagePreview[] {
   return groupedMentorshipConversations(
     requests.filter((request) => request.messages.length > 0),
     UserRole.Mentee,
+    texts,
     now,
   )
     .slice(0, HOME_MESSAGE_LIMIT)

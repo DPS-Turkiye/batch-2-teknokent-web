@@ -1,10 +1,6 @@
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
-  MEETING_FREQUENCY_LABELS,
-  type MeetingFrequency,
-} from "@/interfaces/mentor";
-import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
@@ -17,11 +13,13 @@ import {
   MOBILE_CALENDAR,
   MOBILE_STARTUPS,
   mobileChatHref,
+  mobileClock,
+  type MobileTexts,
   webHref,
 } from "@/lib/mobile";
 import { meetingDayAndTime } from "@/lib/mobile-home";
 import { endOf, programNameFor, upcomingFor } from "@/lib/mobile-mentor-home";
-import { initials } from "@/lib/utils";
+import { formatLongDate, initials } from "@/lib/utils";
 import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 export enum StartupHealth {
@@ -30,26 +28,10 @@ export enum StartupHealth {
   Past = "past",
 }
 
-export const STARTUP_HEALTH_LABELS: Record<StartupHealth, string> = {
-  [StartupHealth.Active]: "Aktif",
-  [StartupHealth.Attention]: "Dikkat",
-  [StartupHealth.Past]: "Tamamlandı",
-};
-
 /** A startup with no planned meeting and none held for this long needs a nudge. */
 export const QUIET_DAYS_FOR_ATTENTION = 7;
 const PAST_MENTORSHIP_STATUSES = new Set(["COMPLETED", "CANCELLED"]);
 const DAY_MS = 86_400_000;
-
-const time = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-const longDate = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-  year: "numeric",
-});
 
 export type StartupCard = {
   id: string;
@@ -101,15 +83,19 @@ function activeCard(
   meetings: MeetingItem[],
   programs: Program[],
   mentorId: string,
+  texts: MobileTexts,
   now: Date,
 ): StartupCard {
-  const name = request.organizationName ?? request.requesterName ?? "Startup";
+  const { t } = texts;
+  const name =
+    request.organizationName ?? request.requesterName ?? t("meeting.startup");
+  const topic = texts.topicLabel(request.supportArea);
   const next = upcomingFor(meetings, request.organizationId, now);
   let nextLine: string;
   let health = StartupHealth.Active;
   if (next) {
-    const when = meetingDayAndTime(next, now);
-    nextLine = `${when.day} · ${when.time} · ${request.supportArea}`;
+    const when = meetingDayAndTime(next, texts.locale, now);
+    nextLine = `${when.day} · ${when.time} · ${topic}`;
   } else {
     const quietDays = daysSinceLastMeeting(
       meetings,
@@ -118,9 +104,9 @@ function activeCard(
     );
     const quiet =
       quietDays === null
-        ? "henüz görüşme yok"
-        : `${quietDays} gündür görüşme yok`;
-    nextLine = `Planlanmadı · ${quiet} · ${request.supportArea}`;
+        ? t("startups.noMeetingYet")
+        : t("startups.quietDays", { days: quietDays });
+    nextLine = `${t("startups.notPlanned")} · ${quiet} · ${topic}`;
     if (quietDays === null || quietDays >= QUIET_DAYS_FOR_ATTENTION) {
       health = StartupHealth.Attention;
     }
@@ -142,6 +128,7 @@ export function activeStartupCards(
   meetings: MeetingItem[],
   programs: Program[],
   mentorId: string,
+  texts: MobileTexts,
   now = new Date(),
 ) {
   const organizationIds = [
@@ -157,7 +144,7 @@ export function activeStartupCards(
     .flatMap((id) => {
       const request = latestAccepted(requests, id);
       return request
-        ? [activeCard(request, meetings, programs, mentorId, now)]
+        ? [activeCard(request, meetings, programs, mentorId, texts, now)]
         : [];
     })
     .sort(
@@ -171,6 +158,7 @@ export function activeStartupCards(
 export function pastStartupCards(
   mentorships: RegularMentorship[],
   activeIds: Set<string>,
+  { t, locale }: MobileTexts,
 ): StartupCard[] {
   const seen = new Set<string>();
   return mentorships
@@ -191,8 +179,10 @@ export function pastStartupCards(
       program: null,
       health: StartupHealth.Past,
       nextLine: mentorship.endDate
-        ? `Bitti · ${longDate.format(new Date(mentorship.endDate))}`
-        : "Bitti",
+        ? t("startups.endedOn", {
+            date: formatLongDate(mentorship.endDate, locale),
+          })
+        : t("startups.ended"),
       href: startupHref(mentorship.organizationId),
     }));
 }
@@ -210,16 +200,16 @@ export type StartupDetail = {
   notesHref: string;
 };
 
-function relativeDays(value: string, now: Date) {
+function relativeDays(value: string, now: Date, t: MobileTexts["t"]) {
   const at = new Date(value);
   const days = Math.round(
     (new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() -
       new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime()) /
       DAY_MS,
   );
-  if (days <= 0) return "bugün";
-  if (days === 1) return "dün";
-  return `${days} gün önce`;
+  if (days <= 0) return t("startups.ago.today");
+  if (days === 1) return t("startups.ago.yesterday");
+  return t("startups.ago.days", { days });
 }
 
 export function startupDetail(input: {
@@ -231,10 +221,13 @@ export function startupDetail(input: {
   members: OrganizationMember[];
   documents: StartupDocument[];
   actionItems: ActionItem[];
-  frequency: MeetingFrequency | null;
+  /** The mentor's meeting frequency, already in the page's language. */
+  frequencyLabel: string | null;
+  texts: MobileTexts;
   now?: Date;
 }): StartupDetail | null {
   const now = input.now ?? new Date();
+  const { t, locale, topicLabel } = input.texts;
   const request = latestAccepted(input.requests, input.organizationId);
   if (!request) return null;
   const card = activeCard(
@@ -242,6 +235,7 @@ export function startupDetail(input: {
     input.meetings,
     input.programs,
     input.mentorId,
+    input.texts,
     now,
   );
   const next = upcomingFor(input.meetings, input.organizationId, now);
@@ -275,29 +269,28 @@ export function startupDetail(input: {
       : MOBILE_CALENDAR,
     upcoming: next
       ? {
-          when: `${meetingDayAndTime(next, now).day} · ${time.format(
+          when: `${meetingDayAndTime(next, locale, now).day} · ${mobileClock(
             new Date(next.scheduledAt),
-          )}–${time.format(new Date(endOf(next)))}`,
+            locale,
+          )}–${mobileClock(new Date(endOf(next)), locale)}`,
           detail: [
-            request.supportArea,
-            `${ordinal}. görüşme`,
-            next.meetLink ? "Online" : null,
+            topicLabel(request.supportArea),
+            t("meeting.ordinal", { ordinal }),
+            next.meetLink ? t("meeting.online") : null,
           ]
             .filter(Boolean)
             .join(" · "),
         }
       : null,
     info: [
-      { label: "Konu", value: request.supportArea },
+      { label: t("startups.topic"), value: topicLabel(request.supportArea) },
       {
-        label: "Başlangıç",
-        value: longDate.format(new Date(request.createdAt)),
+        label: t("startups.started"),
+        value: formatLongDate(request.createdAt, locale),
       },
       {
-        label: "Görüşme sıklığı",
-        value: input.frequency
-          ? MEETING_FREQUENCY_LABELS[input.frequency]
-          : "Belirtilmedi",
+        label: t("startups.frequency"),
+        value: input.frequencyLabel ?? t("startups.notSpecified"),
       },
     ],
     lead: lead
@@ -312,11 +305,17 @@ export function startupDetail(input: {
       count: others.length,
       names: others.map((member) => member.fullName),
     },
-    tasks: counted > 0 ? `${done} / ${counted} tamamlandı` : "Henüz görev yok",
+    tasks:
+      counted > 0
+        ? t("startups.tasksDone", { done, total: counted })
+        : t("startups.noTasks"),
     files:
       input.documents.length > 0 && newestFile
-        ? `${input.documents.length} dosya · son ${relativeDays(newestFile, now)}`
-        : "Henüz dosya yok",
+        ? t("startups.files", {
+            count: input.documents.length,
+            when: relativeDays(newestFile, now, t),
+          })
+        : t("startups.noFiles"),
     notesHref: webHref(mentorRequestStartupHref(request.id)),
   };
 }

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
@@ -15,13 +16,9 @@ import { useMobileCalendar } from "@/hooks/use-mobile-calendar";
 import {
   JOIN_LEAD_MINUTES,
   MobileAgendaKind,
-  MONTH_WEEKDAY_LABELS,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
-import {
-  AWAITING_APPROVAL_LABEL,
-  type MentorEntryDetail,
-} from "@/lib/mobile-mentor-calendar";
+import type { MentorEntryDetail } from "@/lib/mobile-mentor-calendar";
 import { initials } from "@/lib/utils";
 
 type Calendar = ReturnType<typeof useMobileCalendar>;
@@ -52,15 +49,19 @@ function Dots({ kinds }: { kinds: MobileAgendaKind[] }) {
 }
 
 function WeekStrip({ calendar }: { calendar: Calendar }) {
+  const t = useTranslations("mobile.calendar");
   return (
-    <ol className="flex justify-between" aria-label="Hafta">
+    <ol className="flex justify-between" aria-label={t("week")}>
       {calendar.strip.map((day) => (
         <li key={day.date.toISOString()}>
           <button
             type="button"
             onClick={() => calendar.selectDay(day.date)}
             aria-pressed={day.isSelected}
-            aria-label={`${day.weekday} ${day.dayNumber}${day.isToday ? ", bugün" : ""}`}
+            aria-label={t(day.isToday ? "dayToday" : "day", {
+              weekday: day.weekday,
+              day: day.dayNumber,
+            })}
             className={`flex w-[46px] flex-col items-center gap-1 rounded-[18px] py-2.5 leading-[1.35] ${
               day.isSelected ? "bg-[#22262b]" : ""
             }`}
@@ -114,6 +115,7 @@ function AgendaCard({
   isMentor: boolean;
   onOpen: () => void;
 }) {
+  const t = useTranslations("mobile.calendar");
   const tone = isMentor ? NEXT_TONE.mentor : NEXT_TONE.mentee;
   return (
     <button
@@ -123,7 +125,7 @@ function AgendaCard({
         nextLabel ? tone.card : "bg-[#f5f6f8]"
       }`}
     >
-      <span className="flex w-[52px] shrink-0 flex-col gap-0.5 leading-[1.35]">
+      <span className="flex min-w-[52px] shrink-0 flex-col gap-0.5 leading-[1.35] whitespace-nowrap">
         <span className="text-[15px] font-semibold text-[#22262b]">
           {entry.time}
         </span>
@@ -146,7 +148,7 @@ function AgendaCard({
           {entry.title}
           {entry.awaitingApproval ? (
             <span className="rounded-full bg-[#fff6e5] px-2 py-0.5 text-[11px] font-medium text-[#b7791f]">
-              {AWAITING_APPROVAL_LABEL}
+              {t("awaitingApproval")}
             </span>
           ) : null}
         </span>
@@ -227,6 +229,7 @@ function LinkRow({ detail }: { detail: EntryDetail }) {
 }
 
 function MenteeRows({ detail }: { detail: EntryDetail }) {
+  const t = useTranslations("mobile");
   const { entry } = detail;
   const meeting = entry.meeting;
   return (
@@ -253,9 +256,9 @@ function MenteeRows({ detail }: { detail: EntryDetail }) {
         <InfoRow icon="/mobile/icon-people.svg">
           <div className="flex flex-col gap-2.5">
             <Person
-              initials={initials(meeting.mentorName ?? "Mentör")}
-              name={meeting.mentorName ?? "Mentör"}
-              role="Mentor"
+              initials={initials(meeting.mentorName ?? t("meeting.mentor"))}
+              name={meeting.mentorName ?? t("meeting.mentor")}
+              role={t("meeting.mentor")}
               square={false}
             />
             {meeting.organizationName ? (
@@ -273,7 +276,7 @@ function MenteeRows({ detail }: { detail: EntryDetail }) {
       {meeting?.agenda || entry.event?.description ? (
         <InfoRow icon="/mobile/icon-agenda.svg">
           <p className="text-[15px] font-medium text-[#22262b]">
-            {meeting ? "Gündem" : "Açıklama"}
+            {meeting ? t("calendar.agenda") : t("calendar.description")}
           </p>
           <p className="text-[13px] whitespace-pre-line text-[#858c96]">
             {meeting?.agenda ?? entry.event?.description}
@@ -291,6 +294,7 @@ function MentorRows({
   detail: EntryDetail;
   mentor: MentorEntryDetail;
 }) {
+  const t = useTranslations("mobile.calendar");
   return (
     <>
       <div className="flex flex-col gap-2 leading-[1.35]">
@@ -331,7 +335,7 @@ function MentorRows({
           <Person
             initials={mentor.self.initials}
             name={mentor.self.name}
-            role="Sen · Mentor"
+            role={t("youMentor")}
             square={false}
           />
         </div>
@@ -352,6 +356,7 @@ function MentorRows({
 }
 
 function MessageLink({ href }: { href: string | null }) {
+  const t = useTranslations("mobile.calendar");
   if (!href) return null;
   return (
     <Link
@@ -364,12 +369,13 @@ function MessageLink({ href }: { href: string | null }) {
         width={18}
         height={18}
       />
-      Mesaj gönder
+      {t("sendMessage")}
     </Link>
   );
 }
 
 function SheetActions({ detail }: { detail: EntryDetail }) {
+  const t = useTranslations("mobile.calendar");
   return (
     <div className="flex flex-col items-center gap-2.5 pt-2">
       {detail.isOver ? null : detail.canJoin && detail.link ? (
@@ -380,7 +386,7 @@ function SheetActions({ detail }: { detail: EntryDetail }) {
           className="flex w-full items-center justify-center gap-2 rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
         >
           <MaskIcon src="/mobile/icon-link-button.svg" size={18} />
-          Toplantıya katıl
+          {t("join")}
         </a>
       ) : (
         <>
@@ -395,12 +401,12 @@ function SheetActions({ detail }: { detail: EntryDetail }) {
               width={18}
               height={18}
             />
-            Toplantıya katıl
+            {t("join")}
           </button>
           <p className="text-[12.5px] leading-[1.35] text-[#858c96]">
             {detail.link
-              ? `Bağlantı görüşmeden ${JOIN_LEAD_MINUTES} dk önce aktif olur`
-              : "Bu görüşmenin henüz bağlantısı yok"}
+              ? t("joinOpensBefore", { minutes: JOIN_LEAD_MINUTES })
+              : t("noLink")}
           </p>
         </>
       )}
@@ -434,6 +440,7 @@ function EntrySheet({ calendar }: { calendar: Calendar }) {
 }
 
 function MonthSheet({ calendar }: { calendar: Calendar }) {
+  const t = useTranslations("mobile.calendar");
   const month = calendar.month;
   if (!month.isOpen) return null;
   return (
@@ -442,7 +449,7 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
         <button
           type="button"
           onClick={month.previous}
-          aria-label="Önceki ay"
+          aria-label={t("previousMonth")}
           className="flex size-10 items-center justify-center rounded-full bg-[#f5f6f8]"
         >
           <Image src="/mobile/icon-back.svg" alt="" width={20} height={20} />
@@ -456,14 +463,14 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
         <button
           type="button"
           onClick={month.next}
-          aria-label="Sonraki ay"
+          aria-label={t("nextMonth")}
           className="flex size-10 rotate-180 items-center justify-center rounded-full bg-[#f5f6f8]"
         >
           <Image src="/mobile/icon-back.svg" alt="" width={20} height={20} />
         </button>
       </div>
       <div className="grid grid-cols-7 gap-y-1 text-center leading-[1.35]">
-        {MONTH_WEEKDAY_LABELS.map((label) => (
+        {(t.raw("monthWeekdays") as string[]).map((label) => (
           <span key={label} className="py-1 text-xs font-medium text-[#858c96]">
             {label}
           </span>
@@ -492,10 +499,10 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
       <div className="flex items-center justify-between text-[13px] leading-[1.35] text-[#676e78]">
         <span className="flex items-center gap-3">
           <span className="flex items-center gap-1.5">
-            <Dots kinds={[MobileAgendaKind.Meeting]} /> Görüşme
+            <Dots kinds={[MobileAgendaKind.Meeting]} /> {t("legendMeeting")}
           </span>
           <span className="flex items-center gap-1.5">
-            <Dots kinds={[MobileAgendaKind.Event]} /> Etkinlik
+            <Dots kinds={[MobileAgendaKind.Event]} /> {t("legendEvent")}
           </span>
         </span>
         <button
@@ -503,7 +510,7 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
           onClick={month.today}
           className="font-semibold text-[#22262b]"
         >
-          Bugüne dön
+          {t("backToToday")}
         </button>
       </div>
     </BottomSheet>
@@ -511,13 +518,14 @@ function MonthSheet({ calendar }: { calendar: Calendar }) {
 }
 
 export function MobileCalendarView() {
+  const t = useTranslations("mobile.calendar");
   const calendar = useMobileCalendar();
 
   return (
     <div className="flex flex-col gap-5">
       <header className="flex items-center justify-between pt-2">
         <h1 className="text-[28px] leading-[1.35] font-bold text-[#22262b]">
-          Takvim
+          {t("title")}
         </h1>
         <button
           type="button"
@@ -539,14 +547,11 @@ export function MobileCalendarView() {
       {calendar.isLoading ? (
         <MobileListSkeleton />
       ) : calendar.isError ? (
-        <MobileErrorState
-          title="Takvim yüklenemedi."
-          onRetry={calendar.retry}
-        />
+        <MobileErrorState title={t("loadError")} onRetry={calendar.retry} />
       ) : calendar.agenda.length === 0 ? (
         <MobileEmptyState
-          title="Bu hafta planlı bir şey yok."
-          description="Başka bir güne ya da aya bakmak için tarihlere dokun."
+          title={t("emptyTitle")}
+          description={t("emptyDescription")}
         />
       ) : (
         calendar.agenda.map((day) => (

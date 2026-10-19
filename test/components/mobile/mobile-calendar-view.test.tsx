@@ -6,6 +6,8 @@ import { MobileCalendarView } from "@/components/mobile/mobile-calendar-view";
 import type { useMobileCalendar } from "@/hooks/use-mobile-calendar";
 import { agendaEntries, MobileAgendaKind } from "@/lib/mobile-calendar";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
+import { InLocale } from "@test/test-utils";
 
 type Calendar = ReturnType<typeof useMobileCalendar>;
 
@@ -22,6 +24,7 @@ const [MEETING] = agendaEntries(
     }),
   ],
   [],
+  mobileTexts(),
 );
 
 const openEntry = vi.fn();
@@ -318,6 +321,61 @@ describe("MobileCalendarView", () => {
     );
 
     expect(pick).toHaveBeenCalledWith(new Date(2026, 8, 24));
+  });
+
+  it("labels the week, the sheet and the month in English", () => {
+    calendar = calendarState({ detail: detail(false) });
+    const { unmount } = render(
+      <InLocale locale="en">
+        <MobileCalendarView />
+      </InLocale>,
+    );
+
+    expect(screen.getByRole("heading", { name: "Calendar" })).toBeVisible();
+    expect(screen.getByRole("list", { name: "Week" })).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Çar 23, today" }),
+    ).toBeInTheDocument();
+    const sheet = screen.getByRole("dialog");
+    expect(
+      within(sheet).getByRole("button", { name: "Join meeting" }),
+    ).toBeDisabled();
+    expect(
+      within(sheet).getByText("The link opens 10 min before the meeting"),
+    ).toBeInTheDocument();
+    expect(within(sheet).getByText("Agenda")).toBeInTheDocument();
+    expect(
+      within(sheet).getByRole("link", { name: "Send message" }),
+    ).toBeVisible();
+    unmount();
+
+    calendar = calendarState({
+      month: { ...calendarState().month, isOpen: true },
+    });
+    render(
+      <InLocale locale="en">
+        <MobileCalendarView />
+      </InLocale>,
+    );
+    const month = screen.getByRole("dialog");
+    expect(within(month).getByText("Mo")).toBeInTheDocument();
+    expect(
+      within(month).getByRole("button", { name: "Previous month" }),
+    ).toBeVisible();
+    expect(
+      within(month).getByRole("button", { name: "Back to today" }),
+    ).toBeVisible();
+  });
+
+  it("says when the week is empty, in English too", () => {
+    calendar = calendarState({ agenda: [] });
+    render(
+      <InLocale locale="en">
+        <MobileCalendarView />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Nothing planned this week.")).toBeInTheDocument();
   });
 
   it("says when the week is empty", () => {

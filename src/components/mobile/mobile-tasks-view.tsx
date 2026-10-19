@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { MobileScreenHeader } from "@/components/mobile/mobile-app-shell";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
@@ -35,6 +36,7 @@ const DUE_CHIP_CLASS: Record<MobileTaskTone, string> = {
 };
 
 function Checkbox({ task, tasks }: { task: MobileTask; tasks: Tasks }) {
+  const t = useTranslations("mobile.tasks");
   if (!tasks.canTick(task)) {
     return (
       <span
@@ -48,7 +50,9 @@ function Checkbox({ task, tasks }: { task: MobileTask; tasks: Tasks }) {
       type="button"
       role="checkbox"
       aria-checked={task.completed}
-      aria-label={`${task.title}: ${task.completed ? "tamamlandı" : "tamamla"}`}
+      aria-label={t(task.completed ? "checkboxDone" : "checkboxOpen", {
+        title: task.title,
+      })}
       disabled={tasks.isSaving}
       onClick={() =>
         task.completed ? tasks.reopen(task) : tasks.complete(task)
@@ -103,6 +107,7 @@ function TaskRow({ task, tasks }: { task: MobileTask; tasks: Tasks }) {
 }
 
 function TaskSheet({ tasks }: { tasks: Tasks }) {
+  const t = useTranslations("mobile.tasks");
   const task = tasks.selected;
   if (!task) return null;
   return (
@@ -113,7 +118,7 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
             {initials(task.assignedBy)}
           </span>
           {task.assignedOn
-            ? `${task.assignedBy} atadı · ${task.assignedOn}`
+            ? t("assignedBy", { name: task.assignedBy, date: task.assignedOn })
             : task.assignedBy}
         </p>
       ) : null}
@@ -152,7 +157,7 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
             disabled={tasks.isSaving}
           >
             <Image src="/mobile/icon-done.svg" alt="" width={18} height={18} />
-            Tamamlandı olarak işaretle
+            {t("markDone")}
           </MobileButton>
         ) : null}
         {task.webHref ? (
@@ -161,8 +166,8 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
             className="flex w-full items-center justify-center rounded-full bg-[var(--mobile-accent)] px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-white"
           >
             {task.source === MobileTaskSource.Feedback
-              ? "Web’de değerlendir"
-              : "Web’de teslim et"}
+              ? t("rateOnWeb")
+              : t("submitOnWeb")}
           </a>
         ) : null}
         {task.chatHref ? (
@@ -170,7 +175,7 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
             href={task.chatHref}
             className="flex w-full items-center justify-center rounded-full px-[22px] py-[15px] text-[15px] leading-[1.35] font-semibold text-[#22262b]"
           >
-            Mentora mesaj gönder
+            {t("messageMentor")}
           </Link>
         ) : null}
       </div>
@@ -179,13 +184,10 @@ function TaskSheet({ tasks }: { tasks: Tasks }) {
 }
 
 function Segments({ tasks }: { tasks: Tasks }) {
+  const t = useTranslations("mobile.tasks");
   const options = [
-    { tab: MobileTaskTab.Open, label: "Yapılacak", count: tasks.counts.open },
-    {
-      tab: MobileTaskTab.Done,
-      label: "Tamamlanan",
-      count: tasks.counts.done,
-    },
+    { tab: MobileTaskTab.Open, label: t("tabOpen"), count: tasks.counts.open },
+    { tab: MobileTaskTab.Done, label: t("tabDone"), count: tasks.counts.done },
   ];
   return (
     <div
@@ -219,26 +221,24 @@ function Segments({ tasks }: { tasks: Tasks }) {
 }
 
 export function MobileTasksView() {
+  const t = useTranslations("mobile.tasks");
   const tasks = useMobileTasks();
 
   return (
     <>
-      <MobileScreenHeader title="Görevler" />
+      <MobileScreenHeader title={t("title")} />
       <div className="flex flex-col gap-[18px]">
         <Segments tasks={tasks} />
         {tasks.isLoading ? (
           <MobileListSkeleton />
         ) : tasks.isError ? (
-          <MobileErrorState
-            title="Görevler yüklenemedi."
-            onRetry={tasks.retry}
-          />
+          <MobileErrorState title={t("loadError")} onRetry={tasks.retry} />
         ) : tasks.tab === MobileTaskTab.Open ? (
           tasks.groups.length === 0 ? (
             <MobileEmptyState
               icon="/mobile/icon-tasks.svg"
-              title="Şimdilik yapılacak bir görevin yok."
-              description="Mentorun yeni bir görev atadığında burada görünecek."
+              title={t("emptyOpenTitle")}
+              description={t("emptyOpenDescription")}
             />
           ) : (
             tasks.groups.map((group) => (
@@ -270,11 +270,11 @@ export function MobileTasksView() {
         ) : tasks.done.length === 0 ? (
           <MobileEmptyState
             icon="/mobile/icon-tasks.svg"
-            title="Henüz tamamlanan görev yok."
-            description="Bitirdiğin görevler burada birikir."
+            title={t("emptyDoneTitle")}
+            description={t("emptyDoneDescription")}
           />
         ) : (
-          <ul aria-label="Tamamlanan görevler">
+          <ul aria-label={t("doneList")}>
             {tasks.done.map((task) => (
               <TaskRow key={task.id} task={task} tasks={tasks} />
             ))}
@@ -282,7 +282,7 @@ export function MobileTasksView() {
         )}
         {tasks.saveFailed ? (
           <p role="alert" className="text-[13px] leading-[1.35] text-[#d9464b]">
-            Görev güncellenemedi. Tekrar dene.
+            {t("saveError")}
           </p>
         ) : null}
       </div>
@@ -292,13 +292,13 @@ export function MobileTasksView() {
           role="status"
           className="fixed inset-x-0 bottom-[calc(96px+env(safe-area-inset-bottom))] z-40 mx-auto flex w-[calc(100%-40px)] max-w-[440px] items-center justify-between gap-3 rounded-2xl bg-[#22262b] px-[18px] py-3 text-sm leading-[1.35] text-white"
         >
-          <span>Görev tamamlandı · mentöre bildirildi</span>
+          <span>{t("completedToast")}</span>
           <button
             type="button"
             onClick={tasks.undo}
             className="font-semibold text-[#ffb27a]"
           >
-            Geri al
+            {t("undo")}
           </button>
         </div>
       ) : null}

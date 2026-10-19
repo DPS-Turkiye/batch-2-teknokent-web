@@ -5,9 +5,10 @@ import {
   MOBILE_NOTIFICATIONS,
   MOBILE_STARTUPS,
   MOBILE_TASKS,
+  type MobileTexts,
 } from "@/lib/mobile";
 import type { DashboardNotification } from "@/types/landing";
-import { formatDayMonth } from "@/lib/utils";
+import { formatDayMonth, relativeDayLabel } from "@/lib/utils";
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -80,18 +81,30 @@ function startOfDay(date: Date) {
 }
 
 /** "Şimdi", "12 dk", "3 sa", "Dün", "2 gün", then "12 Eyl". */
-export function notificationAge(createdAt: string, now = new Date()) {
+export function notificationAge(
+  createdAt: string,
+  { t, locale }: Pick<MobileTexts, "t" | "locale">,
+  now = new Date(),
+) {
   const at = new Date(createdAt);
   const elapsed = now.getTime() - at.getTime();
-  if (elapsed < MINUTE_MS) return "Şimdi";
-  if (elapsed < HOUR_MS) return `${Math.floor(elapsed / MINUTE_MS)} dk`;
+  if (elapsed < MINUTE_MS) return t("notifications.age.now");
+  if (elapsed < HOUR_MS) {
+    return t("notifications.age.minutes", {
+      minutes: Math.floor(elapsed / MINUTE_MS),
+    });
+  }
   const days = Math.round(
     (startOfDay(now).getTime() - startOfDay(at).getTime()) / DAY_MS,
   );
-  if (days === 0) return `${Math.floor(elapsed / HOUR_MS)} sa`;
-  if (days === 1) return "Dün";
-  if (days < 7) return `${days} gün`;
-  return formatDayMonth(at);
+  if (days === 0) {
+    return t("notifications.age.hours", {
+      hours: Math.floor(elapsed / HOUR_MS),
+    });
+  }
+  if (days === 1) return relativeDayLabel(-1, locale);
+  if (days < 7) return t("notifications.age.days", { days });
+  return formatDayMonth(at, locale);
 }
 
 export type NotificationGroup = {
@@ -101,6 +114,7 @@ export type NotificationGroup = {
 
 export function groupNotifications(
   notifications: DashboardNotification[],
+  t: MobileTexts["t"],
   now = new Date(),
 ): NotificationGroup[] {
   const today = startOfDay(now).getTime();
@@ -109,13 +123,13 @@ export function groupNotifications(
     .sort((left, right) => right.createdAt.localeCompare(left.createdAt));
   const groups: NotificationGroup[] = [
     {
-      label: "Bugün",
+      label: t("notifications.today"),
       items: sorted.filter(
         (item) => startOfDay(new Date(item.createdAt)).getTime() === today,
       ),
     },
     {
-      label: "Önceki",
+      label: t("notifications.earlier"),
       items: sorted.filter(
         (item) => startOfDay(new Date(item.createdAt)).getTime() !== today,
       ),

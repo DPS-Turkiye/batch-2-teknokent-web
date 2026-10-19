@@ -7,6 +7,9 @@ import {
   toggledPreferences,
   webEditLinkFor,
 } from "@/lib/mobile-account";
+import { mobileTexts } from "@test/mobile-texts";
+
+const { t } = mobileTexts();
 
 function session(overrides: Partial<AppSession>): AppSession {
   return {
@@ -65,17 +68,29 @@ describe("toggledPreferences", () => {
 
 describe("accountChip and webEditLinkFor", () => {
   it("describes a mentee by startup and title, a mentor as Mentor", () => {
-    expect(accountChip(session({}))).toBe("Atlas AI · Takım yetkilisi");
+    expect(accountChip(session({}), t)).toBe("Atlas AI · Takım yetkilisi");
     expect(
-      accountChip(session({ role: UserRole.Mentor, jobTitle: "UX/UI" })),
+      accountChip(session({ role: UserRole.Mentor, jobTitle: "UX/UI" }), t),
     ).toBe("Mentor · UX/UI");
     expect(
-      accountChip(session({ role: UserRole.Mentor, jobTitle: "Mentor" })),
+      accountChip(session({ role: UserRole.Mentor, jobTitle: "Mentor" }), t),
     ).toBe("Mentor");
   });
 
   it("sends each role to its own profile on the web", () => {
-    expect(webEditLinkFor(UserRole.Mentee).href).toBe("/profile?web=1");
-    expect(webEditLinkFor(UserRole.Mentor).href).toBe("/mentor-profile?web=1");
+    expect(webEditLinkFor(UserRole.Mentee, t).href).toBe("/profile?web=1");
+    expect(webEditLinkFor(UserRole.Mentor, t).href).toBe(
+      "/mentor-profile?web=1",
+    );
+  });
+
+  it("names the web links in English", () => {
+    const en = mobileTexts("en").t;
+    expect(webEditLinkFor(UserRole.Mentee, en).title).toBe(
+      "Edit profile details",
+    );
+    expect(webEditLinkFor(UserRole.Mentor, en).title).toBe(
+      "Availability and expertise",
+    );
   });
 });

@@ -13,19 +13,18 @@ import {
   type MobileTaskGroup,
 } from "@/interfaces/mobile";
 import type { ProcessAssignment } from "@/interfaces/startup-process";
-import { HOME_TASK_LABELS } from "@/lib/const/mentee-home";
 import { meetingEndedAt } from "@/lib/mentee-home";
 import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
-import { mobileChatHref, webHref } from "@/lib/mobile";
-import { calendarDay } from "@/lib/utils";
+import {
+  mobileChatHref,
+  mobileDayMonth,
+  type MobileTexts,
+  webHref,
+} from "@/lib/mobile";
+import { calendarDay, relativeDayLabel } from "@/lib/utils";
 
 const DAY_MS = 86_400_000;
 const PROCESS_WEB_PATH = "/startup/process";
-
-const dayMonth = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
 
 function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
@@ -38,13 +37,15 @@ function dayOffset(day: Date, today: Date) {
 }
 
 /** "Dün", "Bugün", "Yarın", then "25 Eylül"; null for a task without a date. */
-export function dueLabel(dueAt: Date | null, today: Date) {
-  if (!dueAt) return "Tarih yok";
+export function dueLabel(
+  dueAt: Date | null,
+  today: Date,
+  { t, locale }: MobileTexts,
+) {
+  if (!dueAt) return t("tasks.noDate");
   const offset = dayOffset(dueAt, today);
-  if (offset === -1) return "Dün";
-  if (offset === 0) return "Bugün";
-  if (offset === 1) return "Yarın";
-  return dayMonth.format(dueAt);
+  if (offset >= -1 && offset <= 1) return relativeDayLabel(offset, locale);
+  return mobileDayMonth(dueAt, locale);
 }
 
 export function dueTone(dueAt: Date | null, today: Date) {
@@ -69,8 +70,9 @@ function withDue(
   task: Omit<MobileTask, "dueLabel" | "tone" | "meta">,
   who: string | null,
   today: Date,
+  texts: MobileTexts,
 ): MobileTask {
-  const label = dueLabel(task.dueAt, today);
+  const label = dueLabel(task.dueAt, today, texts);
   return {
     ...task,
     dueLabel: label,
@@ -84,6 +86,7 @@ export function mentorshipTask(
   item: ActionItem,
   request: MentorshipRequest,
   today: Date,
+  texts: MobileTexts,
 ): MobileTask {
   return withDue(
     {
@@ -93,8 +96,12 @@ export function mentorshipTask(
       description: item.description ?? null,
       dueAt: item.dueDate ? calendarDay(item.dueDate) : null,
       assignedBy: request.mentorName,
-      assignedOn: dayMonth.format(new Date(item.createdAt)),
-      chips: [`${request.supportArea} mentorluğu`],
+      assignedOn: mobileDayMonth(new Date(item.createdAt), texts.locale),
+      chips: [
+        texts.t("tasks.mentorshipChip", {
+          topic: texts.topicLabel(request.supportArea),
+        }),
+      ],
       completed: isDone(item.status),
       requestId: request.id,
       chatHref: mobileChatHref(MobileConversationKind.Mentorship, request.id),
@@ -102,6 +109,7 @@ export function mentorshipTask(
     },
     request.mentorName,
     today,
+    texts,
   );
 }
 
@@ -109,6 +117,7 @@ export function mentorshipTask(
 export function processTask(
   assignment: ProcessAssignment,
   today: Date,
+  texts: MobileTexts,
 ): MobileTask {
   return withDue(
     {
@@ -118,8 +127,8 @@ export function processTask(
       description: assignment.description,
       dueAt: assignment.dueDate ? calendarDay(assignment.dueDate) : null,
       assignedBy: assignment.createdByName,
-      assignedOn: dayMonth.format(new Date(assignment.createdAt)),
-      chips: ["Süreç görevi"],
+      assignedOn: mobileDayMonth(new Date(assignment.createdAt), texts.locale),
+      chips: [texts.t("tasks.processChip")],
       completed: isDone(assignment.status),
       requestId: null,
       chatHref: null,
@@ -127,12 +136,14 @@ export function processTask(
     },
     assignment.createdByName,
     today,
+    texts,
   );
 }
 
 export function programDeadlineTask(
   event: MemberProgramEvent,
   today: Date,
+  texts: MobileTexts,
 ): MobileTask {
   return withDue(
     {
@@ -151,6 +162,7 @@ export function programDeadlineTask(
     },
     event.programName,
     today,
+    texts,
   );
 }
 
@@ -158,18 +170,19 @@ export function programDeadlineTask(
 export function meetingFeedbackTask(
   meeting: MeetingItem,
   today: Date,
+  texts: MobileTexts,
 ): MobileTask {
   const mentor = meeting.mentorName ?? null;
   return withDue(
     {
       id: `feedback:${meeting.id}`,
       source: MobileTaskSource.Feedback,
-      title: HOME_TASK_LABELS.feedbackTitle,
+      title: texts.t("tasks.feedbackTitle"),
       description: null,
       dueAt: new Date(meetingEndedAt(meeting)),
       assignedBy: mentor,
       assignedOn: null,
-      chips: [meeting.agenda?.trim() || "Mentorluk görüşmesi"],
+      chips: [meeting.agenda?.trim() || texts.t("meeting.defaultTitle")],
       completed: false,
       requestId: meeting.mentorshipRequestId ?? null,
       chatHref: null,
@@ -177,6 +190,7 @@ export function meetingFeedbackTask(
     },
     mentor,
     today,
+    texts,
   );
 }
 
@@ -188,6 +202,7 @@ export function collectTasks(
     feedbackMeetings: MeetingItem[];
   },
   today: Date,
+  texts: MobileTexts,
 ) {
   // A Süreç assignment is also an action item; keep the process version.
   const processIds = new Set(input.assignments.map((item) => item.id));
@@ -199,20 +214,20 @@ export function collectTasks(
             !processIds.has(item.id) &&
             (isOpen(item.status) || isDone(item.status)),
         )
-        .map((item) => mentorshipTask(item, request, today)),
+        .map((item) => mentorshipTask(item, request, today, texts)),
     ),
     ...input.assignments
       .filter((item) => isOpen(item.status) || isDone(item.status))
-      .map((item) => processTask(item, today)),
+      .map((item) => processTask(item, today, texts)),
     ...input.deadlines
       .filter(
         (event) =>
           event.kind === ProgramEventKind.Deadline &&
           new Date(event.startsAt) >= startOfDay(today),
       )
-      .map((event) => programDeadlineTask(event, today)),
+      .map((event) => programDeadlineTask(event, today, texts)),
     ...input.feedbackMeetings.map((meeting) =>
-      meetingFeedbackTask(meeting, today),
+      meetingFeedbackTask(meeting, today, texts),
     ),
   ];
 }
@@ -228,6 +243,7 @@ function byDue(left: MobileTask, right: MobileTask) {
 export function groupOpenTasks(
   tasks: MobileTask[],
   today: Date,
+  t: MobileTexts["t"],
 ): MobileTaskGroup[] {
   const open = tasks.filter((task) => !task.completed).sort(byDue);
   const own = open.filter(
@@ -244,25 +260,25 @@ export function groupOpenTasks(
   const groups: MobileTaskGroup[] = [
     {
       key: "overdue",
-      label: "Gecikmiş",
+      label: t("tasks.groups.overdue"),
       urgent: true,
       tasks: own.filter((task) => task.tone === MobileTaskTone.Overdue),
     },
     {
       key: "today",
-      label: "Bugün",
+      label: t("tasks.groups.today"),
       urgent: false,
       tasks: own.filter((task) => task.tone === MobileTaskTone.Today),
     },
     {
       key: "week",
-      label: "Bu hafta",
+      label: t("tasks.groups.week"),
       urgent: false,
       tasks: own.filter((task) => within(task, 1, daysToSunday)),
     },
     {
       key: "later",
-      label: "Daha sonra",
+      label: t("tasks.groups.later"),
       urgent: false,
       tasks: own.filter(
         (task) => !task.dueAt || dayOffset(task.dueAt, today) > daysToSunday,
@@ -270,13 +286,13 @@ export function groupOpenTasks(
     },
     {
       key: "feedback",
-      label: "Değerlendirmeler",
+      label: t("tasks.groups.feedback"),
       urgent: false,
       tasks: open.filter((task) => task.source === MobileTaskSource.Feedback),
     },
     {
       key: "program",
-      label: "Program",
+      label: t("tasks.groups.program"),
       urgent: false,
       tasks: open.filter((task) => task.source === MobileTaskSource.Program),
     },

@@ -1,9 +1,43 @@
+import type { useTranslations } from "next-intl";
+
 import {
   MobileConversationKind,
   MobileTab,
   type MobileTabLink,
 } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
+
+/** The phone screens' translator and language, for the labels built in lib/mobile-*. */
+export type MobileTexts = {
+  t: ReturnType<typeof useTranslations<"mobile">>;
+  locale: string;
+  /** A saved request topic in the page's language (useTopicLabel). */
+  topicLabel: (value: string) => string;
+};
+
+/** "14:00" */
+export function mobileClock(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+/** "24 Eylül" / "September 24" */
+export function mobileDayMonth(date: Date, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    day: "numeric",
+    month: "long",
+  }).format(date);
+}
+
+/** "Perşembe 24 Eylül" / "Thursday, September 24" */
+export function mobileLongDay(date: Date, { t, locale }: MobileTexts) {
+  return t("dates.longDay", {
+    weekday: new Intl.DateTimeFormat(locale, { weekday: "long" }).format(date),
+    date: mobileDayMonth(date, locale),
+  });
+}
 
 export const MOBILE_HOME = "/m";
 export const MOBILE_LOGIN = "/m/login";
@@ -80,35 +114,30 @@ export const SIGNUP_ON_WEB_HREF = webHref("/signup");
 
 const HOME_TAB: MobileTabLink = {
   tab: MobileTab.Home,
-  label: "Ana Sayfa",
   href: MOBILE_HOME,
   icon: "/mobile/icon-home.svg",
 };
 
 const CALENDAR_TAB: MobileTabLink = {
   tab: MobileTab.Calendar,
-  label: "Takvim",
   href: MOBILE_CALENDAR,
   icon: "/mobile/icon-calendar.svg",
 };
 
 const MESSAGES_TAB: MobileTabLink = {
   tab: MobileTab.Messages,
-  label: "Mesajlar",
   href: MOBILE_MESSAGES,
   icon: "/mobile/icon-messages.svg",
 };
 
 const TASKS_TAB: MobileTabLink = {
   tab: MobileTab.Tasks,
-  label: "Görevler",
   href: MOBILE_TASKS,
   icon: "/mobile/icon-tasks.svg",
 };
 
 const STARTUPS_TAB: MobileTabLink = {
   tab: MobileTab.Startups,
-  label: "Startuplar",
   href: MOBILE_STARTUPS,
   icon: "/mobile/icon-startups.svg",
 };

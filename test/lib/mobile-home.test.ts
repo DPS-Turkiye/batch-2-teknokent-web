@@ -19,8 +19,11 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 9, 0);
+const TR = mobileTexts("tr");
+const EN = mobileTexts("en");
 
 function message(body: string, createdAt: string): RequestMessage {
   return {
@@ -52,7 +55,15 @@ describe("meetingWhenChip", () => {
       scheduledAt: new Date(2026, 8, 24, 14, 0).toISOString(),
     });
 
-    expect(meetingWhenChip(meeting, NOW)).toBe("Yarın · 14:00");
+    expect(meetingWhenChip(meeting, "tr", NOW)).toBe("Yarın · 14:00");
+  });
+
+  it("says Tomorrow in English", () => {
+    const meeting = menteeMeetingFixture({
+      scheduledAt: new Date(2026, 8, 24, 14, 0).toISOString(),
+    });
+
+    expect(meetingWhenChip(meeting, "en", NOW)).toBe("Tomorrow · 02:00 PM");
   });
 
   it("names the day for a meeting further out", () => {
@@ -60,7 +71,7 @@ describe("meetingWhenChip", () => {
       scheduledAt: new Date(2026, 8, 30, 9, 30).toISOString(),
     });
 
-    expect(meetingWhenChip(meeting, NOW)).toBe("30 Eylül · 09:30");
+    expect(meetingWhenChip(meeting, "tr", NOW)).toBe("30 Eylül · 09:30");
   });
 });
 
@@ -72,8 +83,11 @@ describe("meetingTimeLine", () => {
       meetLink: "https://meet.google.com/abc-defg-hij",
     });
 
-    expect(meetingTimeLine(meeting)).toBe(
+    expect(meetingTimeLine(meeting, TR)).toBe(
       "Perşembe 24 Eylül · 14:00–15:00 · Online",
+    );
+    expect(meetingTimeLine(meeting, EN)).toBe(
+      "Thursday, September 24 · 02:00 PM–03:00 PM · Online",
     );
   });
 });
@@ -98,7 +112,7 @@ describe("meetingSummary", () => {
       next,
     ];
 
-    const summary = meetingSummary(next, meetings, NOW);
+    const summary = meetingSummary(next, meetings, TR, NOW);
 
     expect(summary).toMatchObject({
       title: "Ürün stratejisi",
@@ -107,14 +121,21 @@ describe("meetingSummary", () => {
       mentorDetail: "2. görüşme",
       href: "/m/calendar?meeting=next",
     });
+    expect(meetingSummary(next, meetings, EN, NOW).mentorDetail).toBe(
+      "Meeting 2",
+    );
   });
 
   it("falls back to a generic title and mentor when the meeting has none", () => {
-    const summary = meetingSummary(menteeMeetingFixture(), [], NOW);
+    const summary = meetingSummary(menteeMeetingFixture(), [], TR, NOW);
 
     expect(summary.title).toBe("Mentorluk görüşmesi");
     expect(summary.mentorName).toBe("Mentörün");
     expect(summary.mentorDetail).toBe("Mentor");
+
+    const english = meetingSummary(menteeMeetingFixture(), [], EN, NOW);
+    expect(english.title).toBe("Mentorship meeting");
+    expect(english.mentorName).toBe("Your mentor");
   });
 });
 
@@ -165,7 +186,7 @@ describe("messagePreviews", () => {
       }),
     ];
 
-    const previews = messagePreviews(requests, NOW);
+    const previews = messagePreviews(requests, TR, NOW);
 
     expect(previews.map((preview) => preview.id)).toEqual(["recent", "middle"]);
     expect(previews[0]).toMatchObject({
@@ -175,6 +196,7 @@ describe("messagePreviews", () => {
       time: "Dün",
       href: "/m/messages/mentorship/recent",
     });
+    expect(messagePreviews(requests, EN, NOW)[0]?.time).toBe("Yesterday");
   });
 
   it("includes a pending request's thread, which can already be written in", () => {
@@ -186,9 +208,9 @@ describe("messagePreviews", () => {
       }),
     ];
 
-    expect(messagePreviews(requests, NOW).map((preview) => preview.id)).toEqual(
-      ["pending"],
-    );
+    expect(
+      messagePreviews(requests, TR, NOW).map((preview) => preview.id),
+    ).toEqual(["pending"]);
   });
 
   it("leaves out active conversations without any message", () => {
@@ -196,6 +218,6 @@ describe("messagePreviews", () => {
       menteeRequestFixture({ status: MentorshipRequestStatus.Accepted }),
     ];
 
-    expect(messagePreviews(requests, NOW)).toEqual([]);
+    expect(messagePreviews(requests, TR, NOW)).toEqual([]);
   });
 });

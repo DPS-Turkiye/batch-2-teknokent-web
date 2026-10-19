@@ -10,7 +10,6 @@ export enum MobileTab {
 
 export type MobileTabLink = {
   tab: MobileTab;
-  label: string;
   href: string;
   icon: string;
 };

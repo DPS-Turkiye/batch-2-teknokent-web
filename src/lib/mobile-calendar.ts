@@ -4,12 +4,14 @@ import {
 } from "@/interfaces/coordinator-program";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
-  DAY_SHORT_LABELS,
   monthGridCells,
+  shortWeekday,
   startOfWeek,
   weekDays,
 } from "@/lib/calendar";
+import { mobileClock, mobileLongDay, type MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
+import { relativeDayLabel } from "@/lib/utils";
 
 export enum MobileAgendaKind {
   Meeting = "meeting",
@@ -59,16 +61,6 @@ const DAY_MS = 86_400_000;
 const WEEK_LENGTH = 7;
 const SATURDAY_INDEX = 5;
 
-const time = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-const weekday = new Intl.DateTimeFormat("tr-TR", { weekday: "long" });
-const dayMonth = new Intl.DateTimeFormat("tr-TR", {
-  day: "numeric",
-  month: "long",
-});
-
 export function startOfDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
@@ -89,33 +81,34 @@ function dayOffset(day: Date, today: Date) {
   );
 }
 
-/** "Perşembe 24 Eylül" */
-export function longDay(date: Date) {
-  return `${weekday.format(date)} ${dayMonth.format(date)}`;
-}
-
-function meetingEntry(meeting: MeetingItem): MobileAgendaEntry {
+function meetingEntry(
+  meeting: MeetingItem,
+  { t, locale }: MobileTexts,
+): MobileAgendaEntry {
   const startsAt = new Date(meeting.scheduledAt);
   const people = [
-    meeting.mentorName ?? "Mentör",
-    meeting.organizationName ?? "Startup",
+    meeting.mentorName ?? t("meeting.mentor"),
+    meeting.organizationName ?? t("meeting.startup"),
   ].join(" ↔ ");
   return {
     id: `meeting:${meeting.id}`,
     kind: MobileAgendaKind.Meeting,
     startsAt,
     endsAt: new Date(startsAt.getTime() + meeting.durationMinutes * MINUTE_MS),
-    time: time.format(startsAt),
-    length: `${meeting.durationMinutes} dk`,
-    title: meetingTitle(meeting),
-    detail: meeting.meetLink ? `${people} · Online` : people,
+    time: mobileClock(startsAt, locale),
+    length: t("calendar.minutes", { minutes: meeting.durationMinutes }),
+    title: meetingTitle(meeting, t),
+    detail: meeting.meetLink ? `${people} · ${t("meeting.online")}` : people,
     meeting,
     event: null,
     startup: null,
   };
 }
 
-function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
+function programEntry(
+  event: MemberProgramEvent,
+  { t, locale }: MobileTexts,
+): MobileAgendaEntry {
   const startsAt = new Date(event.startsAt);
   if (event.kind === ProgramEventKind.Deadline) {
     return {
@@ -123,10 +116,10 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
       kind: MobileAgendaKind.Deadline,
       startsAt,
       endsAt: startsAt,
-      time: time.format(startsAt),
-      length: "Son tarih",
+      time: mobileClock(startsAt, locale),
+      length: t("calendar.kinds.deadline"),
       title: event.title,
-      detail: `${event.programName} · son tarih`,
+      detail: t("calendar.deadlineDetail", { program: event.programName }),
       meeting: null,
       event,
       startup: null,
@@ -142,10 +135,12 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
     kind: MobileAgendaKind.Event,
     startsAt,
     endsAt,
-    time: time.format(startsAt),
-    length: minutes > 0 ? `${minutes} dk` : "",
+    time: mobileClock(startsAt, locale),
+    length: minutes > 0 ? t("calendar.minutes", { minutes }) : "",
     title: event.title,
-    detail: place ? `Program etkinliği · ${place}` : "Program etkinliği",
+    detail: place
+      ? `${t("calendar.kinds.event")} · ${place}`
+      : t("calendar.kinds.event"),
     meeting: null,
     event,
     startup: null,
@@ -155,6 +150,7 @@ function programEntry(event: MemberProgramEvent): MobileAgendaEntry {
 export function agendaEntries(
   meetings: MeetingItem[],
   events: MemberProgramEvent[],
+  texts: MobileTexts,
 ) {
   return [
     ...meetings
@@ -162,8 +158,8 @@ export function agendaEntries(
         (meeting) =>
           String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled,
       )
-      .map(meetingEntry),
-    ...events.map(programEntry),
+      .map((meeting) => meetingEntry(meeting, texts)),
+    ...events.map((event) => programEntry(event, texts)),
   ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());
 }
 
@@ -181,10 +177,11 @@ export function weekStrip(
   selected: Date,
   entries: MobileAgendaEntry[],
   today: Date,
+  locale: string,
 ): MobileCalendarDay[] {
   return weekDays(startOfWeek(selected), WEEK_LENGTH).map((date, index) => ({
     date,
-    weekday: DAY_SHORT_LABELS[index],
+    weekday: shortWeekday(date, locale),
     dayNumber: date.getDate(),
     isToday: sameDay(date, today),
     isSelected: sameDay(date, selected),
@@ -194,11 +191,12 @@ export function weekStrip(
 }
 
 /** "Bugün · Çarşamba 23 Eylül", "Yarın · …", then just the day. */
-export function dayHeading(day: Date, today: Date) {
+export function dayHeading(day: Date, today: Date, texts: MobileTexts) {
   const offset = dayOffset(day, today);
-  if (offset === 0) return `Bugün · ${longDay(day)}`;
-  if (offset === 1) return `Yarın · ${longDay(day)}`;
-  return longDay(day);
+  const long = mobileLongDay(day, texts);
+  return offset === 0 || offset === 1
+    ? `${relativeDayLabel(offset, texts.locale)} · ${long}`
+    : long;
 }
 
 /** The selected day and the rest of its week, skipping days with nothing on them. */
@@ -206,6 +204,7 @@ export function agendaDays(
   selected: Date,
   entries: MobileAgendaEntry[],
   today: Date,
+  texts: MobileTexts,
 ): MobileAgendaDay[] {
   const weekEnd = addDays(startOfWeek(selected), WEEK_LENGTH);
   const days: MobileAgendaDay[] = [];
@@ -214,7 +213,7 @@ export function agendaDays(
     if (onDay.length > 0) {
       days.push({
         key: day.toISOString(),
-        heading: dayHeading(day, today),
+        heading: dayHeading(day, today, texts),
         isToday: sameDay(day, today),
         entries: onDay,
       });
@@ -232,20 +231,30 @@ export function nextEntry(entries: MobileAgendaEntry[], now: Date) {
 }
 
 /** "2 saat sonra", "15 dk sonra", "şimdi", then "yarın" or "3 gün sonra". */
-export function startsInLabel(entry: MobileAgendaEntry, now: Date) {
+export function startsInLabel(
+  entry: MobileAgendaEntry,
+  now: Date,
+  t: MobileTexts["t"],
+) {
   const minutes = Math.round(
     (entry.startsAt.getTime() - now.getTime()) / MINUTE_MS,
   );
-  if (minutes <= 0) return "şimdi";
-  if (minutes < 60) return `${minutes} dk sonra`;
+  if (minutes <= 0) return t("calendar.startsIn.now");
+  if (minutes < 60) return t("calendar.startsIn.minutes", { minutes });
   const days = dayOffset(entry.startsAt, now);
-  if (days === 0) return `${Math.round(minutes / 60)} saat sonra`;
-  if (days === 1) return "yarın";
-  return `${days} gün sonra`;
+  if (days === 0) {
+    return t("calendar.startsIn.hours", { hours: Math.round(minutes / 60) });
+  }
+  if (days === 1) return t("calendar.startsIn.tomorrow");
+  return t("calendar.startsIn.days", { days });
 }
 
-export function nextEntryLabel(entry: MobileAgendaEntry, now: Date) {
-  return `Sıradaki · ${startsInLabel(entry, now)}`;
+export function nextEntryLabel(
+  entry: MobileAgendaEntry,
+  now: Date,
+  t: MobileTexts["t"],
+) {
+  return t("calendar.nextLabel", { when: startsInLabel(entry, now, t) });
 }
 
 export function canJoin(entry: MobileAgendaEntry, now: Date) {
@@ -257,49 +266,46 @@ export function canJoin(entry: MobileAgendaEntry, now: Date) {
 }
 
 /** "Perşembe 24 Eylül · 14:00–15:00" */
-export function entryTimeLine(entry: MobileAgendaEntry) {
+export function entryTimeLine(entry: MobileAgendaEntry, texts: MobileTexts) {
+  const { locale } = texts;
   const range =
     entry.endsAt > entry.startsAt
-      ? `${time.format(entry.startsAt)}–${time.format(entry.endsAt)}`
-      : time.format(entry.startsAt);
-  return `${longDay(entry.startsAt)} · ${range}`;
+      ? `${mobileClock(entry.startsAt, locale)}–${mobileClock(entry.endsAt, locale)}`
+      : mobileClock(entry.startsAt, locale);
+  return `${mobileLongDay(entry.startsAt, texts)} · ${range}`;
 }
 
 /** "60 dk · yarın" */
-export function entryTimeHint(entry: MobileAgendaEntry, today: Date) {
+export function entryTimeHint(
+  entry: MobileAgendaEntry,
+  today: Date,
+  t: MobileTexts["t"],
+) {
   const offset = dayOffset(entry.startsAt, today);
   const when =
     offset === 0
-      ? "bugün"
+      ? t("calendar.when.today")
       : offset === 1
-        ? "yarın"
+        ? t("calendar.when.tomorrow")
         : offset < 0
-          ? "geçti"
-          : `${offset} gün sonra`;
+          ? t("calendar.when.past")
+          : t("calendar.startsIn.days", { days: offset });
   return entry.length ? `${entry.length} · ${when}` : when;
 }
 
-export const ENTRY_KIND_LABELS: Record<MobileAgendaKind, string> = {
-  [MobileAgendaKind.Meeting]: "Mentorluk görüşmesi",
-  [MobileAgendaKind.Event]: "Program etkinliği",
-  [MobileAgendaKind.Deadline]: "Son tarih",
-};
-
 /** "Google Meet" for a Meet link, otherwise the link's host. */
-export function meetingLinkLabel(link: string) {
+export function meetingLinkLabel(link: string, t: MobileTexts["t"]) {
   try {
     const host = new URL(link).hostname.replace(/^www\./, "");
     return host === "meet.google.com" ? "Google Meet" : host;
   } catch {
-    return "Toplantı bağlantısı";
+    return t("meeting.linkFallback");
   }
 }
 
 export function meetingLinkText(link: string) {
   return link.replace(/^https?:\/\//, "");
 }
-
-export const MONTH_WEEKDAY_LABELS = ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"];
 
 export type MobileMonthCell = {
   date: Date;
