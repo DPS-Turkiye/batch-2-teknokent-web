@@ -1,10 +1,17 @@
+import type { useTranslations } from "next-intl";
+
 import {
   type CoordinatorMentorship,
   type CoordinatorMentorshipDetail,
   CoordinatorMentorshipHealth,
   MentorshipStatus,
 } from "@/interfaces/coordinator-mentorship";
-import { formatDayMonth, formatLongDate } from "@/lib/utils";
+import { formatDayMonth, formatLongDate, relativeDayLabel } from "@/lib/utils";
+
+export type MentorshipTexts = {
+  t: ReturnType<typeof useTranslations<"coordinatorMentorships">>;
+  locale: string;
+};
 
 export enum MentorshipHealthFilter {
   All = "ALL",
@@ -28,13 +35,6 @@ export enum MentorshipDrawerTab {
 export const MENTORSHIP_PAGE_SIZE = 20;
 export const ALL_TOPICS = "Tümü";
 
-export const HEALTH_LABELS: Record<CoordinatorMentorshipHealth, string> = {
-  [CoordinatorMentorshipHealth.Risky]: "Riskli",
-  [CoordinatorMentorshipHealth.FollowUp]: "Takip gerekli",
-  [CoordinatorMentorshipHealth.Healthy]: "Sağlıklı",
-  [CoordinatorMentorshipHealth.New]: "Yeni",
-};
-
 export const HEALTH_TONES: Record<
   CoordinatorMentorshipHealth,
   "red" | "amber" | "green" | "neutral"
@@ -43,12 +43,6 @@ export const HEALTH_TONES: Record<
   [CoordinatorMentorshipHealth.FollowUp]: "amber",
   [CoordinatorMentorshipHealth.Healthy]: "green",
   [CoordinatorMentorshipHealth.New]: "neutral",
-};
-
-export const SORT_LABELS: Record<MentorshipSort, string> = {
-  [MentorshipSort.Risk]: "Risk",
-  [MentorshipSort.LastMeeting]: "Son görüşme",
-  [MentorshipSort.Name]: "Mentor adı",
 };
 
 const HEALTH_OF_FILTER: Record<
@@ -61,24 +55,19 @@ const HEALTH_OF_FILTER: Record<
 };
 
 /** "Tümü 64 · Müdahale gerekli 6 · Takip gerekli 10 · Sağlıklı 48". */
-export function healthFilterOptions(rows: CoordinatorMentorship[]) {
-  const count = (health: CoordinatorMentorshipHealth) =>
-    rows.filter((row) => row.health === health).length;
-  return [
-    { id: MentorshipHealthFilter.All, label: `Tümü ${rows.length}` },
-    {
-      id: MentorshipHealthFilter.Risky,
-      label: `Müdahale gerekli ${count(CoordinatorMentorshipHealth.Risky)}`,
-    },
-    {
-      id: MentorshipHealthFilter.FollowUp,
-      label: `Takip gerekli ${count(CoordinatorMentorshipHealth.FollowUp)}`,
-    },
-    {
-      id: MentorshipHealthFilter.Healthy,
-      label: `Sağlıklı ${count(CoordinatorMentorshipHealth.Healthy)}`,
-    },
-  ];
+export function healthFilterOptions(
+  rows: CoordinatorMentorship[],
+  t: MentorshipTexts["t"],
+) {
+  return Object.values(MentorshipHealthFilter).map((id) => ({
+    id,
+    label: t(`filters.${id}`, {
+      count:
+        id === MentorshipHealthFilter.All
+          ? rows.length
+          : rows.filter((row) => row.health === HEALTH_OF_FILTER[id]).length,
+    }),
+  }));
 }
 
 export function topicOptions(rows: CoordinatorMentorship[]) {
@@ -125,53 +114,62 @@ export function sortMentorships(
   );
 }
 
-const TIME = new Intl.DateTimeFormat("tr-TR", {
-  hour: "2-digit",
-  minute: "2-digit",
-});
-
 function sameDay(a: Date, b: Date) {
   return a.toDateString() === b.toDateString();
 }
 
 /** A mentorship off its cadence shows "18 gün önce"; one on track shows the date. */
-export function lastMeetingLabel(row: CoordinatorMentorship) {
+export function lastMeetingLabel(
+  row: CoordinatorMentorship,
+  { t, locale }: MentorshipTexts,
+) {
   if (!row.lastMeetingAt || row.daysSinceLastMeeting == null) return "—";
   if (
     row.health === CoordinatorMentorshipHealth.Risky ||
     row.health === CoordinatorMentorshipHealth.FollowUp
   ) {
-    return `${row.daysSinceLastMeeting} gün önce`;
+    return t("daysAgo", { days: row.daysSinceLastMeeting });
   }
-  return formatDayMonth(new Date(row.lastMeetingAt));
+  return formatDayMonth(new Date(row.lastMeetingAt), locale);
 }
 
 /** "Yarın · 14:00", "24 Eyl · 11:00", or why nothing is booked. */
-export function nextMeetingLabel(row: CoordinatorMentorship, now = new Date()) {
+export function nextMeetingLabel(
+  row: CoordinatorMentorship,
+  { t, locale }: MentorshipTexts,
+  now = new Date(),
+) {
   if (!row.nextMeetingAt) {
     return row.status === MentorshipStatus.Planned
-      ? "Eşleşme onayı bekleniyor"
-      : "Planlanmadı";
+      ? t("awaitingMatch")
+      : t("notScheduled");
   }
   const at = new Date(row.nextMeetingAt);
   const tomorrow = new Date(now);
   tomorrow.setDate(now.getDate() + 1);
   const day = sameDay(at, now)
-    ? "Bugün"
+    ? relativeDayLabel(0, locale)
     : sameDay(at, tomorrow)
-      ? "Yarın"
-      : formatDayMonth(at);
-  return `${day} · ${TIME.format(at)}`;
+      ? relativeDayLabel(1, locale)
+      : formatDayMonth(at, locale);
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(at);
+  return `${day} · ${time}`;
 }
 
 /** "2 açık · 1 gecikmiş", "Not eksik" or "—". */
-export function actionsLabel(row: CoordinatorMentorship) {
+export function actionsLabel(
+  row: CoordinatorMentorship,
+  t: MentorshipTexts["t"],
+) {
   if (row.openActions === 0) {
-    return row.missingNotes > 0 ? "Not eksik" : "—";
+    return row.missingNotes > 0 ? t("noteMissing") : "—";
   }
   return row.overdueActions > 0
-    ? `${row.openActions} açık · ${row.overdueActions} gecikmiş`
-    : `${row.openActions} açık`;
+    ? t("openOverdue", { open: row.openActions, overdue: row.overdueActions })
+    : t("openCount", { open: row.openActions });
 }
 
 export function needsIntervention(row: CoordinatorMentorship) {
@@ -179,7 +177,11 @@ export function needsIntervention(row: CoordinatorMentorship) {
 }
 
 /** The drawer's warning, or null when the mentorship is on track. */
-export function cadenceAlert(detail: CoordinatorMentorshipDetail) {
+export function cadenceAlert(
+  detail: CoordinatorMentorshipDetail,
+  texts: MentorshipTexts,
+) {
+  const { t, locale } = texts;
   const row = detail.mentorship;
   if (
     row.health !== CoordinatorMentorshipHealth.Risky &&
@@ -189,17 +191,19 @@ export function cadenceAlert(detail: CoordinatorMentorshipDetail) {
   }
   const silence =
     row.daysSinceLastMeeting == null
-      ? "Henüz görüşme yapılmadı"
-      : `${row.daysSinceLastMeeting} gündür görüşme yok`;
+      ? t("noMeetingYet")
+      : t("silentDays", { days: row.daysSinceLastMeeting });
   const next = row.nextMeetingAt
-    ? `sıradaki ${nextMeetingLabel(row)}`
-    : "sıradaki planlanmadı";
-  const facts = [`Eşik ${detail.staleAfterDays} gün.`];
+    ? t("nextIs", { when: nextMeetingLabel(row, texts) })
+    : t("nextNone");
+  const facts = [t("threshold", { days: detail.staleAfterDays })];
   if (row.lastMeetingAt) {
-    facts.push(`Son görüşme ${formatLongDate(row.lastMeetingAt)}.`);
+    facts.push(
+      t("lastMeetingOn", { date: formatLongDate(row.lastMeetingAt, locale) }),
+    );
   }
   if (row.overdueActions > 0) {
-    facts.push(`${row.overdueActions} aksiyonun süresi geçti.`);
+    facts.push(t("overdueActions", { count: row.overdueActions }));
   }
   return { title: `${silence} · ${next}`, body: facts.join(" ") };
 }
@@ -211,20 +215,32 @@ export function goalPercent(detail: CoordinatorMentorshipDetail) {
 }
 
 /** "4 görüşmenin 3'ü için not girildi · son 4 Eylül". */
-export function notesSummary(detail: CoordinatorMentorshipDetail) {
-  if (detail.pastMeetings === 0) return "Henüz tamamlanan görüşme yok.";
-  const base = `${detail.pastMeetings} görüşmenin ${detail.notedMeetings}'i için not girildi`;
+export function notesSummary(
+  detail: CoordinatorMentorshipDetail,
+  { t, locale }: MentorshipTexts,
+) {
+  if (detail.pastMeetings === 0) return t("noPastMeetings");
+  const counts = { total: detail.pastMeetings, noted: detail.notedMeetings };
   return detail.lastNoteAt
-    ? `${base} · son ${formatLongDate(detail.lastNoteAt)}`
-    : base;
+    ? t("notesTakenLast", {
+        ...counts,
+        date: formatLongDate(detail.lastNoteAt, locale),
+      })
+    : t("notesTaken", counts);
 }
 
 /** "Satış & GTM · 2/3 yük" for the mentor party card. */
-export function mentorLoadLabel(detail: CoordinatorMentorshipDetail) {
+export function mentorLoadLabel(
+  detail: CoordinatorMentorshipDetail,
+  t: MentorshipTexts["t"],
+) {
   const load =
     detail.mentorCapacity != null
-      ? `${detail.mentorLoad}/${detail.mentorCapacity} yük`
-      : `${detail.mentorLoad} takım`;
+      ? t("mentorLoad", {
+          load: detail.mentorLoad,
+          capacity: detail.mentorCapacity,
+        })
+      : t("mentorTeams", { count: detail.mentorLoad });
   return detail.mentorship.mentorTitle
     ? `${detail.mentorship.mentorTitle} · ${load}`
     : load;

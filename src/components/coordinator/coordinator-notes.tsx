@@ -1,6 +1,7 @@
 "use client";
 
 import { Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   type CoordinatorNotes,
@@ -14,6 +15,8 @@ export function CoordinatorNotesSection({
 }: {
   notes: CoordinatorNotes;
 }) {
+  const t = useTranslations("coordinatorNotes");
+  const locale = useLocale();
   return (
     <div className="space-y-3">
       {notes.composing ? (
@@ -30,8 +33,8 @@ export function CoordinatorNotesSection({
             onChange={(event) => notes.setDraft(event.target.value)}
             maxLength={MAX_COORDINATOR_NOTE}
             rows={3}
-            aria-label="Koordinatör notu"
-            placeholder="Yalnızca koordinatörler görür."
+            aria-label={t("label")}
+            placeholder={t("placeholder")}
             className="w-full rounded-2xl border border-[#e9ecef] px-4 py-3 text-[13px] outline-none"
           />
           <div className="flex gap-2">
@@ -40,14 +43,14 @@ export function CoordinatorNotesSection({
               disabled={!notes.canSave}
               className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white disabled:bg-[#858c96]"
             >
-              Notu kaydet
+              {t("save")}
             </button>
             <button
               type="button"
               onClick={notes.closeComposer}
               className="inline-flex h-9 items-center rounded-full px-3 text-[12.5px] text-[#676e78]"
             >
-              Vazgeç
+              {t("cancel")}
             </button>
           </div>
         </form>
@@ -65,14 +68,14 @@ export function CoordinatorNotesSection({
               <p className="whitespace-pre-wrap">{note.body}</p>
               <p className="mt-1 flex items-center justify-between gap-2 text-[11.5px] text-[#858c96]">
                 <span>
-                  {note.authorName ?? "Koordinatör"} ·{" "}
-                  {formatDateTime(note.createdAt)}
+                  {note.authorName ?? t("authorFallback")} ·{" "}
+                  {formatDateTime(note.createdAt, locale)}
                 </span>
                 {note.mine ? (
                   <button
                     type="button"
                     onClick={() => notes.remove(note.id)}
-                    aria-label="Notu sil"
+                    aria-label={t("delete")}
                     className="text-[#aeb4bc] hover:text-[#d9464b]"
                   >
                     <Trash2 aria-hidden className="size-3.5" />
@@ -83,9 +86,7 @@ export function CoordinatorNotesSection({
           ))}
         </ul>
       ) : notes.composing ? null : (
-        <p className="text-[12.5px] text-[#858c96]">
-          Henüz koordinatör notu yok.
-        </p>
+        <p className="text-[12.5px] text-[#858c96]">{t("empty")}</p>
       )}
     </div>
   );

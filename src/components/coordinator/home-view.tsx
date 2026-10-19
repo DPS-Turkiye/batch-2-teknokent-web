@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { ChevronDown } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -17,7 +18,6 @@ import type {
   CoordinatorOverview,
 } from "@/interfaces/coordinator-overview";
 import {
-  AGENDA_KIND_LABELS,
   agendaWhen,
   AgendaWindow,
   hasOpenActions,
@@ -26,6 +26,7 @@ import {
 import { formatDateTime } from "@/lib/utils";
 
 export function CoordinatorHomeView() {
+  const t = useTranslations("coordinatorHome");
   const home = useCoordinatorHome();
   const data = home.query.data;
 
@@ -41,19 +42,19 @@ export function CoordinatorHomeView() {
                 id="coordinator-week"
                 className="text-[16px] font-semibold text-[#1d3a5f]"
               >
-                Bugün / Bu Hafta
+                {t("week")}
               </h2>
               <div className="flex gap-1 rounded-full bg-[#f4f5f7] p-1">
                 <WindowButton
                   active={home.agendaWindow === AgendaWindow.Today}
                   onClick={() => home.setAgendaWindow(AgendaWindow.Today)}
-                  label="Bugün"
+                  label={t("today")}
                   count={home.todayCount}
                 />
                 <WindowButton
                   active={home.agendaWindow === AgendaWindow.Week}
                   onClick={() => home.setAgendaWindow(AgendaWindow.Week)}
-                  label="Bu hafta"
+                  label={t("thisWeek")}
                   count={home.weekCount}
                 />
               </div>
@@ -75,35 +76,39 @@ export function CoordinatorHomeView() {
 }
 
 function MetricCards({ metrics }: { metrics: CoordinatorOverview["metrics"] }) {
+  const t = useTranslations("coordinatorHome.metrics");
   const cards = [
     {
-      label: "Aktif mentorluk",
+      label: t("active"),
       value: metrics.activeMentorships,
-      note: `${metrics.mentoredTeams} takım · ${metrics.activeMentors} mentor`,
+      note: t("activeNote", {
+        teams: metrics.mentoredTeams,
+        mentors: metrics.activeMentors,
+      }),
       border: "border-[#26a4ff]",
     },
     {
-      label: "Uzun süredir görüşme yok",
+      label: t("stale"),
       value: metrics.staleMentorships,
-      note: "görüşme eşiği aşıldı",
+      note: t("staleNote"),
       border: "border-[#f59e0b]",
     },
     {
-      label: "Geciken aksiyonlar",
+      label: t("overdue"),
       value: metrics.overdueActions,
-      note: "son tarihi geçmiş",
+      note: t("overdueNote"),
       border: "border-[#ef4444]",
     },
     {
-      label: "Yeni / tekrarlayan darboğaz",
+      label: t("bottlenecks"),
       value: metrics.openBottlenecks,
-      note: "takım kaynaklı",
+      note: t("bottlenecksNote"),
       border: "border-[#e9ecef]",
     },
     {
-      label: "Katılım / iletişim problemi",
+      label: t("slowMentors"),
       value: metrics.slowMentors,
-      note: "mentor kaynaklı",
+      note: t("slowMentorsNote"),
       border: "border-[#e9ecef]",
     },
   ];
@@ -157,14 +162,18 @@ function NextMeetingCard({
 }: {
   meeting: CoordinatorNextMeeting | null;
 }) {
+  const t = useTranslations("coordinatorHome");
+  const locale = useLocale();
   return (
     <article className="rounded-[28px] border border-[#e9ecef] bg-white p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="rounded-full bg-[#f4f5f7] px-3 py-1 text-[12px] text-[#676e78]">
-          Sıradaki görüşme
+          {t("nextMeeting")}
         </span>
         {meeting ? (
-          <StatusChip tone="amber">{meetingSlotLabel(meeting)}</StatusChip>
+          <StatusChip tone="amber">
+            {meetingSlotLabel(meeting, locale)}
+          </StatusChip>
         ) : null}
       </div>
       {meeting ? (
@@ -173,20 +182,28 @@ function NextMeetingCard({
             {meeting.title}
           </h3>
           <p className="mt-1 text-[12.5px] text-[#858c96]">
-            {meeting.meetLink ? "Online · Google Meet" : "Görüşme"} ·{" "}
-            {meeting.sequence}. görüşme
+            {meeting.meetLink ? t("onlineMeet") : t("meeting")} ·{" "}
+            {t("sequence", { n: meeting.sequence })}
           </p>
           <div className="mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
             <Party
               name={meeting.mentorName}
-              detail={`Mentor${meeting.mentorTitle ? ` · ${meeting.mentorTitle}` : ""}`}
+              detail={
+                meeting.mentorTitle
+                  ? t("mentorWithTitle", { title: meeting.mentorTitle })
+                  : t("mentor")
+              }
             />
             <span aria-hidden className="text-[#aeb4bc]">
               ↔
             </span>
             <Party
               name={meeting.organizationName}
-              detail={`Takım${meeting.founderName ? ` · ${meeting.founderName}` : ""}`}
+              detail={
+                meeting.founderName
+                  ? t("teamWithFounder", { founder: meeting.founderName })
+                  : t("team")
+              }
             />
           </div>
           {meeting.meetLink ? (
@@ -196,14 +213,12 @@ function NextMeetingCard({
               rel="noreferrer"
               className="mt-6 inline-flex rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
             >
-              Görüşmeye katıl
+              {t("join")}
             </a>
           ) : null}
         </>
       ) : (
-        <p className="mt-6 text-sm text-[#858c96]">
-          Planlanmış bir görüşme yok.
-        </p>
+        <p className="mt-6 text-sm text-[#858c96]">{t("noMeeting")}</p>
       )}
     </article>
   );
@@ -219,17 +234,19 @@ function Party({ name, detail }: { name: string; detail: string }) {
 }
 
 function AgendaList({ items }: { items: CoordinatorAgendaItem[] }) {
+  const t = useTranslations("coordinatorHome");
+  const locale = useLocale();
   if (items.length === 0) {
     return (
       <div className="rounded-[28px] border border-[#e9ecef] bg-white">
-        <EmptyNote>Bu aralıkta planlanmış bir şey yok.</EmptyNote>
+        <EmptyNote>{t("emptyAgenda")}</EmptyNote>
       </div>
     );
   }
   return (
     <ul className="divide-y divide-[#eef0f2] rounded-[28px] border border-[#e9ecef] bg-white px-4">
       {items.map((item) => {
-        const when = agendaWhen(item);
+        const when = agendaWhen(item, { t, locale });
         return (
           <li
             key={`${item.kind}-${item.at}-${item.title}`}
@@ -251,9 +268,7 @@ function AgendaList({ items }: { items: CoordinatorAgendaItem[] }) {
                 </span>
               ) : null}
             </span>
-            <StatusChip tone="neutral">
-              {AGENDA_KIND_LABELS[item.kind]}
-            </StatusChip>
+            <StatusChip tone="neutral">{t(`kinds.${item.kind}`)}</StatusChip>
           </li>
         );
       })}
@@ -270,6 +285,8 @@ function ActionsSection({
   programId: string | null;
   onProgramChange: (programId: string | null) => void;
 }) {
+  const t = useTranslations("coordinatorHome");
+  const locale = useLocale();
   const { pendingMentors, awaitingTeams, missingNotes } = data.actions;
   return (
     <section aria-labelledby="coordinator-actions" className="space-y-4">
@@ -278,16 +295,16 @@ function ActionsSection({
           id="coordinator-actions"
           className="text-[16px] font-semibold text-[#1d3a5f]"
         >
-          Aksiyonlar
+          {t("actions")}
         </h2>
         <label className="flex items-center gap-2 rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] text-[#858c96]">
-          Program:
+          {t("program")}
           <select
             value={programId ?? ""}
             onChange={(event) => onProgramChange(event.target.value || null)}
             className="bg-transparent font-medium text-[#1d3a5f] outline-none"
           >
-            <option value="">Tüm programlar</option>
+            <option value="">{t("allPrograms")}</option>
             {data.programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -300,9 +317,11 @@ function ActionsSection({
         <div className="divide-y divide-[#eef0f2] rounded-[28px] border border-[#e9ecef] bg-white px-2">
           {pendingMentors.length > 0 ? (
             <ActionRow
-              title="Yanıt bekleyen mentor"
-              summary={`${pendingMentors.length} mentor · program daveti veya katılım isteği bekliyor`}
-              chip="Bekliyor"
+              title={t("pendingMentors")}
+              summary={t("pendingMentorsSummary", {
+                count: pendingMentors.length,
+              })}
+              chip={t("waiting")}
             >
               {pendingMentors.map((mentor) => (
                 <ActionItemLine
@@ -316,9 +335,12 @@ function ActionsSection({
           ) : null}
           {awaitingTeams.length > 0 ? (
             <ActionRow
-              title="Eşleşme bekleyen takım"
-              summary={`${awaitingTeams.length} takım · mentor ataması yapılmadı · en eskisi ${awaitingTeams[0].waitingDays} gün önce`}
-              chip="Bekliyor"
+              title={t("awaitingTeams")}
+              summary={t("awaitingTeamsSummary", {
+                count: awaitingTeams.length,
+                days: awaitingTeams[0].waitingDays,
+              })}
+              chip={t("waiting")}
             >
               {awaitingTeams.map((team) => (
                 <ActionItemLine
@@ -327,29 +349,29 @@ function ActionsSection({
                   detail={team.programName}
                   days={team.waitingDays}
                   href={`/coordinator/programs/${encodeURIComponent(team.programId)}/matching?team=${encodeURIComponent(team.organizationId)}`}
-                  action="Eşleştir"
+                  action={t("match")}
                 />
               ))}
             </ActionRow>
           ) : null}
           {missingNotes.length > 0 ? (
             <ActionRow
-              title="Eksik görüşme çıktısı"
-              summary={`${missingNotes.length} görüşme · son 14 günde not girilmedi`}
-              chip="Dikkat"
+              title={t("missingNotes")}
+              summary={t("missingNotesSummary", { count: missingNotes.length })}
+              chip={t("attention")}
             >
               {missingNotes.map((note) => (
                 <ActionItemLine
                   key={note.meetingId}
                   name={`${note.mentorName} ↔ ${note.organizationName}`}
-                  detail={formatDateTime(note.scheduledAt)}
+                  detail={formatDateTime(note.scheduledAt, locale)}
                 />
               ))}
             </ActionRow>
           ) : null}
         </div>
       ) : (
-        <EmptyNote>Şu an bekleyen bir aksiyon yok.</EmptyNote>
+        <EmptyNote>{t("noActions")}</EmptyNote>
       )}
     </section>
   );
@@ -405,6 +427,7 @@ function ActionItemLine({
   href?: string;
   action?: string;
 }) {
+  const t = useTranslations("coordinatorHome");
   return (
     <li className="flex items-center gap-3 rounded-xl border-b border-[#f0f2f4] px-3 py-2.5 last:border-0">
       <span className="min-w-0 flex-1">
@@ -417,7 +440,7 @@ function ActionItemLine({
       </span>
       {days != null ? (
         <StatusChip tone={days >= 4 ? "red" : days >= 2 ? "amber" : "neutral"}>
-          {days === 0 ? "bugün" : `${days} gündür bekliyor`}
+          {days === 0 ? t("waitingToday") : t("waitingDays", { days })}
         </StatusChip>
       ) : null}
       {href && action ? (

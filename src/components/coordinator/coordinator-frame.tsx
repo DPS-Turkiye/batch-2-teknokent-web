@@ -8,31 +8,31 @@ import { UserRole } from "@/interfaces/session";
 const NAV: RoleNavItem[] = [
   {
     href: "/coordinator",
-    label: "Anasayfa",
+    label: "home",
     icon: "/admin/nav-home.svg",
     match: (path) => path === "/coordinator",
   },
   {
     href: "/coordinator/programs",
-    label: "Programlarım",
+    label: "myPrograms",
     icon: "/admin/nav-folder.svg",
     match: (path) => path.startsWith("/coordinator/programs"),
   },
   {
     href: "/coordinator/mentorships",
-    label: "Mentorluklar",
+    label: "mentorships",
     icon: "/admin/nav-lamp.svg",
     match: (path) => path.startsWith("/coordinator/mentorships"),
   },
   {
     href: "/coordinator/calendar",
-    label: "Takvim",
+    label: "calendar",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/coordinator/calendar"),
   },
   {
     href: "/coordinator/messages",
-    label: "Mesajlar",
+    label: "messages",
     icon: "/admin/nav-mail.svg",
     match: (path) => path.startsWith("/coordinator/messages"),
   },
@@ -45,7 +45,7 @@ export function CoordinatorFrame({ children }: { children: ReactNode }) {
     <RoleFrame
       allowedRoles={COORDINATOR_ROLES}
       homeHref="/coordinator"
-      menuLabel="Koordinatör menüsü"
+      menuLabel="coordinatorMenu"
       nav={NAV}
     >
       {children}

@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { CoordinatorConversationCounterpart } from "@/interfaces/coordinator-conversation";
@@ -15,6 +16,19 @@ import {
 } from "@/lib/coordinator-messages";
 import { coordinatorConversation } from "@test/fixtures/coordinator-conversations";
 import { coordinatorMentorship } from "@test/fixtures/coordinator-mentorships";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "coordinatorMessages",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "coordinatorMessages",
+});
 
 const ayse = coordinatorConversation();
 const lumen = coordinatorConversation({
@@ -45,10 +59,13 @@ const mentorships = [
 describe("coordinator messages", () => {
   it("counts unread threads per side, treating the open one as read", () => {
     expect(
-      messageFilterOptions([ayse, lumen, terra], null).map((o) => o.label),
+      messageFilterOptions([ayse, lumen, terra], null, t).map((o) => o.label),
     ).toEqual(["Tümü", "Mentorlar 1", "Takımlar 1", "Duyurular"]);
     expect(
-      messageFilterOptions([ayse, lumen, terra], "conversation-1").map(
+      messageFilterOptions([ayse, lumen, terra], null, tEn).map((o) => o.label),
+    ).toEqual(["All", "Mentors 1", "Teams 1", "Announcements"]);
+    expect(
+      messageFilterOptions([ayse, lumen, terra], "conversation-1", t).map(
         (o) => o.label,
       ),
     ).toEqual(["Tümü", "Mentorlar 0", "Takımlar 1", "Duyurular"]);
@@ -80,15 +97,19 @@ describe("coordinator messages", () => {
       "mentorship-1",
     ]);
     expect(relatedMentorships(terra, mentorships)).toEqual([]);
-    expect(counterpartSubtitle(ayse, mentorships)).toBe(
+    expect(counterpartSubtitle(ayse, mentorships, t)).toBe(
       "Mentor · Lumen, Kavun",
     );
-    expect(counterpartSubtitle(lumen, [mentorships[0]])).toBe(
+    expect(counterpartSubtitle(lumen, [mentorships[0]], t)).toBe(
       "Takım · Ayşe Demir",
     );
-    expect(counterpartSubtitle(terra, [])).toBe("Takım");
-    expect(messagesSubtitle([ayse, lumen, terra], mentorships, null)).toBe(
+    expect(counterpartSubtitle(terra, [], t)).toBe("Takım");
+    expect(counterpartSubtitle(terra, [], tEn)).toBe("Team");
+    expect(messagesSubtitle([ayse, lumen, terra], mentorships, null, t)).toBe(
       "2 okunmamış mesaj · 2 konuşma riskli bir mentorlukla ilgili",
+    );
+    expect(messagesSubtitle([ayse, lumen, terra], mentorships, null, tEn)).toBe(
+      "2 unread messages · 2 conversations are about an at-risk mentorship",
     );
   });
 

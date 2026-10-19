@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
@@ -36,6 +37,7 @@ export function useCoordinatorMentorships(programId: string | null) {
 
 /** The Mentorluklar table: program, health, topic and search filters, sort, paging and the open drawer. */
 export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
+  const t = useTranslations("coordinatorMentorships");
   const programs = useCoordinatorPrograms();
   const [programId, setProgramIdState] = useState<string | null>(null);
   const query = useCoordinatorMentorships(programId);
@@ -65,7 +67,7 @@ export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
     setProgramId: resetting(setProgramIdState),
     health,
     setHealth: resetting(setHealthState),
-    healthOptions: healthFilterOptions(rows),
+    healthOptions: healthFilterOptions(rows, t),
     search,
     setSearch: resetting(setSearchState),
     topic,

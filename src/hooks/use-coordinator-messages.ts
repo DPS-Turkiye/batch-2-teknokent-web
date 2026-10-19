@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 
 import { useCoordinatorMentorships } from "@/hooks/use-coordinator-mentorships";
@@ -44,6 +45,7 @@ export type MessagesDeepLink = {
  * "Duyurular" filter's program-wide announcements.
  */
 export function useCoordinatorMessages(link: MessagesDeepLink) {
+  const t = useTranslations("coordinatorMessages");
   const queryClient = useQueryClient();
   const programs = useCoordinatorPrograms();
   const mentorships = useCoordinatorMentorships(null);
@@ -124,13 +126,17 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
     setProgramId,
     filter,
     setFilter,
-    filterOptions: messageFilterOptions(all, openId),
+    filterOptions: messageFilterOptions(all, openId, t),
     search,
     setSearch,
     visible: filterConversations(all, { filter, search, programId }),
-    subtitle: messagesSubtitle(all, rows, openId),
+    subtitle: messagesSubtitle(all, rows, openId, t),
     subtitleOf: (conversation: CoordinatorConversation) =>
-      counterpartSubtitle(conversation, relatedMentorships(conversation, rows)),
+      counterpartSubtitle(
+        conversation,
+        relatedMentorships(conversation, rows),
+        t,
+      ),
     openId,
     openConversation: (id: string) => {
       announcements.close();

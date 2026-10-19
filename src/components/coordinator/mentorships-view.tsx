@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   Avatar,
@@ -14,19 +15,19 @@ import {
 import { MentorshipDrawer } from "@/components/coordinator/mentorship-drawer";
 import { PillSelect } from "@/components/coordinator/pill-select";
 import { useCoordinatorMentorshipList } from "@/hooks/use-coordinator-mentorships";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   type CoordinatorMentorship,
   CoordinatorMentorshipHealth,
 } from "@/interfaces/coordinator-mentorship";
 import {
   actionsLabel,
-  HEALTH_LABELS,
+  ALL_TOPICS,
   HEALTH_TONES,
   lastMeetingLabel,
   MentorshipSort,
   needsIntervention,
   nextMeetingLabel,
-  SORT_LABELS,
 } from "@/lib/coordinator-mentorships";
 import { initials } from "@/lib/utils";
 
@@ -38,6 +39,8 @@ export function CoordinatorMentorshipsView({
 }: {
   initialSelectedId: string | null;
 }) {
+  const t = useTranslations("coordinatorMentorships");
+  const optionLabel = useOptionLabel();
   const list = useCoordinatorMentorshipList(initialSelectedId);
 
   return (
@@ -52,32 +55,35 @@ export function CoordinatorMentorshipsView({
           <SearchField
             value={list.search}
             onChange={list.setSearch}
-            placeholder="Mentor veya takım ara"
+            placeholder={t("search")}
           />
           <PillSelect
-            label="Konu:"
+            label={t("topic")}
             value={list.topic}
             onChange={list.setTopic}
             options={list.topicOptions.map((topic) => ({
               value: topic,
-              label: topic,
+              label:
+                topic === ALL_TOPICS
+                  ? t("allTopics")
+                  : optionLabel("mentorTopic", topic),
             }))}
           />
           <PillSelect
-            label="Sırala:"
+            label={t("sortBy")}
             value={list.sort}
             onChange={(value) => list.setSort(value as MentorshipSort)}
             options={Object.values(MentorshipSort).map((sort) => ({
               value: sort,
-              label: SORT_LABELS[sort],
+              label: t(`sort.${sort}`),
             }))}
           />
           <PillSelect
-            label="Program:"
+            label={t("program")}
             value={list.programId ?? ""}
             onChange={(value) => list.setProgramId(value || null)}
             options={[
-              { value: "", label: "Tüm programlar" },
+              { value: "", label: t("allPrograms") },
               ...list.programOptions.map((program) => ({
                 value: program.id,
                 label: program.name,
@@ -93,16 +99,16 @@ export function CoordinatorMentorshipsView({
           <div
             className={`${GRID} border-b border-[#eef0f2] px-7 py-4 text-[12.5px] text-[#676e78]`}
           >
-            <span>Mentorluk</span>
-            <span>Sağlık</span>
-            <span>Konu</span>
-            <span>Son görüşme</span>
-            <span>Sıradaki görüşme</span>
-            <span>Açık aksiyonlar</span>
-            <span className="sr-only">İşlem</span>
+            <span>{t("columns.mentorship")}</span>
+            <span>{t("columns.health")}</span>
+            <span>{t("columns.topic")}</span>
+            <span>{t("columns.lastMeeting")}</span>
+            <span>{t("columns.nextMeeting")}</span>
+            <span>{t("columns.openActions")}</span>
+            <span className="sr-only">{t("columns.action")}</span>
           </div>
           {list.visible.length === 0 ? (
-            <EmptyNote>Bu filtrelere uyan mentorluk yok.</EmptyNote>
+            <EmptyNote>{t("empty")}</EmptyNote>
           ) : (
             <ul>
               {list.visible.map((row) => (
@@ -121,7 +127,7 @@ export function CoordinatorMentorshipsView({
                 onClick={list.showMore}
                 className="inline-flex items-center gap-1 text-[13px] text-[#676e78]"
               >
-                Daha fazla yükle <ArrowRight aria-hidden className="size-3.5" />
+                {t("loadMore")} <ArrowRight aria-hidden className="size-3.5" />
               </button>
             </div>
           ) : null}
@@ -146,6 +152,11 @@ function MentorshipRow({
   row: CoordinatorMentorship;
   onOpen: () => void;
 }) {
+  const t = useTranslations("coordinatorMentorships");
+  const locale = useLocale();
+  const optionLabel = useOptionLabel();
+  const texts = { t, locale };
+  const pair = `${row.mentorName} ↔ ${row.organizationName}`;
   const lateTone =
     row.health === CoordinatorMentorshipHealth.Risky
       ? "text-[#d9464b]"
@@ -172,7 +183,7 @@ function MentorshipRow({
         </span>
         <span className="min-w-0">
           <span className="block truncate text-[13.5px] text-[#22262b]">
-            {row.mentorName} ↔ {row.organizationName}
+            {pair}
           </span>
           <span className="block truncate text-[12px] text-[#858c96]">
             {row.programName}
@@ -181,35 +192,45 @@ function MentorshipRow({
       </span>
       <span>
         <StatusChip tone={HEALTH_TONES[row.health]}>
-          {HEALTH_LABELS[row.health]}
+          {t(`health.${row.health}`)}
         </StatusChip>
       </span>
       <span className="min-w-0">
         {row.topic ? (
-          <StatusChip tone="orange">{row.topic}</StatusChip>
+          <StatusChip tone="orange">
+            {optionLabel("mentorTopic", row.topic)}
+          </StatusChip>
         ) : (
           <span className="text-[#aeb4bc]">—</span>
         )}
       </span>
-      <span className={`text-[13px] ${lateTone}`}>{lastMeetingLabel(row)}</span>
+      <span className={`text-[13px] ${lateTone}`}>
+        {lastMeetingLabel(row, texts)}
+      </span>
       <span
         className={`text-[13px] ${row.nextMeetingAt ? "text-[#22262b]" : "text-[#aeb4bc]"}`}
       >
-        {nextMeetingLabel(row)}
+        {nextMeetingLabel(row, texts)}
       </span>
-      <span className={`text-[13px] ${actionsTone}`}>{actionsLabel(row)}</span>
+      <span className={`text-[13px] ${actionsTone}`}>
+        {actionsLabel(row, t)}
+      </span>
       <span className="flex justify-end">
         <button
           type="button"
           onClick={onOpen}
-          aria-label={`${row.mentorName} ↔ ${row.organizationName} ${intervene ? "müdahale et" : "incele"}`}
+          aria-label={
+            intervene
+              ? t("interveneLabel", { pair })
+              : t("reviewLabel", { pair })
+          }
           className={
             intervene
               ? "inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
               : "inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
           }
         >
-          {intervene ? "Müdahale" : "İncele"}
+          {intervene ? t("intervene") : t("review")}
         </button>
       </span>
     </li>

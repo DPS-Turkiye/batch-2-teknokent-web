@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
@@ -29,6 +30,8 @@ export const COORDINATOR_CALENDAR_QUERY_KEY = ["coordinator-calendar"] as const;
  * proposals as "Önerilen slot" and a conflict's "Yeniden planla".
  */
 export function useCoordinatorCalendar(today = new Date()) {
+  const t = useTranslations("coordinatorCalendar");
+  const locale = useLocale();
   const queryClient = useQueryClient();
   const programs = useCoordinatorPrograms();
   const [view, setViewState] = useState(CalendarView.Week);
@@ -52,7 +55,7 @@ export function useCoordinatorCalendar(today = new Date()) {
   const programOptions = programs.data ?? [];
   const items = [
     ...(query.data?.items ?? []),
-    ...proposalItems(proposals.data ?? [], range),
+    ...proposalItems(proposals.data ?? [], range, t("proposedSlot")),
   ];
 
   const createEvent = useMutation({
@@ -76,7 +79,7 @@ export function useCoordinatorCalendar(today = new Date()) {
       setSelectedId(null);
     },
     days: viewDays(view, anchor),
-    label: rangeLabel(view, anchor),
+    label: rangeLabel(view, anchor, locale),
     previous: () => {
       setAnchor(shiftAnchor(view, anchor, -1));
       setSelectedId(null);

@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import {
   type CoordinatorConversation,
   CoordinatorConversationCounterpart,
@@ -15,13 +17,7 @@ export enum MessageFilter {
   Announcements = "ANNOUNCEMENTS",
 }
 
-export const COUNTERPART_LABELS: Record<
-  CoordinatorConversationCounterpart,
-  string
-> = {
-  [CoordinatorConversationCounterpart.Mentor]: "Mentor",
-  [CoordinatorConversationCounterpart.Team]: "Takım",
-};
+type MessagesT = ReturnType<typeof useTranslations<"coordinatorMessages">>;
 
 const COUNTERPART_OF_FILTER: Record<
   Exclude<MessageFilter, MessageFilter.All | MessageFilter.Announcements>,
@@ -43,22 +39,27 @@ export function isUnread(
 export function messageFilterOptions(
   conversations: CoordinatorConversation[],
   openId: string | null,
+  t: MessagesT,
 ) {
   const unread = (type: CoordinatorConversationCounterpart) =>
     conversations.filter(
       (item) => item.counterpartType === type && isUnread(item, openId),
     ).length;
   return [
-    { id: MessageFilter.All, label: "Tümü" },
+    { id: MessageFilter.All, label: t("filters.ALL") },
     {
       id: MessageFilter.Mentors,
-      label: `Mentorlar ${unread(CoordinatorConversationCounterpart.Mentor)}`,
+      label: t("filters.MENTORS", {
+        count: unread(CoordinatorConversationCounterpart.Mentor),
+      }),
     },
     {
       id: MessageFilter.Teams,
-      label: `Takımlar ${unread(CoordinatorConversationCounterpart.Team)}`,
+      label: t("filters.TEAMS", {
+        count: unread(CoordinatorConversationCounterpart.Team),
+      }),
     },
-    { id: MessageFilter.Announcements, label: "Duyurular" },
+    { id: MessageFilter.Announcements, label: t("filters.ANNOUNCEMENTS") },
   ];
 }
 
@@ -104,13 +105,14 @@ export function relatedMentorships(
 export function counterpartSubtitle(
   conversation: CoordinatorConversation,
   related: CoordinatorMentorship[],
+  t: MessagesT,
 ) {
   const names = related.map((row) =>
     conversation.counterpartType === CoordinatorConversationCounterpart.Mentor
       ? row.organizationName
       : row.mentorName,
   );
-  const label = COUNTERPART_LABELS[conversation.counterpartType];
+  const label = t(`counterpart.${conversation.counterpartType}`);
   return names.length > 0 ? `${label} · ${names.join(", ")}` : label;
 }
 
@@ -119,6 +121,7 @@ export function messagesSubtitle(
   conversations: CoordinatorConversation[],
   mentorships: CoordinatorMentorship[],
   openId: string | null,
+  t: MessagesT,
 ) {
   const unread = conversations.filter((item) => isUnread(item, openId)).length;
   const risky = conversations.filter((item) =>
@@ -126,8 +129,8 @@ export function messagesSubtitle(
       (row) => row.health === CoordinatorMentorshipHealth.Risky,
     ),
   ).length;
-  const parts = [`${unread} okunmamış mesaj`];
-  if (risky > 0) parts.push(`${risky} konuşma riskli bir mentorlukla ilgili`);
+  const parts = [t("unreadCount", { count: unread })];
+  if (risky > 0) parts.push(t("riskyCount", { count: risky }));
   return parts.join(" · ");
 }
 

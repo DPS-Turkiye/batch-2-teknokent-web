@@ -21,7 +21,7 @@ import {
 } from "@test/fixtures/coordinator-calendar";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-calendar", () => ({
   getCoordinatorCalendar: vi.fn(),
@@ -69,7 +69,7 @@ describe("CoordinatorCalendarView", () => {
       to: "2026-09-20",
       programId: null,
     });
-    expect(screen.getByText("14 – 20 Eylül 2026")).toBeInTheDocument();
+    expect(screen.getByText("14–20 Eylül 2026")).toBeInTheDocument();
     expect(screen.getByText("2 çakışma")).toBeInTheDocument();
     expect(
       screen.getByText(
@@ -79,6 +79,38 @@ describe("CoordinatorCalendarView", () => {
     const week = screen.getByRole("article", { name: "Bu hafta" });
     expect(within(week).getByText("4 kayıt")).toBeInTheDocument();
     expect(within(week).getByText("Planlanmamış (riskli)")).toBeInTheDocument();
+  });
+
+  it("reads in English", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <CoordinatorCalendarView />
+      </InLocale>,
+    );
+
+    const meeting = await screen.findByRole("button", {
+      name: /^Nihan Öztürk ↔ Atlas AI Wed Sep 16 · 2:00\s–\s3:00\sPM$/,
+    });
+    expect(screen.getByText(/^September 14\s–\s20, 2026$/)).toBeInTheDocument();
+    expect(screen.getByText("2 conflicts")).toBeInTheDocument();
+    const week = screen.getByRole("article", { name: "This week" });
+    expect(within(week).getByText("4 items")).toBeInTheDocument();
+    expect(
+      within(week).getByText("Not scheduled (at risk)"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Reschedule" }),
+    ).toBeInTheDocument();
+
+    await user.click(meeting);
+    const card = screen.getByRole("article", { name: "Item details" });
+    expect(
+      within(card).getByText("Topic: Ürün stratejisi · Meeting 5"),
+    ).toBeInTheDocument();
+    expect(
+      within(card).getByRole("link", { name: "Open the mentorship" }),
+    ).toBeInTheDocument();
   });
 
   it("opens a meeting's popover with links to the mentorship and a message", async () => {

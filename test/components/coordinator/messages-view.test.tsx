@@ -25,7 +25,7 @@ import {
 import { coordinatorMentorship } from "@test/fixtures/coordinator-mentorships";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-conversations", () => ({
   getCoordinatorConversations: vi.fn(),
@@ -89,6 +89,37 @@ describe("CoordinatorMessagesView", () => {
     expect(
       screen.getByText("Bir konuşma seçin ya da yeni bir mesaj başlatın."),
     ).toBeInTheDocument();
+  });
+
+  it("reads in English", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <CoordinatorMessagesView link={noLink} />
+      </InLocale>,
+    );
+
+    const list = await screen.findByRole("list", { name: "Conversations" });
+    expect(
+      await within(list).findByText("Team · Ayşe Demir"),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        "2 unread messages · 2 conversations are about an at-risk mentorship",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Mentors 1" }),
+    ).toBeInTheDocument();
+
+    await user.click(within(list).getByText("Ayşe Demir"));
+    const related = await screen.findByRole("complementary", {
+      name: "Related mentorships",
+    });
+    expect(
+      within(related).getByRole("link", { name: /Open the mentorship/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Send" })).toBeDisabled();
   });
 
   it("opens a thread with its related mentorship and sends a reply", async () => {

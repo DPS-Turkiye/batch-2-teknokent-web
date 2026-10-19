@@ -2,6 +2,7 @@
 
 import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
@@ -24,7 +25,7 @@ import {
   ProgramEventKind,
 } from "@/interfaces/coordinator-program";
 import {
-  CALENDAR_VIEW_LABELS,
+  type CalendarTexts,
   CalendarView,
   conflictSummary,
   type EventDraft,
@@ -47,7 +48,12 @@ import { initials } from "@/lib/utils";
 
 const ROW = 56;
 
+function useCalendarTexts(): CalendarTexts {
+  return { t: useTranslations("coordinatorCalendar"), locale: useLocale() };
+}
+
 export function CoordinatorCalendarView() {
+  const { t } = useCalendarTexts();
   const calendar = useCoordinatorCalendar();
   const data = calendar.query.data;
   const selected =
@@ -57,13 +63,13 @@ export function CoordinatorCalendarView() {
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <IconButton label="Önceki" onClick={calendar.previous}>
+          <IconButton label={t("previous")} onClick={calendar.previous}>
             <ChevronLeft aria-hidden className="size-4" />
           </IconButton>
           <h1 className="min-w-[180px] text-center text-[17px] font-semibold text-[#22262b]">
             {calendar.label}
           </h1>
-          <IconButton label="Sonraki" onClick={calendar.next}>
+          <IconButton label={t("next")} onClick={calendar.next}>
             <ChevronRight aria-hidden className="size-4" />
           </IconButton>
           <button
@@ -71,13 +77,13 @@ export function CoordinatorCalendarView() {
             onClick={calendar.goToToday}
             className="rounded-full bg-[#f4f5f7] px-3 py-1.5 text-[12.5px] text-[#22262b]"
           >
-            Bugün
+            {t("today")}
           </button>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <div
             role="group"
-            aria-label="Görünüm"
+            aria-label={t("viewGroup")}
             className="flex gap-1 rounded-full bg-[#f4f5f7] p-1"
           >
             {Object.values(CalendarView).map((view) => (
@@ -92,16 +98,16 @@ export function CoordinatorCalendarView() {
                     : "text-[#858c96]"
                 }`}
               >
-                {CALENDAR_VIEW_LABELS[view]}
+                {t(`views.${view}`)}
               </button>
             ))}
           </div>
           <PillSelect
-            label="Program:"
+            label={t("program")}
             value={calendar.programId ?? ""}
             onChange={(value) => calendar.setProgramId(value || null)}
             options={[
-              { value: "", label: "Tüm programlar" },
+              { value: "", label: t("allPrograms") },
               ...calendar.programOptions.map((program) => ({
                 value: program.id,
                 label: program.name,
@@ -109,7 +115,7 @@ export function CoordinatorCalendarView() {
             ]}
           />
           <SolidButton onClick={calendar.openEventForm}>
-            + Etkinlik ekle
+            {t("addEvent")}
           </SolidButton>
         </div>
       </div>
@@ -160,7 +166,9 @@ export function CoordinatorCalendarView() {
             <Summary
               data={data}
               period={
-                calendar.view === CalendarView.Month ? "Bu ay" : "Bu hafta"
+                calendar.view === CalendarView.Month
+                  ? t("thisMonth")
+                  : t("thisWeek")
               }
               onOpenList={() => calendar.setView(CalendarView.List)}
               showListLink={calendar.view !== CalendarView.List}
@@ -236,23 +244,25 @@ function KindDot({ item }: { item: CoordinatorCalendarItem }) {
 }
 
 function Legend() {
+  const { t } = useCalendarTexts();
   return (
     <ul className="flex flex-wrap justify-end gap-4 text-[12.5px] text-[#676e78]">
       <li className="flex items-center gap-1.5">
-        <MeetingDots /> Mentorluk görüşmesi
+        <MeetingDots /> {t("meetingKind")}
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-[#22262b]" /> Etkinlik
+        <span className="size-2 rounded-full bg-[#22262b]" /> {t("eventKind")}
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-[#b7791f]" /> Deadline
+        <span className="size-2 rounded-full bg-[#b7791f]" />{" "}
+        {t("deadlineKind")}
       </li>
       <li className="flex items-center gap-1.5">
-        <span className="size-2 rounded-full bg-[#d9464b]" /> Çakışma
+        <span className="size-2 rounded-full bg-[#d9464b]" /> {t("conflict")}
       </li>
       <li className="flex items-center gap-1.5">
         <span className="h-2.5 w-3.5 rounded-[3px] border border-dashed border-[#26a4ff]" />{" "}
-        Önerilen slot
+        {t("proposedSlot")}
       </li>
     </ul>
   );
@@ -272,19 +282,22 @@ function itemTone(item: CoordinatorCalendarItem) {
   return "border-[#e9ecef] bg-white text-[#22262b]";
 }
 
-function itemName(item: CoordinatorCalendarItem) {
+function itemName(item: CoordinatorCalendarItem, t: CalendarTexts["t"]) {
   if (item.kind !== CoordinatorAgendaKind.Meeting) return item.title;
-  return `${item.mentorName ?? "Mentor"} ↔ ${item.organizationName ?? "Takım"}`;
+  return `${item.mentorName ?? t("mentorFallback")} ↔ ${item.organizationName ?? t("teamFallback")}`;
 }
 
-function itemDetail(item: CoordinatorCalendarItem) {
-  const time = timeLabel(item.startsAt);
-  if (item.proposalId) return `${time} · Önerilen slot`;
+function itemDetail(
+  item: CoordinatorCalendarItem,
+  { t, locale }: CalendarTexts,
+) {
+  const time = timeLabel(item.startsAt, locale);
+  if (item.proposalId) return `${time} · ${t("proposedSlot")}`;
   if (item.kind === CoordinatorAgendaKind.Meeting) {
     return item.topic ? `${time} · ${item.topic}` : time;
   }
   return item.kind === CoordinatorAgendaKind.Deadline
-    ? `kapanış ${time}`
+    ? t("closesAt", { time })
     : `${time} · ${item.programName}`;
 }
 
@@ -301,6 +314,8 @@ function WeekGrid({
   capacity: number;
   onSelect: (id: string | null) => void;
 }) {
+  const texts = useCalendarTexts();
+  const { t, locale } = texts;
   const today = new Date();
   const hours = Array.from(
     { length: GRID_HOURS },
@@ -316,7 +331,7 @@ function WeekGrid({
               key={day.toISOString()}
               className="py-4 text-center text-[13px] text-[#858c96]"
             >
-              {weekdayLabel(day)}{" "}
+              {weekdayLabel(day, locale)}{" "}
               {sameDay(day, today) ? (
                 <span className="rounded-full bg-[#22262b] px-2 py-0.5 font-medium text-white">
                   {day.getDate()}
@@ -364,7 +379,7 @@ function WeekGrid({
                     key={entry.item.id}
                     type="button"
                     onClick={() => onSelect(entry.item.id)}
-                    aria-label={`${itemName(entry.item)} ${slotLabel(entry.item)}`}
+                    aria-label={`${itemName(entry.item, t)} ${slotLabel(entry.item, locale)}`}
                     style={{
                       top: entry.top * ROW + 2,
                       height: entry.height * ROW - 4,
@@ -381,14 +396,16 @@ function WeekGrid({
                       {entry.item.kind === CoordinatorAgendaKind.Meeting ? (
                         <MeetingDots />
                       ) : null}
-                      {entry.item.conflict ? "Çakışma" : itemName(entry.item)}
+                      {entry.item.conflict
+                        ? t("conflict")
+                        : itemName(entry.item, t)}
                     </span>
                     <span className="block truncate text-[11px] opacity-75">
                       {entry.item.conflict
-                        ? itemName(entry.item)
-                        : itemDetail(entry.item)}
+                        ? itemName(entry.item, t)
+                        : itemDetail(entry.item, texts)}
                       {isRecordingFull(entry.item, capacity)
-                        ? " · Kayıt dolu"
+                        ? ` · ${t("recordingFullShort")}`
                         : ""}
                     </span>
                   </button>
@@ -430,6 +447,7 @@ function MonthGrid({
   items: CoordinatorCalendarItem[];
   onSelect: (id: string) => void;
 }) {
+  const { t, locale } = useCalendarTexts();
   const today = new Date();
   return (
     <div className="overflow-x-auto rounded-[28px] border border-[#e9ecef] bg-white">
@@ -439,7 +457,7 @@ function MonthGrid({
             key={`head-${day.toISOString()}`}
             className="border-b border-[#eef0f2] py-3 text-center text-[12.5px] text-[#858c96]"
           >
-            {weekdayLabel(day)}
+            {weekdayLabel(day, locale)}
           </span>
         ))}
         {days.map((day) => {
@@ -474,14 +492,14 @@ function MonthGrid({
                     >
                       <KindDot item={item} />
                       <span className="truncate">
-                        {timeLabel(item.startsAt)} {itemName(item)}
+                        {timeLabel(item.startsAt, locale)} {itemName(item, t)}
                       </span>
                     </button>
                   </li>
                 ))}
                 {dayItems.length > 3 ? (
                   <li className="px-1 text-[11px] text-[#858c96]">
-                    +{dayItems.length - 3} kayıt
+                    {t("moreItems", { count: dayItems.length - 3 })}
                   </li>
                 ) : null}
               </ul>
@@ -504,13 +522,14 @@ function ListView({
   capacity: number;
   onSelect: (id: string) => void;
 }) {
+  const { t, locale } = useCalendarTexts();
   const withItems = days
     .map((day) => ({ day, items: itemsOnDay(items, day) }))
     .filter((group) => group.items.length > 0);
   if (withItems.length === 0) {
     return (
       <div className="rounded-[28px] border border-[#e9ecef] bg-white">
-        <EmptyNote>Bu hafta takvimde kayıt yok.</EmptyNote>
+        <EmptyNote>{t("emptyList")}</EmptyNote>
       </div>
     );
   }
@@ -522,7 +541,7 @@ function ListView({
           className="rounded-[24px] border border-[#e9ecef] bg-white px-5 py-3"
         >
           <h2 className="py-2 text-[13px] font-medium text-[#22262b]">
-            {longDayLabel(group.day)}
+            {longDayLabel(group.day, locale)}
           </h2>
           <ul className="divide-y divide-[#f0f2f4]">
             {group.items.map((item) => (
@@ -533,12 +552,12 @@ function ListView({
                   className="grid w-full grid-cols-[64px_16px_1fr_auto] items-center gap-2 py-2.5 text-left"
                 >
                   <span className="text-[12.5px] text-[#858c96]">
-                    {timeLabel(item.startsAt)}
+                    {timeLabel(item.startsAt, locale)}
                   </span>
                   <KindDot item={item} />
                   <span className="min-w-0">
                     <span className="block truncate text-[13.5px] text-[#22262b]">
-                      {itemName(item)}
+                      {itemName(item, t)}
                     </span>
                     <span className="block truncate text-[12px] text-[#858c96]">
                       {item.kind === CoordinatorAgendaKind.Meeting
@@ -548,10 +567,12 @@ function ListView({
                   </span>
                   <span className="flex gap-2 text-[12px]">
                     {item.conflict ? (
-                      <span className="text-[#d9464b]">Çakışma</span>
+                      <span className="text-[#d9464b]">{t("conflict")}</span>
                     ) : null}
                     {isRecordingFull(item, capacity) ? (
-                      <span className="text-[#9e4400]">Kayıt dolu</span>
+                      <span className="text-[#9e4400]">
+                        {t("recordingFullShort")}
+                      </span>
                     ) : null}
                   </span>
                 </button>
@@ -573,15 +594,16 @@ function ItemCard({
   capacity: number;
   onClose: () => void;
 }) {
+  const { t, locale } = useCalendarTexts();
   const meeting = item.kind === CoordinatorAgendaKind.Meeting;
-  const recording = meeting ? recordingNote(item, capacity) : null;
+  const recording = meeting ? recordingNote(item, capacity, t) : null;
   const facts = [
-    item.topic ? `Konu: ${item.topic}` : null,
-    item.sequence ? `${item.sequence}. görüşme` : null,
+    item.topic ? t("topic", { topic: item.topic }) : null,
+    item.sequence ? t("sequence", { n: item.sequence }) : null,
   ].filter(Boolean);
   return (
     <article
-      aria-label="Kayıt detayı"
+      aria-label={t("itemDetail")}
       className="rounded-[24px] border border-[#e9ecef] bg-white p-5 shadow-[0_12px_32px_rgba(33,38,43,0.12)]"
     >
       <div className="flex items-start gap-3">
@@ -594,18 +616,18 @@ function ItemCard({
         <div className="min-w-0 flex-1">
           <p className="text-[14.5px] font-medium text-[#22262b]">
             {item.proposalId
-              ? "Önerilen slot"
+              ? t("proposedSlot")
               : meeting
-                ? "Mentorluk görüşmesi"
+                ? t("meetingKind")
                 : item.title}
           </p>
           <p className="truncate text-[12.5px] text-[#858c96]">
-            {meeting ? itemName(item) : item.programName}
+            {meeting ? itemName(item, t) : item.programName}
           </p>
         </div>
         <button
           type="button"
-          aria-label="Detayı kapat"
+          aria-label={t("closeDetail")}
           onClick={onClose}
           className="text-[#aeb4bc]"
         >
@@ -613,11 +635,11 @@ function ItemCard({
         </button>
       </div>
       <ul className="mt-4 space-y-1.5 text-[12.5px] text-[#22262b]">
-        <li>{slotLabel(item)}</li>
+        <li>{slotLabel(item, locale)}</li>
         {item.proposalId ? (
-          <li>Mentor ve takım yetkilisinin onayı bekleniyor</li>
+          <li>{t("awaitingApproval")}</li>
         ) : meeting ? (
-          <li>{item.meetLink ? "Online · Google Meet" : "Görüşme"}</li>
+          <li>{item.meetLink ? t("onlineMeet") : t("meeting")}</li>
         ) : null}
         {meeting && facts.length > 0 ? <li>{facts.join(" · ")}</li> : null}
         {recording ? (
@@ -640,7 +662,7 @@ function ItemCard({
               href={mentorshipHref(item.mentorshipId)}
               className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
             >
-              Mentorluğu aç
+              {t("openMentorship")}
             </Link>
           ) : null}
           {item.mentorId ? (
@@ -648,7 +670,7 @@ function ItemCard({
               href={coordinatorMessageHref(item.programId, item.mentorId)}
               className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] px-4 text-[12.5px] font-medium text-[#22262b]"
             >
-              Mesaj
+              {t("message")}
             </Link>
           ) : null}
         </div>
@@ -658,17 +680,16 @@ function ItemCard({
 }
 
 function RecordingCapacity({ data }: { data: CoordinatorCalendar }) {
+  const { t } = useCalendarTexts();
   const full = fullRecordingCount(data);
   if (full === 0) return null;
   return (
     <article className="rounded-[24px] border border-[#ffd8b0] bg-[#fff6ed] p-5">
       <p className="text-[14px] font-medium text-[#9e4400]">
-        Kayıt botu kapasitesi dolu
+        {t("capacityTitle")}
       </p>
       <p className="mt-2 text-[13px] text-[#22262b]">
-        Aynı anda en fazla {data.recordingCapacity} görüşme kaydedilebiliyor. Bu
-        aralıkta {full} görüşmenin saatinde kapasite dolu; bu saatlere eklenen
-        yeni kayıtlı görüşmelere bot katılamaz.
+        {t("capacityBody", { capacity: data.recordingCapacity, full })}
       </p>
     </article>
   );
@@ -681,10 +702,12 @@ function Conflicts({
   data: CoordinatorCalendar;
   onReschedule: (meeting: CoordinatorCalendarItem) => void;
 }) {
+  const texts = useCalendarTexts();
+  const { t } = texts;
   return (
     <>
       {data.conflicts.map((conflict) => {
-        const summary = conflictSummary(conflict, data.items);
+        const summary = conflictSummary(conflict, data.items, texts);
         const first = data.items.find(
           (item) => item.id === conflict.meetingIds[0],
         );
@@ -715,7 +738,7 @@ function Conflicts({
                   onClick={() => onReschedule(later)}
                   className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
                 >
-                  Yeniden planla
+                  {t("reschedule")}
                 </button>
               ) : null}
               {first ? (
@@ -726,7 +749,7 @@ function Conflicts({
                   )}
                   className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
                 >
-                  Mentora sor
+                  {t("askMentor")}
                 </Link>
               ) : null}
             </div>
@@ -748,24 +771,25 @@ function Summary({
   onOpenList: () => void;
   showListLink: boolean;
 }) {
+  const { t } = useCalendarTexts();
   const rows = [
     {
-      label: "Mentorluk görüşmesi",
+      label: t("meetingKind"),
       value: data.summary.meetings,
       dot: <MeetingDots />,
     },
     {
-      label: "Etkinlik",
+      label: t("eventKind"),
       value: data.summary.events,
       dot: <span className="size-2 rounded-full bg-[#22262b]" />,
     },
     {
-      label: "Deadline",
+      label: t("deadlineKind"),
       value: data.summary.deadlines,
       dot: <span className="size-2 rounded-full bg-[#b7791f]" />,
     },
     {
-      label: "Planlanmamış (riskli)",
+      label: t("unscheduled"),
       value: data.summary.unscheduledRisky,
       dot: <span className="size-2 rounded-full bg-[#d9464b]" />,
     },
@@ -778,7 +802,7 @@ function Summary({
       <div className="flex items-center justify-between">
         <h2 className="text-[14.5px] font-medium text-[#22262b]">{period}</h2>
         <span className="text-[12px] text-[#858c96]">
-          {data.items.length} kayıt
+          {t("itemCount", { count: data.items.length })}
         </span>
       </div>
       <dl className="mt-3 space-y-3">
@@ -801,7 +825,7 @@ function Summary({
           onClick={onOpenList}
           className="mt-4 inline-flex items-center gap-1 text-[12.5px] text-[#676e78]"
         >
-          Liste görünümünde aç <ArrowRight aria-hidden className="size-3.5" />
+          {t("openList")} <ArrowRight aria-hidden className="size-3.5" />
         </button>
       ) : null}
     </article>
@@ -825,6 +849,8 @@ function EventForm({
   onSave: () => void;
   onClose: () => void;
 }) {
+  const t = useTranslations("coordinatorCalendar.form");
+  const tKind = useTranslations("coordinatorCalendar");
   const field =
     "mt-1 h-10 w-full rounded-xl border border-[#e9ecef] px-3 text-[13px] text-[#22262b] outline-none";
   return (
@@ -832,7 +858,7 @@ function EventForm({
       <form
         role="dialog"
         aria-modal="true"
-        aria-label="Etkinlik ekle"
+        aria-label={t("title")}
         onSubmit={(event) => {
           event.preventDefault();
           onSave();
@@ -841,20 +867,20 @@ function EventForm({
       >
         <div className="flex items-center justify-between">
           <h2 className="text-[17px] font-semibold text-[#22262b]">
-            Etkinlik ekle
+            {t("title")}
           </h2>
-          <button type="button" aria-label="Kapat" onClick={onClose}>
+          <button type="button" aria-label={t("close")} onClick={onClose}>
             <X aria-hidden className="size-4 text-[#858c96]" />
           </button>
         </div>
         <label className="block text-[12.5px] text-[#676e78]">
-          Program
+          {t("program")}
           <select
             value={draft.programId}
             onChange={(event) => onChange({ programId: event.target.value })}
             className={field}
           >
-            <option value="">Seçin</option>
+            <option value="">{t("choose")}</option>
             {programs.map((program) => (
               <option key={program.id} value={program.id}>
                 {program.name}
@@ -863,7 +889,7 @@ function EventForm({
           </select>
         </label>
         <label className="block text-[12.5px] text-[#676e78]">
-          Başlık
+          {t("eventTitle")}
           <input
             value={draft.title}
             maxLength={160}
@@ -872,10 +898,12 @@ function EventForm({
           />
         </label>
         <fieldset className="flex gap-2 text-[13px]">
-          <legend className="mb-1 text-[12.5px] text-[#676e78]">Tür</legend>
+          <legend className="mb-1 text-[12.5px] text-[#676e78]">
+            {t("kind")}
+          </legend>
           {[
-            { kind: ProgramEventKind.Event, label: "Etkinlik" },
-            { kind: ProgramEventKind.Deadline, label: "Deadline" },
+            { kind: ProgramEventKind.Event, label: tKind("eventKind") },
+            { kind: ProgramEventKind.Deadline, label: tKind("deadlineKind") },
           ].map((option) => (
             <label
               key={option.kind}
@@ -901,7 +929,7 @@ function EventForm({
         </fieldset>
         <div className="grid grid-cols-3 gap-3">
           <label className="block text-[12.5px] text-[#676e78]">
-            Tarih
+            {t("date")}
             <input
               type="date"
               value={draft.day}
@@ -910,7 +938,7 @@ function EventForm({
             />
           </label>
           <label className="block text-[12.5px] text-[#676e78]">
-            {draft.kind === ProgramEventKind.Deadline ? "Saat" : "Başlangıç"}
+            {draft.kind === ProgramEventKind.Deadline ? t("time") : t("start")}
             <input
               type="time"
               value={draft.startTime}
@@ -920,7 +948,7 @@ function EventForm({
           </label>
           {draft.kind === ProgramEventKind.Event ? (
             <label className="block text-[12.5px] text-[#676e78]">
-              Bitiş
+              {t("end")}
               <input
                 type="time"
                 value={draft.endTime}
@@ -931,7 +959,7 @@ function EventForm({
           ) : null}
         </div>
         <label className="block text-[12.5px] text-[#676e78]">
-          Açıklama
+          {t("description")}
           <textarea
             value={draft.description}
             maxLength={2000}
@@ -951,14 +979,14 @@ function EventForm({
             onClick={onClose}
             className="h-10 rounded-full border border-[#e9ecef] px-4 text-[13px]"
           >
-            Vazgeç
+            {t("cancel")}
           </button>
           <button
             type="submit"
             disabled={saving}
             className="h-10 rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:bg-[#858c96]"
           >
-            {saving ? "Kaydediliyor…" : "Kaydet"}
+            {saving ? t("saving") : t("save")}
           </button>
         </div>
       </form>
@@ -976,11 +1004,15 @@ function RescheduleDialog({
   mentorshipId: string;
   onDone: () => void;
 }) {
+  const { t } = useCalendarTexts();
   const proposals = useMentorshipMeetingProposals(mentorshipId, {
     reschedule: meeting.id,
     onDone,
   });
   return (
-    <ProposeMeetingDialog proposals={proposals} pairLabel={itemName(meeting)} />
+    <ProposeMeetingDialog
+      proposals={proposals}
+      pairLabel={itemName(meeting, t)}
+    />
   );
 }

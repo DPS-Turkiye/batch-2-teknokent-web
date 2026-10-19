@@ -2,6 +2,7 @@
 
 import { Flag, X } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -14,6 +15,7 @@ import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-no
 import { MeetingProposalPanel } from "@/components/coordinator/meeting-proposal-panel";
 import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useCoordinatorMentorshipDrawer } from "@/hooks/use-coordinator-mentorships";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type { CoordinatorMentorshipDetail } from "@/interfaces/coordinator-mentorship";
@@ -22,10 +24,10 @@ import {
   cadenceAlert,
   coordinatorMessageHref,
   goalPercent,
-  HEALTH_LABELS,
   HEALTH_TONES,
   MentorshipDrawerTab,
   mentorLoadLabel,
+  type MentorshipTexts,
   notesSummary,
 } from "@/lib/coordinator-mentorships";
 import { formatDateTime, formatShortDate, initials } from "@/lib/utils";
@@ -37,6 +39,9 @@ export function MentorshipDrawer({
   id: string;
   onClose: () => void;
 }) {
+  const t = useTranslations("coordinatorMentorships");
+  const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const drawer = useCoordinatorMentorshipDrawer(id);
   const detail = drawer.query.data;
 
@@ -52,14 +57,14 @@ export function MentorshipDrawer({
     <div className="fixed inset-0 z-50 flex justify-end bg-[#22262b]/20">
       <button
         type="button"
-        aria-label="Kapat"
+        aria-label={t("drawer.close")}
         onClick={onClose}
         className="absolute inset-0 cursor-default"
       />
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="Mentorluk detayı"
+        aria-label={t("drawer.label")}
         className="relative m-3 flex w-full max-w-[600px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_24px_60px_rgba(33,38,43,0.18)]"
       >
         <header className="px-7 pt-7">
@@ -84,11 +89,17 @@ export function MentorshipDrawer({
                     {detail.mentorship.mentorName} ↔{" "}
                     {detail.mentorship.organizationName}
                     <StatusChip tone={HEALTH_TONES[detail.mentorship.health]}>
-                      {HEALTH_LABELS[detail.mentorship.health]}
+                      {t(`health.${detail.mentorship.health}`)}
                     </StatusChip>
                   </h2>
                   <p className="mt-1 text-[12.5px] text-[#858c96]">
-                    {headerLine(detail)}
+                    {headerLine(detail, {
+                      t,
+                      locale,
+                      topic: detail.mentorship.topic
+                        ? optionLabel("mentorTopic", detail.mentorship.topic)
+                        : null,
+                    })}
                   </p>
                 </>
               ) : null}
@@ -96,7 +107,7 @@ export function MentorshipDrawer({
             <button
               type="button"
               onClick={onClose}
-              aria-label="Kapat"
+              aria-label={t("drawer.close")}
               className="grid size-9 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78]"
             >
               <X aria-hidden className="size-4" />
@@ -111,20 +122,20 @@ export function MentorshipDrawer({
                 active={drawer.tab === MentorshipDrawerTab.Summary}
                 onClick={() => drawer.setTab(MentorshipDrawerTab.Summary)}
               >
-                Özet
+                {t("drawer.summary")}
               </Tab>
               <Tab
                 active={drawer.tab === MentorshipDrawerTab.Meetings}
                 onClick={() => drawer.setTab(MentorshipDrawerTab.Meetings)}
               >
-                Görüşmeler{" "}
+                {t("drawer.meetings")}{" "}
                 <span className="text-[#aeb4bc]">{detail.meetings.length}</span>
               </Tab>
               <Tab
                 active={drawer.tab === MentorshipDrawerTab.Progress}
                 onClick={() => drawer.setTab(MentorshipDrawerTab.Progress)}
               >
-                İlerleme
+                {t("drawer.progress")}
               </Tab>
             </div>
           ) : null}
@@ -162,7 +173,7 @@ export function MentorshipDrawer({
                 onClick={drawer.addNote}
                 className="inline-flex h-10 items-center rounded-full border border-[#e9ecef] px-4 text-[13px] font-medium text-[#22262b]"
               >
-                Koordinatör notu ekle
+                {t("drawer.addNote")}
               </button>
               <button
                 type="button"
@@ -170,9 +181,7 @@ export function MentorshipDrawer({
                 disabled={drawer.reminding || drawer.reminded}
                 className="inline-flex h-10 items-center rounded-full border border-[#e9ecef] px-4 text-[13px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
               >
-                {drawer.reminded
-                  ? "Hatırlatma gönderildi"
-                  : "İki tarafa hatırlat"}
+                {drawer.reminded ? t("drawer.reminded") : t("drawer.remind")}
               </button>
             </div>
             <Link
@@ -182,7 +191,7 @@ export function MentorshipDrawer({
               )}
               className="inline-flex h-10 items-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white"
             >
-              Mesaj gönder
+              {t("drawer.sendMessage")}
             </Link>
           </footer>
         ) : null}
@@ -197,12 +206,19 @@ export function MentorshipDrawer({
   );
 }
 
-function headerLine(detail: CoordinatorMentorshipDetail) {
+function headerLine(
+  detail: CoordinatorMentorshipDetail,
+  { t, locale, topic }: MentorshipTexts & { topic: string | null },
+) {
   const row = detail.mentorship;
   const parts = [row.programName];
-  if (row.topic) parts.push(row.topic);
-  parts.push(`${detail.pastMeetings} görüşme`);
-  if (row.startDate) parts.push(`başlangıç ${formatShortDate(row.startDate)}`);
+  if (topic) parts.push(topic);
+  parts.push(t("drawer.pastMeetings", { count: detail.pastMeetings }));
+  if (row.startDate) {
+    parts.push(
+      t("drawer.startedOn", { date: formatShortDate(row.startDate, locale) }),
+    );
+  }
   return parts.join(" · ");
 }
 
@@ -249,7 +265,9 @@ function SummaryTab({
   reminded: boolean;
   remindError: Error | null;
 }) {
-  const alert = cadenceAlert(detail);
+  const t = useTranslations("coordinatorMentorships");
+  const locale = useLocale();
+  const alert = cadenceAlert(detail, { t, locale });
   const row = detail.mentorship;
   return (
     <div className="space-y-6">
@@ -266,7 +284,7 @@ function SummaryTab({
                 onClick={proposals.openComposer}
                 className="inline-flex h-9 items-center rounded-full bg-[#22262b] px-4 text-[12.5px] font-medium text-white"
               >
-                Görüşme planla
+                {t("drawer.planMeeting")}
               </button>
             )}
             <button
@@ -275,13 +293,13 @@ function SummaryTab({
               disabled={reminding || reminded}
               className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b] disabled:text-[#aeb4bc]"
             >
-              {reminded ? "Hatırlatma gönderildi" : "İki tarafa hatırlat"}
+              {reminded ? t("drawer.reminded") : t("drawer.remind")}
             </button>
             <Link
               href={coordinatorMessageHref(row.programId, row.mentorId)}
               className="inline-flex h-9 items-center rounded-full border border-[#e9ecef] bg-white px-4 text-[12.5px] font-medium text-[#22262b]"
             >
-              Mentora yaz
+              {t("drawer.writeMentor")}
             </Link>
           </div>
           {remindError ? (
@@ -292,18 +310,18 @@ function SummaryTab({
         </div>
       ) : null}
 
-      <Section title="Görüşme önerisi">
+      <Section title={t("drawer.proposal")}>
         <MeetingProposalPanel proposals={proposals} />
       </Section>
 
-      <Section title="Taraflar">
+      <Section title={t("drawer.parties")}>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl bg-[#eaf6ff] px-4 py-3">
             <p className="text-[13.5px] font-medium text-[#22262b]">
               {row.mentorName}
             </p>
             <p className="text-[12px] text-[#1583d6]">
-              {mentorLoadLabel(detail)}
+              {mentorLoadLabel(detail, t)}
             </p>
           </div>
           <div className="rounded-2xl bg-[#fff1ec] px-4 py-3">
@@ -311,24 +329,26 @@ function SummaryTab({
               {row.organizationName}
             </p>
             <p className="text-[12px] text-[#e0522a]">
-              {detail.founderName ? `Yetkili: ${detail.founderName} · ` : ""}
-              {detail.memberCount} üye
+              {detail.founderName
+                ? t("drawer.founder", { name: detail.founderName })
+                : ""}
+              {t("drawer.members", { count: detail.memberCount })}
             </p>
           </div>
         </div>
       </Section>
 
-      <Section title="Görev ilerlemesi">
+      <Section title={t("drawer.goalProgress")}>
         <GoalProgress detail={detail} />
       </Section>
 
-      <Section title="Görüşme notları">
+      <Section title={t("drawer.meetingNotes")}>
         <p className="rounded-2xl bg-[#f7f8f9] px-4 py-3 text-[13px] text-[#22262b]">
-          {notesSummary(detail)}
+          {notesSummary(detail, { t, locale })}
         </p>
       </Section>
 
-      <Section title="Koordinatör notları">
+      <Section title={t("drawer.coordinatorNotes")}>
         <CoordinatorNotesSection notes={notes} />
       </Section>
     </div>
@@ -336,16 +356,21 @@ function SummaryTab({
 }
 
 function GoalProgress({ detail }: { detail: CoordinatorMentorshipDetail }) {
+  const t = useTranslations("coordinatorMentorships.drawer");
   const percent = goalPercent(detail);
   return (
     <div className="rounded-2xl border border-[#e9ecef] p-4">
       <div className="flex items-center justify-between gap-3 text-[13.5px]">
         <span className="text-[#22262b]">
-          {detail.goalsDone} / {detail.goalsTotal} görev tamamlandı · %{percent}
+          {t("goalsDone", {
+            done: detail.goalsDone,
+            total: detail.goalsTotal,
+            percent,
+          })}
         </span>
         {detail.mentorship.overdueActions > 0 ? (
           <span className="text-[12.5px] text-[#d9464b]">
-            {detail.mentorship.overdueActions} gecikmiş
+            {t("overdue", { count: detail.mentorship.overdueActions })}
           </span>
         ) : null}
       </div>
@@ -354,7 +379,7 @@ function GoalProgress({ detail }: { detail: CoordinatorMentorshipDetail }) {
         aria-valuenow={percent}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label="Görev ilerlemesi"
+        aria-label={t("goalProgress")}
         className="mt-3 h-2 overflow-hidden rounded-full bg-[#eef0f2]"
       >
         <div
@@ -362,16 +387,16 @@ function GoalProgress({ detail }: { detail: CoordinatorMentorshipDetail }) {
           style={{ width: `${percent}%` }}
         />
       </div>
-      <p className="mt-2 text-[12px] text-[#858c96]">
-        Görev başlıkları yalnızca mentor ve takıma görünür.
-      </p>
+      <p className="mt-2 text-[12px] text-[#858c96]">{t("goalsPrivate")}</p>
     </div>
   );
 }
 
 function MeetingsTab({ detail }: { detail: CoordinatorMentorshipDetail }) {
+  const t = useTranslations("coordinatorMentorships.drawer");
+  const locale = useLocale();
   if (detail.meetings.length === 0) {
-    return <EmptyNote>Bu mentorlukta henüz görüşme yok.</EmptyNote>;
+    return <EmptyNote>{t("noMeetings")}</EmptyNote>;
   }
   return (
     <ul className="divide-y divide-[#eef0f2] rounded-2xl border border-[#e9ecef] px-4">
@@ -383,20 +408,20 @@ function MeetingsTab({ detail }: { detail: CoordinatorMentorshipDetail }) {
             </span>
             <span className="block text-[12px] text-[#858c96]">
               {meeting.scheduledAt
-                ? formatDateTime(meeting.scheduledAt)
-                : "Tarih yok"}
+                ? formatDateTime(meeting.scheduledAt, locale)
+                : t("noDate")}
             </span>
           </span>
           {meeting.status === MeetingStatus.Cancelled ? (
-            <StatusChip tone="neutral">İptal</StatusChip>
+            <StatusChip tone="neutral">{t("cancelled")}</StatusChip>
           ) : meeting.status === MeetingStatus.Scheduled &&
             meeting.scheduledAt &&
             new Date(meeting.scheduledAt) > new Date() ? (
-            <StatusChip tone="blue">Planlandı</StatusChip>
+            <StatusChip tone="blue">{t("scheduled")}</StatusChip>
           ) : meeting.hasNotes ? (
-            <StatusChip tone="green">Not var</StatusChip>
+            <StatusChip tone="green">{t("hasNotes")}</StatusChip>
           ) : (
-            <StatusChip tone="amber">Not eksik</StatusChip>
+            <StatusChip tone="amber">{t("noteMissing")}</StatusChip>
           )}
         </li>
       ))}
@@ -405,23 +430,26 @@ function MeetingsTab({ detail }: { detail: CoordinatorMentorshipDetail }) {
 }
 
 function ProgressTab({ detail }: { detail: CoordinatorMentorshipDetail }) {
+  const t = useTranslations("coordinatorMentorships.drawer");
   const row = detail.mentorship;
   return (
     <div className="space-y-6">
-      <Section title="Görev ilerlemesi">
+      <Section title={t("goalProgress")}>
         <GoalProgress detail={detail} />
       </Section>
-      <Section title="Aksiyonlar">
+      <Section title={t("actions")}>
         <dl className="grid grid-cols-3 gap-3 text-center">
-          <Stat label="Açık" value={row.openActions} />
-          <Stat label="Gecikmiş" value={row.overdueActions} />
-          <Stat label="Notu eksik görüşme" value={row.missingNotes} />
+          <Stat label={t("open")} value={row.openActions} />
+          <Stat label={t("overdueStat")} value={row.overdueActions} />
+          <Stat label={t("missingNotes")} value={row.missingNotes} />
         </dl>
       </Section>
-      <Section title="Program kuralları">
+      <Section title={t("rules")}>
         <p className="text-[13px] text-[#676e78]">
-          Hedef: {detail.meetingFrequencyDays} günde bir görüşme ·{" "}
-          {detail.staleAfterDays} gün görüşme olmazsa riskli sayılır.
+          {t("rulesBody", {
+            frequency: detail.meetingFrequencyDays,
+            stale: detail.staleAfterDays,
+          })}
         </p>
       </Section>
     </div>

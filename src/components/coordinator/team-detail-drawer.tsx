@@ -2,6 +2,7 @@
 
 import { Copy, X } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -15,7 +16,6 @@ import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
 import {
   coordinatorTeamMessageHref,
-  HEALTH_LABELS,
   HEALTH_TONES,
 } from "@/lib/coordinator-mentorships";
 import { formatDateTime, formatShortDate, initials } from "@/lib/utils";
@@ -31,6 +31,7 @@ export function TeamDetailDrawer({
   onCopyCode: (code: string) => void;
   onClose: () => void;
 }) {
+  const tHealth = useTranslations("coordinatorMentorships");
   const query = useProgramTeamDetail(programId, organizationId);
   const team = query.data;
   const messageHref = coordinatorTeamMessageHref(programId, organizationId);
@@ -194,7 +195,7 @@ export function TeamDetailDrawer({
                             ) : null}
                           </div>
                           <StatusChip tone={HEALTH_TONES[row.health]}>
-                            {HEALTH_LABELS[row.health]}
+                            {tHealth(`health.${row.health}`)}
                           </StatusChip>
                         </div>
                         <p className="mt-3 rounded-xl bg-white px-3 py-2 text-[13px] text-[#22262b]">

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-notes";
 import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
+import { InLocale } from "@test/test-utils";
 
 function stub(overrides: Partial<CoordinatorNotes> = {}): CoordinatorNotes {
   return {
@@ -36,6 +37,25 @@ describe("CoordinatorNotesSection", () => {
   it("says when there are no notes", () => {
     render(<CoordinatorNotesSection notes={stub()} />);
     expect(screen.getByText("Henüz koordinatör notu yok.")).toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    render(
+      <InLocale locale="en">
+        <CoordinatorNotesSection
+          notes={stub({ composing: true, notes: [note("b", true)] })}
+        />
+      </InLocale>,
+    );
+    expect(
+      screen.getByPlaceholderText("Only coordinators can see this."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Save the note" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Delete the note" }),
+    ).toBeInTheDocument();
   });
 
   it("lists notes with their author and lets you delete only your own", async () => {

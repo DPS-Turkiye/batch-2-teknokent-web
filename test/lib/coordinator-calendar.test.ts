@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
@@ -21,7 +22,10 @@ import {
   viewDays,
   viewRange,
   proposalItems,
+  type CalendarTexts,
 } from "@/lib/coordinator-calendar";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
 import {
   at,
   calendarMeeting,
@@ -31,6 +35,17 @@ import { meetingProposal } from "@test/fixtures/meeting-proposals";
 
 const WEDNESDAY = new Date(2026, 8, 16, 15, 0);
 
+function texts(locale: "tr" | "en"): CalendarTexts {
+  return {
+    t: createTranslator({
+      locale,
+      messages: locale === "en" ? en : tr,
+      namespace: "coordinatorCalendar",
+    }),
+    locale,
+  };
+}
+
 describe("coordinator calendar", () => {
   it("covers a Monday-to-Sunday week", () => {
     expect(isoDay(startOfWeek(WEDNESDAY))).toBe("2026-09-14");
@@ -39,9 +54,14 @@ describe("coordinator calendar", () => {
       from: "2026-09-14",
       to: "2026-09-20",
     });
-    expect(rangeLabel(CalendarView.Week, WEDNESDAY)).toBe("14 – 20 Eylül 2026");
-    expect(rangeLabel(CalendarView.Week, new Date(2026, 8, 30))).toBe(
-      "28 Eylül – 4 Ekim 2026",
+    expect(rangeLabel(CalendarView.Week, WEDNESDAY, "tr")).toBe(
+      "14–20 Eylül 2026",
+    );
+    expect(rangeLabel(CalendarView.Week, new Date(2026, 8, 30), "tr")).toMatch(
+      /^28 Eylül\s–\s4 Ekim 2026$/,
+    );
+    expect(rangeLabel(CalendarView.Week, WEDNESDAY, "en")).toMatch(
+      /^September 14\s–\s20, 2026$/,
     );
   });
 
@@ -50,7 +70,10 @@ describe("coordinator calendar", () => {
     expect(isoDay(days[0])).toBe("2026-08-31");
     expect(isoDay(days[days.length - 1])).toBe("2026-10-04");
     expect(days.length % 7).toBe(0);
-    expect(rangeLabel(CalendarView.Month, WEDNESDAY)).toBe("Eylül 2026");
+    expect(rangeLabel(CalendarView.Month, WEDNESDAY, "tr")).toBe("Eylül 2026");
+    expect(rangeLabel(CalendarView.Month, WEDNESDAY, "en")).toBe(
+      "September 2026",
+    );
     expect(isoDay(shiftAnchor(CalendarView.Month, WEDNESDAY, 1))).toBe(
       "2026-10-01",
     );
@@ -85,7 +108,10 @@ describe("coordinator calendar", () => {
   });
 
   it("labels slots and conflicts", () => {
-    expect(slotLabel(calendarMeeting())).toBe("Çar 16 Eyl · 14:00–15:00");
+    expect(slotLabel(calendarMeeting(), "tr")).toBe("Çar 16 Eyl · 14:00–15:00");
+    expect(slotLabel(calendarMeeting(), "en")).toMatch(
+      /^Wed Sep 16 · 2:00\s–\s3:00\sPM$/,
+    );
     expect(
       slotLabel(
         calendarMeeting({
@@ -93,13 +119,23 @@ describe("coordinator calendar", () => {
           startsAt: at(3, 23, 59),
           endsAt: null,
         }),
+        "tr",
       ),
     ).toBe("Per 17 Eyl · 23:59");
     const calendar = coordinatorCalendar();
-    expect(conflictSummary(calendar.conflicts[0], calendar.items)).toEqual({
+    expect(
+      conflictSummary(calendar.conflicts[0], calendar.items, texts("tr")),
+    ).toEqual({
       heading: "2 çakışma",
       who: "Ahmet Can · Çar",
       body: "Nova Robotics (11:00) ve Vega (11:30) görüşmeleri üst üste bindi.",
+    });
+    expect(
+      conflictSummary(calendar.conflicts[0], calendar.items, texts("en")),
+    ).toEqual({
+      heading: "2 conflicts",
+      who: "Ahmet Can · Wed",
+      body: "The meetings with Nova Robotics (11:00 AM) and Vega (11:30 AM) overlap.",
     });
     expect(mentorshipHref("mentorship-1")).toBe(
       "/coordinator/mentorships?mentorship=mentorship-1",
@@ -134,14 +170,18 @@ describe("coordinator calendar", () => {
   });
 
   it("shows how many rooms the recording bot holds at a meeting's time", () => {
-    expect(recordingNote(calendarMeeting({ recordingLoad: 1 }), 2)).toBe(
+    const { t } = texts("tr");
+    expect(recordingNote(calendarMeeting({ recordingLoad: 1 }), 2, t)).toBe(
       "Kayıt botu 1/2",
     );
-    expect(recordingNote(calendarMeeting({ recordingLoad: 2 }), 2)).toBe(
+    expect(recordingNote(calendarMeeting({ recordingLoad: 2 }), 2, t)).toBe(
       "Kayıt botu 2/2 · dolu",
     );
     expect(
-      recordingNote(calendarMeeting({ recordingLoad: null }), 2),
+      recordingNote(calendarMeeting({ recordingLoad: 2 }), 2, texts("en").t),
+    ).toBe("Recording bot 2/2 · full");
+    expect(
+      recordingNote(calendarMeeting({ recordingLoad: null }), 2, t),
     ).toBeNull();
     expect(
       fullRecordingCount(
@@ -166,6 +206,7 @@ describe("coordinator calendar", () => {
         meetingProposal({ id: "later", scheduledAt: "2026-10-30T07:30:00Z" }),
       ],
       { from: "2026-09-14", to: "2026-09-20" },
+      "Önerilen slot",
     );
 
     expect(items).toHaveLength(1);
