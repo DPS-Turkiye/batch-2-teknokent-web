@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -42,6 +43,7 @@ function teamInput(row: TeamRowDraft): TeamInviteInput {
 
 /** Takımlar: follow which leads joined, copy or email codes, fix or remove teams still waiting, open a team. */
 export function useProgramTeams(programId: string) {
+  const t = useTranslations("programTeams");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const query = useProgramTeamsQuery(programId);
@@ -59,7 +61,7 @@ export function useProgramTeams(programId: string) {
     });
   };
   const onError = (failure: Error) =>
-    setError(errorMessage(failure, "Takım kaydedilemedi."));
+    setError(errorMessage(failure, t("saveFailed")));
 
   const add = useMutation({
     mutationFn: (row: TeamRowDraft) =>
@@ -67,7 +69,7 @@ export function useProgramTeams(programId: string) {
     onSuccess: (teams) => {
       saved(teams);
       setAdding(null);
-      showToast({ message: "Takım eklendi, kodu hazır.", tone: "success" });
+      showToast({ message: t("added"), tone: "success" });
     },
     onError,
   });
@@ -85,7 +87,7 @@ export function useProgramTeams(programId: string) {
     onSuccess: saved,
     onError: (failure) =>
       showToast({
-        message: errorMessage(failure, "Takım kaldırılamadı."),
+        message: errorMessage(failure, t("removeFailed")),
         tone: "error",
       }),
   });
@@ -99,18 +101,18 @@ export function useProgramTeams(programId: string) {
       showToast(
         row?.codeSendFailed
           ? {
-              message: `${team.leadEmail} adresine e-posta iletilemedi. Adresi düzeltip tekrar gönderin.`,
+              message: t("sendFailedTo", { email: team.leadEmail ?? "" }),
               tone: "error",
             }
           : {
-              message: `Kod ${team.leadEmail} adresine gönderildi.`,
+              message: t("sentTo", { email: team.leadEmail ?? "" }),
               tone: "success",
             },
       );
     },
     onError: (failure) =>
       showToast({
-        message: errorMessage(failure, "Kod gönderilemedi."),
+        message: errorMessage(failure, t("sendFailed")),
         tone: "error",
       }),
   });
@@ -120,8 +122,8 @@ export function useProgramTeams(programId: string) {
     setError(
       problem
         ? row.teamName.trim()
-          ? "Geçerli bir e-posta adresi girin."
-          : "Takım adı gerekli."
+          ? t("invalidEmail")
+          : t("nameRequired")
         : null,
     );
     return !problem && Boolean(row.teamName.trim());
@@ -134,7 +136,7 @@ export function useProgramTeams(programId: string) {
     visible: filterTeams(teams, filter),
     filter,
     setFilter,
-    filterOptions: teamFilterOptions(teams),
+    filterOptions: teamFilterOptions(teams, t),
     adding,
     startAdding: () => {
       setError(null);
@@ -166,7 +168,7 @@ export function useProgramTeams(programId: string) {
     remove: (inviteId: string) => remove.mutate(inviteId),
     copyCode: async (code: string) => {
       await navigator.clipboard.writeText(code);
-      showToast({ message: `${code} kopyalandı.`, tone: "success" });
+      showToast({ message: t("copied", { code }), tone: "success" });
     },
     sendCode: (team: ProgramTeam) => team.inviteId && sendCode.mutate(team),
     sendingCodeFor: sendCode.isPending

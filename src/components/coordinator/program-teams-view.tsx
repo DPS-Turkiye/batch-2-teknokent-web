@@ -1,6 +1,7 @@
 "use client";
 
 import { Copy, Pencil, Plus, Trash2 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   EmptyNote,
@@ -50,6 +51,7 @@ function TeamsBody({
   programId: string;
   archived: boolean;
 }) {
+  const t = useTranslations("programTeams");
   const teams = useProgramTeams(programId);
   const joined = teams.teams.filter(
     (team) => team.status === TeamJoinStatus.Joined,
@@ -60,13 +62,13 @@ function TeamsBody({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-[20px] font-semibold text-[#22262b]">
-            Takım katılımı
+            {t("title")}
           </h2>
           <p className="text-[13.5px] text-[#676e78]">
             <span className="font-semibold text-[#22262b]">
               {joined} / {teams.teams.length}
             </span>{" "}
-            yetkili katıldı · {teams.teams.length - joined} takım bekleniyor
+            {t("joinedSummary", { count: teams.teams.length - joined })}
           </p>
         </div>
         {archived ? null : (
@@ -75,7 +77,7 @@ function TeamsBody({
             onClick={teams.startAdding}
             className="inline-flex items-center gap-1.5 self-start rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
           >
-            <Plus aria-hidden className="size-4" /> Takım ekle
+            <Plus aria-hidden className="size-4" /> {t("add")}
           </button>
         )}
       </div>
@@ -88,14 +90,14 @@ function TeamsBody({
 
       {teams.adding ? (
         <TeamForm
-          title="Yeni takım"
+          title={t("newTeam")}
           row={teams.adding}
           onChange={teams.changeAdding}
           onSave={teams.saveAdding}
           onCancel={teams.cancel}
           busy={teams.busy}
           error={teams.error}
-          saveLabel="Ekle ve kod üret"
+          saveLabel={t("addAndCode")}
         />
       ) : null}
 
@@ -105,9 +107,7 @@ function TeamsBody({
       />
       {teams.query.isSuccess && teams.visible.length === 0 ? (
         <EmptyNote>
-          {teams.teams.length === 0
-            ? "Henüz takım eklenmedi. “Takım ekle” ile yetkilisinin e-postasını girin; katılım kodu hemen üretilir."
-            : "Bu filtreyle eşleşen takım yok."}
+          {teams.teams.length === 0 ? t("empty") : t("noMatch")}
         </EmptyNote>
       ) : null}
 
@@ -116,13 +116,15 @@ function TeamsBody({
           <table className="w-full min-w-[820px] text-left text-[13.5px]">
             <thead className="text-[12.5px] text-[#858c96]">
               <tr className="border-b border-[#f0f2f4]">
-                <th className="px-6 py-4 font-normal">Takım</th>
-                <th className="px-4 py-4 font-normal">Katılım durumu</th>
-                <th className="px-4 py-4 font-normal">Takım yetkilisi</th>
-                <th className="px-4 py-4 font-normal">Takım kodu</th>
-                <th className="px-4 py-4 font-normal">Üyeler</th>
+                <th className="px-6 py-4 font-normal">{t("columns.team")}</th>
+                <th className="px-4 py-4 font-normal">{t("columns.status")}</th>
+                <th className="px-4 py-4 font-normal">{t("columns.lead")}</th>
+                <th className="px-4 py-4 font-normal">{t("columns.code")}</th>
+                <th className="px-4 py-4 font-normal">
+                  {t("columns.members")}
+                </th>
                 <th className="px-6 py-4">
-                  <span className="sr-only">İşlemler</span>
+                  <span className="sr-only">{t("columns.actions")}</span>
                 </th>
               </tr>
             </thead>
@@ -132,14 +134,14 @@ function TeamsBody({
                   <tr key={team.inviteId}>
                     <td colSpan={6} className="p-3">
                       <TeamForm
-                        title={`${team.name} düzenleniyor`}
+                        title={t("editing", { name: team.name })}
                         row={teams.editing}
                         onChange={teams.changeEditing}
                         onSave={teams.saveEditing}
                         onCancel={teams.cancel}
                         busy={teams.busy}
                         error={teams.error}
-                        saveLabel="Kaydet"
+                        saveLabel={t("save")}
                       />
                     </td>
                   </tr>
@@ -178,9 +180,11 @@ function TeamRow({
   teams: Teams;
   archived: boolean;
 }) {
+  const t = useTranslations("programTeams");
+  const locale = useLocale();
   const waiting = team.status === TeamJoinStatus.Waiting;
   const problem = isTeamProblem(team);
-  const sent = codeSentLabel(team);
+  const sent = codeSentLabel(team, t, locale);
   const days = daysWaiting(team.invitedAt);
   return (
     <tr className="border-b border-[#f0f2f4] last:border-0">
@@ -197,13 +201,13 @@ function TeamRow({
       </td>
       <td className="px-4 py-4">
         {problem ? (
-          <StatusChip tone="red">E-posta iletilemedi</StatusChip>
+          <StatusChip tone="red">{t("emailFailed")}</StatusChip>
         ) : waiting ? (
           <StatusChip tone="amber">
-            Yetkili bekleniyor{days > 0 ? ` · ${days} gün` : ""}
+            {days > 0 ? t("waitingLeadDays", { days }) : t("waitingLead")}
           </StatusChip>
         ) : (
-          <StatusChip tone="green">Yetkili katıldı</StatusChip>
+          <StatusChip tone="green">{t("leadJoined")}</StatusChip>
         )}
       </td>
       <td
@@ -220,7 +224,7 @@ function TeamRow({
             {team.code}
             <button
               type="button"
-              aria-label={`${team.name} kodunu kopyala`}
+              aria-label={t("copyCode", { name: team.name })}
               onClick={() => void teams.copyCode(team.code as string)}
               className="grid size-7 place-items-center rounded-full text-[#858c96] hover:bg-[#f4f5f7]"
             >
@@ -232,7 +236,7 @@ function TeamRow({
         )}
       </td>
       <td className="px-4 py-4 text-[#676e78]">
-        {waiting ? "—" : `${team.memberCount} üye`}
+        {waiting ? "—" : t("memberCount", { count: team.memberCount })}
       </td>
       <td className="px-6 py-4">
         {waiting && team.inviteId && !archived ? (
@@ -243,7 +247,7 @@ function TeamRow({
                 onClick={() => teams.startEditing(team)}
                 className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
               >
-                E-postayı düzelt
+                {t("fixEmail")}
               </button>
             ) : (
               <button
@@ -253,15 +257,15 @@ function TeamRow({
                 className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white disabled:opacity-50"
               >
                 {teams.sendingCodeFor === team.inviteId
-                  ? "Gönderiliyor…"
+                  ? t("sending")
                   : team.codeSentAt
-                    ? "Kodu tekrar gönder"
-                    : "Kodu gönder"}
+                    ? t("resendCode")
+                    : t("sendCode")}
               </button>
             )}
             <button
               type="button"
-              aria-label={`${team.name} düzenle`}
+              aria-label={t("edit", { name: team.name })}
               onClick={() => teams.startEditing(team)}
               className="grid size-8 place-items-center rounded-full text-[#676e78] hover:bg-[#f4f5f7]"
             >
@@ -269,7 +273,7 @@ function TeamRow({
             </button>
             <button
               type="button"
-              aria-label={`${team.name} kaldır`}
+              aria-label={t("remove", { name: team.name })}
               disabled={teams.busy}
               onClick={() => teams.remove(team.inviteId as string)}
               className="grid size-8 place-items-center rounded-full text-[#d9464b] hover:bg-[#fff1f0] disabled:opacity-40"
@@ -284,7 +288,7 @@ function TeamRow({
               onClick={() => teams.openDetail(team.organizationId as string)}
               className="rounded-full border border-[#e9ecef] px-3.5 py-2 text-[12.5px] font-medium text-[#22262b]"
             >
-              Detay
+              {t("detail")}
             </button>
           </span>
         ) : null}
@@ -312,6 +316,7 @@ function TeamForm({
   error: string | null;
   saveLabel: string;
 }) {
+  const t = useTranslations("programTeams");
   return (
     <form
       aria-label={title}
@@ -324,20 +329,20 @@ function TeamForm({
       <p className="text-[13.5px] font-medium text-[#22262b]">{title}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <input
-          aria-label="Takım adı"
+          aria-label={t("teamName")}
           value={row.teamName}
           maxLength={255}
           onChange={(event) => onChange({ teamName: event.target.value })}
-          placeholder="Takım adı"
+          placeholder={t("teamName")}
           className={FIELD}
         />
         <input
-          aria-label="Takım yetkilisi e-postası"
+          aria-label={t("leadEmail")}
           type="email"
           value={row.leadEmail}
           maxLength={255}
           onChange={(event) => onChange({ leadEmail: event.target.value })}
-          placeholder="yetkili@ornek.com"
+          placeholder={t("leadEmailPlaceholder")}
           className={FIELD}
         />
       </div>
@@ -352,7 +357,7 @@ function TeamForm({
           onClick={onCancel}
           className="rounded-full px-4 py-2 text-[13px] text-[#22262b]"
         >
-          Vazgeç
+          {t("cancel")}
         </button>
         <button
           type="submit"

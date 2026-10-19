@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramLaunchView } from "@/components/coordinator/program-launch-view";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
@@ -46,6 +46,29 @@ describe("ProgramLaunchView", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Program adı gerekli.");
     expect(screen.getByText("Adım 1 / 3")).toBeInTheDocument();
+  });
+
+  it("walks the wizard in English", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramLaunchView />
+      </InLocale>,
+    );
+
+    expect(screen.getByText("Step 1 / 3")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Program name"), "BIGG 2026");
+    await user.click(
+      screen.getByRole("button", { name: "Next: Mentorship rules" }),
+    );
+    expect(screen.getByText("Default mentor capacity")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Next: Teams" }));
+    await user.type(screen.getByLabelText("Team name 1"), "Pusula");
+    await user.type(screen.getByLabelText("Team lead's email 1"), "ali@pusula");
+    expect(screen.getByText("Invalid email")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Create the program and its codes" }),
+    ).toBeInTheDocument();
   });
 
   it("holds back a team row with an invalid email", async () => {

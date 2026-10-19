@@ -14,7 +14,7 @@ import {
   renewMentorInvite,
 } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -85,6 +85,31 @@ describe("ProgramMentorsView", () => {
     await user.click(screen.getByRole("button", { name: "Davet bekliyor 1" }));
     expect(screen.queryByText("Nihan Öztürk")).not.toBeInTheDocument();
     expect(screen.getByText("cagri@yilmazfinans.com")).toBeInTheDocument();
+  });
+
+  it("reads in English and filters by capacity", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramMentorsView programId="program-1" />
+      </InLocale>,
+    );
+
+    expect(await screen.findByText("3/4 mentorships")).toBeInTheDocument();
+    expect(screen.getByText("Waiting for sign-up")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Invited 1" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Mentorship load")).toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Capacity:" }),
+      "Has room",
+    );
+    expect(screen.getByText("Nihan Öztürk")).toBeInTheDocument();
+    expect(
+      screen.queryByText("cagri@yilmazfinans.com"),
+    ).not.toBeInTheDocument();
   });
 
   it("invites by email and copies the signup link for someone without an account", async () => {

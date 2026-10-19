@@ -8,7 +8,7 @@ import {
 } from "@/interfaces/coordinator-program";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
 import { coordinatorProgram, phase } from "@test/fixtures/coordinator-programs";
-import { renderWithQueryClient } from "@test/test-utils";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorPrograms: vi.fn(),
@@ -42,6 +42,29 @@ describe("ProgramsListView", () => {
     expect(
       within(card).getByRole("link", { name: "Programı aç" }),
     ).toHaveAttribute("href", "/coordinator/programs/program-1");
+  });
+
+  it("reads in English", async () => {
+    mockPrograms([coordinatorProgram()]);
+
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <ProgramsListView />
+      </InLocale>,
+    );
+
+    const card = await screen.findByRole("article");
+    expect(within(card).getByText("14 actions waiting")).toBeInTheDocument();
+    expect(
+      within(card).getByText("37 teams have a mentor"),
+    ).toBeInTheDocument();
+    expect(within(card).getByText("the oldest 4 days")).toBeInTheDocument();
+    expect(
+      within(card).getByRole("link", { name: "Open the program" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /Launch a program/ }),
+    ).toBeInTheDocument();
   });
 
   it("shows how long until an upcoming program starts", async () => {

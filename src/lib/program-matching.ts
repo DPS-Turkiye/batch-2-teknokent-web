@@ -1,7 +1,8 @@
+import type { useTranslations } from "next-intl";
+
 import {
   type MatchCandidate,
   type MatchingOverview,
-  MatchNeedSource,
   type WaitingTeam,
 } from "@/interfaces/program-matching";
 
@@ -11,38 +12,43 @@ export enum MatchTab {
   Past = "PAST",
 }
 
-export function matchTabOptions(overview: MatchingOverview | undefined) {
+export type MatchingT = ReturnType<typeof useTranslations<"programMatching">>;
+
+export function matchTabOptions(
+  overview: MatchingOverview | undefined,
+  t: MatchingT,
+) {
   return [
     {
       id: MatchTab.Waiting,
-      label: `Bekleyen ${overview?.waiting.length ?? 0}`,
+      label: t("tabs.WAITING", { count: overview?.waiting.length ?? 0 }),
     },
     {
       id: MatchTab.Active,
-      label: `Aktif eşleşmeler ${overview?.active.length ?? 0}`,
+      label: t("tabs.ACTIVE", { count: overview?.active.length ?? 0 }),
     },
-    { id: MatchTab.Past, label: `Geçmiş ${overview?.past.length ?? 0}` },
+    {
+      id: MatchTab.Past,
+      label: t("tabs.PAST", { count: overview?.past.length ?? 0 }),
+    },
   ];
 }
 
-export function needLabel(team: WaitingTeam) {
-  return team.needTopic ?? "İhtiyaç belirtilmedi";
+export function waitingLabel(days: number, t: MatchingT) {
+  return days === 0 ? t("today") : t("days", { count: days });
 }
 
-export const NEED_SOURCE_NOTES: Record<MatchNeedSource, string> = {
-  [MatchNeedSource.Request]: "Takımın açık mentorluk talebinden",
-  [MatchNeedSource.Profile]: "Startup profilindeki destek alanlarından",
-  [MatchNeedSource.None]:
-    "Takım henüz ihtiyaç belirtmedi; öneriler profile göre sıralandı",
-};
-
-export function waitingLabel(days: number) {
-  return days === 0 ? "bugün" : `${days} gün`;
-}
-
-/** "E-ticaret · Erken aşama · Yetkili: Mert Aydın". */
-export function teamMeta(team: WaitingTeam) {
-  return [team.sector, team.stage, team.leadName && `Yetkili: ${team.leadName}`]
+/** "E-ticaret · Erken aşama · Yetkili: Mert Aydın"; `stage` is the saved stage, already labelled. */
+export function teamMeta(
+  team: WaitingTeam,
+  stage: string | null,
+  t: MatchingT,
+) {
+  return [
+    team.sector,
+    stage,
+    team.leadName && t("lead", { name: team.leadName }),
+  ]
     .filter(Boolean)
     .join(" · ");
 }
@@ -58,8 +64,12 @@ export function loadShare(candidate: MatchCandidate) {
 }
 
 /** "Yük 3/4 → 4/4 olacak" in the confirmation. */
-export function loadAfterMatch(candidate: MatchCandidate) {
-  return `Yük ${candidate.activeTeams}/${candidate.capacity} → ${candidate.activeTeams + 1}/${candidate.capacity} olacak`;
+export function loadAfterMatch(candidate: MatchCandidate, t: MatchingT) {
+  return t("loadAfter", {
+    active: candidate.activeTeams,
+    capacity: candidate.capacity,
+    next: candidate.activeTeams + 1,
+  });
 }
 
 export function filterPool(pool: MatchCandidate[], search: string) {

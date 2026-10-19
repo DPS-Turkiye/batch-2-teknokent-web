@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -34,6 +35,7 @@ export const matchingQueryKey = (programId: string) =>
  * Anasayfa link starts selected; a confirmed match opens its "İlk adımlar" drawer.
  */
 export function useProgramMatching(programId: string, initialTeamId?: string) {
+  const t = useTranslations("programMatching");
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [tab, setTab] = useState(MatchTab.Waiting);
@@ -107,7 +109,10 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
           leadName: team!.leadName,
           mentorId: candidate.mentorId,
           mentorName: candidate.fullName,
-          mentorLoad: `${candidate.activeTeams + 1}/${candidate.capacity} yük`,
+          mentorLoad: t("mentorLoad", {
+            load: candidate.activeTeams + 1,
+            capacity: candidate.capacity,
+          }),
           matchedAt: new Date().toISOString(),
         });
         setFirstStepsOpen(true);
@@ -117,8 +122,7 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       setNote("");
       if (followUpFailed) {
         showToast({
-          message:
-            "Eşleşme oluşturuldu, ama tanışma önerisi ya da not kaydedilemedi.",
+          message: t("followUpFailed"),
           tone: "error",
         });
       }
@@ -134,13 +138,16 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       setSearch("");
       setPickedTeamId(null);
       showToast({
-        message: `${team!.name} ↔ ${candidate.fullName} eşleşti. İki tarafa bildirim gönderildi.`,
+        message: t("matchedToast", {
+          team: team!.name,
+          mentor: candidate.fullName,
+        }),
         tone: "success",
       });
     },
     onError: (failure) =>
       showToast({
-        message: errorMessage(failure, "Eşleşme oluşturulamadı."),
+        message: errorMessage(failure, t("matchFailed")),
         tone: "error",
       }),
   });

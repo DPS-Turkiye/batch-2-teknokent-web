@@ -1,3 +1,5 @@
+import type { useTranslations } from "next-intl";
+
 import {
   type CoordinatorProgram,
   ProgramLifecycle,
@@ -11,12 +13,9 @@ export enum ProgramListFilter {
   Completed = "COMPLETED",
 }
 
-const FILTER_LABELS: Record<ProgramListFilter, string> = {
-  [ProgramListFilter.All]: "Tümü",
-  [ProgramListFilter.Active]: "Aktif",
-  [ProgramListFilter.Upcoming]: "Yaklaşan",
-  [ProgramListFilter.Completed]: "Tamamlanan",
-};
+export type ProgramsT = ReturnType<
+  typeof useTranslations<"coordinatorPrograms">
+>;
 
 const FILTER_LIFECYCLE: Record<ProgramListFilter, ProgramLifecycle | null> = {
   [ProgramListFilter.All]: null,
@@ -25,13 +24,16 @@ const FILTER_LIFECYCLE: Record<ProgramListFilter, ProgramLifecycle | null> = {
   [ProgramListFilter.Completed]: ProgramLifecycle.Completed,
 };
 
-export function programFilterOptions(programs: CoordinatorProgram[]) {
+export function programFilterOptions(
+  programs: CoordinatorProgram[],
+  t: ProgramsT,
+) {
   return Object.values(ProgramListFilter).map((filter) => {
     const lifecycle = FILTER_LIFECYCLE[filter];
     const count = lifecycle
       ? programs.filter((program) => program.lifecycle === lifecycle).length
       : programs.length;
-    return { id: filter, label: `${FILTER_LABELS[filter]} ${count}` };
+    return { id: filter, label: t(`filters.${filter}`, { count }) };
   });
 }
 
@@ -58,20 +60,23 @@ export function openActionCount(program: CoordinatorProgram) {
   );
 }
 
-const MONTH_YEAR = new Intl.DateTimeFormat("tr-TR", {
-  month: "short",
-  year: "numeric",
-});
-
 function parseDay(value: string) {
   return new Date(`${value}T00:00:00`);
 }
 
 /** "Şub 2026 – Ara 2026"; empty when the program has no dates yet. */
-export function formatMonthRange(start: string | null, end: string | null) {
+export function formatMonthRange(
+  start: string | null,
+  end: string | null,
+  locale: string,
+) {
   if (!start && !end) return "";
-  const from = start ? MONTH_YEAR.format(parseDay(start)) : "";
-  const to = end ? MONTH_YEAR.format(parseDay(end)) : "";
+  const monthYear = new Intl.DateTimeFormat(locale, {
+    month: "short",
+    year: "numeric",
+  });
+  const from = start ? monthYear.format(parseDay(start)) : "";
+  const to = end ? monthYear.format(parseDay(end)) : "";
   return `${from} – ${to}`.trim();
 }
 

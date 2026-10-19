@@ -1,11 +1,12 @@
 import { Minus, Plus } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 /** One numeric program rule with − / + buttons; shared by Program Ayarları and the launch wizard. */
 export function RuleStepper({
   title,
   hint,
   value,
-  unit = "gün",
+  unit,
   disabled = false,
   onChange,
 }: {
@@ -16,6 +17,7 @@ export function RuleStepper({
   disabled?: boolean;
   onChange: (delta: number) => void;
 }) {
+  const t = useTranslations("programRules");
   return (
     <div className="flex items-center justify-between gap-4">
       <span>
@@ -26,10 +28,12 @@ export function RuleStepper({
         <span className="min-w-[2ch] text-[14px] font-semibold text-[#22262b]">
           {value}
         </span>
-        <span className="text-[12.5px] text-[#858c96]">{unit}</span>
+        <span className="text-[12.5px] text-[#858c96]">
+          {unit ?? t("days")}
+        </span>
         <button
           type="button"
-          aria-label={`${title}: azalt`}
+          aria-label={t("decrease", { title })}
           disabled={disabled}
           onClick={() => onChange(-1)}
           className="grid size-7 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78] disabled:opacity-40"
@@ -38,7 +42,7 @@ export function RuleStepper({
         </button>
         <button
           type="button"
-          aria-label={`${title}: artır`}
+          aria-label={t("increase", { title })}
           disabled={disabled}
           onClick={() => onChange(1)}
           className="grid size-7 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78] disabled:opacity-40"

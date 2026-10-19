@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   EmptyNote,
@@ -26,6 +27,7 @@ import {
 import { formatLongDate } from "@/lib/utils";
 
 export function ProgramsListView() {
+  const t = useTranslations("coordinatorPrograms");
   const { query, filter, setFilter, search, setSearch, options, visible } =
     useCoordinatorProgramList();
 
@@ -38,23 +40,21 @@ export function ProgramsListView() {
             <SearchField
               value={search}
               onChange={setSearch}
-              placeholder="Program ara"
+              placeholder={t("search")}
             />
           </div>
           <Link
             href="/coordinator/programs/new"
             className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
           >
-            <Plus aria-hidden className="size-4" /> Program başlat
+            <Plus aria-hidden className="size-4" /> {t("launch")}
           </Link>
         </div>
       </div>
       <QueryNotice isLoading={query.isLoading} error={query.error} />
       {query.isSuccess && visible.length === 0 ? (
         <EmptyNote>
-          {search || query.data.length > 0
-            ? "Bu filtreyle eşleşen program yok."
-            : "Henüz yönettiğin bir program yok."}
+          {search || query.data.length > 0 ? t("noMatch") : t("none")}
         </EmptyNote>
       ) : null}
       <div className="space-y-4">
@@ -71,6 +71,8 @@ export function ProgramsListView() {
 }
 
 function ProgramCard({ program }: { program: CoordinatorProgram }) {
+  const t = useTranslations("coordinatorPrograms");
+  const locale = useLocale();
   const upcoming = program.lifecycle === ProgramLifecycle.Upcoming;
   const actions = openActionCount(program);
   return (
@@ -81,67 +83,71 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
           {program.name}
         </h2>
         {upcoming ? (
-          <StatusChip tone="amber">Yaklaşan</StatusChip>
+          <StatusChip tone="amber">{t("upcoming")}</StatusChip>
         ) : (
-          <StatusChip tone="green">Aktif</StatusChip>
+          <StatusChip tone="green">{t("active")}</StatusChip>
         )}
         <div className="ml-auto flex items-center gap-3">
           {actions > 0 ? (
-            <StatusChip tone="amber">{actions} aksiyon bekliyor</StatusChip>
+            <StatusChip tone="amber">
+              {t("actionsWaiting", { count: actions })}
+            </StatusChip>
           ) : null}
           <Link
             href={`/coordinator/programs/${program.id}`}
             className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
           >
-            Programı aç
+            {t("open")}
           </Link>
         </div>
       </div>
       <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Stat
           dot="#e0522a"
-          label="Takım"
+          label={t("teams")}
           value={program.teamCount}
-          note={`${program.teamCount - program.awaitingMatchCount} takım mentorlu`}
+          note={t("teamsMentored", {
+            count: program.teamCount - program.awaitingMatchCount,
+          })}
         />
         <Stat
           dot="#1583d6"
-          label="Mentor"
+          label={t("mentors")}
           value={program.mentorCount}
           note={
             program.pendingMentorCount > 0
-              ? `+${program.pendingMentorCount} davet / onay`
+              ? t("pendingMentors", { count: program.pendingMentorCount })
               : program.mentorCount === 0
-                ? "havuz boş"
-                : "bekleyen davet yok"
+                ? t("poolEmpty")
+                : t("noPendingInvites")
           }
         />
         <Stat
-          label="Aktif mentorluk"
+          label={t("activeMentorships")}
           value={program.activeMentorshipCount}
           note={
             upcoming
-              ? "program başlamadı"
+              ? t("notStarted")
               : program.riskyMentorshipCount > 0
-                ? `${program.riskyMentorshipCount} riskli`
-                : "riskli mentorluk yok"
+                ? t("risky", { count: program.riskyMentorshipCount })
+                : t("noRisky")
           }
         />
         {upcoming && program.startDate ? (
           <Stat
-            label="Başlangıca"
-            value={`${daysUntil(program.startDate)} gün`}
-            note={formatLongDate(program.startDate)}
+            label={t("untilStart")}
+            value={t("days", { count: daysUntil(program.startDate) })}
+            note={formatLongDate(program.startDate, locale)}
           />
         ) : (
           <Stat
             dot="#e0522a"
-            label="Eşleşme bekleyen"
+            label={t("awaitingMatch")}
             value={program.awaitingMatchCount}
             note={
               program.oldestAwaitingMatchDays != null
-                ? `en eskisi ${program.oldestAwaitingMatchDays} gün`
-                : "bekleyen takım yok"
+                ? t("oldestDays", { days: program.oldestAwaitingMatchDays })
+                : t("noWaitingTeams")
             }
           />
         )}
@@ -152,9 +158,10 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
 }
 
 function PhaseBar({ program }: { program: CoordinatorProgram }) {
+  const t = useTranslations("coordinatorPrograms");
   return (
     <div className="mt-5 flex items-start gap-3">
-      <span className="pt-0.5 text-[12px] text-[#858c96]">Faz</span>
+      <span className="pt-0.5 text-[12px] text-[#858c96]">{t("phase")}</span>
       <ol className="grid flex-1 auto-cols-fr grid-flow-col gap-1.5">
         {phaseStates(program).map(({ phase, state }) => (
           <li
@@ -184,7 +191,10 @@ function PhaseBar({ program }: { program: CoordinatorProgram }) {
       </ol>
       {program.currentWeek != null && program.totalWeeks != null ? (
         <span className="shrink-0 pt-0.5 text-[12px] text-[#676e78]">
-          Hafta {program.currentWeek} / {program.totalWeeks}
+          {t("week", {
+            current: program.currentWeek,
+            total: program.totalWeeks,
+          })}
         </span>
       ) : null}
     </div>
@@ -192,11 +202,13 @@ function PhaseBar({ program }: { program: CoordinatorProgram }) {
 }
 
 function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
-  const range = formatMonthRange(program.startDate, program.endDate);
+  const t = useTranslations("coordinatorPrograms");
+  const locale = useLocale();
+  const range = formatMonthRange(program.startDate, program.endDate, locale);
   const details = [
     range,
-    `${program.teamCount} takım`,
-    `${program.mentorCount} mentor`,
+    t("teamCount", { count: program.teamCount }),
+    t("mentorCount", { count: program.mentorCount }),
   ].filter(Boolean);
   return (
     <article className="flex flex-wrap items-center gap-3 rounded-[28px] border border-[#e9ecef] bg-white p-5 sm:p-6">
@@ -206,7 +218,7 @@ function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
           <h2 className="text-[18px] font-semibold text-[#22262b]">
             {program.name}
           </h2>
-          <StatusChip tone="neutral">Tamamlandı</StatusChip>
+          <StatusChip tone="neutral">{t("completed")}</StatusChip>
         </div>
         <p className="mt-1 text-[13px] text-[#858c96]">{details.join(" · ")}</p>
       </div>
@@ -215,13 +227,13 @@ function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
           href={`/coordinator/programs/${program.id}/report`}
           className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
         >
-          Program raporu
+          {t("report")}
         </Link>
         <Link
           href={`/coordinator/programs/${program.id}`}
           className="rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] font-medium text-[#22262b]"
         >
-          Programı aç
+          {t("open")}
         </Link>
       </div>
     </article>

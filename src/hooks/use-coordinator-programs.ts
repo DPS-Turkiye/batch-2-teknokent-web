@@ -1,6 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
@@ -21,6 +22,7 @@ export function useCoordinatorPrograms() {
 
 /** The Programlarım list: the programs plus the lifecycle filter and name search. */
 export function useCoordinatorProgramList() {
+  const t = useTranslations("coordinatorPrograms");
   const query = useCoordinatorPrograms();
   const [filter, setFilter] = useState(ProgramListFilter.All);
   const [search, setSearch] = useState("");
@@ -32,7 +34,7 @@ export function useCoordinatorProgramList() {
     setFilter,
     search,
     setSearch,
-    options: programFilterOptions(programs),
+    options: programFilterOptions(programs, t),
     visible: filterPrograms(programs, filter, search),
   };
 }

@@ -1,3 +1,7 @@
+import type { useTranslations } from "next-intl";
+
+import { clientText } from "@/i18n/client-texts";
+import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
   type CoordinatorProgramDetail,
   type CreateProgramInput,
@@ -14,17 +18,9 @@ export enum LaunchStep {
 }
 
 export const LAUNCH_STEPS = [
-  {
-    id: LaunchStep.Basics,
-    label: "Temel bilgiler",
-    hint: "Ad, tarih, koordinatör",
-  },
-  {
-    id: LaunchStep.Rules,
-    label: "Mentorluk kuralları",
-    hint: "Kapasite ve eşikler",
-  },
-  { id: LaunchStep.Teams, label: "Takımlar", hint: "Takım ve yetkililer" },
+  LaunchStep.Basics,
+  LaunchStep.Rules,
+  LaunchStep.Teams,
 ] as const;
 
 export type LaunchRules = Pick<
@@ -72,11 +68,11 @@ export function emptyLaunchDraft(): LaunchDraft {
 
 export const MAX_LAUNCH_TEAMS = 200;
 
-/** The first problem with step 1, in Turkish, or null. */
+/** The first problem with step 1, or null. */
 export function basicsError(draft: LaunchDraft) {
-  if (!draft.name.trim()) return "Program adı gerekli.";
+  if (!draft.name.trim()) return clientText("programSettings.nameRequired");
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    return "Program bitişi başlangıçtan önce olamaz.";
+    return clientText("programSettings.endBeforeStart");
   }
   return null;
 }
@@ -86,12 +82,6 @@ export enum TeamRowProblem {
   InvalidEmail = "INVALID_EMAIL",
   DuplicateEmail = "DUPLICATE_EMAIL",
 }
-
-export const TEAM_ROW_PROBLEM_LABELS: Record<TeamRowProblem, string> = {
-  [TeamRowProblem.MissingName]: "Takım adı gerekli",
-  [TeamRowProblem.InvalidEmail]: "Geçersiz e-posta",
-  [TeamRowProblem.DuplicateEmail]: "Bu e-posta başka satırda var",
-};
 
 function isBlankRow(row: TeamRowDraft) {
   return !row.teamName.trim() && !row.leadEmail.trim();
@@ -178,18 +168,18 @@ function teamFilterOf(team: ProgramTeam) {
   return isTeamProblem(team) ? TeamFilter.Problem : TeamFilter.Waiting;
 }
 
-export function teamFilterOptions(teams: ProgramTeam[]) {
-  const count = (filter: TeamFilter) =>
-    teams.filter((team) => teamFilterOf(team) === filter).length;
-  return [
-    { id: TeamFilter.All, label: `Tümü ${teams.length}` },
-    { id: TeamFilter.Joined, label: `Katıldı ${count(TeamFilter.Joined)}` },
-    {
-      id: TeamFilter.Waiting,
-      label: `Yetkili bekleniyor ${count(TeamFilter.Waiting)}`,
-    },
-    { id: TeamFilter.Problem, label: `Sorunlu ${count(TeamFilter.Problem)}` },
-  ];
+export type TeamsT = ReturnType<typeof useTranslations<"programTeams">>;
+
+export function teamFilterOptions(teams: ProgramTeam[], t: TeamsT) {
+  return Object.values(TeamFilter).map((id) => ({
+    id,
+    label: t(`filters.${id}`, {
+      count:
+        id === TeamFilter.All
+          ? teams.length
+          : teams.filter((team) => teamFilterOf(team) === id).length,
+    }),
+  }));
 }
 
 export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
@@ -198,9 +188,12 @@ export function filterTeams(teams: ProgramTeam[], filter: TeamFilter) {
 }
 
 /** "Gönderildi 19 Eyl · ali@pusula.io" once the code has been emailed. */
-export function codeSentLabel(team: ProgramTeam) {
+export function codeSentLabel(team: ProgramTeam, t: TeamsT, locale: string) {
   if (!team.codeSentAt) return null;
-  return `Gönderildi ${formatDayMonth(new Date(team.codeSentAt))} · ${team.leadEmail ?? ""}`.trim();
+  return t("codeSent", {
+    date: formatDayMonth(new Date(team.codeSentAt), locale),
+    email: team.leadEmail ?? "",
+  }).trim();
 }
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -226,6 +219,7 @@ export type SetupStep = {
 export function setupSteps(
   detail: CoordinatorProgramDetail,
   teams: ProgramTeam[],
+  t: ProgramsT,
 ): SetupStep[] | null {
   if (detail.program.lifecycle === ProgramLifecycle.Completed) return null;
   const base = `/coordinator/programs/${encodeURIComponent(detail.program.id)}`;
@@ -235,43 +229,46 @@ export function setupSteps(
   const steps: SetupStep[] = [
     {
       key: "created",
-      title: "Program oluşturuldu",
-      detail: "Temel bilgiler ve mentorluk kuralları",
+      title: t("setup.createdTitle"),
+      detail: t("setup.createdDetail"),
       done: true,
-      link: { label: "Gör", href: `${base}/settings` },
+      link: { label: t("setup.see"), href: `${base}/settings` },
     },
     {
       key: "teams",
       title:
         teams.length > 0
-          ? `${teams.length} takım eklendi, kodlar hazır`
-          : "Takımları ekle",
+          ? t("setup.teamsTitle", { count: teams.length })
+          : t("setup.teamsEmptyTitle"),
       detail:
         teams.length > 0
-          ? `${joined} yetkili katıldı · ${teams.length - joined} bekleniyor`
-          : "Her takım yetkilisi için bir katılım kodu üretilir",
+          ? t("setup.teamsDetail", {
+              joined,
+              waiting: teams.length - joined,
+            })
+          : t("setup.teamsEmptyDetail"),
       done: teams.length > 0,
       link: {
-        label: teams.length > 0 ? "Gör" : "Takım ekle",
+        label: teams.length > 0 ? t("setup.see") : t("setup.addTeam"),
         href: `${base}/teams`,
       },
     },
     {
       key: "mentors",
-      title: "Mentor havuzunu oluştur",
+      title: t("setup.mentorsTitle"),
       detail:
         detail.program.mentorCount > 0
-          ? `${detail.program.mentorCount} mentor havuzda`
-          : "Henüz mentor yok",
+          ? t("setup.mentorsDetail", { count: detail.program.mentorCount })
+          : t("setup.mentorsEmpty"),
       done: detail.program.mentorCount > 0,
-      link: { label: "Mentor davet et", href: `${base}/mentors` },
+      link: { label: t("setup.inviteMentor"), href: `${base}/mentors` },
     },
     {
       key: "matching",
-      title: "Eşleşmeleri başlat",
-      detail: "Havuz hazır olunca öneriler açılır",
+      title: t("setup.matchingTitle"),
+      detail: t("setup.matchingDetail"),
       done: detail.program.activeMentorshipCount > 0,
-      link: { label: "Eşleştir", href: `${base}/matching` },
+      link: { label: t("setup.match"), href: `${base}/matching` },
     },
   ];
   return steps.every((step) => step.done) ? null : steps;

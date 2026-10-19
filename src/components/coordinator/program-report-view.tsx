@@ -2,6 +2,7 @@
 
 import { ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { ProgramReporting } from "@/components/admin/reporting-view";
@@ -10,6 +11,7 @@ import { useProgramReport } from "@/hooks/use-program-report";
 
 /** Program raporu: the admin Raporlama numbers, for this one program. */
 export function ProgramReportView({ programId }: { programId: string }) {
+  const t = useTranslations("programReport");
   const query = useProgramReport(programId);
   const data = query.data;
   if (!data) {
@@ -21,24 +23,24 @@ export function ProgramReportView({ programId }: { programId: string }) {
   return (
     <div className="space-y-6">
       <nav
-        aria-label="Konum"
+        aria-label={t("breadcrumb")}
         className="flex items-center gap-1.5 text-[13px] text-[#858c96]"
       >
-        <Link href="/coordinator/programs">Programlarım</Link>
+        <Link href="/coordinator/programs">{t("myPrograms")}</Link>
         <ChevronRight aria-hidden className="size-3.5" />
-        <Link href={programHref}>{program?.name ?? "Program"}</Link>
+        <Link href={programHref}>{program?.name ?? t("programFallback")}</Link>
         <ChevronRight aria-hidden className="size-3.5" />
-        <span className="text-[#22262b]">Program raporu</span>
+        <span className="text-[#22262b]">{t("title")}</span>
       </nav>
 
       <header className="flex items-start gap-4">
         <ProgramGlyph muted={program?.status === "COMPLETED"} />
         <div className="min-w-0 flex-1">
           <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-[#22262b]">
-            Program raporu
+            {t("title")}
           </h1>
           <p className="mt-1 text-[13.5px] text-[#676e78]">
-            {program?.name} · oranlar, sayılar ve görüşme değerlendirmeleri
+            {t("subtitle", { name: program?.name ?? "" })}
           </p>
         </div>
       </header>

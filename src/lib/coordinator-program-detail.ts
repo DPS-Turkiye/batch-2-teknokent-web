@@ -1,10 +1,11 @@
+import { clientText } from "@/i18n/client-texts";
 import type {
   CoordinatorProgramDetail,
   ProgramPhaseInput,
   ProgramRules,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
-import { formatMonthRange } from "@/lib/coordinator-programs";
+import { formatMonthRange, type ProgramsT } from "@/lib/coordinator-programs";
 
 export enum ProgramTab {
   Overview = "OVERVIEW",
@@ -21,65 +22,61 @@ export enum SettingsSection {
   Archive = "ARCHIVE",
 }
 
-export const SETTINGS_SECTION_LABELS: Record<SettingsSection, string> = {
-  [SettingsSection.General]: "Genel bilgiler",
-  [SettingsSection.Coordinators]: "Koordinatörler",
-  [SettingsSection.Rules]: "Mentorluk kuralları",
-  [SettingsSection.Archive]: "Arşiv",
-};
-
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
 ) {
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
   return [
-    { id: ProgramTab.Overview, label: "Genel Bakış", href: base, count: null },
+    { id: ProgramTab.Overview, href: base, count: null },
     {
       id: ProgramTab.Teams,
-      label: "Takımlar",
       href: `${base}/teams`,
       count: detail.program.teamCount,
     },
     {
       id: ProgramTab.MentorPool,
-      label: "Mentor Havuzu",
       href: `${base}/mentors`,
       count: detail.program.mentorCount,
     },
     {
       id: ProgramTab.Matching,
-      label: "Eşleşmeler",
       href: `${base}/matching`,
       count: detail.program.awaitingMatchCount,
     },
-    {
-      id: ProgramTab.Settings,
-      label: "Program Ayarları",
-      href: `${base}/settings`,
-      count: null,
-    },
+    { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
 }
 
 /** "Şub 2026 – Ara 2026 · Mentorluk dönemi, hafta 6/16 · Koordinatörler: Elif Demir, Burcu Şen". */
-export function programHeaderLine(detail: CoordinatorProgramDetail) {
+export function programHeaderLine(
+  detail: CoordinatorProgramDetail,
+  t: ProgramsT,
+  locale: string,
+) {
   const program = detail.program;
   const parts: string[] = [];
-  const range = formatMonthRange(program.startDate, program.endDate);
+  const range = formatMonthRange(program.startDate, program.endDate, locale);
   if (range) parts.push(range);
   if (program.currentPhase) {
     parts.push(
       program.currentWeek && program.totalWeeks
-        ? `${program.currentPhase.name}, hafta ${program.currentWeek}/${program.totalWeeks}`
+        ? t("phaseWeek", {
+            phase: program.currentPhase.name,
+            current: program.currentWeek,
+            total: program.totalWeeks,
+          })
         : program.currentPhase.name,
     );
   }
   if (detail.coordinators.length > 0) {
-    const label =
-      detail.coordinators.length > 1 ? "Koordinatörler" : "Koordinatör";
     parts.push(
-      `${label}: ${detail.coordinators.map((coordinator) => coordinator.fullName).join(", ")}`,
+      t("coordinators", {
+        count: detail.coordinators.length,
+        names: detail.coordinators
+          .map((coordinator) => coordinator.fullName)
+          .join(", "),
+      }),
     );
   }
   return parts.join(" · ");
@@ -109,19 +106,25 @@ export type OverviewAction = {
 /** The Genel Bakış action cards: only the ones that currently need someone. */
 export function overviewActions(
   detail: CoordinatorProgramDetail,
+  t: ProgramsT,
 ): OverviewAction[] {
   const actions: OverviewAction[] = [];
   if (detail.program.awaitingMatchCount > 0) {
     const oldest = detail.awaitingTeams[0];
     actions.push({
       key: "awaiting",
-      title: `${detail.program.awaitingMatchCount} takım eşleşme bekliyor`,
+      title: t("actions.awaitingTitle", {
+        count: detail.program.awaitingMatchCount,
+      }),
       detail: oldest
-        ? `en eskisi ${oldest.waitingDays} gün · ${oldest.name}`
-        : "mentor ataması yapılmadı",
+        ? t("actions.awaitingDetail", {
+            days: oldest.waitingDays,
+            name: oldest.name,
+          })
+        : t("actions.awaitingNone"),
       tone: "orange",
       target: {
-        label: "Eşleşmeler",
+        label: t("actions.matching"),
         href: `/coordinator/programs/${encodeURIComponent(detail.program.id)}/matching`,
       },
     });
@@ -129,11 +132,11 @@ export function overviewActions(
   if (detail.mentors.pending > 0) {
     actions.push({
       key: "pending-mentors",
-      title: `${detail.mentors.pending} mentor yanıt bekliyor`,
-      detail: "program daveti veya katılım isteği",
+      title: t("actions.pendingTitle", { count: detail.mentors.pending }),
+      detail: t("actions.pendingDetail"),
       tone: "blue",
       target: {
-        label: "Mentor Havuzu",
+        label: t("actions.mentorPool"),
         href: `/coordinator/programs/${encodeURIComponent(detail.program.id)}/mentors`,
       },
     });
@@ -141,23 +144,27 @@ export function overviewActions(
   if (detail.missingNoteMeetings > 0) {
     actions.push({
       key: "missing-notes",
-      title: `${detail.missingNoteMeetings} görüşme: not eksik`,
-      detail: "son 14 gün",
+      title: t("actions.notesTitle", { count: detail.missingNoteMeetings }),
+      detail: t("actions.notesDetail"),
       tone: "both",
-      target: { label: "Mentorluklar", href: "/coordinator/mentorships" },
+      target: {
+        label: t("actions.mentorships"),
+        href: "/coordinator/mentorships",
+      },
     });
   }
   return actions;
 }
 
-const MONTH_SHORT = new Intl.DateTimeFormat("tr-TR", { month: "short" });
-
 /** "17" and "EYL" for the date tiles of Yaklaşan tarihler. */
-export function dateTile(value: string) {
+export function dateTile(value: string, locale: string) {
   const date = new Date(value);
   return {
     day: String(date.getDate()),
-    month: MONTH_SHORT.format(date).replace(".", "").toLocaleUpperCase("tr"),
+    month: new Intl.DateTimeFormat(locale, { month: "short" })
+      .format(date)
+      .replace(".", "")
+      .toLocaleUpperCase(locale),
   };
 }
 
@@ -223,19 +230,21 @@ export function movePhase(phases: PhaseDraft[], index: number, step: -1 | 1) {
 
 export const MAX_PHASES = 12;
 
-/** The first problem with the draft, in Turkish, or null when it can be saved. */
+/** The first problem with the draft, or null when it can be saved. */
 export function settingsDraftError(draft: ProgramSettingsDraft) {
-  if (!draft.name.trim()) return "Program adı gerekli.";
+  if (!draft.name.trim()) return clientText("programSettings.nameRequired");
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    return "Program bitişi başlangıçtan önce olamaz.";
+    return clientText("programSettings.endBeforeStart");
   }
   if (draft.phases.length > MAX_PHASES) {
-    return `En fazla ${MAX_PHASES} faz eklenebilir.`;
+    return clientText("programSettings.tooManyPhases", { max: MAX_PHASES });
   }
   for (const phase of draft.phases) {
-    if (!phase.name.trim()) return "Her fazın bir adı olmalı.";
+    if (!phase.name.trim()) return clientText("programSettings.phaseName");
     if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
-      return `“${phase.name.trim()}” fazı başlamadan bitemez.`;
+      return clientText("programSettings.phaseDates", {
+        name: phase.name.trim(),
+      });
     }
   }
   return null;

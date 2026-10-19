@@ -2,7 +2,7 @@
 
 import { Copy, X } from "lucide-react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -12,6 +12,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { TeamStage } from "@/components/coordinator/team-stage";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
 import {
@@ -32,6 +33,9 @@ export function TeamDetailDrawer({
   onClose: () => void;
 }) {
   const tHealth = useTranslations("coordinatorMentorships");
+  const t = useTranslations("programTeams.drawer");
+  const locale = useLocale();
+  const optionLabel = useOptionLabel();
   const query = useProgramTeamDetail(programId, organizationId);
   const team = query.data;
   const messageHref = coordinatorTeamMessageHref(programId, organizationId);
@@ -49,21 +53,21 @@ export function TeamDetailDrawer({
     <div className="fixed inset-0 z-50 flex justify-end bg-[#22262b]/20">
       <button
         type="button"
-        aria-label="Kapat"
+        aria-label={t("close")}
         onClick={onClose}
         className="absolute inset-0 cursor-default"
       />
       <section
         role="dialog"
         aria-modal="true"
-        aria-label="Takım detayı"
+        aria-label={t("label")}
         className="relative m-3 flex w-full max-w-[600px] flex-col overflow-hidden rounded-[28px] bg-white shadow-[0_24px_60px_rgba(33,38,43,0.18)]"
       >
         <header className="flex items-start gap-3 border-b border-[#eef0f2] px-7 py-6">
           {team ? <Avatar initials={initials(team.name)} size="lg" /> : null}
           <div className="min-w-0 flex-1">
             <h2 className="text-[19px] font-semibold text-[#22262b]">
-              {team?.name ?? "Takım"}
+              {team?.name ?? t("teamFallback")}
             </h2>
             {team?.sector ? (
               <p className="mt-1 text-[12.5px] text-[#858c96]">{team.sector}</p>
@@ -72,7 +76,7 @@ export function TeamDetailDrawer({
           <button
             type="button"
             onClick={onClose}
-            aria-label="Kapat"
+            aria-label={t("close")}
             className="grid size-9 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78]"
           >
             <X aria-hidden className="size-4" />
@@ -83,7 +87,7 @@ export function TeamDetailDrawer({
           <QueryNotice isLoading={query.isLoading} error={query.error} />
           {team ? (
             <>
-              <Section title="Takım yetkilisi">
+              <Section title={t("lead")}>
                 {team.lead ? (
                   <div className="flex items-center gap-3 rounded-2xl bg-[#fff1ea] p-4">
                     <Avatar initials={initials(team.lead.name)} />
@@ -91,7 +95,7 @@ export function TeamDetailDrawer({
                       <p className="text-[14px] font-medium text-[#22262b]">
                         {team.lead.name}{" "}
                         <span className="ml-1 text-[12px] text-[#e5484d]">
-                          Takım Yetkilisi
+                          {t("leadBadge")}
                         </span>
                       </p>
                       <p className="truncate text-[12.5px] text-[#676e78]">
@@ -104,26 +108,23 @@ export function TeamDetailDrawer({
                       href={messageHref}
                       className="rounded-full bg-white px-4 py-2 text-[12.5px] font-medium text-[#22262b]"
                     >
-                      Mesaj
+                      {t("message")}
                     </Link>
                   </div>
                 ) : (
-                  <EmptyNote>Yetkili bilgisi yok.</EmptyNote>
+                  <EmptyNote>{t("noLead")}</EmptyNote>
                 )}
               </Section>
 
               {team.code ? (
-                <Section
-                  title="Takım kodu"
-                  hint="Yetkili bu kodu ekip üyeleriyle paylaşır"
-                >
+                <Section title={t("code")} hint={t("codeHint")}>
                   <div className="flex items-center justify-between rounded-2xl border border-[#e9ecef] p-4">
                     <div>
                       <p className="text-[17px] font-semibold text-[#22262b]">
                         {team.code}
                       </p>
                       <p className="text-[12.5px] text-[#1f9254]">
-                        {team.members.length} üye katıldı
+                        {t("membersJoined", { count: team.members.length })}
                       </p>
                     </div>
                     <button
@@ -131,22 +132,22 @@ export function TeamDetailDrawer({
                       onClick={() => onCopyCode(team.code as string)}
                       className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[12.5px] font-medium text-[#22262b]"
                     >
-                      <Copy aria-hidden className="size-3.5" /> Kopyala
+                      <Copy aria-hidden className="size-3.5" /> {t("copy")}
                     </button>
                   </div>
                 </Section>
               ) : null}
 
-              <Section title="Süreç aşaması">
+              <Section title={t("stage")}>
                 <TeamStage
                   programId={programId}
                   organizationId={organizationId}
                 />
               </Section>
 
-              <Section title={`Ekip üyeleri · ${team.members.length}`}>
+              <Section title={t("members", { count: team.members.length })}>
                 {team.members.length === 0 ? (
-                  <EmptyNote>Henüz katılan üye yok.</EmptyNote>
+                  <EmptyNote>{t("noMembers")}</EmptyNote>
                 ) : (
                   <ul className="divide-y divide-[#f0f2f4] rounded-2xl border border-[#e9ecef]">
                     {team.members.map((member) => (
@@ -167,7 +168,9 @@ export function TeamDetailDrawer({
                         </div>
                         {member.joinedAt ? (
                           <span className="text-[12px] text-[#858c96]">
-                            Katıldı · {formatShortDate(member.joinedAt)}
+                            {t("joinedOn", {
+                              date: formatShortDate(member.joinedAt, locale),
+                            })}
                           </span>
                         ) : null}
                       </li>
@@ -176,9 +179,9 @@ export function TeamDetailDrawer({
                 )}
               </Section>
 
-              <Section title="Mentorluk">
+              <Section title={t("mentorship")}>
                 {team.mentorships.length === 0 ? (
-                  <EmptyNote>Bu takım henüz bir mentorla eşleşmedi.</EmptyNote>
+                  <EmptyNote>{t("noMentorship")}</EmptyNote>
                 ) : (
                   <ul className="space-y-3">
                     {team.mentorships.map((row) => (
@@ -190,7 +193,7 @@ export function TeamDetailDrawer({
                             </p>
                             {row.topic ? (
                               <p className="text-[12.5px] text-[#676e78]">
-                                {row.topic}
+                                {optionLabel("mentorTopic", row.topic)}
                               </p>
                             ) : null}
                           </div>
@@ -200,8 +203,10 @@ export function TeamDetailDrawer({
                         </div>
                         <p className="mt-3 rounded-xl bg-white px-3 py-2 text-[13px] text-[#22262b]">
                           {row.nextMeetingAt
-                            ? `Sıradaki görüşme: ${formatDateTime(row.nextMeetingAt)}`
-                            : "Planlı görüşme yok"}
+                            ? t("nextMeeting", {
+                                date: formatDateTime(row.nextMeetingAt, locale),
+                              })
+                            : t("noMeeting")}
                         </p>
                       </li>
                     ))}
@@ -218,7 +223,7 @@ export function TeamDetailDrawer({
               href={mentorshipHref(mentorship.id)}
               className="text-[13px] font-medium text-[#22262b]"
             >
-              Mentorluğu aç →
+              {t("openMentorship")}
             </Link>
           ) : (
             <span />
@@ -227,7 +232,7 @@ export function TeamDetailDrawer({
             href={messageHref}
             className="rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
           >
-            Takıma mesaj gönder
+            {t("messageTeam")}
           </Link>
         </footer>
       </section>

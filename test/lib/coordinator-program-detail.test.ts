@@ -1,3 +1,4 @@
+import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -14,10 +15,27 @@ import {
 } from "@/lib/coordinator-program-detail";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+
+const t = createTranslator({
+  locale: "tr",
+  messages: tr,
+  namespace: "coordinatorPrograms",
+});
+const tEn = createTranslator({
+  locale: "en",
+  messages: en,
+  namespace: "coordinatorPrograms",
+});
+
 describe("coordinator program detail", () => {
   it("writes the header line with the phase, week and every coordinator", () => {
-    expect(programHeaderLine(coordinatorProgramDetail())).toContain(
+    expect(programHeaderLine(coordinatorProgramDetail(), t, "tr")).toContain(
       "Mentorluk dönemi, hafta 6/16 · Koordinatörler: Elif Demir, Burcu Şen",
+    );
+    expect(programHeaderLine(coordinatorProgramDetail(), tEn, "en")).toContain(
+      "Mentorluk dönemi, week 6/16 · Coordinators: Elif Demir, Burcu Şen",
     );
   });
 
@@ -28,10 +46,15 @@ describe("coordinator program detail", () => {
     expect(Math.round(shares.healthy + shares.followUp + shares.risky)).toBe(
       100,
     );
-    expect(overviewActions(detail).map((action) => action.title)).toEqual([
+    expect(overviewActions(detail, t).map((action) => action.title)).toEqual([
       "5 takım eşleşme bekliyor",
       "5 mentor yanıt bekliyor",
       "4 görüşme: not eksik",
+    ]);
+    expect(overviewActions(detail, tEn).map((action) => action.title)).toEqual([
+      "5 teams are waiting for a match",
+      "5 mentors haven't replied",
+      "4 meetings: notes missing",
     ]);
     expect(
       overviewActions(
@@ -40,6 +63,7 @@ describe("coordinator program detail", () => {
           mentors: { ...detail.mentors, pending: 0 },
           missingNoteMeetings: 0,
         }),
+        t,
       ),
     ).toEqual([]);
   });

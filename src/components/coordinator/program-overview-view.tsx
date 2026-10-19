@@ -2,6 +2,7 @@
 
 import { ArrowRight, Check, ChevronRight } from "lucide-react";
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { EmptyNote } from "@/components/admin/admin-ui";
@@ -47,25 +48,24 @@ export function ProgramOverviewView({ programId }: { programId: string }) {
 
 /** "Kurulum n / 4": what a new program still needs before mentoring can start. */
 function SetupCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const t = useTranslations("coordinatorPrograms");
   const teams = useProgramTeamsQuery(detail.program.id);
   if (!teams.data) return null;
-  const steps = setupSteps(detail, teams.data);
+  const steps = setupSteps(detail, teams.data, t);
   if (!steps) return null;
   const done = steps.filter((step) => step.done).length;
   const next = steps.find((step) => !step.done);
   return (
     <section
-      aria-label="Program kurulumu"
+      aria-label={t("setup.label")}
       className="rounded-[28px] bg-[#f7f8f9] p-6"
     >
       <div className="mb-4 flex items-start justify-between gap-4">
         <div>
           <h2 className="text-[18px] font-semibold text-[#22262b]">
-            Kurulum {done} / {steps.length}
+            {t("setup.title", { done, total: steps.length })}
           </h2>
-          <p className="text-[13px] text-[#676e78]">
-            Program başlamadan önce takımları ve mentor havuzunu hazırlayın.
-          </p>
+          <p className="text-[13px] text-[#676e78]">{t("setup.body")}</p>
         </div>
         <span
           aria-hidden
@@ -105,7 +105,7 @@ function SetupCard({ detail }: { detail: CoordinatorProgramDetail }) {
                 >
                   {step.title}
                   {step.done ? (
-                    <span className="sr-only"> (tamamlandı)</span>
+                    <span className="sr-only">{t("setup.done")}</span>
                   ) : null}
                 </span>
                 <span className="block text-[12.5px] text-[#858c96]">
@@ -176,22 +176,25 @@ function Card({
 }
 
 function PhaseCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const t = useTranslations("coordinatorPrograms");
+  const locale = useLocale();
   const program = detail.program;
   const phases = phaseStates(program);
   return (
     <Card
-      title="Program fazı"
+      title={t("overview.phaseTitle")}
       note={
         program.currentWeek && program.totalWeeks
-          ? `Hafta ${program.currentWeek} / ${program.totalWeeks}`
+          ? t("week", {
+              current: program.currentWeek,
+              total: program.totalWeeks,
+            })
           : undefined
       }
-      link={{ label: "Takvim", href: "/coordinator/calendar" }}
+      link={{ label: t("overview.calendar"), href: "/coordinator/calendar" }}
     >
       {phases.length === 0 ? (
-        <p className="text-[13px] text-[#858c96]">
-          Faz eklenmedi. Program Ayarları → Genel bilgiler’den ekleyebilirsiniz.
-        </p>
+        <p className="text-[13px] text-[#858c96]">{t("overview.noPhases")}</p>
       ) : (
         <ol
           className="grid gap-3"
@@ -231,11 +234,12 @@ function PhaseCard({ detail }: { detail: CoordinatorProgramDetail }) {
               >
                 {phase.name}
                 {state === PhaseState.Current ? (
-                  <span className="sr-only"> (şu anki faz)</span>
+                  <span className="sr-only">{t("overview.currentPhase")}</span>
                 ) : null}
               </p>
               <p className="truncate text-[12px] text-[#858c96]">
-                {formatMonthRange(phase.startDate, phase.endDate) || "—"}
+                {formatMonthRange(phase.startDate, phase.endDate, locale) ||
+                  "—"}
               </p>
             </li>
           ))}
@@ -246,16 +250,21 @@ function PhaseCard({ detail }: { detail: CoordinatorProgramDetail }) {
 }
 
 function HealthCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const t = useTranslations("coordinatorPrograms.overview");
   const shares = healthShares(detail.health);
   return (
     <Card
-      title="Mentorluk sağlığı"
-      note={`${shares.total} aktif mentorluk`}
-      link={{ label: "Mentorluklar", href: "/coordinator/mentorships" }}
+      title={t("healthTitle")}
+      note={t("healthNote", { count: shares.total })}
+      link={{ label: t("mentorships"), href: "/coordinator/mentorships" }}
     >
       <div
         role="img"
-        aria-label={`${detail.health.healthy} sağlıklı, ${detail.health.followUp} takip gerekli, ${detail.health.risky} riskli`}
+        aria-label={t("healthLabel", {
+          healthy: detail.health.healthy,
+          followUp: detail.health.followUp,
+          risky: detail.health.risky,
+        })}
         className="flex h-2.5 gap-1 overflow-hidden rounded-full bg-[#f4f5f7]"
       >
         <span
@@ -275,20 +284,24 @@ function HealthCard({ detail }: { detail: CoordinatorProgramDetail }) {
         <Legend
           color="#2f9e6b"
           value={detail.health.healthy}
-          label="Sağlıklı"
+          label={t("healthy")}
         />
         <Legend
           color="#f0a13a"
           value={detail.health.followUp}
-          label="Takip gerekli"
+          label={t("followUp")}
         />
-        <Legend color="#d9464b" value={detail.health.risky} label="Riskli" />
+        <Legend
+          color="#d9464b"
+          value={detail.health.risky}
+          label={t("riskyLabel")}
+        />
       </ul>
       {detail.health.riskyTopics.length > 0 ? (
         <ul className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-[12.5px] text-[#d9464b]">
           {detail.health.riskyTopics.map((topic) => (
             <li key={topic.title}>
-              {topic.title} · {topic.teams} takım
+              {t("riskyTopic", { topic: topic.title, count: topic.teams })}
             </li>
           ))}
         </ul>
@@ -320,16 +333,17 @@ function Legend({
 }
 
 function Actions({ detail }: { detail: CoordinatorProgramDetail }) {
-  const actions = overviewActions(detail);
+  const t = useTranslations("coordinatorPrograms");
+  const actions = overviewActions(detail, t);
   if (actions.length === 0) {
     return (
       <div className="rounded-[28px] border border-[#e9ecef] bg-white">
-        <EmptyNote>Şu an bu programda bekleyen bir iş yok.</EmptyNote>
+        <EmptyNote>{t("overview.noActions")}</EmptyNote>
       </div>
     );
   }
   return (
-    <ul aria-label="Bekleyen işler" className="space-y-3">
+    <ul aria-label={t("overview.waitingWork")} className="space-y-3">
       {actions.map((action) => (
         <li
           key={action.key}
@@ -371,16 +385,16 @@ function Actions({ detail }: { detail: CoordinatorProgramDetail }) {
 }
 
 function UpcomingCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const t = useTranslations("coordinatorPrograms.overview");
+  const locale = useLocale();
   return (
-    <Card title="Yaklaşan tarihler">
+    <Card title={t("upcomingTitle")}>
       {detail.upcomingEvents.length === 0 ? (
-        <p className="text-[13px] text-[#858c96]">
-          Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.
-        </p>
+        <p className="text-[13px] text-[#858c96]">{t("noUpcoming")}</p>
       ) : (
         <ul className="space-y-4">
           {detail.upcomingEvents.map((event, index) => {
-            const tile = dateTile(event.startsAt);
+            const tile = dateTile(event.startsAt, locale);
             const days = daysUntil(event.startsAt);
             return (
               <li key={event.id} className="flex items-center gap-3">
@@ -410,7 +424,7 @@ function UpcomingCard({ detail }: { detail: CoordinatorProgramDetail }) {
                 </span>
                 {index === 0 && days >= 0 ? (
                   <span className="rounded-full bg-[#fff6e5] px-2.5 py-1 text-[12px] text-[#b7791f]">
-                    {days === 0 ? "bugün" : `${days} gün`}
+                    {days === 0 ? t("today") : t("inDays", { count: days })}
                   </span>
                 ) : null}
               </li>
@@ -427,37 +441,38 @@ function DistributionCard({ detail }: { detail: CoordinatorProgramDetail }) {
     detail.teams.mentored + detail.teams.awaitingMatch,
     1,
   );
+  const t = useTranslations("coordinatorPrograms.overview");
   const mentors = detail.mentors;
   const mentorTotal = Math.max(
     mentors.withCapacity + mentors.full + mentors.idle + mentors.pending,
     1,
   );
   return (
-    <Card title="Takım & mentor dağılımı">
+    <Card title={t("distribution")}>
       <h3 className="mb-2 flex items-center gap-2 text-[13.5px] font-medium text-[#22262b]">
         <span aria-hidden className="size-2 rounded-full bg-[#ff6a3d]" />{" "}
-        Takımlar
+        {t("teams")}
       </h3>
       <Bars
         color="#ff6a3d"
         total={teamTotal}
         rows={[
-          ["Mentorlu", detail.teams.mentored],
-          ["Eşleşme bekliyor", detail.teams.awaitingMatch],
+          [t("mentored"), detail.teams.mentored],
+          [t("awaitingMatch"), detail.teams.awaitingMatch],
         ]}
       />
       <h3 className="mt-5 mb-2 flex items-center gap-2 border-t border-[#f0f2f4] pt-5 text-[13.5px] font-medium text-[#22262b]">
         <span aria-hidden className="size-2 rounded-full bg-[#26a4ff]" />{" "}
-        Mentorlar
+        {t("mentors")}
       </h3>
       <Bars
         color="#26a4ff"
         total={mentorTotal}
         rows={[
-          ["Aktif (kapasite var)", mentors.withCapacity],
-          ["Kapasite dolu", mentors.full],
-          ["Müsait, mentorluğu yok", mentors.idle],
-          ["Davet / onay bekliyor", mentors.pending],
+          [t("withCapacity"), mentors.withCapacity],
+          [t("full"), mentors.full],
+          [t("idle"), mentors.idle],
+          [t("pending"), mentors.pending],
         ]}
       />
     </Card>
