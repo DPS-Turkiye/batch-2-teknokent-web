@@ -10,7 +10,7 @@ export const LOCALE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 export const ENGLISH_ENABLED =
   process.env.NEXT_PUBLIC_ENABLE_ENGLISH === "true";
 
-function isLocale(value: string | null | undefined): value is Locale {
+export function isLocale(value: unknown): value is Locale {
   return value === Locale.Tr || value === Locale.En;
 }
 

@@ -1,6 +1,8 @@
 import "server-only";
 
 import type { BackendUser } from "@/interfaces/session";
+import { HttpMethod } from "@/lib/http-method";
+import type { Locale } from "@/lib/i18n";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export type RegisterRole = "founder" | "mentor" | "member";
@@ -33,6 +35,18 @@ export function registerAccount(
 export function fetchSignedInUser(idToken: string) {
   return backendRequest<BackendUser>(
     { method: "GET", url: "/api/auth/me" },
+    { idToken },
+  );
+}
+
+/** The language the backend writes this user's notifications and e-mails in. */
+export function saveSignedInLanguage(idToken: string, language: Locale) {
+  return backendRequest(
+    {
+      method: HttpMethod.Put,
+      url: "/api/auth/me/language",
+      data: { language },
+    },
     { idToken },
   );
 }

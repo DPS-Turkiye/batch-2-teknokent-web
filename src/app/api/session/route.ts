@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getLocale } from "next-intl/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
-import { fetchSignedInUser } from "@/lib/api/auth";
+import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
+import { isLocale } from "@/lib/i18n";
 import {
   destroySession,
   getSessionUser,
@@ -67,6 +69,13 @@ export async function POST(request: NextRequest) {
         },
         { status: response.status },
       );
+    }
+
+    // Before the approval check, so a pending applicant's decision notification is in their language too.
+    // Only that wording depends on it, so a failed save must not block sign-in.
+    const locale = await getLocale();
+    if (isLocale(locale)) {
+      await saveSignedInLanguage(idToken, locale).catch(() => undefined);
     }
 
     const user = response.data;
