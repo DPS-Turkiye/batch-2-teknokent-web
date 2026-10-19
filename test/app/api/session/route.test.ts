@@ -12,7 +12,10 @@ import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
 import { Locale } from "@/lib/i18n";
 import { saveSessionUser } from "@/lib/session";
 
-vi.mock("next-intl/server", () => ({ getLocale: vi.fn() }));
+vi.mock("next-intl/server", () => ({
+  getLocale: vi.fn(),
+  getTranslations: async () => (key: string) => key,
+}));
 
 vi.mock("@/lib/api/auth", () => ({
   fetchSignedInUser: vi.fn(),

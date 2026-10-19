@@ -1,12 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { createActionItem, fetchActionItems } from "@/lib/api/action-items";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
-function missingRequestId() {
+async function missingRequestId() {
   return NextResponse.json(
-    { code: "INVALID_REQUEST", message: "Talep kimliği gerekli." },
+    { code: "INVALID_REQUEST", message: await apiText("requestIdRequired") },
     { status: 400 },
   );
 }
@@ -20,7 +24,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchActionItems(requestId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Aksiyonlar yüklenemedi.",
+      message: await apiText("actionItemsLoadFailed"),
     });
   }
 }
@@ -39,7 +43,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Aksiyon oluşturulamadı.",
+      message: await apiText("actionItemCreateFailed"),
     });
   }
 }

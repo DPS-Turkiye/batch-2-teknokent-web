@@ -1,7 +1,11 @@
 import { type NextRequest } from "next/server";
 
 import { attachDocumentRequestUpload } from "@/lib/api/document-requests";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = { params: Promise<{ itemId: string }> };
@@ -13,7 +17,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { storedDocumentId?: unknown };
     if (typeof body.storedDocumentId !== "string") {
       return Response.json(
-        { code: "INVALID_REQUEST", message: "storedDocumentId gerekli." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("storedDocumentIdRequired"),
+        },
         { status: 400 },
       );
     }
@@ -25,7 +32,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Belge eklenemedi.",
+      message: await apiText("documentAddFailed"),
     });
   }
 }

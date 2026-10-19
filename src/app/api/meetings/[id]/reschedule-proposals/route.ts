@@ -1,5 +1,9 @@
 import { proposeReschedule } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -20,6 +24,8 @@ export async function POST(
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Yeni saat önerilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("newTimeProposeFailed"),
+    });
   }
 }

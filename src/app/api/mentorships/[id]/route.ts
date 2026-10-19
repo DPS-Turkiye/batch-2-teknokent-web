@@ -6,7 +6,11 @@ import {
   fetchRegularMentorship,
   updateRegularMentorship,
 } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -25,14 +29,17 @@ export async function GET(_request: Request, context: RouteContext) {
       mentorship?.organizationId !== organizationId
     ) {
       return NextResponse.json(
-        { code: "NOT_FOUND", message: "Düzenli mentorlük bulunamadı." },
+        {
+          code: "NOT_FOUND",
+          message: await apiText("regularMentorshipNotFound"),
+        },
         { status: 404 },
       );
     }
     return backendResponse(response);
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Düzenli mentorlük bulunamadı.",
+      message: await apiText("regularMentorshipNotFound"),
     });
   }
 }
@@ -48,7 +55,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     };
     if (!body.startDate || body.daysPerWeek == null) {
       return apiErrorResponse(new Error("missing fields"), {
-        message: "Başlangıç tarihi ve haftalık gün sayısı gerekli.",
+        message: await apiText("startDateAndDaysRequired"),
         status: 400,
       });
     }
@@ -63,7 +70,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Düzenli mentorlük güncellenemedi.",
+      message: await apiText("regularMentorshipUpdateFailed"),
     });
   }
 }
@@ -77,7 +84,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Düzenli mentorlük silinemedi.",
+      message: await apiText("regularMentorshipDeleteFailed"),
     });
   }
 }

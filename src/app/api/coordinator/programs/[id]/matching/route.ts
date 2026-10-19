@@ -1,5 +1,9 @@
 import { createMatch, fetchMatching } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string }> };
@@ -11,7 +15,9 @@ export async function GET(_request: Request, { params }: Params) {
     const { id } = await params;
     return backendResponse(await fetchMatching(auth.session.userId, id));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Eşleşmeler yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("matchesLoadFailed"),
+    });
   }
 }
 
@@ -28,6 +34,8 @@ export async function POST(request: Request, { params }: Params) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Eşleşme oluşturulamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("matchCreateFailed"),
+    });
   }
 }

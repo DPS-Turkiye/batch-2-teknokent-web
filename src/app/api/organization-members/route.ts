@@ -4,7 +4,11 @@ import {
   createOrganizationMember,
   fetchOrganizationMembers,
 } from "@/lib/api/organization-members";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -13,7 +17,7 @@ export async function GET() {
     return backendResponse(await fetchOrganizationMembers(organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Ekip üyeleri yüklenemedi.",
+      message: await apiText("teamMembersLoadFailed"),
     });
   }
 }
@@ -27,7 +31,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Ekip üyesi eklenemedi.",
+      message: await apiText("teamMemberAddFailed"),
     });
   }
 }

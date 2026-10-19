@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { listStoredDocuments, uploadStoredDocument } from "@/lib/api/documents";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
@@ -20,7 +24,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await listStoredDocuments({ userId }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Belgeler yüklenemedi.",
+      message: await apiText("documentsLoadFailed"),
     });
   }
 }
@@ -30,7 +34,7 @@ export async function POST(request: NextRequest) {
     const idToken = readBearerToken(request);
     if (!idToken) {
       return Response.json(
-        { code: "UNAUTHORIZED", message: "Oturum gerekli." },
+        { code: "UNAUTHORIZED", message: await apiText("sessionRequired") },
         { status: 401 },
       );
     }
@@ -38,7 +42,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await uploadStoredDocument({ formData, idToken }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Belge yüklenemedi.",
+      message: await apiText("documentLoadFailed"),
     });
   }
 }

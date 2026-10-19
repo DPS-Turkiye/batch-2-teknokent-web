@@ -2,7 +2,11 @@ import {
   createCoordinatorProgram,
   fetchCoordinatorPrograms,
 } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function GET() {
@@ -12,7 +16,7 @@ export async function GET() {
     return backendResponse(await fetchCoordinatorPrograms(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Programlar yüklenemedi.",
+      message: await apiText("programsLoadFailed"),
     });
   }
 }
@@ -26,6 +30,8 @@ export async function POST(request: Request) {
       await createCoordinatorProgram(auth.session.userId, body),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Program oluşturulamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("programCreateFailed"),
+    });
   }
 }

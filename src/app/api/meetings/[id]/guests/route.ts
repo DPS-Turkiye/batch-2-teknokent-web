@@ -7,7 +7,11 @@ import {
   resolveGuestMentor,
   resolveMentorMeetingOrganization,
 } from "@/lib/server/mentor-meeting";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
 
 type RouteContext = {
@@ -21,7 +25,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return Response.json(
         {
           code: "FORBIDDEN",
-          message: "Katılımcı eklemek yalnızca mentöre açık.",
+          message: await apiText("onlyMentorAddsParticipants"),
         },
         { status: 403 },
       );
@@ -55,7 +59,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return Response.json(
         {
           code: "INVALID_REQUEST",
-          message: "Eklenecek bir startup veya mentör seçilmelidir.",
+          message: await apiText("participantRequired"),
         },
         { status: 400 },
       );
@@ -64,7 +68,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return backendResponse(await inviteMeetingGuest(id, guest));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı katılımcısı eklenemedi.",
+      message: await apiText("participantAddFailed"),
     });
   }
 }

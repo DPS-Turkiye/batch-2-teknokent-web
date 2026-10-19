@@ -4,7 +4,11 @@ import {
   fetchMeetingFeedback,
   submitMeetingFeedback,
 } from "@/lib/api/meetings";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -18,7 +22,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingFeedback(id, userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Değerlendirme yüklenemedi.",
+      message: await apiText("feedbackLoadFailed"),
     });
   }
 }
@@ -31,7 +35,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return backendResponse(await submitMeetingFeedback(id, userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Değerlendirme kaydedilemedi.",
+      message: await apiText("feedbackSaveFailed"),
     });
   }
 }

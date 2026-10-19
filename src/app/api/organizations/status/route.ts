@@ -1,6 +1,10 @@
 import type { StartupStatusInput } from "@/interfaces/organization";
 import { updateOrganizationStatus } from "@/lib/api/organization";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function PUT(request: Request) {
@@ -12,7 +16,7 @@ export async function PUT(request: Request) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup durumu kaydedilemedi.",
+      message: await apiText("startupStatusSaveFailed"),
     });
   }
 }

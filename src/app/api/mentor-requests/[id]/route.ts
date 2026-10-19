@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET(
@@ -14,7 +18,7 @@ export async function GET(
     return backendResponse(await fetchMentorRequest(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorluk talebi hizmetine ulaşılamıyor.",
+      message: await apiText("mentorRequestServiceUnavailable"),
     });
   }
 }

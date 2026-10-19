@@ -1,7 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useEffect } from "react";
+
+import { Locale } from "@/lib/i18n";
 
 type ClientTranslator = ReturnType<typeof useTranslations<"clientErrors">>;
 type ClientTextKey = Parameters<ClientTranslator>[0];
@@ -9,9 +11,19 @@ type ClientTextKey = Parameters<ClientTranslator>[0];
 // Error texts are built in plain modules (lib/client, lib/firebase) that cannot call hooks;
 // the root layout hands them the active translator so they need not bundle both message files.
 let translate: ClientTranslator | null = null;
+let activeLocale: string = Locale.Tr;
 
-export function setClientTexts(translator: ClientTranslator | null) {
+export function setClientTexts(
+  translator: ClientTranslator | null,
+  locale: string = Locale.Tr,
+) {
   translate = translator;
+  activeLocale = locale;
+}
+
+/** The language the app is shown in, for plain modules that cannot call useLocale. */
+export function clientLocale(): string {
+  return activeLocale;
 }
 
 /** A `clientErrors` message in the active language; the key itself before the app has mounted. */
@@ -29,6 +41,7 @@ export function hasClientText(key: string): key is ClientTextKey {
 
 export function ClientTexts() {
   const t = useTranslations("clientErrors");
-  useEffect(() => setClientTexts(t), [t]);
+  const locale = useLocale();
+  useEffect(() => setClientTexts(t, locale), [t, locale]);
   return null;
 }

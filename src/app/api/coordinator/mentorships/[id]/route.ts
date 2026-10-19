@@ -1,5 +1,9 @@
 import { fetchCoordinatorMentorship } from "@/lib/api/coordinator-mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function GET(
@@ -15,7 +19,7 @@ export async function GET(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorluk yüklenemedi.",
+      message: await apiText("mentorshipLoadFailed"),
     });
   }
 }

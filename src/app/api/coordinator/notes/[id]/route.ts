@@ -1,5 +1,9 @@
 import { deleteCoordinatorNote } from "@/lib/api/coordinator-notes";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function DELETE(
@@ -14,6 +18,8 @@ export async function DELETE(
       await deleteCoordinatorNote(auth.session.userId, id),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Not silinemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("noteDeleteFailed"),
+    });
   }
 }

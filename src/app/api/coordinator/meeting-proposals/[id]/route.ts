@@ -1,5 +1,9 @@
 import { withdrawMeetingProposal } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function DELETE(
@@ -15,7 +19,7 @@ export async function DELETE(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Görüşme önerisi geri çekilemedi.",
+      message: await apiText("meetingProposalWithdrawFailed"),
     });
   }
 }

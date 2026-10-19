@@ -6,7 +6,11 @@ import {
   removeOrganizationMember,
   updateOrganizationMember,
 } from "@/lib/api/organization-members";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type Context = { params: Promise<{ memberId: string }> };
@@ -24,7 +28,9 @@ export async function PATCH(request: NextRequest, { params }: Context) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Ekip üyesi güncellenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("teamMemberUpdateFailed"),
+    });
   }
 }
 
@@ -36,6 +42,8 @@ export async function DELETE(_request: NextRequest, { params }: Context) {
       await removeOrganizationMember(organizationId, memberId, userId),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Ekip üyesi çıkarılamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("teamMemberRemoveFailed"),
+    });
   }
 }

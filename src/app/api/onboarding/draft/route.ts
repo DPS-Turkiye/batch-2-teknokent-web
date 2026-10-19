@@ -5,16 +5,20 @@ import {
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/api/onboarding-draft";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
-function requireIdToken(request: NextRequest) {
+async function requireIdToken(request: NextRequest) {
   const idToken = readBearerToken(request);
   if (idToken) return idToken;
   return NextResponse.json(
     {
       code: "INVALID_REQUEST",
-      message: "Firebase kimlik anahtarı gerekli.",
+      message: await apiText("firebaseTokenRequired"),
     },
     { status: 400 },
   );
@@ -22,19 +26,19 @@ function requireIdToken(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const idToken = requireIdToken(request);
+    const idToken = await requireIdToken(request);
     if (idToken instanceof NextResponse) return idToken;
     return backendResponse(await fetchOnboardingDraft(idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Kayıt taslağı yüklenemedi.",
+      message: await apiText("signupDraftLoadFailed"),
     });
   }
 }
 
 export async function PUT(request: NextRequest) {
   try {
-    const idToken = requireIdToken(request);
+    const idToken = await requireIdToken(request);
     if (idToken instanceof NextResponse) return idToken;
     const body = (await request.json()) as {
       kind?: string;
@@ -50,19 +54,19 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Kayıt taslağı kaydedilemedi.",
+      message: await apiText("signupDraftSaveFailed"),
     });
   }
 }
 
 export async function DELETE(request: NextRequest) {
   try {
-    const idToken = requireIdToken(request);
+    const idToken = await requireIdToken(request);
     if (idToken instanceof NextResponse) return idToken;
     return backendResponse(await deleteOnboardingDraft(idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Kayıt taslağı silinemedi.",
+      message: await apiText("signupDraftDeleteFailed"),
     });
   }
 }

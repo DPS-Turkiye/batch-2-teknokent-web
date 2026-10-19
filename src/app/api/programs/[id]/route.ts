@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchProgramDetail } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -16,7 +20,7 @@ export async function GET(
     return backendResponse(await fetchProgramDetail(id, userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program detayı yüklenemedi.",
+      message: await apiText("programDetailLoadFailed"),
     });
   }
 }

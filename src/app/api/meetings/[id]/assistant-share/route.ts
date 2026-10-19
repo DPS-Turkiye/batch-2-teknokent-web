@@ -6,7 +6,11 @@ import {
   publishAssistantShare,
 } from "@/lib/api/meeting-notes";
 import { publishAssistantShareBodySchema } from "@/lib/notes-schemas";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
@@ -32,7 +36,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Asistan paylaşımı yüklenemedi.",
+      message: await apiText("assistantShareLoadFailed"),
     });
   }
 }
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Transkript veya rapor içeriği gerekli.",
+          message: await apiText("transcriptOrReportRequired"),
         },
         { status: 400 },
       );
@@ -70,7 +74,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
         return NextResponse.json(
           {
             code: "INVALID_REQUEST",
-            message: "Toplantı transkripti boş.",
+            message: await apiText("transcriptEmpty"),
           },
           { status: 400 },
         );
@@ -87,7 +91,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Asistan paylaşımı yayımlanamadı.",
+      message: await apiText("assistantSharePublishFailed"),
     });
   }
 }

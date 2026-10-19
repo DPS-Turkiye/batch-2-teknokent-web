@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchOrganizationMembers } from "@/lib/api/organization-members";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
@@ -16,7 +20,7 @@ export async function GET(
     return backendResponse(await fetchOrganizationMembers(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Ekip üyeleri yüklenemedi.",
+      message: await apiText("teamMembersLoadFailed"),
     });
   }
 }

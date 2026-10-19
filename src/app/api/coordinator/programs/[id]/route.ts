@@ -2,7 +2,11 @@ import {
   fetchCoordinatorProgram,
   updateCoordinatorProgram,
 } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string }> };
@@ -16,7 +20,9 @@ export async function GET(_request: Request, { params }: Params) {
       await fetchCoordinatorProgram(auth.session.userId, id),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Program yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("programLoadFailed"),
+    });
   }
 }
 
@@ -46,6 +52,8 @@ export async function PUT(request: Request, { params }: Params) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Program kaydedilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("programSaveFailed"),
+    });
   }
 }

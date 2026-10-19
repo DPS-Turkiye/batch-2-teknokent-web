@@ -1,7 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { fetchProgramMeetingRatings } from "@/lib/api/program-report";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -17,7 +21,7 @@ export async function GET(
     const from = request.nextUrl.searchParams.get("from");
     if (from != null && !DAY.test(from)) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Geçerli bir tarih seçin." },
+        { code: "INVALID_REQUEST", message: await apiText("dateInvalid") },
         { status: 400 },
       );
     }
@@ -26,7 +30,7 @@ export async function GET(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Görüşme değerlendirmeleri yüklenemedi.",
+      message: await apiText("meetingFeedbackLoadFailed"),
     });
   }
 }

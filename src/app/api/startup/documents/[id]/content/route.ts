@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 
 import { fetchDocumentDownloadUrl } from "@/lib/api/startup-documents";
 import { contentDispositionHeader } from "@/lib/content-disposition";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type SignedFile = {
@@ -27,7 +31,7 @@ export async function GET(
     const file = (signed.data ?? {}) as SignedFile;
     if (!file.url) {
       return NextResponse.json(
-        { message: "Dosya açılamadı." },
+        { message: await apiText("fileOpenFailed") },
         { status: 502 },
       );
     }
@@ -35,7 +39,7 @@ export async function GET(
     const upstream = await fetch(file.url);
     if (!upstream.ok || !upstream.body) {
       return NextResponse.json(
-        { message: "Dosya açılamadı." },
+        { message: await apiText("fileOpenFailed") },
         { status: 502 },
       );
     }
@@ -58,7 +62,7 @@ export async function GET(
     });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Dosya açılamadı.",
+      message: await apiText("fileOpenFailed"),
     });
   }
 }

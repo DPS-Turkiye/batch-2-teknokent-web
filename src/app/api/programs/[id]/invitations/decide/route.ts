@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { decideProgramInvitation } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -14,7 +18,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { accepted?: boolean };
     if (typeof body.accepted !== "boolean") {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Bir karar seçmeniz gerekiyor." },
+        { code: "INVALID_REQUEST", message: await apiText("decisionRequired") },
         { status: 400 },
       );
     }
@@ -23,7 +27,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Davet yanıtlanamadı.",
+      message: await apiText("inviteAnswerFailed"),
     });
   }
 }

@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { fetchSignedInUser } from "@/lib/api/auth";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
 export async function GET(request: NextRequest) {
@@ -12,7 +16,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Firebase kimlik anahtarı gerekli.",
+          message: await apiText("firebaseTokenRequired"),
         },
         { status: 400 },
       );
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchSignedInUser(idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Başvuru durumu alınamadı.",
+      message: await apiText("applicationStatusFailed"),
     });
   }
 }

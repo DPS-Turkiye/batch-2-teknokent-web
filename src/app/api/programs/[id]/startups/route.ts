@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { addProgramStartup } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-program-access";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -14,7 +18,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { organizationId?: string };
     if (!body.organizationId) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Bir startup seçmeniz gerekiyor." },
+        { code: "INVALID_REQUEST", message: await apiText("startupRequired") },
         { status: 400 },
       );
     }
@@ -23,7 +27,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup programa eklenemedi.",
+      message: await apiText("startupAddFailed"),
     });
   }
 }

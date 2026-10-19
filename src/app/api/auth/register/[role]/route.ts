@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { isRegisterRole, registerAccount } from "@/lib/api/auth";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
 export async function POST(
@@ -12,7 +16,10 @@ export async function POST(
     const { role } = await params;
     if (!isRegisterRole(role)) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Kayıt rolü tanınmıyor." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("registerRoleUnknown"),
+        },
         { status: 404 },
       );
     }
@@ -22,7 +29,7 @@ export async function POST(
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Firebase kimlik anahtarı gerekli.",
+          message: await apiText("firebaseTokenRequired"),
         },
         { status: 400 },
       );
@@ -32,7 +39,7 @@ export async function POST(
     return backendResponse(await registerAccount(role, payload, idToken));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Kayıt tamamlanamadı.",
+      message: await apiText("registrationFailed"),
     });
   }
 }

@@ -1,7 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
 
 import { fetchCoordinatorCalendar } from "@/lib/api/coordinator-calendar";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
@@ -17,7 +21,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Geçerli bir tarih aralığı seçin.",
+          message: await apiText("dateRangeInvalid"),
         },
         { status: 400 },
       );
@@ -30,6 +34,8 @@ export async function GET(request: NextRequest) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Takvim yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("calendarLoadFailed"),
+    });
   }
 }

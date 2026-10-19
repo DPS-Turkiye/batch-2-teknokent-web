@@ -1,5 +1,9 @@
 import { declineMeetingProposal } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -16,6 +20,8 @@ export async function POST(
       await declineMeetingProposal(userId, id, body.reason ?? null),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Yanıt gönderilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("answerSendFailed"),
+    });
   }
 }

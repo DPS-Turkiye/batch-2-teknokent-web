@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 const RECOMMENDATION_HEADERS = [
@@ -20,7 +24,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor öneri hizmetine ulaşılamıyor.",
+      message: await apiText("mentorRecommendationUnavailable"),
     });
   }
 }

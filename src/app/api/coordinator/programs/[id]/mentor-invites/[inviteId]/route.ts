@@ -1,5 +1,9 @@
 import { cancelMentorInvite } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function DELETE(
@@ -14,6 +18,8 @@ export async function DELETE(
       await cancelMentorInvite(auth.session.userId, id, inviteId),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Davet geri alınamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("inviteWithdrawFailed"),
+    });
   }
 }

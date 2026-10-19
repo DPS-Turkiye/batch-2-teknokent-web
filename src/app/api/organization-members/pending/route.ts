@@ -1,5 +1,9 @@
 import { fetchPendingMembers } from "@/lib/api/organization-members";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -8,7 +12,7 @@ export async function GET() {
     return backendResponse(await fetchPendingMembers(organizationId, userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Katılım bekleyen üyeler yüklenemedi.",
+      message: await apiText("pendingMembersLoadFailed"),
     });
   }
 }

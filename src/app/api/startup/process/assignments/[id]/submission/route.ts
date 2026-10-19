@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { submitProcessAssignment } from "@/lib/api/startup-process";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function PUT(
@@ -17,7 +21,7 @@ export async function PUT(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Ödev teslim edilemedi.",
+      message: await apiText("assignmentSubmitFailed"),
     });
   }
 }

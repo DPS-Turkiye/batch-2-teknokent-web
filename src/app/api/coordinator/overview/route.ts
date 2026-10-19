@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchCoordinatorOverview } from "@/lib/api/coordinator-overview";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function GET(request: NextRequest) {
@@ -14,7 +18,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Anasayfa yüklenemedi.",
+      message: await apiText("homeLoadFailed"),
     });
   }
 }

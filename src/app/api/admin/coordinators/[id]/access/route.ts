@@ -1,5 +1,9 @@
 import { setCoordinatorAccess } from "@/lib/api/admin-coordinators";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function PUT(
@@ -16,7 +20,7 @@ export async function PUT(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Koordinatör erişimi değiştirilemedi.",
+      message: await apiText("coordinatorAccessChangeFailed"),
     });
   }
 }

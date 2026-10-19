@@ -1,6 +1,10 @@
 import { UserAccountStatus } from "@/interfaces/session";
 import { fetchUsers } from "@/lib/api/accounts";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function GET() {
@@ -12,7 +16,7 @@ export async function GET() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Bekleyen hesaplar yüklenemedi.",
+      message: await apiText("pendingAccountsLoadFailed"),
     });
   }
 }

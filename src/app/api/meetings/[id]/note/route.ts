@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchMeetingNote, saveMeetingNote } from "@/lib/api/meeting-notes";
 import { saveMeetingNoteBodySchema } from "@/lib/notes-schemas";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -16,7 +20,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingNote(id, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı notu hizmetine ulaşılamıyor.",
+      message: await apiText("meetingNoteServiceUnavailable"),
     });
   }
 }
@@ -29,7 +33,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Not içeriği gerekli.",
+          message: await apiText("noteContentRequired"),
         },
         { status: 400 },
       );
@@ -39,7 +43,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     return backendResponse(await saveMeetingNote(id, session, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı notu kaydedilemedi.",
+      message: await apiText("meetingNoteSaveFailed"),
     });
   }
 }
