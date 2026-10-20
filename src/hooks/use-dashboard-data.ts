@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo } from "react";
 
@@ -13,11 +12,10 @@ import {
 import { UserRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
-import { getActionItems } from "@/lib/client/action-items";
 import { isOpenActionItem } from "@/lib/mentor-dashboard";
 import {
   DASHBOARD_FALLBACK_MEETINGS,
@@ -78,27 +76,15 @@ export function useDashboardData() {
       requestNeedsMenteeAction(request, meetings),
   );
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
-  const { actionItems, actionItemRequestIds, isLoadingActionItems } =
-    useQueries({
-      queries: activeRequests.map((request) => ({
-        queryKey: actionItemsQueryKey(request.id),
-        queryFn: () => getActionItems(request.id),
-      })),
-      combine: (results) => {
-        const requestIds: Record<string, string> = {};
-        const items = results.flatMap((result, index) =>
-          (result.data ?? []).map((item) => {
-            requestIds[item.id] = activeRequests[index]?.id ?? "";
-            return item;
-          }),
-        );
-        return {
-          actionItems: items,
-          actionItemRequestIds: requestIds,
-          isLoadingActionItems: results.some((result) => result.isLoading),
-        };
-      },
-    });
+  const { byRequest, isLoading: isLoadingActionItems } =
+    useActionItemsForRequests(activeRequests.map((request) => request.id));
+  const { actionItems, actionItemRequestIds } = useMemo(() => {
+    const requestIds: Record<string, string> = {};
+    const items = byRequest.flat();
+    for (const item of items)
+      requestIds[item.id] = item.mentorshipRequestId ?? "";
+    return { actionItems: items, actionItemRequestIds: requestIds };
+  }, [byRequest]);
   const openActionItems = useMemo(
     () =>
       actionItems

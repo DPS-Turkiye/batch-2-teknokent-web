@@ -1,15 +1,13 @@
 "use client";
 
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
-import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import {
+  ACTION_ITEMS_QUERY_KEY,
+  useActionItemsForRequests,
+} from "@/hooks/use-action-items";
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
@@ -21,10 +19,7 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, type MobileTask } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
-import {
-  changeActionItemStatus,
-  getActionItems,
-} from "@/lib/client/action-items";
+import { changeActionItemStatus } from "@/lib/client/action-items";
 import { getMemberProgramEvents } from "@/lib/client/programs";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import { homeTaskId } from "@/lib/mentee-home";
@@ -69,16 +64,9 @@ export function useMobileTasks() {
       ),
     [requests.data],
   );
-  const actionItems = useQueries({
-    queries: accepted.map((request) => ({
-      queryKey: actionItemsQueryKey(request.id),
-      queryFn: () => getActionItems(request.id),
-    })),
-    combine: (results) => ({
-      byRequest: results.map((result) => result.data ?? []),
-      isLoading: results.some((result) => result.isLoading),
-    }),
-  });
+  const actionItems = useActionItemsForRequests(
+    accepted.map((request) => request.id),
+  );
   // A mentee outside a startup has no process; that is not an error here.
   const process = useQuery({
     queryKey: STARTUP_PROCESS_QUERY_KEY,
@@ -137,10 +125,8 @@ export function useMobileTasks() {
         requestId: input.task.requestId ?? "",
         status: input.status,
       }),
-    onSuccess: (_updated, input) =>
-      queryClient.invalidateQueries({
-        queryKey: actionItemsQueryKey(input.task.requestId ?? ""),
-      }),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ACTION_ITEMS_QUERY_KEY }),
   });
 
   useEffect(() => {
