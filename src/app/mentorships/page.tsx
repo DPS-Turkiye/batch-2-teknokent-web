@@ -13,7 +13,7 @@ import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MeetingFeedbackHistoryLink } from "@/components/mentorships/meeting-feedback-history-link";
 import { MentorMentorshipsWorkspace } from "@/components/mentorships/mentor-mentorships-workspace";
 import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
-import { useAppSession } from "@/components/providers/session-provider";
+import { useSession } from "@/components/providers/session-provider";
 import {
   useMentorshipRequestsPage,
   useMentorshipWorkspace,
@@ -53,26 +53,32 @@ function tabFromSearchParam(value: string | null): MentorshipWorkspaceTab {
 }
 
 export default function MentorshipsPage() {
-  const t = useTranslations("mentorships");
-  const session = useAppSession();
+  const { session, isLoading } = useSession();
+  // Until the role is known, mounting the mentee tabs would send a mentor the mentee query (400).
+  if (isLoading) {
+    return <MentorshipsLoading />;
+  }
   if (session?.role === UserRole.Mentor) {
     return <MentorMentorshipsWorkspace />;
   }
 
   return (
-    <Suspense
-      fallback={
-        <AppShell active={AppArea.Mentorships}>
-          <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
-            <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
-              {t("loading")}
-            </div>
-          </div>
-        </AppShell>
-      }
-    >
+    <Suspense fallback={<MentorshipsLoading />}>
       <MenteeMentorshipsWorkspace />
     </Suspense>
+  );
+}
+
+function MentorshipsLoading() {
+  const t = useTranslations("mentorships");
+  return (
+    <AppShell active={AppArea.Mentorships}>
+      <div className="mx-auto w-full max-w-[1120px] px-4 pb-14 pt-8 sm:px-8">
+        <div className="mt-5 rounded-[20px] border border-[#e4e7ea] bg-white p-10 text-center text-sm text-[#676e78]">
+          {t("loading")}
+        </div>
+      </div>
+    </AppShell>
   );
 }
 
