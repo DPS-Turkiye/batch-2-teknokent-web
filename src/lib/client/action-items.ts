@@ -19,22 +19,8 @@ export async function getActionItemsForRequests(requestIds: string[]) {
   );
 }
 
-export async function addActionItem(input: {
-  requestId: string;
-  ownerId: string;
-  title: string;
-  description?: string;
-  dueDate?: string;
-  meetingId?: string;
-}) {
-  return requireSuccess(
-    await httpClient.post<ActionItem>("/api/action-items", input),
-  );
-}
-
 export async function changeActionItemStatus(input: {
   id: string;
-  requestId: string;
   status: ActionItemStatus;
 }) {
   const { id, ...body } = input;

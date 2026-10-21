@@ -11,6 +11,7 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { getMentorRequestsPage } from "@/lib/client/mentor-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -32,8 +33,14 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
 }));
 
+const sessionState = vi.hoisted(() => ({
+  session: null,
+  isLoading: false,
+}));
+
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () => null,
+  useAppSession: () => sessionState.session,
+  useSession: () => sessionState,
 }));
 
 vi.mock("@/hooks/use-mentors", () => ({
@@ -106,6 +113,8 @@ function mockMentors(
 
 describe("MentorshipsPage", () => {
   beforeEach(() => {
+    sessionState.isLoading = false;
+    vi.mocked(getMentorRequestsPage).mockClear();
     mockMentors([]);
     mockPage("active", []);
     mockPage("requests", []);
@@ -281,6 +290,15 @@ describe("MentorshipsPage", () => {
     expect(
       screen.queryByPlaceholderText(/Mentor, uzmanlık veya konu ara/),
     ).not.toBeInTheDocument();
+  });
+
+  it("waits for the session, so a mentor never fires the mentee requests query", () => {
+    sessionState.isLoading = true;
+
+    renderWithQueryClient(<MentorshipsPage />);
+
+    expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+    expect(getMentorRequestsPage).not.toHaveBeenCalled();
   });
 
   it("shows a loading state while the query is in flight", () => {

@@ -127,7 +127,6 @@ describe("useMobileTasks", () => {
     );
     expect(changeActionItemStatus).toHaveBeenCalledWith({
       id: "a1",
-      requestId: "r1",
       status: ActionItemStatus.Completed,
     });
 
@@ -136,7 +135,6 @@ describe("useMobileTasks", () => {
     await waitFor(() =>
       expect(changeActionItemStatus).toHaveBeenLastCalledWith({
         id: "a1",
-        requestId: "r1",
         status: ActionItemStatus.Open,
       }),
     );

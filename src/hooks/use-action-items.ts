@@ -5,7 +5,6 @@ import { useMemo } from "react";
 
 import type { ActionItem } from "@/interfaces/action-item";
 import {
-  addActionItem,
   changeActionItemStatus,
   getActionItems,
   getActionItemsForRequests,
@@ -45,17 +44,6 @@ export function useActionItems(requestId: string | undefined) {
     queryKey: actionItemsQueryKey(requestId ?? ""),
     queryFn: () => getActionItems(requestId as string),
     enabled: Boolean(requestId),
-  });
-}
-
-export function useAddActionItem() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: addActionItem,
-    onSuccess: () =>
-      queryClient.invalidateQueries({
-        queryKey: ACTION_ITEMS_QUERY_KEY,
-      }),
   });
 }
 

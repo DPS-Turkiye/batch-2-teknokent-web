@@ -122,7 +122,6 @@ export function useMobileTasks() {
     mutationFn: (input: { task: MobileTask; status: ActionItemStatus }) =>
       changeActionItemStatus({
         id: input.task.id.slice(ACTION_PREFIX.length),
-        requestId: input.task.requestId ?? "",
         status: input.status,
       }),
     onSuccess: () =>

@@ -4840,8 +4840,9 @@
   "apiErrors": {
     "requestIdRequired": "A request ID is required.",
     "actionItemsLoadFailed": "Could not load the action items.",
-    "actionItemCreateFailed": "Could not create the action item.",
     "actionItemUpdateFailed": "Could not update the action item.",
+    "actionItemsMenteesAndMentorsOnly": "Tasks are only open to startup members and mentors.",
+    "actionItemsStartupMembersOnly": "Only startup members can update tasks.",
     "coordinatorAddFailed": "Could not add the coordinator.",
     "coordinatorAccessChangeFailed": "Could not change the coordinator's access.",
     "passwordSetupEmailFailed": "Could not send the password setup e-mail.",

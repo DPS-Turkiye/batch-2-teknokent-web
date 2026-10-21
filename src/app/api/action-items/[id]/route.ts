@@ -1,35 +1,37 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { UserRole } from "@/interfaces/session";
 import { updateActionItem } from "@/lib/api/action-items";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
+import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionUser } from "@/lib/session";
 
 export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    await getSessionIds();
-    const { id } = await params;
-    const { requestId, ...payload } = (await request.json()) as Record<
-      string,
-      unknown
-    >;
-    if (typeof requestId !== "string") {
+    const session = await getSessionUser();
+    if (!session) throw new SessionRequiredError();
+    if (session.role !== UserRole.Mentee || !session.organizationId) {
       return NextResponse.json(
         {
-          code: "INVALID_REQUEST",
-          message: await apiText("requestIdRequired"),
+          code: "FORBIDDEN",
+          message: await apiText("actionItemsStartupMembersOnly"),
         },
-        { status: 400 },
+        { status: 403 },
       );
     }
+    const { id } = await params;
+    const payload = (await request.json()) as Record<string, unknown>;
 
-    return backendResponse(await updateActionItem(id, requestId, payload));
+    return backendResponse(
+      await updateActionItem(id, session.organizationId, payload),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("actionItemUpdateFailed"),

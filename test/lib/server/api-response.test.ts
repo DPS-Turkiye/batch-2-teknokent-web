@@ -1,3 +1,4 @@
+import { AxiosError } from "axios";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -86,6 +87,35 @@ describe("apiErrorResponse", () => {
       code: "SESSION_REQUIRED",
       message: "You are not signed in.",
     });
+  });
+});
+
+describe("apiErrorResponse for a backend that does not answer", () => {
+  it("reports a timeout as 504, not a bad gateway", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await apiErrorResponse(
+      new AxiosError("timeout of 15000ms exceeded", AxiosError.ECONNABORTED),
+      { message: "Aksiyonlar yüklenemedi." },
+    );
+
+    expect(response.status).toBe(504);
+    expect(await response.json()).toEqual({
+      code: "BACKEND_TIMEOUT",
+      message: "Aksiyonlar yüklenemedi.",
+    });
+  });
+
+  it("keeps 502 for a backend that cannot be reached", async () => {
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const response = await apiErrorResponse(
+      new AxiosError("connect ECONNREFUSED", "ECONNREFUSED"),
+      { message: "Aksiyonlar yüklenemedi." },
+    );
+
+    expect(response.status).toBe(502);
+    expect((await response.json()).code).toBe("BACKEND_UNAVAILABLE");
   });
 });
 

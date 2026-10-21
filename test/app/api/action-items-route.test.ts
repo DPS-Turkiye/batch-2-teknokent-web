@@ -1,54 +1,121 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { PATCH } from "@/app/api/action-items/[id]/route";
 import { GET } from "@/app/api/action-items/route";
+import { type AppSession, UserRole } from "@/interfaces/session";
 import {
   fetchActionItems,
   fetchActionItemsForRequests,
+  updateActionItem,
 } from "@/lib/api/action-items";
-import { getSessionIds } from "@/lib/session";
+import { HttpMethod } from "@/lib/http-method";
+import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/action-items", () => ({
   fetchActionItems: vi.fn(),
   fetchActionItemsForRequests: vi.fn(),
-  createActionItem: vi.fn(),
+  updateActionItem: vi.fn(),
 }));
 
 vi.mock("@/lib/session", () => ({
-  getSessionIds: vi.fn(),
+  getSessionUser: vi.fn(),
 }));
 
 const ok = { data: [], headers: {}, status: 200 } as Awaited<
   ReturnType<typeof fetchActionItems>
 >;
 
-describe("GET /api/action-items", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(getSessionIds).mockResolvedValue({
-      userId: "u-1",
-      organizationId: "org-1",
-    } as Awaited<ReturnType<typeof getSessionIds>>);
-    vi.mocked(fetchActionItems).mockResolvedValue(ok);
-    vi.mocked(fetchActionItemsForRequests).mockResolvedValue(ok);
-  });
+function session(role: AppSession["role"], organizationId?: string) {
+  return {
+    userId: "u-1",
+    email: "u@example.com",
+    fullName: "U",
+    jobTitle: "",
+    role,
+    organizationId,
+  } satisfies AppSession;
+}
 
-  it("asks the backend once for several requests", async () => {
+function patch(body: unknown) {
+  return PATCH(
+    new NextRequest("http://localhost/api/action-items/item-1", {
+      method: HttpMethod.Patch,
+      body: JSON.stringify(body),
+    }),
+    { params: Promise.resolve({ id: "item-1" }) },
+  );
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  vi.mocked(fetchActionItems).mockResolvedValue(ok);
+  vi.mocked(fetchActionItemsForRequests).mockResolvedValue(ok);
+  vi.mocked(updateActionItem).mockResolvedValue(ok);
+});
+
+describe("GET /api/action-items", () => {
+  it("asks the backend once for several requests, as the mentee's startup", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(
+      session(UserRole.Mentee, "org-1"),
+    );
+
     const response = await GET(
       new NextRequest("http://localhost/api/action-items?requestIds=r1,r2"),
     );
 
     expect(response.status).toBe(200);
-    expect(fetchActionItemsForRequests).toHaveBeenCalledWith(["r1", "r2"]);
+    expect(fetchActionItemsForRequests).toHaveBeenCalledWith(["r1", "r2"], {
+      organizationId: "org-1",
+    });
     expect(fetchActionItems).not.toHaveBeenCalled();
   });
 
-  it("still answers a single request", async () => {
+  it("asks for a single request as the mentor", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(session(UserRole.Mentor));
+
     await GET(
       new NextRequest("http://localhost/api/action-items?requestId=r1"),
     );
 
-    expect(fetchActionItems).toHaveBeenCalledWith("r1");
+    expect(fetchActionItems).toHaveBeenCalledWith("r1", { mentorId: "u-1" });
     expect(fetchActionItemsForRequests).not.toHaveBeenCalled();
+  });
+
+  it("refuses other roles without calling the backend", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(session(UserRole.Admin));
+
+    const response = await GET(
+      new NextRequest("http://localhost/api/action-items?requestId=r1"),
+    );
+
+    expect(response.status).toBe(403);
+    expect(fetchActionItems).not.toHaveBeenCalled();
+  });
+});
+
+describe("PATCH /api/action-items/[id]", () => {
+  it("edits within the mentee's own startup, whatever request the body names", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(
+      session(UserRole.Mentee, "org-1"),
+    );
+
+    const response = await patch({ requestId: "someone-elses", status: "X" });
+
+    expect(response.status).toBe(200);
+    expect(updateActionItem).toHaveBeenCalledWith(
+      "item-1",
+      "org-1",
+      expect.anything(),
+    );
+  });
+
+  it("refuses mentors", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(session(UserRole.Mentor));
+
+    const response = await patch({ status: "X" });
+
+    expect(response.status).toBe(403);
+    expect(updateActionItem).not.toHaveBeenCalled();
   });
 });

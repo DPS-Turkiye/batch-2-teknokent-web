@@ -4840,8 +4840,9 @@
   "apiErrors": {
     "requestIdRequired": "Talep kimliği gerekli.",
     "actionItemsLoadFailed": "Aksiyonlar yüklenemedi.",
-    "actionItemCreateFailed": "Aksiyon oluşturulamadı.",
     "actionItemUpdateFailed": "Aksiyon güncellenemedi.",
+    "actionItemsMenteesAndMentorsOnly": "Görevler yalnızca startup üyelerine ve mentorlara açık.",
+    "actionItemsStartupMembersOnly": "Görevleri yalnızca startup üyeleri güncelleyebilir.",
     "coordinatorAddFailed": "Koordinatör eklenemedi.",
     "coordinatorAccessChangeFailed": "Koordinatör erişimi değiştirilemedi.",
     "passwordSetupEmailFailed": "Şifre belirleme e-postası gönderilemedi.",

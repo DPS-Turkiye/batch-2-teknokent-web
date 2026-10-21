@@ -17,7 +17,6 @@ import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/action-items", () => ({
-  addActionItem: vi.fn(),
   changeActionItemStatus: vi.fn(),
   getActionItems: vi.fn(),
 }));
@@ -76,7 +75,6 @@ describe("useTaskNotebook", () => {
     await waitFor(() => expect(changeActionItemStatus).toHaveBeenCalled());
     expect(vi.mocked(changeActionItemStatus).mock.calls[0][0]).toEqual({
       id: "a1",
-      requestId: "r1",
       status: ActionItemStatus.Completed,
     });
 
@@ -86,7 +84,6 @@ describe("useTaskNotebook", () => {
     );
     expect(vi.mocked(changeActionItemStatus).mock.calls[1][0]).toEqual({
       id: "a1",
-      requestId: "r1",
       status: ActionItemStatus.Open,
     });
   });
