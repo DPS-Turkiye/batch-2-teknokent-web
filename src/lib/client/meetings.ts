@@ -39,6 +39,14 @@ export type MeetingFeedbackItem = {
   createdAt: string;
 };
 
+/** Which of these meetings the signed-in user has already rated. */
+export async function getRatedMeetingIds(meetingIds: string[]) {
+  const response = await httpClient.get<string[]>("/api/meetings/feedback", {
+    params: { meetingIds: meetingIds.join(",") },
+  });
+  return requireSuccess(response);
+}
+
 export async function getMeetingFeedback(meetingId: string) {
   const response = await httpClient.get<MeetingFeedbackItem>(
     `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
