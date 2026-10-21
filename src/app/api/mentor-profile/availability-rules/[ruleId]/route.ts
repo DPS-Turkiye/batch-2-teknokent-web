@@ -1,5 +1,9 @@
 import { deleteMentorAvailabilityRule } from "@/lib/api/mentor-profile";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -13,7 +17,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     return backendResponse(await deleteMentorAvailabilityRule(userId, ruleId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik kuralı silinemedi.",
+      message: await apiText("availabilityRuleDeleteFailed"),
     });
   }
 }

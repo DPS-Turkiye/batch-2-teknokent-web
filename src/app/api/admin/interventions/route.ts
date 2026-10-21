@@ -2,7 +2,11 @@ import {
   fetchAdminInterventions,
   openAdminIntervention,
 } from "@/lib/api/admin-interventions";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function GET() {
@@ -11,7 +15,9 @@ export async function GET() {
     if (!auth.ok) return auth.response;
     return backendResponse(await fetchAdminInterventions(auth.session.userId));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Takipler yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("followUpsLoadFailed"),
+    });
   }
 }
 
@@ -28,6 +34,8 @@ export async function POST(request: Request) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Bildirim gönderilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("notificationSendFailed"),
+    });
   }
 }

@@ -1,5 +1,9 @@
 import { addCoordinator } from "@/lib/api/admin-coordinators";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function POST(request: Request) {
@@ -14,6 +18,8 @@ export async function POST(request: Request) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Koordinatör eklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("coordinatorAddFailed"),
+    });
   }
 }

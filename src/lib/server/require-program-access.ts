@@ -4,10 +4,11 @@ import { NextResponse } from "next/server";
 
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
+import { apiText, type ApiTextKey } from "@/lib/server/api-response";
 
 async function requireRole(
   role: UserRole,
-  forbiddenMessage: string,
+  forbidden: ApiTextKey,
 ): Promise<
   { ok: true; session: AppSession } | { ok: false; response: NextResponse }
 > {
@@ -16,7 +17,7 @@ async function requireRole(
     return {
       ok: false,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -25,7 +26,7 @@ async function requireRole(
     return {
       ok: false,
       response: NextResponse.json(
-        { code: "FORBIDDEN", message: forbiddenMessage },
+        { code: "FORBIDDEN", message: await apiText(forbidden) },
         { status: 403 },
       ),
     };
@@ -34,17 +35,11 @@ async function requireRole(
 }
 
 export function requireCoordinatorSession() {
-  return requireRole(
-    UserRole.Coordinator,
-    "Programları yalnızca koordinatörler yönetebilir.",
-  );
+  return requireRole(UserRole.Coordinator, "coordinatorsOnlyManage");
 }
 
 export function requireMentorSession() {
-  return requireRole(
-    UserRole.Mentor,
-    "Bu işlemi yalnızca mentorlar yapabilir.",
-  );
+  return requireRole(UserRole.Mentor, "mentorsOnlyAction");
 }
 
 /**
@@ -60,7 +55,7 @@ export async function requireStartupSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -71,7 +66,7 @@ export async function requireStartupSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Programlarını yalnızca startup üyeleri görüntüleyebilir.",
+          message: await apiText("startupMembersOnlyPrograms"),
         },
         { status: 403 },
       ),
@@ -86,7 +81,7 @@ export async function requireCoordinatorOrMentorSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -101,8 +96,7 @@ export async function requireCoordinatorOrMentorSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message:
-            "Programları yalnızca koordinatörler ve mentorlar görüntüleyebilir.",
+          message: await apiText("coordinatorsAndMentorsOnlyPrograms"),
         },
         { status: 403 },
       ),

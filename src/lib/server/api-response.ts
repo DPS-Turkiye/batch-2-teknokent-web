@@ -1,9 +1,19 @@
 import "server-only";
 
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 
 import type { BackendResponse } from "@/lib/server/backend-client";
+import type messages from "@/messages/tr.json";
 import { SessionRequiredError } from "@/lib/server/session-error";
+
+export type ApiTextKey = keyof (typeof messages)["apiErrors"];
+
+/** A route handler's own error text, in the caller's language. */
+export async function apiText(key: ApiTextKey) {
+  const t = await getTranslations("apiErrors");
+  return t(key);
+}
 
 export type ApiErrorCode =
   "BACKEND_UNAVAILABLE" | "INVALID_REQUEST" | "SESSION_REQUIRED";
@@ -29,7 +39,7 @@ export function backendResponse(
   });
 }
 
-export function apiErrorResponse(
+export async function apiErrorResponse(
   error: unknown,
   options: {
     code?: ApiErrorCode;
@@ -39,7 +49,7 @@ export function apiErrorResponse(
 ) {
   if (error instanceof SessionRequiredError) {
     return NextResponse.json(
-      { code: "SESSION_REQUIRED", message: error.message },
+      { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
       { status: 401 },
     );
   }

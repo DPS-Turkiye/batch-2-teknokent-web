@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchOrganization } from "@/lib/api/organization";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
 import { SessionRequiredError } from "@/lib/server/session-error";
 
@@ -16,7 +20,7 @@ export async function GET(
     return backendResponse(await fetchOrganization(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup profili yüklenemedi.",
+      message: await apiText("startupProfileLoadFailed"),
     });
   }
 }

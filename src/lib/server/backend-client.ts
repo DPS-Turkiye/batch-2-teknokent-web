@@ -4,6 +4,7 @@ import axios, {
   type AxiosRequestConfig,
   type RawAxiosResponseHeaders,
 } from "axios";
+import { getLocale } from "next-intl/server";
 
 import { getBackendUrl } from "@/lib/const";
 
@@ -37,6 +38,8 @@ export async function backendRequest<T = unknown>(
     ...config,
     headers: {
       Accept: "application/json",
+      // Backend errors, field messages and match reasons follow it.
+      "Accept-Language": await getLocale(),
       ...(options.idToken
         ? { Authorization: `Bearer ${options.idToken}` }
         : undefined),

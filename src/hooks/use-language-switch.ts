@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
 
+import { saveLanguage } from "@/lib/client/auth";
 import {
   type Locale,
   LOCALE_COOKIE,
@@ -15,6 +16,8 @@ export function useLanguageSwitch() {
   const locale = useLocale();
   const setLocale = (next: Locale) => {
     document.cookie = `${LOCALE_COOKIE}=${next}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE_SECONDS}; samesite=lax`;
+    // Only the backend's notification and e-mail wording depends on it, so a failed save must not stop the switch.
+    void saveLanguage(next).catch(() => undefined);
     router.refresh();
   };
   return { locale, setLocale };

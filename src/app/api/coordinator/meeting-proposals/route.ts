@@ -1,5 +1,9 @@
 import { fetchCoordinatorMeetingProposals } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function GET(request: Request) {
@@ -15,7 +19,7 @@ export async function GET(request: Request) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Görüşme önerileri yüklenemedi.",
+      message: await apiText("meetingProposalsLoadFailed"),
     });
   }
 }

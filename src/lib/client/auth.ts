@@ -1,7 +1,9 @@
 import type { ContactPreference } from "@/interfaces/signup";
 import type { AppSession, BackendUser } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
+import type { Locale } from "@/lib/i18n";
 
 export type FounderRegistration = {
   fullName: string;
@@ -94,6 +96,19 @@ export async function registerMember(
 export async function fetchAccountStatus(idToken: string) {
   return requireSuccess(
     await httpClient.get<BackendUser>("/api/auth/status", bearer(idToken)),
+  );
+}
+
+/** Saves the language for the backend's notifications and e-mails; signed out, there is nobody to save it for. */
+export async function saveLanguage(language: Locale) {
+  const idToken = await currentIdToken();
+  if (!idToken) return;
+  requireSuccess(
+    await httpClient.put(
+      "/api/session/language",
+      { language },
+      bearer(idToken),
+    ),
   );
 }
 

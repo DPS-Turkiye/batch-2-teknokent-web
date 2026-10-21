@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { confirmProfileAnalysis } from "@/lib/api/profile-analysis";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function PATCH(
@@ -15,7 +19,7 @@ export async function PATCH(
     return backendResponse(await confirmProfileAnalysis(id, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profil kaydedilemedi.",
+      message: await apiText("profileSaveFailed"),
     });
   }
 }

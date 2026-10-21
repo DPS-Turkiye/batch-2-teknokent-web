@@ -4,7 +4,11 @@ import {
   createMentorAvailabilitySlot,
   fetchMentorAvailability,
 } from "@/lib/api/mentor-profile";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -13,7 +17,7 @@ export async function GET() {
     return backendResponse(await fetchMentorAvailability(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik bilgileri yüklenemedi.",
+      message: await apiText("availabilityLoadFailed"),
     });
   }
 }
@@ -25,7 +29,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorAvailabilitySlot(userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik saati oluşturulamadı.",
+      message: await apiText("availabilitySlotCreateFailed"),
     });
   }
 }

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
+import { apiText } from "@/lib/server/api-response";
 
 /** Coordinators run their programs; an admin may open any coordinator screen too. */
 export async function requireCoordinatorSession() {
@@ -12,7 +13,7 @@ export async function requireCoordinatorSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -26,7 +27,7 @@ export async function requireCoordinatorSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Bu sayfayı yalnızca koordinatörler görebilir.",
+          message: await apiText("coordinatorsOnlyPage"),
         },
         { status: 403 },
       ),

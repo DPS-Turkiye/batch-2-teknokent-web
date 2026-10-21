@@ -3,7 +3,11 @@ import { type NextRequest } from "next/server";
 import { UserRole } from "@/interfaces/session";
 import { createMeeting, fetchMeetings } from "@/lib/api/meetings";
 import { resolveMentorMeetingOrganization } from "@/lib/server/mentor-meeting";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionUser } from "@/lib/session";
 
 export async function GET() {
@@ -16,7 +20,7 @@ export async function GET() {
     return backendResponse(await fetchMeetings({ organizationId }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı hizmetine ulaşılamıyor.",
+      message: await apiText("meetingServiceUnavailable"),
     });
   }
 }
@@ -49,7 +53,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(created);
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı oluşturulamadı.",
+      message: await apiText("meetingCreateFailed"),
     });
   }
 }

@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchCoordinatorCandidate } from "@/lib/api/admin-coordinators";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function GET(request: NextRequest) {
@@ -13,6 +17,8 @@ export async function GET(request: NextRequest) {
       await fetchCoordinatorCandidate(auth.session.userId, email),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "E-posta kontrol edilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("emailCheckFailed"),
+    });
   }
 }

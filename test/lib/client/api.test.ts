@@ -41,6 +41,20 @@ describe("requireSuccess", () => {
     ).toThrow("Hesabınız onay bekliyor.");
   });
 
+  it("shows an English reader the server's English message, never a Turkish one", () => {
+    clientTextsIn("en");
+    expect(() =>
+      requireSuccess(
+        response(409, {
+          message: "This meeting proposal is no longer waiting for an answer.",
+        }),
+      ),
+    ).toThrow("This meeting proposal is no longer waiting for an answer.");
+    expect(() =>
+      requireSuccess(response(404, { message: "Toplantı bulunamadı." })),
+    ).toThrow("The record you are looking for was not found.");
+  });
+
   it("keeps the backend's error code", () => {
     try {
       requireSuccess(

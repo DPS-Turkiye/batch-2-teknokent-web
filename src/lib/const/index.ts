@@ -57,6 +57,8 @@ export const EMAIL_VERIFICATION_EXEMPT = [
 ] as const;
 
 export const ACCOUNT_NOT_APPROVED = "ACCOUNT_NOT_APPROVED";
+/** A program-coordinator assignment that already exists; the admin flow treats it as done. */
+export const ALREADY_COORDINATOR = "ALREADY_COORDINATOR";
 export const REGISTRATION_REQUIRED = "REGISTRATION_REQUIRED";
 
 export const TRANSCRIPT_BOT_LEAD_MS = 60_000;

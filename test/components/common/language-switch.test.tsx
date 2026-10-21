@@ -3,10 +3,14 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { LanguageSwitch } from "@/components/common/language-switch";
-import { LOCALE_COOKIE } from "@/lib/i18n";
+import { saveLanguage } from "@/lib/client/auth";
+import { Locale, LOCALE_COOKIE } from "@/lib/i18n";
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
+vi.mock("@/lib/client/auth", () => ({
+  saveLanguage: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("LanguageSwitch", () => {
   beforeEach(() => {
@@ -27,6 +31,18 @@ describe("LanguageSwitch", () => {
       "aria-pressed",
       "true",
     );
+    await user.click(screen.getByRole("button", { name: "English" }));
+
+    expect(document.cookie).toContain(`${LOCALE_COOKIE}=en`);
+    expect(saveLanguage).toHaveBeenCalledWith(Locale.En);
+    expect(refresh).toHaveBeenCalledOnce();
+  });
+
+  it("still switches when the language cannot be saved for notifications", async () => {
+    vi.mocked(saveLanguage).mockRejectedValueOnce(new Error("offline"));
+    const user = userEvent.setup();
+    render(<LanguageSwitch enabled />);
+
     await user.click(screen.getByRole("button", { name: "English" }));
 
     expect(document.cookie).toContain(`${LOCALE_COOKIE}=en`);

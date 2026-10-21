@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchMemberProgramEvents } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -19,7 +23,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program etkinlikleri yüklenemedi.",
+      message: await apiText("programEventsLoadFailed"),
     });
   }
 }
