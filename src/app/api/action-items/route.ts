@@ -1,6 +1,10 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { createActionItem, fetchActionItems } from "@/lib/api/action-items";
+import {
+  createActionItem,
+  fetchActionItems,
+  fetchActionItemsForRequests,
+} from "@/lib/api/action-items";
 import {
   apiErrorResponse,
   apiText,
@@ -18,6 +22,14 @@ async function missingRequestId() {
 export async function GET(request: NextRequest) {
   try {
     await getSessionIds();
+    const requestIds = request.nextUrl.searchParams.get("requestIds");
+    if (requestIds !== null) {
+      return backendResponse(
+        await fetchActionItemsForRequests(
+          requestIds.split(",").filter(Boolean),
+        ),
+      );
+    }
     const requestId = request.nextUrl.searchParams.get("requestId");
     if (!requestId) return missingRequestId();
 

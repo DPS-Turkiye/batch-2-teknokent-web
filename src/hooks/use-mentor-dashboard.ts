@@ -1,6 +1,5 @@
 "use client";
 
-import { useQueries } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
@@ -8,11 +7,10 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { useDecision } from "@/hooks/use-decision";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import type { ActionItem } from "@/interfaces/action-item";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
-import { getActionItems } from "@/lib/client/action-items";
 import {
   isOpenActionItem,
   isOverdueActionItem,
@@ -49,18 +47,8 @@ export function useMentorDashboard() {
     [requests],
   );
 
-  // Action items are stored per mentorship, so an overview needs one query
-  // per accepted mentorship. `combine` keeps the result referentially stable.
-  const { itemsPerMentorship, isLoadingActionItems } = useQueries({
-    queries: accepted.map((request) => ({
-      queryKey: actionItemsQueryKey(request.id),
-      queryFn: () => getActionItems(request.id),
-    })),
-    combine: (results) => ({
-      itemsPerMentorship: results.map((result) => result.data ?? []),
-      isLoadingActionItems: results.some((result) => result.isLoading),
-    }),
-  });
+  const { byRequest: itemsPerMentorship, isLoading: isLoadingActionItems } =
+    useActionItemsForRequests(accepted.map((request) => request.id));
 
   const actionItemsByRequest = useMemo(() => {
     const map = new Map<string, ActionItem[]>();

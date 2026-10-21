@@ -19,4 +19,5 @@ export interface ActionItem {
   completionNotes?: string | null;
   createdAt: string;
   updatedAt: string;
+  mentorshipRequestId?: string | null;
 }

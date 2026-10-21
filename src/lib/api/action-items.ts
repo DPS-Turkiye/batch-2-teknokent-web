@@ -11,6 +11,14 @@ export function fetchActionItems(mentorshipRequestId: string) {
   });
 }
 
+export function fetchActionItemsForRequests(mentorshipRequestIds: string[]) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: "/api/actions",
+    params: { mentorshipRequestIds: mentorshipRequestIds.join(",") },
+  });
+}
+
 export function createActionItem(payload: Record<string, unknown>) {
   return backendRequest({
     method: HttpMethod.Post,

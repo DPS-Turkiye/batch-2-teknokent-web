@@ -10,6 +10,15 @@ export async function getActionItems(requestId: string) {
   );
 }
 
+/** Every listed request's action items in one call; each item says its request. */
+export async function getActionItemsForRequests(requestIds: string[]) {
+  return requireSuccess(
+    await httpClient.get<ActionItem[]>("/api/action-items", {
+      params: { requestIds: requestIds.join(",") },
+    }),
+  );
+}
+
 export async function addActionItem(input: {
   requestId: string;
   ownerId: string;

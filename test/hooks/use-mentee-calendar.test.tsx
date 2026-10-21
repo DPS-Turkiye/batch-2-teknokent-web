@@ -19,7 +19,26 @@ vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: vi.fn(),
 }));
-vi.mock("@/lib/client/action-items", () => ({ getActionItems: vi.fn() }));
+vi.mock("@/lib/client/action-items", () => {
+  const getActionItems = vi.fn();
+  return {
+    getActionItems,
+    // The hooks batch through getActionItemsForRequests; it answers from the per-request fixtures,
+    // tagging each item with its request so the hooks can group them.
+    getActionItemsForRequests: vi.fn(async (ids: string[]) =>
+      (
+        await Promise.all(
+          ids.map(async (id) =>
+            ((await getActionItems(id)) ?? []).map((item: object) => ({
+              ...item,
+              mentorshipRequestId: id,
+            })),
+          ),
+        )
+      ).flat(),
+    ),
+  };
+});
 vi.mock("@/lib/client/startup-process", () => ({ getStartupProcess: vi.fn() }));
 
 function wrapper({ children }: { children: ReactNode }) {
