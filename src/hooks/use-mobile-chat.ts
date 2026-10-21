@@ -299,9 +299,12 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   return {
     backHref: MOBILE_MESSAGES,
     canAttach: isMentorship,
-    closedNote: isAnnouncement
-      ? t("chat.announcementsReadOnly")
-      : t("chat.closed"),
+    // No thread yet (loading, failed or not found): say nothing rather than flash "closed".
+    closedNote: !header
+      ? null
+      : isAnnouncement
+        ? t("chat.announcementsReadOnly")
+        : t("chat.closed"),
     canSend: isMentorship
       ? Boolean(
           request.data && mentorshipRequestAllowsMessaging(request.data.status),

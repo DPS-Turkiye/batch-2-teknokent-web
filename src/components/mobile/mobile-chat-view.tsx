@@ -289,11 +289,11 @@ export function MobileChatView({
               />
             </button>
           </div>
-        ) : (
+        ) : chat.closedNote ? (
           <p className="py-2 text-center text-[13px] leading-[1.35] text-[#858c96]">
             {chat.closedNote}
           </p>
-        )}
+        ) : null}
       </form>
     </div>
   );

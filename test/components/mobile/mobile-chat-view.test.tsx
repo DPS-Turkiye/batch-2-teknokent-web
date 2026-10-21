@@ -180,6 +180,13 @@ describe("MobileChatView", () => {
     expect(screen.queryByRole("button", { name: "Gönder" })).toBeNull();
   });
 
+  it("shows no closed note while the thread has no note to show", () => {
+    chat = chatState({ canSend: false, closedNote: null });
+    renderChat();
+
+    expect(screen.queryByText(/kapandı/)).toBeNull();
+  });
+
   it("offers the other topics with the same mentor as tabs", () => {
     chat = chatState({
       topics: [
