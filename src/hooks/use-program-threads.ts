@@ -10,8 +10,7 @@ import {
   sendCoordinatorMessage,
 } from "@/lib/client/coordinator-conversations";
 import { MAX_MESSAGE_LENGTH } from "@/lib/coordinator-messages";
-
-const POLL_MS = 15_000;
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 /**
  * A team's or mentor's threads with their program coordinators, shown in the web Mesajlar. `linkedId` is the
@@ -30,13 +29,13 @@ export function useProgramThreads(linkedId: string | null = null) {
   const threads = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
     queryFn: () => getCoordinatorConversations(),
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
   const messages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", openId],
     queryFn: () => getCoordinatorMessages(openId ?? ""),
     enabled: !!openId,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
 
   const active = threads.data?.find((thread) => thread.id === openId) ?? null;

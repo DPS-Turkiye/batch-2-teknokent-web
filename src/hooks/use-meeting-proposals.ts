@@ -26,9 +26,9 @@ import {
   openProposal,
 } from "@/lib/meeting-proposals";
 import { toDateTimeLocalValue } from "@/lib/utils";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const MEETING_PROPOSALS_QUERY_KEY = ["meeting-proposals"] as const;
-const POLL_MS = 60_000;
 
 /** The mentor's or the team's open coordinator proposals, with accept and decline-with-reason. */
 export function useMeetingProposals() {
@@ -38,7 +38,7 @@ export function useMeetingProposals() {
   const proposals = useQuery({
     queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "mine"],
     queryFn: getMyMeetingProposals,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.background),
   });
   const refresh = () => {
     void queryClient.invalidateQueries({

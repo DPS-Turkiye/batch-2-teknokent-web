@@ -28,6 +28,7 @@ import {
   TRANSCRIPT_BOT_MAX_TIMER_MS,
   TRANSCRIPT_POLL_MS,
 } from "@/lib/const";
+import { whenVisible } from "@/lib/poll";
 import {
   isTranscriptBotDue,
   nextTranscriptBotAction,
@@ -322,7 +323,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       };
     }
 
-    const timer = window.setInterval(load, TRANSCRIPT_POLL_MS);
+    const timer = window.setInterval(whenVisible(load), TRANSCRIPT_POLL_MS);
     return () => {
       cancelled = true;
       window.clearInterval(timer);
