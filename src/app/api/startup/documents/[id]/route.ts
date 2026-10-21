@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { deleteStartupDocument } from "@/lib/api/startup-documents";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function DELETE(
@@ -13,6 +17,8 @@ export async function DELETE(
     const { userId } = await getSessionIds();
     return backendResponse(await deleteStartupDocument(id, userId));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Dosya silinemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("fileDeleteFailed"),
+    });
   }
 }

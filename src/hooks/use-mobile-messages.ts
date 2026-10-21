@@ -22,8 +22,7 @@ import {
   announcementConversation,
 } from "@/lib/mobile-messages";
 import { announcementThreads } from "@/lib/program-announcements";
-
-const POLL_MS = 15_000;
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export function messagingRoleFor(role?: UserRole | null): MessagingRole {
   return role === UserRole.Mentor ? UserRole.Mentor : UserRole.Mentee;
@@ -39,20 +38,20 @@ export function useMobileConversations() {
     queryKey: mentorshipRequestsQueryKey(role),
     queryFn: () => getMentorRequests(role),
     enabled,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
   const programs = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
     queryFn: () => getCoordinatorConversations(),
     enabled,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
 
   const announcements = useQuery({
     queryKey: [...ANNOUNCEMENTS_QUERY_KEY, "mine"],
     queryFn: getMyAnnouncements,
     enabled,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
 
   const conversations = useMemo(

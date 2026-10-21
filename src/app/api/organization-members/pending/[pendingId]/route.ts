@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { removePendingMember } from "@/lib/api/organization-members";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type Context = { params: Promise<{ pendingId: string }> };
@@ -15,7 +19,7 @@ export async function DELETE(_request: NextRequest, { params }: Context) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Katılım bekleyen üye çıkarılamadı.",
+      message: await apiText("pendingMemberRemoveFailed"),
     });
   }
 }

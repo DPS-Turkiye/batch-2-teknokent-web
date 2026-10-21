@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { getMeetingFeedback, updateMeeting } from "@/lib/client/meetings";
+import {
+  getMeetingFeedback,
+  getRatedMeetingIds,
+  updateMeeting,
+} from "@/lib/client/meetings";
 import { httpClient } from "@/lib/http-client";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { createMentorResponse } from "@test/fixtures/mentors";
@@ -43,6 +47,19 @@ describe("meetings client", () => {
     );
     await expect(getMeetingFeedback("meeting-1")).resolves.toEqual({
       ratings: [5],
+    });
+  });
+
+  it("asks for every meeting's rating in one call", async () => {
+    vi.mocked(httpClient.get).mockResolvedValueOnce(
+      createMentorResponse(["meeting-1"]),
+    );
+
+    await expect(
+      getRatedMeetingIds(["meeting-1", "meeting-2"]),
+    ).resolves.toEqual(["meeting-1"]);
+    expect(httpClient.get).toHaveBeenCalledWith("/api/meetings/feedback", {
+      params: { meetingIds: "meeting-1,meeting-2" },
     });
   });
 });

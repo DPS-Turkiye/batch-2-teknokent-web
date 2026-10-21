@@ -1,7 +1,8 @@
 import type { AxiosResponse } from "axios";
 
-import { clientText } from "@/i18n/client-texts";
+import { clientLocale, clientText } from "@/i18n/client-texts";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
+import { Locale } from "@/lib/i18n";
 
 export class ClientApiError extends Error {
   constructor(
@@ -44,6 +45,10 @@ function fallbackMessage(status: number) {
   }
 }
 
+const ENGLISH_WORDS =
+  /\b(the|a user|could|must|only|not found|already|awaiting|requires?|invalid|failed|provide|this endpoint|is unavailable)\b/i;
+const TURKISH_LETTERS = /[çğıöşüÇĞİÖŞÜ]/;
+
 function visibleServerMessage(body: unknown, status: number) {
   if (
     !body ||
@@ -55,11 +60,13 @@ function visibleServerMessage(body: unknown, status: number) {
   }
   const message = body.message.trim();
   if (!message) return fallbackMessage(status);
-  const looksEnglish =
-    /\b(the|a user|could|must|only|not found|already|awaiting|requires?|invalid|failed|provide|this endpoint|is unavailable)\b/i.test(
-      message,
-    );
-  return looksEnglish ? fallbackMessage(status) : message;
+  // Only a message in the reader's language is shown: a Turkish reader never gets the backend's English
+  // developer texts, an English reader never gets a Turkish text that missed translation.
+  const foreign =
+    clientLocale() === Locale.En
+      ? TURKISH_LETTERS.test(message)
+      : ENGLISH_WORDS.test(message);
+  return foreign ? fallbackMessage(status) : message;
 }
 
 // The backend's rate limiter says how long to wait; axios lowercases header names.

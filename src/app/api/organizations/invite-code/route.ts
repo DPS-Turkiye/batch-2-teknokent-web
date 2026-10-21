@@ -4,7 +4,11 @@ import {
   fetchInviteCode,
   regenerateInviteCode,
 } from "@/lib/api/organization-invite";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
 
 async function requireFounderSession() {
@@ -14,7 +18,7 @@ async function requireFounderSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -31,7 +35,7 @@ export async function GET() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Davet kodu yüklenemedi.",
+      message: await apiText("inviteCodeLoadFailed"),
     });
   }
 }
@@ -45,7 +49,7 @@ export async function POST() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Davet kodu yenilenemedi.",
+      message: await apiText("inviteCodeRenewFailed"),
     });
   }
 }

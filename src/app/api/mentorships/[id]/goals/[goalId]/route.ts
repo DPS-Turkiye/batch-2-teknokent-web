@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { updateMentorshipGoal } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -23,7 +27,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Hedef güncellenemedi.",
+      message: await apiText("goalUpdateFailed"),
     });
   }
 }

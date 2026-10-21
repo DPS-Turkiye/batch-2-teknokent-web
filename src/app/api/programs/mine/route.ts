@@ -1,5 +1,9 @@
 import { fetchOrganizationPrograms } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireStartupSession } from "@/lib/server/require-program-access";
 
 export async function GET() {
@@ -11,7 +15,7 @@ export async function GET() {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Programlarınız yüklenemedi.",
+      message: await apiText("myProgramsLoadFailed"),
     });
   }
 }

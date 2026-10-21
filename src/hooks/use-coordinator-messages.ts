@@ -29,11 +29,11 @@ import {
   messagesSubtitle,
   relatedMentorships,
 } from "@/lib/coordinator-messages";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const COORDINATOR_CONVERSATIONS_QUERY_KEY = [
   "coordinator-conversations",
 ] as const;
-const POLL_MS = 15_000;
 
 export type MessagesDeepLink = {
   conversationId: string | null;
@@ -66,13 +66,13 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
   const conversations = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
     queryFn: () => getCoordinatorConversations(),
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
   const messages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", openId],
     queryFn: () => getCoordinatorMessages(openId ?? ""),
     enabled: !!openId,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.messages),
   });
 
   const refreshList = () =>

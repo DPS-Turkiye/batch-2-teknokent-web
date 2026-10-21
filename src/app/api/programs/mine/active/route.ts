@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { updateActiveProgram } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireStartupSession } from "@/lib/server/require-program-access";
 
 export async function PUT(request: NextRequest) {
@@ -16,7 +20,7 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program seçiminiz kaydedilemedi.",
+      message: await apiText("programChoiceSaveFailed"),
     });
   }
 }

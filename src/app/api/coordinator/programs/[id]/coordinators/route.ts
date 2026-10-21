@@ -2,8 +2,13 @@ import {
   addProgramCoordinator,
   fetchProgramCoordinators,
 } from "@/lib/api/coordinator-programs";
+import { ALREADY_COORDINATOR } from "@/lib/const";
 import type { BackendResponse } from "@/lib/server/backend-client";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string }> };
@@ -17,7 +22,9 @@ export async function GET(_request: Request, { params }: Params) {
       await fetchProgramCoordinators(auth.session.userId, id),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Koordinatörler yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("coordinatorsLoadFailed"),
+    });
   }
 }
 
@@ -32,13 +39,17 @@ export async function POST(request: Request, { params }: Params) {
       id,
       String(body.userId ?? ""),
     );
-    return backendResponse(translateAssignment(response));
+    return backendResponse(await translateAssignment(response));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Koordinatör eklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("coordinatorAddFailed"),
+    });
   }
 }
 
-function translateAssignment(response: BackendResponse): BackendResponse {
+async function translateAssignment(
+  response: BackendResponse,
+): Promise<BackendResponse> {
   if (
     response.status !== 400 ||
     !response.data ||
@@ -50,11 +61,22 @@ function translateAssignment(response: BackendResponse): BackendResponse {
     "message" in response.data && typeof response.data.message === "string"
       ? response.data.message
       : "";
-  const turkish = message.includes("already runs")
-    ? "Bu kişi zaten bu programın koordinatörü."
-    : message.includes("approved coordinator")
-      ? "Yalnızca onaylı bir koordinatör programa atanabilir."
-      : null;
-  if (!turkish) return response;
-  return { ...response, data: { ...response.data, message: turkish } };
+  if (message.includes("already runs")) {
+    return {
+      ...response,
+      data: {
+        ...response.data,
+        code: ALREADY_COORDINATOR,
+        message: await apiText("alreadyProgramCoordinator"),
+      },
+    };
+  }
+  if (!message.includes("approved coordinator")) return response;
+  return {
+    ...response,
+    data: {
+      ...response.data,
+      message: await apiText("onlyApprovedCoordinator"),
+    },
+  };
 }

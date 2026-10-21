@@ -1,5 +1,9 @@
 import { resendCoordinatorPasswordSetup } from "@/lib/api/admin-coordinators";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function POST(
@@ -15,7 +19,7 @@ export async function POST(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Şifre belirleme e-postası gönderilemedi.",
+      message: await apiText("passwordSetupEmailFailed"),
     });
   }
 }

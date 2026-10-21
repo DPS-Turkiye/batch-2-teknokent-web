@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { transcriptQuerySchema } from "@/lib/assistant-schemas";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
-import { apiErrorResponse } from "@/lib/server/api-response";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: await apiText("platformAndMeetingIdRequired"),
         },
         { status: 400 },
       );
@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı transkript hizmetine ulaşılamıyor.",
+      message: await apiText("transcriptServiceUnavailable"),
     });
   }
 }

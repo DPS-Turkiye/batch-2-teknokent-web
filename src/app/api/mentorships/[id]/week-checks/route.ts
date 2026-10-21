@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { upsertMentorshipWeekCheck } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -18,7 +22,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     };
     if (!body.weekStart) {
       return apiErrorResponse(new Error("weekStart required"), {
-        message: "Hafta başlangıcı gerekli.",
+        message: await apiText("weekStartRequired"),
         status: 400,
       });
     }
@@ -32,7 +36,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Haftalık işaret güncellenemedi.",
+      message: await apiText("weeklyMarkUpdateFailed"),
     });
   }
 }

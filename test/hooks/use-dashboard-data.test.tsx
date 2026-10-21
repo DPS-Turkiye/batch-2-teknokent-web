@@ -50,7 +50,7 @@ vi.mock("@/lib/client/action-items", () => {
 });
 
 vi.mock("@/lib/client/meetings", () => ({
-  getMeetingFeedback: vi.fn().mockResolvedValue(null),
+  getRatedMeetingIds: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("@/lib/client/meeting-notes", () => ({

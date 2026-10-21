@@ -5,7 +5,11 @@ import {
   createRegularMentorship,
   fetchRegularMentorships,
 } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
@@ -25,7 +29,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchRegularMentorships({ organizationId }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Düzenli mentorlüklere ulaşılamıyor.",
+      message: await apiText("regularMentorshipsUnavailable"),
     });
   }
 }
@@ -41,7 +45,7 @@ export async function POST(request: NextRequest) {
     };
     if (!body.organizationId || !body.startDate || !body.endDate) {
       return apiErrorResponse(new Error("Eksik alanlar"), {
-        message: "Startup, başlangıç ve bitiş tarihi gerekli.",
+        message: await apiText("regularMentorshipFieldsRequired"),
         status: 400,
       });
     }
@@ -57,7 +61,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Düzenli mentorlük başlatılamadı.",
+      message: await apiText("regularMentorshipStartFailed"),
     });
   }
 }

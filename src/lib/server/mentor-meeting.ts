@@ -10,7 +10,7 @@ import {
 } from "@/lib/api/mentor-requests";
 import { fetchRegularMentorships } from "@/lib/api/mentorships";
 import { fetchPrograms } from "@/lib/api/programs";
-import { backendResponse } from "@/lib/server/api-response";
+import { apiText, backendResponse } from "@/lib/server/api-response";
 import { UserRole, type AppSession } from "@/interfaces/session";
 
 export async function resolveMentorMeetingOrganization(
@@ -72,7 +72,7 @@ export async function resolveMentorMeetingOrganization(
       error: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Bu startup ile aktif bir mentorlüğünüz yok.",
+          message: await apiText("noActiveMentorship"),
         },
         { status: 403 },
       ),
@@ -89,7 +89,7 @@ export async function resolveMentorMeetingOrganization(
       error: NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Toplantı için bir startup seçilmelidir.",
+          message: await apiText("meetingStartupRequired"),
         },
         { status: 400 },
       ),
@@ -111,7 +111,7 @@ export async function resolveMentorMeetingOrganization(
       error: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Bu programa katılmadınız.",
+          message: await apiText("notInProgram"),
         },
         { status: 403 },
       ),
@@ -122,7 +122,7 @@ export async function resolveMentorMeetingOrganization(
       error: NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Bu startup bu programda yok.",
+          message: await apiText("startupNotInProgram"),
         },
         { status: 400 },
       ),
@@ -143,19 +143,22 @@ export function requireOwnedMeeting(mentorId: string, meetingId: string) {
 }
 
 /** The caller's own meeting: a mentor's, or one of a startup member's startup. */
-export function requireMeetingAccess(session: AppSession, meetingId: string) {
+export async function requireMeetingAccess(
+  session: AppSession,
+  meetingId: string,
+) {
   if (session.role === UserRole.Mentor) {
     return findMeetingIn({ mentorId: session.userId }, meetingId);
   }
   if (session.role === UserRole.Mentee) {
     return findMeetingIn({ organizationId: session.organizationId }, meetingId);
   }
-  return Promise.resolve({
+  return {
     error: NextResponse.json(
-      { code: "FORBIDDEN", message: "Bu toplantıyı değiştiremezsiniz." },
+      { code: "FORBIDDEN", message: await apiText("meetingNotEditable") },
       { status: 403 },
     ),
-  });
+  };
 }
 
 async function findMeetingIn(
@@ -170,7 +173,7 @@ async function findMeetingIn(
   if (!owned) {
     return {
       error: NextResponse.json(
-        { code: "NOT_FOUND", message: "Toplantı bulunamadı." },
+        { code: "NOT_FOUND", message: await apiText("meetingNotFound") },
         { status: 404 },
       ),
     };
@@ -184,7 +187,7 @@ export async function resolveGuestMentor(actorId: string, guestId: string) {
       error: NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Eklenecek bir mentör seçilmelidir.",
+          message: await apiText("mentorToAddRequired"),
         },
         { status: 400 },
       ),
@@ -210,7 +213,7 @@ export async function resolveGuestMentor(actorId: string, guestId: string) {
       error: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Bu mentörle ortak bir programınız yok.",
+          message: await apiText("noSharedProgram"),
         },
         { status: 403 },
       ),

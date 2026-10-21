@@ -1,5 +1,9 @@
 import { setCoordinatorProgramArchived } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function PUT(
@@ -19,6 +23,8 @@ export async function PUT(
       ),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Program arşivlenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("programArchiveFailed"),
+    });
   }
 }

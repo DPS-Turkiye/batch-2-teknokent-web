@@ -2,7 +2,11 @@ import type { NextRequest } from "next/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import { decideAccountStatus } from "@/lib/api/accounts";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 type RouteContext = {
@@ -24,7 +28,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     if (!status) {
       return apiErrorResponse(new Error("Invalid status"), {
         code: "INVALID_REQUEST",
-        message: "Durum APPROVED veya REJECTED olmalıdır.",
+        message: await apiText("statusMustBeDecision"),
         status: 400,
       });
     }
@@ -35,7 +39,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Hesap durumu güncellenemedi.",
+      message: await apiText("accountStatusUpdateFailed"),
     });
   }
 }

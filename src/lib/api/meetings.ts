@@ -38,6 +38,14 @@ export function submitMeetingFeedback(
   });
 }
 
+export function fetchRatedMeetingIds(meetingIds: string[], authorId: string) {
+  return backendRequest({
+    method: "GET",
+    url: "/api/meetings/feedback",
+    params: { meetingIds: meetingIds.join(","), authorId },
+  });
+}
+
 export function fetchMeetingFeedback(meetingId: string, authorId: string) {
   return backendRequest({
     method: "GET",

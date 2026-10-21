@@ -9,7 +9,9 @@ import {
 import type { AdminProgram, AdminUser } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
 import { decidePendingAccount } from "@/lib/client/admin-users";
+import { ClientApiError } from "@/lib/client/api";
 import { addProgramCoordinator } from "@/lib/client/coordinator-programs";
+import { ALREADY_COORDINATOR } from "@/lib/const";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-users", () => ({
@@ -113,6 +115,48 @@ describe("Coordinator approval", () => {
     );
     expect(addProgramCoordinator).toHaveBeenCalledWith("program-1", "user-1");
     expect(onApproved).toHaveBeenCalledWith("BİGG Ankara 2027");
+  });
+
+  it("treats an assignment that already exists as done, whatever the language", async () => {
+    vi.mocked(decidePendingAccount).mockResolvedValue({
+      user: {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+        role: "COORDINATOR" as never,
+        status: UserAccountStatus.Approved,
+      },
+      inviteCode: null,
+    });
+    vi.mocked(addProgramCoordinator).mockRejectedValue(
+      new ClientApiError(
+        "This person is already a coordinator of this program.",
+        400,
+        ALREADY_COORDINATOR,
+      ),
+    );
+    const onApproved = vi.fn();
+    const onFailed = vi.fn();
+    renderWithQueryClient(
+      <ApproveCoordinatorDialog
+        user={user}
+        programs={[program]}
+        onClose={vi.fn()}
+        onApproved={onApproved}
+        onFailed={onFailed}
+      />,
+    );
+
+    await userEvent.click(screen.getByLabelText("Atanacak program"));
+    await userEvent.click(
+      screen.getByRole("button", { name: "BİGG Ankara 2027" }),
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: "Onayla ve programa ata" }),
+    );
+
+    expect(onApproved).toHaveBeenCalledWith("BİGG Ankara 2027", true);
+    expect(onFailed).not.toHaveBeenCalled();
   });
 
   it("does not offer a program this person already runs", async () => {

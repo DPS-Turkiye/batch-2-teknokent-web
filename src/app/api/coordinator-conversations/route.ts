@@ -2,7 +2,11 @@ import {
   fetchCoordinatorConversations,
   startCoordinatorConversation,
 } from "@/lib/api/coordinator-conversations";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -13,7 +17,9 @@ export async function GET() {
     if (!userId) throw new SessionRequiredError();
     return backendResponse(await fetchCoordinatorConversations(userId));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Mesajlar yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("messagesLoadFailed"),
+    });
   }
 }
 
@@ -30,6 +36,8 @@ export async function POST(request: Request) {
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Konuşma başlatılamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("conversationStartFailed"),
+    });
   }
 }

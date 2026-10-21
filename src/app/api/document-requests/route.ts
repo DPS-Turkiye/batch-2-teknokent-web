@@ -4,7 +4,11 @@ import {
   fetchDocumentRequests,
   replaceDocumentRequests,
 } from "@/lib/api/document-requests";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 function scopeFrom(request: NextRequest) {
@@ -16,11 +20,11 @@ function scopeFrom(request: NextRequest) {
   };
 }
 
-function missingScope() {
+async function missingScope() {
   return NextResponse.json(
     {
       code: "INVALID_REQUEST",
-      message: "meetingId, mentorshipRequestId veya mentorshipId gerekli.",
+      message: await apiText("documentRequestTargetRequired"),
     },
     { status: 400 },
   );
@@ -36,7 +40,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchDocumentRequests(scope));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "İstenen belgeler yüklenemedi.",
+      message: await apiText("requestedDocumentsLoadFailed"),
     });
   }
 }
@@ -59,7 +63,7 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "İstenen belgeler kaydedilemedi.",
+      message: await apiText("requestedDocumentsSaveFailed"),
     });
   }
 }

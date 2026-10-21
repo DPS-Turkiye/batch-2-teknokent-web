@@ -8,6 +8,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { useToast } from "@/components/providers/toast-provider";
 import { useMeetings, useUpdateMeeting } from "@/hooks/use-meetings";
+import { RATED_MEETINGS_QUERY_KEY } from "@/hooks/use-meetings-awaiting-feedback";
 import { getMeetingFeedback, postMeetingFeedback } from "@/lib/client/meetings";
 import {
   MEETING_FEEDBACK_BENEFITS,
@@ -195,6 +196,9 @@ export function useMeetingFeedback(meetingId: string | null) {
       setJustSubmitted(true);
       await queryClient.invalidateQueries({
         queryKey: ["meeting-feedback", meetingId],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: RATED_MEETINGS_QUERY_KEY,
       });
       showToast({ message: t("sentToast"), tone: "success" });
     } catch {

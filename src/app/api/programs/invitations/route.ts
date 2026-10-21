@@ -1,5 +1,9 @@
 import { fetchProgramInvitations } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 
 export async function GET() {
@@ -9,7 +13,7 @@ export async function GET() {
     return backendResponse(await fetchProgramInvitations(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program davetleri yüklenemedi.",
+      message: await apiText("programInvitesLoadFailed"),
     });
   }
 }

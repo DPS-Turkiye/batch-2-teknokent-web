@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { fetchMentorshipWeekChecks } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionMentorId } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
@@ -9,7 +13,7 @@ export async function GET(request: NextRequest) {
     const weekStart = request.nextUrl.searchParams.get("weekStart");
     if (!weekStart) {
       return apiErrorResponse(new Error("weekStart required"), {
-        message: "Hafta başlangıcı gerekli.",
+        message: await apiText("weekStartRequired"),
         status: 400,
       });
     }
@@ -21,7 +25,7 @@ export async function GET(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Haftalık düzenli mentorlüklere ulaşılamıyor.",
+      message: await apiText("weeklyMentorshipsUnavailable"),
     });
   }
 }

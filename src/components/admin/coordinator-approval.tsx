@@ -10,7 +10,9 @@ import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import type { AdminProgram, AdminUser } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
+import { ClientApiError } from "@/lib/client/api";
 import { addProgramCoordinator } from "@/lib/client/coordinator-programs";
+import { ALREADY_COORDINATOR } from "@/lib/const";
 import { errorMessage, initials } from "@/lib/utils";
 
 const CAPABILITIES = [
@@ -231,7 +233,10 @@ export function ApproveCoordinatorDialog({
       onApproved(selected.name);
     } catch (error) {
       const detail = errorMessage(error, t("assignFailed"));
-      if (detail.includes("zaten bu programın koordinatörü")) {
+      if (
+        error instanceof ClientApiError &&
+        error.code === ALREADY_COORDINATOR
+      ) {
         await queryClient.invalidateQueries({
           queryKey: ADMIN_OVERVIEW_QUERY_KEY,
         });

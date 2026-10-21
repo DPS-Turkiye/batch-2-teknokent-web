@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { fetchBackendHealth, HealthFetchError } from "@/lib/health";
+import { apiText } from "@/lib/server/api-response";
 
 export async function GET() {
   try {
@@ -13,7 +14,7 @@ export async function GET() {
     }
 
     return NextResponse.json(
-      { message: "Sağlık kontrolü beklenmedik biçimde başarısız oldu." },
+      { message: await apiText("healthCheckFailed") },
       { status: 500 },
     );
   }

@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
+import { apiText } from "@/lib/server/api-response";
 
 export async function requireAdminSession() {
   const session = await getSessionUser();
@@ -11,7 +12,7 @@ export async function requireAdminSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -22,7 +23,7 @@ export async function requireAdminSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: "Başvuruları yalnızca yöneticiler inceleyebilir.",
+          message: await apiText("adminsOnlyReview"),
         },
         { status: 403 },
       ),

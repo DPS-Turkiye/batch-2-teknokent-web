@@ -4,7 +4,11 @@ import {
   createMentorAvailabilityRule,
   fetchMentorAvailabilityRules,
 } from "@/lib/api/mentor-profile";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -13,7 +17,7 @@ export async function GET() {
     return backendResponse(await fetchMentorAvailabilityRules(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik kuralları alınamadı.",
+      message: await apiText("availabilityRulesLoadFailed"),
     });
   }
 }
@@ -25,7 +29,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorAvailabilityRule(userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik kuralı oluşturulamadı.",
+      message: await apiText("availabilityRuleCreateFailed"),
     });
   }
 }

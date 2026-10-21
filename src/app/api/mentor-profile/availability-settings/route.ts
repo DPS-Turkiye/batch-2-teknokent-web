@@ -5,7 +5,11 @@ import {
   updateMentorAvailabilitySettings,
 } from "@/lib/api/mentor-profile";
 import { fetchSignedInUser } from "@/lib/api/auth";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 import { getSessionIds } from "@/lib/session";
 
@@ -15,7 +19,7 @@ export async function GET() {
     return backendResponse(await fetchMentorAvailabilitySettings(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik ayarları alınamadı.",
+      message: await apiText("availabilitySettingsLoadFailed"),
     });
   }
 }
@@ -39,7 +43,7 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Müsaitlik ayarları güncellenemedi.",
+      message: await apiText("availabilitySettingsUpdateFailed"),
     });
   }
 }

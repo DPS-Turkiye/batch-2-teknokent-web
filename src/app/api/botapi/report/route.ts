@@ -4,7 +4,7 @@ import {
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
 import { generateMeetingReportBackend } from "@/lib/botapi";
-import { apiErrorResponse } from "@/lib/server/api-response";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: await apiText("platformAndMeetingIdRequired"),
         },
         { status: 400 },
       );
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Rapor isteği geçersiz.",
+          message: await apiText("reportRequestInvalid"),
         },
         { status: 400 },
       );
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı raporu hizmetine ulaşılamıyor.",
+      message: await apiText("reportServiceUnavailable"),
     });
   }
 }

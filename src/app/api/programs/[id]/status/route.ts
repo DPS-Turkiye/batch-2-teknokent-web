@@ -2,7 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { ProgramStatus } from "@/interfaces/program";
 import { updateProgramStatus } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-program-access";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -19,7 +23,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Geçerli bir program durumu seçin.",
+          message: await apiText("programStatusInvalid"),
         },
         { status: 400 },
       );
@@ -33,7 +37,7 @@ export async function PUT(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program durumu güncellenemedi.",
+      message: await apiText("programStatusUpdateFailed"),
     });
   }
 }

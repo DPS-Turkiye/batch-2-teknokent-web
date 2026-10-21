@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 
 import type { StartupProfileInput } from "@/interfaces/organization";
 import { fetchOrganization, updateOrganization } from "@/lib/api/organization";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
 
 async function requireFounderSession() {
@@ -12,7 +16,7 @@ async function requireFounderSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -27,7 +31,7 @@ export async function GET() {
     return backendResponse(await fetchOrganization(auth.organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup profili yüklenemedi.",
+      message: await apiText("startupProfileLoadFailed"),
     });
   }
 }
@@ -46,7 +50,7 @@ export async function PUT(request: Request) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup profili kaydedilemedi.",
+      message: await apiText("startupProfileSaveFailed"),
     });
   }
 }

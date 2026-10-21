@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { createManualProfileAnalysis } from "@/lib/api/profile-analysis";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +21,7 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profil hizmetine ulaşılamıyor.",
+      message: await apiText("profileServiceUnavailable"),
     });
   }
 }

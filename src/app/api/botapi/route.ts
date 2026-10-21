@@ -4,7 +4,7 @@ import {
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
-import { apiErrorResponse } from "@/lib/server/api-response";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Geçerli bir toplantı bağlantısı gerekli.",
+          message: await apiText("meetingLinkRequired"),
         },
         { status: 400 },
       );
@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
+      message: await apiText("assistantUnavailable"),
     });
   }
 }
@@ -45,7 +45,7 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Platform ve toplantı kimliği gerekli.",
+          message: await apiText("platformAndMeetingIdRequired"),
         },
         { status: 400 },
       );
@@ -64,7 +64,7 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json(data ?? { ok: true }, { status });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı asistanı hizmetine ulaşılamıyor.",
+      message: await apiText("assistantUnavailable"),
     });
   }
 }

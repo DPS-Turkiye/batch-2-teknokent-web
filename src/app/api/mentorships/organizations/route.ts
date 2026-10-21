@@ -1,5 +1,9 @@
 import { fetchOrganizationsDirectory } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionMentorId } from "@/lib/session";
 
 export async function GET() {
@@ -15,7 +19,7 @@ export async function GET() {
     return backendResponse({ ...response, data: orgs });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup listesine ulaşılamıyor.",
+      message: await apiText("startupListUnavailable"),
     });
   }
 }

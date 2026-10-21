@@ -12,7 +12,7 @@ import {
 } from "@/lib/client/action-items";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getMemberProgramEvents } from "@/lib/client/programs";
-import { getMeetingFeedback } from "@/lib/client/meetings";
+import { getRatedMeetingIds } from "@/lib/client/meetings";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
@@ -46,7 +46,7 @@ vi.mock("@/lib/client/action-items", () => {
 });
 vi.mock("@/lib/client/startup-process", () => ({ getStartupProcess: vi.fn() }));
 vi.mock("@/lib/client/programs", () => ({ getMemberProgramEvents: vi.fn() }));
-vi.mock("@/lib/client/meetings", () => ({ getMeetingFeedback: vi.fn() }));
+vi.mock("@/lib/client/meetings", () => ({ getRatedMeetingIds: vi.fn() }));
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ session: { userId: "mentee-1" } }),
 }));
@@ -84,7 +84,7 @@ beforeEach(() => {
   ]);
   vi.mocked(getStartupProcess).mockRejectedValue(new Error("no startup"));
   vi.mocked(getMemberProgramEvents).mockResolvedValue([]);
-  vi.mocked(getMeetingFeedback).mockResolvedValue(null);
+  vi.mocked(getRatedMeetingIds).mockResolvedValue([]);
   mockMeetings = [];
   vi.mocked(changeActionItemStatus).mockResolvedValue(
     menteeActionItemFixture(),

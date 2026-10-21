@@ -18,9 +18,9 @@ import {
   announcementThreads,
   MAX_ANNOUNCEMENT_LENGTH,
 } from "@/lib/program-announcements";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const ANNOUNCEMENTS_QUERY_KEY = ["program-announcements"] as const;
-const POLL_MS = 60_000;
 
 /** A team member's or mentor's read-only "Duyurular" threads, one per program. */
 export function useMyAnnouncements() {
@@ -28,7 +28,7 @@ export function useMyAnnouncements() {
   const query = useQuery({
     queryKey: [...ANNOUNCEMENTS_QUERY_KEY, "mine"],
     queryFn: getMyAnnouncements,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.background),
   });
   const threads = announcementThreads(query.data ?? []);
   return {
