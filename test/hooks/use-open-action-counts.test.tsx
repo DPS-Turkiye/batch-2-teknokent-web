@@ -28,7 +28,6 @@ vi.mock("@/lib/client/action-items", () => {
         )
       ).flat(),
     ),
-    addActionItem: vi.fn(),
     changeActionItemStatus: vi.fn(),
   };
 });

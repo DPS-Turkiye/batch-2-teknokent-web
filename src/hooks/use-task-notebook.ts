@@ -37,7 +37,6 @@ export function useTaskNotebook(requestId: string) {
     toggle: (item: ActionItem, done: boolean) =>
       change.mutate({
         id: item.id,
-        requestId,
         status: done ? ActionItemStatus.Completed : ActionItemStatus.Open,
       }),
   };

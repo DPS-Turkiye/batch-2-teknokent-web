@@ -11,7 +11,6 @@ import { createTestQueryClient } from "@test/test-utils";
 vi.mock("@/lib/client/action-items", () => ({
   getActionItems: vi.fn(),
   getActionItemsForRequests: vi.fn(),
-  addActionItem: vi.fn(),
   changeActionItemStatus: vi.fn(),
 }));
 

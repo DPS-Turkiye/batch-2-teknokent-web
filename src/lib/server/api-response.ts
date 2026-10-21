@@ -1,5 +1,6 @@
 import "server-only";
 
+import { AxiosError } from "axios";
 import { NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 
@@ -16,7 +17,19 @@ export async function apiText(key: ApiTextKey) {
 }
 
 export type ApiErrorCode =
-  "BACKEND_UNAVAILABLE" | "INVALID_REQUEST" | "SESSION_REQUIRED";
+  | "BACKEND_TIMEOUT"
+  | "BACKEND_UNAVAILABLE"
+  | "INVALID_REQUEST"
+  | "SESSION_REQUIRED";
+
+// backendRequest's own timeout: the backend is slow, not unreachable.
+function isTimeout(error: unknown) {
+  return (
+    error instanceof AxiosError &&
+    (error.code === AxiosError.ECONNABORTED ||
+      error.code === AxiosError.ETIMEDOUT)
+  );
+}
 
 export function backendResponse(
   response: BackendResponse,
@@ -54,20 +67,18 @@ export async function apiErrorResponse(
     );
   }
 
+  const timedOut = isTimeout(error);
+  const code = timedOut
+    ? "BACKEND_TIMEOUT"
+    : (options.code ?? "BACKEND_UNAVAILABLE");
   const details =
     error instanceof Error
       ? { errorType: error.name, errorMessage: error.message }
       : { errorType: "UnknownError" };
-  console.error("Frontend API route failed", {
-    code: options.code ?? "BACKEND_UNAVAILABLE",
-    ...details,
-  });
+  console.error("Frontend API route failed", { code, ...details });
 
   return NextResponse.json(
-    {
-      code: options.code ?? "BACKEND_UNAVAILABLE",
-      message: options.message,
-    },
-    { status: options.status ?? 502 },
+    { code, message: options.message },
+    { status: timedOut ? 504 : (options.status ?? 502) },
   );
 }
