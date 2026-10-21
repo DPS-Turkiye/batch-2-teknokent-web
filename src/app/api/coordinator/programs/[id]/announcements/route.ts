@@ -2,7 +2,11 @@ import {
   fetchProgramAnnouncements,
   postProgramAnnouncement,
 } from "@/lib/api/program-announcements";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string }> };
@@ -16,7 +20,9 @@ export async function GET(_request: Request, { params }: Params) {
       await fetchProgramAnnouncements(auth.session.userId, id),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Duyurular yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("announcementsLoadFailed"),
+    });
   }
 }
 
@@ -30,6 +36,8 @@ export async function POST(request: Request, { params }: Params) {
       await postProgramAnnouncement(auth.session.userId, id, body.body),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Duyuru gönderilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("announcementSendFailed"),
+    });
   }
 }

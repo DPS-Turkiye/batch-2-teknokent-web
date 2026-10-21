@@ -1,5 +1,9 @@
 import { createCoordinatorProgramEvent } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function POST(
@@ -22,7 +26,7 @@ export async function POST(
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Etkinlik eklenemedi.",
+      message: await apiText("eventAddFailed"),
     });
   }
 }

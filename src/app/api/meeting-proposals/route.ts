@@ -1,5 +1,9 @@
 import { fetchMyMeetingProposals } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -11,7 +15,7 @@ export async function GET() {
     return backendResponse(await fetchMyMeetingProposals(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Görüşme önerileri yüklenemedi.",
+      message: await apiText("meetingProposalsLoadFailed"),
     });
   }
 }

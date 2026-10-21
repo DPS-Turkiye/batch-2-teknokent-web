@@ -1,5 +1,9 @@
 import { issueRealtimeToken } from "@/lib/api/meeting-notes";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function POST() {
@@ -7,7 +11,7 @@ export async function POST() {
     return backendResponse(await issueRealtimeToken(await getSessionIds()));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Gerçek zamanlı bağlantı anahtarı oluşturulamadı.",
+      message: await apiText("realtimeTokenFailed"),
     });
   }
 }

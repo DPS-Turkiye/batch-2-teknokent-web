@@ -3,7 +3,11 @@ import { NextResponse } from "next/server";
 import type { UserProfileInput } from "@/interfaces/user-profile";
 import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
 import { fetchSignedInUser } from "@/lib/api/auth";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 import { getSessionUser } from "@/lib/session";
 
@@ -13,7 +17,7 @@ async function requireSession() {
     return {
       ok: false as const,
       response: NextResponse.json(
-        { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+        { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
         { status: 401 },
       ),
     };
@@ -35,7 +39,7 @@ export async function GET(request: Request) {
     return backendResponse(await fetchUserProfile(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Profil yüklenemedi.",
+      message: await apiText("profileLoadFailed"),
     });
   }
 }
@@ -57,6 +61,8 @@ export async function PUT(request: Request) {
       await updateUserProfile(auth.session.userId, profile),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Profil kaydedilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("profileSaveFailed"),
+    });
   }
 }

@@ -1,10 +1,10 @@
 "use client";
 
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState } from "react";
 
-import { actionItemsQueryKey } from "@/hooks/use-action-items";
+import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { STARTUP_PROCESS_QUERY_KEY } from "@/hooks/use-startup-process";
@@ -17,7 +17,6 @@ import {
   startOfWeek,
   weekDays,
 } from "@/lib/calendar";
-import { getActionItems } from "@/lib/client/action-items";
 import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
 import {
@@ -69,17 +68,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
         .map((request) => request.id),
     [requestsQuery.data],
   );
-  const actionItems = useQueries({
-    queries: requestIds.map((id) => ({
-      queryKey: actionItemsQueryKey(id),
-      queryFn: () => getActionItems(id),
-    })),
-    combine: (results) => ({
-      byRequest: results.map((result) => result.data ?? []),
-      isLoading: results.some((result) => result.isLoading),
-      isError: results.some((result) => result.isError),
-    }),
-  });
+  const actionItems = useActionItemsForRequests(requestIds);
 
   const weekStart = useMemo(() => startOfWeek(cursor), [cursor]);
   const days = useMemo(

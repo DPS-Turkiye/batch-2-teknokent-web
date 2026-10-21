@@ -4,14 +4,34 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
-import { getActionItems } from "@/lib/client/action-items";
+import {
+  getActionItems,
+  getActionItemsForRequests,
+} from "@/lib/client/action-items";
 import { createTestQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/client/action-items", () => ({
-  getActionItems: vi.fn(),
-  addActionItem: vi.fn(),
-  changeActionItemStatus: vi.fn(),
-}));
+vi.mock("@/lib/client/action-items", () => {
+  const getActionItems = vi.fn();
+  return {
+    getActionItems,
+    // The hooks batch through getActionItemsForRequests; it answers from the per-request fixtures,
+    // tagging each item with its request so the hooks can group them.
+    getActionItemsForRequests: vi.fn(async (ids: string[]) =>
+      (
+        await Promise.all(
+          ids.map(async (id) =>
+            ((await getActionItems(id)) ?? []).map((item: object) => ({
+              ...item,
+              mentorshipRequestId: id,
+            })),
+          ),
+        )
+      ).flat(),
+    ),
+    addActionItem: vi.fn(),
+    changeActionItemStatus: vi.fn(),
+  };
+});
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (
@@ -40,7 +60,8 @@ describe("useOpenActionCounts", () => {
     });
 
     await waitFor(() => expect(result.current).toEqual({ r1: 2, r2: 0 }));
-    expect(getActionItems).toHaveBeenCalledTimes(2);
+    expect(getActionItemsForRequests).toHaveBeenCalledTimes(1);
+    expect(getActionItemsForRequests).toHaveBeenCalledWith(["r1", "r2"]);
   });
 
   it("counts zero while a request's items are still loading", () => {
@@ -59,7 +80,7 @@ describe("useOpenActionCounts", () => {
     });
 
     expect(result.current).toEqual({});
-    expect(getActionItems).not.toHaveBeenCalled();
+    expect(getActionItemsForRequests).not.toHaveBeenCalled();
   });
 
   it("keeps the same result for a new array with the same ids", async () => {

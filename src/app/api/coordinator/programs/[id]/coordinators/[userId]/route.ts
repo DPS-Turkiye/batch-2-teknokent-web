@@ -1,5 +1,9 @@
 import { removeProgramCoordinator } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function DELETE(
@@ -14,6 +18,8 @@ export async function DELETE(
       await removeProgramCoordinator(auth.session.userId, id, userId),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Koordinatör çıkarılamadı." });
+    return apiErrorResponse(error, {
+      message: await apiText("coordinatorRemoveFailed"),
+    });
   }
 }

@@ -1,7 +1,11 @@
 import { UserRole } from "@/interfaces/session";
 import { fetchMeetingRoom } from "@/lib/api/meetings";
 import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
 
 type RouteContext = {
@@ -13,7 +17,7 @@ export async function GET(_request: Request, context: RouteContext) {
     const session = await getSessionUser();
     if (session?.role !== UserRole.Mentor) {
       return Response.json(
-        { code: "FORBIDDEN", message: "Toplantı odası yalnızca mentöre açık." },
+        { code: "FORBIDDEN", message: await apiText("meetingRoomMentorOnly") },
         { status: 403 },
       );
     }
@@ -23,7 +27,7 @@ export async function GET(_request: Request, context: RouteContext) {
     return backendResponse(await fetchMeetingRoom(id));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı odası yüklenemedi.",
+      message: await apiText("meetingRoomLoadFailed"),
     });
   }
 }

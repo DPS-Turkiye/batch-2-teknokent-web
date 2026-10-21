@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { UserRole } from "@/interfaces/session";
 import {
   requireCoordinatorOrMentorSession,
@@ -16,7 +20,7 @@ export async function GET() {
     return backendResponse(await fetchPrograms(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Programlar yüklenemedi.",
+      message: await apiText("programsLoadFailed"),
     });
   }
 }
@@ -33,14 +37,17 @@ export async function POST(request: NextRequest) {
     const name = body.name?.trim() ?? "";
     if (!name) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Program adı gerekli." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("programNameRequired"),
+        },
         { status: 400 },
       );
     }
     return backendResponse(await createProgram(auth.session.userId, name));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program oluşturulamadı.",
+      message: await apiText("programCreateFailed"),
     });
   }
 }

@@ -1,5 +1,9 @@
 import { fetchAdminOverview } from "@/lib/api/admin-overview";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireAdminSession } from "@/lib/server/require-admin";
 
 export async function GET() {
@@ -9,7 +13,7 @@ export async function GET() {
     return backendResponse(await fetchAdminOverview(auth.session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Yönetim özeti yüklenemedi.",
+      message: await apiText("adminOverviewLoadFailed"),
     });
   }
 }

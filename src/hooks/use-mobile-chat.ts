@@ -50,8 +50,8 @@ import {
 import { programNameFor } from "@/lib/mobile-mentor-home";
 import { announcementThreads } from "@/lib/program-announcements";
 import { initials } from "@/lib/utils";
+import { POLL_INTERVAL, polling } from "@/lib/poll";
 
-const POLL_MS = 10_000;
 export const MAX_CHAT_MESSAGE_LENGTH = 4000;
 
 const mentorshipRequestKey = (id: string) => ["mentorship-request", id];
@@ -73,26 +73,26 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
     queryKey: mentorshipRequestKey(id),
     queryFn: () => getMentorRequest(id),
     enabled: isMentorship,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.chat),
   });
   const programs = useQuery({
     queryKey: COORDINATOR_CONVERSATIONS_QUERY_KEY,
     queryFn: () => getCoordinatorConversations(),
     enabled: isProgram,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.chat),
   });
   const programMessages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", id],
     queryFn: () => getCoordinatorMessages(id),
     enabled: isProgram,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.chat),
   });
   // A Duyurular thread's id is its program's id; the phone reads the same list Mesajlar shows.
   const announcements = useQuery({
     queryKey: [...ANNOUNCEMENTS_QUERY_KEY, "mine"],
     queryFn: getMyAnnouncements,
     enabled: isAnnouncement,
-    refetchInterval: POLL_MS,
+    ...polling(POLL_INTERVAL.chat),
   });
   const announcementThread =
     announcementThreads(announcements.data ?? []).find(
@@ -299,9 +299,12 @@ export function useMobileChat(kind: MobileConversationKind, id: string) {
   return {
     backHref: MOBILE_MESSAGES,
     canAttach: isMentorship,
-    closedNote: isAnnouncement
-      ? t("chat.announcementsReadOnly")
-      : t("chat.closed"),
+    // No thread yet (loading, failed or not found): say nothing rather than flash "closed".
+    closedNote: !header
+      ? null
+      : isAnnouncement
+        ? t("chat.announcementsReadOnly")
+        : t("chat.closed"),
     canSend: isMentorship
       ? Boolean(
           request.data && mentorshipRequestAllowsMessaging(request.data.status),

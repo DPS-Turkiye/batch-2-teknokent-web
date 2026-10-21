@@ -1,5 +1,9 @@
 import { fetchMyAnnouncements } from "@/lib/api/program-announcements";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -10,6 +14,8 @@ export async function GET() {
     if (!userId) throw new SessionRequiredError();
     return backendResponse(await fetchMyAnnouncements(userId));
   } catch (error) {
-    return apiErrorResponse(error, { message: "Duyurular yüklenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("announcementsLoadFailed"),
+    });
   }
 }

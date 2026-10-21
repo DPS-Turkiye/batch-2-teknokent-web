@@ -12,5 +12,6 @@ export function clientTextsIn(locale: "tr" | "en") {
       messages: locale === "en" ? en : tr,
       namespace: "clientErrors",
     }),
+    locale,
   );
 }

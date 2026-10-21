@@ -1,5 +1,9 @@
 import { fetchStartupDocuments } from "@/lib/api/startup-documents";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -8,7 +12,7 @@ export async function GET() {
     return backendResponse(await fetchStartupDocuments(organizationId, userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup dosyaları yüklenemedi.",
+      message: await apiText("startupFilesLoadFailed"),
     });
   }
 }

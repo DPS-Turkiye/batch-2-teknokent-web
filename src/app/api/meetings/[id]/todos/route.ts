@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { createMeetingTodo, fetchMeetingTodos } from "@/lib/api/meeting-notes";
 import { createMeetingTodoBodySchema } from "@/lib/notes-schemas";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -16,7 +20,7 @@ export async function GET(_request: NextRequest, context: RouteContext) {
     return backendResponse(await fetchMeetingTodos(id, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı görev hizmetine ulaşılamıyor.",
+      message: await apiText("meetingTaskServiceUnavailable"),
     });
   }
 }
@@ -27,7 +31,10 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = createMeetingTodoBodySchema.safeParse(await request.json());
     if (!body.success) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Görev başlığı gerekli." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("taskTitleRequired"),
+        },
         { status: 400 },
       );
     }
@@ -36,7 +43,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     return backendResponse(await createMeetingTodo(id, session, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı görevi oluşturulamadı.",
+      message: await apiText("meetingTaskCreateFailed"),
     });
   }
 }

@@ -1,5 +1,9 @@
 import { fetchProgramNames } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 
 /**
  * Deliberately unauthenticated, unlike every other route in this folder: it
@@ -13,7 +17,7 @@ export async function GET() {
     return backendResponse(await fetchProgramNames());
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Programlar yüklenemedi.",
+      message: await apiText("programsLoadFailed"),
     });
   }
 }

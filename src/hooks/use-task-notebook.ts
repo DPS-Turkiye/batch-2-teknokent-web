@@ -22,7 +22,7 @@ export function useHomeTaskNotebook() {
 /** A mentorship's tasks for the notebook popup, ticked straight from it. */
 export function useTaskNotebook(requestId: string) {
   const query = useActionItems(requestId);
-  const change = useChangeActionItemStatus(requestId);
+  const change = useChangeActionItemStatus();
   const items = (query.data ?? [])
     .filter((item) => item.status !== ActionItemStatus.Cancelled)
     .sort(

@@ -5,7 +5,11 @@ import {
   fetchMentorProfile,
   updateMentorProfile,
 } from "@/lib/api/mentor-profile";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
@@ -15,7 +19,7 @@ export async function GET() {
     return backendResponse(await fetchMentorProfile(userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor profili yüklenemedi.",
+      message: await apiText("mentorProfileLoadFailed"),
     });
   }
 }
@@ -40,7 +44,7 @@ export async function PUT(request: NextRequest) {
     return backendResponse(await updateMentorProfile(userId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentor profili güncellenemedi.",
+      message: await apiText("mentorProfileUpdateFailed"),
     });
   }
 }

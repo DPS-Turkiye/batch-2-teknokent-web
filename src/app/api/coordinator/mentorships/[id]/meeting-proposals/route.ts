@@ -1,5 +1,9 @@
 import { proposeMeeting } from "@/lib/api/meeting-proposals";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function POST(
@@ -20,6 +24,8 @@ export async function POST(
       }),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Görüşme önerilemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("meetingProposeFailed"),
+    });
   }
 }

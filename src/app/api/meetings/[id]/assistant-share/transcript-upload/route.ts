@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 import { createTranscriptUpload } from "@/lib/api/meeting-notes";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 
 type RouteContext = {
@@ -18,7 +22,7 @@ export async function POST(_request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Transkript yükleme bağlantısı oluşturulamadı.",
+      message: await apiText("transcriptUploadLinkFailed"),
     });
   }
 }

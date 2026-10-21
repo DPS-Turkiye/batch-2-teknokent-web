@@ -1,4 +1,8 @@
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { removeProgramStartup } from "@/lib/api/programs";
 import { requireCoordinatorSession } from "@/lib/server/require-program-access";
 
@@ -16,7 +20,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Startup programdan çıkarılamadı.",
+      message: await apiText("startupRemoveFailed"),
     });
   }
 }

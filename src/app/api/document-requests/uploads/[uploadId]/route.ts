@@ -1,7 +1,11 @@
 import { type NextRequest } from "next/server";
 
 import { deleteDocumentRequestUpload } from "@/lib/api/document-requests";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = { params: Promise<{ uploadId: string }> };
@@ -13,7 +17,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return backendResponse(await deleteDocumentRequestUpload(uploadId, userId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Belge kaldırılamadı.",
+      message: await apiText("documentRemoveFailed"),
     });
   }
 }

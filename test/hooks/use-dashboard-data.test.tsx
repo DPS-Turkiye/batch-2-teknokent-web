@@ -28,12 +28,29 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequests: () => mockUseMentorshipRequests(),
 }));
 
-vi.mock("@/lib/client/action-items", () => ({
-  getActionItems: vi.fn().mockResolvedValue([]),
-}));
+vi.mock("@/lib/client/action-items", () => {
+  const getActionItems = vi.fn().mockResolvedValue([]);
+  return {
+    getActionItems,
+    // The hooks batch through getActionItemsForRequests; it answers from the per-request fixtures,
+    // tagging each item with its request so the hooks can group them.
+    getActionItemsForRequests: vi.fn(async (ids: string[]) =>
+      (
+        await Promise.all(
+          ids.map(async (id) =>
+            ((await getActionItems(id)) ?? []).map((item: object) => ({
+              ...item,
+              mentorshipRequestId: id,
+            })),
+          ),
+        )
+      ).flat(),
+    ),
+  };
+});
 
 vi.mock("@/lib/client/meetings", () => ({
-  getMeetingFeedback: vi.fn().mockResolvedValue(null),
+  getRatedMeetingIds: vi.fn().mockResolvedValue([]),
 }));
 
 vi.mock("@/lib/client/meeting-notes", () => ({

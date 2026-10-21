@@ -1,5 +1,9 @@
 import { renewMentorInvite } from "@/lib/api/coordinator-programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 export async function POST(
@@ -14,6 +18,8 @@ export async function POST(
       await renewMentorInvite(auth.session.userId, id, inviteId),
     );
   } catch (error) {
-    return apiErrorResponse(error, { message: "Davet yenilenemedi." });
+    return apiErrorResponse(error, {
+      message: await apiText("inviteRenewFailed"),
+    });
   }
 }

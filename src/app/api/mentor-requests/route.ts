@@ -6,7 +6,11 @@ import {
   fetchMentorRequests,
   fetchMentorRequestsPage,
 } from "@/lib/api/mentor-requests";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
@@ -57,7 +61,7 @@ export async function GET(request: NextRequest) {
     return backendResponse(await fetchMentorRequests({ organizationId, role }));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorluk talebi hizmetine ulaşılamıyor.",
+      message: await apiText("mentorRequestServiceUnavailable"),
     });
   }
 }
@@ -69,7 +73,7 @@ export async function POST(request: NextRequest) {
     return backendResponse(await createMentorRequest(session, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorluk talebi oluşturulamadı.",
+      message: await apiText("mentorRequestCreateFailed"),
     });
   }
 }

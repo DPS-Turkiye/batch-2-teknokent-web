@@ -2,7 +2,11 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { deleteMeetingTodo, updateMeetingTodo } from "@/lib/api/meeting-notes";
 import { updateMeetingTodoBodySchema } from "@/lib/notes-schemas";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -17,7 +21,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Bir başlık veya tamamlanma durumu girin.",
+          message: await apiText("taskTitleOrDoneRequired"),
         },
         { status: 400 },
       );
@@ -29,7 +33,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı görevi güncellenemedi.",
+      message: await apiText("meetingTaskUpdateFailed"),
     });
   }
 }
@@ -41,7 +45,7 @@ export async function DELETE(_request: NextRequest, context: RouteContext) {
     return backendResponse(await deleteMeetingTodo(id, todoId, organizationId));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Toplantı görevi silinemedi.",
+      message: await apiText("meetingTaskDeleteFailed"),
     });
   }
 }

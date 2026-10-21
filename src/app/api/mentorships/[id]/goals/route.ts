@@ -1,7 +1,11 @@
 import type { NextRequest } from "next/server";
 
 import { createMentorshipGoal } from "@/lib/api/mentorships";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -15,7 +19,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const body = (await request.json()) as { title?: string };
     if (!body.title?.trim()) {
       return apiErrorResponse(new Error("title required"), {
-        message: "Hedef metni gerekli.",
+        message: await apiText("goalTextRequired"),
         status: 400,
       });
     }
@@ -28,7 +32,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Hedef eklenemedi.",
+      message: await apiText("goalAddFailed"),
     });
   }
 }

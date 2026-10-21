@@ -1,5 +1,9 @@
 import { requestProgramMembership } from "@/lib/api/programs";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -14,7 +18,7 @@ export async function POST(_request: Request, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Program katılım talebi gönderilemedi.",
+      message: await apiText("programJoinRequestFailed"),
     });
   }
 }

@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getLocale } from "next-intl/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
-import { fetchSignedInUser } from "@/lib/api/auth";
+import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
+import { isLocale } from "@/lib/i18n";
 import {
   destroySession,
   getSessionUser,
   saveSessionUser,
   toSession,
 } from "@/lib/session";
-import { apiErrorResponse } from "@/lib/server/api-response";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
 
 async function readRememberMe(request: NextRequest): Promise<boolean> {
@@ -26,12 +28,15 @@ export async function GET() {
     return session
       ? NextResponse.json(session)
       : NextResponse.json(
-          { code: "SESSION_REQUIRED", message: "Etkin oturum bulunamadı." },
+          {
+            code: "SESSION_REQUIRED",
+            message: await apiText("sessionMissing"),
+          },
           { status: 401 },
         );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Oturum servisine ulaşılamıyor.",
+      message: await apiText("sessionServiceUnavailable"),
     });
   }
 }
@@ -43,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
-          message: "Firebase kimlik anahtarı gerekli.",
+          message: await apiText("firebaseTokenRequired"),
         },
         { status: 400 },
       );
@@ -54,7 +59,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "REGISTRATION_REQUIRED",
-          message: "Bu hesabın kaydı tamamlanmamış.",
+          message: await apiText("registrationIncomplete"),
         },
         { status: 401 },
       );
@@ -63,10 +68,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "SESSION_REQUIRED",
-          message: "Giriş tamamlanamadı.",
+          message: await apiText("signInIncomplete"),
         },
         { status: response.status },
       );
+    }
+
+    // Before the approval check, so a pending applicant's decision notification is in their language too.
+    // Only that wording depends on it, so a failed save must not block sign-in.
+    const locale = await getLocale();
+    if (isLocale(locale)) {
+      await saveSignedInLanguage(idToken, locale).catch(() => undefined);
     }
 
     const user = response.data;
@@ -77,8 +89,8 @@ export async function POST(request: NextRequest) {
           status: user.status,
           message:
             user.status === UserAccountStatus.Rejected
-              ? "Başvurunuz onaylanmadı."
-              : "Hesabınız koordinatör onayı bekliyor.",
+              ? await apiText("applicationRejected")
+              : await apiText("accountAwaitingApproval"),
         },
         { status: 403 },
       );
@@ -89,7 +101,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           code: "SESSION_REQUIRED",
-          message: "Bu hesap için çalışma alanı hazır değil.",
+          message: await apiText("workspaceNotReady"),
         },
         { status: 409 },
       );
@@ -100,7 +112,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(session);
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Giriş yapılamadı.",
+      message: await apiText("signInFailed"),
     });
   }
 }
@@ -111,7 +123,7 @@ export async function DELETE() {
     return NextResponse.json({ ok: true });
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Çıkış yapılamadı.",
+      message: await apiText("signOutFailed"),
     });
   }
 }

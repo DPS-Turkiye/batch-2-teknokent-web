@@ -6,7 +6,11 @@ import {
   mutateMentorRequest,
 } from "@/lib/api/mentor-requests";
 import { HttpMethod } from "@/lib/http-method";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -18,7 +22,10 @@ async function forward(request: NextRequest, context: RouteContext) {
     const { action, id } = await context.params;
     if (!isMentorRequestAction(action)) {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Bu talep işlemi desteklenmiyor." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("mentorRequestActionUnsupported"),
+        },
         { status: 400 },
       );
     }
@@ -46,7 +53,7 @@ async function forward(request: NextRequest, context: RouteContext) {
     );
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Mentorluk talebi işlemi tamamlanamadı.",
+      message: await apiText("mentorRequestActionFailed"),
     });
   }
 }

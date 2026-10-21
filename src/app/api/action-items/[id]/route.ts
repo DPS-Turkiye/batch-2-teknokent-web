@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { updateActionItem } from "@/lib/api/action-items";
-import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
+import {
+  apiErrorResponse,
+  apiText,
+  backendResponse,
+} from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
 
 export async function PATCH(
@@ -17,7 +21,10 @@ export async function PATCH(
     >;
     if (typeof requestId !== "string") {
       return NextResponse.json(
-        { code: "INVALID_REQUEST", message: "Talep kimliği gerekli." },
+        {
+          code: "INVALID_REQUEST",
+          message: await apiText("requestIdRequired"),
+        },
         { status: 400 },
       );
     }
@@ -25,7 +32,7 @@ export async function PATCH(
     return backendResponse(await updateActionItem(id, requestId, payload));
   } catch (error) {
     return apiErrorResponse(error, {
-      message: "Aksiyon güncellenemedi.",
+      message: await apiText("actionItemUpdateFailed"),
     });
   }
 }
