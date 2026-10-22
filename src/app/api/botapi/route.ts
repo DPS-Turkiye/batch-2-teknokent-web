@@ -24,6 +24,15 @@ export async function POST(request: NextRequest) {
     }
 
     const { data, status } = await createMeetingBot(parsed.data);
+    if (status === 409) {
+      return NextResponse.json(
+        {
+          code: "RECORDING_SLOTS_FULL",
+          message: await apiText("recordingSlotsFull"),
+        },
+        { status },
+      );
+    }
     return NextResponse.json(data, { status });
   } catch (error) {
     return apiErrorResponse(error, {

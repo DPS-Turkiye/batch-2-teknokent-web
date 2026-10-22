@@ -20,6 +20,7 @@ export type ApiErrorCode =
   | "BACKEND_TIMEOUT"
   | "BACKEND_UNAVAILABLE"
   | "INVALID_REQUEST"
+  | "RECORDING_SLOTS_FULL"
   | "SESSION_REQUIRED";
 
 // backendRequest's own timeout: the backend is slow, not unreachable.

@@ -52,6 +52,28 @@ describe("assistant bot API route", () => {
     });
   });
 
+  it("answers a localized 409 when every recording slot is taken", async () => {
+    vi.mocked(createMeetingBot).mockResolvedValue({
+      data: { detail: "All recording slots are in use." },
+      status: 409,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/botapi", {
+        method: "POST",
+        body: JSON.stringify({
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toMatchObject({
+      code: "RECORDING_SLOTS_FULL",
+      message: expect.any(String),
+    });
+  });
+
   it("returns 400 when delete query is incomplete", async () => {
     const request = new NextRequest(
       "http://localhost/api/botapi?platform=google_meet",
