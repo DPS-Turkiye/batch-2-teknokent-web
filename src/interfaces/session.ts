@@ -31,6 +31,8 @@ export type BackendUser = {
   organizationId?: string | null;
   organizationName?: string | null;
   jobTitle?: string | null;
+  /** When an admin last ended all of this user's sign-ins (ISO time). */
+  signInsRevokedAt?: string | null;
 };
 
 export type SessionData = {

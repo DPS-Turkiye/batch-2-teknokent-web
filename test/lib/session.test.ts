@@ -262,6 +262,24 @@ describe("getSessionUser account re-check", () => {
     expect(savedSession.save).not.toHaveBeenCalled();
   });
 
+  it("signs out a session that began before an admin ended the account's sign-ins", async () => {
+    fetchUser.mockResolvedValue(
+      account({ signInsRevokedAt: new Date(issuedAt + 1000).toISOString() }),
+    );
+
+    await expect(getSessionUser()).resolves.toBeNull();
+    expect(savedSession.destroy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a session that began after the account's sign-ins were ended", async () => {
+    fetchUser.mockResolvedValue(
+      account({ signInsRevokedAt: new Date(issuedAt - 1000).toISOString() }),
+    );
+
+    await expect(getSessionUser()).resolves.toEqual(signedIn);
+    expect(savedSession.destroy).not.toHaveBeenCalled();
+  });
+
   it("signs out an account that no longer exists", async () => {
     fetchUser.mockResolvedValue({ status: 404, data: {} });
     await expect(getSessionUser()).resolves.toBeNull();

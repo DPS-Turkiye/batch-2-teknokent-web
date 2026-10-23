@@ -4119,6 +4119,14 @@
     "rejected": "{name} was rejected.",
     "approved": "{name} was approved.",
     "decideFailed": "Couldn't save the decision.",
+    "revokeSignIns": {
+      "button": "End all sign-ins",
+      "confirm": "{name} will be signed out on every device and has to sign in again. Continue?",
+      "yes": "End sign-ins",
+      "cancel": "Cancel",
+      "done": "Ended {name}'s sign-ins; open sessions close within 10 minutes.",
+      "failed": "Couldn't end the sign-ins."
+    },
     "approvedTitle": "{name} approved",
     "alreadyCoordinator": "Already the coordinator of {program}.",
     "assignedTo": "Assigned to {program}.",
@@ -5016,6 +5024,7 @@
     "profileLoadFailed": "Could not load the profile.",
     "statusMustBeDecision": "The status must be APPROVED or REJECTED.",
     "accountStatusUpdateFailed": "Could not update the account status.",
+    "signInRevokeFailed": "Could not end the sign-ins.",
     "noActiveMentorship": "You have no active mentorship with this startup.",
     "meetingStartupRequired": "Choose a startup for the meeting.",
     "notInProgram": "You are not part of this program.",

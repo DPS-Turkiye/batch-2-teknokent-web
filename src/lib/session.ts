@@ -90,9 +90,10 @@ const ACCOUNT_RECHECK_TIMEOUT_MS = 3000;
 
 /**
  * Whether the account still matches its session: approved, same role and same
- * organization. null when the backend could not answer.
+ * organization, and no admin ended its sign-ins after this one began. null when
+ * the backend could not answer.
  */
-async function accountStillMatches(user: AppSession) {
+async function accountStillMatches(user: AppSession, issuedAt: number) {
   try {
     const response = await fetchUser(user.userId, ACCOUNT_RECHECK_TIMEOUT_MS);
     if (response.status === 404) return false;
@@ -105,11 +106,13 @@ async function accountStillMatches(user: AppSession) {
     if (response.status !== 200) return null;
     const account = response.data;
     const current = toSession(account);
+    const revokedAt = Date.parse(account.signInsRevokedAt ?? "");
     return (
       (account.status ?? UserAccountStatus.Approved) ===
         UserAccountStatus.Approved &&
       current?.role === user.role &&
-      current.organizationId === user.organizationId
+      current.organizationId === user.organizationId &&
+      !(revokedAt >= issuedAt)
     );
   } catch {
     return null;
@@ -130,7 +133,7 @@ export async function getSessionUser() {
   const sinceCheck = now - (session.checkedAt ?? Number.NaN);
   if (sinceCheck >= 0 && sinceCheck < ACCOUNT_RECHECK_MS) return user;
 
-  const matches = await accountStillMatches(user);
+  const matches = await accountStillMatches(user, session.issuedAt ?? 0);
   // A backend outage must not sign everyone out; the next call asks again.
   if (matches === null) return user;
 

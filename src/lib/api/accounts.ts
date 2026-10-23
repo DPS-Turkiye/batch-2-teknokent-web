@@ -1,6 +1,7 @@
 import "server-only";
 
 import { UserAccountStatus, type BackendUser } from "@/interfaces/session";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export type AccountDecision = {
@@ -39,5 +40,13 @@ export function decideAccountStatus(
     method: "PATCH",
     url: `/api/users/${encodeURIComponent(userId)}/status`,
     data: { actorId, status },
+  });
+}
+
+export function revokeSignIns(userId: string, actorId: string) {
+  return backendRequest<BackendUser>({
+    method: HttpMethod.Post,
+    url: `/api/users/${encodeURIComponent(userId)}/sign-ins/revoke`,
+    data: { actorId },
   });
 }

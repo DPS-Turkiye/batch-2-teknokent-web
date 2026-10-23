@@ -4119,6 +4119,14 @@
     "rejected": "{name} reddedildi.",
     "approved": "{name} onaylandı.",
     "decideFailed": "Karar kaydedilemedi.",
+    "revokeSignIns": {
+      "button": "Tüm oturumlarını kapat",
+      "confirm": "{name} tüm cihazlarda çıkış yapacak ve yeniden giriş yapması gerekecek. Emin misin?",
+      "yes": "Oturumları kapat",
+      "cancel": "Vazgeç",
+      "done": "{name} için tüm oturumlar kapatıldı; açık oturumlar en geç 10 dakika içinde sona erer.",
+      "failed": "Oturumlar kapatılamadı."
+    },
     "approvedTitle": "{name} onaylandı",
     "alreadyCoordinator": "Zaten {program} programının koordinatörü.",
     "assignedTo": "{program} programına atandı.",
@@ -5016,6 +5024,7 @@
     "profileLoadFailed": "Profil yüklenemedi.",
     "statusMustBeDecision": "Durum APPROVED veya REJECTED olmalıdır.",
     "accountStatusUpdateFailed": "Hesap durumu güncellenemedi.",
+    "signInRevokeFailed": "Oturumlar kapatılamadı.",
     "noActiveMentorship": "Bu startup ile aktif bir mentorlüğünüz yok.",
     "meetingStartupRequired": "Toplantı için bir startup seçilmelidir.",
     "notInProgram": "Bu programa katılmadınız.",

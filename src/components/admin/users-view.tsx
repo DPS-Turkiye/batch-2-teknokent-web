@@ -15,6 +15,7 @@ import {
   startupsOf,
 } from "@/components/admin/admin-model";
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
+import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import {
@@ -935,6 +936,9 @@ function CoordinatorDrawer({
             </p>
           ) : null}
         </div>
+        <div className="border-t border-[#e9ecef] px-6 py-4">
+          <RevokeSignInsButton user={user} />
+        </div>
       </aside>
     </div>
   );
@@ -1113,6 +1117,9 @@ function MentorDrawer({
                 : t("noCreatedAt")}
             </p>
           ) : null}
+        </div>
+        <div className="border-t border-[#e9ecef] px-6 py-4">
+          <RevokeSignInsButton user={user} />
         </div>
       </aside>
     </div>
