@@ -147,6 +147,14 @@ describe("getSessionUser", () => {
     mockIronSession.user = user;
     await expect(getSessionUser()).resolves.toBeNull();
   });
+
+  it("returns null when the sign-in time is in the future or not a number", async () => {
+    mockIronSession.user = user;
+    for (const issuedAt of [Date.now() + HOUR_MS, Number.NaN]) {
+      mockIronSession.issuedAt = issuedAt;
+      await expect(getSessionUser()).resolves.toBeNull();
+    }
+  });
 });
 
 describe("saveSessionUser", () => {

@@ -16,7 +16,9 @@ export function currentSessionUser(
   now = Date.now(),
 ): AppSession | null {
   if (!data.user || typeof data.issuedAt !== "number") return null;
-  return now - data.issuedAt < SESSION_MAX_AGE_SECONDS * 1000
+  const age = now - data.issuedAt;
+  // A minute of clock skew between servers; a later issuedAt would never expire.
+  return age > -60_000 && age < SESSION_MAX_AGE_SECONDS * 1000
     ? data.user
     : null;
 }
