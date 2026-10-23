@@ -1,25 +1,51 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { UserRole, type BackendUser } from "@/interfaces/session";
+import {
+  UserAccountStatus,
+  UserRole,
+  type BackendUser,
+} from "@/interfaces/session";
 
 vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
 }));
 
-const mockIronSession: { user?: unknown; issuedAt?: number } = {};
-let savedSession: Record<string, unknown> = {};
+const mockIronSession: {
+  user?: unknown;
+  issuedAt?: number;
+  checkedAt?: number;
+  persist?: boolean;
+} = {};
+let savedSession: Record<string, unknown> & {
+  save: ReturnType<typeof vi.fn>;
+  destroy: ReturnType<typeof vi.fn>;
+  updateConfig: ReturnType<typeof vi.fn>;
+} = { save: vi.fn(), destroy: vi.fn(), updateConfig: vi.fn() };
 vi.mock("iron-session", () => ({
   getIronSession: vi.fn().mockImplementation(() => {
-    savedSession = { ...mockIronSession, save: vi.fn(), destroy: vi.fn() };
+    savedSession = {
+      ...mockIronSession,
+      save: vi.fn(),
+      destroy: vi.fn(),
+      updateConfig: vi.fn(),
+    };
     return Promise.resolve(savedSession);
   }),
 }));
+
+const { fetchUser } = vi.hoisted(() => ({ fetchUser: vi.fn() }));
+vi.mock("@/lib/api/accounts", () => ({ fetchUser }));
+// Unreachable unless a test says otherwise: the session is kept and nothing is written.
+beforeEach(() => {
+  fetchUser.mockResolvedValue({ status: 503, data: {} });
+});
 
 process.env.SESSION_PASSWORD = "a".repeat(32);
 
 const HOUR_MS = 60 * 60 * 1000;
 
 const {
+  ACCOUNT_RECHECK_MS,
   getSessionIds,
   getSessionMentorId,
   getSessionUser,
@@ -124,6 +150,8 @@ describe("getSessionUser", () => {
     vi.clearAllMocks();
     mockIronSession.user = undefined;
     mockIronSession.issuedAt = undefined;
+    mockIronSession.checkedAt = undefined;
+    mockIronSession.persist = undefined;
   });
 
   it("returns null when the session cookie is missing", async () => {
@@ -157,6 +185,135 @@ describe("getSessionUser", () => {
   });
 });
 
+describe("getSessionUser account re-check", () => {
+  const signedIn = toSession(mentee())!;
+  const issuedAt = Date.now() - HOUR_MS;
+
+  function account(overrides: Partial<BackendUser> = {}) {
+    return {
+      status: 200,
+      data: mentee({ status: UserAccountStatus.Approved, ...overrides }),
+    };
+  }
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIronSession.user = signedIn;
+    mockIronSession.issuedAt = issuedAt;
+    mockIronSession.checkedAt = Date.now() - ACCOUNT_RECHECK_MS;
+    mockIronSession.persist = undefined;
+  });
+
+  it("does not ask the backend again within the re-check window", async () => {
+    mockIronSession.checkedAt = Date.now() - ACCOUNT_RECHECK_MS + 60_000;
+    await expect(getSessionUser()).resolves.toEqual(signedIn);
+    expect(fetchUser).not.toHaveBeenCalled();
+  });
+
+  it("keeps a still-approved account and records the check, not a new sign-in", async () => {
+    fetchUser.mockResolvedValue(account());
+    const before = Date.now();
+
+    await expect(getSessionUser()).resolves.toEqual(signedIn);
+
+    // Well under the backend client's 15 s, so a hung backend can't stall every request.
+    expect(fetchUser).toHaveBeenCalledWith(signedIn.userId, 3000);
+    expect(savedSession.checkedAt).toBeGreaterThanOrEqual(before);
+    expect(savedSession.issuedAt).toBe(issuedAt);
+    expect(savedSession.save).toHaveBeenCalledOnce();
+    expect(savedSession.destroy).not.toHaveBeenCalled();
+  });
+
+  it("keeps a remember-me cookie's lifetime when it re-saves", async () => {
+    fetchUser.mockResolvedValue(account());
+    mockIronSession.persist = true;
+
+    await getSessionUser();
+
+    expect(savedSession.updateConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cookieOptions: expect.objectContaining({ maxAge: 12 * 60 * 60 }),
+      }),
+    );
+  });
+
+  it("re-checks a session that has never been checked", async () => {
+    mockIronSession.checkedAt = undefined;
+    fetchUser.mockResolvedValue(account());
+    await expect(getSessionUser()).resolves.toEqual(signedIn);
+    expect(fetchUser).toHaveBeenCalledOnce();
+  });
+
+  it.each([
+    ["rejected", { status: UserAccountStatus.Rejected }],
+    ["back to pending", { status: UserAccountStatus.Pending }],
+    ["given another role", { role: UserRole.Mentor }],
+    [
+      "moved to another organization",
+      { organizationId: "20000000-0000-0000-0000-000000000002" },
+    ],
+    ["left without an organization", { organizationId: null }],
+  ])("signs out an account %s", async (_, overrides) => {
+    fetchUser.mockResolvedValue(account(overrides));
+
+    await expect(getSessionUser()).resolves.toBeNull();
+
+    expect(savedSession.destroy).toHaveBeenCalledOnce();
+    expect(savedSession.save).not.toHaveBeenCalled();
+  });
+
+  it("signs out an account that no longer exists", async () => {
+    fetchUser.mockResolvedValue({ status: 404, data: {} });
+    await expect(getSessionUser()).resolves.toBeNull();
+    expect(savedSession.destroy).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the session unchanged when the backend cannot answer", async () => {
+    for (const reply of [
+      () => fetchUser.mockResolvedValue({ status: 503, data: {} }),
+      () => fetchUser.mockRejectedValue(new Error("timeout")),
+    ]) {
+      reply();
+      await expect(getSessionUser()).resolves.toEqual(signedIn);
+      expect(savedSession.save).not.toHaveBeenCalled();
+      expect(savedSession.destroy).not.toHaveBeenCalled();
+    }
+  });
+
+  it("logs a refused service credential, which turns the check off for everyone", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    for (const status of [401, 403]) {
+      fetchUser.mockResolvedValue({ status, data: {} });
+      await expect(getSessionUser()).resolves.toEqual(signedIn);
+      expect(log).toHaveBeenLastCalledWith(
+        "Account re-check refused by the backend",
+        { status },
+      );
+    }
+    log.mockRestore();
+  });
+
+  it("still signs out where cookies are read-only (server components)", async () => {
+    fetchUser.mockResolvedValue(
+      account({ status: UserAccountStatus.Rejected }),
+    );
+    const { getIronSession } = await import("iron-session");
+    vi.mocked(getIronSession).mockImplementationOnce(() => {
+      savedSession = {
+        ...mockIronSession,
+        save: vi.fn(),
+        destroy: vi.fn(() => {
+          throw new Error("Cookies can only be modified in a Route Handler");
+        }),
+        updateConfig: vi.fn(),
+      };
+      return Promise.resolve(savedSession) as never;
+    });
+
+    await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
+
 describe("saveSessionUser", () => {
   it("records when the session was saved", async () => {
     const before = Date.now();
@@ -166,6 +323,8 @@ describe("saveSessionUser", () => {
     );
     expect(savedSession.issuedAt).toBeGreaterThanOrEqual(before);
     expect(savedSession.issuedAt).toBeLessThanOrEqual(Date.now());
+    expect(savedSession.checkedAt).toBe(savedSession.issuedAt);
+    expect(savedSession.persist).toBe(true);
     expect(savedSession.save).toHaveBeenCalledOnce();
   });
 });

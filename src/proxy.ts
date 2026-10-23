@@ -42,6 +42,8 @@ function isPageLoad(request: NextRequest) {
  * A cookie that is merely present is not a session: an expired one, or one
  * sealed with a rotated password, unseals to nothing. Treating it as signed in
  * rendered the app to a stranger as "Kullanıcı", and sent them away from /login.
+ * The account re-check is left to getSessionUser: a backend call per page load
+ * is too costly, and every page fetches /api/session and its data through it.
  */
 async function readSession(seal: string | undefined): Promise<SessionRead> {
   if (!seal) return { signedIn: false };

@@ -37,4 +37,8 @@ export type SessionData = {
   user?: AppSession;
   /** When the session was saved (epoch ms); see currentSessionUser. */
   issuedAt?: number;
+  /** When the backend last confirmed the account (epoch ms); see getSessionUser. */
+  checkedAt?: number;
+  /** Signed in with "remember me", so a re-save keeps the cookie's lifetime. */
+  persist?: boolean;
 };

@@ -4,11 +4,13 @@ import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
 
 import {
+  UserAccountStatus,
   UserRole,
   type BackendUser,
   type AppSession,
   type SessionData,
 } from "@/interfaces/session";
+import { fetchUser } from "@/lib/api/accounts";
 import {
   currentSessionUser,
   SESSION_MAX_AGE_SECONDS,
@@ -80,14 +82,79 @@ export async function getSessionStore(persist = false) {
   return getIronSession<SessionData>(await cookies(), sessionOptions(persist));
 }
 
+/** How long a signed-in account is trusted before the backend is asked again. */
+export const ACCOUNT_RECHECK_MS = 10 * 60 * 1000;
+
+// A hung backend would otherwise hold every request due a re-check for 15 s.
+const ACCOUNT_RECHECK_TIMEOUT_MS = 3000;
+
+/**
+ * Whether the account still matches its session: approved, same role and same
+ * organization. null when the backend could not answer.
+ */
+async function accountStillMatches(user: AppSession) {
+  try {
+    const response = await fetchUser(user.userId, ACCOUNT_RECHECK_TIMEOUT_MS);
+    if (response.status === 404) return false;
+    if (response.status === 401 || response.status === 403) {
+      // The service credential was refused: the check is off for everyone.
+      console.error("Account re-check refused by the backend", {
+        status: response.status,
+      });
+    }
+    if (response.status !== 200) return null;
+    const account = response.data;
+    const current = toSession(account);
+    return (
+      (account.status ?? UserAccountStatus.Approved) ===
+        UserAccountStatus.Approved &&
+      current?.role === user.role &&
+      current.organizationId === user.organizationId
+    );
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The signed-in user, re-checked against the backend every ACCOUNT_RECHECK_MS so
+ * a rejected or removed account, or a changed role or organization, stops acting
+ * through an old cookie. Every proxy route reads the session through here.
+ */
 export async function getSessionUser() {
-  return currentSessionUser(await getSessionStore());
+  const session = await getSessionStore();
+  const user = currentSessionUser(session);
+  if (!user) return null;
+
+  const now = Date.now();
+  const sinceCheck = now - (session.checkedAt ?? Number.NaN);
+  if (sinceCheck >= 0 && sinceCheck < ACCOUNT_RECHECK_MS) return user;
+
+  const matches = await accountStillMatches(user);
+  // A backend outage must not sign everyone out; the next call asks again.
+  if (matches === null) return user;
+
+  try {
+    if (matches) {
+      session.updateConfig(sessionOptions(session.persist === true));
+      session.checkedAt = now;
+      await session.save();
+    } else {
+      await session.destroy();
+    }
+  } catch {
+    // Server components may read cookies but not write them; the verdict still
+    // holds for this render and the next route handler writes it.
+  }
+  return matches ? user : null;
 }
 
 export async function saveSessionUser(user: AppSession, persist = false) {
   const session = await getSessionStore(persist);
   session.user = user;
   session.issuedAt = Date.now();
+  session.checkedAt = session.issuedAt;
+  session.persist = persist;
   await session.save();
 }
 
