@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { fireEvent, render, waitFor } from "@testing-library/react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -54,5 +54,45 @@ describe("QueryProvider", () => {
     fireEvent.keyDown(window);
 
     expect(polled).toHaveBeenCalledTimes(1);
+  });
+
+  it("reuses data for 30 seconds when a screen is opened again", async () => {
+    const load = vi.fn().mockResolvedValue("data");
+    function Page() {
+      const client = useQueryClient();
+      useQuery({ queryKey: ["page"], queryFn: load });
+      return (
+        <button
+          onClick={() => void client.invalidateQueries({ queryKey: ["page"] })}
+        >
+          invalidate
+        </button>
+      );
+    }
+    function App({ open }: { open: boolean }) {
+      return open ? <Page /> : null;
+    }
+    const { rerender } = render(
+      <QueryProvider>
+        <App open />
+      </QueryProvider>,
+    );
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(1));
+
+    rerender(
+      <QueryProvider>
+        <App open={false} />
+      </QueryProvider>,
+    );
+    rerender(
+      <QueryProvider>
+        <App open />
+      </QueryProvider>,
+    );
+    expect(load).toHaveBeenCalledTimes(1);
+
+    // A mutation's invalidation still refetches straight away.
+    fireEvent.click(screen.getByRole("button", { name: "invalidate" }));
+    await waitFor(() => expect(load).toHaveBeenCalledTimes(2));
   });
 });

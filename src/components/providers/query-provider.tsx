@@ -17,6 +17,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
           queries: {
             retry: 1,
             refetchOnWindowFocus: false,
+            // Without it every screen refetched everything on each visit. Mutations invalidate what they
+            // change and polling refetches on its own schedule, so neither waits for this.
+            staleTime: 30_000,
           },
         },
       }),
