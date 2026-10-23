@@ -35,4 +35,6 @@ export type BackendUser = {
 
 export type SessionData = {
   user?: AppSession;
+  /** When the session was saved (epoch ms); see currentSessionUser. */
+  issuedAt?: number;
 };

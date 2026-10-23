@@ -14,6 +14,7 @@ import {
   PREFER_WEB_PARAM,
 } from "@/lib/mobile";
 import {
+  currentSessionUser,
   isPublicPath,
   loginPathFor,
   safeNextPath,
@@ -48,8 +49,10 @@ async function readSession(seal: string | undefined): Promise<SessionRead> {
   // Without the password this cannot tell; the pages still ask /api/session.
   if (!password) return { signedIn: true };
   try {
-    const data = await unsealData<SessionData>(seal, { password });
-    return { signedIn: Boolean(data.user), user: data.user };
+    const user = currentSessionUser(
+      await unsealData<SessionData>(seal, { password }),
+    );
+    return user ? { signedIn: true, user } : { signedIn: false };
   } catch {
     return { signedIn: false };
   }

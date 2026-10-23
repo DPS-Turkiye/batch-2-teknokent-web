@@ -10,6 +10,19 @@ const PASSWORD = "a-test-session-password-of-32-chars!";
 let signedIn = "";
 let empty = "";
 let coordinator = "";
+let expired = "";
+let beforeIssuedAt = "";
+
+const HOUR_MS = 60 * 60 * 1000;
+const MENTEE = {
+  userId: "user-1",
+  email: "gulse@dongu.app",
+  fullName: "Gülse Buran",
+  jobTitle: "Kurucu",
+  role: UserRole.Mentee,
+  organizationId: "org-1",
+  organizationName: "Döngü",
+};
 
 const IPHONE =
   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
@@ -19,20 +32,18 @@ const IPAD =
 beforeAll(async () => {
   vi.stubEnv("SESSION_PASSWORD", PASSWORD);
   signedIn = `teknokent_session=${await sealData(
-    {
-      user: {
-        userId: "user-1",
-        email: "gulse@dongu.app",
-        fullName: "Gülse Buran",
-        jobTitle: "Kurucu",
-        role: UserRole.Mentee,
-        organizationId: "org-1",
-        organizationName: "Döngü",
-      },
-    },
+    { user: MENTEE, issuedAt: Date.now() },
     { password: PASSWORD },
   )}`;
   empty = `teknokent_session=${await sealData({}, { password: PASSWORD })}`;
+  expired = `teknokent_session=${await sealData(
+    { user: MENTEE, issuedAt: Date.now() - 13 * HOUR_MS },
+    { password: PASSWORD },
+  )}`;
+  beforeIssuedAt = `teknokent_session=${await sealData(
+    { user: MENTEE },
+    { password: PASSWORD },
+  )}`;
   coordinator = `teknokent_session=${await sealData(
     {
       user: {
@@ -42,6 +53,7 @@ beforeAll(async () => {
         jobTitle: "Koordinatör",
         role: UserRole.Coordinator,
       },
+      issuedAt: Date.now(),
     },
     { password: PASSWORD },
   )}`;
@@ -91,6 +103,18 @@ describe("proxy", () => {
   // but holds no user is not a session.
   it("sends a visitor with a cookie that holds no session to login, and clears it", async () => {
     for (const cookie of [empty, "teknokent_session=not-a-seal"]) {
+      const response = await request("/profile", cookie);
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        "http://localhost:3000/login?next=%2Fprofile",
+      );
+      expect(clearsTheCookie(response)).toBe(true);
+    }
+  });
+
+  // A sealed cookie never expires on its own, so a copied one would sign in forever.
+  it("treats a session older than 12 hours, or one without a sign-in time, as signed out", async () => {
+    for (const cookie of [expired, beforeIssuedAt]) {
       const response = await request("/profile", cookie);
       expect(response.status).toBe(307);
       expect(response.headers.get("location")).toBe(

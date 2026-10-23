@@ -6,21 +6,26 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue({}),
 }));
 
-const mockIronSession: { user?: unknown } = {};
+const mockIronSession: { user?: unknown; issuedAt?: number } = {};
+let savedSession: Record<string, unknown> = {};
 vi.mock("iron-session", () => ({
-  getIronSession: vi.fn().mockImplementation(() =>
-    Promise.resolve({
-      ...mockIronSession,
-      save: vi.fn(),
-      destroy: vi.fn(),
-    }),
-  ),
+  getIronSession: vi.fn().mockImplementation(() => {
+    savedSession = { ...mockIronSession, save: vi.fn(), destroy: vi.fn() };
+    return Promise.resolve(savedSession);
+  }),
 }));
 
 process.env.SESSION_PASSWORD = "a".repeat(32);
 
-const { getSessionIds, getSessionMentorId, getSessionUser, toSession } =
-  await import("@/lib/session");
+const HOUR_MS = 60 * 60 * 1000;
+
+const {
+  getSessionIds,
+  getSessionMentorId,
+  getSessionUser,
+  saveSessionUser,
+  toSession,
+} = await import("@/lib/session");
 const { SessionRequiredError } = await import("@/lib/server/session-error");
 
 function mentee(overrides: Partial<BackendUser> = {}): BackendUser {
@@ -113,13 +118,47 @@ describe("toSession", () => {
 });
 
 describe("getSessionUser", () => {
+  const user = { userId: "founder-1", role: UserRole.Mentee };
+
   beforeEach(() => {
     vi.clearAllMocks();
     mockIronSession.user = undefined;
+    mockIronSession.issuedAt = undefined;
   });
 
   it("returns null when the session cookie is missing", async () => {
     await expect(getSessionUser()).resolves.toBeNull();
+  });
+
+  it("returns the user of a session saved within the last 12 hours", async () => {
+    mockIronSession.user = user;
+    mockIronSession.issuedAt = Date.now() - 11 * HOUR_MS;
+    await expect(getSessionUser()).resolves.toEqual(user);
+  });
+
+  // The sealed cookie itself never expires, so a copied one would sign in forever.
+  it("returns null once the session is 12 hours old", async () => {
+    mockIronSession.user = user;
+    mockIronSession.issuedAt = Date.now() - 12 * HOUR_MS;
+    await expect(getSessionUser()).resolves.toBeNull();
+  });
+
+  it("returns null for a session saved before sign-in times were recorded", async () => {
+    mockIronSession.user = user;
+    await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
+
+describe("saveSessionUser", () => {
+  it("records when the session was saved", async () => {
+    const before = Date.now();
+    await saveSessionUser(
+      { userId: "founder-1", role: UserRole.Mentee } as never,
+      true,
+    );
+    expect(savedSession.issuedAt).toBeGreaterThanOrEqual(before);
+    expect(savedSession.issuedAt).toBeLessThanOrEqual(Date.now());
+    expect(savedSession.save).toHaveBeenCalledOnce();
   });
 });
 
@@ -139,6 +178,7 @@ describe("getSessionIds", () => {
       role: UserRole.Mentee,
       organizationId: "org-1",
     };
+    mockIronSession.issuedAt = Date.now();
 
     await expect(getSessionIds()).resolves.toEqual({
       userId: "founder-1",
@@ -158,6 +198,7 @@ describe("getSessionMentorId", () => {
       userId: "00000000-0000-0000-0000-000000000012",
       role: UserRole.Mentor,
     };
+    mockIronSession.issuedAt = Date.now();
 
     await expect(getSessionMentorId()).resolves.toBe(
       "00000000-0000-0000-0000-000000000012",

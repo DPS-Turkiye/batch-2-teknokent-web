@@ -9,6 +9,10 @@ import {
   type AppSession,
   type SessionData,
 } from "@/interfaces/session";
+import {
+  currentSessionUser,
+  SESSION_MAX_AGE_SECONDS,
+} from "@/lib/public-paths";
 import { SessionRequiredError } from "@/lib/server/session-error";
 
 function sessionOptions(persist = false): SessionOptions {
@@ -24,7 +28,7 @@ function sessionOptions(persist = false): SessionOptions {
       httpOnly: true,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
-      maxAge: persist ? 60 * 60 * 12 : undefined,
+      maxAge: persist ? SESSION_MAX_AGE_SECONDS : undefined,
     },
   };
 }
@@ -77,13 +81,13 @@ export async function getSessionStore(persist = false) {
 }
 
 export async function getSessionUser() {
-  const session = await getSessionStore();
-  return session.user ?? null;
+  return currentSessionUser(await getSessionStore());
 }
 
 export async function saveSessionUser(user: AppSession, persist = false) {
   const session = await getSessionStore(persist);
   session.user = user;
+  session.issuedAt = Date.now();
   await session.save();
 }
 
