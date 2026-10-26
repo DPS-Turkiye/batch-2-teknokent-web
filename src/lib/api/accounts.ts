@@ -22,10 +22,11 @@ export function fetchUsers(options?: {
   });
 }
 
-export function fetchUser(userId: string) {
+export function fetchUser(userId: string, timeout?: number) {
   return backendRequest<BackendUser>({
     method: "GET",
     url: `/api/users/${encodeURIComponent(userId)}`,
+    ...(timeout ? { timeout } : {}),
   });
 }
 

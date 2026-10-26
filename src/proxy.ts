@@ -14,6 +14,7 @@ import {
   PREFER_WEB_PARAM,
 } from "@/lib/mobile";
 import {
+  currentSessionUser,
   isPublicPath,
   loginPathFor,
   safeNextPath,
@@ -41,6 +42,8 @@ function isPageLoad(request: NextRequest) {
  * A cookie that is merely present is not a session: an expired one, or one
  * sealed with a rotated password, unseals to nothing. Treating it as signed in
  * rendered the app to a stranger as "Kullanıcı", and sent them away from /login.
+ * The account re-check is left to getSessionUser: a backend call per page load
+ * is too costly, and every page fetches /api/session and its data through it.
  */
 async function readSession(seal: string | undefined): Promise<SessionRead> {
   if (!seal) return { signedIn: false };
@@ -48,8 +51,10 @@ async function readSession(seal: string | undefined): Promise<SessionRead> {
   // Without the password this cannot tell; the pages still ask /api/session.
   if (!password) return { signedIn: true };
   try {
-    const data = await unsealData<SessionData>(seal, { password });
-    return { signedIn: Boolean(data.user), user: data.user };
+    const user = currentSessionUser(
+      await unsealData<SessionData>(seal, { password }),
+    );
+    return user ? { signedIn: true, user } : { signedIn: false };
   } catch {
     return { signedIn: false };
   }
