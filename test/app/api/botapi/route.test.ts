@@ -74,6 +74,27 @@ describe("assistant bot API route", () => {
     });
   });
 
+  it("passes on any other 409 from the backend unchanged", async () => {
+    vi.mocked(createMeetingBot).mockResolvedValue({
+      data: { detail: "Failed to reach meeting provider" },
+      status: 409,
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/api/botapi", {
+        method: "POST",
+        body: JSON.stringify({
+          meetingUrl: "https://meet.google.com/abc-defg-hij",
+        }),
+      }),
+    );
+
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({
+      detail: "Failed to reach meeting provider",
+    });
+  });
+
   it("returns 400 when delete query is incomplete", async () => {
     const request = new NextRequest(
       "http://localhost/api/botapi?platform=google_meet",
