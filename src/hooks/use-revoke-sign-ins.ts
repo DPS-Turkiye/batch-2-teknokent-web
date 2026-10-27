@@ -13,15 +13,22 @@ export function useRevokeSignIns(user: { id: string; fullName: string }) {
   const t = useTranslations("adminUsers.revokeSignIns");
   const { showToast } = useToast();
   const [confirming, setConfirming] = useState(false);
+  // Once the question has been asked, focus goes back to the button when it closes.
+  const [asked, setAsked] = useState(false);
   const revoke = useMutation({
     mutationFn: () => revokeUserSignIns(user.id),
   });
+
+  function close() {
+    setConfirming(false);
+    setAsked(true);
+  }
 
   function confirm() {
     void revoke
       .mutateAsync()
       .then(() => {
-        setConfirming(false);
+        close();
         showToast({
           message: t("done", { name: user.fullName }),
           tone: "success",
@@ -34,9 +41,10 @@ export function useRevokeSignIns(user: { id: string; fullName: string }) {
 
   return {
     confirming,
+    returnFocus: asked,
     pending: revoke.isPending,
     ask: () => setConfirming(true),
-    cancel: () => setConfirming(false),
+    cancel: close,
     confirm,
   };
 }

@@ -28,12 +28,26 @@ describe("RevokeSignInsButton", () => {
     expect(
       screen.getByText(/Okan Yurt tüm cihazlarda çıkış yapacak/),
     ).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("button", { name: "Vazgeç" }));
+    // Focus lands on the safe choice, which also reads the question out.
+    const cancel = screen.getByRole("button", { name: "Vazgeç" });
+    expect(cancel).toHaveFocus();
+    expect(cancel).toHaveAccessibleDescription(
+      /Okan Yurt tüm cihazlarda çıkış yapacak/,
+    );
+    await userEvent.click(cancel);
 
     expect(revokeUserSignIns).not.toHaveBeenCalled();
     expect(
       screen.getByRole("button", { name: "Tüm oturumlarını kapat" }),
-    ).toBeInTheDocument();
+    ).toHaveFocus();
+  });
+
+  it("does not take focus before it is used", () => {
+    renderWithQueryClient(<RevokeSignInsButton user={user} />);
+
+    expect(
+      screen.getByRole("button", { name: "Tüm oturumlarını kapat" }),
+    ).not.toHaveFocus();
   });
 
   it("ends the sign-ins once confirmed and says so", async () => {
