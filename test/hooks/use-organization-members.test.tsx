@@ -3,9 +3,11 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAppSession } from "@/components/providers/session-provider";
 import {
   useAddOrganizationMember,
   useOrganizationMembers,
+  useViewerIsFounder,
 } from "@/hooks/use-organization-members";
 import {
   addOrganizationMember,
@@ -16,6 +18,10 @@ import { createTestQueryClient } from "@test/test-utils";
 vi.mock("@/lib/client/organization-members", () => ({
   getOrganizationMembers: vi.fn(),
   addOrganizationMember: vi.fn(),
+}));
+
+vi.mock("@/components/providers/session-provider", () => ({
+  useAppSession: vi.fn(),
 }));
 
 function wrapperFor(queryClient: ReturnType<typeof createTestQueryClient>) {
@@ -75,5 +81,25 @@ describe("organization members hooks", () => {
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: ["organization-members"],
     });
+  });
+
+  it.each([
+    ["founder-1", true],
+    ["member-1", false],
+  ])("tells whether %s is the founder", async (userId, expected) => {
+    vi.mocked(useAppSession).mockReturnValue({ userId } as never);
+    vi.mocked(getOrganizationMembers).mockResolvedValue([
+      { id: "founder-1", founder: true },
+      { id: "member-1", founder: false },
+    ] as never);
+
+    const { result } = renderHook(() => useViewerIsFounder(), {
+      wrapper: wrapperFor(createTestQueryClient()),
+    });
+
+    await waitFor(() =>
+      expect(getOrganizationMembers).toHaveBeenCalledTimes(1),
+    );
+    await waitFor(() => expect(result.current).toBe(expected));
   });
 });

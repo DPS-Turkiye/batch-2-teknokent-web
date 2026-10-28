@@ -18,6 +18,7 @@ import {
 } from "@/lib/client/organization-members";
 import {
   foundersFirst,
+  isFounder,
   type MemberDraft,
   memberDraftError,
   MemberFormMode,
@@ -40,9 +41,7 @@ export function useStartupTeam() {
     () => foundersFirst(membersQuery.data ?? []),
     [membersQuery.data],
   );
-  const viewerIsFounder = members.some(
-    (member) => member.founder && member.id === session?.userId,
-  );
+  const viewerIsFounder = isFounder(members, session?.userId);
 
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ORGANIZATION_MEMBERS_QUERY_KEY });

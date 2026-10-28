@@ -12,10 +12,11 @@ import {
 
 export const ORGANIZATION_INVITE_QUERY_KEY = ["organization-invite"] as const;
 
-export function useOrganizationInvite() {
+export function useOrganizationInvite({ enabled = true } = {}) {
   return useQuery({
     queryKey: ORGANIZATION_INVITE_QUERY_KEY,
     queryFn: getInviteCode,
+    enabled,
   });
 }
 
