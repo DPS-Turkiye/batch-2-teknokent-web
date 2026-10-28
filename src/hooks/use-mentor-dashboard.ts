@@ -6,6 +6,7 @@ import { useMemo } from "react";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useDecision } from "@/hooks/use-decision";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import type { ActionItem } from "@/interfaces/action-item";
@@ -29,6 +30,7 @@ export function useMentorDashboard() {
   const session = useAppSession();
   const requestsQuery = useMentorshipRequests(UserRole.Mentor);
   const meetingsQuery = useMeetings();
+  const proposalsQuery = useMyMeetingProposalsQuery();
   const decision = useDecision();
   const requests = useMemo(
     () => requestsQuery.data ?? [],
@@ -100,6 +102,9 @@ export function useMentorDashboard() {
     openActionItems,
     awaitingReview,
     isLoadingActionItems,
+    // The blocks above the quick actions appear only once these load; until then nothing sits
+    // below them to be pushed down (layout shift).
+    isLoadingTop: meetingsQuery.isLoading || proposalsQuery.isLoading,
     upcomingMeetings,
     weekMeetingCount: mentorWeekMeetingCount(meetings),
     requestsQuery,

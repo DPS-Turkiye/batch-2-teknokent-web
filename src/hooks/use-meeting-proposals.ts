@@ -30,16 +30,20 @@ import { POLL_INTERVAL, polling } from "@/lib/poll";
 
 export const MEETING_PROPOSALS_QUERY_KEY = ["meeting-proposals"] as const;
 
+export function useMyMeetingProposalsQuery() {
+  return useQuery({
+    queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "mine"],
+    queryFn: getMyMeetingProposals,
+    ...polling(POLL_INTERVAL.background),
+  });
+}
+
 /** The mentor's or the team's open coordinator proposals, with accept and decline-with-reason. */
 export function useMeetingProposals() {
   const queryClient = useQueryClient();
   const [decliningId, setDecliningId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
-  const proposals = useQuery({
-    queryKey: [...MEETING_PROPOSALS_QUERY_KEY, "mine"],
-    queryFn: getMyMeetingProposals,
-    ...polling(POLL_INTERVAL.background),
-  });
+  const proposals = useMyMeetingProposalsQuery();
   const refresh = () => {
     void queryClient.invalidateQueries({
       queryKey: MEETING_PROPOSALS_QUERY_KEY,

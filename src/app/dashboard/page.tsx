@@ -39,46 +39,50 @@ export default function DashboardPage() {
         )}
         <NextMeetingHero meeting={data.nextMeeting} loading={data.isLoading} />
         <MeetingProposalCards />
-        <QuickActions />
-        <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
-          <div className="flex min-w-0 flex-col gap-6">
-            <TaskList
-              tasks={data.homeTasks}
-              loading={
-                data.isLoading ||
-                data.isLoadingActionItems ||
-                data.isLoadingFeedback
-              }
-              onDismiss={data.dismissHomeTask}
-              onOpenTask={notebook.open}
-            />
-            <UpcomingMeetings
-              meetings={data.otherUpcomingMeetings}
-              requestsById={data.requestsById}
-              loading={data.isLoading}
-            />
-            <MeetingNotes
-              meetings={data.noteMeetings}
-              totalCount={data.heldMeetingCount}
-              openTodoCounts={data.openTodoCounts}
-              requestsById={data.requestsById}
-              loading={data.isLoading}
-            />
-          </div>
-          <aside className="flex min-w-0 flex-col gap-6">
-            <MyProgramsPanel variant="mentee" />
-            <SentRequests
-              requests={data.sentRequests}
-              loading={data.isLoading}
-            />
-            <ActiveMentorships
-              requests={data.activeRequests}
-              openActionCountByRequest={data.openActionCountByRequest}
-              nextMeetingByRequest={data.nextMeetingByRequest}
-              loading={data.isLoading}
-            />
-          </aside>
-        </div>
+        {data.isLoadingTop ? null : (
+          <>
+            <QuickActions />
+            <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,1fr)_400px]">
+              <div className="flex min-w-0 flex-col gap-6">
+                <TaskList
+                  tasks={data.homeTasks}
+                  loading={
+                    data.isLoading ||
+                    data.isLoadingActionItems ||
+                    data.isLoadingFeedback
+                  }
+                  onDismiss={data.dismissHomeTask}
+                  onOpenTask={notebook.open}
+                />
+                <UpcomingMeetings
+                  meetings={data.otherUpcomingMeetings}
+                  requestsById={data.requestsById}
+                  loading={data.isLoading}
+                />
+                <MeetingNotes
+                  meetings={data.noteMeetings}
+                  totalCount={data.heldMeetingCount}
+                  openTodoCounts={data.openTodoCounts}
+                  requestsById={data.requestsById}
+                  loading={data.isLoading}
+                />
+              </div>
+              <aside className="flex min-w-0 flex-col gap-6">
+                <MyProgramsPanel variant="mentee" />
+                <SentRequests
+                  requests={data.sentRequests}
+                  loading={data.isLoading}
+                />
+                <ActiveMentorships
+                  requests={data.activeRequests}
+                  openActionCountByRequest={data.openActionCountByRequest}
+                  nextMeetingByRequest={data.nextMeetingByRequest}
+                  loading={data.isLoading}
+                />
+              </aside>
+            </div>
+          </>
+        )}
       </div>
       {notebook.task?.requestId ? (
         <TaskNotebookDialog

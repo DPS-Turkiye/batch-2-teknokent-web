@@ -7,6 +7,7 @@ import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { getActionItems } from "@/lib/client/action-items";
+import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole, type AppSession } from "@/interfaces/session";
@@ -48,6 +49,10 @@ vi.mock("@/lib/client/action-items", () => {
     ),
   };
 });
+
+vi.mock("@/lib/client/meeting-proposals", () => ({
+  getMyMeetingProposals: vi.fn(() => Promise.resolve([])),
+}));
 
 vi.mock("@/lib/client/meetings", () => ({
   getRatedMeetingIds: vi.fn().mockResolvedValue([]),
@@ -282,5 +287,29 @@ describe("useDashboardData", () => {
     await waitFor(() =>
       expect(result.current.openTodoCounts.get("held")).toBe(1),
     );
+  });
+
+  it("keeps the top of the home loading until the meeting proposals answer", async () => {
+    mockUseSession.mockReturnValue({ session: denizSession() });
+    mockUseMeetings.mockReturnValue({
+      data: [],
+      error: null,
+      isLoading: false,
+    });
+    mockUseMentorshipRequests.mockReturnValue({
+      data: [],
+      error: null,
+      isLoading: false,
+    });
+    let answer: (value: []) => void = () => {};
+    vi.mocked(getMyMeetingProposals).mockReturnValueOnce(
+      new Promise((resolve) => (answer = resolve)),
+    );
+
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
+
+    expect(result.current.isLoadingTop).toBe(true);
+    answer([]);
+    await waitFor(() => expect(result.current.isLoadingTop).toBe(false));
   });
 });
