@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { LogOut, Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 import { AdminIcon } from "@/components/admin/admin-ui";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
@@ -15,6 +15,7 @@ import {
 } from "@/components/providers/session-provider";
 import type { UserRole } from "@/interfaces/session";
 import type messages from "@/messages/tr.json";
+import { useRoleGate } from "@/hooks/use-role-gate";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 
@@ -44,18 +45,8 @@ export function RoleFrame({
   nav: RoleNavItem[];
   children: ReactNode;
 }) {
-  const session = useAppSession();
-  const { isLoading } = useSession();
-  const router = useRouter();
   const t = useTranslations("common");
-  const allowed = session != null && allowedRoles.includes(session.role);
-
-  useEffect(() => {
-    if (isLoading || !session) return;
-    if (!allowedRoles.includes(session.role)) {
-      router.replace(roleWorkspace(session.role).homeHref);
-    }
-  }, [allowedRoles, isLoading, router, session]);
+  const { allowed, isLoading } = useRoleGate(allowedRoles);
 
   if (isLoading || !allowed) {
     return (
