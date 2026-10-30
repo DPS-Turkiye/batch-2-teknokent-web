@@ -22,3 +22,11 @@ export async function decidePendingAccount(
     ),
   );
 }
+
+export async function revokeUserSignIns(userId: string) {
+  return requireSuccess(
+    await httpClient.post<BackendUser>(
+      `/api/users/${encodeURIComponent(userId)}/sign-ins/revoke`,
+    ),
+  );
+}
