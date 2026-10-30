@@ -16,6 +16,12 @@ export default defineConfig({
     // The multi-step signup and onboarding walks type dozens of characters
     // through userEvent, which is slow enough in jsdom to trip the 5s default.
     testTimeout: 20000,
+    coverage: {
+      provider: "v8",
+      include: ["src/**/*.{ts,tsx}"],
+      exclude: ["src/**/*.d.ts", "src/messages/**"],
+      reporter: ["text-summary", "json-summary"],
+    },
   },
   resolve: {
     alias: {
