@@ -158,7 +158,7 @@ describe("Meeting Guest Management", () => {
   it("should handle maximum guest limit", async () => {
     const mockAddGuest = vi.fn().mockImplementation(async () => {
       const maxGuests = 50;
-      const currentGuests = 50; // Assume already at max
+      const currentGuests = 50;
 
       if (currentGuests >= maxGuests) {
         throw new Error("Maksimum misafir sayısına ulaşıldı");

@@ -42,11 +42,6 @@ import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 import { CalendarFilter, startOfWeek, weekDays } from "@/lib/calendar";
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
 
-// Re-exported for existing importers; the canonical definition moved to
-// lib/calendar so the mentee calendar can share it without depending on a
-// "mentor" hook.
-export { CalendarFilter };
-
 /** The grid runs 09:00–18:00, matching the design. */
 export const CALENDAR_HOURS = Array.from({ length: 10 }, (_, i) => 9 + i);
 

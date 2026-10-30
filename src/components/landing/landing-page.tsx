@@ -21,7 +21,7 @@ const REVEAL_CLASSES = {
   shown: styles.in,
 };
 
-/** menton.com.tr's front page, ported from the designer's static landing. */
+/** menton.com.tr's front page. */
 export function LandingPage() {
   const rootRef = useRef<HTMLDivElement>(null);
   const revealing = useLandingReveal(rootRef, REVEAL_CLASSES);

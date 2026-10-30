@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-/**
- * Integration tests for Meeting Guest Management with error handling
- */
-
 describe("Meeting Guest Management - Error Handling & Validation", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -178,7 +174,6 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
     const MAX_GUESTS = 50;
 
     fetchMock.mockImplementation(async () => {
-      // Simulate API checking guest count
       return new Response(
         JSON.stringify({
           error: "Maximum guests limit (50) reached",
@@ -233,13 +228,11 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       meetingId: string,
       guest: { email?: string },
     ) => {
-      // Add guest
       const addResponse = await fetchMock("/api/meetings/guests/add", {
         method: "POST",
         body: JSON.stringify({ meetingId, guest }),
       });
 
-      // Send invitation
       const emailResponse = await fetchMock("/api/send-invitation", {
         method: "POST",
         body: JSON.stringify({
@@ -380,13 +373,11 @@ describe("Meeting Guest Management - Error Handling & Validation", () => {
       );
 
     const deleteGuestWithSync = async (meetingId: string, guestId: string) => {
-      // Delete from database
       const dbResponse = await fetchMock("/api/meetings/guests/delete", {
         method: "DELETE",
         body: JSON.stringify({ meetingId, guestId }),
       });
 
-      // Sync with calendar
       const calendarResponse = await fetchMock("/api/meetings/sync-calendar", {
         method: "POST",
         body: JSON.stringify({ meetingId, action: "remove-guest" }),

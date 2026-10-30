@@ -104,7 +104,6 @@ describe("Login screen", () => {
     expect(
       screen.getByRole("button", { name: "Şifremi unuttum" }),
     ).toBeInTheDocument();
-    // The revised design dropped Beni Hatırla.
     expect(screen.queryByLabelText("Beni Hatırla")).not.toBeInTheDocument();
   });
 

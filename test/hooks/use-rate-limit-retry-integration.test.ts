@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-/**
- * Integration tests for Rate Limit Retry with actual HTTP requests
- */
-
 describe("Rate Limit Retry - API Integration", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -184,7 +180,6 @@ describe("Rate Limit Retry - API Integration", () => {
       try {
         return await fetchMock("/api/assistant/query");
       } catch {
-        // Retry once
         return await fetchMock("/api/assistant/query");
       }
     };
