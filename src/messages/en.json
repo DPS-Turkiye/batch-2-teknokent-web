@@ -4856,6 +4856,7 @@
     "applicationStatusFailed": "Could not get the application status.",
     "meetingLinkRequired": "A valid meeting link is required.",
     "assistantUnavailable": "The meeting assistant service is unavailable.",
+    "recordingSlotsFull": "All recording slots are busy right now. Try again when a meeting ends.",
     "platformAndMeetingIdRequired": "A platform and a meeting ID are required.",
     "reportRequestInvalid": "The report request is not valid.",
     "reportServiceUnavailable": "The meeting report service is unavailable.",

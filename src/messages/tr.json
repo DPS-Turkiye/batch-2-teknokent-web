@@ -4856,6 +4856,7 @@
     "applicationStatusFailed": "Başvuru durumu alınamadı.",
     "meetingLinkRequired": "Geçerli bir toplantı bağlantısı gerekli.",
     "assistantUnavailable": "Toplantı asistanı hizmetine ulaşılamıyor.",
+    "recordingSlotsFull": "Şu anda tüm kayıt yerleri dolu. Bir toplantı bitince tekrar dene.",
     "platformAndMeetingIdRequired": "Platform ve toplantı kimliği gerekli.",
     "reportRequestInvalid": "Rapor isteği geçersiz.",
     "reportServiceUnavailable": "Toplantı raporu hizmetine ulaşılamıyor.",
