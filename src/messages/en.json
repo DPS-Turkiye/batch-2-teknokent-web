@@ -203,11 +203,8 @@
     "website": "Website",
     "websitePlaceholder": "example.com",
     "foundedYear": "Year founded",
-    "programAndStage": "Program and stage",
-    "programAndStageSubtitle": "The two things that matter most for matching you with the right mentor.",
     "program": "Program",
     "programsLoading": "Loading programs…",
-    "independent": "Independent",
     "stage": "Startup stage",
     "team": "Team",
     "teamSubtitle": "Team members are listed on the startup profile. They are linked to their accounts when they join with the invite code.",
@@ -220,7 +217,11 @@
     "add": "Add",
     "supportAreas": "Areas where you want mentor support",
     "supportAreasSubtitle": "Pick up to {max} areas. Mentor suggestions are ordered by them.",
-    "supportAreasLimit": "You can pick up to {max} areas. Remove one to change."
+    "supportAreasLimit": "You can pick up to {max} areas. Remove one to change.",
+    "programSubtitle": "Your application goes to this program's coordinator.",
+    "startupLater": "I'll create my startup later",
+    "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
+    "stageSubtitle": "What matters most for matching you with the right mentor."
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
@@ -254,7 +255,9 @@
     "notUploaded": "Not uploaded",
     "missingTitle": "You can submit without a pitch deck and prototype",
     "missingBody": "But mentors look at these two files most when they evaluate your startup. You can add them later too.",
-    "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile."
+    "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile.",
+    "program": "Program",
+    "startupLater": "To be created later"
   },
   "onboarding": {
     "exiting": "Signing out…",
@@ -1736,6 +1739,48 @@
       "saved": "Startup status updated.",
       "saveFailed": "Couldn't save the startup status."
     }
+  },
+  "startupGate": {
+    "none": {
+      "title": "Create your startup or join a team first",
+      "body": "This page works with a startup. On the My startup page you can create your own startup or join one with your team code."
+    },
+    "pending": {
+      "title": "Your startup is waiting for the coordinator's approval.",
+      "body": "This page opens once it is approved. Meanwhile you can edit the profile, upload files and share the team code."
+    },
+    "rejected": {
+      "title": "Your startup was not approved",
+      "body": "You can update the profile on the My startup page and send it for approval again."
+    },
+    "goToStartup": "Go to My startup"
+  },
+  "startupStart": {
+    "title": "My startup",
+    "subtitle": "You aren't part of a startup yet. Create your own, or join your team with its code.",
+    "joinTitle": "I have a code",
+    "joinBody": "Enter the startup code your teammate shared; if you're in the same program you join right away.",
+    "codeLabel": "Startup code",
+    "codePlaceholder": "e.g. K7Q2XA",
+    "join": "Join",
+    "joining": "Joining…",
+    "joinFailed": "Could not join the startup.",
+    "createTitle": "Create my startup",
+    "createBody": "Fill in your startup profile; once the coordinator approves it you can request mentors.",
+    "create": "Create my startup",
+    "createSubtitle": "Coordinators and mentors see this information.",
+    "documentsTitle": "Files",
+    "documentsSubtitle": "Optional; you can also upload them later from the Files tab.",
+    "back": "← My startup",
+    "continue": "Continue",
+    "previous": "Back",
+    "sending": "Sending…",
+    "sendForApproval": "Send for coordinator approval",
+    "createFailed": "Could not create the startup.",
+    "pendingBanner": "Your startup is waiting for the coordinator's approval. Meanwhile you can edit the profile, upload files and share the team code.",
+    "rejectedBanner": "Your startup was not approved. You can update the profile and send it for approval again.",
+    "resubmit": "Send for approval again",
+    "resubmitFailed": "Could not send it again."
   },
   "startupTeam": {
     "add": "Add team member",
@@ -3427,6 +3472,7 @@
       "TEAMS": "Teams",
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
+      "APPROVALS": "Approvals",
       "SETTINGS": "Program settings"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
@@ -3887,6 +3933,27 @@
     "notePlaceholder": "Only coordinators can see this.",
     "cancel": "Cancel",
     "matching": "Matching…"
+  },
+  "programApprovals": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "saving": "Saving…",
+    "approved": "Approved.",
+    "rejected": "Rejected.",
+    "decisionFailed": "Could not save the decision.",
+    "peopleTitle": "Applications",
+    "peopleHint": "People who signed up into this program and are waiting for approval.",
+    "peopleEmpty": "No applications waiting.",
+    "withStartup": "Startup: {name}",
+    "withoutStartup": "Startup later",
+    "signedUp": "Signed up: {date}",
+    "startupsTitle": "Startups created later",
+    "startupsHint": "Startups that people in the program created after signing up.",
+    "startupsEmpty": "No startups waiting.",
+    "createdBy": "Created by {name} ({email})",
+    "withoutTeamTitle": "People without a team",
+    "withoutTeamHint": "Approved, but they haven't created a startup or joined a team yet.",
+    "withoutTeamEmpty": "Everyone has a team."
   },
   "programReport": {
     "breadcrumb": "Breadcrumb",
@@ -5061,6 +5128,10 @@
     "documentAddFailed": "Could not add the document.",
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
-    "startupNotInProgram": "This startup is not in this program."
+    "startupNotInProgram": "This startup is not in this program.",
+    "startupJoinFailed": "Could not join the startup. Please try again.",
+    "startupCreateFailed": "Could not create the startup. Please try again.",
+    "startupResubmitFailed": "Could not send the startup again. Please try again.",
+    "approvalsLoadFailed": "Could not load the approvals."
   }
 }

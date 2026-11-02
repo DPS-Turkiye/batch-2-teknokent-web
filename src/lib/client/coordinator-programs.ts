@@ -13,6 +13,11 @@ import type {
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
 import type {
+  ApprovalKind,
+  ProgramApprovalPerson,
+  ProgramApprovals,
+} from "@/interfaces/program-approvals";
+import type {
   MatchingOverview,
   MatchSuggestions,
 } from "@/interfaces/program-matching";
@@ -180,6 +185,36 @@ export async function getProgramTeamDetail(
   return requireSuccess(
     await httpClient.get<ProgramTeamDetail>(
       `${programUrl(programId)}/team-details/${encodeURIComponent(organizationId)}`,
+    ),
+  );
+}
+
+export async function getProgramApprovals(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramApprovals>(
+      `${programUrl(programId)}/approvals`,
+    ),
+  );
+}
+
+export async function decideProgramApproval(
+  programId: string,
+  kind: ApprovalKind,
+  id: string,
+  accepted: boolean,
+) {
+  return requireSuccess(
+    await httpClient.post<ProgramApprovals>(
+      `${programUrl(programId)}/approvals/${kind}/${encodeURIComponent(id)}`,
+      { accepted },
+    ),
+  );
+}
+
+export async function getProgramWithoutTeam(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramApprovalPerson[]>(
+      `${programUrl(programId)}/without-team`,
     ),
   );
 }

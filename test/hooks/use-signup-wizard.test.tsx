@@ -109,7 +109,7 @@ describe("useSignupWizard", () => {
     vi.unstubAllGlobals();
   });
 
-  it("blocks the startup step until the name and tagline are filled", async () => {
+  it("blocks the startup step until a program, the name and tagline are filled", async () => {
     const { result } = await renderWizard();
     fillPersonal(result);
     act(() => result.current.goNext());
@@ -118,13 +118,29 @@ describe("useSignupWizard", () => {
     expect(result.current.canContinue).toBe(false);
 
     act(() => result.current.updateStartup("name", "Döngü"));
-    expect(result.current.canContinue).toBe(false);
-
     // Website and logo are optional in the revised design.
     act(() =>
       result.current.updateStartup("tagline", "Gönüllüleri eşleştirir"),
     );
+    expect(result.current.canContinue).toBe(false);
+
+    act(() => result.current.updateStartup("programId", "program-1"));
     expect(result.current.canContinue).toBe(true);
+  });
+
+  it("skips the documents step for someone creating their startup later", async () => {
+    const { result } = await renderWizard();
+    fillPersonal(result);
+    act(() => result.current.goNext());
+    act(() => result.current.updateStartup("programId", "program-1"));
+    act(() => result.current.updateStartup("startupLater", true));
+
+    expect(result.current.canContinue).toBe(true);
+    expect(result.current.steps).not.toContain(SignupStep.Documents);
+    act(() => result.current.goNext());
+    expect(result.current.step).toBe(SignupStep.Review);
+    act(() => result.current.goBack());
+    expect(result.current.step).toBe(SignupStep.StartupProfile);
   });
 
   it("moves forward and back through the steps without overrunning either end", async () => {

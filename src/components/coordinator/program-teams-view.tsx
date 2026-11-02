@@ -9,6 +9,7 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { ProgramWithoutTeam } from "@/components/coordinator/program-approvals-view";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
 import { useProgramTeams } from "@/hooks/use-program-teams";
@@ -33,10 +34,13 @@ export function ProgramTeamsView({ programId }: { programId: string }) {
   return (
     <ProgramDetailFrame programId={programId} tab={ProgramTab.Teams}>
       {(detail) => (
-        <TeamsBody
-          programId={programId}
-          archived={detail.program.lifecycle === ProgramLifecycle.Completed}
-        />
+        <div className="space-y-8">
+          <TeamsBody
+            programId={programId}
+            archived={detail.program.lifecycle === ProgramLifecycle.Completed}
+          />
+          <ProgramWithoutTeam programId={programId} />
+        </div>
       )}
     </ProgramDetailFrame>
   );

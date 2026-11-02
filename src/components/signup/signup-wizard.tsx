@@ -20,11 +20,7 @@ import {
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
-import {
-  SIGNUP_STEP_ORDER,
-  SIGNUP_STEPS,
-  SignupStep,
-} from "@/interfaces/signup";
+import { SIGNUP_STEPS, SignupStep } from "@/interfaces/signup";
 import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
@@ -38,20 +34,24 @@ const STEP_KEYS = {
 
 export function SignupWizardView({ account }: { account: RegisteredAccount }) {
   const copy = useTranslations("signupWizard");
-  const railSteps = SIGNUP_STEPS.map((item) => ({
+  const { submitApplication, submittedAt } = useFounderApplication(account);
+  const wizard = useSignupWizard({ onSubmit: submitApplication });
+  const { step, steps, canContinue, isFirstStep, isLastStep } = wizard;
+  const railSteps = SIGNUP_STEPS.filter((item) =>
+    steps.includes(item.step),
+  ).map((item) => ({
     ...item,
     title: copy(`steps.${STEP_KEYS[item.step]}.railTitle`),
     hint: copy(`steps.${STEP_KEYS[item.step]}.railHint`),
   }));
   const stepText = (current: SignupStep, field: "title" | "subtitle") =>
     copy(`steps.${STEP_KEYS[current]}.${field}`);
-  const { submitApplication, submittedAt } = useFounderApplication(account);
-  const wizard = useSignupWizard({ onSubmit: submitApplication });
-  const { step, canContinue, isFirstStep, isLastStep } = wizard;
   const { exit, exiting } = useOnboardingExit(wizard.saveDraft);
 
   if (wizard.submitted) {
-    const startupName = wizard.draft.startup.name.trim();
+    const startupName = wizard.draft.startup.startupLater
+      ? ""
+      : wizard.draft.startup.name.trim();
     return (
       <OnboardingSubmittedView
         tone={TONE}
@@ -68,7 +68,7 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
     );
   }
 
-  const currentIndex = SIGNUP_STEP_ORDER.indexOf(step);
+  const currentIndex = steps.indexOf(step);
 
   return (
     <OnboardingLayout
@@ -85,7 +85,7 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
           steps={railSteps}
           currentIndex={currentIndex}
           note={copy("railNote")}
-          onStepClick={(index) => wizard.goToStep(SIGNUP_STEP_ORDER[index])}
+          onStepClick={(index) => wizard.goToStep(steps[index])}
         />
       }
       title={stepText(step, "title")}

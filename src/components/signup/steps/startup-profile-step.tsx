@@ -3,6 +3,7 @@
 import {
   OnboardingCard,
   OnboardingChips,
+  OnboardingConsent,
   OnboardingCounter,
   OnboardingField,
   OnboardingImagePicker,
@@ -17,6 +18,7 @@ import {
 } from "@/components/onboarding/onboarding-tone";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import type { StartupDraftForm } from "@/hooks/use-startup-draft";
 import { useTeamMemberForm } from "@/hooks/use-team-member-form";
 import {
   MAX_SUPPORT_AREAS,
@@ -44,36 +46,70 @@ function Avatar({ name }: { name: string }) {
 }
 
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
+  const copy = useTranslations("signupSteps");
+  const { draft, updateStartup } = wizard;
+  const { startup } = draft;
+  const programs = useProgramNames();
+
+  const programOptions = (programs.data ?? []).map((program) => program.name);
+  const selectedProgram =
+    programs.data?.find((program) => program.id === startup.programId)?.name ??
+    "";
+
+  function chooseProgram(name: string) {
+    const match = programs.data?.find((program) => program.name === name);
+    if (match) updateStartup("programId", match.id);
+  }
+
+  return (
+    <>
+      <OnboardingCard
+        title={copy("program")}
+        subtitle={copy("programSubtitle")}
+      >
+        {programs.isLoading ? (
+          <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
+        ) : (
+          <OnboardingChips
+            tone={TONE}
+            label={copy("program")}
+            options={programOptions}
+            selected={selectedProgram ? [selectedProgram] : []}
+            onToggle={chooseProgram}
+          />
+        )}
+        <OnboardingConsent
+          tone={TONE}
+          checked={startup.startupLater}
+          onChange={(checked) => updateStartup("startupLater", checked)}
+        >
+          <span className="flex flex-col gap-0.5">
+            <span className="font-medium text-[#22262b]">
+              {copy("startupLater")}
+            </span>
+            <span>{copy("startupLaterHint")}</span>
+          </span>
+        </OnboardingConsent>
+      </OnboardingCard>
+      {startup.startupLater ? null : <StartupFields form={wizard} />}
+    </>
+  );
+}
+
+/** The startup's own fields: shared by signup and "Startup'ımı oluştur" on /startup. */
+export function StartupFields({ form }: { form: StartupDraftForm }) {
   const t = useTranslations();
   const copy = useTranslations("signupSteps");
   const optionLabel = useOptionLabel();
-  // The no-program answer, sent as a null program id.
-  const INDEPENDENT = copy("independent");
   const {
     draft,
     updateStartup,
     toggleSupportArea,
     addTeamMember,
     removeTeamMember,
-  } = wizard;
+  } = form;
   const { startup, personal } = draft;
-  const programs = useProgramNames();
   const memberForm = useTeamMemberForm(addTeamMember);
-
-  const programOptions = [
-    ...(programs.data ?? []).map((program) => program.name),
-    INDEPENDENT,
-  ];
-  const selectedProgram =
-    startup.programId === null
-      ? INDEPENDENT
-      : (programs.data?.find((program) => program.id === startup.programId)
-          ?.name ?? "");
-
-  function chooseProgram(name: string) {
-    const match = programs.data?.find((program) => program.name === name);
-    updateStartup("programId", match ? match.id : null);
-  }
 
   const founderName = `${personal.firstName} ${personal.lastName}`.trim();
 
@@ -157,27 +193,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         </div>
       </OnboardingCard>
 
-      <OnboardingCard
-        title={copy("programAndStage")}
-        subtitle={copy("programAndStageSubtitle")}
-      >
-        <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy("program")}
-        </p>
-        {programs.isLoading ? (
-          <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
-        ) : (
-          <OnboardingChips
-            tone={TONE}
-            label={copy("program")}
-            options={programOptions}
-            selected={selectedProgram ? [selectedProgram] : []}
-            onToggle={chooseProgram}
-          />
-        )}
-        <p className="text-[12.5px] font-medium leading-[19px] text-[#4a5059]">
-          {copy("stage")}
-        </p>
+      <OnboardingCard title={copy("stage")} subtitle={copy("stageSubtitle")}>
         <OnboardingChips
           tone={TONE}
           label={copy("stage")}
@@ -330,7 +346,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           onToggle={toggleSupportArea}
           labelFor={(area) => optionLabel("supportArea", area)}
         />
-        {wizard.supportAreaLimitReached ? (
+        {form.supportAreaLimitReached ? (
           <OnboardingNote>
             {copy("supportAreasLimit", { max: MAX_SUPPORT_AREAS })}
           </OnboardingNote>

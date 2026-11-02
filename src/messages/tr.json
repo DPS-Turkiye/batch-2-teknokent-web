@@ -203,11 +203,8 @@
     "website": "Web sitesi",
     "websitePlaceholder": "ornek.com",
     "foundedYear": "Kuruluş yılı",
-    "programAndStage": "Program ve aşama",
-    "programAndStageSubtitle": "Doğru mentorla eşleşmen için en belirleyici iki bilgi.",
     "program": "Program",
     "programsLoading": "Programlar yükleniyor…",
-    "independent": "Bağımsız",
     "stage": "Girişim aşaması",
     "team": "Ekip",
     "teamSubtitle": "Ekip üyeleri startup profilinde listelenir. Davet koduyla katıldıklarında hesaplarına bağlanır.",
@@ -220,7 +217,11 @@
     "add": "Ekle",
     "supportAreas": "Mentor desteği istediğin alanlar",
     "supportAreasSubtitle": "En fazla {max} alan seç. Mentor önerileri buna göre sıralanır.",
-    "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır."
+    "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır.",
+    "programSubtitle": "Başvurun bu programın koordinatörüne gider.",
+    "startupLater": "Startup'ı daha sonra oluşturacağım",
+    "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
+    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
   },
   "signupDocuments": {
     "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
@@ -254,7 +255,9 @@
     "notUploaded": "Yüklenmedi",
     "missingTitle": "Pitch deck ve prototip yüklemeden de gönderebilirsin",
     "missingBody": "Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya bakıyor. Sonradan da ekleyebilirsin.",
-    "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum."
+    "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum.",
+    "program": "Program",
+    "startupLater": "Daha sonra oluşturulacak"
   },
   "onboarding": {
     "exiting": "Çıkılıyor…",
@@ -1736,6 +1739,48 @@
       "saved": "Startup durumu güncellendi.",
       "saveFailed": "Startup durumu kaydedilemedi."
     }
+  },
+  "startupGate": {
+    "none": {
+      "title": "Önce startup'ınızı oluşturun veya bir takıma katılın",
+      "body": "Bu sayfa bir startup ile çalışır. Startup'ım sayfasından kendi startup'ınızı oluşturabilir ya da takım kodunuzla katılabilirsiniz."
+    },
+    "pending": {
+      "title": "Startup'ınız koordinatör onayı bekliyor.",
+      "body": "Onaylandığında bu sayfa açılır. Bu sürede profili düzenleyebilir, dosya yükleyebilir ve takım kodunu paylaşabilirsiniz."
+    },
+    "rejected": {
+      "title": "Startup'ınız onaylanmadı",
+      "body": "Startup'ım sayfasından profili güncelleyip tekrar onaya gönderebilirsiniz."
+    },
+    "goToStartup": "Startup'ım sayfasına git"
+  },
+  "startupStart": {
+    "title": "Startup'ım",
+    "subtitle": "Henüz bir startup ile eşleşmedin. Kendi startup’ını oluştur ya da takımının koduyla katıl.",
+    "joinTitle": "Kodum var",
+    "joinBody": "Takım arkadaşının paylaştığı startup kodunu gir; aynı programdaysanız hemen katılırsın.",
+    "codeLabel": "Startup kodu",
+    "codePlaceholder": "Örn. K7Q2XA",
+    "join": "Katıl",
+    "joining": "Katılınıyor…",
+    "joinFailed": "Startup'a katılınamadı.",
+    "createTitle": "Startup'ımı oluştur",
+    "createBody": "Startup profilini doldur; koordinatör onayladığında mentor talebi oluşturabilirsin.",
+    "create": "Startup'ımı oluştur",
+    "createSubtitle": "Koordinatör ve mentorlar bu bilgileri görür.",
+    "documentsTitle": "Dosyalar",
+    "documentsSubtitle": "İsteğe bağlı; daha sonra Dosyalar sekmesinden de yükleyebilirsin.",
+    "back": "← Startup'ım",
+    "continue": "Devam et",
+    "previous": "Geri",
+    "sending": "Gönderiliyor…",
+    "sendForApproval": "Koordinatör onayına gönder",
+    "createFailed": "Startup oluşturulamadı.",
+    "pendingBanner": "Startup'ınız koordinatör onayı bekliyor. Bu sürede profili düzenleyebilir, dosya yükleyebilir ve takım kodunu paylaşabilirsiniz.",
+    "rejectedBanner": "Startup'ınız onaylanmadı. Profili güncelleyip tekrar onaya gönderebilirsiniz.",
+    "resubmit": "Tekrar onaya gönder",
+    "resubmitFailed": "Tekrar gönderilemedi."
   },
   "startupTeam": {
     "add": "Ekip üyesi ekle",
@@ -3427,6 +3472,7 @@
       "TEAMS": "Takımlar",
       "MENTOR_POOL": "Mentor Havuzu",
       "MATCHING": "Eşleşmeler",
+      "APPROVALS": "Onaylar",
       "SETTINGS": "Program Ayarları"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
@@ -3887,6 +3933,27 @@
     "notePlaceholder": "Yalnızca koordinatörler görür.",
     "cancel": "Vazgeç",
     "matching": "Eşleştiriliyor…"
+  },
+  "programApprovals": {
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "saving": "Kaydediliyor…",
+    "approved": "Onaylandı.",
+    "rejected": "Reddedildi.",
+    "decisionFailed": "Karar kaydedilemedi.",
+    "peopleTitle": "Başvurular",
+    "peopleHint": "Bu programı seçerek kaydolan ve onay bekleyen kişiler.",
+    "peopleEmpty": "Onay bekleyen başvuru yok.",
+    "withStartup": "Startup: {name}",
+    "withoutStartup": "Startup daha sonra",
+    "signedUp": "Kayıt: {date}",
+    "startupsTitle": "Sonradan oluşturulan startuplar",
+    "startupsHint": "Programdaki kişilerin kayıttan sonra oluşturduğu startuplar.",
+    "startupsEmpty": "Onay bekleyen startup yok.",
+    "createdBy": "Kuran: {name} ({email})",
+    "withoutTeamTitle": "Takımı olmayanlar",
+    "withoutTeamHint": "Onaylanmış ama henüz bir startup oluşturmamış ya da bir takıma katılmamış kişiler.",
+    "withoutTeamEmpty": "Takımı olmayan kimse yok."
   },
   "programReport": {
     "breadcrumb": "Konum",
@@ -5061,6 +5128,10 @@
     "documentAddFailed": "Belge eklenemedi.",
     "sessionRequired": "Oturum gerekli.",
     "fileDeleteFailed": "Dosya silinemedi.",
-    "startupNotInProgram": "Bu startup bu programda yok."
+    "startupNotInProgram": "Bu startup bu programda yok.",
+    "startupJoinFailed": "Startup'a katılınamadı. Lütfen tekrar deneyin.",
+    "startupCreateFailed": "Startup oluşturulamadı. Lütfen tekrar deneyin.",
+    "startupResubmitFailed": "Startup tekrar gönderilemedi. Lütfen tekrar deneyin.",
+    "approvalsLoadFailed": "Onaylar yüklenemedi."
   }
 }

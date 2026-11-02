@@ -144,8 +144,10 @@ export interface StartupProfileDraft {
   tagline: string;
   website: string;
   foundedYear: string;
-  /** Chosen at signup; null is a real answer meaning no program (Bağımsız). */
+  /** Required at signup; null until one is picked. */
   programId: string | null;
+  /** "Startup'ı daha sonra oluşturacağım": sign up into the program without a startup. */
+  startupLater: boolean;
   maturity: string;
   teamMembers: TeamMemberDraft[];
   supportAreas: string[];
