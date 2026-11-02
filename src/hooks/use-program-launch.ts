@@ -9,8 +9,17 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/providers/toast-provider";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
-import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
-import { RULE_LIMITS, stepDays } from "@/lib/coordinator-program-detail";
+import { DocumentKind } from "@/interfaces/startup-document";
+import {
+  createCoordinatorProgram,
+  extractSyllabusPhases,
+} from "@/lib/client/coordinator-programs";
+import { uploadDocument } from "@/lib/client/documents";
+import {
+  MAX_PHASES,
+  RULE_LIMITS,
+  stepDays,
+} from "@/lib/coordinator-program-detail";
 import {
   basicsError,
   createProgramInput,
@@ -26,9 +35,18 @@ import {
   type TeamRowDraft,
   teamRowProblems,
 } from "@/lib/program-launch";
+import {
+  blankWizardPhase,
+  curriculumError,
+  PhaseSource,
+  proposedPhases,
+  reorderPhases,
+  SYLLABUS_MAX_BYTES,
+  type WizardPhase,
+} from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
 
-/** The three-step "Yeni program" wizard; the program and its team codes are created in one request at the end. */
+/** The four-step "Yeni program" wizard; the program, its phases and team codes are created in one request at the end. */
 export function useProgramLaunch() {
   const t = useTranslations("programLaunch");
   const router = useRouter();
@@ -38,6 +56,7 @@ export function useProgramLaunch() {
   const [step, setStep] = useState(LaunchStep.Basics);
   const [draft, setDraft] = useState<LaunchDraft>(emptyLaunchDraft);
   const [error, setError] = useState<string | null>(null);
+  const [openPhase, setOpenPhase] = useState<string | null>(null);
 
   const problems = teamRowProblems(draft.teams);
   const stepIndex = LAUNCH_STEPS.indexOf(step);
@@ -70,12 +89,82 @@ export function useProgramLaunch() {
     onError: (failure) => setError(errorMessage(failure, t("createFailed"))),
   });
 
+  const extract = useMutation({
+    mutationFn: (documentId: string) =>
+      extractSyllabusPhases({
+        documentId,
+        startDate: draft.startDate || null,
+        endDate: draft.endDate || null,
+      }),
+    onSuccess: (result, documentId) => {
+      setOpenPhase(null);
+      setDraft((current) =>
+        current.syllabus?.documentId === documentId
+          ? {
+              ...current,
+              phases: proposedPhases(result.phases),
+              syllabus: { ...current.syllabus, pageCount: result.pageCount },
+            }
+          : current,
+      );
+    },
+  });
+
+  const upload = useMutation({
+    mutationFn: (file: File) => uploadDocument(file, DocumentKind.Syllabus),
+    onSuccess: (stored, file) => {
+      update({
+        phaseSource: PhaseSource.File,
+        syllabus: {
+          documentId: stored.id,
+          filename: file.name,
+          sizeBytes: file.size,
+          pageCount: null,
+        },
+        phases: [],
+      });
+      if (step === LaunchStep.Curriculum) extract.mutate(stored.id);
+    },
+    onError: (failure) => setError(errorMessage(failure, t("uploadFailed"))),
+  });
+
   const update = (patch: Partial<LaunchDraft>) => {
     setError(null);
     setDraft((current) => ({ ...current, ...patch }));
   };
   const setTeams = (teams: TeamRowDraft[]) =>
     update({ teams: teams.slice(0, MAX_LAUNCH_TEAMS) });
+  const setPhases = (phases: WizardPhase[]) =>
+    update({ phases: phases.slice(0, MAX_PHASES) });
+
+  /** Step 2 reads the syllabus on arrival, once per file. */
+  const enterCurriculum = () => {
+    setStep(LaunchStep.Curriculum);
+    const syllabus = draft.syllabus;
+    if (
+      draft.phaseSource === PhaseSource.File &&
+      syllabus &&
+      syllabus.pageCount === null &&
+      !extract.isPending
+    ) {
+      extract.mutate(syllabus.documentId);
+    }
+  };
+
+  const goNext = () => {
+    const next = LAUNCH_STEPS[stepIndex + 1];
+    if (next === LaunchStep.Curriculum) enterCurriculum();
+    else if (next) setStep(next);
+  };
+
+  const stepError = () => {
+    if (step === LaunchStep.Basics) return basicsError(draft);
+    if (step === LaunchStep.Curriculum) {
+      if (upload.isPending || extract.isPending) return t("waitForSyllabus");
+      return curriculumError(draft.phases);
+    }
+    return null;
+  };
 
   return {
     ownerName: session?.fullName ?? t("youFallback"),
@@ -90,6 +179,58 @@ export function useProgramLaunch() {
           [rule]: stepDays(draft.rules[rule], delta, RULE_LIMITS[rule]),
         },
       }),
+
+    uploading: upload.isPending,
+    chooseSyllabus: (file: File) => {
+      const pdf =
+        file.type === "application/pdf" ||
+        file.name.toLowerCase().endsWith(".pdf");
+      if (!pdf) return setError(t("pdfOnly"));
+      if (file.size > SYLLABUS_MAX_BYTES) return setError(t("tooLarge"));
+      setError(null);
+      upload.mutate(file);
+    },
+    extracting: extract.isPending,
+    extractFailed: extract.isError,
+    retryExtract: () => {
+      if (draft.syllabus) extract.mutate(draft.syllabus.documentId);
+    },
+    setPhaseSource: (phaseSource: PhaseSource) => {
+      update({ phaseSource });
+      if (phaseSource === PhaseSource.File) enterCurriculum();
+    },
+    /** "Manuel gir" on step 1 skips the upload and goes straight to the phases. */
+    enterManually: () => {
+      const problem = basicsError(draft);
+      setError(problem);
+      if (problem) return;
+      setDraft((current) => ({
+        ...current,
+        phaseSource: PhaseSource.Manual,
+        phases: current.phases.length ? current.phases : [blankWizardPhase()],
+      }));
+      setStep(LaunchStep.Curriculum);
+    },
+    openPhase,
+    togglePhase: (key: string) =>
+      setOpenPhase((current) => (current === key ? null : key)),
+    updatePhase: (key: string, patch: Partial<WizardPhase>) =>
+      setPhases(
+        draft.phases.map((phase) =>
+          phase.key === key ? { ...phase, ...patch } : phase,
+        ),
+      ),
+    addPhase: () => {
+      const phase = blankWizardPhase();
+      setPhases([...draft.phases, phase]);
+      setOpenPhase(phase.key);
+    },
+    removePhase: (key: string) =>
+      setPhases(draft.phases.filter((phase) => phase.key !== key)),
+    movePhase: (from: number, to: number) =>
+      setPhases(reorderPhases(draft.phases, from, to)),
+    canAddPhase: draft.phases.length < MAX_PHASES,
+
     updateTeam: (key: string, patch: Partial<TeamRowDraft>) =>
       setTeams(
         draft.teams.map((row) =>
@@ -118,15 +259,14 @@ export function useProgramLaunch() {
       if (stepIndex > 0) setStep(LAUNCH_STEPS[stepIndex - 1]);
     },
     next: () => {
-      const problem = step === LaunchStep.Basics ? basicsError(draft) : null;
+      const problem = stepError();
       setError(problem);
-      if (!problem && stepIndex < LAUNCH_STEPS.length - 1) {
-        setStep(LAUNCH_STEPS[stepIndex + 1]);
-      }
+      if (!problem) goNext();
     },
     submit: () => {
       const problem =
         basicsError(draft) ??
+        curriculumError(draft.phases) ??
         (problems.size > 0 ? t("rowErrors", { count: problems.size }) : null);
       setError(problem);
       if (!problem) create.mutate();

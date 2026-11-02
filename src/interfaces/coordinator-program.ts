@@ -11,6 +11,16 @@ export type ProgramPhase = {
   position: number;
   startDate: string | null;
   endDate: string | null;
+  /** "Problem doğrulama raporu · 12 kullanıcı görüşmesi"; shown in the team's progress. */
+  expectedOutput: string | null;
+};
+
+/** The syllabus file a program's phases were taken from. */
+export type ProgramSyllabus = {
+  id: string;
+  filename: string;
+  sizeBytes: number;
+  uploadedAt: string;
 };
 
 /** A program as its coordinator sees it (`GET /api/coordinator/programs`). */
@@ -105,6 +115,7 @@ export type CoordinatorProgramDetail = {
   };
   coordinators: CoordinatorRef[];
   missingNoteMeetings: number;
+  syllabus: ProgramSyllabus | null;
 };
 
 export type UpdateProgramDetailsInput = {
@@ -124,6 +135,18 @@ export type UpdateProgramDetailsInput = {
 
 export type ProgramPhaseInput = {
   name: string;
+  startDate: string | null;
+  endDate: string | null;
+  expectedOutput: string | null;
+};
+
+/** A phase read from a syllabus; nothing is saved until the coordinator confirms it. */
+export type ProposedPhase = ProgramPhaseInput;
+
+export type SyllabusPhases = { phases: ProposedPhase[]; pageCount: number };
+
+export type ExtractSyllabusPhasesInput = {
+  documentId: string;
   startDate: string | null;
   endDate: string | null;
 };
@@ -165,6 +188,8 @@ export type CreateProgramInput = {
   communicationGapDays: number;
   bottleneckFlagDays: number;
   teams: TeamInviteInput[];
+  phases: ProgramPhaseInput[];
+  syllabusDocumentId: string | null;
 };
 
 export type ProgramTeamPerson = {

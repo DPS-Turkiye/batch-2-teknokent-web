@@ -12,6 +12,8 @@ import type {
   ProgramTeamDetail,
   TeamInviteInput,
   UpdateProgramDetailsInput,
+  ExtractSyllabusPhasesInput,
+  SyllabusPhases,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
 import type {
@@ -67,11 +69,23 @@ export function replaceCoordinatorProgramPhases(
   actorId: string,
   programId: string,
   phases: ProgramPhaseInput[],
+  syllabusDocumentId: string | null = null,
 ) {
   return backendRequest<CoordinatorProgramDetail>({
     method: "PUT",
     url: `${programUrl(programId)}/phases`,
-    data: { actorId, phases },
+    data: { actorId, phases, syllabusDocumentId },
+  });
+}
+
+export function extractSyllabusPhases(
+  actorId: string,
+  input: ExtractSyllabusPhasesInput,
+) {
+  return backendRequest<SyllabusPhases>({
+    method: "POST",
+    url: "/api/coordinator/programs/syllabus/phases",
+    data: { ...input, actorId },
   });
 }
 

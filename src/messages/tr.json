@@ -873,6 +873,10 @@
       "tooManyPhases": "En fazla {max} faz eklenebilir.",
       "phaseName": "Her fazın bir adı olmalı.",
       "phaseDates": "“{name}” fazı başlamadan bitemez."
+    },
+    "programLaunch": {
+      "phaseNameRequired": "{n}. fazın adını gir.",
+      "phaseDateMissing": "“{name}” fazının tarihlerini gir."
     }
   },
   "metadata": {
@@ -1801,7 +1805,8 @@
     "logo": "Logo",
     "avatar": "Profil fotoğrafı",
     "profile-pdf": "Profil PDF'i",
-    "requested-doc": "İstenen belge"
+    "requested-doc": "İstenen belge",
+    "syllabus": "Müfredat"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -3666,6 +3671,12 @@
         "title": "Temel bilgiler",
         "note": "Programın adı, dönemi ve kimlerin yöneteceği."
       },
+      "CURRICULUM": {
+        "label": "Müfredat & fazlar",
+        "hint": "Program aşamaları",
+        "title": "Müfredat & fazlar",
+        "note": "Program fazları, mentinin süreç takibinin ve genel bakıştaki faz çizelgesinin temelidir. Sonradan Program Ayarları’ndan düzenlenebilir."
+      },
       "RULES": {
         "label": "Mentorluk kuralları",
         "hint": "Kapasite ve eşikler",
@@ -3719,7 +3730,57 @@
     "created": "{name} oluşturuldu.",
     "createFailed": "Program oluşturulamadı.",
     "csvEmpty": "Dosyada “takım adı, e-posta” satırı bulunamadı.",
-    "rowErrors": "{count} satırda hata var."
+    "rowErrors": "{count} satırda hata var.",
+    "confirm": "Onayla: {step}",
+    "syllabus": "Program Müfredatı",
+    "noFile": "Dosyan yok mu?",
+    "enterManually": "Manuel gir",
+    "dropzone": "Dosyanı buraya bırak veya seç",
+    "dropzoneHint": "PDF · en fazla 10 MB",
+    "syllabusTip": "Yüklenen müfredattan program fazları otomatik çıkarılır; bir sonraki adımda kontrol edip düzenleyebilirsin.",
+    "uploading": "Yükleniyor…",
+    "pdfOnly": "Müfredatı PDF olarak yükle.",
+    "tooLarge": "Dosya 10 MB’tan büyük.",
+    "uploadFailed": "Müfredat yüklenemedi.",
+    "sourceLabel": "Faz kaynağı",
+    "sourceFile": "Dosyadan çıkar",
+    "sourceManual": "Manuel gir",
+    "summary": "{count} faz",
+    "summaryMonths": "{count} faz · {months} ay",
+    "fileMeta": "{size} · {pages} sayfa",
+    "change": "Değiştir",
+    "removeFile": "Dosyayı kaldır",
+    "extracting": "Müfredat okunuyor, bu birkaç saniye sürebilir…",
+    "extracted": "Müfredattan {count} faz çıkarıldı. Kontrol edip onayla.",
+    "extractedMissing": "Müfredattan {count} faz çıkarıldı. {missing} fazın tarihi bulunamadı — kontrol edip onayla.",
+    "extractFailed": "Müfredat okunamadı.",
+    "retry": "Tekrar dene",
+    "noPhasesFound": "Müfredatta faz bulunamadı. Fazları elle ekleyebilirsin.",
+    "noPhases": "Henüz faz yok. Faz ekleyebilir ya da bu adımı boş geçebilirsin.",
+    "waitForSyllabus": "Müfredat okunurken biraz bekle."
+  },
+  "programPhases": {
+    "timelineLabel": "Faz zaman çizelgesi",
+    "duration": "Program süresi · {months} ay",
+    "phaseLabel": "Faz {n}",
+    "untitled": "Adsız faz",
+    "fromFile": "Dosyadan",
+    "enterDate": "Tarih gir",
+    "dateMissing": "Tarih bulunamadı",
+    "name": "Faz adı",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "expectedOutput": "Beklenen çıktı",
+    "expectedOutputHint": "opsiyonel · mentinin süreç takibinde görünür",
+    "addOutput": "Çıktı ekle…",
+    "removeOutput": "“{output}” çıktısını kaldır",
+    "remove": "Sil",
+    "edit": "“{name}” fazını düzenle",
+    "collapse": "Kapat",
+    "drag": "{n}. fazı sürükle",
+    "moveUp": "{n}. fazı yukarı taşı",
+    "moveDown": "{n}. fazı aşağı taşı",
+    "addPhase": "Faz ekle"
   },
   "programMentors": {
     "filters": {
@@ -5061,6 +5122,7 @@
     "documentAddFailed": "Belge eklenemedi.",
     "sessionRequired": "Oturum gerekli.",
     "fileDeleteFailed": "Dosya silinemedi.",
-    "startupNotInProgram": "Bu startup bu programda yok."
+    "startupNotInProgram": "Bu startup bu programda yok.",
+    "syllabusReadFailed": "Müfredat okunamadı."
   }
 }

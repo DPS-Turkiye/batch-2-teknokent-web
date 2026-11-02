@@ -83,7 +83,7 @@ export function useProgramSettings(
       if (phasesChanged(value, detail)) {
         saved = await replaceCoordinatorProgramPhases(
           programId,
-          phasesInput(value),
+          phasesInput(value.phases),
         );
       }
       return saved;

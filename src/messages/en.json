@@ -873,6 +873,10 @@
       "tooManyPhases": "You can add at most {max} phases.",
       "phaseName": "Every phase needs a name.",
       "phaseDates": "The “{name}” phase can't end before it starts."
+    },
+    "programLaunch": {
+      "phaseNameRequired": "Enter a name for phase {n}.",
+      "phaseDateMissing": "Enter the dates of “{name}”."
     }
   },
   "metadata": {
@@ -1801,7 +1805,8 @@
     "logo": "Logo",
     "avatar": "Profile photo",
     "profile-pdf": "Profile PDF",
-    "requested-doc": "Requested document"
+    "requested-doc": "Requested document",
+    "syllabus": "Syllabus"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -3666,6 +3671,12 @@
         "title": "Basics",
         "note": "The program's name, its period and who runs it."
       },
+      "CURRICULUM": {
+        "label": "Syllabus & phases",
+        "hint": "Program stages",
+        "title": "Syllabus & phases",
+        "note": "Program phases drive each team's progress tracking and the phase chart on the overview. You can edit them later in Program settings."
+      },
       "RULES": {
         "label": "Mentorship rules",
         "hint": "Capacity and thresholds",
@@ -3719,7 +3730,57 @@
     "created": "{name} created.",
     "createFailed": "Couldn't create the program.",
     "csvEmpty": "No “team name, email” rows found in the file.",
-    "rowErrors": "{count, plural, one {# row has} other {# rows have}} errors."
+    "rowErrors": "{count, plural, one {# row has} other {# rows have}} errors.",
+    "confirm": "Confirm: {step}",
+    "syllabus": "Program syllabus",
+    "noFile": "No file?",
+    "enterManually": "Enter manually",
+    "dropzone": "Drop your file here or choose one",
+    "dropzoneHint": "PDF · up to 10 MB",
+    "syllabusTip": "The program phases are read from the uploaded syllabus; you can check and edit them in the next step.",
+    "uploading": "Uploading…",
+    "pdfOnly": "Please upload the syllabus as a PDF.",
+    "tooLarge": "The file is larger than 10 MB.",
+    "uploadFailed": "Couldn't upload the syllabus.",
+    "sourceLabel": "Phase source",
+    "sourceFile": "Read from file",
+    "sourceManual": "Enter manually",
+    "summary": "{count, plural, one {# phase} other {# phases}}",
+    "summaryMonths": "{count, plural, one {# phase} other {# phases}} · {months, plural, one {# month} other {# months}}",
+    "fileMeta": "{size} · {pages, plural, one {# page} other {# pages}}",
+    "change": "Change",
+    "removeFile": "Remove the file",
+    "extracting": "Reading the syllabus, this can take a few seconds…",
+    "extracted": "{count, plural, one {# phase was} other {# phases were}} read from the syllabus. Check them and confirm.",
+    "extractedMissing": "{count, plural, one {# phase was} other {# phases were}} read from the syllabus. {missing, plural, one {# phase has} other {# phases have}} no dates — check and confirm.",
+    "extractFailed": "Couldn't read the syllabus.",
+    "retry": "Try again",
+    "noPhasesFound": "No phases were found in the syllabus. You can add them by hand.",
+    "noPhases": "No phases yet. Add some, or skip this step.",
+    "waitForSyllabus": "Please wait while the syllabus is read."
+  },
+  "programPhases": {
+    "timelineLabel": "Phase timeline",
+    "duration": "Program length · {months, plural, one {# month} other {# months}}",
+    "phaseLabel": "Phase {n}",
+    "untitled": "Untitled phase",
+    "fromFile": "From file",
+    "enterDate": "Enter dates",
+    "dateMissing": "No dates found",
+    "name": "Phase name",
+    "start": "Start",
+    "end": "End",
+    "expectedOutput": "Expected output",
+    "expectedOutputHint": "optional · shown in the team's progress",
+    "addOutput": "Add an output…",
+    "removeOutput": "Remove “{output}”",
+    "remove": "Delete",
+    "edit": "Edit “{name}”",
+    "collapse": "Close",
+    "drag": "Drag phase {n}",
+    "moveUp": "Move phase {n} up",
+    "moveDown": "Move phase {n} down",
+    "addPhase": "Add a phase"
   },
   "programMentors": {
     "filters": {
@@ -5061,6 +5122,7 @@
     "documentAddFailed": "Could not add the document.",
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
-    "startupNotInProgram": "This startup is not in this program."
+    "startupNotInProgram": "This startup is not in this program.",
+    "syllabusReadFailed": "Couldn't read the syllabus."
   }
 }

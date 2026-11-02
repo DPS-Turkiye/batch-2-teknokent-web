@@ -212,12 +212,19 @@ export function settingsDraftOf(
       name: phase.name,
       startDate: phase.startDate,
       endDate: phase.endDate,
+      expectedOutput: phase.expectedOutput ?? null,
     })),
   };
 }
 
 export function emptyPhase(): PhaseDraft {
-  return { key: phaseKey(), name: "", startDate: null, endDate: null };
+  return {
+    key: phaseKey(),
+    name: "",
+    startDate: null,
+    endDate: null,
+    expectedOutput: null,
+  };
 }
 
 export function movePhase(phases: PhaseDraft[], index: number, step: -1 | 1) {
@@ -268,11 +275,12 @@ export function detailsInput(
   };
 }
 
-export function phasesInput(draft: ProgramSettingsDraft): ProgramPhaseInput[] {
-  return draft.phases.map((phase) => ({
+export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {
+  return phases.map((phase) => ({
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,
+    expectedOutput: phase.expectedOutput?.trim() || null,
   }));
 }
 
@@ -285,6 +293,7 @@ export function phasesChanged(
     name: phase.name,
     startDate: phase.startDate,
     endDate: phase.endDate,
+    expectedOutput: phase.expectedOutput ?? null,
   }));
-  return JSON.stringify(phasesInput(draft)) !== JSON.stringify(saved);
+  return JSON.stringify(phasesInput(draft.phases)) !== JSON.stringify(saved);
 }

@@ -60,7 +60,8 @@ export function openActionCount(program: CoordinatorProgram) {
   );
 }
 
-function parseDay(value: string) {
+/** A "YYYY-MM-DD" day at local midnight, so it never shifts a day with the time zone. */
+export function parseDay(value: string) {
   return new Date(`${value}T00:00:00`);
 }
 
