@@ -171,6 +171,13 @@
       "If changes are requested, you get an email; the requested fields are marked in your profile.",
       "While the review is in progress you cannot make big profile changes, but you can keep adding files."
     ],
+    "soloSubmittedTitle": "Your application was sent to the coordinator",
+    "soloLastStepLabel": "You create your startup or join a team",
+    "soloNextSteps": [
+      "If approved, you can create your own startup or join your team with its code on the My startup page.",
+      "If changes are requested, you get an email.",
+      "Mentor requests open once your startup is approved."
+    ],
     "submittedTitle": "{name} profile sent to the coordinator",
     "submittedFallbackName": "Startup",
     "lastStepLabel": "Your startup profile goes live",

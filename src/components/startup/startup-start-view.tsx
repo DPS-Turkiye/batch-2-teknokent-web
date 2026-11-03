@@ -68,7 +68,7 @@ export function StartupStartView() {
               onChange={(event) => join.setCode(event.target.value)}
               placeholder={t("codePlaceholder")}
               autoComplete="off"
-              className="min-w-0 flex-1 rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[13px] uppercase outline-none focus:border-[#e86f22]"
+              className="min-w-0 flex-1 rounded-full border border-[#d4d8dd] px-4 py-2.5 text-[13px] outline-none focus:border-[#e86f22]"
             />
             <button
               type="submit"

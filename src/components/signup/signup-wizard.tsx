@@ -49,19 +49,23 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
   const { exit, exiting } = useOnboardingExit(wizard.saveDraft);
 
   if (wizard.submitted) {
-    const startupName = wizard.draft.startup.startupLater
-      ? ""
-      : wizard.draft.startup.name.trim();
+    // Someone who signed up without a startup is approved as a person; the startup comes later.
+    const solo = wizard.draft.startup.startupLater;
+    const startupName = solo ? "" : wizard.draft.startup.name.trim();
     return (
       <OnboardingSubmittedView
         tone={TONE}
         name={startupName || signupFullName(wizard.draft)}
-        title={copy("submittedTitle", {
-          name: startupName || copy("submittedFallbackName"),
-        })}
+        title={
+          solo
+            ? copy("soloSubmittedTitle")
+            : copy("submittedTitle", {
+                name: startupName || copy("submittedFallbackName"),
+              })
+        }
         submittedAt={submittedAt ?? new Date()}
-        lastStepLabel={copy("lastStepLabel")}
-        nextSteps={copy.raw("nextSteps")}
+        lastStepLabel={copy(solo ? "soloLastStepLabel" : "lastStepLabel")}
+        nextSteps={copy.raw(solo ? "soloNextSteps" : "nextSteps")}
         onSignOut={exit}
         signingOut={exiting}
       />

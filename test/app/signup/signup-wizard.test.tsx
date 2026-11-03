@@ -249,6 +249,11 @@ describe("Signup wizard", () => {
       expect.not.objectContaining({ organizationName: expect.anything() }),
       "id-token",
     );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Başvurun koordinatöre gönderildi",
+      }),
+    ).toBeInTheDocument();
   });
 
   it("returns to the matching step when a review section is edited", async () => {

@@ -171,6 +171,13 @@
       "Düzenleme istenirse e-postayla bilgilendirilirsin; talep edilen alanlar profilde işaretli gelir.",
       "İnceleme sürerken profilde büyük değişiklik yapamazsın, dosya eklemeye devam edebilirsin."
     ],
+    "soloSubmittedTitle": "Başvurun koordinatöre gönderildi",
+    "soloLastStepLabel": "Startup'ını oluşturur ya da bir takıma katılırsın",
+    "soloNextSteps": [
+      "Onaylanırsa Startup'ım sayfasından kendi startup'ını oluşturabilir ya da takımının koduyla katılabilirsin.",
+      "Düzenleme istenirse e-postayla bilgilendirilirsin.",
+      "Mentor talebi, startup'ın onaylandıktan sonra açılır."
+    ],
     "submittedTitle": "{name} profili koordinatöre gönderildi",
     "submittedFallbackName": "Startup",
     "lastStepLabel": "Startup profilin yayına alınır",
