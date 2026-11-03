@@ -10,7 +10,10 @@ import { StartupProfileSection } from "@/components/profile/startup-profile-sect
 import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { useOrganizationInvite } from "@/hooks/use-organization-invite";
-import { useOrganizationMembers } from "@/hooks/use-organization-members";
+import {
+  useOrganizationMembers,
+  useViewerIsFounder,
+} from "@/hooks/use-organization-members";
 import {
   useConfirmProfile,
   useCreateManualProfile,
@@ -155,7 +158,8 @@ export function ProfileAnalysisView() {
   const locale = useLocale();
   const [target, setTarget] = useState<ProfileTarget>({ kind: "self" });
   const membersQuery = useOrganizationMembers();
-  const inviteQuery = useOrganizationInvite();
+  const viewerIsFounder = useViewerIsFounder();
+  const inviteQuery = useOrganizationInvite({ enabled: viewerIsFounder });
   const [copied, setCopied] = useState(false);
   const resolvedAppUserId =
     target.kind === "existing" ? target.appUserId : undefined;
@@ -290,40 +294,42 @@ export function ProfileAnalysisView() {
                 </p>
               )
             ) : null}
-            <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#f8f9fa] p-3">
-              <p className="text-xs font-medium text-[#364153]">
-                {t("inviteTitle")}
-              </p>
-              <p className="mt-1 text-[11px] text-[#6a7282]">
-                {t("inviteHint")}
-              </p>
-              {inviteQuery.isLoading ? (
-                <p className="mt-2 text-xs text-[#6a7282]">{t("loading")}</p>
-              ) : inviteQuery.error ? (
-                <p className="mt-2 text-xs text-red-600">
-                  {inviteQuery.error.message}
+            {viewerIsFounder ? (
+              <div className="mt-2 rounded-lg border border-[#e5e7eb] bg-[#f8f9fa] p-3">
+                <p className="text-xs font-medium text-[#364153]">
+                  {t("inviteTitle")}
                 </p>
-              ) : (
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <p className="font-mono text-lg tracking-widest">
-                    {inviteQuery.data?.inviteCode}
+                <p className="mt-1 text-[11px] text-[#6a7282]">
+                  {t("inviteHint")}
+                </p>
+                {inviteQuery.isLoading ? (
+                  <p className="mt-2 text-xs text-[#6a7282]">{t("loading")}</p>
+                ) : inviteQuery.error ? (
+                  <p className="mt-2 text-xs text-red-600">
+                    {inviteQuery.error.message}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const code = inviteQuery.data?.inviteCode;
-                      if (!code) return;
-                      void navigator.clipboard.writeText(code).then(() => {
-                        setCopied(true);
-                      });
-                    }}
-                    className="rounded-md border border-[#d1d5db] bg-white px-2 py-1 text-xs font-medium text-[#364153]"
-                  >
-                    {copied ? t("copied") : t("copy")}
-                  </button>
-                </div>
-              )}
-            </div>
+                ) : (
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <p className="font-mono text-lg tracking-widest">
+                      {inviteQuery.data?.inviteCode}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = inviteQuery.data?.inviteCode;
+                        if (!code) return;
+                        void navigator.clipboard.writeText(code).then(() => {
+                          setCopied(true);
+                        });
+                      }}
+                      className="rounded-md border border-[#d1d5db] bg-white px-2 py-1 text-xs font-medium text-[#364153]"
+                    >
+                      {copied ? t("copied") : t("copy")}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : null}
           </fieldset>
         </section>
 

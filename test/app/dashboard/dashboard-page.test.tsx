@@ -44,6 +44,7 @@ function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
     organizationName: "GreenLoop",
     isFallback: false,
     isLoading: false,
+    isLoadingTop: false,
     isLoadingActionItems: false,
     isLoadingFeedback: false,
     dismissHomeTask: vi.fn(),
@@ -121,6 +122,22 @@ describe("Mentee dashboard", () => {
         screen.getByRole("heading", { name: heading }),
       ).toBeInTheDocument();
     }
+  });
+
+  it("holds everything below the top blocks until those know their size", () => {
+    mockUseDashboardData.mockReturnValue(dashboardData({ isLoadingTop: true }));
+
+    render(<DashboardPage />);
+
+    expect(
+      screen.getByRole("region", { name: "Sıradaki görüşme" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("region", { name: "Hızlı işlemler" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Yapılacaklar" }),
+    ).not.toBeInTheDocument();
   });
 
   it("puts meeting proposals under the next meeting banner", () => {

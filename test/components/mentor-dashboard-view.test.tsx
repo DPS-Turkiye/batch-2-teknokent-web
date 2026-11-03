@@ -167,6 +167,7 @@ function mockDashboard(overrides: Record<string, unknown> = {}) {
       }),
     ],
     isLoadingActionItems: false,
+    isLoadingTop: false,
     requestsQuery: { isLoading: false },
     meetingsQuery: { isLoading: false },
     decision: decisionState(),
@@ -274,6 +275,15 @@ describe("MentorDashboardView", () => {
     renderWithQueryClient(<MentorDashboardView />);
 
     expect(screen.getAllByText("Yükleniyor...")).toHaveLength(4);
+  });
+
+  it("holds everything below the top blocks until those know their size", () => {
+    mockDashboard({ isLoadingTop: true });
+    renderWithQueryClient(<MentorDashboardView />);
+
+    expect(screen.getByRole("heading", { level: 1 })).toBeInTheDocument();
+    expect(screen.queryByText("Toplantı planla")).not.toBeInTheDocument();
+    expect(screen.queryByText("Talebi incele")).not.toBeInTheDocument();
   });
 
   it("selects a request when its review button is used", async () => {

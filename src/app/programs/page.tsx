@@ -14,13 +14,23 @@ import {
   usePrograms,
   useRemoveProgramStartup,
 } from "@/hooks/use-programs";
+import { useRoleGate } from "@/hooks/use-role-gate";
 import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
 } from "@/interfaces/program";
+import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 
+const COORDINATOR_ONLY = [UserRole.Coordinator];
+
+// The coordinator's program tools; any other role is sent home before its data is asked for.
 export default function ProgramsPage() {
+  const { allowed } = useRoleGate(COORDINATOR_ONLY);
+  return allowed ? <CoordinatorPrograms /> : null;
+}
+
+function CoordinatorPrograms() {
   const { showToast } = useToast();
   const programsQuery = usePrograms();
   const directoryQuery = useProgramDirectory();

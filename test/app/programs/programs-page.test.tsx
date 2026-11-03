@@ -13,6 +13,7 @@ import {
   useProgramStatusSwitch,
   useRemoveProgramStartup,
 } from "@/hooks/use-programs";
+import { useRoleGate } from "@/hooks/use-role-gate";
 import { ProgramStatus } from "@/interfaces/program";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -33,6 +34,8 @@ vi.mock("@/hooks/use-programs", () => ({
   useProgramStatusSwitch: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-role-gate", () => ({ useRoleGate: vi.fn() }));
+
 describe("ProgramsPage", () => {
   const createMutate = vi.fn();
   const addStartupMutate = vi.fn();
@@ -40,6 +43,7 @@ describe("ProgramsPage", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useRoleGate).mockReturnValue({ allowed: true, isLoading: false });
     vi.mocked(useCreateProgram).mockReturnValue({
       mutateAsync: createMutate,
       isPending: false,
@@ -89,6 +93,19 @@ describe("ProgramsPage", () => {
       isLoading: false,
       error: null,
     } as ReturnType<typeof useProgramDirectory>);
+  });
+
+  it("renders nothing and asks for no program data for any other role", () => {
+    vi.mocked(useRoleGate).mockReturnValue({
+      allowed: false,
+      isLoading: false,
+    });
+
+    renderWithQueryClient(<ProgramsPage />);
+
+    expect(screen.queryByText("Program oluştur")).not.toBeInTheDocument();
+    expect(usePrograms).not.toHaveBeenCalled();
+    expect(useProgramDirectory).not.toHaveBeenCalled();
   });
 
   it("lists startups under the search field and adds one to the program", async () => {

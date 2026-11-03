@@ -11,6 +11,7 @@ import {
 } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
+import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useActionItemsForRequests } from "@/hooks/use-action-items";
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
@@ -46,6 +47,7 @@ export function useDashboardData() {
   );
   const meetingsQuery = useMeetings();
   const requestsQuery = useMentorshipRequests(UserRole.Mentee);
+  const proposalsQuery = useMyMeetingProposalsQuery();
 
   useEffect(() => {
     if (meetingsQuery.error) {
@@ -139,6 +141,9 @@ export function useDashboardData() {
     organizationName: session?.organizationName ?? "",
     isFallback: hasError,
     isLoading: meetingsQuery.isLoading || requestsQuery.isLoading,
+    // The blocks above the quick actions appear only once these load; until then nothing sits
+    // below them to be pushed down (layout shift).
+    isLoadingTop: meetingsQuery.isLoading || proposalsQuery.isLoading,
     isLoadingFeedback,
     nextMeeting,
     nextMeetingByRequest,

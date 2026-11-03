@@ -2,6 +2,9 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { useAppSession } from "@/components/providers/session-provider";
+import { isFounder } from "@/lib/startup-team";
+
 import {
   addOrganizationMember,
   getOrganizationMembers,
@@ -14,6 +17,12 @@ export function useOrganizationMembers() {
     queryKey: ORGANIZATION_MEMBERS_QUERY_KEY,
     queryFn: getOrganizationMembers,
   });
+}
+
+export function useViewerIsFounder() {
+  const session = useAppSession();
+  const { data } = useOrganizationMembers();
+  return isFounder(data ?? [], session?.userId);
 }
 
 export function useAddOrganizationMember() {

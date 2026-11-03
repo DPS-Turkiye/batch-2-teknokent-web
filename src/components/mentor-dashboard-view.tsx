@@ -775,6 +775,7 @@ export function MentorDashboardView() {
     todayActions,
     awaitingReview,
     isLoadingActionItems,
+    isLoadingTop,
     upcomingMeetings,
     requestsQuery,
     meetingsQuery,
@@ -829,221 +830,231 @@ export function MentorDashboardView() {
         <div className="mt-7 empty:hidden">
           <MeetingProposalCards />
         </div>
-        <div className="mt-7 grid gap-3 md:grid-cols-3">
-          <QuickAction
-            icon="calendar-fill"
-            title={t("quick.planMeeting")}
-            detail={t("quick.planMeetingHint")}
-            selected
-            href="/mentor-dashboard/calendar"
-          />
-          <QuickAction
-            icon="message"
-            title={t("quick.sendMessage")}
-            detail={t("quick.sendMessageHint")}
-            href="/mentor-dashboard/messages"
-          />
-          <QuickAction
-            icon="paper"
-            title={t("quick.requestFile")}
-            detail={t("quick.requestFileHint")}
-            href="/mentorships"
-          />
-        </div>
-        <div className="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,804px)_400px]">
-          <div className="min-w-0 space-y-6">
-            <section>
-              <SectionHeading
-                action={
-                  <Link href="/mentorships">
-                    {t("today.all", { count: todayActions.length })}
-                  </Link>
-                }
-              >
-                {t("today.title")}
-              </SectionHeading>
-              {isLoadingActionItems ? (
-                <ListNote>{t("loading")}</ListNote>
-              ) : todayActions.length === 0 ? (
-                <ListNote>{t("today.empty")}</ListNote>
-              ) : (
-                <div className="overflow-hidden rounded-[20px] border border-[#e4e7ea] bg-white">
-                  {todayActions.slice(0, 4).map((row) => (
-                    <ActionRow
-                      key={row.id}
-                      icon={row.icon}
-                      startup={row.startup}
-                      detail={row.detail}
-                      chip={row.chip}
-                      action={row.action}
-                      href={row.href}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-            <section>
-              <SectionHeading
-                action={
-                  <Link href="/mentor-dashboard/calendar">
-                    {t("upcoming.all")}
-                  </Link>
-                }
-              >
-                {t("upcoming.title")}
-              </SectionHeading>
-              {meetingsQuery.isLoading ? (
-                <ListNote>{t("loading")}</ListNote>
-              ) : upcomingMeetings.length === 0 ? (
-                <ListNote>{t("upcoming.empty")}</ListNote>
-              ) : (
-                <div className="grid gap-6 sm:grid-cols-2">
-                  {upcomingMeetings.slice(0, 2).map((meeting) => (
-                    <MeetingCard
-                      key={meeting.id}
-                      startup={
-                        meeting.organizationName ?? t("fallback.mentorship")
-                      }
-                      title={meeting.agenda ?? t("fallback.meeting")}
-                      when={[
-                        formatMeetingShort(meeting.scheduledAt, locale),
-                        meeting.durationMinutes
-                          ? t("minutes", { count: meeting.durationMinutes })
-                          : null,
-                        t("online"),
-                      ]
-                        .filter(Boolean)
-                        .join(" · ")}
-                      chip={meetingDayLabel(meeting.scheduledAt, locale)}
-                      join={Boolean(meeting.meetLink)}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-            <section>
-              <SectionHeading
-                action={<Link href="/mentorships">{t("startups.all")}</Link>}
-              >
-                {t("startups.title")}
-              </SectionHeading>
-              <div className="flex flex-col gap-[10px]">
-                {requestsQuery.isLoading ? (
-                  <ListNote>{t("loading")}</ListNote>
-                ) : mentorships.length === 0 ? (
-                  <ListNote>{t("startups.empty")}</ListNote>
-                ) : (
-                  mentorships.map(
-                    ({ request, actionItems, progress, ratio }) => {
-                      const startup =
-                        request.organizationName ??
-                        request.requesterName ??
-                        t("fallback.startup");
-                      return (
-                        <StartupCard
-                          key={request.id}
-                          id={request.id}
-                          name={startup}
-                          initials={toInitials(startup) || "MN"}
-                          person={request.requesterName ?? ""}
-                          topic={request.supportArea}
-                          progress={progress}
-                          ratio={ratio}
-                          actionItems={actionItems}
-                          href={mentorRequestStartupHref(request.id)}
-                          expanded={expandedId === request.id}
-                          onToggle={() =>
-                            setExpandedId((current) =>
-                              current === request.id ? null : request.id,
-                            )
-                          }
+        {isLoadingTop ? null : (
+          <>
+            <div className="mt-7 grid gap-3 md:grid-cols-3">
+              <QuickAction
+                icon="calendar-fill"
+                title={t("quick.planMeeting")}
+                detail={t("quick.planMeetingHint")}
+                selected
+                href="/mentor-dashboard/calendar"
+              />
+              <QuickAction
+                icon="message"
+                title={t("quick.sendMessage")}
+                detail={t("quick.sendMessageHint")}
+                href="/mentor-dashboard/messages"
+              />
+              <QuickAction
+                icon="paper"
+                title={t("quick.requestFile")}
+                detail={t("quick.requestFileHint")}
+                href="/mentorships"
+              />
+            </div>
+            <div className="mt-7 grid items-start gap-6 lg:grid-cols-[minmax(0,804px)_400px]">
+              <div className="min-w-0 space-y-6">
+                <section>
+                  <SectionHeading
+                    action={
+                      <Link href="/mentorships">
+                        {t("today.all", { count: todayActions.length })}
+                      </Link>
+                    }
+                  >
+                    {t("today.title")}
+                  </SectionHeading>
+                  {isLoadingActionItems ? (
+                    <ListNote>{t("loading")}</ListNote>
+                  ) : todayActions.length === 0 ? (
+                    <ListNote>{t("today.empty")}</ListNote>
+                  ) : (
+                    <div className="overflow-hidden rounded-[20px] border border-[#e4e7ea] bg-white">
+                      {todayActions.slice(0, 4).map((row) => (
+                        <ActionRow
+                          key={row.id}
+                          icon={row.icon}
+                          startup={row.startup}
+                          detail={row.detail}
+                          chip={row.chip}
+                          action={row.action}
+                          href={row.href}
                         />
-                      );
-                    },
-                  )
-                )}
+                      ))}
+                    </div>
+                  )}
+                </section>
+                <section>
+                  <SectionHeading
+                    action={
+                      <Link href="/mentor-dashboard/calendar">
+                        {t("upcoming.all")}
+                      </Link>
+                    }
+                  >
+                    {t("upcoming.title")}
+                  </SectionHeading>
+                  {meetingsQuery.isLoading ? (
+                    <ListNote>{t("loading")}</ListNote>
+                  ) : upcomingMeetings.length === 0 ? (
+                    <ListNote>{t("upcoming.empty")}</ListNote>
+                  ) : (
+                    <div className="grid gap-6 sm:grid-cols-2">
+                      {upcomingMeetings.slice(0, 2).map((meeting) => (
+                        <MeetingCard
+                          key={meeting.id}
+                          startup={
+                            meeting.organizationName ?? t("fallback.mentorship")
+                          }
+                          title={meeting.agenda ?? t("fallback.meeting")}
+                          when={[
+                            formatMeetingShort(meeting.scheduledAt, locale),
+                            meeting.durationMinutes
+                              ? t("minutes", { count: meeting.durationMinutes })
+                              : null,
+                            t("online"),
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                          chip={meetingDayLabel(meeting.scheduledAt, locale)}
+                          join={Boolean(meeting.meetLink)}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </section>
+                <section>
+                  <SectionHeading
+                    action={
+                      <Link href="/mentorships">{t("startups.all")}</Link>
+                    }
+                  >
+                    {t("startups.title")}
+                  </SectionHeading>
+                  <div className="flex flex-col gap-[10px]">
+                    {requestsQuery.isLoading ? (
+                      <ListNote>{t("loading")}</ListNote>
+                    ) : mentorships.length === 0 ? (
+                      <ListNote>{t("startups.empty")}</ListNote>
+                    ) : (
+                      mentorships.map(
+                        ({ request, actionItems, progress, ratio }) => {
+                          const startup =
+                            request.organizationName ??
+                            request.requesterName ??
+                            t("fallback.startup");
+                          return (
+                            <StartupCard
+                              key={request.id}
+                              id={request.id}
+                              name={startup}
+                              initials={toInitials(startup) || "MN"}
+                              person={request.requesterName ?? ""}
+                              topic={request.supportArea}
+                              progress={progress}
+                              ratio={ratio}
+                              actionItems={actionItems}
+                              href={mentorRequestStartupHref(request.id)}
+                              expanded={expandedId === request.id}
+                              onToggle={() =>
+                                setExpandedId((current) =>
+                                  current === request.id ? null : request.id,
+                                )
+                              }
+                            />
+                          );
+                        },
+                      )
+                    )}
+                  </div>
+                </section>
               </div>
-            </section>
-          </div>
-          <aside className="min-w-0 space-y-6">
-            <MyProgramsPanel variant="mentor" />
-            <section>
-              <SectionHeading
-                action={
-                  <button type="button">
-                    {t("requests.all", { count: pending.length })}
-                  </button>
-                }
-              >
-                {t("requests.title")}
-              </SectionHeading>
-              <div className="space-y-[10px]">
-                {requestsQuery.isLoading ? (
-                  <ListNote>{t("loading")}</ListNote>
-                ) : pending.length === 0 ? (
-                  <ListNote>{t("requests.empty")}</ListNote>
-                ) : (
-                  pending.map((request) => {
-                    const startup =
-                      request.organizationName ??
-                      request.requesterName ??
-                      t("fallback.startup");
-                    return (
-                      <RequestCard
-                        key={request.id}
-                        name={startup}
-                        initials={toInitials(startup) || "MN"}
-                        person={request.requesterName ?? ""}
-                        areas={request.supportArea}
-                        time={formatSlotDateTime(request.createdAt, locale)}
-                        fresh
-                        onReview={() => decision.selectRequest(request)}
-                      />
-                    );
-                  })
-                )}
-              </div>
-            </section>
-            <section>
-              <SectionHeading>{t("reviews.title")}</SectionHeading>
-              <div className="space-y-[10px]">
-                {meetingsQuery.isLoading ? (
-                  <ListNote>{t("loading")}</ListNote>
-                ) : awaitingReview.length === 0 ? (
-                  <ListNote>{t("reviews.empty")}</ListNote>
-                ) : (
-                  awaitingReview
-                    .slice(0, 4)
-                    .map((meeting) => (
-                      <ReminderCard
-                        key={meeting.id}
-                        title={
-                          meeting.outcomes?.trim()
-                            ? t("reviews.noNote")
-                            : t("reviews.awaiting")
-                        }
-                        startup={
-                          meeting.organizationName ?? t("fallback.mentorship")
-                        }
-                        meeting={meeting.agenda ?? t("fallback.meeting")}
-                        time={formatSlotDateTime(meeting.scheduledAt, locale)}
-                        action={
-                          meeting.outcomes?.trim()
-                            ? t("reviews.addNote")
-                            : t("reviews.complete")
-                        }
-                        href={
-                          meeting.outcomes?.trim()
-                            ? "/mentor-dashboard/calendar"
-                            : mentorMeetingEvaluationHref(meeting.id)
-                        }
-                      />
-                    ))
-                )}
-              </div>
-            </section>
-          </aside>
-        </div>
+              <aside className="min-w-0 space-y-6">
+                <MyProgramsPanel variant="mentor" />
+                <section>
+                  <SectionHeading
+                    action={
+                      <button type="button">
+                        {t("requests.all", { count: pending.length })}
+                      </button>
+                    }
+                  >
+                    {t("requests.title")}
+                  </SectionHeading>
+                  <div className="space-y-[10px]">
+                    {requestsQuery.isLoading ? (
+                      <ListNote>{t("loading")}</ListNote>
+                    ) : pending.length === 0 ? (
+                      <ListNote>{t("requests.empty")}</ListNote>
+                    ) : (
+                      pending.map((request) => {
+                        const startup =
+                          request.organizationName ??
+                          request.requesterName ??
+                          t("fallback.startup");
+                        return (
+                          <RequestCard
+                            key={request.id}
+                            name={startup}
+                            initials={toInitials(startup) || "MN"}
+                            person={request.requesterName ?? ""}
+                            areas={request.supportArea}
+                            time={formatSlotDateTime(request.createdAt, locale)}
+                            fresh
+                            onReview={() => decision.selectRequest(request)}
+                          />
+                        );
+                      })
+                    )}
+                  </div>
+                </section>
+                <section>
+                  <SectionHeading>{t("reviews.title")}</SectionHeading>
+                  <div className="space-y-[10px]">
+                    {meetingsQuery.isLoading ? (
+                      <ListNote>{t("loading")}</ListNote>
+                    ) : awaitingReview.length === 0 ? (
+                      <ListNote>{t("reviews.empty")}</ListNote>
+                    ) : (
+                      awaitingReview
+                        .slice(0, 4)
+                        .map((meeting) => (
+                          <ReminderCard
+                            key={meeting.id}
+                            title={
+                              meeting.outcomes?.trim()
+                                ? t("reviews.noNote")
+                                : t("reviews.awaiting")
+                            }
+                            startup={
+                              meeting.organizationName ??
+                              t("fallback.mentorship")
+                            }
+                            meeting={meeting.agenda ?? t("fallback.meeting")}
+                            time={formatSlotDateTime(
+                              meeting.scheduledAt,
+                              locale,
+                            )}
+                            action={
+                              meeting.outcomes?.trim()
+                                ? t("reviews.addNote")
+                                : t("reviews.complete")
+                            }
+                            href={
+                              meeting.outcomes?.trim()
+                                ? "/mentor-dashboard/calendar"
+                                : mentorMeetingEvaluationHref(meeting.id)
+                            }
+                          />
+                        ))
+                    )}
+                  </div>
+                </section>
+              </aside>
+            </div>
+          </>
+        )}
       </div>
       {selectedRequest ? (
         <RequestDrawer

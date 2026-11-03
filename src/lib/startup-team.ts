@@ -22,6 +22,11 @@ export function foundersFirst(members: OrganizationMember[]) {
 }
 
 /** The first problem with a draft (a `startupTeam.errors` key), or null when it can be sent. */
+/** Only the founder may see or renew the startup's invite code. */
+export function isFounder(members: OrganizationMember[], userId?: string) {
+  return members.some((member) => member.founder && member.id === userId);
+}
+
 export function memberDraftError(draft: MemberDraft) {
   if (!draft.fullName.trim()) return "nameRequired" as const;
   if (draft.mode === MemberFormMode.Add && !isEmailAddress(draft.email)) {
