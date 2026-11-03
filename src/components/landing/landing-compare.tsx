@@ -93,8 +93,9 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
               <p>{card.text}</p>
               <ul className={cx("clist")}>
                 {card.points.map((point, index) => (
+                  // Keyed by position: a text key remounts the bullet on a language switch, and the reveal hook never shows the new one.
                   <li
-                    key={point}
+                    key={index}
                     className={cx("rv")}
                     style={
                       {
