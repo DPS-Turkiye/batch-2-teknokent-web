@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProfileView } from "@/components/startup/startup-profile-view";
+import { useViewerIsFounder } from "@/hooks/use-organization-members";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
@@ -42,6 +43,10 @@ vi.mock("@/hooks/use-startup-status-form", () => ({
 
 vi.mock("@/hooks/use-startup-documents", () => ({
   useOpenDocument: vi.fn(),
+}));
+
+vi.mock("@/hooks/use-organization-members", () => ({
+  useViewerIsFounder: vi.fn(),
 }));
 
 const openDocument = vi.fn();
@@ -123,6 +128,22 @@ describe("StartupProfileView", () => {
       submit: vi.fn(),
     });
     vi.mocked(useStartupOverview).mockReturnValue(overview());
+    vi.mocked(useViewerIsFounder).mockReturnValue(true);
+  });
+
+  it("shows a member the profile without the founder's edit controls", () => {
+    vi.mocked(useViewerIsFounder).mockReturnValue(false);
+    renderWithQueryClient(<StartupProfileView />);
+
+    expect(
+      screen.queryByRole("link", { name: "Profili düzenle" }),
+    ).not.toBeInTheDocument();
+    const about = screen.getByRole("region", { name: "Startup hakkında" });
+    expect(within(about).queryByRole("link")).not.toBeInTheDocument();
+    const status = screen.getByRole("region", { name: "Ürün durumu" });
+    expect(
+      within(status).queryByRole("button", { name: "Güncelle" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the description and the product status with its progress", () => {
