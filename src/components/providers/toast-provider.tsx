@@ -7,13 +7,10 @@ import {
   type ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
-
-import { TRANSCRIPT_BOT_FULL_EVENT } from "@/lib/transcript-bot";
 
 type ToastTone = "success" | "error" | "info";
 type ToastAction = { label: string; onClick: () => void };
@@ -61,17 +58,6 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     },
     [dismiss],
   );
-  useEffect(() => {
-    const announce = () =>
-      showToast({
-        tone: "error",
-        title: t("botFullTitle"),
-        message: t("botFullMessage"),
-      });
-    window.addEventListener(TRANSCRIPT_BOT_FULL_EVENT, announce);
-    return () =>
-      window.removeEventListener(TRANSCRIPT_BOT_FULL_EVENT, announce);
-  }, [showToast, t]);
   const value = useMemo(() => ({ showToast }), [showToast]);
 
   return (

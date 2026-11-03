@@ -2340,9 +2340,7 @@
     "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
     "backToMentorships": "Mentorluklarıma dön",
     "homeLabel": "menton ana sayfa",
-    "toastRegion": "İşlem bildirimleri",
-    "botFullTitle": "Kayıt botu şu anda katılamıyor",
-    "botFullMessage": "Özür dileriz, sitedeki yoğun kullanım nedeniyle kayıt botu şu anda bu görüşmeye katılamıyor. Görüşme planlandı; kayıt olmadan yapılacak."
+    "toastRegion": "İşlem bildirimleri"
   },
   "optionValues": {
     "stage": {

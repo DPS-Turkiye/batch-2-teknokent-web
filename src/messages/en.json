@@ -2340,9 +2340,7 @@
     "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
     "backToMentorships": "Back to my mentorships",
     "homeLabel": "menton home",
-    "toastRegion": "Notifications",
-    "botFullTitle": "The recording bot can't join right now",
-    "botFullMessage": "Sorry, the recording bot can't join this meeting right now because the site is very busy. The meeting is scheduled and will go ahead without a recording."
+    "toastRegion": "Notifications"
   },
   "optionValues": {
     "stage": {

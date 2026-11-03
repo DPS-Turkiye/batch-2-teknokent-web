@@ -56,19 +56,3 @@ function transcriptBotActionFor(
     alreadyDispatched: Boolean(meeting.botDispatchedAt),
   };
 }
-
-export const TRANSCRIPT_BOT_FULL_EVENT = "menton:transcript-bot-full";
-
-/** The backend turns the bot off when its slot is already full, so compare what was asked with what was saved. */
-export function announceDroppedTranscriptBot<
-  T extends { transcribeRequested?: boolean },
->(requested: unknown, saved: T): T {
-  if (
-    requested === true &&
-    saved.transcribeRequested === false &&
-    typeof window !== "undefined"
-  ) {
-    window.dispatchEvent(new Event(TRANSCRIPT_BOT_FULL_EVENT));
-  }
-  return saved;
-}
