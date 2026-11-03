@@ -1785,7 +1785,9 @@
     "sendForApproval": "Send for coordinator approval",
     "createFailed": "Could not create the startup.",
     "pendingBanner": "Your startup is waiting for the coordinator's approval. Meanwhile you can edit the profile, upload files and share the team code.",
+    "pendingBannerMember": "Your startup is waiting for the coordinator's approval. All pages open once it is approved.",
     "rejectedBanner": "Your startup was not approved. You can update the profile and send it for approval again.",
+    "rejectedBannerMember": "Your startup was not approved. The founder can update the profile and send it for approval again.",
     "resubmit": "Send for approval again",
     "resubmitFailed": "Could not send it again."
   },

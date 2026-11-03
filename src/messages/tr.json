@@ -1785,7 +1785,9 @@
     "sendForApproval": "Koordinatör onayına gönder",
     "createFailed": "Startup oluşturulamadı.",
     "pendingBanner": "Startup'ınız koordinatör onayı bekliyor. Bu sürede profili düzenleyebilir, dosya yükleyebilir ve takım kodunu paylaşabilirsiniz.",
+    "pendingBannerMember": "Startup'ınız koordinatör onayı bekliyor. Onaylandığında tüm sayfalar açılır.",
     "rejectedBanner": "Startup'ınız onaylanmadı. Profili güncelleyip tekrar onaya gönderebilirsiniz.",
+    "rejectedBannerMember": "Startup'ınız onaylanmadı. Kurucu profili güncelleyip tekrar onaya gönderebilir.",
     "resubmit": "Tekrar onaya gönder",
     "resubmitFailed": "Tekrar gönderilemedi."
   },

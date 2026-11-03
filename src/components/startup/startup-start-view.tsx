@@ -8,6 +8,7 @@ import {
   startupSecondaryActionClass,
 } from "@/components/startup/startup-page-frame";
 import { StartupProfileView } from "@/components/startup/startup-profile-view";
+import { useViewerIsFounder } from "@/hooks/use-organization-members";
 import { useStartupAccess } from "@/hooks/use-startup-access";
 import {
   useJoinStartup,
@@ -111,10 +112,15 @@ export function StartupApprovalBanner() {
   const t = useTranslations("startupStart");
   const { access } = useStartupAccess();
   const resubmit = useResubmitStartup();
+  const founder = useViewerIsFounder();
   if (access !== StartupAccess.Pending && access !== StartupAccess.Rejected) {
     return null;
   }
   const rejected = access === StartupAccess.Rejected;
+  // Only the founder can edit the profile and send it again; members just wait.
+  const message = rejected
+    ? t(founder ? "rejectedBanner" : "rejectedBannerMember")
+    : t(founder ? "pendingBanner" : "pendingBannerMember");
   return (
     <div
       role="status"
@@ -124,8 +130,8 @@ export function StartupApprovalBanner() {
           : "border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]"
       }`}
     >
-      <span>{rejected ? t("rejectedBanner") : t("pendingBanner")}</span>
-      {rejected ? (
+      <span>{message}</span>
+      {rejected && founder ? (
         <button
           type="button"
           onClick={resubmit.resubmit}
