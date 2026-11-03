@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -14,7 +14,10 @@ import {
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
-import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import {
+  coordinatorProgramDetail,
+  phase,
+} from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
@@ -189,19 +192,100 @@ describe("coordinator program detail", () => {
     );
   });
 
-  it("refuses an unnamed phase before saving", async () => {
+  it("refuses a new phase without a name", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
 
     await user.click(await screen.findByRole("button", { name: /Faz ekle/ }));
-    await user.click(
-      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
-    );
+    const drawer = screen.getByRole("dialog", { name: "Yeni faz" });
+    await user.click(within(drawer).getByRole("button", { name: "Kaydet" }));
 
-    expect(screen.getByRole("alert")).toHaveTextContent(
+    expect(within(drawer).getByRole("alert")).toHaveTextContent(
       "Her fazın bir adı olmalı.",
     );
-    expect(updateCoordinatorProgram).not.toHaveBeenCalled();
+    expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+  });
+
+  it("edits the running phase: its start stays, a later end is explained, and the list is saved", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-10T12:00:00"));
+    const detail = coordinatorProgramDetail();
+    detail.program.phases = [
+      {
+        ...phase("phase-1", "Başvuru", 0),
+        startDate: "2026-02-01",
+        endDate: "2026-02-28",
+        expectedOutput: null,
+      },
+      {
+        ...phase("phase-2", "Mentorluk dönemi", 1),
+        startDate: "2026-05-01",
+        endDate: "2026-11-15",
+        expectedOutput: "Ara rapor",
+      },
+      {
+        ...phase("phase-3", "Demo Day", 2),
+        startDate: "2026-12-12",
+        endDate: "2026-12-12",
+        expectedOutput: null,
+      },
+    ];
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+    vi.mocked(replaceCoordinatorProgramPhases).mockResolvedValue(detail);
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    const list = await screen.findByRole("list", { name: "Program fazları" });
+    expect(within(list).getByText("Tamamlandı")).toBeInTheDocument();
+    expect(within(list).getByText("Şu an · hafta 6/16")).toBeInTheDocument();
+    expect(within(list).getByText("Planlandı")).toBeInTheDocument();
+
+    await user.click(
+      within(list).getByRole("button", {
+        name: "Mentorluk dönemi fazını düzenle",
+      }),
+    );
+    const drawer = screen.getByRole("dialog", { name: "Fazı düzenle" });
+    expect(within(drawer).getByLabelText("Başlangıç")).toBeDisabled();
+    fireEvent.change(within(drawer).getByLabelText("Bitiş"), {
+      target: { value: "2026-11-28" },
+    });
+    expect(
+      within(drawer).getByText("Bitiş 15 Kas → 28 Kas: faz 13 gün uzar"),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).getByText("Demo Day (12 Ara) ile arada 2 hafta kalır"),
+    ).toBeInTheDocument();
+    expect(
+      within(drawer).queryByRole("button", { name: "Fazı sil" }),
+    ).toBeNull();
+
+    await user.click(within(drawer).getByRole("button", { name: "Kaydet" }));
+    expect(replaceCoordinatorProgramPhases).toHaveBeenCalledWith(
+      "program-1",
+      [
+        {
+          name: "Başvuru",
+          startDate: "2026-02-01",
+          endDate: "2026-02-28",
+          expectedOutput: null,
+        },
+        {
+          name: "Mentorluk dönemi",
+          startDate: "2026-05-01",
+          endDate: "2026-11-28",
+          expectedOutput: "Ara rapor",
+        },
+        {
+          name: "Demo Day",
+          startDate: "2026-12-12",
+          endDate: "2026-12-12",
+          expectedOutput: null,
+        },
+      ],
+      null,
+    );
+    vi.useRealTimers();
   });
 
   it("adds a coordinator from the approved ones", async () => {

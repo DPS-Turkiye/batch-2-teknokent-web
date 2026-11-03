@@ -19,9 +19,21 @@ import {
   missingDate,
   outputTokens,
   phaseDateRange,
+  PhaseStatus,
   timelineSegments,
 } from "@/lib/program-phases";
 import { formatShortDate } from "@/lib/utils";
+
+const SEGMENT_FILL: Record<PhaseStatus, string> = {
+  [PhaseStatus.Done]: "bg-[#22262b]",
+  [PhaseStatus.Current]: "bg-[#22262b]/55",
+  [PhaseStatus.Planned]: "bg-[#e9ecef]",
+};
+const SEGMENT_LABEL: Record<PhaseStatus, string> = {
+  [PhaseStatus.Done]: "font-medium text-[#22262b]",
+  [PhaseStatus.Current]: "font-semibold text-[#22262b]",
+  [PhaseStatus.Planned]: "font-medium text-[#858c96]",
+};
 
 const FIELD =
   "mt-1.5 h-11 w-full rounded-full border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
@@ -32,11 +44,14 @@ export function PhaseTimeline({
   start,
   end,
   middle,
+  statusOf,
 }: {
   phases: PhaseDraft[];
   start: string | null;
   end: string | null;
   middle: ReactNode;
+  /** Colours each segment by where its phase stands today; without it the segments fade left to right. */
+  statusOf?: (phase: PhaseDraft) => PhaseStatus;
 }) {
   const t = useTranslations("programPhases");
   const locale = useLocale();
@@ -64,17 +79,23 @@ export function PhaseTimeline({
               className={`block h-2.5 rounded-full ${
                 segment.missing
                   ? "border-[1.5px] border-dashed border-[#b7791f]"
-                  : "bg-[#22262b]"
+                  : statusOf
+                    ? SEGMENT_FILL[statusOf(phases[index])]
+                    : "bg-[#22262b]"
               }`}
               style={
-                segment.missing
+                segment.missing || statusOf
                   ? undefined
                   : { opacity: Math.max(0.4, 1 - index * 0.15) }
               }
             />
             <span
-              className={`mt-1.5 block truncate text-[11px] font-medium ${
-                segment.missing ? "text-[#b7791f]" : "text-[#676e78]"
+              className={`mt-1.5 block truncate text-[11px] ${
+                segment.missing
+                  ? "font-medium text-[#b7791f]"
+                  : statusOf
+                    ? SEGMENT_LABEL[statusOf(phases[index])]
+                    : "font-medium text-[#676e78]"
               }`}
             >
               {segment.missing ? "?" : segment.name}
@@ -170,7 +191,7 @@ export function PhaseList<T extends PhaseDraft>({
   );
 }
 
-function Grip({ label }: { label: string }) {
+export function Grip({ label }: { label: string }) {
   return (
     <span
       aria-label={label}
@@ -367,7 +388,7 @@ function OpenPhase<T extends PhaseDraft>({
 }
 
 /** Expected outputs as chips: Enter or a comma adds one, Backspace on an empty field removes the last. */
-function OutputTokens({
+export function OutputTokens({
   id,
   value,
   onChange,

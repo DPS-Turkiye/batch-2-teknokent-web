@@ -41,7 +41,8 @@ import {
   PhaseSource,
   proposedPhases,
   reorderPhases,
-  SYLLABUS_MAX_BYTES,
+  SyllabusFileProblem,
+  syllabusFileProblem,
   type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
@@ -182,11 +183,11 @@ export function useProgramLaunch() {
 
     uploading: upload.isPending,
     chooseSyllabus: (file: File) => {
-      const pdf =
-        file.type === "application/pdf" ||
-        file.name.toLowerCase().endsWith(".pdf");
-      if (!pdf) return setError(t("pdfOnly"));
-      if (file.size > SYLLABUS_MAX_BYTES) return setError(t("tooLarge"));
+      const problem = syllabusFileProblem(file);
+      if (problem === SyllabusFileProblem.NotPdf) return setError(t("pdfOnly"));
+      if (problem === SyllabusFileProblem.TooLarge) {
+        return setError(t("tooLarge"));
+      }
       setError(null);
       upload.mutate(file);
     },

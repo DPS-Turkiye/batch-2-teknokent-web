@@ -17,6 +17,7 @@ export enum ProgramTab {
 
 export enum SettingsSection {
   General = "GENERAL",
+  Curriculum = "CURRICULUM",
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Archive = "ARCHIVE",
@@ -186,10 +187,7 @@ export function stepDays(
 
 export type PhaseDraft = ProgramPhaseInput & { key: string };
 
-export type ProgramSettingsDraft = UpdateProgramDetailsInput &
-  ProgramRules & {
-    phases: PhaseDraft[];
-  };
+export type ProgramSettingsDraft = UpdateProgramDetailsInput & ProgramRules;
 
 let phaseKeySeed = 0;
 function phaseKey() {
@@ -207,14 +205,17 @@ export function settingsDraftOf(
     startDate: program.startDate,
     endDate: program.endDate,
     ...detail.rules,
-    phases: program.phases.map((phase) => ({
-      key: phase.id,
-      name: phase.name,
-      startDate: phase.startDate,
-      endDate: phase.endDate,
-      expectedOutput: phase.expectedOutput ?? null,
-    })),
   };
+}
+
+export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
+  return detail.program.phases.map((phase) => ({
+    key: phase.id,
+    name: phase.name,
+    startDate: phase.startDate,
+    endDate: phase.endDate,
+    expectedOutput: phase.expectedOutput ?? null,
+  }));
 }
 
 export function emptyPhase(): PhaseDraft {
@@ -227,14 +228,6 @@ export function emptyPhase(): PhaseDraft {
   };
 }
 
-export function movePhase(phases: PhaseDraft[], index: number, step: -1 | 1) {
-  const target = index + step;
-  if (target < 0 || target >= phases.length) return phases;
-  const next = [...phases];
-  [next[index], next[target]] = [next[target], next[index]];
-  return next;
-}
-
 export const MAX_PHASES = 12;
 
 /** The first problem with the draft, or null when it can be saved. */
@@ -243,16 +236,16 @@ export function settingsDraftError(draft: ProgramSettingsDraft) {
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
     return clientText("programSettings.endBeforeStart");
   }
-  if (draft.phases.length > MAX_PHASES) {
-    return clientText("programSettings.tooManyPhases", { max: MAX_PHASES });
-  }
-  for (const phase of draft.phases) {
-    if (!phase.name.trim()) return clientText("programSettings.phaseName");
-    if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
-      return clientText("programSettings.phaseDates", {
-        name: phase.name.trim(),
-      });
-    }
+  return null;
+}
+
+/** The first problem with one phase in the Müfredat & fazlar drawer, or null. */
+export function phaseDraftError(phase: PhaseDraft) {
+  if (!phase.name.trim()) return clientText("programSettings.phaseName");
+  if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
+    return clientText("programSettings.phaseDates", {
+      name: phase.name.trim(),
+    });
   }
   return null;
 }
@@ -282,18 +275,4 @@ export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {
     endDate: phase.endDate || null,
     expectedOutput: phase.expectedOutput?.trim() || null,
   }));
-}
-
-/** Phases are replaced as a whole, so they are only sent when something about them changed. */
-export function phasesChanged(
-  draft: ProgramSettingsDraft,
-  detail: CoordinatorProgramDetail,
-) {
-  const saved = detail.program.phases.map((phase) => ({
-    name: phase.name,
-    startDate: phase.startDate,
-    endDate: phase.endDate,
-    expectedOutput: phase.expectedOutput ?? null,
-  }));
-  return JSON.stringify(phasesInput(draft.phases)) !== JSON.stringify(saved);
 }

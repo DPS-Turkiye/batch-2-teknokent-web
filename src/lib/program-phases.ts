@@ -130,3 +130,43 @@ export function timelineSegments(phases: PhaseDraft[]): TimelineSegment[] {
     };
   });
 }
+
+/** Where a phase stands today: drives its chip, its timeline colour and which dates stay locked. */
+export enum PhaseStatus {
+  Done = "DONE",
+  Current = "CURRENT",
+  Planned = "PLANNED",
+}
+
+/** `today` is a YYYY-MM-DD day, compared as text like the phase dates. */
+export function phaseStatus(phase: PhaseDraft, today: string) {
+  if (phase.endDate && phase.endDate < today) return PhaseStatus.Done;
+  if (phase.startDate && phase.startDate <= today) return PhaseStatus.Current;
+  return PhaseStatus.Planned;
+}
+
+/** A finished phase keeps both dates and a running one its start; names and outputs stay editable. */
+export function phaseDateLocks(status: PhaseStatus) {
+  return {
+    start: status !== PhaseStatus.Planned,
+    end: status === PhaseStatus.Done,
+  };
+}
+
+/** Days from one day to another; positive when `to` is later. */
+export function dayShift(from: string, to: string) {
+  return Math.round((Date.parse(to) - Date.parse(from)) / DAY_MS);
+}
+
+export enum SyllabusFileProblem {
+  NotPdf = "NOT_PDF",
+  TooLarge = "TOO_LARGE",
+}
+
+export function syllabusFileProblem(file: File) {
+  const pdf =
+    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
+  if (!pdf) return SyllabusFileProblem.NotPdf;
+  if (file.size > SYLLABUS_MAX_BYTES) return SyllabusFileProblem.TooLarge;
+  return null;
+}
