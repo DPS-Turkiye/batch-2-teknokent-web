@@ -7,6 +7,10 @@ import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
 import { ProfileChipTone } from "@/lib/personal-profile";
 
+vi.mock("@/components/profile/personal-analysis-archive", () => ({
+  PersonalAnalysisArchive: () => null,
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -324,5 +328,23 @@ describe("PersonalProfileView", () => {
     expect(
       screen.queryByRole("button", { name: "Profili CV'den doldur" }),
     ).not.toBeInTheDocument();
+  });
+  it("edits phone and LinkedIn on the current personal profile", async () => {
+    const user = userEvent.setup();
+    mockPage({ isEditing: true });
+    render(<PersonalProfileView />);
+    await user.type(screen.getByLabelText("Telefon"), "5");
+    await user.type(screen.getByLabelText("LinkedIn"), "l");
+    expect(actions.setField).toHaveBeenCalledWith("phone", "5");
+    expect(actions.setField).toHaveBeenCalledWith("linkedinUrl", "l");
+  });
+  it("shows phone validation errors next to the editable field", () => {
+    mockPage({ isEditing: true, fieldErrors: { phone: "Telefon geçersiz" } });
+    render(<PersonalProfileView />);
+    expect(screen.getByLabelText("Telefon")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent("Telefon geçersiz");
   });
 });
