@@ -100,3 +100,9 @@ export function errorMessage(error: unknown, fallback: string) {
 export function isEmailAddress(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
+
+/** The address when it is a plain http(s) link, so text people typed never becomes a `javascript:` href. */
+export function httpUrlOrNull(value: string | null | undefined) {
+  const trimmed = value?.trim() ?? "";
+  return /^https?:\/\/\S+$/i.test(trimmed) ? trimmed : null;
+}

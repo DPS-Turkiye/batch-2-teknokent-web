@@ -2,6 +2,13 @@
 
 import { useId } from "react";
 import { useTranslations } from "next-intl";
+import { ChevronDown } from "lucide-react";
+import { FileDrop } from "@/components/common/file-drop";
+import { cardClass, cardHeadingClass } from "@/components/common/form-field";
+import { PrimaryButton } from "@/components/common/primary-button";
+import { SecondaryButton } from "@/components/common/secondary-button";
+import { OnboardingConsent } from "@/components/onboarding/onboarding-ui";
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { ProfileAnalysisEditor } from "@/components/profile/profile-analysis-editor";
 import { ProfileAnalysisSummary } from "@/components/profile/profile-analysis-summary";
 import { useStartupProfileImport } from "@/hooks/use-startup-profile-import";
@@ -9,106 +16,107 @@ import {
   ProfileAnalysisStatus,
   ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
+import { PROFILE_ANALYSIS_MAX_BYTES } from "@/lib/profile-analysis";
 
 export function StartupProfileImport() {
   const t = useTranslations("profileAnalysis");
   const labels = useTranslations("profileTools");
-  const inputId = useId();
+  const ocrName = useId();
   const form = useStartupProfileImport();
   return (
-    <section className="space-y-5 rounded-[24px] border border-[#e4e7ea] bg-white p-5 sm:p-6">
+    <section className={cardClass}>
       <div>
-        <h2 className="text-lg font-semibold text-[#22262b]">
-          {labels("importTitle")}
-        </h2>
-        <p className="mt-1 text-sm text-[#676e78]">{labels("importHint")}</p>
+        <h2 className={cardHeadingClass}>{labels("importTitle")}</h2>
+        <p className="mt-1 text-xs text-[#676e78]">{labels("importHint")}</p>
       </div>
-      <label htmlFor={inputId} className="block text-sm font-medium">
-        {labels("upload")}
-      </label>
-      <input
-        id={inputId}
-        type="file"
-        accept="application/pdf,.pdf"
-        key={form.inputVersion}
-        disabled={form.isPending}
-        onChange={(event) => form.chooseFile(event.target.files?.[0] ?? null)}
-        className="block w-full text-sm"
-      />
-      <p className="text-xs text-[#676e78]">{t("pdfOnly")}</p>
-      <details className="text-sm text-[#676e78]">
-        <summary className="cursor-pointer">{labels("advanced")}</summary>
-        <fieldset disabled={form.isPending} className="mt-3">
-          <legend>{t("ocrLevel")}</legend>
-          <div className="mt-2 flex flex-wrap gap-4">
-            {Object.values(ProfileOcrMode).map((mode) => (
-              <label key={mode} className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  name={inputId + "-ocr"}
-                  value={mode}
-                  checked={mode === form.ocrMode}
-                  onChange={() => form.setOcrMode(mode)}
-                />
-                {t(`ocr.${mode}`)}
-              </label>
-            ))}
-          </div>
-          <p className="mt-2 text-xs">{t("ocrHint")}</p>
-        </fieldset>
-      </details>
-      <label className="flex items-start gap-2 text-xs leading-5 text-[#676e78]">
-        <input
-          type="checkbox"
-          checked={form.consent}
-          disabled={form.isPending}
-          onChange={(event) => form.setConsent(event.target.checked)}
-          className="mt-1"
+      <fieldset disabled={form.isPending} className="space-y-4">
+        <FileDrop
+          key={form.inputVersion}
+          label={labels("upload")}
+          accept="application/pdf,.pdf"
+          maxBytes={PROFILE_ANALYSIS_MAX_BYTES}
+          helpText={t("pdfOnly")}
+          file={
+            form.file ? { name: form.file.name, size: form.file.size } : null
+          }
+          onChange={(picked) => form.chooseFile(picked?.file ?? null)}
         />
-        <span>{t("consent")}</span>
-      </label>
-      <p className="text-xs text-[#676e78]">{t("localOnly")}</p>
+        <details className="group rounded-xl border border-[#edf0f2] bg-[#fcfcfd] px-3.5 py-3 text-sm text-[#4a5059]">
+          <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-medium text-[#3c424a]">
+            {labels("advanced")}
+            <ChevronDown className="size-4 text-[#858c96] transition group-open:rotate-180" />
+          </summary>
+          <div className="mt-3 space-y-2">
+            <p className="text-xs font-medium text-[#676e78]">
+              {t("ocrLevel")}
+            </p>
+            <div role="radiogroup" className="flex flex-wrap gap-2">
+              {Object.values(ProfileOcrMode).map((mode) => (
+                <label
+                  key={mode}
+                  className="flex cursor-pointer items-center gap-2 rounded-lg border border-[#e4e7ea] bg-white px-3 py-1.5 text-xs has-[:checked]:border-[#e86f22] has-[:checked]:text-[#c85816]"
+                >
+                  <input
+                    type="radio"
+                    name={ocrName}
+                    value={mode}
+                    checked={mode === form.ocrMode}
+                    onChange={() => form.setOcrMode(mode)}
+                    className="accent-[#e86f22]"
+                  />
+                  {t(`ocr.${mode}`)}
+                </label>
+              ))}
+            </div>
+            <p className="text-[11px] text-[#858c96]">{t("ocrHint")}</p>
+          </div>
+        </details>
+        <OnboardingConsent
+          tone={OnboardingTone.Mentee}
+          checked={form.consent}
+          onChange={form.setConsent}
+        >
+          {t("consent")}
+        </OnboardingConsent>
+        <p className="text-[11px] text-[#858c96]">{t("localOnly")}</p>
+      </fieldset>
       <div className="flex flex-wrap items-center gap-3">
-        <button
-          type="button"
+        <PrimaryButton
           disabled={!form.file || !form.consent || form.isPending}
           onClick={() => void form.extract()}
-          className="rounded-full bg-[#e86f22] px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {form.isPending ? t("extracting") : t("extract")}
-        </button>
-        <button
-          type="button"
+        </PrimaryButton>
+        <SecondaryButton
           disabled={form.isPending}
           onClick={() => form.setShowManual(!form.showManual)}
-          className="text-sm font-medium text-[#c95c18] underline"
         >
           {form.showManual ? t("closeManual") : t("openManual")}
-        </button>
+        </SecondaryButton>
       </div>
       {form.error ? (
-        <p role="alert" className="text-sm text-[#b42318]">
+        <p role="alert" className="text-sm text-[#b91c1c]">
           {form.error}
         </p>
       ) : null}
       {form.showManual ? <ProfileAnalysisEditor onSaved={form.saved} /> : null}
       {form.isLoading ? (
-        <p role="status" className="text-sm">
+        <p role="status" className="text-sm text-[#676e78]">
           {t("searching")}
         </p>
       ) : form.isLoadError ? (
-        <p role="alert" className="text-sm text-[#b42318]">
+        <p role="alert" className="text-sm text-[#b91c1c]">
           {labels("loadFailed")}{" "}
           <button
             type="button"
             onClick={() => void form.retry()}
-            className="underline"
+            className="font-medium text-[#c85816] hover:underline"
           >
             {labels("retry")}
           </button>
         </p>
       ) : form.analysis ? (
-        <div className="space-y-4 border-t border-[#e4e7ea] pt-5">
+        <div className="space-y-4 border-t border-[#edf0f2] pt-5">
           <ProfileAnalysisSummary analysis={form.analysis} />
           {form.analysis.status === ProfileAnalysisStatus.Draft ? (
             <ProfileAnalysisEditor

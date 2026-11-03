@@ -4,6 +4,9 @@ import type {
   ProfileType,
 } from "@/interfaces/profile-analysis";
 
+/** Largest pitch deck or CV the parser accepts. */
+export const PROFILE_ANALYSIS_MAX_BYTES = 50 * 1024 * 1024;
+
 export type EditableProfile = Record<string, string>;
 type ProfileFieldKey =
   | "professional_summary"

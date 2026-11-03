@@ -22,6 +22,7 @@ import {
   PROFILE_ROW_CLASS as rowClass,
 } from "@/lib/const/profile";
 import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
+import { httpUrlOrNull } from "@/lib/utils";
 
 type PageData = ReturnType<typeof usePersonalProfilePage>;
 
@@ -305,6 +306,7 @@ function MentorshipsCard({ page }: { page: PageData }) {
 function ContactCard({ page }: { page: PageData }) {
   const t = useTranslations("personalProfile");
   const fields = useTranslations("profileSections");
+  const linkedin = httpUrlOrNull(page.draft?.linkedinUrl);
   return (
     <Card
       title={t("contact")}
@@ -381,6 +383,29 @@ function ContactCard({ page }: { page: PageData }) {
             <dt className="text-[12px] text-[#676e78]">{t("email")}</dt>
             <dd className="text-right font-medium text-[#4a5059]">
               {page.email || "—"}
+            </dd>
+          </div>
+          <div className={rowClass}>
+            <dt className="text-[12px] text-[#676e78]">{fields("phone")}</dt>
+            <dd className="text-right font-medium text-[#4a5059]">
+              {page.draft?.phone || "—"}
+            </dd>
+          </div>
+          <div className={rowClass}>
+            <dt className="text-[12px] text-[#676e78]">{fields("linkedin")}</dt>
+            <dd className="min-w-0 truncate text-right font-medium text-[#4a5059]">
+              {linkedin ? (
+                <a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#c85816] hover:underline"
+                >
+                  {linkedin.replace(/^https?:\/\/(www\.)?/i, "")}
+                </a>
+              ) : (
+                page.draft?.linkedinUrl || "—"
+              )}
             </dd>
           </div>
           <div className={rowClass}>

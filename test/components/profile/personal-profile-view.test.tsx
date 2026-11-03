@@ -347,4 +347,25 @@ describe("PersonalProfileView", () => {
     );
     expect(screen.getByRole("alert")).toHaveTextContent("Telefon geçersiz");
   });
+  it("shows the saved phone and LinkedIn, linking only an http(s) address", () => {
+    const draft = {
+      fullName: "Gülse Buran",
+      jobTitle: "Product Designer",
+      phone: "05320000000",
+      bio: null,
+      linkedinUrl: "https://www.linkedin.com/in/gulse",
+      expertise: [],
+    };
+    mockPage({ draft });
+    const { unmount } = render(<PersonalProfileView />);
+    expect(screen.getByText("05320000000")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "linkedin.com/in/gulse" }),
+    ).toHaveAttribute("href", "https://www.linkedin.com/in/gulse");
+    unmount();
+
+    mockPage({ draft: { ...draft, linkedinUrl: "javascript:alert(1)" } });
+    render(<PersonalProfileView />);
+    expect(screen.getByText("javascript:alert(1)").closest("a")).toBeNull();
+  });
 });

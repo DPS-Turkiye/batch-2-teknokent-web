@@ -17,6 +17,7 @@ import {
   type ProfileAnalysis,
 } from "@/interfaces/profile-analysis";
 import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
+import { PROFILE_ANALYSIS_MAX_BYTES } from "@/lib/profile-analysis";
 
 export function useStartupProfileImport() {
   const t = useTranslations("profileAnalysis");
@@ -44,7 +45,7 @@ export function useStartupProfileImport() {
     if (
       next &&
       (!next.name.toLowerCase().endsWith(".pdf") ||
-        next.size > 50 * 1024 * 1024 ||
+        next.size > PROFILE_ANALYSIS_MAX_BYTES ||
         next.size === 0)
     ) {
       setFile(null);
