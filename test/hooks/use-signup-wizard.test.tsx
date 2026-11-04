@@ -120,7 +120,7 @@ describe("useSignupWizard", () => {
     act(() => result.current.updateStartup("name", "Döngü"));
     expect(result.current.canContinue).toBe(false);
 
-    // Website and logo are optional in the revised design.
+    // Website and logo are optional.
     act(() =>
       result.current.updateStartup("tagline", "Gönüllüleri eşleştirir"),
     );
