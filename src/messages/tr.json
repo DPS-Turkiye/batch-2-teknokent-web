@@ -1167,7 +1167,6 @@
   },
   "loadErrors": {
     "mentors": "Mentorlar yüklenemedi.",
-    "noConfirmedProfile": "Onaylanmış girişim profili bulunamadı; kuruluş bilgileri gösteriliyor.",
     "profileUnavailable": "Profil hizmeti yanıt vermedi; kuruluş bilgileri gösteriliyor.",
     "startup": "Girişim bilgileri yüklenemedi."
   },
