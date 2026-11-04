@@ -13,7 +13,6 @@ import {
 import {
   decideProgramApproval,
   getProgramApprovals,
-  getProgramWithoutTeam,
 } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
 
@@ -78,12 +77,4 @@ export function useProgramApprovals(programId: string) {
     decideTeamChange: (id: string, accepted: boolean) =>
       run(ApprovalKind.TeamChanges, id, accepted),
   };
-}
-
-/** Takımı olmayanlar: approved people of the program who have no startup yet. */
-export function useProgramWithoutTeam(programId: string) {
-  return useQuery({
-    queryKey: withoutTeamQueryKey(programId),
-    queryFn: () => getProgramWithoutTeam(programId),
-  });
 }

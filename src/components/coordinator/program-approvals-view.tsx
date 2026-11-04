@@ -11,12 +11,8 @@ import {
   QueryNotice,
   SolidButton,
 } from "@/components/admin/admin-ui";
-import { TeamHistory } from "@/components/common/team-history";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
-import {
-  useProgramApprovals,
-  useProgramWithoutTeam,
-} from "@/hooks/use-program-approvals";
+import { useProgramApprovals } from "@/hooks/use-program-approvals";
 import { TeamChangeKind } from "@/interfaces/team-change";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { formatLongDate, initials } from "@/lib/utils";
@@ -134,34 +130,6 @@ function ApprovalsBody({ programId }: { programId: string }) {
         )}
       </Section>
     </div>
-  );
-}
-
-/** Takımı olmayanlar, on the Takımlar tab. */
-export function ProgramWithoutTeam({ programId }: { programId: string }) {
-  const t = useTranslations("programApprovals");
-  const query = useProgramWithoutTeam(programId);
-  if (!query.data) {
-    return <QueryNotice isLoading={query.isLoading} error={query.error} />;
-  }
-  return (
-    <Section title={t("withoutTeamTitle")} hint={t("withoutTeamHint")}>
-      {query.data.length === 0 ? (
-        <li>
-          <EmptyNote>{t("withoutTeamEmpty")}</EmptyNote>
-        </li>
-      ) : (
-        query.data.map((person) => (
-          <Row
-            key={person.id}
-            name={person.fullName}
-            lines={[person.email, person.jobTitle ?? ""]}
-          >
-            <TeamHistory userId={person.id} />
-          </Row>
-        ))
-      )}
-    </Section>
   );
 }
 

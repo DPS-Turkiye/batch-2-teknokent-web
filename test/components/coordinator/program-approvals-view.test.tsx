@@ -2,10 +2,7 @@ import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  ProgramApprovalsView,
-  ProgramWithoutTeam,
-} from "@/components/coordinator/program-approvals-view";
+import { ProgramApprovalsView } from "@/components/coordinator/program-approvals-view";
 import {
   ApprovalKind,
   type ProgramApprovals,
@@ -14,7 +11,6 @@ import {
   decideProgramApproval,
   getCoordinatorProgram,
   getProgramApprovals,
-  getProgramWithoutTeam,
 } from "@/lib/client/coordinator-programs";
 import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
@@ -195,24 +191,5 @@ describe("ProgramApprovalsView team changes", () => {
     await waitFor(() =>
       expect(screen.queryByText("Selin Ak")).not.toBeInTheDocument(),
     );
-  });
-});
-
-describe("ProgramWithoutTeam", () => {
-  it("lists the approved people who have no startup yet", async () => {
-    vi.mocked(getProgramWithoutTeam).mockResolvedValue([approvals.people[0]]);
-    renderWithQueryClient(<ProgramWithoutTeam programId="program-1" />);
-
-    expect(await screen.findByText("Takımı olmayanlar")).toBeInTheDocument();
-    expect(screen.getByText("Zeynep Kaya")).toBeInTheDocument();
-  });
-
-  it("says so when everyone has a team", async () => {
-    vi.mocked(getProgramWithoutTeam).mockResolvedValue([]);
-    renderWithQueryClient(<ProgramWithoutTeam programId="program-1" />);
-
-    expect(
-      await screen.findByText("Takımı olmayan kimse yok."),
-    ).toBeInTheDocument();
   });
 });
