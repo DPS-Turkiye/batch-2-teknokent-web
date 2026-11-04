@@ -37,15 +37,15 @@ function sessionOptions(persist = false): SessionOptions {
 
 export function toSession(user: BackendUser): AppSession | null {
   if (user.role === UserRole.Mentee) {
-    if (!user.organizationId || !user.organizationName) return null;
+    // Someone who signed up without a startup has none until they join or create one on /startup.
     return {
       userId: user.id,
       email: user.email,
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Mentee",
       role: UserRole.Mentee,
-      organizationId: user.organizationId,
-      organizationName: user.organizationName,
+      organizationId: user.organizationId ?? undefined,
+      organizationName: user.organizationName ?? undefined,
     };
   }
   if (user.role === UserRole.Mentor) {
@@ -159,6 +159,15 @@ export async function saveSessionUser(user: AppSession, persist = false) {
   session.checkedAt = session.issuedAt;
   session.persist = persist;
   await session.save();
+}
+
+/** After joining or creating a startup, so the next re-check does not end the session for a changed organization. */
+export async function refreshSessionUser(user: BackendUser) {
+  const next = toSession(user);
+  if (!next) return null;
+  const session = await getSessionStore();
+  await saveSessionUser(next, session.persist === true);
+  return next;
 }
 
 export async function destroySession() {

@@ -24,7 +24,11 @@ export async function PUT(
           name: String(phase.name ?? ""),
           startDate: (phase.startDate as string | null) ?? null,
           endDate: (phase.endDate as string | null) ?? null,
+          expectedOutput: (phase.expectedOutput as string | null) ?? null,
         })),
+        typeof body.syllabusDocumentId === "string"
+          ? body.syllabusDocumentId
+          : null,
       ),
     );
   } catch (error) {
