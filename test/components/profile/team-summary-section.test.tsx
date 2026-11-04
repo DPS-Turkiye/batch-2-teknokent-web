@@ -54,8 +54,7 @@ describe("TeamSummarySection", () => {
     expect(screen.getByText("and 2 more")).toBeInTheDocument();
   });
 
-  // The Diğer menu used to be the only route to /team. Now that Ekibim lives
-  // inside Startup'ım, this is what keeps /team from becoming orphaned.
+  // Ekibim lives inside Startup'ım, so this link is the route to /team.
   it("links to /team so the page is reachable without the Diğer menu", () => {
     mockUseOrganizationMembers.mockReturnValue(membersResult());
 

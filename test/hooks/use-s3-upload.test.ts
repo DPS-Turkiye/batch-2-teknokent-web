@@ -122,8 +122,8 @@ describe("S3 Upload Feature", () => {
   });
 
   it("should support resumable upload for very large files", async () => {
-    const totalSize = 100 * 1024 * 1024; // 100MB
-    const chunkSize = 5 * 1024 * 1024; // 5MB chunks
+    const totalSize = 100 * 1024 * 1024;
+    const chunkSize = 5 * 1024 * 1024;
     let uploadedSize = 0;
 
     const mockUploadChunk = vi.fn().mockImplementation(async () => {
@@ -148,7 +148,7 @@ describe("S3 Upload Feature", () => {
       size: number;
       type: string;
     }): boolean => {
-      const maxSize = 500 * 1024 * 1024; // 500MB
+      const maxSize = 500 * 1024 * 1024;
       const allowedTypes = ["application/json", "text/plain"];
 
       return file.size <= maxSize && allowedTypes.includes(file.type);

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 
 import { ClientTexts } from "@/i18n/client-texts";
 import { QueryProvider } from "@/components/providers/query-provider";
@@ -11,9 +11,11 @@ import { ToastProvider } from "@/components/providers/toast-provider";
 
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin", "latin-ext"],
-  weight: ["400", "500", "600", "700"],
+// Bundled (latin + latin-ext, weights 400-700) so the build never downloads it: Google Fonts sometimes
+// answers CI with font links next/font/google cannot resolve, and the build fails.
+const inter = localFont({
+  src: "./fonts/inter-latin-wght-400-700.woff2",
+  weight: "400 700",
   display: "swap",
   variable: "--font-mentor-inter",
 });

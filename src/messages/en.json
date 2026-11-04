@@ -1166,7 +1166,6 @@
   },
   "loadErrors": {
     "mentors": "Couldn't load mentors.",
-    "noConfirmedProfile": "No confirmed startup profile found; showing your organization's details.",
     "profileUnavailable": "The profile service didn't respond; showing your organization's details.",
     "startup": "Couldn't load your startup's details."
   },

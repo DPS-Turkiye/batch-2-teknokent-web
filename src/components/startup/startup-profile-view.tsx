@@ -11,6 +11,7 @@ import {
 } from "@/components/startup/startup-page-frame";
 import { StartupStatusDialog } from "@/components/startup/startup-status-dialog";
 import { useOptionLabel } from "@/hooks/use-option-label";
+import { useViewerIsFounder } from "@/hooks/use-organization-members";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
@@ -79,12 +80,14 @@ export function StartupProfileView() {
   const overview = useStartupOverview();
   const statusForm = useStartupStatusForm(overview.profile);
   const openDocument = useOpenDocument();
+  // Only the founder may edit the profile or the status; the backend refuses anyone else.
+  const founder = useViewerIsFounder();
 
-  const editAction = (
+  const editAction = founder ? (
     <Link href="/profile" className={startupSecondaryActionClass}>
       {t("edit")}
     </Link>
-  );
+  ) : undefined;
 
   if (overview.isLoading) {
     return (
@@ -143,9 +146,11 @@ export function StartupProfileView() {
             title={t("about")}
             hint={t("aboutHint")}
             action={
-              <Link href="/profile" className={cardLinkClass}>
-                {t("editLink")}
-              </Link>
+              founder ? (
+                <Link href="/profile" className={cardLinkClass}>
+                  {t("editLink")}
+                </Link>
+              ) : undefined
             }
           >
             <p className={bodyClass}>
@@ -157,13 +162,15 @@ export function StartupProfileView() {
             id="startup-status"
             title={t("status")}
             action={
-              <button
-                type="button"
-                onClick={statusForm.open}
-                className={cardLinkClass}
-              >
-                {t("update")}
-              </button>
+              founder ? (
+                <button
+                  type="button"
+                  onClick={statusForm.open}
+                  className={cardLinkClass}
+                >
+                  {t("update")}
+                </button>
+              ) : undefined
             }
           >
             <div className="flex flex-wrap items-center gap-2.5">

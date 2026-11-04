@@ -11,13 +11,10 @@ import {
 } from "@/components/mentor-dashboard/create-meeting-dialog";
 import { RegularMentorshipWeekChecksPanel } from "@/components/mentor-dashboard/regular-mentorship-week-checks";
 import { useAppSession } from "@/components/providers/session-provider";
-import {
-  CALENDAR_HOURS,
-  CalendarFilter,
-  useMentorCalendar,
-} from "@/hooks/use-mentor-calendar";
+import { CALENDAR_HOURS, useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
+  CalendarFilter,
   hourOf,
   isSameDay,
   shortWeekday,
