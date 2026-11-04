@@ -49,6 +49,8 @@ export type RecommendationSnapshot = {
 };
 
 export type MentorshipRequest = {
+  programId?: string | null;
+  programName?: string | null;
   id: string;
   requesterId: string;
   requesterName?: string;

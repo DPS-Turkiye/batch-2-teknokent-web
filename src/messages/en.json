@@ -4705,7 +4705,15 @@
       "noLink": "This meeting has no link yet",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
-      "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
+      "monthWeekdays": [
+        "Mo",
+        "Tu",
+        "We",
+        "Th",
+        "Fr",
+        "Sa",
+        "Su"
+      ],
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
       "backToToday": "Back to today"
@@ -5061,5 +5069,9 @@
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
     "startupNotInProgram": "This startup is not in this program."
+  },
+  "programContext": {
+    "label": "Program",
+    "unknown": "Program not specified"
   }
 }
