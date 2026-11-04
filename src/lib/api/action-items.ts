@@ -41,3 +41,11 @@ export function updateActionItem(
     data: payload,
   });
 }
+
+export function fetchOrganizationActionItems(organizationId: string) {
+  return backendRequest({
+    method: HttpMethod.Get,
+    url: "/api/actions",
+    params: { organizationId },
+  });
+}
