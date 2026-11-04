@@ -55,7 +55,7 @@ export function ProgramCurriculumSection({
   const curriculum = useProgramCurriculum(programId, detail);
   const program = detail.program;
   const [dragging, setDragging] = useState<number | null>(null);
-  const locked = archived || curriculum.reviewing || curriculum.saving;
+  const locked = archived || curriculum.saving;
   const week =
     program.currentWeek && program.totalWeeks
       ? t("week", { current: program.currentWeek, total: program.totalWeeks })
@@ -114,6 +114,11 @@ export function ProgramCurriculumSection({
           >
             {t("saveReview")}
           </button>
+          {curriculum.reviewError ? (
+            <p role="alert" className="w-full text-[12.5px] text-[#d9464b]">
+              {curriculum.reviewError}
+            </p>
+          ) : null}
         </div>
       ) : null}
 

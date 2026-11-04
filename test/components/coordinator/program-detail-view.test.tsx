@@ -7,6 +7,7 @@ import { ProgramSettingsView } from "@/components/coordinator/program-settings-v
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import {
   addProgramCoordinator,
+  extractSyllabusPhases,
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
   getProgramTeams,
@@ -29,6 +30,7 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
   getProgramTeams: vi.fn(),
+  extractSyllabusPhases: vi.fn(),
 }));
 
 describe("coordinator program detail", () => {
@@ -284,6 +286,87 @@ describe("coordinator program detail", () => {
         },
       ],
       null,
+    );
+    vi.useRealTimers();
+  });
+
+  it("keeps a re-read syllabus unsaved until every phase from the file has dates", async () => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-10T12:00:00"));
+    const detail = coordinatorProgramDetail({
+      syllabus: {
+        id: "doc-syllabus",
+        filename: "mufredat.pdf",
+        sizeBytes: 19_540,
+        uploadedAt: "2026-06-01T09:00:00Z",
+      },
+    });
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+    vi.mocked(extractSyllabusPhases).mockResolvedValue({
+      pageCount: 1,
+      phases: [
+        {
+          name: "Keşif",
+          startDate: "2026-07-01",
+          endDate: "2026-08-31",
+          expectedOutput: "Problem raporu",
+        },
+        {
+          name: "Demo Day",
+          startDate: null,
+          endDate: null,
+          expectedOutput: "Final sunum",
+        },
+      ],
+    });
+    vi.mocked(replaceCoordinatorProgramPhases).mockResolvedValue(detail);
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: /Fazları yeniden çıkar/ }),
+    );
+    await user.click(
+      await screen.findByRole("button", { name: "Fazları kaydet" }),
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "“Demo Day” fazının tarihlerini gir.",
+    );
+    expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+
+    const list = screen.getByRole("list", { name: "Program fazları" });
+    await user.click(
+      within(list).getByRole("button", { name: "Demo Day fazını düzenle" }),
+    );
+    const drawer = screen.getByRole("dialog", { name: "Fazı düzenle" });
+    fireEvent.change(within(drawer).getByLabelText("Başlangıç"), {
+      target: { value: "2026-09-15" },
+    });
+    fireEvent.change(within(drawer).getByLabelText("Bitiş"), {
+      target: { value: "2026-09-15" },
+    });
+    await user.click(within(drawer).getByRole("button", { name: "Kaydet" }));
+    expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
+    expect(screen.queryByRole("alert")).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Fazları kaydet" }));
+    expect(replaceCoordinatorProgramPhases).toHaveBeenCalledWith(
+      "program-1",
+      [
+        {
+          name: "Keşif",
+          startDate: "2026-07-01",
+          endDate: "2026-08-31",
+          expectedOutput: "Problem raporu",
+        },
+        {
+          name: "Demo Day",
+          startDate: "2026-09-15",
+          endDate: "2026-09-15",
+          expectedOutput: "Final sunum",
+        },
+      ],
+      "doc-syllabus",
     );
     vi.useRealTimers();
   });

@@ -23,6 +23,7 @@ import {
   savedPhases,
 } from "@/lib/coordinator-program-detail";
 import {
+  curriculumError,
   dayShift,
   phaseDateLocks,
   phaseStatus,
@@ -31,15 +32,18 @@ import {
   reorderPhases,
   SyllabusFileProblem,
   syllabusFileProblem,
+  type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
 
-type Editing = { index: number | null; draft: PhaseDraft };
-type Review = { documentId: string; phases: PhaseDraft[] };
+type Editing = { index: number | null; draft: WizardPhase };
+type Review = { documentId: string; phases: WizardPhase[] };
 
 /**
  * Müfredat & fazlar: each phase is edited in its own drawer and saved on its own. Phases are
  * replaced as a whole, so every save sends the full list with the one change applied.
+ * While phases read from the file are under review, edits stay in the review until it is saved,
+ * and it cannot be saved while a phase from the file has no dates (as in the launch wizard).
  */
 export function useProgramCurriculum(
   programId: string,
@@ -52,7 +56,10 @@ export function useProgramCurriculum(
   const saved = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [review, setReview] = useState<Review | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
+  const listed: WizardPhase[] =
+    review?.phases ?? saved.map((phase) => ({ ...phase, fromFile: false }));
 
   const fail = (fallback: string) => (failure: Error) =>
     showToast({ message: errorMessage(failure, fallback), tone: "error" });
@@ -73,7 +80,7 @@ export function useProgramCurriculum(
     onSuccess: (next) => {
       cache.put(next);
       setEditing(null);
-      setReview(null);
+      startReview(null);
       showToast({ message: t("saved"), tone: "success" });
     },
     onError: fail(t("saveFailed")),
@@ -87,7 +94,7 @@ export function useProgramCurriculum(
         endDate: detail.program.endDate,
       }),
     onSuccess: (result, documentId) =>
-      setReview({ documentId, phases: proposedPhases(result.phases) }),
+      startReview({ documentId, phases: proposedPhases(result.phases) }),
     onError: fail(t("readFailed")),
   });
 
@@ -97,25 +104,45 @@ export function useProgramCurriculum(
     onError: fail(t("uploadFailed")),
   });
 
+  const startReview = (next: Review | null) => {
+    setReview(next);
+    setReviewError(null);
+  };
+  /** Applies a list change to the review, or saves it when nothing is under review. */
+  const commit = (phases: WizardPhase[]) => {
+    if (!review) {
+      save.mutate({ phases, documentId: null });
+      return;
+    }
+    startReview({ ...review, phases });
+    setEditing(null);
+  };
+
   const statusOf = (phase: PhaseDraft) => phaseStatus(phase, today);
-  const before = editing?.index != null ? saved[editing.index] : null;
+  const before = editing?.index != null ? listed[editing.index] : null;
   const status = editing
     ? before
       ? statusOf(before)
       : PhaseStatus.Planned
     : null;
-  const next = editing?.index != null ? saved[editing.index + 1] : saved.at(-1);
+  const next =
+    editing?.index != null ? listed[editing.index + 1] : listed.at(-1);
 
   return {
     today,
-    phases: review?.phases ?? saved,
+    phases: listed,
     statusOf,
     syllabus: detail.syllabus,
     reviewing: review !== null,
-    confirmReview: () =>
-      review &&
-      save.mutate({ phases: review.phases, documentId: review.documentId }),
-    discardReview: () => setReview(null),
+    reviewError,
+    confirmReview: () => {
+      if (!review) return;
+      const problem = curriculumError(review.phases);
+      setReviewError(problem);
+      if (problem) return;
+      save.mutate({ phases: review.phases, documentId: review.documentId });
+    },
+    discardReview: () => startReview(null),
     readingFile: upload.isPending || extract.isPending,
     chooseFile: (file: File) => {
       const problem = syllabusFileProblem(file);
@@ -134,10 +161,10 @@ export function useProgramCurriculum(
     reread: () => {
       if (detail.syllabus) extract.mutate(detail.syllabus.id);
     },
-    canAdd: saved.length < MAX_PHASES,
+    canAdd: listed.length < MAX_PHASES,
     move: (from: number, to: number) => {
-      const moved = reorderPhases(saved, from, to);
-      if (moved !== saved) save.mutate({ phases: moved, documentId: null });
+      const moved = reorderPhases(listed, from, to);
+      if (moved !== listed) commit(moved);
     },
 
     editing: editing?.draft ?? null,
@@ -146,7 +173,7 @@ export function useProgramCurriculum(
     locks: status ? phaseDateLocks(status) : null,
     /** What the drawer's "Bu değişikliğin etkisi" box lists; null until a date changes. */
     effects:
-      editing && before
+      editing && before && !review
         ? {
             startShift:
               before.startDate &&
@@ -182,11 +209,11 @@ export function useProgramCurriculum(
     editError,
     openPhase: (index: number) => {
       setEditError(null);
-      setEditing({ index, draft: { ...saved[index] } });
+      setEditing({ index, draft: { ...listed[index] } });
     },
     openNew: () => {
       setEditError(null);
-      setEditing({ index: null, draft: emptyPhase() });
+      setEditing({ index: null, draft: { ...emptyPhase(), fromFile: false } });
     },
     close: () => setEditing(null),
     update: (patch: Partial<PhaseDraft>) => {
@@ -200,20 +227,17 @@ export function useProgramCurriculum(
       const problem = phaseDraftError(editing.draft);
       setEditError(problem);
       if (problem) return;
-      const phases =
+      commit(
         editing.index === null
-          ? [...saved, editing.draft]
-          : saved.map((phase, index) =>
+          ? [...listed, editing.draft]
+          : listed.map((phase, index) =>
               index === editing.index ? editing.draft : phase,
-            );
-      save.mutate({ phases, documentId: null });
+            ),
+      );
     },
     removeEditing: () => {
       if (editing?.index == null) return;
-      save.mutate({
-        phases: saved.filter((_, index) => index !== editing.index),
-        documentId: null,
-      });
+      commit(listed.filter((_, index) => index !== editing.index));
     },
     saving: save.isPending,
   };
