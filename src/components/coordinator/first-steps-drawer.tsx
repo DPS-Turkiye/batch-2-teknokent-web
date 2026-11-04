@@ -13,7 +13,7 @@ import { introStep, StepState } from "@/lib/meeting-proposals";
 import type { FirstSteps } from "@/lib/program-matching";
 import { initials } from "@/lib/utils";
 
-/** Figma 1202:4885: what happens right after a match, and the first meeting's status. */
+/** What happens right after a match, and the first meeting's status. */
 export function FirstStepsDrawer({
   programId,
   steps,

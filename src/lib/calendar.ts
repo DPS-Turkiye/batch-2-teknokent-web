@@ -1,5 +1,3 @@
-/** Shared Turkish calendar labels and date helpers used by the calendar views. */
-
 export enum CalendarFilter {
   All = "all",
   Mentorship = "mentorship",

@@ -7,6 +7,8 @@ type OrganizationResponse = {
   id: string;
   name: string;
   description?: string | null;
+  sector?: string | null;
+  maturity?: string | null;
 };
 
 type ProfileAnalysisResponse = {
@@ -41,7 +43,6 @@ function textList(value: unknown): string[] {
 
 /** Keys of `loadErrors`; the page shows the text in its own language. */
 export enum StartupContextError {
-  NoConfirmedProfile = "noConfirmedProfile",
   ProfileUnavailable = "profileUnavailable",
   Failed = "startup",
 }
@@ -86,8 +87,9 @@ export async function loadStartupContext(organizationId: string): Promise<{
           text(profile.startup_summary) ||
           organization.description?.trim() ||
           "",
-        sector: sectors.join(", "),
-        stage: text(profile.stage),
+        // A startup that never confirmed a pitch-deck profile still has the sector and stage from signup.
+        sector: sectors.join(", ") || text(organization.sector),
+        stage: text(profile.stage) || text(organization.maturity),
         teamSize:
           typeof profile.team_size === "number" ? profile.team_size : undefined,
         technologies: textList(profile.technologies),
@@ -95,11 +97,9 @@ export async function loadStartupContext(organizationId: string): Promise<{
         sourceFilename: analysis?.sourceFilename,
       },
       error:
-        profileResponse.status === 404
-          ? StartupContextError.NoConfirmedProfile
-          : profileResponse.status === 200
-            ? undefined
-            : StartupContextError.ProfileUnavailable,
+        profileResponse.status === 200 || profileResponse.status === 404
+          ? undefined
+          : StartupContextError.ProfileUnavailable,
     };
   } catch (error) {
     console.error("Startup context failed to load", error);

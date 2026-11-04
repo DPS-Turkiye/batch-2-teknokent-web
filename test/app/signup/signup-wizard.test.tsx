@@ -178,7 +178,6 @@ describe("Signup wizard", () => {
     expect(next()).toBeDisabled();
     await completeStartupStep(user);
     expect(next()).toBeEnabled();
-    // The revised design dropped these questions.
     expect(screen.queryByLabelText(/Problem/)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/Sektör/)).not.toBeInTheDocument();
   });
