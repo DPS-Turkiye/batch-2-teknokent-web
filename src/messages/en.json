@@ -4705,15 +4705,7 @@
       "noLink": "This meeting has no link yet",
       "previousMonth": "Previous month",
       "nextMonth": "Next month",
-      "monthWeekdays": [
-        "Mo",
-        "Tu",
-        "We",
-        "Th",
-        "Fr",
-        "Sa",
-        "Su"
-      ],
+      "monthWeekdays": ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
       "legendMeeting": "Meeting",
       "legendEvent": "Event",
       "backToToday": "Back to today"

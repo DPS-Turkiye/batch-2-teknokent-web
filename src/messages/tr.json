@@ -4705,15 +4705,7 @@
       "noLink": "Bu görüşmenin henüz bağlantısı yok",
       "previousMonth": "Önceki ay",
       "nextMonth": "Sonraki ay",
-      "monthWeekdays": [
-        "Pt",
-        "Sa",
-        "Ça",
-        "Pe",
-        "Cu",
-        "Ct",
-        "Pz"
-      ],
+      "monthWeekdays": ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"],
       "legendMeeting": "Görüşme",
       "legendEvent": "Etkinlik",
       "backToToday": "Bugüne dön"
