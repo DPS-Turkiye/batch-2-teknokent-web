@@ -1,9 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-/**
- * Integration tests for S3 Upload with error handling
- */
-
 describe("S3 Upload - Error Handling & Edge Cases", () => {
   let fetchMock: ReturnType<typeof vi.fn>;
 
@@ -62,7 +58,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
   });
 
   it("should validate file size before S3 upload", async () => {
-    const MAX_FILE_SIZE = 500 * 1024 * 1024; // 500MB
+    const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
     const validateAndUpload = async (file: Blob) => {
       if (file.size > MAX_FILE_SIZE) {
@@ -102,8 +98,8 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
 
   it("should show progress for large file uploads", async () => {
     const progressUpdates: number[] = [];
-    const totalSize = 10 * 1024 * 1024; // 10MB
-    const chunkSize = 1024 * 1024; // 1MB chunks
+    const totalSize = 10 * 1024 * 1024;
+    const chunkSize = 1024 * 1024;
 
     const uploadLargeFile = async (onProgress: (percent: number) => void) => {
       for (let i = 0; i < totalSize; i += chunkSize) {
@@ -135,7 +131,6 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
           body: file,
         });
       } catch {
-        // Fallback to inline upload
         return new Response(JSON.stringify({ uploadedInline: true }), {
           status: 200,
         });

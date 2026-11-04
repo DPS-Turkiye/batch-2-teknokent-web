@@ -21,7 +21,6 @@ describe("Profile Editing", () => {
       phoneNumber: "+90123456789",
     };
 
-    // Simulate form submission
     const result = await mockSaveProfile(profileData);
 
     expect(result.success).toBe(true);
