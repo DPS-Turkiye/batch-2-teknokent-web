@@ -27,6 +27,10 @@ vi.mock("@/components/dashboard/my-programs-panel", () => ({
   ),
 }));
 
+vi.mock("@/components/dashboard/mentor-program-invitations", () => ({
+  MentorProgramInvitations: () => null,
+}));
+
 vi.mock("@/components/meeting-proposal-cards", () => ({
   MeetingProposalCards: () => <section aria-label="Görüşme önerileri" />,
 }));
