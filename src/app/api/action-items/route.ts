@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchActionItems,
+  fetchOrganizationActionItems,
   fetchActionItemsForRequests,
 } from "@/lib/api/action-items";
 import {
@@ -40,6 +41,14 @@ export async function GET(request: NextRequest) {
           message: await apiText("actionItemsMenteesAndMentorsOnly"),
         },
         { status: 403 },
+      );
+    }
+    if (request.nextUrl.searchParams.get("scope") === "organization") {
+      if (!("organizationId" in caller) || !caller.organizationId) {
+        return NextResponse.json({ code: "FORBIDDEN" }, { status: 403 });
+      }
+      return backendResponse(
+        await fetchOrganizationActionItems(caller.organizationId),
       );
     }
     const requestIds = request.nextUrl.searchParams.get("requestIds");

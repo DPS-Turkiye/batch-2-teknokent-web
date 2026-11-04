@@ -245,7 +245,11 @@ export function buildHomeTasks({
         dueTone: due.tone,
         dueLabel: due.label,
         actionLabel: t("tasks.openTask"),
-        href: requestId ? requestStatusHref(requestId) : "/mentorships",
+        href: requestId
+          ? requestStatusHref(requestId)
+          : item.ownerLeftAt
+            ? "/startup/process"
+            : "/mentorships",
         requestId,
       },
     };
