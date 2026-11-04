@@ -618,3 +618,14 @@ describe("MentorMentorshipsWorkspace", () => {
     });
   });
 });
+
+it("distinguishes incoming requests by their recorded program", async () => {
+  mockRequests([
+    request({ programId: "p-1", programName: "Program Alpha" }),
+    request({ id: "req-2", programId: "p-2", programName: "Program Beta" }),
+  ]);
+  renderWithQueryClient(<MentorMentorshipsWorkspace />);
+  await userEvent.setup().click(screen.getByRole("tab", { name: "Talepler" }));
+  expect(await screen.findByText("Program Alpha")).toBeInTheDocument();
+  expect(screen.getByText("Program Beta")).toBeInTheDocument();
+});

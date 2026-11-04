@@ -411,7 +411,7 @@ export function MentorRequestStartupDetail({
                 />
                 <Metric
                   label={t("program")}
-                  value={profile?.programLevel || "—"}
+                  value={request.programName || "—"}
                 />
                 <Metric
                   label={t("requestDate")}
