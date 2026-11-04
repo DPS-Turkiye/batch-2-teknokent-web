@@ -236,6 +236,27 @@ describe("buildHomeTasks", () => {
     });
   });
 
+  it("says a task was handed over from someone who left the team", () => {
+    const [task] = buildHomeTasks({
+      requests: [],
+      meetings: [],
+      actionItems: [
+        actionItem({
+          ownerName: "Ece Demir",
+          previousOwnerName: "Kerem Yıldırım",
+          ownerLeftAt: "2026-11-04T09:00:00Z",
+        }),
+      ],
+      actionItemRequestIds: {},
+      texts,
+      now,
+    });
+
+    expect(task.subtitle).toBe(
+      "Ece Demir · Mentorluk görevi · Kerem Yıldırım ekipten ayrıldı, sana devredildi",
+    );
+  });
+
   it("adds an evaluation task for a finished meeting", () => {
     const [task] = buildHomeTasks({
       requests: [

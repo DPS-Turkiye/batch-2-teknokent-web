@@ -236,6 +236,9 @@ export function buildHomeTasks({
         subtitle: [
           request?.mentorName ?? item.ownerName,
           request?.supportArea ?? t("tasks.taskFallback"),
+          item.previousOwnerName
+            ? t("tasks.handedOver", { name: item.previousOwnerName })
+            : null,
         ]
           .filter(Boolean)
           .join(" · "),

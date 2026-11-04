@@ -962,7 +962,8 @@
         "MORE_INFO_REQUESTED": "Bilgi bekliyor",
         "COUNTER_PROPOSED": "Saat önerisi",
         "ACCEPTED": "Saat seç"
-      }
+      },
+      "handedOver": "{name} ekipten ayrıldı, sana devredildi"
     },
     "upcoming": {
       "title": "Yaklaşan görüşmeler",
@@ -1840,6 +1841,31 @@
       "copiedToast": "Davet kodu kopyalandı.",
       "rotated": "Yeni davet kodu üretildi.",
       "rotateFailed": "Yeni kod üretilemedi."
+    },
+    "removalRequested": "Çıkarma talebi koordinatöre gönderildi.",
+    "removeRequestBody": "{name} için çıkarma talebi programın koordinatörüne gider. Koordinatör onaylayana kadar {name} ekipte kalır; açık görevleri onaydan sonra ekipteki diğer kişilere dağıtılır.",
+    "changes": {
+      "leaveAction": "Takımdan ayrıl",
+      "leaveTitle": "Takımdan ayrılmak istiyor musun?",
+      "memberLeaveBody": "Ayrılma talebin programın koordinatörüne gider. Onaylanana kadar ekipte kalırsın ve talebi geri alabilirsin. Onaylanınca açık görevlerin ekipteki diğer kişilere otomatik dağıtılır.",
+      "leaderLeaveBody": "Takım lideri olarak hemen ayrılırsın: liderlik seçtiğin kişiye geçer ve bu startup'a erişimin kalkar. Açık görevlerin ekipteki diğer kişilere otomatik dağıtılır.",
+      "aloneLeaveBody": "Takımda senden başka kimse yok. Ayrılırsan startup arşivlenir: bilgileri saklanır ama artık programda takım olarak görünmez ve davet kodu çalışmaz.",
+      "successor": "Yeni takım lideri",
+      "successorPlaceholder": "Bir ekip üyesi seç",
+      "noSuccessor": "Ekipteki herkesin bekleyen bir ayrılma ya da çıkarma talebi var. Önce bu talepler sonuçlanmalı.",
+      "cancel": "Vazgeç",
+      "sending": "Gönderiliyor…",
+      "leave": "Ayrıl",
+      "sendRequest": "Talep gönder",
+      "leavePending": "Ayrılma talebi bekliyor",
+      "removalPending": "Çıkarma talebi bekliyor",
+      "withdraw": "Talebi geri al",
+      "leaveRequested": "Ayrılma talebin koordinatöre gönderildi.",
+      "leaveRequestFailed": "Ayrılma talebi gönderilemedi.",
+      "cancelled": "Talep geri alındı.",
+      "cancelFailed": "Talep geri alınamadı.",
+      "left": "Takımdan ayrıldın.",
+      "leaveFailed": "Takımdan ayrılınamadı."
     }
   },
   "documentKinds": {
@@ -3962,7 +3988,12 @@
     "createdBy": "Kuran: {name} ({email})",
     "withoutTeamTitle": "Takımı olmayanlar",
     "withoutTeamHint": "Onaylanmış ama henüz bir startup oluşturmamış ya da bir takıma katılmamış kişiler.",
-    "withoutTeamEmpty": "Takımı olmayan kimse yok."
+    "withoutTeamEmpty": "Takımı olmayan kimse yok.",
+    "teamChangesTitle": "Takımdan ayrılma ve çıkarma",
+    "teamChangesHint": "Ayrılmak isteyen üyeler ve takım liderlerinin çıkarmak istediği kişiler. Onaylanınca kişi takımsız olarak programda kalır.",
+    "teamChangesEmpty": "Bekleyen talep yok.",
+    "wantsToLeave": "{startup} takımından ayrılmak istiyor",
+    "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
   },
   "programReport": {
     "breadcrumb": "Konum",
@@ -5141,6 +5172,24 @@
     "startupJoinFailed": "Startup'a katılınamadı. Lütfen tekrar deneyin.",
     "startupCreateFailed": "Startup oluşturulamadı. Lütfen tekrar deneyin.",
     "startupResubmitFailed": "Startup tekrar gönderilemedi. Lütfen tekrar deneyin.",
-    "approvalsLoadFailed": "Onaylar yüklenemedi."
+    "approvalsLoadFailed": "Onaylar yüklenemedi.",
+    "teamChangesLoadFailed": "Takım talepleri yüklenemedi.",
+    "teamLeaveRequestFailed": "Ayrılma talebi gönderilemedi.",
+    "teamRemovalRequestFailed": "Çıkarma talebi gönderilemedi.",
+    "teamChangeCancelFailed": "Talep geri alınamadı.",
+    "teamLeaveFailed": "Takımdan ayrılınamadı.",
+    "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi."
+  },
+  "teamHistory": {
+    "show": "Takım geçmişi",
+    "hide": "Takım geçmişini gizle",
+    "loading": "Yükleniyor…",
+    "empty": "Henüz bir takımda olmadı.",
+    "current": "{from} tarihinden beri",
+    "left": "{from} – {to}, ayrıldı",
+    "removed": "{from} – {to}, çıkarıldı",
+    "archived": "arşivlendi",
+    "startupPending": "startup onay bekliyor",
+    "startupRejected": "startup reddedildi"
   }
 }

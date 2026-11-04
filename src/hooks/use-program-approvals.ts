@@ -23,7 +23,7 @@ export const programApprovalsQueryKey = (programId: string) =>
 const withoutTeamQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "without-team"] as const;
 
-/** Onaylar: the program's applicants and later-created startups, approved or rejected one by one. */
+/** Onaylar: applicants, later-created startups and leave/removal requests, decided one by one. */
 export function useProgramApprovals(programId: string) {
   const t = useTranslations("programApprovals");
   const queryClient = useQueryClient();
@@ -69,11 +69,14 @@ export function useProgramApprovals(programId: string) {
     query,
     people: query.data?.people ?? [],
     startups: query.data?.startups ?? [],
+    teamChanges: query.data?.teamChanges ?? [],
     deciding: decide.isPending ? decide.variables?.id : null,
     decidePerson: (id: string, accepted: boolean) =>
       run(ApprovalKind.People, id, accepted),
     decideStartup: (id: string, accepted: boolean) =>
       run(ApprovalKind.Startups, id, accepted),
+    decideTeamChange: (id: string, accepted: boolean) =>
+      run(ApprovalKind.TeamChanges, id, accepted),
   };
 }
 

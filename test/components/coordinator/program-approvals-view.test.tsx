@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -16,6 +16,7 @@ import {
   getProgramApprovals,
   getProgramWithoutTeam,
 } from "@/lib/client/coordinator-programs";
+import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -56,6 +57,34 @@ const approvals: ProgramApprovals = {
       createdAt: "2026-11-02T09:00:00Z",
     },
   ],
+  teamChanges: [
+    {
+      id: "tc-1",
+      kind: TeamChangeKind.Leave,
+      status: TeamChangeStatus.Pending,
+      organizationId: "org-2",
+      organizationName: "Döngü",
+      memberId: "user-3",
+      memberName: "Selin Ak",
+      memberEmail: "selin@dongu.co",
+      requestedById: "user-3",
+      requestedByName: "Selin Ak",
+      createdAt: "2026-11-04T08:00:00Z",
+    },
+    {
+      id: "tc-2",
+      kind: TeamChangeKind.Remove,
+      status: TeamChangeStatus.Pending,
+      organizationId: "org-2",
+      organizationName: "Döngü",
+      memberId: "user-4",
+      memberName: "Bora Yıldız",
+      memberEmail: "bora@dongu.co",
+      requestedById: "user-2",
+      requestedByName: "Ayşe Demir",
+      createdAt: "2026-11-04T09:00:00Z",
+    },
+  ],
 };
 
 describe("ProgramApprovalsView", () => {
@@ -83,8 +112,8 @@ describe("ProgramApprovalsView", () => {
 
   it("approves a person and rejects a startup", async () => {
     vi.mocked(decideProgramApproval).mockResolvedValue({
+      ...approvals,
       people: approvals.people.slice(1),
-      startups: approvals.startups,
     });
     const user = userEvent.setup();
     renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
@@ -121,7 +150,51 @@ describe("ProgramApprovalsView", () => {
 
     expect(await screen.findByText("Applications")).toBeInTheDocument();
     expect(screen.getByText("Startups created later")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(3);
+    expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(5);
+    expect(screen.getByText("Leaving and removal")).toBeInTheDocument();
+  });
+});
+
+describe("ProgramApprovalsView team changes", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail(),
+    );
+    vi.mocked(getProgramApprovals).mockResolvedValue(approvals);
+  });
+
+  it("lists leave and removal requests and decides them", async () => {
+    vi.mocked(decideProgramApproval).mockResolvedValue({
+      ...approvals,
+      teamChanges: approvals.teamChanges.slice(1),
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
+
+    const selin = (await screen.findByText("Selin Ak")).closest(
+      "li",
+    ) as HTMLElement;
+    expect(
+      within(selin).getByText(/Döngü takımından ayrılmak istiyor/),
+    ).toBeInTheDocument();
+    const bora = screen.getByText("Bora Yıldız").closest("li") as HTMLElement;
+    expect(
+      within(bora).getByText(
+        /Ayşe Demir, Döngü takımından çıkarılmasını istiyor/,
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(within(selin).getByRole("button", { name: "Onayla" }));
+    expect(decideProgramApproval).toHaveBeenCalledWith(
+      "program-1",
+      ApprovalKind.TeamChanges,
+      "tc-1",
+      true,
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("Selin Ak")).not.toBeInTheDocument(),
+    );
   });
 });
 

@@ -16,6 +16,7 @@ import {
 } from "@/components/admin/admin-model";
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
+import { TeamHistory } from "@/components/common/team-history";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import {
@@ -1276,6 +1277,7 @@ function TeamDrawer({
                       {member.email}
                       {member.jobTitle ? ` · ${member.jobTitle}` : ""}
                     </p>
+                    <TeamHistory userId={member.id} />
                   </li>
                 ))}
               </ul>

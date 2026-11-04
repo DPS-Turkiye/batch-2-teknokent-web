@@ -11,11 +11,13 @@ import {
   QueryNotice,
   SolidButton,
 } from "@/components/admin/admin-ui";
+import { TeamHistory } from "@/components/common/team-history";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import {
   useProgramApprovals,
   useProgramWithoutTeam,
 } from "@/hooks/use-program-approvals";
+import { TeamChangeKind } from "@/interfaces/team-change";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { formatLongDate, initials } from "@/lib/utils";
 
@@ -104,6 +106,33 @@ function ApprovalsBody({ programId }: { programId: string }) {
           ))
         )}
       </Section>
+      <Section title={t("teamChangesTitle")} hint={t("teamChangesHint")}>
+        {approvals.teamChanges.length === 0 ? (
+          <li>
+            <EmptyNote>{t("teamChangesEmpty")}</EmptyNote>
+          </li>
+        ) : (
+          approvals.teamChanges.map((change) => (
+            <Row
+              key={change.id}
+              name={change.memberName}
+              lines={[
+                t(
+                  change.kind === TeamChangeKind.Leave
+                    ? "wantsToLeave"
+                    : "removalAsked",
+                  {
+                    startup: change.organizationName,
+                    leader: change.requestedByName,
+                  },
+                ),
+                formatLongDate(change.createdAt, locale),
+              ]}
+              action={actions(change.id, approvals.decideTeamChange)}
+            />
+          ))
+        )}
+      </Section>
     </div>
   );
 }
@@ -127,7 +156,9 @@ export function ProgramWithoutTeam({ programId }: { programId: string }) {
             key={person.id}
             name={person.fullName}
             lines={[person.email, person.jobTitle ?? ""]}
-          />
+          >
+            <TeamHistory userId={person.id} />
+          </Row>
         ))
       )}
     </Section>
@@ -160,10 +191,12 @@ function Row({
   name,
   lines,
   action,
+  children,
 }: {
   name: string;
   lines: string[];
   action?: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <li className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
@@ -176,6 +209,7 @@ function Row({
           <p className="truncate text-[12.5px] text-[#858c96]">
             {lines.filter(Boolean).join(" · ")}
           </p>
+          {children}
         </div>
       </div>
       {action}
