@@ -65,7 +65,14 @@ async function completePersonalStep(user: User) {
   await user.type(screen.getByLabelText(/Startup’taki rolün/), "Kurucu ortak");
 }
 
+async function chooseProgram(user: User) {
+  await user.click(
+    await screen.findByRole("button", { name: "metustarts 2026" }),
+  );
+}
+
 async function completeStartupStep(user: User) {
+  await chooseProgram(user);
   await user.type(screen.getByLabelText(/Startup adı/), "Döngü");
   await user.type(
     screen.getByLabelText(/Tek satırlık tanım/),
@@ -84,7 +91,9 @@ async function reachReview(user: User) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(listDocuments).mockResolvedValue([]);
-  vi.mocked(getProgramNames).mockResolvedValue([]);
+  vi.mocked(getProgramNames).mockResolvedValue([
+    { id: "prog-1", name: "metustarts 2026" },
+  ]);
 });
 
 describe("Signup wizard", () => {
@@ -165,7 +174,7 @@ describe("Signup wizard", () => {
     expect(screen.getByText("Daha önce yüklendi")).toBeInTheDocument();
   });
 
-  it("needs only the startup name and tagline on step 2", async () => {
+  it("needs only a program, the startup name and tagline on step 2", async () => {
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
@@ -182,7 +191,7 @@ describe("Signup wizard", () => {
     expect(screen.queryByLabelText(/Sektör/)).not.toBeInTheDocument();
   });
 
-  it("offers the coordinator's real programs plus Bağımsız", async () => {
+  it("offers only the coordinator's real programs", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
       { id: "prog-1", name: "metustarts 2026" },
       { id: "prog-2", name: "Seed 2026" },
@@ -201,7 +210,48 @@ describe("Signup wizard", () => {
       within(programs).getByRole("button", { name: "Seed 2026" }),
     ).toBeInTheDocument();
     expect(
-      within(programs).getByRole("button", { name: "Bağımsız" }),
+      within(programs).queryByRole("button", { name: "Bağımsız" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("signs up into the program without a startup and skips its files", async () => {
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(next());
+    await chooseProgram(user);
+    expect(next()).toBeDisabled();
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: /Startup'ı daha sonra oluşturacağım/,
+      }),
+    );
+    expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
+    await user.click(next());
+
+    expect(
+      screen.getByRole("heading", { name: "Gözden geçir ve gönder" }),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(
+      screen.getByRole("button", { name: "Koordinatöre gönder" }),
+    );
+
+    await waitFor(() =>
+      expect(registerFounder).toHaveBeenCalledWith(
+        expect.objectContaining({ programId: "prog-1", startupLater: true }),
+        "id-token",
+      ),
+    );
+    expect(registerFounder).toHaveBeenCalledWith(
+      expect.not.objectContaining({ organizationName: expect.anything() }),
+      "id-token",
+    );
+    expect(
+      await screen.findByRole("heading", {
+        name: "Başvurun koordinatöre gönderildi",
+      }),
     ).toBeInTheDocument();
   });
 
@@ -221,9 +271,6 @@ describe("Signup wizard", () => {
   });
 
   it("sends the whole application, then shows the submitted screen", async () => {
-    vi.mocked(getProgramNames).mockResolvedValue([
-      { id: "prog-1", name: "metustarts 2026" },
-    ]);
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
 
@@ -232,9 +279,6 @@ describe("Signup wizard", () => {
     await user.click(next());
 
     await completeStartupStep(user);
-    await user.click(
-      await screen.findByRole("button", { name: "metustarts 2026" }),
-    );
     await user.click(screen.getByRole("button", { name: "Prototip" }));
     await user.click(screen.getByRole("button", { name: "+ Üye ekle" }));
     await user.type(screen.getByLabelText(/Ad soyad/), "Ece Kaya");
