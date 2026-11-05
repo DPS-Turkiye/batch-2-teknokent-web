@@ -1,13 +1,19 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { type FormEvent, useCallback, useMemo, useState } from "react";
 
 import { type RegisterForm } from "@/interfaces/auth";
 import { emailCharacterError } from "@/lib/email";
+import { ClientApiError } from "@/lib/client/api";
+import { describeAuthError } from "@/lib/firebase/auth";
 import { passwordStrengthError } from "@/lib/password";
 import { normalizePhoneInput, phoneNumberError } from "@/lib/phone";
 
-export function useRegisterForm() {
+export function useRegisterForm(
+  onSubmit?: (form: RegisterForm) => Promise<void>,
+) {
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const [form, setForm] = useState<RegisterForm>({
     firstName: "",
     lastName: "",
@@ -59,6 +65,23 @@ export function useRegisterForm() {
     ],
   );
 
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!onSubmit || !canSubmit || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await onSubmit(form);
+    } catch (caught) {
+      setError(
+        caught instanceof ClientApiError
+          ? caught.message
+          : describeAuthError(caught),
+      );
+      setSubmitting(false);
+    }
+  }
+
   return {
     form,
     update,
@@ -68,5 +91,8 @@ export function useRegisterForm() {
     passwordsMismatch,
     emailCharacterErrorMessage,
     phoneErrorMessage,
+    submitting,
+    error,
+    submit,
   };
 }
