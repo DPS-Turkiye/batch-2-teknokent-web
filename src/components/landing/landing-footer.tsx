@@ -3,12 +3,9 @@ import Link from "next/link";
 import { LandingLogo } from "@/components/landing/landing-nav";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import type { LandingLink } from "@/types/landing";
 
-export function LandingFooter({
-  login,
-}: {
-  login: { href: string; label: string };
-}) {
+export function LandingFooter({ action }: { action: LandingLink }) {
   const landing = useLandingContent();
   return (
     <footer>
@@ -19,8 +16,8 @@ export function LandingFooter({
             <p>
               <b>{landing.footer.tagline}</b> {landing.footer.text}
             </p>
-            <Link className={cx("btn", "btn-or")} href={login.href}>
-              {login.label}
+            <Link className={cx("btn", "btn-or")} href={action.href}>
+              {action.label}
             </Link>
           </div>
           {landing.footer.columns.map((column) => (

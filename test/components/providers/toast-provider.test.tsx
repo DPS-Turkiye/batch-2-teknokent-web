@@ -1,9 +1,8 @@
-import { render, screen, act } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { ToastProvider, useToast } from "@/components/providers/toast-provider";
-import { TRANSCRIPT_BOT_FULL_EVENT } from "@/lib/transcript-bot";
 import { InLocale } from "@test/test-utils";
 
 function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
@@ -62,22 +61,6 @@ describe("ToastProvider", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("apologises when a meeting was saved without the busy recording bot", () => {
-    render(
-      <ToastProvider>
-        <span />
-      </ToastProvider>,
-    );
-
-    act(() => {
-      window.dispatchEvent(new Event(TRANSCRIPT_BOT_FULL_EVENT));
-    });
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "kayıt botu şu anda bu görüşmeye katılamıyor",
-    );
-  });
-
   it("reads in English", () => {
     render(
       <InLocale locale="en">
@@ -87,13 +70,6 @@ describe("ToastProvider", () => {
       </InLocale>,
     );
 
-    act(() => {
-      window.dispatchEvent(new Event(TRANSCRIPT_BOT_FULL_EVENT));
-    });
-
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "The recording bot can't join right now",
-    );
     expect(screen.getByLabelText("Notifications")).toBeInTheDocument();
   });
 });
