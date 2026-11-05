@@ -11,6 +11,10 @@ import {
 } from "@/lib/client/programs";
 import { createTestQueryClient } from "@test/test-utils";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
 vi.mock("@/lib/client/programs", () => ({
   getOrganizationPrograms: vi.fn(),
   setActiveProgram: vi.fn(),

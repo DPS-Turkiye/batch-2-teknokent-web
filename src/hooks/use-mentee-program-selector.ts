@@ -1,6 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import { useToast } from "@/components/providers/toast-provider";
@@ -15,6 +16,7 @@ import { currentOrganizationProgram } from "@/lib/organization-programs";
 export function useMenteeProgramSelector() {
   const t = useTranslations("mentorsDirectory.program");
   const queryClient = useQueryClient();
+  const router = useRouter();
   const { showToast } = useToast();
   const programsQuery = useOrganizationPrograms();
   const setActive = useSetActiveProgram();
@@ -26,6 +28,8 @@ export function useMenteeProgramSelector() {
     setActive.mutate(programId, {
       onSuccess: async (data) => {
         await queryClient.invalidateQueries({ queryKey: MENTORS_QUERY_KEY });
+        // Server-rendered lists (the request wizard's mentors, the Startup'ım header) reload too.
+        router.refresh();
         showToast({
           message: t("switched", {
             name: currentOrganizationProgram(data)?.name ?? "",

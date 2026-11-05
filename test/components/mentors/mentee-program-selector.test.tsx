@@ -11,6 +11,12 @@ import {
 } from "@/lib/client/programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+const refresh = vi.fn();
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh }),
+}));
+
 vi.mock("@/lib/client/programs", () => ({
   getOrganizationPrograms: vi.fn(),
   setActiveProgram: vi.fn(),
@@ -66,6 +72,7 @@ describe("MenteeProgramSelector", () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Program")).toHaveValue("p-1");
+    expect(refresh).toHaveBeenCalledTimes(1);
   });
 
   it("says so when the switch is refused", async () => {
@@ -85,6 +92,7 @@ describe("MenteeProgramSelector", () => {
         "Your startup has not been added to this program.",
       ),
     ).toBeInTheDocument();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("reads in English", async () => {
