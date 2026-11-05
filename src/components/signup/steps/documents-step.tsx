@@ -11,7 +11,7 @@ import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
-import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import type { StartupDraftForm } from "@/hooks/use-startup-draft";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { StartupDocumentKind } from "@/interfaces/signup";
 import { useTranslations } from "next-intl";
@@ -42,7 +42,7 @@ const FILE_CARDS: {
   },
 ];
 
-export function DocumentsStep({ wizard }: { wizard: SignupWizard }) {
+export function DocumentsStep({ wizard }: { wizard: StartupDraftForm }) {
   const copy = useTranslations("signupDocuments");
   const { draft, setDocument, setMvpUrl } = wizard;
   const stored = useStoredDocuments();

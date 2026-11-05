@@ -8,12 +8,13 @@ import type { Locale } from "@/lib/i18n";
 export type FounderRegistration = {
   fullName: string;
   email: string;
-  organizationName: string;
+  /** Required unless startupLater. */
+  organizationName?: string;
   description?: string;
   jobTitle?: string;
   phone?: string;
-  /** Null is a real answer meaning no program, so it is sent rather than omitted. */
   programId?: string | null;
+  startupLater?: boolean;
   bio?: string;
   linkedinUrl?: string;
   expertise?: string[];

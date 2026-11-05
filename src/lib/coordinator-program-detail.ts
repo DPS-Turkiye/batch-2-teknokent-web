@@ -12,6 +12,7 @@ export enum ProgramTab {
   Teams = "TEAMS",
   MentorPool = "MENTOR_POOL",
   Matching = "MATCHING",
+  Approvals = "APPROVALS",
   Settings = "SETTINGS",
 }
 
@@ -268,11 +269,17 @@ export function detailsInput(
   };
 }
 
-export function phasesInput(draft: ProgramSettingsDraft): ProgramPhaseInput[] {
+export function phasesInput(
+  value: ProgramSettingsDraft | PhaseDraft[],
+): ProgramPhaseInput[] {
+  const draft = Array.isArray(value) ? { phases: value } : value;
   return draft.phases.map((phase) => ({
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,
+    ...("expectedOutput" in phase
+      ? { expectedOutput: phase.expectedOutput?.trim() || null }
+      : {}),
   }));
 }
 
