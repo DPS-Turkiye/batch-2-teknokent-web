@@ -7,18 +7,21 @@ import { useTranslations } from "next-intl";
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { ProgramReporting } from "@/components/admin/reporting-view";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useProgramReport } from "@/hooks/use-program-report";
 
 /** Program raporu: the admin Raporlama numbers, for this one program. */
 export function ProgramReportView({ programId }: { programId: string }) {
+  const navigation = useProgramNavigation(programId);
   const t = useTranslations("programReport");
+  const tNav = useTranslations("roleFrame.nav");
   const query = useProgramReport(programId);
   const data = query.data;
   if (!data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const program = data.programs[0];
-  const programHref = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  const programHref = navigation.baseHref;
 
   return (
     <div className="space-y-6">
@@ -26,7 +29,9 @@ export function ProgramReportView({ programId }: { programId: string }) {
         aria-label={t("breadcrumb")}
         className="flex items-center gap-1.5 text-[13px] text-[#858c96]"
       >
-        <Link href="/coordinator/programs">{t("myPrograms")}</Link>
+        <Link href={navigation.listHref}>
+          {navigation.admin ? tNav("programs") : t("myPrograms")}
+        </Link>
         <ChevronRight aria-hidden className="size-3.5" />
         <Link href={programHref}>{program?.name ?? t("programFallback")}</Link>
         <ChevronRight aria-hidden className="size-3.5" />
