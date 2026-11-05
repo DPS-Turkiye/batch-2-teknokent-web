@@ -9,6 +9,7 @@ import { useState, type ReactNode } from "react";
 import { AdminIcon } from "@/components/admin/admin-ui";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
+import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import {
   useAppSession,
   useSession,
@@ -222,6 +223,7 @@ function RoleShell({
       <main className="mx-auto w-full max-w-[1440px] px-4 pb-16 pt-6 sm:px-8 sm:pt-7 lg:px-12">
         {children}
       </main>
+      {pathname === homeHref ? <FeedbackButton /> : null}
       {settingsOpen ? (
         <AccountSettingsDialog onClose={() => setSettingsOpen(false)} />
       ) : null}

@@ -1,4 +1,53 @@
 {
+  "platformFeedback": {
+    "button": "Geri bildirim",
+    "title": "Görüşünü paylaş",
+    "intro": "Menton’u birlikte geliştirelim.",
+    "close": "Geri bildirim panelini kapat",
+    "category": "Ne paylaşmak istersin?",
+    "kinds": { "FEEDBACK": "Geri bildirim", "SUGGESTION": "Öneri" },
+    "subject": "Başlık",
+    "subjectPlaceholder": "Kısaca özetle",
+    "subjectRequired": "Lütfen bir başlık yaz.",
+    "message": "Mesajın",
+    "messagePlaceholder": "Deneyimini ve neleri iyileştirebileceğimizi paylaş…",
+    "suggestionPlaceholder": "Fikrini ve sana nasıl yardımcı olacağını anlat…",
+    "messageRequired": "Lütfen mesajını yaz.",
+    "counter": "{count} / {limit} karakter",
+    "destination": "Mesajın adın ve e-posta adresinle birlikte yöneticilere iletilir.",
+    "submit": "Gönder",
+    "sending": "Gönderiliyor…",
+    "successTitle": "Paylaştığın için teşekkürler!",
+    "successBody": "Mesajın yöneticilere ulaştı. Görüşlerin Menton’u geliştirmemize yardımcı oluyor.",
+    "done": "Tamam",
+    "errors": {
+      "failed": "Mesajın gönderilemedi. Yazdıkların duruyor; lütfen tekrar dene.",
+      "sessionRequired": "Oturumun sona erdi. Mesajını göndermek için tekrar giriş yap.",
+      "rateLimited": "Çok fazla istek gönderildi. Lütfen biraz bekleyip tekrar dene."
+    }
+  },
+  "feedbackInbox": {
+    "title": "Geri bildirim kutusu",
+    "intro": "Kullanıcıların Menton hakkındaki geri bildirim ve önerileri.",
+    "unreadCount": "{count} okunmamış mesaj",
+    "refresh": "Yenile",
+    "unreadOnly": "Yalnızca okunmamış mesajlar",
+    "loading": "Geri bildirimler yükleniyor…",
+    "loadFailed": "Geri bildirimler yüklenemedi. Yenile düğmesiyle tekrar dene.",
+    "readFailed": "Mesaj okundu olarak işaretlenemedi. Lütfen tekrar dene.",
+    "emptyTitle": "Henüz mesaj yok",
+    "noUnread": "Tüm mesajlar okundu",
+    "emptyBody": "Kullanıcılar anasayfalarındaki geri bildirim düğmesiyle görüş ve önerilerini paylaşabilir.",
+    "new": "Yeni",
+    "read": "Okundu",
+    "markRead": "Okundu işaretle",
+    "language": "Gönderim dili: {language}",
+    "languages": { "tr": "Türkçe", "en": "İngilizce" },
+    "pagination": "Geri bildirim sayfaları",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "page": "Sayfa {page} / {total}"
+  },
   "language": {
     "label": "Dil",
     "tr": "Türkçe",
@@ -3134,6 +3183,7 @@
     "coordinatorMenu": "Koordinatör menüsü",
     "adminMenu": "Admin menüsü",
     "nav": {
+      "feedback": "Geri bildirim",
       "home": "Anasayfa",
       "myPrograms": "Programlarım",
       "programs": "Programlar",
@@ -4949,6 +4999,10 @@
     }
   },
   "apiErrors": {
+    "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",
+    "platformFeedbackSendFailed": "Geri bildirim gönderilemedi. Lütfen tekrar dene.",
+    "platformFeedbackLoadFailed": "Geri bildirimler yüklenemedi.",
+    "platformFeedbackReadFailed": "Geri bildirim okundu olarak işaretlenemedi.",
     "requestIdRequired": "Talep kimliği gerekli.",
     "actionItemsLoadFailed": "Aksiyonlar yüklenemedi.",
     "actionItemUpdateFailed": "Aksiyon güncellenemedi.",

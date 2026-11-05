@@ -17,12 +17,14 @@ export function ModalDialog({
   onClose,
   panelClassName = DEFAULT_PANEL_CLASS,
   overlayClassName = DEFAULT_OVERLAY_CLASS,
+  dismissOnBackdrop = false,
 }: {
   children: ReactNode;
   labelledBy: string;
   onClose: () => void;
   panelClassName?: string;
   overlayClassName?: string;
+  dismissOnBackdrop?: boolean;
 }) {
   const dialogRef = useRef<HTMLElement>(null);
   const closeRef = useRef(onClose);
@@ -63,7 +65,16 @@ export function ModalDialog({
   }, []);
 
   return (
-    <div className={overlayClassName}>
+    <div
+      className={overlayClassName}
+      onClick={
+        dismissOnBackdrop
+          ? (event) => {
+              if (event.target === event.currentTarget) closeRef.current();
+            }
+          : undefined
+      }
+    >
       <section
         ref={dialogRef}
         role="dialog"

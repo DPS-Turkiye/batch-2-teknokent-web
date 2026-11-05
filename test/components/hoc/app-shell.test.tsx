@@ -79,6 +79,25 @@ function adminSession(): AppSession {
 }
 
 describe("AppShell navigation", () => {
+  it("shows feedback on the dashboard and keeps other pages clear", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+    const { rerender } = render(
+      <AppShell active={AppArea.Home}>
+        <p>Dashboard</p>
+      </AppShell>,
+    );
+    expect(
+      screen.getByRole("button", { name: "Geri bildirim" }),
+    ).toBeInTheDocument();
+    rerender(
+      <AppShell active={AppArea.Calendar}>
+        <p>Calendar</p>
+      </AppShell>,
+    );
+    expect(
+      screen.queryByRole("button", { name: "Geri bildirim" }),
+    ).not.toBeInTheDocument();
+  });
   it("uses the revised blue mentor navbar on the mentor home", async () => {
     mockuseAppSession.mockReturnValue(mentorSession());
     const user = userEvent.setup();
