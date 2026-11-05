@@ -12,48 +12,16 @@ import {
   TAGLINE_MAX_LENGTH,
   type PersonalProfileDraft,
   type SignupDraft,
-  type StartupProfileDraft,
-  type TeamMemberDraft,
-  type UploadedFile,
 } from "@/interfaces/signup";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
+import {
+  emptySignupDraft,
+  toggle,
+  useStartupDraftEditors,
+} from "@/hooks/use-startup-draft";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import { dropDetachedFile } from "@/lib/draft-storage";
 import { scrollToTop } from "@/lib/utils";
-
-function emptyDraft(): SignupDraft {
-  return {
-    personal: {
-      firstName: "",
-      lastName: "",
-      role: "",
-      bio: "",
-      linkedin: "",
-      contactPreferences: [],
-      cv: null,
-    },
-    startup: {
-      name: "",
-      tagline: "",
-      website: "",
-      foundedYear: "",
-      programId: null,
-      maturity: "",
-      teamMembers: [],
-      supportAreas: [],
-      logo: null,
-    },
-    documents: {},
-    mvpUrl: "",
-    consent: false,
-  };
-}
-
-function toggle<T>(list: T[], value: T) {
-  return list.includes(value)
-    ? list.filter((item) => item !== value)
-    : [...list, value];
-}
 
 const DRAFT_KIND = "signup-wizard" as const;
 
@@ -62,10 +30,10 @@ function restoreFromPayload(saved: unknown): {
   droppedFiles: number;
 } {
   if (!saved || typeof saved !== "object") {
-    return { draft: emptyDraft(), droppedFiles: 0 };
+    return { draft: emptySignupDraft(), droppedFiles: 0 };
   }
   const parsed = saved as Partial<SignupDraft>;
-  const base = emptyDraft();
+  const base = emptySignupDraft();
   const cv = dropDetachedFile(parsed.personal?.cv ?? null);
   const logo = dropDetachedFile(parsed.startup?.logo ?? null);
 
@@ -93,7 +61,7 @@ export function useSignupWizard(
   options: { onSubmit?: (draft: SignupDraft) => Promise<void> } = {},
 ) {
   const [step, setStep] = useState<SignupStep>(SignupStep.PersonalProfile);
-  const [draft, setDraft] = useState<SignupDraft>(emptyDraft);
+  const [draft, setDraft] = useState<SignupDraft>(emptySignupDraft);
   const [droppedFiles, setDroppedFiles] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -128,32 +96,6 @@ export function useSignupWizard(
     [],
   );
 
-  const updateStartup = useCallback(
-    <K extends keyof StartupProfileDraft>(
-      key: K,
-      value: StartupProfileDraft[K],
-    ) => {
-      setDraft((current) => ({
-        ...current,
-        startup: { ...current.startup, [key]: value },
-      }));
-    },
-    [],
-  );
-
-  const toggleSupportArea = useCallback((value: string) => {
-    setDraft((current) => {
-      const selected = current.startup.supportAreas;
-      if (!selected.includes(value) && selected.length >= MAX_SUPPORT_AREAS) {
-        return current;
-      }
-      return {
-        ...current,
-        startup: { ...current.startup, supportAreas: toggle(selected, value) },
-      };
-    });
-  }, []);
-
   const toggleContactPreference = useCallback((value: ContactPreference) => {
     setDraft((current) => ({
       ...current,
@@ -164,44 +106,19 @@ export function useSignupWizard(
     }));
   }, []);
 
-  const addTeamMember = useCallback((member: TeamMemberDraft) => {
-    setDraft((current) => ({
-      ...current,
-      startup: {
-        ...current.startup,
-        teamMembers: [...current.startup.teamMembers, member],
-      },
-    }));
-  }, []);
-
-  const removeTeamMember = useCallback((index: number) => {
-    setDraft((current) => ({
-      ...current,
-      startup: {
-        ...current.startup,
-        teamMembers: current.startup.teamMembers.filter((_, i) => i !== index),
-      },
-    }));
-  }, []);
-
-  const setMvpUrl = useCallback((mvpUrl: string) => {
-    setDraft((current) => ({ ...current, mvpUrl }));
-  }, []);
-
   const setConsent = useCallback((consent: boolean) => {
     setDraft((current) => ({ ...current, consent }));
   }, []);
 
-  const setDocument = useCallback(
-    (kind: StartupDocumentKind, file: UploadedFile | null) => {
-      setDraft((current) => {
-        const documents = { ...current.documents };
-        if (file) documents[kind] = file;
-        else delete documents[kind];
-        return { ...current, documents };
-      });
-    },
-    [],
+  const editors = useStartupDraftEditors(setDraft);
+
+  // Without a startup there are no startup files to ask for.
+  const steps = useMemo(
+    () =>
+      draft.startup.startupLater
+        ? SIGNUP_STEP_ORDER.filter((item) => item !== SignupStep.Documents)
+        : SIGNUP_STEP_ORDER,
+    [draft.startup.startupLater],
   );
 
   // A step is a new page to the applicant, so it should start at its heading
@@ -213,18 +130,12 @@ export function useSignupWizard(
   const goToStep = useCallback((next: SignupStep) => setStep(next), []);
 
   const goNext = useCallback(() => {
-    setStep((current) => {
-      const index = SIGNUP_STEP_ORDER.indexOf(current);
-      return SIGNUP_STEP_ORDER[index + 1] ?? current;
-    });
-  }, []);
+    setStep((current) => steps[steps.indexOf(current) + 1] ?? current);
+  }, [steps]);
 
   const goBack = useCallback(() => {
-    setStep((current) => {
-      const index = SIGNUP_STEP_ORDER.indexOf(current);
-      return SIGNUP_STEP_ORDER[index - 1] ?? current;
-    });
-  }, []);
+    setStep((current) => steps[steps.indexOf(current) - 1] ?? current);
+  }, [steps]);
 
   const onSubmit = options.onSubmit;
   const submit = useCallback(async () => {
@@ -263,8 +174,10 @@ export function useSignupWizard(
       return Boolean(firstName.trim() && lastName.trim() && role.trim());
     }
     if (step === SignupStep.StartupProfile) {
-      const { name, tagline } = draft.startup;
-      return Boolean(name.trim() && tagline.trim());
+      const { name, tagline, programId, startupLater } = draft.startup;
+      return Boolean(
+        programId && (startupLater || (name.trim() && tagline.trim())),
+      );
     }
     if (step === SignupStep.Review) return draft.consent;
     return true;
@@ -272,6 +185,7 @@ export function useSignupWizard(
 
   return {
     step,
+    steps,
     draft,
     submitted,
     submitting,
@@ -290,15 +204,10 @@ export function useSignupWizard(
     goBack,
     submit,
     saveDraft,
-    setDocument,
     toggleContactPreference,
-    toggleSupportArea,
-    addTeamMember,
-    removeTeamMember,
-    setMvpUrl,
     setConsent,
     updatePersonal,
-    updateStartup,
+    ...editors,
   };
 }
 

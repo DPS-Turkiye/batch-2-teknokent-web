@@ -1,5 +1,5 @@
-import { StartupProfileView } from "@/components/startup/startup-profile-view";
+import { StartupHome } from "@/components/startup/startup-start-view";
 
 export default function StartupProfilePage() {
-  return <StartupProfileView />;
+  return <StartupHome />;
 }

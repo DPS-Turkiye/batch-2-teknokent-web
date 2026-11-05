@@ -6,6 +6,7 @@ import { DELETE as removeCoordinator } from "@/app/api/coordinator/programs/[id]
 import { POST as addCoordinator } from "@/app/api/coordinator/programs/[id]/coordinators/route";
 import { PUT as phases } from "@/app/api/coordinator/programs/[id]/phases/route";
 import { GET, PUT } from "@/app/api/coordinator/programs/[id]/route";
+import { POST as readSyllabus } from "@/app/api/coordinator/programs/syllabus/phases/route";
 import { type AppSession, UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
@@ -14,6 +15,7 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
   replaceCoordinatorProgramPhases: vi.fn(),
+  extractSyllabusPhases: vi.fn(),
   setCoordinatorProgramArchived: vi.fn(),
   fetchProgramCoordinators: vi.fn(),
   addProgramCoordinator: vi.fn(),
@@ -79,12 +81,45 @@ describe("coordinator program detail routes", () => {
     );
   });
 
+  it("reads a syllabus as the signed-in coordinator, passing only the document and dates", async () => {
+    vi.mocked(api.extractSyllabusPhases).mockResolvedValue(ok);
+
+    await readSyllabus(
+      body({
+        documentId: "doc-1",
+        startDate: "2026-11-03",
+        endDate: "",
+        actorId: "someone-else",
+      }),
+    );
+
+    expect(api.extractSyllabusPhases).toHaveBeenCalledWith("coordinator-1", {
+      documentId: "doc-1",
+      startDate: "2026-11-03",
+      endDate: null,
+    });
+  });
+
   it("forwards phases, archiving and coordinator changes", async () => {
-    await phases(body({ phases: [{ name: "Başvuru", extra: "x" }] }), params);
+    await phases(
+      body({
+        phases: [{ name: "Başvuru", expectedOutput: "Form", extra: "x" }],
+        syllabusDocumentId: "doc-1",
+      }),
+      params,
+    );
     expect(api.replaceCoordinatorProgramPhases).toHaveBeenCalledWith(
       "coordinator-1",
       "program-1",
-      [{ name: "Başvuru", startDate: null, endDate: null }],
+      [
+        {
+          name: "Başvuru",
+          startDate: null,
+          endDate: null,
+          expectedOutput: "Form",
+        },
+      ],
+      "doc-1",
     );
     await archive(body({ archived: true }), params);
     expect(api.setCoordinatorProgramArchived).toHaveBeenCalledWith(
@@ -115,5 +150,9 @@ describe("coordinator program detail routes", () => {
     });
     expect((await archive(body({ archived: true }), params)).status).toBe(403);
     expect(api.setCoordinatorProgramArchived).not.toHaveBeenCalled();
+    expect((await readSyllabus(body({ documentId: "doc-1" }))).status).toBe(
+      403,
+    );
+    expect(api.extractSyllabusPhases).not.toHaveBeenCalled();
   });
 });
