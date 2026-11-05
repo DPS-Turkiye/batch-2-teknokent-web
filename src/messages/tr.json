@@ -3480,6 +3480,7 @@
       "waitingWork": "Bekleyen işler",
       "upcomingTitle": "Yaklaşan tarihler",
       "noUpcoming": "Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.",
+      "noUpcomingAdmin": "Yaklaşan etkinlik ya da son tarih yok.",
       "today": "bugün",
       "inDays": "{count} gün",
       "distribution": "Takım & mentor dağılımı",

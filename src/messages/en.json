@@ -3480,6 +3480,7 @@
       "waitingWork": "Waiting work",
       "upcomingTitle": "Upcoming dates",
       "noUpcoming": "No upcoming events or deadlines. You can add them from the Calendar.",
+      "noUpcomingAdmin": "No upcoming events or deadlines.",
       "today": "today",
       "inDays": "{count, plural, one {# day} other {# days}}",
       "distribution": "Team & mentor distribution",
