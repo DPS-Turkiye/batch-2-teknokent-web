@@ -5334,6 +5334,10 @@
     "wantsToLeave": "wants to leave {startup}",
     "removalAsked": "{leader} asks to remove them from {startup}"
   },
+  "programContext": {
+    "label": "Program",
+    "unknown": "Program not specified"
+  },
   "mentorProgramInvitations": {
     "title": "Program invitations",
     "failed": "Could not load your program invitations.",

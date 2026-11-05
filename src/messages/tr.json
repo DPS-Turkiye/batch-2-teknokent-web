@@ -5334,6 +5334,10 @@
     "wantsToLeave": "{startup} takımından ayrılmak istiyor",
     "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
   },
+  "programContext": {
+    "label": "Program",
+    "unknown": "Program bilgisi yok"
+  },
   "mentorProgramInvitations": {
     "title": "Program davetleri",
     "failed": "Program davetlerin yüklenemedi.",
