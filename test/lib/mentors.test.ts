@@ -6,8 +6,15 @@ import {
   loadMentors,
   MentorFetchError,
 } from "@/lib/mentors";
+import { getSessionIds } from "@/lib/session";
 import { backendRequest } from "@/lib/server/backend-client";
 import { createMentorResponse, mentorProfile } from "@test/fixtures/mentors";
+
+vi.mock("@/lib/session", () => ({
+  getSessionIds: vi
+    .fn()
+    .mockResolvedValue({ userId: "mentee-1", organizationId: "org-1" }),
+}));
 
 vi.mock("@/lib/server/backend-client", () => ({
   backendRequest: vi.fn(),
@@ -34,6 +41,7 @@ describe("mentor data", () => {
     expect(backendRequest).toHaveBeenCalledWith({
       method: "GET",
       url: "/api/mentors",
+      params: { actorId: "mentee-1" },
     });
   });
 
@@ -64,4 +72,12 @@ describe("mentor data", () => {
       error: "Mentor API request failed",
     });
   });
+});
+
+it("never loads an unscoped fallback without a session", async () => {
+  vi.mocked(backendRequest).mockClear();
+  vi.mocked(getSessionIds).mockRejectedValueOnce(new Error("No session"));
+  const result = await loadMentors();
+  expect(result.mentors).toEqual([]);
+  expect(backendRequest).not.toHaveBeenCalled();
 });
