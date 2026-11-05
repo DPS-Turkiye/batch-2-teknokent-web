@@ -1,10 +1,11 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MentorRequestFlow } from "@/components/mentor-request/mentor-request-flow";
 import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
+import { getOrganizationPrograms } from "@/lib/client/programs";
 import { MENTOR_REQUEST_NEED_DRAFT_KEY } from "@/lib/mentor-request-need";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -13,6 +14,11 @@ const push = vi.fn();
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push }),
   useSearchParams: () => new URLSearchParams(),
+}));
+
+vi.mock("@/lib/client/programs", () => ({
+  getOrganizationPrograms: vi.fn(),
+  setActiveProgram: vi.fn(),
 }));
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -47,6 +53,35 @@ describe("MentorRequestFlow — Need step", () => {
   beforeEach(() => {
     push.mockReset();
     sessionStorage.clear();
+    vi.mocked(getOrganizationPrograms).mockResolvedValue({
+      programs: [{ id: "p-1", name: "Alpha 2026", coordinatorName: "Elif" }],
+      activeProgramId: null,
+    });
+  });
+
+  it("lets a startup in two programs choose the program before suggestions are made", async () => {
+    vi.mocked(getOrganizationPrograms).mockResolvedValue({
+      programs: [
+        { id: "p-1", name: "Alpha 2026", coordinatorName: "Elif" },
+        { id: "p-2", name: "Beta 2026", coordinatorName: "Burcu" },
+      ],
+      activeProgramId: "p-1",
+    });
+    renderWithQueryClient(<MentorRequestFlow mentors={[]} startup={startup} />);
+
+    expect(await screen.findByLabelText("Program")).toHaveValue("p-1");
+    expect(
+      screen.getByRole("heading", {
+        name: "Şu an seni en çok zorlayan şey ne?",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows no program choice for a startup in one program", async () => {
+    renderWithQueryClient(<MentorRequestFlow mentors={[]} startup={startup} />);
+
+    await waitFor(() => expect(getOrganizationPrograms).toHaveBeenCalled());
+    expect(screen.queryByLabelText("Program")).not.toBeInTheDocument();
   });
 
   it("opens the Figma İhtiyacını Belirle first step", () => {

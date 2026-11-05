@@ -14,6 +14,7 @@ import { STARTUP_PROFILE_QUERY_KEY } from "@/hooks/use-startup-profile";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { getStartupProfile } from "@/lib/client/organization";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { currentOrganizationProgram } from "@/lib/organization-programs";
 import { initials } from "@/lib/utils";
 
 /** The Startup'ım header: the startup, its program and its two status chips. */
@@ -41,13 +42,7 @@ export function useStartupHeader() {
   const logoQuery = useDocumentUrl(logo?.id);
 
   const profile = profileQuery.data ?? null;
-  const programs = programsQuery.data;
-  const program =
-    programs?.programs.find(
-      (candidate) => candidate.id === programs.activeProgramId,
-    ) ??
-    programs?.programs[0] ??
-    null;
+  const program = currentOrganizationProgram(programsQuery.data);
   const stage = processQuery.data?.currentStage ?? null;
 
   return {
