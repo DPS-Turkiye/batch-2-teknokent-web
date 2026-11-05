@@ -622,11 +622,11 @@ function TeamsTable({ data }: { data: AdminOverview }) {
   const [page, setPage] = useState(0);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const risky = (startup: AdminStartup) => {
-    const mentorship = activeMentorshipFor(data, startup.id);
+    const mentorship = activeMentorshipFor(data, startup);
     return Boolean(mentorship && needsAttention(mentorship));
   };
   const waiting = (startup: AdminStartup) =>
-    !activeMentorshipFor(data, startup.id);
+    !activeMentorshipFor(data, startup);
   const counts: Partial<Record<Filter, number>> = {
     ALL: teams.length,
     MENTORED: teams.filter((startup) => !waiting(startup)).length,
@@ -688,7 +688,7 @@ function TeamsTable({ data }: { data: AdminOverview }) {
           <EmptyNote>{t("noTeams")}</EmptyNote>
         ) : (
           visible.map((startup) => {
-            const mentorship = activeMentorshipFor(data, startup.id);
+            const mentorship = activeMentorshipFor(data, startup);
             const blocked = data.bottlenecks.some(
               (item) => item.organizationId === startup.id,
             );
@@ -1140,7 +1140,7 @@ function TeamDrawer({
   const [section, setSection] = useState<Section>("OVERVIEW");
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
-  const mentorship = activeMentorshipFor(data, startup.id);
+  const mentorship = activeMentorshipFor(data, startup);
   const members = data.users.filter(
     (user) => user.organizationId === startup.id,
   );
