@@ -5061,5 +5061,17 @@
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
     "startupNotInProgram": "This startup is not in this program."
+  },
+  "mentorProgramInvitations": {
+    "title": "Program invitations",
+    "failed": "Could not load your program invitations.",
+    "invitedBy": "{name} invited you as a mentor · {date}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "answering": "Saving…",
+    "accepted": "You joined {name}.",
+    "declined": "You declined the invitation to {name}.",
+    "answerFailed": "Could not answer the invitation.",
+    "awaitingReview": "Waiting for the coordinator's approval"
   }
 }

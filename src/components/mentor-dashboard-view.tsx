@@ -7,6 +7,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
+import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
 import { useMentorNextMeeting } from "@/hooks/use-mentor-next-meeting";
@@ -971,6 +972,7 @@ export function MentorDashboardView() {
                 </section>
               </div>
               <aside className="min-w-0 space-y-6">
+                <MentorProgramInvitations />
                 <MyProgramsPanel variant="mentor" />
                 <section>
                   <SectionHeading

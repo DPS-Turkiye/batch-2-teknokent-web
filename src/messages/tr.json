@@ -5061,5 +5061,17 @@
     "sessionRequired": "Oturum gerekli.",
     "fileDeleteFailed": "Dosya silinemedi.",
     "startupNotInProgram": "Bu startup bu programda yok."
+  },
+  "mentorProgramInvitations": {
+    "title": "Program davetleri",
+    "failed": "Program davetlerin yüklenemedi.",
+    "invitedBy": "{name} seni mentor olarak davet etti · {date}",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "answering": "Kaydediliyor…",
+    "accepted": "{name} programına katıldın.",
+    "declined": "{name} davetini reddettin.",
+    "answerFailed": "Davete yanıt verilemedi.",
+    "awaitingReview": "Koordinatör onayı bekleniyor"
   }
 }
