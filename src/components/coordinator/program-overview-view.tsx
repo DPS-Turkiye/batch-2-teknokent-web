@@ -397,10 +397,14 @@ function Actions({ detail }: { detail: CoordinatorProgramDetail }) {
 function UpcomingCard({ detail }: { detail: CoordinatorProgramDetail }) {
   const t = useTranslations("coordinatorPrograms.overview");
   const locale = useLocale();
+  // Program dates are added from the coordinator Takvim; admins have none to point to.
+  const { admin } = useProgramNavigation(detail.program.id);
   return (
     <Card title={t("upcomingTitle")}>
       {detail.upcomingEvents.length === 0 ? (
-        <p className="text-[13px] text-[#858c96]">{t("noUpcoming")}</p>
+        <p className="text-[13px] text-[#858c96]">
+          {t(admin ? "noUpcomingAdmin" : "noUpcoming")}
+        </p>
       ) : (
         <ul className="space-y-4">
           {detail.upcomingEvents.map((event, index) => {

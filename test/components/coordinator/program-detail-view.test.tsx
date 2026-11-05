@@ -57,6 +57,30 @@ describe("coordinator program detail", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("does not send admins to a Takvim they lack when no dates are coming up", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({ upcomingEvents: [] }),
+    );
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+    expect(
+      await screen.findByText("Yaklaşan etkinlik ya da son tarih yok."),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/Takvim’den/)).not.toBeInTheDocument();
+  });
+
+  it("still points coordinators to Takvim when no dates are coming up", async () => {
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({ upcomingEvents: [] }),
+    );
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+    expect(
+      await screen.findByText(
+        "Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("walks a new program through its setup checklist", async () => {
     const detail = coordinatorProgramDetail();
     detail.program.mentorCount = 0;
