@@ -6,7 +6,10 @@ import { describe, expect, it, vi } from "vitest";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
-import { getActionItems } from "@/lib/client/action-items";
+import {
+  getOrganizationActionItems,
+  getActionItems,
+} from "@/lib/client/action-items";
 import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
@@ -32,6 +35,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
 vi.mock("@/lib/client/action-items", () => {
   const getActionItems = vi.fn().mockResolvedValue([]);
   return {
+    getOrganizationActionItems: vi.fn().mockResolvedValue([]),
     getActionItems,
     // The hooks batch through getActionItemsForRequests; it answers from the per-request fixtures,
     // tagging each item with its request so the hooks can group them.
@@ -312,4 +316,46 @@ describe("useDashboardData", () => {
     answer([]);
     await waitFor(() => expect(result.current.isLoadingTop).toBe(false));
   });
+});
+
+it("shows handed-over tasks without a mentorship only for their recipient", async () => {
+  mockUseSession.mockReturnValue({ session: denizSession() });
+  mockUseMeetings.mockReturnValue({ data: [], isLoading: false, error: null });
+  mockUseMentorshipRequests.mockReturnValue({
+    data: [],
+    isLoading: false,
+    error: null,
+  });
+  const task = {
+    id: "handover",
+    organizationId: "org-1",
+    ownerId: "mentee-1",
+    title: "Devredilen görev",
+    status: ActionItemStatus.Open,
+    createdAt: "2026-11-04",
+    updatedAt: "2026-11-04",
+    ownerLeftAt: "2026-11-04",
+    previousOwnerName: "Zeynep",
+  };
+  vi.mocked(getOrganizationActionItems).mockResolvedValueOnce([
+    task,
+    {
+      ...task,
+      id: "other",
+      ownerId: "other-member",
+      title: "Other member task",
+    },
+  ]);
+  const { result } = renderHook(() => useDashboardData(), { wrapper });
+  await waitFor(() =>
+    expect(
+      result.current.homeTasks.some((item) => item.title === task.title),
+    ).toBe(true),
+  );
+  expect(
+    result.current.homeTasks.find((item) => item.title === task.title)?.href,
+  ).toBe("/startup/process");
+  expect(
+    result.current.homeTasks.some((item) => item.title === "Other member task"),
+  ).toBe(false);
 });
