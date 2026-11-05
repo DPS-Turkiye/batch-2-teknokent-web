@@ -8,6 +8,7 @@ import { ArrowRight, Sparkles } from "lucide-react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
+import { MenteeProgramSelector } from "@/components/mentors/mentee-program-selector";
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MeetingFeedbackHistoryLink } from "@/components/mentorships/meeting-feedback-history-link";
@@ -132,6 +133,7 @@ function MenteeMentorshipsWorkspace() {
 
         {tab === MentorshipWorkspaceTab.MentorPool ? (
           <div className="mt-5">
+            <MenteeProgramSelector />
             <MentorsDirectory embedded />
           </div>
         ) : tab === MentorshipWorkspaceTab.Regular ? (

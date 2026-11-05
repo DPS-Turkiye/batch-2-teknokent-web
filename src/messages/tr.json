@@ -1454,6 +1454,12 @@
     "addGoal": "Hedef ekle"
   },
   "mentorsDirectory": {
+    "program": {
+      "label": "Program",
+      "hint": "Mentor havuzu seçili programın mentorlarını gösterir. Seçim tüm ekibin için geçerlidir.",
+      "switched": "Mentor havuzu artık {name} programına göre gösteriliyor.",
+      "switchFailed": "Program değiştirilemedi. Lütfen tekrar deneyin."
+    },
     "sort": {
       "best": "En uygun",
       "name": "İsim"
