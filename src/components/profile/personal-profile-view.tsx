@@ -9,6 +9,7 @@ import { PhotoAvatar } from "@/components/common/avatar";
 import { EditableChips } from "@/components/common/editable-chips";
 import { AppShell } from "@/components/hoc/app-shell";
 import { CvFileSection } from "@/components/profile/cv-file-section";
+import { PersonalAnalysisArchive } from "@/components/profile/personal-analysis-archive";
 import { ProfileCard as Card } from "@/components/profile/profile-card";
 import { usePersonalCv } from "@/hooks/use-personal-cv";
 import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
@@ -21,6 +22,7 @@ import {
   PROFILE_ROW_CLASS as rowClass,
 } from "@/lib/const/profile";
 import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
+import { httpUrlOrNull } from "@/lib/utils";
 
 type PageData = ReturnType<typeof usePersonalProfilePage>;
 
@@ -303,6 +305,8 @@ function MentorshipsCard({ page }: { page: PageData }) {
 
 function ContactCard({ page }: { page: PageData }) {
   const t = useTranslations("personalProfile");
+  const fields = useTranslations("profileSections");
+  const linkedin = httpUrlOrNull(page.draft?.linkedinUrl);
   return (
     <Card
       title={t("contact")}
@@ -322,6 +326,40 @@ function ContactCard({ page }: { page: PageData }) {
               className={inputClass}
             />
           </label>
+          <label className="block text-[11.5px] text-[#676e78]">
+            {fields("phone")}
+            <input
+              type="tel"
+              autoComplete="tel"
+              value={page.draft.phone ?? ""}
+              maxLength={32}
+              aria-invalid={Boolean(page.fieldErrors.phone)}
+              onChange={(event) => page.setField("phone", event.target.value)}
+              className={inputClass}
+            />
+          </label>
+          {page.fieldErrors.phone ? (
+            <p role="alert" className="text-[11.5px] text-[#b3261e]">
+              {page.fieldErrors.phone}
+            </p>
+          ) : null}
+          <label className="block text-[11.5px] text-[#676e78]">
+            {fields("linkedin")}
+            <input
+              value={page.draft.linkedinUrl ?? ""}
+              maxLength={255}
+              aria-invalid={Boolean(page.fieldErrors.linkedinUrl)}
+              onChange={(event) =>
+                page.setField("linkedinUrl", event.target.value)
+              }
+              className={inputClass}
+            />
+          </label>
+          {page.fieldErrors.linkedinUrl ? (
+            <p role="alert" className="text-[11.5px] text-[#b3261e]">
+              {page.fieldErrors.linkedinUrl}
+            </p>
+          ) : null}
           {page.fieldErrors.fullName ? (
             <p role="alert" className="text-[11.5px] text-[#b3261e]">
               {page.fieldErrors.fullName}
@@ -345,6 +383,29 @@ function ContactCard({ page }: { page: PageData }) {
             <dt className="text-[12px] text-[#676e78]">{t("email")}</dt>
             <dd className="text-right font-medium text-[#4a5059]">
               {page.email || "—"}
+            </dd>
+          </div>
+          <div className={rowClass}>
+            <dt className="text-[12px] text-[#676e78]">{fields("phone")}</dt>
+            <dd className="text-right font-medium text-[#4a5059]">
+              {page.draft?.phone || "—"}
+            </dd>
+          </div>
+          <div className={rowClass}>
+            <dt className="text-[12px] text-[#676e78]">{fields("linkedin")}</dt>
+            <dd className="min-w-0 truncate text-right font-medium text-[#4a5059]">
+              {linkedin ? (
+                <a
+                  href={linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#c85816] hover:underline"
+                >
+                  {linkedin.replace(/^https?:\/\/(www\.)?/i, "")}
+                </a>
+              ) : (
+                page.draft?.linkedinUrl || "—"
+              )}
             </dd>
           </div>
           <div className={rowClass}>
@@ -418,6 +479,7 @@ export function PersonalProfileView() {
               <AboutCard page={page} />
               <StartupCard page={page} />
               <MentorshipsCard page={page} />
+              <PersonalAnalysisArchive />
             </div>
             <aside className="flex flex-col gap-[18px]">
               <ContactCard page={page} />

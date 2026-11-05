@@ -1,0 +1,16 @@
+{
+  "title": "Edit startup profile",
+  "back": "Back to startup",
+  "personal": "Edit my personal details",
+  "importTitle": "Fill the mentor matching profile",
+  "importHint": "Use a startup pitch deck, review the extracted information, then confirm it. You can also enter the matching profile manually.",
+  "upload": "Choose a pitch deck",
+  "advanced": "Advanced PDF options",
+  "invalidFile": "Choose a PDF up to 50 MB.",
+  "minimum": "Enter a startup name or summary.",
+  "loadFailed": "The saved analysis could not be loaded. Try again.",
+  "retry": "Try again",
+  "archiveTitle": "Saved CV analysis",
+  "archiveHint": "This earlier analysis was stored with your startup. It has not been applied to your personal profile.",
+  "clear": "Clear fields"
+}
