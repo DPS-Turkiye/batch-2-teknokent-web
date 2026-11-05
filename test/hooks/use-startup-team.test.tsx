@@ -7,12 +7,14 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { useStartupTeam } from "@/hooks/use-startup-team";
+import { useStartupInProgram } from "@/hooks/use-team-changes";
 import {
   addOrganizationMember,
   removeOrganizationMember,
   updateOrganizationMember,
 } from "@/lib/client/organization-members";
 import { MemberFormMode } from "@/lib/startup-team";
+import { requestRemoval } from "@/lib/client/team-changes";
 import { memberFixture } from "@test/fixtures/startup-team";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -25,6 +27,11 @@ vi.mock("@/hooks/use-organization-members", async (importOriginal) => ({
   >()),
   useOrganizationMembers: vi.fn(),
 }));
+vi.mock("@/hooks/use-team-changes", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/hooks/use-team-changes")>()),
+  useStartupInProgram: vi.fn(),
+}));
+vi.mock("@/lib/client/team-changes", () => ({ requestRemoval: vi.fn() }));
 vi.mock("@/lib/client/organization-members", () => ({
   addOrganizationMember: vi.fn(),
   removeOrganizationMember: vi.fn(),
@@ -53,6 +60,7 @@ function signedInAs(userId: string) {
 describe("useStartupTeam", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useStartupInProgram).mockReturnValue(false);
     vi.mocked(useOrganizationMembers).mockReturnValue({
       data: [cto, founder, designer],
       isLoading: false,
@@ -159,5 +167,20 @@ describe("useStartupTeam", () => {
 
     await waitFor(() => expect(result.current.removingMember).toBeNull());
     expect(vi.mocked(removeOrganizationMember).mock.calls[0][0]).toBe("cto");
+  });
+
+  it("only asks the coordinator to remove a member inside a program", async () => {
+    signedInAs("founder");
+    vi.mocked(useStartupInProgram).mockReturnValue(true);
+    vi.mocked(requestRemoval).mockResolvedValue({} as never);
+    const { result } = renderHook(() => useStartupTeam(), { wrapper });
+
+    expect(result.current.removalNeedsApproval).toBe(true);
+    act(() => result.current.askRemove("cto"));
+    act(() => result.current.confirmRemove());
+
+    await waitFor(() => expect(result.current.removingMember).toBeNull());
+    expect(vi.mocked(requestRemoval).mock.calls[0][0]).toBe("cto");
+    expect(removeOrganizationMember).not.toHaveBeenCalled();
   });
 });

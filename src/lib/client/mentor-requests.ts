@@ -8,7 +8,6 @@ import type {
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
-import { announceDroppedTranscriptBot } from "@/lib/transcript-bot";
 import type { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export async function getMentorRequests(
@@ -153,13 +152,10 @@ export async function logMentorshipMeeting(
   id: string,
   payload: LogMeetingPayload,
 ) {
-  return announceDroppedTranscriptBot(
-    payload.transcribeRequested,
-    requireSuccess(
-      await httpClient.post<MeetingItem>(
-        `/api/mentor-requests/${encodeURIComponent(id)}/meetings`,
-        payload,
-      ),
+  return requireSuccess(
+    await httpClient.post<MeetingItem>(
+      `/api/mentor-requests/${encodeURIComponent(id)}/meetings`,
+      payload,
     ),
   );
 }
