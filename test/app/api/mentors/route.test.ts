@@ -32,7 +32,7 @@ describe("GET /api/mentors", () => {
     expect(fetchMentorDirectory).not.toHaveBeenCalled();
   });
 
-  it("proxies the approved mentor list from the backend", async () => {
+  it("proxies the mentors the signed-in mentee can reach", async () => {
     vi.mocked(getSessionIds).mockResolvedValue({
       userId: "mentee-1",
       organizationId: "org-1",
@@ -40,7 +40,7 @@ describe("GET /api/mentors", () => {
 
     const response = await GET();
 
-    expect(fetchMentorDirectory).toHaveBeenCalled();
+    expect(fetchMentorDirectory).toHaveBeenCalledWith("mentee-1");
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual([
       { id: "mentor-1", fullName: "Leyla Aksoy" },

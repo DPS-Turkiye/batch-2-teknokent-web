@@ -12,6 +12,7 @@ import { NeedGoalStep } from "@/components/mentor-request/need-goal-step";
 import { NeedSituationStep } from "@/components/mentor-request/need-situation-step";
 import { NeedSummaryStep } from "@/components/mentor-request/need-summary-step";
 import { NeedTopicStep } from "@/components/mentor-request/need-topic-step";
+import { MenteeProgramSelector } from "@/components/mentors/mentee-program-selector";
 import { useMentorRequest } from "@/hooks/use-mentor-request";
 import type { MentorProfile } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
@@ -226,12 +227,15 @@ export function MentorRequestFlow({
 
         <div className="mt-8">
           {step === MentorRequestStep.Need ? (
-            <NeedTopicStep
-              topicId={topicId}
-              otherSummary={otherSummary}
-              onSelectTopic={selectNeedTopic}
-              onOtherSummaryChange={updateOtherSummary}
-            />
+            <>
+              <MenteeProgramSelector />
+              <NeedTopicStep
+                topicId={topicId}
+                otherSummary={otherSummary}
+                onSelectTopic={selectNeedTopic}
+                onOtherSummaryChange={updateOtherSummary}
+              />
+            </>
           ) : null}
 
           {step === MentorRequestStep.Expectation ? (

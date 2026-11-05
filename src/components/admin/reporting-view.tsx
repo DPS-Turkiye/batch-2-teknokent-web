@@ -17,7 +17,10 @@ import {
   YAxis,
 } from "recharts";
 
-import { needsAttention } from "@/components/admin/admin-model";
+import {
+  countsInProgram,
+  needsAttention,
+} from "@/components/admin/admin-model";
 import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
 import {
   AdminIcon,
@@ -1036,7 +1039,12 @@ type Pair = AdminMentorship & {
 function pairsIn(data: AdminOverview, program: AdminProgram): Pair[] {
   const ids = new Set(program.startups.map((startup) => startup.id));
   return data.mentorships
-    .filter((item) => item.status === "ACTIVE" && ids.has(item.organizationId))
+    .filter(
+      (item) =>
+        item.status === "ACTIVE" &&
+        ids.has(item.organizationId) &&
+        countsInProgram(item, program.id),
+    )
     .map((item) => ({
       ...item,
       bottlenecks: data.bottlenecks.filter(

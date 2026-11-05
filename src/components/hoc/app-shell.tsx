@@ -30,6 +30,7 @@ import {
   NotificationPreferencesDialog,
 } from "@/components/hoc/account-dialogs";
 import { AccountMenu } from "@/components/hoc/account-menu";
+import { StartupGate } from "@/components/startup/startup-gate";
 import {
   useAppSession,
   useSession,
@@ -386,7 +387,9 @@ export function AppShell({
           </div>
         </div>
       ) : null}
-      <main className={mentorHome ? "mentor-home" : undefined}>{children}</main>
+      <main className={mentorHome ? "mentor-home" : undefined}>
+        <StartupGate>{children}</StartupGate>
+      </main>
       {active === AppArea.Home || active === AppArea.MentorDashboard ? (
         <FeedbackButton />
       ) : null}

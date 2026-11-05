@@ -7,6 +7,7 @@ import type { ActionItem } from "@/interfaces/action-item";
 import {
   changeActionItemStatus,
   getActionItems,
+  getOrganizationActionItems,
   getActionItemsForRequests,
 } from "@/lib/client/action-items";
 
@@ -55,5 +56,13 @@ export function useChangeActionItemStatus() {
       queryClient.invalidateQueries({
         queryKey: ACTION_ITEMS_QUERY_KEY,
       }),
+  });
+}
+
+export function useOrganizationActionItems(organizationId: string | undefined) {
+  return useQuery({
+    queryKey: [...ACTION_ITEMS_QUERY_KEY, "organization", organizationId],
+    queryFn: getOrganizationActionItems,
+    enabled: Boolean(organizationId),
   });
 }

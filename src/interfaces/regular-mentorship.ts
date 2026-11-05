@@ -6,6 +6,8 @@ export type MentorshipGoal = {
 };
 
 export type RegularMentorship = {
+  programId?: string | null;
+  programName?: string | null;
   id: string;
   mentorId: string;
   mentorName: string;

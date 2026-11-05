@@ -12,6 +12,7 @@ import {
   pendingMemberships,
   pendingMentors,
   programForOrganization,
+  programOfMentorship,
   unmatchedStartups,
 } from "@/components/admin/admin-model";
 import {
@@ -617,7 +618,7 @@ function interventionRows(data: AdminOverview, t: HomeT): Intervention[] {
   const pairs = data.mentorships
     .filter((item) => needsAttention(item))
     .map((item) => {
-      const program = programForOrganization(data, item.organizationId);
+      const program = programOfMentorship(data, item);
       const days = item.daysSinceMeeting ?? daysSince(item.startDate);
       return {
         id: item.id,
@@ -742,7 +743,7 @@ function programHealth(program: AdminProgram, data: AdminOverview) {
   let amber = 0;
   let red = 0;
   for (const startup of program.startups) {
-    const mentorship = activeMentorshipFor(data, startup.id);
+    const mentorship = activeMentorshipFor(data, startup);
     const blocked = data.bottlenecks.some(
       (item) => item.organizationId === startup.id,
     );
@@ -761,7 +762,7 @@ function phaseLabel(
 ) {
   if (program.status === ProgramStatus.Completed) return t("phaseCompleted");
   const starts = program.startups
-    .map((startup) => activeMentorshipFor(data, startup.id)?.startDate)
+    .map((startup) => activeMentorshipFor(data, startup)?.startDate)
     .filter((value): value is string => Boolean(value));
   if (starts.length === 0) {
     const created = new Date(program.createdAt);

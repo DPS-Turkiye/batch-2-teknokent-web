@@ -1,5 +1,7 @@
 "use client";
 
+import { ProgramContext } from "@/components/common/program-context";
+
 import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
@@ -103,6 +105,7 @@ function RegularMentorshipCard({
           <h3 className="truncate text-[18px] font-semibold text-[#22262b]">
             {mentorship.organizationName}
           </h3>
+          <ProgramContext name={mentorship.programName} />
           <p className="mt-1 text-[13px] text-[#676e78]">
             {t("perWeek", {
               mentor: mentorship.mentorName,

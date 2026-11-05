@@ -59,6 +59,8 @@ export type AdminMentorship = {
   daysSinceMeeting: number | null;
   goalDone?: number;
   goalTotal?: number;
+  /** The program it was made in; null for one made before programs were recorded. */
+  programId?: string | null;
 };
 
 export type AdminMeetingMark = {

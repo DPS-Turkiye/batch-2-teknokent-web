@@ -21,6 +21,13 @@ vi.mock("@/hooks/use-dashboard-notifications", () => ({
   }),
 }));
 
+vi.mock("@/hooks/use-startup-access", async () => {
+  const { StartupAccess } = await import("@/lib/startup-access");
+  return {
+    useStartupAccess: () => ({ access: StartupAccess.Ready, isLoading: false }),
+  };
+});
+
 vi.mock("@/hooks/use-profile-photo", () => ({
   useProfilePhoto: () => ({
     photoUrl: null,

@@ -1,11 +1,14 @@
 import "server-only";
 
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
-export function fetchMentorDirectory() {
+/** A mentee in a program gets only that program's accepted mentors. */
+export function fetchMentorDirectory(actorId: string) {
   return backendRequest({
-    method: "GET",
+    method: HttpMethod.Get,
     url: "/api/mentors",
+    params: { actorId },
   });
 }
 

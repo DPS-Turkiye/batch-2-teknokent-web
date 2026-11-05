@@ -8,8 +8,8 @@ import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
   try {
-    await getSessionIds();
-    return backendResponse(await fetchMentorDirectory());
+    const { userId } = await getSessionIds();
+    return backendResponse(await fetchMentorDirectory(userId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("mentorsLoadFailed"),
