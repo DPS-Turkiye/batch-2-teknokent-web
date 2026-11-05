@@ -1,4 +1,5 @@
-<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="268.46" height="1230.46" viewBox="0 0 268.46 1230.46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg preserveAspectRatio="xMidYMid slice" overflow="hidden" style="display: block;" width="1230.46" height="268.46" viewBox="0 0 1230.46 268.46" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g transform="translate(0 268.46) rotate(-90)">
 <g id="Frame 1618874795" opacity="0.8" filter="url(#filter0_fn_0_213)">
 <g clip-path="url(#clip0_0_213)">
 <rect x="1.23019" y="1.23019" width="266" height="1228" rx="24" fill="#26A4FF"/>
@@ -39,23 +40,12 @@
 </g>
 </g>
 </g>
+</g>
 <defs>
 <filter id="filter0_fn_0_213" x="0" y="0" width="268.46" height="1230.46" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>
 <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
 <feGaussianBlur stdDeviation="0.615094" result="effect1_foregroundBlur_0_213"/>
-<feTurbulence type="fractalNoise" baseFrequency="6.5030741691589355 6.5030741691589355" stitchTiles="stitch" numOctaves="3" result="noise" seed="7411" />
-<feColorMatrix in="noise" type="luminanceToAlpha" result="alphaNoise" />
-<feComponentTransfer in="alphaNoise" result="coloredNoise1">
-<feFuncA type="discrete" tableValues="1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 "/>
-</feComponentTransfer>
-<feComposite operator="in" in2="effect1_foregroundBlur_0_213" in="coloredNoise1" result="noise1Clipped" />
-<feFlood flood-color="rgba(255, 255, 255, 0.25)" result="color1Flood" />
-<feComposite operator="in" in2="noise1Clipped" in="color1Flood" result="color1" />
-<feMerge result="effect2_noise_0_213">
-<feMergeNode in="effect1_foregroundBlur_0_213" />
-<feMergeNode in="color1" />
-</feMerge>
 </filter>
 <filter id="filter1_f_0_213" x="6.47324" y="-93.3989" width="582.47" height="917.576" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
 <feFlood flood-opacity="0" result="BackgroundImageFix"/>

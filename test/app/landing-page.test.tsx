@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home, { dynamic } from "@/app/(public)/page";
 import type { AppSession } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
+import { InLocale } from "@test/test-utils";
 
 let mockSession: AppSession | null = null;
 
@@ -61,7 +62,33 @@ describe("Landing page", () => {
     expect(
       screen.queryByRole("link", { name: /Giriş Yap/ }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Kayıt Ol" }),
+    ).not.toBeInTheDocument();
   });
+
+  it.each([
+    ["tr", "Kayıt Ol", "Giriş Yap"],
+    ["en", "Sign up", "Sign in"],
+  ] as const)(
+    "offers the role-choice signup next to login in %s",
+    (locale, signupLabel, loginLabel) => {
+      render(
+        <InLocale locale={locale}>
+          <Home />
+        </InLocale>,
+      );
+      const header = within(screen.getByRole("banner"));
+      expect(header.getByRole("link", { name: signupLabel })).toHaveAttribute(
+        "href",
+        "/signup",
+      );
+      expect(header.getByRole("link", { name: loginLabel })).toHaveAttribute(
+        "href",
+        "/login",
+      );
+    },
+  );
 
   it("switches the mentoring steps from the list, including by keyboard", async () => {
     const user = userEvent.setup();

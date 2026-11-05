@@ -4,9 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
 
+import { AuthShell } from "@/components/auth/auth-shell";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
-import { LanguageSwitch } from "@/components/common/language-switch";
-import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { safeNextPath } from "@/lib/public-paths";
 import { useTranslations } from "next-intl";
@@ -51,116 +50,108 @@ export function LoginFlowView() {
   }
 
   return (
-    <div className="flex min-h-screen bg-white text-[#111827]">
-      <main className="flex flex-1 flex-col px-4 py-6 sm:px-8">
-        <div className="flex items-center justify-between gap-4">
-          <MentonWordmark />
-          <LanguageSwitch />
-        </div>
-        <div className="flex flex-1 items-center justify-center py-8">
-          <form
-            onSubmit={submitLogin}
-            className="flex w-full max-w-[384px] flex-col gap-2"
-          >
-            <h1 className="pt-8 text-center text-2xl font-bold leading-9 text-[#676e78]">
-              {copy("title")}
-            </h1>
+    <AuthShell>
+      <form
+        onSubmit={submitLogin}
+        className="flex w-full max-w-[384px] flex-col gap-2"
+      >
+        <h1 className="pt-8 text-center text-2xl font-bold leading-9 text-[#676e78]">
+          {copy("title")}
+        </h1>
 
-            <div className="flex flex-col gap-4 pt-8">
-              <div className="flex flex-col gap-1.5">
-                <label htmlFor="login-email" className={labelClass}>
-                  {copy("email")} <span className="text-[#e5701d]">*</span>
-                </label>
-                <input
-                  id="login-email"
-                  type="text"
-                  inputMode="email"
-                  autoComplete="email"
-                  required
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  placeholder={copy("emailPlaceholder")}
-                  className={inputClass}
-                />
-              </div>
+        <div className="flex flex-col gap-4 pt-8">
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="login-email" className={labelClass}>
+              {copy("email")} <span className="text-[#e5701d]">*</span>
+            </label>
+            <input
+              id="login-email"
+              type="text"
+              inputMode="email"
+              autoComplete="email"
+              required
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              placeholder={copy("emailPlaceholder")}
+              className={inputClass}
+            />
+          </div>
 
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="login-password" className={labelClass}>
-                    {copy("password")} <span className="text-[#e5701d]">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={sendPasswordReset}
-                    className="text-xs font-medium text-[#e5701d] hover:underline"
-                  >
-                    {copy("forgotPassword")}
-                  </button>
-                </div>
-                <input
-                  id="login-password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(event) => setPassword(event.target.value)}
-                  placeholder="••••••••"
-                  className={inputClass}
-                />
-              </div>
-            </div>
-
-            <div className="pt-6">
+          <div className="flex flex-col gap-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="login-password" className={labelClass}>
+                {copy("password")} <span className="text-[#e5701d]">*</span>
+              </label>
               <button
-                type="submit"
-                disabled={!isReady || isVerifying}
-                className="h-[46px] w-full rounded-[20px] bg-[#e86f22] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
+                type="button"
+                onClick={sendPasswordReset}
+                className="text-xs font-medium text-[#e5701d] hover:underline"
               >
-                {isVerifying ? copy("submitting") : copy("submit")}
+                {copy("forgotPassword")}
               </button>
             </div>
-
-            {loginError ? (
-              <p
-                role="alert"
-                className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
-              >
-                {loginError}
-              </p>
-            ) : null}
-
-            {notice ? (
-              <p
-                role="status"
-                className="mt-3 rounded-lg border border-[#f2d3b8] bg-[#fff9f5] px-3 py-2 text-xs text-[#c85816]"
-              >
-                {notice}
-              </p>
-            ) : null}
-
-            <div className="mt-9 flex flex-col gap-3 border-t border-[#f3f4f6] pt-7">
-              <p className="text-center text-[13px] font-medium leading-[19.5px] text-[#6b7280]">
-                {copy("newHere")}
-              </p>
-              <Link
-                href="/signup"
-                className="flex h-[46px] items-center justify-center rounded-[20px] border border-[#e4e7ea] text-sm font-semibold text-[#f97316] transition hover:border-[#e86f22] hover:bg-[#fff9f5]"
-              >
-                {copy("signUp")}
-              </Link>
-            </div>
-
-            <div className="flex items-center justify-center pt-2">
-              <Link
-                href="/invite"
-                className="text-xs leading-[18px] text-[#6b7280] underline hover:text-[#111827]"
-              >
-                {copy("invite")}
-              </Link>
-            </div>
-          </form>
+            <input
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              required
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              placeholder="••••••••"
+              className={inputClass}
+            />
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="pt-6">
+          <button
+            type="submit"
+            disabled={!isReady || isVerifying}
+            className="h-[46px] w-full rounded-[20px] bg-[#e86f22] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
+          >
+            {isVerifying ? copy("submitting") : copy("submit")}
+          </button>
+        </div>
+
+        {loginError ? (
+          <p
+            role="alert"
+            className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700"
+          >
+            {loginError}
+          </p>
+        ) : null}
+
+        {notice ? (
+          <p
+            role="status"
+            className="mt-3 rounded-lg border border-[#f2d3b8] bg-[#fff9f5] px-3 py-2 text-xs text-[#c85816]"
+          >
+            {notice}
+          </p>
+        ) : null}
+
+        <div className="mt-9 flex flex-col gap-3 border-t border-[#f3f4f6] pt-7">
+          <p className="text-center text-[13px] font-medium leading-[19.5px] text-[#6b7280]">
+            {copy("newHere")}
+          </p>
+          <Link
+            href="/signup"
+            className="flex h-[46px] items-center justify-center rounded-[20px] border border-[#e4e7ea] text-sm font-semibold text-[#f97316] transition hover:border-[#e86f22] hover:bg-[#fff9f5]"
+          >
+            {copy("signUp")}
+          </Link>
+        </div>
+
+        <div className="flex items-center justify-center pt-2">
+          <Link
+            href="/invite"
+            className="text-xs leading-[18px] text-[#6b7280] underline hover:text-[#111827]"
+          >
+            {copy("invite")}
+          </Link>
+        </div>
+      </form>
+    </AuthShell>
   );
 }
