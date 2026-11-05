@@ -120,6 +120,8 @@ describe("program launch helpers", () => {
       communicationGapDays: 14,
       bottleneckFlagDays: 21,
       teams: [{ teamName: "Kavşak", leadEmail: "deniz@kavsak.co" }],
+      phases: [],
+      syllabusDocumentId: null,
     });
   });
 

@@ -277,7 +277,7 @@ export function phasesInput(
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,
-    ...("expectedOutput" in phase
+    ...(Array.isArray(value) || "expectedOutput" in phase
       ? { expectedOutput: phase.expectedOutput?.trim() || null }
       : {}),
   }));
