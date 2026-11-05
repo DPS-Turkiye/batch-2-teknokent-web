@@ -28,14 +28,13 @@ export function NextMeetingHero({
       aria-label={t("hero.label")}
       className="relative flex min-h-[160px] items-center overflow-hidden rounded-[24px] px-4 py-6 sm:px-12"
     >
-      {/* The Figma gradient is drawn vertically; turning it sideways lays it across the banner. */}
       <Image
         src="/mentee-dashboard/home/hero-gradient.svg"
         alt=""
-        width={160}
-        height={1400}
+        fill
+        sizes="(max-width: 1280px) 100vw, 1280px"
         priority
-        className="pointer-events-none absolute left-1/2 top-1/2 h-[1400px] w-[400px] max-w-none -translate-x-1/2 -translate-y-1/2 -rotate-90 sm:w-[160px]"
+        className="pointer-events-none object-cover"
       />
       <div className="relative flex w-full flex-col gap-3 rounded-[20px] border border-white bg-white/30 px-[18px] py-4 sm:flex-row sm:items-center sm:justify-between">
         {meeting ? (
