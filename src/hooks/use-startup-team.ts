@@ -11,11 +11,16 @@ import {
   useAddOrganizationMember,
   useOrganizationMembers,
 } from "@/hooks/use-organization-members";
+import {
+  TEAM_CHANGES_QUERY_KEY,
+  useStartupInProgram,
+} from "@/hooks/use-team-changes";
 import type { OrganizationMember } from "@/interfaces/organization-member";
 import {
   removeOrganizationMember,
   updateOrganizationMember,
 } from "@/lib/client/organization-members";
+import { requestRemoval } from "@/lib/client/team-changes";
 import {
   foundersFirst,
   isFounder,
@@ -25,7 +30,7 @@ import {
 } from "@/lib/startup-team";
 import { errorMessage } from "@/lib/utils";
 
-/** The Ekip tab: the member list, adding, editing and removing members. */
+/** The Ekip tab: the member list, adding, editing and removing (or asking to remove) members. */
 export function useStartupTeam() {
   const t = useTranslations("startupTeam");
   const queryClient = useQueryClient();
@@ -33,6 +38,7 @@ export function useStartupTeam() {
   const session = useAppSession();
   const membersQuery = useOrganizationMembers();
   const add = useAddOrganizationMember();
+  const removalNeedsApproval = useStartupInProgram();
   const [draft, setDraft] = useState<MemberDraft | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
@@ -59,12 +65,25 @@ export function useStartupTeam() {
     onSuccess: () => void refresh(),
   });
 
+  // Inside a program the coordinator decides; the member stays until then.
   const remove = useMutation({
-    mutationFn: removeOrganizationMember,
+    mutationFn: (memberId: string) =>
+      removalNeedsApproval
+        ? requestRemoval(memberId)
+        : removeOrganizationMember(memberId),
     onSuccess: () => {
       setRemovingId(null);
-      void refresh();
-      showToast({ message: t("removed"), tone: "success" });
+      if (removalNeedsApproval) {
+        void queryClient.invalidateQueries({
+          queryKey: TEAM_CHANGES_QUERY_KEY,
+        });
+      } else {
+        void refresh();
+      }
+      showToast({
+        message: removalNeedsApproval ? t("removalRequested") : t("removed"),
+        tone: "success",
+      });
     },
     onError: (error) =>
       showToast({
@@ -126,6 +145,7 @@ export function useStartupTeam() {
     isRemoving: remove.isPending,
     isSaving: add.isPending || update.isPending,
     members,
+    removalNeedsApproval,
     openAdd: () => {
       setShowErrors(false);
       setDraft({

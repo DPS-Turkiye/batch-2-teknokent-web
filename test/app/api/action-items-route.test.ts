@@ -6,6 +6,7 @@ import { GET } from "@/app/api/action-items/route";
 import { type AppSession, UserRole } from "@/interfaces/session";
 import {
   fetchActionItems,
+  fetchOrganizationActionItems,
   fetchActionItemsForRequests,
   updateActionItem,
 } from "@/lib/api/action-items";
@@ -14,6 +15,7 @@ import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/action-items", () => ({
   fetchActionItems: vi.fn(),
+  fetchOrganizationActionItems: vi.fn(),
   fetchActionItemsForRequests: vi.fn(),
   updateActionItem: vi.fn(),
 }));
@@ -118,4 +120,18 @@ describe("PATCH /api/action-items/[id]", () => {
     expect(response.status).toBe(403);
     expect(updateActionItem).not.toHaveBeenCalled();
   });
+});
+
+it("loads organization tasks using the session organization, ignoring a supplied organization", async () => {
+  vi.mocked(getSessionUser).mockResolvedValue(
+    session(UserRole.Mentee, "own-org"),
+  );
+  vi.mocked(fetchOrganizationActionItems).mockResolvedValue(ok);
+  const response = await GET(
+    new NextRequest(
+      "http://localhost/api/action-items?scope=organization&organizationId=other-org",
+    ),
+  );
+  expect(response.status).toBe(200);
+  expect(fetchOrganizationActionItems).toHaveBeenCalledWith("own-org");
 });

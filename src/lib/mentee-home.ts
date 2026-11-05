@@ -236,13 +236,20 @@ export function buildHomeTasks({
         subtitle: [
           request?.mentorName ?? item.ownerName,
           request?.supportArea ?? t("tasks.taskFallback"),
+          item.previousOwnerName
+            ? t("tasks.handedOver", { name: item.previousOwnerName })
+            : null,
         ]
           .filter(Boolean)
           .join(" · "),
         dueTone: due.tone,
         dueLabel: due.label,
         actionLabel: t("tasks.openTask"),
-        href: requestId ? requestStatusHref(requestId) : "/mentorships",
+        href: requestId
+          ? requestStatusHref(requestId)
+          : item.ownerLeftAt
+            ? "/startup/process"
+            : "/mentorships",
         requestId,
       },
     };

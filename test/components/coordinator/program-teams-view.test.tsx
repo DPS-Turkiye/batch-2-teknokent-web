@@ -29,6 +29,7 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   removeProgramTeam: vi.fn(),
   sendProgramTeamCode: vi.fn(),
   getProgramTeamDetail: vi.fn(),
+  getProgramWithoutTeam: vi.fn().mockResolvedValue([]),
 }));
 vi.mock("@/lib/client/startup-process", () => ({
   getTeamProcess: vi.fn(),
