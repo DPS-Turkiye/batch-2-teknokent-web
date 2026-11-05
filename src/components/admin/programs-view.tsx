@@ -465,7 +465,7 @@ function programHealth(program: AdminProgram, data: AdminOverview) {
   let amber = 0;
   let red = 0;
   for (const startup of program.startups) {
-    const mentorship = activeMentorshipFor(data, startup.id);
+    const mentorship = activeMentorshipFor(data, startup);
     const blocked = data.bottlenecks.some(
       (item) => item.organizationId === startup.id,
     );
@@ -491,7 +491,7 @@ function phaseLabel(
     return t("phaseCompleted", { date });
   }
   const mentoring = program.startups.some((startup) =>
-    activeMentorshipFor(data, startup.id),
+    activeMentorshipFor(data, startup),
   );
   return mentoring ? t("phaseMentoring", { date }) : t("phaseSetup", { date });
 }

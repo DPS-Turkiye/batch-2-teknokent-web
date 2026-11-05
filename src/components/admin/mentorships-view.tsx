@@ -7,8 +7,10 @@ import { useState, type ReactNode } from "react";
 
 import {
   daysSince,
+  mentorshipInPrograms,
   needsAttention,
   programForOrganization,
+  programOfMentorship,
   unmatchedStartups,
 } from "@/components/admin/admin-model";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
@@ -167,7 +169,7 @@ function Overview({
   const criticalPrograms = new Set(critical.map((row) => row.programName));
   const activePrograms = new Set(
     active
-      .map((item) => programForOrganization(data, item.organizationId)?.name)
+      .map((item) => programOfMentorship(data, item)?.name)
       .filter((name): name is string => Boolean(name)),
   );
 
@@ -1162,9 +1164,8 @@ function programsInScope(data: AdminOverview, scope: string) {
 }
 
 function activeMentorships(data: AdminOverview, programs: AdminProgram[]) {
-  const ids = organizationIds(programs);
   return data.mentorships.filter(
-    (item) => item.status === "ACTIVE" && ids.has(item.organizationId),
+    (item) => item.status === "ACTIVE" && mentorshipInPrograms(item, programs),
   );
 }
 
@@ -1203,8 +1204,10 @@ function interventionRows(
   const covered = new Set<string>();
   const rows: InterventionRow[] = [];
   for (const item of data.mentorships) {
-    if (!ids.has(item.organizationId) || !needsAttention(item)) continue;
-    const program = programForOrganization(data, item.organizationId);
+    if (!mentorshipInPrograms(item, programs) || !needsAttention(item)) {
+      continue;
+    }
+    const program = programOfMentorship(data, item);
     const blocks = data.bottlenecks.filter(
       (block) => block.organizationId === item.organizationId,
     );
@@ -1324,7 +1327,7 @@ function mentorshipMatchRow(
   data: AdminOverview,
   item: AdminMentorship,
 ): MatchRow {
-  const program = programForOrganization(data, item.organizationId);
+  const program = programOfMentorship(data, item);
   return {
     id: item.id,
     teamName: item.organizationName,
