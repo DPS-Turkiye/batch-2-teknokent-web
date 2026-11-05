@@ -419,7 +419,8 @@
   },
   "publicSession": {
     "continueAs": "Continue as {name}",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signUp": "Sign up"
   },
   "landing": {
     "nav": {

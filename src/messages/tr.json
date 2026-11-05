@@ -419,7 +419,8 @@
   },
   "publicSession": {
     "continueAs": "{name} olarak devam et",
-    "signIn": "Giriş Yap"
+    "signIn": "Giriş Yap",
+    "signUp": "Kayıt Ol"
   },
   "landing": {
     "nav": {
