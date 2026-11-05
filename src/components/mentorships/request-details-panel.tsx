@@ -1,3 +1,4 @@
+import { ProgramContext } from "@/components/common/program-context";
 import { useLocale, useTranslations } from "next-intl";
 
 import { useTopicLabel } from "@/hooks/use-option-label";
@@ -37,6 +38,7 @@ export function RequestDetailsPanel({
 
   return (
     <div className={`space-y-3 text-sm text-[#676e78] ${className}`}>
+      <ProgramContext name={request.programName} />
       {detail.fields.map((field) => (
         <div
           key={field.key}

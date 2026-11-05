@@ -132,3 +132,11 @@ describe("RegularMentorshipsTab", () => {
     );
   });
 });
+
+it("shows the program recorded on an existing mentorship", async () => {
+  getRegularMentorships.mockResolvedValue([
+    mentorship({ programId: "program-1", programName: "Growth Circuit 2026" }),
+  ]);
+  renderWithQueryClient(<RegularMentorshipsTab role={UserRole.Mentor} />);
+  expect(await screen.findByText("Growth Circuit 2026")).toBeInTheDocument();
+});

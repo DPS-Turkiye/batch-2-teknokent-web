@@ -30,8 +30,7 @@
     "passwordsMismatch": "Şifreler eşleşmiyor.",
     "creatingAccount": "Hesap oluşturuluyor…",
     "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
-    "signIn": "Giriş yap",
-    "shellImageAlt": "menton ile doğru mentörle eşleş"
+    "signIn": "Giriş yap"
   },
   "register": {
     "titleMentor": "Mentor olarak menton’a katıl",
@@ -178,7 +177,14 @@
     "sending": "Gönderiliyor…",
     "sendToCoordinator": "Koordinatöre gönder",
     "continue": "Devam et",
-    "draftSaved": "Taslak kaydedildi."
+    "draftSaved": "Taslak kaydedildi.",
+    "soloSubmittedTitle": "Başvurun koordinatöre gönderildi",
+    "soloLastStepLabel": "Startup'ını oluşturur ya da bir takıma katılırsın",
+    "soloNextSteps": [
+      "Onaylanırsa Startup'ım sayfasından kendi startup'ını oluşturabilir ya da takımının koduyla katılabilirsin.",
+      "Düzenleme istenirse e-postayla bilgilendirilirsin.",
+      "Mentor talebi, startup'ın onaylandıktan sonra açılır."
+    ]
   },
   "signupSteps": {
     "basics": "Temel bilgiler",
@@ -220,7 +226,11 @@
     "add": "Ekle",
     "supportAreas": "Mentor desteği istediğin alanlar",
     "supportAreasSubtitle": "En fazla {max} alan seç. Mentor önerileri buna göre sıralanır.",
-    "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır."
+    "supportAreasLimit": "En fazla {max} alan seçebilirsin. Değiştirmek için birini kaldır.",
+    "programSubtitle": "Başvurun bu programın koordinatörüne gider.",
+    "startupLater": "Startup'ı daha sonra oluşturacağım",
+    "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
+    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
   },
   "signupDocuments": {
     "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
@@ -254,7 +264,9 @@
     "notUploaded": "Yüklenmedi",
     "missingTitle": "Pitch deck ve prototip yüklemeden de gönderebilirsin",
     "missingBody": "Ancak mentorlar startupını değerlendirirken en çok bu iki dosyaya bakıyor. Sonradan da ekleyebilirsin.",
-    "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum."
+    "consent": "Verdiğim bilgilerin doğru olduğunu onaylıyorum ve profilin koordinatör tarafından incelenmesini kabul ediyorum.",
+    "program": "Program",
+    "startupLater": "Daha sonra oluşturulacak"
   },
   "onboarding": {
     "exiting": "Çıkılıyor…",
@@ -419,7 +431,8 @@
   },
   "publicSession": {
     "continueAs": "{name} olarak devam et",
-    "signIn": "Giriş Yap"
+    "signIn": "Giriş Yap",
+    "signUp": "Kayıt Ol"
   },
   "landing": {
     "nav": {
@@ -873,6 +886,10 @@
       "tooManyPhases": "En fazla {max} faz eklenebilir.",
       "phaseName": "Her fazın bir adı olmalı.",
       "phaseDates": "“{name}” fazı başlamadan bitemez."
+    },
+    "programLaunch": {
+      "phaseNameRequired": "{n}. fazın adını gir.",
+      "phaseDateMissing": "“{name}” fazının tarihlerini gir."
     }
   },
   "metadata": {
@@ -952,7 +969,8 @@
         "MORE_INFO_REQUESTED": "Bilgi bekliyor",
         "COUNTER_PROPOSED": "Saat önerisi",
         "ACCEPTED": "Saat seç"
-      }
+      },
+      "handedOver": "{name} ekipten ayrıldı, sana devredildi"
     },
     "upcoming": {
       "title": "Yaklaşan görüşmeler",
@@ -1785,6 +1803,31 @@
       "copiedToast": "Davet kodu kopyalandı.",
       "rotated": "Yeni davet kodu üretildi.",
       "rotateFailed": "Yeni kod üretilemedi."
+    },
+    "removalRequested": "Çıkarma talebi koordinatöre gönderildi.",
+    "removeRequestBody": "{name} için çıkarma talebi programın koordinatörüne gider. Koordinatör onaylayana kadar {name} ekipte kalır; açık görevleri onaydan sonra ekipteki diğer kişilere dağıtılır.",
+    "changes": {
+      "leaveAction": "Takımdan ayrıl",
+      "leaveTitle": "Takımdan ayrılmak istiyor musun?",
+      "memberLeaveBody": "Ayrılma talebin programın koordinatörüne gider. Onaylanana kadar ekipte kalırsın ve talebi geri alabilirsin. Onaylanınca açık görevlerin ekipteki diğer kişilere otomatik dağıtılır.",
+      "leaderLeaveBody": "Takım lideri olarak hemen ayrılırsın: liderlik seçtiğin kişiye geçer ve bu startup'a erişimin kalkar. Açık görevlerin ekipteki diğer kişilere otomatik dağıtılır.",
+      "aloneLeaveBody": "Takımda senden başka kimse yok. Ayrılırsan startup arşivlenir: bilgileri saklanır ama artık programda takım olarak görünmez ve davet kodu çalışmaz.",
+      "successor": "Yeni takım lideri",
+      "successorPlaceholder": "Bir ekip üyesi seç",
+      "noSuccessor": "Ekipteki herkesin bekleyen bir ayrılma ya da çıkarma talebi var. Önce bu talepler sonuçlanmalı.",
+      "cancel": "Vazgeç",
+      "sending": "Gönderiliyor…",
+      "leave": "Ayrıl",
+      "sendRequest": "Talep gönder",
+      "leavePending": "Ayrılma talebi bekliyor",
+      "removalPending": "Çıkarma talebi bekliyor",
+      "withdraw": "Talebi geri al",
+      "leaveRequested": "Ayrılma talebin koordinatöre gönderildi.",
+      "leaveRequestFailed": "Ayrılma talebi gönderilemedi.",
+      "cancelled": "Talep geri alındı.",
+      "cancelFailed": "Talep geri alınamadı.",
+      "left": "Takımdan ayrıldın.",
+      "leaveFailed": "Takımdan ayrılınamadı."
     }
   },
   "documentKinds": {
@@ -1800,7 +1843,8 @@
     "logo": "Logo",
     "avatar": "Profil fotoğrafı",
     "profile-pdf": "Profil PDF'i",
-    "requested-doc": "İstenen belge"
+    "requested-doc": "İstenen belge",
+    "syllabus": "Müfredat"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -2339,9 +2383,7 @@
     "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
     "backToMentorships": "Mentorluklarıma dön",
     "homeLabel": "menton ana sayfa",
-    "toastRegion": "İşlem bildirimleri",
-    "botFullTitle": "Kayıt botu şu anda katılamıyor",
-    "botFullMessage": "Özür dileriz, sitedeki yoğun kullanım nedeniyle kayıt botu şu anda bu görüşmeye katılamıyor. Görüşme planlandı; kayıt olmadan yapılacak."
+    "toastRegion": "İşlem bildirimleri"
   },
   "optionValues": {
     "stage": {
@@ -2550,6 +2592,26 @@
       "decline": "Reddet",
       "sendMessage": "Mesaj gönder",
       "accept": "Mentorluğu kabul et"
+    },
+    "assignTask": {
+      "open": "Yeni iş ata",
+      "title": "İş ata",
+      "taskTitle": "İş başlığı",
+      "assignee": "Atanan kişi",
+      "chooseAssignee": "Startup üyesi seç",
+      "description": "Açıklama (isteğe bağlı)",
+      "dueDate": "Teslim tarihi (isteğe bağlı)",
+      "cancel": "Vazgeç",
+      "save": "İşi ata",
+      "saving": "Atanıyor…",
+      "saved": "İş atandı.",
+      "loading": "Startup üyeleri yükleniyor…",
+      "loadFailed": "Startup üyeleri yüklenemedi.",
+      "retry": "Tekrar dene",
+      "noAssignees": "İş atanabilecek onaylı bir startup üyesi yok.",
+      "validation": "İş başlığını, startup üyesini ve teslim tarihini kontrol et.",
+      "saveFailed": "İş atanamadı. Bilgilerini koruduk; tekrar deneyebilirsin.",
+      "forbidden": "Yalnızca mentorlar iş atayabilir."
     }
   },
   "mentorDecision": {
@@ -3426,7 +3488,8 @@
       "TEAMS": "Takımlar",
       "MENTOR_POOL": "Mentor Havuzu",
       "MATCHING": "Eşleşmeler",
-      "SETTINGS": "Program Ayarları"
+      "SETTINGS": "Program Ayarları",
+      "APPROVALS": "Onaylar"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
     "coordinators": "{count, plural, =1 {Koordinatör} other {Koordinatörler}}: {names}",
@@ -3480,6 +3543,7 @@
       "waitingWork": "Bekleyen işler",
       "upcomingTitle": "Yaklaşan tarihler",
       "noUpcoming": "Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.",
+      "noUpcomingAdmin": "Yaklaşan etkinlik ya da son tarih yok.",
       "today": "bugün",
       "inDays": "{count} gün",
       "distribution": "Takım & mentor dağılımı",
@@ -3524,7 +3588,8 @@
       "GENERAL": "Genel bilgiler",
       "COORDINATORS": "Koordinatörler",
       "RULES": "Mentorluk kuralları",
-      "ARCHIVE": "Arşiv"
+      "ARCHIVE": "Arşiv",
+      "CURRICULUM": "Müfredat & fazlar"
     },
     "sectionsLabel": "Ayar bölümleri",
     "archivedNote": "Bu program arşivlendi ve salt okunur. Değiştirmek için aşağıdan yeniden açın.",
@@ -3676,6 +3741,12 @@
         "hint": "Takım ve yetkililer",
         "title": "Takımlar ve yetkililer",
         "note": "Her takıma bir katılım kodu üretilir. Kodu takım yetkilisiyle paylaşın; yetkili bu kodla kaydolur ve ekip üyeleriyle paylaşır."
+      },
+      "CURRICULUM": {
+        "label": "Müfredat & fazlar",
+        "hint": "Program aşamaları",
+        "title": "Müfredat & fazlar",
+        "note": "Program fazları, mentinin süreç takibinin ve genel bakıştaki faz çizelgesinin temelidir. Sonradan Program Ayarları’ndan düzenlenebilir."
       }
     },
     "problems": {
@@ -3718,7 +3789,34 @@
     "created": "{name} oluşturuldu.",
     "createFailed": "Program oluşturulamadı.",
     "csvEmpty": "Dosyada “takım adı, e-posta” satırı bulunamadı.",
-    "rowErrors": "{count} satırda hata var."
+    "rowErrors": "{count} satırda hata var.",
+    "confirm": "Onayla: {step}",
+    "syllabus": "Program Müfredatı",
+    "noFile": "Dosyan yok mu?",
+    "enterManually": "Manuel gir",
+    "dropzone": "Dosyanı buraya bırak veya seç",
+    "dropzoneHint": "PDF · en fazla 10 MB",
+    "syllabusTip": "Yüklenen müfredattan program fazları otomatik çıkarılır; bir sonraki adımda kontrol edip düzenleyebilirsin.",
+    "uploading": "Yükleniyor…",
+    "pdfOnly": "Müfredatı PDF olarak yükle.",
+    "tooLarge": "Dosya 10 MB’tan büyük.",
+    "uploadFailed": "Müfredat yüklenemedi.",
+    "sourceLabel": "Faz kaynağı",
+    "sourceFile": "Dosyadan çıkar",
+    "sourceManual": "Manuel gir",
+    "summary": "{count} faz",
+    "summaryMonths": "{count} faz · {months} ay",
+    "fileMeta": "{size} · {pages} sayfa",
+    "change": "Değiştir",
+    "removeFile": "Dosyayı kaldır",
+    "extracting": "Müfredat okunuyor, bu birkaç saniye sürebilir…",
+    "extracted": "Müfredattan {count} faz çıkarıldı. Kontrol edip onayla.",
+    "extractedMissing": "Müfredattan {count} faz çıkarıldı. {missing} fazın tarihi bulunamadı — kontrol edip onayla.",
+    "extractFailed": "Müfredat okunamadı.",
+    "retry": "Tekrar dene",
+    "noPhasesFound": "Müfredatta faz bulunamadı. Fazları elle ekleyebilirsin.",
+    "noPhases": "Henüz faz yok. Faz ekleyebilir ya da bu adımı boş geçebilirsin.",
+    "waitForSyllabus": "Müfredat okunurken biraz bekle."
   },
   "programMentors": {
     "filters": {
@@ -5060,6 +5158,196 @@
     "documentAddFailed": "Belge eklenemedi.",
     "sessionRequired": "Oturum gerekli.",
     "fileDeleteFailed": "Dosya silinemedi.",
-    "startupNotInProgram": "Bu startup bu programda yok."
+    "startupNotInProgram": "Bu startup bu programda yok.",
+    "teamChangesLoadFailed": "Takım talepleri yüklenemedi.",
+    "startupResubmitFailed": "Startup tekrar gönderilemedi. Lütfen tekrar deneyin.",
+    "teamRemovalRequestFailed": "Çıkarma talebi gönderilemedi.",
+    "syllabusReadFailed": "Müfredat okunamadı.",
+    "startupCreateFailed": "Startup oluşturulamadı. Lütfen tekrar deneyin.",
+    "startupJoinFailed": "Startup'a katılınamadı. Lütfen tekrar deneyin.",
+    "teamChangeCancelFailed": "Talep geri alınamadı.",
+    "teamLeaveRequestFailed": "Ayrılma talebi gönderilemedi.",
+    "approvalsLoadFailed": "Onaylar yüklenemedi.",
+    "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
+    "teamLeaveFailed": "Takımdan ayrılınamadı."
+  },
+  "startupStart": {
+    "title": "Startup'ım",
+    "subtitle": "Henüz bir startup ile eşleşmedin. Kendi startup’ını oluştur ya da takımının koduyla katıl.",
+    "joinTitle": "Kodum var",
+    "joinBody": "Takım arkadaşının paylaştığı startup kodunu gir; aynı programdaysanız hemen katılırsın.",
+    "codeLabel": "Startup kodu",
+    "codePlaceholder": "Örn. K7Q2XA",
+    "join": "Katıl",
+    "joining": "Katılınıyor…",
+    "joinFailed": "Startup'a katılınamadı.",
+    "createTitle": "Startup'ımı oluştur",
+    "createBody": "Startup profilini doldur; koordinatör onayladığında mentor talebi oluşturabilirsin.",
+    "create": "Startup'ımı oluştur",
+    "createSubtitle": "Koordinatör ve mentorlar bu bilgileri görür.",
+    "documentsTitle": "Dosyalar",
+    "documentsSubtitle": "İsteğe bağlı; daha sonra Dosyalar sekmesinden de yükleyebilirsin.",
+    "back": "← Startup'ım",
+    "continue": "Devam et",
+    "previous": "Geri",
+    "sending": "Gönderiliyor…",
+    "sendForApproval": "Koordinatör onayına gönder",
+    "createFailed": "Startup oluşturulamadı.",
+    "pendingBanner": "Startup'ınız koordinatör onayı bekliyor. Bu sürede profili düzenleyebilir, dosya yükleyebilir ve takım kodunu paylaşabilirsiniz.",
+    "pendingBannerMember": "Startup'ınız koordinatör onayı bekliyor. Onaylandığında tüm sayfalar açılır.",
+    "rejectedBanner": "Startup'ınız onaylanmadı. Profili güncelleyip tekrar onaya gönderebilirsiniz.",
+    "rejectedBannerMember": "Startup'ınız onaylanmadı. Kurucu profili güncelleyip tekrar onaya gönderebilir.",
+    "resubmit": "Tekrar onaya gönder",
+    "resubmitFailed": "Tekrar gönderilemedi."
+  },
+  "programPhases": {
+    "timelineLabel": "Faz zaman çizelgesi",
+    "duration": "Program süresi · {months} ay",
+    "phaseLabel": "Faz {n}",
+    "untitled": "Adsız faz",
+    "fromFile": "Dosyadan",
+    "enterDate": "Tarih gir",
+    "dateMissing": "Tarih bulunamadı",
+    "name": "Faz adı",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "expectedOutput": "Beklenen çıktı",
+    "expectedOutputHint": "opsiyonel · mentinin süreç takibinde görünür",
+    "addOutput": "Çıktı ekle…",
+    "removeOutput": "“{output}” çıktısını kaldır",
+    "remove": "Sil",
+    "edit": "“{name}” fazını düzenle",
+    "collapse": "Kapat",
+    "drag": "{n}. fazı sürükle",
+    "moveUp": "{n}. fazı yukarı taşı",
+    "moveDown": "{n}. fazı aşağı taşı",
+    "addPhase": "Faz ekle"
+  },
+  "programCurriculum": {
+    "title": "Müfredat & fazlar",
+    "subtitle": "Fazlar mentinin süreç takibini ve Genel Bakış’taki faz çizelgesini belirler.",
+    "addPhase": "Faz ekle",
+    "noFile": "Müfredat dosyası yok",
+    "noFileHint": "PDF yüklersen fazları dosyadan çıkarabilirsin.",
+    "uploaded": "Yüklendi {date}",
+    "reading": "Müfredat okunuyor…",
+    "chooseFile": "Müfredat PDF dosyası seç",
+    "uploadFile": "Dosya yükle",
+    "replaceFile": "Dosyayı güncelle",
+    "reread": "Fazları yeniden çıkar",
+    "reviewNote": "Dosyadan {count} faz çıkarıldı. Kaydedersen mevcut fazların yerini alır.",
+    "saveReview": "Fazları kaydet",
+    "today": "Bugün",
+    "todayWeek": "Bugün · {week}",
+    "week": "hafta {current}/{total}",
+    "empty": "Henüz faz yok. “Faz ekle” ile başla ya da müfredat dosyası yükle.",
+    "listLabel": "Program fazları",
+    "lockNote": "Tamamlanan fazların tarihleri kilitlidir, adları düzenlenebilir. Değişiklikler {count} takımın süreç görünümünü günceller.",
+    "done": "Tamamlandı",
+    "current": "Şu an",
+    "currentWeek": "Şu an · {week}",
+    "planned": "Planlandı",
+    "unnamed": "{n}. faz",
+    "drag": "{name} fazını sürükle",
+    "datesLocked": "Tarihler kilitli",
+    "noDates": "Tarih yok",
+    "edit": "{name} fazını düzenle",
+    "editPhase": "Fazı düzenle",
+    "newPhase": "Yeni faz",
+    "drawerSubtitle": "{program} · {n}. faz",
+    "close": "Kapat",
+    "name": "Faz adı",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "currentLockHint": "Aktif fazın başlangıcı değiştirilemez; bitiş tarihi uzatılabilir.",
+    "doneLockHint": "Tamamlanan fazın tarihleri değiştirilemez; adı ve çıktıları düzenlenebilir.",
+    "effectTitle": "Bu değişikliğin etkisi",
+    "startMoved": "Başlangıç {from} → {to}",
+    "endLonger": "Bitiş {from} → {to}: faz {span} uzar",
+    "endShorter": "Bitiş {from} → {to}: faz {span} kısalır",
+    "gapToNext": "{name} ({date}) ile arada {span} kalır",
+    "overlapsNext": "{name} ile tarihler çakışır",
+    "teamsUpdated": "{count} takımın süreç görünümü güncellenir",
+    "weeks": "{count} hafta",
+    "days": "{count} gün",
+    "remove": "Fazı sil",
+    "cancel": "Vazgeç",
+    "save": "Kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "Fazlar kaydedildi.",
+    "saveFailed": "Fazlar kaydedilemedi.",
+    "readFailed": "Müfredat okunamadı.",
+    "uploadFailed": "Dosya yüklenemedi.",
+    "pdfOnly": "Yalnızca PDF yükleyebilirsin.",
+    "tooLarge": "Dosya en fazla 10 MB olabilir."
+  },
+  "teamHistory": {
+    "show": "Takım geçmişi",
+    "hide": "Takım geçmişini gizle",
+    "loading": "Yükleniyor…",
+    "empty": "Henüz bir takımda olmadı.",
+    "current": "{from} tarihinden beri",
+    "left": "{from} – {to}, ayrıldı",
+    "removed": "{from} – {to}, çıkarıldı",
+    "archived": "arşivlendi",
+    "startupPending": "startup onay bekliyor",
+    "startupRejected": "startup reddedildi"
+  },
+  "startupGate": {
+    "none": {
+      "title": "Önce startup'ınızı oluşturun veya bir takıma katılın",
+      "body": "Bu sayfa bir startup ile çalışır. Startup'ım sayfasından kendi startup'ınızı oluşturabilir ya da takım kodunuzla katılabilirsiniz."
+    },
+    "pending": {
+      "title": "Startup'ınız koordinatör onayı bekliyor.",
+      "body": "Onaylandığında bu sayfa açılır. Bu sürede profili düzenleyebilir, dosya yükleyebilir ve takım kodunu paylaşabilirsiniz."
+    },
+    "rejected": {
+      "title": "Startup'ınız onaylanmadı",
+      "body": "Startup'ım sayfasından profili güncelleyip tekrar onaya gönderebilirsiniz."
+    },
+    "goToStartup": "Startup'ım sayfasına git"
+  },
+  "programApprovals": {
+    "approve": "Onayla",
+    "reject": "Reddet",
+    "saving": "Kaydediliyor…",
+    "approved": "Onaylandı.",
+    "rejected": "Reddedildi.",
+    "decisionFailed": "Karar kaydedilemedi.",
+    "peopleTitle": "Başvurular",
+    "peopleHint": "Bu programı seçerek kaydolan ve onay bekleyen kişiler.",
+    "peopleEmpty": "Onay bekleyen başvuru yok.",
+    "withStartup": "Startup: {name}",
+    "withoutStartup": "Startup daha sonra",
+    "signedUp": "Kayıt: {date}",
+    "startupsTitle": "Sonradan oluşturulan startuplar",
+    "startupsHint": "Programdaki kişilerin kayıttan sonra oluşturduğu startuplar.",
+    "startupsEmpty": "Onay bekleyen startup yok.",
+    "createdBy": "Kuran: {name} ({email})",
+    "withoutTeamTitle": "Takımı olmayanlar",
+    "withoutTeamHint": "Onaylanmış ama henüz bir startup oluşturmamış ya da bir takıma katılmamış kişiler.",
+    "withoutTeamEmpty": "Takımı olmayan kimse yok.",
+    "teamChangesTitle": "Takımdan ayrılma ve çıkarma",
+    "teamChangesHint": "Ayrılmak isteyen üyeler ve takım liderlerinin çıkarmak istediği kişiler. Onaylanınca kişi takımsız olarak programda kalır.",
+    "teamChangesEmpty": "Bekleyen talep yok.",
+    "wantsToLeave": "{startup} takımından ayrılmak istiyor",
+    "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
+  },
+  "programContext": {
+    "label": "Program",
+    "unknown": "Program bilgisi yok"
+  },
+  "mentorProgramInvitations": {
+    "title": "Program davetleri",
+    "failed": "Program davetlerin yüklenemedi.",
+    "invitedBy": "{name} seni mentor olarak davet etti · {date}",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "answering": "Kaydediliyor…",
+    "accepted": "{name} programına katıldın.",
+    "declined": "{name} davetini reddettin.",
+    "answerFailed": "Davete yanıt verilemedi.",
+    "awaitingReview": "Koordinatör onayı bekleniyor"
   }
 }

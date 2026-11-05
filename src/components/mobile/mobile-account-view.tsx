@@ -2,6 +2,8 @@
 
 import { useTranslations } from "next-intl";
 
+import { LanguageSwitch } from "@/components/common/language-switch";
+import { ENGLISH_ENABLED } from "@/lib/i18n";
 import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileToggle } from "@/components/mobile/mobile-toggle";
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar";
@@ -42,6 +44,7 @@ function PushDeviceRow({
 
 export function MobileAccountView() {
   const t = useTranslations("mobile.account");
+  const tAccount = useTranslations("accountDialogs");
   const tPreferences = useTranslations("accountDialogs.preferences");
   const account = useMobileAccount();
 
@@ -73,6 +76,17 @@ export function MobileAccountView() {
           ) : null}
         </section>
 
+        {ENGLISH_ENABLED ? (
+          <section
+            className={`${CARD_CLASS} p-4`}
+            aria-label={tAccount("language")}
+          >
+            <h2 className="mb-3 text-[13px] font-semibold text-[#858c96]">
+              {tAccount("language")}
+            </h2>
+            <LanguageSwitch />
+          </section>
+        ) : null}
         <section
           className="flex flex-col gap-2"
           aria-label={t("notifications")}
