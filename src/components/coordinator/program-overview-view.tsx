@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { EmptyNote } from "@/components/admin/admin-ui";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useProgramTeamsQuery } from "@/hooks/use-program-teams";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
@@ -48,6 +49,7 @@ export function ProgramOverviewView({ programId }: { programId: string }) {
 
 /** "Kurulum n / 4": what a new program still needs before mentoring can start. */
 function SetupCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const { resolveHref } = useProgramNavigation(detail.program.id);
   const t = useTranslations("coordinatorPrograms");
   const teams = useProgramTeamsQuery(detail.program.id);
   if (!teams.data) return null;
@@ -114,7 +116,7 @@ function SetupCard({ detail }: { detail: CoordinatorProgramDetail }) {
               </span>
               {step.link?.href ? (
                 <Link
-                  href={step.link.href}
+                  href={resolveHref(step.link.href)}
                   className={
                     current
                       ? "rounded-full bg-[#22262b] px-3.5 py-1.5 text-[12.5px] text-white"
@@ -150,6 +152,7 @@ function Card({
   link?: { label: string; href: string };
   children: ReactNode;
 }) {
+  const { resolveHref } = useProgramNavigation("");
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-6">
       <div className="mb-5 flex items-center justify-between gap-3">
@@ -163,7 +166,7 @@ function Card({
         </h2>
         {link ? (
           <Link
-            href={link.href}
+            href={resolveHref(link.href)}
             className="inline-flex items-center gap-1 text-[13px] text-[#22262b]"
           >
             {link.label} <ArrowRight aria-hidden className="size-3.5" />
@@ -176,6 +179,7 @@ function Card({
 }
 
 function PhaseCard({ detail }: { detail: CoordinatorProgramDetail }) {
+  const { admin } = useProgramNavigation(detail.program.id);
   const t = useTranslations("coordinatorPrograms");
   const locale = useLocale();
   const program = detail.program;
@@ -191,7 +195,12 @@ function PhaseCard({ detail }: { detail: CoordinatorProgramDetail }) {
             })
           : undefined
       }
-      link={{ label: t("overview.calendar"), href: "/coordinator/calendar" }}
+      // Admins have no calendar screen, so the link would land somewhere else.
+      link={
+        admin
+          ? undefined
+          : { label: t("overview.calendar"), href: "/coordinator/calendar" }
+      }
     >
       {phases.length === 0 ? (
         <p className="text-[13px] text-[#858c96]">{t("overview.noPhases")}</p>
@@ -333,6 +342,7 @@ function Legend({
 }
 
 function Actions({ detail }: { detail: CoordinatorProgramDetail }) {
+  const { resolveHref } = useProgramNavigation(detail.program.id);
   const t = useTranslations("coordinatorPrograms");
   const actions = overviewActions(detail, t);
   if (actions.length === 0) {
@@ -367,7 +377,7 @@ function Actions({ detail }: { detail: CoordinatorProgramDetail }) {
           </span>
           {action.target.href ? (
             <Link
-              href={action.target.href}
+              href={resolveHref(action.target.href)}
               className="inline-flex items-center gap-1 rounded-full border border-[#e9ecef] px-3 py-1.5 text-[12.5px] text-[#22262b]"
             >
               {action.target.label}{" "}

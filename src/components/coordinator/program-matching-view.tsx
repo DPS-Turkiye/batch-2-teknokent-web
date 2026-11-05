@@ -20,6 +20,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { FirstStepsDrawer } from "@/components/coordinator/first-steps-drawer";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { MAX_COORDINATOR_NOTE } from "@/hooks/use-coordinator-notes";
 import { useOptionLabel } from "@/hooks/use-option-label";
@@ -80,6 +81,7 @@ function MatchingBody({
   programId: string;
   initialTeamId?: string;
 }) {
+  const { resolveHref } = useProgramNavigation(programId);
   const t = useTranslations("programMatching");
   const matching = useProgramMatching(programId, initialTeamId);
   const overview = matching.overview.data;
@@ -118,7 +120,7 @@ function MatchingBody({
             </button>
           ) : (
             <Link
-              href="/coordinator/mentorships"
+              href={resolveHref("/coordinator/mentorships")}
               className="ml-auto font-medium underline"
             >
               {t("openMentorship")}

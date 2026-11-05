@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import { usePathname } from "next/navigation";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -17,6 +18,10 @@ import {
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("next/navigation", () => ({
+  usePathname: vi.fn(() => "/coordinator/programs/program-1"),
+}));
+
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
@@ -31,10 +36,25 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
 describe("coordinator program detail", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(usePathname).mockReturnValue("/coordinator/programs/program-1");
     vi.mocked(getCoordinatorProgram).mockResolvedValue(
       coordinatorProgramDetail(),
     );
     vi.mocked(getProgramTeams).mockResolvedValue([]);
+  });
+
+  it("keeps admin settings and report links in the admin shell", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+    expect(
+      await screen.findByRole("tab", { name: "Program Ayarları" }),
+    ).toHaveAttribute("href", "/admin/programs/program-1/settings");
+    expect(
+      screen.getByRole("link", { name: "Program raporu" }),
+    ).toHaveAttribute("href", "/admin/programs/program-1/report");
+    expect(
+      screen.queryByRole("link", { name: /Takvim/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("walks a new program through its setup checklist", async () => {
@@ -76,6 +96,10 @@ describe("coordinator program detail", () => {
 
   it("shows Genel Bakış: phases, health, actions, dates and distribution", async () => {
     renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+    expect(await screen.findByRole("link", { name: /Takvim/ })).toHaveAttribute(
+      "href",
+      "/coordinator/calendar",
+    );
 
     expect(
       await screen.findByRole("heading", { name: /METU Stars 2026/ }),
