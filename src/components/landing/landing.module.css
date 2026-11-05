@@ -227,8 +227,10 @@
 .nav .wrap {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 28px;
-  height: 70px;
+  min-height: 70px;
+  padding-block: 12px;
 }
 .logo {
   display: flex;
@@ -277,20 +279,50 @@
 .nav-links a:hover::after {
   transform: scaleX(1);
 }
+.nav-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  margin-left: auto;
+}
+.nav-auth-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 .nav .btn {
   height: 40px;
   padding-inline: 18px;
   font-size: 13.5px;
-  margin-left: auto;
 }
-@media (max-width: 920px) {
+@media (max-width: 1100px) {
   .nav-links {
     display: none;
   }
 }
-@media (max-width: 420px) {
+@media (max-width: 640px) {
   .logo small {
     display: none;
+  }
+  .nav .wrap {
+    gap: 10px;
+  }
+  .nav .logo {
+    align-self: flex-start;
+    padding-top: 7px;
+  }
+  .nav-actions {
+    flex: 1 1 0;
+  }
+  .nav-auth-links {
+    order: -1;
+  }
+  .nav .btn {
+    padding-inline: 12px;
+    font-size: 12px;
   }
 }
 

@@ -31,7 +31,7 @@ export function LandingPage() {
 
   return (
     <div ref={rootRef} className={cx("page", revealing && "revealing")}>
-      <LandingNav login={login} />
+      <LandingNav login={login} signup={destination.signup} />
       <main id="top">
         <LandingHero login={login} />
         <LandingAnnouncements />
