@@ -2383,9 +2383,7 @@
     "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
     "backToMentorships": "Back to my mentorships",
     "homeLabel": "menton home",
-    "toastRegion": "Notifications",
-    "botFullTitle": "The recording bot can't join right now",
-    "botFullMessage": "Sorry, the recording bot can't join this meeting right now because the site is very busy. The meeting is scheduled and will go ahead without a recording."
+    "toastRegion": "Notifications"
   },
   "optionValues": {
     "stage": {
@@ -2594,6 +2592,26 @@
       "decline": "Decline",
       "sendMessage": "Send a message",
       "accept": "Accept mentorship"
+    },
+    "assignTask": {
+      "open": "Assign a task",
+      "title": "Assign a task",
+      "taskTitle": "Task title",
+      "assignee": "Assignee",
+      "chooseAssignee": "Choose a startup member",
+      "description": "Description (optional)",
+      "dueDate": "Due date (optional)",
+      "cancel": "Cancel",
+      "save": "Assign task",
+      "saving": "Assigning…",
+      "saved": "Task assigned.",
+      "loading": "Loading startup members…",
+      "loadFailed": "Startup members could not be loaded.",
+      "retry": "Try again",
+      "noAssignees": "There are no approved startup members to assign a task to.",
+      "validation": "Check the task title, startup member and due date.",
+      "saveFailed": "The task could not be assigned. Your entries are preserved; try again.",
+      "forbidden": "Only mentors can assign tasks."
     }
   },
   "mentorDecision": {

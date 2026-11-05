@@ -13,3 +13,23 @@ export type ProfileAnalysis = {
   ocrSummary?: Record<string, unknown> | string;
   createdAt: string;
 };
+
+export enum ProfileAnalysisType {
+  Startup = "mentee",
+  Personal = "individual_mentee",
+}
+export enum ProfileAnalysisStatus {
+  Draft = "DRAFT",
+  Confirmed = "CONFIRMED",
+}
+export enum ProfileOcrMode {
+  Auto = "auto",
+  Force = "force",
+  Off = "off",
+}
+
+export enum ProfileAnalysisRecordScope {
+  Startup = "STARTUP",
+  Personal = "PERSONAL",
+  TeamPersonal = "TEAM_PERSONAL",
+}

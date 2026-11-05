@@ -13,7 +13,10 @@ import { UserRole } from "@/interfaces/session";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMyMeetingProposalsQuery } from "@/hooks/use-meeting-proposals";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { useActionItemsForRequests } from "@/hooks/use-action-items";
+import {
+  useOrganizationActionItems,
+  useActionItemsForRequests,
+} from "@/hooks/use-action-items";
 import { useDismissedHomeTasks } from "@/hooks/use-dismissed-home-tasks";
 import { useMeetingsAwaitingFeedback } from "@/hooks/use-meetings-awaiting-feedback";
 import { useOpenTodoCounts } from "@/hooks/use-startup-meeting-notes";
@@ -80,13 +83,25 @@ export function useDashboardData() {
   const { nextMeeting, upcomingMeetings } = pickUpcomingMeetings(meetings);
   const { byRequest, isLoading: isLoadingActionItems } =
     useActionItemsForRequests(activeRequests.map((request) => request.id));
+  const organizationItems = useOrganizationActionItems(session?.organizationId);
   const { actionItems, actionItemRequestIds } = useMemo(() => {
     const requestIds: Record<string, string> = {};
-    const items = byRequest.flat();
+    const items = [...byRequest.flat()];
+    const seen = new Set(items.map((item) => item.id));
+    for (const item of organizationItems.data ?? []) {
+      if (
+        item.ownerLeftAt &&
+        item.ownerId === session?.userId &&
+        !seen.has(item.id)
+      ) {
+        items.push(item);
+        seen.add(item.id);
+      }
+    }
     for (const item of items)
       requestIds[item.id] = item.mentorshipRequestId ?? "";
     return { actionItems: items, actionItemRequestIds: requestIds };
-  }, [byRequest]);
+  }, [byRequest, organizationItems.data, session?.userId]);
   const openActionItems = useMemo(
     () =>
       actionItems

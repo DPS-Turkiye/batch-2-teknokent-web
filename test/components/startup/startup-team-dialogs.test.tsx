@@ -3,10 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  LeaveTeamDialog,
   MemberFormDialog,
   RemoveMemberDialog,
 } from "@/components/startup/startup-team-dialogs";
 import type { useStartupTeam } from "@/hooks/use-startup-team";
+import type { useTeamChanges } from "@/hooks/use-team-changes";
 import { MemberFormMode } from "@/lib/startup-team";
 import { memberFixture } from "@test/fixtures/startup-team";
 
@@ -80,6 +82,7 @@ describe("RemoveMemberDialog", () => {
     const onConfirm = vi.fn();
     render(
       <RemoveMemberDialog
+        asRequest={false}
         isRemoving={false}
         member={memberFixture("cto")}
         onCancel={vi.fn()}
@@ -104,5 +107,80 @@ describe("MemberFormDialog keyboard", () => {
     await user.type(screen.getByLabelText("Ad soyad"), "E{Enter}");
 
     expect(form.submitForm).toHaveBeenCalled();
+  });
+});
+
+type Changes = ReturnType<typeof useTeamChanges>;
+
+function changes(overrides: Partial<Changes> = {}) {
+  return {
+    alone: false,
+    closeLeave: vi.fn(),
+    confirmLeave: vi.fn(),
+    confirmingLeave: true,
+    isLeaving: false,
+    setSuccessorId: vi.fn(),
+    successorId: "",
+    successors: [memberFixture("cto")],
+    viewerIsLeader: false,
+    ...overrides,
+  } as unknown as Changes;
+}
+
+describe("LeaveTeamDialog", () => {
+  it("sends a member's leave to the coordinator", async () => {
+    const user = userEvent.setup();
+    const value = changes();
+    render(<LeaveTeamDialog changes={value} />);
+
+    expect(screen.getByText(/koordinatörüne gider/)).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Yeni takım lideri"),
+    ).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Talep gönder" }));
+    expect(value.confirmLeave).toHaveBeenCalled();
+  });
+
+  it("makes the leader pick a successor before leaving", async () => {
+    const user = userEvent.setup();
+    const value = changes({ viewerIsLeader: true });
+    const { rerender } = render(<LeaveTeamDialog changes={value} />);
+
+    expect(screen.getByRole("button", { name: "Ayrıl" })).toBeDisabled();
+    await user.selectOptions(
+      screen.getByLabelText("Yeni takım lideri"),
+      "Kerem Aksoy",
+    );
+    expect(value.setSuccessorId).toHaveBeenCalledWith("cto");
+
+    rerender(
+      <LeaveTeamDialog
+        changes={changes({ viewerIsLeader: true, successorId: "cto" })}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "Ayrıl" })).toBeEnabled();
+  });
+
+  it("warns a leader alone in the team that the startup is archived", () => {
+    render(
+      <LeaveTeamDialog
+        changes={changes({ viewerIsLeader: true, alone: true })}
+      />,
+    );
+
+    expect(screen.getByText(/startup arşivlenir/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ayrıl" })).toBeEnabled();
+  });
+
+  it("says when nobody can take the lead", () => {
+    render(
+      <LeaveTeamDialog
+        changes={changes({ viewerIsLeader: true, successors: [] })}
+      />,
+    );
+
+    expect(
+      screen.getByText(/Önce bu talepler sonuçlanmalı/),
+    ).toBeInTheDocument();
   });
 });
