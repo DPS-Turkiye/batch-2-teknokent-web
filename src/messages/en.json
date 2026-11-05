@@ -30,8 +30,7 @@
     "passwordsMismatch": "Passwords do not match.",
     "creatingAccount": "Creating your account…",
     "sessionExpired": "Your session has expired. Please sign in again.",
-    "signIn": "Sign in",
-    "shellImageAlt": "Find the right mentor with menton"
+    "signIn": "Sign in"
   },
   "register": {
     "titleMentor": "Join menton as a mentor",
@@ -432,7 +431,8 @@
   },
   "publicSession": {
     "continueAs": "Continue as {name}",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signUp": "Sign up"
   },
   "landing": {
     "nav": {
@@ -3525,6 +3525,7 @@
       "waitingWork": "Waiting work",
       "upcomingTitle": "Upcoming dates",
       "noUpcoming": "No upcoming events or deadlines. You can add them from the Calendar.",
+      "noUpcomingAdmin": "No upcoming events or deadlines.",
       "today": "today",
       "inDays": "{count, plural, one {# day} other {# days}}",
       "distribution": "Team & mentor distribution",
@@ -5314,5 +5315,17 @@
     "teamChangesEmpty": "No requests waiting.",
     "wantsToLeave": "wants to leave {startup}",
     "removalAsked": "{leader} asks to remove them from {startup}"
+  },
+  "mentorProgramInvitations": {
+    "title": "Program invitations",
+    "failed": "Could not load your program invitations.",
+    "invitedBy": "{name} invited you as a mentor · {date}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "answering": "Saving…",
+    "accepted": "You joined {name}.",
+    "declined": "You declined the invitation to {name}.",
+    "answerFailed": "Could not answer the invitation.",
+    "awaitingReview": "Waiting for the coordinator's approval"
   }
 }
