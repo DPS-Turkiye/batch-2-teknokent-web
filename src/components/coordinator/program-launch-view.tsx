@@ -1,14 +1,34 @@
 "use client";
 
-import { Check, ChevronRight, Info, Plus, Upload, X } from "lucide-react";
+import {
+  Check,
+  CheckCircle2,
+  ChevronRight,
+  FileText,
+  Info,
+  Pencil,
+  Plus,
+  Upload,
+  X,
+} from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import {
+  PhaseList,
+  PhaseTimeline,
+} from "@/components/coordinator/program-phase-list";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import { useProgramLaunch } from "@/hooks/use-program-launch";
 import { LAUNCH_STEPS, LaunchStep, teamCodePrefix } from "@/lib/program-launch";
-import { initials } from "@/lib/utils";
+import {
+  missingDate,
+  monthSpan,
+  PhaseSource,
+  type WizardPhase,
+} from "@/lib/program-phases";
+import { formatFileSize, initials } from "@/lib/utils";
 
 const FIELD =
   "mt-1.5 h-11 w-full rounded-2xl border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
@@ -97,6 +117,8 @@ export function ProgramLaunchView() {
           <section className="rounded-[28px] border border-[#e9ecef] bg-white p-6">
             {launch.step === LaunchStep.Basics ? (
               <BasicsStep launch={launch} />
+            ) : launch.step === LaunchStep.Curriculum ? (
+              <CurriculumStep launch={launch} />
             ) : launch.step === LaunchStep.Rules ? (
               <RulesStep launch={launch} />
             ) : (
@@ -142,11 +164,16 @@ export function ProgramLaunchView() {
                   onClick={launch.next}
                   className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
                 >
-                  {t("continue", {
-                    step: t(
-                      `steps.${LAUNCH_STEPS[launch.stepIndex + 1]}.label`,
-                    ),
-                  })}
+                  {t(
+                    launch.step === LaunchStep.Curriculum
+                      ? "confirm"
+                      : "continue",
+                    {
+                      step: t(
+                        `steps.${LAUNCH_STEPS[launch.stepIndex + 1]}.label`,
+                      ),
+                    },
+                  )}
                 </button>
               )}
             </div>
@@ -249,6 +276,233 @@ function BasicsStep({ launch }: { launch: Launch }) {
           className="mt-1.5 w-full rounded-2xl border border-[#e9ecef] px-4 py-3 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]"
         />
       </div>
+      <div>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Label htmlFor="program-syllabus" optional={t("optional")}>
+            {t("syllabus")}
+          </Label>
+          <span className="flex items-center gap-2 text-[12.5px] text-[#858c96]">
+            {t("noFile")}
+            <button
+              type="button"
+              onClick={launch.enterManually}
+              className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-3.5 py-2 font-medium text-[#22262b]"
+            >
+              <Pencil aria-hidden className="size-3.5" /> {t("enterManually")}
+            </button>
+          </span>
+        </div>
+        <div className="mt-1.5">
+          <SyllabusFile launch={launch} />
+        </div>
+        <p className="mt-2 flex items-start gap-2 text-[12px] text-[#858c96]">
+          <Info aria-hidden className="mt-px size-[15px] shrink-0" />
+          {t("syllabusTip")}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/** The drop zone until a PDF is uploaded, then the file's card with "Değiştir". */
+function SyllabusFile({ launch }: { launch: Launch }) {
+  const t = useTranslations("programLaunch");
+  const syllabus = launch.draft.syllabus;
+  const picker = (
+    <input
+      id={syllabus ? undefined : "program-syllabus"}
+      type="file"
+      accept="application/pdf,.pdf"
+      className="sr-only"
+      disabled={launch.uploading}
+      onChange={(event) => {
+        const file = event.target.files?.[0];
+        if (file) launch.chooseSyllabus(file);
+        event.target.value = "";
+      }}
+    />
+  );
+  if (!syllabus) {
+    return (
+      <label
+        onDragOver={(event) => event.preventDefault()}
+        onDrop={(event) => {
+          event.preventDefault();
+          const file = event.dataTransfer.files?.[0];
+          if (file) launch.chooseSyllabus(file);
+        }}
+        className="flex cursor-pointer flex-col items-center justify-center gap-2.5 rounded-[24px] border border-dashed border-[#d4d8dd] bg-white p-7 text-center"
+      >
+        {picker}
+        <span className="text-[14px] text-[#22262b]">
+          {launch.uploading ? t("uploading") : t("dropzone")}
+        </span>
+        <span className="text-[12px] text-[#858c96]">{t("dropzoneHint")}</span>
+      </label>
+    );
+  }
+  return (
+    <div className="flex items-center gap-3 rounded-[20px] bg-[#f5f6f8] px-3.5 py-3">
+      <span className="grid size-[38px] shrink-0 place-items-center rounded-xl bg-white text-[#676e78]">
+        <FileText aria-hidden className="size-[18px]" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-[13.5px] font-medium text-[#22262b]">
+          {syllabus.filename}
+        </span>
+        <span className="block text-[12px] text-[#858c96]">
+          {syllabus.pageCount === null
+            ? formatFileSize(syllabus.sizeBytes)
+            : t("fileMeta", {
+                size: formatFileSize(syllabus.sizeBytes),
+                pages: syllabus.pageCount,
+              })}
+        </span>
+      </span>
+      <label className="cursor-pointer rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b]">
+        {picker}
+        {launch.uploading ? t("uploading") : t("change")}
+      </label>
+    </div>
+  );
+}
+
+function Banner({
+  tone,
+  children,
+}: {
+  tone: "done" | "info" | "error";
+  children: ReactNode;
+}) {
+  const colors = {
+    done: "bg-[#eaf7f0]",
+    info: "bg-[#f7f8fa]",
+    error: "bg-[#fff1ef]",
+  }[tone];
+  return (
+    <p
+      role={tone === "error" ? "alert" : "status"}
+      className={`flex items-center gap-2.5 rounded-[18px] px-4 py-3 text-[12.5px] text-[#22262b] ${colors}`}
+    >
+      {tone === "done" ? (
+        <CheckCircle2 aria-hidden className="size-4 shrink-0 text-[#2f9e6b]" />
+      ) : (
+        <Info aria-hidden className="size-4 shrink-0 text-[#858c96]" />
+      )}
+      {children}
+    </p>
+  );
+}
+
+function CurriculumStep({ launch }: { launch: Launch }) {
+  const t = useTranslations("programLaunch");
+  const tp = useTranslations("programPhases");
+  const draft = launch.draft;
+  const fromFile = draft.phaseSource === PhaseSource.File;
+  const read = fromFile && draft.syllabus?.pageCount != null;
+  const months = monthSpan(draft.startDate || null, draft.endDate || null);
+  const count = draft.phases.length;
+  const missing = draft.phases.filter(
+    (phase) => phase.fromFile && missingDate(phase),
+  ).length;
+  const chip = (phase: WizardPhase) => {
+    if (!fromFile || !phase.fromFile) return null;
+    return missingDate(phase) ? (
+      <span className="shrink-0 rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
+        {tp("enterDate")}
+      </span>
+    ) : (
+      <span className="shrink-0 rounded-full bg-[#f5f6f8] px-2.5 py-1 text-[11.5px] font-medium text-[#676e78]">
+        {tp("fromFile")}
+      </span>
+    );
+  };
+
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div
+          role="group"
+          aria-label={t("sourceLabel")}
+          className="flex gap-1 rounded-full bg-[#f5f6f8] p-1"
+        >
+          {Object.values(PhaseSource).map((source) => {
+            const active = draft.phaseSource === source;
+            return (
+              <button
+                key={source}
+                type="button"
+                aria-pressed={active}
+                onClick={() => launch.setPhaseSource(source)}
+                className={`rounded-full px-3.5 py-[7px] text-[13px] ${
+                  active
+                    ? "bg-white font-medium text-[#22262b] shadow-[0_1px_3px_rgba(0,0,0,0.06)]"
+                    : "text-[#676e78]"
+                }`}
+              >
+                {t(source === PhaseSource.File ? "sourceFile" : "sourceManual")}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-[13px] font-medium text-[#676e78]">
+          {months
+            ? t("summaryMonths", { count, months })
+            : t("summary", { count })}
+        </p>
+      </div>
+
+      {fromFile ? <SyllabusFile launch={launch} /> : null}
+      {fromFile && launch.extracting ? (
+        <Banner tone="info">{t("extracting")}</Banner>
+      ) : null}
+      {fromFile && launch.extractFailed && !launch.extracting ? (
+        <Banner tone="error">
+          {t("extractFailed")}
+          <button
+            type="button"
+            onClick={launch.retryExtract}
+            className="ml-auto font-medium underline"
+          >
+            {t("retry")}
+          </button>
+        </Banner>
+      ) : null}
+      {read && !launch.extracting ? (
+        count === 0 ? (
+          <Banner tone="info">{t("noPhasesFound")}</Banner>
+        ) : (
+          <Banner tone="done">
+            {missing
+              ? t("extractedMissing", { count, missing })
+              : t("extracted", { count })}
+          </Banner>
+        )
+      ) : null}
+
+      <PhaseTimeline
+        phases={draft.phases}
+        start={draft.startDate || null}
+        end={draft.endDate || null}
+        middle={months ? tp("duration", { months }) : null}
+      />
+      {!fromFile || read ? (
+        <PhaseList
+          phases={draft.phases}
+          openKey={launch.openPhase}
+          onToggle={launch.togglePhase}
+          onChange={launch.updatePhase}
+          onRemove={launch.removePhase}
+          onMove={launch.movePhase}
+          onAdd={launch.addPhase}
+          canAdd={launch.canAddPhase}
+          chip={chip}
+          flagMissingDates={(phase) => fromFile && phase.fromFile}
+        />
+      ) : null}
+      {!fromFile && count === 0 ? (
+        <p className="text-[13px] text-[#858c96]">{t("noPhases")}</p>
+      ) : null}
     </div>
   );
 }

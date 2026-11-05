@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowDown, ArrowUp, Plus, X } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
@@ -16,7 +17,6 @@ import {
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
 import {
-  MAX_PHASES,
   ProgramTab,
   RULE_LIMITS,
   SettingsSection,
@@ -25,8 +25,6 @@ import {
 
 const FIELD =
   "mt-1.5 h-11 w-full rounded-2xl border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b] disabled:bg-[#f7f8f9]";
-const SMALL_FIELD =
-  "h-10 rounded-xl border border-[#e9ecef] px-3 text-[13px] outline-none disabled:bg-[#f7f8f9]";
 
 export function ProgramSettingsView({ programId }: { programId: string }) {
   return (
@@ -149,90 +147,13 @@ function SettingsBody({
               </label>
             </div>
           </Row>
-          <Row>
-            <p className="text-[13.5px] font-medium text-[#22262b]">
-              {t("phases")}
-            </p>
-            <p className="text-[12.5px] text-[#858c96]">{t("phasesHint")}</p>
-            <ol className="mt-3 space-y-2">
-              {draft.phases.map((phase, index) => (
-                <li
-                  key={phase.key}
-                  className="grid gap-2 rounded-2xl border border-[#f0f2f4] p-3 sm:grid-cols-[1fr_150px_150px_auto]"
-                >
-                  <input
-                    aria-label={t("phaseName", { n: index + 1 })}
-                    value={phase.name}
-                    maxLength={120}
-                    disabled={archived}
-                    placeholder={t("phaseNamePlaceholder")}
-                    onChange={(event) =>
-                      settings.updatePhase(phase.key, {
-                        name: event.target.value,
-                      })
-                    }
-                    className={SMALL_FIELD}
-                  />
-                  <input
-                    type="date"
-                    aria-label={t("phaseStart", { n: index + 1 })}
-                    value={phase.startDate ?? ""}
-                    disabled={archived}
-                    onChange={(event) =>
-                      settings.updatePhase(phase.key, {
-                        startDate: event.target.value || null,
-                      })
-                    }
-                    className={SMALL_FIELD}
-                  />
-                  <input
-                    type="date"
-                    aria-label={t("phaseEnd", { n: index + 1 })}
-                    value={phase.endDate ?? ""}
-                    disabled={archived}
-                    onChange={(event) =>
-                      settings.updatePhase(phase.key, {
-                        endDate: event.target.value || null,
-                      })
-                    }
-                    className={SMALL_FIELD}
-                  />
-                  <span className="flex items-center gap-1">
-                    <IconButton
-                      label={t("phaseUp", { n: index + 1 })}
-                      disabled={archived || index === 0}
-                      onClick={() => settings.movePhase(index, -1)}
-                    >
-                      <ArrowUp className="size-4" />
-                    </IconButton>
-                    <IconButton
-                      label={t("phaseDown", { n: index + 1 })}
-                      disabled={archived || index === draft.phases.length - 1}
-                      onClick={() => settings.movePhase(index, 1)}
-                    >
-                      <ArrowDown className="size-4" />
-                    </IconButton>
-                    <IconButton
-                      label={t("phaseRemove", { n: index + 1 })}
-                      disabled={archived}
-                      onClick={() => settings.removePhase(phase.key)}
-                    >
-                      <X className="size-4" />
-                    </IconButton>
-                  </span>
-                </li>
-              ))}
-            </ol>
-            <button
-              type="button"
-              disabled={archived || draft.phases.length >= MAX_PHASES}
-              onClick={settings.addPhase}
-              className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] text-[#22262b] disabled:text-[#aeb4bc]"
-            >
-              <Plus aria-hidden className="size-4" /> {t("addPhase")}
-            </button>
-          </Row>
         </Section>
+
+        <ProgramCurriculumSection
+          programId={programId}
+          detail={detail}
+          archived={archived}
+        />
 
         <CoordinatorsSection
           programId={programId}
@@ -624,29 +545,5 @@ function Toggle({
         className="relative h-7 w-12 shrink-0 rounded-full bg-[#e0e3e7] transition peer-checked:bg-[#22262b] peer-disabled:opacity-50 after:absolute after:top-1 after:left-1 after:size-5 after:rounded-full after:bg-white after:transition peer-checked:after:translate-x-5"
       />
     </label>
-  );
-}
-
-function IconButton({
-  label,
-  disabled,
-  onClick,
-  children,
-}: {
-  label: string;
-  disabled?: boolean;
-  onClick: () => void;
-  children: ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      disabled={disabled}
-      onClick={onClick}
-      className="grid size-7 place-items-center rounded-full bg-[#f4f5f7] text-[#676e78] disabled:opacity-40"
-    >
-      {children}
-    </button>
   );
 }
