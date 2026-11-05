@@ -23,6 +23,7 @@ import { ReactNode, useState } from "react";
 import { Avatar } from "@/components/common/avatar";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
+import { FeedbackButton } from "@/components/dashboard/feedback-button";
 import {
   AccountDialog,
   AccountSettingsDialog,
@@ -386,6 +387,9 @@ export function AppShell({
         </div>
       ) : null}
       <main className={mentorHome ? "mentor-home" : undefined}>{children}</main>
+      {active === AppArea.Home || active === AppArea.MentorDashboard ? (
+        <FeedbackButton />
+      ) : null}
     </div>
   );
 }

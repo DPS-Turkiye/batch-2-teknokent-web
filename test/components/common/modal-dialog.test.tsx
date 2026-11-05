@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -15,6 +15,23 @@ function Dialog({ onClose }: { onClose: () => void }) {
 }
 
 describe("ModalDialog", () => {
+  it("dismisses only backdrop clicks when explicitly enabled", () => {
+    const onClose = vi.fn();
+    render(
+      <ModalDialog
+        labelledBy="backdrop-title"
+        onClose={onClose}
+        dismissOnBackdrop
+      >
+        <h2 id="backdrop-title">Panel</h2>
+        <button type="button">Inside</button>
+      </ModalDialog>,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Inside" }));
+    expect(onClose).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("dialog").parentElement!);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
   it("moves focus to the first field and closes on Escape", async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();

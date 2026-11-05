@@ -31,6 +31,12 @@ const NAV: RoleNavItem[] = [
     match: (path) => path.startsWith("/admin/mentorships"),
   },
   {
+    href: "/admin/feedback",
+    label: "feedback",
+    icon: "/admin/nav-mail.svg",
+    match: (path) => path.startsWith("/admin/feedback"),
+  },
+  {
     href: "/admin/reporting",
     label: "reporting",
     icon: "/admin/nav-chart.svg",

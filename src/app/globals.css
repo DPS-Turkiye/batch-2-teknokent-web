@@ -1,5 +1,20 @@
 @import "tailwindcss";
 
+@keyframes feedback-tray-in {
+  from {
+    opacity: 0;
+    transform: translate(20px, 12px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+}
+
+.feedback-tray-in {
+  animation: feedback-tray-in 220ms ease-out both;
+}
+
 @keyframes admin-drawer-in {
   from {
     transform: translateX(100%);
@@ -55,6 +70,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .feedback-tray-in,
   .admin-drawer-in,
   .admin-drawer-out,
   .admin-backdrop-in,
