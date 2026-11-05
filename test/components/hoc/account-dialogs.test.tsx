@@ -183,3 +183,17 @@ describe("NotificationPreferencesDialog", () => {
     ).toBeInTheDocument();
   });
 });
+
+it.each([
+  UserRole.Mentee,
+  UserRole.Mentor,
+  UserRole.Coordinator,
+  UserRole.Admin,
+])("offers language preferences to %s", (role) => {
+  englishEnabled = true;
+  session = { email: "user@example.test", role };
+  renderWithQueryClient(<AccountSettingsDialog onClose={vi.fn()} />);
+  expect(screen.getByRole("group", { name: "Dil" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "Türkçe" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
+});

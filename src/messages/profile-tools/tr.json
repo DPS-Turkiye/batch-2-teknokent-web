@@ -1,0 +1,16 @@
+{
+  "title": "Startup profilini düzenle",
+  "back": "Startup’a dön",
+  "personal": "Kişisel bilgilerimi düzenle",
+  "importTitle": "Mentor eşleştirme profilini doldur",
+  "importHint": "Startup sunumunu yükle, çıkarılan bilgileri gözden geçir ve onayla. Eşleştirme profilini elle de doldurabilirsin.",
+  "upload": "Startup sunumu seç",
+  "advanced": "Gelişmiş PDF seçenekleri",
+  "invalidFile": "En fazla 50 MB boyutunda bir PDF seç.",
+  "minimum": "Startup adını veya özetini gir.",
+  "loadFailed": "Kayıtlı analiz yüklenemedi. Tekrar dene.",
+  "retry": "Tekrar dene",
+  "archiveTitle": "Kayıtlı CV analizi",
+  "archiveHint": "Bu önceki analiz startup’ınla birlikte kaydedilmiş. Kişisel profiline otomatik olarak uygulanmadı.",
+  "clear": "Alanları temizle"
+}

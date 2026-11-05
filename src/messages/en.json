@@ -79,8 +79,7 @@
     "passwordsMismatch": "Passwords do not match.",
     "creatingAccount": "Creating your account…",
     "sessionExpired": "Your session has expired. Please sign in again.",
-    "signIn": "Sign in",
-    "shellImageAlt": "Find the right mentor with menton"
+    "signIn": "Sign in"
   },
   "register": {
     "titleMentor": "Join menton as a mentor",
@@ -468,7 +467,8 @@
   },
   "publicSession": {
     "continueAs": "Continue as {name}",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "signUp": "Sign up"
   },
   "landing": {
     "nav": {
@@ -2388,9 +2388,7 @@
     "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
     "backToMentorships": "Back to my mentorships",
     "homeLabel": "menton home",
-    "toastRegion": "Notifications",
-    "botFullTitle": "The recording bot can't join right now",
-    "botFullMessage": "Sorry, the recording bot can't join this meeting right now because the site is very busy. The meeting is scheduled and will go ahead without a recording."
+    "toastRegion": "Notifications"
   },
   "optionValues": {
     "stage": {
@@ -2599,6 +2597,26 @@
       "decline": "Decline",
       "sendMessage": "Send a message",
       "accept": "Accept mentorship"
+    },
+    "assignTask": {
+      "open": "Assign a task",
+      "title": "Assign a task",
+      "taskTitle": "Task title",
+      "assignee": "Assignee",
+      "chooseAssignee": "Choose a startup member",
+      "description": "Description (optional)",
+      "dueDate": "Due date (optional)",
+      "cancel": "Cancel",
+      "save": "Assign task",
+      "saving": "Assigning…",
+      "saved": "Task assigned.",
+      "loading": "Loading startup members…",
+      "loadFailed": "Startup members could not be loaded.",
+      "retry": "Try again",
+      "noAssignees": "There are no approved startup members to assign a task to.",
+      "validation": "Check the task title, startup member and due date.",
+      "saveFailed": "The task could not be assigned. Your entries are preserved; try again.",
+      "forbidden": "Only mentors can assign tasks."
     }
   },
   "mentorDecision": {
@@ -3530,6 +3548,7 @@
       "waitingWork": "Waiting work",
       "upcomingTitle": "Upcoming dates",
       "noUpcoming": "No upcoming events or deadlines. You can add them from the Calendar.",
+      "noUpcomingAdmin": "No upcoming events or deadlines.",
       "today": "today",
       "inDays": "{count, plural, one {# day} other {# days}}",
       "distribution": "Team & mentor distribution",
@@ -5115,5 +5134,17 @@
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
     "startupNotInProgram": "This startup is not in this program."
+  },
+  "mentorProgramInvitations": {
+    "title": "Program invitations",
+    "failed": "Could not load your program invitations.",
+    "invitedBy": "{name} invited you as a mentor · {date}",
+    "accept": "Accept",
+    "decline": "Decline",
+    "answering": "Saving…",
+    "accepted": "You joined {name}.",
+    "declined": "You declined the invitation to {name}.",
+    "answerFailed": "Could not answer the invitation.",
+    "awaitingReview": "Waiting for the coordinator's approval"
   }
 }

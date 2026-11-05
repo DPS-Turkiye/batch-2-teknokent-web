@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, Settings, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 
@@ -17,6 +17,7 @@ import {
 import type { UserRole } from "@/interfaces/session";
 import type messages from "@/messages/tr.json";
 import { useRoleGate } from "@/hooks/use-role-gate";
+import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 
@@ -82,6 +83,8 @@ function RoleShell({
   const tFrame = useTranslations("roleFrame");
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const tAccount = useTranslations("accountMenu");
   const workspace = roleWorkspace(session?.role);
   const roleLabel = session ? t(`roles.${session.role}`) : workspace.roleLabel;
   const name = session?.fullName ?? roleLabel;
@@ -143,6 +146,18 @@ function RoleShell({
                   role="menu"
                   className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
                 >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={() => {
+                      setAccountOpen(false);
+                      setSettingsOpen(true);
+                    }}
+                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                  >
+                    <Settings aria-hidden className="size-4" />
+                    {tAccount("settings")}
+                  </button>
                   <button
                     type="button"
                     role="menuitem"
@@ -209,6 +224,9 @@ function RoleShell({
         {children}
       </main>
       {pathname === homeHref ? <FeedbackButton /> : null}
+      {settingsOpen ? (
+        <AccountSettingsDialog onClose={() => setSettingsOpen(false)} />
+      ) : null}
     </div>
   );
 }
