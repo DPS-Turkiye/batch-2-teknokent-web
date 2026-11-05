@@ -28,3 +28,11 @@ export async function changeActionItemStatus(input: {
     await httpClient.patch<ActionItem>(`/api/action-items/${id}`, body),
   );
 }
+
+export async function getOrganizationActionItems() {
+  return requireSuccess(
+    await httpClient.get<ActionItem[]>("/api/action-items", {
+      params: { scope: "organization" },
+    }),
+  );
+}

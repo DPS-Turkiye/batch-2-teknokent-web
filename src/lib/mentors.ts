@@ -1,6 +1,8 @@
 import "server-only";
 
 import type { MentorProfile } from "@/interfaces/mentor";
+import { getSessionIds } from "@/lib/session";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export class MentorFetchError extends Error {
@@ -66,8 +68,10 @@ export function isMentorProfile(value: unknown): value is MentorProfile {
 
 export async function fetchMentors(): Promise<MentorProfile[]> {
   try {
+    const { userId } = await getSessionIds();
     const response = await backendRequest<unknown>({
-      method: "GET",
+      method: HttpMethod.Get,
+      params: { actorId: userId },
       url: "/api/mentors",
     });
 

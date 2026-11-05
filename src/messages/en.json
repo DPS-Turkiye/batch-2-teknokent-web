@@ -177,7 +177,14 @@
     "sending": "Sending…",
     "sendToCoordinator": "Send to coordinator",
     "continue": "Continue",
-    "draftSaved": "Draft saved."
+    "draftSaved": "Draft saved.",
+    "soloSubmittedTitle": "Your application was sent to the coordinator",
+    "soloLastStepLabel": "You create your startup or join a team",
+    "soloNextSteps": [
+      "If approved, you can create your own startup or join your team with its code on the My startup page.",
+      "If changes are requested, you get an email.",
+      "Mentor requests open once your startup is approved."
+    ]
   },
   "signupSteps": {
     "basics": "Basics",
@@ -219,7 +226,11 @@
     "add": "Add",
     "supportAreas": "Areas where you want mentor support",
     "supportAreasSubtitle": "Pick up to {max} areas. Mentor suggestions are ordered by them.",
-    "supportAreasLimit": "You can pick up to {max} areas. Remove one to change."
+    "supportAreasLimit": "You can pick up to {max} areas. Remove one to change.",
+    "programSubtitle": "Your application goes to this program's coordinator.",
+    "startupLater": "I'll create my startup later",
+    "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
+    "stageSubtitle": "What matters most for matching you with the right mentor."
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
@@ -253,7 +264,9 @@
     "notUploaded": "Not uploaded",
     "missingTitle": "You can submit without a pitch deck and prototype",
     "missingBody": "But mentors look at these two files most when they evaluate your startup. You can add them later too.",
-    "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile."
+    "consent": "I confirm that the information I gave is correct and agree to the coordinator reviewing my profile.",
+    "program": "Program",
+    "startupLater": "To be created later"
   },
   "onboarding": {
     "exiting": "Signing out…",
@@ -873,6 +886,10 @@
       "tooManyPhases": "You can add at most {max} phases.",
       "phaseName": "Every phase needs a name.",
       "phaseDates": "The “{name}” phase can't end before it starts."
+    },
+    "programLaunch": {
+      "phaseNameRequired": "Enter a name for phase {n}.",
+      "phaseDateMissing": "Enter the dates of “{name}”."
     }
   },
   "metadata": {
@@ -952,7 +969,8 @@
         "MORE_INFO_REQUESTED": "Info needed",
         "COUNTER_PROPOSED": "New time proposed",
         "ACCEPTED": "Pick a time"
-      }
+      },
+      "handedOver": "handed over from {name}, who left the team"
     },
     "upcoming": {
       "title": "Upcoming meetings",
@@ -1785,6 +1803,31 @@
       "copiedToast": "Invite code copied.",
       "rotated": "New invite code generated.",
       "rotateFailed": "Couldn't generate a new code."
+    },
+    "removalRequested": "Removal request sent to the coordinator.",
+    "removeRequestBody": "The request to remove {name} goes to the program's coordinator. {name} stays in the team until the coordinator approves; their open tasks then go to the rest of the team.",
+    "changes": {
+      "leaveAction": "Leave the team",
+      "leaveTitle": "Do you want to leave the team?",
+      "memberLeaveBody": "Your request goes to the program's coordinator. You stay in the team until it is approved and can withdraw it meanwhile. Once approved, your open tasks are handed to the rest of the team automatically.",
+      "leaderLeaveBody": "As the team leader you leave right away: the person you pick leads the team and you lose access to this startup. Your open tasks are handed to the rest of the team automatically.",
+      "aloneLeaveBody": "Nobody else is in the team. If you leave, the startup is archived: its details are kept, but it no longer shows as a team in the program and its invite code stops working.",
+      "successor": "New team leader",
+      "successorPlaceholder": "Pick a team member",
+      "noSuccessor": "Everyone else in the team has a leave or removal request waiting. Those need a decision first.",
+      "cancel": "Cancel",
+      "sending": "Sending…",
+      "leave": "Leave",
+      "sendRequest": "Send request",
+      "leavePending": "Leave request waiting",
+      "removalPending": "Removal request waiting",
+      "withdraw": "Withdraw request",
+      "leaveRequested": "Your leave request was sent to the coordinator.",
+      "leaveRequestFailed": "Could not send the leave request.",
+      "cancelled": "Request withdrawn.",
+      "cancelFailed": "Could not withdraw the request.",
+      "left": "You left the team.",
+      "leaveFailed": "Could not leave the team."
     }
   },
   "documentKinds": {
@@ -1800,7 +1843,8 @@
     "logo": "Logo",
     "avatar": "Profile photo",
     "profile-pdf": "Profile PDF",
-    "requested-doc": "Requested document"
+    "requested-doc": "Requested document",
+    "syllabus": "Syllabus"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -2339,9 +2383,7 @@
     "rescheduleProposed": "New time proposed. The meeting moves once the other side accepts.",
     "backToMentorships": "Back to my mentorships",
     "homeLabel": "menton home",
-    "toastRegion": "Notifications",
-    "botFullTitle": "The recording bot can't join right now",
-    "botFullMessage": "Sorry, the recording bot can't join this meeting right now because the site is very busy. The meeting is scheduled and will go ahead without a recording."
+    "toastRegion": "Notifications"
   },
   "optionValues": {
     "stage": {
@@ -2550,6 +2592,26 @@
       "decline": "Decline",
       "sendMessage": "Send a message",
       "accept": "Accept mentorship"
+    },
+    "assignTask": {
+      "open": "Assign a task",
+      "title": "Assign a task",
+      "taskTitle": "Task title",
+      "assignee": "Assignee",
+      "chooseAssignee": "Choose a startup member",
+      "description": "Description (optional)",
+      "dueDate": "Due date (optional)",
+      "cancel": "Cancel",
+      "save": "Assign task",
+      "saving": "Assigning…",
+      "saved": "Task assigned.",
+      "loading": "Loading startup members…",
+      "loadFailed": "Startup members could not be loaded.",
+      "retry": "Try again",
+      "noAssignees": "There are no approved startup members to assign a task to.",
+      "validation": "Check the task title, startup member and due date.",
+      "saveFailed": "The task could not be assigned. Your entries are preserved; try again.",
+      "forbidden": "Only mentors can assign tasks."
     }
   },
   "mentorDecision": {
@@ -3426,7 +3488,8 @@
       "TEAMS": "Teams",
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
-      "SETTINGS": "Program settings"
+      "SETTINGS": "Program settings",
+      "APPROVALS": "Approvals"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -3525,7 +3588,8 @@
       "GENERAL": "General",
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
-      "ARCHIVE": "Archive"
+      "ARCHIVE": "Archive",
+      "CURRICULUM": "Curriculum & phases"
     },
     "sectionsLabel": "Settings sections",
     "archivedNote": "This program is archived and read-only. Reopen it below to make changes.",
@@ -3677,6 +3741,12 @@
         "hint": "Teams and leads",
         "title": "Teams and leads",
         "note": "Each team gets a join code. Share it with the team lead; the lead signs up with it and shares it with the team."
+      },
+      "CURRICULUM": {
+        "label": "Syllabus & phases",
+        "hint": "Program stages",
+        "title": "Syllabus & phases",
+        "note": "Program phases drive each team's progress tracking and the phase chart on the overview. You can edit them later in Program settings."
       }
     },
     "problems": {
@@ -3719,7 +3789,34 @@
     "created": "{name} created.",
     "createFailed": "Couldn't create the program.",
     "csvEmpty": "No “team name, email” rows found in the file.",
-    "rowErrors": "{count, plural, one {# row has} other {# rows have}} errors."
+    "rowErrors": "{count, plural, one {# row has} other {# rows have}} errors.",
+    "confirm": "Confirm: {step}",
+    "syllabus": "Program syllabus",
+    "noFile": "No file?",
+    "enterManually": "Enter manually",
+    "dropzone": "Drop your file here or choose one",
+    "dropzoneHint": "PDF · up to 10 MB",
+    "syllabusTip": "The program phases are read from the uploaded syllabus; you can check and edit them in the next step.",
+    "uploading": "Uploading…",
+    "pdfOnly": "Please upload the syllabus as a PDF.",
+    "tooLarge": "The file is larger than 10 MB.",
+    "uploadFailed": "Couldn't upload the syllabus.",
+    "sourceLabel": "Phase source",
+    "sourceFile": "Read from file",
+    "sourceManual": "Enter manually",
+    "summary": "{count, plural, one {# phase} other {# phases}}",
+    "summaryMonths": "{count, plural, one {# phase} other {# phases}} · {months, plural, one {# month} other {# months}}",
+    "fileMeta": "{size} · {pages, plural, one {# page} other {# pages}}",
+    "change": "Change",
+    "removeFile": "Remove the file",
+    "extracting": "Reading the syllabus, this can take a few seconds…",
+    "extracted": "{count, plural, one {# phase was} other {# phases were}} read from the syllabus. Check them and confirm.",
+    "extractedMissing": "{count, plural, one {# phase was} other {# phases were}} read from the syllabus. {missing, plural, one {# phase has} other {# phases have}} no dates — check and confirm.",
+    "extractFailed": "Couldn't read the syllabus.",
+    "retry": "Try again",
+    "noPhasesFound": "No phases were found in the syllabus. You can add them by hand.",
+    "noPhases": "No phases yet. Add some, or skip this step.",
+    "waitForSyllabus": "Please wait while the syllabus is read."
   },
   "programMentors": {
     "filters": {
@@ -5061,7 +5158,181 @@
     "documentAddFailed": "Could not add the document.",
     "sessionRequired": "You need to be signed in.",
     "fileDeleteFailed": "Could not delete the file.",
-    "startupNotInProgram": "This startup is not in this program."
+    "startupNotInProgram": "This startup is not in this program.",
+    "teamChangesLoadFailed": "Could not load the team requests.",
+    "startupResubmitFailed": "Could not send the startup again. Please try again.",
+    "teamRemovalRequestFailed": "Could not send the removal request.",
+    "syllabusReadFailed": "Couldn't read the syllabus.",
+    "startupCreateFailed": "Could not create the startup. Please try again.",
+    "startupJoinFailed": "Could not join the startup. Please try again.",
+    "teamChangeCancelFailed": "Could not withdraw the request.",
+    "teamLeaveRequestFailed": "Could not send the leave request.",
+    "approvalsLoadFailed": "Could not load the approvals.",
+    "teamHistoryLoadFailed": "Could not load the team history.",
+    "teamLeaveFailed": "Could not leave the team."
+  },
+  "startupStart": {
+    "title": "My startup",
+    "subtitle": "You aren't part of a startup yet. Create your own, or join your team with its code.",
+    "joinTitle": "I have a code",
+    "joinBody": "Enter the startup code your teammate shared; if you're in the same program you join right away.",
+    "codeLabel": "Startup code",
+    "codePlaceholder": "e.g. K7Q2XA",
+    "join": "Join",
+    "joining": "Joining…",
+    "joinFailed": "Could not join the startup.",
+    "createTitle": "Create my startup",
+    "createBody": "Fill in your startup profile; once the coordinator approves it you can request mentors.",
+    "create": "Create my startup",
+    "createSubtitle": "Coordinators and mentors see this information.",
+    "documentsTitle": "Files",
+    "documentsSubtitle": "Optional; you can also upload them later from the Files tab.",
+    "back": "← My startup",
+    "continue": "Continue",
+    "previous": "Back",
+    "sending": "Sending…",
+    "sendForApproval": "Send for coordinator approval",
+    "createFailed": "Could not create the startup.",
+    "pendingBanner": "Your startup is waiting for the coordinator's approval. Meanwhile you can edit the profile, upload files and share the team code.",
+    "pendingBannerMember": "Your startup is waiting for the coordinator's approval. All pages open once it is approved.",
+    "rejectedBanner": "Your startup was not approved. You can update the profile and send it for approval again.",
+    "rejectedBannerMember": "Your startup was not approved. The founder can update the profile and send it for approval again.",
+    "resubmit": "Send for approval again",
+    "resubmitFailed": "Could not send it again."
+  },
+  "programPhases": {
+    "timelineLabel": "Phase timeline",
+    "duration": "Program length · {months, plural, one {# month} other {# months}}",
+    "phaseLabel": "Phase {n}",
+    "untitled": "Untitled phase",
+    "fromFile": "From file",
+    "enterDate": "Enter dates",
+    "dateMissing": "No dates found",
+    "name": "Phase name",
+    "start": "Start",
+    "end": "End",
+    "expectedOutput": "Expected output",
+    "expectedOutputHint": "optional · shown in the team's progress",
+    "addOutput": "Add an output…",
+    "removeOutput": "Remove “{output}”",
+    "remove": "Delete",
+    "edit": "Edit “{name}”",
+    "collapse": "Close",
+    "drag": "Drag phase {n}",
+    "moveUp": "Move phase {n} up",
+    "moveDown": "Move phase {n} down",
+    "addPhase": "Add a phase"
+  },
+  "programCurriculum": {
+    "title": "Curriculum & phases",
+    "subtitle": "Phases drive each team’s progress tracking and the phase timeline on the Overview.",
+    "addPhase": "Add a phase",
+    "noFile": "No curriculum file",
+    "noFileHint": "Upload a PDF to read the phases from it.",
+    "uploaded": "Uploaded {date}",
+    "reading": "Reading the curriculum…",
+    "chooseFile": "Choose a curriculum PDF",
+    "uploadFile": "Upload a file",
+    "replaceFile": "Replace the file",
+    "reread": "Read the phases again",
+    "reviewNote": "{count} phases were read from the file. Saving replaces the current phases.",
+    "saveReview": "Save the phases",
+    "today": "Today",
+    "todayWeek": "Today · {week}",
+    "week": "week {current}/{total}",
+    "empty": "No phases yet. Start with “Add a phase” or upload a curriculum file.",
+    "listLabel": "Program phases",
+    "lockNote": "Finished phases keep their dates; their names can still change. Changes update the progress view of {count} teams.",
+    "done": "Done",
+    "current": "Now",
+    "currentWeek": "Now · {week}",
+    "planned": "Planned",
+    "unnamed": "Phase {n}",
+    "drag": "Drag the {name} phase",
+    "datesLocked": "Dates locked",
+    "noDates": "No dates",
+    "edit": "Edit the {name} phase",
+    "editPhase": "Edit the phase",
+    "newPhase": "New phase",
+    "drawerSubtitle": "{program} · phase {n}",
+    "close": "Close",
+    "name": "Phase name",
+    "start": "Start",
+    "end": "End",
+    "currentLockHint": "The running phase keeps its start; its end can move.",
+    "doneLockHint": "A finished phase keeps its dates; its name and outputs can still change.",
+    "effectTitle": "What this change does",
+    "startMoved": "Start {from} → {to}",
+    "endLonger": "End {from} → {to}: the phase gets {span} longer",
+    "endShorter": "End {from} → {to}: the phase gets {span} shorter",
+    "gapToNext": "{span} left before {name} ({date})",
+    "overlapsNext": "The dates overlap with {name}",
+    "teamsUpdated": "The progress view of {count} teams is updated",
+    "weeks": "{count} weeks",
+    "days": "{count} days",
+    "remove": "Delete the phase",
+    "cancel": "Cancel",
+    "save": "Save",
+    "saving": "Saving…",
+    "saved": "Phases saved.",
+    "saveFailed": "Could not save the phases.",
+    "readFailed": "Could not read the curriculum.",
+    "uploadFailed": "Could not upload the file.",
+    "pdfOnly": "Only PDF files can be uploaded.",
+    "tooLarge": "The file can be at most 10 MB."
+  },
+  "teamHistory": {
+    "show": "Team history",
+    "hide": "Hide team history",
+    "loading": "Loading…",
+    "empty": "Not in a team yet.",
+    "current": "since {from}",
+    "left": "{from} – {to}, left",
+    "removed": "{from} – {to}, removed",
+    "archived": "archived",
+    "startupPending": "startup awaiting approval",
+    "startupRejected": "startup rejected"
+  },
+  "startupGate": {
+    "none": {
+      "title": "Create your startup or join a team first",
+      "body": "This page works with a startup. On the My startup page you can create your own startup or join one with your team code."
+    },
+    "pending": {
+      "title": "Your startup is waiting for the coordinator's approval.",
+      "body": "This page opens once it is approved. Meanwhile you can edit the profile, upload files and share the team code."
+    },
+    "rejected": {
+      "title": "Your startup was not approved",
+      "body": "You can update the profile on the My startup page and send it for approval again."
+    },
+    "goToStartup": "Go to My startup"
+  },
+  "programApprovals": {
+    "approve": "Approve",
+    "reject": "Reject",
+    "saving": "Saving…",
+    "approved": "Approved.",
+    "rejected": "Rejected.",
+    "decisionFailed": "Could not save the decision.",
+    "peopleTitle": "Applications",
+    "peopleHint": "People who signed up into this program and are waiting for approval.",
+    "peopleEmpty": "No applications waiting.",
+    "withStartup": "Startup: {name}",
+    "withoutStartup": "Startup later",
+    "signedUp": "Signed up: {date}",
+    "startupsTitle": "Startups created later",
+    "startupsHint": "Startups that people in the program created after signing up.",
+    "startupsEmpty": "No startups waiting.",
+    "createdBy": "Created by {name} ({email})",
+    "withoutTeamTitle": "People without a team",
+    "withoutTeamHint": "Approved, but they haven't created a startup or joined a team yet.",
+    "withoutTeamEmpty": "Everyone has a team.",
+    "teamChangesTitle": "Leaving and removal",
+    "teamChangesHint": "Members who want to leave and people team leaders want to remove. Once approved, the person stays in the program without a team.",
+    "teamChangesEmpty": "No requests waiting.",
+    "wantsToLeave": "wants to leave {startup}",
+    "removalAsked": "{leader} asks to remove them from {startup}"
   },
   "programContext": {
     "label": "Program",
