@@ -46,6 +46,7 @@ export function programTabs(
       href: `${base}/matching`,
       count: detail.program.awaitingMatchCount,
     },
+    { id: ProgramTab.Approvals, href: `${base}/approvals`, count: null },
     { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
 }
