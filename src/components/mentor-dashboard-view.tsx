@@ -205,7 +205,7 @@ function NextMeetingBanner({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[1228px] w-[266px] -translate-x-1/2 -translate-y-1/2 -rotate-90 bg-[url('/mentor-dashboard/revised/next-meeting-bg.svg')] bg-cover"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[url('/mentor-dashboard/revised/next-meeting-bg.svg')] bg-cover bg-center"
       />
       <div className="rounded-[20px] border border-white/50 bg-black/10 px-[18px] py-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
