@@ -9,19 +9,31 @@ import {
   type ProgramTeam,
   TeamJoinStatus,
 } from "@/interfaces/coordinator-program";
+import { phasesInput } from "@/lib/coordinator-program-detail";
+import { PhaseSource, type WizardPhase } from "@/lib/program-phases";
 import { formatDayMonth, isEmailAddress } from "@/lib/utils";
 
 export enum LaunchStep {
   Basics = "BASICS",
+  Curriculum = "CURRICULUM",
   Rules = "RULES",
   Teams = "TEAMS",
 }
 
 export const LAUNCH_STEPS = [
   LaunchStep.Basics,
+  LaunchStep.Curriculum,
   LaunchStep.Rules,
   LaunchStep.Teams,
 ] as const;
+
+/** The uploaded syllabus; `pageCount` arrives once its phases have been read. */
+export type LaunchSyllabus = {
+  documentId: string;
+  filename: string;
+  sizeBytes: number;
+  pageCount: number | null;
+};
 
 export type LaunchRules = Pick<
   CreateProgramInput,
@@ -47,6 +59,9 @@ export type LaunchDraft = {
   endDate: string;
   rules: LaunchRules;
   teams: TeamRowDraft[];
+  phaseSource: PhaseSource;
+  syllabus: LaunchSyllabus | null;
+  phases: WizardPhase[];
 };
 
 let rowKeySeed = 0;
@@ -63,6 +78,9 @@ export function emptyLaunchDraft(): LaunchDraft {
     endDate: "",
     rules: { ...DEFAULT_LAUNCH_RULES },
     teams: [emptyTeamRow()],
+    phaseSource: PhaseSource.File,
+    syllabus: null,
+    phases: [],
   };
 }
 
@@ -148,6 +166,11 @@ export function createProgramInput(draft: LaunchDraft): CreateProgramInput {
       teamName: row.teamName.trim(),
       leadEmail: row.leadEmail.trim(),
     })),
+    phases: phasesInput(draft.phases),
+    syllabusDocumentId:
+      draft.phaseSource === PhaseSource.File
+        ? (draft.syllabus?.documentId ?? null)
+        : null,
   };
 }
 
