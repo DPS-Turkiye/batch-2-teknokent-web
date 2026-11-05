@@ -325,7 +325,7 @@ function ProgramRow({
           />
         ) : null}
         <Link
-          href={`/programs/${program.id}`}
+          href={`/admin/programs/${program.id}`}
           className="inline-flex items-center rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] leading-[1.3] font-medium text-[#22262b]"
         >
           {t("open")}
