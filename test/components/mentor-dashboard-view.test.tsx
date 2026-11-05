@@ -13,6 +13,20 @@ import {
 } from "@/interfaces/mentorship-request";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("@/components/mentor-dashboard/assign-task-button", () => ({
+  AssignTaskButton: ({
+    requestId,
+    startupName,
+  }: {
+    requestId: string;
+    startupName: string;
+  }) => (
+    <button type="button" data-request-id={requestId}>
+      Assign task to {startupName}
+    </button>
+  ),
+}));
+
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
     <div>{children}</div>
@@ -464,6 +478,9 @@ describe("MentorDashboardView", () => {
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(screen.getByText("Atanan işler")).toBeInTheDocument();
     expect(screen.getByText("Kullanıcı testi")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Assign task to Atlas AI" }),
+    ).toHaveAttribute("data-request-id", "request-2");
     expect(screen.getByText("Dosyalar")).toBeInTheDocument();
     expect(screen.getByText("Mentorluk ilerlemesi")).toBeInTheDocument();
 

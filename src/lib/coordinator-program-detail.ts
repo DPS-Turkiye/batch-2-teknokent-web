@@ -18,6 +18,7 @@ export enum ProgramTab {
 
 export enum SettingsSection {
   General = "GENERAL",
+  Curriculum = "CURRICULUM",
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Archive = "ARCHIVE",
@@ -45,6 +46,7 @@ export function programTabs(
       href: `${base}/matching`,
       count: detail.program.awaitingMatchCount,
     },
+    { id: ProgramTab.Approvals, href: `${base}/approvals`, count: null },
     { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
 }
@@ -187,10 +189,7 @@ export function stepDays(
 
 export type PhaseDraft = ProgramPhaseInput & { key: string };
 
-export type ProgramSettingsDraft = UpdateProgramDetailsInput &
-  ProgramRules & {
-    phases: PhaseDraft[];
-  };
+export type ProgramSettingsDraft = UpdateProgramDetailsInput & ProgramRules;
 
 let phaseKeySeed = 0;
 function phaseKey() {
@@ -208,25 +207,27 @@ export function settingsDraftOf(
     startDate: program.startDate,
     endDate: program.endDate,
     ...detail.rules,
-    phases: program.phases.map((phase) => ({
-      key: phase.id,
-      name: phase.name,
-      startDate: phase.startDate,
-      endDate: phase.endDate,
-    })),
   };
 }
 
-export function emptyPhase(): PhaseDraft {
-  return { key: phaseKey(), name: "", startDate: null, endDate: null };
+export function savedPhases(detail: CoordinatorProgramDetail): PhaseDraft[] {
+  return detail.program.phases.map((phase) => ({
+    key: phase.id,
+    name: phase.name,
+    startDate: phase.startDate,
+    endDate: phase.endDate,
+    expectedOutput: phase.expectedOutput ?? null,
+  }));
 }
 
-export function movePhase(phases: PhaseDraft[], index: number, step: -1 | 1) {
-  const target = index + step;
-  if (target < 0 || target >= phases.length) return phases;
-  const next = [...phases];
-  [next[index], next[target]] = [next[target], next[index]];
-  return next;
+export function emptyPhase(): PhaseDraft {
+  return {
+    key: phaseKey(),
+    name: "",
+    startDate: null,
+    endDate: null,
+    expectedOutput: null,
+  };
 }
 
 export const MAX_PHASES = 12;
@@ -237,16 +238,16 @@ export function settingsDraftError(draft: ProgramSettingsDraft) {
   if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
     return clientText("programSettings.endBeforeStart");
   }
-  if (draft.phases.length > MAX_PHASES) {
-    return clientText("programSettings.tooManyPhases", { max: MAX_PHASES });
-  }
-  for (const phase of draft.phases) {
-    if (!phase.name.trim()) return clientText("programSettings.phaseName");
-    if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
-      return clientText("programSettings.phaseDates", {
-        name: phase.name.trim(),
-      });
-    }
+  return null;
+}
+
+/** The first problem with one phase in the Müfredat & fazlar drawer, or null. */
+export function phaseDraftError(phase: PhaseDraft) {
+  if (!phase.name.trim()) return clientText("programSettings.phaseName");
+  if (phase.startDate && phase.endDate && phase.endDate < phase.startDate) {
+    return clientText("programSettings.phaseDates", {
+      name: phase.name.trim(),
+    });
   }
   return null;
 }
@@ -269,29 +270,11 @@ export function detailsInput(
   };
 }
 
-export function phasesInput(
-  value: ProgramSettingsDraft | PhaseDraft[],
-): ProgramPhaseInput[] {
-  const draft = Array.isArray(value) ? { phases: value } : value;
-  return draft.phases.map((phase) => ({
+export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {
+  return phases.map((phase) => ({
     name: phase.name.trim(),
     startDate: phase.startDate || null,
     endDate: phase.endDate || null,
-    ...("expectedOutput" in phase
-      ? { expectedOutput: phase.expectedOutput?.trim() || null }
-      : {}),
+    expectedOutput: phase.expectedOutput?.trim() || null,
   }));
-}
-
-/** Phases are replaced as a whole, so they are only sent when something about them changed. */
-export function phasesChanged(
-  draft: ProgramSettingsDraft,
-  detail: CoordinatorProgramDetail,
-) {
-  const saved = detail.program.phases.map((phase) => ({
-    name: phase.name,
-    startDate: phase.startDate,
-    endDate: phase.endDate,
-  }));
-  return JSON.stringify(phasesInput(draft)) !== JSON.stringify(saved);
 }

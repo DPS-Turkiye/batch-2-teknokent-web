@@ -82,7 +82,7 @@ describe("AccountMenu", () => {
     expect(screen.queryByRole("menu")).not.toBeInTheDocument();
   });
 
-  it("writes to support by e-mail", async () => {
+  it("opens Help and Support addressed to the Menton team inbox", async () => {
     const user = userEvent.setup();
     renderMenu();
 
@@ -90,7 +90,7 @@ describe("AccountMenu", () => {
 
     expect(
       screen.getByRole("menuitem", { name: "Yardım & destek" }),
-    ).toHaveAttribute("href", "mailto:arya.zaeri@gmail.com");
+    ).toHaveAttribute("href", "mailto:info@menton.com.tr");
   });
 
   it("asks to log out", async () => {
