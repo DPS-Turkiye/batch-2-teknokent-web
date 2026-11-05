@@ -30,8 +30,7 @@
     "passwordsMismatch": "Passwords do not match.",
     "creatingAccount": "Creating your account…",
     "sessionExpired": "Your session has expired. Please sign in again.",
-    "signIn": "Sign in",
-    "shellImageAlt": "Find the right mentor with menton"
+    "signIn": "Sign in"
   },
   "register": {
     "titleMentor": "Join menton as a mentor",

@@ -1,14 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { useRegisterForm } from "@/hooks/use-auth-form";
 import { type RegisterForm } from "@/interfaces/auth";
-import { ClientApiError } from "@/lib/client/api";
-import { describeAuthError } from "@/lib/firebase/auth";
 import { PASSWORD_HINT } from "@/lib/password";
 import { useTranslations } from "next-intl";
 
@@ -30,30 +27,16 @@ export function RegisterView({
     passwordsMismatch,
     emailCharacterErrorMessage,
     phoneErrorMessage,
-  } = useRegisterForm();
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+    submitting,
+    error,
+    submit,
+  } = useRegisterForm(onSubmit);
   const steps = copy.raw(isMentor ? "mentorSteps" : "menteeSteps") as string[];
-
-  async function handleSubmit() {
-    setSubmitting(true);
-    setError("");
-    try {
-      await onSubmit(form);
-    } catch (caught) {
-      setError(
-        caught instanceof ClientApiError
-          ? caught.message
-          : describeAuthError(caught),
-      );
-      setSubmitting(false);
-    }
-  }
 
   return (
     <AuthShell>
-      <div className="flex flex-col gap-2 py-8">
-        <h1 className="text-center text-2xl font-bold leading-9 text-[#111827]">
+      <form onSubmit={submit} className="flex flex-col gap-2 py-8">
+        <h1 className="text-center text-2xl font-bold leading-9 text-[#676e78]">
           {isMentor ? copy("titleMentor") : copy("titleStartup")}
         </h1>
 
@@ -145,10 +128,9 @@ export function RegisterView({
 
         <div className="pt-6">
           <button
-            type="button"
-            onClick={handleSubmit}
+            type="submit"
             disabled={!canSubmit || submitting}
-            className="h-[46px] w-full rounded-[10px] bg-[#e5701d] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
+            className="h-[46px] w-full rounded-[20px] bg-[#e86f22] text-sm font-semibold text-white transition hover:bg-[#ce5e19] disabled:cursor-not-allowed disabled:bg-[#c9cdd2]"
           >
             {submitting ? fields("creatingAccount") : copy("submit")}
           </button>
@@ -191,7 +173,7 @@ export function RegisterView({
             {fields("signIn")}
           </Link>
         </p>
-      </div>
+      </form>
     </AuthShell>
   );
 }

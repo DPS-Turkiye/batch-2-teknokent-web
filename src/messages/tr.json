@@ -30,8 +30,7 @@
     "passwordsMismatch": "Şifreler eşleşmiyor.",
     "creatingAccount": "Hesap oluşturuluyor…",
     "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
-    "signIn": "Giriş yap",
-    "shellImageAlt": "menton ile doğru mentörle eşleş"
+    "signIn": "Giriş yap"
   },
   "register": {
     "titleMentor": "Mentor olarak menton’a katıl",
