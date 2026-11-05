@@ -17,5 +17,9 @@ export function usePublicSessionDestination() {
       ? t("publicSession.continueAs", { name: firstName })
       : t("publicSession.signIn"),
     session,
+    signup:
+      !isLoading && !session
+        ? { href: "/signup", label: t("publicSession.signUp") }
+        : null,
   };
 }

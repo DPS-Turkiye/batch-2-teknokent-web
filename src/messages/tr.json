@@ -30,8 +30,7 @@
     "passwordsMismatch": "Şifreler eşleşmiyor.",
     "creatingAccount": "Hesap oluşturuluyor…",
     "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
-    "signIn": "Giriş yap",
-    "shellImageAlt": "menton ile doğru mentörle eşleş"
+    "signIn": "Giriş yap"
   },
   "register": {
     "titleMentor": "Mentor olarak menton’a katıl",
@@ -432,7 +431,8 @@
   },
   "publicSession": {
     "continueAs": "{name} olarak devam et",
-    "signIn": "Giriş Yap"
+    "signIn": "Giriş Yap",
+    "signUp": "Kayıt Ol"
   },
   "landing": {
     "nav": {
@@ -3525,6 +3525,7 @@
       "waitingWork": "Bekleyen işler",
       "upcomingTitle": "Yaklaşan tarihler",
       "noUpcoming": "Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.",
+      "noUpcomingAdmin": "Yaklaşan etkinlik ya da son tarih yok.",
       "today": "bugün",
       "inDays": "{count} gün",
       "distribution": "Takım & mentor dağılımı",
@@ -5314,5 +5315,17 @@
     "teamChangesEmpty": "Bekleyen talep yok.",
     "wantsToLeave": "{startup} takımından ayrılmak istiyor",
     "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
+  },
+  "mentorProgramInvitations": {
+    "title": "Program davetleri",
+    "failed": "Program davetlerin yüklenemedi.",
+    "invitedBy": "{name} seni mentor olarak davet etti · {date}",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "answering": "Kaydediliyor…",
+    "accepted": "{name} programına katıldın.",
+    "declined": "{name} davetini reddettin.",
+    "answerFailed": "Davete yanıt verilemedi.",
+    "awaitingReview": "Koordinatör onayı bekleniyor"
   }
 }
