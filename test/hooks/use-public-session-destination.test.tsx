@@ -32,6 +32,7 @@ describe("usePublicSessionDestination", () => {
       });
       expect(result.current.href).toBe("/login");
       expect(result.current.signup).toEqual({ href: "/signup", label });
+      expect(result.current.primaryAction).toEqual({ href: "/signup", label });
     },
   );
 
@@ -44,6 +45,15 @@ describe("usePublicSessionDestination", () => {
     isLoading = false;
     rerender();
     expect(result.current.signup?.href).toBe("/signup");
+  });
+
+  it("does not send the primary signup action to login during session loading", () => {
+    isLoading = true;
+    const { result } = renderHook(() => usePublicSessionDestination());
+    expect(result.current.primaryAction).toEqual({
+      href: "/signup",
+      label: "Kayıt Ol",
+    });
   });
 
   it.each([
@@ -62,5 +72,9 @@ describe("usePublicSessionDestination", () => {
     const { result } = renderHook(() => usePublicSessionDestination());
     expect(result.current.href).toBe(href);
     expect(result.current.signup).toBeNull();
+    expect(result.current.primaryAction).toEqual({
+      href,
+      label: "Example olarak devam et",
+    });
   });
 });
