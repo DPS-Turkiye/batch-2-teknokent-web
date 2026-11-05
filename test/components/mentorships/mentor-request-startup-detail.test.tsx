@@ -23,6 +23,7 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorRequestDecision: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useMentorshipRequest: () => ({
     data: {
+      programName: "QA Recorded Program",
       id: "req-1",
       mentorId: "mentor-1",
       requesterId: "mentee-1",
@@ -63,4 +64,9 @@ describe("MentorRequestStartupDetail", () => {
     const themed = accept.closest<HTMLElement>('[style*="--ms-accent"]');
     expect(themed?.style.getPropertyValue("--ms-accent")).toBe("#26a4ff");
   });
+});
+
+it("shows the program captured on the request in its program field", () => {
+  renderWithQueryClient(<MentorRequestStartupDetail requestId="req-1" />);
+  expect(screen.getByText("QA Recorded Program")).toBeInTheDocument();
 });

@@ -87,10 +87,12 @@ describe("toSession", () => {
     });
   });
 
-  it("rejects a mentee with no organization", () => {
-    expect(
-      toSession(mentee({ organizationId: null, organizationName: null })),
-    ).toBeNull();
+  it("signs in a mentee who has no startup yet", () => {
+    const session = toSession(
+      mentee({ organizationId: null, organizationName: null }),
+    );
+    expect(session).not.toBeNull();
+    expect(session?.organizationId).toBeUndefined();
   });
 
   it("builds a mentor session without requiring an organization", () => {

@@ -1,3 +1,5 @@
+import type { UserAccountStatus } from "@/interfaces/session";
+
 // Distinct from StartupContext in startup.ts, which is parsed from a CV/deck.
 /** Mirrors the backend's StartupFundingStage, which sends these labels as its values. */
 export enum StartupFundingStage {
@@ -26,9 +28,23 @@ export interface StartupProfile {
   completionPercent: number | null;
   fundingStage: StartupFundingStage | null;
   foundedYear: number | null;
+  /** A startup created after signup waits for its program's coordinator. */
+  approvalStatus: UserAccountStatus;
   createdAt: string;
   updatedAt: string;
 }
+
+/** "Startup'ımı oluştur" on /startup; the program is the creator's own. */
+export type CreateStartupInput = {
+  name: string;
+  description?: string;
+  website?: string;
+  mvpUrl?: string;
+  foundedYear?: number;
+  maturity?: string;
+  supportAreas: string[];
+  teamMembers: { fullName: string; jobTitle?: string; email?: string }[];
+};
 
 /** The "Durum" card. Saved on its own so the profile form can never wipe it. */
 export type StartupStatusInput = Pick<
@@ -39,5 +55,5 @@ export type StartupStatusInput = Pick<
 /** The editable half. Identity, timestamps and the status are saved elsewhere. */
 export type StartupProfileInput = Omit<
   StartupProfile,
-  "id" | "createdAt" | "updatedAt" | keyof StartupStatusInput
+  "id" | "createdAt" | "updatedAt" | "approvalStatus" | keyof StartupStatusInput
 >;

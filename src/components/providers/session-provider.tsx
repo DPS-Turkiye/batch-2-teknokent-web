@@ -18,7 +18,7 @@ type SessionContextValue = {
 };
 
 const SessionContext = createContext<SessionContextValue | null>(null);
-const SESSION_QUERY_KEY = ["session"] as const;
+export const SESSION_QUERY_KEY = ["session"] as const;
 
 // Only a 401 means signed out; anything else is a hiccup that must not bounce
 // a signed-in person to the login page.

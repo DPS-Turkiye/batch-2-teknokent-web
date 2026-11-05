@@ -16,10 +16,10 @@ const RECOMMENDATION_HEADERS = [
 
 export async function POST(request: NextRequest) {
   try {
-    await getSessionIds();
+    const { userId } = await getSessionIds();
     const payload: unknown = await request.json();
     return backendResponse(
-      await recommendMentors(payload),
+      await recommendMentors(payload, userId),
       RECOMMENDATION_HEADERS,
     );
   } catch (error) {

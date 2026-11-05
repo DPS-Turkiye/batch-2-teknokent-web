@@ -1,5 +1,6 @@
 "use client";
 
+import { ProgramContext } from "@/components/common/program-context";
 import Image from "next/image";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
@@ -402,6 +403,9 @@ function IncomingRequestCard({
           <h3 className="text-[19px] font-semibold text-[#22262b]">
             {mentorWorkspaceName(request, t("startupFallback"))}
           </h3>
+          <div className="mt-1">
+            <ProgramContext name={request.programName} />
+          </div>
           {person ? (
             <p className="mt-1 text-[13px] text-[#676e78]">{person}</p>
           ) : null}

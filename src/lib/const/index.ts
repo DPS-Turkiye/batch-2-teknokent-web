@@ -397,5 +397,4 @@ export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 /** Mirrors the backend's DocumentKind limit for documents (images stay at 5 MB). */
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 
-// No team mailbox yet; swap this when one exists.
-export const SUPPORT_EMAIL = "arya.zaeri@gmail.com";
+export const SUPPORT_EMAIL = "info@menton.com.tr";

@@ -12,12 +12,20 @@ import type {
   ProgramTeamDetail,
   TeamInviteInput,
   UpdateProgramDetailsInput,
+  ExtractSyllabusPhasesInput,
+  SyllabusPhases,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
+import type {
+  ApprovalKind,
+  ProgramApprovalPerson,
+  ProgramApprovals,
+} from "@/interfaces/program-approvals";
 import type {
   MatchingOverview,
   MatchSuggestions,
 } from "@/interfaces/program-matching";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchCoordinatorPrograms(actorId: string) {
@@ -67,11 +75,23 @@ export function replaceCoordinatorProgramPhases(
   actorId: string,
   programId: string,
   phases: ProgramPhaseInput[],
+  syllabusDocumentId: string | null = null,
 ) {
   return backendRequest<CoordinatorProgramDetail>({
     method: "PUT",
     url: `${programUrl(programId)}/phases`,
-    data: { actorId, phases },
+    data: { actorId, phases, syllabusDocumentId },
+  });
+}
+
+export function extractSyllabusPhases(
+  actorId: string,
+  input: ExtractSyllabusPhasesInput,
+) {
+  return backendRequest<SyllabusPhases>({
+    method: "POST",
+    url: "/api/coordinator/programs/syllabus/phases",
+    data: { ...input, actorId },
   });
 }
 
@@ -258,6 +278,36 @@ export function decideProgramMentor(
     method: "POST",
     url: `${programUrl(programId)}/mentors/${encodeURIComponent(mentorId)}/decision`,
     data: { actorId, accepted },
+  });
+}
+
+export function fetchProgramApprovals(actorId: string, programId: string) {
+  return backendRequest<ProgramApprovals>({
+    method: HttpMethod.Get,
+    url: `${programUrl(programId)}/approvals`,
+    params: { actorId },
+  });
+}
+
+export function decideProgramApproval(
+  actorId: string,
+  programId: string,
+  kind: ApprovalKind,
+  id: string,
+  accepted: boolean,
+) {
+  return backendRequest<ProgramApprovals>({
+    method: HttpMethod.Post,
+    url: `${programUrl(programId)}/approvals/${kind}/${encodeURIComponent(id)}`,
+    data: { actorId, accepted },
+  });
+}
+
+export function fetchProgramWithoutTeam(actorId: string, programId: string) {
+  return backendRequest<ProgramApprovalPerson[]>({
+    method: HttpMethod.Get,
+    url: `${programUrl(programId)}/without-team`,
+    params: { actorId },
   });
 }
 

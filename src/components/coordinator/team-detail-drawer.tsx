@@ -11,6 +11,7 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import { TeamHistory } from "@/components/common/team-history";
 import { TeamStage } from "@/components/coordinator/team-stage";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
@@ -165,6 +166,7 @@ export function TeamDetailDrawer({
                               {member.jobTitle}
                             </p>
                           ) : null}
+                          <TeamHistory userId={member.id} />
                         </div>
                         {member.joinedAt ? (
                           <span className="text-[12px] text-[#858c96]">

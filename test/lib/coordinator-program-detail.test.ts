@@ -4,10 +4,10 @@ import { describe, expect, it } from "vitest";
 import {
   emptyPhase,
   healthShares,
-  movePhase,
   overviewActions,
-  phasesChanged,
+  phaseDraftError,
   programHeaderLine,
+  savedPhases,
   settingsDraftError,
   settingsDraftOf,
   stepDays,
@@ -74,11 +74,10 @@ describe("coordinator program detail", () => {
     expect(stepDays(14, 1, RULE_LIMITS.staleAfterDays)).toBe(15);
   });
 
-  it("validates the settings draft and notices phase changes", () => {
+  it("validates the settings draft, and each phase on its own", () => {
     const detail = coordinatorProgramDetail();
     const draft = settingsDraftOf(detail);
     expect(settingsDraftError(draft)).toBeNull();
-    expect(phasesChanged(draft, detail)).toBe(false);
     expect(settingsDraftError({ ...draft, name: " " })).toBe(
       "Program adı gerekli.",
     );
@@ -89,16 +88,19 @@ describe("coordinator program detail", () => {
         endDate: "2026-09-01",
       }),
     ).toBe("Program bitişi başlangıçtan önce olamaz.");
-    expect(
-      settingsDraftError({ ...draft, phases: [...draft.phases, emptyPhase()] }),
-    ).toBe("Her fazın bir adı olmalı.");
-    const moved = { ...draft, phases: movePhase(draft.phases, 0, 1) };
-    expect(moved.phases.map((phase) => phase.name)).toEqual([
-      "Mentorluk dönemi",
+    expect(savedPhases(detail).map((phase) => phase.name)).toEqual([
       "Başvuru",
+      "Mentorluk dönemi",
       "Demo Day",
     ]);
-    expect(phasesChanged(moved, detail)).toBe(true);
-    expect(movePhase(draft.phases, 0, -1)).toBe(draft.phases);
+    expect(phaseDraftError(emptyPhase())).toBe("Her fazın bir adı olmalı.");
+    expect(
+      phaseDraftError({
+        ...emptyPhase(),
+        name: "Demo Day",
+        startDate: "2026-12-10",
+        endDate: "2026-12-01",
+      }),
+    ).toContain("Demo Day");
   });
 });

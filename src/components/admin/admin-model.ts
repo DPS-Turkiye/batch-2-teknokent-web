@@ -1,6 +1,7 @@
 import type {
   AdminMentorship,
   AdminOverview,
+  AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
 
@@ -38,20 +39,37 @@ export function startupsOf(data: AdminOverview): AdminStartup[] {
   return rows;
 }
 
+/** A mentorship counts in the program it was made in; one made before programs were recorded counts in each of its team's programs. */
+export function countsInProgram(item: AdminMentorship, programId: string) {
+  return item.programId == null || item.programId === programId;
+}
+
+export function mentorshipInPrograms(
+  item: AdminMentorship,
+  programs: AdminProgram[],
+) {
+  return programs.some(
+    (program) =>
+      countsInProgram(item, program.id) &&
+      program.startups.some((startup) => startup.id === item.organizationId),
+  );
+}
+
 export function activeMentorshipFor(
   data: AdminOverview,
-  organizationId: string,
+  startup: Pick<AdminStartup, "id" | "programId">,
 ) {
   return data.mentorships.find(
     (item) =>
-      item.organizationId === organizationId &&
+      item.organizationId === startup.id &&
+      countsInProgram(item, startup.programId) &&
       (item.status === "ACTIVE" || item.status === "PLANNED"),
   );
 }
 
 export function unmatchedStartups(data: AdminOverview) {
   return startupsOf(data).filter(
-    (startup) => !activeMentorshipFor(data, startup.id),
+    (startup) => !activeMentorshipFor(data, startup),
   );
 }
 
@@ -78,6 +96,17 @@ export function programForOrganization(
   return data.programs.find((program) =>
     program.startups.some((startup) => startup.id === organizationId),
   );
+}
+
+export function programOfMentorship(
+  data: AdminOverview,
+  item: AdminMentorship,
+) {
+  const own =
+    item.programId == null
+      ? undefined
+      : data.programs.find((program) => program.id === item.programId);
+  return own ?? programForOrganization(data, item.organizationId);
 }
 
 export function programsForMentor(data: AdminOverview, userId: string) {

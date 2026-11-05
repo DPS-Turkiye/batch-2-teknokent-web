@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
+import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
 import { useMentorNextMeeting } from "@/hooks/use-mentor-next-meeting";
@@ -205,7 +207,7 @@ function NextMeetingBanner({
     >
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute left-1/2 top-1/2 -z-10 h-[1228px] w-[266px] -translate-x-1/2 -translate-y-1/2 -rotate-90 bg-[url('/mentor-dashboard/revised/next-meeting-bg.svg')] bg-cover"
+        className="pointer-events-none absolute inset-0 -z-10 bg-[url('/mentor-dashboard/revised/next-meeting-bg.svg')] bg-cover bg-center"
       />
       <div className="rounded-[20px] border border-white/50 bg-black/10 px-[18px] py-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -431,9 +433,7 @@ function StartupCard({
             <h4 className="font-semibold text-[#4a5059]">
               {t("startups.tasks")}
             </h4>
-            <Link href={href} className="font-medium text-[#26a4ff]">
-              {t("startups.newTask")}
-            </Link>
+            <AssignTaskButton requestId={id} startupName={name} />
           </div>
           {actionItems.length === 0 ? (
             <p className="text-[12px] text-[#858c96]">
@@ -971,6 +971,7 @@ export function MentorDashboardView() {
                 </section>
               </div>
               <aside className="min-w-0 space-y-6">
+                <MentorProgramInvitations />
                 <MyProgramsPanel variant="mentor" />
                 <section>
                   <SectionHeading

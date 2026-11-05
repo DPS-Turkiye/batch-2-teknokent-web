@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useCoordinatorProgram } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
@@ -34,7 +35,9 @@ export function ProgramDetailFrame({
   children: (detail: CoordinatorProgramDetail) => ReactNode;
 }) {
   const t = useTranslations("coordinatorPrograms");
+  const tNav = useTranslations("roleFrame.nav");
   const locale = useLocale();
+  const navigation = useProgramNavigation(programId);
   const query = useCoordinatorProgram(programId);
   const detail = query.data;
   if (!detail) {
@@ -48,7 +51,9 @@ export function ProgramDetailFrame({
         aria-label={t("breadcrumb")}
         className="flex items-center gap-1.5 text-[13px] text-[#858c96]"
       >
-        <Link href="/coordinator/programs">{t("myPrograms")}</Link>
+        <Link href={navigation.listHref}>
+          {navigation.admin ? tNav("programs") : t("myPrograms")}
+        </Link>
         <ChevronRight aria-hidden className="size-3.5" />
         <span className="text-[#22262b]">{program.name}</span>
       </nav>
@@ -69,7 +74,7 @@ export function ProgramDetailFrame({
           </p>
         </div>
         <Link
-          href={`/coordinator/programs/${encodeURIComponent(programId)}/report`}
+          href={`${navigation.baseHref}/report`}
           className="shrink-0 rounded-full border border-[#e9ecef] bg-white px-4 py-2.5 text-[13.5px] font-medium text-[#22262b]"
         >
           {t("report")}
@@ -123,7 +128,7 @@ export function ProgramDetailFrame({
           return item.href ? (
             <Link
               key={item.id}
-              href={item.href}
+              href={navigation.resolveHref(item.href)}
               role="tab"
               aria-selected={active}
               className={className}
