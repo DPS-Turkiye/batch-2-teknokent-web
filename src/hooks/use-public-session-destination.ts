@@ -9,17 +9,19 @@ export function usePublicSessionDestination() {
   const { isLoading, session } = useSession();
   const { homeHref } = roleWorkspace(session?.role);
   const firstName = session?.fullName.trim().split(/\s+/)[0];
-
-  return {
+  const login = {
     href: session ? homeHref : "/login",
-    isLoading,
     label: firstName
       ? t("publicSession.continueAs", { name: firstName })
       : t("publicSession.signIn"),
+  };
+  const signup = { href: "/signup", label: t("publicSession.signUp") };
+
+  return {
+    ...login,
+    isLoading,
     session,
-    signup:
-      !isLoading && !session
-        ? { href: "/signup", label: t("publicSession.signUp") }
-        : null,
+    primaryAction: session ? login : signup,
+    signup: !isLoading && !session ? signup : null,
   };
 }

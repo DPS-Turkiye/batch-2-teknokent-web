@@ -33,16 +33,16 @@ export function LandingPage() {
     <div ref={rootRef} className={cx("page", revealing && "revealing")}>
       <LandingNav login={login} signup={destination.signup} />
       <main id="top">
-        <LandingHero login={login} />
+        <LandingHero action={destination.primaryAction} />
         <LandingAnnouncements />
         <LandingHow />
         <LandingCompare
           onDifference={() => faq.reveal(LANDING_FAQ_DIFFERENCE_INDEX)}
         />
         <LandingFaq faq={faq} />
-        <LandingCta login={login} />
+        <LandingCta action={destination.primaryAction} />
       </main>
-      <LandingFooter login={login} />
+      <LandingFooter action={destination.primaryAction} />
     </div>
   );
 }

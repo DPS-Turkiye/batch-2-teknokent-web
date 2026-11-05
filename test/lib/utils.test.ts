@@ -7,6 +7,7 @@ import {
   formatLongDate,
   formatShortDate,
   formatFileSize,
+  httpUrlOrNull,
 } from "@/lib/utils";
 
 describe("dayPart", () => {
@@ -67,5 +68,18 @@ describe("formatFileSize", () => {
   it("shows larger files in megabytes with one decimal", () => {
     expect(formatFileSize(2.34 * 1024 * 1024)).toBe("2.3 MB");
     expect(formatFileSize(10 * 1024 * 1024)).toBe("10 MB");
+  });
+});
+
+describe("httpUrlOrNull", () => {
+  it("keeps http and https links and refuses anything else", () => {
+    expect(httpUrlOrNull(" https://www.linkedin.com/in/ada ")).toBe(
+      "https://www.linkedin.com/in/ada",
+    );
+    expect(httpUrlOrNull("http://example.com")).toBe("http://example.com");
+    expect(httpUrlOrNull("javascript:alert(1)")).toBeNull();
+    expect(httpUrlOrNull("linkedin.com/in/ada")).toBeNull();
+    expect(httpUrlOrNull("")).toBeNull();
+    expect(httpUrlOrNull(null)).toBeNull();
   });
 });
