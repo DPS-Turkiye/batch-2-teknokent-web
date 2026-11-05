@@ -11,9 +11,9 @@ export const dynamic = "force-dynamic";
 
 export default async function MentorRequestPage() {
   const session = await getSessionUser();
-  if (!session?.organizationId) {
-    redirect("/login");
-  }
+  if (!session) redirect("/login");
+  // Someone who signed up without a startup is told on Startup'ım how to get one.
+  if (!session.organizationId) redirect("/startup");
   const [t, { mentors, error: mentorError }, { startup, error: startupError }] =
     await Promise.all([
       getTranslations("loadErrors"),

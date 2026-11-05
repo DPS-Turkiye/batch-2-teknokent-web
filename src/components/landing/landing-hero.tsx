@@ -11,12 +11,9 @@ import { cx } from "@/components/landing/landing-styles";
 import { useLandingHero, useLandingPointerEffects } from "@/hooks/use-landing";
 import { LANDING_PHOTOS } from "@/lib/const/landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import type { LandingLink } from "@/types/landing";
 
-export function LandingHero({
-  login,
-}: {
-  login: { href: string; label: string };
-}) {
+export function LandingHero({ action }: { action: LandingLink }) {
   const landing = useLandingContent();
   const {
     sceneRef,
@@ -60,11 +57,11 @@ export function LandingHero({
             <Link
               id="giris"
               className={cx("btn", "btn-or")}
-              href={login.href}
+              href={action.href}
               onPointerMove={pointer.magnet}
               onPointerLeave={pointer.reset}
             >
-              {login.label}
+              {action.label}
               <ArrowIcon />
             </Link>
             <a

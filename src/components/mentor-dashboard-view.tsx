@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
@@ -432,9 +433,7 @@ function StartupCard({
             <h4 className="font-semibold text-[#4a5059]">
               {t("startups.tasks")}
             </h4>
-            <Link href={href} className="font-medium text-[#26a4ff]">
-              {t("startups.newTask")}
-            </Link>
+            <AssignTaskButton requestId={id} startupName={name} />
           </div>
           {actionItems.length === 0 ? (
             <p className="text-[12px] text-[#858c96]">
