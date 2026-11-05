@@ -15,18 +15,11 @@ import {
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
   removeProgramCoordinator,
-  replaceCoordinatorProgramPhases,
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
 import {
   detailsInput,
-  emptyPhase,
-  MAX_PHASES,
-  movePhase,
-  type PhaseDraft,
-  phasesChanged,
-  phasesInput,
   type ProgramSettingsDraft,
   SettingsSection,
   settingsDraftError,
@@ -44,7 +37,7 @@ export function useCoordinatorProgram(programId: string) {
   });
 }
 
-function useProgramCache(programId: string) {
+export function useProgramCache(programId: string) {
   const queryClient = useQueryClient();
   return {
     put: (detail: CoordinatorProgramDetail) => {
@@ -75,19 +68,8 @@ export function useProgramSettings(
   const [error, setError] = useState<string | null>(null);
 
   const save = useMutation({
-    mutationFn: async (value: ProgramSettingsDraft) => {
-      let saved = await updateCoordinatorProgram(
-        programId,
-        detailsInput(value),
-      );
-      if (phasesChanged(value, detail)) {
-        saved = await replaceCoordinatorProgramPhases(
-          programId,
-          phasesInput(value),
-        );
-      }
-      return saved;
-    },
+    mutationFn: (value: ProgramSettingsDraft) =>
+      updateCoordinatorProgram(programId, detailsInput(value)),
     onSuccess: (saved) => {
       cache.put(saved);
       setDraft(settingsDraftOf(saved));
@@ -100,26 +82,12 @@ export function useProgramSettings(
     setError(null);
     setDraft((current) => ({ ...current, ...patch }));
   };
-  const updatePhase = (key: string, patch: Partial<PhaseDraft>) =>
-    update({
-      phases: draft.phases.map((phase) =>
-        phase.key === key ? { ...phase, ...patch } : phase,
-      ),
-    });
 
   return {
     section,
     setSection,
     draft,
     update,
-    updatePhase,
-    addPhase: () =>
-      draft.phases.length < MAX_PHASES &&
-      update({ phases: [...draft.phases, emptyPhase()] }),
-    removePhase: (key: string) =>
-      update({ phases: draft.phases.filter((phase) => phase.key !== key) }),
-    movePhase: (index: number, step: -1 | 1) =>
-      update({ phases: movePhase(draft.phases, index, step) }),
     dirty: JSON.stringify(draft) !== JSON.stringify(settingsDraftOf(detail)),
     error,
     saving: save.isPending,
