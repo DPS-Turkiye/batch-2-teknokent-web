@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   getMeetingFeedback,
   getRatedMeetingIds,
+  postMeeting,
   updateMeeting,
 } from "@/lib/client/meetings";
 import { httpClient } from "@/lib/http-client";
@@ -34,6 +35,18 @@ describe("meetings client", () => {
       notes: "Yeni not",
       status: MeetingStatus.Completed,
     });
+  });
+
+  it("shows the backend's sentence when every recording bot is busy", async () => {
+    const busy =
+      "Bu saatte 3 kayıt botunun hepsi başka görüşmelerde. Başka bir saat seçebilir ya da kaydı kapatarak görüşmeyi planlayabilirsiniz.";
+    vi.mocked(httpClient.post).mockResolvedValue(
+      createMentorResponse({ message: busy }, 409),
+    );
+
+    await expect(
+      postMeeting({ transcribeRequested: true }),
+    ).rejects.toMatchObject({ status: 409, message: busy });
   });
 
   it("reads a meeting the author has not rated yet as no feedback", async () => {

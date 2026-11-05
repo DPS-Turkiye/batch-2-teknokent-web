@@ -2383,9 +2383,7 @@
     "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
     "backToMentorships": "Mentorluklarıma dön",
     "homeLabel": "menton ana sayfa",
-    "toastRegion": "İşlem bildirimleri",
-    "botFullTitle": "Kayıt botu şu anda katılamıyor",
-    "botFullMessage": "Özür dileriz, sitedeki yoğun kullanım nedeniyle kayıt botu şu anda bu görüşmeye katılamıyor. Görüşme planlandı; kayıt olmadan yapılacak."
+    "toastRegion": "İşlem bildirimleri"
   },
   "optionValues": {
     "stage": {
@@ -2594,6 +2592,26 @@
       "decline": "Reddet",
       "sendMessage": "Mesaj gönder",
       "accept": "Mentorluğu kabul et"
+    },
+    "assignTask": {
+      "open": "Yeni iş ata",
+      "title": "İş ata",
+      "taskTitle": "İş başlığı",
+      "assignee": "Atanan kişi",
+      "chooseAssignee": "Startup üyesi seç",
+      "description": "Açıklama (isteğe bağlı)",
+      "dueDate": "Teslim tarihi (isteğe bağlı)",
+      "cancel": "Vazgeç",
+      "save": "İşi ata",
+      "saving": "Atanıyor…",
+      "saved": "İş atandı.",
+      "loading": "Startup üyeleri yükleniyor…",
+      "loadFailed": "Startup üyeleri yüklenemedi.",
+      "retry": "Tekrar dene",
+      "noAssignees": "İş atanabilecek onaylı bir startup üyesi yok.",
+      "validation": "İş başlığını, startup üyesini ve teslim tarihini kontrol et.",
+      "saveFailed": "İş atanamadı. Bilgilerini koruduk; tekrar deneyebilirsin.",
+      "forbidden": "Yalnızca mentorlar iş atayabilir."
     }
   },
   "mentorDecision": {
