@@ -5,23 +5,26 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import Home, { dynamic } from "@/app/(public)/page";
 import type { AppSession } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
+import { InLocale } from "@test/test-utils";
 
 let mockSession: AppSession | null = null;
+let isLoading = false;
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useSession: () => ({ isLoading: false, session: mockSession }),
+  useSession: () => ({ isLoading, session: mockSession }),
 }));
 
 describe("Landing page", () => {
   beforeEach(() => {
     mockSession = null;
+    isLoading = false;
   });
 
   it("renders per request so the CDN never hands phones the desktop page", () => {
     expect(dynamic).toBe("force-dynamic");
   });
 
-  it("shows the designer's sections and sends a visitor to sign in", () => {
+  it("shows the designer's sections with a separate header login action", () => {
     render(<Home />);
 
     expect(
@@ -40,7 +43,7 @@ describe("Landing page", () => {
       expect(screen.getByRole("heading", { name })).toBeInTheDocument();
     }
     const signIn = screen.getAllByRole("link", { name: /Giriş Yap/ });
-    expect(signIn.length).toBeGreaterThanOrEqual(3);
+    expect(signIn).toHaveLength(1);
     signIn.forEach((link) => expect(link).toHaveAttribute("href", "/login"));
   });
 
@@ -61,6 +64,48 @@ describe("Landing page", () => {
     expect(
       screen.queryByRole("link", { name: /Giriş Yap/ }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Kayıt Ol" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["tr", "Kayıt Ol", "Giriş Yap"],
+    ["en", "Sign up", "Sign in"],
+  ] as const)(
+    "sends every signup action to the role chooser in %s",
+    (locale, signupLabel, loginLabel) => {
+      render(
+        <InLocale locale={locale}>
+          <Home />
+        </InLocale>,
+      );
+      const header = within(screen.getByRole("banner"));
+      expect(header.getByRole("link", { name: signupLabel })).toHaveAttribute(
+        "href",
+        "/signup",
+      );
+      expect(header.getByRole("link", { name: loginLabel })).toHaveAttribute(
+        "href",
+        "/login",
+      );
+      const signupLinks = screen.getAllByRole("link", { name: signupLabel });
+      expect(signupLinks).toHaveLength(4);
+      signupLinks.forEach((link) =>
+        expect(link).toHaveAttribute("href", "/signup"),
+      );
+    },
+  );
+
+  it("keeps the main signup actions on /signup while the session loads", () => {
+    isLoading = true;
+    render(<Home />);
+
+    const signupLinks = screen.getAllByRole("link", { name: "Kayıt Ol" });
+    expect(signupLinks).toHaveLength(3);
+    signupLinks.forEach((link) =>
+      expect(link).toHaveAttribute("href", "/signup"),
+    );
   });
 
   it("switches the mentoring steps from the list, including by keyboard", async () => {

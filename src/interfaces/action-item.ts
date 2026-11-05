@@ -20,4 +20,7 @@ export interface ActionItem {
   createdAt: string;
   updatedAt: string;
   mentorshipRequestId?: string | null;
+  /** Who had the task before leaving the team; null for a task never handed over. */
+  previousOwnerName?: string | null;
+  ownerLeftAt?: string | null;
 }

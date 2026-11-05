@@ -13,7 +13,7 @@ import { fetchActionItems, updateActionItem } from "@/lib/api/action-items";
 import { fetchDocumentRequests } from "@/lib/api/document-requests";
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
-import { confirmProfileAnalysis } from "@/lib/api/profile-analysis";
+import { confirmStartupProfileRecord } from "@/lib/api/profile-analysis-records";
 import { createMeetingBot } from "@/lib/botapi";
 import { UserRole } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
@@ -39,8 +39,8 @@ vi.mock("@/lib/api/mentor-recommendations", () => ({
   recommendMentors: vi.fn(),
 }));
 vi.mock("@/lib/api/mentor-requests", () => ({ fetchMentorRequest: vi.fn() }));
-vi.mock("@/lib/api/profile-analysis", () => ({
-  confirmProfileAnalysis: vi.fn(),
+vi.mock("@/lib/api/profile-analysis-records", () => ({
+  confirmStartupProfileRecord: vi.fn(),
 }));
 
 const ok = { data: {}, headers: {}, status: 200 };
@@ -85,7 +85,7 @@ const cases = [
     name: "PATCH /api/profile-analysis/[id]/confirmation",
     call: () =>
       confirmProfile(request(HttpMethod.Patch, { profile: {} }), params),
-    backend: confirmProfileAnalysis,
+    backend: confirmStartupProfileRecord,
   },
   {
     name: "POST /api/mentor-recommendations",
