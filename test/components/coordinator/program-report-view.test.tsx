@@ -1,4 +1,5 @@
 import { screen } from "@testing-library/react";
+import { usePathname } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
 
 import { ProgramReportView } from "@/components/coordinator/program-report-view";
@@ -7,6 +8,8 @@ import {
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
+
+vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => null) }));
 
 vi.mock("@/hooks/use-program-report", () => ({
   useProgramReport: () => ({
@@ -38,5 +41,18 @@ describe("coordinator Program raporu", () => {
     expect(
       screen.queryByRole("button", { name: "Sistem Aktivitesi" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps an admin's breadcrumbs in the admin workspace", () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1/report");
+    renderWithQueryClient(<ProgramReportView programId="program-1" />);
+
+    expect(screen.getByRole("link", { name: "Programlar" })).toHaveAttribute(
+      "href",
+      "/admin/programs",
+    );
+    expect(
+      screen.getByRole("link", { name: "ODTÜ Stars 2026" }),
+    ).toHaveAttribute("href", "/admin/programs/program-1");
   });
 });

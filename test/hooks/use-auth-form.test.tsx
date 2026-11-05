@@ -1,7 +1,13 @@
 import { act, renderHook } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import type { FormEvent } from "react";
+import { describe, expect, it, vi } from "vitest";
 
 import { useRegisterForm } from "@/hooks/use-auth-form";
+import { FirebaseError } from "firebase/app";
+
+function submitEvent() {
+  return { preventDefault: vi.fn() } as unknown as FormEvent<HTMLFormElement>;
+}
 
 const STRONG_PASSWORD = "Sifre1234!";
 
@@ -80,5 +86,62 @@ describe("useRegisterForm", () => {
     act(() => result.current.update("email", "süde@gmail.com"));
     expect(result.current.canSubmit).toBe(false);
     expect(result.current.emailCharacterErrorMessage).toMatch(/ı yerine i/);
+  });
+
+  it("blocks invalid submission and prevents the browser navigation", async () => {
+    const onSubmit = vi.fn();
+    const { result } = renderHook(() => useRegisterForm(onSubmit));
+    const event = submitEvent();
+
+    await act(() => result.current.submit(event));
+
+    expect(event.preventDefault).toHaveBeenCalled();
+    expect(onSubmit).not.toHaveBeenCalled();
+    expect(result.current.submitting).toBe(false);
+  });
+
+  it("keeps submission disabled while account creation is pending", async () => {
+    let resolve!: () => void;
+    const onSubmit = vi.fn(
+      () =>
+        new Promise<void>((done) => {
+          resolve = done;
+        }),
+    );
+    const { result } = renderHook(() => useRegisterForm(onSubmit));
+    fillValid(result);
+    let pending!: Promise<void>;
+    act(() => {
+      pending = result.current.submit(submitEvent());
+    });
+
+    expect(result.current.submitting).toBe(true);
+    await act(() => result.current.submit(submitEvent()));
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolve();
+      await pending;
+    });
+  });
+
+  it("reports Firebase errors and lets the user retry without losing fields", async () => {
+    const onSubmit = vi
+      .fn()
+      .mockRejectedValueOnce(
+        new FirebaseError("auth/email-already-in-use", "Firebase error"),
+      )
+      .mockResolvedValueOnce(undefined);
+    const { result } = renderHook(() => useRegisterForm(onSubmit));
+    fillValid(result);
+
+    await act(() => result.current.submit(submitEvent()));
+
+    expect(result.current.error).not.toBe("");
+    expect(result.current.error).not.toBe("Firebase error");
+    expect(result.current.submitting).toBe(false);
+    expect(result.current.form.email).toBe("gulse@dongu.co");
+    await act(() => result.current.submit(submitEvent()));
+    expect(result.current.error).toBe("");
+    expect(onSubmit).toHaveBeenCalledTimes(2);
   });
 });

@@ -30,8 +30,7 @@
     "passwordsMismatch": "Şifreler eşleşmiyor.",
     "creatingAccount": "Hesap oluşturuluyor…",
     "sessionExpired": "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
-    "signIn": "Giriş yap",
-    "shellImageAlt": "menton ile doğru mentörle eşleş"
+    "signIn": "Giriş yap"
   },
   "register": {
     "titleMentor": "Mentor olarak menton’a katıl",
@@ -432,7 +431,8 @@
   },
   "publicSession": {
     "continueAs": "{name} olarak devam et",
-    "signIn": "Giriş Yap"
+    "signIn": "Giriş Yap",
+    "signUp": "Kayıt Ol"
   },
   "landing": {
     "nav": {
@@ -2383,9 +2383,7 @@
     "rescheduleProposed": "Yeni saat önerildi. Diğer taraf onaylayınca görüşme taşınır.",
     "backToMentorships": "Mentorluklarıma dön",
     "homeLabel": "menton ana sayfa",
-    "toastRegion": "İşlem bildirimleri",
-    "botFullTitle": "Kayıt botu şu anda katılamıyor",
-    "botFullMessage": "Özür dileriz, sitedeki yoğun kullanım nedeniyle kayıt botu şu anda bu görüşmeye katılamıyor. Görüşme planlandı; kayıt olmadan yapılacak."
+    "toastRegion": "İşlem bildirimleri"
   },
   "optionValues": {
     "stage": {
@@ -2594,6 +2592,26 @@
       "decline": "Reddet",
       "sendMessage": "Mesaj gönder",
       "accept": "Mentorluğu kabul et"
+    },
+    "assignTask": {
+      "open": "Yeni iş ata",
+      "title": "İş ata",
+      "taskTitle": "İş başlığı",
+      "assignee": "Atanan kişi",
+      "chooseAssignee": "Startup üyesi seç",
+      "description": "Açıklama (isteğe bağlı)",
+      "dueDate": "Teslim tarihi (isteğe bağlı)",
+      "cancel": "Vazgeç",
+      "save": "İşi ata",
+      "saving": "Atanıyor…",
+      "saved": "İş atandı.",
+      "loading": "Startup üyeleri yükleniyor…",
+      "loadFailed": "Startup üyeleri yüklenemedi.",
+      "retry": "Tekrar dene",
+      "noAssignees": "İş atanabilecek onaylı bir startup üyesi yok.",
+      "validation": "İş başlığını, startup üyesini ve teslim tarihini kontrol et.",
+      "saveFailed": "İş atanamadı. Bilgilerini koruduk; tekrar deneyebilirsin.",
+      "forbidden": "Yalnızca mentorlar iş atayabilir."
     }
   },
   "mentorDecision": {
@@ -3525,6 +3543,7 @@
       "waitingWork": "Bekleyen işler",
       "upcomingTitle": "Yaklaşan tarihler",
       "noUpcoming": "Yaklaşan etkinlik ya da son tarih yok. Takvim’den ekleyebilirsiniz.",
+      "noUpcomingAdmin": "Yaklaşan etkinlik ya da son tarih yok.",
       "today": "bugün",
       "inDays": "{count} gün",
       "distribution": "Takım & mentor dağılımı",
@@ -5314,5 +5333,17 @@
     "teamChangesEmpty": "Bekleyen talep yok.",
     "wantsToLeave": "{startup} takımından ayrılmak istiyor",
     "removalAsked": "{leader}, {startup} takımından çıkarılmasını istiyor"
+  },
+  "mentorProgramInvitations": {
+    "title": "Program davetleri",
+    "failed": "Program davetlerin yüklenemedi.",
+    "invitedBy": "{name} seni mentor olarak davet etti · {date}",
+    "accept": "Kabul et",
+    "decline": "Reddet",
+    "answering": "Kaydediliyor…",
+    "accepted": "{name} programına katıldın.",
+    "declined": "{name} davetini reddettin.",
+    "answerFailed": "Davete yanıt verilemedi.",
+    "awaitingReview": "Koordinatör onayı bekleniyor"
   }
 }

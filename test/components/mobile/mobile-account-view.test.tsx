@@ -14,10 +14,19 @@ const toggle = vi.fn();
 const signOut = vi.fn();
 const enable = vi.fn();
 let account: Account;
+let englishEnabled = false;
 
 vi.mock("@/hooks/use-mobile-account", () => ({
   useMobileAccount: () => account,
 }));
+
+vi.mock("@/lib/i18n", async (original) => ({
+  ...(await original<typeof import("@/lib/i18n")>()),
+  get ENGLISH_ENABLED() {
+    return englishEnabled;
+  },
+}));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
 
 vi.mock("next/link", () => import("@test/mocks/next-link"));
 
@@ -61,6 +70,7 @@ function accountState(overrides: Partial<Account> = {}): Account {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  englishEnabled = false;
   account = accountState();
 });
 
@@ -156,4 +166,11 @@ describe("MobileAccountView", () => {
 
     expect(screen.getByRole("alert")).toHaveTextContent("Ayar kaydedilemedi.");
   });
+});
+
+it("offers language selection in mobile account preferences when enabled", () => {
+  englishEnabled = true;
+  render(<MobileAccountView />);
+  expect(screen.getByRole("group", { name: "Dil" })).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "English" })).toBeInTheDocument();
 });
