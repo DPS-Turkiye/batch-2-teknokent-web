@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   activeMentorshipFor,
+  assignableProgramsForMentor,
+  assignableProgramsForStartup,
   countsInProgram,
   mentorshipInPrograms,
   programOfMentorship,
@@ -69,6 +71,53 @@ function overview(mentorships: AdminMentorship[]): AdminOverview {
     meetingsLast8Weeks: 0,
   };
 }
+
+describe("admin-model programs the admin can still assign to", () => {
+  const closed: AdminProgram = {
+    ...program("program-3", "Kapanan Program"),
+    status: "COMPLETED",
+  };
+  const withMentors: AdminProgram = {
+    ...growth,
+    mentors: [
+      {
+        mentorId: "mentor-a",
+        fullName: "A",
+        email: "a@test.co",
+        status: "ACCEPTED",
+      },
+      {
+        mentorId: "mentor-b",
+        fullName: "B",
+        email: "b@test.co",
+        status: "PENDING",
+      },
+    ],
+  };
+  const data: AdminOverview = {
+    ...overview([]),
+    programs: [stars, withMentors, closed],
+  };
+
+  it("offers open programs a mentor is not in, or only waiting for", () => {
+    expect(
+      assignableProgramsForMentor(data, "mentor-a").map((item) => item.id),
+    ).toEqual(["program-1"]);
+    expect(
+      assignableProgramsForMentor(data, "mentor-b").map((item) => item.id),
+    ).toEqual(["program-1", "program-2"]);
+  });
+
+  it("offers open programs a startup is not in", () => {
+    const fresh = { ...withMentors, startups: [] };
+    expect(
+      assignableProgramsForStartup(
+        { ...data, programs: [stars, fresh, closed] },
+        "org-1",
+      ).map((item) => item.id),
+    ).toEqual(["program-2"]);
+  });
+});
 
 describe("admin-model program attribution", () => {
   it("counts a mentorship only in the program it was made in", () => {

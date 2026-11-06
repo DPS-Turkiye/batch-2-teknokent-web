@@ -4,6 +4,7 @@ import type {
   AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 
 export function coordinatorsOf(data: AdminOverview) {
   return data.users.filter((user) => user.role === "COORDINATOR");
@@ -107,6 +108,34 @@ export function programOfMentorship(
       ? undefined
       : data.programs.find((program) => program.id === item.programId);
   return own ?? programForOrganization(data, item.organizationId);
+}
+
+/** Open programs the admin can still put the mentor into: ones they are not in yet, or only waiting for. */
+export function assignableProgramsForMentor(
+  data: AdminOverview,
+  userId: string,
+) {
+  return data.programs.filter(
+    (program) =>
+      program.status === ProgramStatus.Active &&
+      !program.mentors.some(
+        (mentor) =>
+          mentor.mentorId === userId &&
+          mentor.status === ProgramMentorStatus.Accepted,
+      ),
+  );
+}
+
+/** Open programs the startup is not in yet. */
+export function assignableProgramsForStartup(
+  data: AdminOverview,
+  organizationId: string,
+) {
+  return data.programs.filter(
+    (program) =>
+      program.status === ProgramStatus.Active &&
+      !program.startups.some((startup) => startup.id === organizationId),
+  );
 }
 
 export function programsForMentor(data: AdminOverview, userId: string) {

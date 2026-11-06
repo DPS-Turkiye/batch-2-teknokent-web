@@ -14,6 +14,12 @@ export type AdminProgram = {
   mentors: AdminMentorMembership[];
 };
 
+/** What the admin puts into a program; also the path segment of the assignment. */
+export enum ProgramMemberKind {
+  Mentors = "mentors",
+  Startups = "startups",
+}
+
 export type AdminStartup = {
   id: string;
   name: string;
