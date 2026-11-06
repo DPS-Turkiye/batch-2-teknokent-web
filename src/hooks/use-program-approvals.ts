@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 
 import { useToast } from "@/components/providers/toast-provider";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import { mentorPoolQueryKey } from "@/hooks/use-mentor-pool";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
 import {
   ApprovalKind,
@@ -22,7 +23,7 @@ export const programApprovalsQueryKey = (programId: string) =>
 const withoutTeamQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "without-team"] as const;
 
-/** Onaylar: applicants, later-created startups and leave/removal requests, decided one by one. */
+/** Onaylar: applicants, mentors asking to join, later-created startups and leave/removal requests, decided one by one. */
 export function useProgramApprovals(programId: string) {
   const t = useTranslations("programApprovals");
   const queryClient = useQueryClient();
@@ -48,6 +49,11 @@ export function useProgramApprovals(programId: string) {
       void queryClient.invalidateQueries({
         queryKey: programTeamsQueryKey(programId),
       });
+      if (input.kind === ApprovalKind.Mentors) {
+        void queryClient.invalidateQueries({
+          queryKey: mentorPoolQueryKey(programId),
+        });
+      }
       showToast({
         message: input.accepted ? t("approved") : t("rejected"),
         tone: "success",
@@ -67,11 +73,14 @@ export function useProgramApprovals(programId: string) {
   return {
     query,
     people: query.data?.people ?? [],
+    mentors: query.data?.mentors ?? [],
     startups: query.data?.startups ?? [],
     teamChanges: query.data?.teamChanges ?? [],
     deciding: decide.isPending ? decide.variables?.id : null,
     decidePerson: (id: string, accepted: boolean) =>
       run(ApprovalKind.People, id, accepted),
+    decideMentor: (id: string, accepted: boolean) =>
+      run(ApprovalKind.Mentors, id, accepted),
     decideStartup: (id: string, accepted: boolean) =>
       run(ApprovalKind.Startups, id, accepted),
     decideTeamChange: (id: string, accepted: boolean) =>

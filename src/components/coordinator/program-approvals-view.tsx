@@ -78,6 +78,28 @@ function ApprovalsBody({ programId }: { programId: string }) {
           ))
         )}
       </Section>
+      <Section title={t("mentorsTitle")} hint={t("mentorsHint")}>
+        {approvals.mentors.length === 0 ? (
+          <li>
+            <EmptyNote>{t("mentorsEmpty")}</EmptyNote>
+          </li>
+        ) : (
+          approvals.mentors.map((mentor) => (
+            <Row
+              key={mentor.id}
+              name={mentor.fullName}
+              lines={[
+                mentor.email,
+                mentor.jobTitle ?? "",
+                t("signedUp", {
+                  date: formatLongDate(mentor.createdAt, locale),
+                }),
+              ]}
+              action={actions(mentor.id, approvals.decideMentor)}
+            />
+          ))
+        )}
+      </Section>
       <Section title={t("startupsTitle")} hint={t("startupsHint")}>
         {approvals.startups.length === 0 ? (
           <li>

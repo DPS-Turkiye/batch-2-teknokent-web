@@ -43,6 +43,16 @@ const approvals: ProgramApprovals = {
       createdAt: "2026-11-01T11:00:00Z",
     },
   ],
+  mentors: [
+    {
+      id: "mentor-1",
+      fullName: "Nihan Öztürk",
+      email: "nihan@mentor.co",
+      jobTitle: "Ürün Direktörü",
+      organizationName: null,
+      createdAt: "2026-11-03T10:00:00Z",
+    },
+  ],
   startups: [
     {
       id: "org-1",
@@ -137,6 +147,30 @@ describe("ProgramApprovalsView", () => {
     );
   });
 
+  it("lists a mentor asking to join and approves them", async () => {
+    vi.mocked(decideProgramApproval).mockResolvedValue({
+      ...approvals,
+      mentors: [],
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
+
+    expect(await screen.findByText("Mentor başvuruları")).toBeInTheDocument();
+    const nihan = screen.getByText("Nihan Öztürk").closest("li") as HTMLElement;
+    expect(within(nihan).getByText(/Ürün Direktörü/)).toBeInTheDocument();
+    await user.click(within(nihan).getByRole("button", { name: "Onayla" }));
+
+    expect(decideProgramApproval).toHaveBeenCalledWith(
+      "program-1",
+      ApprovalKind.Mentors,
+      "mentor-1",
+      true,
+    );
+    expect(
+      await screen.findByText("Onay bekleyen mentor başvurusu yok."),
+    ).toBeInTheDocument();
+  });
+
   it("reads in English", async () => {
     renderWithQueryClient(
       <InLocale locale="en">
@@ -146,7 +180,8 @@ describe("ProgramApprovalsView", () => {
 
     expect(await screen.findByText("Applications")).toBeInTheDocument();
     expect(screen.getByText("Startups created later")).toBeInTheDocument();
-    expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(5);
+    expect(screen.getByText("Mentor applications")).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: "Approve" })).toHaveLength(6);
     expect(screen.getByText("Leaving and removal")).toBeInTheDocument();
   });
 });
