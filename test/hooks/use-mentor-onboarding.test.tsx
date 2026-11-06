@@ -19,7 +19,12 @@ import {
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
+import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
+import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { currentIdToken } from "@/lib/firebase/auth";
 
@@ -37,6 +42,11 @@ vi.mock("@/lib/client/onboarding-draft", () => ({
   fetchOnboardingDraft: vi.fn(),
   saveOnboardingDraft: vi.fn(),
   clearOnboardingDraft: vi.fn(),
+}));
+vi.mock("@/lib/client/programs", () => ({ getProgramNames: vi.fn() }));
+vi.mock("@/lib/client/mentor-programs", () => ({
+  getMentorPrograms: vi.fn(),
+  chooseMentorPrograms: vi.fn(),
 }));
 vi.mock("@/lib/firebase/auth", () => ({
   currentIdToken: vi.fn(),
@@ -83,6 +93,9 @@ beforeEach(() => {
     originalFilename: "nihan-cv.pdf",
     sizeBytes: 5,
   });
+  vi.mocked(getProgramNames).mockResolvedValue([]);
+  vi.mocked(getMentorPrograms).mockResolvedValue([]);
+  vi.mocked(chooseMentorPrograms).mockResolvedValue([]);
   vi.mocked(fetchOnboardingDraft).mockImplementation(async () => stored);
   vi.mocked(saveOnboardingDraft).mockImplementation(async (_token, body) => {
     stored = {
@@ -178,6 +191,40 @@ describe("useMentorOnboarding", () => {
 
     act(() => result.current.toggleTopic(MENTOR_TOPIC_OPTIONS[0]));
     expect(result.current.draft.topics).toHaveLength(MAX_MENTOR_TOPICS - 1);
+  });
+
+  it("asks for an open program on the areas step and starts with the ones the mentor already has", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "p1", name: "METU Stars 2026" },
+      { id: "p2", name: "Growth Circuit 2026" },
+    ]);
+    vi.mocked(getMentorPrograms).mockResolvedValue(["p2"]);
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() =>
+      expect(result.current.draft.programIds).toEqual(["p2"]),
+    );
+    expect(result.current.programs).toHaveLength(2);
+
+    fillProfile(result);
+    act(() => result.current.goNext());
+    fillAreas(result);
+    expect(result.current.canContinue).toBe(true);
+
+    act(() => result.current.toggleProgram("p2"));
+    expect(result.current.canContinue).toBe(false);
+    act(() => result.current.toggleProgram("p1"));
+    expect(result.current.canContinue).toBe(true);
+  });
+
+  it("does not hold the mentor back when no program is open", async () => {
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(result.current.programsLoading).toBe(false));
+
+    fillProfile(result);
+    act(() => result.current.goNext());
+    fillAreas(result);
+
+    expect(result.current.canContinue).toBe(true);
   });
 
   it("keeps offerings unique and ignores blank ones", () => {
@@ -375,6 +422,17 @@ describe("useMentorOnboarding — sending the profile", () => {
     );
     expect(result.current.submittedAt).toBeInstanceOf(Date);
     expect(result.current.saveError).toBe("");
+  });
+
+  it("sends the chosen programs with the token", async () => {
+    const { result } = readyToSend();
+    act(() => result.current.toggleProgram("p1"));
+
+    await act(async () => {
+      await result.current.complete();
+    });
+
+    expect(chooseMentorPrograms).toHaveBeenCalledWith(["p1"], "id-token");
   });
 
   it("surfaces a save failure instead of claiming the profile was sent", async () => {

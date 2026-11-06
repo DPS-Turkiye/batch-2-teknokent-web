@@ -22,8 +22,14 @@ import {
   type WeeklySlot,
 } from "@/interfaces/mentor-onboarding";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
+import type { ProgramName } from "@/interfaces/program";
 import type { UploadedFile } from "@/interfaces/signup";
 import { uploadDocument } from "@/lib/client/documents";
+import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
+import { getProgramNames } from "@/lib/client/programs";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
@@ -61,6 +67,7 @@ function emptyDraft(fullName = ""): MentorOnboardingDraft {
     cv: null,
     cvStoredName: null,
     profile: { ...PLACEHOLDER_PARSED_PROFILE },
+    programIds: [],
     topics: [],
     stages: [],
     offerings: [],
@@ -109,6 +116,32 @@ export function useMentorOnboarding(
   const [editingExperience, setEditingExperience] = useState<number | null>(
     null,
   );
+  const [programs, setPrograms] = useState<ProgramName[] | null>(null);
+
+  // Programs the mentor already has (an invite link, an earlier visit) start ticked.
+  useEffect(() => {
+    let cancelled = false;
+    getProgramNames()
+      .then((names) => {
+        if (!cancelled) setPrograms(names);
+      })
+      .catch(() => {
+        if (!cancelled) setPrograms([]);
+      });
+    currentIdToken()
+      .then((idToken) => (idToken ? getMentorPrograms(idToken) : []))
+      .then((chosen) => {
+        if (cancelled || !chosen.length) return;
+        setDraft((current) => ({
+          ...current,
+          programIds: [...new Set([...current.programIds, ...chosen])],
+        }));
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const onRestore = useCallback((saved: OnboardingDraftRecord) => {
     const payload = saved.payload as Partial<MentorOnboardingDraft> & {
@@ -281,6 +314,13 @@ export function useMentorOnboarding(
     [],
   );
 
+  const toggleProgram = useCallback((programId: string) => {
+    setDraft((current) => ({
+      ...current,
+      programIds: toggle(current.programIds, programId),
+    }));
+  }, []);
+
   const addOffering = useCallback((text: string) => {
     const value = text.trim();
     if (!value) return;
@@ -348,6 +388,7 @@ export function useMentorOnboarding(
       const idToken = await requireToken();
       await updateMentorProfile(toMentorProfilePayload(draft), idToken);
       await updateAvailabilitySettings(toAvailabilityPayload(draft), idToken);
+      await chooseMentorPrograms(draft.programIds, idToken);
       const current = await getUserProfile(idToken);
       await saveUserProfile(
         {
@@ -387,7 +428,10 @@ export function useMentorOnboarding(
       );
     }
     if (step === MentorOnboardingStep.Areas) {
-      return draft.topics.length > 0 && draft.stages.length > 0;
+      const programChosen = !programs?.length || draft.programIds.length > 0;
+      return (
+        draft.topics.length > 0 && draft.stages.length > 0 && programChosen
+      );
     }
     if (step === MentorOnboardingStep.Availability) {
       return (
@@ -395,7 +439,7 @@ export function useMentorOnboarding(
       );
     }
     return draft.consent;
-  }, [draft, phase, step]);
+  }, [draft, phase, programs, step]);
 
   const topicOptions = useMemo(
     () => [
@@ -421,6 +465,8 @@ export function useMentorOnboarding(
     droppedFiles,
     canContinue,
     topicOptions,
+    programs: programs ?? [],
+    programsLoading: programs === null,
     topicLimitReached: draft.topics.length >= MAX_MENTOR_TOPICS,
     invalidDays: invalidDays(draft.week),
     isFirstScreen:
@@ -438,6 +484,7 @@ export function useMentorOnboarding(
     removeExperience,
     toggleTopic,
     toggleStage,
+    toggleProgram,
     addOffering,
     removeOffering,
     updateDay,

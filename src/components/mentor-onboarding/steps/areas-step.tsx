@@ -31,8 +31,33 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
   const { draft } = wizard;
   const entry = useInlineEntry(wizard.addOffering);
 
+  const programNames = new Map(
+    wizard.programs.map((program) => [program.id, program.name]),
+  );
+
   return (
     <>
+      <OnboardingCard
+        rounded="rounded-xl"
+        title={copy("programsTitle")}
+        subtitle={copy("programsSubtitle")}
+      >
+        {wizard.programsLoading ? (
+          <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
+        ) : wizard.programs.length ? (
+          <OnboardingChips
+            tone={TONE}
+            label={copy("programsLabel")}
+            options={wizard.programs.map((program) => program.id)}
+            selected={draft.programIds}
+            onToggle={wizard.toggleProgram}
+            labelFor={(id) => programNames.get(id) ?? id}
+          />
+        ) : (
+          <p className="text-xs text-[#858c96]">{copy("noPrograms")}</p>
+        )}
+      </OnboardingCard>
+
       <OnboardingCard
         rounded="rounded-xl"
         title={copy("topics")}

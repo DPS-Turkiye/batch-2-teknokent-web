@@ -111,6 +111,8 @@ export interface MentorOnboardingDraft {
   /** Set once the CV is stored on the server, so a resumed draft knows it is not lost. */
   cvStoredName: string | null;
   profile: ParsedProfile;
+  /** Active programs the mentor asks to join; each one's coordinator decides. */
+  programIds: string[];
   topics: string[];
   stages: string[];
   offerings: string[];
