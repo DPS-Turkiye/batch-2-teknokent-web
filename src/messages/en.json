@@ -5011,6 +5011,7 @@
     "coordinatorAddFailed": "Could not add the coordinator.",
     "coordinatorAccessChangeFailed": "Could not change the coordinator's access.",
     "passwordSetupEmailFailed": "Could not send the password setup e-mail.",
+    "authEmailFailed": "The e-mail could not be sent. Try again.",
     "followUpsLoadFailed": "Could not load the follow-ups.",
     "notificationSendFailed": "Could not send the notification.",
     "followUpCloseFailed": "Could not close the follow-up.",

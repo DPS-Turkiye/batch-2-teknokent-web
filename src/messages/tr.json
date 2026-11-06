@@ -5011,6 +5011,7 @@
     "coordinatorAddFailed": "Koordinatör eklenemedi.",
     "coordinatorAccessChangeFailed": "Koordinatör erişimi değiştirilemedi.",
     "passwordSetupEmailFailed": "Şifre belirleme e-postası gönderilemedi.",
+    "authEmailFailed": "E-posta gönderilemedi. Tekrar deneyin.",
     "followUpsLoadFailed": "Takipler yüklenemedi.",
     "notificationSendFailed": "Bildirim gönderilemedi.",
     "followUpCloseFailed": "Takip kapatılamadı.",
