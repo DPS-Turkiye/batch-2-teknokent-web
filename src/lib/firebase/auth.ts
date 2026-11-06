@@ -8,11 +8,44 @@ import {
   setPersistence,
   signInWithEmailAndPassword,
   signOut,
+  type User,
 } from "firebase/auth";
 
 import { clientText, hasClientText } from "@/i18n/client-texts";
+import { ClientApiError } from "@/lib/client/api";
+import {
+  requestPasswordResetEmail,
+  requestVerificationEmail,
+} from "@/lib/client/auth-email";
 import { EMAIL_VERIFICATION_EXEMPT } from "@/lib/const";
 import { firebaseAuth } from "@/lib/firebase/client";
+
+const TOO_MANY_REQUESTS = 429;
+
+/**
+ * Our e-mail goes out from menton.com.tr, which university and Yahoo filters accept where they drop Firebase's
+ * sender. Firebase's own e-mail stays the fallback for when ours cannot be sent.
+ */
+async function sendOwnEmailOrFirebase(
+  ownEmail: () => Promise<void>,
+  firebaseEmail: () => Promise<void>,
+): Promise<void> {
+  try {
+    await ownEmail();
+  } catch (error) {
+    if (error instanceof ClientApiError && error.status === TOO_MANY_REQUESTS) {
+      throw new Error(clientText("firebase.too-many-requests"));
+    }
+    await firebaseEmail();
+  }
+}
+
+function sendVerification(user: User): Promise<void> {
+  return sendOwnEmailOrFirebase(
+    async () => requestVerificationEmail(await user.getIdToken()),
+    () => sendEmailVerification(user),
+  );
+}
 
 const EXEMPT_EMAILS = new Set<string>(EMAIL_VERIFICATION_EXEMPT);
 
@@ -43,7 +76,7 @@ export async function createFirebaseAccount(
     password,
   );
   if (!isEmailVerificationExempt(credential.user.email)) {
-    await sendEmailVerification(credential.user);
+    await sendVerification(credential.user);
   }
   return credential.user.getIdToken();
 }
@@ -53,7 +86,7 @@ export async function resendVerificationEmail(): Promise<void> {
   if (!user) {
     throw new Error(clientText("verifySignIn"));
   }
-  await sendEmailVerification(user);
+  await sendVerification(user);
 }
 
 export function isCurrentEmailVerified(): boolean {
@@ -93,7 +126,11 @@ export async function signInToFirebase(
 }
 
 export async function requestPasswordReset(email: string): Promise<void> {
-  await sendPasswordResetEmail(firebaseAuth(), email.trim());
+  const address = email.trim();
+  await sendOwnEmailOrFirebase(
+    () => requestPasswordResetEmail(address),
+    () => sendPasswordResetEmail(firebaseAuth(), address),
+  );
 }
 
 export function currentUserEmail(): string | null {

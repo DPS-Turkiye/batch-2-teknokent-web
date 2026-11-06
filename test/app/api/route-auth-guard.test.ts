@@ -11,6 +11,7 @@ const HANDLER =
 
 // Answering without a session is deliberate for these handlers.
 const PUBLIC_HANDLERS = new Set([
+  "auth/password-reset/route.ts POST",
   "health/route.ts GET",
   "programs/names/route.ts GET",
   "session/route.ts DELETE",
