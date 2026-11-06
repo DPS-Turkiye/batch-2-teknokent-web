@@ -7,6 +7,8 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import {
   activeMentorshipFor,
+  assignableProgramsForMentor,
+  assignableProgramsForStartup,
   coordinatorsOf,
   mentorsOf,
   needsAttention,
@@ -15,6 +17,7 @@ import {
   startupsOf,
 } from "@/components/admin/admin-model";
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
+import { AssignToProgram } from "@/components/admin/assign-to-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
@@ -28,11 +31,12 @@ import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
-import type {
-  AdminOverview,
-  AdminProgram,
-  AdminStartup,
-  AdminUser,
+import {
+  ProgramMemberKind,
+  type AdminOverview,
+  type AdminProgram,
+  type AdminStartup,
+  type AdminUser,
 } from "@/interfaces/admin-overview";
 import { UserAccountStatus } from "@/interfaces/session";
 import { errorMessage, initials } from "@/lib/utils";
@@ -602,6 +606,7 @@ function MentorsTable({
         <MentorDrawer
           user={selected}
           programs={programsForMentor(data, selected.id)}
+          assignable={assignableProgramsForMentor(data, selected.id)}
           mentorships={data.mentorships.filter(
             (item) =>
               item.mentorId === selected.id &&
@@ -948,11 +953,13 @@ function CoordinatorDrawer({
 function MentorDrawer({
   user,
   programs,
+  assignable,
   mentorships,
   onClose,
 }: {
   user: AdminUser;
   programs: AdminProgram[];
+  assignable: AdminProgram[];
   mentorships: AdminOverview["mentorships"];
   onClose: () => void;
 }) {
@@ -1067,10 +1074,17 @@ function MentorDrawer({
             </div>
           ) : null}
           {section === "PROGRAMS" ? (
+            <AssignToProgram
+              kind={ProgramMemberKind.Mentors}
+              targetId={user.id}
+              programs={assignable}
+            />
+          ) : null}
+          {section === "PROGRAMS" ? (
             programs.length === 0 ? (
-              <p className="text-[#858c96]">{t("noPrograms")}</p>
+              <p className="mt-3 text-[#858c96]">{t("noPrograms")}</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="mt-3 space-y-2">
                 {programs.map((item) => (
                   <li
                     key={item.id}
@@ -1246,6 +1260,11 @@ function TeamDrawer({
                 <span className="text-[#858c96]">{t("programField")}</span>
                 {startup.programName}
               </p>
+              <AssignToProgram
+                kind={ProgramMemberKind.Startups}
+                targetId={startup.id}
+                programs={assignableProgramsForStartup(data, startup.id)}
+              />
               <p>
                 <span className="text-[#858c96]">{t("sectorField")}</span>
                 {startup.sector ?? "—"}
