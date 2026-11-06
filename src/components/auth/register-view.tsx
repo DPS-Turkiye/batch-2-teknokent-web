@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { EmailDomainNote } from "@/components/auth/email-domain-note";
 import { useRegisterForm } from "@/hooks/use-auth-form";
 import { type RegisterForm } from "@/interfaces/auth";
 import { PASSWORD_HINT } from "@/lib/password";
@@ -26,6 +27,8 @@ export function RegisterView({
     passwordStrengthErrorMessage,
     passwordsMismatch,
     emailCharacterErrorMessage,
+    allowedEmailDomains,
+    emailDomainNotAllowed,
     phoneErrorMessage,
     submitting,
     error,
@@ -75,7 +78,12 @@ export function RegisterView({
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
                 {emailCharacterErrorMessage}
               </p>
-            ) : null}
+            ) : (
+              <EmailDomainNote
+                domains={allowedEmailDomains}
+                notAllowed={emailDomainNotAllowed}
+              />
+            )}
           </div>
           <AuthField
             id="register-phone"

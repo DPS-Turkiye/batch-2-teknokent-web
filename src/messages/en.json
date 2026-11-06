@@ -72,6 +72,8 @@
     "lastNamePlaceholder": "Your last name",
     "email": "Email",
     "emailPlaceholder": "name@email.com",
+    "emailDomainHint": "Sign up with your {domains} e-mail address.",
+    "emailDomainNotAllowed": "This address cannot sign up here; use your {domains} e-mail address.",
     "phone": "Phone",
     "password": "Password",
     "passwordConfirm": "Confirm password",

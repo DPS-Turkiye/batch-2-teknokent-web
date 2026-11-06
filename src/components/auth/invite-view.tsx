@@ -6,6 +6,7 @@ import { useState } from "react";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
+import { EmailDomainNote } from "@/components/auth/email-domain-note";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { useSession } from "@/components/providers/session-provider";
 import { useRegisterForm } from "@/hooks/use-auth-form";
@@ -32,6 +33,8 @@ export function InviteView() {
     passwordStrengthErrorMessage,
     passwordsMismatch,
     emailCharacterErrorMessage,
+    allowedEmailDomains,
+    emailDomainNotAllowed,
   } = useRegisterForm();
   const [inviteCode, setInviteCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -139,7 +142,12 @@ export function InviteView() {
               <p role="alert" className="mt-1.5 text-xs text-[#c0392b]">
                 {emailCharacterErrorMessage}
               </p>
-            ) : null}
+            ) : (
+              <EmailDomainNote
+                domains={allowedEmailDomains}
+                notAllowed={emailDomainNotAllowed}
+              />
+            )}
           </div>
           <AuthField
             id="invite-phone"

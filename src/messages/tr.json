@@ -72,6 +72,8 @@
     "lastNamePlaceholder": "Soyadınız",
     "email": "E-posta",
     "emailPlaceholder": "ornek@email.com",
+    "emailDomainHint": "Kayıt için {domains} uzantılı e-posta adresini kullan.",
+    "emailDomainNotAllowed": "Bu adresle kayıt olunamaz; {domains} uzantılı e-posta adresini kullan.",
     "phone": "Telefon",
     "password": "Şifre",
     "passwordConfirm": "Şifre tekrar",

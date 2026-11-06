@@ -88,6 +88,40 @@ describe("useRegisterForm", () => {
     expect(result.current.emailCharacterErrorMessage).toMatch(/ı yerine i/);
   });
 
+  it("accepts any address when the deployment sets no domain", () => {
+    const { result } = renderHook(() => useRegisterForm(undefined, []));
+    fillValid(result);
+
+    expect(result.current.canSubmit).toBe(true);
+    expect(result.current.allowedEmailDomains).toBe("");
+    expect(result.current.emailDomainNotAllowed).toBe(false);
+  });
+
+  it("only takes an address from the deployment's domains", () => {
+    const { result } = renderHook(() =>
+      useRegisterForm(undefined, ["metu.edu.tr"]),
+    );
+    fillValid(result);
+
+    expect(result.current.allowedEmailDomains).toBe("@metu.edu.tr");
+    expect(result.current.canSubmit).toBe(false);
+    expect(result.current.emailDomainNotAllowed).toBe(true);
+
+    act(() => result.current.update("email", "e123456@metu.edu.tr"));
+    expect(result.current.canSubmit).toBe(true);
+    expect(result.current.emailDomainNotAllowed).toBe(false);
+  });
+
+  it("does not flag the domain while the address is half typed", () => {
+    const { result } = renderHook(() =>
+      useRegisterForm(undefined, ["metu.edu.tr"]),
+    );
+
+    act(() => result.current.update("email", "e123456@metu"));
+    expect(result.current.emailDomainNotAllowed).toBe(false);
+    expect(result.current.canSubmit).toBe(false);
+  });
+
   it("blocks invalid submission and prevents the browser navigation", async () => {
     const onSubmit = vi.fn();
     const { result } = renderHook(() => useRegisterForm(onSubmit));

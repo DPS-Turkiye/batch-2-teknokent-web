@@ -3,7 +3,13 @@
 import { type FormEvent, useCallback, useMemo, useState } from "react";
 
 import { type RegisterForm } from "@/interfaces/auth";
-import { emailCharacterError } from "@/lib/email";
+import { ALLOWED_EMAIL_DOMAINS } from "@/lib/const";
+import {
+  EMAIL_PATTERN,
+  emailCharacterError,
+  formatEmailDomains,
+  isAllowedEmailDomain,
+} from "@/lib/email";
 import { ClientApiError } from "@/lib/client/api";
 import { describeAuthError } from "@/lib/firebase/auth";
 import { passwordStrengthError } from "@/lib/password";
@@ -11,6 +17,7 @@ import { normalizePhoneInput, phoneNumberError } from "@/lib/phone";
 
 export function useRegisterForm(
   onSubmit?: (form: RegisterForm) => Promise<void>,
+  allowedDomains: readonly string[] = ALLOWED_EMAIL_DOMAINS,
 ) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -43,6 +50,10 @@ export function useRegisterForm(
     form.passwordConfirm.length > 0 && form.password !== form.passwordConfirm;
 
   const emailCharacterErrorMessage = emailCharacterError(form.email);
+  const emailDomainAllowed = isAllowedEmailDomain(form.email, allowedDomains);
+  // Only once the address looks finished, so the error does not flash while typing.
+  const emailDomainNotAllowed =
+    !emailDomainAllowed && EMAIL_PATTERN.test(form.email.trim());
 
   const canSubmit = useMemo(
     () =>
@@ -51,6 +62,7 @@ export function useRegisterForm(
         form.lastName.trim() &&
         form.email.trim() &&
         !emailCharacterErrorMessage &&
+        emailDomainAllowed &&
         form.phone.trim() &&
         !phoneErrorMessage &&
         form.password.trim() &&
@@ -60,6 +72,7 @@ export function useRegisterForm(
     [
       form,
       emailCharacterErrorMessage,
+      emailDomainAllowed,
       passwordStrengthErrorMessage,
       phoneErrorMessage,
     ],
@@ -90,6 +103,8 @@ export function useRegisterForm(
     passwordStrengthErrorMessage,
     passwordsMismatch,
     emailCharacterErrorMessage,
+    allowedEmailDomains: formatEmailDomains(allowedDomains),
+    emailDomainNotAllowed,
     phoneErrorMessage,
     submitting,
     error,

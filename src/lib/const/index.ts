@@ -1,6 +1,7 @@
 import type { LoginRoleGroup } from "@/interfaces/login";
 import { LoginRoleId } from "@/interfaces/login";
 import type { MeetingItem } from "@/interfaces/meeting";
+import { parseEmailDomains } from "@/lib/email";
 import {
   MentorRequestFilter,
   MentorshipRequestStatus,
@@ -50,6 +51,11 @@ export function getPublicBackendUrl(): string {
 export function getBackendHealthUrl(): string {
   return `${BACKEND_URL}${BACKEND_HEALTH_PATH}`;
 }
+
+/** Sign-up e-mail domains for this deployment (metu.edu.tr for ODTÜ); empty lets any address sign up. */
+export const ALLOWED_EMAIL_DOMAINS = parseEmailDomains(
+  process.env.NEXT_PUBLIC_ALLOWED_EMAIL_DOMAINS,
+);
 
 export const EMAIL_VERIFICATION_EXEMPT = [
   "admin@teknokent.demo",
