@@ -46,6 +46,14 @@ vi.mock("@/lib/client/auth", () => ({
   registerFounder: vi.fn().mockResolvedValue({}),
 }));
 
+vi.mock("@/lib/client/programs", async (original) => ({
+  ...(await original<typeof import("@/lib/client/programs")>()),
+  getProgramNames: vi.fn().mockResolvedValue([]),
+}));
+vi.mock("@/lib/client/mentor-programs", () => ({
+  getMentorPrograms: vi.fn().mockResolvedValue([]),
+  chooseMentorPrograms: vi.fn().mockResolvedValue([]),
+}));
 vi.mock("@/lib/client/mentor-profile", () => ({
   updateMentorProfile: vi.fn().mockResolvedValue({}),
   updateAvailabilitySettings: vi.fn().mockResolvedValue({}),
