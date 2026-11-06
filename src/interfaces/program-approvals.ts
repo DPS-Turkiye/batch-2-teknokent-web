@@ -22,14 +22,17 @@ export interface ProgramApprovalStartup {
 
 export interface ProgramApprovals {
   people: ProgramApprovalPerson[];
+  /** Mentors who asked to join the program; organizationName is always null. */
+  mentors: ProgramApprovalPerson[];
   startups: ProgramApprovalStartup[];
   /** Leave and removal requests waiting in the program. */
   teamChanges: TeamChange[];
 }
 
-/** The path segment of a decision: a person, a startup or a team change. */
+/** The path segment of a decision: a person, a mentor, a startup or a team change. */
 export enum ApprovalKind {
   People = "people",
+  Mentors = "mentors",
   Startups = "startups",
   TeamChanges = "team-changes",
 }
