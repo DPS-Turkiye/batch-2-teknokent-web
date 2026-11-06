@@ -41,14 +41,11 @@ export function LandingNav({
           <div className={cx("nav-actions")}>
             <LanguageSwitch />
             <div className={cx("nav-auth-links")}>
-              <Link
-                className={cx("btn", signup ? "btn-ghost" : "btn-or")}
-                href={login.href}
-              >
+              <Link className={cx("btn", "btn-or")} href={login.href}>
                 {login.label}
               </Link>
               {signup ? (
-                <Link className={cx("btn", "btn-or")} href={signup.href}>
+                <Link className={cx("btn", "btn-ghost")} href={signup.href}>
                   {signup.label}
                 </Link>
               ) : null}

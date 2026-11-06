@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home, { dynamic } from "@/app/(public)/page";
+import { styles } from "@/components/landing/landing-styles";
 import type { AppSession } from "@/interfaces/session";
 import { UserRole } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
@@ -88,6 +89,12 @@ describe("Landing page", () => {
       expect(header.getByRole("link", { name: loginLabel })).toHaveAttribute(
         "href",
         "/login",
+      );
+      expect(header.getByRole("link", { name: loginLabel })).toHaveClass(
+        styles["btn-or"],
+      );
+      expect(header.getByRole("link", { name: signupLabel })).toHaveClass(
+        styles["btn-ghost"],
       );
       const signupLinks = screen.getAllByRole("link", { name: signupLabel });
       expect(signupLinks).toHaveLength(4);
