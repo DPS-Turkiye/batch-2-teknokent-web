@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentors } from "@/hooks/use-mentors";
 import type { MentorProfile } from "@/interfaces/mentor";
 import {
@@ -32,6 +33,9 @@ export function MentorsDirectory({
   mentors?: MentorProfile[];
 }) {
   const t = useTranslations("mentorsDirectory");
+  // Student mentors save the class years they help where startup mentors save stages.
+  const { individual } = useIndividualProgram();
+  const stageLabel = t(individual ? "studentLevel" : "stage");
   const shouldFetch = mentorsProp === undefined;
   const mentorsQuery = useMentors({ enabled: shouldFetch });
   const mentors = useMemo(
@@ -109,14 +113,14 @@ export function MentorsDirectory({
           {filters.startupStage ? (
             <FilterChip
               label={t("chip", {
-                filter: t("stage"),
+                filter: stageLabel,
                 value: filters.startupStage,
               })}
               onRemove={() => patch({ startupStage: "" })}
             />
           ) : (
             <FilterSelect
-              label={t("stage")}
+              label={stageLabel}
               value={filters.startupStage}
               options={stages}
               onChange={(startupStage) => patch({ startupStage })}

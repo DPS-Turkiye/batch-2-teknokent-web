@@ -28,6 +28,11 @@ import {
 } from "@/lib/client/mentor-profile";
 import { applyMentorCv, type MentorCvResult } from "@/lib/mentor-cv";
 import {
+  toStudentDraft,
+  toStudentProfilePayload,
+} from "@/lib/mentor-onboarding";
+import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
+import {
   AVAILABILITY_NUMBER_FIELDS,
   type AvailabilityDraft,
   type AvailabilityNumberField,
@@ -125,7 +130,10 @@ export function useDeleteAvailabilitySlot() {
   });
 }
 
-type MentorProfileForm = Required<UpdateMentorProfilePayload>;
+// A student mentor's studies are edited beside the form, so mentors who are not students never send them.
+type MentorProfileForm = Required<
+  Omit<UpdateMentorProfilePayload, "studentProfile">
+>;
 
 function toEditablePayload(profile: MentorProfile): MentorProfileForm {
   return {
@@ -174,8 +182,18 @@ function isBlankExperience(experience: MentorExperienceInput) {
   return Object.values(experience).every((value) => !value.trim());
 }
 
+function studentDraftOf(profile: MentorProfile) {
+  return profile.studentProfile ? toStudentDraft(profile.studentProfile) : null;
+}
+
 /** The first problem that would make the backend refuse the save, or "". */
-export function mentorProfileFormError(form: MentorProfileForm) {
+export function mentorProfileFormError(
+  form: MentorProfileForm,
+  student: StudentOnboardingDraft | null = null,
+) {
+  if (student && !(student.department.trim() && student.studyYear)) {
+    return clientText("mentorProfile.studentRequired");
+  }
   const capacity = form.menteeCapacity;
   if (
     capacity !== null &&
@@ -210,6 +228,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const [form, setForm] = useState<MentorProfileForm>(() =>
     toEditablePayload(profile),
   );
+  const [student, setStudent] = useState(() => studentDraftOf(profile));
   const [specialtyInput, setSpecialtyInput] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -225,10 +244,15 @@ export function useMentorProfileForm(profile: MentorProfile) {
       | "prepFileRequirement"
       | "languages"
       | "programRoles"
+      | "studentProfile"
     >,
     value: string,
   ) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const updateStudent = (key: keyof StudentOnboardingDraft, value: string) => {
+    setStudent((previous) => (previous ? { ...previous, [key]: value } : null));
   };
 
   const updateCapacity = (value: string) => {
@@ -327,7 +351,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const handleSave = async () => {
     setSaveError("");
     setSaveSuccess(false);
-    const problem = mentorProfileFormError(form);
+    const problem = mentorProfileFormError(form, student);
     if (problem) {
       setSaveError(problem);
       return false;
@@ -338,6 +362,9 @@ export function useMentorProfileForm(profile: MentorProfile) {
         experiences: form.experiences.filter(
           (experience) => !isBlankExperience(experience),
         ),
+        ...(student
+          ? { studentProfile: toStudentProfilePayload(student) }
+          : {}),
       });
       setSaveSuccess(true);
       showToast({ message: t("saved"), tone: "success" });
@@ -359,12 +386,14 @@ export function useMentorProfileForm(profile: MentorProfile) {
   // availability editor since this form mounted is not sent back stale.
   const startEditing = () => {
     setForm(toEditablePayload(profile));
+    setStudent(studentDraftOf(profile));
     setSaveError("");
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setForm(toEditablePayload(profile));
+    setStudent(studentDraftOf(profile));
     setSpecialtyInput("");
     setSaveError("");
     setIsEditing(false);
@@ -382,6 +411,8 @@ export function useMentorProfileForm(profile: MentorProfile) {
     cancelEditing,
     saveAndFinish,
     updateField,
+    student,
+    updateStudent,
     updateCapacity,
     setMeetingFrequency,
     setPrepFileRequirement,

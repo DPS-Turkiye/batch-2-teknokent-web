@@ -88,7 +88,18 @@ export interface MentorProfile {
   programNames?: string[];
   programs?: MentorProgram[];
   experiences?: MentorExperience[];
+  /** Student mentors (İŞKUR) only; absent for everyone else. */
+  studentProfile?: StudentProfile | null;
 }
+
+/** A student mentor's studies, shown to mentees. */
+export type StudentProfile = {
+  department: string | null;
+  studyYear: string | null;
+  strongCourses: string[];
+  projects: string[];
+  erasmus: string | null;
+};
 
 export type UpdateMentorProfilePayload = Pick<
   MentorProfile,
@@ -114,6 +125,7 @@ export type UpdateMentorProfilePayload = Pick<
   languages?: MentorLanguage[];
   programRoles?: MentorProgramRoleInput[];
   offerings?: string[];
+  studentProfile?: StudentProfile;
 };
 
 export enum Weekday {

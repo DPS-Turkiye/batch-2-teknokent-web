@@ -97,7 +97,9 @@ export function MentorPickStep({
                     {item.fullName}
                   </h3>
                   <p className="mt-0.5 text-xs text-[#777]">
-                    {item.professionalTitle} · {item.company}
+                    {[item.professionalTitle, item.company]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.specialties.map((tag) => (

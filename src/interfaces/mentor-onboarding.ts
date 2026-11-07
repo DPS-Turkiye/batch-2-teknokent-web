@@ -101,6 +101,23 @@ export function emptyWeek(): WeeklyAvailability {
   ) as WeeklyAvailability;
 }
 
+/** Courses are typed comma-separated and projects one per line; both become lists when saved. */
+export interface StudentOnboardingDraft {
+  department: string;
+  studyYear: string;
+  courses: string;
+  projects: string;
+  erasmus: string;
+}
+
+export const EMPTY_STUDENT_DRAFT: StudentOnboardingDraft = {
+  department: "",
+  studyYear: "",
+  courses: "",
+  projects: "",
+  erasmus: "",
+};
+
 export interface MentorOnboardingDraft {
   firstName: string;
   lastName: string;
@@ -116,6 +133,8 @@ export interface MentorOnboardingDraft {
   topics: string[];
   stages: string[];
   offerings: string[];
+  /** Filled only by a mentor of a student program (İŞKUR). */
+  student: StudentOnboardingDraft;
   week: WeeklyAvailability;
   capacity: number;
   durationMinutes: number;

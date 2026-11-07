@@ -7,6 +7,7 @@ import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
 import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
+  EMPTY_STUDENT_DRAFT,
   IntroPhase,
   MAX_EXPERIENCES,
   MAX_MENTOR_TOPICS,
@@ -19,6 +20,7 @@ import {
   type MentorOnboardingDraft,
   type ParsedExperience,
   type ParsedProfile,
+  type StudentOnboardingDraft,
   type WeeklySlot,
 } from "@/interfaces/mentor-onboarding";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
@@ -77,6 +79,7 @@ function emptyDraft(fullName = ""): MentorOnboardingDraft {
     topics: [],
     stages: [],
     offerings: [],
+    student: { ...EMPTY_STUDENT_DRAFT },
     week: emptyWeek(),
     capacity: 3,
     durationMinutes: 45,
@@ -351,6 +354,18 @@ export function useMentorOnboarding(
     [programs],
   );
 
+  const updateStudent = useCallback(
+    <K extends keyof StudentOnboardingDraft>(
+      key: K,
+      value: StudentOnboardingDraft[K],
+    ) =>
+      setDraft((current) => ({
+        ...current,
+        student: { ...current.student, [key]: value },
+      })),
+    [],
+  );
+
   const addOffering = useCallback((text: string) => {
     const value = text.trim();
     if (!value) return;
@@ -416,7 +431,13 @@ export function useMentorOnboarding(
     setIsSaving(true);
     try {
       const idToken = await requireToken();
-      await updateMentorProfile(toMentorProfilePayload(draft), idToken);
+      await updateMentorProfile(
+        toMentorProfilePayload(
+          draft,
+          mentorsStudents(programs, draft.programIds),
+        ),
+        idToken,
+      );
       await updateAvailabilitySettings(toAvailabilityPayload(draft), idToken);
       await chooseMentorPrograms(draft.programIds, idToken);
       const current = await getUserProfile(idToken);
@@ -443,7 +464,7 @@ export function useMentorOnboarding(
     } finally {
       setIsSaving(false);
     }
-  }, [clearRemote, cvUploaded, draft]);
+  }, [clearRemote, cvUploaded, draft, programs]);
 
   const canContinue = useMemo(() => {
     if (step === MentorOnboardingStep.Profile) {
@@ -459,8 +480,14 @@ export function useMentorOnboarding(
     }
     if (step === MentorOnboardingStep.Areas) {
       const programChosen = !programs?.length || draft.programIds.length > 0;
+      const studentReady =
+        !mentorsStudents(programs, draft.programIds) ||
+        Boolean(draft.student.department.trim() && draft.student.studyYear);
       return (
-        draft.topics.length > 0 && draft.stages.length > 0 && programChosen
+        draft.topics.length > 0 &&
+        draft.stages.length > 0 &&
+        programChosen &&
+        studentReady
       );
     }
     if (step === MentorOnboardingStep.Availability) {
@@ -529,6 +556,7 @@ export function useMentorOnboarding(
     toggleProgram,
     addOffering,
     removeOffering,
+    updateStudent,
     updateDay,
     goNext,
     goBack,
