@@ -952,7 +952,8 @@
     "mentorProfile": {
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
-      "programRole": "A program role can be at most {max} characters."
+      "programRole": "A program role can be at most {max} characters.",
+      "studentRequired": "Enter your department and year."
     },
     "assistant": {
       "network": "network error",
@@ -1296,7 +1297,7 @@
       },
       "headingRecommended": "Best-matched mentors",
       "headingAll": "All mentors",
-      "matching": "Preparing suggestions from your request and startup profile…",
+      "matching": "Preparing suggestions from your request and profile…",
       "matchingFailed": "{error} You can pick from the All list.",
       "emptyRecommended": "No mentors were suggested for this need. Have a look at the All list.",
       "emptyFilter": "No mentors match this filter.",
@@ -1627,6 +1628,7 @@
     "clearSearch": "Clear search",
     "specialty": "Expertise",
     "stage": "Startup stage",
+    "studentLevel": "Year",
     "availability": "Availability",
     "chip": "{filter} - {value}",
     "more": "+ More",

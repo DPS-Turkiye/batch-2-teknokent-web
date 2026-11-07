@@ -952,7 +952,8 @@
     "mentorProfile": {
       "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
       "roleTitle": "Her deneyim için bir ünvan gir.",
-      "programRole": "Program rolü en fazla {max} karakter olabilir."
+      "programRole": "Program rolü en fazla {max} karakter olabilir.",
+      "studentRequired": "Bölümünü ve sınıfını gir."
     },
     "assistant": {
       "network": "ağ hatası",
@@ -1296,7 +1297,7 @@
       },
       "headingRecommended": "En Uygun Mentorlar",
       "headingAll": "Tüm Mentorlar",
-      "matching": "Talep ve girişim profiliniz kullanılarak öneriler hazırlanıyor…",
+      "matching": "Talebiniz ve profiliniz kullanılarak öneriler hazırlanıyor…",
       "matchingFailed": "{error} Tümü listesinden seçim yapabilirsiniz.",
       "emptyRecommended": "Bu ihtiyaca göre önerilen mentor bulunamadı. Tümü listesine bakabilirsiniz.",
       "emptyFilter": "Bu filtreye uyan mentor yok.",
@@ -1627,6 +1628,7 @@
     "clearSearch": "Aramayı temizle",
     "specialty": "Uzmanlık",
     "stage": "Girişim aşaması",
+    "studentLevel": "Sınıf",
     "availability": "Müsaitlik",
     "chip": "{filter} - {value}",
     "more": "+ Daha fazla",

@@ -91,6 +91,18 @@ export function toStudentProfilePayload(
   };
 }
 
+export function toStudentDraft(
+  profile: StudentProfile,
+): StudentOnboardingDraft {
+  return {
+    department: profile.department ?? "",
+    studyYear: profile.studyYear ?? "",
+    courses: profile.strongCourses.join(", "),
+    projects: profile.projects.join("\n"),
+    erasmus: profile.erasmus ?? "",
+  };
+}
+
 /** A student mentor's studies go with the profile; anyone else's draft never sends them. */
 export function toMentorProfilePayload(
   draft: MentorOnboardingDraft,

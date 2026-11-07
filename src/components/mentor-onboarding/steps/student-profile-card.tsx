@@ -11,7 +11,7 @@ import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
-import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
 import { STUDENT_LEVELS } from "@/lib/student-topics";
 
 const TONE = OnboardingTone.Mentor;
@@ -20,9 +20,14 @@ const labelClass = "flex flex-col gap-1.5 text-xs font-medium text-[#4a5059]";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 /** "Öğrenim bilgilerin": what mentees see about a student mentor (İŞKUR); internships go in Deneyim. */
-export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
+export function StudentProfileCard({
+  student,
+  onChange,
+}: {
+  student: StudentOnboardingDraft;
+  onChange: (key: keyof StudentOnboardingDraft, value: string) => void;
+}) {
   const copy = useTranslations("mentorSteps");
-  const student = wizard.draft.student;
 
   return (
     <OnboardingCard
@@ -37,9 +42,7 @@ export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
           value={student.department}
           maxLength={255}
           placeholder={copy("studentDepartmentPlaceholder")}
-          onChange={(event) =>
-            wizard.updateStudent("department", event.target.value)
-          }
+          onChange={(event) => onChange("department", event.target.value)}
         />
       </label>
       <OnboardingChips
@@ -48,10 +51,7 @@ export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
         options={STUDENT_LEVELS}
         selected={student.studyYear ? [student.studyYear] : []}
         onToggle={(year) =>
-          wizard.updateStudent(
-            "studyYear",
-            year === student.studyYear ? "" : year,
-          )
+          onChange("studyYear", year === student.studyYear ? "" : year)
         }
       />
       <label className={labelClass}>
@@ -60,9 +60,7 @@ export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
           className={inputClass}
           value={student.courses}
           placeholder={copy("studentCoursesPlaceholder")}
-          onChange={(event) =>
-            wizard.updateStudent("courses", event.target.value)
-          }
+          onChange={(event) => onChange("courses", event.target.value)}
         />
       </label>
       <label className={labelClass}>
@@ -71,9 +69,7 @@ export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
           className={`${inputClass} min-h-20 py-2`}
           value={student.projects}
           placeholder={copy("studentProjectsPlaceholder")}
-          onChange={(event) =>
-            wizard.updateStudent("projects", event.target.value)
-          }
+          onChange={(event) => onChange("projects", event.target.value)}
         />
       </label>
       <label className={labelClass}>
@@ -83,9 +79,7 @@ export function StudentProfileCard({ wizard }: { wizard: MentorOnboarding }) {
           value={student.erasmus}
           maxLength={500}
           placeholder={copy("studentErasmusPlaceholder")}
-          onChange={(event) =>
-            wizard.updateStudent("erasmus", event.target.value)
-          }
+          onChange={(event) => onChange("erasmus", event.target.value)}
         />
       </label>
       <p className="text-xs text-[#858c96]">{copy("studentInternshipsNote")}</p>

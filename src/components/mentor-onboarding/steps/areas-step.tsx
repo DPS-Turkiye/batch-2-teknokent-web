@@ -85,7 +85,12 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
         ) : null}
       </OnboardingCard>
 
-      {wizard.studentMentor ? <StudentProfileCard wizard={wizard} /> : null}
+      {wizard.studentMentor ? (
+        <StudentProfileCard
+          student={wizard.draft.student}
+          onChange={wizard.updateStudent}
+        />
+      ) : null}
 
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       <OnboardingCard
