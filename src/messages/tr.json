@@ -953,7 +953,8 @@
       "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
       "roleTitle": "Her deneyim için bir ünvan gir.",
       "programRole": "Program rolü en fazla {max} karakter olabilir.",
-      "studentRequired": "Bölümünü ve sınıfını gir."
+      "studentRequired": "Bölümünü ve sınıfını gir.",
+      "schoolName": "Her okul için bir ad gir."
     },
     "assistant": {
       "network": "ağ hatası",
@@ -1472,6 +1473,7 @@
     "responseTime": "Yanıt süresi · {time}",
     "about": "Hakkında",
     "experience": "Deneyim",
+    "education": "Eğitim",
     "topics": "Bu mentorla hangi konuları çalışabilirsin?",
     "availability": "Uygunluk",
     "nextDays": "Önümüzdeki 7 gün",
@@ -5627,5 +5629,19 @@
     "pickMentor": "Mentör seç",
     "inviteSent": "Davet gönderildi. Mentör bildirimden kabul veya red edebilir.",
     "inviteMentor": "Mentör davet et"
+  },
+  "mentorEducation": {
+    "title": "Eğitim",
+    "subtitle": "Okulların; CV’n okunduysa buradan düzeltebilirsin.",
+    "school": "Okul",
+    "schoolPlaceholder": "ODTÜ",
+    "degree": "Derece ve bölüm",
+    "degreePlaceholder": "Lisans, Bilgisayar Mühendisliği",
+    "period": "Yıllar",
+    "periodPlaceholder": "2022 – 2026",
+    "add": "+ Okul ekle",
+    "remove": "Kaldır",
+    "removeNamed": "{school} okulunu kaldır",
+    "empty": "Henüz okul eklenmedi."
   }
 }
