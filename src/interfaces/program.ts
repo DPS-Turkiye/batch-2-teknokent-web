@@ -91,6 +91,8 @@ export type OrganizationProgram = {
   id: string;
   name: string;
   coordinatorName: string;
+  /** Students who joined as a team of one, so mentee screens drop the startup pages and wording. */
+  individualMentees: boolean;
 };
 
 export type OrganizationPrograms = {
