@@ -44,6 +44,16 @@ describe("program access guards", () => {
     expect(await statusOf(guard)).toBe(401);
   });
 
+  it("lets a student who also holds the mentor permission through the mentor guard", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue({
+      ...as(UserRole.Mentee, "org-1"),
+      permissions: [UserRole.Mentor, UserRole.Mentee],
+    });
+    expect(await statusOf(requireMentorSession)).toBe(200);
+    expect(await statusOf(requireStartupSession)).toBe(200);
+    expect(await statusOf(requireCoordinatorSession)).toBe(403);
+  });
+
   it.each([
     [UserRole.Coordinator, 200],
     [UserRole.Admin, 403],

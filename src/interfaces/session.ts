@@ -3,6 +3,7 @@ export enum UserRole {
   Coordinator = "COORDINATOR",
   Mentee = "MENTEE",
   Mentor = "MENTOR",
+  Academician = "ACADEMICIAN",
 }
 
 export enum UserAccountStatus {
@@ -22,6 +23,8 @@ export type AppSession = {
   organizationName?: string;
   /** /api/auth/me's individualMentee at sign-in: useIndividualProgram's first guess until the programs load. */
   individualMentee?: boolean;
+  /** Every active permission; `role` is the primary one. Missing on cookies issued before permissions existed. */
+  permissions?: UserRole[];
 };
 
 export type BackendUser = {
@@ -37,6 +40,8 @@ export type BackendUser = {
   signInsRevokedAt?: string | null;
   /** A mentee of an individual program (İŞKUR-style); only /api/auth/me fills it. */
   individualMentee?: boolean;
+  /** Every active permission, `role` included. */
+  permissions?: UserRole[];
 };
 
 export type SessionData = {

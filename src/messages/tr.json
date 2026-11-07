@@ -795,7 +795,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Koordinatör",
       "MENTOR": "Mentor",
-      "MENTEE": "Girişim Ekibi"
+      "MENTEE": "Girişim Ekibi",
+      "ACADEMICIAN": "Akademisyen"
     },
     "student": "Öğrenci"
   },
@@ -2210,7 +2211,8 @@
       "ADMIN": "Yönetici",
       "COORDINATOR": "Koordinatör",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Akademisyen"
     },
     "about": "Hakkımda",
     "noBio": "Henüz hakkında bilgisi eklenmedi.",
@@ -4358,7 +4360,8 @@
       "ADMIN": "yönetici",
       "COORDINATOR": "koordinatör",
       "MENTOR": "mentor",
-      "MENTEE": "girişimci"
+      "MENTEE": "girişimci",
+      "ACADEMICIAN": "akademisyen"
     },
     "userFallback": "kullanıcı",
     "candidate": {
