@@ -1,6 +1,7 @@
 import "server-only";
 
 import { notFound } from "next/navigation";
+import { connection } from "next/server";
 
 /**
  * The ODTÜ student and academician workspaces stay unreachable until this is "true". Unset
@@ -11,6 +12,8 @@ export function odtuWorkspacesEnabled() {
   return process.env.ODTU_WORKSPACES_ENABLED === "true";
 }
 
-export function requireOdtuWorkspaces() {
+/** Read per request: without connection() the layouts are prerendered and the flag frozen at build. */
+export async function requireOdtuWorkspaces() {
+  await connection();
   if (!odtuWorkspacesEnabled()) notFound();
 }

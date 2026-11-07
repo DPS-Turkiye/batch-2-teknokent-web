@@ -114,4 +114,42 @@ describe("useWeeklyAvailabilityForm", () => {
     ).toHaveLength(1);
     expect(onSaved).not.toHaveBeenCalled();
   });
+
+  it("checks only the number fields the owner uses", async () => {
+    // A saved buffer the backend would refuse; an owner without a buffer never sees it.
+    const owner = source({
+      settings: { ...settings, meetingBufferMinutes: 999 },
+      numberFields: ["defaultMeetingDurationMinutes"],
+    });
+    const { result } = renderHook(
+      () => useWeeklyAvailabilityForm(owner, vi.fn()),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(owner.save).toHaveBeenCalledWith(
+      expect.objectContaining({ meetingBufferMinutes: 999, menteeCapacity: 3 }),
+    );
+  });
+
+  it("still checks every field for an owner that lists none", async () => {
+    const owner = source({
+      settings: { ...settings, meetingBufferMinutes: 999 },
+    });
+    const { result } = renderHook(
+      () => useWeeklyAvailabilityForm(owner, vi.fn()),
+      { wrapper: Wrapper },
+    );
+
+    await act(async () => {
+      await result.current.save();
+    });
+
+    expect(result.current.error).not.toBeNull();
+    expect(owner.save).not.toHaveBeenCalled();
+  });
 });

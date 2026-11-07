@@ -20,8 +20,10 @@ import { useRoleGate } from "@/hooks/use-role-gate";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { initials } from "@/lib/utils";
 
-export type RoleMenuLabel =
-  "coordinatorMenu" | "adminMenu" | "studentMenu" | "academicianMenu";
+export type RoleMenuLabel = Extract<
+  keyof (typeof messages)["roleFrame"],
+  `${string}Menu`
+>;
 
 export type RoleNavItem = {
   href: string;
@@ -35,7 +37,7 @@ export type RoleNavItem = {
 /**
  * The white menton frame shared by the staff and ODTÜ workspaces: logo, pill menu,
  * notifications and account menu. Anyone whose role is not allowed is sent to their own home.
- * `roleLabel` names the workspace under the user's name when it is not the account's role.
+ * `roleLabel` names the workspace under the user's name in place of the account's role.
  */
 export function RoleFrame({
   allowedRoles,

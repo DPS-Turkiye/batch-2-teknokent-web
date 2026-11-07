@@ -1,10 +1,13 @@
+import type { ComponentProps } from "react";
+
+import type { StatusChip } from "@/components/admin/admin-ui";
 import {
   AppointmentKind,
   AppointmentSide,
   AppointmentStatus,
 } from "@/interfaces/appointment";
 
-export type AppointmentTone = "green" | "amber" | "red" | "neutral" | "blue";
+type AppointmentTone = ComponentProps<typeof StatusChip>["tone"];
 
 /** Pending and alternative-proposed never share a tone with Confirmed: a request is not an appointment yet. */
 export const APPOINTMENT_STATUS_TONE: Record<

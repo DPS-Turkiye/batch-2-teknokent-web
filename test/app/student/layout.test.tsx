@@ -13,6 +13,7 @@ vi.mock("next/navigation", () => ({
     throw new NotFound();
   },
 }));
+vi.mock("next/server", () => ({ connection: vi.fn(async () => {}) }));
 vi.mock("@/components/student/student-frame", () => ({
   StudentFrame: ({ children }: { children: React.ReactNode }) => (
     <div data-testid="student-frame">{children}</div>
@@ -37,16 +38,20 @@ afterEach(() => {
 describe("ODTÜ workspace layouts", () => {
   it.each([undefined, "", "false", "1", "TRUE"])(
     "answer like a missing route while the flag is %s",
-    (value) => {
+    async (value) => {
       if (value !== undefined) process.env.ODTU_WORKSPACES_ENABLED = value;
-      expect(() => StudentLayout({ children: <p>x</p> })).toThrow(NotFound);
-      expect(() => AcademicianLayout({ children: <p>x</p> })).toThrow(NotFound);
+      await expect(StudentLayout({ children: <p>x</p> })).rejects.toThrow(
+        NotFound,
+      );
+      await expect(AcademicianLayout({ children: <p>x</p> })).rejects.toThrow(
+        NotFound,
+      );
     },
   );
 
   it("open the student workspace in its frame once the flag is on", async () => {
     process.env.ODTU_WORKSPACES_ENABLED = "true";
-    render(StudentLayout({ children: await StudentHomePage() }));
+    render(await StudentLayout({ children: await StudentHomePage() }));
     expect(screen.getByTestId("student-frame")).toHaveTextContent(
       "Öğrenci çalışma alanı hazırlanıyor",
     );
@@ -54,7 +59,7 @@ describe("ODTÜ workspace layouts", () => {
 
   it("open the academician workspace in its frame once the flag is on", async () => {
     process.env.ODTU_WORKSPACES_ENABLED = "true";
-    render(AcademicianLayout({ children: await AcademicianHomePage() }));
+    render(await AcademicianLayout({ children: await AcademicianHomePage() }));
     expect(screen.getByTestId("academician-frame")).toHaveTextContent(
       "Akademisyen çalışma alanı hazırlanıyor",
     );

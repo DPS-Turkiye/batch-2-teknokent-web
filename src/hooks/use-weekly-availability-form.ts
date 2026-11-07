@@ -27,12 +27,19 @@ import {
 } from "@/lib/mentor-availability";
 import { errorMessage } from "@/lib/utils";
 
-/** Where an owner's availability settings come from and how a save reaches them. */
+const ALL_NUMBER_FIELDS = AVAILABILITY_NUMBER_FIELDS.map((item) => item.field);
+
+/**
+ * Where an owner's availability settings come from and how a save reaches them. An owner
+ * without a capacity or buffer lists only the number fields it uses: the others are neither
+ * shown nor checked, and their saved values go back unchanged.
+ */
 export type WeeklyAvailabilitySource = {
   settings: MentorAvailabilitySettings | undefined;
   loadFailed: boolean;
   save: (payload: UpdateMentorAvailabilitySettingsPayload) => Promise<unknown>;
   isSaving: boolean;
+  numberFields?: readonly AvailabilityNumberField[];
 };
 
 /**
@@ -47,7 +54,7 @@ export function useWeeklyAvailabilityForm(
   const t = useTranslations("availabilityEditor");
   const tOptions = useTranslations("options");
   const { showToast } = useToast();
-  const { settings } = source;
+  const { settings, numberFields = ALL_NUMBER_FIELDS } = source;
   const loaded = useMemo(
     () => (settings ? toAvailabilityDraft(settings) : null),
     [settings],
@@ -184,6 +191,7 @@ export function useWeeklyAvailabilityForm(
     if (!draft) return;
     const problem = availabilityDraftError(draft, {
       capacityRequired: settings?.menteeCapacity != null,
+      fields: numberFields,
     });
     if (problem) {
       setError(problem);
@@ -218,6 +226,7 @@ export function useWeeklyAvailabilityForm(
     isAddingException,
     isSaving: source.isSaving,
     loadError: source.loadFailed ? t("loadFailed") : null,
+    numberFields,
     openExceptionForm,
     removeException,
     removeRange,

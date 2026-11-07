@@ -9,7 +9,6 @@ import { ToggleSwitch } from "@/components/common/toggle-switch";
 import type { WeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import {
   AVAILABILITY_NUMBER_FIELDS,
-  type AvailabilityNumberField,
   exceptionLabel,
 } from "@/lib/mentor-availability";
 
@@ -24,21 +23,17 @@ const fieldClass =
   "h-[38px] w-full rounded-lg border border-[#d4d8dd] bg-white px-3 text-[12.5px]! text-[#22262b]";
 const smallButtonClass = "text-xs! font-medium! leading-[18px]!";
 
-const ALL_NUMBER_FIELDS = AVAILABILITY_NUMBER_FIELDS.map((item) => item.field);
-
 /**
- * Weekly time ranges, the number fields and unavailable dates of one owner, edited through
+ * Weekly time ranges, the owner's number fields and unavailable dates, edited through
  * useWeeklyAvailabilityForm. The caller frames it (a dialog, a wizard step) and owns the save
- * button. An owner that has no capacity or buffer passes only the fields it uses.
+ * button; the owner's source decides which number fields appear.
  */
 export function WeeklyAvailabilityEditor({
   editor,
-  numberFields = ALL_NUMBER_FIELDS,
   showUnavailableDates = true,
   className = "",
 }: {
   editor: WeeklyAvailabilityForm;
-  numberFields?: readonly AvailabilityNumberField[];
   showUnavailableDates?: boolean;
   className?: string;
 }) {
@@ -46,7 +41,7 @@ export function WeeklyAvailabilityEditor({
   const locale = useLocale();
   const { draft } = editor;
   const shownNumberFields = AVAILABILITY_NUMBER_FIELDS.filter((item) =>
-    numberFields.includes(item.field),
+    editor.numberFields.includes(item.field),
   );
 
   return (
