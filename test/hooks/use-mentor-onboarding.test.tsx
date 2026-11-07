@@ -612,6 +612,36 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     expect(second.result.current.droppedFiles).toBe(0);
   });
 
+  it("restores a draft saved before schools existed with an empty school list", async () => {
+    stored = {
+      kind: "mentor-onboarding",
+      step: "PROFILE",
+      payload: {
+        profile: {
+          fullName: "",
+          title: "Mentor",
+          company: "Peak",
+          totalExperience: "",
+          history: [],
+          inferredAreas: [],
+        },
+      },
+    };
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    await waitFor(() =>
+      expect(result.current.draft.profile.company).toBe("Peak"),
+    );
+    expect(result.current.draft.profile.education).toEqual([]);
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "school", "ODTÜ"));
+    expect(result.current.draft.profile.education).toEqual([
+      { school: "ODTÜ", degree: "", period: "" },
+    ]);
+    act(() => result.current.removeEducation(0));
+    expect(result.current.draft.profile.education).toEqual([]);
+  });
+
   it("keeps a CV that already reached the server instead of asking for it again", async () => {
     vi.mocked(parseStoredCv).mockResolvedValue({ full_name: "Nihan Öztürk" });
     const first = renderHook(() => useMentorOnboarding());

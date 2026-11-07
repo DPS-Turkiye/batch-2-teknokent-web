@@ -50,6 +50,7 @@ const baseForm = {
   specialties: [],
   menteeCapacity: null,
   experiences: [],
+  educations: [],
   about: "",
   meetingFrequency: null,
   prepFileRequirement: null,
@@ -222,6 +223,52 @@ describe("useMentorProfileForm capacity and past roles", () => {
 
     expect(result.current.form.experiences).toEqual([]);
     expect(result.current.form.menteeCapacity).toBeNull();
+  });
+});
+
+describe("useMentorProfileForm schools", () => {
+  beforeEach(() => vi.mocked(updateMentorProfile).mockReset());
+
+  it("starts from the saved schools and saves edits, dropping empty rows", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
+    const { result } = renderHook(
+      () =>
+        useMentorProfileForm({
+          ...mentorProfile,
+          educations: [{ school: "ODTÜ", degree: null, period: "2022 – 2026" }],
+        }),
+      { wrapper },
+    );
+
+    expect(result.current.form.educations).toEqual([
+      { school: "ODTÜ", degree: "", period: "2022 – 2026" },
+    ]);
+    act(() => {
+      result.current.updateEducation(0, "degree", "Lisans, Fizik");
+      result.current.addEducation();
+    });
+    await act(() => result.current.handleSave());
+
+    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+      educations: [
+        { school: "ODTÜ", degree: "Lisans, Fizik", period: "2022 – 2026" },
+      ],
+    });
+  });
+
+  it("does not save a school row without the school's name", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "degree", "Lisans"));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe("Her okul için bir ad gir.");
+    act(() => result.current.removeEducation(0));
+    expect(result.current.form.educations).toEqual([]);
   });
 });
 

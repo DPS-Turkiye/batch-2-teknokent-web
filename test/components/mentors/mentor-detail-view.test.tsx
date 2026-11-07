@@ -226,6 +226,40 @@ describe("MentorDetailView", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("2022–2026 · B2B SaaS")).toBeInTheDocument();
     expect(screen.queryByText("Bu hafta müsait")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Eğitim" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("lists the mentor's schools apart from the experience", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+
+    renderWithQueryClient(
+      <MentorDetailView
+        mentor={{
+          ...mentorProfile,
+          educations: [
+            {
+              school: "ODTÜ",
+              degree: "Lisans, Bilgisayar Mühendisliği",
+              period: "2022 – 2026",
+            },
+            { school: "TU Delft", degree: null, period: null },
+          ],
+        }}
+        slots={[]}
+        startup={startup}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Eğitim" })).toBeInTheDocument();
+    expect(
+      screen.getByText("ODTÜ · Lisans, Bilgisayar Mühendisliği · 2022 – 2026"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("TU Delft")).toBeInTheDocument();
   });
 
   it("falls back to the title and availability when there are no stats", () => {

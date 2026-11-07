@@ -34,6 +34,13 @@ const cv: MentorCvResult = {
       summary: "",
     },
   ],
+  education: [
+    {
+      school: "ODTÜ",
+      degree: "Lisans, Endüstriyel Tasarım",
+      period: "2008 – 2012",
+    },
+  ],
   studies: EMPTY_STUDENT_DRAFT,
 };
 
@@ -75,6 +82,7 @@ describe("toMentorCvResult", () => {
           summary: "",
         },
       ],
+      education: [],
       studies: EMPTY_STUDENT_DRAFT,
     });
   });
@@ -103,6 +111,9 @@ describe("applyMentorCv", () => {
         summary: "",
       },
     ],
+    educations: [
+      { school: "odtü", degree: "lisans, endüstriyel tasarım", period: "" },
+    ],
     menteeCapacity: 3,
   };
 
@@ -121,6 +132,24 @@ describe("applyMentorCv", () => {
     expect(next.experiences.map((role) => role.title)).toEqual([
       "head of design",
       "Senior Designer",
+    ]);
+  });
+
+  it("adds only the schools the form does not list yet", () => {
+    const next = applyMentorCv(
+      form,
+      {
+        ...cv,
+        education: [
+          ...cv.education,
+          { school: "TU Delft", degree: "Erasmus", period: "2011 güz" },
+        ],
+      },
+      10,
+    );
+    expect(next.educations.map((school) => school.school)).toEqual([
+      "odtü",
+      "TU Delft",
     ]);
   });
 
@@ -145,8 +174,42 @@ describe("fillOnboardingProfile", () => {
       company: "Looply",
       totalExperience: "12 yıl",
       history: cv.history,
+      education: cv.education,
       inferredAreas: ["UX", "Design Systems"],
     });
+  });
+
+  it("keeps schools the applicant already typed", () => {
+    const typed = [{ school: "Bilkent", degree: "", period: "" }];
+    expect(
+      fillOnboardingProfile(
+        { ...PLACEHOLDER_PARSED_PROFILE, education: typed },
+        cv,
+      ).education,
+    ).toBe(typed);
+  });
+});
+
+describe("education from a CV", () => {
+  it("reads the schools and drops one without a name", () => {
+    expect(
+      toMentorCvResult({
+        education: [
+          {
+            school: " ODTÜ ",
+            degree: "Lisans, Bilgisayar Mühendisliği",
+            period: "2022 – 2026",
+          },
+          { school: " ", degree: "Lise", period: null },
+        ],
+      }).education,
+    ).toEqual([
+      {
+        school: "ODTÜ",
+        degree: "Lisans, Bilgisayar Mühendisliği",
+        period: "2022 – 2026",
+      },
+    ]);
   });
 });
 

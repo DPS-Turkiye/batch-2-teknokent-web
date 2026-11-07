@@ -98,6 +98,13 @@ export type ParsedCvProfile = {
   strong_courses?: string[] | null;
   student_projects?: string[] | null;
   exchange_experience?: string | null;
+  education?: ParsedCvEducation[] | null;
+};
+
+export type ParsedCvEducation = {
+  school: string;
+  degree: string | null;
+  period: string | null;
 };
 
 export type ParsedCvRole = {

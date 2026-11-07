@@ -953,7 +953,8 @@
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
       "programRole": "A program role can be at most {max} characters.",
-      "studentRequired": "Enter your department and year."
+      "studentRequired": "Enter your department and year.",
+      "schoolName": "Enter a name for every school."
     },
     "assistant": {
       "network": "network error",
@@ -1472,6 +1473,7 @@
     "responseTime": "Response time · {time}",
     "about": "About",
     "experience": "Experience",
+    "education": "Education",
     "topics": "What can you work on with this mentor?",
     "availability": "Availability",
     "nextDays": "Next 7 days",
@@ -5627,5 +5629,19 @@
     "pickMentor": "Select a mentor",
     "inviteSent": "Invitation sent. The mentor can accept or decline it from the notification.",
     "inviteMentor": "Invite mentor"
+  },
+  "mentorEducation": {
+    "title": "Education",
+    "subtitle": "Your schools; if your CV was read, you can correct them here.",
+    "school": "School",
+    "schoolPlaceholder": "METU",
+    "degree": "Degree and department",
+    "degreePlaceholder": "BSc, Computer Engineering",
+    "period": "Years",
+    "periodPlaceholder": "2022 – 2026",
+    "add": "+ Add school",
+    "remove": "Remove",
+    "removeNamed": "Remove {school}",
+    "empty": "No schools added yet."
   }
 }

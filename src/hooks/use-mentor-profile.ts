@@ -7,7 +7,9 @@ import { useToast } from "@/components/providers/toast-provider";
 import { clientText } from "@/i18n/client-texts";
 
 import {
+  MAX_EDUCATIONS,
   type MeetingFrequency,
+  type MentorEducationInput,
   type MentorExperienceInput,
   MentorLanguage,
   type MentorProfile,
@@ -160,6 +162,11 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
       period: experience.period ?? "",
       summary: experience.summary ?? "",
     })),
+    educations: (profile.educations ?? []).map((education) => ({
+      school: education.school,
+      degree: education.degree ?? "",
+      period: education.period ?? "",
+    })),
     about: profile.about ?? "",
     meetingFrequency: profile.meetingFrequency ?? null,
     prepFileRequirement: profile.prepFileRequirement ?? null,
@@ -182,6 +189,10 @@ const EMPTY_EXPERIENCE: MentorExperienceInput = {
   summary: "",
 };
 
+function isBlankSchool(school: MentorEducationInput) {
+  return Object.values(school).every((value) => !value.trim());
+}
+
 function isBlankExperience(experience: MentorExperienceInput) {
   return Object.values(experience).every((value) => !value.trim());
 }
@@ -195,6 +206,13 @@ export function mentorProfileFormError(
   form: MentorProfileForm,
   student: StudentOnboardingDraft | null = null,
 ) {
+  if (
+    form.educations.some(
+      (school) => !isBlankSchool(school) && !school.school.trim(),
+    )
+  ) {
+    return clientText("mentorProfile.schoolName");
+  }
   if (student && !(student.department.trim() && student.studyYear)) {
     return clientText("mentorProfile.studentRequired");
   }
@@ -249,6 +267,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
       | "languages"
       | "programRoles"
       | "studentProfile"
+      | "educations"
     >,
     value: string,
   ) => {
@@ -330,6 +349,42 @@ export function useMentorProfileForm(profile: MentorProfile) {
     }));
   };
 
+  const addEducation = () => {
+    setForm((previous) =>
+      previous.educations.length >= MAX_EDUCATIONS
+        ? previous
+        : {
+            ...previous,
+            educations: [
+              ...previous.educations,
+              { school: "", degree: "", period: "" },
+            ],
+          },
+    );
+  };
+
+  const updateEducation = (
+    index: number,
+    field: keyof MentorEducationInput,
+    value: string,
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      educations: previous.educations.map((school, position) =>
+        position === index ? { ...school, [field]: value } : school,
+      ),
+    }));
+  };
+
+  const removeEducation = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      educations: previous.educations.filter(
+        (_, position) => position !== index,
+      ),
+    }));
+  };
+
   const addSpecialty = () => {
     const value = specialtyInput.trim();
     if (!value || form.specialties.includes(value)) return;
@@ -369,6 +424,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
         experiences: form.experiences.filter(
           (experience) => !isBlankExperience(experience),
         ),
+        educations: form.educations.filter((school) => !isBlankSchool(school)),
         ...(student
           ? { studentProfile: toStudentProfilePayload(student) }
           : {}),
@@ -432,6 +488,10 @@ export function useMentorProfileForm(profile: MentorProfile) {
     updateExperience,
     removeExperience,
     canAddExperience: form.experiences.length < MAX_EXPERIENCES,
+    addEducation,
+    updateEducation,
+    removeEducation,
+    canAddEducation: form.educations.length < MAX_EDUCATIONS,
     addSpecialty,
     removeSpecialty,
     applyCv,

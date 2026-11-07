@@ -22,6 +22,7 @@ import {
   slotTimeLabel,
 } from "@/lib/mentor-availability-days";
 import {
+  educationLine,
   experienceDetail,
   experienceHeading,
   menteeLoadLabel,
@@ -69,6 +70,7 @@ export function MentorDetailView({
   const tags = mentor.specialties;
   const menteeLoad = menteeLoadLabel(mentor);
   const experiences = mentor.experiences ?? [];
+  const educations = mentor.educations ?? [];
   const programs = mentor.programNames ?? [];
   const acceptedRequest = mentorshipsQuery.data?.find(
     (request) =>
@@ -256,6 +258,17 @@ export function MentorDetailView({
               </div>
             )}
           </section>
+
+          {educations.length > 0 ? (
+            <section className={cardClass}>
+              <h2 className={cardHeadingClass}>{t("education")}</h2>
+              {educations.map((education, index) => (
+                <p key={index} className="text-[13px] text-[#22262b]">
+                  {educationLine(education)}
+                </p>
+              ))}
+            </section>
+          ) : null}
 
           {tags.length > 0 ? (
             <section className={cardClass}>
