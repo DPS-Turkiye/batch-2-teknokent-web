@@ -58,6 +58,13 @@ describe("admin Programlar", () => {
     );
   });
 
+  it("opens the Yeni Program Oluştur wizard", () => {
+    renderWithQueryClient(<ProgramsView />);
+    expect(
+      screen.getByRole("link", { name: "+ Yeni Program" }),
+    ).toHaveAttribute("href", "/admin/programs/new");
+  });
+
   it("labels every row with its program type and a draft as Taslak", () => {
     renderWithQueryClient(<ProgramsView />);
     expect(

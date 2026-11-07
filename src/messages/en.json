@@ -3669,7 +3669,6 @@
       "COMPLETED": "Archived"
     },
     "search": "Search programs",
-    "launch": "Launch a program",
     "noMatch": "No programs match this filter.",
     "none": "You don't manage any programs yet.",
     "upcoming": "Upcoming",
@@ -3779,7 +3778,14 @@
       "mentors": "Mentors",
       "activeMentorships": "Active mentorships",
       "awaitingMatch": "Waiting for a match"
-    }
+    },
+    "draftBannerAdmin": "This program has not been launched. Its coordinators set up the conditions; launch it when it is ready.",
+    "draftBannerCoordinator": "This program has not been launched. Set up its conditions in Program settings; participants see it once the admin launches it.",
+    "launchProgram": "Launch the program",
+    "launching": "Launching…",
+    "launched": "{name} was launched.",
+    "launchFailed": "The program could not be launched.",
+    "launchNeedsCoordinator": "Assign a coordinator before launching."
   },
   "programRules": {
     "days": "days",
@@ -3874,7 +3880,10 @@
     "archive": "Archive the program",
     "archived": "Program archived.",
     "reopened": "Program reopened.",
-    "archiveFailed": "Couldn't archive the program."
+    "archiveFailed": "Couldn't archive the program.",
+    "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
+    "coordinatorsByAdmin": "The admin assigns coordinators.",
+    "type": "Program type"
   },
   "programTeams": {
     "filters": {
@@ -5452,7 +5461,8 @@
     "teamLeaveRequestFailed": "Could not send the leave request.",
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
-    "teamLeaveFailed": "Could not leave the team."
+    "teamLeaveFailed": "Could not leave the team.",
+    "programLaunchFailed": "The program could not be launched."
   },
   "startupStart": {
     "title": "My startup",
@@ -5701,5 +5711,69 @@
     "STARTUP_MENTORING": "Startup mentoring",
     "PEER_MENTORING": "Peer mentoring",
     "OFFICE_HOURS": "Office hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programs",
+    "newProgram": "Create a new program",
+    "stepOf": "Step {current} of {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program type",
+        "hint": "Startup, peer or office hours",
+        "title": "Choose the program type",
+        "note": "The type decides which structures the program has and cannot change later."
+      },
+      "INFO": {
+        "label": "Program details",
+        "hint": "Name, description, dates",
+        "title": "Program details",
+        "note": "Dates are optional; the coordinator can add them later."
+      },
+      "COORDINATORS": {
+        "label": "Coordinator",
+        "hint": "Who runs the program",
+        "title": "Assign coordinators",
+        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+      },
+      "SUMMARY": {
+        "label": "Summary",
+        "hint": "Check and save",
+        "title": "Summary and save",
+        "note": "The program is saved as a draft; participants see it only after you launch it."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Today’s structure as is: Teams · Mentor pool · Matching · Approvals",
+      "PEER_MENTORING": "Mentees: METU students · Mentors: İŞKUR students with a verified badge",
+      "OFFICE_HOURS": "Every METU academic included, no invitations · Students request appointments"
+    },
+    "name": "Program name",
+    "namePlaceholder": "e.g. METU Peer Mentoring 2026",
+    "description": "Description",
+    "optional": "optional",
+    "start": "Start",
+    "end": "End",
+    "coordinatorsLabel": "Coordinators",
+    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
+    "summaryType": "Program type",
+    "summaryName": "Program name",
+    "summaryDates": "Dates",
+    "noDates": "Not set",
+    "summaryCoordinators": "Coordinators",
+    "summaryStatus": "Status",
+    "draft": "Draft",
+    "problems": {
+      "TYPE_REQUIRED": "Choose a program type.",
+      "NAME_REQUIRED": "Enter the program name.",
+      "DATES_ORDER": "The end date cannot be before the start date.",
+      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+    },
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue: {step}",
+    "create": "Save as draft",
+    "creating": "Saving…",
+    "created": "{name} was created as a draft.",
+    "createFailed": "The program could not be created."
   }
 }

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
+import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type {
   CoordinatorProgramDetail,
@@ -15,6 +16,7 @@ import {
   addProgramCoordinator,
   addProgramEligibleEmails,
   getCoordinatorProgram,
+  launchCoordinatorProgram,
   getProgramEligibleEmails,
   removeProgramEligibleEmail,
   getProgramCoordinatorCandidates,
@@ -240,4 +242,31 @@ export function useProgramArchive(programId: string, archived: boolean) {
     restore: () => mutation.mutate(false),
     busy: mutation.isPending,
   };
+}
+
+/** "Programı Başlat": the admin turns a draft active; the admin's program list is refreshed too. */
+export function useLaunchProgram(programId: string) {
+  const t = useTranslations("coordinatorPrograms");
+  const cache = useProgramCache(programId);
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const mutation = useMutation({
+    mutationFn: () => launchCoordinatorProgram(programId),
+    onSuccess: (detail) => {
+      cache.put(detail);
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      showToast({
+        message: t("launched", { name: detail.program.name }),
+        tone: "success",
+      });
+    },
+    onError: (failure) =>
+      showToast({
+        message: errorMessage(failure, t("launchFailed")),
+        tone: "error",
+      }),
+  });
+  return { launch: () => mutation.mutate(), launching: mutation.isPending };
 }

@@ -3669,7 +3669,6 @@
       "COMPLETED": "Arşivlendi"
     },
     "search": "Program ara",
-    "launch": "Program başlat",
     "noMatch": "Bu filtreyle eşleşen program yok.",
     "none": "Henüz yönettiğin bir program yok.",
     "upcoming": "Yaklaşan",
@@ -3779,7 +3778,14 @@
       "mentors": "Mentor",
       "activeMentorships": "Aktif mentorluk",
       "awaitingMatch": "Eşleşme bekleyen"
-    }
+    },
+    "draftBannerAdmin": "Program henüz başlatılmadı. Koordinatörler koşulları yapılandırır; hazır olduğunda programı başlat.",
+    "draftBannerCoordinator": "Program henüz başlatılmadı. Koşulları Program Ayarları’nda yapılandır; yönetici başlattığında katılımcılar programı görür.",
+    "launchProgram": "Programı Başlat",
+    "launching": "Başlatılıyor…",
+    "launched": "{name} başlatıldı.",
+    "launchFailed": "Program başlatılamadı.",
+    "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata."
   },
   "programRules": {
     "days": "gün",
@@ -3874,7 +3880,10 @@
     "archive": "Programı arşivle",
     "archived": "Program arşivlendi.",
     "reopened": "Program yeniden açıldı.",
-    "archiveFailed": "Program arşivlenemedi."
+    "archiveFailed": "Program arşivlenemedi.",
+    "adminViewNote": "Program ayarlarını programın koordinatörleri yapılandırır; yönetici olarak yalnızca görüntülersin. Koordinatörleri buradan atayabilirsin.",
+    "coordinatorsByAdmin": "Koordinatörleri yönetici atar.",
+    "type": "Program türü"
   },
   "programTeams": {
     "filters": {
@@ -5452,7 +5461,8 @@
     "teamLeaveRequestFailed": "Ayrılma talebi gönderilemedi.",
     "approvalsLoadFailed": "Onaylar yüklenemedi.",
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
-    "teamLeaveFailed": "Takımdan ayrılınamadı."
+    "teamLeaveFailed": "Takımdan ayrılınamadı.",
+    "programLaunchFailed": "Program başlatılamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -5701,5 +5711,69 @@
     "STARTUP_MENTORING": "Girişim Mentörlüğü",
     "PEER_MENTORING": "Akran Mentörlüğü",
     "OFFICE_HOURS": "Office Hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programlar",
+    "newProgram": "Yeni Program Oluştur",
+    "stepOf": "Adım {current} / {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program türü",
+        "hint": "Girişim, Akran veya Office Hours",
+        "title": "Program türünü seç",
+        "note": "Tür, programda hangi yapıların görüneceğini belirler ve sonradan değişmez."
+      },
+      "INFO": {
+        "label": "Program bilgileri",
+        "hint": "Ad, açıklama, tarihler",
+        "title": "Program bilgileri",
+        "note": "Tarihler isteğe bağlı; koordinatör sonradan da girebilir."
+      },
+      "COORDINATORS": {
+        "label": "Koordinatör",
+        "hint": "Programı yönetecek kişiler",
+        "title": "Koordinatör ata",
+        "note": "Bir veya daha fazla koordinatör seç. Koordinatörler programın koşullarını yapılandırır."
+      },
+      "SUMMARY": {
+        "label": "Özet",
+        "hint": "Kontrol et ve kaydet",
+        "title": "Özet ve kaydet",
+        "note": "Program Taslak olarak kaydedilir; sen başlatana kadar katılımcılar görmez."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Mevcut yapı aynen: Takımlar · Mentor Havuzu · Eşleşmeler · Onaylar",
+      "PEER_MENTORING": "Mentee: ODTÜ öğrencileri · Mentor: rozeti doğrulanmış İŞKUR öğrencileri",
+      "OFFICE_HOURS": "Tüm ODTÜ akademisyenleri dahil, davet yok · Öğrenciler randevu talep eder"
+    },
+    "name": "Program adı",
+    "namePlaceholder": "örn. ODTÜ Akran Mentörlüğü 2026",
+    "description": "Açıklama",
+    "optional": "isteğe bağlı",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "coordinatorsLabel": "Koordinatörler",
+    "noCoordinators": "Onaylı koordinatör yok. Önce Kullanıcılar › Koordinatörler bölümünden bir koordinatör ekle.",
+    "summaryType": "Program türü",
+    "summaryName": "Program adı",
+    "summaryDates": "Tarihler",
+    "noDates": "Belirtilmedi",
+    "summaryCoordinators": "Koordinatörler",
+    "summaryStatus": "Durum",
+    "draft": "Taslak",
+    "problems": {
+      "TYPE_REQUIRED": "Bir program türü seç.",
+      "NAME_REQUIRED": "Program adını yaz.",
+      "DATES_ORDER": "Bitiş tarihi başlangıçtan önce olamaz.",
+      "COORDINATOR_REQUIRED": "En az bir koordinatör seç."
+    },
+    "cancel": "Vazgeç",
+    "back": "Geri",
+    "continue": "Devam: {step}",
+    "create": "Taslak olarak kaydet",
+    "creating": "Kaydediliyor…",
+    "created": "{name} taslak olarak oluşturuldu.",
+    "createFailed": "Program oluşturulamadı."
   }
 }

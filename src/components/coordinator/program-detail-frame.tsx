@@ -9,7 +9,10 @@ import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
-import { useCoordinatorProgram } from "@/hooks/use-coordinator-program";
+import {
+  useCoordinatorProgram,
+  useLaunchProgram,
+} from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import {
@@ -106,6 +109,14 @@ export function ProgramDetailFrame({
         />
       </ul>
 
+      {program.lifecycle === ProgramLifecycle.Draft ? (
+        <DraftBanner
+          programId={programId}
+          admin={navigation.admin}
+          hasCoordinator={detail.coordinators.length > 0}
+        />
+      ) : null}
+
       <div
         role="tablist"
         aria-label={t("sections")}
@@ -179,5 +190,40 @@ function Pill({
       <span className="font-semibold text-[#22262b]">{value}</span>
       <span className="text-[#858c96]">{label}</span>
     </li>
+  );
+}
+
+// TEST UI: no Figma frame for the Taslak banner and its launch button.
+function DraftBanner({
+  programId,
+  admin,
+  hasCoordinator,
+}: {
+  programId: string;
+  admin: boolean;
+  hasCoordinator: boolean;
+}) {
+  const t = useTranslations("coordinatorPrograms");
+  const launch = useLaunchProgram(programId);
+  return (
+    <div
+      role="status"
+      className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-[#f4f5f7] px-5 py-3 text-[13px] text-[#676e78]"
+    >
+      <p>{admin ? t("draftBannerAdmin") : t("draftBannerCoordinator")}</p>
+      {admin ? (
+        <div className="flex items-center gap-3">
+          {hasCoordinator ? null : <span>{t("launchNeedsCoordinator")}</span>}
+          <button
+            type="button"
+            onClick={launch.launch}
+            disabled={!hasCoordinator || launch.launching}
+            className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
+          >
+            {launch.launching ? t("launching") : t("launchProgram")}
+          </button>
+        </div>
+      ) : null}
+    </div>
   );
 }
