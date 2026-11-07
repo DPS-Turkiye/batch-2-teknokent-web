@@ -33,6 +33,8 @@ export type BackendUser = {
   jobTitle?: string | null;
   /** When an admin last ended all of this user's sign-ins (ISO time). */
   signInsRevokedAt?: string | null;
+  /** A mentee of an individual program (İŞKUR-style); only /api/auth/me fills it. */
+  individualMentee?: boolean;
 };
 
 export type SessionData = {

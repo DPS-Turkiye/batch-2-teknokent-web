@@ -215,7 +215,7 @@ export function StartupFilesView() {
                 className={`${chipClass} transition ${filterChipClass(filter, selected)}`}
               >
                 {t("filterCount", {
-                  label: t(`filters.${filter}`),
+                  label: files.filterLabel(filter),
                   count: files.counts[filter],
                 })}
               </button>

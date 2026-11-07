@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProgramDetail } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { PROGRAM_CARD_CLASS } from "@/lib/const/programs";
@@ -22,6 +23,7 @@ export function ProgramDetailView() {
   const homeHref =
     session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
   const query = useProgramDetail(params.id);
+  const student = useIndividualProgram();
 
   return (
     <AppShell
@@ -122,10 +124,12 @@ export function ProgramDetailView() {
 
             <section className={`mt-4 ${PROGRAM_CARD_CLASS}`}>
               <h2 className="text-[15px] font-semibold text-[#22262b]">
-                {t("startups")}
+                {t(student.individual ? "participants" : "startups")}
               </h2>
               {query.data.startups.length === 0 ? (
-                <p className="mt-3 text-sm text-[#676e78]">{t("noStartups")}</p>
+                <p className="mt-3 text-sm text-[#676e78]">
+                  {t(student.individual ? "noParticipants" : "noStartups")}
+                </p>
               ) : (
                 <div className="mt-3 space-y-4">
                   {query.data.startups.map((startup) => {

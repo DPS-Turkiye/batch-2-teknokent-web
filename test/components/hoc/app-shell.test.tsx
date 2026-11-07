@@ -10,6 +10,19 @@ import { InLocale } from "@test/test-utils";
 const mockuseAppSession = vi.fn<() => AppSession | null>();
 const mockLogout = vi.fn().mockResolvedValue(undefined);
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("@/hooks/use-dashboard-notifications", () => ({
   useDashboardNotifications: () => ({
     deleteNotification: vi.fn(),
@@ -425,6 +438,65 @@ describe("AppShell navigation", () => {
 
     const homeLinks = screen.getAllByRole("link", { name: /Ana Sayfa/ });
     expect(homeLinks[0]).toHaveAttribute("href", "/dashboard");
+  });
+
+  it("gives a student of an individual program Projem instead of Startup'ım", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    render(
+      <AppShell active={AppArea.Startup}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    const primaryNav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(
+      within(primaryNav).getByRole("link", { name: /Projem/ }),
+    ).toHaveAttribute("href", "/startup/process");
+    expect(
+      within(primaryNav).queryByRole("link", { name: /Startup’ım/ }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("calls a student a student, not their team of one, on a page with the old frame", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    render(
+      <AppShell menteeHome={false}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    const account = screen.getByRole("button", { name: /Hesap menüsünü aç/ });
+    expect(within(account).getByText("Öğrenci")).toBeInTheDocument();
+    expect(within(account).queryByText("NovaMed AI")).not.toBeInTheDocument();
+  });
+
+  it("holds the startup entry back until the mentee's program is known", () => {
+    mockuseAppSession.mockReturnValue(menteeSession());
+    mockIndividualProgram.mockReturnValue({
+      individual: false,
+      isLoading: true,
+    });
+    render(
+      <AppShell active={AppArea.Home}>
+        <p>content</p>
+      </AppShell>,
+    );
+
+    const primaryNav = screen.getByRole("navigation", { name: "Ana menü" });
+    expect(
+      within(primaryNav).queryByRole("link", { name: /Startup’ım|Projem/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(primaryNav).getByRole("link", { name: /Takvim/ }),
+    ).toBeInTheDocument();
   });
 
   it("gives mentees a Startup'ım entry and withholds it from mentors", () => {

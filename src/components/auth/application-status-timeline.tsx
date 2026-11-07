@@ -16,7 +16,11 @@ export function buildApplicationTimeline(
   status: UserAccountStatus,
   copy: (key: keyof typeof tr.applicationTimeline) => string = (key) =>
     tr.applicationTimeline[key],
+  student = false,
 ): TimelineEntry[] {
+  // A student of an individual program waits for their account, not a startup.
+  const active = student ? "studentActive" : "active";
+  const willActivate = student ? "studentWillActivate" : "willActivate";
   const submitted: TimelineEntry[] = [
     { title: copy("completed"), state: "done" },
     { title: copy("sent"), state: "done" },
@@ -27,7 +31,7 @@ export function buildApplicationTimeline(
       ...submitted,
       { title: copy("reviewed"), state: "done" },
       {
-        title: copy("active"),
+        title: copy(active),
         detail: copy("approvedDetail"),
         state: "current",
       },
@@ -42,7 +46,7 @@ export function buildApplicationTimeline(
         detail: copy("rejectedDetail"),
         state: "current",
       },
-      { title: copy("willActivate"), state: "pending" },
+      { title: copy(willActivate), state: "pending" },
     ];
   }
 
@@ -53,17 +57,19 @@ export function buildApplicationTimeline(
       detail: copy("reviewingDetail"),
       state: "current",
     },
-    { title: copy("willActivate"), state: "pending" },
+    { title: copy(willActivate), state: "pending" },
   ];
 }
 
 export function ApplicationStatusTimeline({
   status,
+  student = false,
 }: {
   status: UserAccountStatus;
+  student?: boolean;
 }) {
   const t = useTranslations("applicationTimeline");
-  const timeline = buildApplicationTimeline(status, (key) => t(key));
+  const timeline = buildApplicationTimeline(status, (key) => t(key), student);
 
   return (
     <ol className="mt-4 space-y-0">

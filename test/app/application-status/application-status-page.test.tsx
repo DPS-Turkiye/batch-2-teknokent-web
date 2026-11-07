@@ -65,6 +65,21 @@ describe("buildApplicationTimeline", () => {
     expect(entries.some((e) => e.state === "pending")).toBe(false);
   });
 
+  it("waits for a student's account, not a startup", () => {
+    const titles = (status: UserAccountStatus) =>
+      buildApplicationTimeline(status, undefined, true).map((e) => e.title);
+
+    expect(titles(UserAccountStatus.Pending)).toContain("Hesap aktif olacak");
+    expect(titles(UserAccountStatus.Approved)).toContain("Hesap aktif");
+    expect(
+      [
+        ...titles(UserAccountStatus.Pending),
+        ...titles(UserAccountStatus.Approved),
+        ...titles(UserAccountStatus.Rejected),
+      ].some((title) => /startup/i.test(title)),
+    ).toBe(false);
+  });
+
   it("surfaces the rejection as the current step", () => {
     const entries = buildApplicationTimeline(UserAccountStatus.Rejected);
     expect(entries.find((e) => e.state === "current")?.title).toBe(
@@ -82,6 +97,20 @@ describe("ApplicationStatusPage", () => {
         name: "Başvuru durumunu görmek için giriş yap",
       }),
     ).toBeInTheDocument();
+  });
+
+  it("tells a waiting student their account, not a startup, will open", () => {
+    mockStatus({
+      account: {
+        ...account,
+        organizationName: "Gülse Demir",
+        individualMentee: true,
+      },
+    });
+    render(<ApplicationStatusPage />);
+
+    expect(screen.getByText("Hesap aktif olacak")).toBeInTheDocument();
+    expect(screen.queryByText("Startup aktif olacak")).not.toBeInTheDocument();
   });
 
   it("shows the organization and the pending badge", () => {

@@ -14,6 +14,19 @@ import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { requestPasswordReset } from "@/lib/firebase/auth";
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: vi.fn(),
 }));
@@ -164,6 +177,25 @@ describe("usePersonalProfilePage", () => {
 
     expect(result.current.role).toBe("Product Designer");
     expect(result.current.startup).toBeNull();
+  });
+
+  it("shows a student of an individual program no startup, founder or funding", () => {
+    mockAll();
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    const { result } = renderHook(() => usePersonalProfilePage(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.subtitle).toBe("Product Designer");
+    expect(result.current.chips.map((chip) => chip.label)).toEqual([
+      "METU Stars 2026",
+      "Mentorluk alıyor",
+    ]);
+    expect(result.current.startup).toBeNull();
+    expect(result.current.cvWhoSees).toBe("Sadece sen görürsün.");
   });
 
   it("enters edit mode from a clean draft and leaves it once saved", () => {

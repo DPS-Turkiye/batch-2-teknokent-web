@@ -11,6 +11,19 @@ import { type AppSession, UserRole } from "@/interfaces/session";
 import { getProgramDetail } from "@/lib/client/programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "program-1" }),
 }));
@@ -77,6 +90,21 @@ describe("ProgramDetailView", () => {
     expect(screen.getByText("Koordinatör")).toBeInTheDocument();
     expect(screen.getByText("1 kişi")).toBeInTheDocument();
     expect(screen.getByText("Kurucu")).toBeInTheDocument();
+  });
+
+  it("calls the program's teams participants for a student", async () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Katılımcılar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Startuplar" }),
+    ).not.toBeInTheDocument();
   });
 
   it("reads in English", async () => {

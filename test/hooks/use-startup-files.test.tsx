@@ -24,6 +24,19 @@ import { StartupFileFilter } from "@/lib/startup-files";
 import { documentFixture } from "@test/fixtures/startup-files";
 import { createTestQueryClient } from "@test/test-utils";
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("@/hooks/use-startup-documents", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/hooks/use-startup-documents")>()),
   useStartupDocuments: vi.fn(),
@@ -130,6 +143,29 @@ describe("useStartupFiles", () => {
     expect(result.current.rows.map((row) => row.key)).toEqual([
       "request:deck-request",
     ]);
+  });
+
+  it("names the own-files filter Proje dokümanları for a student", async () => {
+    const { result, rerender } = renderHook(() => useStartupFiles(), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.filterLabel(StartupFileFilter.Startup)).toBe(
+      "Startup dokümanları",
+    );
+
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    rerender();
+
+    expect(result.current.filterLabel(StartupFileFilter.Startup)).toBe(
+      "Proje dokümanları",
+    );
+    expect(result.current.filterLabel(StartupFileFilter.Mentorship)).toBe(
+      "Mentorluk dosyaları",
+    );
   });
 
   it("reports document requests that could not be loaded", async () => {

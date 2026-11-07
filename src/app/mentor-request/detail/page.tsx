@@ -8,6 +8,7 @@ import { Avatar } from "@/components/common/avatar";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { AppShell } from "@/components/hoc/app-shell";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import {
   MentorshipRequestStatus,
@@ -54,6 +55,8 @@ function OtherDetails({ request }: { request: MentorshipRequest }) {
   const tStatus = useTranslations("requestStatus");
   const locale = useLocale();
   const owner = menteeRequestOwnerLabel(request);
+  // A student's team of one carries their own name, already shown as the requester.
+  const { individual } = useIndividualProgram();
   const mentorNote = requestOutcomeFromMessage(request.mentorMessage);
   const proposedSlots = parseProposedSlotsFromMessage(
     request.mentorMessage,
@@ -67,7 +70,7 @@ function OtherDetails({ request }: { request: MentorshipRequest }) {
         {formatDateTime(request.createdAt, locale)}
       </InfoRow>
       {owner ? <InfoRow label={t("requester")}>{owner}</InfoRow> : null}
-      {request.organizationName ? (
+      {request.organizationName && !individual ? (
         <InfoRow label={t("startup")}>{request.organizationName}</InfoRow>
       ) : null}
       {request.plannedSessionCount ? (

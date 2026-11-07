@@ -44,6 +44,7 @@ export default function ApplicationStatusPage() {
   }
 
   const status = account.status ?? UserAccountStatus.Pending;
+  const student = account.individualMentee ?? false;
   const displayName = account.organizationName || account.fullName;
 
   return (
@@ -70,10 +71,13 @@ export default function ApplicationStatusPage() {
           <h2 className="text-[11px] font-semibold uppercase tracking-wider text-[#a4aab2]">
             {t("process")}
           </h2>
-          <ApplicationStatusTimeline status={status} />
+          <ApplicationStatusTimeline status={status} student={student} />
         </section>
 
-        <SubmittedProfileSummary organizationName={account.organizationName} />
+        {/* A student's team of one is named after them, so it is not shown as a startup. */}
+        <SubmittedProfileSummary
+          organizationName={student ? null : account.organizationName}
+        />
 
         {status === UserAccountStatus.Approved ? (
           <Link
