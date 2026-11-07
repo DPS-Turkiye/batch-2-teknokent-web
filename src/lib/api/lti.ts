@@ -83,3 +83,33 @@ export function saveOfficeHoursAvailability(
     data: payload,
   });
 }
+
+/**
+ * Office-hours booking calls for one course, made for the signed-in person. Only these paths go through, so the
+ * route cannot be used to reach anything else on the backend.
+ */
+const COURSE_PATHS = [
+  /^instructors$/,
+  /^instructors\/[0-9a-f-]{36}\/slots$/,
+  /^requests$/,
+  /^requests\/[0-9a-f-]{36}\/(decision|reply|accept-proposed|withdraw)$/,
+  /^meetings$/,
+];
+
+export function isOfficeHoursCoursePath(path: string) {
+  return COURSE_PATHS.some((pattern) => pattern.test(path));
+}
+
+export function officeHoursCourseRequest(
+  userId: string,
+  courseId: string,
+  path: string,
+  method: "GET" | "POST",
+  data?: unknown,
+) {
+  return backendRequest({
+    method,
+    url: `/api/office-hours/users/${encodeURIComponent(userId)}/courses/${encodeURIComponent(courseId)}/${path}`,
+    data,
+  });
+}

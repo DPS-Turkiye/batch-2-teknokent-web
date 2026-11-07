@@ -38,3 +38,84 @@ export enum LtiLaunchError {
   NoRole = "no-role",
   Expired = "expired",
 }
+
+/** The same steps a mentorship request goes through. */
+export enum OfficeHoursRequestStatus {
+  Pending = "PENDING",
+  Accepted = "ACCEPTED",
+  Declined = "DECLINED",
+  MoreInfoRequested = "MORE_INFO_REQUESTED",
+  CounterProposed = "COUNTER_PROPOSED",
+  Withdrawn = "WITHDRAWN",
+}
+
+export enum OfficeHoursMessageType {
+  InstructorQuestion = "INSTRUCTOR_QUESTION",
+  StudentReply = "STUDENT_REPLY",
+}
+
+export interface OfficeHoursPerson {
+  id: string;
+  fullName: string;
+}
+
+/** A time a student can ask for; startsAt is an ISO instant. */
+export interface OfficeHoursSlot {
+  startsAt: string;
+  durationMinutes: number;
+}
+
+export interface OfficeHoursRequest {
+  id: string;
+  courseId: string;
+  status: OfficeHoursRequestStatus;
+  student: OfficeHoursPerson;
+  instructor: OfficeHoursPerson;
+  topic: string;
+  expectedOutcome: string | null;
+  /** "yyyy-MM-ddTHH:mm" in Turkey time, as mentorship requests carry them. */
+  preferredSlots: string[];
+  proposedSlots: string[];
+  instructorMessage: string | null;
+  rejectionReason: string | null;
+  messages: {
+    id: string;
+    authorId: string;
+    type: OfficeHoursMessageType;
+    body: string;
+    createdAt: string;
+  }[];
+  meeting: OfficeHoursSlot | null;
+  createdAt: string;
+}
+
+export interface OfficeHoursMeeting {
+  id: string;
+  requestId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  student: OfficeHoursPerson;
+  instructor: OfficeHoursPerson;
+  topic: string;
+}
+
+export interface CreateOfficeHoursRequestPayload {
+  instructorId: string;
+  topic: string;
+  expectedOutcome?: string;
+  preferredSlots: string[];
+}
+
+export type OfficeHoursDecisionPayload =
+  | {
+      status: OfficeHoursRequestStatus.Accepted;
+      slot: string;
+      message?: string;
+    }
+  | { status: OfficeHoursRequestStatus.Declined; message?: string }
+  | { status: OfficeHoursRequestStatus.MoreInfoRequested; message: string }
+  | {
+      status: OfficeHoursRequestStatus.CounterProposed;
+      proposedSlots: string[];
+      message?: string;
+    };

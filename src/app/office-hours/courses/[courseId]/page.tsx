@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { CourseOfficeHours } from "@/components/office-hours/course-office-hours";
 import { OfficeHoursFrame } from "@/components/office-hours/office-hours-frame";
 import { LtiLaunchError, OfficeHoursRole } from "@/interfaces/office-hours";
 import { fetchOfficeHoursCourse } from "@/lib/api/lti";
@@ -59,16 +60,8 @@ export default async function OfficeHoursCoursePage({
             {t("instructor.manageAvailability")}
           </Link>
         </section>
-      ) : (
-        <section className="mt-8 rounded-2xl border border-[#e4e7ea] bg-white p-6">
-          <h2 className="text-base font-semibold text-[#22262b]">
-            {t("student.title")}
-          </h2>
-          <p className="mt-2 text-sm leading-6 text-[#4a5059]">
-            {t("student.comingSoon")}
-          </p>
-        </section>
-      )}
+      ) : null}
+      <CourseOfficeHours courseId={course.courseId} viewer={course.role} />
     </OfficeHoursFrame>
   );
 }
