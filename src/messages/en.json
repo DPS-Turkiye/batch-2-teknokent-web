@@ -5754,6 +5754,8 @@
     "start": "Start",
     "end": "End",
     "coordinatorsLabel": "Coordinators",
+    "coordinatorsFailed": "Couldn’t load the coordinators.",
+    "retry": "Try again",
     "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
     "summaryType": "Program type",
     "summaryName": "Program name",

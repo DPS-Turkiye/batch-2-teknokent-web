@@ -5754,6 +5754,8 @@
     "start": "Başlangıç",
     "end": "Bitiş",
     "coordinatorsLabel": "Koordinatörler",
+    "coordinatorsFailed": "Koordinatörler yüklenemedi.",
+    "retry": "Tekrar dene",
     "noCoordinators": "Onaylı koordinatör yok. Önce Kullanıcılar › Koordinatörler bölümünden bir koordinatör ekle.",
     "summaryType": "Program türü",
     "summaryName": "Program adı",

@@ -11,7 +11,7 @@ import { ProgramType } from "@/interfaces/program";
 import { WIZARD_STEPS, WizardStep } from "@/lib/admin-program-wizard";
 import { formatLongDate } from "@/lib/utils";
 
-// TEST UI: the board (FigJam 01 › 1.3) gives the steps, not a Figma frame; the layout follows the old launch wizard.
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
 
 const FIELD =
   "mt-1.5 h-11 w-full rounded-2xl border border-[#e9ecef] px-4 text-[13.5px] text-[#22262b] outline-none focus:border-[#22262b]";
@@ -286,6 +286,22 @@ function InfoStep({ wizard }: { wizard: Wizard }) {
 function CoordinatorsStep({ wizard }: { wizard: Wizard }) {
   const t = useTranslations("adminProgramWizard");
   if (wizard.coordinatorsLoading) return null;
+  if (wizard.coordinatorsError) {
+    return (
+      <div className="flex flex-wrap items-center gap-3 text-[13.5px]">
+        <p role="alert" className="text-[#d9464b]">
+          {wizard.coordinatorsError}
+        </p>
+        <button
+          type="button"
+          onClick={wizard.retryCoordinators}
+          className="rounded-full border border-[#e9ecef] px-4 py-2 font-medium text-[#22262b]"
+        >
+          {t("retry")}
+        </button>
+      </div>
+    );
+  }
   if (wizard.coordinators.length === 0) {
     return (
       <p className="text-[13.5px] text-[#676e78]">{t("noCoordinators")}</p>

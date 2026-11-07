@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
+import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
 import { useToast } from "@/components/providers/toast-provider";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
@@ -12,7 +13,6 @@ import {
 } from "@/hooks/use-admin-overview";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { ProgramType } from "@/interfaces/program";
-import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   createProgramInput,
   emptyWizardDraft,
@@ -38,11 +38,9 @@ export function useAdminProgramWizard() {
   const [problem, setProblem] = useState<WizardProblem | null>(null);
   const stepIndex = WIZARD_STEPS.indexOf(step);
 
-  const coordinators = (overview.data?.users ?? []).filter(
-    (user) =>
-      user.role === UserRole.Coordinator &&
-      user.status === UserAccountStatus.Approved,
-  );
+  const coordinators = overview.data
+    ? approvedCoordinatorsOf(overview.data)
+    : [];
 
   const create = useMutation({
     mutationFn: (type: ProgramType) =>
@@ -65,6 +63,7 @@ export function useAdminProgramWizard() {
 
   const update = (patch: Partial<ProgramWizardDraft>) => {
     setProblem(null);
+    create.reset();
     setDraft((current) => ({ ...current, ...patch }));
   };
 
@@ -76,6 +75,10 @@ export function useAdminProgramWizard() {
     update,
     coordinators,
     coordinatorsLoading: overview.isLoading,
+    coordinatorsError: overview.error
+      ? errorMessage(overview.error, t("coordinatorsFailed"))
+      : null,
+    retryCoordinators: () => void overview.refetch(),
     chosenCoordinators: coordinators.filter((user) =>
       draft.coordinatorIds.includes(user.id),
     ),
@@ -93,11 +96,13 @@ export function useAdminProgramWizard() {
     },
     back: () => {
       setProblem(null);
+      create.reset();
       if (stepIndex > 0) setStep(WIZARD_STEPS[stepIndex - 1]);
     },
     submit: () => {
-      if (draft.type) create.mutate(draft.type);
+      if (draft.type && (create.isIdle || create.isError))
+        create.mutate(draft.type);
     },
-    creating: create.isPending,
+    creating: create.isPending || create.isSuccess,
   };
 }

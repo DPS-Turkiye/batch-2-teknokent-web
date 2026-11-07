@@ -502,6 +502,9 @@ describe("coordinator program detail", () => {
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     ).toBeDisabled();
     expect(screen.getByLabelText("Müfredat PDF dosyası seç")).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Programı arşivle" }),
+    ).toBeDisabled();
   });
 
   it("lets the admin launch a draft once it has a coordinator", async () => {

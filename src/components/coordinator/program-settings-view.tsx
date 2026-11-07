@@ -346,7 +346,11 @@ function SettingsBody({
         </Section>
 
         {draftProgram ? null : (
-          <ArchiveSection programId={programId} archived={archived} />
+          <ArchiveSection
+            programId={programId}
+            archived={archived}
+            readOnly={navigation.admin}
+          />
         )}
 
         {settings.error ? (
@@ -478,9 +482,11 @@ function CoordinatorsSection({
 function ArchiveSection({
   programId,
   archived,
+  readOnly,
 }: {
   programId: string;
   archived: boolean;
+  readOnly: boolean;
 }) {
   const t = useTranslations("programSettings");
   const archive = useProgramArchive(programId, archived);
@@ -508,9 +514,9 @@ function ArchiveSection({
         {archived ? (
           <button
             type="button"
-            disabled={archive.busy}
+            disabled={readOnly || archive.busy}
             onClick={archive.restore}
-            className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
+            className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
             {t("reopen")}
           </button>
@@ -536,8 +542,9 @@ function ArchiveSection({
         ) : (
           <button
             type="button"
+            disabled={readOnly}
             onClick={archive.ask}
-            className="rounded-full bg-[#fdeeee] px-4 py-2 text-[13px] font-medium text-[#d9464b]"
+            className="rounded-full bg-[#fdeeee] px-4 py-2 text-[13px] font-medium text-[#d9464b] disabled:opacity-50"
           >
             {t("archive")}
           </button>

@@ -129,17 +129,22 @@ export function useProgramCoordinators(
       message: errorMessage(failure, t("coordinatorFailed")),
       tone: "error",
     });
+  const queryClient = useQueryClient();
+  const refresh = () => {
+    void cache.refresh();
+    void queryClient.invalidateQueries({ queryKey: ADMIN_OVERVIEW_QUERY_KEY });
+  };
   const add = useMutation({
     mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
     onSuccess: () => {
       setPicking(false);
-      void cache.refresh();
+      refresh();
     },
     onError,
   });
   const remove = useMutation({
     mutationFn: (userId: string) => removeProgramCoordinator(programId, userId),
-    onSuccess: () => void cache.refresh(),
+    onSuccess: refresh,
     onError,
   });
   return {
