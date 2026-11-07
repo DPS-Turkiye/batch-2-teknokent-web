@@ -13,29 +13,13 @@ export enum SignupStep {
   Review = 4,
 }
 
-export const SIGNUP_STEPS: { step: SignupStep; title: string; hint: string }[] =
-  [
-    {
-      step: SignupStep.PersonalProfile,
-      title: "Kişisel profilin",
-      hint: "Mentorlar seni bu bilgilerle tanır",
-    },
-    {
-      step: SignupStep.StartupProfile,
-      title: "Startup profilin",
-      hint: "Koordinatör ve mentorlar görür",
-    },
-    {
-      step: SignupStep.Documents,
-      title: "Dosyalar",
-      hint: "Kanvas, pitch deck, prototip",
-    },
-    {
-      step: SignupStep.Review,
-      title: "Gözden geçir ve gönder",
-      hint: "Koordinatör onayına gider",
-    },
-  ];
+/** The wizard's steps in order; their copy is `signupWizard.steps.<key>`. */
+export const SIGNUP_STEPS: { step: SignupStep }[] = [
+  { step: SignupStep.PersonalProfile },
+  { step: SignupStep.StartupProfile },
+  { step: SignupStep.Documents },
+  { step: SignupStep.Review },
+];
 
 export const SIGNUP_STEP_ORDER: SignupStep[] = SIGNUP_STEPS.map(
   (item) => item.step,
@@ -82,39 +66,6 @@ export enum StartupDocumentKind {
   Mvp = DocumentKind.Mvp,
   Validation = DocumentKind.Validation,
 }
-
-export interface StartupDocumentSpec {
-  kind: StartupDocumentKind;
-  title: string;
-  description: string;
-}
-
-export const STARTUP_DOCUMENTS: StartupDocumentSpec[] = [
-  {
-    kind: StartupDocumentKind.Canvas,
-    title: "Kanvas yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.PitchDeck,
-    title: "Pitch Deck yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.Mvp,
-    title: "MVP/Prototip yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.Validation,
-    title: "Doğrulama Çıktısı yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-];
 
 export interface UploadedFile {
   name: string;

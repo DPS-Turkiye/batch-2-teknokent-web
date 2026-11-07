@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getTranslations } from "next-intl/server";
+
 import type { MentorProfile } from "@/interfaces/mentor";
 import { getSessionIds } from "@/lib/session";
 import { HttpMethod } from "@/lib/http-method";
@@ -106,7 +108,7 @@ export async function loadMentors(): Promise<{
     const message =
       error instanceof MentorFetchError
         ? error.message
-        : "Mentorlar yüklenirken beklenmedik bir hata oluştu.";
+        : (await getTranslations("loadErrors"))("mentorsUnexpected");
     return { mentors: [], error: message };
   }
 }

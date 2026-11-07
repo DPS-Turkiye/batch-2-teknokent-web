@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getTranslations } from "next-intl/server";
+
 import type { StartupContext } from "@/interfaces/startup";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -106,7 +108,7 @@ export async function loadStartupContext(organizationId: string): Promise<{
     return {
       startup: {
         organizationId,
-        name: "Girişim",
+        name: (await getTranslations("loadErrors"))("startupFallbackName"),
         summary: "",
         sector: "",
         stage: "",

@@ -137,7 +137,9 @@ export function CreateMeetingDialog({
   const [openProgramId, setOpenProgramId] = useState(
     grouped.byProgram[0]?.program.id ?? "",
   );
-  const [agenda, setAgenda] = useState(`Mentor: ${mentorName}`);
+  const [agenda, setAgenda] = useState(
+    t("defaultAgenda", { name: mentorName }),
+  );
   const [manualMeetLink, setManualMeetLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);

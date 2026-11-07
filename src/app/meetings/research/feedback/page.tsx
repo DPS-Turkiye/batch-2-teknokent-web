@@ -54,7 +54,7 @@ function MeetingFeedbackContent() {
     );
   }
 
-  const mentorName = meeting.mentorName ?? "Mentor";
+  const mentorName = meeting.mentorName ?? t("mentorFallback");
   const mentorFirst = mentorFirstName(mentorName);
   const pageTitle = readOnly ? t("readOnlyTitle") : t("title");
 

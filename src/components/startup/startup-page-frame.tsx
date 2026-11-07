@@ -41,7 +41,7 @@ export function StartupPageFrame({
           {header.logoUrl ? (
             <span
               role="img"
-              aria-label={t("logo", { name: header.name ?? "Startup" })}
+              aria-label={t("logo", { name: header.name ?? t("nameFallback") })}
               className="size-[52px] shrink-0 rounded-xl border border-[#e4e7ea] bg-contain bg-center bg-no-repeat"
               style={{ backgroundImage: `url("${header.logoUrl}")` }}
             />

@@ -180,6 +180,7 @@
     }
   },
   "signupFlow": {
+    "mentorRegistrationFailed": "Mentor hesabı tamamlanamadı.",
     "resumeTitle": "Mentor hesabını tamamla",
     "resumeIntro": "Mentor profilini açmadan önce hesap bilgilerini tamamla.",
     "fullName": "Ad soyad",
@@ -189,6 +190,7 @@
     "retry": "Tekrar dene"
   },
   "signupWizard": {
+    "programRequired": "Lütfen bir program seçin.",
     "steps": {
       "personal": {
         "title": "Kişisel profilini oluştur",
@@ -958,6 +960,7 @@
     }
   },
   "metadata": {
+    "manifestDescription": "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",
     "defaultTitle": "Mentorluk ve Girişim Programları Platformu",
     "titleTemplate": "%s | ODTÜ Teknokent",
     "description": "ODTÜ Teknokent mentorluk, eğitim ve girişim programları platformu.",
@@ -1287,6 +1290,8 @@
     }
   },
   "loadErrors": {
+    "startupFallbackName": "Girişim",
+    "mentorsUnexpected": "Mentorlar yüklenirken beklenmedik bir hata oluştu.",
     "mentors": "Mentorlar yüklenemedi.",
     "profileUnavailable": "Profil hizmeti yanıt vermedi; kuruluş bilgileri gösteriliyor.",
     "startup": "Girişim bilgileri yüklenemedi."
@@ -1685,6 +1690,9 @@
       "close": "Kapat"
     },
     "sync": {
+      "icalDescription": "Teknokent Mentorluk Görüşmesi. Link: {link}",
+      "googleDetails": "Teknokent Mentorluk Görüşmesi.\nToplantı Linki: {link}",
+      "eventTitle": "Mentorluk Görüşmesi",
       "addGoogle": "Google Takvime Ekle",
       "downloadIcs": "iCal (.ics) İndir"
     }
@@ -1807,6 +1815,7 @@
     "close": "Kapat"
   },
   "startupFrame": {
+    "nameFallback": "Startup",
     "logo": "{name} logosu",
     "fallbackName": "Startup’ım",
     "stage": "{stage} aşaması",
@@ -2397,6 +2406,7 @@
       "pageLoading": "Görüşme bilgisi yükleniyor…"
     },
     "feedback": {
+      "mentorFallback": "Mentor",
       "title": "Görüşmeyi Değerlendir",
       "readOnlyTitle": "Değerlendirmen",
       "loading": "Değerlendirme yükleniyor…",
@@ -2452,6 +2462,7 @@
       "sentToast": "Değerlendirmen gönderildi."
     },
     "summary": {
+      "mentorFallback": "Mentor",
       "title": "Görüşme Özeti",
       "minutes": "{count} dk",
       "heading": "Görüşme notlarını tamamla",
@@ -2608,6 +2619,7 @@
     "minutes": "{count} dk"
   },
   "mentorHome": {
+    "firstNameFallback": "Mentor",
     "greetingWithName": "{greeting}, {name}",
     "summary": "{active} aktif mentorluk · {pending} yeni talep",
     "manageAvailability": "Müsaitliği yönet",
@@ -2811,6 +2823,7 @@
       "noLink": "Toplantı bağlantısı yok"
     },
     "create": {
+      "defaultAgenda": "Mentor: {name}",
       "label": "Yeni toplantı oluştur",
       "title": "Toplantı hedefi seç",
       "close": "Kapat",
@@ -5560,5 +5573,37 @@
     "declined": "{name} davetini reddettin.",
     "answerFailed": "Davete yanıt verilemedi.",
     "awaitingReview": "Koordinatör onayı bekleniyor"
+  },
+  "programsPage": {
+    "title": "Programlar",
+    "actionFailed": "İşlem tamamlanamadı.",
+    "created": "Program oluşturuldu.",
+    "createFirst": "Önce bir program oluşturun.",
+    "startupAdded": "Startup programa eklendi.",
+    "createTitle": "Program oluştur",
+    "namePlaceholder": "Program adı",
+    "create": "Oluştur",
+    "startups": "Startup’lar",
+    "startupsHint": "Arama çubuğunun altında tüm startup’lar listelenir. Seçtiğiniz programa ekleyin.",
+    "targetProgram": "Hedef program",
+    "searchStartups": "Startup ara",
+    "loading": "Yükleniyor...",
+    "noStartups": "Startup bulunamadı.",
+    "addToProgram": "Programa ekle",
+    "programs": "Programlar",
+    "noPrograms": "Henüz program yok.",
+    "noProgramStartups": "Bu programda henüz startup yok.",
+    "startupRemoved": "Startup çıkarıldı.",
+    "mentors": "Mentörler",
+    "noMentors": "Kabul etmiş mentör yok.",
+    "awaitingMentor": "Mentör yanıtı bekleniyor",
+    "mentorApplications": "Mentör başvuruları",
+    "mentorAccepted": "Mentör kabul edildi.",
+    "accept": "Kabul",
+    "mentorRejected": "Mentör reddedildi.",
+    "reject": "Reddet",
+    "pickMentor": "Mentör seç",
+    "inviteSent": "Davet gönderildi. Mentör bildirimden kabul veya red edebilir.",
+    "inviteMentor": "Mentör davet et"
   }
 }
