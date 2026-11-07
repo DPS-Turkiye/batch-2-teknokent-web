@@ -1145,6 +1145,38 @@
       "other": {
         "title": "Başka bir konu",
         "description": "Bunlara uymuyorsa kısa şekilde kendin anlatabilirsin."
+      },
+      "career": {
+        "title": "Kariyer planlama",
+        "description": "Hangi alanda ilerleyeceğime karar veremiyorum."
+      },
+      "internship": {
+        "title": "Staj",
+        "description": "Staj bulmak ya da başvurmak için desteğe ihtiyacım var."
+      },
+      "cv": {
+        "title": "CV & LinkedIn",
+        "description": "CV’mi ya da LinkedIn profilimi güçlendirmek istiyorum."
+      },
+      "interview": {
+        "title": "Mülakat",
+        "description": "Bir mülakata hazırlanmak istiyorum."
+      },
+      "job": {
+        "title": "İş arama & ilk iş",
+        "description": "İş aramaya ya da ilk işime nereden başlayacağımı bilmiyorum."
+      },
+      "courses": {
+        "title": "Dersler",
+        "description": "Derslerde ya da çalışma düzenimde zorlanıyorum."
+      },
+      "erasmus": {
+        "title": "Erasmus & yurt dışı",
+        "description": "Erasmus’a ya da yurt dışında bir programa başvurmak istiyorum."
+      },
+      "project": {
+        "title": "Proje & girişimcilik",
+        "description": "Bir proje ya da girişim fikri üzerinde çalışıyorum."
       }
     },
     "situations": {
@@ -1171,6 +1203,22 @@
       "none": {
         "title": "Bunlardan hiçbiri",
         "description": "Kısaca kendim anlatacağım."
+      },
+      "start": {
+        "title": "Nereden başlayacağımı bilmiyorum",
+        "description": "Konuyu yeni düşünmeye başladım, bir yol haritasına ihtiyacım var."
+      },
+      "decide": {
+        "title": "Bir karar vermem gerekiyor",
+        "description": "Birkaç seçenek arasında kaldım, hangisinin bana uyduğunu bilmiyorum."
+      },
+      "apply": {
+        "title": "Bir başvuruya hazırlanıyorum",
+        "description": "Yakında bir staj, iş ya da program başvurum var."
+      },
+      "review": {
+        "title": "Yaptığım bir çalışmaya geri bildirim istiyorum",
+        "description": "CV’m, projem ya da başvuru metnim için görüş almak istiyorum."
       }
     },
     "goals": {
