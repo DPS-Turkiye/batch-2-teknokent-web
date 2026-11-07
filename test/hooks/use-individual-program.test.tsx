@@ -8,10 +8,10 @@ import { UserRole } from "@/interfaces/session";
 import { getOrganizationPrograms } from "@/lib/client/programs";
 import { createTestQueryClient } from "@test/test-utils";
 
-const mockUseSession = vi.fn();
+const mockUseAppSession = vi.fn();
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useSession: () => mockUseSession(),
+  useAppSession: () => mockUseAppSession(),
 }));
 
 vi.mock("@/lib/client/programs", () => ({
@@ -27,7 +27,7 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 function signedInAs(role: UserRole, organizationId?: string) {
-  mockUseSession.mockReturnValue({ session: { role, organizationId } });
+  mockUseAppSession.mockReturnValue({ role, organizationId });
 }
 
 const program = (id: string, individualMentees: boolean) => ({
