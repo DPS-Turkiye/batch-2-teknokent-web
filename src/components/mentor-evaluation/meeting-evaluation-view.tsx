@@ -80,6 +80,46 @@ function Card({
   );
 }
 
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function HeldConfirmation({
+  evaluation,
+}: {
+  evaluation: ReturnType<typeof useMentorMeetingEvaluation>;
+}) {
+  const t = useTranslations("mentorEvaluation");
+  return (
+    <Card className="flex flex-wrap items-center justify-between gap-3 py-5">
+      <div className="min-w-0 flex-1">
+        <p className={questionClass}>
+          {evaluation.held ? t("heldDone") : t("heldQuestion")}
+        </p>
+        <p className="mt-1 text-xs text-[#858c96]">{t("heldHint")}</p>
+        {evaluation.heldError ? (
+          <p role="alert" className="mt-2 text-sm text-red-700">
+            {evaluation.heldError.message}
+          </p>
+        ) : null}
+      </div>
+      <button
+        type="button"
+        onClick={evaluation.held ? evaluation.undoHeld : evaluation.confirmHeld}
+        disabled={evaluation.isSavingHeld}
+        className={
+          evaluation.held
+            ? secondaryButtonClass
+            : `${primaryButtonClass} bg-[#26a4ff] text-white hover:bg-[#1592ec] disabled:bg-[#f3f4f6] disabled:text-[#aeb4bc]`
+        }
+      >
+        {evaluation.isSavingHeld
+          ? t("heldSaving")
+          : evaluation.held
+            ? t("heldUndo")
+            : t("heldConfirm")}
+      </button>
+    </Card>
+  );
+}
+
 export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
   const t = useTranslations("mentorEvaluation");
   const evaluation = useMentorMeetingEvaluation(meetingId);
@@ -99,6 +139,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
     return (
       <div className="mx-auto flex w-full max-w-[680px] flex-col gap-7 px-4 pb-16 pt-3 sm:px-0">
         <Breadcrumb startupName={evaluation.startupName} />
+        <HeldConfirmation evaluation={evaluation} />
         <Card className="flex flex-col items-center gap-4 pb-10 pt-12 text-center">
           <span className="grid size-16 place-items-center rounded-full bg-[#e6f1f8]">
             <Image
@@ -150,6 +191,8 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
           {evaluation.meta}
         </p>
       </header>
+
+      <HeldConfirmation evaluation={evaluation} />
 
       <Card className="flex flex-col gap-7 py-7">
         <p className="flex items-center gap-2.5 rounded-xl border border-[#f5faff] bg-[#f2f8fc] px-4 py-3 text-[12.5px] leading-[18px] text-[#4a5059]">

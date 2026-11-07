@@ -1,7 +1,11 @@
 import "server-only";
 
 import type { AdminOverview } from "@/interfaces/admin-overview";
-import type { ProgramMeetingRatings } from "@/interfaces/program-report";
+import type {
+  ProgramMeetingRatings,
+  ProgramSessions,
+  SessionsExportFormat,
+} from "@/interfaces/program-report";
 import { backendRequest } from "@/lib/server/backend-client";
 
 function programUrl(programId: string) {
@@ -25,5 +29,32 @@ export function fetchProgramMeetingRatings(
     method: "GET",
     url: `${programUrl(programId)}/meeting-ratings`,
     params: from ? { actorId, from } : { actorId },
+  });
+}
+
+export function fetchProgramSessions(
+  actorId: string,
+  programId: string,
+  from: string,
+  to: string,
+) {
+  return backendRequest<ProgramSessions>({
+    method: "GET",
+    url: `${programUrl(programId)}/sessions`,
+    params: { actorId, from, to },
+  });
+}
+
+export function exportProgramSessions(
+  actorId: string,
+  programId: string,
+  range: { from: string; to: string; format: SessionsExportFormat },
+) {
+  return backendRequest<ArrayBuffer>({
+    method: "GET",
+    url: `${programUrl(programId)}/sessions/export`,
+    params: { actorId, ...range },
+    responseType: "arraybuffer",
+    headers: { Accept: "*/*" },
   });
 }

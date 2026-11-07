@@ -4,10 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useMeetings } from "@/hooks/use-meetings";
+import { MEETINGS_QUERY_KEY, useMeetings } from "@/hooks/use-meetings";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { UserRole } from "@/interfaces/session";
-import { getMeetingFeedback, postMeetingFeedback } from "@/lib/client/meetings";
+import {
+  getMeetingFeedback,
+  postMeetingFeedback,
+  setMeetingHeld,
+} from "@/lib/client/meetings";
 import {
   answeredQuestionCount,
   evaluationMeetingMeta,
@@ -49,6 +53,12 @@ export function useMentorMeetingEvaluation(meetingId: string) {
       }),
   });
 
+  const heldMutation = useMutation({
+    mutationFn: (value: boolean) => setMeetingHeld(meetingId, value),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: MEETINGS_QUERY_KEY }),
+  });
+
   const meeting = meetingsQuery.data?.find((item) => item.id === meetingId);
   const request = meeting?.mentorshipRequestId
     ? requestsQuery.data?.find(
@@ -63,6 +73,11 @@ export function useMentorMeetingEvaluation(meetingId: string) {
     answered: answeredQuestionCount(answers),
     canSubmit: isEvaluationComplete(answers) && !submit.isPending,
     error: submit.error,
+    held: Boolean(meeting?.heldConfirmedAt),
+    heldError: heldMutation.error,
+    isSavingHeld: heldMutation.isPending,
+    confirmHeld: () => heldMutation.mutate(true),
+    undoHeld: () => heldMutation.mutate(false),
     isLoading: meetingsQuery.isLoading || feedbackQuery.isLoading,
     isSubmitting: submit.isPending,
     isSent: Boolean(feedbackQuery.data) || submit.isSuccess,

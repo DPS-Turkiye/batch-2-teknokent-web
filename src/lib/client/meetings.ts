@@ -73,6 +73,15 @@ export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
   );
 }
 
+export async function setMeetingHeld(id: string, held: boolean) {
+  const url = `/api/meetings/${encodeURIComponent(id)}/held`;
+  return requireSuccess(
+    held
+      ? await httpClient.post<MeetingItem>(url)
+      : await httpClient.delete<MeetingItem>(url),
+  );
+}
+
 export async function getMeetingRoom(id: string) {
   return requireSuccess(
     await httpClient.get<MeetingItem[]>(

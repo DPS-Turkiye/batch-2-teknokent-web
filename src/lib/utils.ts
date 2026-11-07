@@ -106,3 +106,6 @@ export function httpUrlOrNull(value: string | null | undefined) {
   const trimmed = value?.trim() ?? "";
   return /^https?:\/\/\S+$/i.test(trimmed) ? trimmed : null;
 }
+
+/** A yyyy-mm-dd day, the way the report and calendar endpoints take it. */
+export const ISO_DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;

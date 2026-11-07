@@ -6,9 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { ISO_DAY_PATTERN } from "@/lib/utils";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
-
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(request: NextRequest) {
   try {
@@ -17,7 +16,7 @@ export async function GET(request: NextRequest) {
     const search = request.nextUrl.searchParams;
     const from = search.get("from") ?? "";
     const to = search.get("to") ?? "";
-    if (!DAY.test(from) || !DAY.test(to)) {
+    if (!ISO_DAY_PATTERN.test(from) || !ISO_DAY_PATTERN.test(to)) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",

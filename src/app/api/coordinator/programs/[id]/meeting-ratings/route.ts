@@ -6,9 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { ISO_DAY_PATTERN } from "@/lib/utils";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
-
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
 export async function GET(
   request: NextRequest,
@@ -19,7 +18,7 @@ export async function GET(
     if (!auth.ok) return auth.response;
     const { id } = await params;
     const from = request.nextUrl.searchParams.get("from");
-    if (from != null && !DAY.test(from)) {
+    if (from != null && !ISO_DAY_PATTERN.test(from)) {
       return NextResponse.json(
         { code: "INVALID_REQUEST", message: await apiText("dateInvalid") },
         { status: 400 },

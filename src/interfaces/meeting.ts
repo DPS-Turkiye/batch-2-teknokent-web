@@ -20,5 +20,7 @@ export type MeetingItem = {
   meetLink?: string;
   transcribeRequested?: boolean;
   botDispatchedAt?: string | null;
+  /** Set once the mentor confirms the meeting was held; only these count in the program sessions report. */
+  heldConfirmedAt?: string | null;
   status: MeetingStatus | string;
 };
