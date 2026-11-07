@@ -60,3 +60,20 @@ describe("RoleFrame feedback", () => {
     ).not.toBeInTheDocument();
   });
 });
+
+describe("RoleFrame workspace label", () => {
+  it("names the workspace instead of the role when one is given", () => {
+    render(
+      <RoleFrame
+        allowedRoles={[UserRole.Admin]}
+        homeHref="/admin"
+        menuLabel="adminMenu"
+        nav={[]}
+        roleLabel="Öğrenci"
+      >
+        <p>Workspace</p>
+      </RoleFrame>,
+    );
+    expect(screen.getByText("Öğrenci")).toBeInTheDocument();
+  });
+});

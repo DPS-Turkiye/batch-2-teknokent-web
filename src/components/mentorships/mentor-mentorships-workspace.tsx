@@ -6,8 +6,8 @@ import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
 
+import { EmptyState } from "@/components/common/empty-state";
 import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
@@ -355,7 +355,7 @@ function RequestsTab({
     );
   }
   if (requests.length === 0) {
-    return <EmptyState message={t("requests.empty")} />;
+    return <EmptyState accent="blue" title={t("requests.empty")} />;
   }
 
   return (
@@ -757,14 +757,5 @@ function PastMentorshipRow({
         </div>
       ) : null}
     </article>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="mt-5 rounded-[20px] border border-dashed border-[#d6dade] bg-white p-12 text-center">
-      <Sparkles className="mx-auto size-7 text-[#26a4ff]" />
-      <h2 className="mt-4 text-base font-semibold">{message}</h2>
-    </div>
   );
 }
