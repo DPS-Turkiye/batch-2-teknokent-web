@@ -4,6 +4,7 @@ import {
   googleCalendarAddUrl,
   icalFileContents,
   parseICalText,
+  type CalendarEventText,
 } from "@/lib/calendar-sync";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 
@@ -20,9 +21,14 @@ function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   };
 }
 
+const text: CalendarEventText = {
+  fallbackTitle: "Mentorluk Görüşmesi",
+  description: (link) => `Teknokent Mentorluk Görüşmesi. Link: ${link}`,
+};
+
 describe("googleCalendarAddUrl", () => {
   it("builds a Google Calendar template link with the meeting's title and time", () => {
-    const url = googleCalendarAddUrl(meeting());
+    const url = googleCalendarAddUrl(meeting(), text);
     expect(url).toContain("calendar.google.com/calendar/render");
     expect(url).toContain(encodeURIComponent("Finansal model görüşmesi"));
     expect(url).toContain("20260910T090000Z");
@@ -31,13 +37,21 @@ describe("googleCalendarAddUrl", () => {
 
 describe("icalFileContents", () => {
   it("produces a valid VEVENT block with the meeting's link and time", () => {
-    const ics = icalFileContents(meeting());
+    const ics = icalFileContents(meeting(), text);
     expect(ics).toContain("BEGIN:VCALENDAR");
     expect(ics).toContain("BEGIN:VEVENT");
     expect(ics).toContain("SUMMARY:Finansal model görüşmesi");
     expect(ics).toContain("DTSTART:20260910T090000Z");
     expect(ics).toContain("LOCATION:https://meet.example.com/abc");
     expect(ics).toContain("END:VEVENT");
+  });
+
+  it("falls back to the given title and describes the meeting with its link", () => {
+    const ics = icalFileContents(meeting({ agenda: undefined }), text);
+    expect(ics).toContain("SUMMARY:Mentorluk Görüşmesi");
+    expect(ics).toContain(
+      "DESCRIPTION:Teknokent Mentorluk Görüşmesi. Link: https://meet.example.com/abc",
+    );
   });
 });
 

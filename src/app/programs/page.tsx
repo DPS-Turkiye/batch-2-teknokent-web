@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { ProgramStatusSwitch } from "@/components/programs/program-status-switch";
@@ -31,6 +32,7 @@ export default function ProgramsPage() {
 }
 
 function CoordinatorPrograms() {
+  const t = useTranslations("programsPage");
   const { showToast } = useToast();
   const programsQuery = usePrograms();
   const directoryQuery = useProgramDirectory();
@@ -67,8 +69,7 @@ function CoordinatorPrograms() {
 
   function fail(reason: unknown) {
     showToast({
-      message:
-        reason instanceof Error ? reason.message : "İşlem tamamlanamadı.",
+      message: reason instanceof Error ? reason.message : t("actionFailed"),
       tone: "error",
     });
   }
@@ -79,7 +80,7 @@ function CoordinatorPrograms() {
       const created = await createProgram.mutateAsync(name);
       setName("");
       setTargetProgramId(created.id);
-      flash("Program oluşturuldu.");
+      flash(t("created"));
     } catch (reason) {
       fail(reason);
     }
@@ -87,7 +88,7 @@ function CoordinatorPrograms() {
 
   async function handleAddStartup(organizationId: string) {
     if (!selectedProgramId) {
-      showToast({ message: "Önce bir program oluşturun.", tone: "error" });
+      showToast({ message: t("createFirst"), tone: "error" });
       return;
     }
     try {
@@ -95,25 +96,25 @@ function CoordinatorPrograms() {
         programId: selectedProgramId,
         organizationId,
       });
-      flash("Startup programa eklendi.");
+      flash(t("startupAdded"));
     } catch (reason) {
       fail(reason);
     }
   }
 
   return (
-    <AppShell active={AppArea.Programs} title="Programlar">
+    <AppShell active={AppArea.Programs} title={t("title")}>
       <div className="mx-auto w-full max-w-4xl space-y-8 px-4 pb-12 pt-6 sm:px-8">
         <form
           onSubmit={(event) => void handleCreate(event)}
           className="rounded-xl border border-[#e5e7eb] bg-white p-5"
         >
-          <h2 className="text-sm font-semibold">Program oluştur</h2>
+          <h2 className="text-sm font-semibold">{t("createTitle")}</h2>
           <div className="mt-3 flex flex-col gap-2 sm:flex-row">
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Program adı"
+              placeholder={t("namePlaceholder")}
               className="h-10 flex-1 rounded-lg border border-[#e5e7eb] px-3 text-sm"
             />
             <button
@@ -121,7 +122,7 @@ function CoordinatorPrograms() {
               disabled={createProgram.isPending || !name.trim()}
               className="h-10 rounded-lg bg-[#e86f22] px-4 text-sm font-semibold text-white disabled:bg-[#c9cdd2]"
             >
-              Oluştur
+              {t("create")}
             </button>
           </div>
         </form>
@@ -129,15 +130,12 @@ function CoordinatorPrograms() {
         <section className="space-y-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-sm font-semibold">Startup’lar</h2>
-              <p className="mt-1 text-xs text-[#6a7282]">
-                Arama çubuğunun altında tüm startup’lar listelenir. Seçtiğiniz
-                programa ekleyin.
-              </p>
+              <h2 className="text-sm font-semibold">{t("startups")}</h2>
+              <p className="mt-1 text-xs text-[#6a7282]">{t("startupsHint")}</p>
             </div>
             {programs.length > 1 ? (
               <label className="text-xs text-[#6a7282]">
-                Hedef program
+                {t("targetProgram")}
                 <select
                   value={selectedProgramId}
                   onChange={(event) => setTargetProgramId(event.target.value)}
@@ -155,13 +153,13 @@ function CoordinatorPrograms() {
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Startup ara"
+            placeholder={t("searchStartups")}
             className="h-10 w-full rounded-lg border border-[#e5e7eb] px-3 text-sm"
           />
           {directoryQuery.isLoading ? (
-            <p className="text-sm text-[#6a7282]">Yükleniyor...</p>
+            <p className="text-sm text-[#6a7282]">{t("loading")}</p>
           ) : visibleStartups.length === 0 ? (
-            <p className="text-sm text-[#6a7282]">Startup bulunamadı.</p>
+            <p className="text-sm text-[#6a7282]">{t("noStartups")}</p>
           ) : (
             <ul className="divide-y divide-[#e5e7eb] rounded-xl border border-[#e5e7eb] bg-white">
               {visibleStartups.map((startup) => (
@@ -176,7 +174,7 @@ function CoordinatorPrograms() {
                     onClick={() => void handleAddStartup(startup.id)}
                     className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs font-medium disabled:opacity-50"
                   >
-                    Programa ekle
+                    {t("addToProgram")}
                   </button>
                 </li>
               ))}
@@ -185,11 +183,11 @@ function CoordinatorPrograms() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-sm font-semibold">Programlar</h2>
+          <h2 className="text-sm font-semibold">{t("programs")}</h2>
           {programsQuery.isLoading ? (
-            <p className="text-sm text-[#6a7282]">Yükleniyor...</p>
+            <p className="text-sm text-[#6a7282]">{t("loading")}</p>
           ) : programs.length === 0 ? (
-            <p className="text-sm text-[#6a7282]">Henüz program yok.</p>
+            <p className="text-sm text-[#6a7282]">{t("noPrograms")}</p>
           ) : (
             programs.map((program) => {
               const accepted = program.mentors.filter(
@@ -226,11 +224,11 @@ function CoordinatorPrograms() {
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-                      Startup’lar
+                      {t("startups")}
                     </p>
                     {program.startups.length === 0 ? (
                       <p className="mt-2 text-sm text-[#6a7282]">
-                        Bu programda henüz startup yok.
+                        {t("noProgramStartups")}
                       </p>
                     ) : (
                       <ul className="mt-2 flex flex-wrap gap-2">
@@ -249,7 +247,7 @@ function CoordinatorPrograms() {
                                     programId: program.id,
                                     organizationId: startup.id,
                                   })
-                                  .then(() => flash("Startup çıkarıldı."))
+                                  .then(() => flash(t("startupRemoved")))
                                   .catch(fail)
                               }
                               className="text-[#858c96] hover:text-red-600"
@@ -263,11 +261,11 @@ function CoordinatorPrograms() {
                   </div>
                   <div>
                     <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-                      Mentörler
+                      {t("mentors")}
                     </p>
                     {accepted.length === 0 ? (
                       <p className="mt-2 text-sm text-[#6a7282]">
-                        Kabul etmiş mentör yok.
+                        {t("noMentors")}
                       </p>
                     ) : (
                       <ul className="mt-2 space-y-1 text-sm">
@@ -280,7 +278,7 @@ function CoordinatorPrograms() {
                   {pendingInvites.length > 0 ? (
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-                        Mentör yanıtı bekleniyor
+                        {t("awaitingMentor")}
                       </p>
                       <ul className="mt-2 space-y-1 text-sm text-[#6a7282]">
                         {pendingInvites.map((mentor) => (
@@ -292,7 +290,7 @@ function CoordinatorPrograms() {
                   {pendingRequests.length > 0 ? (
                     <div>
                       <p className="text-xs font-medium uppercase tracking-wide text-[#858c96]">
-                        Mentör başvuruları
+                        {t("mentorApplications")}
                       </p>
                       <ul className="mt-2 space-y-2">
                         {pendingRequests.map((mentor) => (
@@ -312,12 +310,12 @@ function CoordinatorPrograms() {
                                       mentorId: mentor.mentorId,
                                       accepted: true,
                                     })
-                                    .then(() => flash("Mentör kabul edildi."))
+                                    .then(() => flash(t("mentorAccepted")))
                                     .catch(fail)
                                 }
                                 className="rounded-lg bg-[#e86f22] px-3 py-1.5 text-xs font-semibold text-white disabled:bg-[#c9cdd2]"
                               >
-                                Kabul
+                                {t("accept")}
                               </button>
                               <button
                                 type="button"
@@ -329,12 +327,12 @@ function CoordinatorPrograms() {
                                       mentorId: mentor.mentorId,
                                       accepted: false,
                                     })
-                                    .then(() => flash("Mentör reddedildi."))
+                                    .then(() => flash(t("mentorRejected")))
                                     .catch(fail)
                                 }
                                 className="rounded-lg border border-[#e5e7eb] px-3 py-1.5 text-xs"
                               >
-                                Reddet
+                                {t("reject")}
                               </button>
                             </span>
                           </li>
@@ -353,7 +351,7 @@ function CoordinatorPrograms() {
                       }
                       className="h-10 flex-1 rounded-lg border border-[#e5e7eb] px-2 text-sm"
                     >
-                      <option value="">Mentör seç</option>
+                      <option value="">{t("pickMentor")}</option>
                       {availableMentors.map((mentor) => (
                         <option key={mentor.id} value={mentor.id}>
                           {mentor.fullName}
@@ -376,15 +374,13 @@ function CoordinatorPrograms() {
                               ...current,
                               [program.id]: "",
                             }));
-                            flash(
-                              "Davet gönderildi. Mentör bildirimden kabul veya red edebilir.",
-                            );
+                            flash(t("inviteSent"));
                           })
                           .catch(fail)
                       }
                       className="h-10 rounded-lg bg-[#e86f22] px-4 text-sm font-semibold text-white disabled:bg-[#c9cdd2]"
                     >
-                      Mentör davet et
+                      {t("inviteMentor")}
                     </button>
                   </div>
                 </article>

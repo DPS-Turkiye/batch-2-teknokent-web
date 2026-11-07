@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 
 import type { RegisterForm, RegisteredAccount } from "@/interfaces/auth";
 import { UserRole } from "@/interfaces/session";
@@ -41,6 +42,7 @@ function roleFromParam(value: string | null) {
  * person already has a Firebase account whose registration never finished.
  */
 export function useSignupFlow() {
+  const t = useTranslations("signupFlow");
   const router = useRouter();
   const searchParams = useSearchParams();
   const isResuming = searchParams.get("resume") === "1";
@@ -126,11 +128,11 @@ export function useSignupFlow() {
       setMentorRegistration(MentorRegistration.Ready);
     } catch (error) {
       setMentorRegistrationError(
-        error instanceof Error ? error.message : "Mentor hesabı tamamlanamadı.",
+        error instanceof Error ? error.message : t("mentorRegistrationFailed"),
       );
       setMentorRegistration(MentorRegistration.Error);
     }
-  }, [account, programInvite]);
+  }, [account, programInvite, t]);
 
   useEffect(() => {
     if (

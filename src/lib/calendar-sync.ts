@@ -5,18 +5,27 @@ import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
  * Shared by the mentor and mentee calendars via use-calendar-sync.
  */
 
+/** The event copy, from `calendar.sync` in the message files. */
+export type CalendarEventText = {
+  fallbackTitle: string;
+  description: (link: string) => string;
+};
+
 function formatICalTimestamp(date: Date) {
   return date.toISOString().replace(/-|:|\.\d\d\d/g, "");
 }
 
-export function googleCalendarAddUrl(meeting: MeetingItem) {
+export function googleCalendarAddUrl(
+  meeting: MeetingItem,
+  text: CalendarEventText,
+) {
   const start = new Date(meeting.scheduledAt);
   const end = new Date(
     start.getTime() + (meeting.durationMinutes || 45) * 60000,
   );
-  const title = encodeURIComponent(meeting.agenda ?? "Mentorluk Görüşmesi");
+  const title = encodeURIComponent(meeting.agenda ?? text.fallbackTitle);
   const details = encodeURIComponent(
-    `Teknokent Mentorluk Görüşmesi.\nToplantı Linki: ${meeting.meetLink ?? "N/A"}`,
+    text.description(meeting.meetLink ?? "N/A"),
   );
   const location = encodeURIComponent(meeting.meetLink ?? "Online");
   const dates = `${formatICalTimestamp(start)}/${formatICalTimestamp(end)}`;
@@ -24,12 +33,15 @@ export function googleCalendarAddUrl(meeting: MeetingItem) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dates}&details=${details}&location=${location}`;
 }
 
-export function icalFileContents(meeting: MeetingItem) {
+export function icalFileContents(
+  meeting: MeetingItem,
+  text: CalendarEventText,
+) {
   const start = new Date(meeting.scheduledAt);
   const end = new Date(
     start.getTime() + (meeting.durationMinutes || 45) * 60000,
   );
-  const title = meeting.agenda ?? "Mentorluk Görüşmesi";
+  const title = meeting.agenda ?? text.fallbackTitle;
   const meetLink = meeting.meetLink ?? "Online";
 
   return [
@@ -42,7 +54,7 @@ export function icalFileContents(meeting: MeetingItem) {
     `DTSTART:${formatICalTimestamp(start)}`,
     `DTEND:${formatICalTimestamp(end)}`,
     `SUMMARY:${title}`,
-    `DESCRIPTION:Teknokent Mentorluk Görüşmesi. Link: ${meetLink}`,
+    `DESCRIPTION:${text.description(meetLink)}`,
     `LOCATION:${meetLink}`,
     "STATUS:CONFIRMED",
     "END:VEVENT",

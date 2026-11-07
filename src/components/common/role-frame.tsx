@@ -14,11 +14,10 @@ import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
-import type { UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import type messages from "@/messages/tr.json";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
-import { roleWorkspace } from "@/lib/role-workspace";
 import { initials } from "@/lib/utils";
 
 export type RoleNavItem = {
@@ -85,8 +84,7 @@ function RoleShell({
   const [accountOpen, setAccountOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const tAccount = useTranslations("accountMenu");
-  const workspace = roleWorkspace(session?.role);
-  const roleLabel = session ? t(`roles.${session.role}`) : workspace.roleLabel;
+  const roleLabel = t(`roles.${session?.role ?? UserRole.Mentee}`);
   const name = session?.fullName ?? roleLabel;
   const mark = initials(name) || "AD";
 

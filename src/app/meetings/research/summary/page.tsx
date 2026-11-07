@@ -44,7 +44,7 @@ function MeetingSummaryContent() {
     >
       <div className="mx-auto w-full max-w-[1060px] px-4 pb-14 pt-8 sm:px-8">
         <p className="text-sm font-medium text-[#e86f22]">
-          {meeting.mentorName ?? "Mentor"} ·{" "}
+          {meeting.mentorName ?? t("mentorFallback")} ·{" "}
           {t("minutes", { count: meeting.durationMinutes })}
         </p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight">

@@ -90,7 +90,8 @@ export function useMentorDashboard() {
   const upcomingMeetings = pickUpcomingMeetings(meetings).upcomingMeetings;
 
   return {
-    firstName: session?.fullName?.trim().split(/\s+/)[0] || "Mentor",
+    firstName:
+      session?.fullName?.trim().split(/\s+/)[0] || t("firstNameFallback"),
     greeting: tCommon(`greeting.${dayPart()}`),
     nextMeeting: upcomingMeetings[0],
     todayActions: mentorTodayActions(awaitingReview, openActionItems, { t }),

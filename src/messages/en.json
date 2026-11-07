@@ -178,6 +178,7 @@
     }
   },
   "signupFlow": {
+    "mentorRegistrationFailed": "The mentor account could not be completed.",
     "resumeTitle": "Complete your mentor account",
     "resumeIntro": "Complete your account details before opening your mentor profile.",
     "fullName": "Full name",
@@ -187,6 +188,7 @@
     "retry": "Try again"
   },
   "signupWizard": {
+    "programRequired": "Please select a program.",
     "steps": {
       "personal": {
         "title": "Create your personal profile",
@@ -947,6 +949,7 @@
     }
   },
   "metadata": {
+    "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",
     "defaultTitle": "Mentoring and Startup Programs Platform",
     "titleTemplate": "%s | ODTÜ Teknokent",
     "description": "ODTÜ Teknokent's platform for mentoring, training and startup programs.",
@@ -1227,6 +1230,8 @@
     }
   },
   "loadErrors": {
+    "startupFallbackName": "Startup",
+    "mentorsUnexpected": "An unexpected error occurred while loading mentors.",
     "mentors": "Couldn't load mentors.",
     "profileUnavailable": "The profile service didn't respond; showing your organization's details.",
     "startup": "Couldn't load your startup's details."
@@ -1625,6 +1630,9 @@
       "close": "Close"
     },
     "sync": {
+      "icalDescription": "Teknokent Mentoring Meeting. Link: {link}",
+      "googleDetails": "Teknokent Mentoring Meeting.\nMeeting link: {link}",
+      "eventTitle": "Mentoring Meeting",
       "addGoogle": "Add to Google Calendar",
       "downloadIcs": "Download iCal (.ics)"
     }
@@ -1747,6 +1755,7 @@
     "close": "Close"
   },
   "startupFrame": {
+    "nameFallback": "Startup",
     "logo": "{name} logo",
     "fallbackName": "My startup",
     "stage": "{stage} stage",
@@ -2332,6 +2341,7 @@
       "pageLoading": "Loading the meeting details…"
     },
     "feedback": {
+      "mentorFallback": "Mentor",
       "title": "Rate the meeting",
       "readOnlyTitle": "Your rating",
       "loading": "Loading the rating…",
@@ -2387,6 +2397,7 @@
       "sentToast": "Your rating was sent."
     },
     "summary": {
+      "mentorFallback": "Mentor",
       "title": "Meeting summary",
       "minutes": "{count} min",
       "heading": "Finish the meeting notes",
@@ -2543,6 +2554,7 @@
     "minutes": "{count} min"
   },
   "mentorHome": {
+    "firstNameFallback": "Mentor",
     "greetingWithName": "{greeting}, {name}",
     "summary": "{active} active mentorships · {pending} new requests",
     "manageAvailability": "Manage availability",
@@ -2746,6 +2758,7 @@
       "noLink": "No meeting link"
     },
     "create": {
+      "defaultAgenda": "Mentor: {name}",
       "label": "Create a meeting",
       "title": "Choose who the meeting is with",
       "close": "Close",
@@ -5428,5 +5441,37 @@
     "declined": "You declined the invitation to {name}.",
     "answerFailed": "Could not answer the invitation.",
     "awaitingReview": "Waiting for the coordinator's approval"
+  },
+  "programsPage": {
+    "title": "Programs",
+    "actionFailed": "The action could not be completed.",
+    "created": "Program created.",
+    "createFirst": "Create a program first.",
+    "startupAdded": "Startup added to the program.",
+    "createTitle": "Create a program",
+    "namePlaceholder": "Program name",
+    "create": "Create",
+    "startups": "Startups",
+    "startupsHint": "All startups are listed below the search bar. Add them to the program you select.",
+    "targetProgram": "Target program",
+    "searchStartups": "Search startups",
+    "loading": "Loading...",
+    "noStartups": "No startups found.",
+    "addToProgram": "Add to program",
+    "programs": "Programs",
+    "noPrograms": "No programs yet.",
+    "noProgramStartups": "This program has no startups yet.",
+    "startupRemoved": "Startup removed.",
+    "mentors": "Mentors",
+    "noMentors": "No mentor has accepted yet.",
+    "awaitingMentor": "Awaiting mentor response",
+    "mentorApplications": "Mentor applications",
+    "mentorAccepted": "Mentor accepted.",
+    "accept": "Accept",
+    "mentorRejected": "Mentor rejected.",
+    "reject": "Reject",
+    "pickMentor": "Select a mentor",
+    "inviteSent": "Invitation sent. The mentor can accept or decline it from the notification.",
+    "inviteMentor": "Invite mentor"
   }
 }
