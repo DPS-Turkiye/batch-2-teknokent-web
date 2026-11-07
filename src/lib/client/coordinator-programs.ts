@@ -3,6 +3,7 @@ import type {
   CoordinatorProgramDetail,
   CoordinatorRef,
   CreateProgramInput,
+  ProgramEligibleEmail,
   CreateProgramEventInput,
   ExtractSyllabusPhasesInput,
   ProgramEvent,
@@ -131,6 +132,37 @@ export async function removeProgramCoordinator(
   return requireSuccess(
     await httpClient.delete<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    ),
+  );
+}
+
+export async function getProgramEligibleEmails(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails`,
+    ),
+  );
+}
+
+export async function addProgramEligibleEmails(
+  programId: string,
+  emails: string[],
+) {
+  return requireSuccess(
+    await httpClient.post<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails`,
+      { emails },
+    ),
+  );
+}
+
+export async function removeProgramEligibleEmail(
+  programId: string,
+  entryId: string,
+) {
+  return requireSuccess(
+    await httpClient.delete<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails/${encodeURIComponent(entryId)}`,
     ),
   );
 }

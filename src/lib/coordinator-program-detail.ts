@@ -21,6 +21,7 @@ export enum SettingsSection {
   Curriculum = "CURRICULUM",
   Coordinators = "COORDINATORS",
   Rules = "RULES",
+  Eligibility = "ELIGIBILITY",
   Archive = "ARCHIVE",
 }
 
@@ -267,7 +268,18 @@ export function detailsInput(
     defaultMentorCapacity: draft.defaultMentorCapacity,
     communicationGapDays: draft.communicationGapDays,
     bottleneckFlagDays: draft.bottleneckFlagDays,
+    eligibleEmailDomain: draft.eligibleEmailDomain?.trim() ?? "",
+    rosterOnly: draft.rosterOnly,
+    individualMentees: draft.individualMentees,
   };
+}
+
+/** Addresses pasted into the program list: one per line, or separated by commas, semicolons or spaces. */
+export function parseEmailList(text: string): string[] {
+  return text
+    .split(/[\s,;]+/)
+    .map((email) => email.trim())
+    .filter(Boolean);
 }
 
 export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {

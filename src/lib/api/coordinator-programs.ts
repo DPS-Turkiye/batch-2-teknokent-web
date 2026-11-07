@@ -5,6 +5,7 @@ import type {
   CoordinatorProgramDetail,
   CoordinatorRef,
   CreateProgramInput,
+  ProgramEligibleEmail,
   CreateProgramEventInput,
   ProgramEvent,
   ProgramPhaseInput,
@@ -139,6 +140,38 @@ export function removeProgramCoordinator(
   return backendRequest<CoordinatorRef[]>({
     method: "DELETE",
     url: `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    params: { actorId },
+  });
+}
+
+export function fetchProgramEligibleEmails(actorId: string, programId: string) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "GET",
+    url: `${programUrl(programId)}/eligible-emails`,
+    params: { actorId },
+  });
+}
+
+export function addProgramEligibleEmails(
+  actorId: string,
+  programId: string,
+  emails: string[],
+) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/eligible-emails`,
+    data: { actorId, emails },
+  });
+}
+
+export function removeProgramEligibleEmail(
+  actorId: string,
+  programId: string,
+  entryId: string,
+) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "DELETE",
+    url: `${programUrl(programId)}/eligible-emails/${encodeURIComponent(entryId)}`,
     params: { actorId },
   });
 }

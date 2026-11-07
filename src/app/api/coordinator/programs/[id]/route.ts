@@ -30,6 +30,10 @@ function optionalNumber(value: unknown) {
   return value == null ? undefined : Number(value);
 }
 
+function optionalBoolean(value: unknown) {
+  return value == null ? undefined : value === true;
+}
+
 export async function PUT(request: Request, { params }: Params) {
   try {
     const auth = await requireCoordinatorSession();
@@ -49,6 +53,12 @@ export async function PUT(request: Request, { params }: Params) {
         defaultMentorCapacity: optionalNumber(body.defaultMentorCapacity),
         communicationGapDays: optionalNumber(body.communicationGapDays),
         bottleneckFlagDays: optionalNumber(body.bottleneckFlagDays),
+        eligibleEmailDomain:
+          body.eligibleEmailDomain == null
+            ? undefined
+            : String(body.eligibleEmailDomain),
+        rosterOnly: optionalBoolean(body.rosterOnly),
+        individualMentees: optionalBoolean(body.individualMentees),
       }),
     );
   } catch (error) {

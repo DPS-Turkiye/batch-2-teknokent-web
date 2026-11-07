@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
   useProgramArchive,
@@ -271,6 +272,56 @@ function SettingsBody({
               disabled={archived}
               onChange={(value) =>
                 settings.update({ autoMatchSuggestions: value })
+              }
+            />
+          </Row>
+        </Section>
+
+        <Section
+          id={SettingsSection.Eligibility}
+          title={t(`sections.${SettingsSection.Eligibility}`)}
+          note={t("eligibilityNote")}
+        >
+          <Row>
+            <label className="block text-[12.5px] font-medium text-[#676e78]">
+              {t("eligibleDomain")}
+              <input
+                value={draft.eligibleEmailDomain ?? ""}
+                maxLength={255}
+                disabled={archived}
+                placeholder="metu.edu.tr"
+                onChange={(event) =>
+                  settings.update({ eligibleEmailDomain: event.target.value })
+                }
+                className={FIELD}
+              />
+            </label>
+            <p className="mt-1.5 text-[12.5px] text-[#858c96]">
+              {t("eligibleDomainHint")}
+            </p>
+          </Row>
+          <Row>
+            <Toggle
+              title={t("rosterOnly")}
+              hint={t("rosterOnlyHint")}
+              checked={draft.rosterOnly}
+              disabled={archived}
+              onChange={(value) => settings.update({ rosterOnly: value })}
+            />
+          </Row>
+          {draft.rosterOnly ? (
+            <Row>
+              <ProgramRosterSection programId={programId} archived={archived} />
+            </Row>
+          ) : null}
+          <Row>
+            <Toggle
+              title={t("individualMentees")}
+              hint={t("individualMenteesHint")}
+              checked={draft.individualMentees}
+              disabled={archived}
+              onChange={(value) =>
+                settings.update({ individualMentees: value })
               }
             />
           </Row>

@@ -64,6 +64,9 @@ export function coordinatorProgramDetail(
       defaultMentorCapacity: 4,
       communicationGapDays: 14,
       bottleneckFlagDays: 21,
+      eligibleEmailDomain: null,
+      rosterOnly: false,
+      individualMentees: false,
     },
     health: {
       healthy: 48,
