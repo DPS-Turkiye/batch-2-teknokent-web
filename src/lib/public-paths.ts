@@ -32,9 +32,25 @@ const PUBLIC_PATHS = new Set([
   MOBILE_LOGIN,
 ]);
 
+/**
+ * Office hours are signed into by the LTI launch from Moodle and keep their own session, so the Menton
+ * sign-in never stands in front of them; their pages check that session themselves.
+ */
+export function isOfficeHoursPath(pathname: string) {
+  return (
+    pathname.startsWith("/lti/") ||
+    pathname === "/office-hours" ||
+    pathname.startsWith("/office-hours/")
+  );
+}
+
 /** Pages a visitor may open without being signed in. */
 export function isPublicPath(pathname: string) {
-  return PUBLIC_PATHS.has(pathname) || pathname.startsWith("/invite");
+  return (
+    PUBLIC_PATHS.has(pathname) ||
+    pathname.startsWith("/invite") ||
+    isOfficeHoursPath(pathname)
+  );
 }
 
 /**
