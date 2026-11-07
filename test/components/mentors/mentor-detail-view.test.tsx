@@ -71,6 +71,43 @@ describe("MentorDetailView", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows a student mentor's studies, and no such card for other mentors", () => {
+    vi.mocked(useMentorshipRequests).mockReturnValue({
+      data: [],
+      isLoading: false,
+    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    const { unmount } = renderWithQueryClient(
+      <MentorDetailView
+        mentor={{
+          ...mentorProfile,
+          studentProfile: {
+            department: "Bilgisayar Mühendisliği",
+            studyYear: "4. sınıf",
+            strongCourses: ["CENG 140", "MATH 119"],
+            projects: ["Kampüs etkinlik uygulaması"],
+            erasmus: "TU Delft, 2025 güz",
+          },
+        }}
+        slots={[]}
+        startup={startup}
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Öğrenim" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Bilgisayar Mühendisliği")).toBeInTheDocument();
+    expect(screen.getByText("CENG 140, MATH 119")).toBeInTheDocument();
+    expect(screen.getByText("Kampüs etkinlik uygulaması")).toBeInTheDocument();
+    expect(screen.getByText("TU Delft, 2025 güz")).toBeInTheDocument();
+    unmount();
+
+    renderWithQueryClient(
+      <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />,
+    );
+    expect(screen.queryByRole("heading", { name: "Öğrenim" })).toBeNull();
+  });
+
   it("opens the Figma mentorship request dialog from the profile CTA", async () => {
     vi.mocked(useMentorshipRequests).mockReturnValue({
       data: [],

@@ -1,4 +1,5 @@
 import {
+  type StudentProfile,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
   WEEKDAY_ORDER,
@@ -6,6 +7,7 @@ import {
 } from "@/interfaces/mentor";
 import type {
   MentorOnboardingDraft,
+  StudentOnboardingDraft,
   WeeklyAvailability,
 } from "@/interfaces/mentor-onboarding";
 
@@ -72,10 +74,32 @@ export function weeklyCapacity(draft: MentorOnboardingDraft) {
   return { hours: Math.round((minutes / 60) * 10) / 10, meetings: perDay };
 }
 
+export function toStudentProfilePayload(
+  student: StudentOnboardingDraft,
+): StudentProfile {
+  const list = (text: string, separator: RegExp) =>
+    text
+      .split(separator)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  return {
+    department: student.department.trim() || null,
+    studyYear: student.studyYear || null,
+    strongCourses: list(student.courses, /,/),
+    projects: list(student.projects, /\n/),
+    erasmus: student.erasmus.trim() || null,
+  };
+}
+
+/** A student mentor's studies go with the profile; anyone else's draft never sends them. */
 export function toMentorProfilePayload(
   draft: MentorOnboardingDraft,
+  studentMentor = false,
 ): UpdateMentorProfilePayload & { offerings: string[] } {
   return {
+    ...(studentMentor
+      ? { studentProfile: toStudentProfilePayload(draft.student) }
+      : {}),
     professionalTitle: draft.profile.title.trim(),
     company: draft.profile.company.trim(),
     availabilityLabel: "",

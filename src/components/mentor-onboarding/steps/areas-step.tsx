@@ -12,6 +12,7 @@ import {
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 import { useInlineEntry } from "@/hooks/use-inline-entry";
+import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
 import {
   MAX_MENTOR_TOPICS,
@@ -83,6 +84,8 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
           </div>
         ) : null}
       </OnboardingCard>
+
+      {wizard.studentMentor ? <StudentProfileCard wizard={wizard} /> : null}
 
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       <OnboardingCard

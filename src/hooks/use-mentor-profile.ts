@@ -125,7 +125,10 @@ export function useDeleteAvailabilitySlot() {
   });
 }
 
-type MentorProfileForm = Required<UpdateMentorProfilePayload>;
+// The profile page edits the professional fields; a student mentor's studies are set at onboarding.
+type MentorProfileForm = Required<
+  Omit<UpdateMentorProfilePayload, "studentProfile">
+>;
 
 function toEditablePayload(profile: MentorProfile): MentorProfileForm {
   return {
@@ -225,6 +228,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
       | "prepFileRequirement"
       | "languages"
       | "programRoles"
+      | "studentProfile"
     >,
     value: string,
   ) => {

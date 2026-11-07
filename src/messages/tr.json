@@ -393,6 +393,14 @@
     "lastStepLabel": "Mentor profilin havuza alınır",
     "cvUnreadable": "CV’nizi okuyamadık; bilgilerinizi aşağıya kendiniz girebilirsiniz."
   },
+  "mentorStudentProfile": {
+    "title": "Öğrenim",
+    "department": "Bölüm",
+    "year": "Sınıf",
+    "courses": "Güçlü olduğu dersler",
+    "erasmus": "Erasmus & yurt dışı",
+    "projects": "Projeler"
+  },
   "mentorSteps": {
     "uploadCv": "CV’nizi yükleyin",
     "uploadHint": "PDF veya DOCX · Maks. 25 MB",
@@ -440,6 +448,18 @@
     "studentLevelsTitle": "Hangi öğrencilere destek verebilirsin?",
     "studentLevelsSubtitle": "Profilinde görünür; öğrenciler mentor seçerken buna bakar.",
     "studentLevelsLabel": "Sınıflar",
+    "studentProfileTitle": "Öğrenim bilgilerin",
+    "studentProfileSubtitle": "Öğrenciler mentor seçerken bunları görür.",
+    "studentDepartment": "Bölümün",
+    "studentDepartmentPlaceholder": "Örn. Bilgisayar Mühendisliği",
+    "studentYear": "Sınıfın",
+    "studentCourses": "Güçlü olduğun dersler",
+    "studentCoursesPlaceholder": "Virgülle ayır: CENG 140, MATH 119",
+    "studentProjects": "Projelerin",
+    "studentProjectsPlaceholder": "Her satıra bir proje",
+    "studentErasmus": "Erasmus ya da yurt dışı deneyimin",
+    "studentErasmusPlaceholder": "Örn. TU Delft, 2025 güz dönemi",
+    "studentInternshipsNote": "Stajlarını 1. adımda deneyim olarak ekleyebilirsin.",
     "offeringsTitle": "Bu mentorlukta neler yapabilirsin?",
     "offeringsSubtitle": "Startup profilinde madde madde görünür. Talep gönderirken bunu okurlar.",
     "addOffering": "+ Madde ekle",

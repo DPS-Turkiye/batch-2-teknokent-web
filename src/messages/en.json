@@ -393,6 +393,14 @@
     "lastStepLabel": "Your mentor profile joins the pool",
     "cvUnreadable": "We couldn't read your CV; you can enter your details below yourself."
   },
+  "mentorStudentProfile": {
+    "title": "Studies",
+    "department": "Department",
+    "year": "Year",
+    "courses": "Strong courses",
+    "erasmus": "Erasmus & abroad",
+    "projects": "Projects"
+  },
   "mentorSteps": {
     "uploadCv": "Upload your CV",
     "uploadHint": "PDF or DOCX · Max. 25 MB",
@@ -440,6 +448,18 @@
     "studentLevelsTitle": "Which students can you help?",
     "studentLevelsSubtitle": "Shown on your profile; students look at it when choosing a mentor.",
     "studentLevelsLabel": "Years",
+    "studentProfileTitle": "Your studies",
+    "studentProfileSubtitle": "Students see these when choosing a mentor.",
+    "studentDepartment": "Department",
+    "studentDepartmentPlaceholder": "e.g. Computer Engineering",
+    "studentYear": "Year",
+    "studentCourses": "Courses you are strong in",
+    "studentCoursesPlaceholder": "Comma-separated: CENG 140, MATH 119",
+    "studentProjects": "Your projects",
+    "studentProjectsPlaceholder": "One project per line",
+    "studentErasmus": "Erasmus or study abroad",
+    "studentErasmusPlaceholder": "e.g. TU Delft, fall 2025",
+    "studentInternshipsNote": "Add your internships as experience in step 1.",
     "offeringsTitle": "What can you offer in this mentorship?",
     "offeringsSubtitle": "Shown as a list on your profile. Startups read it before sending a request.",
     "addOffering": "+ Add item",
