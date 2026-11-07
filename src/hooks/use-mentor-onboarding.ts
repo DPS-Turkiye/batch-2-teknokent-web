@@ -23,7 +23,7 @@ import {
 } from "@/interfaces/mentor-onboarding";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
 import type { ProgramName } from "@/interfaces/program";
-import type { UploadedFile } from "@/interfaces/signup";
+import { STARTUP_STAGE_OPTIONS, type UploadedFile } from "@/interfaces/signup";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   chooseMentorPrograms,
@@ -45,6 +45,12 @@ import {
   toAvailabilityPayload,
   toMentorProfilePayload,
 } from "@/lib/mentor-onboarding";
+import {
+  isStudentLevel,
+  isStudentTopic,
+  STUDENT_LEVELS,
+  STUDENT_TOPICS,
+} from "@/lib/student-topics";
 import { scrollToTop } from "@/lib/utils";
 
 const DRAFT_KIND = "mentor-onboarding" as const;
@@ -92,6 +98,13 @@ async function requireToken() {
   const idToken = await currentIdToken();
   if (!idToken) throw new Error(clientText("sessionExpired"));
   return idToken;
+}
+
+/** A mentor in a program of individual students (İŞKUR) mentors students, so they get the student lists. */
+function mentorsStudents(programs: ProgramName[] | null, programIds: string[]) {
+  return (programs ?? []).some(
+    (program) => program.individualMentees && programIds.includes(program.id),
+  );
 }
 
 export function useMentorOnboarding(
@@ -314,12 +327,29 @@ export function useMentorOnboarding(
     [],
   );
 
-  const toggleProgram = useCallback((programId: string) => {
-    setDraft((current) => ({
-      ...current,
-      programIds: toggle(current.programIds, programId),
-    }));
-  }, []);
+  // Moving between a student program and a startup program drops the choices the other list does not offer.
+  const toggleProgram = useCallback(
+    (programId: string) => {
+      setDraft((current) => {
+        const programIds = toggle(current.programIds, programId);
+        const student = mentorsStudents(programs, programIds);
+        if (student === mentorsStudents(programs, current.programIds)) {
+          return { ...current, programIds };
+        }
+        return {
+          ...current,
+          programIds,
+          topics: current.topics.filter(
+            (topic) => isStudentTopic(topic) === student,
+          ),
+          stages: current.stages.filter(
+            (stage) => isStudentLevel(stage) === student,
+          ),
+        };
+      });
+    },
+    [programs],
+  );
 
   const addOffering = useCallback((text: string) => {
     const value = text.trim();
@@ -441,16 +471,26 @@ export function useMentorOnboarding(
     return draft.consent;
   }, [draft, phase, programs, step]);
 
+  const studentMentor = mentorsStudents(programs, draft.programIds);
+
   const topicOptions = useMemo(
     () => [
-      ...new Set([
-        ...MENTOR_TOPIC_OPTIONS,
-        ...draft.profile.inferredAreas,
-        ...draft.topics,
-      ]),
+      ...new Set(
+        studentMentor
+          ? [...STUDENT_TOPICS, ...draft.topics]
+          : [
+              ...MENTOR_TOPIC_OPTIONS,
+              ...draft.profile.inferredAreas,
+              ...draft.topics,
+            ],
+      ),
     ],
-    [draft.profile.inferredAreas, draft.topics],
+    [draft.profile.inferredAreas, draft.topics, studentMentor],
   );
+
+  const stageOptions: readonly string[] = studentMentor
+    ? STUDENT_LEVELS
+    : STARTUP_STAGE_OPTIONS;
 
   return {
     step,
@@ -465,6 +505,8 @@ export function useMentorOnboarding(
     droppedFiles,
     canContinue,
     topicOptions,
+    stageOptions,
+    studentMentor,
     programs: programs ?? [],
     programsLoading: programs === null,
     topicLimitReached: draft.topics.length >= MAX_MENTOR_TOPICS,
