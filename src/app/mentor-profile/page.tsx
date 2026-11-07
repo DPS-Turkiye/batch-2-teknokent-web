@@ -609,6 +609,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               </Card>
             ) : null}
 
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
             <Card title={tEducation("title")}>
               {editing ? (
                 <EducationListEditor

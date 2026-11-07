@@ -387,6 +387,7 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
         )}
       </OnboardingCard>
 
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       <OnboardingCard
         title={t("mentorEducation.title")}
         subtitle={t("mentorEducation.subtitle")}

@@ -259,6 +259,7 @@ export function MentorDetailView({
             )}
           </section>
 
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
           {educations.length > 0 ? (
             <section className={cardClass}>
               <h2 className={cardHeadingClass}>{t("education")}</h2>
