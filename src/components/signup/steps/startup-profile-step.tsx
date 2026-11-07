@@ -33,6 +33,7 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
             onToggle={program.choose}
           />
         )}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
         {program.individual ? (
           <p className="text-xs text-[#676e78]">{copy("individualProgram")}</p>
         ) : (

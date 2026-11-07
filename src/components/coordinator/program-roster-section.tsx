@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 
 import { useProgramRoster } from "@/hooks/use-coordinator-program";
 
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
 /** "İzinli liste": who may join a roster-only program. Saves on each add and remove. */
 export function ProgramRosterSection({
   programId,

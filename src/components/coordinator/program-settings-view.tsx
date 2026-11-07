@@ -277,6 +277,7 @@ function SettingsBody({
           </Row>
         </Section>
 
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
         <Section
           id={SettingsSection.Eligibility}
           title={t(`sections.${SettingsSection.Eligibility}`)}
