@@ -393,6 +393,14 @@
     "lastStepLabel": "Your mentor profile joins the pool",
     "cvUnreadable": "We couldn't read your CV; you can enter your details below yourself."
   },
+  "mentorStudentProfile": {
+    "title": "Studies",
+    "department": "Department",
+    "year": "Year",
+    "courses": "Strong courses",
+    "erasmus": "Erasmus & abroad",
+    "projects": "Projects"
+  },
   "mentorSteps": {
     "uploadCv": "Upload your CV",
     "uploadHint": "PDF or DOCX · Max. 25 MB",
@@ -440,6 +448,18 @@
     "studentLevelsTitle": "Which students can you help?",
     "studentLevelsSubtitle": "Shown on your profile; students look at it when choosing a mentor.",
     "studentLevelsLabel": "Years",
+    "studentProfileTitle": "Your studies",
+    "studentProfileSubtitle": "Students see these when choosing a mentor.",
+    "studentDepartment": "Department",
+    "studentDepartmentPlaceholder": "e.g. Computer Engineering",
+    "studentYear": "Year",
+    "studentCourses": "Courses you are strong in",
+    "studentCoursesPlaceholder": "Comma-separated: CENG 140, MATH 119",
+    "studentProjects": "Your projects",
+    "studentProjectsPlaceholder": "One project per line",
+    "studentErasmus": "Erasmus or study abroad",
+    "studentErasmusPlaceholder": "e.g. TU Delft, fall 2025",
+    "studentInternshipsNote": "Add your internships as experience in step 1.",
     "offeringsTitle": "What can you offer in this mentorship?",
     "offeringsSubtitle": "Shown as a list on your profile. Startups read it before sending a request.",
     "addOffering": "+ Add item",
@@ -932,7 +952,8 @@
     "mentorProfile": {
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
-      "programRole": "A program role can be at most {max} characters."
+      "programRole": "A program role can be at most {max} characters.",
+      "studentRequired": "Enter your department and year."
     },
     "assistant": {
       "network": "network error",
@@ -1276,7 +1297,7 @@
       },
       "headingRecommended": "Best-matched mentors",
       "headingAll": "All mentors",
-      "matching": "Preparing suggestions from your request and startup profile…",
+      "matching": "Preparing suggestions from your request and profile…",
       "matchingFailed": "{error} You can pick from the All list.",
       "emptyRecommended": "No mentors were suggested for this need. Have a look at the All list.",
       "emptyFilter": "No mentors match this filter.",
@@ -1607,6 +1628,7 @@
     "clearSearch": "Clear search",
     "specialty": "Expertise",
     "stage": "Startup stage",
+    "studentLevel": "Year",
     "availability": "Availability",
     "chip": "{filter} - {value}",
     "more": "+ More",

@@ -759,3 +759,58 @@ describe("MentorProfilePage", () => {
     expect(opener).toHaveFocus();
   });
 });
+
+describe("MentorProfilePage student studies", () => {
+  const studies = {
+    department: "Bilgisayar Mühendisliği",
+    studyYear: "3. sınıf",
+    strongCourses: ["CENG 140"],
+    projects: ["Kampüs uygulaması"],
+    erasmus: null,
+  };
+  const updateStudent = vi.fn();
+
+  beforeEach(() => updateStudent.mockReset());
+
+  it("shows a student mentor's studies, and nothing for other mentors", () => {
+    mockAll({ profileQuery: { data: profile({ studentProfile: studies }) } });
+    const { unmount } = render(<MentorProfilePage />);
+    expect(
+      screen.getByRole("heading", { name: "Öğrenim" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Bilgisayar Mühendisliği")).toBeInTheDocument();
+    unmount();
+
+    mockAll();
+    render(<MentorProfilePage />);
+    expect(
+      screen.queryByRole("heading", { name: "Öğrenim" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("edits the studies through the form hook", async () => {
+    const user = userEvent.setup();
+    mockAll({
+      profileQuery: { data: profile({ studentProfile: studies }) },
+      form: {
+        isEditing: true,
+        updateStudent,
+        student: {
+          department: "Bilgisayar Mühendisliği",
+          studyYear: "3. sınıf",
+          courses: "CENG 140",
+          projects: "Kampüs uygulaması",
+          erasmus: "",
+        },
+      },
+    });
+    render(<MentorProfilePage />);
+
+    expect(screen.getByRole("textbox", { name: "Bölümün" })).toHaveValue(
+      "Bilgisayar Mühendisliği",
+    );
+    await user.click(screen.getByRole("button", { name: "4. sınıf" }));
+
+    expect(updateStudent).toHaveBeenCalledWith("studyYear", "4. sınıf");
+  });
+});
