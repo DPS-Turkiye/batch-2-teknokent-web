@@ -193,7 +193,7 @@ function Pill({
   );
 }
 
-// TEST UI: no Figma frame for the Taslak banner and its launch button.
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
 function DraftBanner({
   programId,
   admin,
