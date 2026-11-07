@@ -44,7 +44,7 @@ const PARTICIPANT_PAGES = [
 ];
 
 /**
- * The six shared tabs (board 2.4), adapted to the type: Girişim keeps its screens under Katılımcılar,
+ * The shared tabs, adapted to the type: Girişim keeps its screens under Katılımcılar,
  * Office Hours shows Randevular in place of Eşleşmeler and has no Onaylar.
  */
 export function programTabs(

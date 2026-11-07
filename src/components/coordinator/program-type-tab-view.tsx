@@ -3,7 +3,7 @@
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import type { ProgramTab } from "@/lib/coordinator-program-detail";
 
-/** Katılımcılar and Randevular of a peer or office-hours program: the frame's empty state until Lanes S and O give them screens. */
+/** Katılımcılar and Randevular of a peer or office-hours program, which have no screens yet: the frame shows its empty state. */
 export function ProgramTypeTabView({
   programId,
   tab,

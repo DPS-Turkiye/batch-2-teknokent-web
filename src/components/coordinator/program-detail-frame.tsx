@@ -249,7 +249,7 @@ function DraftBanner({
   );
 }
 
-// TEST UI: Katılımcılar sub-tabs; Girişim's link to the existing Takımlar and Mentor Havuzu screens.
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
 function ParticipantTabs({
   detail,
   programId,
@@ -302,7 +302,7 @@ function ParticipantTabs({
   );
 }
 
-// TEST UI: Akran and Office Hours tabs stay empty until their lanes fill them.
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
 export function TypeTabEmptyState({
   type,
   admin,
