@@ -128,6 +128,10 @@ describe("ProgramsListView", () => {
     const card = await screen.findByRole("article");
     expect(within(card).getByText("Taslak")).toBeInTheDocument();
     expect(within(card).getByText("Akran Mentörlüğü")).toBeInTheDocument();
+    expect(within(card).queryByText("Takım")).not.toBeInTheDocument();
+    expect(
+      within(card).queryByText("Eşleşme bekleyen"),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Taslak 1" }),
     ).toBeInTheDocument();

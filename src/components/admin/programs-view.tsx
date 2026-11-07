@@ -174,7 +174,7 @@ export function ProgramsView() {
               className="w-full bg-transparent text-[13.5px] text-[#22262b] outline-none placeholder:text-[#aeb4bc]"
             />
           </label>
-          {/* TEST UI: no Figma frame for the program-type filter yet. */}
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
           <SelectPill
             label={tType("label")}
             value={type}

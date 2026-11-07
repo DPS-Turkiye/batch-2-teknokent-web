@@ -18,6 +18,7 @@ import {
   type CoordinatorProgram,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   daysUntil,
   formatMonthRange,
@@ -47,7 +48,7 @@ export function ProgramsListView() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-wrap gap-2">
           <FilterPills value={filter} onChange={setFilter} options={options} />
-          {/* TEST UI: no Figma frame for the program-type filter yet. */}
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
           <FilterPills value={type} onChange={setType} options={typeOptions} />
         </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
@@ -121,57 +122,59 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
           </Link>
         </div>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          dot="#e0522a"
-          label={t("teams")}
-          value={program.teamCount}
-          note={t("teamsMentored", {
-            count: program.teamCount - program.awaitingMatchCount,
-          })}
-        />
-        <Stat
-          dot="#1583d6"
-          label={t("mentors")}
-          value={program.mentorCount}
-          note={
-            program.pendingMentorCount > 0
-              ? t("pendingMentors", { count: program.pendingMentorCount })
-              : program.mentorCount === 0
-                ? t("poolEmpty")
-                : t("noPendingInvites")
-          }
-        />
-        <Stat
-          label={t("activeMentorships")}
-          value={program.activeMentorshipCount}
-          note={
-            upcoming
-              ? t("notStarted")
-              : program.riskyMentorshipCount > 0
-                ? t("risky", { count: program.riskyMentorshipCount })
-                : t("noRisky")
-          }
-        />
-        {upcoming && program.startDate ? (
-          <Stat
-            label={t("untilStart")}
-            value={t("days", { count: daysUntil(program.startDate) })}
-            note={formatLongDate(program.startDate, locale)}
-          />
-        ) : (
+      {program.type === ProgramType.StartupMentoring ? (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat
             dot="#e0522a"
-            label={t("awaitingMatch")}
-            value={program.awaitingMatchCount}
+            label={t("teams")}
+            value={program.teamCount}
+            note={t("teamsMentored", {
+              count: program.teamCount - program.awaitingMatchCount,
+            })}
+          />
+          <Stat
+            dot="#1583d6"
+            label={t("mentors")}
+            value={program.mentorCount}
             note={
-              program.oldestAwaitingMatchDays != null
-                ? t("oldestDays", { days: program.oldestAwaitingMatchDays })
-                : t("noWaitingTeams")
+              program.pendingMentorCount > 0
+                ? t("pendingMentors", { count: program.pendingMentorCount })
+                : program.mentorCount === 0
+                  ? t("poolEmpty")
+                  : t("noPendingInvites")
             }
           />
-        )}
-      </div>
+          <Stat
+            label={t("activeMentorships")}
+            value={program.activeMentorshipCount}
+            note={
+              upcoming
+                ? t("notStarted")
+                : program.riskyMentorshipCount > 0
+                  ? t("risky", { count: program.riskyMentorshipCount })
+                  : t("noRisky")
+            }
+          />
+          {upcoming && program.startDate ? (
+            <Stat
+              label={t("untilStart")}
+              value={t("days", { count: daysUntil(program.startDate) })}
+              note={formatLongDate(program.startDate, locale)}
+            />
+          ) : (
+            <Stat
+              dot="#e0522a"
+              label={t("awaitingMatch")}
+              value={program.awaitingMatchCount}
+              note={
+                program.oldestAwaitingMatchDays != null
+                  ? t("oldestDays", { days: program.oldestAwaitingMatchDays })
+                  : t("noWaitingTeams")
+              }
+            />
+          )}
+        </div>
+      ) : null}
       {program.phases.length > 0 ? <PhaseBar program={program} /> : null}
     </article>
   );
