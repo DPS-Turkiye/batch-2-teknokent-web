@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
+import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { useAppSession } from "@/components/providers/session-provider";
 import type {
   MentorAvailabilitySlot,
@@ -216,6 +217,14 @@ export function MentorDetailView({
               <h2 className={cardHeadingClass}>{t("about")}</h2>
               <p className="text-[13px] leading-5 text-[#676e78]">{about}</p>
             </section>
+          ) : null}
+
+          {mentor.studentProfile ? (
+            <MentorStudentProfile
+              profile={mentor.studentProfile}
+              cardClass={cardClass}
+              headingClass={cardHeadingClass}
+            />
           ) : null}
 
           <section className={cardClass}>

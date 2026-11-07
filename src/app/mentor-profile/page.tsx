@@ -8,6 +8,8 @@ import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
+import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
+import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { CvFileSection } from "@/components/profile/cv-file-section";
 import { useClientPagination } from "@/hooks/use-client-pagination";
 import { useMentorCv } from "@/hooks/use-mentor-cv";
@@ -47,6 +49,10 @@ const chipToneClass: Record<ChipTone, string> = {
   green: "border-[#cbebda] bg-[#eefaf3] text-[#0f7a4d]",
   grey: "border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]",
 };
+const studiesCardClass =
+  "flex flex-col gap-3 rounded-xl border border-[#e4e7ea] bg-white px-5 py-[18px]";
+const studiesHeadingClass =
+  "text-[15px] font-semibold leading-[23px] text-[#22262b]";
 const listItemClass =
   "flex flex-col gap-0.5 rounded-lg border border-[#e4e7ea] bg-white px-3 py-2.5";
 
@@ -445,6 +451,19 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 </p>
               )}
             </Card>
+
+            {form.student && editing ? (
+              <StudentProfileCard
+                student={form.student}
+                onChange={form.updateStudent}
+              />
+            ) : profile.studentProfile ? (
+              <MentorStudentProfile
+                profile={profile.studentProfile}
+                cardClass={studiesCardClass}
+                headingClass={studiesHeadingClass}
+              />
+            ) : null}
 
             <Card title={t("topics.title")}>
               <div className="flex flex-wrap gap-2">
