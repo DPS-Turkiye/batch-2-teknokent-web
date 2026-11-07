@@ -82,6 +82,30 @@ describe("mentor onboarding helpers", () => {
     expect(weeklyCapacity(draft())).toEqual({ hours: 4.5, meetings: 4 });
   });
 
+  it("sends a student mentor's studies as lists, and nothing for other mentors", () => {
+    const student = {
+      ...draft(),
+      student: {
+        department: " Bilgisayar Mühendisliği ",
+        studyYear: "4. sınıf",
+        courses: "CENG 140, MATH 119 ,, ",
+        projects: "Kampüs uygulaması\n\n  Robot takımı ",
+        erasmus: "  ",
+      },
+    };
+
+    expect(toMentorProfilePayload(student, true).studentProfile).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "4. sınıf",
+      strongCourses: ["CENG 140", "MATH 119"],
+      projects: ["Kampüs uygulaması", "Robot takımı"],
+      erasmus: null,
+    });
+    expect(toMentorProfilePayload(student)).not.toHaveProperty(
+      "studentProfile",
+    );
+  });
+
   it("builds the mentor profile payload, dropping empty roles and trimming text", () => {
     const payload = toMentorProfilePayload(draft());
 

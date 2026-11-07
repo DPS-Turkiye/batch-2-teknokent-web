@@ -223,3 +223,74 @@ describe("useMentorProfileForm capacity and past roles", () => {
     expect(result.current.form.menteeCapacity).toBeNull();
   });
 });
+
+describe("useMentorProfileForm student studies", () => {
+  const studentMentor = {
+    ...mentorProfile,
+    studentProfile: {
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "3. sınıf",
+      strongCourses: ["CENG 140", "MATH 119"],
+      projects: ["Kampüs uygulaması"],
+      erasmus: null,
+    },
+  };
+
+  beforeEach(() => vi.mocked(updateMentorProfile).mockReset());
+
+  it("starts from the saved studies and saves the edits as lists", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(studentMentor);
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    expect(result.current.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "3. sınıf",
+      courses: "CENG 140, MATH 119",
+      projects: "Kampüs uygulaması",
+      erasmus: "",
+    });
+    act(() => {
+      result.current.updateStudent("studyYear", "4. sınıf");
+      result.current.updateStudent("erasmus", "TU Delft, 2025 güz");
+    });
+    await act(() => result.current.handleSave());
+
+    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+      studentProfile: {
+        department: "Bilgisayar Mühendisliği",
+        studyYear: "4. sınıf",
+        strongCourses: ["CENG 140", "MATH 119"],
+        projects: ["Kampüs uygulaması"],
+        erasmus: "TU Delft, 2025 güz",
+      },
+    });
+  });
+
+  it("never sends studies for a mentor who is not a student", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    expect(result.current.student).toBeNull();
+    await act(() => result.current.handleSave());
+
+    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).not.toHaveProperty(
+      "studentProfile",
+    );
+  });
+
+  it("does not save a student mentor without a department", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    act(() => result.current.updateStudent("department", "  "));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe("Bölümünü ve sınıfını gir.");
+  });
+});

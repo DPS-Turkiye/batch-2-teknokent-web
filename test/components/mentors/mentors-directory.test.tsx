@@ -1,10 +1,15 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { renderWithQueryClient } from "@test/test-utils";
+
+const individualProgram = vi.hoisted(() => ({ individual: false }));
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => ({ ...individualProgram, isLoading: false }),
+}));
 
 const leyla = {
   ...mentorProfile,
@@ -71,5 +76,16 @@ describe("MentorsDirectory", () => {
     expect(
       screen.getByText("Henüz listelenecek mentör yok."),
     ).toBeInTheDocument();
+  });
+
+  it("calls the stage filter Sınıf for students, whose mentors list class years", () => {
+    individualProgram.individual = true;
+    renderWithQueryClient(<MentorsDirectory mentors={[mentorProfile]} />);
+    individualProgram.individual = false;
+
+    expect(screen.getByRole("combobox", { name: "Sınıf" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("combobox", { name: "Girişim aşaması" }),
+    ).not.toBeInTheDocument();
   });
 });

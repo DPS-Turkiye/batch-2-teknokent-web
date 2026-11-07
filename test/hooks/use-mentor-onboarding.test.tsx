@@ -240,6 +240,11 @@ describe("useMentorOnboarding", () => {
       result.current.toggleStage("3. sınıf");
     });
     act(() => result.current.goToStep(MentorOnboardingStep.Areas));
+    expect(result.current.canContinue).toBe(false);
+    act(() => {
+      result.current.updateStudent("department", "Bilgisayar Mühendisliği");
+      result.current.updateStudent("studyYear", "4. sınıf");
+    });
     expect(result.current.canContinue).toBe(true);
   });
 
@@ -492,6 +497,38 @@ describe("useMentorOnboarding — sending the profile", () => {
     });
 
     expect(chooseMentorPrograms).toHaveBeenCalledWith(["p1"], "id-token");
+  });
+
+  it("sends a student mentor's studies with the profile", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const { result } = readyToSend();
+    await waitFor(() => expect(result.current.programs).toHaveLength(1));
+    act(() => result.current.toggleProgram("iskur"));
+    act(() => {
+      result.current.toggleTopic("Staj");
+      result.current.toggleStage("3. sınıf");
+      result.current.updateStudent("department", "Endüstri Mühendisliği");
+      result.current.updateStudent("studyYear", "3. sınıf");
+      result.current.updateStudent("erasmus", "Politecnico di Milano");
+    });
+
+    await act(async () => {
+      await result.current.complete();
+    });
+
+    expect(updateMentorProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        specialties: ["Staj"],
+        studentProfile: expect.objectContaining({
+          department: "Endüstri Mühendisliği",
+          studyYear: "3. sınıf",
+          erasmus: "Politecnico di Milano",
+        }),
+      }),
+      "id-token",
+    );
   });
 
   it("surfaces a save failure instead of claiming the profile was sent", async () => {
