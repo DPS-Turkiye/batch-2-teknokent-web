@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
@@ -28,7 +29,15 @@ export default async function OfficeHoursCoursePage({
   const instructor = course.role === OfficeHoursRole.Instructor;
 
   return (
-    <OfficeHoursFrame productName={t("title")} userName={course.userFullName}>
+    <OfficeHoursFrame
+      productName={t("title")}
+      userName={course.userFullName}
+      profile={
+        instructor
+          ? { href: "/office-hours/profile", label: t("profile.title") }
+          : undefined
+      }
+    >
       <p className="text-[12px] font-medium uppercase tracking-[0.04em] text-[#e86f22]">
         {course.shortName ?? t("course")}
       </p>
@@ -38,14 +47,28 @@ export default async function OfficeHoursCoursePage({
       <p className="mt-2 inline-flex rounded-full bg-[#f2f8fc] px-3 py-1 text-[12px] font-medium text-[#1592ea]">
         {t(instructor ? "roles.INSTRUCTOR" : "roles.STUDENT")}
       </p>
-      <section className="mt-8 rounded-2xl border border-[#e4e7ea] bg-white p-6">
-        <h2 className="text-base font-semibold text-[#22262b]">
-          {t(instructor ? "instructor.title" : "student.title")}
-        </h2>
-        <p className="mt-2 text-sm leading-6 text-[#4a5059]">
-          {t(instructor ? "instructor.comingSoon" : "student.comingSoon")}
-        </p>
-      </section>
+      {instructor ? (
+        <section className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-[#e4e7ea] bg-white p-6">
+          <p className="max-w-[520px] text-sm leading-6 text-[#4a5059]">
+            {t("instructor.availabilityHint")}
+          </p>
+          <Link
+            href="/office-hours/profile"
+            className="rounded-full border border-[#d4d8dd] px-[18px] py-2.5 text-[12.5px] font-medium text-[#22262b] hover:bg-[#f8f9fa]"
+          >
+            {t("instructor.manageAvailability")}
+          </Link>
+        </section>
+      ) : (
+        <section className="mt-8 rounded-2xl border border-[#e4e7ea] bg-white p-6">
+          <h2 className="text-base font-semibold text-[#22262b]">
+            {t("student.title")}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-[#4a5059]">
+            {t("student.comingSoon")}
+          </p>
+        </section>
+      )}
     </OfficeHoursFrame>
   );
 }

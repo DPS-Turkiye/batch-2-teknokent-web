@@ -5,7 +5,9 @@ import { describe, expect, it } from "vitest";
 
 const API_DIR = path.resolve(__dirname, "../../../src/app/api");
 
-const AUTH_CHECK = /\b(getSession\w*|require\w*Session|readBearerToken)\s*\(/;
+// getOfficeHoursUser is the office-hours session, which the LTI launch from Moodle signs into.
+const AUTH_CHECK =
+  /\b(getSession\w*|getOfficeHoursUser|require\w*Session|readBearerToken)\s*\(/;
 const HANDLER =
   /^export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b/;
 

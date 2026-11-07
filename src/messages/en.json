@@ -5614,8 +5614,8 @@
       "STUDENT": "Student"
     },
     "instructor": {
-      "title": "Office hours for this course",
-      "comingSoon": "You'll manage your weekly office hours and incoming requests here. This part is still being built."
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
     },
     "student": {
       "title": "Book office hours",
@@ -5639,6 +5639,52 @@
         "title": "Your session has ended",
         "body": "For your security, the office hours session closes after a while."
       }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load office hours.",
+      "weekly": "WEEKLY OFFICE HOURS",
+      "dayOpen": "Available on {day}",
+      "range": "{day} range {number}",
+      "rangeStart": "{range} start",
+      "rangeEnd": "{range} end",
+      "addRange": "Add a time range on {day}",
+      "removeRange": "Remove {range}",
+      "closed": "Closed",
+      "defaults": "CAPACITY AND DEFAULTS",
+      "menteeCapacity": "Concurrent student limit",
+      "defaultMeetingDurationMinutes": "Default meeting length",
+      "meetingBufferMinutes": "Buffer between meetings",
+      "minutesUnit": "min",
+      "unavailable": "DATES WITHOUT OFFICE HOURS",
+      "removeDate": "Remove {date}",
+      "addDate": "Add a date",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "reason": "Reason",
+      "reasonPlaceholder": "Reason (optional)",
+      "cancelDate": "Cancel",
+      "confirmDate": "Add the date",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "saved": "Your office hours are saved.",
+      "saveFailed": "Couldn't save office hours."
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
     }
   }
 }

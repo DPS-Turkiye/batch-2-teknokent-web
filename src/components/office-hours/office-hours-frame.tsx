@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 /**
@@ -7,10 +8,13 @@ import type { ReactNode } from "react";
 export function OfficeHoursFrame({
   productName,
   userName,
+  profile,
   children,
 }: {
   productName: string;
   userName?: string;
+  /** Academics reach their own page (office hours) from here, as a mentor reaches "Profilim". */
+  profile?: { href: string; label: string };
   children: ReactNode;
 }) {
   return (
@@ -21,9 +25,17 @@ export function OfficeHoursFrame({
             menton{" "}
             <span className="font-normal text-[#676e78]">· {productName}</span>
           </p>
-          {userName ? (
-            <p className="text-sm text-[#4a5059]">{userName}</p>
-          ) : null}
+          <div className="flex items-center gap-4 text-sm text-[#4a5059]">
+            {profile ? (
+              <Link
+                href={profile.href}
+                className="font-medium text-[#e86f22] hover:underline"
+              >
+                {profile.label}
+              </Link>
+            ) : null}
+            {userName ? <p>{userName}</p> : null}
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-[960px] px-4 py-8 sm:px-6">

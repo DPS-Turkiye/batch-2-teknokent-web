@@ -1,13 +1,20 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+  type UseMutationResult,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/providers/toast-provider";
 import { clientText } from "@/i18n/client-texts";
 
 import {
   type MeetingFrequency,
+  type MentorAvailabilitySettings,
   type MentorExperienceInput,
   MentorLanguage,
   type MentorProfile,
@@ -458,12 +465,36 @@ export function useAvailabilitySlotForm() {
 }
 
 /** The "Müsaitliği düzenle" modal: weekly ranges, defaults and unavailable dates. */
-export function useAvailabilitySettingsForm(onSaved: () => void) {
-  const t = useTranslations("mentorProfile.dialog");
+/**
+ * Where the availability editor reads and saves, and which copy it speaks. A mentor's own availability is the
+ * default; office hours give one course's hours with their own wording (same keys as mentorProfile.dialog).
+ */
+export type AvailabilitySettingsSource = {
+  useSettings: () => UseQueryResult<MentorAvailabilitySettings>;
+  useUpdate: () => UseMutationResult<
+    unknown,
+    Error,
+    UpdateMentorAvailabilitySettingsPayload
+  >;
+  copy: "mentorProfile.dialog" | "officeHours.availability";
+};
+
+export const MENTOR_AVAILABILITY_SOURCE: AvailabilitySettingsSource = {
+  useSettings: useMentorAvailabilitySettings,
+  useUpdate: useUpdateMentorAvailabilitySettings,
+  copy: "mentorProfile.dialog",
+};
+
+export function useAvailabilitySettingsForm(
+  onSaved: () => void,
+  source: AvailabilitySettingsSource = MENTOR_AVAILABILITY_SOURCE,
+) {
+  // Both namespaces hold the same keys (checked in test/messages), so the mentor one types the calls.
+  const t = useTranslations(source.copy as "mentorProfile.dialog");
   const tOptions = useTranslations("options");
   const { showToast } = useToast();
-  const settingsQuery = useMentorAvailabilitySettings();
-  const updateSettings = useUpdateMentorAvailabilitySettings();
+  const settingsQuery = source.useSettings();
+  const updateSettings = source.useUpdate();
   const loaded = useMemo(
     () => (settingsQuery.data ? toAvailabilityDraft(settingsQuery.data) : null),
     [settingsQuery.data],

@@ -7,7 +7,10 @@ import { useLocale, useTranslations } from "next-intl";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { NumberStepper } from "@/components/common/number-stepper";
 import { ToggleSwitch } from "@/components/common/toggle-switch";
-import { useAvailabilitySettingsForm } from "@/hooks/use-mentor-profile";
+import {
+  useAvailabilitySettingsForm,
+  type AvailabilitySettingsSource,
+} from "@/hooks/use-mentor-profile";
 import {
   AVAILABILITY_NUMBER_FIELDS,
   exceptionLabel,
@@ -26,10 +29,19 @@ const pillButtonClass =
   "rounded-full px-[18px] py-2.5 text-[12.5px]! font-medium! leading-[19px]!";
 const smallButtonClass = "text-xs! font-medium! leading-[18px]!";
 
-export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
-  const t = useTranslations("mentorProfile.dialog");
+export function AvailabilityDialog({
+  onClose,
+  source,
+}: {
+  onClose: () => void;
+  /** Office hours pass one course's hours and their own copy; a mentor's own availability otherwise. */
+  source?: AvailabilitySettingsSource;
+}) {
+  const t = useTranslations(
+    (source?.copy ?? "mentorProfile.dialog") as "mentorProfile.dialog",
+  );
   const locale = useLocale();
-  const availability = useAvailabilitySettingsForm(onClose);
+  const availability = useAvailabilitySettingsForm(onClose, source);
   const { draft } = availability;
 
   return (

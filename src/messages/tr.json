@@ -5614,8 +5614,8 @@
       "STUDENT": "Öğrenci"
     },
     "instructor": {
-      "title": "Bu dersin ofis saatleri",
-      "comingSoon": "Haftalık ofis saatlerini ve gelen talepleri burada yöneteceksin. Bu bölüm henüz hazırlanıyor."
+      "manageAvailability": "Müsaitliği yönet",
+      "availabilityHint": "Ofis saatlerin profilindeki müsaitliğinden gelir ve verdiğin tüm dersler için geçerlidir."
     },
     "student": {
       "title": "Ofis saati al",
@@ -5639,6 +5639,52 @@
         "title": "Oturumun sona erdi",
         "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
       }
+    },
+    "availability": {
+      "title": "Ofis saatlerini düzenle",
+      "subtitle": "Öğrenciler yalnızca açık bıraktığın saatlerde ofis saati talep edebilir.",
+      "close": "Düzenlemeyi kapat",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Ofis saatleri yüklenemedi.",
+      "weekly": "HAFTALIK OFİS SAATLERİ",
+      "dayOpen": "{day} uygun",
+      "range": "{day} {number}. aralık",
+      "rangeStart": "{range} başlangıç",
+      "rangeEnd": "{range} bitiş",
+      "addRange": "{day} için saat aralığı ekle",
+      "removeRange": "{range} kaldır",
+      "closed": "Kapalı",
+      "defaults": "KAPASİTE VE VARSAYILANLAR",
+      "menteeCapacity": "Eş zamanlı öğrenci limiti",
+      "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
+      "meetingBufferMinutes": "İki görüşme arası tampon",
+      "minutesUnit": "dk",
+      "unavailable": "OFİS SAATİ OLMAYAN TARİHLER",
+      "removeDate": "{date} tarihini kaldır",
+      "addDate": "Tarih ekle",
+      "startDate": "Başlangıç tarihi",
+      "endDate": "Bitiş tarihi",
+      "reason": "İstisna nedeni",
+      "reasonPlaceholder": "Neden (isteğe bağlı)",
+      "cancelDate": "İptal",
+      "confirmDate": "Tarihi ekle",
+      "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet",
+      "saved": "Ofis saatlerin kaydedildi.",
+      "saveFailed": "Ofis saatleri kaydedilemedi."
+    },
+    "profile": {
+      "title": "Profilim",
+      "role": "Akademisyen",
+      "editAvailability": "Müsaitliği düzenle",
+      "availabilityTitle": "Müsaitlik",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "empty": "Tanımlı haftalık saat yok.",
+      "edit": "Düzenle",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Müsaitlik yüklenemedi."
     }
   }
 }
