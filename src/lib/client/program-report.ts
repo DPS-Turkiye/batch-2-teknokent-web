@@ -1,5 +1,9 @@
 import type { AdminOverview } from "@/interfaces/admin-overview";
-import type { ProgramMeetingRatings } from "@/interfaces/program-report";
+import type {
+  ProgramMeetingRatings,
+  ProgramSessions,
+  SessionsExportFormat,
+} from "@/interfaces/program-report";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -23,4 +27,24 @@ export async function getProgramMeetingRatings(
       { params: from ? { from } : undefined },
     ),
   );
+}
+
+export async function getProgramSessions(
+  programId: string,
+  from: string,
+  to: string,
+) {
+  return requireSuccess(
+    await httpClient.get<ProgramSessions>(`${programUrl(programId)}/sessions`, {
+      params: { from, to },
+    }),
+  );
+}
+
+/** A plain link: the browser downloads the file with the session cookie, no script needed. */
+export function programSessionsExportHref(
+  programId: string,
+  range: { from: string; to: string; format: SessionsExportFormat },
+) {
+  return `${programUrl(programId)}/sessions/export?${new URLSearchParams(range)}`;
 }

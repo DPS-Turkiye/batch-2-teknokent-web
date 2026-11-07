@@ -62,6 +62,14 @@ export function updateMeeting(id: string, payload: Record<string, unknown>) {
   });
 }
 
+export function setMeetingHeld(id: string, mentorId: string, held: boolean) {
+  return backendRequest({
+    method: held ? "POST" : "DELETE",
+    url: `/api/meetings/${encodeURIComponent(id)}/held`,
+    params: { mentorId },
+  });
+}
+
 export function fetchMeetingRoom(id: string) {
   return backendRequest({
     method: "GET",

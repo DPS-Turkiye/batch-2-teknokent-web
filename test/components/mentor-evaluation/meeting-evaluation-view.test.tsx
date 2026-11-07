@@ -19,6 +19,8 @@ const handlers = {
   setPreparedness: vi.fn(),
   submit: vi.fn(),
   toggleQuality: vi.fn(),
+  confirmHeld: vi.fn(),
+  undoHeld: vi.fn(),
 };
 
 function state(overrides: Partial<Evaluation> = {}): Evaluation {
@@ -27,6 +29,9 @@ function state(overrides: Partial<Evaluation> = {}): Evaluation {
     answered: 0,
     canSubmit: false,
     error: null,
+    held: false,
+    heldError: null,
+    isSavingHeld: false,
     isLoading: false,
     isSubmitting: false,
     isSent: false,
@@ -175,5 +180,25 @@ describe("MeetingEvaluationView", () => {
     render(<MeetingEvaluationView meetingId="m1" />);
 
     expect(screen.getByText("Görüşme bulunamadı.")).toBeInTheDocument();
+  });
+
+  it("lets the mentor confirm the meeting was held, and undo it", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(screen.getByText("Bu görüşme yapıldı mı?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Görüşme yapıldı" }));
+    expect(handlers.confirmHeld).toHaveBeenCalled();
+
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ held: true, isSent: true }),
+    );
+    rerender(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(
+      screen.getByText("Görüşme yapıldı olarak işaretlendi."),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Geri al" }));
+    expect(handlers.undoHeld).toHaveBeenCalled();
   });
 });

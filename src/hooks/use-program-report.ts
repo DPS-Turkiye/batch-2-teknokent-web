@@ -1,10 +1,15 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 
+import type { SessionsExportFormat } from "@/interfaces/program-report";
+import { isoDay } from "@/lib/coordinator-calendar";
 import {
   getProgramMeetingRatings,
   getProgramReport,
+  getProgramSessions,
+  programSessionsExportHref,
 } from "@/lib/client/program-report";
 
 export function useProgramReport(programId: string) {
@@ -24,4 +29,33 @@ export function useProgramMeetingRatings(
     queryFn: () => getProgramMeetingRatings(programId as string, from),
     enabled: Boolean(programId),
   });
+}
+
+function currentMonth(now = new Date()) {
+  return {
+    from: isoDay(new Date(now.getFullYear(), now.getMonth(), 1)),
+    to: isoDay(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+  };
+}
+
+/** Sessions and hours per mentor and per mentee for a day range, the current month to start with. */
+export function useProgramSessions(programId: string) {
+  const [range, setRange] = useState(() => currentMonth());
+  const valid = Boolean(range.from && range.to) && range.from <= range.to;
+  const query = useQuery({
+    queryKey: ["program-sessions", programId, range.from, range.to],
+    queryFn: () => getProgramSessions(programId, range.from, range.to),
+    enabled: valid,
+  });
+  return {
+    ...range,
+    valid,
+    query,
+    setFrom: (from: string) => setRange((current) => ({ ...current, from })),
+    setTo: (to: string) => setRange((current) => ({ ...current, to })),
+    exportHref: (format: SessionsExportFormat) =>
+      valid
+        ? programSessionsExportHref(programId, { ...range, format })
+        : undefined,
+  };
 }

@@ -8,6 +8,7 @@ import {
   getMeetingFeedback,
   getMeetings,
   postMeetingFeedback,
+  setMeetingHeld,
 } from "@/lib/client/meetings";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
@@ -17,6 +18,7 @@ vi.mock("@/lib/client/meetings", () => ({
   getMeetings: vi.fn(),
   getMeetingFeedback: vi.fn(),
   postMeetingFeedback: vi.fn(),
+  setMeetingHeld: vi.fn(),
 }));
 
 vi.mock("@/lib/client/mentor-requests", () => ({
@@ -121,5 +123,30 @@ describe("useMentorMeetingEvaluation", () => {
     });
 
     await waitFor(() => expect(result.current.isSent).toBe(true));
+  });
+
+  it("confirms the meeting was held and reads the answer back from the meetings list", async () => {
+    vi.mocked(setMeetingHeld).mockResolvedValue({
+      ...meeting,
+      heldConfirmedAt: "2026-09-05T12:00:00Z",
+    });
+    const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
+      wrapper,
+    });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(result.current.held).toBe(false);
+
+    vi.mocked(getMeetings).mockResolvedValue([
+      { ...meeting, heldConfirmedAt: "2026-09-05T12:00:00Z" },
+    ]);
+    act(() => result.current.confirmHeld());
+
+    await waitFor(() => expect(result.current.held).toBe(true));
+    expect(setMeetingHeld).toHaveBeenCalledWith("m1", true);
+
+    act(() => result.current.undoHeld());
+    await waitFor(() =>
+      expect(setMeetingHeld).toHaveBeenLastCalledWith("m1", false),
+    );
   });
 });

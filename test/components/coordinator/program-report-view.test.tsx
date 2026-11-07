@@ -11,6 +11,12 @@ import {
 
 vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => null) }));
 
+vi.mock("@/components/coordinator/program-sessions-section", () => ({
+  ProgramSessionsSection: ({ programId }: { programId: string }) => (
+    <div data-testid="program-sessions">{programId}</div>
+  ),
+}));
+
 vi.mock("@/hooks/use-program-report", () => ({
   useProgramReport: () => ({
     data: reportOverview(),
@@ -41,6 +47,9 @@ describe("coordinator Program raporu", () => {
     expect(
       screen.queryByRole("button", { name: "Sistem Aktivitesi" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByTestId("program-sessions")).toHaveTextContent(
+      "program-1",
+    );
   });
 
   it("keeps an admin's breadcrumbs in the admin workspace", () => {
