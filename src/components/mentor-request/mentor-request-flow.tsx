@@ -14,6 +14,7 @@ import { NeedSummaryStep } from "@/components/mentor-request/need-summary-step";
 import { NeedTopicStep } from "@/components/mentor-request/need-topic-step";
 import { MenteeProgramSelector } from "@/components/mentors/mentee-program-selector";
 import { useMentorRequest } from "@/hooks/use-mentor-request";
+import { useNeedChoices } from "@/hooks/use-need-choices";
 import type { MentorProfile } from "@/interfaces/mentor";
 import type { StartupContext } from "@/interfaces/startup";
 import {
@@ -21,8 +22,6 @@ import {
   canContinueNeedStep,
   canContinueSituationStep,
   DEFAULT_NEED_GOAL_IDS,
-  DEFAULT_NEED_SITUATION_ID,
-  MENTOR_REQUEST_NEED_TOPICS,
   expertiseForNeed,
   messageForNeedGoals,
   needLabels,
@@ -100,15 +99,17 @@ export function MentorRequestFlow({
     MentorRequestNeedGoalId[] | null
   >(null);
   const [localGoalNote, setLocalGoalNote] = useState<string | null>(null);
+  const choices = useNeedChoices();
+  // A saved draft from the other list (a student moved programs) falls back to this mentee's first choice.
   const topicId =
-    localTopicId ??
-    storedNeedDraft?.topicId ??
-    MENTOR_REQUEST_NEED_TOPICS[0].id;
+    [localTopicId, storedNeedDraft?.topicId].find((id) =>
+      choices.topics.some((topic) => topic.id === id),
+    ) ?? choices.defaultTopicId;
   const otherSummary = localOtherSummary ?? storedNeedDraft?.otherSummary ?? "";
   const situationId =
-    localSituationId ??
-    storedNeedDraft?.situationId ??
-    DEFAULT_NEED_SITUATION_ID;
+    [localSituationId, storedNeedDraft?.situationId].find((id) =>
+      choices.situations.some((situation) => situation.id === id),
+    ) ?? choices.defaultSituationId;
   const noneSummary = localNoneSummary ?? storedNeedDraft?.noneSummary ?? "";
   const goalIds =
     localGoalIds ?? storedNeedDraft?.goalIds ?? DEFAULT_NEED_GOAL_IDS;
@@ -230,6 +231,7 @@ export function MentorRequestFlow({
             <>
               <MenteeProgramSelector />
               <NeedTopicStep
+                topics={choices.topics}
                 topicId={topicId}
                 otherSummary={otherSummary}
                 onSelectTopic={selectNeedTopic}
@@ -240,6 +242,7 @@ export function MentorRequestFlow({
 
           {step === MentorRequestStep.Expectation ? (
             <NeedSituationStep
+              situations={choices.situations}
               situationId={situationId}
               noneSummary={noneSummary}
               onSelectSituation={selectNeedSituation}

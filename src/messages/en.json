@@ -1145,6 +1145,38 @@
       "other": {
         "title": "Something else",
         "description": "If none of these fit, describe it briefly yourself."
+      },
+      "career": {
+        "title": "Career planning",
+        "description": "I can’t decide which field to go into."
+      },
+      "internship": {
+        "title": "Internship",
+        "description": "I need help finding or applying for an internship."
+      },
+      "cv": {
+        "title": "CV & LinkedIn",
+        "description": "I want to strengthen my CV or LinkedIn profile."
+      },
+      "interview": {
+        "title": "Interviews",
+        "description": "I want to prepare for an interview."
+      },
+      "job": {
+        "title": "Job search & first job",
+        "description": "I don’t know where to start looking for my first job."
+      },
+      "courses": {
+        "title": "Courses",
+        "description": "I’m struggling with my courses or study routine."
+      },
+      "erasmus": {
+        "title": "Erasmus & abroad",
+        "description": "I want to apply for Erasmus or a programme abroad."
+      },
+      "project": {
+        "title": "Projects & entrepreneurship",
+        "description": "I’m working on a project or a startup idea."
       }
     },
     "situations": {
@@ -1171,6 +1203,22 @@
       "none": {
         "title": "None of these",
         "description": "I'll describe it briefly myself."
+      },
+      "start": {
+        "title": "I don’t know where to start",
+        "description": "I’ve just started thinking about it and need a roadmap."
+      },
+      "decide": {
+        "title": "I need to make a decision",
+        "description": "I’m stuck between a few options and don’t know which suits me."
+      },
+      "apply": {
+        "title": "I’m preparing an application",
+        "description": "I have an internship, job or programme application coming up."
+      },
+      "review": {
+        "title": "I want feedback on my work",
+        "description": "I’d like an opinion on my CV, project or application text."
       }
     },
     "goals": {

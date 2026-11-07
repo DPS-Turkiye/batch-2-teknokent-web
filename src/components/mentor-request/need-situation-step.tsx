@@ -2,18 +2,20 @@ import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NeedWizardStepper } from "@/components/mentor-request/need-wizard-stepper";
-import {
-  MENTOR_REQUEST_NEED_SITUATIONS,
-  type MentorRequestNeedSituationId,
+import type {
+  MentorRequestNeedSituationId,
+  NeedSituationChoice,
 } from "@/lib/mentor-request-need";
 
 export function NeedSituationStep({
+  situations,
   situationId,
   noneSummary,
   onSelectSituation,
   onNoneSummaryChange,
   onSelectStep,
 }: {
+  situations: readonly NeedSituationChoice[];
   situationId: MentorRequestNeedSituationId;
   noneSummary: string;
   onSelectSituation: (id: MentorRequestNeedSituationId) => void;
@@ -30,7 +32,7 @@ export function NeedSituationStep({
       </h1>
 
       <div className="mt-5 grid gap-2.5">
-        {MENTOR_REQUEST_NEED_SITUATIONS.map((situation) => {
+        {situations.map((situation) => {
           const selected = situation.id === situationId;
           return (
             <button

@@ -1,15 +1,19 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
+import { needChoices } from "@/lib/mentor-request-need";
 
 import { NeedTopicStep } from "@/components/mentor-request/need-topic-step";
 import { InLocale } from "@test/test-utils";
+
+const STARTUP_CHOICES = needChoices(false);
 
 describe("NeedTopicStep", () => {
   it("reads in English", () => {
     render(
       <InLocale locale="en">
         <NeedTopicStep
+          topics={STARTUP_CHOICES.topics}
           topicId="other"
           otherSummary=""
           onSelectTopic={vi.fn()}
@@ -35,6 +39,7 @@ describe("NeedTopicStep", () => {
   it("renders the Figma Konu step copy and topics", () => {
     render(
       <NeedTopicStep
+        topics={STARTUP_CHOICES.topics}
         topicId="product"
         otherSummary=""
         onSelectTopic={vi.fn()}
@@ -70,6 +75,7 @@ describe("NeedTopicStep", () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <NeedTopicStep
+        topics={STARTUP_CHOICES.topics}
         topicId="product"
         otherSummary=""
         onSelectTopic={onSelectTopic}
@@ -82,6 +88,7 @@ describe("NeedTopicStep", () => {
 
     rerender(
       <NeedTopicStep
+        topics={STARTUP_CHOICES.topics}
         topicId="other"
         otherSummary=""
         onSelectTopic={onSelectTopic}
