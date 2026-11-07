@@ -100,12 +100,15 @@ export function buildStartupFileRows({
   teamMemberIds,
   programName,
   texts,
+  student = false,
 }: {
   documents: StartupDocument[];
   requests: DocumentRequestItem[];
   teamMemberIds: Set<string>;
   programName: string | null;
   texts: StartupFilesTexts;
+  /** A student of an individual program: their own uploads are project documents, not startup ones. */
+  student?: boolean;
 }): StartupFileRow[] {
   const { t } = texts;
   const documentsById = new Map(
@@ -193,7 +196,7 @@ export function buildStartupFileRows({
         ...base,
         filters: [StartupFileFilter.Startup],
         source: t("uploaded", { name }),
-        related: t("startupDoc"),
+        related: t(student ? "studentDoc" : "startupDoc"),
         status: reviewStatus(document) ?? StartupFileStatus.Current,
         ownDocument: document,
       });

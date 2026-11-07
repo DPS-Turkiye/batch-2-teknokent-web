@@ -87,6 +87,13 @@ describe("toSession", () => {
     });
   });
 
+  it("keeps the sign-in flag of an individual program's student", () => {
+    expect(
+      toSession(mentee({ individualMentee: true }))?.individualMentee,
+    ).toBe(true);
+    expect(toSession(mentee())?.individualMentee).toBeUndefined();
+  });
+
   it("signs in a mentee who has no startup yet", () => {
     const session = toSession(
       mentee({ organizationId: null, organizationName: null }),

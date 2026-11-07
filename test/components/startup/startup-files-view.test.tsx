@@ -8,6 +8,7 @@ import { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
+import tr from "@/messages/tr.json";
 import {
   StartupFileFilter,
   type StartupFileRow,
@@ -99,6 +100,7 @@ function state(overrides: Partial<Files> = {}): Files {
     deletingDocument: null,
     error: null,
     filter: StartupFileFilter.All,
+    filterLabel: (filter: StartupFileFilter) => tr.startupFiles.filters[filter],
     isDeleting: false,
     isLoading: false,
     isSharing: false,

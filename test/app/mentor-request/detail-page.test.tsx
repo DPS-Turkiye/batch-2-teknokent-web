@@ -13,6 +13,19 @@ const { searchParams } = vi.hoisted(() => ({
   searchParams: { current: new URLSearchParams() },
 }));
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams.current,
 }));
@@ -80,6 +93,20 @@ describe("MenteeRequestDetailPage", () => {
     expect(
       screen.queryByRole("link", { name: "Süreci aç" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("leaves out a student's team of one, already named as the requester", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    mockRequest(baseRequest);
+
+    renderWithQueryClient(<MenteeRequestDetailPage />);
+
+    expect(screen.getByText("Sude Yılmaz")).toBeInTheDocument();
+    expect(screen.queryByText("GreenLoop")).not.toBeInTheDocument();
+    expect(screen.queryByText("Startup")).not.toBeInTheDocument();
   });
 
   it("asks to pick a request when no id is given", () => {

@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useToast } from "@/components/providers/toast-provider";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import {
@@ -53,6 +54,7 @@ export function useStartupFiles() {
   const membersQuery = useOrganizationMembers();
   const mentorshipRequestsQuery = useMentorshipRequests(UserRole.Mentee);
   const { programName } = useStartupHeader();
+  const { individual } = useIndividualProgram();
   const [filter, setFilter] = useState(StartupFileFilter.All);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -75,8 +77,17 @@ export function useStartupFiles() {
         ),
         programName,
         texts: { t, locale },
+        student: individual,
       }),
-    [documents, documentRequests, membersQuery.data, programName, t, locale],
+    [
+      documents,
+      documentRequests,
+      membersQuery.data,
+      programName,
+      t,
+      locale,
+      individual,
+    ],
   );
   const rows = useMemo(() => rowsForFilter(allRows, filter), [allRows, filter]);
   const counts = useMemo(() => countRowsByFilter(allRows), [allRows]);
@@ -183,8 +194,14 @@ export function useStartupFiles() {
       }),
   });
 
+  const filterLabel = (filter: StartupFileFilter) =>
+    individual && filter === StartupFileFilter.Startup
+      ? t("filters.studentProject")
+      : t(`filters.${filter}`);
+
   return {
     askDelete: setDeletingId,
+    filterLabel,
     cancelDelete: () => setDeletingId(null),
     closeShare: () => setSharingId(null),
     confirmDelete: () => {

@@ -35,9 +35,11 @@ import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
 import { roleWorkspace } from "@/lib/role-workspace";
+import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import type { Messages } from "next-intl";
@@ -75,9 +77,33 @@ const NOTES_NAV: NavigationItem = {
   icon: NotebookPen,
 };
 
+/** What the mentee's startup item shows: Startup'ım, Projem for an individual program's student, or nothing until that is known. */
+enum MenteeWorkspace {
+  Startup = "STARTUP",
+  StudentProject = "STUDENT_PROJECT",
+  Unknown = "UNKNOWN",
+}
+
+const MENTEE_WORKSPACE_NAV: Record<MenteeWorkspace, NavigationItem | null> = {
+  [MenteeWorkspace.Startup]: {
+    id: AppArea.Startup,
+    label: "startup",
+    href: "/startup",
+    icon: Star,
+  },
+  [MenteeWorkspace.StudentProject]: {
+    id: AppArea.Startup,
+    label: "project",
+    href: STUDENT_PROJECT_HREF,
+    icon: Star,
+  },
+  [MenteeWorkspace.Unknown]: null,
+};
+
 function buildNavigation(
   role?: UserRole,
   menteeHome = false,
+  workspace = MenteeWorkspace.Startup,
 ): NavigationItem[] {
   if (role === UserRole.Admin) {
     return [
@@ -127,6 +153,7 @@ function buildNavigation(
         icon: MessageCircle,
       },
     ];
+  const workspaceNav = MENTEE_WORKSPACE_NAV[workspace];
   const menteeNavigation: NavigationItem[] = [
     { id: AppArea.Home, label: "home", href: "/dashboard", icon: Home },
     {
@@ -141,7 +168,7 @@ function buildNavigation(
       href: "/calendar",
       icon: CalendarDays,
     },
-    { id: AppArea.Startup, label: "startup", href: "/startup", icon: Star },
+    ...(workspaceNav ? [workspaceNav] : []),
     {
       id: AppArea.Meetings,
       label: "messages",
@@ -176,6 +203,7 @@ export function AppShell({
   const session = useAppSession();
   const { logout } = useSession();
   const photo = useProfilePhoto();
+  const student = useIndividualProgram();
   const { homeHref, profileHref, showNotificationBadge, usesRoleSubtitle } =
     roleWorkspace(session?.role);
   const isMentor = session?.role === UserRole.Mentor || mentorHome;
@@ -185,12 +213,20 @@ export function AppShell({
   const navigation = buildNavigation(
     isMentor ? UserRole.Mentor : session?.role,
     menteeFrame,
+    student.isLoading
+      ? MenteeWorkspace.Unknown
+      : student.individual
+        ? MenteeWorkspace.StudentProject
+        : MenteeWorkspace.Startup,
   );
   const usesRevisedNav = isMentor || menteeFrame;
   const displayName = session?.fullName ?? t("fallbackName");
+  // A student's team of one carries their own name, so the subtitle says what they are instead.
   const displayOrganization = usesRoleSubtitle
     ? t(`roles.${session?.role ?? UserRole.Mentee}`)
-    : (session?.organizationName ?? "");
+    : student.individual
+      ? t("student")
+      : (session?.organizationName ?? "");
 
   async function handleLogout() {
     await logout();

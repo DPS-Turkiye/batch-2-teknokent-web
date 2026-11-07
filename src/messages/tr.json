@@ -129,7 +129,9 @@
     "rejectedDetail": "Koordinatör başvurunu onaylamadı. Ayrıntı için info@metu.edu.tr adresine yazabilirsin.",
     "willActivate": "Startup aktif olacak",
     "reviewing": "İnceleniyor",
-    "reviewingDetail": "Profilin koordinatörler tarafından incelenir. Genellikle 1-3 iş günü sürer."
+    "reviewingDetail": "Profilin koordinatörler tarafından incelenir. Genellikle 1-3 iş günü sürer.",
+    "studentActive": "Hesap aktif",
+    "studentWillActivate": "Hesap aktif olacak"
   },
   "submittedProfile": {
     "title": "Gönderilen profil",
@@ -750,7 +752,8 @@
       "notes": "Toplantı Notlarım",
       "mentors": "Mentörler",
       "programs": "Programlar",
-      "applications": "Başvurular"
+      "applications": "Başvurular",
+      "project": "Projem"
     },
     "mainMenu": "Ana menü",
     "openMenu": "Menüyü aç",
@@ -767,7 +770,8 @@
       "COORDINATOR": "Koordinatör",
       "MENTOR": "Mentor",
       "MENTEE": "Girişim Ekibi"
-    }
+    },
+    "student": "Öğrenci"
   },
   "accountMenu": {
     "open": "{name} · Hesap menüsünü aç",
@@ -963,7 +967,8 @@
     "mentorDashboard": "Mentor Paneli | Teknokent",
     "mentorDashboardDescription": "Gelen mentorluk talepleri inceleme ve karar ekranı.",
     "calendar": "Takvimim | Teknokent",
-    "calendarDescription": "Mentorluk görüşmeleri ve kişisel toplantı takvimi."
+    "calendarDescription": "Mentorluk görüşmeleri ve kişisel toplantı takvimi.",
+    "studentProject": "Projem"
   },
   "common": {
     "greeting": {
@@ -1760,7 +1765,9 @@
       "meetings": "Toplantılar",
       "files": "Dosyalar",
       "team": "Ekip"
-    }
+    },
+    "studentTitle": "Projem",
+    "studentTabsLabel": "Proje sekmeleri"
   },
   "startupProfile": {
     "edit": "Profili düzenle",
@@ -1924,7 +1931,8 @@
       "mentorship": "Mentorluk dosyaları",
       "program": "Program",
       "startup": "Startup dokümanları",
-      "pending": "Bekleyen talep"
+      "pending": "Bekleyen talep",
+      "studentProject": "Proje dokümanları"
     },
     "filterCount": "{label} ({count})",
     "status": {
@@ -1996,7 +2004,8 @@
       "deleted": "Dosya silindi.",
       "deleteFailed": "Dosya silinemedi.",
       "openFailed": "Dosya açılamadı."
-    }
+    },
+    "studentDoc": "Proje dokümanı"
   },
   "startupProcess": {
     "assignmentStatus": {
@@ -2086,7 +2095,8 @@
     "password": "Şifre",
     "sending": "Gönderiliyor…",
     "sendReset": "Sıfırlama e-postası gönder",
-    "loadFailed": "Profil yüklenemedi."
+    "loadFailed": "Profil yüklenemedi.",
+    "cvWhoSeesStudent": "Sadece sen görürsün."
   },
   "cvFile": {
     "intro": "{whoSees} Yüklediğin CV hemen kaydedilir; profilin Kaydet'e basınca değişir.",
@@ -4093,7 +4103,9 @@
     "noMembers": "Ekip üyesi yok.",
     "memberCount": "{count} kişi",
     "memberFallback": "Üye",
-    "founder": "Kurucu"
+    "founder": "Kurucu",
+    "participants": "Katılımcılar",
+    "noParticipants": "Programda henüz katılımcı yok."
   },
   "adminCommon": {
     "programStatus": {
@@ -5301,7 +5313,9 @@
     "rejectedBanner": "Startup'ınız onaylanmadı. Profili güncelleyip tekrar onaya gönderebilirsiniz.",
     "rejectedBannerMember": "Startup'ınız onaylanmadı. Kurucu profili güncelleyip tekrar onaya gönderebilir.",
     "resubmit": "Tekrar onaya gönder",
-    "resubmitFailed": "Tekrar gönderilemedi."
+    "resubmitFailed": "Tekrar gönderilemedi.",
+    "studentPendingBanner": "Başvurunuz koordinatör onayı bekliyor. Onaylandığında tüm sayfalar açılır.",
+    "studentRejectedBanner": "Başvurunuz onaylanmadı. Tekrar onaya gönderebilirsiniz."
   },
   "programPhases": {
     "timelineLabel": "Faz zaman çizelgesi",
@@ -5409,7 +5423,18 @@
       "title": "Startup'ınız onaylanmadı",
       "body": "Startup'ım sayfasından profili güncelleyip tekrar onaya gönderebilirsiniz."
     },
-    "goToStartup": "Startup'ım sayfasına git"
+    "goToStartup": "Startup'ım sayfasına git",
+    "student": {
+      "pending": {
+        "title": "Başvurunuz koordinatör onayı bekliyor.",
+        "body": "Onaylandığında bu sayfa açılır. Bu sürede Projem sayfasından dosya yükleyebilirsiniz."
+      },
+      "rejected": {
+        "title": "Başvurunuz onaylanmadı",
+        "body": "Projem sayfasından başvurunuzu tekrar onaya gönderebilirsiniz."
+      },
+      "goToProject": "Projem sayfasına git"
+    }
   },
   "programApprovals": {
     "approve": "Onayla",

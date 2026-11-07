@@ -129,7 +129,9 @@
     "rejectedDetail": "The coordinator did not approve your application. Write to info@metu.edu.tr for details.",
     "willActivate": "Startup will become active",
     "reviewing": "Under review",
-    "reviewingDetail": "Coordinators review your profile. This usually takes 1–3 business days."
+    "reviewingDetail": "Coordinators review your profile. This usually takes 1–3 business days.",
+    "studentActive": "Account active",
+    "studentWillActivate": "Account will become active"
   },
   "submittedProfile": {
     "title": "Submitted profile",
@@ -750,7 +752,8 @@
       "notes": "Notes",
       "mentors": "Mentors",
       "programs": "Programs",
-      "applications": "Applications"
+      "applications": "Applications",
+      "project": "My project"
     },
     "mainMenu": "Main menu",
     "openMenu": "Open menu",
@@ -767,7 +770,8 @@
       "COORDINATOR": "Coordinator",
       "MENTOR": "Mentor",
       "MENTEE": "Startup team"
-    }
+    },
+    "student": "Student"
   },
   "accountMenu": {
     "open": "{name} · Open account menu",
@@ -963,7 +967,8 @@
     "mentorDashboard": "Mentor Dashboard | Teknokent",
     "mentorDashboardDescription": "Review and decide on incoming mentorship requests.",
     "calendar": "My Calendar | Teknokent",
-    "calendarDescription": "Mentoring meetings and your personal meeting calendar."
+    "calendarDescription": "Mentoring meetings and your personal meeting calendar.",
+    "studentProject": "My project"
   },
   "common": {
     "greeting": {
@@ -1760,7 +1765,9 @@
       "meetings": "Meetings",
       "files": "Files",
       "team": "Team"
-    }
+    },
+    "studentTitle": "My project",
+    "studentTabsLabel": "Project tabs"
   },
   "startupProfile": {
     "edit": "Edit profile",
@@ -1924,7 +1931,8 @@
       "mentorship": "Mentorship files",
       "program": "Program",
       "startup": "Startup documents",
-      "pending": "Pending requests"
+      "pending": "Pending requests",
+      "studentProject": "Project documents"
     },
     "filterCount": "{label} ({count})",
     "status": {
@@ -1996,7 +2004,8 @@
       "deleted": "File deleted.",
       "deleteFailed": "Couldn't delete the file.",
       "openFailed": "Couldn't open the file."
-    }
+    },
+    "studentDoc": "Project document"
   },
   "startupProcess": {
     "assignmentStatus": {
@@ -2086,7 +2095,8 @@
     "password": "Password",
     "sending": "Sending…",
     "sendReset": "Send a reset email",
-    "loadFailed": "Couldn't load the profile."
+    "loadFailed": "Couldn't load the profile.",
+    "cvWhoSeesStudent": "Only you can see it."
   },
   "cvFile": {
     "intro": "{whoSees} The CV you upload is saved right away; your profile changes when you press Save.",
@@ -4093,7 +4103,9 @@
     "noMembers": "No team members.",
     "memberCount": "{count, plural, one {# person} other {# people}}",
     "memberFallback": "Member",
-    "founder": "Founder"
+    "founder": "Founder",
+    "participants": "Participants",
+    "noParticipants": "No participants in the program yet."
   },
   "adminCommon": {
     "programStatus": {
@@ -5301,7 +5313,9 @@
     "rejectedBanner": "Your startup was not approved. You can update the profile and send it for approval again.",
     "rejectedBannerMember": "Your startup was not approved. The founder can update the profile and send it for approval again.",
     "resubmit": "Send for approval again",
-    "resubmitFailed": "Could not send it again."
+    "resubmitFailed": "Could not send it again.",
+    "studentPendingBanner": "Your application is waiting for the coordinator's approval. All pages open once it is approved.",
+    "studentRejectedBanner": "Your application was not approved. You can send it for approval again."
   },
   "programPhases": {
     "timelineLabel": "Phase timeline",
@@ -5409,7 +5423,18 @@
       "title": "Your startup was not approved",
       "body": "You can update the profile on the My startup page and send it for approval again."
     },
-    "goToStartup": "Go to My startup"
+    "goToStartup": "Go to My startup",
+    "student": {
+      "pending": {
+        "title": "Your application is waiting for the coordinator's approval.",
+        "body": "This page opens once it is approved. Meanwhile you can upload files on the My project page."
+      },
+      "rejected": {
+        "title": "Your application was not approved",
+        "body": "You can send your application for approval again on the My project page."
+      },
+      "goToProject": "Go to My project"
+    }
   },
   "programApprovals": {
     "approve": "Approve",

@@ -158,7 +158,7 @@ function CvCard({ page }: { page: PageData }) {
       <CvFileSection
         cv={cv}
         accent="orange"
-        whoSees={t("cvWhoSees")}
+        whoSees={page.cvWhoSees}
         filledMessage={t("cvFilled")}
       />
       <EditableChips

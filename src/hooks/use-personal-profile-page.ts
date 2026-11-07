@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { useToast } from "@/components/providers/toast-provider";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { usePasswordReset } from "@/hooks/use-password-reset";
@@ -37,6 +38,8 @@ export function usePersonalProfilePage() {
   const header = useStartupHeader();
   const overview = useStartupOverview();
   const membersQuery = useOrganizationMembers();
+  // A student's team of one is not a startup: no founder label, funding chip or startup card.
+  const { individual } = useIndividualProgram();
   const openActions = useOpenActionCounts(
     overview.mentorships.map((row) => row.id),
   );
@@ -44,9 +47,11 @@ export function usePersonalProfilePage() {
   const { isSendingReset, sendPasswordReset } = usePasswordReset();
 
   const fullName = profile.draft?.fullName ?? session?.fullName ?? "";
-  const isFounder = (membersQuery.data ?? []).some(
-    (member) => member.founder && member.id === session?.userId,
-  );
+  const isFounder =
+    !individual &&
+    (membersQuery.data ?? []).some(
+      (member) => member.founder && member.id === session?.userId,
+    );
   const role = personalRoleLabel(profile.draft?.jobTitle, isFounder, texts);
   const chips = [
     header.programName
@@ -55,7 +60,7 @@ export function usePersonalProfilePage() {
     overview.mentorships.length > 0
       ? { label: t("inMentorship"), tone: ProfileChipTone.Active }
       : null,
-    header.fundingStage
+    header.fundingStage && !individual
       ? {
           label: optionLabel("fundingStage", header.fundingStage),
           tone: ProfileChipTone.Neutral,
@@ -80,7 +85,10 @@ export function usePersonalProfilePage() {
     initials: initials(fullName),
     email: session?.email ?? "",
     role,
-    subtitle: personalSubtitle(role, session?.organizationName),
+    subtitle: personalSubtitle(
+      role,
+      individual ? null : session?.organizationName,
+    ),
     chips,
     photo,
     draft: profile.draft,
@@ -93,25 +101,27 @@ export function usePersonalProfilePage() {
     startEditing,
     cancelEditing,
     save: profile.save,
-    startup: session?.organizationId
-      ? {
-          name: header.name ?? session.organizationName ?? "",
-          initials: header.initials,
-          logoUrl: header.logoUrl,
-          summary: startupSummary(
-            {
-              fundingStage:
-                header.fundingStage &&
-                optionLabel("fundingStage", header.fundingStage),
-              teamSize: overview.teamSize,
-              maturity: overview.profile?.maturity
-                ? optionLabel("stage", overview.profile.maturity)
-                : null,
-            },
-            texts,
-          ),
-        }
-      : null,
+    cvWhoSees: t(individual ? "cvWhoSeesStudent" : "cvWhoSees"),
+    startup:
+      session?.organizationId && !individual
+        ? {
+            name: header.name ?? session.organizationName ?? "",
+            initials: header.initials,
+            logoUrl: header.logoUrl,
+            summary: startupSummary(
+              {
+                fundingStage:
+                  header.fundingStage &&
+                  optionLabel("fundingStage", header.fundingStage),
+                teamSize: overview.teamSize,
+                maturity: overview.profile?.maturity
+                  ? optionLabel("stage", overview.profile.maturity)
+                  : null,
+              },
+              texts,
+            ),
+          }
+        : null,
     mentorships: overview.mentorships.map((row) => ({
       id: row.id,
       mentorName: row.mentorName,

@@ -180,6 +180,22 @@ describe("buildStartupFileRows", () => {
     });
   });
 
+  it("calls a student's own upload a project document", () => {
+    const [row] = buildStartupFileRows({
+      documents: [documentFixture("canvas")],
+      requests: [],
+      teamMemberIds: TEAM,
+      programName: null,
+      texts,
+      student: true,
+    });
+
+    expect(row).toMatchObject({
+      related: "Proje dokümanı",
+      filters: [StartupFileFilter.Startup],
+    });
+  });
+
   it("counts a file with no recorded uploader as the startup's own", () => {
     const legacy = documentFixture("legacy", {
       uploadedById: null,
