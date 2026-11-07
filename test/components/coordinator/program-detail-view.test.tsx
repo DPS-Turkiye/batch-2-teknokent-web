@@ -172,14 +172,13 @@ describe("coordinator program detail", () => {
     expect(
       screen.getByRole("tab", { name: /Program Ayarları/ }),
     ).toHaveAttribute("href", "/coordinator/programs/program-1/settings");
-    expect(screen.getByRole("tab", { name: /Takımlar/ })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: /Katılımcılar/ })).toHaveAttribute(
       "href",
       "/coordinator/programs/program-1/teams",
     );
-    expect(screen.getByRole("tab", { name: /Mentor Havuzu/ })).toHaveAttribute(
-      "href",
-      "/coordinator/programs/program-1/mentors",
-    );
+    expect(
+      screen.queryByRole("tab", { name: /Mentor Havuzu/ }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Eşleşmeler/ })).toHaveAttribute(
       "href",
       "/coordinator/programs/program-1/matching",
