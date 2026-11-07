@@ -69,6 +69,22 @@ describe("StartupPageFrame", () => {
     expect(screen.getByText("İçerik")).toBeInTheDocument();
   });
 
+  it("hides workspace wording and tabs until the session is known", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: false,
+      isLoading: true,
+    });
+    render(
+      <StartupPageFrame>
+        <p>İçerik</p>
+      </StartupPageFrame>,
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "…" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+  });
+
   it("calls a student's page Projem, under their program, with no startup chips", () => {
     mockIndividualProgram.mockReturnValue({
       individual: true,
