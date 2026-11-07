@@ -46,6 +46,7 @@ export function toSession(user: BackendUser): AppSession | null {
       role: UserRole.Mentee,
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organizationName ?? undefined,
+      individualMentee: user.individualMentee,
     };
   }
   if (user.role === UserRole.Mentor) {

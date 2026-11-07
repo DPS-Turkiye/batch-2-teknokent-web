@@ -42,10 +42,7 @@ export function StartupEmptyState({
   const { individual } = useIndividualProgram();
   // A student waits on their application, not a startup; Dosyalar stays open meanwhile and carries the resubmit banner.
   const student = individual && access !== StartupAccess.None;
-  const key =
-    individual && access !== StartupAccess.None
-      ? STUDENT_MESSAGE_KEYS[access]
-      : MESSAGE_KEYS[access];
+  const key = student ? STUDENT_MESSAGE_KEYS[access] : MESSAGE_KEYS[access];
   return (
     <section className="mx-auto mt-10 flex max-w-[560px] flex-col items-center gap-3 rounded-[24px] border border-[#e4e7ea] bg-white px-6 py-10 text-center">
       <h1 className="text-[17px] font-semibold leading-6 text-[#22262b]">

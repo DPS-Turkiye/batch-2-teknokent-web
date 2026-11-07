@@ -78,7 +78,7 @@ const NOTES_NAV: NavigationItem = {
 };
 
 /** What the mentee's startup item shows: Startup'ım, Projem for an individual program's student, or nothing until that is known. */
-export enum MenteeWorkspace {
+enum MenteeWorkspace {
   Startup = "STARTUP",
   StudentProject = "STUDENT_PROJECT",
   Unknown = "UNKNOWN",
@@ -100,7 +100,7 @@ const MENTEE_WORKSPACE_NAV: Record<MenteeWorkspace, NavigationItem | null> = {
   [MenteeWorkspace.Unknown]: null,
 };
 
-export function buildNavigation(
+function buildNavigation(
   role?: UserRole,
   menteeHome = false,
   workspace = MenteeWorkspace.Startup,

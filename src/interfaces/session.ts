@@ -20,6 +20,8 @@ export type AppSession = {
     UserRole.Mentee | UserRole.Mentor | UserRole.Admin | UserRole.Coordinator;
   organizationId?: string;
   organizationName?: string;
+  /** /api/auth/me's individualMentee at sign-in: useIndividualProgram's first guess until the programs load. */
+  individualMentee?: boolean;
 };
 
 export type BackendUser = {

@@ -26,8 +26,12 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-function signedInAs(role: UserRole, organizationId?: string) {
-  mockUseAppSession.mockReturnValue({ role, organizationId });
+function signedInAs(
+  role: UserRole,
+  organizationId?: string,
+  individualMentee?: boolean,
+) {
+  mockUseAppSession.mockReturnValue({ role, organizationId, individualMentee });
 }
 
 const program = (id: string, individualMentees: boolean) => ({
@@ -51,6 +55,24 @@ describe("useIndividualProgram", () => {
     expect(result.current.isLoading).toBe(true);
     await waitFor(() => expect(result.current.isLoading).toBe(false));
     expect(result.current.individual).toBe(true);
+    expect(result.current.programId).toBe("iskur");
+  });
+
+  it("answers from the session's sign-in flag until the programs load", async () => {
+    signedInAs(UserRole.Mentee, "org-1", true);
+    vi.mocked(getOrganizationPrograms).mockResolvedValue({
+      programs: [program("growth", false)],
+      activeProgramId: "growth",
+    });
+    const { result } = renderHook(() => useIndividualProgram(), { wrapper });
+
+    expect(result.current).toEqual({
+      individual: true,
+      isLoading: false,
+      programId: null,
+    });
+    await waitFor(() => expect(result.current.programId).toBe("growth"));
+    expect(result.current.individual).toBe(false);
   });
 
   it("follows the active program, not any program", async () => {
@@ -74,10 +96,12 @@ describe("useIndividualProgram", () => {
     expect(mentor.result.current).toEqual({
       individual: false,
       isLoading: false,
+      programId: null,
     });
     expect(teamless.result.current).toEqual({
       individual: false,
       isLoading: false,
+      programId: null,
     });
     expect(getOrganizationPrograms).not.toHaveBeenCalled();
   });

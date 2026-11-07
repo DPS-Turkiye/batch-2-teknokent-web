@@ -24,6 +24,8 @@ export function ProgramDetailView() {
     session?.role === UserRole.Mentor ? "/mentor-dashboard" : "/dashboard";
   const query = useProgramDetail(params.id);
   const student = useIndividualProgram();
+  // Only the student's own individual program has participants instead of startups.
+  const participants = student.individual && student.programId === params.id;
 
   return (
     <AppShell
@@ -124,11 +126,11 @@ export function ProgramDetailView() {
 
             <section className={`mt-4 ${PROGRAM_CARD_CLASS}`}>
               <h2 className="text-[15px] font-semibold text-[#22262b]">
-                {t(student.individual ? "participants" : "startups")}
+                {t(participants ? "participants" : "startups")}
               </h2>
               {query.data.startups.length === 0 ? (
                 <p className="mt-3 text-sm text-[#676e78]">
-                  {t(student.individual ? "noParticipants" : "noStartups")}
+                  {t(participants ? "noParticipants" : "noStartups")}
                 </p>
               ) : (
                 <div className="mt-3 space-y-4">

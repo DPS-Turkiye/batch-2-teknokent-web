@@ -96,6 +96,7 @@ describe("ProgramDetailView", () => {
     mockIndividualProgram.mockReturnValue({
       individual: true,
       isLoading: false,
+      programId: "program-1",
     });
     renderWithQueryClient(<ProgramDetailView />);
 
@@ -105,6 +106,19 @@ describe("ProgramDetailView", () => {
     expect(
       screen.queryByRole("heading", { name: "Startuplar" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("keeps Startuplar on another program than the student's own", async () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+      programId: "program-2",
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Startuplar" }),
+    ).toBeInTheDocument();
   });
 
   it("reads in English", async () => {
