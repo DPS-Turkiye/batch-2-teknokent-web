@@ -125,6 +125,35 @@ export function participantTabs(
   }
 }
 
+/**
+ * Where a tab URL that the program's type does not show should go instead, or null when the type
+ * shows it. Keeps a typed or old link from opening another type's screen or a wrong empty state.
+ */
+export function misplacedTabHref(
+  detail: CoordinatorProgramDetail,
+  programId: string,
+  tab: ProgramTab,
+): string | null {
+  const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  switch (detail.program.type) {
+    case ProgramType.StartupMentoring:
+      if (tab === ProgramTab.Participants) return `${base}/teams`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+    case ProgramType.OfficeHours:
+      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
+        return `${base}/participants`;
+      if (tab === ProgramTab.Matching) return `${base}/appointments`;
+      if (tab === ProgramTab.Approvals) return base;
+      return null;
+    default:
+      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
+        return `${base}/participants`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+  }
+}
+
 /** Only Girişim has screens behind its tabs yet; the other types show an empty state apart from the settings. */
 export function hasTabContent(type: ProgramType, tab: ProgramTab) {
   return type === ProgramType.StartupMentoring || tab === ProgramTab.Settings;

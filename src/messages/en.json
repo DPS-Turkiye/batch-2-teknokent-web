@@ -3812,6 +3812,7 @@
       "PEER_MENTORS": "Peer mentors",
       "ACADEMICS": "Academics"
     },
+    "typeTabEmptyAdmin": "This section is not ready for {type} programs yet. The program’s coordinators set up its conditions in Program settings.",
     "typeTabEmpty": "This section is not ready for {type} programs yet. You can set up the program’s conditions in Program settings."
   },
   "programRules": {

@@ -6,6 +6,7 @@ import {
   hasTabContent,
   healthShares,
   isActiveTab,
+  misplacedTabHref,
   ParticipantTab,
   participantTabs,
   ProgramTab,
@@ -177,5 +178,50 @@ describe("program tabs by type", () => {
     expect(
       hasTabContent(ProgramType.StartupMentoring, ProgramTab.Approvals),
     ).toBe(true);
+  });
+
+  it("sends tab URLs a type does not show to that type's own tab", () => {
+    const base = "/coordinator/programs/p1";
+    const startup = detailOf(ProgramType.StartupMentoring);
+    const peer = detailOf(ProgramType.PeerMentoring);
+    const officeHours = detailOf(ProgramType.OfficeHours);
+
+    expect(misplacedTabHref(startup, "p1", ProgramTab.Participants)).toBe(
+      `${base}/teams`,
+    );
+    expect(misplacedTabHref(startup, "p1", ProgramTab.Appointments)).toBe(
+      `${base}/matching`,
+    );
+    for (const tab of [
+      ProgramTab.Overview,
+      ProgramTab.Teams,
+      ProgramTab.MentorPool,
+      ProgramTab.Matching,
+      ProgramTab.Approvals,
+      ProgramTab.Settings,
+    ]) {
+      expect(misplacedTabHref(startup, "p1", tab)).toBeNull();
+    }
+
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Teams)).toBe(
+      `${base}/participants`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Matching)).toBe(
+      `${base}/appointments`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Approvals)).toBe(
+      base,
+    );
+    expect(
+      misplacedTabHref(officeHours, "p1", ProgramTab.Appointments),
+    ).toBeNull();
+
+    expect(misplacedTabHref(peer, "p1", ProgramTab.MentorPool)).toBe(
+      `${base}/participants`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Appointments)).toBe(
+      `${base}/matching`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Approvals)).toBeNull();
   });
 });

@@ -9,6 +9,7 @@ import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
+import { ProgramTabRedirect } from "@/components/coordinator/program-tab-redirect";
 import {
   useCoordinatorProgram,
   useLaunchProgram,
@@ -19,6 +20,7 @@ import {
   hasTabContent,
   isActiveTab,
   isParticipantsTab,
+  misplacedTabHref,
   participantTabs,
   programHeaderLine,
   ProgramTab,
@@ -52,6 +54,10 @@ export function ProgramDetailFrame({
   const detail = query.data;
   if (!detail) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
+  }
+  const misplaced = misplacedTabHref(detail, programId, tab);
+  if (misplaced) {
+    return <ProgramTabRedirect href={navigation.resolveHref(misplaced)} />;
   }
   const program = detail.program;
 
@@ -178,7 +184,7 @@ export function ProgramDetailFrame({
       {hasTabContent(program.type, tab) ? (
         children(detail)
       ) : (
-        <TypeTabEmptyState type={program.type} />
+        <TypeTabEmptyState type={program.type} admin={navigation.admin} />
       )}
     </div>
   );
@@ -297,12 +303,18 @@ function ParticipantTabs({
 }
 
 // TEST UI: Akran and Office Hours tabs stay empty until their lanes fill them.
-export function TypeTabEmptyState({ type }: { type: ProgramType }) {
+export function TypeTabEmptyState({
+  type,
+  admin,
+}: {
+  type: ProgramType;
+  admin: boolean;
+}) {
   const t = useTranslations("coordinatorPrograms");
   const tType = useTranslations("programTypes");
   return (
     <p className="rounded-[28px] border border-dashed border-[#e0e3e7] px-6 py-10 text-center text-[13.5px] text-[#676e78]">
-      {t("typeTabEmpty", { type: tType(type) })}
+      {t(admin ? "typeTabEmptyAdmin" : "typeTabEmpty", { type: tType(type) })}
     </p>
   );
 }

@@ -1,4 +1,4 @@
-import { screen, within } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramApprovalsView } from "@/components/coordinator/program-approvals-view";
@@ -9,8 +9,14 @@ import { getCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
+const navigation = vi.hoisted(() => ({
+  pathname: "/coordinator/programs/program-1/participants",
+  replace: vi.fn(),
+}));
+
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/coordinator/programs/program-1/participants",
+  usePathname: () => navigation.pathname,
+  useRouter: () => ({ replace: navigation.replace }),
 }));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
@@ -27,7 +33,10 @@ function mockType(type: ProgramType) {
 }
 
 describe("program tabs by type", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    navigation.pathname = "/coordinator/programs/program-1/participants";
+  });
 
   it("shows Office Hours Randevular, no Onaylar and empty Katılımcılar", async () => {
     mockType(ProgramType.OfficeHours);
@@ -79,5 +88,69 @@ describe("program tabs by type", () => {
     expect(
       await screen.findByText(/Akran Mentörlüğü programları için/),
     ).toBeInTheDocument();
+  });
+
+  it("sends a Girişim program's Katılımcılar URL to Takımlar instead of an empty state", async () => {
+    mockType(ProgramType.StartupMentoring);
+    renderWithQueryClient(
+      <ProgramTypeTabView
+        programId="program-1"
+        tab={ProgramTab.Participants}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/coordinator/programs/program-1/teams",
+      ),
+    );
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+    expect(screen.queryByText(/henüz hazır değil/)).not.toBeInTheDocument();
+  });
+
+  it("keeps the admin inside the admin shell when it redirects", async () => {
+    navigation.pathname = "/admin/programs/program-1/appointments";
+    mockType(ProgramType.StartupMentoring);
+    renderWithQueryClient(
+      <ProgramTypeTabView
+        programId="program-1"
+        tab={ProgramTab.Appointments}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/admin/programs/program-1/matching",
+      ),
+    );
+  });
+
+  it("sends an Office Hours program's Onaylar URL to its overview", async () => {
+    mockType(ProgramType.OfficeHours);
+    renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/coordinator/programs/program-1",
+      ),
+    );
+  });
+
+  it("tells the admin that the coordinators set the program up", async () => {
+    navigation.pathname = "/admin/programs/program-1/participants";
+    mockType(ProgramType.PeerMentoring);
+    renderWithQueryClient(
+      <ProgramTypeTabView
+        programId="program-1"
+        tab={ProgramTab.Participants}
+      />,
+    );
+
+    expect(
+      await screen.findByText(
+        /koordinatörleri Program Ayarları’nda yapılandırır/,
+      ),
+    ).toBeInTheDocument();
+    expect(navigation.replace).not.toHaveBeenCalled();
   });
 });
