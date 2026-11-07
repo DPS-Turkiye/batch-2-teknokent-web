@@ -29,6 +29,13 @@ describe("permissions", () => {
     );
   });
 
+  it("does not restore an explicitly removed primary permission", () => {
+    const revoked = { role: UserRole.Mentor, permissions: [] };
+    expect(permissionsOf(revoked)).toEqual([]);
+    expect(hasPermission(revoked, UserRole.Mentor)).toBe(false);
+    expect(samePermissions(revoked, { role: UserRole.Mentor })).toBe(false);
+  });
+
   it("holds nothing without a session", () => {
     expect(hasPermission(null, UserRole.Mentee)).toBe(false);
     expect(hasAnyPermission(undefined, [UserRole.Mentee])).toBe(false);

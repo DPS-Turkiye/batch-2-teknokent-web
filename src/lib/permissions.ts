@@ -4,8 +4,7 @@ type PermissionHolder = { role: UserRole; permissions?: readonly UserRole[] };
 
 /** The holder's active permissions; an older cookie or response without the list holds just its role. */
 export function permissionsOf(holder: PermissionHolder): UserRole[] {
-  const held = new Set<UserRole>(holder.permissions ?? []);
-  held.add(holder.role);
+  const held = new Set<UserRole>(holder.permissions ?? [holder.role]);
   return Object.values(UserRole).filter((permission) => held.has(permission));
 }
 

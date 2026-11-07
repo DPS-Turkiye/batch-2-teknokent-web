@@ -269,6 +269,7 @@ describe("getSessionUser account re-check", () => {
       { organizationId: "20000000-0000-0000-0000-000000000002" },
     ],
     ["left without an organization", { organizationId: null }],
+    ["left without its primary permission", { permissions: [] }],
   ])("signs out an account %s", async (_, overrides) => {
     fetchUser.mockResolvedValue(account(overrides));
 
