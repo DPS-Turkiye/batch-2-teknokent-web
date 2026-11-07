@@ -1,4 +1,5 @@
 import { screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramsListView } from "@/components/coordinator/programs-list-view";
@@ -6,6 +7,7 @@ import {
   type CoordinatorProgram,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
 import { coordinatorProgram, phase } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
@@ -109,6 +111,43 @@ describe("ProgramsListView", () => {
       "href",
       expect.stringMatching(/^\/coordinator\/programs\/.+\/report$/),
     );
+  });
+
+  it("labels a draft program and its type", async () => {
+    mockPrograms([
+      coordinatorProgram({
+        name: "ODTÜ Akran 2027",
+        lifecycle: ProgramLifecycle.Draft,
+        status: ProgramStatus.Draft,
+        type: ProgramType.PeerMentoring,
+      }),
+    ]);
+
+    renderWithQueryClient(<ProgramsListView />);
+
+    const card = await screen.findByRole("article");
+    expect(within(card).getByText("Taslak")).toBeInTheDocument();
+    expect(within(card).getByText("Akran Mentörlüğü")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Taslak 1" }),
+    ).toBeInTheDocument();
+  });
+
+  it("filters the programs by type", async () => {
+    mockPrograms([
+      coordinatorProgram({ id: "girisim", name: "METU Stars 2026" }),
+      coordinatorProgram({
+        id: "office",
+        name: "ODTÜ Office Hours",
+        type: ProgramType.OfficeHours,
+      }),
+    ]);
+
+    renderWithQueryClient(<ProgramsListView />);
+
+    expect(await screen.findAllByRole("article")).toHaveLength(2);
+    await userEvent.click(screen.getByRole("button", { name: "Office Hours" }));
+    expect(screen.getByRole("article")).toHaveTextContent("ODTÜ Office Hours");
   });
 
   it("says so when the coordinator has no programs", async () => {

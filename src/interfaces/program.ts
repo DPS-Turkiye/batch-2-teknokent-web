@@ -10,11 +10,20 @@ export enum ProgramMentorInvitedBy {
 }
 
 export enum ProgramStatus {
+  Draft = "DRAFT",
   Active = "ACTIVE",
   Completed = "COMPLETED",
 }
 
+/** Mirrors the backend ProgramType; decides which tabs and structures a program has. */
+export enum ProgramType {
+  StartupMentoring = "STARTUP_MENTORING",
+  PeerMentoring = "PEER_MENTORING",
+  OfficeHours = "OFFICE_HOURS",
+}
+
 export const PROGRAM_STATUS_LABELS: Record<ProgramStatus, string> = {
+  [ProgramStatus.Draft]: "Taslak",
   [ProgramStatus.Active]: "Aktif",
   [ProgramStatus.Completed]: "Tamamlandı",
 };

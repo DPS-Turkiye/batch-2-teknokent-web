@@ -1,7 +1,10 @@
+import type { ProgramStatus, ProgramType } from "@/interfaces/program";
+
 export type AdminProgram = {
   id: string;
   name: string;
-  status: "ACTIVE" | "COMPLETED";
+  status: ProgramStatus;
+  type: ProgramType;
   createdAt: string;
   /** The first assigned coordinator; null until one is assigned (an admin who created it doesn't count). */
   coordinatorId: string | null;

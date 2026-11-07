@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 
 import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useCoordinatorProgram } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
@@ -19,6 +20,7 @@ import {
 
 const LIFECYCLE_TONES: Record<ProgramLifecycle, "green" | "blue" | "neutral"> =
   {
+    [ProgramLifecycle.Draft]: "neutral",
     [ProgramLifecycle.Active]: "green",
     [ProgramLifecycle.Upcoming]: "blue",
     [ProgramLifecycle.Completed]: "neutral",
@@ -68,6 +70,7 @@ export function ProgramDetailFrame({
             <StatusChip tone={LIFECYCLE_TONES[program.lifecycle]}>
               {t(`lifecycle.${program.lifecycle}`)}
             </StatusChip>
+            <ProgramTypeChip type={program.type} />
           </h1>
           <p className="mt-1 text-[13.5px] text-[#676e78]">
             {programHeaderLine(detail, t, locale)}

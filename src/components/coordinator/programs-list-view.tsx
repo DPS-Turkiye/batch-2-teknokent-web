@@ -12,6 +12,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useCoordinatorProgramList } from "@/hooks/use-coordinator-programs";
 import {
   type CoordinatorProgram,
@@ -28,13 +29,27 @@ import { formatLongDate } from "@/lib/utils";
 
 export function ProgramsListView() {
   const t = useTranslations("coordinatorPrograms");
-  const { query, filter, setFilter, search, setSearch, options, visible } =
-    useCoordinatorProgramList();
+  const {
+    query,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    options,
+    type,
+    setType,
+    typeOptions,
+    visible,
+  } = useCoordinatorProgramList();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <FilterPills value={filter} onChange={setFilter} options={options} />
+        <div className="flex flex-wrap gap-2">
+          <FilterPills value={filter} onChange={setFilter} options={options} />
+          {/* TEST UI: no Figma frame for the program-type filter yet. */}
+          <FilterPills value={type} onChange={setType} options={typeOptions} />
+        </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <div className="min-w-0 flex-1 sm:w-[300px]">
             <SearchField
@@ -82,11 +97,16 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
         <h2 className="text-[18px] font-semibold text-[#22262b]">
           {program.name}
         </h2>
-        {upcoming ? (
+        {program.lifecycle === ProgramLifecycle.Draft ? (
+          <StatusChip tone="neutral">
+            {t(`lifecycle.${ProgramLifecycle.Draft}`)}
+          </StatusChip>
+        ) : upcoming ? (
           <StatusChip tone="amber">{t("upcoming")}</StatusChip>
         ) : (
           <StatusChip tone="green">{t("active")}</StatusChip>
         )}
+        <ProgramTypeChip type={program.type} />
         <div className="ml-auto flex items-center gap-3">
           {actions > 0 ? (
             <StatusChip tone="amber">
@@ -219,6 +239,7 @@ function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
             {program.name}
           </h2>
           <StatusChip tone="neutral">{t("completed")}</StatusChip>
+          <ProgramTypeChip type={program.type} />
         </div>
         <p className="mt-1 text-[13px] text-[#858c96]">{details.join(" · ")}</p>
       </div>
