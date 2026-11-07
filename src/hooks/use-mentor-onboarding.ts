@@ -40,7 +40,11 @@ import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { dropDetachedFile } from "@/lib/draft-storage";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
-import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
+import {
+  fillOnboardingProfile,
+  fillStudies,
+  toMentorCvResult,
+} from "@/lib/mentor-cv";
 import {
   invalidDays,
   openDays,
@@ -245,6 +249,7 @@ export function useMentorOnboarding(
               ...names,
               about: current.about.trim() ? current.about : cv.about,
               profile: fillOnboardingProfile(current.profile, cv),
+              student: fillStudies(current.student, cv.studies),
             };
           });
         } catch {

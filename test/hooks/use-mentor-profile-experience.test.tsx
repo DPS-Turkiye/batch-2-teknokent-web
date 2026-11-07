@@ -15,6 +15,7 @@ import {
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { toMentorCvResult } from "@/lib/mentor-cv";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -280,6 +281,33 @@ describe("useMentorProfileForm student studies", () => {
     expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).not.toHaveProperty(
       "studentProfile",
     );
+  });
+
+  it("fills the studies from the CV the mentor asked for", () => {
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    act(() =>
+      result.current.applyCv({
+        ...toMentorCvResult({}),
+        studies: {
+          department: "",
+          studyYear: "4. sınıf",
+          courses: "CENG 213",
+          projects: "",
+          erasmus: "TU Delft, 2025 güz",
+        },
+      }),
+    );
+
+    expect(result.current.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "4. sınıf",
+      courses: "CENG 213",
+      projects: "Kampüs uygulaması",
+      erasmus: "TU Delft, 2025 güz",
+    });
   });
 
   it("does not save a student mentor without a department", async () => {

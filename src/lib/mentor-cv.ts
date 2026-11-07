@@ -1,6 +1,10 @@
 import { toCvParseResult } from "@/hooks/use-cv-parse";
-import type { ParsedProfile } from "@/interfaces/mentor-onboarding";
+import type {
+  ParsedProfile,
+  StudentOnboardingDraft,
+} from "@/interfaces/mentor-onboarding";
 import type { ParsedCvProfile } from "@/lib/client/profile-analysis";
+import { isStudentLevel } from "@/lib/student-topics";
 
 export type MentorCvRole = {
   title: string;
@@ -18,6 +22,8 @@ export type MentorCvResult = {
   sectorExperience: string;
   specialties: string[];
   history: MentorCvRole[];
+  /** A student mentor's studies, empty for anyone else. */
+  studies: StudentOnboardingDraft;
 };
 
 const text = (value: string | null | undefined) => value?.trim() ?? "";
@@ -44,6 +50,40 @@ export function toMentorCvResult(profile: ParsedCvProfile): MentorCvResult {
         summary: text(role.summary),
       }))
       .filter((role) => role.title),
+    studies: toStudies(profile),
+  };
+}
+
+function toStudies(profile: ParsedCvProfile): StudentOnboardingDraft {
+  const list = (values: string[] | null | undefined) =>
+    (values ?? []).map((value) => value.trim()).filter(Boolean);
+  const year = text(profile.study_year);
+  return {
+    department: text(profile.department),
+    studyYear: isStudentLevel(year) ? year : "",
+    courses: list(profile.strong_courses).join(", "),
+    projects: list(profile.student_projects).join("\n"),
+    erasmus: text(profile.exchange_experience),
+  };
+}
+
+/**
+ * Signup keeps what the student already typed; on the profile page the mentor
+ * asked for the CV, so whatever it found replaces the field (as applyMentorCv does).
+ */
+export function fillStudies(
+  current: StudentOnboardingDraft,
+  cv: StudentOnboardingDraft,
+  cvFirst = false,
+): StudentOnboardingDraft {
+  const choose = (mine: string, found: string) =>
+    cvFirst ? found || mine : mine.trim() ? mine : found;
+  return {
+    department: choose(current.department, cv.department),
+    studyYear: choose(current.studyYear, cv.studyYear),
+    courses: choose(current.courses, cv.courses),
+    projects: choose(current.projects, cv.projects),
+    erasmus: choose(current.erasmus, cv.erasmus),
   };
 }
 

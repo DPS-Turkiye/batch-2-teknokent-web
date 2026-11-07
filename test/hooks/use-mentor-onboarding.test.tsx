@@ -387,6 +387,35 @@ describe("useMentorOnboarding — reading the CV", () => {
     expect(result.current.parseNote).toBe("");
   });
 
+  it("fills a student's studies from the CV", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({
+      department: "Bilgisayar Mühendisliği",
+      study_year: "2. sınıf",
+      strong_courses: ["CENG 140"],
+      student_projects: [],
+      exchange_experience: null,
+    });
+    const { result } = renderHook(() => useMentorOnboarding({}));
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(result.current.draft.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "2. sınıf",
+      courses: "CENG 140",
+      projects: "",
+      erasmus: "",
+    });
+  });
+
   it("still opens the form, with a note, when the CV cannot be read", async () => {
     vi.mocked(parseStoredCv).mockRejectedValue(new Error("okunamadı"));
     const { result } = renderHook(() => useMentorOnboarding());

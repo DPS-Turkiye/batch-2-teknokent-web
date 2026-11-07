@@ -26,7 +26,11 @@ import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
-import { applyMentorCv, type MentorCvResult } from "@/lib/mentor-cv";
+import {
+  applyMentorCv,
+  fillStudies,
+  type MentorCvResult,
+} from "@/lib/mentor-cv";
 import {
   toStudentDraft,
   toStudentProfilePayload,
@@ -345,6 +349,9 @@ export function useMentorProfileForm(profile: MentorProfile) {
 
   const applyCv = (cv: MentorCvResult) => {
     setForm((previous) => applyMentorCv(previous, cv, MAX_EXPERIENCES));
+    setStudent((previous) =>
+      previous ? fillStudies(previous, cv.studies, true) : previous,
+    );
   };
 
   /** True once the backend has the profile, so callers can leave edit mode. */
