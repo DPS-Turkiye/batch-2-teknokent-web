@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from "vitest";
 
 import { useSignupProgramChoice } from "@/hooks/use-signup-program-choice";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { getProgramEligibility } from "@/lib/client/auth";
 import { getProgramNames } from "@/lib/client/programs";
+import { currentIdToken } from "@/lib/firebase/auth";
 import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -12,6 +14,8 @@ import { createTestQueryClient } from "@test/test-utils";
 vi.mock("@/lib/client/programs", () => ({
   getProgramNames: vi.fn(),
 }));
+vi.mock("@/lib/client/auth", () => ({ getProgramEligibility: vi.fn() }));
+vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
 
 function createQueryWrapper() {
   const client = createTestQueryClient();
@@ -34,6 +38,29 @@ describe("useSignupProgramChoice", () => {
     { id: "bigg", name: "BİGG", individualMentees: false },
     { id: "iskur", name: "İŞKUR", individualMentees: true },
   ]);
+  vi.mocked(currentIdToken).mockResolvedValue("token-1");
+  vi.mocked(getProgramEligibility).mockResolvedValue({
+    eligible: true,
+    message: null,
+  });
+
+  it("shows why the chosen program will not take this address", async () => {
+    vi.mocked(getProgramEligibility).mockResolvedValueOnce({
+      eligible: false,
+      message: "e2@metu.edu.tr bu programa katılamaz.",
+    });
+    const { result } = renderHook(
+      () => useSignupProgramChoice(wizardWith("iskur", true)),
+      { wrapper: createQueryWrapper() },
+    );
+
+    await waitFor(() =>
+      expect(result.current.refusal).toBe(
+        "e2@metu.edu.tr bu programa katılamaz.",
+      ),
+    );
+    expect(result.current.checking).toBe(false);
+  });
 
   it("skips the startup questions for an individual program", async () => {
     const wizard = wizardWith(null);

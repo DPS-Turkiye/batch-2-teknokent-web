@@ -18,6 +18,7 @@ import {
   useFounderApplication,
 } from "@/hooks/use-founder-application";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
+import { useSignupCanContinue } from "@/hooks/use-program-eligibility";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { SIGNUP_STEPS, SignupStep } from "@/interfaces/signup";
@@ -36,7 +37,8 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
   const copy = useTranslations("signupWizard");
   const { submitApplication, submittedAt } = useFounderApplication(account);
   const wizard = useSignupWizard({ onSubmit: submitApplication });
-  const { step, steps, canContinue, isFirstStep, isLastStep } = wizard;
+  const { step, steps, isFirstStep, isLastStep } = wizard;
+  const canContinue = useSignupCanContinue(wizard);
   const railSteps = SIGNUP_STEPS.filter((item) =>
     steps.includes(item.step),
   ).map((item) => ({

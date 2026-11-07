@@ -280,6 +280,8 @@
     "startupLater": "Startup'ı daha sonra oluşturacağım",
     "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
     "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
+    "programEligibilityChecking": "Bu programa katılıp katılamayacağın kontrol ediliyor…",
+    "programEligibilityRefused": "Bu programa bu e-posta adresiyle katılamazsın. Program koordinatörüne başvur ya da başka bir program seç.",
     "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
   },
   "signupDocuments": {

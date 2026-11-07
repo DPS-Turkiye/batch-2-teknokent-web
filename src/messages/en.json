@@ -280,6 +280,8 @@
     "startupLater": "I'll create my startup later",
     "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
     "individualProgram": "You join this program on your own; no startup details are needed.",
+    "programEligibilityChecking": "Checking whether you can join this program…",
+    "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
     "stageSubtitle": "What matters most for matching you with the right mentor."
   },
   "signupDocuments": {

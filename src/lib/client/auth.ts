@@ -1,3 +1,4 @@
+import type { ProgramEligibility } from "@/interfaces/program";
 import type { ContactPreference } from "@/interfaces/signup";
 import type { AppSession, BackendUser } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
@@ -53,6 +54,18 @@ export type MemberRegistration = {
 
 function bearer(idToken: string) {
   return { headers: { Authorization: `Bearer ${idToken}` } };
+}
+
+export async function getProgramEligibility(
+  programId: string,
+  idToken: string,
+) {
+  return requireSuccess(
+    await httpClient.get<ProgramEligibility>(
+      `/api/auth/register/program-eligibility?programId=${encodeURIComponent(programId)}`,
+      bearer(idToken),
+    ),
+  );
 }
 
 export async function registerFounder(
