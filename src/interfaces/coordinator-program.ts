@@ -88,6 +88,20 @@ export type ProgramRules = {
   defaultMentorCapacity: number;
   communicationGapDays: number;
   bottleneckFlagDays: number;
+  /** Lowercase, no "@" (metu.edu.tr); null lets any address join. */
+  eligibleEmailDomain: string | null;
+  /** Only addresses on the program's list may join (İŞKUR). */
+  rosterOnly: boolean;
+  /** Each mentee joins as a team of one, without creating a startup. */
+  individualMentees: boolean;
+};
+
+/** One address on a roster-only program's list; `registered` once an account uses it. */
+export type ProgramEligibleEmail = {
+  id: string;
+  email: string;
+  addedAt: string;
+  registered: boolean;
 };
 
 /** One program in full (`GET /api/coordinator/programs/{id}`): Genel Bakış and Program Ayarları. */
@@ -131,6 +145,10 @@ export type UpdateProgramDetailsInput = {
   defaultMentorCapacity?: number;
   communicationGapDays?: number;
   bottleneckFlagDays?: number;
+  /** An empty string clears the domain. */
+  eligibleEmailDomain?: string | null;
+  rosterOnly?: boolean;
+  individualMentees?: boolean;
 };
 
 export type ProgramPhaseInput = {

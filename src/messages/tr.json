@@ -279,6 +279,7 @@
     "programSubtitle": "Başvurun bu programın koordinatörüne gider.",
     "startupLater": "Startup'ı daha sonra oluşturacağım",
     "startupLaterHint": "Onaylandıktan sonra Startup'ım sayfasından startup'ını oluşturabilir ya da bir takıma katılabilirsin.",
+    "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
     "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
   },
   "signupDocuments": {
@@ -3645,10 +3646,32 @@
     "autoMatchHint": "Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur"
   },
   "programSettings": {
+    "eligibilityNote": "Bu programa kimlerin katılabileceğini belirler. Diğer programları etkilemez; açık olduğunda yönetici de kuralın dışına çıkamaz.",
+    "eligibleDomain": "İzin verilen e-posta uzantısı",
+    "eligibleDomainHint": "Örnek: metu.edu.tr. Bölüm adresleri (ceng.metu.edu.tr) de kabul edilir. Boş bırakırsan her adres katılabilir.",
+    "rosterOnly": "Yalnızca listedekiler",
+    "rosterOnlyHint": "Programa yalnızca aşağıdaki listede e-postası olan kişiler katılabilir.",
+    "individualMentees": "Bireysel katılımcılar",
+    "individualMenteesHint": "Katılımcılar startup kurmadan, kendi adlarıyla tek kişilik ekip olarak katılır.",
+    "roster": {
+      "paste": "E-posta adreslerini yapıştır",
+      "placeholder": "Her satıra bir adres: ogrenci@metu.edu.tr",
+      "add": "Listeye ekle",
+      "adding": "Kaydediliyor…",
+      "saved": "Liste güncellendi.",
+      "failed": "Liste güncellenemedi.",
+      "count": "{count, plural, =0 {Listede adres yok} other {Listede # adres}}",
+      "empty": "Listeye henüz adres eklenmedi.",
+      "registered": "Kayıt oldu",
+      "notRegistered": "Henüz kayıt olmadı",
+      "remove": "Kaldır",
+      "removeLabel": "{email} adresini listeden kaldır"
+    },
     "sections": {
       "GENERAL": "Genel bilgiler",
       "COORDINATORS": "Koordinatörler",
       "RULES": "Mentorluk kuralları",
+      "ELIGIBILITY": "Katılım",
       "ARCHIVE": "Arşiv",
       "CURRICULUM": "Müfredat & fazlar"
     },
@@ -5011,6 +5034,8 @@
     }
   },
   "apiErrors": {
+    "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
+    "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
     "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",
     "platformFeedbackSendFailed": "Geri bildirim gönderilemedi. Lütfen tekrar dene.",
     "platformFeedbackLoadFailed": "Geri bildirimler yüklenemedi.",

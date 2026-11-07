@@ -9,10 +9,14 @@ import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs
 import type {
   CoordinatorProgramDetail,
   CoordinatorRef,
+  ProgramEligibleEmail,
 } from "@/interfaces/coordinator-program";
 import {
   addProgramCoordinator,
+  addProgramEligibleEmails,
   getCoordinatorProgram,
+  getProgramEligibleEmails,
+  removeProgramEligibleEmail,
   getProgramCoordinatorCandidates,
   removeProgramCoordinator,
   setCoordinatorProgramArchived,
@@ -20,6 +24,7 @@ import {
 } from "@/lib/client/coordinator-programs";
 import {
   detailsInput,
+  parseEmailList,
   type ProgramSettingsDraft,
   SettingsSection,
   settingsDraftError,
@@ -144,6 +149,61 @@ export function useProgramCoordinators(
     candidatesLoading: candidates.isLoading,
     add: (userId: string) => add.mutate(userId),
     remove: (userId: string) => remove.mutate(userId),
+    busy: add.isPending || remove.isPending,
+  };
+}
+
+/**
+ * The program's list of allowed addresses. It saves on each add/remove, apart from the settings draft, because
+ * a coordinator pastes the list while the rule may already be on.
+ */
+export function useProgramRoster(programId: string) {
+  const t = useTranslations("programSettings");
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [text, setText] = useState("");
+  const queryKey = [
+    ...coordinatorProgramQueryKey(programId),
+    "eligible-emails",
+  ];
+  const entries = useQuery({
+    queryKey,
+    queryFn: () => getProgramEligibleEmails(programId),
+  });
+  const onSaved = (saved: ProgramEligibleEmail[]) =>
+    queryClient.setQueryData(queryKey, saved);
+  const onError = (failure: Error) =>
+    showToast({
+      message: errorMessage(failure, t("roster.failed")),
+      tone: "error",
+    });
+  const add = useMutation({
+    mutationFn: (emails: string[]) =>
+      addProgramEligibleEmails(programId, emails),
+    onSuccess: (saved) => {
+      onSaved(saved);
+      setText("");
+      showToast({ message: t("roster.saved"), tone: "success" });
+    },
+    onError,
+  });
+  const remove = useMutation({
+    mutationFn: (entryId: string) =>
+      removeProgramEligibleEmail(programId, entryId),
+    onSuccess: onSaved,
+    onError,
+  });
+  const pasted = parseEmailList(text);
+  return {
+    entries: entries.data ?? [],
+    loading: entries.isLoading,
+    text,
+    setText,
+    canAdd: pasted.length > 0 && !add.isPending,
+    add: () => {
+      if (pasted.length > 0) add.mutate(pasted);
+    },
+    remove: (entryId: string) => remove.mutate(entryId),
     busy: add.isPending || remove.isPending,
   };
 }

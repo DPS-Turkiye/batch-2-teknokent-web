@@ -101,4 +101,6 @@ export type OrganizationPrograms = {
 export type ProgramName = {
   id: string;
   name: string;
+  /** Students join as a team of one, so signup skips the startup questions. */
+  individualMentees: boolean;
 };

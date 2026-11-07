@@ -7,24 +7,14 @@ import {
 } from "@/components/onboarding/onboarding-ui";
 import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { StartupFields } from "@/components/signup/steps/startup-fields";
-import { useProgramNames } from "@/hooks/use-programs";
+import { useSignupProgramChoice } from "@/hooks/use-signup-program-choice";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 const TONE = OnboardingTone.Mentee;
 export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
   const copy = useTranslations("signupSteps");
   const { draft, updateStartup } = wizard;
   const { startup } = draft;
-  const programs = useProgramNames();
-
-  const programOptions = (programs.data ?? []).map((program) => program.name);
-  const selectedProgram =
-    programs.data?.find((program) => program.id === startup.programId)?.name ??
-    "";
-
-  function chooseProgram(name: string) {
-    const match = programs.data?.find((program) => program.name === name);
-    if (match) updateStartup("programId", match.id);
-  }
+  const program = useSignupProgramChoice(wizard);
 
   return (
     <>
@@ -32,29 +22,34 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
         title={copy("program")}
         subtitle={copy("programSubtitle")}
       >
-        {programs.isLoading ? (
+        {program.loading ? (
           <p className="text-xs text-[#676e78]">{copy("programsLoading")}</p>
         ) : (
           <OnboardingChips
             tone={TONE}
             label={copy("program")}
-            options={programOptions}
-            selected={selectedProgram ? [selectedProgram] : []}
-            onToggle={chooseProgram}
+            options={program.options}
+            selected={program.selectedName ? [program.selectedName] : []}
+            onToggle={program.choose}
           />
         )}
-        <OnboardingConsent
-          tone={TONE}
-          checked={startup.startupLater ?? false}
-          onChange={(checked) => updateStartup("startupLater", checked)}
-        >
-          <span className="flex flex-col gap-0.5">
-            <span className="font-medium text-[#22262b]">
-              {copy("startupLater")}
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {program.individual ? (
+          <p className="text-xs text-[#676e78]">{copy("individualProgram")}</p>
+        ) : (
+          <OnboardingConsent
+            tone={TONE}
+            checked={startup.startupLater ?? false}
+            onChange={(checked) => updateStartup("startupLater", checked)}
+          >
+            <span className="flex flex-col gap-0.5">
+              <span className="font-medium text-[#22262b]">
+                {copy("startupLater")}
+              </span>
+              <span>{copy("startupLaterHint")}</span>
             </span>
-            <span>{copy("startupLaterHint")}</span>
-          </span>
-        </OnboardingConsent>
+          </OnboardingConsent>
+        )}
       </OnboardingCard>
       {startup.startupLater ? null : <StartupFields form={wizard} />}
     </>

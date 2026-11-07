@@ -279,6 +279,7 @@
     "programSubtitle": "Your application goes to this program's coordinator.",
     "startupLater": "I'll create my startup later",
     "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
+    "individualProgram": "You join this program on your own; no startup details are needed.",
     "stageSubtitle": "What matters most for matching you with the right mentor."
   },
   "signupDocuments": {
@@ -3645,10 +3646,32 @@
     "autoMatchHint": "A suggestion list is built from expertise, availability and load"
   },
   "programSettings": {
+    "eligibilityNote": "Decides who can join this program. Other programs are not affected; while it is on, admins cannot bypass it either.",
+    "eligibleDomain": "Allowed e-mail domain",
+    "eligibleDomainHint": "For example metu.edu.tr. Department addresses (ceng.metu.edu.tr) count too. Leave it empty to allow any address.",
+    "rosterOnly": "Only people on the list",
+    "rosterOnlyHint": "Only people whose e-mail is on the list below can join the program.",
+    "individualMentees": "Individual participants",
+    "individualMenteesHint": "Participants join under their own name as a team of one, without creating a startup.",
+    "roster": {
+      "paste": "Paste e-mail addresses",
+      "placeholder": "One address per line: student@metu.edu.tr",
+      "add": "Add to list",
+      "adding": "Saving…",
+      "saved": "List updated.",
+      "failed": "Could not update the list.",
+      "count": "{count, plural, =0 {No addresses on the list} one {# address on the list} other {# addresses on the list}}",
+      "empty": "No addresses on the list yet.",
+      "registered": "Signed up",
+      "notRegistered": "Not signed up yet",
+      "remove": "Remove",
+      "removeLabel": "Remove {email} from the list"
+    },
     "sections": {
       "GENERAL": "General",
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
+      "ELIGIBILITY": "Eligibility",
       "ARCHIVE": "Archive",
       "CURRICULUM": "Curriculum & phases"
     },
@@ -5011,6 +5034,8 @@
     }
   },
   "apiErrors": {
+    "eligibleEmailsLoadFailed": "Could not load the list.",
+    "eligibleEmailsSaveFailed": "Could not update the list.",
     "platformFeedbackInvalid": "Check the feedback details and try again.",
     "platformFeedbackSendFailed": "Feedback could not be sent. Please try again.",
     "platformFeedbackLoadFailed": "Feedback could not be loaded.",
