@@ -12,9 +12,10 @@ export const STUDENT_HOME = "/student";
 
 /**
  * Items are `disabled` ("Yakında") until their screen lands; each screen's PR switches its own
- * item on. Office Hours belongs to the Office Hours lane.
+ * item on. Office Hours belongs to the Office Hours lane. Links elsewhere in the workspace follow
+ * the same switch through `studentRouteReady`.
  */
-const NAV: RoleNavItem[] = [
+export const STUDENT_NAV: RoleNavItem[] = [
   {
     href: STUDENT_HOME,
     label: "home",
@@ -51,6 +52,12 @@ const NAV: RoleNavItem[] = [
   },
 ];
 
+/** Whether the workspace screen at `href` (or its section) has landed yet. */
+export function studentRouteReady(href: string) {
+  const item = STUDENT_NAV.find((nav) => nav.match(href));
+  return Boolean(item && !item.disabled);
+}
+
 // Any signed-in account may open it while the workspace runs on fixtures behind the flag;
 // the real check (an ODTÜ student identity) comes with the permissions work.
 const STUDENT_WORKSPACE_ROLES = Object.values(UserRole);
@@ -62,7 +69,7 @@ export function StudentFrame({ children }: { children: ReactNode }) {
       allowedRoles={STUDENT_WORKSPACE_ROLES}
       homeHref={STUDENT_HOME}
       menuLabel="studentMenu"
-      nav={NAV}
+      nav={STUDENT_NAV}
       roleLabel={t("student")}
     >
       {children}

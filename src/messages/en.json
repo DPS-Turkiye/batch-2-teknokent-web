@@ -3339,8 +3339,25 @@
   },
   "odtuWorkspaces": {
     "student": {
-      "comingTitle": "The student workspace is on its way",
-      "comingBody": "Peer mentoring, Office Hours and your appointments will be here."
+      "home": {
+        "title": "Home",
+        "subtitle": "Your appointments and mentoring areas at a glance.",
+        "profileTitle": "Complete your profile",
+        "profileBody": "Pick the topics you care about so we can surface the right peer mentors and Office Hours.",
+        "profileAction": "Complete profile",
+        "upcomingTitle": "Upcoming appointments",
+        "seeAll": "See all",
+        "upcomingEmpty": "You have no upcoming appointments.",
+        "entryLabel": "Workspace sections",
+        "peerMentoring": {
+          "title": "Peer Mentoring",
+          "body": "Get support from a peer mentor, or mentor others once you hold the badge."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Request an appointment in an academician's office hours."
+        }
+      }
     },
     "academician": {
       "comingTitle": "The academician workspace is on its way",

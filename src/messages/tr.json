@@ -3339,8 +3339,25 @@
   },
   "odtuWorkspaces": {
     "student": {
-      "comingTitle": "Öğrenci çalışma alanı hazırlanıyor",
-      "comingBody": "Akran mentörlüğü, Office Hours ve randevuların burada olacak."
+      "home": {
+        "title": "Ana Sayfa",
+        "subtitle": "Randevuların ve mentorluk alanların tek bakışta.",
+        "profileTitle": "Profilini tamamla",
+        "profileBody": "İlgilendiğin konuları seç; sana uygun akran mentorlarını ve Office Hours saatlerini öne çıkaralım.",
+        "profileAction": "Profili tamamla",
+        "upcomingTitle": "Yaklaşan randevular",
+        "seeAll": "Tümünü gör",
+        "upcomingEmpty": "Yaklaşan randevun yok.",
+        "entryLabel": "Çalışma alanı bölümleri",
+        "peerMentoring": {
+          "title": "Akran Mentörlüğü",
+          "body": "Bir akran mentordan destek al ya da rozetinle mentorluk ver."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Akademisyenlerin görüşme saatlerinden randevu iste."
+        }
+      }
     },
     "academician": {
       "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
