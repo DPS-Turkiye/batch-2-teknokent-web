@@ -26,6 +26,7 @@ import {
 import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
+import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
 import { currentIdToken } from "@/lib/firebase/auth";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
@@ -214,6 +215,64 @@ describe("useMentorOnboarding", () => {
     expect(result.current.canContinue).toBe(false);
     act(() => result.current.toggleProgram("p1"));
     expect(result.current.canContinue).toBe(true);
+  });
+
+  it("gives a mentor of a student program the student topics and years", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+      { id: "bigg", name: "BİGG", individualMentees: false },
+    ]);
+    vi.mocked(getMentorPrograms).mockResolvedValue([]);
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(result.current.programs).toHaveLength(2));
+    expect(result.current.studentMentor).toBe(false);
+    expect(result.current.topicOptions).toEqual(
+      expect.arrayContaining([...MENTOR_TOPIC_OPTIONS]),
+    );
+
+    act(() => result.current.toggleProgram("iskur"));
+
+    expect(result.current.studentMentor).toBe(true);
+    expect(result.current.topicOptions).toEqual([...STUDENT_TOPICS]);
+    expect(result.current.stageOptions).toEqual(STUDENT_LEVELS);
+    act(() => {
+      result.current.toggleTopic("Staj");
+      result.current.toggleStage("3. sınıf");
+    });
+    act(() => result.current.goToStep(MentorOnboardingStep.Areas));
+    expect(result.current.canContinue).toBe(true);
+  });
+
+  it("drops the other list's choices when the mentor switches between a student and a startup program", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+      { id: "bigg", name: "BİGG", individualMentees: false },
+    ]);
+    vi.mocked(getMentorPrograms).mockResolvedValue([]);
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(result.current.programs).toHaveLength(2));
+
+    act(() => result.current.toggleProgram("bigg"));
+    act(() => {
+      result.current.toggleTopic(MENTOR_TOPIC_OPTIONS[0]);
+      result.current.toggleStage("MVP");
+    });
+    act(() => result.current.toggleProgram("iskur"));
+    expect(result.current.draft.topics).toEqual([]);
+    expect(result.current.draft.stages).toEqual([]);
+
+    act(() => {
+      result.current.toggleTopic("Erasmus & yurt dışı");
+      result.current.toggleStage("Yüksek lisans");
+    });
+    act(() => result.current.toggleProgram("bigg"));
+    expect(result.current.studentMentor).toBe(true);
+    expect(result.current.draft.topics).toEqual(["Erasmus & yurt dışı"]);
+
+    act(() => result.current.toggleProgram("iskur"));
+    expect(result.current.studentMentor).toBe(false);
+    expect(result.current.draft.topics).toEqual([]);
+    expect(result.current.draft.stages).toEqual([]);
   });
 
   it("does not hold the mentor back when no program is open", async () => {

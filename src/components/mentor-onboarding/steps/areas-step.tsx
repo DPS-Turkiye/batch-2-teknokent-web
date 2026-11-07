@@ -17,7 +17,6 @@ import {
   MAX_MENTOR_TOPICS,
   MAX_OFFERINGS,
 } from "@/interfaces/mentor-onboarding";
-import { STARTUP_STAGE_OPTIONS } from "@/interfaces/signup";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useTranslations } from "next-intl";
 
@@ -71,6 +70,10 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
           onToggle={wizard.toggleTopic}
           labelFor={(topic) => optionLabel("mentorTopic", topic)}
         />
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {wizard.studentMentor ? (
+          <p className="text-xs text-[#676e78]">{copy("studentTopicsNote")}</p>
+        ) : null}
         {draft.topics.length ? (
           <div className="flex items-start justify-between gap-3 rounded-lg border border-[#e6f1f8] bg-[#f2f8fc] px-3 py-2.5 text-xs leading-[18px] text-[#0067b1]">
             <p className="font-medium">Seçilen: {draft.topics.join(", ")}</p>
@@ -81,16 +84,23 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
         ) : null}
       </OnboardingCard>
 
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       <OnboardingCard
         rounded="rounded-xl"
-        title={copy("stagesTitle")}
-        subtitle={copy("stagesSubtitle")}
+        title={copy(
+          wizard.studentMentor ? "studentLevelsTitle" : "stagesTitle",
+        )}
+        subtitle={copy(
+          wizard.studentMentor ? "studentLevelsSubtitle" : "stagesSubtitle",
+        )}
       >
         <OnboardingChips
           tone={TONE}
-          label={copy("stagesLabel")}
-          options={STARTUP_STAGE_OPTIONS}
-          selected={draft.stages as (typeof STARTUP_STAGE_OPTIONS)[number][]}
+          label={copy(
+            wizard.studentMentor ? "studentLevelsLabel" : "stagesLabel",
+          )}
+          options={wizard.stageOptions}
+          selected={draft.stages}
           onToggle={wizard.toggleStage}
           labelFor={(stage) => optionLabel("stage", stage)}
         />
