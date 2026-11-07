@@ -104,3 +104,9 @@ export type ProgramName = {
   /** Students join as a team of one, so signup skips the startup questions. */
   individualMentees: boolean;
 };
+
+/** Whether the signed-in address may join a program; `message` says why not. */
+export type ProgramEligibility = {
+  eligible: boolean;
+  message: string | null;
+};

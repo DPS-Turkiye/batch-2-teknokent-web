@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { ProgramEligibility } from "@/interfaces/program";
 import type { BackendUser } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import type { Locale } from "@/lib/i18n";
@@ -15,6 +16,18 @@ export const REGISTER_ROLES: readonly RegisterRole[] = [
 
 export function isRegisterRole(value: string): value is RegisterRole {
   return REGISTER_ROLES.includes(value as RegisterRole);
+}
+
+/** The backend reads the address from the token, so this only ever answers about the caller. */
+export function fetchProgramEligibility(programId: string, idToken: string) {
+  return backendRequest<ProgramEligibility>(
+    {
+      method: HttpMethod.Get,
+      url: "/api/auth/register/program-eligibility",
+      params: { programId },
+    },
+    { idToken },
+  );
 }
 
 export function registerAccount(

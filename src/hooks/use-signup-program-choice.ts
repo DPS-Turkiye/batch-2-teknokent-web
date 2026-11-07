@@ -2,6 +2,7 @@
 
 import { useCallback } from "react";
 
+import { useProgramEligibility } from "@/hooks/use-program-eligibility";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 
@@ -16,6 +17,7 @@ export function useSignupProgramChoice(wizard: SignupWizard) {
     (program) => program.id === draft.startup.programId,
   );
   const individual = selected?.individualMentees ?? false;
+  const eligibility = useProgramEligibility(draft.startup.programId);
 
   const choose = useCallback(
     (name: string) => {
@@ -36,6 +38,8 @@ export function useSignupProgramChoice(wizard: SignupWizard) {
     options: (programs.data ?? []).map((program) => program.name),
     selectedName: selected?.name ?? "",
     individual,
+    checking: eligibility.checking,
+    refusal: eligibility.refusal,
     choose,
   };
 }

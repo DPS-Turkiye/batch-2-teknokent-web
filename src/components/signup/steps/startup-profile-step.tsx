@@ -34,7 +34,16 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           />
         )}
         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-        {program.individual ? (
+        {program.checking ? (
+          <p role="status" className="text-xs text-[#676e78]">
+            {copy("programEligibilityChecking")}
+          </p>
+        ) : null}
+        {program.refusal !== null ? (
+          <p role="alert" className="text-xs text-[#c0392b]">
+            {program.refusal || copy("programEligibilityRefused")}
+          </p>
+        ) : program.individual ? (
           <p className="text-xs text-[#676e78]">{copy("individualProgram")}</p>
         ) : (
           <OnboardingConsent
@@ -51,7 +60,9 @@ export function StartupProfileStep({ wizard }: { wizard: SignupWizard }) {
           </OnboardingConsent>
         )}
       </OnboardingCard>
-      {startup.startupLater ? null : <StartupFields form={wizard} />}
+      {startup.startupLater || program.refusal !== null ? null : (
+        <StartupFields form={wizard} />
+      )}
     </>
   );
 }

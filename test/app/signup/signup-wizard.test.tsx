@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { ContactPreference } from "@/interfaces/signup";
-import { registerFounder } from "@/lib/client/auth";
+import { getProgramEligibility, registerFounder } from "@/lib/client/auth";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
@@ -34,6 +34,7 @@ vi.mock("@/lib/client/onboarding-draft", () => ({
 
 vi.mock("@/lib/client/auth", () => ({
   registerFounder: vi.fn().mockResolvedValue({}),
+  getProgramEligibility: vi.fn(),
 }));
 
 vi.mock("@/lib/client/programs", () => ({
@@ -92,8 +93,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(listDocuments).mockResolvedValue([]);
   vi.mocked(getProgramNames).mockResolvedValue([
-    { id: "prog-1", name: "metustarts 2026" },
+    { id: "prog-1", name: "metustarts 2026", individualMentees: false },
   ]);
+  vi.mocked(getProgramEligibility).mockResolvedValue({
+    eligible: true,
+    message: null,
+  });
 });
 
 describe("Signup wizard", () => {
@@ -212,6 +217,50 @@ describe("Signup wizard", () => {
     expect(
       within(programs).queryByRole("button", { name: "Bağımsız" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("tells a student at once that İŞKUR will not take their address, and holds Devam", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    vi.mocked(getProgramEligibility).mockResolvedValue({
+      eligible: false,
+      message: "gulse@dongu.co bu programa katılamaz.",
+    });
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(next());
+    await user.click(await screen.findByRole("button", { name: "İŞKUR" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "gulse@dongu.co bu programa katılamaz.",
+    );
+    expect(getProgramEligibility).toHaveBeenCalledWith("iskur", "id-token");
+    expect(next()).toBeDisabled();
+    expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
+  });
+
+  it("lets a listed student into İŞKUR without startup questions", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const user = userEvent.setup();
+    render(<SignupWizardView account={ACCOUNT} />);
+
+    await completePersonalStep(user);
+    await user.click(next());
+    await user.click(await screen.findByRole("button", { name: "İŞKUR" }));
+
+    expect(
+      await screen.findByText(
+        "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
+      ),
+    ).toBeInTheDocument();
+    await waitFor(() => expect(next()).toBeEnabled());
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/Startup adı/)).not.toBeInTheDocument();
   });
 
   it("signs up into the program without a startup and skips its files", async () => {
