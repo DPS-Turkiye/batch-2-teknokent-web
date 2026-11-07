@@ -24,9 +24,12 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const programs = useProgramNames();
   const stored = useStoredDocuments();
 
-  const programName =
-    programs.data?.find((program) => program.id === startup.programId)?.name ??
-    "";
+  const program = programs.data?.find(
+    (candidate) => candidate.id === startup.programId,
+  );
+  const programName = program?.name ?? "";
+  // An individual program gives each student a team of one, so there is no startup to show or create later.
+  const individual = program?.individualMentees ?? false;
 
   function fileName(kind: StartupDocumentKind) {
     return (
@@ -70,10 +73,14 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
           tone={TONE}
           title={copy("startup")}
           onEdit={() => goToStep(SignupStep.StartupProfile)}
-          rows={[
-            { label: copy("program"), value: programName },
-            { label: copy("startupName"), value: copy("startupLater") },
-          ]}
+          rows={
+            individual
+              ? [{ label: copy("program"), value: programName }]
+              : [
+                  { label: copy("program"), value: programName },
+                  { label: copy("startupName"), value: copy("startupLater") },
+                ]
+          }
         />
       ) : (
         <OnboardingReviewCard
