@@ -3145,37 +3145,39 @@
       "title": "Edit availability",
       "subtitle": "Startups can only propose meetings in the hours you leave open.",
       "close": "Close the editor",
-      "loading": "Loading...",
-      "loadFailed": "Couldn't load your availability settings.",
-      "weekly": "WEEKLY AVAILABILITY",
-      "dayOpen": "Available on {day}",
-      "range": "{day} range {number}",
-      "rangeStart": "{range} start",
-      "rangeEnd": "{range} end",
-      "addRange": "Add a time range on {day}",
-      "removeRange": "Remove {range}",
-      "closed": "Closed",
-      "defaults": "CAPACITY AND DEFAULTS",
-      "menteeCapacity": "Concurrent mentorship limit",
-      "defaultMeetingDurationMinutes": "Default meeting length",
-      "meetingBufferMinutes": "Buffer between meetings",
-      "minutesUnit": "min",
-      "unavailable": "DATES YOU'RE UNAVAILABLE",
-      "removeDate": "Remove {date}",
-      "addDate": "Add a date",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "reason": "Reason",
-      "reasonPlaceholder": "Reason (optional)",
-      "cancelDate": "Cancel",
-      "confirmDate": "Add the date",
       "footer": "Changes don't affect upcoming meetings.",
       "cancel": "Cancel",
       "saving": "Saving…",
-      "save": "Save",
-      "saved": "Your availability settings are saved.",
-      "saveFailed": "Couldn't save your availability settings."
+      "save": "Save"
     }
+  },
+  "availabilityEditor": {
+    "loading": "Loading...",
+    "loadFailed": "Couldn't load your availability settings.",
+    "weekly": "WEEKLY AVAILABILITY",
+    "dayOpen": "Available on {day}",
+    "range": "{day} range {number}",
+    "rangeStart": "{range} start",
+    "rangeEnd": "{range} end",
+    "addRange": "Add a time range on {day}",
+    "removeRange": "Remove {range}",
+    "closed": "Closed",
+    "defaults": "CAPACITY AND DEFAULTS",
+    "menteeCapacity": "Concurrent mentorship limit",
+    "defaultMeetingDurationMinutes": "Default meeting length",
+    "meetingBufferMinutes": "Buffer between meetings",
+    "minutesUnit": "min",
+    "unavailable": "DATES YOU'RE UNAVAILABLE",
+    "removeDate": "Remove {date}",
+    "addDate": "Add a date",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "reason": "Reason",
+    "reasonPlaceholder": "Reason (optional)",
+    "cancelDate": "Cancel",
+    "confirmDate": "Add the date",
+    "saved": "Your availability settings are saved.",
+    "saveFailed": "Couldn't save your availability settings."
   },
   "mentorEvaluation": {
     "breadcrumb": "Location",
@@ -3295,6 +3297,8 @@
     "soon": "Coming soon",
     "coordinatorMenu": "Coordinator menu",
     "adminMenu": "Admin menu",
+    "studentMenu": "Student menu",
+    "academicianMenu": "Academician menu",
     "nav": {
       "feedback": "Feedback",
       "home": "Home",
@@ -3304,7 +3308,43 @@
       "mentorships": "Mentorships",
       "calendar": "Calendar",
       "messages": "Messages",
-      "reporting": "Reporting"
+      "reporting": "Reporting",
+      "peerMentoring": "Peer Mentoring",
+      "officeHours": "Office Hours",
+      "myAppointments": "My appointments",
+      "myProfile": "My profile",
+      "appointmentRequests": "Appointment requests",
+      "advisees": "My advisees"
+    },
+    "workspace": {
+      "student": "Student",
+      "academician": "Academician"
+    }
+  },
+  "appointments": {
+    "status": {
+      "PENDING": "Awaiting approval",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Declined",
+      "ALTERNATIVE_PROPOSED": "Alternative proposed",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "role": {
+      "MENTOR": "As mentor",
+      "MENTEE": "As mentee",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "odtuWorkspaces": {
+    "student": {
+      "comingTitle": "The student workspace is on its way",
+      "comingBody": "Peer mentoring, Office Hours and your appointments will be here."
+    },
+    "academician": {
+      "comingTitle": "The academician workspace is on its way",
+      "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
   },
   "coordinatorHome": {

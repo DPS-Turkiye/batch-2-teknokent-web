@@ -3145,37 +3145,39 @@
       "title": "Müsaitliği düzenle",
       "subtitle": "Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.",
       "close": "Düzenlemeyi kapat",
-      "loading": "Yükleniyor...",
-      "loadFailed": "Müsaitlik ayarları yüklenemedi.",
-      "weekly": "HAFTALIK UYGUNLUK",
-      "dayOpen": "{day} uygun",
-      "range": "{day} {number}. aralık",
-      "rangeStart": "{range} başlangıç",
-      "rangeEnd": "{range} bitiş",
-      "addRange": "{day} için saat aralığı ekle",
-      "removeRange": "{range} kaldır",
-      "closed": "Kapalı",
-      "defaults": "KAPASİTE VE VARSAYILANLAR",
-      "menteeCapacity": "Eş zamanlı mentorluk limiti",
-      "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
-      "meetingBufferMinutes": "İki görüşme arası tampon",
-      "minutesUnit": "dk",
-      "unavailable": "UYGUN OLMADIĞIN TARİHLER",
-      "removeDate": "{date} tarihini kaldır",
-      "addDate": "Tarih ekle",
-      "startDate": "Başlangıç tarihi",
-      "endDate": "Bitiş tarihi",
-      "reason": "İstisna nedeni",
-      "reasonPlaceholder": "Neden (isteğe bağlı)",
-      "cancelDate": "İptal",
-      "confirmDate": "Tarihi ekle",
       "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
       "cancel": "Vazgeç",
       "saving": "Kaydediliyor…",
-      "save": "Kaydet",
-      "saved": "Müsaitlik ayarların kaydedildi.",
-      "saveFailed": "Müsaitlik ayarları kaydedilemedi."
+      "save": "Kaydet"
     }
+  },
+  "availabilityEditor": {
+    "loading": "Yükleniyor...",
+    "loadFailed": "Müsaitlik ayarları yüklenemedi.",
+    "weekly": "HAFTALIK UYGUNLUK",
+    "dayOpen": "{day} uygun",
+    "range": "{day} {number}. aralık",
+    "rangeStart": "{range} başlangıç",
+    "rangeEnd": "{range} bitiş",
+    "addRange": "{day} için saat aralığı ekle",
+    "removeRange": "{range} kaldır",
+    "closed": "Kapalı",
+    "defaults": "KAPASİTE VE VARSAYILANLAR",
+    "menteeCapacity": "Eş zamanlı mentorluk limiti",
+    "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
+    "meetingBufferMinutes": "İki görüşme arası tampon",
+    "minutesUnit": "dk",
+    "unavailable": "UYGUN OLMADIĞIN TARİHLER",
+    "removeDate": "{date} tarihini kaldır",
+    "addDate": "Tarih ekle",
+    "startDate": "Başlangıç tarihi",
+    "endDate": "Bitiş tarihi",
+    "reason": "İstisna nedeni",
+    "reasonPlaceholder": "Neden (isteğe bağlı)",
+    "cancelDate": "İptal",
+    "confirmDate": "Tarihi ekle",
+    "saved": "Müsaitlik ayarların kaydedildi.",
+    "saveFailed": "Müsaitlik ayarları kaydedilemedi."
   },
   "mentorEvaluation": {
     "breadcrumb": "Konum",
@@ -3295,6 +3297,8 @@
     "soon": "Yakında",
     "coordinatorMenu": "Koordinatör menüsü",
     "adminMenu": "Admin menüsü",
+    "studentMenu": "Öğrenci menüsü",
+    "academicianMenu": "Akademisyen menüsü",
     "nav": {
       "feedback": "Geri bildirim",
       "home": "Anasayfa",
@@ -3304,7 +3308,43 @@
       "mentorships": "Mentorluklar",
       "calendar": "Takvim",
       "messages": "Mesajlar",
-      "reporting": "Raporlama"
+      "reporting": "Raporlama",
+      "peerMentoring": "Akran Mentörlüğü",
+      "officeHours": "Office Hours",
+      "myAppointments": "Randevularım",
+      "myProfile": "Profilim",
+      "appointmentRequests": "Randevu Talepleri",
+      "advisees": "Danışan Öğrencilerim"
+    },
+    "workspace": {
+      "student": "Öğrenci",
+      "academician": "Akademisyen"
+    }
+  },
+  "appointments": {
+    "status": {
+      "PENDING": "Onay Bekliyor",
+      "CONFIRMED": "Onaylandı",
+      "REJECTED": "Reddedildi",
+      "ALTERNATIVE_PROPOSED": "Alternatif Önerildi",
+      "CANCELLED": "İptal Edildi",
+      "EXPIRED": "Süresi Doldu",
+      "WITHDRAWN": "Geri Çekildi"
+    },
+    "role": {
+      "MENTOR": "Mentor olarak",
+      "MENTEE": "Mentee olarak",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "odtuWorkspaces": {
+    "student": {
+      "comingTitle": "Öğrenci çalışma alanı hazırlanıyor",
+      "comingBody": "Akran mentörlüğü, Office Hours ve randevuların burada olacak."
+    },
+    "academician": {
+      "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
+      "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
   },
   "coordinatorHome": {
