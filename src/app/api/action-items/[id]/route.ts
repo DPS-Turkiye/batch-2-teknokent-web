@@ -9,6 +9,7 @@ import {
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 export async function PATCH(
   request: NextRequest,
@@ -17,7 +18,7 @@ export async function PATCH(
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
-    if (session.role !== UserRole.Mentee || !session.organizationId) {
+    if (!hasPermission(session, UserRole.Mentee) || !session.organizationId) {
       return NextResponse.json(
         {
           code: "FORBIDDEN",

@@ -1,8 +1,9 @@
 import { AccountType } from "@/interfaces/account-type";
+import type { AppSession } from "@/interfaces/session";
+import { accountTypeOfWorkspace, activeWorkspaceOf } from "@/lib/workspaces";
 
-// Until the account type is stored with the account, the choice lives in this cookie.
-// Only resolveAccountType and the readers in lib/server/account-type.ts know where it comes from,
-// so moving it to the session later changes nothing else.
+// Signed in, the account decides (accountTypeOfSession). Signed out, this cookie still picks the wording,
+// e.g. for a developer previewing the ODTÜ texts on public pages.
 export const ACCOUNT_TYPE_COOKIE = "menton_account_type";
 export const ACCOUNT_TYPE_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 365;
 
@@ -15,6 +16,11 @@ export function resolveAccountType(
   saved: string | null | undefined,
 ): AccountType {
   return isAccountType(saved) ? saved : AccountType.Teknokent;
+}
+
+/** The ODTÜ wording while the account is in an ODTÜ workspace; Teknokent everywhere else. */
+export function accountTypeOfSession(session: AppSession): AccountType {
+  return accountTypeOfWorkspace(activeWorkspaceOf(session));
 }
 
 type Messages = { [key: string]: string | Messages };

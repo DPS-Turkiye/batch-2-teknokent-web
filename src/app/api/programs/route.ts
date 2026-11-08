@@ -12,6 +12,7 @@ import {
   requireCoordinatorSession,
 } from "@/lib/server/require-program-access";
 import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 export async function GET() {
   try {
@@ -29,7 +30,7 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSessionUser();
     const auth =
-      session?.role === UserRole.Admin
+      session && hasPermission(session, UserRole.Admin)
         ? { ok: true as const, session }
         : await requireCoordinatorSession();
     if (!auth.ok) return auth.response;

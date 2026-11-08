@@ -255,3 +255,11 @@ export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 
 export const SUPPORT_EMAIL = "info@menton.com.tr";
+
+/**
+ * The ODTÜ dev persona login (/login/odtu/dev). Local development only, together with the backend's
+ * INSTITUTION_LOGIN_DEV_STUB; the real ODTÜ login replaces it once ODTÜ's protocol is known.
+ */
+export function isOdtuDevLoginEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ODTU_DEV_LOGIN === "true";
+}

@@ -9,12 +9,14 @@ import {
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser, refreshSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 /** "Kodum var" on /startup. Answers with the session, now carrying the startup. */
 export async function POST(request: Request) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentee) throw new SessionRequiredError();
+    if (!session || !hasPermission(session, UserRole.Mentee))
+      throw new SessionRequiredError();
     const body = await request.json();
     const response = await joinStartup(
       session.userId,

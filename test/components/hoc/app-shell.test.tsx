@@ -262,7 +262,7 @@ describe("AppShell navigation", () => {
     const primaryNav = screen.getByRole("navigation", { name: "Ana menü" });
     expect(
       within(primaryNav).getByRole("link", { name: /Programlar/ }),
-    ).toHaveAttribute("href", "/programs");
+    ).toHaveAttribute("href", "/coordinator/programs");
     expect(
       within(primaryNav).getByRole("link", { name: /Mentörler/ }),
     ).toHaveAttribute("href", "/mentors");

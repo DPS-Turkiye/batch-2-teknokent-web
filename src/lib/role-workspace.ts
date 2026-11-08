@@ -1,4 +1,6 @@
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
+import { activeWorkspaceOf } from "@/lib/workspaces";
 
 export type RoleWorkspace = {
   homeHref: string;
@@ -8,6 +10,15 @@ export type RoleWorkspace = {
   notificationsHref: string;
   showNotificationBadge: boolean;
   usesRoleSubtitle: boolean;
+};
+
+const STUDENT_WORKSPACE: RoleWorkspace = {
+  homeHref: "/student",
+  profileHref: "/student",
+  personalInfoHref: "/student",
+  notificationsHref: "/student",
+  showNotificationBadge: true,
+  usesRoleSubtitle: false,
 };
 
 export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
@@ -28,6 +39,15 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         personalInfoHref: null,
         notificationsHref: "/coordinator",
         showNotificationBadge: false,
+        usesRoleSubtitle: true,
+      };
+    case UserRole.Academician:
+      return {
+        homeHref: "/academician",
+        profileHref: "/academician",
+        personalInfoHref: "/academician",
+        notificationsHref: "/academician",
+        showNotificationBadge: true,
         usesRoleSubtitle: true,
       };
     case UserRole.Mentor:
@@ -51,6 +71,18 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
   }
 }
 
+const ROLE_OF_WORKSPACE: Record<Workspace, UserRole> = {
+  [Workspace.Admin]: UserRole.Admin,
+  [Workspace.Coordinator]: UserRole.Coordinator,
+  [Workspace.OdtuAcademician]: UserRole.Academician,
+  [Workspace.OdtuStudent]: UserRole.Mentee,
+  [Workspace.GirisimMentor]: UserRole.Mentor,
+  [Workspace.GirisimMentee]: UserRole.Mentee,
+};
+
+/** The links of the workspace the account is in (see lib/workspaces.ts). */
 export function workspaceForSession(session: AppSession | null) {
-  return roleWorkspace(session?.role);
+  const active = session ? activeWorkspaceOf(session) : null;
+  if (active === Workspace.OdtuStudent) return STUDENT_WORKSPACE;
+  return roleWorkspace(active ? ROLE_OF_WORKSPACE[active] : session?.role);
 }
