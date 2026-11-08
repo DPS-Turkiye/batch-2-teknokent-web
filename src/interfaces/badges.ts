@@ -71,4 +71,27 @@ export type GateBadgeRow = {
   awardedAt: string | null;
   revokedAt: string | null;
   reason: string | null;
+  /** Progress on the program's current training version; "Eğitimde" when started without the badge. */
+  training: {
+    videoWatched: boolean;
+    attempts: number;
+    bestScore: number | null;
+  };
 };
+
+/** Started the training but holds no badge yet ("Eğitimde"). */
+export function inTraining(row: Pick<GateBadgeRow, "state" | "training">) {
+  return (
+    row.state === GateBadgeState.None &&
+    (row.training.videoWatched || row.training.attempts > 0)
+  );
+}
+
+/** The admin's Öğrenciler filter. "Eğitimde" is a view of "Rozet yok"; badges do not expire (D3), so there is no "Süresi doldu". */
+export enum StudentFilter {
+  All = "ALL",
+  None = "NONE",
+  InTraining = "IN_TRAINING",
+  Active = "ACTIVE",
+  Revoked = "REVOKED",
+}

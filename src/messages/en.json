@@ -5372,7 +5372,8 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Taken back because: {reason}"
-    }
+    },
+    "inTraining": "In training"
   },
   "peerParticipants": {
     "loading": "Loading participants…",
@@ -5391,13 +5392,16 @@
     "revokeIntro": "Taking the badge back also ends their right to mentor. The student sees the reason.",
     "reason": "Reason",
     "cancel": "Cancel",
-    "confirmRevoke": "Take back"
+    "confirmRevoke": "Take back",
+    "trainingWatched": "Video watched, quiz not taken yet",
+    "trainingAttempts": "{count} attempts · best {best}/10"
   },
   "adminStudents": {
     "filterLabel": "Badge state",
     "filters": {
       "ALL": "All",
       "NONE": "No badge",
+      "IN_TRAINING": "In training",
       "ACTIVE": "Peer mentor",
       "REVOKED": "Taken back"
     },
