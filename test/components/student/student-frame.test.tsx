@@ -1,26 +1,47 @@
 import { render, screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianFrame } from "@/components/academician/academician-frame";
 import { StudentFrame } from "@/components/student/student-frame";
-import { UserRole } from "@/interfaces/session";
+import { type AppSession, IdentityKind, UserRole } from "@/interfaces/session";
 
 const replace = vi.fn();
 let pathname = "/student";
-const mentee = {
+const odtuStudent: AppSession = {
   userId: "u1",
   fullName: "Ayşe Yılmaz",
-  email: "ayse@metu.edu.tr",
+  email: "ayse.yilmaz@odtu-dev.invalid",
   role: UserRole.Mentee,
   jobTitle: "",
+  permissions: [UserRole.Mentee],
+  institutionKinds: [IdentityKind.Student],
 };
+const teknokentMentee: AppSession = {
+  userId: "u2",
+  fullName: "Kurucu",
+  email: "kurucu@example.com",
+  role: UserRole.Mentee,
+  jobTitle: "",
+  organizationId: "org-1",
+  permissions: [UserRole.Mentee],
+};
+const researchAssistant: AppSession = {
+  userId: "u3",
+  fullName: "Elif Şahin",
+  email: "elif.sahin@odtu-dev.invalid",
+  role: UserRole.Academician,
+  jobTitle: "",
+  permissions: [UserRole.Mentee, UserRole.Academician],
+  institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+};
+let session: AppSession = odtuStudent;
 vi.mock("next/navigation", () => ({
   usePathname: () => pathname,
   useRouter: () => ({ replace }),
 }));
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () => mentee,
-  useSession: () => ({ session: mentee, isLoading: false, logout: vi.fn() }),
+  useAppSession: () => session,
+  useSession: () => ({ session, isLoading: false, logout: vi.fn() }),
 }));
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
@@ -29,6 +50,11 @@ vi.mock("@/components/common/notification-menu", () => ({
 function desktopNav(name: string) {
   return screen.getAllByRole("navigation", { name })[0];
 }
+
+beforeEach(() => {
+  session = odtuStudent;
+  replace.mockClear();
+});
 
 describe("StudentFrame", () => {
   it("shows the student menu with the screens that have landed open", () => {
@@ -68,15 +94,36 @@ describe("StudentFrame", () => {
     expect(screen.queryByText("Girişim Ekibi")).toBeNull();
   });
 
-  it("lets any signed-in account in while it runs on fixtures", () => {
-    replace.mockClear();
+  it("opens for an ODTÜ student", () => {
     render(<StudentFrame>x</StudentFrame>);
+    expect(replace).not.toHaveBeenCalled();
+  });
+
+  it("sends a Teknokent mentee to their own home instead", () => {
+    session = teknokentMentee;
+    render(<StudentFrame>İçerik</StudentFrame>);
+    expect(screen.queryByText("İçerik")).toBeNull();
+    expect(replace).toHaveBeenCalledWith("/dashboard");
+  });
+
+  it("opens for a research assistant, who is a student too", () => {
+    session = researchAssistant;
+    render(<StudentFrame>İçerik</StudentFrame>);
+    expect(screen.getByText("İçerik")).toBeInTheDocument();
     expect(replace).not.toHaveBeenCalled();
   });
 });
 
 describe("AcademicianFrame", () => {
+  it("does not open for a student who is not an academician", () => {
+    pathname = "/academician";
+    render(<AcademicianFrame>İçerik</AcademicianFrame>);
+    expect(screen.queryByText("İçerik")).toBeNull();
+    expect(replace).toHaveBeenCalledWith("/student");
+  });
+
   it("shows the academician menu with only the home screen open so far", () => {
+    session = researchAssistant;
     pathname = "/academician";
     render(<AcademicianFrame>x</AcademicianFrame>);
     const nav = desktopNav("Akademisyen menüsü");
