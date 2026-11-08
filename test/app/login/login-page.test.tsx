@@ -6,6 +6,9 @@ import LoginPage from "@/app/login/page";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import {
+  currentIdToken,
+  isCurrentEmailVerified,
+  reloadAndCheckEmailVerified,
   requestPasswordReset,
   signInToFirebase,
   signOutOfFirebase,
@@ -35,7 +38,7 @@ vi.mock("@/lib/firebase/auth", () => ({
   requestPasswordReset: vi.fn(),
   signOutOfFirebase: vi.fn(),
   describeAuthError: () => "E-posta veya şifre hatalı.",
-  isCurrentEmailVerified: () => true,
+  isCurrentEmailVerified: vi.fn(),
   currentIdToken: vi.fn(),
   reloadAndCheckEmailVerified: vi.fn(),
   resendVerificationEmail: vi.fn(),
@@ -49,6 +52,7 @@ async function fillCredentials(user: ReturnType<typeof userEvent.setup>) {
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(signInToFirebase).mockResolvedValue("id-token");
+  vi.mocked(isCurrentEmailVerified).mockReturnValue(true);
   vi.mocked(fetchOnboardingDraft).mockResolvedValue(null);
   vi.mocked(signOutOfFirebase).mockResolvedValue(undefined);
   logout.mockResolvedValue(undefined);
@@ -212,6 +216,35 @@ describe("Login screen", () => {
       expect(push).toHaveBeenCalledWith("/application-status"),
     );
     // The Firebase session has to survive, or the status page has no token.
+    expect(signOutOfFirebase).not.toHaveBeenCalled();
+  });
+
+  it("sends a not-yet-approved account to the status page after it verifies its e-mail", async () => {
+    vi.mocked(isCurrentEmailVerified).mockReturnValue(false);
+    vi.mocked(reloadAndCheckEmailVerified).mockResolvedValue(true);
+    vi.mocked(currentIdToken).mockResolvedValue("fresh-token");
+    login.mockRejectedValue(
+      new ClientApiError(
+        "Hesabınız koordinatör onayı bekliyor.",
+        403,
+        "ACCOUNT_NOT_APPROVED",
+      ),
+    );
+    const user = userEvent.setup();
+    render(<LoginPage />);
+    await waitUntilLoginReady();
+
+    await fillCredentials(user);
+    await user.click(screen.getByRole("button", { name: "Giriş yap" }));
+    await user.click(
+      await screen.findByRole("button", { name: "Maili doğruladım, devam et" }),
+    );
+
+    await waitFor(() =>
+      expect(push).toHaveBeenCalledWith("/application-status"),
+    );
+    expect(login).toHaveBeenCalledWith("fresh-token");
+    expect(fetchOnboardingDraft).toHaveBeenCalledWith("fresh-token");
     expect(signOutOfFirebase).not.toHaveBeenCalled();
   });
 
