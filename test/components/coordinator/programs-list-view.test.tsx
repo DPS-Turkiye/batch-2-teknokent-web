@@ -65,8 +65,8 @@ describe("ProgramsListView", () => {
       within(card).getByRole("link", { name: "Open the program" }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Launch a program/ }),
-    ).toBeInTheDocument();
+      screen.queryByRole("link", { name: /Launch a program/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows how long until an upcoming program starts", async () => {

@@ -197,18 +197,19 @@ export type ProgramTeam = {
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
 
-/** The "Yeni program" wizard, sent in one request. */
+/** The admin's "Yeni Program Oluştur", sent in one request; the program starts as a draft. */
 export type CreateProgramInput = {
+  type: ProgramType;
   name: string;
   description: string | null;
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
-  defaultMentorCapacity: number;
-  meetingFrequencyDays: number;
-  communicationGapDays: number;
-  bottleneckFlagDays: number;
-  teams: TeamInviteInput[];
+  defaultMentorCapacity?: number;
+  meetingFrequencyDays?: number;
+  communicationGapDays?: number;
+  bottleneckFlagDays?: number;
+  teams?: TeamInviteInput[];
   phases?: ProgramPhaseInput[];
   syllabusDocumentId?: string | null;
 };
