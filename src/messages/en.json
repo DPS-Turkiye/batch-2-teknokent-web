@@ -3435,8 +3435,13 @@
           "loading": "Loading…",
           "noBadge": {
             "title": "No badge yet",
-            "body": "The Peer Mentor badge is awarded when you complete your program's training. The training will be here soon; until then your program coordinator awards the badge.",
-            "training": "Start the training (soon)"
+            "body": "The Peer Mentor badge is awarded when you pass your program's training (a short video and a 10-question quiz). Your program coordinator can also award it.",
+            "training": "Start the training",
+            "trainingReason": {
+              "loading": "Loading the training…",
+              "notAvailable": "Your program's training isn't published yet.",
+              "unavailable": "The training can't be opened right now."
+            }
           },
           "revoked": {
             "title": "Your badge was taken back",

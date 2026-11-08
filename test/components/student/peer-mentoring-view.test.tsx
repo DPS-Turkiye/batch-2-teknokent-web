@@ -37,6 +37,14 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
 
 const replace = vi.fn();
 let search = "";
+vi.mock("@/lib/client/training", async () => {
+  const { TrainingState } = await import("@/interfaces/training");
+  return {
+    getStudentTraining: vi.fn(async () => ({
+      state: TrainingState.NotAvailable,
+    })),
+  };
+});
 vi.mock("next/navigation", () => ({
   usePathname: () => "/student/peer-mentoring",
   useRouter: () => ({ replace }),
@@ -210,7 +218,7 @@ describe("PeerMentoringView › switch", () => {
     renderWithQueryClient(<PeerMentoringView />);
     expect(screen.getByText("Rozet Yok")).toBeVisible();
     expect(
-      screen.getByRole("button", { name: "Eğitimi başlat (yakında)" }),
+      screen.getByRole("button", { name: "Eğitimi başlat" }),
     ).toBeDisabled();
   });
 
