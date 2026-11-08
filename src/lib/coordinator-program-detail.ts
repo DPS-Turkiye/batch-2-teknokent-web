@@ -1,9 +1,10 @@
 import { clientText } from "@/i18n/client-texts";
-import type {
-  CoordinatorProgramDetail,
-  ProgramPhaseInput,
-  ProgramRules,
-  UpdateProgramDetailsInput,
+import {
+  type CoordinatorProgramDetail,
+  ProgramLifecycle,
+  type ProgramPhaseInput,
+  type ProgramRules,
+  type UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import { formatMonthRange, type ProgramsT } from "@/lib/coordinator-programs";
@@ -40,12 +41,17 @@ export enum SettingsSection {
   Archive = "ARCHIVE",
 }
 
-/** Program Ayarları' sections for a type: only peer programs choose categories. */
-export function settingsSections(type: ProgramType) {
+/** The sections Program Ayarları shows: only peer programs choose categories, and a draft has no Arşiv. */
+export function settingsSections(
+  type: ProgramType,
+  lifecycle: ProgramLifecycle,
+) {
   return Object.values(SettingsSection).filter(
     (section) =>
-      section !== SettingsSection.PeerCategories ||
-      type === ProgramType.PeerMentoring,
+      (section !== SettingsSection.PeerCategories ||
+        type === ProgramType.PeerMentoring) &&
+      (section !== SettingsSection.Archive ||
+        lifecycle !== ProgramLifecycle.Draft),
   );
 }
 

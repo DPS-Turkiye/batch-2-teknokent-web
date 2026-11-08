@@ -3416,7 +3416,8 @@
           "request": "Send a request",
           "requestFrom": "Send a request to {name}",
           "requested": "Your request is waiting",
-          "full": "No places left"
+          "full": "No places left",
+          "noCategories": "Your program has no active peer-mentoring category yet."
         },
         "dialog": {
           "title": "Mentoring with {name}",
@@ -4124,7 +4125,8 @@
     "archiveFailed": "Couldn't archive the program.",
     "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
     "coordinatorsByAdmin": "The admin assigns coordinators.",
-    "type": "Program type"
+    "type": "Program type",
+    "peerCategoriesNote": "Students and peer mentors only see the categories you turn on here. None is on to begin with."
   },
   "programTeams": {
     "filters": {
@@ -5795,7 +5797,8 @@
     "programLaunchFailed": "The program could not be launched.",
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
     "peerCategoriesLoadFailed": "Could not load the categories.",
-    "peerCategoriesSaveFailed": "Could not save the categories."
+    "peerCategoriesSaveFailed": "Could not save the categories.",
+    "peerCategoriesInvalid": "The category list is not valid."
   },
   "startupStart": {
     "title": "My startup",
@@ -6157,11 +6160,11 @@
       "clubs": "Example: Student clubs",
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
-    }
+    },
+    "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on."
   },
   "programPeerCategories": {
     "title": "Peer categories",
-    "note": "Students and peer mentors only see the categories you turn on here. None is on to begin with.",
     "noneActive": "No category is on: students cannot look for mentors and peer mentors cannot pick a category for their profile.",
     "activeCount": "{count, plural, one {# category on} other {# categories on}}",
     "save": "Save categories",

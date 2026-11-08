@@ -184,6 +184,20 @@ describe("PeerMentoringView › Mentorluk Al", () => {
 });
 
 describe("PeerMentoringView › program categories", () => {
+  it("says the program has no active category yet instead of 'no mentors'", async () => {
+    const { getPeerCategories } = await import("@/lib/client/peer-mentoring");
+    const { getPeerMentors } = await import("@/lib/client/peer-mentoring");
+    vi.mocked(getPeerCategories).mockResolvedValueOnce([]);
+    vi.mocked(getPeerMentors).mockResolvedValueOnce([]);
+    renderWithQueryClient(<PeerMentoringView />);
+
+    expect(
+      await screen.findByText(
+        "Programında henüz etkin akran mentörlüğü kategorisi yok.",
+      ),
+    ).toBeInTheDocument();
+  });
+
   it("offers only the program's active categories as filters", async () => {
     const { PeerTopicCategory } = await import("@/interfaces/peer-mentoring");
     const { getPeerCategories } = await import("@/lib/client/peer-mentoring");

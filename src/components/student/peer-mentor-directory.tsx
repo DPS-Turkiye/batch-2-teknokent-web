@@ -65,7 +65,13 @@ export function PeerMentorDirectory() {
       {mentors && mentors.length === 0 ? (
         <EmptyState
           className=""
-          title={directory.filtered ? t("noMatch") : t("empty")}
+          title={
+            directory.noActiveCategories
+              ? t("noCategories")
+              : directory.filtered
+                ? t("noMatch")
+                : t("empty")
+          }
         />
       ) : null}
       {mentors && mentors.length > 0 ? (

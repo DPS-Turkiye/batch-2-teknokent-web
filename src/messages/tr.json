@@ -3416,7 +3416,8 @@
           "request": "Talep gönder",
           "requestFrom": "{name} için talep gönder",
           "requested": "Talebin yanıt bekliyor",
-          "full": "Kontenjan dolu"
+          "full": "Kontenjan dolu",
+          "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok."
         },
         "dialog": {
           "title": "{name} ile mentorluk",
@@ -4124,7 +4125,8 @@
     "archiveFailed": "Program arşivlenemedi.",
     "adminViewNote": "Program ayarlarını programın koordinatörleri yapılandırır; yönetici olarak yalnızca görüntülersin. Koordinatörleri buradan atayabilirsin.",
     "coordinatorsByAdmin": "Koordinatörleri yönetici atar.",
-    "type": "Program türü"
+    "type": "Program türü",
+    "peerCategoriesNote": "Öğrenciler ve akran mentorları yalnızca burada etkinleştirdiğin kategorileri görür. Başlangıçta hiçbiri etkin değildir."
   },
   "programTeams": {
     "filters": {
@@ -5795,7 +5797,8 @@
     "programLaunchFailed": "Program başlatılamadı.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
-    "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi."
+    "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
+    "peerCategoriesInvalid": "Kategori listesi geçersiz."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6157,11 +6160,11 @@
       "clubs": "Örnek: Öğrenci toplulukları",
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
-    }
+    },
+    "noActiveCategories": "Programında henüz etkin kategori yok. Koordinatörün kategorileri açtığında burada seçebilirsin."
   },
   "programPeerCategories": {
     "title": "Akran kategorileri",
-    "note": "Öğrenciler ve akran mentorları yalnızca burada etkinleştirdiğin kategorileri görür. Başlangıçta hiçbiri etkin değildir.",
     "noneActive": "Hiçbir kategori etkin değil: öğrenciler mentor arayamaz, akran mentorları profilinde kategori seçemez.",
     "activeCount": "{count, plural, one {# kategori etkin} other {# kategori etkin}}",
     "save": "Kategorileri kaydet",

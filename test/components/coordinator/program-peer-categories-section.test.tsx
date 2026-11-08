@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ProgramPeerCategoriesSection } from "@/components/coordinator/program-peer-categories-section";
+import { ProgramPeerCategories } from "@/components/coordinator/program-peer-categories-section";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   getProgramPeerCategories,
@@ -15,7 +15,7 @@ vi.mock("@/lib/client/program-peer-categories", () => ({
   replaceProgramPeerCategories: vi.fn(),
 }));
 
-describe("ProgramPeerCategoriesSection", () => {
+describe("ProgramPeerCategories", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getProgramPeerCategories).mockResolvedValue({
@@ -26,7 +26,7 @@ describe("ProgramPeerCategoriesSection", () => {
 
   it("starts with every category off and says what that means", async () => {
     renderWithQueryClient(
-      <ProgramPeerCategoriesSection programId="p1" readOnly={false} />,
+      <ProgramPeerCategories programId="p1" readOnly={false} />,
     );
 
     expect(
@@ -51,7 +51,7 @@ describe("ProgramPeerCategoriesSection", () => {
     });
     const user = userEvent.setup();
     renderWithQueryClient(
-      <ProgramPeerCategoriesSection programId="p1" readOnly={false} />,
+      <ProgramPeerCategories programId="p1" readOnly={false} />,
     );
 
     await user.click(
@@ -82,7 +82,7 @@ describe("ProgramPeerCategoriesSection", () => {
     });
     const user = userEvent.setup();
     renderWithQueryClient(
-      <ProgramPeerCategoriesSection programId="p1" readOnly={false} />,
+      <ProgramPeerCategories programId="p1" readOnly={false} />,
     );
     const campus = await screen.findByRole("checkbox", {
       name: "Üniversite ve Kampüs Yaşamı",
@@ -101,9 +101,7 @@ describe("ProgramPeerCategoriesSection", () => {
       programId: "p1",
       active: [PeerTopicCategory.TechnicalDigital],
     });
-    renderWithQueryClient(
-      <ProgramPeerCategoriesSection programId="p1" readOnly />,
-    );
+    renderWithQueryClient(<ProgramPeerCategories programId="p1" readOnly />);
 
     expect(
       await screen.findByRole("checkbox", {

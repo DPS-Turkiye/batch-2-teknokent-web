@@ -37,6 +37,16 @@ async function open() {
   return user;
 }
 describe("profile completion component and hook", () => {
+  it("explains an empty topic list while the program has no active category", async () => {
+    vi.mocked(getProfileCompletionCategories).mockResolvedValue([]);
+    renderWithQueryClient(<StudentProfileCompletionView />);
+
+    expect(
+      await screen.findByText(/Programında henüz etkin kategori yok/),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  });
+
   it("offers exactly the board's eight categories and completes all three optional steps", async () => {
     const user = await open();
     expect(screen.getAllByRole("checkbox")).toHaveLength(8);

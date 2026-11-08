@@ -22,6 +22,7 @@ import {
   stepDays,
   RULE_LIMITS,
 } from "@/lib/coordinator-program-detail";
+import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 
@@ -253,17 +254,23 @@ describe("program tabs by type", () => {
 });
 
 describe("settings sections by type", () => {
-  it("lists Akran kategorileri only for peer programs, before Arşiv", () => {
-    const peer = settingsSections(ProgramType.PeerMentoring);
+  it("lists Akran kategorileri only for peer programs, before Arşiv, and no Arşiv for a draft", () => {
+    const peer = settingsSections(
+      ProgramType.PeerMentoring,
+      ProgramLifecycle.Active,
+    );
     expect(peer).toContain(SettingsSection.PeerCategories);
     expect(peer.indexOf(SettingsSection.PeerCategories)).toBe(
       peer.indexOf(SettingsSection.Archive) - 1,
     );
-    expect(settingsSections(ProgramType.StartupMentoring)).not.toContain(
-      SettingsSection.PeerCategories,
-    );
-    expect(settingsSections(ProgramType.OfficeHours)).not.toContain(
-      SettingsSection.PeerCategories,
-    );
+    expect(
+      settingsSections(ProgramType.StartupMentoring, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.PeerCategories);
+    expect(
+      settingsSections(ProgramType.OfficeHours, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.PeerCategories);
+    expect(
+      settingsSections(ProgramType.PeerMentoring, ProgramLifecycle.Draft),
+    ).not.toContain(SettingsSection.Archive);
   });
 });

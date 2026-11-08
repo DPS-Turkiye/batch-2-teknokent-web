@@ -84,21 +84,42 @@ describe("peer category routes", () => {
     );
   });
 
-  it("forwards only real category codes when replacing the set", async () => {
+  it("forwards a list of real category codes, an empty one included", async () => {
     vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Coordinator));
-    await replaceCategories(
-      new Request("http://x", {
-        method: "PUT",
-        body: JSON.stringify({
-          categories: [PeerTopicCategory.CampusLife, "NOT_A_CATEGORY", 7],
-        }),
-      }),
-      program,
-    );
-    expect(replaceProgramPeerCategories).toHaveBeenCalledWith(
+    const put = (body: unknown) =>
+      replaceCategories(
+        new Request("http://x", { method: "PUT", body: JSON.stringify(body) }),
+        program,
+      );
+
+    await put({ categories: [PeerTopicCategory.CampusLife] });
+    expect(replaceProgramPeerCategories).toHaveBeenLastCalledWith(
       "COORDINATOR-1",
       "p1",
       [PeerTopicCategory.CampusLife],
     );
+    await put({ categories: [] });
+    expect(replaceProgramPeerCategories).toHaveBeenLastCalledWith(
+      "COORDINATOR-1",
+      "p1",
+      [],
+    );
+  });
+
+  it("refuses a body that is not a list of category codes instead of turning everything off", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue(as(UserRole.Coordinator));
+    for (const body of [
+      {},
+      { categories: PeerTopicCategory.CampusLife },
+      { categories: [PeerTopicCategory.CampusLife, "NOT_A_CATEGORY"] },
+      null,
+    ]) {
+      const response = await replaceCategories(
+        new Request("http://x", { method: "PUT", body: JSON.stringify(body) }),
+        program,
+      );
+      expect(response.status).toBe(400);
+    }
+    expect(replaceProgramPeerCategories).not.toHaveBeenCalled();
   });
 });
