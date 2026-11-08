@@ -11,6 +11,7 @@ import {
   type SessionData,
 } from "@/interfaces/session";
 import { fetchUser } from "@/lib/api/accounts";
+import { permissionsOf, samePermissions } from "@/lib/permissions";
 import {
   currentSessionUser,
   SESSION_MAX_AGE_SECONDS,
@@ -36,6 +37,7 @@ function sessionOptions(persist = false): SessionOptions {
 }
 
 export function toSession(user: BackendUser): AppSession | null {
+  const permissions = permissionsOf(user);
   if (user.role === UserRole.Mentee) {
     // Someone who signed up without a startup has none until they join or create one on /startup.
     return {
@@ -47,6 +49,7 @@ export function toSession(user: BackendUser): AppSession | null {
       organizationId: user.organizationId ?? undefined,
       organizationName: user.organizationName ?? undefined,
       individualMentee: user.individualMentee,
+      permissions,
     };
   }
   if (user.role === UserRole.Mentor) {
@@ -56,6 +59,7 @@ export function toSession(user: BackendUser): AppSession | null {
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Mentor",
       role: UserRole.Mentor,
+      permissions,
     };
   }
   if (user.role === UserRole.Admin) {
@@ -65,6 +69,7 @@ export function toSession(user: BackendUser): AppSession | null {
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Admin",
       role: UserRole.Admin,
+      permissions,
     };
   }
   if (user.role === UserRole.Coordinator) {
@@ -74,6 +79,7 @@ export function toSession(user: BackendUser): AppSession | null {
       fullName: user.fullName,
       jobTitle: user.jobTitle ?? "Koordinatör",
       role: UserRole.Coordinator,
+      permissions,
     };
   }
   return null;
@@ -90,7 +96,7 @@ export const ACCOUNT_RECHECK_MS = 10 * 60 * 1000;
 const ACCOUNT_RECHECK_TIMEOUT_MS = 3000;
 
 /**
- * Whether the account still matches its session: approved, same role and same
+ * Whether the account still matches its session: approved, same role, permissions and
  * organization, and no admin ended its sign-ins after this one began. null when
  * the backend could not answer.
  */
@@ -112,6 +118,7 @@ async function accountStillMatches(user: AppSession, issuedAt: number) {
       (account.status ?? UserAccountStatus.Approved) ===
         UserAccountStatus.Approved &&
       current?.role === user.role &&
+      samePermissions(current, user) &&
       current.organizationId === user.organizationId &&
       !(revokedAt >= issuedAt)
     );

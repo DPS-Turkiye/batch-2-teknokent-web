@@ -111,6 +111,7 @@ describe("toSession", () => {
       fullName: "Ece Demir",
       jobTitle: "Mentor",
       role: UserRole.Mentor,
+      permissions: [UserRole.Mentor],
     });
   });
 
@@ -130,6 +131,7 @@ describe("toSession", () => {
       fullName: "Deniz Arslan",
       jobTitle: "Admin",
       role: UserRole.Admin,
+      permissions: [UserRole.Admin],
     });
   });
 
@@ -149,6 +151,7 @@ describe("toSession", () => {
       fullName: "Deniz Arslan",
       jobTitle: "Koordinatör",
       role: UserRole.Coordinator,
+      permissions: [UserRole.Coordinator],
     });
   });
 });
@@ -259,10 +262,15 @@ describe("getSessionUser account re-check", () => {
     ["back to pending", { status: UserAccountStatus.Pending }],
     ["given another role", { role: UserRole.Mentor }],
     [
+      "given another permission",
+      { permissions: [UserRole.Mentor, UserRole.Mentee] },
+    ],
+    [
       "moved to another organization",
       { organizationId: "20000000-0000-0000-0000-000000000002" },
     ],
     ["left without an organization", { organizationId: null }],
+    ["left without its primary permission", { permissions: [] }],
   ])("signs out an account %s", async (_, overrides) => {
     fetchUser.mockResolvedValue(account(overrides));
 
@@ -270,6 +278,15 @@ describe("getSessionUser account re-check", () => {
 
     expect(savedSession.destroy).toHaveBeenCalledOnce();
     expect(savedSession.save).not.toHaveBeenCalled();
+  });
+
+  it("keeps a cookie issued before permissions existed while the account holds only its role", async () => {
+    const older = { ...signedIn, permissions: undefined };
+    mockIronSession.user = older;
+    fetchUser.mockResolvedValue(account({ permissions: [UserRole.Mentee] }));
+
+    await expect(getSessionUser()).resolves.toEqual(older);
+    expect(savedSession.destroy).not.toHaveBeenCalled();
   });
 
   it("signs out a session that began before an admin ended the account's sign-ins", async () => {

@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
 import { apiText } from "@/lib/server/api-response";
+import { hasPermission } from "@/lib/permissions";
 
 export async function requireAdminSession() {
   const session = await getSessionUser();
@@ -17,7 +18,7 @@ export async function requireAdminSession() {
       ),
     };
   }
-  if (session.role !== UserRole.Admin) {
+  if (!hasPermission(session, UserRole.Admin)) {
     return {
       ok: false as const,
       response: NextResponse.json(

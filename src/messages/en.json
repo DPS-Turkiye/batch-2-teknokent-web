@@ -801,7 +801,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTOR": "Mentor",
-      "MENTEE": "Startup team"
+      "MENTEE": "Startup team",
+      "ACADEMICIAN": "Academician"
     },
     "student": "Student"
   },
@@ -2216,7 +2217,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Academician"
     },
     "about": "About",
     "noBio": "No about text added yet.",
@@ -4500,7 +4502,8 @@
       "ADMIN": "an admin",
       "COORDINATOR": "a coordinator",
       "MENTOR": "a mentor",
-      "MENTEE": "a founder"
+      "MENTEE": "a founder",
+      "ACADEMICIAN": "an academician"
     },
     "userFallback": "a user",
     "candidate": {
