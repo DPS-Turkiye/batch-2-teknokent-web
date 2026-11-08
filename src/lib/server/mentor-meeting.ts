@@ -10,6 +10,7 @@ import {
 } from "@/lib/api/mentor-requests";
 import { fetchRegularMentorships } from "@/lib/api/mentorships";
 import { fetchPrograms } from "@/lib/api/programs";
+import { hasPermission } from "@/lib/permissions";
 import { apiText, backendResponse } from "@/lib/server/api-response";
 import { UserRole, type AppSession } from "@/interfaces/session";
 
@@ -147,10 +148,15 @@ export async function requireMeetingAccess(
   session: AppSession,
   meetingId: string,
 ) {
-  if (session.role === UserRole.Mentor) {
-    return findMeetingIn({ mentorId: session.userId }, meetingId);
+  // By relation, not role: an account that mentors and is on a team reaches its own meetings on both sides.
+  const mentorSide = hasPermission(session, UserRole.Mentor);
+  const teamSide =
+    hasPermission(session, UserRole.Mentee) && Boolean(session.organizationId);
+  if (mentorSide) {
+    const own = await findMeetingIn({ mentorId: session.userId }, meetingId);
+    if (!("error" in own) || !teamSide) return own;
   }
-  if (session.role === UserRole.Mentee) {
+  if (teamSide) {
     return findMeetingIn({ organizationId: session.organizationId }, meetingId);
   }
   return {

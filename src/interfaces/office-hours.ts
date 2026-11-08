@@ -1,10 +1,8 @@
-/** A person's role in an office-hours course, as Moodle gave it on the LTI launch. */
 export enum OfficeHoursRole {
   Instructor = "INSTRUCTOR",
   Student = "STUDENT",
 }
 
-/** Who came in through an LTI launch; kept in the office-hours session cookie. */
 export interface OfficeHoursSessionUser {
   userId: string;
   fullName: string;
@@ -31,7 +29,6 @@ export interface OfficeHoursCourse {
   userFullName: string;
 }
 
-/** Why a launch from Moodle did not open office hours; picks the text on the error page. */
 export enum LtiLaunchError {
   Unavailable = "unavailable",
   Rejected = "rejected",
@@ -48,6 +45,21 @@ export enum OfficeHoursRequestStatus {
   CounterProposed = "COUNTER_PROPOSED",
   Withdrawn = "WITHDRAWN",
 }
+
+/** Still waiting on someone: the student may withdraw these, and they count toward the academic's student limit. */
+export const OPEN_OFFICE_HOURS_REQUEST_STATUSES: ReadonlySet<OfficeHoursRequestStatus> =
+  new Set([
+    OfficeHoursRequestStatus.Pending,
+    OfficeHoursRequestStatus.MoreInfoRequested,
+    OfficeHoursRequestStatus.CounterProposed,
+  ]);
+
+/** The academic answers these; a counter-proposal waits on the student instead. */
+export const DECIDABLE_OFFICE_HOURS_REQUEST_STATUSES: ReadonlySet<OfficeHoursRequestStatus> =
+  new Set([
+    OfficeHoursRequestStatus.Pending,
+    OfficeHoursRequestStatus.MoreInfoRequested,
+  ]);
 
 export enum OfficeHoursMessageType {
   InstructorQuestion = "INSTRUCTOR_QUESTION",

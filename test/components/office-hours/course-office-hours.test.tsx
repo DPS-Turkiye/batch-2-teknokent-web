@@ -90,4 +90,22 @@ describe("CourseOfficeHours", () => {
     ).not.toBeInTheDocument();
     expect(await screen.findByText("Henüz talep yok.")).toBeInTheDocument();
   });
+
+  it("says each list it could not load on its own, and an empty one as empty", async () => {
+    vi.mocked(getCourseInstructors).mockRejectedValue(new Error("down"));
+    renderWithQueryClient(
+      <CourseOfficeHours
+        courseId="course-1"
+        viewer={OfficeHoursRole.Student}
+      />,
+    );
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Yüklenemedi. Sayfayı yenilemeyi dene.",
+    );
+    expect(
+      await screen.findByText("Yaklaşan görüşme yok."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Henüz talep yok.")).toBeInTheDocument();
+  });
 });

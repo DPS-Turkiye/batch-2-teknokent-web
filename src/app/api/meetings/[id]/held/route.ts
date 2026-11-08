@@ -8,6 +8,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -17,7 +18,7 @@ type RouteContext = {
 async function setHeld(context: RouteContext, held: boolean) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentor) {
+    if (!session || !hasPermission(session, UserRole.Mentor)) {
       return Response.json(
         {
           code: "FORBIDDEN",

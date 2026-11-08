@@ -7,10 +7,68 @@ import { OfficeHoursAvailabilityDialog } from "@/components/office-hours/office-
 import { useOfficeHoursAvailability } from "@/hooks/use-office-hours-availability";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 
-/**
- * An academic's own page, where they set their office hours the way a mentor sets availability on their
- * profile: an "edit availability" button and an availability card with the weekly hours.
- */
+type AvailabilityRow = ReturnType<typeof weeklyAvailabilityRows>[number];
+
+function AcademicProfileErrorStateView() {
+  const t = useTranslations("officeHours.profile");
+  return (
+    <p role="alert" className="mt-3 text-sm text-[#a65a15]">
+      {t("loadFailed")}
+    </p>
+  );
+}
+
+function AcademicProfileLoadingStateView() {
+  const t = useTranslations("officeHours.profile");
+  return <p className="mt-3 text-sm text-[#858c96]">{t("loading")}</p>;
+}
+
+function AcademicProfileEmptyStateView() {
+  const t = useTranslations("officeHours.profile");
+  return <p className="mt-3 text-sm text-[#858c96]">{t("empty")}</p>;
+}
+
+function AcademicProfileAvailabilityListView({
+  rows,
+}: {
+  rows: AvailabilityRow[];
+}) {
+  return (
+    <dl className="mt-3 flex flex-col gap-2">
+      {rows.map((row) => (
+        <div
+          key={row.label}
+          className="flex items-baseline justify-between gap-3 text-[12.5px]"
+        >
+          <dt className="text-[#676e78]">{row.label}</dt>
+          <dd
+            className={
+              row.muted ? "text-[#858c96]" : "font-medium text-[#22262b]"
+            }
+          >
+            {row.value}
+          </dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+function AcademicProfileAvailabilityView({
+  failed,
+  loading,
+  rows,
+}: {
+  failed: boolean;
+  loading: boolean;
+  rows: AvailabilityRow[];
+}) {
+  if (failed) return <AcademicProfileErrorStateView />;
+  if (loading) return <AcademicProfileLoadingStateView />;
+  if (rows.length === 0) return <AcademicProfileEmptyStateView />;
+  return <AcademicProfileAvailabilityListView rows={rows} />;
+}
+
 export function AcademicProfileView({ fullName }: { fullName: string }) {
   const t = useTranslations("officeHours.profile");
   const tOptions = useTranslations("options");
@@ -57,38 +115,16 @@ export function AcademicProfileView({ fullName }: { fullName: string }) {
         <p className="mt-2 text-xs leading-[19px] text-[#676e78]">
           {t("weekly")}
         </p>
-        {availability.error ? (
-          <p role="alert" className="mt-3 text-sm text-[#a65a15]">
-            {t("loadFailed")}
-          </p>
-        ) : availability.isLoading ? (
-          <p className="mt-3 text-sm text-[#858c96]">{t("loading")}</p>
-        ) : rows.length === 0 ? (
-          <p className="mt-3 text-sm text-[#858c96]">{t("empty")}</p>
-        ) : (
-          <dl className="mt-3 flex flex-col gap-2">
-            {rows.map((row) => (
-              <div
-                key={row.label}
-                className="flex items-baseline justify-between gap-3 text-[12.5px]"
-              >
-                <dt className="text-[#676e78]">{row.label}</dt>
-                <dd
-                  className={
-                    row.muted ? "text-[#858c96]" : "font-medium text-[#22262b]"
-                  }
-                >
-                  {row.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
-        )}
+        <AcademicProfileAvailabilityView
+          failed={Boolean(availability.error)}
+          loading={availability.isLoading}
+          rows={rows}
+        />
       </section>
 
-      {editing ? (
+      {editing && (
         <OfficeHoursAvailabilityDialog onClose={() => setEditing(false)} />
-      ) : null}
+      )}
     </>
   );
 }

@@ -14,10 +14,6 @@ import {
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
 
-/**
- * Up to three times, picked from open slots or typed in, the way a mentee picks times for a mentor. Used by the
- * student's request and the academic's counter-proposal.
- */
 export function PreferredTimesPicker({
   slots,
   value,
@@ -46,9 +42,10 @@ export function PreferredTimesPicker({
         {t("availability")}
       </h3>
       <p className="mt-1 text-xs text-[#858c96]">{t("nextDays")}</p>
-      {columns.length === 0 ? (
+      {columns.length === 0 && (
         <p className="mt-3 text-sm text-[#676e78]">{t("noSlots")}</p>
-      ) : (
+      )}
+      {columns.length > 0 && (
         <div className="mt-3 flex gap-2 overflow-x-auto">
           {columns.map((column, index) => (
             <div

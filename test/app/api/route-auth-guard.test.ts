@@ -5,9 +5,12 @@ import { describe, expect, it } from "vitest";
 
 const API_DIR = path.resolve(__dirname, "../../../src/app/api");
 
-// getOfficeHoursUser is the office-hours session, which the LTI launch from Moodle signs into.
+// The office-hours readers are the session the LTI launch from Moodle signs into.
 const AUTH_CHECK =
-  /\b(getSession\w*|getOfficeHoursUser|require\w*Session|readBearerToken)\s*\(/;
+  /\b(getSession\w*|getOfficeHoursUser|requireOfficeHoursUser|require\w*Session|readBearerToken)\s*\(/;
+// allowlistedProxy cannot be built without requireUserId, so its handlers are guarded when it is passed.
+const PROXY_HANDLERS =
+  /^export\s+const\s+\{([^}]+)\}\s*=\s*allowlistedProxy\b[\s\S]*?\brequireUserId:/m;
 const HANDLER =
   /^export\s+(?:async\s+)?function\s+(GET|POST|PUT|PATCH|DELETE)\b/;
 
@@ -15,6 +18,10 @@ const HANDLER =
 const PUBLIC_HANDLERS = new Set([
   "auth/password-reset/route.ts POST",
   "health/route.ts GET",
+  // Signing in through an institution happens before there is a session; the backend verifies the login.
+  "institution-login/[provider]/complete/route.ts POST",
+  "institution-login/[provider]/start/route.ts POST",
+  "institution-login/dev-personas/route.ts GET",
   "programs/names/route.ts GET",
   "session/route.ts DELETE",
 ]);
@@ -56,16 +63,21 @@ function isGuarded(
 }
 
 const handlers = routes.flatMap((route) => {
-  const functions = functionsOf(
-    readFileSync(path.join(API_DIR, route), "utf8"),
-  );
+  const source = readFileSync(path.join(API_DIR, route), "utf8");
+  const functions = functionsOf(source);
+  const proxied = (PROXY_HANDLERS.exec(source)?.[1] ?? "")
+    .split(",")
+    .map((name) => name.trim())
+    .filter(Boolean)
+    .map((method) => ({ id: `${route} ${method}`, guarded: true }));
   return [...functions.values()]
     .map((body) => HANDLER.exec(body)?.[1] ?? null)
     .filter((method): method is string => method !== null)
     .map((method) => ({
       id: `${route} ${method}`,
       guarded: isGuarded(method, functions),
-    }));
+    }))
+    .concat(proxied);
 });
 
 describe("API route auth guard", () => {
@@ -78,6 +90,13 @@ describe("API route auth guard", () => {
       .filter(({ id, guarded }) => !guarded && !PUBLIC_HANDLERS.has(id))
       .map(({ id }) => id);
     expect(unguarded).toEqual([]);
+  });
+
+  it("sees the handlers an allowlisted proxy builds", () => {
+    const ids = handlers.map(({ id }) => id);
+    expect(ids).toContain(
+      "office-hours/courses/[courseId]/[...path]/route.ts POST",
+    );
   });
 
   it("lists only public handlers that still exist", () => {

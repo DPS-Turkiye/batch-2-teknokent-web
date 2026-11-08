@@ -69,7 +69,31 @@
     "submitting": "Signing in…",
     "newHere": "New to Menton?",
     "signUp": "Sign up",
-    "invite": "Got an invitation? Continue with your invite code"
+    "invite": "Got an invitation? Continue with your invite code",
+    "odtu": "Sign in with your METU account"
+  },
+  "workspaceSwitch": {
+    "label": "Workspace",
+    "names": {
+      "ADMIN": "Administration",
+      "COORDINATOR": "Coordinator",
+      "ODTU_ACADEMICIAN": "Academician",
+      "ODTU_STUDENT": "METU student",
+      "GIRISIM_MENTOR": "Startups · Mentor",
+      "GIRISIM_MENTEE": "Startups"
+    }
+  },
+  "odtuDevLogin": {
+    "title": "METU test sign-in",
+    "intro": "Pick a test person for local development. This page goes away once METU's real sign-in arrives.",
+    "loading": "Loading test people…",
+    "empty": "No test people found. Is INSTITUTION_LOGIN_DEV_STUB on in the backend?",
+    "signingIn": "Signing in…",
+    "kinds": {
+      "STUDENT": "Student",
+      "ACADEMIC": "Academician",
+      "STAFF": "Staff"
+    }
   },
   "auth": {
     "firstName": "First name",
@@ -801,7 +825,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTOR": "Mentor",
-      "MENTEE": "Startup team"
+      "MENTEE": "Startup team",
+      "ACADEMICIAN": "Academician"
     },
     "student": "Student"
   },
@@ -2216,7 +2241,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Academician"
     },
     "about": "About",
     "noBio": "No about text added yet.",
@@ -4500,7 +4526,8 @@
       "ADMIN": "an admin",
       "COORDINATOR": "a coordinator",
       "MENTOR": "a mentor",
-      "MENTEE": "a founder"
+      "MENTEE": "a founder",
+      "ACADEMICIAN": "an academician"
     },
     "userFallback": "a user",
     "candidate": {
@@ -5303,6 +5330,11 @@
     }
   },
   "apiErrors": {
+    "workspaceNotAvailable": "This account cannot open that workspace.",
+    "workspaceSwitchFailed": "Could not switch the workspace.",
+    "institutionUnknown": "You cannot sign in through this institution.",
+    "institutionLoginFailed": "The institution sign-in could not be completed. Please try again.",
+    "institutionRecordLoadFailed": "Could not load your institution details.",
     "eligibleEmailsLoadFailed": "Could not load the list.",
     "eligibleEmailsSaveFailed": "Could not update the list.",
     "platformFeedbackInvalid": "Check the feedback details and try again.",
@@ -5545,7 +5577,8 @@
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
-    "programLaunchFailed": "The program could not be launched."
+    "programLaunchFailed": "The program could not be launched.",
+    "invalidRequestBody": "The request body could not be read."
   },
   "startupStart": {
     "title": "My startup",
@@ -5873,6 +5906,41 @@
     "filteredEmpty": "No appointments with this status.",
     "place": "Place: {place}",
     "alternative": "Proposed alternative (not yet confirmed)"
+  },
+  "studentProfileCompletion": {
+    "title": "Complete your profile",
+    "fixtureNotice": "This screen uses sample data. Choices are kept only in this browser session and reset on reload. Your live profile is not updated.",
+    "loading": "Loading profile…",
+    "loadError": "Profile could not be loaded.",
+    "retry": "Try again",
+    "saved": "Sample profile completed. Nothing was saved to your live account.",
+    "skipped": "Skipped for now. You can complete your profile later.",
+    "home": "Back to home",
+    "step": "Step {number} / 3",
+    "steps": {
+      "0": "Your interests",
+      "1": "Subtopics",
+      "2": "Your goal (optional)"
+    },
+    "subtopicNotice": "TEST UI: These subtopics are examples only. The production subtopic list has not been agreed.",
+    "noTopics": "No interests selected. Go back or continue without a selection.",
+    "goal": "Your goal (optional, up to 1000 characters)",
+    "saveError": "The sample profile could not be saved. Please try again.",
+    "back": "Back",
+    "next": "Continue",
+    "finish": "Complete sample profile",
+    "saving": "Saving…",
+    "skip": "Skip for now",
+    "subtopics": {
+      "study": "Example: Study skills",
+      "cv": "Example: CV preparation",
+      "code": "Example: Programming",
+      "methods": "Example: Research methods",
+      "project": "Example: Project ideas",
+      "clubs": "Example: Student clubs",
+      "time": "Example: Time management",
+      "exchange": "Example: Exchange programmes"
+    }
   },
   "officeHours": {
     "title": "Office hours",

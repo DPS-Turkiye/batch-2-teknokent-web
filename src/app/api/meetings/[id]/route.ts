@@ -13,6 +13,7 @@ import {
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -37,7 +38,7 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
 export async function DELETE(_request: NextRequest, context: RouteContext) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentor) {
+    if (!session || !hasPermission(session, UserRole.Mentor)) {
       return Response.json(
         {
           code: "FORBIDDEN",

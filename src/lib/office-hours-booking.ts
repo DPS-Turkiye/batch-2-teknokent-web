@@ -1,5 +1,9 @@
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
-import type { OfficeHoursSlot } from "@/interfaces/office-hours";
+import {
+  OfficeHoursRole,
+  type OfficeHoursPerson,
+  type OfficeHoursSlot,
+} from "@/interfaces/office-hours";
 import {
   formatPreferredSlot,
   parsePreferredSlotMachineValue,
@@ -7,7 +11,20 @@ import {
   slotFromStartsAt,
 } from "@/lib/mentor-availability-days";
 
-/** Office-hours slots in the shape the mentor slot columns read. */
+// A Record, so a new role fails to compile until it says whom it meets.
+const COUNTERPART: Record<OfficeHoursRole, "student" | "instructor"> = {
+  [OfficeHoursRole.Instructor]: "student",
+  [OfficeHoursRole.Student]: "instructor",
+};
+
+export function counterpartOf(
+  viewer: OfficeHoursRole,
+  sides: { student: OfficeHoursPerson; instructor: OfficeHoursPerson },
+) {
+  return sides[COUNTERPART[viewer]];
+}
+
+// The mentor slot columns are reused for office hours, so the slots take their shape.
 export function asAvailabilitySlots(
   slots: readonly OfficeHoursSlot[],
 ): MentorAvailabilitySlot[] {
@@ -19,13 +36,11 @@ export function asAvailabilitySlots(
   }));
 }
 
-/** "2026-11-24T14:00" → "24 Kasım Salı · 14:00"; the raw value when it can't be read. */
 export function slotLabel(machine: string, locale: string) {
   const slot = parsePreferredSlotMachineValue(machine);
   return (slot && formatPreferredSlot(slot, locale)) || machine;
 }
 
-/** An instant as the same machine value requests carry. */
 export function machineSlotFromInstant(startsAt: string) {
   return preferredSlotMachineValue(slotFromStartsAt(startsAt));
 }

@@ -69,7 +69,31 @@
     "submitting": "Giriş yapılıyor…",
     "newHere": "Menton’a yeni misin?",
     "signUp": "Kayıt Ol",
-    "invite": "Bir davet aldın mı? Davet kodunla devam et"
+    "invite": "Bir davet aldın mı? Davet kodunla devam et",
+    "odtu": "ODTÜ Hesabıyla Giriş Yap"
+  },
+  "workspaceSwitch": {
+    "label": "Çalışma alanı",
+    "names": {
+      "ADMIN": "Yönetim",
+      "COORDINATOR": "Koordinatör",
+      "ODTU_ACADEMICIAN": "Akademisyen",
+      "ODTU_STUDENT": "ODTÜ Öğrenci",
+      "GIRISIM_MENTOR": "Girişim · Mentor",
+      "GIRISIM_MENTEE": "Girişim"
+    }
+  },
+  "odtuDevLogin": {
+    "title": "ODTÜ test girişi",
+    "intro": "Yerel geliştirme için bir test kişisi seç. ODTÜ'nün gerçek girişi gelince bu sayfa kalkar.",
+    "loading": "Test kişileri yükleniyor…",
+    "empty": "Test kişisi bulunamadı. Backend'de INSTITUTION_LOGIN_DEV_STUB açık mı?",
+    "signingIn": "Giriş yapılıyor…",
+    "kinds": {
+      "STUDENT": "Öğrenci",
+      "ACADEMIC": "Akademisyen",
+      "STAFF": "Personel"
+    }
   },
   "auth": {
     "firstName": "Ad",
@@ -801,7 +825,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Koordinatör",
       "MENTOR": "Mentor",
-      "MENTEE": "Girişim Ekibi"
+      "MENTEE": "Girişim Ekibi",
+      "ACADEMICIAN": "Akademisyen"
     },
     "student": "Öğrenci"
   },
@@ -2216,7 +2241,8 @@
       "ADMIN": "Yönetici",
       "COORDINATOR": "Koordinatör",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Akademisyen"
     },
     "about": "Hakkımda",
     "noBio": "Henüz hakkında bilgisi eklenmedi.",
@@ -4500,7 +4526,8 @@
       "ADMIN": "yönetici",
       "COORDINATOR": "koordinatör",
       "MENTOR": "mentor",
-      "MENTEE": "girişimci"
+      "MENTEE": "girişimci",
+      "ACADEMICIAN": "akademisyen"
     },
     "userFallback": "kullanıcı",
     "candidate": {
@@ -5303,6 +5330,11 @@
     }
   },
   "apiErrors": {
+    "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
+    "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
+    "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
+    "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
+    "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
     "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",
@@ -5545,7 +5577,8 @@
     "approvalsLoadFailed": "Onaylar yüklenemedi.",
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
-    "programLaunchFailed": "Program başlatılamadı."
+    "programLaunchFailed": "Program başlatılamadı.",
+    "invalidRequestBody": "İstek gövdesi okunamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -5873,6 +5906,41 @@
     "filteredEmpty": "Bu durumda randevun yok.",
     "place": "Yer: {place}",
     "alternative": "Önerilen alternatif (henüz onaylanmadı)"
+  },
+  "studentProfileCompletion": {
+    "title": "Profilini tamamla",
+    "fixtureNotice": "Bu ekran örnek verilerle çalışır. Seçimler yalnızca bu tarayıcı oturumunda tutulur; sayfa yenilenince sıfırlanır. Canlı profil kaydı yapılmaz.",
+    "loading": "Profil yükleniyor…",
+    "loadError": "Profil yüklenemedi.",
+    "retry": "Tekrar dene",
+    "saved": "Örnek profil tamamlandı. Canlı hesabına kaydedilmedi.",
+    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
+    "home": "Ana sayfaya dön",
+    "step": "Adım {number} / 3",
+    "steps": {
+      "0": "İlgi alanların",
+      "1": "Alt konular",
+      "2": "Hedefin (isteğe bağlı)"
+    },
+    "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
+    "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
+    "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
+    "saveError": "Örnek profil kaydedilemedi. Tekrar deneyebilirsin.",
+    "back": "Geri",
+    "next": "Devam et",
+    "finish": "Örnek profili tamamla",
+    "saving": "Kaydediliyor…",
+    "skip": "Şimdilik atla",
+    "subtopics": {
+      "study": "Örnek: Ders çalışma",
+      "cv": "Örnek: CV hazırlama",
+      "code": "Örnek: Programlama",
+      "methods": "Örnek: Araştırma yöntemleri",
+      "project": "Örnek: Proje fikri",
+      "clubs": "Örnek: Öğrenci toplulukları",
+      "time": "Örnek: Zaman yönetimi",
+      "exchange": "Örnek: Değişim programları"
+    }
   },
   "officeHours": {
     "title": "Ofis saatleri",

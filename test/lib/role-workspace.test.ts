@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { UserRole, type AppSession } from "@/interfaces/session";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { roleWorkspace, workspaceForSession } from "@/lib/role-workspace";
 
 function session(
@@ -49,5 +49,34 @@ describe("workspaceForSession", () => {
       "/coordinator",
     );
     expect(workspaceForSession(null).homeHref).toBe("/dashboard");
+  });
+});
+
+describe("ODTÜ workspaces", () => {
+  it("sends an ODTÜ student to the student workspace, even one who also mentors", () => {
+    expect(
+      workspaceForSession(
+        session(UserRole.Mentee, {
+          institutionKinds: [IdentityKind.Student],
+          permissions: [UserRole.Mentee, UserRole.Mentor],
+        }),
+      ).homeHref,
+    ).toBe("/student");
+  });
+
+  it("sends an academician (and a research assistant) to the academician workspace", () => {
+    expect(
+      workspaceForSession(
+        session(UserRole.Academician, {
+          institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+        }),
+      ).homeHref,
+    ).toBe("/academician");
+  });
+
+  it("keeps a Teknokent mentee on the Girişim dashboard", () => {
+    expect(workspaceForSession(session(UserRole.Mentee)).homeHref).toBe(
+      "/dashboard",
+    );
   });
 });

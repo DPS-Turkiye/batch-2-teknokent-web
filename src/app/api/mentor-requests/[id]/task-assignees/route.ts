@@ -6,6 +6,7 @@ import { fetchTaskAssignees } from "@/lib/api/mentor-task-assignment";
 import { apiErrorResponse, backendResponse } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 
 export async function GET(
   _request: NextRequest,
@@ -15,7 +16,7 @@ export async function GET(
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
-    if (session.role !== UserRole.Mentor) {
+    if (!hasPermission(session, UserRole.Mentor)) {
       return NextResponse.json(
         { code: "FORBIDDEN", message: t("forbidden") },
         { status: 403 },

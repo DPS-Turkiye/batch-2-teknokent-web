@@ -6,10 +6,10 @@ import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-avail
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { useOfficeHoursAvailabilityForm } from "@/hooks/use-office-hours-availability";
 
+// globals.css gives buttons `font: inherit` outside any layer, so their type sizes need `!` to take effect.
 const pillButtonClass =
   "rounded-full px-[18px] py-2.5 text-[12.5px]! font-medium! leading-[19px]!";
 
-/** "Müsaitliği düzenle" for an academic: the shared weekly availability editor in the mentor dialog's frame. */
 export function OfficeHoursAvailabilityDialog({
   onClose,
 }: {

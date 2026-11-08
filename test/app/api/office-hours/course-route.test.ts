@@ -5,31 +5,34 @@ import {
   GET,
   POST,
 } from "@/app/api/office-hours/courses/[courseId]/[...path]/route";
-import { officeHoursCourseRequest } from "@/lib/api/lti";
-import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { backendRequest } from "@/lib/server/backend-client";
+import { requireOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
-vi.mock("@/lib/api/lti", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/lib/api/lti")>();
-  return { ...actual, officeHoursCourseRequest: vi.fn() };
-});
+vi.mock("@/lib/server/backend-client", () => ({ backendRequest: vi.fn() }));
 vi.mock("@/lib/server/office-hours-session", () => ({
-  getOfficeHoursUser: vi.fn(),
+  requireOfficeHoursUser: vi.fn(),
 }));
 
 const REQUEST_ID = "3f1c2a8e-0b7d-4e55-9a1f-2c3d4e5f6a7b";
+const BACKEND = "/api/office-hours/users/user-1/courses/course-1";
 
 function params(path: string[]) {
   return { params: Promise.resolve({ courseId: "course-1", path }) };
 }
 
+function post(body: string) {
+  return new NextRequest("http://localhost", { method: "POST", body });
+}
+
 describe("office-hours course route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getOfficeHoursUser).mockResolvedValue({
+    vi.mocked(requireOfficeHoursUser).mockResolvedValue({
       userId: "user-1",
       fullName: "Ayşe Yılmaz",
     });
-    vi.mocked(officeHoursCourseRequest).mockResolvedValue({
+    vi.mocked(backendRequest).mockResolvedValue({
       status: 200,
       headers: {},
       data: [],
@@ -43,31 +46,34 @@ describe("office-hours course route", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(officeHoursCourseRequest).toHaveBeenCalledWith(
-      "user-1",
-      "course-1",
-      "requests",
-      "GET",
-      undefined,
-    );
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "GET",
+      url: `${BACKEND}/requests`,
+      data: undefined,
+    });
   });
 
   it("posts an action on a request with its body", async () => {
     await POST(
-      new NextRequest("http://localhost", {
-        method: "POST",
-        body: JSON.stringify({ slot: "2026-11-12T10:30" }),
-      }),
+      post(JSON.stringify({ slot: "2026-11-12T10:30" })),
       params(["requests", REQUEST_ID, "accept-proposed"]),
     );
 
-    expect(officeHoursCourseRequest).toHaveBeenCalledWith(
-      "user-1",
-      "course-1",
-      `requests/${REQUEST_ID}/accept-proposed`,
-      "POST",
-      { slot: "2026-11-12T10:30" },
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: "POST",
+      url: `${BACKEND}/requests/${REQUEST_ID}/accept-proposed`,
+      data: { slot: "2026-11-12T10:30" },
+    });
+  });
+
+  it("answers a body that is not JSON with a 400", async () => {
+    const response = await POST(
+      post("{not json"),
+      params(["requests", REQUEST_ID, "withdraw"]),
     );
+
+    expect(response.status).toBe(400);
+    expect(backendRequest).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -81,11 +87,13 @@ describe("office-hours course route", () => {
     );
 
     expect(response.status).toBe(404);
-    expect(officeHoursCourseRequest).not.toHaveBeenCalled();
+    expect(backendRequest).not.toHaveBeenCalled();
   });
 
   it("needs an office-hours session", async () => {
-    vi.mocked(getOfficeHoursUser).mockResolvedValue(null);
+    vi.mocked(requireOfficeHoursUser).mockRejectedValue(
+      new SessionRequiredError(),
+    );
 
     const response = await GET(
       new NextRequest("http://localhost"),
@@ -93,6 +101,6 @@ describe("office-hours course route", () => {
     );
 
     expect(response.status).toBe(401);
-    expect(officeHoursCourseRequest).not.toHaveBeenCalled();
+    expect(backendRequest).not.toHaveBeenCalled();
   });
 });

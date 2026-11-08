@@ -1,26 +1,12 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useState } from "react";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { PreferredTimesPicker } from "@/components/office-hours/preferred-times-picker";
-import { useToast } from "@/components/providers/toast-provider";
-import {
-  useCreateOfficeHoursRequest,
-  useInstructorSlots,
-} from "@/hooks/use-office-hours-booking";
+import { useOfficeHoursRequestForm } from "@/hooks/use-office-hours-request-form";
 import type { OfficeHoursPerson } from "@/interfaces/office-hours";
-import {
-  emptyPreferredSlots,
-  hasPreferredSlots,
-  isValidPreferredSlot,
-  preferredSlotMachineValue,
-} from "@/lib/mentor-availability-days";
-import { asAvailabilitySlots } from "@/lib/office-hours-booking";
-import { errorMessage } from "@/lib/utils";
 
-/** The student's request to an academic: what about, and up to three times, as a mentee asks a mentor. */
 export function OfficeHoursRequestDialog({
   courseId,
   instructor,
@@ -31,39 +17,7 @@ export function OfficeHoursRequestDialog({
   onClose: () => void;
 }) {
   const t = useTranslations("officeHours.booking.dialog");
-  const { showToast } = useToast();
-  const slotsQuery = useInstructorSlots(courseId, instructor.id);
-  const createRequest = useCreateOfficeHoursRequest(courseId);
-  const [topic, setTopic] = useState("");
-  const [outcome, setOutcome] = useState("");
-  const [preferredSlots, setPreferredSlots] = useState(emptyPreferredSlots);
-  const [error, setError] = useState("");
-
-  async function send() {
-    if (!topic.trim()) {
-      setError(t("needTopic"));
-      return;
-    }
-    if (!hasPreferredSlots(preferredSlots)) {
-      setError(t("needSlots"));
-      return;
-    }
-    setError("");
-    try {
-      await createRequest.mutateAsync({
-        instructorId: instructor.id,
-        topic: topic.trim(),
-        expectedOutcome: outcome.trim() || undefined,
-        preferredSlots: preferredSlots
-          .filter(isValidPreferredSlot)
-          .map(preferredSlotMachineValue),
-      });
-      showToast({ message: t("sent"), tone: "success" });
-      onClose();
-    } catch (sendError) {
-      setError(errorMessage(sendError, t("needSlots")));
-    }
-  }
+  const form = useOfficeHoursRequestForm(courseId, instructor, onClose);
 
   return (
     <ModalDialog
@@ -92,8 +46,8 @@ export function OfficeHoursRequestDialog({
             {t("topic")}
           </span>
           <textarea
-            value={topic}
-            onChange={(event) => setTopic(event.target.value)}
+            value={form.topic}
+            onChange={(event) => form.setTopic(event.target.value)}
             placeholder={t("topicPlaceholder")}
             maxLength={2000}
             className="mt-2 min-h-[64px] w-full rounded-lg border border-[#d4d8dd] px-3 py-2.5 text-sm text-[#22262b] outline-none placeholder:text-[#858c96]"
@@ -104,32 +58,32 @@ export function OfficeHoursRequestDialog({
             {t("outcome")}
           </span>
           <textarea
-            value={outcome}
-            onChange={(event) => setOutcome(event.target.value)}
+            value={form.outcome}
+            onChange={(event) => form.setOutcome(event.target.value)}
             placeholder={t("outcomePlaceholder")}
             maxLength={2000}
             className="mt-2 min-h-[48px] w-full rounded-lg border border-[#d4d8dd] px-3 py-2.5 text-sm text-[#22262b] outline-none placeholder:text-[#858c96]"
           />
         </label>
         <PreferredTimesPicker
-          slots={asAvailabilitySlots(slotsQuery.data ?? [])}
-          value={preferredSlots}
-          onChange={setPreferredSlots}
+          slots={form.slots}
+          value={form.preferredSlots}
+          onChange={form.setPreferredSlots}
         />
-        {error ? (
+        {form.error && (
           <p role="alert" className="text-sm text-[#b42318]">
-            {error}
+            {form.error}
           </p>
-        ) : null}
+        )}
       </div>
       <footer className="flex justify-end border-t border-[#eceef0] px-6 py-4">
         <button
           type="button"
-          onClick={() => void send()}
-          disabled={createRequest.isPending}
+          onClick={() => void form.send()}
+          disabled={form.isSending}
           className="rounded-full bg-[#e86f22] px-5 py-2.5 text-[13px] font-medium text-white hover:bg-[#ce5e19] disabled:bg-[#c9cdd2]"
         >
-          {createRequest.isPending ? t("sending") : t("send")}
+          {form.isSending ? t("sending") : t("send")}
         </button>
       </footer>
     </ModalDialog>

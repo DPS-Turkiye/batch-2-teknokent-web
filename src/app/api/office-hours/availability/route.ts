@@ -16,13 +16,11 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import type { BackendResponse } from "@/lib/server/backend-client";
-import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { requireOfficeHoursUser } from "@/lib/server/office-hours-session";
 
-/** The signed-in academic's own office hours, in the shape the availability editor reads. */
 export async function GET() {
-  const user = await getOfficeHoursUser();
-  if (!user) return sessionMissing();
   try {
+    const user = await requireOfficeHoursUser();
     return editorResponse(await fetchOfficeHoursAvailability(user.userId));
   } catch (error) {
     return apiErrorResponse(error, {
@@ -32,9 +30,8 @@ export async function GET() {
 }
 
 export async function PUT(request: NextRequest) {
-  const user = await getOfficeHoursUser();
-  if (!user) return sessionMissing();
   try {
+    const user = await requireOfficeHoursUser();
     const payload =
       (await request.json()) as UpdateMentorAvailabilitySettingsPayload;
     return editorResponse(
@@ -52,11 +49,4 @@ function editorResponse(
 ) {
   if (response.status !== 200) return backendResponse(response);
   return NextResponse.json(toEditorSettings(response.data as never));
-}
-
-async function sessionMissing() {
-  return NextResponse.json(
-    { code: "SESSION_REQUIRED", message: await apiText("sessionMissing") },
-    { status: 401 },
-  );
 }

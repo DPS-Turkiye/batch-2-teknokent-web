@@ -9,7 +9,6 @@ export async function generateMetadata() {
   return { title: t("title") };
 }
 
-/** Why office hours did not open, with the one thing the person can do about it: start again from Moodle. */
 export default async function OfficeHoursLaunchErrorPage({
   searchParams,
 }: {
