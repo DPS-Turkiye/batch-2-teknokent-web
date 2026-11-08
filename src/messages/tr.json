@@ -72,6 +72,17 @@
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap"
   },
+  "workspaceSwitch": {
+    "label": "Çalışma alanı",
+    "names": {
+      "ADMIN": "Yönetim",
+      "COORDINATOR": "Koordinatör",
+      "ODTU_ACADEMICIAN": "Akademisyen",
+      "ODTU_STUDENT": "ODTÜ Öğrenci",
+      "GIRISIM_MENTOR": "Girişim · Mentor",
+      "GIRISIM_MENTEE": "Girişim"
+    }
+  },
   "odtuDevLogin": {
     "title": "ODTÜ test girişi",
     "intro": "Yerel geliştirme için bir test kişisi seç. ODTÜ'nün gerçek girişi gelince bu sayfa kalkar.",
@@ -5319,6 +5330,8 @@
     }
   },
   "apiErrors": {
+    "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
+    "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
     "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
     "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
     "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",

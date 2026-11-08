@@ -10,8 +10,10 @@ import {
   type AppSession,
   type SessionData,
 } from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
 import { fetchUser } from "@/lib/api/accounts";
 import { permissionsOf, samePermissions } from "@/lib/permissions";
+import { isWorkspace, workspacesOf } from "@/lib/workspaces";
 import {
   currentSessionUser,
   SESSION_MAX_AGE_SECONDS,
@@ -65,6 +67,37 @@ export function toSession(user: BackendUser): AppSession | null {
     session.individualMentee = user.individualMentee;
   }
   return session;
+}
+
+/** The workspace last switched to, kept past sign-out so the next sign-in opens it again. */
+export const LAST_WORKSPACE_COOKIE = "menton_last_workspace";
+const LAST_WORKSPACE_MAX_AGE_SECONDS = 60 * 60 * 24 * 180;
+
+export async function lastWorkspace(): Promise<Workspace | undefined> {
+  const saved = (await cookies()).get(LAST_WORKSPACE_COOKIE)?.value;
+  return isWorkspace(saved) ? saved : undefined;
+}
+
+/**
+ * Switches the signed-in session to `workspace` if the account can open it. Only the cookie changes: every backend
+ * call still checks the account's own permissions, so a switch never widens what the account may do.
+ */
+export async function switchSessionWorkspace(
+  workspace: Workspace,
+): Promise<AppSession | null> {
+  const session = await getSessionStore();
+  const user = currentSessionUser(session);
+  if (!user || !workspacesOf(user).includes(workspace)) return null;
+  session.updateConfig(sessionOptions(session.persist === true));
+  session.user = { ...user, activeWorkspace: workspace };
+  await session.save();
+  (await cookies()).set(LAST_WORKSPACE_COOKIE, workspace, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    maxAge: LAST_WORKSPACE_MAX_AGE_SECONDS,
+  });
+  return session.user;
 }
 
 export async function getSessionStore(persist = false) {

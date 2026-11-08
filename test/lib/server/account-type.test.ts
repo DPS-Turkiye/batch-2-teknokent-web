@@ -16,14 +16,14 @@ vi.mock("next/headers", () => ({
 }));
 vi.mock("@/lib/session", () => ({ getSessionStore: vi.fn() }));
 
-function signedIn(institutionKinds?: IdentityKind[]) {
+function signedIn(institutionKinds?: IdentityKind[], role = UserRole.Mentee) {
   vi.mocked(getSessionStore).mockResolvedValue({
     user: {
       userId: "u-1",
       email: "ayse@odtu-dev.invalid",
       fullName: "Ayşe",
       jobTitle: "Mentee",
-      role: UserRole.Mentee,
+      role,
       institutionKinds,
     },
     issuedAt: Date.now(),
@@ -44,7 +44,7 @@ describe("getAccountType", () => {
     await expect(getAccountType()).resolves.toBe(AccountType.Teknokent);
 
     cookieValues.clear();
-    signedIn([IdentityKind.Academic]);
+    signedIn([IdentityKind.Academic], UserRole.Academician);
     await expect(getAccountType()).resolves.toBe(AccountType.Odtu);
   });
 

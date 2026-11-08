@@ -1,5 +1,6 @@
 import { AccountType } from "@/interfaces/account-type";
 import type { AppSession } from "@/interfaces/session";
+import { accountTypeOfWorkspace, activeWorkspaceOf } from "@/lib/workspaces";
 
 // Signed in, the account decides (accountTypeOfSession). Signed out, this cookie still picks the wording,
 // e.g. for a developer previewing the ODTÜ texts on public pages.
@@ -17,13 +18,9 @@ export function resolveAccountType(
   return isAccountType(saved) ? saved : AccountType.Teknokent;
 }
 
-/** An account ODTÜ vouches for is an ODTÜ account; every other one is Teknokent. */
-export function accountTypeOfSession(
-  session: Pick<AppSession, "institutionKinds">,
-): AccountType {
-  return session.institutionKinds?.length
-    ? AccountType.Odtu
-    : AccountType.Teknokent;
+/** The ODTÜ wording while the account is in an ODTÜ workspace; Teknokent everywhere else. */
+export function accountTypeOfSession(session: AppSession): AccountType {
+  return accountTypeOfWorkspace(activeWorkspaceOf(session));
 }
 
 type Messages = { [key: string]: string | Messages };
