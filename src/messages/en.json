@@ -5331,6 +5331,8 @@
     }
   },
   "apiErrors": {
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request.",
     "workspaceNotAvailable": "This account cannot open that workspace.",
     "workspaceSwitchFailed": "Could not switch the workspace.",
     "institutionUnknown": "You cannot sign in through this institution.",

@@ -3,8 +3,25 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringView } from "@/components/student/peer-mentoring-view";
-import { resetPeerMentoringFixtures } from "@/lib/client/fixtures/peer-mentoring";
+import {
+  addPeerMentoringRequestFixture,
+  peerMentoringRequestsFixture,
+  peerMentorsFixture,
+  resetPeerMentoringFixtures,
+} from "@test/fixtures/peer-mentoring";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("@/lib/client/peer-mentoring", () => ({
+  getPeerMentors: vi.fn(async (filter) =>
+    structuredClone(peerMentorsFixture(filter)),
+  ),
+  getPeerMentoringRequests: vi.fn(async () =>
+    structuredClone(peerMentoringRequestsFixture()),
+  ),
+  createPeerMentoringRequest: vi.fn(async (input) =>
+    structuredClone(addPeerMentoringRequestFixture(input)),
+  ),
+}));
 
 const replace = vi.fn();
 let search = "";

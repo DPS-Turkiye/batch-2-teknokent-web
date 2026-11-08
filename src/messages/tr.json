@@ -5331,6 +5331,8 @@
     }
   },
   "apiErrors": {
+    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
+    "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
     "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
     "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
