@@ -1,8 +1,13 @@
+import { getStudentProfileCompletion } from "@/lib/client/student-profile-completion";
 import type { StudentHome } from "@/interfaces/student-home";
 import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
 import { STUDENT_HOME_FIXTURE } from "@/lib/client/fixtures/student-home";
 
-// Answers from the fixture until GET /api/student/home exists.
-export function getStudentHome(): Promise<StudentHome> {
-  return fixtureResponse(STUDENT_HOME_FIXTURE);
+// Fixture-only home/profile state. No production API is assumed.
+export async function getStudentHome(): Promise<StudentHome> {
+  const profile = await getStudentProfileCompletion();
+  return fixtureResponse({
+    ...STUDENT_HOME_FIXTURE,
+    profileCompleted: profile.completed || profile.skipped,
+  });
 }
