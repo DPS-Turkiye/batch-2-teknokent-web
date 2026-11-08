@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { STARTUP_DOCUMENTS_QUERY_KEY } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";

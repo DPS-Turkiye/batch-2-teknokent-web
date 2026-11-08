@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useOrganizationPrograms } from "@/hooks/use-programs";
 import { useAdoptStartupSession } from "@/hooks/use-startup-membership";
 import type { OrganizationMember } from "@/interfaces/organization-member";

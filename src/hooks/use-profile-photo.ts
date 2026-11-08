@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useDocumentUrl } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { listOwnDocuments, uploadDocument } from "@/lib/client/documents";

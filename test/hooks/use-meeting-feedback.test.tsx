@@ -3,7 +3,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useMeetingFeedback } from "@/hooks/use-meeting-lifecycle";
 import { getMeetingFeedback } from "@/lib/client/meetings";
 import { createTestQueryClient } from "@test/test-utils";
@@ -17,7 +17,10 @@ vi.mock("@/lib/client/meetings", async (importOriginal) => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }

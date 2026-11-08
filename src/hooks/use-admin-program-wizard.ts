@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
   useAdminOverview,

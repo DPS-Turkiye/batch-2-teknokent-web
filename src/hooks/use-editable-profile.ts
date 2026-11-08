@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 
 import { ClientApiError } from "@/lib/client/api";
 

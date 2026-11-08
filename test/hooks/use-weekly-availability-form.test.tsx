@@ -2,7 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import {
   useWeeklyAvailabilityForm,
   type WeeklyAvailabilitySource,
@@ -10,7 +10,12 @@ import {
 import { type MentorAvailabilitySettings, Weekday } from "@/interfaces/mentor";
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  );
 }
 
 const settings: MentorAvailabilitySettings = {

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useUpdateMeeting } from "@/hooks/use-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
 

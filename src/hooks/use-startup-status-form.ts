@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { STARTUP_PROFILE_QUERY_KEY } from "@/hooks/use-startup-profile";
 import type { StartupProfile } from "@/interfaces/organization";
 import { saveStartupStatus } from "@/lib/client/organization";

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { mentorPoolQueryKey } from "@/hooks/use-mentor-pool";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";

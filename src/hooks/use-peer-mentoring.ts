@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { AppointmentSide } from "@/interfaces/appointment";
 import type {
   CreatePeerMentoringRequestInput,

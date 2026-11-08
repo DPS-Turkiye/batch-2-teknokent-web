@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
 import type { StartupProfile } from "@/interfaces/organization";
 import { saveStartupStatus } from "@/lib/client/organization";
@@ -27,7 +27,10 @@ function setup(queryClient = createTestQueryClient()) {
   function wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>{children}</ToastProvider>
+        <>
+          {children}
+          <Toaster />
+        </>
       </QueryClientProvider>
     );
   }

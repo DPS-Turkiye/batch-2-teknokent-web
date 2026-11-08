@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { ProposeMeetingInput } from "@/interfaces/meeting-proposal";

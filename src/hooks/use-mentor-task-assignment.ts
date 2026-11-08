@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRef, useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { ACTION_ITEMS_QUERY_KEY } from "@/hooks/use-action-items";
 import {
   assignMentorshipTask,

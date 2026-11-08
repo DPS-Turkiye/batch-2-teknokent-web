@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";

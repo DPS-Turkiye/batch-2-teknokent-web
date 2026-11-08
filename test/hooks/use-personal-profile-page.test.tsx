@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
@@ -47,7 +47,12 @@ vi.mock("@/hooks/use-startup-overview", () => ({
 vi.mock("@/lib/firebase/auth", () => ({ requestPasswordReset: vi.fn() }));
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  );
 }
 
 const discard = vi.fn();

@@ -26,7 +26,7 @@ import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";

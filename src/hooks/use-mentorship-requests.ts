@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { UserRole } from "@/interfaces/session";

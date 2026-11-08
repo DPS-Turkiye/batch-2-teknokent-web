@@ -2,6 +2,9 @@ import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { afterEach, vi } from "vitest";
 
+import { useDocumentPreviewStore } from "@/stores/document-preview-store";
+import { useToastStore } from "@/stores/toast-store";
+
 window.scrollTo = () => {};
 
 const originalGetComputedStyle = window.getComputedStyle.bind(window);
@@ -37,6 +40,9 @@ window.getComputedStyle = ((element: Element, pseudoElt?: string | null) => {
 
 afterEach(() => {
   cleanup();
+  // The stores outlive a test's render, so one test's toast or open preview must not leak into the next.
+  useToastStore.setState({ toasts: [] });
+  useDocumentPreviewStore.setState({ file: null });
   vi.restoreAllMocks();
   try {
     sessionStorage.clear();

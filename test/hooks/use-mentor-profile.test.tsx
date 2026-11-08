@@ -25,7 +25,7 @@ import { createTestQueryClient } from "@test/test-utils";
 
 const { showToast } = vi.hoisted(() => ({ showToast: vi.fn() }));
 
-vi.mock("@/components/providers/toast-provider", () => ({
+vi.mock("@/stores/toast-store", () => ({
   useToast: () => ({ showToast }),
 }));
 

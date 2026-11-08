@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";

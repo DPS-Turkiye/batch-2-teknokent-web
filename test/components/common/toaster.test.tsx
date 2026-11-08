@@ -2,7 +2,8 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
-import { ToastProvider, useToast } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
+import { useToast } from "@/stores/toast-store";
 import { InLocale } from "@test/test-utils";
 
 function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
@@ -26,13 +27,14 @@ function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
   );
 }
 
-describe("ToastProvider", () => {
+describe("Toaster", () => {
   it("announces feedback and lets the user dismiss it", async () => {
     const user = userEvent.setup();
     render(
-      <ToastProvider>
+      <>
         <ToastTrigger />
-      </ToastProvider>,
+        <Toaster />
+      </>,
     );
 
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
@@ -45,9 +47,10 @@ describe("ToastProvider", () => {
   it("shows an approval as a dark bar with Detay on the right", async () => {
     const user = userEvent.setup();
     render(
-      <ToastProvider>
+      <>
         <ToastTrigger withAction />
-      </ToastProvider>,
+        <Toaster />
+      </>,
     );
 
     await user.click(screen.getByRole("button", { name: "Kaydet" }));
@@ -64,9 +67,7 @@ describe("ToastProvider", () => {
   it("reads in English", () => {
     render(
       <InLocale locale="en">
-        <ToastProvider>
-          <span />
-        </ToastProvider>
+        <Toaster />
       </InLocale>,
     );
 

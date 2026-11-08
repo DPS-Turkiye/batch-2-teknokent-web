@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { requestPasswordReset } from "@/lib/firebase/auth";
 
 /** Sends the signed-in person a Firebase password-reset e-mail and says how it went. */

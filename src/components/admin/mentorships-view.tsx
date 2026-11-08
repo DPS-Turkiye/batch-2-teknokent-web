@@ -21,7 +21,7 @@ import {
 import { useAdminInterventions } from "@/hooks/use-admin-interventions";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import type {
   AdminMentorship,
   AdminOverview,
