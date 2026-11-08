@@ -4,10 +4,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST as launch } from "@/app/lti/launch/route";
 import { GET as loginGet, POST as loginPost } from "@/app/lti/login/route";
 import { OfficeHoursRole } from "@/interfaces/office-hours";
-import { completeLtiLaunch, startLtiLogin } from "@/lib/api/lti";
+import {
+  completeLtiLaunch,
+  LtiRequestError,
+  startLtiLogin,
+} from "@/lib/api/lti";
 import { saveOfficeHoursUser } from "@/lib/server/office-hours-session";
 
-vi.mock("@/lib/api/lti", () => ({
+vi.mock("@/lib/api/lti", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/api/lti")>()),
   startLtiLogin: vi.fn(),
   completeLtiLaunch: vi.fn(),
 }));
@@ -54,14 +59,7 @@ describe("LTI login initiation", () => {
     expect(response.headers.get("location")).toBe(
       "http://localhost:8081/mod/lti/auth.php?x",
     );
-    expect(startLtiLogin).toHaveBeenCalledWith({
-      issuer: "http://localhost:8081",
-      loginHint: "2",
-      targetLinkUri: "http://localhost:3000/lti/launch",
-      ltiMessageHint: "hint",
-      clientId: "client-1",
-      deploymentId: "1",
-    });
+    expect(startLtiLogin).toHaveBeenCalledWith(LOGIN);
   });
 
   it("reads a form POST the same way", async () => {
@@ -90,13 +88,20 @@ describe("LTI login initiation", () => {
     );
   });
 
-  it("does not call the backend without the issuer and login hint", async () => {
+  it("answers a malformed initiation with a 400 that names the field", async () => {
+    vi.mocked(startLtiLogin).mockRejectedValue(
+      new LtiRequestError("login_hint: Invalid input"),
+    );
+
     const response = await loginGet(
       new NextRequest("http://localhost:3000/lti/login?iss=x"),
     );
 
-    expect(response.headers.get("location")).toContain("reason=rejected");
-    expect(startLtiLogin).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({
+      code: "INVALID_REQUEST",
+      message: "login_hint: Invalid input",
+    });
   });
 
   it("says office hours are unavailable when the backend can't be reached", async () => {
@@ -133,7 +138,10 @@ describe("LTI launch", () => {
       }),
     );
 
-    expect(completeLtiLaunch).toHaveBeenCalledWith("token", "state-1");
+    expect(completeLtiLaunch).toHaveBeenCalledWith({
+      id_token: "token",
+      state: "state-1",
+    });
     expect(saveOfficeHoursUser).toHaveBeenCalledWith({
       userId: "user-1",
       fullName: "Ayşe Yılmaz",
@@ -167,12 +175,17 @@ describe("LTI launch", () => {
     },
   );
 
-  it("refuses a post without the token and state", async () => {
+  it("answers a malformed launch with a 400 that names the field", async () => {
+    vi.mocked(completeLtiLaunch).mockRejectedValue(
+      new LtiRequestError("id_token: Invalid input"),
+    );
+
     const response = await launch(
       formPost("http://localhost:3000/lti/launch", { state: "s" }),
     );
 
-    expect(response.headers.get("location")).toContain("reason=rejected");
-    expect(completeLtiLaunch).not.toHaveBeenCalled();
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toBe("id_token: Invalid input");
+    expect(saveOfficeHoursUser).not.toHaveBeenCalled();
   });
 });

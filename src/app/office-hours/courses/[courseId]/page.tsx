@@ -7,12 +7,17 @@ import { fetchOfficeHoursCourse } from "@/lib/api/lti";
 import { ltiErrorPath } from "@/lib/lti";
 import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
 
+// A Record, so a new Moodle role fails to compile until its texts are added.
+const ROLE_TEXTS: Record<OfficeHoursRole, "instructor" | "student"> = {
+  [OfficeHoursRole.Instructor]: "instructor",
+  [OfficeHoursRole.Student]: "student",
+};
+
 export async function generateMetadata() {
   const t = await getTranslations("officeHours");
   return { title: t("title") };
 }
 
-/** Where a launch from a Moodle course lands: the course, as an instructor or a student sees it. */
 export default async function OfficeHoursCoursePage({
   params,
 }: {
@@ -25,7 +30,7 @@ export default async function OfficeHoursCoursePage({
   if (response.status !== 200) redirect(ltiErrorPath(LtiLaunchError.Expired));
   const course = response.data;
   const t = await getTranslations("officeHours");
-  const instructor = course.role === OfficeHoursRole.Instructor;
+  const texts = ROLE_TEXTS[course.role];
 
   return (
     <OfficeHoursFrame productName={t("title")} userName={course.userFullName}>
@@ -36,14 +41,14 @@ export default async function OfficeHoursCoursePage({
         {course.title}
       </h1>
       <p className="mt-2 inline-flex rounded-full bg-[#f2f8fc] px-3 py-1 text-[12px] font-medium text-[#1592ea]">
-        {t(instructor ? "roles.INSTRUCTOR" : "roles.STUDENT")}
+        {t(`roles.${course.role}`)}
       </p>
       <section className="mt-8 rounded-2xl border border-[#e4e7ea] bg-white p-6">
         <h2 className="text-base font-semibold text-[#22262b]">
-          {t(instructor ? "instructor.title" : "student.title")}
+          {t(`${texts}.title`)}
         </h2>
         <p className="mt-2 text-sm leading-6 text-[#4a5059]">
-          {t(instructor ? "instructor.comingSoon" : "student.comingSoon")}
+          {t(`${texts}.comingSoon`)}
         </p>
       </section>
     </OfficeHoursFrame>

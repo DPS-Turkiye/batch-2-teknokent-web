@@ -1,9 +1,6 @@
 import type { ReactNode } from "react";
 
-/**
- * The plain frame office hours open in from Moodle: the Menton name, who is signed in, and the page. No Menton
- * navigation, since an office-hours session opens these pages only.
- */
+// No Menton navigation: an office-hours session opens these pages only.
 export function OfficeHoursFrame({
   productName,
   userName,
@@ -21,9 +18,7 @@ export function OfficeHoursFrame({
             menton{" "}
             <span className="font-normal text-[#676e78]">· {productName}</span>
           </p>
-          {userName ? (
-            <p className="text-sm text-[#4a5059]">{userName}</p>
-          ) : null}
+          {userName && <p className="text-sm text-[#4a5059]">{userName}</p>}
         </div>
       </header>
       <main className="mx-auto max-w-[960px] px-4 py-8 sm:px-6">
