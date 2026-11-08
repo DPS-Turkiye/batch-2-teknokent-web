@@ -5,6 +5,7 @@ import {
   ProgramLifecycle,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 
 export function phase(
   id: string,
@@ -22,6 +23,7 @@ export function coordinatorProgram(
     name: "METU Stars 2026",
     status: "ACTIVE",
     lifecycle: ProgramLifecycle.Active,
+    type: ProgramType.StartupMentoring,
     description: null,
     startDate: "2026-02-01",
     endDate: "2026-12-10",

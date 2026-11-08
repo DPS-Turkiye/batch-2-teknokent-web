@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useToast } from "@/components/providers/toast-provider";
@@ -16,8 +16,6 @@ import {
   type PrepFileRequirement,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
-  type Weekday,
-  WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import {
   createAvailabilitySlot,
@@ -28,6 +26,7 @@ import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
 } from "@/lib/client/mentor-profile";
+import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import {
   applyMentorCv,
   fillStudies,
@@ -38,21 +37,6 @@ import {
   toStudentProfilePayload,
 } from "@/lib/mentor-onboarding";
 import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
-import {
-  AVAILABILITY_NUMBER_FIELDS,
-  type AvailabilityDraft,
-  type AvailabilityNumberField,
-  availabilityDraftError,
-  DEFAULT_RANGE,
-  EMPTY_EXCEPTION_INPUT,
-  exceptionError,
-  type ExceptionInput,
-  nextRangeAfter,
-  rangesForDay,
-  stepNumberValue,
-  toAvailabilityDraft,
-  toAvailabilityPayload,
-} from "@/lib/mentor-availability";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
@@ -555,191 +539,17 @@ export function useAvailabilitySlotForm() {
   };
 }
 
-/** The "Müsaitliği düzenle" modal: weekly ranges, defaults and unavailable dates. */
+/** The "Müsaitliği düzenle" modal: the weekly availability editor on the mentor's own settings. */
 export function useAvailabilitySettingsForm(onSaved: () => void) {
-  const t = useTranslations("mentorProfile.dialog");
-  const tOptions = useTranslations("options");
-  const { showToast } = useToast();
   const settingsQuery = useMentorAvailabilitySettings();
   const updateSettings = useUpdateMentorAvailabilitySettings();
-  const loaded = useMemo(
-    () => (settingsQuery.data ? toAvailabilityDraft(settingsQuery.data) : null),
-    [settingsQuery.data],
+  return useWeeklyAvailabilityForm(
+    {
+      settings: settingsQuery.data,
+      loadFailed: Boolean(settingsQuery.error),
+      save: updateSettings.mutateAsync,
+      isSaving: updateSettings.isPending,
+    },
+    onSaved,
   );
-  const [edits, setEdits] = useState<AvailabilityDraft | null>(null);
-  const [exception, setException] = useState<ExceptionInput>(
-    EMPTY_EXCEPTION_INPUT,
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [isAddingException, setIsAddingException] = useState(false);
-  const nextKey = useRef(0);
-  const draft = edits ?? loaded;
-
-  const change = (
-    update: (current: AvailabilityDraft) => AvailabilityDraft,
-  ) => {
-    setError(null);
-    setEdits((current) => {
-      const base = current ?? loaded;
-      return base ? update(base) : current;
-    });
-  };
-  // Keys are taken in the handler, not inside the state updater, so the updater stays pure.
-  const newKey = () => `new-${(nextKey.current += 1)}`;
-
-  const toggleDay = (day: Weekday) => {
-    const key = newKey();
-    change((current) =>
-      current.ranges.some((range) => range.dayOfWeek === day)
-        ? {
-            ...current,
-            ranges: current.ranges.filter((range) => range.dayOfWeek !== day),
-          }
-        : {
-            ...current,
-            ranges: [
-              ...current.ranges,
-              { key, dayOfWeek: day, ...DEFAULT_RANGE, slotMinutes: null },
-            ],
-          },
-    );
-  };
-
-  const addRange = (day: Weekday) => {
-    const key = newKey();
-    change((current) => ({
-      ...current,
-      ranges: [
-        ...current.ranges,
-        {
-          key,
-          dayOfWeek: day,
-          ...nextRangeAfter(rangesForDay(current, day)),
-          slotMinutes: null,
-        },
-      ],
-    }));
-  };
-
-  const removeRange = (key: string) =>
-    change((current) => ({
-      ...current,
-      ranges: current.ranges.filter((range) => range.key !== key),
-    }));
-
-  const updateRange = (
-    key: string,
-    field: "startTime" | "endTime",
-    value: string,
-  ) =>
-    change((current) => ({
-      ...current,
-      ranges: current.ranges.map((range) =>
-        range.key === key ? { ...range, [field]: value } : range,
-      ),
-    }));
-
-  const setNumber = (field: AvailabilityNumberField, value: string) =>
-    change((current) => ({ ...current, [field]: value }));
-
-  const stepNumber = (field: AvailabilityNumberField, direction: 1 | -1) => {
-    const bounds = AVAILABILITY_NUMBER_FIELDS.find(
-      (item) => item.field === field,
-    );
-    if (!bounds) return;
-    change((current) => ({
-      ...current,
-      [field]: stepNumberValue(current[field], bounds, direction),
-    }));
-  };
-
-  const openExceptionForm = () => setIsAddingException(true);
-
-  const closeExceptionForm = () => {
-    setIsAddingException(false);
-    setException(EMPTY_EXCEPTION_INPUT);
-    setError(null);
-  };
-
-  const setExceptionField = (field: keyof ExceptionInput, value: string) => {
-    setError(null);
-    setException((current) => ({ ...current, [field]: value }));
-  };
-
-  const addException = () => {
-    if (!draft) return;
-    const candidate = {
-      startsOn: exception.startsOn,
-      endsOn: exception.endsOn || exception.startsOn,
-      reason: exception.reason.trim() || null,
-    };
-    const problem = exceptionError(candidate, draft.exceptions);
-    if (problem) {
-      setError(problem);
-      return;
-    }
-    change((current) => ({
-      ...current,
-      exceptions: [...current.exceptions, candidate],
-    }));
-    setException(EMPTY_EXCEPTION_INPUT);
-    setIsAddingException(false);
-  };
-
-  const removeException = (index: number) =>
-    change((current) => ({
-      ...current,
-      exceptions: current.exceptions.filter(
-        (_, position) => position !== index,
-      ),
-    }));
-
-  const save = async () => {
-    if (!draft) return;
-    const problem = availabilityDraftError(draft, {
-      capacityRequired: settingsQuery.data?.menteeCapacity != null,
-    });
-    if (problem) {
-      setError(problem);
-      return;
-    }
-    try {
-      await updateSettings.mutateAsync(toAvailabilityPayload(draft));
-      setEdits(null);
-      showToast({ message: t("saved"), tone: "success" });
-      onSaved();
-    } catch (saveError) {
-      const message = errorMessage(saveError, t("saveFailed"));
-      setError(message);
-      showToast({ message, tone: "error" });
-    }
-  };
-
-  return {
-    addException,
-    addRange,
-    closeExceptionForm,
-    days: draft
-      ? WEEKDAY_ORDER.map((day) => ({
-          day,
-          label: tOptions(`weekday.${day}`),
-          ranges: rangesForDay(draft, day),
-        }))
-      : [],
-    draft,
-    error,
-    exception,
-    isAddingException,
-    isSaving: updateSettings.isPending,
-    loadError: settingsQuery.error ? t("loadFailed") : null,
-    openExceptionForm,
-    removeException,
-    removeRange,
-    save,
-    setExceptionField,
-    setNumber,
-    stepNumber,
-    toggleDay,
-    updateRange,
-  };
 }

@@ -19,7 +19,10 @@ import {
   Weekday,
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
-import type { AvailabilityDraft } from "@/lib/mentor-availability";
+import {
+  AVAILABILITY_NUMBER_FIELDS,
+  type AvailabilityDraft,
+} from "@/lib/mentor-availability";
 import tr from "@/messages/tr.json";
 import { InLocale } from "@test/test-utils";
 
@@ -251,6 +254,7 @@ function mockAll(
     isAddingException: false,
     isSaving: false,
     loadError: null,
+    numberFields: AVAILABILITY_NUMBER_FIELDS.map((item) => item.field),
     ...overrides.availabilityForm,
   } as unknown as ReturnType<typeof useAvailabilitySettingsForm>);
 }
