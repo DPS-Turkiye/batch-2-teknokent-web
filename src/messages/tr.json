@@ -3364,12 +3364,66 @@
           "title": "Office Hours",
           "body": "Akademisyenlerin görüşme saatlerinden randevu iste."
         }
+      },
+      "peerMentoring": {
+        "title": "Akran Mentörlüğü",
+        "subtitle": "ODTÜ'lü akran mentorlarından destek al.",
+        "switchLabel": "Akran mentörlüğü tarafı",
+        "switch": {
+          "get": "Mentorluk Al",
+          "give": "Mentorluk Ver"
+        },
+        "soon": "Yakında",
+        "giveSoonTitle": "Mentorluk Ver yakında",
+        "giveSoonBody": "Akran Mentoru rozetini kazanan öğrenciler burada taleplerini, mentee'lerini ve müsaitliklerini yönetecek.",
+        "requests": {
+          "title": "Taleplerim",
+          "empty": "Henüz bir talep göndermedin.",
+          "sentAt": "Gönderildi: {date}"
+        },
+        "mentors": {
+          "title": "Akran mentorları",
+          "search": "İsim, bölüm veya konu ara",
+          "allCategories": "Tümü",
+          "empty": "Şu an listelenen akran mentoru yok.",
+          "noMatch": "Bu filtrelere uyan akran mentoru yok.",
+          "classYear": "{year}. sınıf",
+          "categories": "Konular",
+          "why": "Neden önerildi?",
+          "request": "Talep gönder",
+          "requestFrom": "{name} için talep gönder",
+          "requested": "Talebin yanıt bekliyor",
+          "full": "Kontenjan dolu"
+        },
+        "dialog": {
+          "title": "{name} ile mentorluk",
+          "subtitle": "Konuyu seç ve neye ihtiyacın olduğunu kısaca anlat.",
+          "category": "Konu",
+          "message": "Mesajın",
+          "messagePlaceholder": "Örneğin: Yaz stajı için CV'mi gözden geçirmek istiyorum.",
+          "messageTooShort": "Mesajın en az {min} karakter olmalı.",
+          "cancel": "Vazgeç",
+          "send": "Talebi gönder",
+          "sending": "Gönderiliyor…",
+          "sent": "Talebin gönderildi.",
+          "failed": "Talep gönderilemedi."
+        }
       }
     },
     "academician": {
       "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
       "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
+  },
+  "peerTopics": {
+    "ACADEMIC_DEVELOPMENT": "Akademik Gelişim",
+    "CAREER_INTERNSHIP": "Kariyer ve Staj",
+    "TECHNICAL_DIGITAL": "Teknik ve Dijital Beceriler",
+    "RESEARCH_ACADEMIC_CAREER": "Araştırma ve Akademik Kariyer",
+    "ENTREPRENEURSHIP": "Girişimcilik ve Proje Geliştirme",
+    "CAMPUS_LIFE": "Üniversite ve Kampüs Yaşamı",
+    "PERSONAL_PROFESSIONAL": "Kişisel ve Profesyonel Beceriler",
+    "INTERNATIONAL": "Uluslararası Fırsatlar"
   },
   "coordinatorHome": {
     "kinds": {
@@ -5806,6 +5860,19 @@
     "creating": "Kaydediliyor…",
     "created": "{name} taslak olarak oluşturuldu.",
     "createFailed": "Program oluşturulamadı."
+  },
+  "studentAppointments": {
+    "title": "Randevularım",
+    "fixtureNotice": "Örnek veriler gösteriliyor. Canlı randevu ve Office Hours entegrasyonu henüz bağlı değil.",
+    "filter": "Durum",
+    "all": "Tümü",
+    "loading": "Randevular yükleniyor…",
+    "error": "Randevular yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Henüz randevun yok.",
+    "filteredEmpty": "Bu durumda randevun yok.",
+    "place": "Yer: {place}",
+    "alternative": "Önerilen alternatif (henüz onaylanmadı)"
   },
   "officeHours": {
     "title": "Ofis saatleri",
