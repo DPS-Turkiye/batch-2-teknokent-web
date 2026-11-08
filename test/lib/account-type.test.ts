@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { AccountType } from "@/interfaces/account-type";
+import { IdentityKind } from "@/interfaces/session";
 import {
+  accountTypeOfSession,
   isAccountType,
   mergeMessages,
   resolveAccountType,
@@ -34,6 +36,18 @@ describe("resolveAccountType", () => {
     expect(isAccountType("odtu")).toBe(true);
     expect(isAccountType("ODTU")).toBe(false);
     expect(isAccountType(1)).toBe(false);
+  });
+});
+
+describe("accountTypeOfSession", () => {
+  it("makes an account ODTÜ exactly when ODTÜ vouches for the person", () => {
+    expect(
+      accountTypeOfSession({ institutionKinds: [IdentityKind.Student] }),
+    ).toBe(AccountType.Odtu);
+    expect(accountTypeOfSession({ institutionKinds: [] })).toBe(
+      AccountType.Teknokent,
+    );
+    expect(accountTypeOfSession({})).toBe(AccountType.Teknokent);
   });
 });
 

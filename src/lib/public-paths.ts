@@ -29,6 +29,7 @@ const PUBLIC_PATHS = new Set([
   "/signup",
   "/invite",
   "/application-status",
+  "/login/odtu/dev",
   MOBILE_LOGIN,
 ]);
 

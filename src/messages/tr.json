@@ -69,7 +69,20 @@
     "submitting": "Giriş yapılıyor…",
     "newHere": "Menton’a yeni misin?",
     "signUp": "Kayıt Ol",
-    "invite": "Bir davet aldın mı? Davet kodunla devam et"
+    "invite": "Bir davet aldın mı? Davet kodunla devam et",
+    "odtu": "ODTÜ Hesabıyla Giriş Yap"
+  },
+  "odtuDevLogin": {
+    "title": "ODTÜ test girişi",
+    "intro": "Yerel geliştirme için bir test kişisi seç. ODTÜ'nün gerçek girişi gelince bu sayfa kalkar.",
+    "loading": "Test kişileri yükleniyor…",
+    "empty": "Test kişisi bulunamadı. Backend'de INSTITUTION_LOGIN_DEV_STUB açık mı?",
+    "signingIn": "Giriş yapılıyor…",
+    "kinds": {
+      "STUDENT": "Öğrenci",
+      "ACADEMIC": "Akademisyen",
+      "STAFF": "Personel"
+    }
   },
   "auth": {
     "firstName": "Ad",
@@ -5306,6 +5319,9 @@
     }
   },
   "apiErrors": {
+    "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
+    "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
+    "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
     "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",

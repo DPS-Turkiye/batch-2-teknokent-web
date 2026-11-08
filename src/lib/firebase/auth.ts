@@ -6,6 +6,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -124,6 +125,14 @@ export async function signInToFirebase(
     email.trim(),
     password,
   );
+  return credential.user.getIdToken();
+}
+
+/** Signs in with the token the backend minted after an institution (ODTÜ) login; returns the ID token. */
+export async function signInWithInstitutionToken(
+  customToken: string,
+): Promise<string> {
+  const credential = await signInWithCustomToken(firebaseAuth(), customToken);
   return credential.user.getIdToken();
 }
 
