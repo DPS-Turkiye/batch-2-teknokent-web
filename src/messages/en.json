@@ -3805,7 +3805,9 @@
       "SETTINGS": "Program settings",
       "APPROVALS": "Approvals",
       "PARTICIPANTS": "Participants",
-      "APPOINTMENTS": "Appointments"
+      "APPOINTMENTS": "Appointments",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer Mentors"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -4574,7 +4576,8 @@
     "tabs": {
       "coordinators": "Coordinators",
       "mentors": "Mentors",
-      "teams": "Teams"
+      "teams": "Teams",
+      "students": "Students"
     },
     "addCoordinator": "+ Add a coordinator",
     "filters": {
@@ -5330,9 +5333,88 @@
       }
     }
   },
+  "badges": {
+    "listLabel": "Badges",
+    "more": "+{count}",
+    "names": {
+      "PEER_MENTOR": "Peer Mentor",
+      "FIRST_SESSION": "First Session",
+      "SESSIONS_10": "10 Sessions",
+      "HOURS_25": "25 Hours of Mentoring",
+      "WELL_RATED": "Recommended by Mentees",
+      "ACTIVE_MENTEE": "Active Mentee"
+    },
+    "descriptions": {
+      "PEER_MENTOR": "Can give peer mentoring.",
+      "FIRST_SESSION": "Held their first mentoring session.",
+      "SESSIONS_10": "Held 10 mentoring sessions.",
+      "HOURS_25": "Gave 25 hours of mentoring.",
+      "WELL_RATED": "Mentee ratings of 4.5 or higher.",
+      "ACTIVE_MENTEE": "Attended their sessions and gave feedback."
+    },
+    "states": {
+      "NONE": "No badge",
+      "ACTIVE": "Badge earned",
+      "EXPIRED": "Expired",
+      "REVOKED": "Taken back"
+    },
+    "statuses": {
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "REVOKED": "Taken back"
+    },
+    "mine": {
+      "title": "My badges",
+      "loading": "Loading badges…",
+      "loadFailed": "Could not load your badges.",
+      "empty": "You have no badges yet.",
+      "awardedIn": "{program} · {date}",
+      "awardedOn": "{date}",
+      "revokedBecause": "Taken back because: {reason}"
+    }
+  },
+  "peerParticipants": {
+    "loading": "Loading participants…",
+    "loadFailed": "Could not load the participants.",
+    "actionFailed": "That could not be completed.",
+    "noStudents": "This program has no students yet.",
+    "noMentors": "Nobody in this program holds the Peer Mentor badge yet.",
+    "name": "Name",
+    "badge": "Peer Mentor badge",
+    "since": "Date",
+    "actions": "Actions",
+    "award": "Award badge",
+    "revoke": "Take back badge",
+    "revokedBecause": "Reason: {reason}",
+    "revokeTitle": "Take back the badge from {name}",
+    "revokeIntro": "Taking the badge back also ends their right to mentor. The student sees the reason.",
+    "reason": "Reason",
+    "cancel": "Cancel",
+    "confirmRevoke": "Take back"
+  },
+  "adminStudents": {
+    "filterLabel": "Badge state",
+    "filters": {
+      "ALL": "All",
+      "NONE": "No badge",
+      "ACTIVE": "Peer mentor",
+      "REVOKED": "Taken back"
+    },
+    "loading": "Loading students…",
+    "loadFailed": "Could not load the students.",
+    "empty": "No students for this filter.",
+    "name": "Name",
+    "program": "Program",
+    "badge": "Badge state",
+    "since": "Date"
+  },
   "apiErrors": {
     "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
     "peerMentoringRequestFailed": "Couldn't send the request.",
+    "badgesLoadFailed": "Could not load the badges.",
+    "badgeAwardFailed": "Could not award the badge.",
+    "badgeRevokeFailed": "Could not take the badge back.",
+    "badgeRevokeReasonRequired": "Write a reason to take the badge back.",
     "workspaceNotAvailable": "This account cannot open that workspace.",
     "workspaceSwitchFailed": "Could not switch the workspace.",
     "institutionUnknown": "You cannot sign in through this institution.",

@@ -3805,7 +3805,9 @@
       "SETTINGS": "Program Ayarları",
       "APPROVALS": "Onaylar",
       "PARTICIPANTS": "Katılımcılar",
-      "APPOINTMENTS": "Randevular"
+      "APPOINTMENTS": "Randevular",
+      "STUDENTS": "Öğrenciler",
+      "PEER_MENTORS": "Akran Mentorları"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
     "coordinators": "{count, plural, =1 {Koordinatör} other {Koordinatörler}}: {names}",
@@ -4574,7 +4576,8 @@
     "tabs": {
       "coordinators": "Koordinatörler",
       "mentors": "Mentorlar",
-      "teams": "Takımlar"
+      "teams": "Takımlar",
+      "students": "Öğrenciler"
     },
     "addCoordinator": "+ Koordinatör ekle",
     "filters": {
@@ -5330,9 +5333,88 @@
       }
     }
   },
+  "badges": {
+    "listLabel": "Rozetler",
+    "more": "+{count}",
+    "names": {
+      "PEER_MENTOR": "Akran Mentoru",
+      "FIRST_SESSION": "İlk Görüşme",
+      "SESSIONS_10": "10 Görüşme",
+      "HOURS_25": "25 Saat Mentorluk",
+      "WELL_RATED": "Mentee'lerin Tavsiyesi",
+      "ACTIVE_MENTEE": "Aktif Mentee"
+    },
+    "descriptions": {
+      "PEER_MENTOR": "Akran mentorluğu verebilir.",
+      "FIRST_SESSION": "İlk mentorluk görüşmesini yaptı.",
+      "SESSIONS_10": "10 mentorluk görüşmesi yaptı.",
+      "HOURS_25": "25 saat mentorluk verdi.",
+      "WELL_RATED": "Mentee değerlendirmeleri 4,5 ve üzeri.",
+      "ACTIVE_MENTEE": "Görüşmelerine katılıp geri bildirim verdi."
+    },
+    "states": {
+      "NONE": "Rozet Yok",
+      "ACTIVE": "Rozet Kazanıldı",
+      "EXPIRED": "Süresi doldu",
+      "REVOKED": "Geri alındı"
+    },
+    "statuses": {
+      "ACTIVE": "Aktif",
+      "EXPIRED": "Süresi doldu",
+      "REVOKED": "Geri alındı"
+    },
+    "mine": {
+      "title": "Rozetlerim",
+      "loading": "Rozetler yükleniyor…",
+      "loadFailed": "Rozetler yüklenemedi.",
+      "empty": "Henüz rozetin yok.",
+      "awardedIn": "{program} · {date}",
+      "awardedOn": "{date}",
+      "revokedBecause": "Geri alınma nedeni: {reason}"
+    }
+  },
+  "peerParticipants": {
+    "loading": "Katılımcılar yükleniyor…",
+    "loadFailed": "Katılımcılar yüklenemedi.",
+    "actionFailed": "İşlem tamamlanamadı.",
+    "noStudents": "Bu programda henüz öğrenci yok.",
+    "noMentors": "Bu programda henüz Akran Mentoru rozeti olan kimse yok.",
+    "name": "Ad",
+    "badge": "Akran Mentoru rozeti",
+    "since": "Tarih",
+    "actions": "İşlemler",
+    "award": "Rozet ver",
+    "revoke": "Rozeti geri al",
+    "revokedBecause": "Neden: {reason}",
+    "revokeTitle": "{name} için rozeti geri al",
+    "revokeIntro": "Rozet geri alınınca mentorluk verme yetkisi de kalkar. Öğrenci nedeni görür.",
+    "reason": "Neden",
+    "cancel": "Vazgeç",
+    "confirmRevoke": "Geri al"
+  },
+  "adminStudents": {
+    "filterLabel": "Rozet durumu",
+    "filters": {
+      "ALL": "Tümü",
+      "NONE": "Rozet yok",
+      "ACTIVE": "Akran mentoru",
+      "REVOKED": "Geri alındı"
+    },
+    "loading": "Öğrenciler yükleniyor…",
+    "loadFailed": "Öğrenciler yüklenemedi.",
+    "empty": "Bu filtrede öğrenci yok.",
+    "name": "Ad",
+    "program": "Program",
+    "badge": "Rozet durumu",
+    "since": "Tarih"
+  },
   "apiErrors": {
     "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
+    "badgesLoadFailed": "Rozetler yüklenemedi.",
+    "badgeAwardFailed": "Rozet verilemedi.",
+    "badgeRevokeFailed": "Rozet geri alınamadı.",
+    "badgeRevokeReasonRequired": "Rozeti geri almak için bir neden yaz.",
     "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
     "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
     "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
