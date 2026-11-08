@@ -4,12 +4,10 @@ import { getLocale, getTranslations } from "next-intl/server";
 import localFont from "next/font/local";
 
 import { ClientTexts } from "@/i18n/client-texts";
-import { AccountTypeProvider } from "@/components/providers/account-type-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
 import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
 import { ToastProvider } from "@/components/providers/toast-provider";
-import { getAccountType } from "@/lib/server/account-type";
 
 import "./globals.css";
 
@@ -35,10 +33,7 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [locale, accountType] = await Promise.all([
-    getLocale(),
-    getAccountType(),
-  ]);
+  const locale = await getLocale();
   return (
     <html
       lang={locale}
@@ -51,15 +46,13 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider>
           <ClientTexts />
-          <AccountTypeProvider accountType={accountType}>
-            <QueryProvider>
-              <ToastProvider>
-                <DocumentPreviewProvider>
-                  <SessionProvider>{children}</SessionProvider>
-                </DocumentPreviewProvider>
-              </ToastProvider>
-            </QueryProvider>
-          </AccountTypeProvider>
+          <QueryProvider>
+            <ToastProvider>
+              <DocumentPreviewProvider>
+                <SessionProvider>{children}</SessionProvider>
+              </DocumentPreviewProvider>
+            </ToastProvider>
+          </QueryProvider>
         </NextIntlClientProvider>
       </body>
     </html>
