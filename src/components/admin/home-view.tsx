@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -19,22 +18,15 @@ import {
   AdminIcon,
   Avatar,
   EmptyNote,
-  OutlineButton,
   QueryNotice,
-  SolidButton,
 } from "@/components/admin/admin-ui";
-import { useToast } from "@/components/providers/toast-provider";
-import {
-  ADMIN_OVERVIEW_QUERY_KEY,
-  useAdminOverview,
-} from "@/hooks/use-admin-overview";
+import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type {
   AdminBottleneck,
   AdminOverview,
   AdminProgram,
 } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
-import { createProgram } from "@/lib/client/programs";
 import { initials } from "@/lib/utils";
 
 type HomeT = ReturnType<typeof useTranslations<"adminHome">>;
@@ -266,31 +258,7 @@ function InterventionRow({
 
 function ProgramsSection({ data }: { data: AdminOverview }) {
   const t = useTranslations("adminHome");
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
   const [scope, setScope] = useState(Scope.All);
-  const [creating, setCreating] = useState(false);
-  const [name, setName] = useState("");
-  const create = useMutation({
-    mutationFn: createProgram,
-    onSuccess: async (program) => {
-      setName("");
-      setCreating(false);
-      await queryClient.invalidateQueries({
-        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
-      });
-      showToast({
-        message: t("created", { name: program.name }),
-        tone: "success",
-      });
-    },
-    onError: (error) => {
-      showToast({
-        message: error instanceof Error ? error.message : t("createFailed"),
-        tone: "error",
-      });
-    },
-  });
   const programs = data.programs.filter((program) => {
     if (scope === Scope.Active) return program.status === ProgramStatus.Active;
     if (scope === Scope.Completed) {
@@ -324,34 +292,12 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
             </select>
             <Asset src="/admin/chevron-down-sm.svg" className="size-4" />
           </label>
-          {creating ? (
-            <form
-              className="flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (name.trim()) create.mutate(name.trim());
-              }}
-            >
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder={t("programName")}
-                className="h-11 rounded-full border border-[#e9ecef] px-4 text-[13px] outline-none"
-              />
-              <SolidButton type="submit">{t("save")}</SolidButton>
-              <OutlineButton onClick={() => setCreating(false)}>
-                {t("cancel")}
-              </OutlineButton>
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="inline-flex items-center justify-center rounded-full border border-[#e9ecef] bg-white px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-[#22262b]"
-            >
-              {t("newProgram")}
-            </button>
-          )}
+          <Link
+            href="/admin/programs/new"
+            className="inline-flex items-center justify-center rounded-full border border-[#e9ecef] bg-white px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-[#22262b]"
+          >
+            {t("newProgram")}
+          </Link>
         </div>
       </div>
       <div className="overflow-hidden rounded-3xl border border-[#e9ecef] bg-white p-2">

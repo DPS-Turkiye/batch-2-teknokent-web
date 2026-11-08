@@ -106,6 +106,23 @@ describe("mentor onboarding helpers", () => {
     );
   });
 
+  it("sends the typed schools, trimmed, and drops one without a name", () => {
+    const base = draft();
+    const payload = toMentorProfilePayload({
+      ...base,
+      profile: {
+        ...base.profile,
+        education: [
+          { school: " ODTÜ ", degree: " Lisans ", period: "2022 – 2026" },
+          { school: " ", degree: "Lise", period: "" },
+        ],
+      },
+    });
+    expect(payload.educations).toEqual([
+      { school: "ODTÜ", degree: "Lisans", period: "2022 – 2026" },
+    ]);
+  });
+
   it("builds the mentor profile payload, dropping empty roles and trimming text", () => {
     const payload = toMentorProfilePayload(draft());
 

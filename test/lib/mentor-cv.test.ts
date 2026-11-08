@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { PLACEHOLDER_PARSED_PROFILE } from "@/interfaces/mentor-onboarding";
+import {
+  EMPTY_STUDENT_DRAFT,
+  PLACEHOLDER_PARSED_PROFILE,
+} from "@/interfaces/mentor-onboarding";
 import {
   applyMentorCv,
   fillOnboardingProfile,
+  fillStudies,
   type MentorCvResult,
   toMentorCvResult,
 } from "@/lib/mentor-cv";
@@ -30,6 +34,14 @@ const cv: MentorCvResult = {
       summary: "",
     },
   ],
+  education: [
+    {
+      school: "ODTÜ",
+      degree: "Lisans, Endüstriyel Tasarım",
+      period: "2008 – 2012",
+    },
+  ],
+  studies: EMPTY_STUDENT_DRAFT,
 };
 
 describe("toMentorCvResult", () => {
@@ -70,6 +82,8 @@ describe("toMentorCvResult", () => {
           summary: "",
         },
       ],
+      education: [],
+      studies: EMPTY_STUDENT_DRAFT,
     });
   });
 
@@ -97,6 +111,9 @@ describe("applyMentorCv", () => {
         summary: "",
       },
     ],
+    educations: [
+      { school: "odtü", degree: "lisans, endüstriyel tasarım", period: "" },
+    ],
     menteeCapacity: 3,
   };
 
@@ -115,6 +132,24 @@ describe("applyMentorCv", () => {
     expect(next.experiences.map((role) => role.title)).toEqual([
       "head of design",
       "Senior Designer",
+    ]);
+  });
+
+  it("adds only the schools the form does not list yet", () => {
+    const next = applyMentorCv(
+      form,
+      {
+        ...cv,
+        education: [
+          ...cv.education,
+          { school: "TU Delft", degree: "Erasmus", period: "2011 güz" },
+        ],
+      },
+      10,
+    );
+    expect(next.educations.map((school) => school.school)).toEqual([
+      "odtü",
+      "TU Delft",
     ]);
   });
 
@@ -139,7 +174,88 @@ describe("fillOnboardingProfile", () => {
       company: "Looply",
       totalExperience: "12 yıl",
       history: cv.history,
+      education: cv.education,
       inferredAreas: ["UX", "Design Systems"],
     });
+  });
+
+  it("keeps schools the applicant already typed", () => {
+    const typed = [{ school: "Bilkent", degree: "", period: "" }];
+    expect(
+      fillOnboardingProfile(
+        { ...PLACEHOLDER_PARSED_PROFILE, education: typed },
+        cv,
+      ).education,
+    ).toBe(typed);
+  });
+});
+
+describe("education from a CV", () => {
+  it("reads the schools and drops one without a name", () => {
+    expect(
+      toMentorCvResult({
+        education: [
+          {
+            school: " ODTÜ ",
+            degree: "Lisans, Bilgisayar Mühendisliği",
+            period: "2022 – 2026",
+          },
+          { school: " ", degree: "Lise", period: null },
+        ],
+      }).education,
+    ).toEqual([
+      {
+        school: "ODTÜ",
+        degree: "Lisans, Bilgisayar Mühendisliği",
+        period: "2022 – 2026",
+      },
+    ]);
+  });
+});
+
+describe("student studies from a CV", () => {
+  it("reads a student mentor's studies, and only a class year the form offers", () => {
+    const studies = toMentorCvResult({
+      department: " Bilgisayar Mühendisliği ",
+      study_year: "3. sınıf",
+      strong_courses: ["CENG 140", " ", "MATH 119"],
+      student_projects: ["Kampüs uygulaması", "Robot yarışması"],
+      exchange_experience: "TU Delft, 2025 güz",
+    }).studies;
+
+    expect(studies).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "3. sınıf",
+      courses: "CENG 140, MATH 119",
+      projects: "Kampüs uygulaması\nRobot yarışması",
+      erasmus: "TU Delft, 2025 güz",
+    });
+    expect(toMentorCvResult({ study_year: "Junior" }).studies.studyYear).toBe(
+      "",
+    );
+  });
+
+  const typed = { ...EMPTY_STUDENT_DRAFT, department: "Fizik", courses: "" };
+  const found = {
+    ...EMPTY_STUDENT_DRAFT,
+    department: "Bilgisayar Mühendisliği",
+    courses: "CENG 140",
+  };
+
+  it("keeps what the student typed at signup and fills the rest", () => {
+    expect(fillStudies(typed, found)).toEqual({
+      ...EMPTY_STUDENT_DRAFT,
+      department: "Fizik",
+      courses: "CENG 140",
+    });
+  });
+
+  it("lets the CV win on the profile page, but not with an empty answer", () => {
+    expect(fillStudies(typed, found, true)).toEqual({
+      ...EMPTY_STUDENT_DRAFT,
+      department: "Bilgisayar Mühendisliği",
+      courses: "CENG 140",
+    });
+    expect(fillStudies(typed, EMPTY_STUDENT_DRAFT, true)).toEqual(typed);
   });
 });

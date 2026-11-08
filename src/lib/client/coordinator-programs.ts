@@ -88,6 +88,15 @@ export async function extractSyllabusPhases(input: ExtractSyllabusPhasesInput) {
   );
 }
 
+export async function launchCoordinatorProgram(programId: string) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorProgramDetail>(
+      `${programUrl(programId)}/launch`,
+      {},
+    ),
+  );
+}
+
 export async function setCoordinatorProgramArchived(
   programId: string,
   archived: boolean,

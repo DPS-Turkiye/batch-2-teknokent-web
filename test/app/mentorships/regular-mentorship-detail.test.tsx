@@ -37,6 +37,11 @@ vi.mock("@/lib/client/mentorships", () => ({
   setRegularMentorshipGoalDone: vi.fn(),
 }));
 
+vi.mock("@/lib/client/document-requests", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/document-requests")>()),
+  listDocumentRequests: vi.fn(async () => []),
+}));
+
 function mentorship(
   overrides: Partial<RegularMentorship> = {},
 ): RegularMentorship {

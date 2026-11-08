@@ -44,6 +44,17 @@ const program = (id: string, individualMentees: boolean) => ({
 describe("useIndividualProgram", () => {
   beforeEach(() => vi.mocked(getOrganizationPrograms).mockReset());
 
+  it("waits for the session before deciding which workspace to show", () => {
+    mockUseAppSession.mockReturnValue(null);
+    const { result } = renderHook(() => useIndividualProgram(), { wrapper });
+    expect(result.current).toEqual({
+      individual: false,
+      isLoading: true,
+      programId: null,
+    });
+    expect(getOrganizationPrograms).not.toHaveBeenCalled();
+  });
+
   it("is true when the mentee's active program takes individuals", async () => {
     signedInAs(UserRole.Mentee, "org-1");
     vi.mocked(getOrganizationPrograms).mockResolvedValue({

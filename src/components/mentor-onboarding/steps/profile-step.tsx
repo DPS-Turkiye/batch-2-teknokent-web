@@ -16,7 +16,9 @@ import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import { EducationListEditor } from "@/components/mentors/education-list-editor";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { MAX_EDUCATIONS } from "@/interfaces/mentor";
 import {
   ABOUT_MAX_LENGTH,
   IntroPhase,
@@ -383,6 +385,22 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
             </OnboardingListRow>
           ),
         )}
+      </OnboardingCard>
+
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      <OnboardingCard
+        title={t("mentorEducation.title")}
+        subtitle={t("mentorEducation.subtitle")}
+      >
+        <EducationListEditor
+          items={draft.profile.education}
+          canAdd={draft.profile.education.length < MAX_EDUCATIONS}
+          onAdd={wizard.addEducation}
+          onChange={wizard.updateEducation}
+          onRemove={wizard.removeEducation}
+          inputClass={inputClass}
+          labelClass="flex flex-col gap-1.5 text-xs font-medium text-[#4a5059]"
+        />
       </OnboardingCard>
     </>
   );
