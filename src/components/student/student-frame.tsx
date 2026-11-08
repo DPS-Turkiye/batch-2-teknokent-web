@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
-import { UserRole } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 
 export const STUDENT_HOME = "/student";
 
@@ -55,15 +55,11 @@ export function studentRouteReady(href: string) {
   return Boolean(item && !item.disabled);
 }
 
-// Any signed-in account may open it while the workspace runs on fixtures behind the flag;
-// the real check (an ODTÜ student identity) comes with the permissions work.
-const STUDENT_WORKSPACE_ROLES = Object.values(UserRole);
-
 export function StudentFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("roleFrame.workspace");
   return (
     <RoleFrame
-      allowedRoles={STUDENT_WORKSPACE_ROLES}
+      workspace={Workspace.OdtuStudent}
       homeHref={STUDENT_HOME}
       menuLabel="studentMenu"
       nav={STUDENT_NAV}
