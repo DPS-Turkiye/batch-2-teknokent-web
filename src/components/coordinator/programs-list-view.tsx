@@ -1,6 +1,5 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -12,11 +11,13 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useCoordinatorProgramList } from "@/hooks/use-coordinator-programs";
 import {
   type CoordinatorProgram,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   daysUntil,
   formatMonthRange,
@@ -28,13 +29,27 @@ import { formatLongDate } from "@/lib/utils";
 
 export function ProgramsListView() {
   const t = useTranslations("coordinatorPrograms");
-  const { query, filter, setFilter, search, setSearch, options, visible } =
-    useCoordinatorProgramList();
+  const {
+    query,
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    options,
+    type,
+    setType,
+    typeOptions,
+    visible,
+  } = useCoordinatorProgramList();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <FilterPills value={filter} onChange={setFilter} options={options} />
+        <div className="flex flex-wrap gap-2">
+          <FilterPills value={filter} onChange={setFilter} options={options} />
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <FilterPills value={type} onChange={setType} options={typeOptions} />
+        </div>
         <div className="flex w-full items-center gap-2 sm:w-auto">
           <div className="min-w-0 flex-1 sm:w-[300px]">
             <SearchField
@@ -43,12 +58,6 @@ export function ProgramsListView() {
               placeholder={t("search")}
             />
           </div>
-          <Link
-            href="/coordinator/programs/new"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
-          >
-            <Plus aria-hidden className="size-4" /> {t("launch")}
-          </Link>
         </div>
       </div>
       <QueryNotice isLoading={query.isLoading} error={query.error} />
@@ -82,11 +91,16 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
         <h2 className="text-[18px] font-semibold text-[#22262b]">
           {program.name}
         </h2>
-        {upcoming ? (
+        {program.lifecycle === ProgramLifecycle.Draft ? (
+          <StatusChip tone="neutral">
+            {t(`lifecycle.${ProgramLifecycle.Draft}`)}
+          </StatusChip>
+        ) : upcoming ? (
           <StatusChip tone="amber">{t("upcoming")}</StatusChip>
         ) : (
           <StatusChip tone="green">{t("active")}</StatusChip>
         )}
+        <ProgramTypeChip type={program.type} />
         <div className="ml-auto flex items-center gap-3">
           {actions > 0 ? (
             <StatusChip tone="amber">
@@ -101,57 +115,59 @@ function ProgramCard({ program }: { program: CoordinatorProgram }) {
           </Link>
         </div>
       </div>
-      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          dot="#e0522a"
-          label={t("teams")}
-          value={program.teamCount}
-          note={t("teamsMentored", {
-            count: program.teamCount - program.awaitingMatchCount,
-          })}
-        />
-        <Stat
-          dot="#1583d6"
-          label={t("mentors")}
-          value={program.mentorCount}
-          note={
-            program.pendingMentorCount > 0
-              ? t("pendingMentors", { count: program.pendingMentorCount })
-              : program.mentorCount === 0
-                ? t("poolEmpty")
-                : t("noPendingInvites")
-          }
-        />
-        <Stat
-          label={t("activeMentorships")}
-          value={program.activeMentorshipCount}
-          note={
-            upcoming
-              ? t("notStarted")
-              : program.riskyMentorshipCount > 0
-                ? t("risky", { count: program.riskyMentorshipCount })
-                : t("noRisky")
-          }
-        />
-        {upcoming && program.startDate ? (
-          <Stat
-            label={t("untilStart")}
-            value={t("days", { count: daysUntil(program.startDate) })}
-            note={formatLongDate(program.startDate, locale)}
-          />
-        ) : (
+      {program.type === ProgramType.StartupMentoring ? (
+        <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Stat
             dot="#e0522a"
-            label={t("awaitingMatch")}
-            value={program.awaitingMatchCount}
+            label={t("teams")}
+            value={program.teamCount}
+            note={t("teamsMentored", {
+              count: program.teamCount - program.awaitingMatchCount,
+            })}
+          />
+          <Stat
+            dot="#1583d6"
+            label={t("mentors")}
+            value={program.mentorCount}
             note={
-              program.oldestAwaitingMatchDays != null
-                ? t("oldestDays", { days: program.oldestAwaitingMatchDays })
-                : t("noWaitingTeams")
+              program.pendingMentorCount > 0
+                ? t("pendingMentors", { count: program.pendingMentorCount })
+                : program.mentorCount === 0
+                  ? t("poolEmpty")
+                  : t("noPendingInvites")
             }
           />
-        )}
-      </div>
+          <Stat
+            label={t("activeMentorships")}
+            value={program.activeMentorshipCount}
+            note={
+              upcoming
+                ? t("notStarted")
+                : program.riskyMentorshipCount > 0
+                  ? t("risky", { count: program.riskyMentorshipCount })
+                  : t("noRisky")
+            }
+          />
+          {upcoming && program.startDate ? (
+            <Stat
+              label={t("untilStart")}
+              value={t("days", { count: daysUntil(program.startDate) })}
+              note={formatLongDate(program.startDate, locale)}
+            />
+          ) : (
+            <Stat
+              dot="#e0522a"
+              label={t("awaitingMatch")}
+              value={program.awaitingMatchCount}
+              note={
+                program.oldestAwaitingMatchDays != null
+                  ? t("oldestDays", { days: program.oldestAwaitingMatchDays })
+                  : t("noWaitingTeams")
+              }
+            />
+          )}
+        </div>
+      ) : null}
       {program.phases.length > 0 ? <PhaseBar program={program} /> : null}
     </article>
   );
@@ -219,6 +235,7 @@ function CompletedProgramRow({ program }: { program: CoordinatorProgram }) {
             {program.name}
           </h2>
           <StatusChip tone="neutral">{t("completed")}</StatusChip>
+          <ProgramTypeChip type={program.type} />
         </div>
         <p className="mt-1 text-[13px] text-[#858c96]">{details.join(" · ")}</p>
       </div>

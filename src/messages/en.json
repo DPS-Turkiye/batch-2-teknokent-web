@@ -5,7 +5,10 @@
     "intro": "Let’s make Menton better together.",
     "close": "Close feedback panel",
     "category": "What would you like to share?",
-    "kinds": { "FEEDBACK": "Feedback", "SUGGESTION": "Suggestion" },
+    "kinds": {
+      "FEEDBACK": "Feedback",
+      "SUGGESTION": "Suggestion"
+    },
     "subject": "Subject",
     "subjectPlaceholder": "A short summary",
     "subjectRequired": "Please add a subject.",
@@ -42,7 +45,10 @@
     "read": "Read",
     "markRead": "Mark as read",
     "language": "Submitted in {language}",
-    "languages": { "tr": "Turkish", "en": "English" },
+    "languages": {
+      "tr": "Turkish",
+      "en": "English"
+    },
     "pagination": "Feedback pages",
     "previous": "Previous",
     "next": "Next",
@@ -953,7 +959,8 @@
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
       "programRole": "A program role can be at most {max} characters.",
-      "studentRequired": "Enter your department and year."
+      "studentRequired": "Enter your department and year.",
+      "schoolName": "Enter a name for every school."
     },
     "assistant": {
       "network": "network error",
@@ -1472,6 +1479,7 @@
     "responseTime": "Response time · {time}",
     "about": "About",
     "experience": "Experience",
+    "education": "Education",
     "topics": "What can you work on with this mentor?",
     "availability": "Availability",
     "nextDays": "Next 7 days",
@@ -3125,6 +3133,7 @@
       "role": "Your role in this program",
       "rolePlaceholder": "e.g. Design mentor",
       "status": {
+        "DRAFT": "Draft",
         "ACTIVE": "Active",
         "COMPLETED": "Completed"
       }
@@ -3143,37 +3152,39 @@
       "title": "Edit availability",
       "subtitle": "Startups can only propose meetings in the hours you leave open.",
       "close": "Close the editor",
-      "loading": "Loading...",
-      "loadFailed": "Couldn't load your availability settings.",
-      "weekly": "WEEKLY AVAILABILITY",
-      "dayOpen": "Available on {day}",
-      "range": "{day} range {number}",
-      "rangeStart": "{range} start",
-      "rangeEnd": "{range} end",
-      "addRange": "Add a time range on {day}",
-      "removeRange": "Remove {range}",
-      "closed": "Closed",
-      "defaults": "CAPACITY AND DEFAULTS",
-      "menteeCapacity": "Concurrent mentorship limit",
-      "defaultMeetingDurationMinutes": "Default meeting length",
-      "meetingBufferMinutes": "Buffer between meetings",
-      "minutesUnit": "min",
-      "unavailable": "DATES YOU'RE UNAVAILABLE",
-      "removeDate": "Remove {date}",
-      "addDate": "Add a date",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "reason": "Reason",
-      "reasonPlaceholder": "Reason (optional)",
-      "cancelDate": "Cancel",
-      "confirmDate": "Add the date",
       "footer": "Changes don't affect upcoming meetings.",
       "cancel": "Cancel",
       "saving": "Saving…",
-      "save": "Save",
-      "saved": "Your availability settings are saved.",
-      "saveFailed": "Couldn't save your availability settings."
+      "save": "Save"
     }
+  },
+  "availabilityEditor": {
+    "loading": "Loading...",
+    "loadFailed": "Couldn't load your availability settings.",
+    "weekly": "WEEKLY AVAILABILITY",
+    "dayOpen": "Available on {day}",
+    "range": "{day} range {number}",
+    "rangeStart": "{range} start",
+    "rangeEnd": "{range} end",
+    "addRange": "Add a time range on {day}",
+    "removeRange": "Remove {range}",
+    "closed": "Closed",
+    "defaults": "CAPACITY AND DEFAULTS",
+    "menteeCapacity": "Concurrent mentorship limit",
+    "defaultMeetingDurationMinutes": "Default meeting length",
+    "meetingBufferMinutes": "Buffer between meetings",
+    "minutesUnit": "min",
+    "unavailable": "DATES YOU'RE UNAVAILABLE",
+    "removeDate": "Remove {date}",
+    "addDate": "Add a date",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "reason": "Reason",
+    "reasonPlaceholder": "Reason (optional)",
+    "cancelDate": "Cancel",
+    "confirmDate": "Add the date",
+    "saved": "Your availability settings are saved.",
+    "saveFailed": "Couldn't save your availability settings."
   },
   "mentorEvaluation": {
     "breadcrumb": "Location",
@@ -3293,6 +3304,8 @@
     "soon": "Coming soon",
     "coordinatorMenu": "Coordinator menu",
     "adminMenu": "Admin menu",
+    "studentMenu": "Student menu",
+    "academicianMenu": "Academician menu",
     "nav": {
       "feedback": "Feedback",
       "home": "Home",
@@ -3302,7 +3315,60 @@
       "mentorships": "Mentorships",
       "calendar": "Calendar",
       "messages": "Messages",
-      "reporting": "Reporting"
+      "reporting": "Reporting",
+      "peerMentoring": "Peer Mentoring",
+      "officeHours": "Office Hours",
+      "myAppointments": "My appointments",
+      "myProfile": "My profile",
+      "appointmentRequests": "Appointment requests",
+      "advisees": "My advisees"
+    },
+    "workspace": {
+      "student": "Student",
+      "academician": "Academician"
+    }
+  },
+  "appointments": {
+    "status": {
+      "PENDING": "Awaiting approval",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Declined",
+      "ALTERNATIVE_PROPOSED": "Alternative proposed",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "role": {
+      "MENTOR": "As mentor",
+      "MENTEE": "As mentee",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "odtuWorkspaces": {
+    "student": {
+      "home": {
+        "title": "Home",
+        "subtitle": "Your appointments and mentoring areas at a glance.",
+        "profileTitle": "Complete your profile",
+        "profileBody": "Pick the topics you care about so we can surface the right peer mentors and Office Hours.",
+        "profileAction": "Complete profile",
+        "upcomingTitle": "Upcoming appointments",
+        "seeAll": "See all",
+        "upcomingEmpty": "You have no upcoming appointments.",
+        "entryLabel": "Workspace sections",
+        "peerMentoring": {
+          "title": "Peer Mentoring",
+          "body": "Get support from a peer mentor, or mentor others once you hold the badge."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Request an appointment in an academician's office hours."
+        }
+      }
+    },
+    "academician": {
+      "comingTitle": "The academician workspace is on its way",
+      "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
   },
   "coordinatorHome": {
@@ -3608,17 +3674,18 @@
   "coordinatorPrograms": {
     "filters": {
       "ALL": "All {count}",
+      "DRAFT": "Draft {count}",
       "ACTIVE": "Active {count}",
       "UPCOMING": "Upcoming {count}",
       "COMPLETED": "Completed {count}"
     },
     "lifecycle": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Archived"
     },
     "search": "Search programs",
-    "launch": "Launch a program",
     "noMatch": "No programs match this filter.",
     "none": "You don't manage any programs yet.",
     "upcoming": "Upcoming",
@@ -3656,7 +3723,9 @@
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
       "SETTINGS": "Program settings",
-      "APPROVALS": "Approvals"
+      "APPROVALS": "Approvals",
+      "PARTICIPANTS": "Participants",
+      "APPOINTMENTS": "Appointments"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -3728,7 +3797,23 @@
       "mentors": "Mentors",
       "activeMentorships": "Active mentorships",
       "awaitingMatch": "Waiting for a match"
-    }
+    },
+    "draftBannerAdmin": "This program has not been launched. Its coordinators set up the conditions; launch it when it is ready.",
+    "draftBannerCoordinator": "This program has not been launched. Set up its conditions in Program settings; participants see it once the admin launches it.",
+    "launchProgram": "Launch the program",
+    "launching": "Launching…",
+    "launched": "{name} was launched.",
+    "launchFailed": "The program could not be launched.",
+    "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "participantTabs": {
+      "TEAMS": "Teams",
+      "MENTOR_POOL": "Mentor pool",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer mentors",
+      "ACADEMICS": "Academics"
+    },
+    "typeTabEmptyAdmin": "This section is not ready for {type} programs yet. The program’s coordinators set up its conditions in Program settings.",
+    "typeTabEmpty": "This section is not ready for {type} programs yet. You can set up the program’s conditions in Program settings."
   },
   "programRules": {
     "days": "days",
@@ -3823,7 +3908,10 @@
     "archive": "Archive the program",
     "archived": "Program archived.",
     "reopened": "Program reopened.",
-    "archiveFailed": "Couldn't archive the program."
+    "archiveFailed": "Couldn't archive the program.",
+    "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
+    "coordinatorsByAdmin": "The admin assigns coordinators.",
+    "type": "Program type"
   },
   "programTeams": {
     "filters": {
@@ -4220,6 +4308,7 @@
   },
   "adminCommon": {
     "programStatus": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "COMPLETED": "Completed"
     },
@@ -4312,6 +4401,7 @@
   "adminPrograms": {
     "filters": {
       "ALL": "All",
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Completed"
@@ -5399,7 +5489,8 @@
     "teamLeaveRequestFailed": "Could not send the leave request.",
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
-    "teamLeaveFailed": "Could not leave the team."
+    "teamLeaveFailed": "Could not leave the team.",
+    "programLaunchFailed": "The program could not be launched."
   },
   "startupStart": {
     "title": "My startup",
@@ -5627,5 +5718,92 @@
     "pickMentor": "Select a mentor",
     "inviteSent": "Invitation sent. The mentor can accept or decline it from the notification.",
     "inviteMentor": "Invite mentor"
+  },
+  "mentorEducation": {
+    "title": "Education",
+    "subtitle": "Your schools; if your CV was read, you can correct them here.",
+    "school": "School",
+    "schoolPlaceholder": "METU",
+    "degree": "Degree and department",
+    "degreePlaceholder": "BSc, Computer Engineering",
+    "period": "Years",
+    "periodPlaceholder": "2022 – 2026",
+    "add": "+ Add school",
+    "remove": "Remove",
+    "removeNamed": "Remove {school}",
+    "empty": "No schools added yet."
+  },
+  "programTypes": {
+    "label": "Program type",
+    "ALL": "All types",
+    "STARTUP_MENTORING": "Startup mentoring",
+    "PEER_MENTORING": "Peer mentoring",
+    "OFFICE_HOURS": "Office hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programs",
+    "newProgram": "Create a new program",
+    "stepOf": "Step {current} of {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program type",
+        "hint": "Startup, peer or office hours",
+        "title": "Choose the program type",
+        "note": "The type decides which structures the program has and cannot change later."
+      },
+      "INFO": {
+        "label": "Program details",
+        "hint": "Name, description, dates",
+        "title": "Program details",
+        "note": "Dates are optional; the coordinator can add them later."
+      },
+      "COORDINATORS": {
+        "label": "Coordinator",
+        "hint": "Who runs the program",
+        "title": "Assign coordinators",
+        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+      },
+      "SUMMARY": {
+        "label": "Summary",
+        "hint": "Check and save",
+        "title": "Summary and save",
+        "note": "The program is saved as a draft; participants see it only after you launch it."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Today’s structure as is: Teams · Mentor pool · Matching · Approvals",
+      "PEER_MENTORING": "Mentees: METU students · Mentors: İŞKUR students with a verified badge",
+      "OFFICE_HOURS": "Every METU academic included, no invitations · Students request appointments"
+    },
+    "name": "Program name",
+    "namePlaceholder": "e.g. METU Peer Mentoring 2026",
+    "description": "Description",
+    "optional": "optional",
+    "start": "Start",
+    "end": "End",
+    "coordinatorsLabel": "Coordinators",
+    "coordinatorsFailed": "Couldn’t load the coordinators.",
+    "retry": "Try again",
+    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
+    "summaryType": "Program type",
+    "summaryName": "Program name",
+    "summaryDates": "Dates",
+    "noDates": "Not set",
+    "summaryCoordinators": "Coordinators",
+    "summaryStatus": "Status",
+    "draft": "Draft",
+    "problems": {
+      "TYPE_REQUIRED": "Choose a program type.",
+      "NAME_REQUIRED": "Enter the program name.",
+      "DATES_ORDER": "The end date cannot be before the start date.",
+      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+    },
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue: {step}",
+    "create": "Save as draft",
+    "creating": "Saving…",
+    "created": "{name} was created as a draft.",
+    "createFailed": "The program could not be created."
   }
 }

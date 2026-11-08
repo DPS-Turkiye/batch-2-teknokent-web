@@ -1,4 +1,5 @@
 import type { AdminOverview } from "@/interfaces/admin-overview";
+import { ProgramType } from "@/interfaces/program";
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 
 export function programMeetingRatings(
@@ -23,6 +24,7 @@ export function reportOverview(overrides: Partial<AdminOverview> = {}) {
         id: "program-1",
         name: "ODTÜ Stars 2026",
         status: "ACTIVE",
+        type: ProgramType.StartupMentoring,
         createdAt: "2026-01-01T00:00:00Z",
         coordinatorId: "coord-1",
         coordinatorName: "Deniz Acar",

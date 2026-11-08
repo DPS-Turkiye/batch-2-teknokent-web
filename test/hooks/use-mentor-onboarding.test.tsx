@@ -387,6 +387,35 @@ describe("useMentorOnboarding — reading the CV", () => {
     expect(result.current.parseNote).toBe("");
   });
 
+  it("fills a student's studies from the CV", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({
+      department: "Bilgisayar Mühendisliği",
+      study_year: "2. sınıf",
+      strong_courses: ["CENG 140"],
+      student_projects: [],
+      exchange_experience: null,
+    });
+    const { result } = renderHook(() => useMentorOnboarding({}));
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(result.current.draft.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "2. sınıf",
+      courses: "CENG 140",
+      projects: "",
+      erasmus: "",
+    });
+  });
+
   it("still opens the form, with a note, when the CV cannot be read", async () => {
     vi.mocked(parseStoredCv).mockRejectedValue(new Error("okunamadı"));
     const { result } = renderHook(() => useMentorOnboarding());
@@ -581,6 +610,36 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     expect(second.result.current.draft.profile.company).toBe("Peak");
     expect(second.result.current.draft.consent).toBe(false);
     expect(second.result.current.droppedFiles).toBe(0);
+  });
+
+  it("restores a draft saved before schools existed with an empty school list", async () => {
+    stored = {
+      kind: "mentor-onboarding",
+      step: "PROFILE",
+      payload: {
+        profile: {
+          fullName: "",
+          title: "Mentor",
+          company: "Peak",
+          totalExperience: "",
+          history: [],
+          inferredAreas: [],
+        },
+      },
+    };
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    await waitFor(() =>
+      expect(result.current.draft.profile.company).toBe("Peak"),
+    );
+    expect(result.current.draft.profile.education).toEqual([]);
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "school", "ODTÜ"));
+    expect(result.current.draft.profile.education).toEqual([
+      { school: "ODTÜ", degree: "", period: "" },
+    ]);
+    act(() => result.current.removeEducation(0));
+    expect(result.current.draft.profile.education).toEqual([]);
   });
 
   it("keeps a CV that already reached the server instead of asking for it again", async () => {

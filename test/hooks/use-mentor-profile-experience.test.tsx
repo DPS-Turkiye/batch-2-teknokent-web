@@ -15,6 +15,7 @@ import {
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { toMentorCvResult } from "@/lib/mentor-cv";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -49,6 +50,7 @@ const baseForm = {
   specialties: [],
   menteeCapacity: null,
   experiences: [],
+  educations: [],
   about: "",
   meetingFrequency: null,
   prepFileRequirement: null,
@@ -224,6 +226,52 @@ describe("useMentorProfileForm capacity and past roles", () => {
   });
 });
 
+describe("useMentorProfileForm schools", () => {
+  beforeEach(() => vi.mocked(updateMentorProfile).mockReset());
+
+  it("starts from the saved schools and saves edits, dropping empty rows", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
+    const { result } = renderHook(
+      () =>
+        useMentorProfileForm({
+          ...mentorProfile,
+          educations: [{ school: "ODTÜ", degree: null, period: "2022 – 2026" }],
+        }),
+      { wrapper },
+    );
+
+    expect(result.current.form.educations).toEqual([
+      { school: "ODTÜ", degree: "", period: "2022 – 2026" },
+    ]);
+    act(() => {
+      result.current.updateEducation(0, "degree", "Lisans, Fizik");
+      result.current.addEducation();
+    });
+    await act(() => result.current.handleSave());
+
+    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+      educations: [
+        { school: "ODTÜ", degree: "Lisans, Fizik", period: "2022 – 2026" },
+      ],
+    });
+  });
+
+  it("does not save a school row without the school's name", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "degree", "Lisans"));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe("Her okul için bir ad gir.");
+    act(() => result.current.removeEducation(0));
+    expect(result.current.form.educations).toEqual([]);
+  });
+});
+
 describe("useMentorProfileForm student studies", () => {
   const studentMentor = {
     ...mentorProfile,
@@ -280,6 +328,33 @@ describe("useMentorProfileForm student studies", () => {
     expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).not.toHaveProperty(
       "studentProfile",
     );
+  });
+
+  it("fills the studies from the CV the mentor asked for", () => {
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    act(() =>
+      result.current.applyCv({
+        ...toMentorCvResult({}),
+        studies: {
+          department: "",
+          studyYear: "4. sınıf",
+          courses: "CENG 213",
+          projects: "",
+          erasmus: "TU Delft, 2025 güz",
+        },
+      }),
+    );
+
+    expect(result.current.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "4. sınıf",
+      courses: "CENG 213",
+      projects: "Kampüs uygulaması",
+      erasmus: "TU Delft, 2025 güz",
+    });
   });
 
   it("does not save a student mentor without a department", async () => {

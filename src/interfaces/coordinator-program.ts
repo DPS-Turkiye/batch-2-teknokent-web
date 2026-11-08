@@ -1,5 +1,7 @@
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
+import type { ProgramStatus, ProgramType } from "@/interfaces/program";
 export enum ProgramLifecycle {
+  Draft = "DRAFT",
   Upcoming = "UPCOMING",
   Active = "ACTIVE",
   Completed = "COMPLETED",
@@ -27,8 +29,9 @@ export type ProgramSyllabus = {
 export type CoordinatorProgram = {
   id: string;
   name: string;
-  status: "ACTIVE" | "COMPLETED";
+  status: ProgramStatus;
   lifecycle: ProgramLifecycle;
+  type: ProgramType;
   description: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -194,18 +197,19 @@ export type ProgramTeam = {
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
 
-/** The "Yeni program" wizard, sent in one request. */
+/** The admin's "Yeni Program Oluştur", sent in one request; the program starts as a draft. */
 export type CreateProgramInput = {
+  type: ProgramType;
   name: string;
   description: string | null;
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
-  defaultMentorCapacity: number;
-  meetingFrequencyDays: number;
-  communicationGapDays: number;
-  bottleneckFlagDays: number;
-  teams: TeamInviteInput[];
+  defaultMentorCapacity?: number;
+  meetingFrequencyDays?: number;
+  communicationGapDays?: number;
+  bottleneckFlagDays?: number;
+  teams?: TeamInviteInput[];
   phases?: ProgramPhaseInput[];
   syllabusDocumentId?: string | null;
 };

@@ -136,6 +136,13 @@ export function toMentorProfilePayload(
         summary: role.summary?.trim() ?? "",
       })),
     offerings: draft.offerings,
+    educations: draft.profile.education
+      .filter((school) => school.school.trim())
+      .map((school) => ({
+        school: school.school.trim(),
+        degree: school.degree.trim(),
+        period: school.period.trim(),
+      })),
   };
 }
 
