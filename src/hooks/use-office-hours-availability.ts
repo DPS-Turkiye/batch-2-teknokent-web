@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 
+import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import type { UpdateMentorAvailabilitySettingsPayload } from "@/interfaces/mentor";
-import type { AvailabilitySettingsSource } from "@/hooks/use-mentor-profile";
 import {
   getOfficeHoursAvailability,
   updateOfficeHoursAvailability,
@@ -32,9 +33,19 @@ export function useUpdateOfficeHoursAvailability() {
   });
 }
 
-/** Feeds the mentor availability editor with the academic's office hours and the office-hours copy. */
-export const OFFICE_HOURS_AVAILABILITY_SOURCE: AvailabilitySettingsSource = {
-  useSettings: useOfficeHoursAvailability,
-  useUpdate: useUpdateOfficeHoursAvailability,
-  copy: "officeHours.availability",
-};
+/** The shared weekly availability editor, fed with the academic's office hours; the capacity is a student limit here. */
+export function useOfficeHoursAvailabilityForm(onSaved: () => void) {
+  const t = useTranslations("officeHours.availability");
+  const settingsQuery = useOfficeHoursAvailability();
+  const updateSettings = useUpdateOfficeHoursAvailability();
+  return useWeeklyAvailabilityForm(
+    {
+      settings: settingsQuery.data,
+      loadFailed: Boolean(settingsQuery.error),
+      save: updateSettings.mutateAsync,
+      isSaving: updateSettings.isPending,
+      numberFieldLabels: { menteeCapacity: t("studentCapacity") },
+    },
+    onSaved,
+  );
+}

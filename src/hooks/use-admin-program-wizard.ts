@@ -1,0 +1,108 @@
+"use client";
+
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useState } from "react";
+
+import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
+import { useToast } from "@/components/providers/toast-provider";
+import {
+  ADMIN_OVERVIEW_QUERY_KEY,
+  useAdminOverview,
+} from "@/hooks/use-admin-overview";
+import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import type { ProgramType } from "@/interfaces/program";
+import {
+  createProgramInput,
+  emptyWizardDraft,
+  type ProgramWizardDraft,
+  stepProblem,
+  toggleCoordinator,
+  WIZARD_STEPS,
+  WizardProblem,
+  WizardStep,
+} from "@/lib/admin-program-wizard";
+import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
+import { errorMessage } from "@/lib/utils";
+
+/** The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. */
+export function useAdminProgramWizard() {
+  const t = useTranslations("adminProgramWizard");
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const overview = useAdminOverview();
+  const [step, setStep] = useState(WizardStep.Type);
+  const [draft, setDraft] = useState<ProgramWizardDraft>(emptyWizardDraft);
+  const [problem, setProblem] = useState<WizardProblem | null>(null);
+  const stepIndex = WIZARD_STEPS.indexOf(step);
+
+  const coordinators = overview.data
+    ? approvedCoordinatorsOf(overview.data)
+    : [];
+
+  const create = useMutation({
+    mutationFn: (type: ProgramType) =>
+      createCoordinatorProgram(createProgramInput(draft, type)),
+    onSuccess: (detail) => {
+      queryClient.setQueryData(
+        coordinatorProgramQueryKey(detail.program.id),
+        detail,
+      );
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      showToast({
+        message: t("created", { name: detail.program.name }),
+        tone: "success",
+      });
+      router.push(`/admin/programs/${encodeURIComponent(detail.program.id)}`);
+    },
+  });
+
+  const update = (patch: Partial<ProgramWizardDraft>) => {
+    setProblem(null);
+    create.reset();
+    setDraft((current) => ({ ...current, ...patch }));
+  };
+
+  return {
+    step,
+    stepIndex,
+    last: stepIndex === WIZARD_STEPS.length - 1,
+    draft,
+    update,
+    coordinators,
+    coordinatorsLoading: overview.isLoading,
+    coordinatorsError: overview.error
+      ? errorMessage(overview.error, t("coordinatorsFailed"))
+      : null,
+    retryCoordinators: () => void overview.refetch(),
+    chosenCoordinators: coordinators.filter((user) =>
+      draft.coordinatorIds.includes(user.id),
+    ),
+    toggleCoordinator: (id: string) =>
+      update({ coordinatorIds: toggleCoordinator(draft.coordinatorIds, id) }),
+    error: problem
+      ? t(`problems.${problem}`)
+      : create.error
+        ? errorMessage(create.error, t("createFailed"))
+        : null,
+    next: () => {
+      const found = stepProblem(step, draft);
+      setProblem(found);
+      if (!found) setStep(WIZARD_STEPS[stepIndex + 1]);
+    },
+    back: () => {
+      setProblem(null);
+      create.reset();
+      if (stepIndex > 0) setStep(WIZARD_STEPS[stepIndex - 1]);
+    },
+    submit: () => {
+      if (draft.type && (create.isIdle || create.isError))
+        create.mutate(draft.type);
+    },
+    creating: create.isPending || create.isSuccess,
+  };
+}

@@ -136,8 +136,17 @@ export function stepNumberValue(
  */
 export function availabilityDraftError(
   draft: AvailabilityDraft,
-  { capacityRequired = false }: { capacityRequired?: boolean } = {},
+  {
+    capacityRequired = false,
+    fields,
+  }: {
+    capacityRequired?: boolean;
+    /** The number fields the owner edits; the rest are not checked. Default: all. */
+    fields?: readonly AvailabilityNumberField[];
+  } = {},
 ) {
+  const checks = (field: AvailabilityNumberField) =>
+    !fields || fields.includes(field);
   for (const day of WEEKDAY_ORDER) {
     const ranges = rangesForDay(draft, day);
     const dayLabel = clientText(`availability.weekday.${day}`);
@@ -159,15 +168,22 @@ export function availabilityDraftError(
     return clientText("availability.tooManyRanges");
   }
   if (
+    checks("menteeCapacity") &&
     (capacityRequired || draft.menteeCapacity.trim()) &&
     !wholeNumberBetween(draft.menteeCapacity, 1, 50)
   ) {
     return clientText("availability.capacity");
   }
-  if (!wholeNumberBetween(draft.defaultMeetingDurationMinutes, 15, 480)) {
+  if (
+    checks("defaultMeetingDurationMinutes") &&
+    !wholeNumberBetween(draft.defaultMeetingDurationMinutes, 15, 480)
+  ) {
     return clientText("availability.duration");
   }
-  if (!wholeNumberBetween(draft.meetingBufferMinutes, 0, 240)) {
+  if (
+    checks("meetingBufferMinutes") &&
+    !wholeNumberBetween(draft.meetingBufferMinutes, 0, 240)
+  ) {
     return clientText("availability.buffer");
   }
   if (draft.exceptions.length > 30) {

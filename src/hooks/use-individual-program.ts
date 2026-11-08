@@ -16,6 +16,7 @@ export function useIndividualProgram() {
   const enabled =
     session?.role === UserRole.Mentee && Boolean(session.organizationId);
   const programs = useOrganizationPrograms({ enabled });
+  if (!session) return { individual: false, isLoading: true, programId: null };
   if (!enabled) return { individual: false, isLoading: false, programId: null };
   const current = currentOrganizationProgram(programs.data);
   if (programs.data) {

@@ -58,7 +58,7 @@ describe("AcademicProfileView", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens the availability editor with the office-hours wording", async () => {
+  it("opens the shared availability editor with a student limit instead of a mentorship limit", async () => {
     const user = userEvent.setup();
     vi.mocked(getOfficeHoursAvailability).mockResolvedValue(settings());
     renderWithQueryClient(<AcademicProfileView fullName="Ali Kaya" />);
@@ -70,6 +70,11 @@ describe("AcademicProfileView", () => {
     expect(
       await screen.findByRole("heading", { name: "Ofis saatlerini düzenle" }),
     ).toBeInTheDocument();
-    expect(screen.getByText("HAFTALIK OFİS SAATLERİ")).toBeInTheDocument();
+    expect(
+      await screen.findByText("Eş zamanlı öğrenci limiti"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Eş zamanlı mentorluk limiti"),
+    ).not.toBeInTheDocument();
   });
 });

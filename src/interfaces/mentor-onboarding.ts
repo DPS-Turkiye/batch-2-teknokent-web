@@ -1,4 +1,9 @@
-import { MeetingFrequency, Weekday, WEEKDAY_ORDER } from "@/interfaces/mentor";
+import {
+  MeetingFrequency,
+  type MentorEducationInput,
+  Weekday,
+  WEEKDAY_ORDER,
+} from "@/interfaces/mentor";
 import type { UploadedFile } from "@/interfaces/signup";
 
 export enum MentorOnboardingStep {
@@ -37,6 +42,7 @@ export interface ParsedProfile {
   company: string;
   totalExperience: string;
   history: ParsedExperience[];
+  education: MentorEducationInput[];
   inferredAreas: string[];
 }
 
@@ -46,6 +52,7 @@ export const PLACEHOLDER_PARSED_PROFILE: ParsedProfile = {
   company: "",
   totalExperience: "",
   history: [],
+  education: [],
   inferredAreas: [],
 };
 

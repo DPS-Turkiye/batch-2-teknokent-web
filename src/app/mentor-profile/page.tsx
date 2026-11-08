@@ -9,6 +9,7 @@ import { ListPagination } from "@/components/common/list-pagination";
 import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
+import { EducationListEditor } from "@/components/mentors/education-list-editor";
 import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { CvFileSection } from "@/components/profile/cv-file-section";
 import { useClientPagination } from "@/hooks/use-client-pagination";
@@ -30,6 +31,7 @@ import type {
   MentorshipHistoryRow,
 } from "@/lib/mentor-profile-overview";
 import { MENTOR_PROFILE_HISTORY_PAGE_SIZE } from "@/lib/const/mentorships";
+import { educationLine } from "@/lib/mentor-detail";
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
@@ -269,6 +271,7 @@ function MentorCvCard({ form }: { form: ProfileForm }) {
 function ProfileBody({ profile }: { profile: MentorProfile }) {
   const t = useTranslations("mentorProfile");
   const tOptions = useTranslations("options");
+  const tEducation = useTranslations("mentorEducation");
   const optionLabel = useOptionLabel();
   const [availabilityOpen, setAvailabilityOpen] = useState(false);
   const form = useMentorProfileForm(profile);
@@ -605,6 +608,29 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
                 ) : null}
               </Card>
             ) : null}
+
+            {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+            <Card title={tEducation("title")}>
+              {editing ? (
+                <EducationListEditor
+                  items={form.form.educations}
+                  canAdd={form.canAddEducation}
+                  onAdd={form.addEducation}
+                  onChange={form.updateEducation}
+                  onRemove={form.removeEducation}
+                  inputClass={inputClass}
+                  labelClass={labelClass}
+                />
+              ) : form.form.educations.length === 0 ? (
+                <p className={emptyClass}>{tEducation("empty")}</p>
+              ) : (
+                form.form.educations.map((school, index) => (
+                  <p key={index} className="text-[13px] text-[#22262b]">
+                    {educationLine(school)}
+                  </p>
+                ))
+              )}
+            </Card>
 
             <Card title={t("history.title")}>
               <MentorshipHistoryList

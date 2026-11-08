@@ -15,6 +15,21 @@ export interface MentorExperience {
   summary: string | null;
 }
 
+export interface MentorEducation {
+  school: string;
+  degree: string | null;
+  period: string | null;
+}
+
+/** An editable school; blanks are sent as empty strings and stored as null. */
+export type MentorEducationInput = {
+  school: string;
+  degree: string;
+  period: string;
+};
+
+export const MAX_EDUCATIONS = 5;
+
 /** An editable past role; blanks are sent as empty strings and stored as null. */
 export type MentorExperienceInput = {
   title: string;
@@ -88,6 +103,7 @@ export interface MentorProfile {
   programNames?: string[];
   programs?: MentorProgram[];
   experiences?: MentorExperience[];
+  educations?: MentorEducation[];
   /** Student mentors (İŞKUR) only; absent for everyone else. */
   studentProfile?: StudentProfile | null;
 }
@@ -119,6 +135,7 @@ export type UpdateMentorProfilePayload = Pick<
   // Left out, the backend keeps what the mentor saved before.
   menteeCapacity?: number | null;
   experiences?: MentorExperienceInput[];
+  educations?: MentorEducationInput[];
   about?: string;
   meetingFrequency?: MeetingFrequency | null;
   prepFileRequirement?: PrepFileRequirement | null;

@@ -3,11 +3,8 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
-import {
-  OFFICE_HOURS_AVAILABILITY_SOURCE,
-  useOfficeHoursAvailability,
-} from "@/hooks/use-office-hours-availability";
+import { OfficeHoursAvailabilityDialog } from "@/components/office-hours/office-hours-availability-dialog";
+import { useOfficeHoursAvailability } from "@/hooks/use-office-hours-availability";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 
 /**
@@ -90,10 +87,7 @@ export function AcademicProfileView({ fullName }: { fullName: string }) {
       </section>
 
       {editing ? (
-        <AvailabilityDialog
-          onClose={() => setEditing(false)}
-          source={OFFICE_HOURS_AVAILABILITY_SOURCE}
-        />
+        <OfficeHoursAvailabilityDialog onClose={() => setEditing(false)} />
       ) : null}
     </>
   );

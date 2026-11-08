@@ -5,9 +5,15 @@ import {
   ProgramLifecycle,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 
 export enum ProgramListFilter {
   All = "ALL",
+  Draft = "DRAFT",
   Active = "ACTIVE",
   Upcoming = "UPCOMING",
   Completed = "COMPLETED",
@@ -19,6 +25,7 @@ export type ProgramsT = ReturnType<
 
 const FILTER_LIFECYCLE: Record<ProgramListFilter, ProgramLifecycle | null> = {
   [ProgramListFilter.All]: null,
+  [ProgramListFilter.Draft]: ProgramLifecycle.Draft,
   [ProgramListFilter.Active]: ProgramLifecycle.Active,
   [ProgramListFilter.Upcoming]: ProgramLifecycle.Upcoming,
   [ProgramListFilter.Completed]: ProgramLifecycle.Completed,
@@ -41,12 +48,14 @@ export function filterPrograms(
   programs: CoordinatorProgram[],
   filter: ProgramListFilter,
   search: string,
+  type: ProgramTypeFilter = ALL_PROGRAM_TYPES,
 ) {
   const lifecycle = FILTER_LIFECYCLE[filter];
   const term = search.trim().toLocaleLowerCase("tr");
   return programs.filter(
     (program) =>
       (!lifecycle || program.lifecycle === lifecycle) &&
+      matchesProgramType(program.type, type) &&
       (!term || program.name.toLocaleLowerCase("tr").includes(term)),
   );
 }

@@ -1,47 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { X } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
+import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
 import { ModalDialog } from "@/components/common/modal-dialog";
-import { NumberStepper } from "@/components/common/number-stepper";
-import { ToggleSwitch } from "@/components/common/toggle-switch";
-import {
-  useAvailabilitySettingsForm,
-  type AvailabilitySettingsSource,
-} from "@/hooks/use-mentor-profile";
-import {
-  AVAILABILITY_NUMBER_FIELDS,
-  exceptionLabel,
-} from "@/lib/mentor-availability";
+import { useAvailabilitySettingsForm } from "@/hooks/use-mentor-profile";
 
-// globals.css gives buttons and inputs `font: inherit` outside any layer, so
-// their type sizes need `!` to take effect.
-const sectionLabelClass =
-  "text-[11px] font-semibold leading-[17px] text-[#858c96]";
-const timeInputClass =
-  "h-[38px] w-[86px] rounded-lg border border-[#d4d8dd] bg-white px-3 text-[12.5px]! font-medium! leading-[19px]! text-[#22262b] [&::-webkit-calendar-picker-indicator]:hidden";
-const iconButtonClass = "grid size-[18px] shrink-0 place-items-center";
-const fieldClass =
-  "h-[38px] w-full rounded-lg border border-[#d4d8dd] bg-white px-3 text-[12.5px]! text-[#22262b]";
+// globals.css gives buttons `font: inherit` outside any layer, so their type
+// sizes need `!` to take effect.
 const pillButtonClass =
   "rounded-full px-[18px] py-2.5 text-[12.5px]! font-medium! leading-[19px]!";
-const smallButtonClass = "text-xs! font-medium! leading-[18px]!";
 
-export function AvailabilityDialog({
-  onClose,
-  source,
-}: {
-  onClose: () => void;
-  /** Office hours pass one course's hours and their own copy; a mentor's own availability otherwise. */
-  source?: AvailabilitySettingsSource;
-}) {
-  const t = useTranslations(
-    (source?.copy ?? "mentorProfile.dialog") as "mentorProfile.dialog",
-  );
-  const locale = useLocale();
-  const availability = useAvailabilitySettingsForm(onClose, source);
+export function AvailabilityDialog({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("mentorProfile.dialog");
+  const availability = useAvailabilitySettingsForm(onClose);
   const { draft } = availability;
 
   return (
@@ -77,258 +50,10 @@ export function AvailabilityDialog({
         </button>
       </header>
 
-      <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-6 py-5">
-        {availability.loadError ? (
-          <p role="alert" className="text-xs text-[#a65a15]">
-            {availability.loadError}
-          </p>
-        ) : !draft ? (
-          <p className="text-xs text-[#858c96]">{t("loading")}</p>
-        ) : (
-          <>
-            <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>{t("weekly")}</h3>
-              <ul className="flex flex-col gap-2.5">
-                {availability.days.map(({ day, label, ranges }) => {
-                  const open = ranges.length > 0;
-                  return (
-                    <li
-                      key={day}
-                      className="flex min-h-[58px] flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-xl border border-[#e4e7ea] bg-white px-3.5 py-2.5"
-                    >
-                      <div className="flex items-center gap-3">
-                        <ToggleSwitch
-                          checked={open}
-                          label={t("dayOpen", { day: label })}
-                          onChange={() => availability.toggleDay(day)}
-                        />
-                        <span
-                          className={`w-[84px] text-[13px] font-medium leading-5 ${open ? "text-[#22262b]" : "text-[#858c96]"}`}
-                        >
-                          {label}
-                        </span>
-                      </div>
-                      {open ? (
-                        <div className="ml-auto flex flex-col items-end gap-2">
-                          {ranges.map((range, index) => {
-                            const first = index === 0;
-                            const name = t("range", {
-                              day: label,
-                              number: index + 1,
-                            });
-                            return (
-                              <div
-                                key={range.key}
-                                className="flex items-center gap-2"
-                              >
-                                <input
-                                  type="time"
-                                  aria-label={t("rangeStart", { range: name })}
-                                  value={range.startTime}
-                                  onChange={(event) =>
-                                    availability.updateRange(
-                                      range.key,
-                                      "startTime",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={timeInputClass}
-                                />
-                                <span className="text-[12.5px] leading-[19px] text-[#676e78]">
-                                  –
-                                </span>
-                                <input
-                                  type="time"
-                                  aria-label={t("rangeEnd", { range: name })}
-                                  value={range.endTime}
-                                  onChange={(event) =>
-                                    availability.updateRange(
-                                      range.key,
-                                      "endTime",
-                                      event.target.value,
-                                    )
-                                  }
-                                  className={timeInputClass}
-                                />
-                                {first ? (
-                                  <button
-                                    type="button"
-                                    onClick={() => availability.addRange(day)}
-                                    aria-label={t("addRange", { day: label })}
-                                    className={iconButtonClass}
-                                  >
-                                    <Image
-                                      src="/mentor-profile/add.svg"
-                                      alt=""
-                                      width={18}
-                                      height={18}
-                                    />
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    onClick={() =>
-                                      availability.removeRange(range.key)
-                                    }
-                                    aria-label={t("removeRange", {
-                                      range: name,
-                                    })}
-                                    className={iconButtonClass}
-                                  >
-                                    <Image
-                                      src="/mentor-profile/remove.svg"
-                                      alt=""
-                                      width={18}
-                                      height={18}
-                                    />
-                                  </button>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <span className="text-[12.5px] leading-[19px] text-[#858c96]">
-                          {t("closed")}
-                        </span>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </section>
-
-            <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>{t("defaults")}</h3>
-              {AVAILABILITY_NUMBER_FIELDS.map(
-                ({ field, min, max, inMinutes }) => (
-                  <div
-                    key={field}
-                    className="flex items-center justify-between gap-4"
-                  >
-                    <span className="text-[13px] leading-5 text-[#4a5059]">
-                      {t(field)}
-                    </span>
-                    <NumberStepper
-                      label={t(field)}
-                      value={draft[field]}
-                      min={min}
-                      max={max}
-                      unit={inMinutes ? t("minutesUnit") : undefined}
-                      onChange={(value) => availability.setNumber(field, value)}
-                      onStep={(direction) =>
-                        availability.stepNumber(field, direction)
-                      }
-                    />
-                  </div>
-                ),
-              )}
-            </section>
-
-            <section className="flex flex-col gap-2.5">
-              <h3 className={sectionLabelClass}>{t("unavailable")}</h3>
-              <div className="flex flex-wrap items-center gap-2">
-                {draft.exceptions.map((item, index) => {
-                  const text = exceptionLabel(item, locale);
-                  return (
-                    <span
-                      key={`${item.startsOn}-${item.endsOn}`}
-                      className="group relative inline-flex items-center rounded-full border border-[#e4e7ea] bg-[#f3f4f6] px-3 py-[5px] text-xs font-medium leading-[18px] text-[#676e78]"
-                    >
-                      {text}
-                      {/* Hidden until hover or focus so the chip reads as in the design. */}
-                      <button
-                        type="button"
-                        onClick={() => availability.removeException(index)}
-                        aria-label={t("removeDate", { date: text })}
-                        className="absolute -right-1.5 -top-1.5 grid size-4 place-items-center rounded-full border border-[#d4d8dd] bg-white text-[#4a5059] opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <X className="size-2.5" strokeWidth={2.5} />
-                      </button>
-                    </span>
-                  );
-                })}
-                {availability.isAddingException ? null : (
-                  <button
-                    type="button"
-                    onClick={availability.openExceptionForm}
-                    className={`inline-flex items-center gap-1.5 rounded-full border border-[#d4d8dd] bg-white px-3 py-[5px] text-[#26a4ff] ${smallButtonClass}`}
-                  >
-                    <Image
-                      src="/mentor-profile/add-small.svg"
-                      alt=""
-                      width={14}
-                      height={14}
-                    />
-                    {t("addDate")}
-                  </button>
-                )}
-              </div>
-              {availability.isAddingException ? (
-                <div className="grid gap-2 rounded-xl border border-[#e4e7ea] p-3 sm:grid-cols-3">
-                  <input
-                    type="date"
-                    aria-label={t("startDate")}
-                    value={availability.exception.startsOn}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "startsOn",
-                        event.target.value,
-                      )
-                    }
-                    className={fieldClass}
-                  />
-                  <input
-                    type="date"
-                    aria-label={t("endDate")}
-                    value={availability.exception.endsOn}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "endsOn",
-                        event.target.value,
-                      )
-                    }
-                    className={fieldClass}
-                  />
-                  <input
-                    aria-label={t("reason")}
-                    value={availability.exception.reason}
-                    onChange={(event) =>
-                      availability.setExceptionField(
-                        "reason",
-                        event.target.value,
-                      )
-                    }
-                    placeholder={t("reasonPlaceholder")}
-                    className={fieldClass}
-                  />
-                  <div className="flex justify-end gap-2 sm:col-span-3">
-                    <button
-                      type="button"
-                      onClick={availability.closeExceptionForm}
-                      className={`rounded-full border border-[#d4d8dd] bg-white px-3 py-1.5 text-[#4a5059] ${smallButtonClass}`}
-                    >
-                      {t("cancelDate")}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={availability.addException}
-                      className={`rounded-full bg-[#26a4ff] px-3 py-1.5 text-white ${smallButtonClass}`}
-                    >
-                      {t("confirmDate")}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-            </section>
-          </>
-        )}
-        {availability.error ? (
-          <p role="alert" className="text-[12px] text-[#a65a15]">
-            {availability.error}
-          </p>
-        ) : null}
-      </div>
+      <WeeklyAvailabilityEditor
+        editor={availability}
+        className="flex-1 overflow-y-auto px-6 py-5"
+      />
 
       <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-[#eceef0] px-6 pb-5 pt-4">
         <p className="text-xs leading-[18px] text-[#676e78]">{t("footer")}</p>

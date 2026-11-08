@@ -5,7 +5,10 @@
     "intro": "Menton’u birlikte geliştirelim.",
     "close": "Geri bildirim panelini kapat",
     "category": "Ne paylaşmak istersin?",
-    "kinds": { "FEEDBACK": "Geri bildirim", "SUGGESTION": "Öneri" },
+    "kinds": {
+      "FEEDBACK": "Geri bildirim",
+      "SUGGESTION": "Öneri"
+    },
     "subject": "Başlık",
     "subjectPlaceholder": "Kısaca özetle",
     "subjectRequired": "Lütfen bir başlık yaz.",
@@ -42,7 +45,10 @@
     "read": "Okundu",
     "markRead": "Okundu işaretle",
     "language": "Gönderim dili: {language}",
-    "languages": { "tr": "Türkçe", "en": "İngilizce" },
+    "languages": {
+      "tr": "Türkçe",
+      "en": "İngilizce"
+    },
     "pagination": "Geri bildirim sayfaları",
     "previous": "Önceki",
     "next": "Sonraki",
@@ -953,7 +959,8 @@
       "capacity": "Mentee kapasitesi 1 ile 50 arasında olmalı.",
       "roleTitle": "Her deneyim için bir ünvan gir.",
       "programRole": "Program rolü en fazla {max} karakter olabilir.",
-      "studentRequired": "Bölümünü ve sınıfını gir."
+      "studentRequired": "Bölümünü ve sınıfını gir.",
+      "schoolName": "Her okul için bir ad gir."
     },
     "assistant": {
       "network": "ağ hatası",
@@ -1472,6 +1479,7 @@
     "responseTime": "Yanıt süresi · {time}",
     "about": "Hakkında",
     "experience": "Deneyim",
+    "education": "Eğitim",
     "topics": "Bu mentorla hangi konuları çalışabilirsin?",
     "availability": "Uygunluk",
     "nextDays": "Önümüzdeki 7 gün",
@@ -3125,6 +3133,7 @@
       "role": "Bu programdaki rolün",
       "rolePlaceholder": "Örn. Design mentor",
       "status": {
+        "DRAFT": "Taslak",
         "ACTIVE": "Aktif",
         "COMPLETED": "Tamamlandı"
       }
@@ -3143,37 +3152,39 @@
       "title": "Müsaitliği düzenle",
       "subtitle": "Startuplar yalnızca açık bıraktığın saatlerde toplantı önerebilir.",
       "close": "Düzenlemeyi kapat",
-      "loading": "Yükleniyor...",
-      "loadFailed": "Müsaitlik ayarları yüklenemedi.",
-      "weekly": "HAFTALIK UYGUNLUK",
-      "dayOpen": "{day} uygun",
-      "range": "{day} {number}. aralık",
-      "rangeStart": "{range} başlangıç",
-      "rangeEnd": "{range} bitiş",
-      "addRange": "{day} için saat aralığı ekle",
-      "removeRange": "{range} kaldır",
-      "closed": "Kapalı",
-      "defaults": "KAPASİTE VE VARSAYILANLAR",
-      "menteeCapacity": "Eş zamanlı mentorluk limiti",
-      "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
-      "meetingBufferMinutes": "İki görüşme arası tampon",
-      "minutesUnit": "dk",
-      "unavailable": "UYGUN OLMADIĞIN TARİHLER",
-      "removeDate": "{date} tarihini kaldır",
-      "addDate": "Tarih ekle",
-      "startDate": "Başlangıç tarihi",
-      "endDate": "Bitiş tarihi",
-      "reason": "İstisna nedeni",
-      "reasonPlaceholder": "Neden (isteğe bağlı)",
-      "cancelDate": "İptal",
-      "confirmDate": "Tarihi ekle",
       "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
       "cancel": "Vazgeç",
       "saving": "Kaydediliyor…",
-      "save": "Kaydet",
-      "saved": "Müsaitlik ayarların kaydedildi.",
-      "saveFailed": "Müsaitlik ayarları kaydedilemedi."
+      "save": "Kaydet"
     }
+  },
+  "availabilityEditor": {
+    "loading": "Yükleniyor...",
+    "loadFailed": "Müsaitlik ayarları yüklenemedi.",
+    "weekly": "HAFTALIK UYGUNLUK",
+    "dayOpen": "{day} uygun",
+    "range": "{day} {number}. aralık",
+    "rangeStart": "{range} başlangıç",
+    "rangeEnd": "{range} bitiş",
+    "addRange": "{day} için saat aralığı ekle",
+    "removeRange": "{range} kaldır",
+    "closed": "Kapalı",
+    "defaults": "KAPASİTE VE VARSAYILANLAR",
+    "menteeCapacity": "Eş zamanlı mentorluk limiti",
+    "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
+    "meetingBufferMinutes": "İki görüşme arası tampon",
+    "minutesUnit": "dk",
+    "unavailable": "UYGUN OLMADIĞIN TARİHLER",
+    "removeDate": "{date} tarihini kaldır",
+    "addDate": "Tarih ekle",
+    "startDate": "Başlangıç tarihi",
+    "endDate": "Bitiş tarihi",
+    "reason": "İstisna nedeni",
+    "reasonPlaceholder": "Neden (isteğe bağlı)",
+    "cancelDate": "İptal",
+    "confirmDate": "Tarihi ekle",
+    "saved": "Müsaitlik ayarların kaydedildi.",
+    "saveFailed": "Müsaitlik ayarları kaydedilemedi."
   },
   "mentorEvaluation": {
     "breadcrumb": "Konum",
@@ -3293,6 +3304,8 @@
     "soon": "Yakında",
     "coordinatorMenu": "Koordinatör menüsü",
     "adminMenu": "Admin menüsü",
+    "studentMenu": "Öğrenci menüsü",
+    "academicianMenu": "Akademisyen menüsü",
     "nav": {
       "feedback": "Geri bildirim",
       "home": "Anasayfa",
@@ -3302,7 +3315,60 @@
       "mentorships": "Mentorluklar",
       "calendar": "Takvim",
       "messages": "Mesajlar",
-      "reporting": "Raporlama"
+      "reporting": "Raporlama",
+      "peerMentoring": "Akran Mentörlüğü",
+      "officeHours": "Office Hours",
+      "myAppointments": "Randevularım",
+      "myProfile": "Profilim",
+      "appointmentRequests": "Randevu Talepleri",
+      "advisees": "Danışan Öğrencilerim"
+    },
+    "workspace": {
+      "student": "Öğrenci",
+      "academician": "Akademisyen"
+    }
+  },
+  "appointments": {
+    "status": {
+      "PENDING": "Onay Bekliyor",
+      "CONFIRMED": "Onaylandı",
+      "REJECTED": "Reddedildi",
+      "ALTERNATIVE_PROPOSED": "Alternatif Önerildi",
+      "CANCELLED": "İptal Edildi",
+      "EXPIRED": "Süresi Doldu",
+      "WITHDRAWN": "Geri Çekildi"
+    },
+    "role": {
+      "MENTOR": "Mentor olarak",
+      "MENTEE": "Mentee olarak",
+      "OFFICE_HOURS": "Office Hours"
+    }
+  },
+  "odtuWorkspaces": {
+    "student": {
+      "home": {
+        "title": "Ana Sayfa",
+        "subtitle": "Randevuların ve mentorluk alanların tek bakışta.",
+        "profileTitle": "Profilini tamamla",
+        "profileBody": "İlgilendiğin konuları seç; sana uygun akran mentorlarını ve Office Hours saatlerini öne çıkaralım.",
+        "profileAction": "Profili tamamla",
+        "upcomingTitle": "Yaklaşan randevular",
+        "seeAll": "Tümünü gör",
+        "upcomingEmpty": "Yaklaşan randevun yok.",
+        "entryLabel": "Çalışma alanı bölümleri",
+        "peerMentoring": {
+          "title": "Akran Mentörlüğü",
+          "body": "Bir akran mentordan destek al ya da rozetinle mentorluk ver."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Akademisyenlerin görüşme saatlerinden randevu iste."
+        }
+      }
+    },
+    "academician": {
+      "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
+      "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
   },
   "coordinatorHome": {
@@ -3608,17 +3674,18 @@
   "coordinatorPrograms": {
     "filters": {
       "ALL": "Tümü {count}",
+      "DRAFT": "Taslak {count}",
       "ACTIVE": "Aktif {count}",
       "UPCOMING": "Yaklaşan {count}",
       "COMPLETED": "Tamamlanan {count}"
     },
     "lifecycle": {
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "UPCOMING": "Yaklaşan",
       "COMPLETED": "Arşivlendi"
     },
     "search": "Program ara",
-    "launch": "Program başlat",
     "noMatch": "Bu filtreyle eşleşen program yok.",
     "none": "Henüz yönettiğin bir program yok.",
     "upcoming": "Yaklaşan",
@@ -3656,7 +3723,9 @@
       "MENTOR_POOL": "Mentor Havuzu",
       "MATCHING": "Eşleşmeler",
       "SETTINGS": "Program Ayarları",
-      "APPROVALS": "Onaylar"
+      "APPROVALS": "Onaylar",
+      "PARTICIPANTS": "Katılımcılar",
+      "APPOINTMENTS": "Randevular"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
     "coordinators": "{count, plural, =1 {Koordinatör} other {Koordinatörler}}: {names}",
@@ -3728,7 +3797,23 @@
       "mentors": "Mentor",
       "activeMentorships": "Aktif mentorluk",
       "awaitingMatch": "Eşleşme bekleyen"
-    }
+    },
+    "draftBannerAdmin": "Program henüz başlatılmadı. Koordinatörler koşulları yapılandırır; hazır olduğunda programı başlat.",
+    "draftBannerCoordinator": "Program henüz başlatılmadı. Koşulları Program Ayarları’nda yapılandır; yönetici başlattığında katılımcılar programı görür.",
+    "launchProgram": "Programı Başlat",
+    "launching": "Başlatılıyor…",
+    "launched": "{name} başlatıldı.",
+    "launchFailed": "Program başlatılamadı.",
+    "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata.",
+    "participantTabs": {
+      "TEAMS": "Takımlar",
+      "MENTOR_POOL": "Mentor Havuzu",
+      "STUDENTS": "Öğrenciler",
+      "PEER_MENTORS": "Akran Mentorları",
+      "ACADEMICS": "Akademisyenler"
+    },
+    "typeTabEmptyAdmin": "Bu bölüm {type} programları için henüz hazır değil. Programın koşullarını koordinatörleri Program Ayarları’nda yapılandırır.",
+    "typeTabEmpty": "Bu bölüm {type} programları için henüz hazır değil. Programın koşullarını Program Ayarları’nda yapılandırabilirsin."
   },
   "programRules": {
     "days": "gün",
@@ -3823,7 +3908,10 @@
     "archive": "Programı arşivle",
     "archived": "Program arşivlendi.",
     "reopened": "Program yeniden açıldı.",
-    "archiveFailed": "Program arşivlenemedi."
+    "archiveFailed": "Program arşivlenemedi.",
+    "adminViewNote": "Program ayarlarını programın koordinatörleri yapılandırır; yönetici olarak yalnızca görüntülersin. Koordinatörleri buradan atayabilirsin.",
+    "coordinatorsByAdmin": "Koordinatörleri yönetici atar.",
+    "type": "Program türü"
   },
   "programTeams": {
     "filters": {
@@ -4220,6 +4308,7 @@
   },
   "adminCommon": {
     "programStatus": {
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "COMPLETED": "Tamamlandı"
     },
@@ -4312,6 +4401,7 @@
   "adminPrograms": {
     "filters": {
       "ALL": "Tümü",
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "UPCOMING": "Yaklaşan",
       "COMPLETED": "Tamamlanan"
@@ -5400,7 +5490,8 @@
     "teamLeaveRequestFailed": "Ayrılma talebi gönderilemedi.",
     "approvalsLoadFailed": "Onaylar yüklenemedi.",
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
-    "teamLeaveFailed": "Takımdan ayrılınamadı."
+    "teamLeaveFailed": "Takımdan ayrılınamadı.",
+    "programLaunchFailed": "Program başlatılamadı."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -5629,6 +5720,93 @@
     "inviteSent": "Davet gönderildi. Mentör bildirimden kabul veya red edebilir.",
     "inviteMentor": "Mentör davet et"
   },
+  "mentorEducation": {
+    "title": "Eğitim",
+    "subtitle": "Okulların; CV’n okunduysa buradan düzeltebilirsin.",
+    "school": "Okul",
+    "schoolPlaceholder": "ODTÜ",
+    "degree": "Derece ve bölüm",
+    "degreePlaceholder": "Lisans, Bilgisayar Mühendisliği",
+    "period": "Yıllar",
+    "periodPlaceholder": "2022 – 2026",
+    "add": "+ Okul ekle",
+    "remove": "Kaldır",
+    "removeNamed": "{school} okulunu kaldır",
+    "empty": "Henüz okul eklenmedi."
+  },
+  "programTypes": {
+    "label": "Program türü",
+    "ALL": "Tüm türler",
+    "STARTUP_MENTORING": "Girişim Mentörlüğü",
+    "PEER_MENTORING": "Akran Mentörlüğü",
+    "OFFICE_HOURS": "Office Hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programlar",
+    "newProgram": "Yeni Program Oluştur",
+    "stepOf": "Adım {current} / {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program türü",
+        "hint": "Girişim, Akran veya Office Hours",
+        "title": "Program türünü seç",
+        "note": "Tür, programda hangi yapıların görüneceğini belirler ve sonradan değişmez."
+      },
+      "INFO": {
+        "label": "Program bilgileri",
+        "hint": "Ad, açıklama, tarihler",
+        "title": "Program bilgileri",
+        "note": "Tarihler isteğe bağlı; koordinatör sonradan da girebilir."
+      },
+      "COORDINATORS": {
+        "label": "Koordinatör",
+        "hint": "Programı yönetecek kişiler",
+        "title": "Koordinatör ata",
+        "note": "Bir veya daha fazla koordinatör seç. Koordinatörler programın koşullarını yapılandırır."
+      },
+      "SUMMARY": {
+        "label": "Özet",
+        "hint": "Kontrol et ve kaydet",
+        "title": "Özet ve kaydet",
+        "note": "Program Taslak olarak kaydedilir; sen başlatana kadar katılımcılar görmez."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Mevcut yapı aynen: Takımlar · Mentor Havuzu · Eşleşmeler · Onaylar",
+      "PEER_MENTORING": "Mentee: ODTÜ öğrencileri · Mentor: rozeti doğrulanmış İŞKUR öğrencileri",
+      "OFFICE_HOURS": "Tüm ODTÜ akademisyenleri dahil, davet yok · Öğrenciler randevu talep eder"
+    },
+    "name": "Program adı",
+    "namePlaceholder": "örn. ODTÜ Akran Mentörlüğü 2026",
+    "description": "Açıklama",
+    "optional": "isteğe bağlı",
+    "start": "Başlangıç",
+    "end": "Bitiş",
+    "coordinatorsLabel": "Koordinatörler",
+    "coordinatorsFailed": "Koordinatörler yüklenemedi.",
+    "retry": "Tekrar dene",
+    "noCoordinators": "Onaylı koordinatör yok. Önce Kullanıcılar › Koordinatörler bölümünden bir koordinatör ekle.",
+    "summaryType": "Program türü",
+    "summaryName": "Program adı",
+    "summaryDates": "Tarihler",
+    "noDates": "Belirtilmedi",
+    "summaryCoordinators": "Koordinatörler",
+    "summaryStatus": "Durum",
+    "draft": "Taslak",
+    "problems": {
+      "TYPE_REQUIRED": "Bir program türü seç.",
+      "NAME_REQUIRED": "Program adını yaz.",
+      "DATES_ORDER": "Bitiş tarihi başlangıçtan önce olamaz.",
+      "COORDINATOR_REQUIRED": "En az bir koordinatör seç."
+    },
+    "cancel": "Vazgeç",
+    "back": "Geri",
+    "continue": "Devam: {step}",
+    "create": "Taslak olarak kaydet",
+    "creating": "Kaydediliyor…",
+    "created": "{name} taslak olarak oluşturuldu.",
+    "createFailed": "Program oluşturulamadı."
+  },
   "officeHours": {
     "title": "Ofis saatleri",
     "course": "Ders",
@@ -5663,36 +5841,11 @@
       "title": "Ofis saatlerini düzenle",
       "subtitle": "Öğrenciler yalnızca açık bıraktığın saatlerde ofis saati talep edebilir.",
       "close": "Düzenlemeyi kapat",
-      "loading": "Yükleniyor...",
-      "loadFailed": "Ofis saatleri yüklenemedi.",
-      "weekly": "HAFTALIK OFİS SAATLERİ",
-      "dayOpen": "{day} uygun",
-      "range": "{day} {number}. aralık",
-      "rangeStart": "{range} başlangıç",
-      "rangeEnd": "{range} bitiş",
-      "addRange": "{day} için saat aralığı ekle",
-      "removeRange": "{range} kaldır",
-      "closed": "Kapalı",
-      "defaults": "KAPASİTE VE VARSAYILANLAR",
-      "menteeCapacity": "Eş zamanlı öğrenci limiti",
-      "defaultMeetingDurationMinutes": "Varsayılan görüşme süresi",
-      "meetingBufferMinutes": "İki görüşme arası tampon",
-      "minutesUnit": "dk",
-      "unavailable": "OFİS SAATİ OLMAYAN TARİHLER",
-      "removeDate": "{date} tarihini kaldır",
-      "addDate": "Tarih ekle",
-      "startDate": "Başlangıç tarihi",
-      "endDate": "Bitiş tarihi",
-      "reason": "İstisna nedeni",
-      "reasonPlaceholder": "Neden (isteğe bağlı)",
-      "cancelDate": "İptal",
-      "confirmDate": "Tarihi ekle",
       "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
       "cancel": "Vazgeç",
       "saving": "Kaydediliyor…",
       "save": "Kaydet",
-      "saved": "Ofis saatlerin kaydedildi.",
-      "saveFailed": "Ofis saatleri kaydedilemedi."
+      "studentCapacity": "Eş zamanlı öğrenci limiti"
     },
     "profile": {
       "title": "Profilim",
