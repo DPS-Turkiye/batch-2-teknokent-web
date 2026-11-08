@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Workspace } from "@/interfaces/workspace";
 import {
   IdentityKind,
   UserAccountStatus,
@@ -7,8 +8,12 @@ import {
   type BackendUser,
 } from "@/interfaces/session";
 
+const cookieJar = vi.hoisted(() => ({
+  get: vi.fn(),
+  set: vi.fn(),
+}));
 vi.mock("next/headers", () => ({
-  cookies: vi.fn().mockResolvedValue({}),
+  cookies: vi.fn().mockResolvedValue(cookieJar),
 }));
 
 const mockIronSession: {
@@ -50,8 +55,10 @@ const {
   getSessionIds,
   getSessionMentorId,
   getSessionUser,
+  LAST_WORKSPACE_COOKIE,
   refreshSessionUser,
   saveSessionUser,
+  switchSessionWorkspace,
   toSession,
 } = await import("@/lib/session");
 const { SessionRequiredError } = await import("@/lib/server/session-error");
@@ -463,5 +470,40 @@ describe("getSessionMentorId", () => {
     await expect(getSessionMentorId()).rejects.toBeInstanceOf(
       SessionRequiredError,
     );
+  });
+});
+
+describe("switchSessionWorkspace", () => {
+  const assistant = toSession(
+    mentor({
+      role: UserRole.Academician,
+      permissions: [UserRole.Mentee, UserRole.Academician],
+      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    }),
+  )!;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIronSession.user = assistant;
+    mockIronSession.issuedAt = Date.now();
+  });
+
+  it("saves the switch and remembers it for the next sign-in", async () => {
+    await expect(
+      switchSessionWorkspace(Workspace.OdtuStudent),
+    ).resolves.toMatchObject({ activeWorkspace: Workspace.OdtuStudent });
+
+    expect(savedSession.save).toHaveBeenCalledOnce();
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      LAST_WORKSPACE_COOKIE,
+      Workspace.OdtuStudent,
+      expect.objectContaining({ httpOnly: true }),
+    );
+  });
+
+  it("refuses a workspace the account cannot open", async () => {
+    await expect(switchSessionWorkspace(Workspace.Admin)).resolves.toBeNull();
+    expect(savedSession.save).not.toHaveBeenCalled();
+    expect(cookieJar.set).not.toHaveBeenCalled();
   });
 });

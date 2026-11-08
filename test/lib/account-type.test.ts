@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { AccountType } from "@/interfaces/account-type";
-import { IdentityKind } from "@/interfaces/session";
+import { IdentityKind, UserRole } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 import {
   accountTypeOfSession,
   isAccountType,
@@ -40,14 +41,28 @@ describe("resolveAccountType", () => {
 });
 
 describe("accountTypeOfSession", () => {
-  it("makes an account ODTÜ exactly when ODTÜ vouches for the person", () => {
-    expect(
-      accountTypeOfSession({ institutionKinds: [IdentityKind.Student] }),
-    ).toBe(AccountType.Odtu);
-    expect(accountTypeOfSession({ institutionKinds: [] })).toBe(
+  const student = {
+    userId: "u-1",
+    email: "ayse@odtu-dev.invalid",
+    fullName: "Ayşe",
+    jobTitle: "Mentee",
+    role: UserRole.Mentee,
+    institutionKinds: [IdentityKind.Student],
+  };
+
+  it("uses the ODTÜ wording in an ODTÜ workspace and Teknokent's elsewhere", () => {
+    expect(accountTypeOfSession(student)).toBe(AccountType.Odtu);
+    expect(accountTypeOfSession({ ...student, institutionKinds: [] })).toBe(
       AccountType.Teknokent,
     );
-    expect(accountTypeOfSession({})).toBe(AccountType.Teknokent);
+    // A student who is also on a startup team, switched to the Girişim workspace.
+    expect(
+      accountTypeOfSession({
+        ...student,
+        organizationId: "org-1",
+        activeWorkspace: Workspace.GirisimMentee,
+      }),
+    ).toBe(AccountType.Teknokent);
   });
 });
 

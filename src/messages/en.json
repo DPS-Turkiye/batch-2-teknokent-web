@@ -72,6 +72,17 @@
     "invite": "Got an invitation? Continue with your invite code",
     "odtu": "Sign in with your METU account"
   },
+  "workspaceSwitch": {
+    "label": "Workspace",
+    "names": {
+      "ADMIN": "Administration",
+      "COORDINATOR": "Coordinator",
+      "ODTU_ACADEMICIAN": "Academician",
+      "ODTU_STUDENT": "METU student",
+      "GIRISIM_MENTOR": "Startups · Mentor",
+      "GIRISIM_MENTEE": "Startups"
+    }
+  },
   "odtuDevLogin": {
     "title": "METU test sign-in",
     "intro": "Pick a test person for local development. This page goes away once METU's real sign-in arrives.",
@@ -5319,6 +5330,8 @@
     }
   },
   "apiErrors": {
+    "workspaceNotAvailable": "This account cannot open that workspace.",
+    "workspaceSwitchFailed": "Could not switch the workspace.",
     "institutionUnknown": "You cannot sign in through this institution.",
     "institutionLoginFailed": "The institution sign-in could not be completed. Please try again.",
     "institutionRecordLoadFailed": "Could not load your institution details.",

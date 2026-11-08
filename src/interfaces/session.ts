@@ -1,3 +1,5 @@
+import type { Workspace } from "@/interfaces/workspace";
+
 export enum UserRole {
   Admin = "ADMIN",
   Coordinator = "COORDINATOR",
@@ -33,6 +35,8 @@ export type AppSession = {
   permissions?: UserRole[];
   /** From /api/auth/me; non-empty for an ODTÜ account, which is what makes it one. */
   institutionKinds?: IdentityKind[];
+  /** The workspace the user switched to; see lib/workspaces.ts. */
+  activeWorkspace?: Workspace;
 };
 
 export type BackendUser = {

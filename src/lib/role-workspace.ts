@@ -1,6 +1,6 @@
-import { AccountType } from "@/interfaces/account-type";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { accountTypeOfSession } from "@/lib/account-type";
+import { Workspace } from "@/interfaces/workspace";
+import { activeWorkspaceOf } from "@/lib/workspaces";
 
 export type RoleWorkspace = {
   homeHref: string;
@@ -71,14 +71,18 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
   }
 }
 
-/** An ODTÜ student opens the student workspace (Lane S), whatever else they hold; the switch comes later. */
+const ROLE_OF_WORKSPACE: Record<Workspace, UserRole> = {
+  [Workspace.Admin]: UserRole.Admin,
+  [Workspace.Coordinator]: UserRole.Coordinator,
+  [Workspace.OdtuAcademician]: UserRole.Academician,
+  [Workspace.OdtuStudent]: UserRole.Mentee,
+  [Workspace.GirisimMentor]: UserRole.Mentor,
+  [Workspace.GirisimMentee]: UserRole.Mentee,
+};
+
+/** The links of the workspace the account is in (see lib/workspaces.ts). */
 export function workspaceForSession(session: AppSession | null) {
-  if (
-    session &&
-    session.role === UserRole.Mentee &&
-    accountTypeOfSession(session) === AccountType.Odtu
-  ) {
-    return STUDENT_WORKSPACE;
-  }
-  return roleWorkspace(session?.role);
+  const active = session ? activeWorkspaceOf(session) : null;
+  if (active === Workspace.OdtuStudent) return STUDENT_WORKSPACE;
+  return roleWorkspace(active ? ROLE_OF_WORKSPACE[active] : session?.role);
 }
