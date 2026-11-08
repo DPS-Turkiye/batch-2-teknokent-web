@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramOverviewView } from "@/components/coordinator/program-overview-view";
 import { ProgramSettingsView } from "@/components/coordinator/program-settings-view";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import {
   addProgramCoordinator,
   extractSyllabusPhases,
@@ -121,6 +122,26 @@ describe("coordinator program detail", () => {
       screen.getByRole("tab", { name: /Program settings/ }),
     ).toBeInTheDocument();
     expect(screen.getByText("Team & mentor distribution")).toBeInTheDocument();
+  });
+
+  it("shows the program type and a draft's Taslak label in the header", async () => {
+    const detail = coordinatorProgramDetail();
+    vi.mocked(getCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      program: {
+        ...detail.program,
+        lifecycle: ProgramLifecycle.Draft,
+        status: ProgramStatus.Draft,
+        type: ProgramType.OfficeHours,
+      },
+    });
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+
+    const heading = await screen.findByRole("heading", {
+      name: /METU Stars 2026/,
+    });
+    expect(within(heading).getByText("Taslak")).toBeInTheDocument();
+    expect(within(heading).getByText("Office Hours")).toBeInTheDocument();
   });
 
   it("shows Genel Bakış: phases, health, actions, dates and distribution", async () => {

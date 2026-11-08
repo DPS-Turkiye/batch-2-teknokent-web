@@ -1,5 +1,7 @@
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
+import type { ProgramStatus, ProgramType } from "@/interfaces/program";
 export enum ProgramLifecycle {
+  Draft = "DRAFT",
   Upcoming = "UPCOMING",
   Active = "ACTIVE",
   Completed = "COMPLETED",
@@ -27,8 +29,9 @@ export type ProgramSyllabus = {
 export type CoordinatorProgram = {
   id: string;
   name: string;
-  status: "ACTIVE" | "COMPLETED";
+  status: ProgramStatus;
   lifecycle: ProgramLifecycle;
+  type: ProgramType;
   description: string | null;
   startDate: string | null;
   endDate: string | null;

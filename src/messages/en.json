@@ -5,7 +5,10 @@
     "intro": "Let’s make Menton better together.",
     "close": "Close feedback panel",
     "category": "What would you like to share?",
-    "kinds": { "FEEDBACK": "Feedback", "SUGGESTION": "Suggestion" },
+    "kinds": {
+      "FEEDBACK": "Feedback",
+      "SUGGESTION": "Suggestion"
+    },
     "subject": "Subject",
     "subjectPlaceholder": "A short summary",
     "subjectRequired": "Please add a subject.",
@@ -42,7 +45,10 @@
     "read": "Read",
     "markRead": "Mark as read",
     "language": "Submitted in {language}",
-    "languages": { "tr": "Turkish", "en": "English" },
+    "languages": {
+      "tr": "Turkish",
+      "en": "English"
+    },
     "pagination": "Feedback pages",
     "previous": "Previous",
     "next": "Next",
@@ -3127,6 +3133,7 @@
       "role": "Your role in this program",
       "rolePlaceholder": "e.g. Design mentor",
       "status": {
+        "DRAFT": "Draft",
         "ACTIVE": "Active",
         "COMPLETED": "Completed"
       }
@@ -3650,11 +3657,13 @@
   "coordinatorPrograms": {
     "filters": {
       "ALL": "All {count}",
+      "DRAFT": "Draft {count}",
       "ACTIVE": "Active {count}",
       "UPCOMING": "Upcoming {count}",
       "COMPLETED": "Completed {count}"
     },
     "lifecycle": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Archived"
@@ -4262,6 +4271,7 @@
   },
   "adminCommon": {
     "programStatus": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "COMPLETED": "Completed"
     },
@@ -4354,6 +4364,7 @@
   "adminPrograms": {
     "filters": {
       "ALL": "All",
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Completed"
@@ -5683,5 +5694,12 @@
     "remove": "Remove",
     "removeNamed": "Remove {school}",
     "empty": "No schools added yet."
+  },
+  "programTypes": {
+    "label": "Program type",
+    "ALL": "All types",
+    "STARTUP_MENTORING": "Startup mentoring",
+    "PEER_MENTORING": "Peer mentoring",
+    "OFFICE_HOURS": "Office hours"
   }
 }

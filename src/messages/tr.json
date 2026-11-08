@@ -5,7 +5,10 @@
     "intro": "Menton’u birlikte geliştirelim.",
     "close": "Geri bildirim panelini kapat",
     "category": "Ne paylaşmak istersin?",
-    "kinds": { "FEEDBACK": "Geri bildirim", "SUGGESTION": "Öneri" },
+    "kinds": {
+      "FEEDBACK": "Geri bildirim",
+      "SUGGESTION": "Öneri"
+    },
     "subject": "Başlık",
     "subjectPlaceholder": "Kısaca özetle",
     "subjectRequired": "Lütfen bir başlık yaz.",
@@ -42,7 +45,10 @@
     "read": "Okundu",
     "markRead": "Okundu işaretle",
     "language": "Gönderim dili: {language}",
-    "languages": { "tr": "Türkçe", "en": "İngilizce" },
+    "languages": {
+      "tr": "Türkçe",
+      "en": "İngilizce"
+    },
     "pagination": "Geri bildirim sayfaları",
     "previous": "Önceki",
     "next": "Sonraki",
@@ -3127,6 +3133,7 @@
       "role": "Bu programdaki rolün",
       "rolePlaceholder": "Örn. Design mentor",
       "status": {
+        "DRAFT": "Taslak",
         "ACTIVE": "Aktif",
         "COMPLETED": "Tamamlandı"
       }
@@ -3650,11 +3657,13 @@
   "coordinatorPrograms": {
     "filters": {
       "ALL": "Tümü {count}",
+      "DRAFT": "Taslak {count}",
       "ACTIVE": "Aktif {count}",
       "UPCOMING": "Yaklaşan {count}",
       "COMPLETED": "Tamamlanan {count}"
     },
     "lifecycle": {
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "UPCOMING": "Yaklaşan",
       "COMPLETED": "Arşivlendi"
@@ -4262,6 +4271,7 @@
   },
   "adminCommon": {
     "programStatus": {
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "COMPLETED": "Tamamlandı"
     },
@@ -4354,6 +4364,7 @@
   "adminPrograms": {
     "filters": {
       "ALL": "Tümü",
+      "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
       "UPCOMING": "Yaklaşan",
       "COMPLETED": "Tamamlanan"
@@ -5683,5 +5694,12 @@
     "remove": "Kaldır",
     "removeNamed": "{school} okulunu kaldır",
     "empty": "Henüz okul eklenmedi."
+  },
+  "programTypes": {
+    "label": "Program türü",
+    "ALL": "Tüm türler",
+    "STARTUP_MENTORING": "Girişim Mentörlüğü",
+    "PEER_MENTORING": "Akran Mentörlüğü",
+    "OFFICE_HOURS": "Office Hours"
   }
 }

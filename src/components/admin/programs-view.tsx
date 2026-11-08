@@ -16,6 +16,7 @@ import {
   QueryNotice,
 } from "@/components/admin/admin-ui";
 import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useToast } from "@/components/providers/toast-provider";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
@@ -25,10 +26,17 @@ import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import { createProgram } from "@/lib/client/programs";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  PROGRAM_TYPE_FILTERS,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 
 enum Filter {
   All = "ALL",
+  Draft = "DRAFT",
   Active = "ACTIVE",
   Upcoming = "UPCOMING",
   Completed = "COMPLETED",
@@ -42,11 +50,13 @@ enum Sort {
 
 export function ProgramsView() {
   const t = useTranslations("adminPrograms");
+  const tType = useTranslations("programTypes");
   const unassigned = useTranslations("adminCommon")("unassigned");
   const query = useAdminOverview();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [filter, setFilter] = useState(Filter.All);
+  const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   const [coordinator, setCoordinator] = useState("");
   const [sort, setSort] = useState(Sort.Issues);
   const [search, setSearch] = useState("");
@@ -77,6 +87,9 @@ export function ProgramsView() {
   const rows = useMemo(() => {
     if (!data) return [];
     const filtered = data.programs.filter((program) => {
+      if (filter === Filter.Draft && program.status !== ProgramStatus.Draft)
+        return false;
+      if (!matchesProgramType(program.type, type)) return false;
       if (filter === Filter.Active && program.status !== ProgramStatus.Active)
         return false;
       if (
@@ -99,7 +112,7 @@ export function ProgramsView() {
       if (sort === Sort.Name) return left.name.localeCompare(right.name, "tr");
       return issueCount(right, data) - issueCount(left, data);
     });
-  }, [coordinator, data, filter, search, sort, unassigned]);
+  }, [coordinator, data, filter, search, sort, type, unassigned]);
 
   if (!data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
@@ -107,6 +120,9 @@ export function ProgramsView() {
 
   const counts: Record<Filter, number> = {
     [Filter.All]: data.programs.length,
+    [Filter.Draft]: data.programs.filter(
+      (item) => item.status === ProgramStatus.Draft,
+    ).length,
     [Filter.Active]: data.programs.filter(
       (item) => item.status === ProgramStatus.Active,
     ).length,
@@ -158,6 +174,16 @@ export function ProgramsView() {
               className="w-full bg-transparent text-[13.5px] text-[#22262b] outline-none placeholder:text-[#aeb4bc]"
             />
           </label>
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <SelectPill
+            label={tType("label")}
+            value={type}
+            onChange={(value) => setType(value as ProgramTypeFilter)}
+            options={PROGRAM_TYPE_FILTERS.map((value) => ({
+              value,
+              label: tType(value),
+            }))}
+          />
           <SelectPill
             label={t("coordinator")}
             value={coordinator}
@@ -268,6 +294,7 @@ function ProgramRow({
           {program.name}
         </span>
         <StatusPill status={program.status} />
+        <ProgramTypeChip type={program.type} />
       </span>
       <span>
         <IssuePill count={issues} />
