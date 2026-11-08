@@ -3364,12 +3364,66 @@
           "title": "Office Hours",
           "body": "Request an appointment in an academician's office hours."
         }
+      },
+      "peerMentoring": {
+        "title": "Peer Mentoring",
+        "subtitle": "Get support from METU peer mentors.",
+        "switchLabel": "Peer mentoring side",
+        "switch": {
+          "get": "Get mentoring",
+          "give": "Give mentoring"
+        },
+        "soon": "Soon",
+        "giveSoonTitle": "Give mentoring is coming soon",
+        "giveSoonBody": "Students who earn the Peer Mentor badge will manage their requests, mentees and availability here.",
+        "requests": {
+          "title": "My requests",
+          "empty": "You haven't sent a request yet.",
+          "sentAt": "Sent: {date}"
+        },
+        "mentors": {
+          "title": "Peer mentors",
+          "search": "Search name, department or topic",
+          "allCategories": "All",
+          "empty": "No peer mentors are listed right now.",
+          "noMatch": "No peer mentors match these filters.",
+          "classYear": "Year {year}",
+          "categories": "Topics",
+          "why": "Why recommended?",
+          "request": "Send a request",
+          "requestFrom": "Send a request to {name}",
+          "requested": "Your request is waiting",
+          "full": "No places left"
+        },
+        "dialog": {
+          "title": "Mentoring with {name}",
+          "subtitle": "Pick a topic and briefly say what you need.",
+          "category": "Topic",
+          "message": "Your message",
+          "messagePlaceholder": "For example: I would like a review of my CV for a summer internship.",
+          "messageTooShort": "Your message needs at least {min} characters.",
+          "cancel": "Cancel",
+          "send": "Send the request",
+          "sending": "Sending…",
+          "sent": "Your request was sent.",
+          "failed": "Couldn't send the request."
+        }
       }
     },
     "academician": {
       "comingTitle": "The academician workspace is on its way",
       "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
+  },
+  "peerTopics": {
+    "ACADEMIC_DEVELOPMENT": "Academic development",
+    "CAREER_INTERNSHIP": "Careers and internships",
+    "TECHNICAL_DIGITAL": "Technical and digital skills",
+    "RESEARCH_ACADEMIC_CAREER": "Research and academic careers",
+    "ENTREPRENEURSHIP": "Entrepreneurship and projects",
+    "CAMPUS_LIFE": "University and campus life",
+    "PERSONAL_PROFESSIONAL": "Personal and professional skills",
+    "INTERNATIONAL": "International opportunities"
   },
   "coordinatorHome": {
     "kinds": {

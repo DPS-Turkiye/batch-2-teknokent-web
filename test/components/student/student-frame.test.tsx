@@ -31,7 +31,7 @@ function desktopNav(name: string) {
 }
 
 describe("StudentFrame", () => {
-  it("shows the student menu with only the home screen open so far", () => {
+  it("shows the student menu with the screens that have landed open", () => {
     pathname = "/student";
     render(
       <StudentFrame>
@@ -43,12 +43,10 @@ describe("StudentFrame", () => {
       "aria-current",
       "page",
     );
-    for (const label of [
-      "Akran Mentörlüğü",
-      "Office Hours",
-      "Randevularım",
-      "Profilim",
-    ]) {
+    expect(
+      within(nav).getByRole("link", { name: "Akran Mentörlüğü" }),
+    ).toHaveAttribute("href", "/student/peer-mentoring");
+    for (const label of ["Office Hours", "Randevularım", "Profilim"]) {
       expect(within(nav).queryByRole("link", { name: label })).toBeNull();
       expect(
         within(nav).getByText(label).closest("[aria-disabled]"),
