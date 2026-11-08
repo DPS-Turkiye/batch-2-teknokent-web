@@ -30,6 +30,7 @@ import {
   NotificationPreferencesDialog,
 } from "@/components/hoc/account-dialogs";
 import { AccountMenu } from "@/components/hoc/account-menu";
+import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
 import { StartupGate } from "@/components/startup/startup-gate";
 import {
   useAppSession,
@@ -120,7 +121,7 @@ function buildNavigation(
       {
         id: AppArea.Programs,
         label: "programs",
-        href: "/programs",
+        href: "/coordinator/programs",
         icon: FolderKanban,
       },
       MENTORS_NAV,
@@ -283,6 +284,12 @@ export function AppShell({
                 setAccountDialog(AccountDialog.Notifications)
               }
               onLogout={() => setConfirmLogout(true)}
+              renderWorkspaceItems={({ itemClassName, close }) => (
+                <WorkspaceSwitcher
+                  itemClassName={itemClassName}
+                  onSwitched={close}
+                />
+              )}
             />
             <button
               type="button"

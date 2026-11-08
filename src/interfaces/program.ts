@@ -22,12 +22,6 @@ export enum ProgramType {
   OfficeHours = "OFFICE_HOURS",
 }
 
-export const PROGRAM_STATUS_LABELS: Record<ProgramStatus, string> = {
-  [ProgramStatus.Draft]: "Taslak",
-  [ProgramStatus.Active]: "Aktif",
-  [ProgramStatus.Completed]: "Tamamlandı",
-};
-
 export type ProgramStartup = {
   id: string;
   name: string;
@@ -85,15 +79,6 @@ export type ProgramInvitation = {
   coordinatorId: string;
   coordinatorName: string;
   createdAt: string;
-};
-
-export type ProgramDirectory = {
-  startups: ProgramStartup[];
-  mentors: Array<{
-    id: string;
-    fullName: string;
-    email: string;
-  }>;
 };
 
 export type OrganizationProgram = {

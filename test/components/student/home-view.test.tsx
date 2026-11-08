@@ -56,12 +56,17 @@ describe("StudentHomeView", () => {
     expect(screen.getByText("Yaklaşan randevun yok.")).toBeVisible();
   });
 
-  it("keeps links to screens that have not landed as Yakında, not dead links", () => {
+  it("links only to screens that have landed and keeps the rest as Yakında", () => {
     renderWithQueryClient(<StudentHomeView />);
 
-    expect(screen.queryAllByRole("link")).toHaveLength(0);
-    expect(screen.getAllByText("Yakında")).toHaveLength(4);
-    expect(screen.getByText("Akran Mentörlüğü")).toBeVisible();
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual([
+      "/student/profile/complete",
+      "/student/appointments",
+      "/student/peer-mentoring",
+    ]);
+    expect(screen.getAllByText("Yakında")).toHaveLength(1);
   });
 
   it("shows nothing but the query state while loading", () => {
@@ -85,8 +90,8 @@ describe("StudentHomeView", () => {
 describe("studentRouteReady", () => {
   it("follows the student nav switch", () => {
     expect(studentRouteReady("/student")).toBe(true);
-    expect(studentRouteReady("/student/appointments")).toBe(false);
-    expect(studentRouteReady("/student/profile/complete")).toBe(false);
+    expect(studentRouteReady("/student/appointments")).toBe(true);
+    expect(studentRouteReady("/student/profile/complete")).toBe(true);
     expect(studentRouteReady("/elsewhere")).toBe(false);
   });
 });

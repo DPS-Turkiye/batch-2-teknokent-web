@@ -6,6 +6,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -104,6 +105,8 @@ export async function reloadAndCheckEmailVerified(): Promise<boolean> {
   if (!user) return false;
   if (isEmailVerificationExempt(user.email)) return true;
   await user.reload();
+  // reload() leaves the cached ID token alone, and the backend reads email_verified from the token.
+  if (user.emailVerified) await user.getIdToken(true);
   return user.emailVerified;
 }
 
@@ -122,6 +125,14 @@ export async function signInToFirebase(
     email.trim(),
     password,
   );
+  return credential.user.getIdToken();
+}
+
+/** Signs in with the token the backend minted after an institution (ODTÜ) login; returns the ID token. */
+export async function signInWithInstitutionToken(
+  customToken: string,
+): Promise<string> {
+  const credential = await signInWithCustomToken(firebaseAuth(), customToken);
   return credential.user.getIdToken();
 }
 

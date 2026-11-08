@@ -27,6 +27,10 @@ vi.mock("@/lib/session", () => ({
   getSessionUser: vi.fn(),
 }));
 
+function listRequest(query = "") {
+  return new NextRequest(`http://localhost/api/meetings${query}`);
+}
+
 describe("GET /api/meetings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -46,7 +50,7 @@ describe("GET /api/meetings", () => {
       role: UserRole.Mentor,
     });
 
-    await GET();
+    await GET(listRequest());
 
     expect(fetchMeetings).toHaveBeenCalledWith({ mentorId: "mentor-1" });
     expect(getSessionIds).not.toHaveBeenCalled();
@@ -67,9 +71,57 @@ describe("GET /api/meetings", () => {
       organizationId: "org-1",
     });
 
-    await GET();
+    await GET(listRequest());
 
     expect(fetchMeetings).toHaveBeenCalledWith({ organizationId: "org-1" });
+  });
+});
+
+describe("GET /api/meetings for an account on both sides", () => {
+  const peerMentor = {
+    userId: "student-1",
+    email: "zeynep@odtu-dev.invalid",
+    fullName: "Zeynep Demir",
+    jobTitle: "Mentee",
+    organizationId: "team-of-one",
+    role: UserRole.Mentee,
+    permissions: [UserRole.Mentor, UserRole.Mentee],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(fetchMeetings).mockResolvedValue({
+      data: [],
+      headers: {},
+      status: 200,
+    });
+    vi.mocked(getSessionUser).mockResolvedValue(peerMentor);
+    vi.mocked(getSessionIds).mockResolvedValue({
+      userId: "student-1",
+      organizationId: "team-of-one",
+    });
+  });
+
+  // "Mentorluk Ver" names its side; without it the primary role (mentee) decides, as before.
+  it("lists the mentor side when the screen asks for it", async () => {
+    await GET(listRequest("?as=MENTOR"));
+    expect(fetchMeetings).toHaveBeenCalledWith({ mentorId: "student-1" });
+  });
+
+  it("stays on the mentee side by default", async () => {
+    await GET(listRequest());
+    expect(fetchMeetings).toHaveBeenCalledWith({
+      organizationId: "team-of-one",
+    });
+  });
+
+  it("never gives a side the account does not hold", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue({
+      ...peerMentor,
+      permissions: [UserRole.Mentee],
+    });
+    await GET(listRequest("?as=MENTOR"));
+    expect(fetchMeetings).not.toHaveBeenCalledWith({ mentorId: "student-1" });
   });
 });
 

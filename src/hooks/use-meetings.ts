@@ -12,7 +12,10 @@ import {
 export const MEETINGS_QUERY_KEY = ["meetings"] as const;
 
 export function useMeetings() {
-  return useQuery({ queryKey: MEETINGS_QUERY_KEY, queryFn: getMeetings });
+  return useQuery({
+    queryKey: MEETINGS_QUERY_KEY,
+    queryFn: () => getMeetings(),
+  });
 }
 
 export function useCreateMeeting() {

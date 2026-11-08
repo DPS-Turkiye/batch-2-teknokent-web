@@ -1,6 +1,7 @@
 import type { ProgramEligibility } from "@/interfaces/program";
 import type { ContactPreference } from "@/interfaces/signup";
 import type { AppSession, BackendUser } from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
 import { requireSuccess } from "@/lib/client/api";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
@@ -133,5 +134,11 @@ export async function createSession(idToken: string, rememberMe = false) {
       { rememberMe },
       bearer(idToken),
     ),
+  );
+}
+
+export async function switchWorkspace(workspace: Workspace) {
+  return requireSuccess(
+    await httpClient.post<AppSession>("/api/session/workspace", { workspace }),
   );
 }

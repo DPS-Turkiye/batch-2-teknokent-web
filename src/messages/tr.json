@@ -69,7 +69,31 @@
     "submitting": "Giriş yapılıyor…",
     "newHere": "Menton’a yeni misin?",
     "signUp": "Kayıt Ol",
-    "invite": "Bir davet aldın mı? Davet kodunla devam et"
+    "invite": "Bir davet aldın mı? Davet kodunla devam et",
+    "odtu": "ODTÜ Hesabıyla Giriş Yap"
+  },
+  "workspaceSwitch": {
+    "label": "Çalışma alanı",
+    "names": {
+      "ADMIN": "Yönetim",
+      "COORDINATOR": "Koordinatör",
+      "ODTU_ACADEMICIAN": "Akademisyen",
+      "ODTU_STUDENT": "ODTÜ Öğrenci",
+      "GIRISIM_MENTOR": "Girişim · Mentor",
+      "GIRISIM_MENTEE": "Girişim"
+    }
+  },
+  "odtuDevLogin": {
+    "title": "ODTÜ test girişi",
+    "intro": "Yerel geliştirme için bir test kişisi seç. ODTÜ'nün gerçek girişi gelince bu sayfa kalkar.",
+    "loading": "Test kişileri yükleniyor…",
+    "empty": "Test kişisi bulunamadı. Backend'de INSTITUTION_LOGIN_DEV_STUB açık mı?",
+    "signingIn": "Giriş yapılıyor…",
+    "kinds": {
+      "STUDENT": "Öğrenci",
+      "ACADEMIC": "Akademisyen",
+      "STAFF": "Personel"
+    }
   },
   "auth": {
     "firstName": "Ad",
@@ -801,7 +825,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Koordinatör",
       "MENTOR": "Mentor",
-      "MENTEE": "Girişim Ekibi"
+      "MENTEE": "Girişim Ekibi",
+      "ACADEMICIAN": "Akademisyen"
     },
     "student": "Öğrenci"
   },
@@ -2216,7 +2241,8 @@
       "ADMIN": "Yönetici",
       "COORDINATOR": "Koordinatör",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Akademisyen"
     },
     "about": "Hakkımda",
     "noBio": "Henüz hakkında bilgisi eklenmedi.",
@@ -3364,12 +3390,66 @@
           "title": "Office Hours",
           "body": "Akademisyenlerin görüşme saatlerinden randevu iste."
         }
+      },
+      "peerMentoring": {
+        "title": "Akran Mentörlüğü",
+        "subtitle": "ODTÜ'lü akran mentorlarından destek al.",
+        "switchLabel": "Akran mentörlüğü tarafı",
+        "switch": {
+          "get": "Mentorluk Al",
+          "give": "Mentorluk Ver"
+        },
+        "soon": "Yakında",
+        "giveSoonTitle": "Mentorluk Ver yakında",
+        "giveSoonBody": "Akran Mentoru rozetini kazanan öğrenciler burada taleplerini, mentee'lerini ve müsaitliklerini yönetecek.",
+        "requests": {
+          "title": "Taleplerim",
+          "empty": "Henüz bir talep göndermedin.",
+          "sentAt": "Gönderildi: {date}"
+        },
+        "mentors": {
+          "title": "Akran mentorları",
+          "search": "İsim, bölüm veya konu ara",
+          "allCategories": "Tümü",
+          "empty": "Şu an listelenen akran mentoru yok.",
+          "noMatch": "Bu filtrelere uyan akran mentoru yok.",
+          "classYear": "{year}. sınıf",
+          "categories": "Konular",
+          "why": "Neden önerildi?",
+          "request": "Talep gönder",
+          "requestFrom": "{name} için talep gönder",
+          "requested": "Talebin yanıt bekliyor",
+          "full": "Kontenjan dolu"
+        },
+        "dialog": {
+          "title": "{name} ile mentorluk",
+          "subtitle": "Konuyu seç ve neye ihtiyacın olduğunu kısaca anlat.",
+          "category": "Konu",
+          "message": "Mesajın",
+          "messagePlaceholder": "Örneğin: Yaz stajı için CV'mi gözden geçirmek istiyorum.",
+          "messageTooShort": "Mesajın en az {min} karakter olmalı.",
+          "cancel": "Vazgeç",
+          "send": "Talebi gönder",
+          "sending": "Gönderiliyor…",
+          "sent": "Talebin gönderildi.",
+          "failed": "Talep gönderilemedi."
+        }
       }
     },
     "academician": {
       "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
       "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
+  },
+  "peerTopics": {
+    "ACADEMIC_DEVELOPMENT": "Akademik Gelişim",
+    "CAREER_INTERNSHIP": "Kariyer ve Staj",
+    "TECHNICAL_DIGITAL": "Teknik ve Dijital Beceriler",
+    "RESEARCH_ACADEMIC_CAREER": "Araştırma ve Akademik Kariyer",
+    "ENTREPRENEURSHIP": "Girişimcilik ve Proje Geliştirme",
+    "CAMPUS_LIFE": "Üniversite ve Kampüs Yaşamı",
+    "PERSONAL_PROFESSIONAL": "Kişisel ve Profesyonel Beceriler",
+    "INTERNATIONAL": "Uluslararası Fırsatlar"
   },
   "coordinatorHome": {
     "kinds": {
@@ -4446,7 +4526,8 @@
       "ADMIN": "yönetici",
       "COORDINATOR": "koordinatör",
       "MENTOR": "mentor",
-      "MENTEE": "girişimci"
+      "MENTEE": "girişimci",
+      "ACADEMICIAN": "akademisyen"
     },
     "userFallback": "kullanıcı",
     "candidate": {
@@ -5249,6 +5330,11 @@
     }
   },
   "apiErrors": {
+    "workspaceNotAvailable": "Bu hesap o çalışma alanını açamıyor.",
+    "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
+    "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
+    "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
+    "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
     "platformFeedbackInvalid": "Geri bildirim bilgilerini kontrol edip tekrar dene.",
@@ -5805,5 +5891,53 @@
     "creating": "Kaydediliyor…",
     "created": "{name} taslak olarak oluşturuldu.",
     "createFailed": "Program oluşturulamadı."
+  },
+  "studentAppointments": {
+    "title": "Randevularım",
+    "fixtureNotice": "Örnek veriler gösteriliyor. Canlı randevu ve Office Hours entegrasyonu henüz bağlı değil.",
+    "filter": "Durum",
+    "all": "Tümü",
+    "loading": "Randevular yükleniyor…",
+    "error": "Randevular yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Henüz randevun yok.",
+    "filteredEmpty": "Bu durumda randevun yok.",
+    "place": "Yer: {place}",
+    "alternative": "Önerilen alternatif (henüz onaylanmadı)"
+  },
+  "studentProfileCompletion": {
+    "title": "Profilini tamamla",
+    "fixtureNotice": "Bu ekran örnek verilerle çalışır. Seçimler yalnızca bu tarayıcı oturumunda tutulur; sayfa yenilenince sıfırlanır. Canlı profil kaydı yapılmaz.",
+    "loading": "Profil yükleniyor…",
+    "loadError": "Profil yüklenemedi.",
+    "retry": "Tekrar dene",
+    "saved": "Örnek profil tamamlandı. Canlı hesabına kaydedilmedi.",
+    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
+    "home": "Ana sayfaya dön",
+    "step": "Adım {number} / 3",
+    "steps": {
+      "0": "İlgi alanların",
+      "1": "Alt konular",
+      "2": "Hedefin (isteğe bağlı)"
+    },
+    "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
+    "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
+    "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
+    "saveError": "Örnek profil kaydedilemedi. Tekrar deneyebilirsin.",
+    "back": "Geri",
+    "next": "Devam et",
+    "finish": "Örnek profili tamamla",
+    "saving": "Kaydediliyor…",
+    "skip": "Şimdilik atla",
+    "subtopics": {
+      "study": "Örnek: Ders çalışma",
+      "cv": "Örnek: CV hazırlama",
+      "code": "Örnek: Programlama",
+      "methods": "Örnek: Araştırma yöntemleri",
+      "project": "Örnek: Proje fikri",
+      "clubs": "Örnek: Öğrenci toplulukları",
+      "time": "Örnek: Zaman yönetimi",
+      "exchange": "Örnek: Değişim programları"
+    }
   }
 }

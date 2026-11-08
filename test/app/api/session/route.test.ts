@@ -4,17 +4,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/session/route";
 import {
+  IdentityKind,
   UserAccountStatus,
   UserRole,
   type BackendUser,
 } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
 import { Locale } from "@/lib/i18n";
-import { saveSessionUser } from "@/lib/session";
+import { LAST_WORKSPACE_COOKIE, saveSessionUser } from "@/lib/session";
 
 vi.mock("next-intl/server", () => ({
   getLocale: vi.fn(),
   getTranslations: async () => (key: string) => key,
+}));
+
+const cookieValues = vi.hoisted(() => new Map<string, string>());
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    get: (name: string) =>
+      cookieValues.has(name) ? { value: cookieValues.get(name) } : undefined,
+  })),
 }));
 
 vi.mock("@/lib/api/auth", () => ({
@@ -93,5 +103,31 @@ describe("POST /api/session", () => {
 
     expect(response.status).toBe(200);
     expect(saveSessionUser).toHaveBeenCalled();
+  });
+
+  it("opens the workspace the account last switched to, if it can still open it", async () => {
+    answers({
+      id: "user-2",
+      email: "elif@odtu-dev.invalid",
+      fullName: "Elif Şahin",
+      role: UserRole.Academician,
+      status: UserAccountStatus.Approved,
+      permissions: [UserRole.Mentee, UserRole.Academician],
+      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    });
+    cookieValues.set(LAST_WORKSPACE_COOKIE, Workspace.OdtuStudent);
+
+    await signIn();
+    expect(vi.mocked(saveSessionUser).mock.calls[0][0].activeWorkspace).toBe(
+      Workspace.OdtuStudent,
+    );
+
+    vi.mocked(saveSessionUser).mockClear();
+    cookieValues.set(LAST_WORKSPACE_COOKIE, Workspace.Admin);
+    await signIn();
+    expect(
+      vi.mocked(saveSessionUser).mock.calls[0][0].activeWorkspace,
+    ).toBeUndefined();
+    cookieValues.clear();
   });
 });
