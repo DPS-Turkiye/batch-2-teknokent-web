@@ -1,0 +1,100 @@
+import { screen, within } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { StudentHomeView } from "@/components/student/home-view";
+import { studentRouteReady } from "@/components/student/student-frame";
+import { useStudentHome } from "@/hooks/use-student-home";
+import type { StudentHome } from "@/interfaces/student-home";
+import { getStudentHome } from "@/lib/client/student-home";
+import { STUDENT_HOME_FIXTURE } from "@/lib/client/fixtures/student-home";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("@/hooks/use-student-home", () => ({ useStudentHome: vi.fn() }));
+
+function homeReturns(data: StudentHome | undefined, extra = {}) {
+  vi.mocked(useStudentHome).mockReturnValue({
+    data,
+    isLoading: false,
+    error: null,
+    ...extra,
+  } as ReturnType<typeof useStudentHome>);
+}
+
+describe("StudentHomeView", () => {
+  beforeEach(() => homeReturns(STUDENT_HOME_FIXTURE));
+
+  it("lists upcoming appointments with their side and status", () => {
+    renderWithQueryClient(<StudentHomeView />);
+
+    const rows = screen.getAllByRole("listitem");
+    expect(rows).toHaveLength(3);
+    expect(within(rows[0]).getByText("Staj başvurusu için CV")).toBeVisible();
+    expect(within(rows[0]).getByText("Mentee olarak")).toBeVisible();
+    expect(within(rows[0]).getByText("Onaylandı")).toBeVisible();
+    expect(
+      within(rows[1]).getByText(/Dr\. Öğr\. Üyesi Ayşe Demir/),
+    ).toBeVisible();
+    expect(within(rows[1]).getByText("Office Hours")).toBeVisible();
+    expect(within(rows[1]).getByText("Onay Bekliyor")).toBeVisible();
+    expect(within(rows[2]).getByText("Mentor olarak")).toBeVisible();
+    expect(within(rows[2]).getByText("Alternatif Önerildi")).toBeVisible();
+  });
+
+  it("asks for the profile until it is completed or skipped", () => {
+    const { unmount } = renderWithQueryClient(<StudentHomeView />);
+    expect(screen.getByText("Profilini tamamla")).toBeVisible();
+    unmount();
+
+    homeReturns({ ...STUDENT_HOME_FIXTURE, profileCompleted: true });
+    renderWithQueryClient(<StudentHomeView />);
+    expect(screen.queryByText("Profilini tamamla")).not.toBeInTheDocument();
+  });
+
+  it("shows an empty note without appointments", () => {
+    homeReturns({ profileCompleted: true, upcomingAppointments: [] });
+    renderWithQueryClient(<StudentHomeView />);
+    expect(screen.getByText("Yaklaşan randevun yok.")).toBeVisible();
+  });
+
+  it("keeps links to screens that have not landed as Yakında, not dead links", () => {
+    renderWithQueryClient(<StudentHomeView />);
+
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+    expect(screen.getAllByText("Yakında")).toHaveLength(4);
+    expect(screen.getByText("Akran Mentörlüğü")).toBeVisible();
+  });
+
+  it("shows nothing but the query state while loading", () => {
+    homeReturns(undefined, { isLoading: true });
+    renderWithQueryClient(<StudentHomeView />);
+    expect(screen.queryByRole("list")).not.toBeInTheDocument();
+  });
+
+  it("reads in English", () => {
+    renderWithQueryClient(
+      <InLocale locale="en">
+        <StudentHomeView />
+      </InLocale>,
+    );
+    expect(screen.getByRole("heading", { name: "Home" })).toBeVisible();
+    expect(screen.getByText("Upcoming appointments")).toBeVisible();
+    expect(screen.getByText("As mentee")).toBeVisible();
+  });
+});
+
+describe("studentRouteReady", () => {
+  it("follows the student nav switch", () => {
+    expect(studentRouteReady("/student")).toBe(true);
+    expect(studentRouteReady("/student/appointments")).toBe(false);
+    expect(studentRouteReady("/student/profile/complete")).toBe(false);
+    expect(studentRouteReady("/elsewhere")).toBe(false);
+  });
+});
+
+describe("getStudentHome", () => {
+  it("answers with a fresh copy of the fixture", async () => {
+    const first = await getStudentHome();
+    first.upcomingAppointments.length = 0;
+    expect((await getStudentHome()).upcomingAppointments).toHaveLength(3);
+  });
+});
