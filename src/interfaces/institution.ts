@@ -1,9 +1,9 @@
 import type { IdentityKind } from "@/interfaces/session";
 
 export enum StudyLevel {
-  Lisans = "LISANS",
-  YuksekLisans = "YUKSEK_LISANS",
-  Doktora = "DOKTORA",
+  Bachelor = "BACHELOR",
+  Master = "MASTER",
+  Doctorate = "DOCTORATE",
 }
 
 /** What ODTÜ says about the signed-in person; read-only in Menton. */
