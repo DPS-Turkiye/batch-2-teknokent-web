@@ -96,6 +96,14 @@ export function extractSyllabusPhases(
   });
 }
 
+export function launchCoordinatorProgram(actorId: string, programId: string) {
+  return backendRequest<CoordinatorProgramDetail>({
+    method: HttpMethod.Post,
+    url: `${programUrl(programId)}/launch`,
+    params: { actorId },
+  });
+}
+
 export function setCoordinatorProgramArchived(
   actorId: string,
   programId: string,

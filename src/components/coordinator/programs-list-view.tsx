@@ -1,6 +1,5 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -59,12 +58,6 @@ export function ProgramsListView() {
               placeholder={t("search")}
             />
           </div>
-          <Link
-            href="/coordinator/programs/new"
-            className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-[#22262b] px-4 py-2.5 text-[13px] font-medium text-white"
-          >
-            <Plus aria-hidden className="size-4" /> {t("launch")}
-          </Link>
         </div>
       </div>
       <QueryNotice isLoading={query.isLoading} error={query.error} />

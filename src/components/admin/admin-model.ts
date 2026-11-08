@@ -5,9 +5,16 @@ import type {
   AdminStartup,
 } from "@/interfaces/admin-overview";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 
 export function coordinatorsOf(data: AdminOverview) {
-  return data.users.filter((user) => user.role === "COORDINATOR");
+  return data.users.filter((user) => user.role === UserRole.Coordinator);
+}
+
+export function approvedCoordinatorsOf(data: AdminOverview) {
+  return coordinatorsOf(data).filter(
+    (user) => user.status === UserAccountStatus.Approved,
+  );
 }
 
 export function mentorsOf(data: AdminOverview) {

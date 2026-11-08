@@ -3364,12 +3364,66 @@
           "title": "Office Hours",
           "body": "Request an appointment in an academician's office hours."
         }
+      },
+      "peerMentoring": {
+        "title": "Peer Mentoring",
+        "subtitle": "Get support from METU peer mentors.",
+        "switchLabel": "Peer mentoring side",
+        "switch": {
+          "get": "Get mentoring",
+          "give": "Give mentoring"
+        },
+        "soon": "Soon",
+        "giveSoonTitle": "Give mentoring is coming soon",
+        "giveSoonBody": "Students who earn the Peer Mentor badge will manage their requests, mentees and availability here.",
+        "requests": {
+          "title": "My requests",
+          "empty": "You haven't sent a request yet.",
+          "sentAt": "Sent: {date}"
+        },
+        "mentors": {
+          "title": "Peer mentors",
+          "search": "Search name, department or topic",
+          "allCategories": "All",
+          "empty": "No peer mentors are listed right now.",
+          "noMatch": "No peer mentors match these filters.",
+          "classYear": "Year {year}",
+          "categories": "Topics",
+          "why": "Why recommended?",
+          "request": "Send a request",
+          "requestFrom": "Send a request to {name}",
+          "requested": "Your request is waiting",
+          "full": "No places left"
+        },
+        "dialog": {
+          "title": "Mentoring with {name}",
+          "subtitle": "Pick a topic and briefly say what you need.",
+          "category": "Topic",
+          "message": "Your message",
+          "messagePlaceholder": "For example: I would like a review of my CV for a summer internship.",
+          "messageTooShort": "Your message needs at least {min} characters.",
+          "cancel": "Cancel",
+          "send": "Send the request",
+          "sending": "Sending…",
+          "sent": "Your request was sent.",
+          "failed": "Couldn't send the request."
+        }
       }
     },
     "academician": {
       "comingTitle": "The academician workspace is on its way",
       "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
+  },
+  "peerTopics": {
+    "ACADEMIC_DEVELOPMENT": "Academic development",
+    "CAREER_INTERNSHIP": "Careers and internships",
+    "TECHNICAL_DIGITAL": "Technical and digital skills",
+    "RESEARCH_ACADEMIC_CAREER": "Research and academic careers",
+    "ENTREPRENEURSHIP": "Entrepreneurship and projects",
+    "CAMPUS_LIFE": "University and campus life",
+    "PERSONAL_PROFESSIONAL": "Personal and professional skills",
+    "INTERNATIONAL": "International opportunities"
   },
   "coordinatorHome": {
     "kinds": {
@@ -3686,7 +3740,6 @@
       "COMPLETED": "Archived"
     },
     "search": "Search programs",
-    "launch": "Launch a program",
     "noMatch": "No programs match this filter.",
     "none": "You don't manage any programs yet.",
     "upcoming": "Upcoming",
@@ -3724,7 +3777,9 @@
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
       "SETTINGS": "Program settings",
-      "APPROVALS": "Approvals"
+      "APPROVALS": "Approvals",
+      "PARTICIPANTS": "Participants",
+      "APPOINTMENTS": "Appointments"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -3796,7 +3851,23 @@
       "mentors": "Mentors",
       "activeMentorships": "Active mentorships",
       "awaitingMatch": "Waiting for a match"
-    }
+    },
+    "draftBannerAdmin": "This program has not been launched. Its coordinators set up the conditions; launch it when it is ready.",
+    "draftBannerCoordinator": "This program has not been launched. Set up its conditions in Program settings; participants see it once the admin launches it.",
+    "launchProgram": "Launch the program",
+    "launching": "Launching…",
+    "launched": "{name} was launched.",
+    "launchFailed": "The program could not be launched.",
+    "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "participantTabs": {
+      "TEAMS": "Teams",
+      "MENTOR_POOL": "Mentor pool",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer mentors",
+      "ACADEMICS": "Academics"
+    },
+    "typeTabEmptyAdmin": "This section is not ready for {type} programs yet. The program’s coordinators set up its conditions in Program settings.",
+    "typeTabEmpty": "This section is not ready for {type} programs yet. You can set up the program’s conditions in Program settings."
   },
   "programRules": {
     "days": "days",
@@ -3891,7 +3962,10 @@
     "archive": "Archive the program",
     "archived": "Program archived.",
     "reopened": "Program reopened.",
-    "archiveFailed": "Couldn't archive the program."
+    "archiveFailed": "Couldn't archive the program.",
+    "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
+    "coordinatorsByAdmin": "The admin assigns coordinators.",
+    "type": "Program type"
   },
   "programTeams": {
     "filters": {
@@ -5469,7 +5543,8 @@
     "teamLeaveRequestFailed": "Could not send the leave request.",
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
-    "teamLeaveFailed": "Could not leave the team."
+    "teamLeaveFailed": "Could not leave the team.",
+    "programLaunchFailed": "The program could not be launched."
   },
   "startupStart": {
     "title": "My startup",
@@ -5718,5 +5793,119 @@
     "STARTUP_MENTORING": "Startup mentoring",
     "PEER_MENTORING": "Peer mentoring",
     "OFFICE_HOURS": "Office hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programs",
+    "newProgram": "Create a new program",
+    "stepOf": "Step {current} of {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program type",
+        "hint": "Startup, peer or office hours",
+        "title": "Choose the program type",
+        "note": "The type decides which structures the program has and cannot change later."
+      },
+      "INFO": {
+        "label": "Program details",
+        "hint": "Name, description, dates",
+        "title": "Program details",
+        "note": "Dates are optional; the coordinator can add them later."
+      },
+      "COORDINATORS": {
+        "label": "Coordinator",
+        "hint": "Who runs the program",
+        "title": "Assign coordinators",
+        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+      },
+      "SUMMARY": {
+        "label": "Summary",
+        "hint": "Check and save",
+        "title": "Summary and save",
+        "note": "The program is saved as a draft; participants see it only after you launch it."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Today’s structure as is: Teams · Mentor pool · Matching · Approvals",
+      "PEER_MENTORING": "Mentees: METU students · Mentors: İŞKUR students with a verified badge",
+      "OFFICE_HOURS": "Every METU academic included, no invitations · Students request appointments"
+    },
+    "name": "Program name",
+    "namePlaceholder": "e.g. METU Peer Mentoring 2026",
+    "description": "Description",
+    "optional": "optional",
+    "start": "Start",
+    "end": "End",
+    "coordinatorsLabel": "Coordinators",
+    "coordinatorsFailed": "Couldn’t load the coordinators.",
+    "retry": "Try again",
+    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
+    "summaryType": "Program type",
+    "summaryName": "Program name",
+    "summaryDates": "Dates",
+    "noDates": "Not set",
+    "summaryCoordinators": "Coordinators",
+    "summaryStatus": "Status",
+    "draft": "Draft",
+    "problems": {
+      "TYPE_REQUIRED": "Choose a program type.",
+      "NAME_REQUIRED": "Enter the program name.",
+      "DATES_ORDER": "The end date cannot be before the start date.",
+      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+    },
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue: {step}",
+    "create": "Save as draft",
+    "creating": "Saving…",
+    "created": "{name} was created as a draft.",
+    "createFailed": "The program could not be created."
+  },
+  "studentAppointments": {
+    "title": "My appointments",
+    "fixtureNotice": "Showing sample data. Live appointments and Office Hours integration are not connected yet.",
+    "filter": "Status",
+    "all": "All",
+    "loading": "Loading appointments…",
+    "error": "Appointments could not be loaded.",
+    "retry": "Try again",
+    "empty": "No appointments yet.",
+    "filteredEmpty": "No appointments with this status.",
+    "place": "Place: {place}",
+    "alternative": "Proposed alternative (not yet confirmed)"
+  },
+  "studentProfileCompletion": {
+    "title": "Complete your profile",
+    "fixtureNotice": "This screen uses sample data. Choices are kept only in this browser session and reset on reload. Your live profile is not updated.",
+    "loading": "Loading profile…",
+    "loadError": "Profile could not be loaded.",
+    "retry": "Try again",
+    "saved": "Sample profile completed. Nothing was saved to your live account.",
+    "skipped": "Skipped for now. You can complete your profile later.",
+    "home": "Back to home",
+    "step": "Step {number} / 3",
+    "steps": {
+      "0": "Your interests",
+      "1": "Subtopics",
+      "2": "Your goal (optional)"
+    },
+    "subtopicNotice": "TEST UI: These subtopics are examples only. The production subtopic list has not been agreed.",
+    "noTopics": "No interests selected. Go back or continue without a selection.",
+    "goal": "Your goal (optional, up to 1000 characters)",
+    "saveError": "The sample profile could not be saved. Please try again.",
+    "back": "Back",
+    "next": "Continue",
+    "finish": "Complete sample profile",
+    "saving": "Saving…",
+    "skip": "Skip for now",
+    "subtopics": {
+      "study": "Example: Study skills",
+      "cv": "Example: CV preparation",
+      "code": "Example: Programming",
+      "methods": "Example: Research methods",
+      "project": "Example: Project ideas",
+      "clubs": "Example: Student clubs",
+      "time": "Example: Time management",
+      "exchange": "Example: Exchange programmes"
+    }
   }
 }

@@ -6,16 +6,12 @@ import {
   TeamJoinStatus,
 } from "@/interfaces/coordinator-program";
 import {
-  createProgramInput,
   daysWaiting,
-  emptyLaunchDraft,
   codeSentLabel,
   filterTeams,
   isTeamProblem,
-  parseTeamsCsv,
   setupSteps,
   TeamFilter,
-  teamCodePrefix,
   teamFilterOptions,
   TeamRowProblem,
   teamRowProblems,
@@ -65,13 +61,6 @@ function team(overrides: Partial<ProgramTeam> = {}): ProgramTeam {
 }
 
 describe("program launch helpers", () => {
-  it("previews the same code prefix as the backend", () => {
-    expect(teamCodePrefix("METU BİGG 2026")).toBe("BIGG26");
-    expect(teamCodePrefix("METU Stars 2026")).toBe("STARS26");
-    expect(teamCodePrefix("Hızlandırma")).toBe("HIZLAN");
-    expect(teamCodePrefix("")).toBe("TAKIM");
-  });
-
   it("flags rows with a missing name, a bad email or a repeated email", () => {
     const rows = [
       { key: "a", teamName: "Kavşak", leadEmail: "deniz@kavsak.co" },
@@ -87,42 +76,6 @@ describe("program launch helpers", () => {
     expect(problems.get("c")).toBe(TeamRowProblem.MissingName);
     expect(problems.get("d")).toBe(TeamRowProblem.DuplicateEmail);
     expect(problems.has("e")).toBe(false);
-  });
-
-  it("reads team rows from a CSV, skipping the header", () => {
-    const rows = parseTeamsCsv(
-      "Takım adı,E-posta\nKavşak, deniz@kavsak.co\n\nMira Bio;selin@mirabio.com\n",
-    );
-    expect(
-      rows.map(({ teamName, leadEmail }) => [teamName, leadEmail]),
-    ).toEqual([
-      ["Kavşak", "deniz@kavsak.co"],
-      ["Mira Bio", "selin@mirabio.com"],
-    ]);
-  });
-
-  it("builds the create request without blank rows or empty dates", () => {
-    const draft = emptyLaunchDraft();
-    draft.name = "  METU BİGG 2026 ";
-    draft.teams = [
-      { key: "a", teamName: " Kavşak ", leadEmail: "deniz@kavsak.co " },
-      { key: "b", teamName: "", leadEmail: "" },
-    ];
-
-    expect(createProgramInput(draft)).toEqual({
-      name: "METU BİGG 2026",
-      description: null,
-      startDate: null,
-      endDate: null,
-      coordinatorIds: [],
-      defaultMentorCapacity: 4,
-      meetingFrequencyDays: 14,
-      communicationGapDays: 14,
-      bottleneckFlagDays: 21,
-      teams: [{ teamName: "Kavşak", leadEmail: "deniz@kavsak.co" }],
-      phases: [],
-      syllabusDocumentId: null,
-    });
   });
 
   it("counts and filters teams by join status", () => {

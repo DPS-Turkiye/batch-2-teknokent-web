@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
@@ -9,23 +8,13 @@ import {
   activeMentorshipFor,
   needsAttention,
 } from "@/components/admin/admin-model";
-import {
-  AdminIcon,
-  EmptyNote,
-  OutlineButton,
-  QueryNotice,
-} from "@/components/admin/admin-ui";
+import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
-import { useToast } from "@/components/providers/toast-provider";
-import {
-  ADMIN_OVERVIEW_QUERY_KEY,
-  useAdminOverview,
-} from "@/hooks/use-admin-overview";
+import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
-import { createProgram } from "@/lib/client/programs";
 import {
   ALL_PROGRAM_TYPES,
   matchesProgramType,
@@ -53,35 +42,11 @@ export function ProgramsView() {
   const tType = useTranslations("programTypes");
   const unassigned = useTranslations("adminCommon")("unassigned");
   const query = useAdminOverview();
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
   const [filter, setFilter] = useState(Filter.All);
   const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   const [coordinator, setCoordinator] = useState("");
   const [sort, setSort] = useState(Sort.Issues);
   const [search, setSearch] = useState("");
-  const [name, setName] = useState("");
-  const [creating, setCreating] = useState(false);
-  const create = useMutation({
-    mutationFn: createProgram,
-    onSuccess: async (program) => {
-      setName("");
-      setCreating(false);
-      await queryClient.invalidateQueries({
-        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
-      });
-      showToast({
-        message: t("created", { name: program.name }),
-        tone: "success",
-      });
-    },
-    onError: (error) => {
-      showToast({
-        message: error instanceof Error ? error.message : t("createFailed"),
-        tone: "error",
-      });
-    },
-  });
 
   const data = query.data;
   const rows = useMemo(() => {
@@ -202,39 +167,12 @@ export function ProgramsView() {
               label: t(`sorts.${value}`),
             }))}
           />
-          {creating ? (
-            <form
-              className="flex gap-2"
-              onSubmit={(event) => {
-                event.preventDefault();
-                if (name.trim()) create.mutate(name.trim());
-              }}
-            >
-              <input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder={t("programName")}
-                className="h-[42px] rounded-full border border-[#e9ecef] px-4 text-[13px] outline-none"
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white"
-              >
-                {t("save")}
-              </button>
-              <OutlineButton onClick={() => setCreating(false)}>
-                {t("cancel")}
-              </OutlineButton>
-            </form>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-white"
-            >
-              {t("newProgram")}
-            </button>
-          )}
+          <Link
+            href="/admin/programs/new"
+            className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] leading-[1.3] font-medium text-white"
+          >
+            {t("newProgram")}
+          </Link>
         </div>
       </div>
 
