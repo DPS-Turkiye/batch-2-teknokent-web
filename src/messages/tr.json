@@ -5872,5 +5872,40 @@
     "filteredEmpty": "Bu durumda randevun yok.",
     "place": "Yer: {place}",
     "alternative": "Önerilen alternatif (henüz onaylanmadı)"
+  },
+  "studentProfileCompletion": {
+    "title": "Profilini tamamla",
+    "fixtureNotice": "Bu ekran örnek verilerle çalışır. Seçimler yalnızca bu tarayıcı oturumunda tutulur; sayfa yenilenince sıfırlanır. Canlı profil kaydı yapılmaz.",
+    "loading": "Profil yükleniyor…",
+    "loadError": "Profil yüklenemedi.",
+    "retry": "Tekrar dene",
+    "saved": "Örnek profil tamamlandı. Canlı hesabına kaydedilmedi.",
+    "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
+    "home": "Ana sayfaya dön",
+    "step": "Adım {number} / 3",
+    "steps": {
+      "0": "İlgi alanların",
+      "1": "Alt konular",
+      "2": "Hedefin (isteğe bağlı)"
+    },
+    "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
+    "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
+    "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
+    "saveError": "Örnek profil kaydedilemedi. Tekrar deneyebilirsin.",
+    "back": "Geri",
+    "next": "Devam et",
+    "finish": "Örnek profili tamamla",
+    "saving": "Kaydediliyor…",
+    "skip": "Şimdilik atla",
+    "subtopics": {
+      "study": "Örnek: Ders çalışma",
+      "cv": "Örnek: CV hazırlama",
+      "code": "Örnek: Programlama",
+      "methods": "Örnek: Araştırma yöntemleri",
+      "project": "Örnek: Proje fikri",
+      "clubs": "Örnek: Öğrenci toplulukları",
+      "time": "Örnek: Zaman yönetimi",
+      "exchange": "Örnek: Değişim programları"
+    }
   }
 }
