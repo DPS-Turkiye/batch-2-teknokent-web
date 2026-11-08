@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  IdentityKind,
   UserAccountStatus,
   UserRole,
   type BackendUser,
@@ -101,6 +102,23 @@ describe("toSession", () => {
     );
     expect(session).not.toBeNull();
     expect(session?.organizationId).toBeUndefined();
+  });
+
+  it("signs in an ODTÜ academician and keeps what the institution says they are", () => {
+    const session = toSession(
+      mentor({
+        role: UserRole.Academician,
+        jobTitle: null,
+        permissions: [UserRole.Mentee, UserRole.Academician],
+        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+      }),
+    );
+    expect(session).toMatchObject({
+      role: UserRole.Academician,
+      jobTitle: "Akademisyen",
+      permissions: [UserRole.Mentee, UserRole.Academician],
+      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    });
   });
 
   it("builds a mentor session without requiring an organization", () => {

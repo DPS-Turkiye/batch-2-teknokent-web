@@ -36,53 +36,35 @@ function sessionOptions(persist = false): SessionOptions {
   };
 }
 
+const DEFAULT_JOB_TITLE: Partial<Record<UserRole, string>> = {
+  [UserRole.Mentee]: "Mentee",
+  [UserRole.Mentor]: "Mentor",
+  [UserRole.Admin]: "Admin",
+  [UserRole.Coordinator]: "Koordinatör",
+  [UserRole.Academician]: "Akademisyen",
+};
+
 export function toSession(user: BackendUser): AppSession | null {
-  const permissions = permissionsOf(user);
+  const jobTitle = DEFAULT_JOB_TITLE[user.role];
+  if (!jobTitle) return null;
+  const session: AppSession = {
+    userId: user.id,
+    email: user.email,
+    fullName: user.fullName,
+    jobTitle: user.jobTitle ?? jobTitle,
+    role: user.role,
+    permissions: permissionsOf(user),
+  };
+  if (user.institutionKinds?.length) {
+    session.institutionKinds = user.institutionKinds;
+  }
   if (user.role === UserRole.Mentee) {
     // Someone who signed up without a startup has none until they join or create one on /startup.
-    return {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      jobTitle: user.jobTitle ?? "Mentee",
-      role: UserRole.Mentee,
-      organizationId: user.organizationId ?? undefined,
-      organizationName: user.organizationName ?? undefined,
-      individualMentee: user.individualMentee,
-      permissions,
-    };
+    session.organizationId = user.organizationId ?? undefined;
+    session.organizationName = user.organizationName ?? undefined;
+    session.individualMentee = user.individualMentee;
   }
-  if (user.role === UserRole.Mentor) {
-    return {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      jobTitle: user.jobTitle ?? "Mentor",
-      role: UserRole.Mentor,
-      permissions,
-    };
-  }
-  if (user.role === UserRole.Admin) {
-    return {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      jobTitle: user.jobTitle ?? "Admin",
-      role: UserRole.Admin,
-      permissions,
-    };
-  }
-  if (user.role === UserRole.Coordinator) {
-    return {
-      userId: user.id,
-      email: user.email,
-      fullName: user.fullName,
-      jobTitle: user.jobTitle ?? "Koordinatör",
-      role: UserRole.Coordinator,
-      permissions,
-    };
-  }
-  return null;
+  return session;
 }
 
 export async function getSessionStore(persist = false) {

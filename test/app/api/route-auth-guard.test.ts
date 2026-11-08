@@ -13,6 +13,10 @@ const HANDLER =
 const PUBLIC_HANDLERS = new Set([
   "auth/password-reset/route.ts POST",
   "health/route.ts GET",
+  // Signing in through an institution happens before there is a session; the backend verifies the login.
+  "institution-login/[provider]/complete/route.ts POST",
+  "institution-login/[provider]/start/route.ts POST",
+  "institution-login/dev-personas/route.ts GET",
   "programs/names/route.ts GET",
   "session/route.ts DELETE",
 ]);

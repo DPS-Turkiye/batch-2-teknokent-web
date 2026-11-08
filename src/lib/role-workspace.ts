@@ -1,4 +1,6 @@
+import { AccountType } from "@/interfaces/account-type";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { accountTypeOfSession } from "@/lib/account-type";
 
 export type RoleWorkspace = {
   homeHref: string;
@@ -8,6 +10,15 @@ export type RoleWorkspace = {
   notificationsHref: string;
   showNotificationBadge: boolean;
   usesRoleSubtitle: boolean;
+};
+
+const STUDENT_WORKSPACE: RoleWorkspace = {
+  homeHref: "/student",
+  profileHref: "/student",
+  personalInfoHref: "/student",
+  notificationsHref: "/student",
+  showNotificationBadge: true,
+  usesRoleSubtitle: false,
 };
 
 export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
@@ -28,6 +39,15 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         personalInfoHref: null,
         notificationsHref: "/coordinator",
         showNotificationBadge: false,
+        usesRoleSubtitle: true,
+      };
+    case UserRole.Academician:
+      return {
+        homeHref: "/academician",
+        profileHref: "/academician",
+        personalInfoHref: "/academician",
+        notificationsHref: "/academician",
+        showNotificationBadge: true,
         usesRoleSubtitle: true,
       };
     case UserRole.Mentor:
@@ -51,6 +71,14 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
   }
 }
 
+/** An ODTÜ student opens the student workspace (Lane S), whatever else they hold; the switch comes later. */
 export function workspaceForSession(session: AppSession | null) {
+  if (
+    session &&
+    session.role === UserRole.Mentee &&
+    accountTypeOfSession(session) === AccountType.Odtu
+  ) {
+    return STUDENT_WORKSPACE;
+  }
   return roleWorkspace(session?.role);
 }
