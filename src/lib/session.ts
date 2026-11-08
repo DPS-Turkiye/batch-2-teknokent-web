@@ -162,12 +162,18 @@ export async function saveSessionUser(user: AppSession, persist = false) {
   await session.save();
 }
 
-/** After joining or creating a startup, so the next re-check does not end the session for a changed organization. */
+/**
+ * After joining, creating or leaving a startup, so the next re-check does not end
+ * the session for a changed organization. Not a new sign-in: issuedAt stays, so
+ * the 12-hour limit and an admin's sign-in revoke still count from the original.
+ */
 export async function refreshSessionUser(user: BackendUser) {
   const next = toSession(user);
   if (!next) return null;
   const session = await getSessionStore();
-  await saveSessionUser(next, session.persist === true);
+  session.updateConfig(sessionOptions(session.persist === true));
+  session.user = next;
+  await session.save();
   return next;
 }
 

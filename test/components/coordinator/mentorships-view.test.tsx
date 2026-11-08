@@ -27,6 +27,16 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorPrograms: vi.fn(),
 }));
 
+vi.mock("@/lib/client/meeting-proposals", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/meeting-proposals")>()),
+  getMentorshipMeetingProposals: vi.fn(async () => []),
+}));
+
+vi.mock("@/lib/client/coordinator-notes", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/coordinator-notes")>()),
+  getCoordinatorNotes: vi.fn(async () => []),
+}));
+
 const lumen = coordinatorMentorship();
 const kavun = coordinatorMentorship({
   id: "mentorship-2",
