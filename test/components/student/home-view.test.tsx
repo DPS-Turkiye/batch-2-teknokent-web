@@ -56,12 +56,13 @@ describe("StudentHomeView", () => {
     expect(screen.getByText("Yaklaşan randevun yok.")).toBeVisible();
   });
 
-  it("keeps links to screens that have not landed as Yakında, not dead links", () => {
+  it("links only to screens that have landed and keeps the rest as Yakında", () => {
     renderWithQueryClient(<StudentHomeView />);
 
-    expect(screen.queryAllByRole("link")).toHaveLength(0);
-    expect(screen.getAllByText("Yakında")).toHaveLength(4);
-    expect(screen.getByText("Akran Mentörlüğü")).toBeVisible();
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(["/student/peer-mentoring"]);
+    expect(screen.getAllByText("Yakında")).toHaveLength(3);
   });
 
   it("shows nothing but the query state while loading", () => {
