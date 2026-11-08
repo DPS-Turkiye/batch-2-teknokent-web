@@ -4387,6 +4387,7 @@
     "noParticipants": "No participants in the program yet."
   },
   "adminCommon": {
+    "peerMentorship": "Peer mentoring",
     "programStatus": {
       "DRAFT": "Draft",
       "ACTIVE": "Active",

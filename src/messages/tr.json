@@ -4387,6 +4387,7 @@
     "noParticipants": "Programda henüz katılımcı yok."
   },
   "adminCommon": {
+    "peerMentorship": "Akran mentorluğu",
     "programStatus": {
       "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
