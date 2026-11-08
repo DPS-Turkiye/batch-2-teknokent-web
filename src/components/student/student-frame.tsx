@@ -27,7 +27,6 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "peerMentoring",
     icon: "/admin/nav-lamp.svg",
     match: (path) => path.startsWith("/student/peer-mentoring"),
-    disabled: true,
   },
   {
     href: "/student/office-hours",
@@ -41,7 +40,6 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "myAppointments",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/student/appointments"),
-    disabled: true,
   },
   {
     href: "/student/profile",

@@ -104,6 +104,8 @@ export async function reloadAndCheckEmailVerified(): Promise<boolean> {
   if (!user) return false;
   if (isEmailVerificationExempt(user.email)) return true;
   await user.reload();
+  // reload() leaves the cached ID token alone, and the backend reads email_verified from the token.
+  if (user.emailVerified) await user.getIdToken(true);
   return user.emailVerified;
 }
 
