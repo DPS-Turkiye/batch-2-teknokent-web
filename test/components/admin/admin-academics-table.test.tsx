@@ -81,6 +81,14 @@ describe("AdminAcademicsTable", () => {
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
+  it("shows its own error text when the list cannot load", async () => {
+    vi.mocked(getAdminAcademics).mockRejectedValue("network down");
+    renderWithQueryClient(<AdminAcademicsTable />);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Akademisyenler yüklenemedi.",
+    );
+  });
+
   it("says so when the institution lists nobody", async () => {
     vi.mocked(getAdminAcademics).mockResolvedValue([]);
     renderWithQueryClient(<AdminAcademicsTable />);

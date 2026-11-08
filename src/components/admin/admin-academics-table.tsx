@@ -16,7 +16,7 @@ import {
 import { useAdminAcademics } from "@/hooks/use-admin-academics";
 import type { AdminAcademic } from "@/interfaces/admin-academics";
 import { ACADEMIC_FILTERS } from "@/lib/admin-academics";
-import { formatLongDate, initials } from "@/lib/utils";
+import { errorMessage, formatLongDate, initials } from "@/lib/utils";
 
 const COLUMNS =
   "grid grid-cols-[minmax(240px,2fr)_minmax(180px,1.5fr)_110px_170px_110px_90px] items-center gap-4";
@@ -65,8 +65,12 @@ export function AdminAcademicsTable() {
         </div>
       </div>
 
-      {academics.isLoading || academics.error ? (
-        <QueryNotice isLoading={academics.isLoading} error={academics.error} />
+      {academics.error ? (
+        <p role="alert" className="text-sm text-[#d9464b]">
+          {errorMessage(academics.error, t("loadFailed"))}
+        </p>
+      ) : academics.isLoading ? (
+        <QueryNotice isLoading error={null} />
       ) : (
         <ScrollTable minWidth={980}>
           <div
@@ -229,7 +233,7 @@ function AcademicDrawer({
             ×
           </button>
         </div>
-        <dl className="mt-5 flex-1 space-y-3 overflow-y-auto px-6 pb-6 text-[13.5px] text-[#22262b]">
+        <dl className="mt-5 flex-1 space-y-3 overflow-y-auto px-6 pb-4 text-[13.5px] text-[#22262b]">
           <Field label={t("drawer.academicTitle")}>
             {academic.academicTitle ?? "—"}
           </Field>
@@ -250,10 +254,10 @@ function AcademicDrawer({
               {t("drawer.officeHoursPending")}
             </span>
           </Field>
-          <p className="rounded-2xl bg-[#f5f6f8] px-4 py-3 text-[12.5px] text-[#676e78]">
-            {t("drawer.readOnly")}
-          </p>
         </dl>
+        <p className="mx-6 mb-6 rounded-2xl bg-[#f5f6f8] px-4 py-3 text-[12.5px] text-[#676e78]">
+          {t("drawer.readOnly")}
+        </p>
       </aside>
     </div>
   );
