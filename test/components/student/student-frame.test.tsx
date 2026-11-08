@@ -46,12 +46,15 @@ describe("StudentFrame", () => {
     expect(
       within(nav).getByRole("link", { name: "Akran Mentörlüğü" }),
     ).toHaveAttribute("href", "/student/peer-mentoring");
-    for (const label of ["Office Hours", "Randevularım", "Profilim"]) {
+    for (const label of ["Office Hours", "Profilim"]) {
       expect(within(nav).queryByRole("link", { name: label })).toBeNull();
       expect(
         within(nav).getByText(label).closest("[aria-disabled]"),
       ).not.toBeNull();
     }
+    expect(
+      within(nav).getByRole("link", { name: "Randevularım" }),
+    ).toHaveAttribute("href", "/student/appointments");
     expect(screen.getByText("Ana içerik")).toBeInTheDocument();
   });
 

@@ -5859,5 +5859,18 @@
     "creating": "Saving…",
     "created": "{name} was created as a draft.",
     "createFailed": "The program could not be created."
+  },
+  "studentAppointments": {
+    "title": "My appointments",
+    "fixtureNotice": "Showing sample data. Live appointments and Office Hours integration are not connected yet.",
+    "filter": "Status",
+    "all": "All",
+    "loading": "Loading appointments…",
+    "error": "Appointments could not be loaded.",
+    "retry": "Try again",
+    "empty": "No appointments yet.",
+    "filteredEmpty": "No appointments with this status.",
+    "place": "Place: {place}",
+    "alternative": "Proposed alternative (not yet confirmed)"
   }
 }
