@@ -120,7 +120,7 @@ function buildNavigation(
       {
         id: AppArea.Programs,
         label: "programs",
-        href: "/programs",
+        href: "/coordinator/programs",
         icon: FolderKanban,
       },
       MENTORS_NAV,

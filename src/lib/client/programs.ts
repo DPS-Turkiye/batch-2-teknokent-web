@@ -3,9 +3,7 @@ import type {
   ProgramName,
   Program,
   ProgramDetail,
-  ProgramDirectory,
   ProgramInvitation,
-  ProgramStatus,
 } from "@/interfaces/program";
 import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { requireSuccess } from "@/lib/client/api";
@@ -51,12 +49,6 @@ export async function setActiveProgram(programId: string | null) {
   );
 }
 
-export async function getProgramDirectory() {
-  return requireSuccess(
-    await httpClient.get<ProgramDirectory>("/api/programs/directory"),
-  );
-}
-
 export async function getProgramInvitations() {
   return requireSuccess(
     await httpClient.get<ProgramInvitation[]>("/api/programs/invitations"),
@@ -66,71 +58,6 @@ export async function getProgramInvitations() {
 export async function createProgram(name: string) {
   return requireSuccess(
     await httpClient.post<Program>("/api/programs", { name }),
-  );
-}
-
-export async function setProgramStatus(
-  programId: string,
-  status: ProgramStatus,
-) {
-  return requireSuccess(
-    await httpClient.put<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/status`,
-      { status },
-    ),
-  );
-}
-
-export async function addProgramStartup(
-  programId: string,
-  organizationId: string,
-) {
-  return requireSuccess(
-    await httpClient.post<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/startups`,
-      { organizationId },
-    ),
-  );
-}
-
-export async function removeProgramStartup(
-  programId: string,
-  organizationId: string,
-) {
-  return requireSuccess(
-    await httpClient.delete<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/startups/${encodeURIComponent(organizationId)}`,
-    ),
-  );
-}
-
-export async function inviteProgramMentor(programId: string, mentorId: string) {
-  return requireSuccess(
-    await httpClient.post<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/mentors`,
-      { mentorId },
-    ),
-  );
-}
-
-export async function requestProgramMembership(programId: string) {
-  return requireSuccess(
-    await httpClient.post<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/mentor-requests`,
-    ),
-  );
-}
-
-export async function decideProgramMentorRequest(
-  programId: string,
-  mentorId: string,
-  accepted: boolean,
-) {
-  return requireSuccess(
-    await httpClient.post<Program>(
-      `/api/programs/${encodeURIComponent(programId)}/mentor-requests/${encodeURIComponent(mentorId)}/decide`,
-      { accepted },
-    ),
   );
 }
 
