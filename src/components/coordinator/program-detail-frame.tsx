@@ -9,6 +9,7 @@ import { QueryNotice, StatusChip } from "@/components/admin/admin-ui";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
+import { ProgramTabRedirect } from "@/components/coordinator/program-tab-redirect";
 import {
   useCoordinatorProgram,
   useLaunchProgram,
@@ -16,10 +17,16 @@ import {
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import {
+  hasTabContent,
+  isActiveTab,
+  isParticipantsTab,
+  misplacedTabHref,
+  participantTabs,
   programHeaderLine,
   ProgramTab,
   programTabs,
 } from "@/lib/coordinator-program-detail";
+import { ProgramType } from "@/interfaces/program";
 
 const LIFECYCLE_TONES: Record<ProgramLifecycle, "green" | "blue" | "neutral"> =
   {
@@ -47,6 +54,10 @@ export function ProgramDetailFrame({
   const detail = query.data;
   if (!detail) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
+  }
+  const misplaced = misplacedTabHref(detail, programId, tab);
+  if (misplaced) {
+    return <ProgramTabRedirect href={navigation.resolveHref(misplaced)} />;
   }
   const program = detail.program;
 
@@ -87,27 +98,29 @@ export function ProgramDetailFrame({
         </Link>
       </header>
 
-      <ul className="flex flex-wrap gap-2 text-[13.5px]">
-        <Pill
-          dot="#ff6a3d"
-          value={program.teamCount}
-          label={t("pills.teams")}
-        />
-        <Pill
-          dot="#26a4ff"
-          value={program.mentorCount}
-          label={t("pills.mentors")}
-        />
-        <Pill
-          value={program.activeMentorshipCount}
-          label={t("pills.activeMentorships")}
-        />
-        <Pill
-          dot="#ff6a3d"
-          value={program.awaitingMatchCount}
-          label={t("pills.awaitingMatch")}
-        />
-      </ul>
+      {program.type === ProgramType.StartupMentoring ? (
+        <ul className="flex flex-wrap gap-2 text-[13.5px]">
+          <Pill
+            dot="#ff6a3d"
+            value={program.teamCount}
+            label={t("pills.teams")}
+          />
+          <Pill
+            dot="#26a4ff"
+            value={program.mentorCount}
+            label={t("pills.mentors")}
+          />
+          <Pill
+            value={program.activeMentorshipCount}
+            label={t("pills.activeMentorships")}
+          />
+          <Pill
+            dot="#ff6a3d"
+            value={program.awaitingMatchCount}
+            label={t("pills.awaitingMatch")}
+          />
+        </ul>
+      ) : null}
 
       {program.lifecycle === ProgramLifecycle.Draft ? (
         <DraftBanner
@@ -123,7 +136,7 @@ export function ProgramDetailFrame({
         className="flex overflow-x-auto border-b border-[#e9ecef]"
       >
         {programTabs(detail, programId).map((item) => {
-          const active = item.id === tab;
+          const active = isActiveTab(item.id, tab);
           const content = (
             <>
               {t(`tabs.${item.id}`)}
@@ -164,7 +177,15 @@ export function ProgramDetailFrame({
         })}
       </div>
 
-      {children(detail)}
+      {isParticipantsTab(tab) ? (
+        <ParticipantTabs detail={detail} programId={programId} tab={tab} />
+      ) : null}
+
+      {hasTabContent(program.type, tab) ? (
+        children(detail)
+      ) : (
+        <TypeTabEmptyState type={program.type} admin={navigation.admin} />
+      )}
     </div>
   );
 }
@@ -225,5 +246,75 @@ function DraftBanner({
         </div>
       ) : null}
     </div>
+  );
+}
+
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+function ParticipantTabs({
+  detail,
+  programId,
+  tab,
+}: {
+  detail: CoordinatorProgramDetail;
+  programId: string;
+  tab: ProgramTab;
+}) {
+  const t = useTranslations("coordinatorPrograms");
+  const navigation = useProgramNavigation(programId);
+  return (
+    <nav aria-label={t("tabs.PARTICIPANTS")} className="flex flex-wrap gap-2">
+      {participantTabs(detail, programId).map((item) => {
+        const active = item.id === (tab as string);
+        const content = (
+          <>
+            {t(`participantTabs.${item.id}`)}
+            {item.count != null ? (
+              <span className="text-[12px] text-[#858c96]">{item.count}</span>
+            ) : null}
+          </>
+        );
+        const className = `inline-flex items-center gap-2 rounded-full px-4 py-2 text-[13px] ${
+          active
+            ? "bg-[#22262b] font-medium text-white"
+            : "border border-[#e9ecef] text-[#676e78]"
+        }`;
+        return item.href ? (
+          <Link
+            key={item.id}
+            href={navigation.resolveHref(item.href)}
+            aria-current={active ? "page" : undefined}
+            className={className}
+          >
+            {content}
+          </Link>
+        ) : (
+          <span
+            key={item.id}
+            aria-disabled="true"
+            title={t("soon")}
+            className={`${className} cursor-not-allowed opacity-60`}
+          >
+            {content}
+          </span>
+        );
+      })}
+    </nav>
+  );
+}
+
+// TEST UI: placeholder until the design team's screen; replace when it arrives.
+export function TypeTabEmptyState({
+  type,
+  admin,
+}: {
+  type: ProgramType;
+  admin: boolean;
+}) {
+  const t = useTranslations("coordinatorPrograms");
+  const tType = useTranslations("programTypes");
+  return (
+    <p className="rounded-[28px] border border-dashed border-[#e0e3e7] px-6 py-10 text-center text-[13.5px] text-[#676e78]">
+      {t(admin ? "typeTabEmptyAdmin" : "typeTabEmpty", { type: tType(type) })}
+    </p>
   );
 }

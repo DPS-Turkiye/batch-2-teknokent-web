@@ -3723,7 +3723,9 @@
       "MENTOR_POOL": "Mentor Havuzu",
       "MATCHING": "Eşleşmeler",
       "SETTINGS": "Program Ayarları",
-      "APPROVALS": "Onaylar"
+      "APPROVALS": "Onaylar",
+      "PARTICIPANTS": "Katılımcılar",
+      "APPOINTMENTS": "Randevular"
     },
     "phaseWeek": "{phase}, hafta {current}/{total}",
     "coordinators": "{count, plural, =1 {Koordinatör} other {Koordinatörler}}: {names}",
@@ -3802,7 +3804,16 @@
     "launching": "Başlatılıyor…",
     "launched": "{name} başlatıldı.",
     "launchFailed": "Program başlatılamadı.",
-    "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata."
+    "launchNeedsCoordinator": "Başlatmadan önce bir koordinatör ata.",
+    "participantTabs": {
+      "TEAMS": "Takımlar",
+      "MENTOR_POOL": "Mentor Havuzu",
+      "STUDENTS": "Öğrenciler",
+      "PEER_MENTORS": "Akran Mentorları",
+      "ACADEMICS": "Akademisyenler"
+    },
+    "typeTabEmptyAdmin": "Bu bölüm {type} programları için henüz hazır değil. Programın koşullarını koordinatörleri Program Ayarları’nda yapılandırır.",
+    "typeTabEmpty": "Bu bölüm {type} programları için henüz hazır değil. Programın koşullarını Program Ayarları’nda yapılandırabilirsin."
   },
   "programRules": {
     "days": "gün",

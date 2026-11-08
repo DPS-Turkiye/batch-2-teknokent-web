@@ -3723,7 +3723,9 @@
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
       "SETTINGS": "Program settings",
-      "APPROVALS": "Approvals"
+      "APPROVALS": "Approvals",
+      "PARTICIPANTS": "Participants",
+      "APPOINTMENTS": "Appointments"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -3802,7 +3804,16 @@
     "launching": "Launching…",
     "launched": "{name} was launched.",
     "launchFailed": "The program could not be launched.",
-    "launchNeedsCoordinator": "Assign a coordinator before launching."
+    "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "participantTabs": {
+      "TEAMS": "Teams",
+      "MENTOR_POOL": "Mentor pool",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer mentors",
+      "ACADEMICS": "Academics"
+    },
+    "typeTabEmptyAdmin": "This section is not ready for {type} programs yet. The program’s coordinators set up its conditions in Program settings.",
+    "typeTabEmpty": "This section is not ready for {type} programs yet. You can set up the program’s conditions in Program settings."
   },
   "programRules": {
     "days": "days",

@@ -3,7 +3,14 @@ import { describe, expect, it } from "vitest";
 
 import {
   emptyPhase,
+  hasTabContent,
   healthShares,
+  isActiveTab,
+  misplacedTabHref,
+  ParticipantTab,
+  participantTabs,
+  ProgramTab,
+  programTabs,
   overviewActions,
   phaseDraftError,
   programHeaderLine,
@@ -13,6 +20,7 @@ import {
   stepDays,
   RULE_LIMITS,
 } from "@/lib/coordinator-program-detail";
+import { ProgramType } from "@/interfaces/program";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 
 import en from "@/messages/en.json";
@@ -102,5 +110,118 @@ describe("coordinator program detail", () => {
         endDate: "2026-12-01",
       }),
     ).toContain("Demo Day");
+  });
+});
+
+describe("program tabs by type", () => {
+  function detailOf(type: ProgramType) {
+    const detail = coordinatorProgramDetail();
+    return { ...detail, program: { ...detail.program, type } };
+  }
+
+  it("keeps Girişim's screens under Katılımcılar with their counts", () => {
+    const detail = detailOf(ProgramType.StartupMentoring);
+    expect(programTabs(detail, "p1").map((tab) => [tab.id, tab.href])).toEqual([
+      [ProgramTab.Overview, "/coordinator/programs/p1"],
+      [ProgramTab.Participants, "/coordinator/programs/p1/teams"],
+      [ProgramTab.Matching, "/coordinator/programs/p1/matching"],
+      [ProgramTab.Approvals, "/coordinator/programs/p1/approvals"],
+      [ProgramTab.Settings, "/coordinator/programs/p1/settings"],
+    ]);
+    expect(participantTabs(detail, "p1")).toEqual([
+      {
+        id: ParticipantTab.Teams,
+        href: "/coordinator/programs/p1/teams",
+        count: detail.program.teamCount,
+      },
+      {
+        id: ParticipantTab.MentorPool,
+        href: "/coordinator/programs/p1/mentors",
+        count: detail.program.mentorCount,
+      },
+    ]);
+    expect(isActiveTab(ProgramTab.Participants, ProgramTab.MentorPool)).toBe(
+      true,
+    );
+    expect(isActiveTab(ProgramTab.Matching, ProgramTab.MentorPool)).toBe(false);
+  });
+
+  it("gives Office Hours Randevular in place of Eşleşmeler and no Onaylar", () => {
+    const detail = detailOf(ProgramType.OfficeHours);
+    expect(programTabs(detail, "p1").map((tab) => tab.id)).toEqual([
+      ProgramTab.Overview,
+      ProgramTab.Participants,
+      ProgramTab.Appointments,
+      ProgramTab.Settings,
+    ]);
+    expect(participantTabs(detail, "p1").map((tab) => tab.id)).toEqual([
+      ParticipantTab.Academics,
+      ParticipantTab.Students,
+    ]);
+  });
+
+  it("gives Akran its own Katılımcılar page and leaves its tabs empty but the settings", () => {
+    const detail = detailOf(ProgramType.PeerMentoring);
+    expect(programTabs(detail, "p1")[1].href).toBe(
+      "/coordinator/programs/p1/participants",
+    );
+    expect(participantTabs(detail, "p1")).toEqual([
+      { id: ParticipantTab.Students, href: null, count: null },
+      { id: ParticipantTab.PeerMentors, href: null, count: null },
+    ]);
+    expect(hasTabContent(ProgramType.PeerMentoring, ProgramTab.Matching)).toBe(
+      false,
+    );
+    expect(hasTabContent(ProgramType.PeerMentoring, ProgramTab.Settings)).toBe(
+      true,
+    );
+    expect(
+      hasTabContent(ProgramType.StartupMentoring, ProgramTab.Approvals),
+    ).toBe(true);
+  });
+
+  it("sends tab URLs a type does not show to that type's own tab", () => {
+    const base = "/coordinator/programs/p1";
+    const startup = detailOf(ProgramType.StartupMentoring);
+    const peer = detailOf(ProgramType.PeerMentoring);
+    const officeHours = detailOf(ProgramType.OfficeHours);
+
+    expect(misplacedTabHref(startup, "p1", ProgramTab.Participants)).toBe(
+      `${base}/teams`,
+    );
+    expect(misplacedTabHref(startup, "p1", ProgramTab.Appointments)).toBe(
+      `${base}/matching`,
+    );
+    for (const tab of [
+      ProgramTab.Overview,
+      ProgramTab.Teams,
+      ProgramTab.MentorPool,
+      ProgramTab.Matching,
+      ProgramTab.Approvals,
+      ProgramTab.Settings,
+    ]) {
+      expect(misplacedTabHref(startup, "p1", tab)).toBeNull();
+    }
+
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Teams)).toBe(
+      `${base}/participants`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Matching)).toBe(
+      `${base}/appointments`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Approvals)).toBe(
+      base,
+    );
+    expect(
+      misplacedTabHref(officeHours, "p1", ProgramTab.Appointments),
+    ).toBeNull();
+
+    expect(misplacedTabHref(peer, "p1", ProgramTab.MentorPool)).toBe(
+      `${base}/participants`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Appointments)).toBe(
+      `${base}/matching`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Approvals)).toBeNull();
   });
 });
