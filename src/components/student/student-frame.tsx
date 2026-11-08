@@ -40,7 +40,6 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "myAppointments",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/student/appointments"),
-    disabled: true,
   },
   {
     href: "/student/profile",

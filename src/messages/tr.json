@@ -5859,5 +5859,18 @@
     "creating": "Kaydediliyor…",
     "created": "{name} taslak olarak oluşturuldu.",
     "createFailed": "Program oluşturulamadı."
+  },
+  "studentAppointments": {
+    "title": "Randevularım",
+    "fixtureNotice": "Örnek veriler gösteriliyor. Canlı randevu ve Office Hours entegrasyonu henüz bağlı değil.",
+    "filter": "Durum",
+    "all": "Tümü",
+    "loading": "Randevular yükleniyor…",
+    "error": "Randevular yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Henüz randevun yok.",
+    "filteredEmpty": "Bu durumda randevun yok.",
+    "place": "Yer: {place}",
+    "alternative": "Önerilen alternatif (henüz onaylanmadı)"
   }
 }

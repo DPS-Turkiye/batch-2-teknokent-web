@@ -61,8 +61,8 @@ describe("StudentHomeView", () => {
 
     expect(
       screen.getAllByRole("link").map((link) => link.getAttribute("href")),
-    ).toEqual(["/student/peer-mentoring"]);
-    expect(screen.getAllByText("Yakında")).toHaveLength(3);
+    ).toEqual(["/student/appointments", "/student/peer-mentoring"]);
+    expect(screen.getAllByText("Yakında")).toHaveLength(2);
   });
 
   it("shows nothing but the query state while loading", () => {
@@ -86,7 +86,7 @@ describe("StudentHomeView", () => {
 describe("studentRouteReady", () => {
   it("follows the student nav switch", () => {
     expect(studentRouteReady("/student")).toBe(true);
-    expect(studentRouteReady("/student/appointments")).toBe(false);
+    expect(studentRouteReady("/student/appointments")).toBe(true);
     expect(studentRouteReady("/student/profile/complete")).toBe(false);
     expect(studentRouteReady("/elsewhere")).toBe(false);
   });
