@@ -5,15 +5,27 @@ import type {
   ProgramRules,
   UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import { formatMonthRange, type ProgramsT } from "@/lib/coordinator-programs";
 
 export enum ProgramTab {
   Overview = "OVERVIEW",
+  Participants = "PARTICIPANTS",
   Teams = "TEAMS",
   MentorPool = "MENTOR_POOL",
   Matching = "MATCHING",
+  Appointments = "APPOINTMENTS",
   Approvals = "APPROVALS",
   Settings = "SETTINGS",
+}
+
+/** The sub-tabs under Katılımcılar; only Girişim's two have screens so far. */
+export enum ParticipantTab {
+  Teams = "TEAMS",
+  MentorPool = "MENTOR_POOL",
+  Students = "STUDENTS",
+  PeerMentors = "PEER_MENTORS",
+  Academics = "ACADEMICS",
 }
 
 export enum SettingsSection {
@@ -25,31 +37,126 @@ export enum SettingsSection {
   Archive = "ARCHIVE",
 }
 
+const PARTICIPANT_PAGES = [
+  ProgramTab.Participants,
+  ProgramTab.Teams,
+  ProgramTab.MentorPool,
+];
+
+/**
+ * The shared tabs, adapted to the type: Girişim keeps its screens under Katılımcılar,
+ * Office Hours shows Randevular in place of Eşleşmeler and has no Onaylar.
+ */
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
 ) {
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  const type = detail.program.type;
+  const startup = type === ProgramType.StartupMentoring;
+  const officeHours = type === ProgramType.OfficeHours;
   return [
     { id: ProgramTab.Overview, href: base, count: null },
     {
-      id: ProgramTab.Teams,
-      href: `${base}/teams`,
-      count: detail.program.teamCount,
+      id: ProgramTab.Participants,
+      href: startup ? `${base}/teams` : `${base}/participants`,
+      count: null,
     },
-    {
-      id: ProgramTab.MentorPool,
-      href: `${base}/mentors`,
-      count: detail.program.mentorCount,
-    },
-    {
-      id: ProgramTab.Matching,
-      href: `${base}/matching`,
-      count: detail.program.awaitingMatchCount,
-    },
-    { id: ProgramTab.Approvals, href: `${base}/approvals`, count: null },
+    officeHours
+      ? {
+          id: ProgramTab.Appointments,
+          href: `${base}/appointments`,
+          count: null,
+        }
+      : {
+          id: ProgramTab.Matching,
+          href: `${base}/matching`,
+          count: startup ? detail.program.awaitingMatchCount : null,
+        },
+    ...(officeHours
+      ? []
+      : [{ id: ProgramTab.Approvals, href: `${base}/approvals`, count: null }]),
     { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
+}
+
+/** Takımlar and Mentor Havuzu light up the Katılımcılar tab. */
+export function isActiveTab(item: ProgramTab, current: ProgramTab) {
+  return (
+    item === current ||
+    (item === ProgramTab.Participants && PARTICIPANT_PAGES.includes(current))
+  );
+}
+
+export function isParticipantsTab(tab: ProgramTab) {
+  return PARTICIPANT_PAGES.includes(tab);
+}
+
+/** Katılımcılar's sub-tabs; the ones without a screen yet have no link. */
+export function participantTabs(
+  detail: CoordinatorProgramDetail,
+  programId: string,
+): { id: ParticipantTab; href: string | null; count: number | null }[] {
+  const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  switch (detail.program.type) {
+    case ProgramType.PeerMentoring:
+      return [
+        { id: ParticipantTab.Students, href: null, count: null },
+        { id: ParticipantTab.PeerMentors, href: null, count: null },
+      ];
+    case ProgramType.OfficeHours:
+      return [
+        { id: ParticipantTab.Academics, href: null, count: null },
+        { id: ParticipantTab.Students, href: null, count: null },
+      ];
+    default:
+      return [
+        {
+          id: ParticipantTab.Teams,
+          href: `${base}/teams`,
+          count: detail.program.teamCount,
+        },
+        {
+          id: ParticipantTab.MentorPool,
+          href: `${base}/mentors`,
+          count: detail.program.mentorCount,
+        },
+      ];
+  }
+}
+
+/**
+ * Where a tab URL that the program's type does not show should go instead, or null when the type
+ * shows it. Keeps a typed or old link from opening another type's screen or a wrong empty state.
+ */
+export function misplacedTabHref(
+  detail: CoordinatorProgramDetail,
+  programId: string,
+  tab: ProgramTab,
+): string | null {
+  const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  switch (detail.program.type) {
+    case ProgramType.StartupMentoring:
+      if (tab === ProgramTab.Participants) return `${base}/teams`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+    case ProgramType.OfficeHours:
+      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
+        return `${base}/participants`;
+      if (tab === ProgramTab.Matching) return `${base}/appointments`;
+      if (tab === ProgramTab.Approvals) return base;
+      return null;
+    default:
+      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
+        return `${base}/participants`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+  }
+}
+
+/** Only Girişim has screens behind its tabs yet; the other types show an empty state apart from the settings. */
+export function hasTabContent(type: ProgramType, tab: ProgramTab) {
+  return type === ProgramType.StartupMentoring || tab === ProgramTab.Settings;
 }
 
 /** "Şub 2026 – Ara 2026 · Mentorluk dönemi, hafta 6/16 · Koordinatörler: Elif Demir, Burcu Şen". */

@@ -6,12 +6,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramOverviewView } from "@/components/coordinator/program-overview-view";
 import { ProgramSettingsView } from "@/components/coordinator/program-settings-view";
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import {
   addProgramCoordinator,
   extractSyllabusPhases,
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
   getProgramTeams,
+  launchCoordinatorProgram,
   replaceCoordinatorProgramPhases,
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
@@ -35,6 +37,7 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
   getProgramTeams: vi.fn(),
+  launchCoordinatorProgram: vi.fn(),
   extractSyllabusPhases: vi.fn(),
 }));
 
@@ -123,6 +126,26 @@ describe("coordinator program detail", () => {
     expect(screen.getByText("Team & mentor distribution")).toBeInTheDocument();
   });
 
+  it("shows the program type and a draft's Taslak label in the header", async () => {
+    const detail = coordinatorProgramDetail();
+    vi.mocked(getCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      program: {
+        ...detail.program,
+        lifecycle: ProgramLifecycle.Draft,
+        status: ProgramStatus.Draft,
+        type: ProgramType.OfficeHours,
+      },
+    });
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+
+    const heading = await screen.findByRole("heading", {
+      name: /METU Stars 2026/,
+    });
+    expect(within(heading).getByText("Taslak")).toBeInTheDocument();
+    expect(within(heading).getByText("Office Hours")).toBeInTheDocument();
+  });
+
   it("shows Genel Bakış: phases, health, actions, dates and distribution", async () => {
     renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
     expect(await screen.findByRole("link", { name: /Takvim/ })).toHaveAttribute(
@@ -149,14 +172,13 @@ describe("coordinator program detail", () => {
     expect(
       screen.getByRole("tab", { name: /Program Ayarları/ }),
     ).toHaveAttribute("href", "/coordinator/programs/program-1/settings");
-    expect(screen.getByRole("tab", { name: /Takımlar/ })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: /Katılımcılar/ })).toHaveAttribute(
       "href",
       "/coordinator/programs/program-1/teams",
     );
-    expect(screen.getByRole("tab", { name: /Mentor Havuzu/ })).toHaveAttribute(
-      "href",
-      "/coordinator/programs/program-1/mentors",
-    );
+    expect(
+      screen.queryByRole("tab", { name: /Mentor Havuzu/ }),
+    ).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: /Eşleşmeler/ })).toHaveAttribute(
       "href",
       "/coordinator/programs/program-1/matching",
@@ -419,7 +441,8 @@ describe("coordinator program detail", () => {
     vi.useRealTimers();
   });
 
-  it("adds a coordinator from the approved ones", async () => {
+  it("lets the admin add a coordinator from the approved ones", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
     vi.mocked(getProgramCoordinatorCandidates).mockResolvedValue([
       { id: "coordinator-3", fullName: "Can Yılmaz", owner: false },
     ]);
@@ -445,6 +468,96 @@ describe("coordinator program detail", () => {
       "program-1",
       "coordinator-3",
     );
+  });
+
+  it("shows coordinators their colleagues read-only and leaves the changes to the admin", async () => {
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    const current = await screen.findByRole("list", {
+      name: "Programın koordinatörleri",
+    });
+    expect(within(current).getByText("Burcu Şen")).toBeInTheDocument();
+    expect(
+      within(current).queryByRole("button", { name: /programdan çıkar/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Koordinatör ekle/ }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByText("Koordinatörleri yönetici atar."),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Program türü")).toBeInTheDocument();
+  });
+
+  it("lets the admin view the settings without changing them", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    expect(
+      await screen.findByText(/yönetici olarak yalnızca görüntülersin/),
+    ).toBeInTheDocument();
+    expect(screen.getByDisplayValue("METU Stars 2026")).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
+    ).toBeDisabled();
+    expect(screen.getByLabelText("Müfredat PDF dosyası seç")).toBeDisabled();
+    expect(
+      screen.getByRole("button", { name: "Programı arşivle" }),
+    ).toBeDisabled();
+  });
+
+  it("lets the admin launch a draft once it has a coordinator", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
+    const detail = coordinatorProgramDetail();
+    const draft = {
+      ...detail,
+      program: {
+        ...detail.program,
+        lifecycle: ProgramLifecycle.Draft,
+        status: ProgramStatus.Draft,
+      },
+    };
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(draft);
+    vi.mocked(launchCoordinatorProgram).mockResolvedValue(detail);
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+
+    expect(
+      await screen.findByText(/Program henüz başlatılmadı/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Programı Başlat" }));
+
+    expect(launchCoordinatorProgram).toHaveBeenCalledWith("program-1");
+  });
+
+  it("keeps the launch closed until a coordinator is assigned, and hides it from coordinators", async () => {
+    vi.mocked(usePathname).mockReturnValue("/admin/programs/program-1");
+    const detail = coordinatorProgramDetail();
+    vi.mocked(getCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      coordinators: [],
+      program: { ...detail.program, lifecycle: ProgramLifecycle.Draft },
+    });
+    const { unmount } = renderWithQueryClient(
+      <ProgramOverviewView programId="program-1" />,
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Programı Başlat" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByText("Başlatmadan önce bir koordinatör ata."),
+    ).toBeInTheDocument();
+    unmount();
+
+    vi.mocked(usePathname).mockReturnValue("/coordinator/programs/program-1");
+    renderWithQueryClient(<ProgramOverviewView programId="program-1" />);
+    expect(
+      await screen.findByText(/yönetici başlattığında/),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Programı Başlat" }),
+    ).not.toBeInTheDocument();
   });
 
   it("asks before archiving, and an archived program is read-only", async () => {

@@ -219,6 +219,7 @@ function SyllabusCard({
         type="file"
         accept="application/pdf,.pdf"
         className="sr-only"
+        disabled={busy}
         aria-label={t("chooseFile")}
         onChange={(event) => {
           const file = event.target.files?.[0];

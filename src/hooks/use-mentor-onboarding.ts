@@ -5,7 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
-import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
+import {
+  MAX_EDUCATIONS,
+  MeetingFrequency,
+  type MentorEducationInput,
+  Weekday,
+} from "@/interfaces/mentor";
 import {
   EMPTY_STUDENT_DRAFT,
   IntroPhase,
@@ -40,7 +45,11 @@ import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { dropDetachedFile } from "@/lib/draft-storage";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
-import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
+import {
+  fillOnboardingProfile,
+  fillStudies,
+  toMentorCvResult,
+} from "@/lib/mentor-cv";
 import {
   invalidDays,
   openDays,
@@ -169,6 +178,8 @@ export function useMentorOnboarding(
     setDraft((current) => ({
       ...current,
       ...payload,
+      // A draft saved before a profile field existed still gets its default.
+      profile: { ...current.profile, ...payload.profile },
       week: { ...current.week, ...payload.week },
       photo: photo.value,
       cv: cv.value,
@@ -245,6 +256,7 @@ export function useMentorOnboarding(
               ...names,
               about: current.about.trim() ? current.about : cv.about,
               profile: fillOnboardingProfile(current.profile, cv),
+              student: fillStudies(current.student, cv.studies),
             };
           });
         } catch {
@@ -308,6 +320,41 @@ export function useMentorOnboarding(
       },
     }));
   }, []);
+
+  const updateEducations = useCallback(
+    (change: (schools: MentorEducationInput[]) => MentorEducationInput[]) =>
+      setDraft((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          education: change(current.profile.education),
+        },
+      })),
+    [],
+  );
+  const addEducation = useCallback(
+    () =>
+      updateEducations((schools) =>
+        schools.length >= MAX_EDUCATIONS
+          ? schools
+          : [...schools, { school: "", degree: "", period: "" }],
+      ),
+    [updateEducations],
+  );
+  const updateEducation = useCallback(
+    (index: number, key: keyof MentorEducationInput, value: string) =>
+      updateEducations((schools) =>
+        schools.map((school, i) =>
+          i === index ? { ...school, [key]: value } : school,
+        ),
+      ),
+    [updateEducations],
+  );
+  const removeEducation = useCallback(
+    (index: number) =>
+      updateEducations((schools) => schools.filter((_, i) => i !== index)),
+    [updateEducations],
+  );
 
   const toggleTopic = useCallback((topic: string) => {
     setDraft((current) => {
@@ -557,6 +604,9 @@ export function useMentorOnboarding(
     addOffering,
     removeOffering,
     updateStudent,
+    addEducation,
+    updateEducation,
+    removeEducation,
     updateDay,
     goNext,
     goBack,

@@ -49,6 +49,7 @@ const {
   getSessionIds,
   getSessionMentorId,
   getSessionUser,
+  refreshSessionUser,
   saveSessionUser,
   toSession,
 } = await import("@/lib/session");
@@ -338,6 +339,30 @@ describe("getSessionUser account re-check", () => {
     });
 
     await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
+
+describe("refreshSessionUser", () => {
+  it("swaps the user but keeps the original sign-in time and cookie lifetime", async () => {
+    const issuedAt = Date.now() - HOUR_MS;
+    const checkedAt = Date.now() - 60_000;
+    mockIronSession.user = toSession(mentee({ organizationId: undefined }));
+    mockIronSession.issuedAt = issuedAt;
+    mockIronSession.checkedAt = checkedAt;
+    mockIronSession.persist = true;
+
+    const next = await refreshSessionUser(mentee());
+
+    expect(next).toEqual(toSession(mentee()));
+    expect(savedSession.user).toEqual(next);
+    expect(savedSession.issuedAt).toBe(issuedAt);
+    expect(savedSession.checkedAt).toBe(checkedAt);
+    expect(savedSession.updateConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cookieOptions: expect.objectContaining({ maxAge: 12 * 60 * 60 }),
+      }),
+    );
+    expect(savedSession.save).toHaveBeenCalledOnce();
   });
 });
 

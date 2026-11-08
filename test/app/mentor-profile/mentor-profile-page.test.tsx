@@ -19,7 +19,10 @@ import {
   Weekday,
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
-import type { AvailabilityDraft } from "@/lib/mentor-availability";
+import {
+  AVAILABILITY_NUMBER_FIELDS,
+  type AvailabilityDraft,
+} from "@/lib/mentor-availability";
 import tr from "@/messages/tr.json";
 import { InLocale } from "@test/test-utils";
 
@@ -224,6 +227,7 @@ function mockAll(
       prepFileRequirement: null,
       languages: [MentorLanguage.Turkish],
       programRoles: [{ programId: "p1", role: "Design mentor" }],
+      educations: [],
     },
     specialtyInput: "",
     saveError: "",
@@ -250,6 +254,7 @@ function mockAll(
     isAddingException: false,
     isSaving: false,
     loadError: null,
+    numberFields: AVAILABILITY_NUMBER_FIELDS.map((item) => item.field),
     ...overrides.availabilityForm,
   } as unknown as ReturnType<typeof useAvailabilitySettingsForm>);
 }
@@ -757,6 +762,57 @@ describe("MentorProfilePage", () => {
 
     expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     expect(opener).toHaveFocus();
+  });
+});
+
+describe("MentorProfilePage schools", () => {
+  it("lists the schools, and edits them through the form hook", async () => {
+    const user = userEvent.setup();
+    const school = { school: "ODTÜ", degree: "Lisans", period: "2022 – 2026" };
+    const educationActions = {
+      addEducation: vi.fn(),
+      updateEducation: vi.fn(),
+      removeEducation: vi.fn(),
+    };
+    mockAll();
+    mockAll({
+      form: {
+        ...educationActions,
+        form: {
+          ...vi.mocked(useMentorProfileForm)().form,
+          educations: [school],
+        },
+      },
+    });
+    const { unmount } = render(<MentorProfilePage />);
+    expect(screen.getByText("ODTÜ · Lisans · 2022 – 2026")).toBeInTheDocument();
+    unmount();
+
+    mockAll({
+      form: {
+        ...educationActions,
+        isEditing: true,
+        canAddEducation: true,
+        form: {
+          ...vi.mocked(useMentorProfileForm)().form,
+          educations: [school],
+        },
+      },
+    });
+    render(<MentorProfilePage />);
+    await user.type(screen.getByRole("textbox", { name: "Yıllar" }), "!");
+    await user.click(screen.getByRole("button", { name: "+ Okul ekle" }));
+    await user.click(
+      screen.getByRole("button", { name: "ODTÜ okulunu kaldır" }),
+    );
+
+    expect(educationActions.updateEducation).toHaveBeenCalledWith(
+      0,
+      "period",
+      "2022 – 2026!",
+    );
+    expect(educationActions.addEducation).toHaveBeenCalled();
+    expect(educationActions.removeEducation).toHaveBeenCalledWith(0);
   });
 });
 

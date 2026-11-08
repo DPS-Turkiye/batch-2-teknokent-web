@@ -9,6 +9,9 @@ export default defineConfig({
   plugins: [react()],
   test: {
     environment: "jsdom",
+    // jsdom defaults to localhost:3000, so an unmocked fetch would reach a
+    // local dev server and fail differently than on CI; nothing listens on 9.
+    environmentOptions: { jsdom: { url: "http://localhost:9/" } },
     setupFiles: ["./test/setup.ts"],
     globals: true,
     css: false,

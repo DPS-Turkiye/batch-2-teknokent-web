@@ -28,11 +28,13 @@ export function StartupPageFrame({
   const optionLabel = useOptionLabel();
   const header = useStartupHeader();
   // TEST UI: placeholder until the design team's screen; replace when it arrives.
-  const { individual } = useIndividualProgram();
+  const { individual, isLoading } = useIndividualProgram();
   // A student's team of one has no startup name, stage or funding to show.
-  const title = individual
-    ? t("studentTitle")
-    : (header.name ?? (header.isLoading ? "…" : t("fallbackName")));
+  const title = isLoading
+    ? "…"
+    : individual
+      ? t("studentTitle")
+      : (header.name ?? (header.isLoading ? "…" : t("fallbackName")));
 
   return (
     <div className="space-y-6">

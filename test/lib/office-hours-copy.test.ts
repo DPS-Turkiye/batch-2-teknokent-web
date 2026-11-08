@@ -8,10 +8,13 @@ describe("office-hours availability copy", () => {
     ["Turkish", tr],
     ["English", en],
   ])(
-    "has every key the mentor availability editor reads in %s",
+    "has every key the mentor availability dialog's frame reads, plus the student limit, in %s",
     (_lang, messages) => {
       expect(Object.keys(messages.officeHours.availability).sort()).toEqual(
-        Object.keys(messages.mentorProfile.dialog).sort(),
+        [
+          ...Object.keys(messages.mentorProfile.dialog),
+          "studentCapacity",
+        ].sort(),
       );
     },
   );
