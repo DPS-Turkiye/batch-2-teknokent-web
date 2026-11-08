@@ -16,6 +16,7 @@ import {
   programsForMentor,
   startupsOf,
 } from "@/components/admin/admin-model";
+import { AdminStudentsTable } from "@/components/admin/admin-students-table";
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { AssignToProgram } from "@/components/admin/assign-to-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
@@ -42,7 +43,7 @@ import { UserAccountStatus } from "@/interfaces/session";
 import { errorMessage, initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 
-export type UserTab = "coordinators" | "mentors" | "teams";
+export type UserTab = "coordinators" | "mentors" | "teams" | "students";
 
 const PAGE_SIZE = 7;
 
@@ -82,6 +83,12 @@ export function UsersView({ tab }: { tab: UserTab }) {
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
+    {
+      id: "students" as const,
+      href: "/admin/users/students",
+      label: t("tabs.students"),
+      count: null,
+    },
   ];
 
   return (
@@ -119,15 +126,17 @@ export function UsersView({ tab }: { tab: UserTab }) {
                 >
                   {item.label}
                 </span>
-                <span
-                  className={`rounded-full px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium ${
-                    active
-                      ? "bg-[#22262b] text-white"
-                      : "bg-[#f5f6f8] text-[#676e78]"
-                  }`}
-                >
-                  {item.count}
-                </span>
+                {item.count != null ? (
+                  <span
+                    className={`rounded-full px-2.5 py-1 text-[11.5px] leading-[1.3] font-medium ${
+                      active
+                        ? "bg-[#22262b] text-white"
+                        : "bg-[#f5f6f8] text-[#676e78]"
+                    }`}
+                  >
+                    {item.count}
+                  </span>
+                ) : null}
               </span>
               <span
                 className={`h-[2.5px] w-full rounded-sm ${active ? "bg-[#22262b]" : ""}`}
@@ -143,6 +152,8 @@ export function UsersView({ tab }: { tab: UserTab }) {
         <MentorsTable data={data} focusUserId={focusUserId} />
       ) : null}
       {tab === "teams" ? <TeamsTable data={data} /> : null}
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {tab === "students" ? <AdminStudentsTable /> : null}
       {inviteOpen ? (
         <AddCoordinatorDialog onClose={() => setInviteOpen(false)} />
       ) : null}

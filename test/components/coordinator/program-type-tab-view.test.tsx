@@ -138,7 +138,7 @@ describe("program tabs by type", () => {
 
   it("tells the admin that the coordinators set the program up", async () => {
     navigation.pathname = "/admin/programs/program-1/participants";
-    mockType(ProgramType.PeerMentoring);
+    mockType(ProgramType.OfficeHours);
     renderWithQueryClient(
       <ProgramTypeTabView
         programId="program-1"
@@ -152,5 +152,23 @@ describe("program tabs by type", () => {
       ),
     ).toBeInTheDocument();
     expect(navigation.replace).not.toHaveBeenCalled();
+  });
+
+  // A peer program's Katılımcılar is its Öğrenciler list now, so the old URL moves there.
+  it("sends a peer program's old Katılımcılar URL to Öğrenciler, inside the admin shell", async () => {
+    navigation.pathname = "/admin/programs/program-1/participants";
+    mockType(ProgramType.PeerMentoring);
+    renderWithQueryClient(
+      <ProgramTypeTabView
+        programId="program-1"
+        tab={ProgramTab.Participants}
+      />,
+    );
+
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/admin/programs/program-1/students",
+      ),
+    );
   });
 });
