@@ -18,7 +18,6 @@ import {
 import type { BackendResponse } from "@/lib/server/backend-client";
 import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
 
-/** The signed-in academic's own office hours, in the shape the availability editor reads. */
 export async function GET() {
   const user = await getOfficeHoursUser();
   if (!user) return sessionMissing();

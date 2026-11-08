@@ -52,6 +52,7 @@ export const STUDENT_NAV: RoleNavItem[] = [
 
 /** Whether the workspace screen at `href` (or its section) has landed yet. */
 export function studentRouteReady(href: string) {
+  if (href === "/student/profile/complete") return true;
   const item = STUDENT_NAV.find((nav) => nav.match(href));
   return Boolean(item && !item.disabled);
 }

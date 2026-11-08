@@ -5,6 +5,7 @@ import { NextResponse } from "next/server";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
 import { apiText, type ApiTextKey } from "@/lib/server/api-response";
+import { hasPermission } from "@/lib/permissions";
 
 async function requireRole(
   role: UserRole,
@@ -22,7 +23,7 @@ async function requireRole(
       ),
     };
   }
-  if (session.role !== role) {
+  if (!hasPermission(session, role)) {
     return {
       ok: false,
       response: NextResponse.json(
@@ -60,7 +61,7 @@ export async function requireStartupSession() {
       ),
     };
   }
-  if (session.role !== UserRole.Mentee || !session.organizationId) {
+  if (!hasPermission(session, UserRole.Mentee) || !session.organizationId) {
     return {
       ok: false as const,
       response: NextResponse.json(
@@ -87,9 +88,9 @@ export async function requireCoordinatorOrMentorSession() {
     };
   }
   if (
-    session.role !== UserRole.Coordinator &&
-    session.role !== UserRole.Mentor &&
-    session.role !== UserRole.Admin
+    !hasPermission(session, UserRole.Coordinator) &&
+    !hasPermission(session, UserRole.Mentor) &&
+    !hasPermission(session, UserRole.Admin)
   ) {
     return {
       ok: false as const,

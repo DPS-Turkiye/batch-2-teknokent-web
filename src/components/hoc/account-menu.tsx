@@ -3,14 +3,20 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
-import { type KeyboardEvent, useEffect, useRef, useState } from "react";
+import {
+  type KeyboardEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
 import { SUPPORT_EMAIL } from "@/lib/const";
 
 const itemClass =
   "flex w-full items-center gap-2.5 px-4 py-2.5 text-left text-[12.5px]! font-normal! leading-[19px]! text-[#4a5059] hover:bg-[#f8f9fa] focus-visible:bg-[#f8f9fa] focus-visible:outline-none";
-const MENU_ITEM = '[role="menuitem"]';
+const MENU_ITEM = '[role="menuitem"], [role="menuitemradio"]';
 
 function ItemIcon({ src }: { src: string }) {
   return (
@@ -36,6 +42,7 @@ export function AccountMenu({
   onOpenSettings,
   onOpenNotifications,
   onLogout,
+  renderWorkspaceItems,
 }: {
   displayName: string;
   subtitle: string;
@@ -47,6 +54,11 @@ export function AccountMenu({
   onOpenSettings: () => void;
   onOpenNotifications: () => void;
   onLogout: () => void;
+  /** Extra menu items under the person, e.g. the workspace switch. */
+  renderWorkspaceItems?: (props: {
+    itemClassName: string;
+    close: () => void;
+  }) => ReactNode;
 }) {
   const t = useTranslations("accountMenu");
   const [open, setOpen] = useState(false);
@@ -167,6 +179,10 @@ export function AccountMenu({
             </div>
           </div>
           <div role="separator" className="h-px bg-[#eceef0]" />
+          {renderWorkspaceItems?.({
+            itemClassName: itemClass,
+            close: () => setOpen(false),
+          })}
           <Link
             href={profileHref}
             role="menuitem"

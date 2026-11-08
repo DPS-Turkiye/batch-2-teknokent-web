@@ -8,6 +8,7 @@ import { fetchOrganizationPrograms } from "@/lib/api/programs";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
 import { getSessionUser } from "@/lib/session";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
+import { hasPermission } from "@/lib/permissions";
 
 const currentProgramIsIndividual = cache(async (userId: string) => {
   try {
@@ -23,7 +24,11 @@ const currentProgramIsIndividual = cache(async (userId: string) => {
 
 /** Server-side twin of useIndividualProgram; a backend failure counts as not individual. */
 export async function isIndividualMentee(session: AppSession | null) {
-  if (session?.role !== UserRole.Mentee || !session.organizationId) {
+  if (
+    !session ||
+    !hasPermission(session, UserRole.Mentee) ||
+    !session.organizationId
+  ) {
     return false;
   }
   return currentProgramIsIndividual(session.userId);

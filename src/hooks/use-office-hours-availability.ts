@@ -15,7 +15,6 @@ export const OFFICE_HOURS_AVAILABILITY_QUERY_KEY = [
   "availability",
 ] as const;
 
-/** The signed-in academic's own office hours, as a mentor's availability is theirs. */
 export function useOfficeHoursAvailability() {
   return useQuery({
     queryKey: OFFICE_HOURS_AVAILABILITY_QUERY_KEY,
@@ -33,7 +32,6 @@ export function useUpdateOfficeHoursAvailability() {
   });
 }
 
-/** The shared weekly availability editor, fed with the academic's office hours; the capacity is a student limit here. */
 export function useOfficeHoursAvailabilityForm(onSaved: () => void) {
   const t = useTranslations("officeHours.availability");
   const settingsQuery = useOfficeHoursAvailability();

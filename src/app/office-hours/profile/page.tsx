@@ -13,7 +13,6 @@ export async function generateMetadata() {
   return { title: t("profile.title") };
 }
 
-/** "Profilim" for academics: where they set their office hours, as a mentor does on their profile. */
 export default async function OfficeHoursProfilePage() {
   const user = await getOfficeHoursUser();
   if (!user) redirect(ltiErrorPath(LtiLaunchError.Expired));

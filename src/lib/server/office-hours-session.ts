@@ -48,7 +48,6 @@ export async function saveOfficeHoursUser(user: OfficeHoursSessionUser) {
   await session.save();
 }
 
-/** The person of the latest launch, while the session is younger than its cookie's lifetime. */
 export async function getOfficeHoursUser(
   now = Date.now(),
 ): Promise<OfficeHoursSessionUser | null> {

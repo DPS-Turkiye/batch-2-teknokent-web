@@ -1,10 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
-/**
- * The plain frame office hours open in from Moodle: the Menton name, who is signed in, and the page. No Menton
- * navigation, since an office-hours session opens these pages only.
- */
+// No Menton navigation: an office-hours session opens these pages only.
 export function OfficeHoursFrame({
   productName,
   userName,
@@ -13,8 +10,7 @@ export function OfficeHoursFrame({
 }: {
   productName: string;
   userName?: string;
-  /** Academics reach their own page (office hours) from here, as a mentor reaches "Profilim". */
-  profile?: { href: string; label: string };
+  profile?: { href: string; label: string } | null;
   children: ReactNode;
 }) {
   return (
@@ -26,15 +22,15 @@ export function OfficeHoursFrame({
             <span className="font-normal text-[#676e78]">· {productName}</span>
           </p>
           <div className="flex items-center gap-4 text-sm text-[#4a5059]">
-            {profile ? (
+            {profile && (
               <Link
                 href={profile.href}
                 className="font-medium text-[#e86f22] hover:underline"
               >
                 {profile.label}
               </Link>
-            ) : null}
-            {userName ? <p>{userName}</p> : null}
+            )}
+            {userName && <p>{userName}</p>}
           </div>
         </div>
       </header>

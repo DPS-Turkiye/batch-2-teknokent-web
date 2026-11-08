@@ -48,6 +48,17 @@ describe("AcademicProfileView", () => {
     expect(screen.getByText("Diğer günler")).toBeInTheDocument();
   });
 
+  it("shows loading, then says when the hours could not be loaded", async () => {
+    vi.mocked(getOfficeHoursAvailability).mockRejectedValue(new Error("down"));
+
+    renderWithQueryClient(<AcademicProfileView fullName="Ali Kaya" />);
+
+    expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Müsaitlik yüklenemedi.",
+    );
+  });
+
   it("says when no weekly hours are set", async () => {
     vi.mocked(getOfficeHoursAvailability).mockResolvedValue(settings());
 
