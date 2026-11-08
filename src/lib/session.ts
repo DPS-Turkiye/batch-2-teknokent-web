@@ -12,7 +12,11 @@ import {
 } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
 import { fetchUser } from "@/lib/api/accounts";
-import { permissionsOf, samePermissions } from "@/lib/permissions";
+import {
+  hasPermission,
+  permissionsOf,
+  samePermissions,
+} from "@/lib/permissions";
 import { isWorkspace, workspacesOf } from "@/lib/workspaces";
 import {
   currentSessionUser,
@@ -217,7 +221,7 @@ export async function getSessionIds() {
 
 export async function getSessionMentorId() {
   const session = await getSessionUser();
-  if (session?.role !== UserRole.Mentor) {
+  if (!session || !hasPermission(session, UserRole.Mentor)) {
     throw new SessionRequiredError();
   }
   return session.userId;

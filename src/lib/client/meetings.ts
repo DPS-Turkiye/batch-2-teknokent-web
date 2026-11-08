@@ -1,9 +1,16 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import type { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
-export async function getMeetings() {
-  return requireSuccess(await httpClient.get<MeetingItem[]>("/api/meetings"));
+/** `as` picks the side for an account that mentors and is mentored; omitted, the primary role decides. */
+export async function getMeetings(as?: UserRole.Mentor | UserRole.Mentee) {
+  return requireSuccess(
+    await httpClient.get<MeetingItem[]>(
+      "/api/meetings",
+      as ? { params: { as } } : undefined,
+    ),
+  );
 }
 
 export async function postMeeting(payload: Record<string, unknown>) {

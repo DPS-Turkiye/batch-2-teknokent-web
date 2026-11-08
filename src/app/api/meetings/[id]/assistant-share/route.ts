@@ -13,6 +13,7 @@ import {
 } from "@/lib/server/api-response";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
@@ -20,12 +21,15 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
     const { id } = await context.params;
-    if (session.role === UserRole.Mentor) {
+    if (
+      sessionSide(session, request.nextUrl.searchParams.get(SIDE_PARAM)) ===
+      UserRole.Mentor
+    ) {
       return backendResponse(
         await fetchAssistantShare(id, { viewerId: session.userId }),
       );

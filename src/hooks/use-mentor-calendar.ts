@@ -67,7 +67,7 @@ export function useMentorCalendar() {
 
   const meetingsQuery = useQuery({
     queryKey: ["meetings"],
-    queryFn: getMeetings,
+    queryFn: () => getMeetings(),
   });
   const rulesQuery = useQuery({
     queryKey: AVAILABILITY_RULES_KEY,

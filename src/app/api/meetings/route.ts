@@ -8,12 +8,16 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
 import { getSessionIds, getSessionUser } from "@/lib/session";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const session = await getSessionUser();
-    if (session?.role === UserRole.Mentor) {
+    const side = session
+      ? sessionSide(session, request.nextUrl.searchParams.get(SIDE_PARAM))
+      : null;
+    if (session && side === UserRole.Mentor) {
       return backendResponse(await fetchMeetings({ mentorId: session.userId }));
     }
     const { organizationId } = await getSessionIds();
@@ -29,7 +33,10 @@ export async function POST(request: NextRequest) {
   try {
     const session = await getSessionUser();
     const payload = (await request.json()) as Record<string, unknown>;
-    const isMentor = session?.role === UserRole.Mentor;
+    const isMentor =
+      session != null &&
+      sessionSide(session, request.nextUrl.searchParams.get(SIDE_PARAM)) ===
+        UserRole.Mentor;
     const mentorId = isMentor ? session.userId : undefined;
 
     let organizationId: string;

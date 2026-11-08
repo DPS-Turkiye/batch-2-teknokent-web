@@ -466,6 +466,20 @@ describe("getSessionMentorId", () => {
     );
   });
 
+  // A peer mentor's primary role is MENTEE; the "Mentorluk Ver" lists ask for the mentor side.
+  it("returns the mentor id of a mentee who also holds the mentor permission", async () => {
+    mockIronSession.user = {
+      userId: "00000000-0000-0000-0000-000000000013",
+      role: UserRole.Mentee,
+      permissions: [UserRole.Mentor, UserRole.Mentee],
+    };
+    mockIronSession.issuedAt = Date.now();
+
+    await expect(getSessionMentorId()).resolves.toBe(
+      "00000000-0000-0000-0000-000000000013",
+    );
+  });
+
   it("throws when there is no mentor session", async () => {
     await expect(getSessionMentorId()).rejects.toBeInstanceOf(
       SessionRequiredError,

@@ -12,6 +12,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 
 async function missingRequestId() {
@@ -21,19 +22,23 @@ async function missingRequestId() {
   );
 }
 
-async function callerScope() {
+async function callerScope(request: NextRequest) {
   const session = await getSessionUser();
   if (!session) throw new SessionRequiredError();
-  if (session.role === UserRole.Mentee && session.organizationId) {
+  const side = sessionSide(
+    session,
+    request.nextUrl.searchParams.get(SIDE_PARAM),
+  );
+  if (side === UserRole.Mentee && session.organizationId) {
     return { organizationId: session.organizationId };
   }
-  if (session.role === UserRole.Mentor) return { mentorId: session.userId };
+  if (side === UserRole.Mentor) return { mentorId: session.userId };
   return null;
 }
 
 export async function GET(request: NextRequest) {
   try {
-    const caller = await callerScope();
+    const caller = await callerScope(request);
     if (!caller) {
       return NextResponse.json(
         {
