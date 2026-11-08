@@ -18,7 +18,7 @@ import {
   PEER_MENTORS_QUERY_KEY,
   PEER_MENTORING_REQUESTS_QUERY_KEY,
 } from "@/hooks/use-peer-mentoring";
-import { PROFILE_COMPLETION_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
+import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import {
   type MentorAvailabilitySettings,
@@ -42,7 +42,7 @@ import {
   getReceivedPeerRequests,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
-import { getProfileCompletionCategories } from "@/lib/client/student-profile-completion";
+import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import {
   latestGateAward,
   PEER_REQUEST_MESSAGE_MIN,
@@ -258,8 +258,8 @@ export function usePeerMentorWizard() {
   const profile = usePeerMentorProfile();
   const existing = profile.data ?? null;
   const catalogue = useQuery({
-    queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
-    queryFn: getProfileCompletionCategories,
+    queryKey: PEER_MENTOR_CATEGORIES_QUERY_KEY,
+    queryFn: getPeerMentorCategories,
   });
   const savedAvailability = useQuery({
     queryKey: MENTOR_AVAILABILITY_SETTINGS_QUERY_KEY,

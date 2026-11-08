@@ -6,6 +6,8 @@ import {
   hasTabContent,
   healthShares,
   isActiveTab,
+  settingsSections,
+  SettingsSection,
   misplacedTabHref,
   ParticipantTab,
   participantTabs,
@@ -247,5 +249,21 @@ describe("program tabs by type", () => {
       `${base}/matching`,
     );
     expect(misplacedTabHref(peer, "p1", ProgramTab.Approvals)).toBeNull();
+  });
+});
+
+describe("settings sections by type", () => {
+  it("lists Akran kategorileri only for peer programs, before Arşiv", () => {
+    const peer = settingsSections(ProgramType.PeerMentoring);
+    expect(peer).toContain(SettingsSection.PeerCategories);
+    expect(peer.indexOf(SettingsSection.PeerCategories)).toBe(
+      peer.indexOf(SettingsSection.Archive) - 1,
+    );
+    expect(settingsSections(ProgramType.StartupMentoring)).not.toContain(
+      SettingsSection.PeerCategories,
+    );
+    expect(settingsSections(ProgramType.OfficeHours)).not.toContain(
+      SettingsSection.PeerCategories,
+    );
   });
 });

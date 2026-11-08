@@ -4075,7 +4075,8 @@
       "RULES": "Mentorluk kuralları",
       "ELIGIBILITY": "Katılım",
       "ARCHIVE": "Arşiv",
-      "CURRICULUM": "Müfredat & fazlar"
+      "CURRICULUM": "Müfredat & fazlar",
+      "PEER_CATEGORIES": "Akran kategorileri"
     },
     "sectionsLabel": "Ayar bölümleri",
     "archivedNote": "Bu program arşivlendi ve salt okunur. Değiştirmek için aşağıdan yeniden açın.",
@@ -5792,7 +5793,9 @@
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
     "programLaunchFailed": "Program başlatılamadı.",
-    "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi."
+    "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
+    "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
+    "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6155,5 +6158,16 @@
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
     }
+  },
+  "programPeerCategories": {
+    "title": "Akran kategorileri",
+    "note": "Öğrenciler ve akran mentorları yalnızca burada etkinleştirdiğin kategorileri görür. Başlangıçta hiçbiri etkin değildir.",
+    "noneActive": "Hiçbir kategori etkin değil: öğrenciler mentor arayamaz, akran mentorları profilinde kategori seçemez.",
+    "activeCount": "{count, plural, one {# kategori etkin} other {# kategori etkin}}",
+    "save": "Kategorileri kaydet",
+    "saving": "Kaydediliyor…",
+    "cancel": "Vazgeç",
+    "saved": "Kategoriler kaydedildi.",
+    "saveFailed": "Kategoriler kaydedilemedi."
   }
 }

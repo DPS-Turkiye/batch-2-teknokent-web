@@ -24,6 +24,10 @@ export const PROFILE_COMPLETION_QUERY_KEY = [
 export const PROFILE_COMPLETION_CATEGORIES_QUERY_KEY = [
   "student-profile-completion-categories",
 ] as const;
+/** The wizard's choices: a peer mentor's programs can differ from the program they study in. */
+export const PEER_MENTOR_CATEGORIES_QUERY_KEY = [
+  "peer-mentor-categories",
+] as const;
 
 export function useStudentProfileCompletion() {
   const client = useQueryClient();

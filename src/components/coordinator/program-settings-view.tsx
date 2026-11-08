@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramPeerCategoriesSection } from "@/components/coordinator/program-peer-categories-section";
 import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
@@ -19,10 +20,12 @@ import {
   type CoordinatorProgramDetail,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   ProgramTab,
   RULE_LIMITS,
   SettingsSection,
+  settingsSections,
   stepDays,
 } from "@/lib/coordinator-program-detail";
 
@@ -67,7 +70,7 @@ function SettingsBody({
         className="lg:sticky lg:top-6 lg:self-start"
       >
         <ul className="space-y-1">
-          {Object.values(SettingsSection).map((section) => (
+          {settingsSections(detail.program.type).map((section) => (
             <li key={section}>
               <a
                 href={`#${section.toLowerCase()}`}
@@ -344,6 +347,13 @@ function SettingsBody({
             />
           </Row>
         </Section>
+
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <ProgramPeerCategoriesSection
+            programId={programId}
+            readOnly={locked}
+          />
+        ) : null}
 
         {draftProgram ? null : (
           <ArchiveSection

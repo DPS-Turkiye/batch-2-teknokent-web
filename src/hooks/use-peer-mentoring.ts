@@ -14,6 +14,7 @@ import type {
 } from "@/interfaces/peer-mentoring";
 import {
   createPeerMentoringRequest,
+  getPeerCategories,
   getPeerMentoringRequests,
   getPeerMentors,
 } from "@/lib/client/peer-mentoring";
@@ -27,6 +28,7 @@ import {
 import { errorMessage } from "@/lib/utils";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
+export const PEER_CATEGORIES_QUERY_KEY = ["peer-categories"] as const;
 export const PEER_MENTORING_REQUESTS_QUERY_KEY = [
   "peer-mentoring",
   "requests",
@@ -71,6 +73,10 @@ export function usePeerMentorDirectory() {
     queryKey: [...PEER_MENTORS_QUERY_KEY, category, deferredQuery],
     queryFn: () => getPeerMentors({ category, query: deferredQuery }),
   });
+  const categories = useQuery({
+    queryKey: PEER_CATEGORIES_QUERY_KEY,
+    queryFn: () => getPeerCategories(),
+  });
   const requests = usePeerMentoringRequests();
   const openRequestMentorIds = useMemo(
     () =>
@@ -87,6 +93,8 @@ export function usePeerMentorDirectory() {
   return {
     category,
     setCategory,
+    /** Only the program's active categories can be picked. */
+    categories: categories.data ?? [],
     query,
     setQuery,
     mentors,

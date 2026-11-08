@@ -15,10 +15,9 @@ import { BadgeChips } from "@/components/badges/badge-chips";
 import { EmptyState } from "@/components/common/empty-state";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentorDirectory } from "@/hooks/use-peer-mentoring";
-import {
-  PEER_TOPIC_CATEGORIES,
-  type PeerMentorCard,
-  type PeerTopicCategory,
+import type {
+  PeerMentorCard,
+  PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 
 const ALL = "ALL";
@@ -53,7 +52,7 @@ export function PeerMentorDirectory() {
         }
         options={[
           { id: ALL, label: t("allCategories") },
-          ...PEER_TOPIC_CATEGORIES.map((category) => ({
+          ...directory.categories.map((category) => ({
             id: category,
             label: tTopic(category),
           })),

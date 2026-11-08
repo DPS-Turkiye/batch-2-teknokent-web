@@ -24,6 +24,11 @@ vi.mock("@/hooks/use-peer-mentor-give", async (importOriginal) => ({
 }));
 
 vi.mock("@/lib/client/peer-mentoring", () => ({
+  getPeerCategories: vi.fn(async () => {
+    const { PEER_TOPIC_CATEGORIES } =
+      await import("@/interfaces/peer-mentoring");
+    return [...PEER_TOPIC_CATEGORIES];
+  }),
   getPeerMentors: vi.fn(async (filter) =>
     structuredClone(peerMentorsFixture(filter)),
   ),
@@ -175,6 +180,24 @@ describe("PeerMentoringView › Mentorluk Al", () => {
         name: "Talebin yanıt bekliyor",
       }),
     ).toBeDisabled();
+  });
+});
+
+describe("PeerMentoringView › program categories", () => {
+  it("offers only the program's active categories as filters", async () => {
+    const { PeerTopicCategory } = await import("@/interfaces/peer-mentoring");
+    const { getPeerCategories } = await import("@/lib/client/peer-mentoring");
+    vi.mocked(getPeerCategories).mockResolvedValueOnce([
+      PeerTopicCategory.CareerInternship,
+    ]);
+    renderWithQueryClient(<PeerMentoringView />);
+
+    expect(
+      await screen.findByRole("button", { name: "Kariyer ve Staj" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Uluslararası Fırsatlar" }),
+    ).not.toBeInTheDocument();
   });
 });
 

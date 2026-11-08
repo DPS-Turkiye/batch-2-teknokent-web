@@ -36,7 +36,17 @@ export enum SettingsSection {
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Eligibility = "ELIGIBILITY",
+  PeerCategories = "PEER_CATEGORIES",
   Archive = "ARCHIVE",
+}
+
+/** Program Ayarları' sections for a type: only peer programs choose categories. */
+export function settingsSections(type: ProgramType) {
+  return Object.values(SettingsSection).filter(
+    (section) =>
+      section !== SettingsSection.PeerCategories ||
+      type === ProgramType.PeerMentoring,
+  );
 }
 
 const PARTICIPANT_PAGES = [

@@ -4075,7 +4075,8 @@
       "RULES": "Mentorship rules",
       "ELIGIBILITY": "Eligibility",
       "ARCHIVE": "Archive",
-      "CURRICULUM": "Curriculum & phases"
+      "CURRICULUM": "Curriculum & phases",
+      "PEER_CATEGORIES": "Peer categories"
     },
     "sectionsLabel": "Settings sections",
     "archivedNote": "This program is archived and read-only. Reopen it below to make changes.",
@@ -5792,7 +5793,9 @@
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
     "programLaunchFailed": "The program could not be launched.",
-    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile."
+    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
+    "peerCategoriesLoadFailed": "Could not load the categories.",
+    "peerCategoriesSaveFailed": "Could not save the categories."
   },
   "startupStart": {
     "title": "My startup",
@@ -6155,5 +6158,16 @@
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
     }
+  },
+  "programPeerCategories": {
+    "title": "Peer categories",
+    "note": "Students and peer mentors only see the categories you turn on here. None is on to begin with.",
+    "noneActive": "No category is on: students cannot look for mentors and peer mentors cannot pick a category for their profile.",
+    "activeCount": "{count, plural, one {# category on} other {# categories on}}",
+    "save": "Save categories",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Categories saved.",
+    "saveFailed": "Could not save the categories."
   }
 }
