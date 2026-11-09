@@ -4736,7 +4736,8 @@
       "coordinators": "Coordinators",
       "mentors": "Mentors",
       "teams": "Teams",
-      "students": "Students"
+      "students": "Students",
+      "academics": "Academics"
     },
     "addCoordinator": "+ Add a coordinator",
     "filters": {
@@ -5893,7 +5894,8 @@
     "peerCategoriesInvalid": "The category list is not valid.",
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
     "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
-    "studentAppointmentsLoadFailed": "Couldn't load your appointments."
+    "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
+    "academicsLoadFailed": "Could not load the academics."
   },
   "startupStart": {
     "title": "My startup",
@@ -6526,5 +6528,47 @@
     "cancel": "Cancel",
     "saved": "Categories saved.",
     "saveFailed": "Could not save the categories."
+  },
+  "adminAcademics": {
+    "intro": "Academics come from the institution's records; nobody approves them by hand or edits them here.",
+    "searchPlaceholder": "Search name, e-mail or department",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "filters": {
+      "ALL": "All",
+      "SIGNED_IN": "Signed in",
+      "NOT_SIGNED_IN": "Not signed in yet",
+      "INACTIVE": "Inactive at the institution"
+    },
+    "columns": {
+      "academic": "Academic",
+      "department": "Department",
+      "advisees": "Advisees",
+      "signIn": "Menton sign-in",
+      "status": "Institution record"
+    },
+    "empty": "No academics in this filter.",
+    "none": "The institution's records list no academics yet.",
+    "loadFailed": "Could not load the academics.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "notSignedIn": "Not signed in yet",
+    "lastSignIn": "Last signed in {date}",
+    "advisees": "{count, plural, =0 {No advisees} one {# advisee} other {# advisees}}",
+    "open": "Details",
+    "close": "Close",
+    "drawer": {
+      "title": "Academic",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "record": "Institution record",
+      "signIn": "Menton sign-in",
+      "advisees": "Advisees",
+      "officeHours": "Office Hours",
+      "officeHoursPending": "Office Hours activity isn't in Menton yet; it will show here once connected.",
+      "readOnly": "This comes from the institution's records and can't be changed in Menton."
+    }
   }
 }

@@ -4736,7 +4736,8 @@
       "coordinators": "Koordinatörler",
       "mentors": "Mentorlar",
       "teams": "Takımlar",
-      "students": "Öğrenciler"
+      "students": "Öğrenciler",
+      "academics": "Akademisyenler"
     },
     "addCoordinator": "+ Koordinatör ekle",
     "filters": {
@@ -5893,7 +5894,8 @@
     "peerCategoriesInvalid": "Kategori listesi geçersiz.",
     "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
     "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
-    "studentAppointmentsLoadFailed": "Randevuların yüklenemedi."
+    "studentAppointmentsLoadFailed": "Randevuların yüklenemedi.",
+    "academicsLoadFailed": "Akademisyenler yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6526,5 +6528,47 @@
     "cancel": "Vazgeç",
     "saved": "Kategoriler kaydedildi.",
     "saveFailed": "Kategoriler kaydedilemedi."
+  },
+  "adminAcademics": {
+    "intro": "Akademisyenler kurum verisinden gelir; elle onaylanmaz, buradan düzenlenmez.",
+    "searchPlaceholder": "Ad, e-posta veya bölüm ara",
+    "department": "Bölüm",
+    "allDepartments": "Tüm bölümler",
+    "filters": {
+      "ALL": "Tümü",
+      "SIGNED_IN": "Giriş yaptı",
+      "NOT_SIGNED_IN": "Henüz giriş yapmadı",
+      "INACTIVE": "Kurumda pasif"
+    },
+    "columns": {
+      "academic": "Akademisyen",
+      "department": "Bölüm",
+      "advisees": "Danışan",
+      "signIn": "Menton girişi",
+      "status": "Kurum kaydı"
+    },
+    "empty": "Bu filtrede akademisyen yok.",
+    "none": "Kurum verisinde henüz akademisyen yok.",
+    "loadFailed": "Akademisyenler yüklenemedi.",
+    "active": "Aktif",
+    "inactive": "Pasif",
+    "notSignedIn": "Henüz giriş yapmadı",
+    "lastSignIn": "Son giriş {date}",
+    "advisees": "{count, plural, =0 {Danışan yok} one {# danışan} other {# danışan}}",
+    "open": "Ayrıntılar",
+    "close": "Kapat",
+    "drawer": {
+      "title": "Akademisyen",
+      "academicTitle": "Ünvan",
+      "faculty": "Fakülte",
+      "department": "Bölüm",
+      "email": "E-posta",
+      "record": "Kurum kaydı",
+      "signIn": "Menton girişi",
+      "advisees": "Danışan öğrenciler",
+      "officeHours": "Office Hours",
+      "officeHoursPending": "Office Hours etkinliği henüz Menton'da yok; bağlandığında burada görünür.",
+      "readOnly": "Bu bilgiler kurum verisinden okunur; Menton'da değiştirilemez."
+    }
   }
 }

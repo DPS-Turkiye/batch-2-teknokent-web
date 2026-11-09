@@ -39,6 +39,9 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/admin/users",
 }));
+vi.mock("@/lib/client/admin-academics", () => ({
+  getAdminAcademics: vi.fn().mockResolvedValue([]),
+}));
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: () => ({ data: overview, isLoading: false, error: null }),
 }));
@@ -50,6 +53,17 @@ function rowOf(name: string) {
 }
 
 describe("UsersView", () => {
+  it("has an Akademisyenler tab that shows the institution's academicians", async () => {
+    renderWithQueryClient(<UsersView tab="academics" />);
+
+    expect(
+      screen.getByRole("link", { name: /Akademisyenler/ }),
+    ).toHaveAttribute("href", "/admin/users/academics");
+    expect(
+      await screen.findByText("Kurum verisinde henüz akademisyen yok."),
+    ).toBeInTheDocument();
+  });
+
   it("marks an added coordinator who has not set a password yet", () => {
     renderWithQueryClient(<UsersView tab="coordinators" />);
 
