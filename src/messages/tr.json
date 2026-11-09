@@ -3585,10 +3585,6 @@
         "meanwhileBody": "Programındaki akran mentorlarından destek alabilirsin.",
         "meanwhileAction": "Akran mentörlüğüne git"
       }
-    },
-    "academician": {
-      "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
-      "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
   },
   "studyLevel": {
@@ -6517,6 +6513,26 @@
       "notPast": "Geçmiş bir zamana saat eklenemez.",
       "oneOffSaved": "Tek seferlik saatler kaydedildi.",
       "oneOffFailed": "Tek seferlik saatler kaydedilemedi."
+    },
+    "home": {
+      "greeting": "Merhaba, {name}",
+      "greetingFallback": "Merhaba",
+      "subtitle": "Ofis saati taleplerin, randevuların ve danışan öğrencilerin.",
+      "pendingTitle": "Yanıt bekleyen talep",
+      "pendingHint": "Kabul et, reddet ya da başka saat öner.",
+      "pendingLink": "Taleplere git",
+      "weekTitle": "Önümüzdeki 7 günde randevu",
+      "weekHint": "Onaylanmış ofis saati randevuları.",
+      "weekLink": "Randevularım",
+      "adviseesTitle": "Danışan öğrenci",
+      "adviseesHint": "ODTÜ kayıtlarından.",
+      "adviseesLink": "Danışan Öğrencilerim",
+      "nextTitle": "Sıradaki randevular",
+      "nextEmpty": "Yaklaşan randevun yok.",
+      "requestsTitle": "Son talepler",
+      "requestsEmpty": "Yanıt bekleyen talep yok.",
+      "seeAll": "Tümünü gör",
+      "calendarLink": "Ofis saatlerini düzenle"
     }
   },
   "programPeerCategories": {
