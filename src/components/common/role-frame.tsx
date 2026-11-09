@@ -146,7 +146,8 @@ function RoleShell({
                 <span className="grid size-8 place-items-center rounded-full bg-[#fbe2d0] text-[11px] leading-[1.3] font-semibold text-[#a8480e]">
                   {mark}
                 </span>
-                <span className="hidden text-left leading-tight sm:block">
+                {/* Between lg and xl the name gives its room to the nav, which shares the row. */}
+                <span className="hidden text-left leading-tight sm:block lg:hidden xl:block">
                   <span className="block text-[12.5px] font-medium">
                     {name}
                   </span>
@@ -259,9 +260,9 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
       <span
         aria-disabled="true"
         title={t("soon")}
-        className="flex cursor-default items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] text-[#cfd4da]"
+        className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-[18px]"
       >
-        <NavGlyph src={item.icon} />
+        <NavGlyph src={item.icon} className="hidden xl:block" />
         {t(`nav.${item.label}`)}
       </span>
     );
@@ -270,13 +271,13 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] ${
+      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] xl:px-[18px] ${
         active
           ? "bg-[#22262b] font-medium text-white"
           : "font-normal text-[#aeb4bc] hover:text-[#676e78]"
       }`}
     >
-      <NavGlyph src={item.icon} />
+      <NavGlyph src={item.icon} className="hidden xl:block" />
       {t(`nav.${item.label}`)}
       {item.soon ? (
         <span
@@ -300,11 +301,17 @@ function SoonBadge() {
   );
 }
 
-function NavGlyph({ src }: { src: string }) {
+function NavGlyph({
+  src,
+  className = "",
+}: {
+  src: string;
+  className?: string;
+}) {
   return (
     <span
       aria-hidden
-      className="size-5 shrink-0 bg-current"
+      className={`size-5 shrink-0 bg-current ${className}`}
       style={{
         mask: `url(${src}) center / 20px 20px no-repeat`,
         WebkitMask: `url(${src}) center / 20px 20px no-repeat`,

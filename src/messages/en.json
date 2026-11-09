@@ -6524,7 +6524,9 @@
       "endAfterStart": "The end must be after the start.",
       "notPast": "Hours cannot be added in the past.",
       "oneOffSaved": "One-off hours saved.",
-      "oneOffFailed": "One-off hours could not be saved."
+      "oneOffFailed": "One-off hours could not be saved.",
+      "insideDayOff": "This date is within your unavailable dates. Remove those dates first.",
+      "insideDayOffReason": "This date is within your unavailable dates ({reason}). Remove those dates first."
     },
     "home": {
       "greeting": "Hello, {name}",

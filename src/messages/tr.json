@@ -6524,7 +6524,9 @@
       "endAfterStart": "Bitiş saati başlangıçtan sonra olmalı.",
       "notPast": "Geçmiş bir zamana saat eklenemez.",
       "oneOffSaved": "Tek seferlik saatler kaydedildi.",
-      "oneOffFailed": "Tek seferlik saatler kaydedilemedi."
+      "oneOffFailed": "Tek seferlik saatler kaydedilemedi.",
+      "insideDayOff": "Bu tarih uygun olmadığın tarihler arasında. Önce o tarihleri kaldır.",
+      "insideDayOffReason": "Bu tarih uygun olmadığın tarihler arasında ({reason}). Önce o tarihleri kaldır."
     },
     "home": {
       "greeting": "Merhaba, {name}",
