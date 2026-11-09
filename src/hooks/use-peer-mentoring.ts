@@ -24,6 +24,8 @@ import {
   PEER_REQUEST_MESSAGE_MIN,
   peerMentoringSide,
 } from "@/lib/peer-mentoring";
+import { getProfileCompletionCategories } from "@/lib/client/student-profile-completion";
+import { PROFILE_COMPLETION_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { errorMessage } from "@/lib/utils";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
@@ -71,6 +73,10 @@ export function usePeerMentorDirectory() {
     queryKey: [...PEER_MENTORS_QUERY_KEY, category, deferredQuery],
     queryFn: () => getPeerMentors({ category, query: deferredQuery }),
   });
+  const catalogue = useQuery({
+    queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
+    queryFn: getProfileCompletionCategories,
+  });
   const requests = usePeerMentoringRequests();
   const openRequestMentorIds = useMemo(
     () =>
@@ -79,7 +85,7 @@ export function usePeerMentorDirectory() {
           .filter((request) =>
             OPEN_PEER_REQUEST_STATUSES.includes(request.status),
           )
-          .map((request) => request.mentor.mentorId),
+          .map((request) => request.mentor.userId),
       ),
     [requests.data],
   );
@@ -87,6 +93,9 @@ export function usePeerMentorDirectory() {
   return {
     category,
     setCategory,
+    /** Only the program's active categories can be picked. */
+    categories: (catalogue.data ?? []).map((item) => item.id),
+    noActiveCategories: catalogue.isSuccess && catalogue.data.length === 0,
     query,
     setQuery,
     mentors,

@@ -6,7 +6,9 @@ import type { ReactNode } from "react";
 
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramPeerCategories } from "@/components/coordinator/program-peer-categories-section";
 import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
+import { ProgramTrainingEditor } from "@/components/coordinator/program-training-editor";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
@@ -19,10 +21,12 @@ import {
   type CoordinatorProgramDetail,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   ProgramTab,
   RULE_LIMITS,
   SettingsSection,
+  settingsSections,
   stepDays,
 } from "@/lib/coordinator-program-detail";
 
@@ -67,22 +71,26 @@ function SettingsBody({
         className="lg:sticky lg:top-6 lg:self-start"
       >
         <ul className="space-y-1">
-          {Object.values(SettingsSection).map((section) => (
-            <li key={section}>
-              <a
-                href={`#${section.toLowerCase()}`}
-                onClick={() => settings.setSection(section)}
-                aria-current={settings.section === section ? "true" : undefined}
-                className={`block rounded-2xl px-4 py-2.5 text-[13.5px] ${
-                  settings.section === section
-                    ? "bg-[#f4f5f7] text-[#22262b]"
-                    : "text-[#676e78]"
-                }`}
-              >
-                {t(`sections.${section}`)}
-              </a>
-            </li>
-          ))}
+          {settingsSections(detail.program.type, detail.program.lifecycle).map(
+            (section) => (
+              <li key={section}>
+                <a
+                  href={`#${section.toLowerCase()}`}
+                  onClick={() => settings.setSection(section)}
+                  aria-current={
+                    settings.section === section ? "true" : undefined
+                  }
+                  className={`block rounded-2xl px-4 py-2.5 text-[13.5px] ${
+                    settings.section === section
+                      ? "bg-[#f4f5f7] text-[#22262b]"
+                      : "text-[#676e78]"
+                  }`}
+                >
+                  {t(`sections.${section}`)}
+                </a>
+              </li>
+            ),
+          )}
         </ul>
       </nav>
 
@@ -178,6 +186,17 @@ function SettingsBody({
           detail={detail}
           editable={navigation.admin && !archived}
         />
+
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.Training}
+            title={t(`sections.${SettingsSection.Training}`)}
+            note={t("trainingNote")}
+          >
+            {/* Admins and the program's coordinators both edit it (D10), so the admin view lock does not apply. */}
+            <ProgramTrainingEditor programId={programId} archived={archived} />
+          </Section>
+        ) : null}
 
         <Section
           id={SettingsSection.Rules}
@@ -344,6 +363,19 @@ function SettingsBody({
             />
           </Row>
         </Section>
+
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.PeerCategories}
+            title={t(`sections.${SettingsSection.PeerCategories}`)}
+            note={t("peerCategoriesNote")}
+          >
+            <Row>
+              <ProgramPeerCategories programId={programId} readOnly={locked} />
+            </Row>
+          </Section>
+        ) : null}
 
         {draftProgram ? null : (
           <ArchiveSection

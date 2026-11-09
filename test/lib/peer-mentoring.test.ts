@@ -1,20 +1,15 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { AppointmentSide } from "@/interfaces/appointment";
+import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 import {
-  createPeerMentoringRequest,
-  getPeerMentoringRequests,
-  getPeerMentors,
-} from "@/lib/client/peer-mentoring";
-import { resetPeerMentoringFixtures } from "@/lib/client/fixtures/peer-mentoring";
-import {
+  latestGateAward,
   PEER_REQUEST_STATUS_TONE,
+  peerMentorGateState,
   peerMentoringSide,
 } from "@/lib/peer-mentoring";
-
-beforeEach(() => resetPeerMentoringFixtures());
 
 describe("peerMentoringSide", () => {
   it("opens Mentorluk Ver only for as=MENTOR", () => {
@@ -36,27 +31,80 @@ describe("PEER_REQUEST_STATUS_TONE", () => {
   });
 });
 
-describe("peer-mentoring client on fixtures", () => {
-  it("filters mentors by category and by text, ignoring case", async () => {
-    const international = await getPeerMentors({
-      category: PeerTopicCategory.International,
-      query: "",
-    });
-    expect(international.map((mentor) => mentor.fullName)).toEqual([
-      "Elif Şahin",
-    ]);
-    const byText = await getPeerMentors({ category: null, query: "ERASMUS" });
-    expect(byText.map((mentor) => mentor.fullName)).toEqual(["Elif Şahin"]);
+describe("peerMentorGateState", () => {
+  const active = { status: BadgeStatus.Active };
+  const revoked = { status: BadgeStatus.Revoked };
+
+  it("opens the mentor side for an active badge or MENTOR", () => {
+    expect(
+      peerMentorGateState({
+        holdsMentor: false,
+        iskurParticipant: true,
+        gateAward: active,
+      }),
+    ).toBe(PeerMentorGateState.Earned);
+    expect(
+      peerMentorGateState({
+        holdsMentor: true,
+        iskurParticipant: false,
+        gateAward: null,
+      }),
+    ).toBe(PeerMentorGateState.Earned);
   });
 
-  it("adds a sent request on top of the list as pending", async () => {
-    await createPeerMentoringRequest({
-      mentorId: "fixture-peer-1",
-      category: PeerTopicCategory.CareerInternship,
-      message: "Staj başvurusu için CV'me bakabilir misin?",
-    });
-    const [latest] = await getPeerMentoringRequests();
-    expect(latest.mentor.fullName).toBe("Deniz Kaya");
-    expect(latest.status).toBe(MentorshipRequestStatus.Pending);
+  it("says Rozet Yok to an İŞKUR student who never had the badge", () => {
+    expect(
+      peerMentorGateState({
+        holdsMentor: false,
+        iskurParticipant: true,
+        gateAward: null,
+      }),
+    ).toBe(PeerMentorGateState.NoBadge);
+  });
+
+  // D4 seam: a revoked badge closes the mentor side, even for running mentorships.
+  it("closes the mentor side after a revoke", () => {
+    expect(
+      peerMentorGateState({
+        holdsMentor: false,
+        iskurParticipant: true,
+        gateAward: revoked,
+      }),
+    ).toBe(PeerMentorGateState.Revoked);
+  });
+
+  it("hides the mentor side from everyone else", () => {
+    expect(
+      peerMentorGateState({
+        holdsMentor: false,
+        iskurParticipant: false,
+        gateAward: null,
+      }),
+    ).toBe(PeerMentorGateState.Hidden);
+  });
+});
+
+describe("latestGateAward", () => {
+  it("picks the newest Akran Mentoru award and ignores achievements", () => {
+    expect(
+      latestGateAward([
+        {
+          code: BadgeCode.PeerMentor,
+          awardedAt: "2026-09-01T00:00:00Z",
+          id: "old",
+        },
+        {
+          code: BadgeCode.Sessions10,
+          awardedAt: "2026-11-05T00:00:00Z",
+          id: "achievement",
+        },
+        {
+          code: BadgeCode.PeerMentor,
+          awardedAt: "2026-11-01T00:00:00Z",
+          id: "new",
+        },
+      ])?.id,
+    ).toBe("new");
+    expect(latestGateAward([])).toBeNull();
   });
 });

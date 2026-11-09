@@ -2,111 +2,147 @@
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 
-import { useLocale, useTranslations } from "next-intl";
-import { PageHeading, Panel } from "@/components/admin/admin-ui";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
+
+import { PageHeading } from "@/components/admin/admin-ui";
+import { AppointmentCard } from "@/components/appointments/appointment-card";
 import { EmptyState } from "@/components/common/empty-state";
-import { AppointmentRoleLabel } from "@/components/appointments/appointment-role-label";
-import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
 import { useStudentAppointments } from "@/hooks/use-student-appointments";
-import { AppointmentStatus } from "@/interfaces/appointment";
-import { formatDateTime } from "@/lib/utils";
+import type { Appointment } from "@/interfaces/appointment";
+
+const FIND_MENTOR_HREF = "/student/peer-mentoring";
+
+const pill =
+  "rounded-full border px-3.5 py-1.5 text-[12.5px] font-medium leading-[18px] transition-colors";
+const pillOn = "border-[#22262b] bg-[#22262b] text-white";
+const pillOff = "border-[#d4d8dd] bg-white text-[#4a5059] hover:bg-[#f8f9fa]";
 
 export function StudentAppointmentsView() {
   const t = useTranslations("studentAppointments");
   const labels = useTranslations("appointments.status");
-  const locale = useLocale();
   const appointments = useStudentAppointments();
+  const nothingShown =
+    appointments.upcoming.length === 0 && appointments.past.length === 0;
+
   return (
     <div className="space-y-6">
-      <PageHeading title={t("title")} subtitle={t("fixtureNotice")} />
-      <label className="flex flex-wrap items-center gap-3 text-sm">
-        {t("filter")}
-        <select
-          className="rounded-xl border border-[#d4d8dd] bg-white px-3 py-2"
-          value={appointments.status ?? ""}
-          onChange={(event) =>
-            appointments.setStatus(
-              event.target.value
-                ? (event.target.value as AppointmentStatus)
-                : null,
-            )
-          }
+      <PageHeading title={t("title")} subtitle={t("subtitle")} />
+      {appointments.statuses.length > 1 ? (
+        <div
+          role="group"
+          aria-label={t("filter")}
+          className="flex flex-wrap gap-2"
         >
-          <option value="">{t("all")}</option>
-          {Object.values(AppointmentStatus).map((status) => (
-            <option key={status} value={status}>
+          <button
+            type="button"
+            aria-pressed={appointments.status === null}
+            className={`${pill} ${appointments.status === null ? pillOn : pillOff}`}
+            onClick={() => appointments.setStatus(null)}
+          >
+            {t("all")}
+          </button>
+          {appointments.statuses.map((status) => (
+            <button
+              key={status}
+              type="button"
+              aria-pressed={appointments.status === status}
+              className={`${pill} ${appointments.status === status ? pillOn : pillOff}`}
+              onClick={() => appointments.setStatus(status)}
+            >
               {labels(status)}
-            </option>
+            </button>
           ))}
-        </select>
-      </label>
+        </div>
+      ) : null}
       {appointments.isLoading ? (
-        <p role="status">{t("loading")}</p>
+        <p role="status" className="text-sm text-[#858c96]">
+          {t("loading")}
+        </p>
       ) : appointments.error ? (
-        <div role="alert" className="space-y-3">
+        <div
+          role="alert"
+          className="space-y-3 rounded-[20px] border border-[#f3d3d4] bg-[#fdf3f3] p-5 text-sm text-[#b42318]"
+        >
           <p>{t("error")}</p>
           <button
             type="button"
-            className="rounded-full border px-4 py-2"
+            className={`${pill} ${pillOff}`}
             disabled={appointments.isRetrying}
             onClick={appointments.retry}
           >
             {t("retry")}
           </button>
         </div>
-      ) : appointments.appointments.length === 0 ? (
+      ) : appointments.isEmpty ? (
         <EmptyState
-          title={appointments.isEmpty ? t("empty") : t("filteredEmpty")}
+          title={t("empty")}
+          body={t("emptyBody")}
+          action={
+            <Link
+              href={FIND_MENTOR_HREF}
+              className="inline-flex h-10 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white"
+            >
+              {t("findMentor")}
+            </Link>
+          }
         />
+      ) : nothingShown ? (
+        <EmptyState title={t("filteredEmpty")} />
       ) : (
-        <Panel>
-          <ul className="divide-y divide-[#eef0f2]" aria-label={t("title")}>
-            {appointments.appointments.map((item) => (
-              <li key={item.id} className="space-y-3 p-5">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 break-words">
-                    <h2 className="text-base font-semibold">{item.topic}</h2>
-                    <p className="mt-1 text-sm text-[#676e78]">
-                      {[item.counterpart.title, item.counterpart.fullName]
-                        .filter(Boolean)
-                        .join(" ")}
-                    </p>
-                    {item.counterpart.department ? (
-                      <p className="text-sm text-[#676e78]">
-                        {item.counterpart.department}
-                      </p>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <AppointmentRoleLabel kind={item.kind} side={item.side} />
-                    <AppointmentStatusChip status={item.status} />
-                  </div>
-                </div>
-                <p className="text-sm">
-                  <time dateTime={item.startsAt}>
-                    {formatDateTime(item.startsAt, locale)}
-                  </time>{" "}
-                  –{" "}
-                  <time dateTime={item.endsAt}>
-                    {formatDateTime(item.endsAt, locale)}
-                  </time>
-                </p>
-                {item.place ? (
-                  <p className="text-sm">{t("place", { place: item.place })}</p>
-                ) : null}
-                {item.status === AppointmentStatus.AlternativeProposed &&
-                item.alternative ? (
-                  <p className="text-sm text-[#676e78]">
-                    {t("alternative")}:{" "}
-                    {formatDateTime(item.alternative.startsAt, locale)} –{" "}
-                    {formatDateTime(item.alternative.endsAt, locale)}
-                  </p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        </Panel>
+        <>
+          <AppointmentSection
+            id="appointments-upcoming"
+            title={t("upcoming")}
+            empty={t("upcomingEmpty")}
+            items={appointments.upcoming}
+            upcoming
+          />
+          {appointments.past.length > 0 ? (
+            <AppointmentSection
+              id="appointments-past"
+              title={t("past")}
+              items={appointments.past}
+              upcoming={false}
+            />
+          ) : null}
+        </>
       )}
     </div>
+  );
+}
+
+function AppointmentSection({
+  id,
+  title,
+  empty,
+  items,
+  upcoming,
+}: {
+  id: string;
+  title: string;
+  empty?: string;
+  items: Appointment[];
+  upcoming: boolean;
+}) {
+  return (
+    <section aria-labelledby={id} className="space-y-3">
+      <h2 id={id} className="text-[16px] font-semibold text-[#1d3a5f]">
+        {title}
+      </h2>
+      {items.length === 0 ? (
+        <p className="rounded-[20px] border border-dashed border-[#d6dade] bg-white px-5 py-6 text-sm text-[#858c96]">
+          {empty}
+        </p>
+      ) : (
+        <ul aria-labelledby={id} className="grid gap-3 lg:grid-cols-2">
+          {items.map((item) => (
+            <li key={item.id}>
+              <AppointmentCard appointment={item} upcoming={upcoming} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }

@@ -6,14 +6,14 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
-import { UserRole } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 
 export const STUDENT_HOME = "/student";
 
 /**
- * Items are `disabled` ("Yakında") until their screen lands; each screen's PR switches its own
- * item on. Office Hours belongs to the Office Hours lane. Links elsewhere in the workspace follow
- * the same switch through `studentRouteReady`.
+ * Items are `disabled` until their screen lands; each screen's PR switches its own item on. Office
+ * Hours is `soon`: it runs from Moodle for now, so its page says so with a "Yakında" chip. Links
+ * elsewhere in the workspace follow the same switches through `studentRouteReady` / `studentRouteSoon`.
  */
 export const STUDENT_NAV: RoleNavItem[] = [
   {
@@ -33,7 +33,7 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "officeHours",
     icon: "/mentor-dashboard/revised/clock.svg",
     match: (path) => path.startsWith("/student/office-hours"),
-    disabled: true,
+    soon: true,
   },
   {
     href: "/student/appointments",
@@ -46,26 +46,25 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "myProfile",
     icon: "/account-menu/user.svg",
     match: (path) => path.startsWith("/student/profile"),
-    disabled: true,
   },
 ];
 
 /** Whether the workspace screen at `href` (or its section) has landed yet. */
 export function studentRouteReady(href: string) {
-  if (href === "/student/profile/complete") return true;
   const item = STUDENT_NAV.find((nav) => nav.match(href));
   return Boolean(item && !item.disabled);
 }
 
-// Any signed-in account may open it while the workspace runs on fixtures behind the flag;
-// the real check (an ODTÜ student identity) comes with the permissions work.
-const STUDENT_WORKSPACE_ROLES = Object.values(UserRole);
+/** Whether the screen at `href` is open but only says what is coming ("Yakında"). */
+export function studentRouteSoon(href: string) {
+  return Boolean(STUDENT_NAV.find((nav) => nav.match(href))?.soon);
+}
 
 export function StudentFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("roleFrame.workspace");
   return (
     <RoleFrame
-      allowedRoles={STUDENT_WORKSPACE_ROLES}
+      workspace={Workspace.OdtuStudent}
       homeHref={STUDENT_HOME}
       menuLabel="studentMenu"
       nav={STUDENT_NAV}
