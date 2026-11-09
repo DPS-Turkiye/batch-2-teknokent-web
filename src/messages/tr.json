@@ -4048,6 +4048,7 @@
     "autoMatchHint": "Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur"
   },
   "programSettings": {
+    "trainingNote": "Öğrenciler videoyu izleyip 10 soruluk sınavdan en az 8 doğru yapınca Akran Mentoru rozetini kazanır. Programın koordinatörleri ve yöneticiler düzenler.",
     "eligibilityNote": "Bu programa kimlerin katılabileceğini belirler. Diğer programları etkilemez; açık olduğunda yönetici de kuralın dışına çıkamaz.",
     "eligibleDomain": "İzin verilen e-posta uzantısı",
     "eligibleDomainHint": "Örnek: metu.edu.tr. Bölüm adresleri (ceng.metu.edu.tr) de kabul edilir. Boş bırakırsan her adres katılabilir.",
@@ -4074,6 +4075,7 @@
       "COORDINATORS": "Koordinatörler",
       "RULES": "Mentorluk kuralları",
       "ELIGIBILITY": "Katılım",
+      "TRAINING": "Akran Mentoru eğitimi",
       "ARCHIVE": "Arşiv",
       "CURRICULUM": "Müfredat & fazlar"
     },
@@ -5538,9 +5540,25 @@
     "badge": "Rozet durumu",
     "since": "Tarih"
   },
+  "trainingEditor": {
+    "loading": "Eğitim yükleniyor…",
+    "loadFailed": "Eğitim yüklenemedi.",
+    "placeholderNote": "ÖRNEK İÇERİK: Gerçek video ve sorular gelene kadar bu örnek video ve [ÖRNEK] sorular gösteriliyor. Değiştirip kaydedince yayına alınır.",
+    "publishedNote": "Yayında · sürüm {version} · son değişiklik {date}. Değiştirirsen yeni sürüm olur; rozeti olanlar rozetini korur, henüz geçmemiş öğrenciler baştan başlar.",
+    "videoLink": "YouTube video bağlantısı",
+    "videoHint": "Listede olmayan (unlisted) bir YouTube videosu önerilir. Yalnızca YouTube bağlantıları kabul edilir.",
+    "question": "Soru {number}",
+    "optionsLegend": "Seçenekler (doğru olanı işaretle)",
+    "markCorrect": "Soru {question}, seçenek {option} doğru",
+    "option": "Soru {question}, seçenek {option}",
+    "saveAndPublish": "Kaydet ve yayınla",
+    "saving": "Kaydediliyor…",
+    "saved": "Eğitim yayında.",
+    "saveFailed": "Eğitim kaydedilemedi."
+  },
   "apiErrors": {
-    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
-    "peerMentoringRequestFailed": "Talep gönderilemedi.",
+    "trainingLoadFailed": "Eğitim yüklenemedi.",
+    "trainingSaveFailed": "Eğitim kaydedilemedi.",
     "badgesLoadFailed": "Rozetler yüklenemedi.",
     "badgeAwardFailed": "Rozet verilemedi.",
     "badgeRevokeFailed": "Rozet geri alınamadı.",
@@ -5792,6 +5810,8 @@
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
     "programLaunchFailed": "Program başlatılamadı.",
+    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
+    "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi."
   },
   "startupStart": {
