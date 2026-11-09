@@ -1,13 +1,16 @@
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 // No Menton navigation: an office-hours session opens these pages only.
 export function OfficeHoursFrame({
   productName,
   userName,
+  profile,
   children,
 }: {
   productName: string;
   userName?: string;
+  profile?: { href: string; label: string } | null;
   children: ReactNode;
 }) {
   return (
@@ -18,7 +21,17 @@ export function OfficeHoursFrame({
             menton{" "}
             <span className="font-normal text-[#676e78]">· {productName}</span>
           </p>
-          {userName && <p className="text-sm text-[#4a5059]">{userName}</p>}
+          <div className="flex items-center gap-4 text-sm text-[#4a5059]">
+            {profile && (
+              <Link
+                href={profile.href}
+                className="font-medium text-[#e86f22] hover:underline"
+              >
+                {profile.label}
+              </Link>
+            )}
+            {userName && <p>{userName}</p>}
+          </div>
         </div>
       </header>
       <main className="mx-auto max-w-[960px] px-4 py-8 sm:px-6">

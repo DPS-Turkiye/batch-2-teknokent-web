@@ -6087,8 +6087,8 @@
       "STUDENT": "Student"
     },
     "instructor": {
-      "title": "Office hours for this course",
-      "comingSoon": "You'll manage your weekly office hours and incoming requests here. This part is still being built."
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
     },
     "student": {
       "title": "Book office hours",
@@ -6112,6 +6112,27 @@
         "title": "Your session has ended",
         "body": "For your security, the office hours session closes after a while."
       }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
     }
   }
 }

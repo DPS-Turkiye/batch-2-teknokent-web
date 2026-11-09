@@ -6087,8 +6087,8 @@
       "STUDENT": "Öğrenci"
     },
     "instructor": {
-      "title": "Bu dersin ofis saatleri",
-      "comingSoon": "Haftalık ofis saatlerini ve gelen talepleri burada yöneteceksin. Bu bölüm henüz hazırlanıyor."
+      "manageAvailability": "Müsaitliği yönet",
+      "availabilityHint": "Ofis saatlerin profilindeki müsaitliğinden gelir ve verdiğin tüm dersler için geçerlidir."
     },
     "student": {
       "title": "Ofis saati al",
@@ -6112,6 +6112,27 @@
         "title": "Oturumun sona erdi",
         "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
       }
+    },
+    "availability": {
+      "title": "Ofis saatlerini düzenle",
+      "subtitle": "Öğrenciler yalnızca açık bıraktığın saatlerde ofis saati talep edebilir.",
+      "close": "Düzenlemeyi kapat",
+      "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet",
+      "studentCapacity": "Eş zamanlı öğrenci limiti"
+    },
+    "profile": {
+      "title": "Profilim",
+      "role": "Akademisyen",
+      "editAvailability": "Müsaitliği düzenle",
+      "availabilityTitle": "Müsaitlik",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "empty": "Tanımlı haftalık saat yok.",
+      "edit": "Düzenle",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Müsaitlik yüklenemedi."
     }
   }
 }

@@ -75,3 +75,48 @@ export function fetchOfficeHoursCourse(userId: string, courseId: string) {
     url: `/api/office-hours/users/${encodeURIComponent(userId)}/courses/${encodeURIComponent(courseId)}`,
   });
 }
+
+/** The backend's office-hours setup; it names the capacity for students, where a mentor's names it for mentees. */
+export type BackendOfficeHoursAvailability = {
+  rules: {
+    id: string;
+    dayOfWeek: string;
+    startTime: string;
+    endTime: string;
+    slotMinutes: number;
+  }[];
+  exceptions: {
+    id: string;
+    startsOn: string;
+    endsOn: string;
+    reason: string | null;
+  }[];
+  studentCapacity: number | null;
+  defaultMeetingDurationMinutes: number;
+  meetingBufferMinutes: number;
+};
+
+function availabilityUrl(userId: string) {
+  return `/api/office-hours/users/${encodeURIComponent(userId)}/availability`;
+}
+
+export function fetchOfficeHoursAvailability(userId: string) {
+  return backendRequest<BackendOfficeHoursAvailability>({
+    method: "GET",
+    url: availabilityUrl(userId),
+  });
+}
+
+export function saveOfficeHoursAvailability(
+  userId: string,
+  payload: Omit<BackendOfficeHoursAvailability, "rules" | "exceptions"> & {
+    rules: unknown[];
+    exceptions: unknown[];
+  },
+) {
+  return backendRequest<BackendOfficeHoursAvailability>({
+    method: "PUT",
+    url: availabilityUrl(userId),
+    data: payload,
+  });
+}
