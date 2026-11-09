@@ -3485,6 +3485,18 @@
           "soonTitle": "Your badges will appear here soon",
           "soonBody": "The Peer Mentor badge and the badges you earn through your sessions will show in this section."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Request an appointment in academicians' office hours.",
+        "soon": "Coming soon",
+        "soonTitle": "Office Hours is coming to Menton",
+        "soonBody": "Academicians' office hours aren't connected to Menton yet. Once they are, you'll see the hours here and request an appointment.",
+        "today": "For now, Office Hours appointments are booked through METU's Moodle page.",
+        "later": "Once connected, your appointments will show in My appointments, next to your peer-mentoring ones.",
+        "meanwhileTitle": "In the meantime",
+        "meanwhileBody": "You can get support from your program's peer mentors.",
+        "meanwhileAction": "Go to peer mentoring"
       }
     },
     "academician": {
