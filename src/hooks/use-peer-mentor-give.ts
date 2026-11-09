@@ -18,6 +18,7 @@ import {
   PEER_MENTORS_QUERY_KEY,
   PEER_MENTORING_REQUESTS_QUERY_KEY,
 } from "@/hooks/use-peer-mentoring";
+import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import {
@@ -32,6 +33,7 @@ import {
   type SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
+import { TrainingState } from "@/interfaces/training";
 import {
   getAvailabilitySettings,
   updateAvailabilitySettings,
@@ -42,9 +44,11 @@ import {
   getReceivedPeerRequests,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
+import { getStudentTraining } from "@/lib/client/training";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import {
   latestGateAward,
+  PEER_MENTOR_TRAINING_HREF,
   PEER_REQUEST_MESSAGE_MIN,
   peerMentorGateState,
 } from "@/lib/peer-mentoring";
@@ -90,6 +94,35 @@ export function usePeerMentorGate() {
     isLoading: badges.isLoading || institution.isLoading,
     // An award made after sign-in reaches the session cookie only at its next check; mentor actions wait for it.
     sessionBehind: state === PeerMentorGateState.Earned && !holdsMentor,
+  };
+}
+
+export type TrainingEntryReason = "loading" | "notAvailable" | "unavailable";
+
+/**
+ * "Eğitimi başlat" on Rozet Yok links to the training only while the student's program has a published training they
+ * can take (VIDEO or QUIZ). Anything else keeps it disabled with a reason, including a backend without the training
+ * endpoint (no retry, so that answer is immediate).
+ */
+export function usePeerMentorTrainingEntry(enabled = true): {
+  href: string | null;
+  reason: TrainingEntryReason | null;
+} {
+  const training = useQuery({
+    queryKey: STUDENT_TRAINING_QUERY_KEY,
+    queryFn: getStudentTraining,
+    enabled,
+    retry: false,
+  });
+  const state = training.data?.state;
+  if (state === TrainingState.Video || state === TrainingState.Quiz) {
+    return { href: PEER_MENTOR_TRAINING_HREF, reason: null };
+  }
+  if (training.isLoading) return { href: null, reason: "loading" };
+  return {
+    href: null,
+    reason:
+      state === TrainingState.NotAvailable ? "notAvailable" : "unavailable",
   };
 }
 

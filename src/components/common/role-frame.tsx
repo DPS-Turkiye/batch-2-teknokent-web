@@ -33,6 +33,8 @@ export type RoleNavItem = {
   match: (path: string) => boolean;
   /** Shown but not yet clickable: the screen has a design but no page yet. */
   disabled?: boolean;
+  /** Clickable, with a "Yakında" chip: the page says what is coming and when it isn't here yet. */
+  soon?: boolean;
 };
 
 /**
@@ -232,6 +234,7 @@ function RoleShell({
                 >
                   <NavGlyph src={item.icon} />
                   {tFrame(`nav.${item.label}`)}
+                  {item.soon ? <SoonBadge /> : null}
                 </Link>
               ),
             )}
@@ -275,6 +278,15 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     >
       <NavGlyph src={item.icon} />
       {t(`nav.${item.label}`)}
+      {item.soon ? (
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[10.5px] leading-none font-medium ${
+            active ? "bg-white/15 text-white" : "bg-[#f4f5f7] text-[#858c96]"
+          }`}
+        >
+          {t("soon")}
+        </span>
+      ) : null}
     </Link>
   );
 }

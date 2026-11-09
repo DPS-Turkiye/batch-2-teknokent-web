@@ -31,6 +31,7 @@ export async function GET(request: Request) {
         auth.session.userId,
         parsed.data.page,
         parsed.data.unreadOnly,
+        parsed.data.programType,
       ),
     );
   } catch (error) {

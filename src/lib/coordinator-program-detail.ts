@@ -37,19 +37,24 @@ export enum SettingsSection {
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Eligibility = "ELIGIBILITY",
+  Training = "TRAINING",
   PeerCategories = "PEER_CATEGORIES",
   Archive = "ARCHIVE",
 }
 
-/** The sections Program Ayarları shows: only peer programs choose categories, and a draft has no Arşiv. */
+/**
+ * The sections Program Ayarları shows: only a peer program has the Akran Mentoru training and chooses
+ * categories, and a draft has no Arşiv.
+ */
 export function settingsSections(
   type: ProgramType,
   lifecycle: ProgramLifecycle,
 ) {
+  const peer = type === ProgramType.PeerMentoring;
   return Object.values(SettingsSection).filter(
     (section) =>
-      (section !== SettingsSection.PeerCategories ||
-        type === ProgramType.PeerMentoring) &&
+      (section !== SettingsSection.Training || peer) &&
+      (section !== SettingsSection.PeerCategories || peer) &&
       (section !== SettingsSection.Archive ||
         lifecycle !== ProgramLifecycle.Draft),
   );

@@ -20,6 +20,7 @@ import {
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/badges", () => ({
+  getMyAchievements: vi.fn(async () => []),
   getMyBadges: vi.fn(async () => [
     {
       id: "award-1",

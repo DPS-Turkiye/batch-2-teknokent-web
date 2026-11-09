@@ -253,7 +253,19 @@ describe("program tabs by type", () => {
   });
 });
 
-describe("settings sections by type", () => {
+describe("settingsSections", () => {
+  it("gives only a peer program the Akran Mentoru training", () => {
+    expect(
+      settingsSections(ProgramType.PeerMentoring, ProgramLifecycle.Active),
+    ).toContain(SettingsSection.Training);
+    expect(
+      settingsSections(ProgramType.StartupMentoring, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.Training);
+    expect(
+      settingsSections(ProgramType.OfficeHours, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.Training);
+  });
+
   it("lists Akran kategorileri only for peer programs, before Arşiv, and no Arşiv for a draft", () => {
     const peer = settingsSections(
       ProgramType.PeerMentoring,

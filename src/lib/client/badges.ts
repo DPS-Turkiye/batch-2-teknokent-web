@@ -1,4 +1,5 @@
 import type {
+  AchievementProgress,
   BadgeAward,
   GateBadgeRow,
   GateBadgeState,
@@ -12,6 +13,12 @@ const programBadges = (programId: string) =>
 
 export async function getMyBadges() {
   return requireSuccess(await httpClient.get<BadgeAward[]>("/api/me/badges"));
+}
+
+export async function getMyAchievements() {
+  return requireSuccess(
+    await httpClient.get<AchievementProgress[]>("/api/me/badges/achievements"),
+  );
 }
 
 export async function getUserBadges(userId: string) {
