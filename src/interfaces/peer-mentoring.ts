@@ -15,8 +15,8 @@ export enum PeerTopicCategory {
 export const PEER_TOPIC_CATEGORIES = Object.values(PeerTopicCategory);
 
 /**
- * A student who earned the peer-mentor badge and published a profile, as a mentee sees them.
- * Planned backend: `GET /api/peer-mentors?category=&q=`, own profile left out.
+ * A peer mentor of the student's own program, as the student sees them
+ * (`GET /api/peer-mentoring/mentors?category=&q=`, the student left out).
  */
 export type PeerMentorCard = {
   mentorId: string;
@@ -37,17 +37,27 @@ export type PeerMentorFilter = {
   query: string;
 };
 
-/** A request the student sent. Planned backend: `GET /api/peer-mentoring/requests?as=MENTEE`. */
+export type PeerMentoringPerson = {
+  userId: string;
+  fullName: string;
+  department: string | null;
+};
+
+/**
+ * A peer-mentoring request (`GET /api/peer-mentoring/requests?as=MENTEE|MENTOR`): people only,
+ * never a team (the student's hidden personal team is not shown).
+ */
 export type PeerMentoringRequest = {
   id: string;
-  mentor: Pick<PeerMentorCard, "mentorId" | "fullName" | "department">;
+  mentor: PeerMentoringPerson;
+  mentee: PeerMentoringPerson;
   category: PeerTopicCategory;
   message: string;
   status: MentorshipRequestStatus;
   createdAt: string;
 };
 
-/** Planned backend: `POST /api/peer-mentoring/requests`. */
+/** `POST /api/peer-mentoring/requests`; the message is 20–1000 characters. */
 export type CreatePeerMentoringRequestInput = {
   mentorId: string;
   category: PeerTopicCategory;

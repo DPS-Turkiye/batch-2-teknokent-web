@@ -79,7 +79,7 @@ export function usePeerMentorDirectory() {
           .filter((request) =>
             OPEN_PEER_REQUEST_STATUSES.includes(request.status),
           )
-          .map((request) => request.mentor.mentorId),
+          .map((request) => request.mentor.userId),
       ),
     [requests.data],
   );
