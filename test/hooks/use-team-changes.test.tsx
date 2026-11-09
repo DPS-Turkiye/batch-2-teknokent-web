@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useOrganizationPrograms } from "@/hooks/use-programs";
 import { useAdoptStartupSession } from "@/hooks/use-startup-membership";
 import { useTeamChanges } from "@/hooks/use-team-changes";
@@ -42,7 +42,10 @@ vi.mock("@/lib/client/team-changes", () => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }

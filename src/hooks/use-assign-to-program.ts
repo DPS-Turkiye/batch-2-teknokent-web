@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import type {
   AdminProgram,
@@ -12,6 +12,7 @@ import type {
 } from "@/interfaces/admin-overview";
 import { assignToProgram } from "@/lib/client/admin-program-members";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** The admin puts a mentor or a startup into one of the open programs; it counts at once. */
 export function useAssignToProgram(
@@ -33,14 +34,14 @@ export function useAssignToProgram(
         message: t("assignedToProgram", {
           program: programs.find((program) => program.id === id)?.name ?? "",
         }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
       setProgramId("");
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("assignToProgramFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

@@ -3,9 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useUpdateMeeting } from "@/hooks/use-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
+import { ToastTone } from "@/interfaces/toast";
 
 /**
  * The next meeting banner: its Meet link and whether a transcript is wanted.
@@ -31,7 +32,7 @@ export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
     } catch (error) {
       showToast({
         message: error instanceof Error ? error.message : t("updateFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       });
       return false;
     }
@@ -42,7 +43,7 @@ export function useMentorNextMeeting(meeting: MeetingItem | undefined) {
     if (!meeting || meetLink === savedLink) return;
     if (await save({ meetLink })) {
       setSavedLink(meetLink);
-      showToast({ message: t("linkSaved"), tone: "success" });
+      showToast({ message: t("linkSaved"), tone: ToastTone.Success });
     }
   };
 

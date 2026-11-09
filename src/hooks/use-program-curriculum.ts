@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import { DocumentKind } from "@/interfaces/startup-document";
@@ -35,6 +35,7 @@ import {
   type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 type Editing = { index: number | null; draft: WizardPhase };
 type Review = { documentId: string; phases: WizardPhase[] };
@@ -62,7 +63,10 @@ export function useProgramCurriculum(
     review?.phases ?? saved.map((phase) => ({ ...phase, fromFile: false }));
 
   const fail = (fallback: string) => (failure: Error) =>
-    showToast({ message: errorMessage(failure, fallback), tone: "error" });
+    showToast({
+      message: errorMessage(failure, fallback),
+      tone: ToastTone.Error,
+    });
 
   const save = useMutation({
     mutationFn: ({
@@ -81,7 +85,7 @@ export function useProgramCurriculum(
       cache.put(next);
       setEditing(null);
       startReview(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: fail(t("saveFailed")),
   });
@@ -152,7 +156,7 @@ export function useProgramCurriculum(
             problem === SyllabusFileProblem.NotPdf
               ? t("pdfOnly")
               : t("tooLarge"),
-          tone: "error",
+          tone: ToastTone.Error,
         });
         return;
       }

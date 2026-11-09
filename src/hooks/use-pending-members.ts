@@ -3,11 +3,12 @@
 import { useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   getPendingMembers,
   removePendingMember,
 } from "@/lib/client/organization-members";
+import { ToastTone } from "@/interfaces/toast";
 
 export const PENDING_MEMBERS_QUERY_KEY = [
   "organization-pending-members",
@@ -31,14 +32,14 @@ export function usePendingMembers() {
       });
       showToast({
         message: t("pendingRemoved"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (error) =>
       showToast({
         message:
           error instanceof Error ? error.message : t("pendingRemoveFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

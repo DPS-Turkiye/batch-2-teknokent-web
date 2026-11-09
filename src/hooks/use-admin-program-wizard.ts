@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
   useAdminOverview,
@@ -25,6 +25,7 @@ import {
 } from "@/lib/admin-program-wizard";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. */
 export function useAdminProgramWizard() {
@@ -55,7 +56,7 @@ export function useAdminProgramWizard() {
       });
       showToast({
         message: t("created", { name: detail.program.name }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
       router.push(`/admin/programs/${encodeURIComponent(detail.program.id)}`);
     },

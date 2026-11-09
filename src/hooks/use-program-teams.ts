@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type {
   ProgramTeam,
@@ -26,6 +26,7 @@ import {
   teamRowProblems,
 } from "@/lib/program-launch";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const programTeamsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "teams"] as const;
@@ -69,7 +70,7 @@ export function useProgramTeams(programId: string) {
     onSuccess: (teams) => {
       saved(teams);
       setAdding(null);
-      showToast({ message: t("added"), tone: "success" });
+      showToast({ message: t("added"), tone: ToastTone.Success });
     },
     onError,
   });
@@ -88,7 +89,7 @@ export function useProgramTeams(programId: string) {
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("removeFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -102,18 +103,18 @@ export function useProgramTeams(programId: string) {
         row?.codeSendFailed
           ? {
               message: t("sendFailedTo", { email: team.leadEmail ?? "" }),
-              tone: "error",
+              tone: ToastTone.Error,
             }
           : {
               message: t("sentTo", { email: team.leadEmail ?? "" }),
-              tone: "success",
+              tone: ToastTone.Success,
             },
       );
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("sendFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -168,7 +169,7 @@ export function useProgramTeams(programId: string) {
     remove: (inviteId: string) => remove.mutate(inviteId),
     copyCode: async (code: string) => {
       await navigator.clipboard.writeText(code);
-      showToast({ message: t("copied", { code }), tone: "success" });
+      showToast({ message: t("copied", { code }), tone: ToastTone.Success });
     },
     sendCode: (team: ProgramTeam) => team.inviteId && sendCode.mutate(team),
     sendingCodeFor: sendCode.isPending

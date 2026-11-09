@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type {
@@ -33,6 +33,7 @@ import {
   settingsDraftOf,
 } from "@/lib/coordinator-program-detail";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const coordinatorProgramQueryKey = (programId: string) =>
   ["coordinator-program", programId] as const;
@@ -80,7 +81,7 @@ export function useProgramSettings(
     onSuccess: (saved) => {
       cache.put(saved);
       setDraft(settingsDraftOf(saved));
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: (failure) => setError(errorMessage(failure, t("saveFailed"))),
   });
@@ -127,7 +128,7 @@ export function useProgramCoordinators(
   const onError = (failure: Error) =>
     showToast({
       message: errorMessage(failure, t("coordinatorFailed")),
-      tone: "error",
+      tone: ToastTone.Error,
     });
   const queryClient = useQueryClient();
   const refresh = () => {
@@ -182,7 +183,7 @@ export function useProgramRoster(programId: string) {
   const onError = (failure: Error) =>
     showToast({
       message: errorMessage(failure, t("roster.failed")),
-      tone: "error",
+      tone: ToastTone.Error,
     });
   const add = useMutation({
     mutationFn: (emails: string[]) =>
@@ -190,7 +191,7 @@ export function useProgramRoster(programId: string) {
     onSuccess: (saved) => {
       onSaved(saved);
       setText("");
-      showToast({ message: t("roster.saved"), tone: "success" });
+      showToast({ message: t("roster.saved"), tone: ToastTone.Success });
     },
     onError,
   });
@@ -229,13 +230,13 @@ export function useProgramArchive(programId: string, archived: boolean) {
       setConfirming(false);
       showToast({
         message: value ? t("archived") : t("reopened"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("archiveFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return {
@@ -264,13 +265,13 @@ export function useLaunchProgram(programId: string) {
       });
       showToast({
         message: t("launched", { name: detail.program.name }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("launchFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return { launch: () => mutation.mutate(), launching: mutation.isPending };

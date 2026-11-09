@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { AppointmentSide } from "@/interfaces/appointment";
 import type {
   CreatePeerMentoringRequestInput,
@@ -27,6 +27,7 @@ import {
 import { getProfileCompletionCategories } from "@/lib/client/student-profile-completion";
 import { PROFILE_COMPLETION_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
 export const PEER_MENTORING_REQUESTS_QUERY_KEY = [
@@ -143,7 +144,7 @@ export function usePeerMentorRequestForm(
         category,
         message: text,
       });
-      showToast({ message: t("sent"), tone: "success" });
+      showToast({ message: t("sent"), tone: ToastTone.Success });
       onSent();
     } catch (sendError) {
       setError(errorMessage(sendError, t("failed")));

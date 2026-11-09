@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import type {
   AcademicianAvailability,
@@ -20,6 +20,7 @@ import {
   ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
   turkeyTimeRange,
 } from "@/lib/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
 
 export const ACADEMICIAN_AVAILABILITY_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -100,10 +101,10 @@ export function useAcademicianCalendar() {
         ...weeklyPayload(saved),
         oneOffs: oneOffPayload(oneOffs),
       });
-      showToast({ message: t("oneOffSaved"), tone: "success" });
+      showToast({ message: t("oneOffSaved"), tone: ToastTone.Success });
       return true;
     } catch {
-      showToast({ message: t("oneOffFailed"), tone: "error" });
+      showToast({ message: t("oneOffFailed"), tone: ToastTone.Error });
       return false;
     }
   };

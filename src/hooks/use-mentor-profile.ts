@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { clientText } from "@/i18n/client-texts";
 
 import {
@@ -38,6 +38,7 @@ import {
 } from "@/lib/mentor-onboarding";
 import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
 export const MENTOR_AVAILABILITY_QUERY_KEY = [
@@ -414,12 +415,12 @@ export function useMentorProfileForm(profile: MentorProfile) {
           : {}),
       });
       setSaveSuccess(true);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
       return true;
     } catch (error) {
       const message = errorMessage(error, t("saveFailed"));
       setSaveError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
       return false;
     }
   };
@@ -508,22 +509,28 @@ export function useAvailabilitySlotForm() {
         startsAt: defaultSlotStart(),
         durationMinutes: 60,
       });
-      showToast({ message: "Müsaitlik saati eklendi.", tone: "success" });
+      showToast({
+        message: "Müsaitlik saati eklendi.",
+        tone: ToastTone.Success,
+      });
     } catch (error) {
       const message = errorMessage(error, "Müsaitlik saati eklenemedi.");
       setSlotError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
     }
   };
 
   const handleDeleteSlot = async (slotId: string) => {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
-      showToast({ message: "Müsaitlik saati silindi.", tone: "success" });
+      showToast({
+        message: "Müsaitlik saati silindi.",
+        tone: ToastTone.Success,
+      });
     } catch (error) {
       showToast({
         message: errorMessage(error, "Müsaitlik saati silinemedi."),
-        tone: "error",
+        tone: ToastTone.Error,
       });
     }
   };

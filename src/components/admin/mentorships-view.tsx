@@ -21,7 +21,7 @@ import {
 import { useAdminInterventions } from "@/hooks/use-admin-interventions";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import type {
   AdminMentorship,
   AdminOverview,
@@ -39,6 +39,7 @@ import {
 } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
+import { ToastTone } from "@/interfaces/toast";
 
 export type MentorshipTab = "overview" | "interventions" | "matching";
 
@@ -515,7 +516,7 @@ function Interventions({
             showToast({
               title: t("notifiedTitle", { name }),
               message: t("notifiedBody", { pair }),
-              tone: "success",
+              tone: ToastTone.Success,
             });
           }}
         />
@@ -532,7 +533,7 @@ function Interventions({
             setDetailId(null);
             showToast({
               message: t("resolved"),
-              tone: "success",
+              tone: ToastTone.Success,
             });
           }}
         />

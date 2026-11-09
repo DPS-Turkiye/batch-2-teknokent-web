@@ -4,13 +4,14 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { MENTORS_QUERY_KEY } from "@/hooks/use-mentors";
 import {
   useOrganizationPrograms,
   useSetActiveProgram,
 } from "@/hooks/use-programs";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
+import { ToastTone } from "@/interfaces/toast";
 
 /** Lets a startup in several programs choose whose mentor pool it sees. */
 export function useMenteeProgramSelector() {
@@ -34,13 +35,13 @@ export function useMenteeProgramSelector() {
           message: t("switched", {
             name: currentOrganizationProgram(data)?.name ?? "",
           }),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       },
       onError: (error) =>
         showToast({
           message: error instanceof Error ? error.message : t("switchFailed"),
-          tone: "error",
+          tone: ToastTone.Error,
         }),
     });
   }

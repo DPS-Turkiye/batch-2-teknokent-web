@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { UserRole } from "@/interfaces/session";
@@ -23,6 +23,7 @@ import {
   scheduleMeeting,
   withdrawMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { ToastTone } from "@/interfaces/toast";
 
 export const mentorshipRequestsQueryKey = (
   role: UserRole.Mentee | UserRole.Mentor,
@@ -181,7 +182,7 @@ export function useRequestFileUpload(
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("fileSendFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 }

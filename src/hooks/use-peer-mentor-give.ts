@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
@@ -59,6 +59,7 @@ import {
   toggleInterestTopic,
 } from "@/lib/student-interests";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -171,13 +172,13 @@ export function usePeerRequestDecision() {
       });
       showToast({
         message: accept ? t("accepted") : t("declined"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("decisionFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return {
@@ -374,7 +375,7 @@ export function usePeerMentorWizard() {
       ]) {
         void queryClient.invalidateQueries({ queryKey });
       }
-      showToast({ message: t("published"), tone: "success" });
+      showToast({ message: t("published"), tone: ToastTone.Success });
       router.push("/student/peer-mentoring?as=MENTOR");
     },
     onError: (publishError) =>

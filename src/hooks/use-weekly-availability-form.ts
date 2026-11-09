@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   type MentorAvailabilitySettings,
   type UpdateMentorAvailabilitySettingsPayload,
@@ -26,6 +26,7 @@ import {
   toAvailabilityPayload,
 } from "@/lib/mentor-availability";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 const ALL_NUMBER_FIELDS = AVAILABILITY_NUMBER_FIELDS.map((item) => item.field);
 
@@ -204,12 +205,13 @@ export function useWeeklyAvailabilityForm(
     try {
       await source.save(toAvailabilityPayload(draft));
       setEdits(null);
-      if (!source.quiet) showToast({ message: t("saved"), tone: "success" });
+      if (!source.quiet)
+        showToast({ message: t("saved"), tone: ToastTone.Success });
       onSaved();
     } catch (saveError) {
       const message = errorMessage(saveError, t("saveFailed"));
       setError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
     }
   };
 

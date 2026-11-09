@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { STUDENT_APPOINTMENTS_QUERY_KEY } from "@/hooks/use-student-appointments";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
 import type { Appointment } from "@/interfaces/appointment";
@@ -13,6 +13,7 @@ import {
   scheduleMeeting,
 } from "@/lib/client/mentor-requests";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { ToastTone } from "@/interfaces/toast";
 
 export const peerSessionSlotsQueryKey = (requestId: string) =>
   ["peer-mentoring", "slots", requestId] as const;
@@ -59,7 +60,7 @@ export function usePeerSessionBooking(requestId: string, onBooked: () => void) {
           queryKey: peerSessionSlotsQueryKey(requestId),
         }),
       ]);
-      showToast({ message: t("booked"), tone: "success" });
+      showToast({ message: t("booked"), tone: ToastTone.Success });
       onBooked();
     },
   });

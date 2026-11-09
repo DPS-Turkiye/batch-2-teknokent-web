@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   useCreateOfficeHoursRequest,
   useInstructorSlots,
@@ -17,6 +17,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { asAvailabilitySlots } from "@/lib/office-hours-booking";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export function useOfficeHoursRequestForm(
   courseId: string,
@@ -51,7 +52,7 @@ export function useOfficeHoursRequestForm(
           .filter(isValidPreferredSlot)
           .map(preferredSlotMachineValue),
       });
-      showToast({ message: t("sent"), tone: "success" });
+      showToast({ message: t("sent"), tone: ToastTone.Success });
       onSent();
     } catch (sendError) {
       setError(errorMessage(sendError, t("needSlots")));

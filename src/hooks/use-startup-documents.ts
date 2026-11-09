@@ -4,12 +4,13 @@ import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
 
-import { useShowDocumentPreview } from "@/components/providers/document-preview-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useShowDocumentPreview } from "@/stores/document-preview-store";
+import { useToast } from "@/stores/toast-store";
 import {
   getDocumentDownloadUrl,
   getStartupDocuments,
 } from "@/lib/client/startup-documents";
+import { ToastTone } from "@/interfaces/toast";
 
 export const STARTUP_DOCUMENTS_QUERY_KEY = ["startup-documents"] as const;
 
@@ -51,13 +52,9 @@ export function useOpenDocument() {
           queryFn: () => getDocumentDownloadUrl(documentId),
           staleTime: DOCUMENT_URL_STALE_MS,
         });
-        if (showPreview) {
-          showPreview({ ...link, id: documentId });
-          return;
-        }
-        showToast({ message: t("openFailed"), tone: "error" });
+        showPreview({ ...link, id: documentId });
       } catch {
-        showToast({ message: t("openFailed"), tone: "error" });
+        showToast({ message: t("openFailed"), tone: ToastTone.Error });
       }
     },
     [queryClient, showPreview, showToast, t],

@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useStudentInstitution } from "@/hooks/use-student-profile";
 import type { OfficeHoursProfileSettings } from "@/interfaces/academician-office-hours";
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/lib/client/academician-office-hours";
 import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
 import { httpUrlOrNull, isEmailAddress } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const OFFICE_HOURS_PROFILE_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -57,9 +58,10 @@ export function useAcademicianProfile() {
     onSuccess: (saved) => {
       queryClient.setQueryData(OFFICE_HOURS_PROFILE_QUERY_KEY, saved);
       setEdits(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
-    onError: () => showToast({ message: t("saveFailed"), tone: "error" }),
+    onError: () =>
+      showToast({ message: t("saveFailed"), tone: ToastTone.Error }),
   });
 
   const change = (field: ProfileField, value: string) => {

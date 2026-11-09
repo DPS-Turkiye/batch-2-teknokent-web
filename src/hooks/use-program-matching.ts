@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type { MatchCandidate } from "@/interfaces/program-matching";
@@ -25,6 +25,7 @@ import {
   MatchTab,
 } from "@/lib/program-matching";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const matchingQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "matching"] as const;
@@ -123,7 +124,7 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       if (followUpFailed) {
         showToast({
           message: t("followUpFailed"),
-          tone: "error",
+          tone: ToastTone.Error,
         });
       }
       void queryClient.invalidateQueries({
@@ -142,13 +143,13 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
           team: team!.name,
           mentor: candidate.fullName,
         }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("matchFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

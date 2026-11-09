@@ -4,13 +4,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRef, useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { ACTION_ITEMS_QUERY_KEY } from "@/hooks/use-action-items";
 import {
   assignMentorshipTask,
   getTaskAssignees,
 } from "@/lib/client/mentor-task-assignment";
 import { assignMentorshipTaskSchema } from "@/lib/mentor-task-assignment";
+import { ToastTone } from "@/interfaces/toast";
 
 export function useMentorTaskAssignment(requestId: string) {
   const t = useTranslations("mentorHome.assignTask");
@@ -74,7 +75,7 @@ export function useMentorTaskAssignment(requestId: string) {
       await mutation.mutateAsync(parsed.data);
       await queryClient.invalidateQueries({ queryKey: ACTION_ITEMS_QUERY_KEY });
       setOpen(false);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     } catch {
       setError(t("saveFailed"));
     } finally {

@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
@@ -25,6 +25,7 @@ import {
   startupSummary,
 } from "@/lib/personal-profile";
 import { initials } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** Everything the mentee's personal profile page shows and does. */
 export function usePersonalProfilePage() {
@@ -133,6 +134,7 @@ export function usePersonalProfilePage() {
     mentorshipsLoading: overview.mentorshipsLoading,
     isSendingReset,
     sendPasswordReset,
-    showComingSoon: () => showToast({ message: t("comingSoon"), tone: "info" }),
+    showComingSoon: () =>
+      showToast({ message: t("comingSoon"), tone: ToastTone.Info }),
   };
 }

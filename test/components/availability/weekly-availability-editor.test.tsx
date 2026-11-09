@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
-import { ToastProvider } from "@/components/providers/toast-provider";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import { type MentorAvailabilitySettings, Weekday } from "@/interfaces/mentor";
 import type { AvailabilityNumberField } from "@/lib/mentor-availability";
@@ -54,11 +53,7 @@ function Harness({
 }
 
 function renderEditor(options: EditorOptions = {}) {
-  return render(
-    <ToastProvider>
-      <Harness {...options} />
-    </ToastProvider>,
-  );
+  return render(<Harness {...options} />);
 }
 
 describe("WeeklyAvailabilityEditor", () => {

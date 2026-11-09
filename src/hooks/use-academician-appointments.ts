@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import type { AcademicianAppointment } from "@/interfaces/academician-office-hours";
 import { AppointmentStatus } from "@/interfaces/appointment";
 import {
@@ -12,6 +12,7 @@ import {
   getAcademicianAppointments,
 } from "@/lib/client/academician-office-hours";
 import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
 
 export const ACADEMICIAN_APPOINTMENTS_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -72,12 +73,12 @@ export function useAcademicianAppointments() {
       void queryClient.invalidateQueries({
         queryKey: ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
       });
-      showToast({ message: t("cancelledToast"), tone: "success" });
+      showToast({ message: t("cancelledToast"), tone: ToastTone.Success });
       setCancelling(null);
     },
     onError: () => {
       void query.refetch();
-      showToast({ message: t("cancelFailed"), tone: "error" });
+      showToast({ message: t("cancelFailed"), tone: ToastTone.Error });
       setCancelling(null);
     },
   });

@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { mentorPoolQueryKey } from "@/hooks/use-mentor-pool";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
@@ -16,6 +16,7 @@ import {
   getProgramApprovals,
 } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const programApprovalsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "approvals"] as const;
@@ -56,13 +57,13 @@ export function useProgramApprovals(programId: string) {
       }
       showToast({
         message: input.accepted ? t("approved") : t("rejected"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure: Error) =>
       showToast({
         message: errorMessage(failure, t("decisionFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

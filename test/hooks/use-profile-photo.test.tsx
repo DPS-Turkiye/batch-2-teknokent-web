@@ -3,7 +3,7 @@ import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { listOwnDocuments, uploadDocument } from "@/lib/client/documents";
 import { getDocumentDownloadUrl } from "@/lib/client/startup-documents";
@@ -22,7 +22,10 @@ vi.mock("@/lib/client/startup-documents", () => ({
 function Wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }

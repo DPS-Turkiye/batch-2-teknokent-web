@@ -2,7 +2,7 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 
 import {
   useMentorAvailability,
@@ -15,6 +15,7 @@ import {
 } from "@/interfaces/mentorship-request";
 import { MENTOR_ACCEPT_MESSAGE } from "@/lib/const/mentorships";
 import { formatSlotDateTime } from "@/lib/format";
+import { ToastTone } from "@/interfaces/toast";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
   [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,
@@ -76,17 +77,17 @@ export function useDecision() {
       if (activeMode === MentorDecisionMode.Accept) {
         showToast({
           message: t("accepted"),
-          tone: "success",
+          tone: ToastTone.Success,
         });
         setShowAvailabilityStep(true);
       } else {
-        showToast({ message: t("answered"), tone: "success" });
+        showToast({ message: t("answered"), tone: ToastTone.Success });
         closeDecision();
       }
       return true;
     } catch (error) {
       setActionError(error instanceof Error ? error.message : t("failed"));
-      showToast({ message: t("answerFailed"), tone: "error" });
+      showToast({ message: t("answerFailed"), tone: ToastTone.Error });
       return false;
     }
   }

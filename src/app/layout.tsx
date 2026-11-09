@@ -7,8 +7,8 @@ import { ClientTexts } from "@/i18n/client-texts";
 import { AccountTypeProvider } from "@/components/providers/account-type-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { DocumentPreviewHost } from "@/components/common/document-preview-host";
+import { Toaster } from "@/components/common/toaster";
 import { getAccountType } from "@/lib/server/account-type";
 
 import "./globals.css";
@@ -53,11 +53,9 @@ export default async function RootLayout({
           <ClientTexts />
           <AccountTypeProvider accountType={accountType}>
             <QueryProvider>
-              <ToastProvider>
-                <DocumentPreviewProvider>
-                  <SessionProvider>{children}</SessionProvider>
-                </DocumentPreviewProvider>
-              </ToastProvider>
+              <SessionProvider>{children}</SessionProvider>
+              <Toaster />
+              <DocumentPreviewHost />
             </QueryProvider>
           </AccountTypeProvider>
         </NextIntlClientProvider>

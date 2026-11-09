@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   MAX_PROPOSED_TIMES,
   OfficeHoursRequestAction,
@@ -21,6 +21,7 @@ import {
   rangeMinutes,
   turkeyTimeRange,
 } from "@/lib/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
 
 export const ACADEMICIAN_REQUESTS_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -73,13 +74,16 @@ export function useAcademicianRequests() {
       void queryClient.invalidateQueries({
         queryKey: ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
       });
-      showToast({ message: t(DONE_MESSAGE[reply.action]), tone: "success" });
+      showToast({
+        message: t(DONE_MESSAGE[reply.action]),
+        tone: ToastTone.Success,
+      });
       setForm(null);
     },
     onError: () => {
       // Usually the student withdrew or the request changed meanwhile: show the current list.
       void query.refetch();
-      showToast({ message: t("failed"), tone: "error" });
+      showToast({ message: t("failed"), tone: ToastTone.Error });
       setForm(null);
     },
   });

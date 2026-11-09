@@ -2,8 +2,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
 import type { ReactElement, ReactNode } from "react";
 import { vi } from "vitest";
-import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { DocumentPreviewHost } from "@/components/common/document-preview-host";
+import { Toaster } from "@/components/common/toaster";
 import { NextIntlClientProvider } from "next-intl";
 import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
@@ -36,9 +36,9 @@ export function renderWithQueryClient(
   function Wrapper({ children }: { children: ReactNode }) {
     return (
       <QueryClientProvider client={queryClient}>
-        <ToastProvider>
-          <DocumentPreviewProvider>{children}</DocumentPreviewProvider>
-        </ToastProvider>
+        {children}
+        <Toaster />
+        <DocumentPreviewHost />
       </QueryClientProvider>
     );
   }

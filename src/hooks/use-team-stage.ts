@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
 import { StartupStage } from "@/interfaces/startup-process";
 import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
+import { ToastTone } from "@/interfaces/toast";
 
 /** "Aşamayı güncelle" in the Takımlar drawer: a coordinator moves a team to another stage. */
 export function useTeamStage(programId: string, organizationId: string) {
@@ -33,7 +34,7 @@ export function useTeamStage(programId: string, organizationId: string) {
     onSuccess: (process) => {
       queryClient.setQueryData(queryKey, process);
       setDraft(null);
-      showToast({ message: tProcess("stageUpdated"), tone: "success" });
+      showToast({ message: tProcess("stageUpdated"), tone: ToastTone.Success });
     },
   });
 

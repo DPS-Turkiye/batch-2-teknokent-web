@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
 import {
@@ -24,6 +24,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
+import { ToastTone } from "@/interfaces/toast";
 
 /**
  * Profilim › Kurumsal Bilgiler. The backend answers 404 when no institution vouches for the
@@ -63,7 +64,7 @@ export function useStudentInterests() {
       client.setQueryData(PROFILE_COMPLETION_QUERY_KEY, data);
       void client.invalidateQueries({ queryKey: STUDENT_HOME_QUERY_KEY });
       setDraft(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
   });
   const catalogue = categories.data ?? [];

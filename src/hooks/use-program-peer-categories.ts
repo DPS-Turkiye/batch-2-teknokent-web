@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useToast } from "@/stores/toast-store";
 import {
   PEER_TOPIC_CATEGORIES,
   type PeerTopicCategory,
@@ -14,6 +14,7 @@ import {
   replaceProgramPeerCategories,
 } from "@/lib/client/program-peer-categories";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const programPeerCategoriesQueryKey = (programId: string) =>
   ["program-peer-categories", programId] as const;
@@ -39,12 +40,12 @@ export function useProgramPeerCategories(programId: string) {
     onSuccess: (data) => {
       queryClient.setQueryData(programPeerCategoriesQueryKey(programId), data);
       setEdits(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: (failure: Error) =>
       showToast({
         message: errorMessage(failure, t("saveFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
