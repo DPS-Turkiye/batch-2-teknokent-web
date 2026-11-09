@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { RoleFrame, type RoleNavItem } from "@/components/common/role-frame";
-import { UserRole } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 
 export const ACADEMICIAN_HOME = "/academician";
 
@@ -44,7 +44,6 @@ const NAV: RoleNavItem[] = [
     label: "advisees",
     icon: "/admin/nav-users.svg",
     match: (path) => path.startsWith("/academician/advisees"),
-    disabled: true,
   },
   {
     href: "/academician/profile",
@@ -55,15 +54,11 @@ const NAV: RoleNavItem[] = [
   },
 ];
 
-// Any signed-in account may open it while the workspace runs on fixtures behind the flag;
-// the real check (the ACADEMICIAN permission) comes with the permissions work.
-const ACADEMICIAN_WORKSPACE_ROLES = Object.values(UserRole);
-
 export function AcademicianFrame({ children }: { children: ReactNode }) {
   const t = useTranslations("roleFrame.workspace");
   return (
     <RoleFrame
-      allowedRoles={ACADEMICIAN_WORKSPACE_ROLES}
+      workspace={Workspace.OdtuAcademician}
       homeHref={ACADEMICIAN_HOME}
       menuLabel="academicianMenu"
       nav={NAV}

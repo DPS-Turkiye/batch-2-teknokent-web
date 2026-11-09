@@ -4,11 +4,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
+import { getSessionIds, getSessionSignedInAt } from "@/lib/session";
 
 export async function POST() {
   try {
-    return backendResponse(await issueRealtimeToken(await getSessionIds()));
+    const session = await getSessionIds();
+    return backendResponse(
+      await issueRealtimeToken(session, await getSessionSignedInAt()),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("realtimeTokenFailed"),

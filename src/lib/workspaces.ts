@@ -11,6 +11,7 @@ type WorkspaceHolder = Pick<
   | "organizationId"
   | "individualMentee"
   | "activeWorkspace"
+  | "personalOrganization"
 >;
 
 /** Also the order a first sign-in picks from: staff first, an academician before the student they also are. */
@@ -42,7 +43,10 @@ export function workspacesOf(session: WorkspaceHolder): Workspace[] {
   }
   if (
     hasPermission(session, UserRole.Mentee) &&
-    (!odtu || (session.organizationId && !session.individualMentee))
+    (!odtu ||
+      (session.organizationId &&
+        !session.individualMentee &&
+        !session.personalOrganization))
   ) {
     held.add(Workspace.GirisimMentee);
   }
