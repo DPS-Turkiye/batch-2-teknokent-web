@@ -12,6 +12,10 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
+import {
+  emptyListWithoutOrganization,
+  emptyPageWithoutOrganization,
+} from "@/lib/server/without-organization";
 
 export async function GET(request: NextRequest) {
   try {
@@ -38,6 +42,7 @@ export async function GET(request: NextRequest) {
         );
       }
       const { organizationId } = await getSessionIds();
+      if (!organizationId) return emptyPageWithoutOrganization(page, size);
       return backendResponse(
         await fetchMentorRequestsPage({
           organizationId,
@@ -58,6 +63,7 @@ export async function GET(request: NextRequest) {
       );
     }
     const { organizationId } = await getSessionIds();
+    if (!organizationId) return emptyListWithoutOrganization();
     return backendResponse(await fetchMentorRequests({ organizationId, role }));
   } catch (error) {
     return apiErrorResponse(error, {

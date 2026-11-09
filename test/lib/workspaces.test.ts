@@ -67,6 +67,20 @@ describe("workspacesOf", () => {
     ).toEqual([Workspace.OdtuStudent]);
   });
 
+  // An ODTÜ student's hidden team of one (their personal team) is no startup either.
+  it("opens no Girişim workspace for an ODTÜ student's personal team", () => {
+    expect(
+      workspacesOf(
+        account(UserRole.Mentee, {
+          organizationId: "personal-1",
+          personalOrganization: true,
+          permissions: [UserRole.Mentee],
+          institutionKinds: [IdentityKind.Student],
+        }),
+      ),
+    ).toEqual([Workspace.OdtuStudent]);
+  });
+
   it("opens nothing for an account that holds no permission", () => {
     expect(
       workspacesOf(
