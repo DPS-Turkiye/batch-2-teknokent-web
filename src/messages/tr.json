@@ -3409,7 +3409,18 @@
         "requests": {
           "title": "Taleplerim",
           "empty": "Henüz bir talep göndermedin.",
-          "sentAt": "Gönderildi: {date}"
+          "sentAt": "Gönderildi: {date}",
+          "book": "Randevu al",
+          "sessionAt": "Randevu: {date}",
+          "seeAppointment": "Randevuya git",
+          "booking": {
+            "title": "{name} ile randevu al",
+            "subtitle": "Mentorunun açık saatlerinden birini seç; randevu hemen onaylanır.",
+            "loading": "Açık saatler yükleniyor…",
+            "empty": "Mentorunun şu an açık saati yok. Daha sonra tekrar bakabilirsin.",
+            "booked": "Randevun oluşturuldu.",
+            "close": "Kapat"
+          }
         },
         "mentors": {
           "title": "Akran mentorları",

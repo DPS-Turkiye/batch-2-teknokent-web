@@ -3409,7 +3409,18 @@
         "requests": {
           "title": "My requests",
           "empty": "You haven't sent a request yet.",
-          "sentAt": "Sent: {date}"
+          "sentAt": "Sent: {date}",
+          "book": "Book a time",
+          "sessionAt": "Appointment: {date}",
+          "seeAppointment": "Go to appointment",
+          "booking": {
+            "title": "Book a time with {name}",
+            "subtitle": "Pick one of your mentor's open times; the appointment is confirmed right away.",
+            "loading": "Loading open times…",
+            "empty": "Your mentor has no open times right now. You can check again later.",
+            "booked": "Your appointment is booked.",
+            "close": "Close"
+          }
         },
         "mentors": {
           "title": "Peer mentors",
