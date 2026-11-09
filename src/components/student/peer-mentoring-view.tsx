@@ -5,21 +5,29 @@
 import { useTranslations } from "next-intl";
 
 import { PageHeading } from "@/components/admin/admin-ui";
-import { EmptyState } from "@/components/common/empty-state";
 import { PeerMentorDirectory } from "@/components/student/peer-mentor-directory";
+import { PeerMentorGiveView } from "@/components/student/peer-mentor-give-view";
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
+import { usePeerMentorGate } from "@/hooks/use-peer-mentor-give";
 import { usePeerMentoringSide } from "@/hooks/use-peer-mentoring";
 import { AppointmentSide } from "@/interfaces/appointment";
+import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 
 const SIDES = [
-  { side: AppointmentSide.Mentee, key: "get", ready: true },
-  // Mentorluk Ver lands in its own screen PR, after the badge and dual-role work.
-  { side: AppointmentSide.Mentor, key: "give", ready: false },
+  { side: AppointmentSide.Mentee, key: "get" },
+  { side: AppointmentSide.Mentor, key: "give" },
 ] as const;
 
 export function PeerMentoringView() {
   const t = useTranslations("odtuWorkspaces.student.peerMentoring");
-  const { side, setSide } = usePeerMentoringSide();
+  const { side: asked, setSide } = usePeerMentoringSide();
+  const gate = usePeerMentorGate();
+  // Mentorluk Ver is there for İŞKUR students and peer mentors only; a link to it opens Mentorluk Al for anyone else.
+  const canGive = gate.state !== PeerMentorGateState.Hidden;
+  const side = canGive ? asked : AppointmentSide.Mentee;
+  const sides = SIDES.filter(
+    (item) => canGive || item.side === AppointmentSide.Mentee,
+  );
 
   return (
     <div className="space-y-8">
@@ -29,7 +37,7 @@ export function PeerMentoringView() {
         aria-label={t("switchLabel")}
         className="inline-flex gap-1 rounded-full bg-[#f4f5f7] p-1"
       >
-        {SIDES.map((item) => {
+        {sides.map((item) => {
           const selected = item.side === side;
           return (
             <button
@@ -37,20 +45,14 @@ export function PeerMentoringView() {
               type="button"
               role="tab"
               aria-selected={selected}
-              disabled={!item.ready}
               onClick={() => setSide(item.side)}
               className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] ${
                 selected
                   ? "bg-white font-medium text-[#22262b] shadow-[0_1px_2px_rgba(33,38,43,0.08)]"
                   : "text-[#858c96]"
-              } disabled:cursor-default disabled:text-[#cfd4da]`}
+              }`}
             >
               {t(`switch.${item.key}`)}
-              {item.ready ? null : (
-                <span className="rounded-full bg-white px-2 py-0.5 text-[11px] text-[#858c96]">
-                  {t("soon")}
-                </span>
-              )}
             </button>
           );
         })}
@@ -61,11 +63,7 @@ export function PeerMentoringView() {
           <PeerMentorDirectory />
         </div>
       ) : (
-        <EmptyState
-          className=""
-          title={t("giveSoonTitle")}
-          body={t("giveSoonBody")}
-        />
+        <PeerMentorGiveView />
       )}
     </div>
   );

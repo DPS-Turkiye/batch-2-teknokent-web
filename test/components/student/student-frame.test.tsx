@@ -76,12 +76,11 @@ describe("StudentFrame", () => {
       "href",
       "/student/profile",
     );
-    for (const label of ["Office Hours"]) {
-      expect(within(nav).queryByRole("link", { name: label })).toBeNull();
-      expect(
-        within(nav).getByText(label).closest("[aria-disabled]"),
-      ).not.toBeNull();
-    }
+    const officeHours = within(nav).getByRole("link", {
+      name: /^Office Hours/,
+    });
+    expect(officeHours).toHaveAttribute("href", "/student/office-hours");
+    expect(within(officeHours).getByText("Yakında")).toBeVisible();
     expect(
       within(nav).getByRole("link", { name: "Randevularım" }),
     ).toHaveAttribute("href", "/student/appointments");

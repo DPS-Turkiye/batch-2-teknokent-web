@@ -3399,9 +3399,6 @@
           "get": "Get mentoring",
           "give": "Give mentoring"
         },
-        "soon": "Soon",
-        "giveSoonTitle": "Give mentoring is coming soon",
-        "giveSoonBody": "Students who earn the Peer Mentor badge will manage their requests, mentees and availability here.",
         "requests": {
           "title": "My requests",
           "empty": "You haven't sent a request yet.",
@@ -3433,6 +3430,88 @@
           "sending": "Sending…",
           "sent": "Your request was sent.",
           "failed": "Couldn't send the request."
+        },
+        "give": {
+          "loading": "Loading…",
+          "noBadge": {
+            "title": "No badge yet",
+            "body": "The Peer Mentor badge is awarded when you complete your program's training. The training will be here soon; until then your program coordinator awards the badge.",
+            "training": "Start the training (soon)"
+          },
+          "revoked": {
+            "title": "Your badge was taken back",
+            "expiredTitle": "Your badge has expired",
+            "body": "Without the Peer Mentor badge you cannot mentor right now. Talk to your program coordinator about mentorships that are still running.",
+            "reason": "Reason: {reason}"
+          },
+          "earned": {
+            "title": "Badge earned",
+            "body": "You can be a peer mentor now. Create your mentor profile; once it is published, students in your program can see you.",
+            "createProfile": "Create your mentor profile",
+            "signInAgain": "Your badge is new. Sign out and in again to start mentoring."
+          },
+          "received": {
+            "title": "Requests",
+            "empty": "No requests waiting for an answer.",
+            "accept": "Accept",
+            "decline": "Not a fit",
+            "sentAt": "Sent: {date}"
+          },
+          "mentees": {
+            "title": "My mentees",
+            "empty": "You haven't accepted a request yet."
+          },
+          "availability": {
+            "title": "Availability and capacity",
+            "save": "Save",
+            "saving": "Saving…"
+          },
+          "profile": {
+            "title": "My mentor profile",
+            "edit": "Edit profile"
+          },
+          "acceptMessage": "I accepted your request, talk soon!",
+          "declineMessage": "I can't help with this request right now.",
+          "accepted": "You accepted the request.",
+          "declined": "You answered that the request is not a fit.",
+          "decisionFailed": "Couldn't save your answer."
+        },
+        "wizard": {
+          "title": "Create your mentor profile",
+          "editTitle": "Edit your mentor profile",
+          "subtitle": "Once published, students in your program see you among the peer mentors.",
+          "step": "Step {number} of {total}",
+          "steps": {
+            "0": "Categories",
+            "1": "Sub-topics",
+            "2": "Relevant experience",
+            "3": "What can you help with?",
+            "4": "Links (optional)",
+            "5": "Weekly availability and capacity",
+            "6": "Preview"
+          },
+          "strongCourses": "Courses you are strong in",
+          "projects": "Your projects",
+          "onePerLine": "One per line.",
+          "erasmus": "Exchange or study abroad (optional)",
+          "helpWith": "What can you help with?",
+          "helpWithHint": "Students see this on your card. At least 20 characters.",
+          "linkedin": "Your LinkedIn address",
+          "cvLater": "Adding a CV and portfolio will be here soon.",
+          "previewNote": "This is how students will see you.",
+          "previewHours": "{ranges} weekly time ranges · up to {capacity} mentees · {minutes}-minute sessions",
+          "back": "Back",
+          "next": "Continue",
+          "publish": "Publish",
+          "publishing": "Publishing…",
+          "cancel": "Cancel",
+          "published": "Your mentor profile is live.",
+          "publishFailed": "Couldn't publish your profile.",
+          "errors": {
+            "categories": "Pick at least one category.",
+            "helpWith": "This text needs at least {min} characters.",
+            "link": "The link must start with http:// or https://."
+          }
         }
       },
       "profile": {
@@ -3479,12 +3558,19 @@
           "cancel": "Cancel",
           "saved": "Your interests are updated.",
           "saveError": "Couldn't save your interests. You can try again."
-        },
-        "badges": {
-          "title": "My badges",
-          "soonTitle": "Your badges will appear here soon",
-          "soonBody": "The Peer Mentor badge and the badges you earn through your sessions will show in this section."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Request an appointment in academicians' office hours.",
+        "soon": "Coming soon",
+        "soonTitle": "Office Hours is coming to Menton",
+        "soonBody": "Academicians' office hours aren't connected to Menton yet. Once they are, you'll see the hours here and request an appointment.",
+        "today": "For now, Office Hours appointments are booked through METU's Moodle page.",
+        "later": "Once connected, your appointments will show in My appointments, next to your peer-mentoring ones.",
+        "meanwhileTitle": "In the meantime",
+        "meanwhileBody": "You can get support from your program's peer mentors.",
+        "meanwhileAction": "Go to peer mentoring"
       }
     },
     "academician": {
@@ -5429,6 +5515,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Taken back because: {reason}"
+    },
+    "achievements": {
+      "title": "Achievement badges",
+      "hint": "Sessions the mentor marked as held and mentees' ratings count.",
+      "loading": "Loading achievement badges…",
+      "loadFailed": "Achievement badges could not be loaded.",
+      "earned": "Earned",
+      "earnedOn": "Earned on {date}",
+      "average": " · average {average} (at least {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} sessions",
+        "SESSIONS_10": "{current}/{target} sessions",
+        "HOURS_25": "{current}/{target} hours",
+        "WELL_RATED": "{current}/{target} ratings",
+        "ACTIVE_MENTEE": "{current}/{target} sessions you gave feedback on"
+      },
+      "summary": "{earned}/{total} earned"
     }
   },
   "peerParticipants": {
@@ -5482,7 +5585,32 @@
     "saved": "The training is live.",
     "saveFailed": "Could not save the training."
   },
+  "studentTraining": {
+    "title": "Peer Mentor training",
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "notAvailable": "The training is not ready yet. It shows up here once your program coordinator publishes it.",
+    "blocked": "Your Peer Mentor badge was taken back, so you cannot earn it again through the training. Talk to your program coordinator.",
+    "badgeActive": "You hold the Peer Mentor badge. You can create your mentor profile and start mentoring.",
+    "toMentorProfile": "Go to Mentoring",
+    "stepVideo": "1. Watch the video",
+    "videoIntro": "The quiz opens once you reach the end of the video.",
+    "videoTitle": "Peer Mentor training video",
+    "stepQuiz": "2. Quiz",
+    "quizIntro": "There are {total} questions; you need at least {pass} right to pass.",
+    "attemptsLeft": "You have {count} attempts left today.",
+    "startQuiz": "Start the quiz",
+    "tryAgain": "Try again",
+    "noAttemptsLeft": "You have used today’s attempts. You can try again after {date}.",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "submitFailed": "Could not submit your answers.",
+    "passed": "Congratulations, you earned the Peer Mentor badge!",
+    "failed": "Not this time.",
+    "score": "{score}/{total} right"
+  },
   "apiErrors": {
+    "trainingSubmitFailed": "Could not submit the answers.",
     "trainingLoadFailed": "Could not load the training.",
     "trainingSaveFailed": "Could not save the training.",
     "badgesLoadFailed": "Could not load the badges.",
@@ -5737,7 +5865,10 @@
     "teamLeaveFailed": "Could not leave the team.",
     "programLaunchFailed": "The program could not be launched.",
     "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
-    "peerMentoringRequestFailed": "Couldn't send the request."
+    "peerMentoringRequestFailed": "Couldn't send the request.",
+    "officeHoursFailed": "The office hours action could not be completed.",
+    "invalidRequestBody": "The request body could not be read.",
+    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile."
   },
   "startupStart": {
     "title": "My startup",
@@ -6112,10 +6243,6 @@
       "manageAvailability": "Manage availability",
       "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
     },
-    "student": {
-      "title": "Book office hours",
-      "comingSoon": "You'll request office hours from this course's academic and see your meetings here. This part is still being built."
-    },
     "launchError": {
       "again": "Go back to the course page on ODTÜClass and open the office hours link again.",
       "unavailable": {
@@ -6155,6 +6282,75 @@
       "edit": "Edit",
       "loading": "Loading...",
       "loadFailed": "Couldn't load availability."
+    },
+    "booking": {
+      "academics": "The course's academics",
+      "noAcademics": "The course's academics haven't opened office hours yet.",
+      "request": "Request office hours",
+      "myRequests": "My requests",
+      "incoming": "Incoming requests",
+      "noRequests": "No requests yet.",
+      "meetings": "Upcoming meetings",
+      "noMeetings": "No upcoming meetings.",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load. Try refreshing the page.",
+      "status": {
+        "PENDING": "Waiting for a reply",
+        "ACCEPTED": "Accepted",
+        "DECLINED": "Not available",
+        "MORE_INFO_REQUESTED": "More info requested",
+        "COUNTER_PROPOSED": "Other times offered",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "with": "With {name}",
+      "asked": "Requested times",
+      "proposed": "Offered times",
+      "meetingAt": "Meeting: {time} · {minutes} min",
+      "question": "The academic's question",
+      "answer": "Your answer",
+      "rejection": "Reason: {reason}",
+      "note": "Note: {message}",
+      "outcome": "Expected outcome: {outcome}",
+      "replyPlaceholder": "Write your answer",
+      "sendReply": "Send answer",
+      "takeTime": "Take this time",
+      "withdraw": "Withdraw request",
+      "accept": "Accept",
+      "decline": "Not available",
+      "askQuestion": "Ask a question",
+      "propose": "Offer other times",
+      "cancel": "Cancel",
+      "send": "Send",
+      "pickTime": "Which time will you meet?",
+      "declineReason": "Reason (optional)",
+      "questionPlaceholder": "Ask the student",
+      "proposeHint": "Offer up to 3 times, at least 4 hours from now.",
+      "messagePlaceholder": "Note (optional)",
+      "done": "Saved.",
+      "failed": "The action could not be completed.",
+      "dialog": {
+        "title": "Plan office hours with {name}",
+        "close": "Close",
+        "topic": "What do you want to talk about?",
+        "topicPlaceholder": "E.g. I'm stuck on question 3 of assignment 2.",
+        "outcome": "What do you expect from the meeting? (optional)",
+        "outcomePlaceholder": "E.g. A clear way to solve it.",
+        "availability": "The academic's open times",
+        "nextDays": "The coming days",
+        "noSlots": "The academic has no open times. Enter at least one preferred day and time below (up to three).",
+        "pickable": "Pickable time",
+        "enterPreference": "Or enter the times you prefer",
+        "preferenceHint": "Up to 3 times, on the hour or half hour, at least 4 hours from now.",
+        "preference": "Choice {number}",
+        "preferenceDay": "Day of choice {number}",
+        "preferenceTime": "Time of choice {number}",
+        "pickDay": "Pick a day",
+        "needSlots": "Pick at least one valid time.",
+        "needTopic": "Write what you want to talk about.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Your request was sent."
+      }
     }
   },
   "academicianWorkspace": {

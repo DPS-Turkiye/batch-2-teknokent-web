@@ -2,7 +2,9 @@ import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
 import { AppointmentSide } from "@/interfaces/appointment";
+import { type BadgeAward, BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -34,3 +36,39 @@ export function peerMentoringSide(value: string | null): AppointmentSide {
 
 export const PEER_REQUEST_MESSAGE_MIN = 20;
 export const PEER_REQUEST_MESSAGE_MAX = 1000;
+
+/**
+ * The Mentorluk Ver side a student sees. The badge is the source of truth (MENTOR in a session cookie can lag behind
+ * an award until the next sign-in check). D4 seam: a revoked or expired Akran Mentoru badge takes MENTOR away, and
+ * today that also closes the mentor side for requests and mentorships the student already has; when D4 is decided,
+ * this is the one rule to change (with PeerMentoringService.requirePeerMentor on the backend).
+ */
+export function peerMentorGateState({
+  holdsMentor,
+  iskurParticipant,
+  gateAward,
+}: {
+  holdsMentor: boolean;
+  iskurParticipant: boolean;
+  gateAward: Pick<BadgeAward, "status"> | null;
+}): PeerMentorGateState {
+  if (holdsMentor || gateAward?.status === BadgeStatus.Active) {
+    return PeerMentorGateState.Earned;
+  }
+  if (gateAward) return PeerMentorGateState.Revoked;
+  if (iskurParticipant) return PeerMentorGateState.NoBadge;
+  return PeerMentorGateState.Hidden;
+}
+
+/** The newest Akran Mentoru award among the student's badges, whatever its status. */
+export function latestGateAward<
+  T extends Pick<BadgeAward, "code" | "awardedAt">,
+>(awards: readonly T[]): T | null {
+  return (
+    [...awards]
+      .filter((award) => award.code === BadgeCode.PeerMentor)
+      .sort((left, right) =>
+        right.awardedAt.localeCompare(left.awardedAt),
+      )[0] ?? null
+  );
+}
