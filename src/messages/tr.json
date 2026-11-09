@@ -52,7 +52,8 @@
     "pagination": "Geri bildirim sayfaları",
     "previous": "Önceki",
     "next": "Sonraki",
-    "page": "Sayfa {page} / {total}"
+    "page": "Sayfa {page} / {total}",
+    "noProgram": "Program bilgisi yok"
   },
   "language": {
     "label": "Dil",

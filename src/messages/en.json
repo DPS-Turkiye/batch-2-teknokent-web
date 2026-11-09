@@ -52,7 +52,8 @@
     "pagination": "Feedback pages",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {page} of {total}"
+    "page": "Page {page} of {total}",
+    "noProgram": "No program on record"
   },
   "language": {
     "label": "Language",
