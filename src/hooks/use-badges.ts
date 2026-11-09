@@ -2,9 +2,18 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-import { getMyBadges, getUserBadges } from "@/lib/client/badges";
+import {
+  getMyAchievements,
+  getMyBadges,
+  getUserBadges,
+} from "@/lib/client/badges";
 
 export const MY_BADGES_QUERY_KEY = ["badges", "mine"] as const;
+export const MY_ACHIEVEMENTS_QUERY_KEY = [
+  "badges",
+  "mine",
+  "achievements",
+] as const;
 export const userBadgesQueryKey = (userId: string) =>
   ["badges", "user", userId] as const;
 
@@ -23,5 +32,14 @@ export function useUserBadges(userId: string | null) {
     queryKey: userBadgesQueryKey(userId ?? ""),
     queryFn: () => getUserBadges(userId ?? ""),
     enabled: Boolean(userId),
+  });
+}
+
+/** The signed-in person's achievement badges with their progress (Rozetlerim › Başarı rozetleri). */
+export function useMyAchievements(enabled = true) {
+  return useQuery({
+    queryKey: MY_ACHIEVEMENTS_QUERY_KEY,
+    queryFn: getMyAchievements,
+    enabled,
   });
 }

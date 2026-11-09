@@ -49,6 +49,24 @@ export type BadgeAward = {
   reason: string | null;
 };
 
+/** The badges earned by rules from sessions and feedback; every code but the gate badge. */
+export type AchievementCode = Exclude<BadgeCode, BadgeCode.PeerMentor>;
+
+/**
+ * One achievement badge as its holder sees it (`GET /api/me/badges/achievements`): earned, or how far along.
+ * `current`/`target` count sessions (FIRST_SESSION, SESSIONS_10), minutes (HOURS_25), rated feedbacks
+ * (WELL_RATED, which also needs `average` ≥ `averageTarget`) or sessions with feedback given (ACTIVE_MENTEE).
+ */
+export type AchievementProgress = {
+  code: AchievementCode;
+  earned: boolean;
+  awardedAt: string | null;
+  current: number;
+  target: number;
+  average: number | null;
+  averageTarget: number | null;
+};
+
 /** An active badge as anyone who can see the person sees it (`GET /api/users/{id}/badges`). */
 export type PublicBadge = {
   code: BadgeCode;
@@ -71,4 +89,27 @@ export type GateBadgeRow = {
   awardedAt: string | null;
   revokedAt: string | null;
   reason: string | null;
+  /** Progress on the program's current training version; "Eğitimde" when started without the badge. */
+  training: {
+    videoWatched: boolean;
+    attempts: number;
+    bestScore: number | null;
+  };
 };
+
+/** Started the training but holds no badge yet ("Eğitimde"). */
+export function inTraining(row: Pick<GateBadgeRow, "state" | "training">) {
+  return (
+    row.state === GateBadgeState.None &&
+    (row.training.videoWatched || row.training.attempts > 0)
+  );
+}
+
+/** The admin's Öğrenciler filter. "Eğitimde" is a view of "Rozet yok"; badges do not expire (D3), so there is no "Süresi doldu". */
+export enum StudentFilter {
+  All = "ALL",
+  None = "NONE",
+  InTraining = "IN_TRAINING",
+  Active = "ACTIVE",
+  Revoked = "REVOKED",
+}

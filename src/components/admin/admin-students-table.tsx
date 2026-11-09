@@ -5,17 +5,9 @@ import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 
 import { GateBadgeStateChip } from "@/components/badges/gate-badge-state-chip";
-import { GateBadgeState } from "@/interfaces/badges";
+import { inTraining, StudentFilter } from "@/interfaces/badges";
 import { useAdminStudents } from "@/hooks/use-admin-students";
 import { errorMessage, formatLongDate } from "@/lib/utils";
-
-// No "Süresi doldu" filter while badges cannot expire (decision D3).
-const FILTERS = [
-  null,
-  GateBadgeState.None,
-  GateBadgeState.Active,
-  GateBadgeState.Revoked,
-] as const;
 
 /**
  * Kullanıcılar › Öğrenciler: everyone in a peer program, with a "Rozet durumu" filter (Akran mentoru = Aktif).
@@ -33,21 +25,21 @@ export function AdminStudentsTable() {
         aria-label={t("filterLabel")}
         className="flex flex-wrap gap-2"
       >
-        {FILTERS.map((filter) => {
-          const active = students.state === filter;
+        {Object.values(StudentFilter).map((filter) => {
+          const active = students.filter === filter;
           return (
             <button
-              key={filter ?? "ALL"}
+              key={filter}
               type="button"
               aria-pressed={active}
-              onClick={() => students.setState(filter)}
+              onClick={() => students.setFilter(filter)}
               className={`rounded-full px-4 py-2 text-[13px] ${
                 active
                   ? "bg-[#22262b] font-medium text-white"
                   : "border border-[#e9ecef] text-[#676e78]"
               }`}
             >
-              {t(`filters.${filter ?? "ALL"}`)}
+              {t(`filters.${filter}`)}
             </button>
           );
         })}
@@ -94,7 +86,10 @@ export function AdminStudentsTable() {
                   </Link>
                 </td>
                 <td className="py-3">
-                  <GateBadgeStateChip state={row.state} />
+                  <GateBadgeStateChip
+                    state={row.state}
+                    inTraining={inTraining(row)}
+                  />
                 </td>
                 <td className="py-3 text-xs text-[#676e78]">
                   {row.awardedAt ? formatLongDate(row.awardedAt, locale) : "—"}

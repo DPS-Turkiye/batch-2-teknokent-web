@@ -12,6 +12,7 @@ import { useAvailabilitySettingsForm } from "@/hooks/use-mentor-profile";
 import {
   usePeerMentorGate,
   usePeerMentorProfile,
+  usePeerMentorTrainingEntry,
   usePeerRequestDecision,
   useReceivedPeerRequests,
 } from "@/hooks/use-peer-mentor-give";
@@ -44,9 +45,7 @@ export function PeerMentorGiveView() {
   if (gate.state === PeerMentorGateState.NoBadge) {
     return (
       <Notice title={t("noBadge.title")} body={t("noBadge.body")}>
-        <button type="button" disabled className={outlineButton}>
-          {t("noBadge.training")}
-        </button>
+        <TrainingEntry />
       </Notice>
     );
   }
@@ -69,6 +68,30 @@ export function PeerMentorGiveView() {
     return <EarnedView sessionBehind={gate.sessionBehind} />;
   }
   return null;
+}
+
+function TrainingEntry() {
+  const t = useTranslations("odtuWorkspaces.student.peerMentoring.give");
+  const entry = usePeerMentorTrainingEntry();
+  if (entry.href) {
+    return (
+      <Link href={entry.href} className={linkButton}>
+        {t("noBadge.training")}
+      </Link>
+    );
+  }
+  return (
+    <div className="space-y-1.5">
+      <button type="button" disabled className={outlineButton}>
+        {t("noBadge.training")}
+      </button>
+      {entry.reason ? (
+        <p className="text-[12.5px] text-[#858c96]">
+          {t(`noBadge.trainingReason.${entry.reason}`)}
+        </p>
+      ) : null}
+    </div>
+  );
 }
 
 function Notice({
