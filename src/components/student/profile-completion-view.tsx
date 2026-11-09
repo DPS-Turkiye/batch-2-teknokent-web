@@ -18,7 +18,7 @@ export function StudentProfileCompletionView() {
   const form = useStudentProfileCompletion();
   return (
     <div className="max-w-3xl space-y-6">
-      <PageHeading title={t("title")} subtitle={t("fixtureNotice")} />
+      <PageHeading title={t("title")} subtitle={t("subtitle")} />
       {form.isLoading ? (
         <p role="status">{t("loading")}</p>
       ) : form.loadError ? (

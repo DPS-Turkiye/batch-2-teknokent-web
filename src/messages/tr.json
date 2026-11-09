@@ -3544,7 +3544,7 @@
         },
         "interests": {
           "title": "İlgi alanların ve hedefin",
-          "fixtureNotice": "Örnek veriler: seçimler yalnızca bu tarayıcı oturumunda tutulur, hesabına kaydedilmez.",
+          "note": "Alt konular şimdilik örnek; kesin liste belirlenince güncellenecek.",
           "loading": "İlgi alanların yükleniyor…",
           "loadError": "İlgi alanların yüklenemedi.",
           "retry": "Tekrar dene",
@@ -5798,7 +5798,9 @@
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
-    "peerCategoriesInvalid": "Kategori listesi geçersiz."
+    "peerCategoriesInvalid": "Kategori listesi geçersiz.",
+    "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
+    "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6129,11 +6131,11 @@
   },
   "studentProfileCompletion": {
     "title": "Profilini tamamla",
-    "fixtureNotice": "Bu ekran örnek verilerle çalışır. Seçimler yalnızca bu tarayıcı oturumunda tutulur; sayfa yenilenince sıfırlanır. Canlı profil kaydı yapılmaz.",
+    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
     "loading": "Profil yükleniyor…",
     "loadError": "Profil yüklenemedi.",
     "retry": "Tekrar dene",
-    "saved": "Örnek profil tamamlandı. Canlı hesabına kaydedilmedi.",
+    "saved": "Profilin tamamlandı.",
     "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
     "home": "Ana sayfaya dön",
     "step": "Adım {number} / 3",
@@ -6145,10 +6147,10 @@
     "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Örnek profil kaydedilemedi. Tekrar deneyebilirsin.",
+    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
     "back": "Geri",
     "next": "Devam et",
-    "finish": "Örnek profili tamamla",
+    "finish": "Profili tamamla",
     "saving": "Kaydediliyor…",
     "skip": "Şimdilik atla",
     "subtopics": {
