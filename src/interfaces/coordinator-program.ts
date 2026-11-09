@@ -1,3 +1,4 @@
+import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
 export enum ProgramLifecycle {
@@ -133,6 +134,8 @@ export type CoordinatorProgramDetail = {
   coordinators: CoordinatorRef[];
   missingNoteMeetings: number;
   syllabus: ProgramSyllabus | null;
+  /** Everything Onaylar lists as waiting: applicants, mentor applications, startups and team changes. */
+  pendingApprovalCount: number;
 };
 
 export type UpdateProgramDetailsInput = {
@@ -164,7 +167,12 @@ export type ProgramPhaseInput = {
 /** A phase read from a syllabus; nothing is saved until the coordinator confirms it. */
 export type ProposedPhase = ProgramPhaseInput;
 
-export type SyllabusPhases = { phases: ProposedPhase[]; pageCount: number };
+/** Phases and a week-by-week plan read from a syllabus; nothing is saved until the coordinator confirms them. */
+export type SyllabusPhases = {
+  phases: ProposedPhase[];
+  weeks: ProgramPlanWeek[];
+  pageCount: number;
+};
 
 export type ExtractSyllabusPhasesInput = {
   documentId: string;

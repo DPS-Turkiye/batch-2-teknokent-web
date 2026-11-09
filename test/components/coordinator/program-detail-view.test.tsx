@@ -36,6 +36,10 @@ vi.mock("@/lib/client/program-peer-categories", () => ({
   replaceProgramPeerCategories: vi.fn(),
 }));
 
+vi.mock("@/lib/client/program-weeks", () => ({
+  getProgramWeekPlan: vi.fn(async () => ({ totalWeeks: null, weeks: [] })),
+  saveProgramWeekPlan: vi.fn(),
+}));
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
@@ -368,6 +372,48 @@ describe("coordinator program detail", () => {
     vi.useRealTimers();
   });
 
+  it("puts the weeks the AI read from the syllabus into the weekly plan for review", async () => {
+    const detail = coordinatorProgramDetail({
+      syllabus: {
+        id: "doc-syllabus",
+        filename: "mufredat.pdf",
+        sizeBytes: 19_540,
+        uploadedAt: "2026-06-01T09:00:00Z",
+      },
+    });
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+    vi.mocked(extractSyllabusPhases).mockResolvedValue({
+      pageCount: 1,
+      phases: [],
+      weeks: [
+        {
+          week: 1,
+          startDate: null,
+          endDate: null,
+          title: "Tanışma ve hedefler",
+          topics: ["Program kuralları"],
+          activities: [],
+          deliverables: [],
+          inferred: true,
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: /Fazları yeniden çıkar/ }),
+    );
+
+    expect(
+      await screen.findByDisplayValue("Tanışma ve hedefler"),
+    ).toBeVisible();
+    expect(
+      screen.getByText(/AI'nin müfredattan çıkardığı haftalar/),
+    ).toBeVisible();
+    expect(screen.getByText("Fazdan bölündü")).toBeVisible();
+  });
+
   it("keeps a re-read syllabus unsaved until every phase from the file has dates", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-06-10T12:00:00"));
@@ -382,6 +428,7 @@ describe("coordinator program detail", () => {
     vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
     vi.mocked(extractSyllabusPhases).mockResolvedValue({
       pageCount: 1,
+      weeks: [],
       phases: [
         {
           name: "Keşif",

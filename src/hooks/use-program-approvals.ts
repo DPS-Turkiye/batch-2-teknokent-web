@@ -43,6 +43,11 @@ export function useProgramApprovals(programId: string) {
       decideProgramApproval(programId, input.kind, input.id, input.accepted),
     onSuccess: (approvals: ProgramApprovals, input) => {
       queryClient.setQueryData(programApprovalsQueryKey(programId), approvals);
+      // The Onaylar tab's count comes with the program; exact, so the list set above is not fetched again.
+      void queryClient.invalidateQueries({
+        queryKey: coordinatorProgramQueryKey(programId),
+        exact: true,
+      });
       // An approved person or startup now counts towards the program's teams and people.
       void queryClient.invalidateQueries({
         queryKey: withoutTeamQueryKey(programId),

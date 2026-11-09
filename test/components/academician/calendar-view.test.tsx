@@ -84,6 +84,28 @@ describe("AcademicianCalendarView", () => {
     expect(within(list).queryByText("B-110")).toBeNull();
   });
 
+  it("refuses one-off hours on a day off and names it", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<AcademicianCalendarView />);
+    const form = await screen.findByRole("form", {
+      name: "Tek seferlik saatler",
+    });
+    fireEvent.change(within(form).getByLabelText("Tarih"), {
+      target: { value: sampleTime(11, 0).slice(0, 10) },
+    });
+    fireEvent.change(within(form).getByLabelText("Başlangıç"), {
+      target: { value: "10:00" },
+    });
+    fireEvent.change(within(form).getByLabelText("Bitiş"), {
+      target: { value: "11:00" },
+    });
+    await user.click(within(form).getByRole("button", { name: "Ekle" }));
+    expect(within(form).getByRole("alert")).toHaveTextContent(
+      "Bu tarih uygun olmadığın tarihler arasında (Konferans).",
+    );
+    expect((await getAcademicianAvailability()).oneOffs).toHaveLength(1);
+  });
+
   it("refuses one-off hours in the past", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<AcademicianCalendarView />);

@@ -124,12 +124,14 @@ describe("program tabs by type", () => {
 
   it("keeps Girişim's screens under Katılımcılar with their counts", () => {
     const detail = detailOf(ProgramType.StartupMentoring);
-    expect(programTabs(detail, "p1").map((tab) => [tab.id, tab.href])).toEqual([
-      [ProgramTab.Overview, "/coordinator/programs/p1"],
-      [ProgramTab.Participants, "/coordinator/programs/p1/teams"],
-      [ProgramTab.Matching, "/coordinator/programs/p1/matching"],
-      [ProgramTab.Approvals, "/coordinator/programs/p1/approvals"],
-      [ProgramTab.Settings, "/coordinator/programs/p1/settings"],
+    expect(
+      programTabs(detail, "p1").map((tab) => [tab.id, tab.href, tab.count]),
+    ).toEqual([
+      [ProgramTab.Overview, "/coordinator/programs/p1", null],
+      [ProgramTab.Participants, "/coordinator/programs/p1/teams", null],
+      [ProgramTab.Matching, "/coordinator/programs/p1/matching", 5],
+      [ProgramTab.Approvals, "/coordinator/programs/p1/approvals", 6],
+      [ProgramTab.Settings, "/coordinator/programs/p1/settings", null],
     ]);
     expect(participantTabs(detail, "p1")).toEqual([
       {
@@ -168,6 +170,11 @@ describe("program tabs by type", () => {
     expect(programTabs(detail, "p1")[1].href).toBe(
       "/coordinator/programs/p1/students",
     );
+    expect(
+      programTabs({ ...detail, pendingApprovalCount: 0 }, "p1").find(
+        (tab) => tab.id === ProgramTab.Approvals,
+      )?.count,
+    ).toBe(0);
     expect(participantTabs(detail, "p1")).toEqual([
       {
         id: ParticipantTab.Students,

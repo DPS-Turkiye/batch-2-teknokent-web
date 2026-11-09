@@ -130,6 +130,19 @@ export function useAcademicianCalendar() {
       setOneOffError(t("notPast"));
       return;
     }
+    // A day off means no office hours that day; lift it first instead of mixing the two.
+    const dayOff = saved.exceptions.find(
+      (exception) =>
+        exception.startsOn <= oneOff.date && oneOff.date <= exception.endsOn,
+    );
+    if (dayOff) {
+      setOneOffError(
+        dayOff.reason
+          ? t("insideDayOffReason", { reason: dayOff.reason })
+          : t("insideDayOff"),
+      );
+      return;
+    }
     const added = [
       ...saved.oneOffs,
       { ...range, place: oneOff.place.trim() || null },

@@ -107,7 +107,13 @@ export function programTabs(
         },
     ...(officeHours
       ? []
-      : [{ id: ProgramTab.Approvals, href: `${base}/approvals`, count: null }]),
+      : [
+          {
+            id: ProgramTab.Approvals,
+            href: `${base}/approvals`,
+            count: detail.pendingApprovalCount,
+          },
+        ]),
     { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
 }
