@@ -11,9 +11,9 @@ import { Workspace } from "@/interfaces/workspace";
 export const STUDENT_HOME = "/student";
 
 /**
- * Items are `disabled` ("Yakında") until their screen lands; each screen's PR switches its own
- * item on. Office Hours belongs to the Office Hours lane. Links elsewhere in the workspace follow
- * the same switch through `studentRouteReady`.
+ * Items are `disabled` until their screen lands; each screen's PR switches its own item on. Office
+ * Hours is `soon`: it runs from Moodle for now, so its page says so with a "Yakında" chip. Links
+ * elsewhere in the workspace follow the same switches through `studentRouteReady` / `studentRouteSoon`.
  */
 export const STUDENT_NAV: RoleNavItem[] = [
   {
@@ -33,7 +33,7 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "officeHours",
     icon: "/mentor-dashboard/revised/clock.svg",
     match: (path) => path.startsWith("/student/office-hours"),
-    disabled: true,
+    soon: true,
   },
   {
     href: "/student/appointments",
@@ -53,6 +53,11 @@ export const STUDENT_NAV: RoleNavItem[] = [
 export function studentRouteReady(href: string) {
   const item = STUDENT_NAV.find((nav) => nav.match(href));
   return Boolean(item && !item.disabled);
+}
+
+/** Whether the screen at `href` is open but only says what is coming ("Yakında"). */
+export function studentRouteSoon(href: string) {
+  return Boolean(STUDENT_NAV.find((nav) => nav.match(href))?.soon);
 }
 
 export function StudentFrame({ children }: { children: ReactNode }) {
