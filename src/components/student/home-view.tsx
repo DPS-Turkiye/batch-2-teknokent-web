@@ -15,7 +15,10 @@ import {
 } from "@/components/admin/admin-ui";
 import { AppointmentRoleLabel } from "@/components/appointments/appointment-role-label";
 import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
-import { studentRouteReady } from "@/components/student/student-frame";
+import {
+  studentRouteReady,
+  studentRouteSoon,
+} from "@/components/student/student-frame";
 import { useStudentHome } from "@/hooks/use-student-home";
 import type { Appointment } from "@/interfaces/appointment";
 import { formatDateTime } from "@/lib/utils";
@@ -140,7 +143,7 @@ function UpcomingRow({ appointment }: { appointment: Appointment }) {
   );
 }
 
-/** A link once its screen has landed; until then the same content with a "Yakında" chip. */
+/** A link once its screen has landed (chipped "Yakında" while it only says what is coming); before that, the same content unclickable with the chip. */
 function ReadyLink({
   href,
   className,
@@ -155,6 +158,11 @@ function ReadyLink({
     return (
       <Link href={href} className={className}>
         {children}
+        {studentRouteSoon(href) ? (
+          <span className="mt-3 inline-block">
+            <StatusChip tone="neutral">{t("soon")}</StatusChip>
+          </span>
+        ) : null}
       </Link>
     );
   }

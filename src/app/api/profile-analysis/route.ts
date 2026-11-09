@@ -7,10 +7,12 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
+import { forbiddenWithoutOrganization } from "@/lib/server/without-organization";
 
 export async function GET(request: NextRequest) {
   try {
     const { organizationId } = await getSessionIds();
+    if (!organizationId) return forbiddenWithoutOrganization();
     const appUserId =
       request.nextUrl.searchParams.get("appUserId") ?? undefined;
     return backendResponse(

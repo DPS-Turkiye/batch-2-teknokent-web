@@ -3564,6 +3564,18 @@
           "saved": "İlgi alanların güncellendi.",
           "saveError": "İlgi alanların kaydedilemedi. Tekrar deneyebilirsin."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Akademisyenlerin görüşme saatlerinden randevu iste.",
+        "soon": "Yakında",
+        "soonTitle": "Office Hours yakında Menton'da",
+        "soonBody": "Akademisyenlerin görüşme saatleri henüz Menton'a bağlı değil. Bağlandığında saatleri burada görüp randevu isteyebileceksin.",
+        "today": "Şimdilik Office Hours randevuları ODTÜ'nün Moodle sayfası üzerinden alınıyor.",
+        "later": "Bağlantı tamamlanınca randevuların Randevularım'da, akran mentörlüğü randevularının yanında görünecek.",
+        "meanwhileTitle": "Bu arada",
+        "meanwhileBody": "Programındaki akran mentorlarından destek alabilirsin.",
+        "meanwhileAction": "Akran mentörlüğüne git"
       }
     },
     "academician": {
@@ -5508,6 +5520,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Geri alınma nedeni: {reason}"
+    },
+    "achievements": {
+      "title": "Başarı rozetleri",
+      "hint": "Mentorun “Görüşme yapıldı” dediği görüşmeler ve mentee'lerin değerlendirmeleri sayılır.",
+      "loading": "Başarı rozetleri yükleniyor…",
+      "loadFailed": "Başarı rozetleri yüklenemedi.",
+      "earned": "Kazanıldı",
+      "earnedOn": "{date} tarihinde kazanıldı",
+      "average": " · ortalama {average} (en az {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} görüşme",
+        "SESSIONS_10": "{current}/{target} görüşme",
+        "HOURS_25": "{current}/{target} saat",
+        "WELL_RATED": "{current}/{target} değerlendirme",
+        "ACTIVE_MENTEE": "Geri bildirim verdiğin {current}/{target} görüşme"
+      },
+      "summary": "{earned}/{total} kazanıldı"
     }
   },
   "peerParticipants": {
@@ -5586,8 +5615,6 @@
     "score": "{score}/{total} doğru"
   },
   "apiErrors": {
-    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
-    "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "trainingSubmitFailed": "Cevaplar gönderilemedi.",
     "trainingLoadFailed": "Eğitim yüklenemedi.",
     "trainingSaveFailed": "Eğitim kaydedilemedi.",
@@ -5842,6 +5869,10 @@
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
     "programLaunchFailed": "Program başlatılamadı.",
+    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
+    "peerMentoringRequestFailed": "Talep gönderilemedi.",
+    "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
+    "invalidRequestBody": "İstek gövdesi okunamadı.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi."
   },
   "startupStart": {
@@ -6204,6 +6235,150 @@
       "clubs": "Örnek: Öğrenci toplulukları",
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
+    }
+  },
+  "officeHours": {
+    "title": "Ofis saatleri",
+    "course": "Ders",
+    "roles": {
+      "INSTRUCTOR": "Akademisyen",
+      "STUDENT": "Öğrenci"
+    },
+    "instructor": {
+      "manageAvailability": "Müsaitliği yönet",
+      "availabilityHint": "Ofis saatlerin profilindeki müsaitliğinden gelir ve verdiğin tüm dersler için geçerlidir."
+    },
+    "launchError": {
+      "again": "ODTÜClass'ta dersin sayfasına dönüp ofis saatleri bağlantısını yeniden aç.",
+      "unavailable": {
+        "title": "Ofis saatleri şu an açılamadı",
+        "body": "Menton'a ulaşılamadı ya da ODTÜClass bağlantısı henüz ayarlanmadı."
+      },
+      "rejected": {
+        "title": "Bağlantı doğrulanamadı",
+        "body": "ODTÜClass'tan gelen giriş bilgisi geçersiz ya da daha önce kullanılmış."
+      },
+      "no-role": {
+        "title": "Bu derste ofis saatlerine erişimin yok",
+        "body": "Ofis saatleri yalnızca dersin akademisyenleri ve öğrencileri içindir."
+      },
+      "expired": {
+        "title": "Oturumun sona erdi",
+        "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
+      }
+    },
+    "availability": {
+      "title": "Ofis saatlerini düzenle",
+      "subtitle": "Öğrenciler yalnızca açık bıraktığın saatlerde ofis saati talep edebilir.",
+      "close": "Düzenlemeyi kapat",
+      "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet",
+      "studentCapacity": "Eş zamanlı öğrenci limiti"
+    },
+    "profile": {
+      "title": "Profilim",
+      "role": "Akademisyen",
+      "editAvailability": "Müsaitliği düzenle",
+      "availabilityTitle": "Müsaitlik",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "empty": "Tanımlı haftalık saat yok.",
+      "edit": "Düzenle",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Müsaitlik yüklenemedi."
+    },
+    "booking": {
+      "academics": "Dersin akademisyenleri",
+      "noAcademics": "Bu dersin akademisyenleri henüz ofis saatlerini açmadı.",
+      "request": "Ofis saati talep et",
+      "myRequests": "Taleplerim",
+      "incoming": "Gelen talepler",
+      "noRequests": "Henüz talep yok.",
+      "meetings": "Yaklaşan görüşmeler",
+      "noMeetings": "Yaklaşan görüşme yok.",
+      "loading": "Yükleniyor…",
+      "loadFailed": "Yüklenemedi. Sayfayı yenilemeyi dene.",
+      "status": {
+        "PENDING": "Yanıt bekleniyor",
+        "ACCEPTED": "Kabul edildi",
+        "DECLINED": "Uygun değil",
+        "MORE_INFO_REQUESTED": "Ek bilgi istendi",
+        "COUNTER_PROPOSED": "Başka saat önerildi",
+        "WITHDRAWN": "Geri çekildi"
+      },
+      "with": "{name} ile",
+      "asked": "İstenen saatler",
+      "proposed": "Önerilen saatler",
+      "meetingAt": "Görüşme: {time} · {minutes} dk",
+      "question": "Akademisyenin sorusu",
+      "answer": "Cevabın",
+      "rejection": "Neden: {reason}",
+      "note": "Not: {message}",
+      "outcome": "Beklenen sonuç: {outcome}",
+      "replyPlaceholder": "Cevabını yaz",
+      "sendReply": "Cevabı gönder",
+      "takeTime": "Bu saati seç",
+      "withdraw": "Talebi geri çek",
+      "accept": "Kabul et",
+      "decline": "Uygun değil",
+      "askQuestion": "Soru sor",
+      "propose": "Başka saat öner",
+      "cancel": "Vazgeç",
+      "send": "Gönder",
+      "pickTime": "Hangi saatte görüşeceksiniz?",
+      "declineReason": "Neden (isteğe bağlı)",
+      "questionPlaceholder": "Öğrenciye sorun",
+      "proposeHint": "En fazla 3 saat öner. Saatler en erken 4 saat sonrası olabilir.",
+      "messagePlaceholder": "Not (isteğe bağlı)",
+      "done": "Kaydedildi.",
+      "failed": "İşlem tamamlanamadı.",
+      "dialog": {
+        "title": "{name} ile ofis saati planla",
+        "close": "Kapat",
+        "topic": "Görüşmek istediğin konu",
+        "topicPlaceholder": "Örn. 2. ödevdeki 3. soruda takıldım.",
+        "outcome": "Görüşmeden ne bekliyorsun? (isteğe bağlı)",
+        "outcomePlaceholder": "Örn. Çözüm yolunu netleştirmek.",
+        "availability": "Akademisyenin uygun saatleri",
+        "nextDays": "Önümüzdeki günler",
+        "noSlots": "Akademisyenin açık saati yok. Aşağıdan en az bir tercih günü ve saati girebilirsin (en fazla üç).",
+        "pickable": "Seçilebilir saat",
+        "enterPreference": "Ya da tercih ettiğin saatleri gir",
+        "preferenceHint": "En fazla 3 saat. Saatler yarım ya da tam saat ve en erken 4 saat sonrası olmalı.",
+        "preference": "{number}. tercih",
+        "preferenceDay": "{number}. tercih günü",
+        "preferenceTime": "{number}. tercih saati",
+        "pickDay": "Gün seç",
+        "needSlots": "En az bir geçerli saat seç.",
+        "needTopic": "Görüşmek istediğin konuyu yaz.",
+        "send": "Talep gönder",
+        "sending": "Gönderiliyor…",
+        "sent": "Talebin gönderildi."
+      }
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez.",
+    "queryState": {
+      "loading": "Yükleniyor…",
+      "error": "Yüklenemedi.",
+      "retry": "Tekrar dene"
+    },
+    "studyLevel": {
+      "BACHELOR": "Lisans",
+      "MASTER": "Yüksek lisans",
+      "DOCTORATE": "Doktora"
+    },
+    "advisees": {
+      "title": "Danışan Öğrencilerim",
+      "subtitle": "ODTÜ kayıtlarındaki danışmanlığındaki öğrenciler. Bu bilgiler salt okunurdur.",
+      "search": "Öğrenci ara",
+      "count": "{count} öğrenci",
+      "classYear": "{year}. sınıf",
+      "notSignedIn": "Menton'a henüz giriş yapmadı",
+      "empty": "ODTÜ kayıtlarında danışmanlığında öğrenci görünmüyor.",
+      "noMatch": "Aramana uyan öğrenci yok."
     }
   }
 }

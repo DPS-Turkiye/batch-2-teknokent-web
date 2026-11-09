@@ -3564,6 +3564,18 @@
           "saved": "Your interests are updated.",
           "saveError": "Couldn't save your interests. You can try again."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Request an appointment in academicians' office hours.",
+        "soon": "Coming soon",
+        "soonTitle": "Office Hours is coming to Menton",
+        "soonBody": "Academicians' office hours aren't connected to Menton yet. Once they are, you'll see the hours here and request an appointment.",
+        "today": "For now, Office Hours appointments are booked through METU's Moodle page.",
+        "later": "Once connected, your appointments will show in My appointments, next to your peer-mentoring ones.",
+        "meanwhileTitle": "In the meantime",
+        "meanwhileBody": "You can get support from your program's peer mentors.",
+        "meanwhileAction": "Go to peer mentoring"
       }
     },
     "academician": {
@@ -5508,6 +5520,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Taken back because: {reason}"
+    },
+    "achievements": {
+      "title": "Achievement badges",
+      "hint": "Sessions the mentor marked as held and mentees' ratings count.",
+      "loading": "Loading achievement badges…",
+      "loadFailed": "Achievement badges could not be loaded.",
+      "earned": "Earned",
+      "earnedOn": "Earned on {date}",
+      "average": " · average {average} (at least {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} sessions",
+        "SESSIONS_10": "{current}/{target} sessions",
+        "HOURS_25": "{current}/{target} hours",
+        "WELL_RATED": "{current}/{target} ratings",
+        "ACTIVE_MENTEE": "{current}/{target} sessions you gave feedback on"
+      },
+      "summary": "{earned}/{total} earned"
     }
   },
   "peerParticipants": {
@@ -5586,8 +5615,6 @@
     "score": "{score}/{total} right"
   },
   "apiErrors": {
-    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
-    "peerMentoringRequestFailed": "Couldn't send the request.",
     "trainingSubmitFailed": "Could not submit the answers.",
     "trainingLoadFailed": "Could not load the training.",
     "trainingSaveFailed": "Could not save the training.",
@@ -5842,6 +5869,10 @@
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
     "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request.",
+    "officeHoursFailed": "The office hours action could not be completed.",
+    "invalidRequestBody": "The request body could not be read.",
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile."
   },
   "startupStart": {
@@ -6204,6 +6235,150 @@
       "clubs": "Example: Student clubs",
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
+    }
+  },
+  "officeHours": {
+    "title": "Office hours",
+    "course": "Course",
+    "roles": {
+      "INSTRUCTOR": "Academic",
+      "STUDENT": "Student"
+    },
+    "instructor": {
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
+    },
+    "launchError": {
+      "again": "Go back to the course page on ODTÜClass and open the office hours link again.",
+      "unavailable": {
+        "title": "Office hours can't open right now",
+        "body": "Menton couldn't be reached, or the ODTÜClass connection isn't set up yet."
+      },
+      "rejected": {
+        "title": "The link couldn't be verified",
+        "body": "The sign-in details from ODTÜClass are invalid or were already used."
+      },
+      "no-role": {
+        "title": "You don't have access to office hours in this course",
+        "body": "Office hours are for the course's academics and students only."
+      },
+      "expired": {
+        "title": "Your session has ended",
+        "body": "For your security, the office hours session closes after a while."
+      }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
+    },
+    "booking": {
+      "academics": "The course's academics",
+      "noAcademics": "The course's academics haven't opened office hours yet.",
+      "request": "Request office hours",
+      "myRequests": "My requests",
+      "incoming": "Incoming requests",
+      "noRequests": "No requests yet.",
+      "meetings": "Upcoming meetings",
+      "noMeetings": "No upcoming meetings.",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load. Try refreshing the page.",
+      "status": {
+        "PENDING": "Waiting for a reply",
+        "ACCEPTED": "Accepted",
+        "DECLINED": "Not available",
+        "MORE_INFO_REQUESTED": "More info requested",
+        "COUNTER_PROPOSED": "Other times offered",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "with": "With {name}",
+      "asked": "Requested times",
+      "proposed": "Offered times",
+      "meetingAt": "Meeting: {time} · {minutes} min",
+      "question": "The academic's question",
+      "answer": "Your answer",
+      "rejection": "Reason: {reason}",
+      "note": "Note: {message}",
+      "outcome": "Expected outcome: {outcome}",
+      "replyPlaceholder": "Write your answer",
+      "sendReply": "Send answer",
+      "takeTime": "Take this time",
+      "withdraw": "Withdraw request",
+      "accept": "Accept",
+      "decline": "Not available",
+      "askQuestion": "Ask a question",
+      "propose": "Offer other times",
+      "cancel": "Cancel",
+      "send": "Send",
+      "pickTime": "Which time will you meet?",
+      "declineReason": "Reason (optional)",
+      "questionPlaceholder": "Ask the student",
+      "proposeHint": "Offer up to 3 times, at least 4 hours from now.",
+      "messagePlaceholder": "Note (optional)",
+      "done": "Saved.",
+      "failed": "The action could not be completed.",
+      "dialog": {
+        "title": "Plan office hours with {name}",
+        "close": "Close",
+        "topic": "What do you want to talk about?",
+        "topicPlaceholder": "E.g. I'm stuck on question 3 of assignment 2.",
+        "outcome": "What do you expect from the meeting? (optional)",
+        "outcomePlaceholder": "E.g. A clear way to solve it.",
+        "availability": "The academic's open times",
+        "nextDays": "The coming days",
+        "noSlots": "The academic has no open times. Enter at least one preferred day and time below (up to three).",
+        "pickable": "Pickable time",
+        "enterPreference": "Or enter the times you prefer",
+        "preferenceHint": "Up to 3 times, on the hour or half hour, at least 4 hours from now.",
+        "preference": "Choice {number}",
+        "preferenceDay": "Day of choice {number}",
+        "preferenceTime": "Time of choice {number}",
+        "pickDay": "Pick a day",
+        "needSlots": "Pick at least one valid time.",
+        "needTopic": "Write what you want to talk about.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Your request was sent."
+      }
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved.",
+    "queryState": {
+      "loading": "Loading…",
+      "error": "Could not load.",
+      "retry": "Try again"
+    },
+    "studyLevel": {
+      "BACHELOR": "Bachelor's",
+      "MASTER": "Master's",
+      "DOCTORATE": "Doctorate"
+    },
+    "advisees": {
+      "title": "My advisees",
+      "subtitle": "Students you advise according to ODTÜ's records. This information is read-only.",
+      "search": "Search students",
+      "count": "{count} students",
+      "classYear": "Year {year}",
+      "notSignedIn": "Has not signed in to Menton yet",
+      "empty": "ODTÜ's records show no students you advise.",
+      "noMatch": "No students match your search."
     }
   }
 }

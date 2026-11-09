@@ -22,6 +22,7 @@ import {
   needsAttention,
 } from "@/components/admin/admin-model";
 import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import {
   AdminIcon,
   AdminOverlay,
@@ -39,6 +40,12 @@ import type {
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 import { isoDay } from "@/lib/coordinator-calendar";
 import { satisfactionKpi } from "@/lib/meeting-ratings";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  PROGRAM_TYPE_FILTERS,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 
 type RangeId = "8" | "13" | "all";
@@ -67,6 +74,8 @@ export function ProgramReporting({
   fixedProgram?: boolean;
 }) {
   const t = useTranslations("adminReporting");
+  const tType = useTranslations("programTypes");
+  const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   const [programId, setProgramId] = useState<string | null>(null);
   const [range, setRange] = useState<RangeId>("8");
   const [tab, setTab] = useState<TabId>("program");
@@ -74,10 +83,13 @@ export function ProgramReporting({
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(
     null,
   );
+  const typed = data.programs.filter((item) =>
+    matchesProgramType(item.type, type),
+  );
   const program =
-    data.programs.find((item) => item.id === programId) ??
-    data.programs.find((item) => item.status === "ACTIVE") ??
-    data.programs[0] ??
+    typed.find((item) => item.id === programId) ??
+    typed.find((item) => item.status === "ACTIVE") ??
+    typed[0] ??
     null;
   const weeks = weekStarts(range, program?.createdAt);
   const pairs = program ? pairsIn(data, program) : [];
@@ -91,12 +103,44 @@ export function ProgramReporting({
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-[13px] text-[#858c96]">
-          {program
-            ? `${program.name} · ${t(`ranges.${range}`)}`
-            : t("noProgram")}
+        <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#858c96]">
+          {program ? (
+            <>
+              {`${program.name} · ${t(`ranges.${range}`)}`}
+              <ProgramTypeChip type={program.type} />
+            </>
+          ) : (
+            t("noProgram")
+          )}
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <label
+            className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
+          >
+            <span className="text-[#858c96]">{tType("label")}</span>
+            <select
+              aria-label={tType("label")}
+              value={type}
+              onChange={(event) => {
+                setType(event.target.value as ProgramTypeFilter);
+                setProgramId(null);
+                setSelectedId(null);
+              }}
+              className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
+            >
+              {PROGRAM_TYPE_FILTERS.map((option) => (
+                <option key={option} value={option}>
+                  {tType(option)}
+                </option>
+              ))}
+            </select>
+            <AdminIcon
+              src="/admin/chevron-down-sm.svg"
+              width={16}
+              height={16}
+            />
+          </label>
           <label
             className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
           >
@@ -110,7 +154,7 @@ export function ProgramReporting({
               }}
               className="max-w-[180px] appearance-none bg-transparent font-medium text-[#22262b] outline-none"
             >
-              {data.programs.map((item) => (
+              {typed.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
                 </option>

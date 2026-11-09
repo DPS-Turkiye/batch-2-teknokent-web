@@ -1,6 +1,7 @@
 import "server-only";
 
 import type {
+  AchievementProgress,
   BadgeAward,
   GateBadgeRow,
   GateBadgeState,
@@ -16,6 +17,14 @@ export function fetchMyBadges(actorId: string) {
   return backendRequest<BadgeAward[]>({
     method: HttpMethod.Get,
     url: "/api/badges/mine",
+    params: { actorId },
+  });
+}
+
+export function fetchMyAchievements(actorId: string) {
+  return backendRequest<AchievementProgress[]>({
+    method: HttpMethod.Get,
+    url: "/api/badges/mine/achievements",
     params: { actorId },
   });
 }

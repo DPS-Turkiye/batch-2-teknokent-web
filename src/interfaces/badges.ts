@@ -49,6 +49,24 @@ export type BadgeAward = {
   reason: string | null;
 };
 
+/** The badges earned by rules from sessions and feedback; every code but the gate badge. */
+export type AchievementCode = Exclude<BadgeCode, BadgeCode.PeerMentor>;
+
+/**
+ * One achievement badge as its holder sees it (`GET /api/me/badges/achievements`): earned, or how far along.
+ * `current`/`target` count sessions (FIRST_SESSION, SESSIONS_10), minutes (HOURS_25), rated feedbacks
+ * (WELL_RATED, which also needs `average` ≥ `averageTarget`) or sessions with feedback given (ACTIVE_MENTEE).
+ */
+export type AchievementProgress = {
+  code: AchievementCode;
+  earned: boolean;
+  awardedAt: string | null;
+  current: number;
+  target: number;
+  average: number | null;
+  averageTarget: number | null;
+};
+
 /** An active badge as anyone who can see the person sees it (`GET /api/users/{id}/badges`). */
 export type PublicBadge = {
   code: BadgeCode;

@@ -9,6 +9,7 @@ import {
   getCoordinatorMentorships,
   remindCoordinatorMentorship,
 } from "@/lib/client/coordinator-mentorships";
+import { ProgramType } from "@/interfaces/program";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
 import {
   coordinatorMentorship,
@@ -56,6 +57,43 @@ describe("CoordinatorMentorshipsView", () => {
     vi.mocked(getCoordinatorMentorship).mockResolvedValue(
       coordinatorMentorshipDetail(),
     );
+  });
+
+  it("shows each mentorship's program type and narrows the list to one type", async () => {
+    vi.mocked(getCoordinatorPrograms).mockResolvedValue([
+      coordinatorProgram(),
+      coordinatorProgram({
+        id: "program-peer",
+        name: "İŞKUR Akran 2026",
+        type: ProgramType.PeerMentoring,
+      }),
+    ]);
+    vi.mocked(getCoordinatorMentorships).mockResolvedValue([
+      lumen,
+      { ...kavun, programId: "program-peer", programName: "İŞKUR Akran 2026" },
+    ]);
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <CoordinatorMentorshipsView initialSelectedId={null} />,
+    );
+
+    expect(await screen.findByText("Ayşe Demir ↔ Kavun")).toBeInTheDocument();
+    expect(
+      screen.getByText("Akran Mentörlüğü", { selector: "span" }),
+    ).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Program türü" }),
+      ProgramType.PeerMentoring,
+    );
+
+    expect(screen.queryByText("Ayşe Demir ↔ Lumen")).not.toBeInTheDocument();
+    expect(screen.getByText("Ayşe Demir ↔ Kavun")).toBeInTheDocument();
+    const program = screen.getByRole("combobox", { name: "Program:" });
+    expect(
+      within(program)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Tüm programlar", "İŞKUR Akran 2026"]);
   });
 
   it("lists the mentorships with an intervention button on the risky one", async () => {
