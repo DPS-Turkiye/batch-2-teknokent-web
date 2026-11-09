@@ -20,6 +20,9 @@ export function platformFeedback(
     authorRole: UserRole.Mentee,
     createdAt: "2026-11-05T10:00:00Z",
     readAt: null,
+    programId: null,
+    programName: null,
+    programType: null,
     ...overrides,
   };
 }

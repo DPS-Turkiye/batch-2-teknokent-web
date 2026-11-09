@@ -18,6 +18,8 @@ export function buildContentSecurityPolicy(isDevelopment: boolean) {
     "script-src 'self' 'unsafe-inline'",
     isDevelopment ? "'unsafe-eval'" : "",
     "https://apis.google.com https://www.gstatic.com",
+    // The Akran Mentoru training's YouTube player (IFrame Player API).
+    "https://www.youtube.com",
   ]
     .filter(Boolean)
     .join(" ");
@@ -38,7 +40,7 @@ export function buildContentSecurityPolicy(isDevelopment: boolean) {
     "font-src 'self' data:",
     connectSrc,
     // blob: is the in-app document preview (PDF/office fetched same-origin).
-    "frame-src 'self' blob: https://accounts.google.com https://*.firebaseapp.com https://view.officeapps.live.com",
+    "frame-src 'self' blob: https://accounts.google.com https://*.firebaseapp.com https://view.officeapps.live.com https://www.youtube-nocookie.com",
     "worker-src 'self' blob:",
   ].join("; ");
 }

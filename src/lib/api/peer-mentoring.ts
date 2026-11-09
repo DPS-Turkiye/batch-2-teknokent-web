@@ -3,6 +3,8 @@ import "server-only";
 import type {
   CreatePeerMentoringRequestInput,
   PeerMentorCard,
+  PeerMentorProfile,
+  SavePeerMentorProfileInput,
   PeerMentoringRequest,
   PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
@@ -39,6 +41,25 @@ export function createPeerMentoringRequest(
   return backendRequest<PeerMentoringRequest>({
     method: HttpMethod.Post,
     url: "/api/peer-mentoring/requests",
+    data: { ...input, actorId },
+  });
+}
+
+export function fetchPeerMentorProfile(actorId: string) {
+  return backendRequest<PeerMentorProfile>({
+    method: HttpMethod.Get,
+    url: "/api/peer-mentoring/profile",
+    params: { actorId },
+  });
+}
+
+export function savePeerMentorProfile(
+  actorId: string,
+  input: SavePeerMentorProfileInput,
+) {
+  return backendRequest<PeerMentorProfile>({
+    method: HttpMethod.Put,
+    url: "/api/peer-mentoring/profile",
     data: { ...input, actorId },
   });
 }

@@ -11,6 +11,19 @@ vi.mock("@/lib/api/lti", () => ({ fetchOfficeHoursCourse: vi.fn() }));
 vi.mock("@/lib/server/office-hours-session", () => ({
   getOfficeHoursUser: vi.fn(),
 }));
+vi.mock("@/components/office-hours/course-office-hours", () => ({
+  CourseOfficeHours: ({
+    courseId,
+    viewer,
+  }: {
+    courseId: string;
+    viewer: string;
+  }) => (
+    <p>
+      booking for {courseId} as {viewer}
+    </p>
+  ),
+}));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
     throw new Error("REDIRECT:" + path);
@@ -77,8 +90,11 @@ describe("office-hours course page", () => {
       screen.queryByRole("link", { name: "Profilim" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Ofis saati al" }),
+      screen.getByText("booking for course-1 as STUDENT"),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Müsaitliği yönet" }),
+    ).not.toBeInTheDocument();
   });
 
   it("sends someone without an office-hours session to the explanation", async () => {

@@ -19,6 +19,25 @@ import {
 } from "@/lib/client/student-profile-completion";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
+vi.mock("@/lib/client/badges", () => ({
+  getMyAchievements: vi.fn(async () => []),
+  getMyBadges: vi.fn(async () => [
+    {
+      id: "award-1",
+      code: "PEER_MENTOR",
+      kind: "GATE",
+      programId: "program-1",
+      programName: "İŞKUR Akran Mentörlüğü",
+      status: "ACTIVE",
+      source: "COORDINATOR",
+      awardedAt: "2026-11-08T10:00:00Z",
+      expiresAt: null,
+      revokedAt: null,
+      reason: null,
+    },
+  ]),
+  getUserBadges: vi.fn(async () => []),
+}));
 vi.mock("@/lib/client/institution", () => ({
   fetchInstitutionRecord: vi.fn(),
   fetchInstitutionAdvisees: vi.fn(),
@@ -250,10 +269,10 @@ describe("StudentProfileView › İlgi alanların", () => {
 });
 
 describe("StudentProfileView › Rozetlerim", () => {
-  it("keeps badges as a placeholder until the badge API lands", async () => {
+  it("shows the student's badges in Rozetlerim", async () => {
     renderWithQueryClient(<StudentProfileView />);
     expect(
-      within(region("Rozetlerim")).getByText("Rozetlerin yakında burada"),
+      await within(region("Rozetlerim")).findByText("Akran Mentoru"),
     ).toBeVisible();
   });
 

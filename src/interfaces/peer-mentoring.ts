@@ -1,3 +1,4 @@
+import type { PublicBadge } from "@/interfaces/badges";
 import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 
 /** The board's eight peer-mentoring categories; the coordinator decides which are active. */
@@ -30,6 +31,8 @@ export type PeerMentorCard = {
   recommendationReasons: string[];
   /** No new mentee while every place is taken. */
   capacityFull: boolean;
+  /** Active badges; a card shows the achievements. */
+  badges: PublicBadge[];
 };
 
 export type PeerMentorFilter = {
@@ -62,4 +65,41 @@ export type CreatePeerMentoringRequestInput = {
   mentorId: string;
   category: PeerTopicCategory;
   message: string;
+};
+
+/**
+ * Where a student stands on the Mentorluk Ver side. Hidden: not a peer mentor and not in İŞKUR (no tab).
+ * NoBadge: İŞKUR student without the Akran Mentoru badge ("Rozet Yok"). Earned: the badge or MENTOR is held.
+ * Revoked: the badge was taken back or expired, so MENTOR is gone (D4 seam, see lib/peer-mentoring.ts).
+ */
+export enum PeerMentorGateState {
+  Hidden = "HIDDEN",
+  NoBadge = "NO_BADGE",
+  Earned = "EARNED",
+  Revoked = "REVOKED",
+}
+
+/** The peer mentor's own published profile (`GET /api/peer-mentoring/profile`, 404 before publishing). */
+export type PeerMentorProfile = {
+  categories: PeerTopicCategory[];
+  subTopics: string[];
+  strongCourses: string[];
+  projects: string[];
+  erasmus: string | null;
+  helpWith: string;
+  linkedinUrl: string | null;
+  department: string | null;
+  classYear: number | null;
+  menteeCapacity: number | null;
+};
+
+/** The wizard's answers (`PUT /api/peer-mentoring/profile`); helpWith is 20–2000 characters. */
+export type SavePeerMentorProfileInput = {
+  categories: PeerTopicCategory[];
+  subTopics: string[];
+  strongCourses: string[];
+  projects: string[];
+  erasmus: string;
+  helpWith: string;
+  linkedinUrl: string;
 };

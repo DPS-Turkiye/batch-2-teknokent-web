@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ProgramType } from "@/interfaces/program";
+
 import { PlatformFeedbackKind } from "@/interfaces/platform-feedback";
 import { Locale } from "@/lib/i18n";
 
@@ -19,4 +21,5 @@ export const feedbackInboxQuerySchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  programType: z.enum(ProgramType).optional(),
 });
