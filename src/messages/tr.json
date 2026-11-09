@@ -3485,6 +3485,18 @@
           "soonTitle": "Rozetlerin yakında burada",
           "soonBody": "Akran Mentoru rozeti ve görüşmelerinle kazanacağın rozetler bu bölümde görünecek."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Akademisyenlerin görüşme saatlerinden randevu iste.",
+        "soon": "Yakında",
+        "soonTitle": "Office Hours yakında Menton'da",
+        "soonBody": "Akademisyenlerin görüşme saatleri henüz Menton'a bağlı değil. Bağlandığında saatleri burada görüp randevu isteyebileceksin.",
+        "today": "Şimdilik Office Hours randevuları ODTÜ'nün Moodle sayfası üzerinden alınıyor.",
+        "later": "Bağlantı tamamlanınca randevuların Randevularım'da, akran mentörlüğü randevularının yanında görünecek.",
+        "meanwhileTitle": "Bu arada",
+        "meanwhileBody": "Programındaki akran mentorlarından destek alabilirsin.",
+        "meanwhileAction": "Akran mentörlüğüne git"
       }
     },
     "academician": {
