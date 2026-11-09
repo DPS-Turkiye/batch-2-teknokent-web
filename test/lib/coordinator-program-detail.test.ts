@@ -7,6 +7,8 @@ import {
   healthShares,
   isActiveTab,
   misplacedTabHref,
+  SettingsSection,
+  settingsSections,
   ParticipantTab,
   participantTabs,
   ProgramTab,
@@ -247,5 +249,19 @@ describe("program tabs by type", () => {
       `${base}/matching`,
     );
     expect(misplacedTabHref(peer, "p1", ProgramTab.Approvals)).toBeNull();
+  });
+});
+
+describe("settingsSections", () => {
+  it("gives only a peer program the Akran Mentoru training", () => {
+    expect(settingsSections(ProgramType.PeerMentoring)).toContain(
+      SettingsSection.Training,
+    );
+    expect(settingsSections(ProgramType.StartupMentoring)).not.toContain(
+      SettingsSection.Training,
+    );
+    expect(settingsSections(ProgramType.OfficeHours)).not.toContain(
+      SettingsSection.Training,
+    );
   });
 });

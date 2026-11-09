@@ -3434,12 +3434,68 @@
           "sent": "Talebin gönderildi.",
           "failed": "Talep gönderilemedi."
         }
+      },
+      "profile": {
+        "title": "Profilim",
+        "subtitle": "ODTÜ'den gelen bilgilerin, ilgi alanların ve rozetlerin.",
+        "institution": {
+          "title": "Kurumsal Bilgiler",
+          "readOnly": "ODTÜ'den gelir, burada değiştirilemez.",
+          "loading": "Kurumsal bilgiler yükleniyor…",
+          "loadError": "Kurumsal bilgiler yüklenemedi.",
+          "retry": "Tekrar dene",
+          "missingTitle": "Bu hesap için ODTÜ'den gelen bilgi yok",
+          "missingBody": "Kurumsal bilgiler ODTÜ hesabıyla giriş yapan öğrencilerde görünür.",
+          "fullName": "Ad Soyad",
+          "email": "E-posta",
+          "faculty": "Fakülte",
+          "department": "Bölüm",
+          "classYear": "Sınıf",
+          "classYearValue": "{year}. sınıf",
+          "programLevel": "Öğrenim düzeyi",
+          "advisor": "Akademik danışman",
+          "iskur": "İŞKUR Gençlik Programı",
+          "yes": "Katılımcı",
+          "no": "Katılımcı değil",
+          "unknown": "—",
+          "syncedAt": "Son güncelleme: {date}.",
+          "notSynced": "Henüz güncellenmedi.",
+          "help": "Bilgilerin yanlışsa ÖİDB ile iletişime geç."
+        },
+        "interests": {
+          "title": "İlgi alanların ve hedefin",
+          "fixtureNotice": "Örnek veriler: seçimler yalnızca bu tarayıcı oturumunda tutulur, hesabına kaydedilmez.",
+          "loading": "İlgi alanların yükleniyor…",
+          "loadError": "İlgi alanların yüklenemedi.",
+          "retry": "Tekrar dene",
+          "empty": "Henüz ilgi alanı veya hedef eklemedin.",
+          "topics": "İlgi alanları",
+          "subtopics": "Alt konular",
+          "goal": "Hedefin",
+          "noGoal": "Hedef eklemedin.",
+          "edit": "Düzenle",
+          "save": "Kaydet",
+          "saving": "Kaydediliyor…",
+          "cancel": "Vazgeç",
+          "saved": "İlgi alanların güncellendi.",
+          "saveError": "İlgi alanların kaydedilemedi. Tekrar deneyebilirsin."
+        },
+        "badges": {
+          "title": "Rozetlerim",
+          "soonTitle": "Rozetlerin yakında burada",
+          "soonBody": "Akran Mentoru rozeti ve görüşmelerinle kazanacağın rozetler bu bölümde görünecek."
+        }
       }
     },
     "academician": {
       "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
       "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
+  },
+  "studyLevel": {
+    "BACHELOR": "Lisans",
+    "MASTER": "Yüksek lisans",
+    "DOCTORATE": "Doktora"
   },
   "peerTopics": {
     "ACADEMIC_DEVELOPMENT": "Akademik Gelişim",
@@ -3918,6 +3974,7 @@
     "autoMatchHint": "Uzmanlık, müsaitlik ve yüke göre öneri listesi oluşturulur"
   },
   "programSettings": {
+    "trainingNote": "Öğrenciler videoyu izleyip 10 soruluk sınavdan en az 8 doğru yapınca Akran Mentoru rozetini kazanır. Programın koordinatörleri ve yöneticiler düzenler.",
     "eligibilityNote": "Bu programa kimlerin katılabileceğini belirler. Diğer programları etkilemez; açık olduğunda yönetici de kuralın dışına çıkamaz.",
     "eligibleDomain": "İzin verilen e-posta uzantısı",
     "eligibleDomainHint": "Örnek: metu.edu.tr. Bölüm adresleri (ceng.metu.edu.tr) de kabul edilir. Boş bırakırsan her adres katılabilir.",
@@ -3944,6 +4001,7 @@
       "COORDINATORS": "Koordinatörler",
       "RULES": "Mentorluk kuralları",
       "ELIGIBILITY": "Katılım",
+      "TRAINING": "Akran Mentoru eğitimi",
       "ARCHIVE": "Arşiv",
       "CURRICULUM": "Müfredat & fazlar"
     },
@@ -4389,6 +4447,7 @@
     "noParticipants": "Programda henüz katılımcı yok."
   },
   "adminCommon": {
+    "peerMentorship": "Akran mentorluğu",
     "programStatus": {
       "DRAFT": "Taslak",
       "ACTIVE": "Aktif",
@@ -5424,7 +5483,25 @@
     "badge": "Rozet durumu",
     "since": "Tarih"
   },
+  "trainingEditor": {
+    "loading": "Eğitim yükleniyor…",
+    "loadFailed": "Eğitim yüklenemedi.",
+    "placeholderNote": "ÖRNEK İÇERİK: Gerçek video ve sorular gelene kadar bu örnek video ve [ÖRNEK] sorular gösteriliyor. Değiştirip kaydedince yayına alınır.",
+    "publishedNote": "Yayında · sürüm {version} · son değişiklik {date}. Değiştirirsen yeni sürüm olur; rozeti olanlar rozetini korur, henüz geçmemiş öğrenciler baştan başlar.",
+    "videoLink": "YouTube video bağlantısı",
+    "videoHint": "Listede olmayan (unlisted) bir YouTube videosu önerilir. Yalnızca YouTube bağlantıları kabul edilir.",
+    "question": "Soru {number}",
+    "optionsLegend": "Seçenekler (doğru olanı işaretle)",
+    "markCorrect": "Soru {question}, seçenek {option} doğru",
+    "option": "Soru {question}, seçenek {option}",
+    "saveAndPublish": "Kaydet ve yayınla",
+    "saving": "Kaydediliyor…",
+    "saved": "Eğitim yayında.",
+    "saveFailed": "Eğitim kaydedilemedi."
+  },
   "apiErrors": {
+    "trainingLoadFailed": "Eğitim yüklenemedi.",
+    "trainingSaveFailed": "Eğitim kaydedilemedi.",
     "badgesLoadFailed": "Rozetler yüklenemedi.",
     "badgeAwardFailed": "Rozet verilemedi.",
     "badgeRevokeFailed": "Rozet geri alınamadı.",
@@ -5675,7 +5752,9 @@
     "approvalsLoadFailed": "Onaylar yüklenemedi.",
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
-    "programLaunchFailed": "Program başlatılamadı."
+    "programLaunchFailed": "Program başlatılamadı.",
+    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
+    "peerMentoringRequestFailed": "Talep gönderilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6038,5 +6117,64 @@
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
     }
+  },
+  "officeHours": {
+    "title": "Ofis saatleri",
+    "course": "Ders",
+    "roles": {
+      "INSTRUCTOR": "Akademisyen",
+      "STUDENT": "Öğrenci"
+    },
+    "instructor": {
+      "manageAvailability": "Müsaitliği yönet",
+      "availabilityHint": "Ofis saatlerin profilindeki müsaitliğinden gelir ve verdiğin tüm dersler için geçerlidir."
+    },
+    "student": {
+      "title": "Ofis saati al",
+      "comingSoon": "Bu dersin akademisyeninden ofis saati talep edip görüşmelerini burada göreceksin. Bu bölüm henüz hazırlanıyor."
+    },
+    "launchError": {
+      "again": "ODTÜClass'ta dersin sayfasına dönüp ofis saatleri bağlantısını yeniden aç.",
+      "unavailable": {
+        "title": "Ofis saatleri şu an açılamadı",
+        "body": "Menton'a ulaşılamadı ya da ODTÜClass bağlantısı henüz ayarlanmadı."
+      },
+      "rejected": {
+        "title": "Bağlantı doğrulanamadı",
+        "body": "ODTÜClass'tan gelen giriş bilgisi geçersiz ya da daha önce kullanılmış."
+      },
+      "no-role": {
+        "title": "Bu derste ofis saatlerine erişimin yok",
+        "body": "Ofis saatleri yalnızca dersin akademisyenleri ve öğrencileri içindir."
+      },
+      "expired": {
+        "title": "Oturumun sona erdi",
+        "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
+      }
+    },
+    "availability": {
+      "title": "Ofis saatlerini düzenle",
+      "subtitle": "Öğrenciler yalnızca açık bıraktığın saatlerde ofis saati talep edebilir.",
+      "close": "Düzenlemeyi kapat",
+      "footer": "Değişiklikler yaklaşan görüşmeleri etkilemez.",
+      "cancel": "Vazgeç",
+      "saving": "Kaydediliyor…",
+      "save": "Kaydet",
+      "studentCapacity": "Eş zamanlı öğrenci limiti"
+    },
+    "profile": {
+      "title": "Profilim",
+      "role": "Akademisyen",
+      "editAvailability": "Müsaitliği düzenle",
+      "availabilityTitle": "Müsaitlik",
+      "weekly": "Tekrarlayan haftalık uygunluk",
+      "empty": "Tanımlı haftalık saat yok.",
+      "edit": "Düzenle",
+      "loading": "Yükleniyor...",
+      "loadFailed": "Müsaitlik yüklenemedi."
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez."
   }
 }
