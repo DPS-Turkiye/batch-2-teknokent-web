@@ -5370,6 +5370,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Taken back because: {reason}"
+    },
+    "achievements": {
+      "title": "Achievement badges",
+      "hint": "Sessions the mentor marked as held and mentees' ratings count.",
+      "loading": "Loading achievement badges…",
+      "loadFailed": "Achievement badges could not be loaded.",
+      "earned": "Earned",
+      "earnedOn": "Earned on {date}",
+      "average": " · average {average} (at least {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} sessions",
+        "SESSIONS_10": "{current}/{target} sessions",
+        "HOURS_25": "{current}/{target} hours",
+        "WELL_RATED": "{current}/{target} ratings",
+        "ACTIVE_MENTEE": "{current}/{target} sessions you gave feedback on"
+      },
+      "summary": "{earned}/{total} earned"
     }
   },
   "peerParticipants": {

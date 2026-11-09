@@ -5370,6 +5370,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Geri alınma nedeni: {reason}"
+    },
+    "achievements": {
+      "title": "Başarı rozetleri",
+      "hint": "Mentorun “Görüşme yapıldı” dediği görüşmeler ve mentee'lerin değerlendirmeleri sayılır.",
+      "loading": "Başarı rozetleri yükleniyor…",
+      "loadFailed": "Başarı rozetleri yüklenemedi.",
+      "earned": "Kazanıldı",
+      "earnedOn": "{date} tarihinde kazanıldı",
+      "average": " · ortalama {average} (en az {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} görüşme",
+        "SESSIONS_10": "{current}/{target} görüşme",
+        "HOURS_25": "{current}/{target} saat",
+        "WELL_RATED": "{current}/{target} değerlendirme",
+        "ACTIVE_MENTEE": "Geri bildirim verdiğin {current}/{target} görüşme"
+      },
+      "summary": "{earned}/{total} kazanıldı"
     }
   },
   "peerParticipants": {
