@@ -5995,5 +5995,40 @@
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
     }
+  },
+  "officeHours": {
+    "title": "Ofis saatleri",
+    "course": "Ders",
+    "roles": {
+      "INSTRUCTOR": "Akademisyen",
+      "STUDENT": "Öğrenci"
+    },
+    "instructor": {
+      "title": "Bu dersin ofis saatleri",
+      "comingSoon": "Haftalık ofis saatlerini ve gelen talepleri burada yöneteceksin. Bu bölüm henüz hazırlanıyor."
+    },
+    "student": {
+      "title": "Ofis saati al",
+      "comingSoon": "Bu dersin akademisyeninden ofis saati talep edip görüşmelerini burada göreceksin. Bu bölüm henüz hazırlanıyor."
+    },
+    "launchError": {
+      "again": "ODTÜClass'ta dersin sayfasına dönüp ofis saatleri bağlantısını yeniden aç.",
+      "unavailable": {
+        "title": "Ofis saatleri şu an açılamadı",
+        "body": "Menton'a ulaşılamadı ya da ODTÜClass bağlantısı henüz ayarlanmadı."
+      },
+      "rejected": {
+        "title": "Bağlantı doğrulanamadı",
+        "body": "ODTÜClass'tan gelen giriş bilgisi geçersiz ya da daha önce kullanılmış."
+      },
+      "no-role": {
+        "title": "Bu derste ofis saatlerine erişimin yok",
+        "body": "Ofis saatleri yalnızca dersin akademisyenleri ve öğrencileri içindir."
+      },
+      "expired": {
+        "title": "Oturumun sona erdi",
+        "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
+      }
+    }
   }
 }
