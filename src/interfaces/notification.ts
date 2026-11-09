@@ -6,6 +6,8 @@ export enum NotificationCategory {
   TaskAssigned = "TASK_ASSIGNED",
   TaskDeadline = "TASK_DEADLINE",
   StartupActivity = "STARTUP_ACTIVITY",
+  /** A badge awarded or taken back; never muted, so it has no preference switch. */
+  Badge = "BADGE",
 }
 
 /** One switch per muteable category; GENERAL notifications are always sent. */
