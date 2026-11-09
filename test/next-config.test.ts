@@ -47,4 +47,16 @@ describe("browser security headers", () => {
     expect(policy).not.toContain("localhost");
     expect(policy).not.toContain("127.0.0.1");
   });
+
+  // The Akran Mentoru training embeds YouTube's privacy-enhanced player and loads its IFrame API.
+  it("lets the training's YouTube player in, and nothing else of YouTube's", () => {
+    const policy = buildContentSecurityPolicy(false);
+    const directive = (name: string) =>
+      policy.split("; ").find((part) => part.startsWith(`${name} `)) ?? "";
+    expect(directive("frame-src")).toContain(
+      "https://www.youtube-nocookie.com",
+    );
+    expect(directive("frame-src")).not.toContain("https://www.youtube.com");
+    expect(directive("script-src")).toContain("https://www.youtube.com");
+  });
 });
