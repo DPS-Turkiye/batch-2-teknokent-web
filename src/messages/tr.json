@@ -6156,5 +6156,8 @@
       "loading": "Yükleniyor...",
       "loadFailed": "Müsaitlik yüklenemedi."
     }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez."
   }
 }

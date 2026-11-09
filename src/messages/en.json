@@ -6156,5 +6156,8 @@
       "loading": "Loading...",
       "loadFailed": "Couldn't load availability."
     }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved."
   }
 }
