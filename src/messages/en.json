@@ -3974,6 +3974,7 @@
     "autoMatchHint": "A suggestion list is built from expertise, availability and load"
   },
   "programSettings": {
+    "trainingNote": "Students earn the Peer Mentor badge by watching the video and getting at least 8 of the 10 quiz questions right. Edited by the program’s coordinators and admins.",
     "eligibilityNote": "Decides who can join this program. Other programs are not affected; while it is on, admins cannot bypass it either.",
     "eligibleDomain": "Allowed e-mail domain",
     "eligibleDomainHint": "For example metu.edu.tr. Department addresses (ceng.metu.edu.tr) count too. Leave it empty to allow any address.",
@@ -4000,6 +4001,7 @@
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
       "ELIGIBILITY": "Eligibility",
+      "TRAINING": "Peer Mentor training",
       "ARCHIVE": "Archive",
       "CURRICULUM": "Curriculum & phases"
     },
@@ -5464,7 +5466,25 @@
     "badge": "Badge state",
     "since": "Date"
   },
+  "trainingEditor": {
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "placeholderNote": "EXAMPLE CONTENT: until the real video and questions arrive, this example video and the [ÖRNEK] questions are shown. Change them and save to publish.",
+    "publishedNote": "Published · version {version} · last changed {date}. A change makes a new version; badge holders keep their badge, students who have not passed start again.",
+    "videoLink": "YouTube video link",
+    "videoHint": "An unlisted YouTube video is recommended. Only YouTube links are accepted.",
+    "question": "Question {number}",
+    "optionsLegend": "Options (mark the correct one)",
+    "markCorrect": "Question {question}, option {option} is correct",
+    "option": "Question {question}, option {option}",
+    "saveAndPublish": "Save and publish",
+    "saving": "Saving…",
+    "saved": "The training is live.",
+    "saveFailed": "Could not save the training."
+  },
   "apiErrors": {
+    "trainingLoadFailed": "Could not load the training.",
+    "trainingSaveFailed": "Could not save the training.",
     "badgesLoadFailed": "Could not load the badges.",
     "badgeAwardFailed": "Could not award the badge.",
     "badgeRevokeFailed": "Could not take the badge back.",
@@ -5715,7 +5735,9 @@
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
-    "programLaunchFailed": "The program could not be launched."
+    "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request."
   },
   "startupStart": {
     "title": "My startup",
@@ -6087,8 +6109,8 @@
       "STUDENT": "Student"
     },
     "instructor": {
-      "title": "Office hours for this course",
-      "comingSoon": "You'll manage your weekly office hours and incoming requests here. This part is still being built."
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
     },
     "student": {
       "title": "Book office hours",
@@ -6112,6 +6134,27 @@
         "title": "Your session has ended",
         "body": "For your security, the office hours session closes after a while."
       }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
     }
   },
   "academicianWorkspace": {
