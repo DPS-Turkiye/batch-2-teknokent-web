@@ -35,7 +35,6 @@ const NAV: RoleNavItem[] = [
     label: "calendar",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/academician/calendar"),
-    disabled: true,
   },
   {
     href: "/academician/advisees",
