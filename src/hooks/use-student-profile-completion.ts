@@ -12,11 +12,18 @@ import {
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
 import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
+import {
+  chosenCategories,
+  toggleInterestSubtopic,
+  toggleInterestTopic,
+} from "@/lib/student-interests";
 
 export const PROFILE_COMPLETION_QUERY_KEY = [
   "student-profile-completion",
 ] as const;
-const CATEGORIES_KEY = ["student-profile-completion-categories"] as const;
+export const PROFILE_COMPLETION_CATEGORIES_QUERY_KEY = [
+  "student-profile-completion-categories",
+] as const;
 
 export function useStudentProfileCompletion() {
   const client = useQueryClient();
@@ -25,7 +32,7 @@ export function useStudentProfileCompletion() {
     queryFn: getStudentProfileCompletion,
   });
   const categories = useQuery({
-    queryKey: CATEGORIES_KEY,
+    queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
     queryFn: getProfileCompletionCategories,
   });
   const [step, setStep] = useState(ProfileCompletionStep.Topics);
@@ -47,26 +54,11 @@ export function useStudentProfileCompletion() {
     setEdits(update(draft));
   };
   const toggleTopic = (id: PeerTopicCategory) =>
-    change((current) => {
-      const topics = current.topics.includes(id)
-        ? current.topics.filter((value) => value !== id)
-        : [...current.topics, id];
-      const valid = (categories.data ?? [])
-        .filter((item) => topics.includes(item.id))
-        .flatMap((item) => item.subtopics.map((subtopic) => subtopic.id));
-      return {
-        ...current,
-        topics,
-        subtopics: current.subtopics.filter((value) => valid.includes(value)),
-      };
-    });
+    change((current) =>
+      toggleInterestTopic(current, id, categories.data ?? []),
+    );
   const toggleSubtopic = (id: string) =>
-    change((current) => ({
-      ...current,
-      subtopics: current.subtopics.includes(id)
-        ? current.subtopics.filter((value) => value !== id)
-        : [...current.subtopics, id],
-    }));
+    change((current) => toggleInterestSubtopic(current, id));
   const finish = (skipped = false) => {
     if (draft)
       save.mutate({
@@ -80,8 +72,9 @@ export function useStudentProfileCompletion() {
     step,
     draft,
     categories: categories.data ?? [],
-    subtopicGroups: (categories.data ?? []).filter((item) =>
-      draft?.topics.includes(item.id),
+    subtopicGroups: chosenCategories(
+      categories.data ?? [],
+      draft?.topics ?? [],
     ),
     isLoading: profile.isLoading || categories.isLoading,
     loadError: profile.error ?? categories.error,

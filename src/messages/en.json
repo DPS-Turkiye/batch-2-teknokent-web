@@ -3434,12 +3434,68 @@
           "sent": "Your request was sent.",
           "failed": "Couldn't send the request."
         }
+      },
+      "profile": {
+        "title": "My profile",
+        "subtitle": "Your details from METU, your interests and your badges.",
+        "institution": {
+          "title": "Institutional details",
+          "readOnly": "These come from METU and cannot be changed here.",
+          "loading": "Loading your institutional details…",
+          "loadError": "Couldn't load your institutional details.",
+          "retry": "Try again",
+          "missingTitle": "No METU details for this account",
+          "missingBody": "Institutional details appear for students who sign in with their METU account.",
+          "fullName": "Full name",
+          "email": "E-mail",
+          "faculty": "Faculty",
+          "department": "Department",
+          "classYear": "Year",
+          "classYearValue": "Year {year}",
+          "programLevel": "Level of study",
+          "advisor": "Academic advisor",
+          "iskur": "İŞKUR Youth Programme",
+          "yes": "Participant",
+          "no": "Not a participant",
+          "unknown": "—",
+          "syncedAt": "Last updated: {date}.",
+          "notSynced": "Not updated yet.",
+          "help": "If something is wrong, contact the Registrar’s Office (ÖİDB)."
+        },
+        "interests": {
+          "title": "Your interests and goal",
+          "fixtureNotice": "Sample data: your choices stay in this browser session only and are not saved to your account.",
+          "loading": "Loading your interests…",
+          "loadError": "Couldn't load your interests.",
+          "retry": "Try again",
+          "empty": "You haven't added interests or a goal yet.",
+          "topics": "Interests",
+          "subtopics": "Sub-topics",
+          "goal": "Your goal",
+          "noGoal": "No goal added.",
+          "edit": "Edit",
+          "save": "Save",
+          "saving": "Saving…",
+          "cancel": "Cancel",
+          "saved": "Your interests are updated.",
+          "saveError": "Couldn't save your interests. You can try again."
+        },
+        "badges": {
+          "title": "My badges",
+          "soonTitle": "Your badges will appear here soon",
+          "soonBody": "The Peer Mentor badge and the badges you earn through your sessions will show in this section."
+        }
       }
     },
     "academician": {
       "comingTitle": "The academician workspace is on its way",
       "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
+  },
+  "studyLevel": {
+    "BACHELOR": "Bachelor's",
+    "MASTER": "Master's",
+    "DOCTORATE": "Doctorate"
   },
   "peerTopics": {
     "ACADEMIC_DEVELOPMENT": "Academic development",
@@ -3918,6 +3974,7 @@
     "autoMatchHint": "A suggestion list is built from expertise, availability and load"
   },
   "programSettings": {
+    "trainingNote": "Students earn the Peer Mentor badge by watching the video and getting at least 8 of the 10 quiz questions right. Edited by the program’s coordinators and admins.",
     "eligibilityNote": "Decides who can join this program. Other programs are not affected; while it is on, admins cannot bypass it either.",
     "eligibleDomain": "Allowed e-mail domain",
     "eligibleDomainHint": "For example metu.edu.tr. Department addresses (ceng.metu.edu.tr) count too. Leave it empty to allow any address.",
@@ -3944,6 +4001,7 @@
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
       "ELIGIBILITY": "Eligibility",
+      "TRAINING": "Peer Mentor training",
       "ARCHIVE": "Archive",
       "CURRICULUM": "Curriculum & phases"
     },
@@ -4389,6 +4447,7 @@
     "noParticipants": "No participants in the program yet."
   },
   "adminCommon": {
+    "peerMentorship": "Peer mentoring",
     "programStatus": {
       "DRAFT": "Draft",
       "ACTIVE": "Active",
@@ -5408,7 +5467,25 @@
     "badge": "Badge state",
     "since": "Date"
   },
+  "trainingEditor": {
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "placeholderNote": "EXAMPLE CONTENT: until the real video and questions arrive, this example video and the [ÖRNEK] questions are shown. Change them and save to publish.",
+    "publishedNote": "Published · version {version} · last changed {date}. A change makes a new version; badge holders keep their badge, students who have not passed start again.",
+    "videoLink": "YouTube video link",
+    "videoHint": "An unlisted YouTube video is recommended. Only YouTube links are accepted.",
+    "question": "Question {number}",
+    "optionsLegend": "Options (mark the correct one)",
+    "markCorrect": "Question {question}, option {option} is correct",
+    "option": "Question {question}, option {option}",
+    "saveAndPublish": "Save and publish",
+    "saving": "Saving…",
+    "saved": "The training is live.",
+    "saveFailed": "Could not save the training."
+  },
   "apiErrors": {
+    "trainingLoadFailed": "Could not load the training.",
+    "trainingSaveFailed": "Could not save the training.",
     "badgesLoadFailed": "Could not load the badges.",
     "badgeAwardFailed": "Could not award the badge.",
     "badgeRevokeFailed": "Could not take the badge back.",
@@ -5660,6 +5737,8 @@
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
     "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request.",
     "academicsLoadFailed": "Could not load the academics."
   },
   "startupStart": {
@@ -6023,6 +6102,65 @@
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
     }
+  },
+  "officeHours": {
+    "title": "Office hours",
+    "course": "Course",
+    "roles": {
+      "INSTRUCTOR": "Academic",
+      "STUDENT": "Student"
+    },
+    "instructor": {
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
+    },
+    "student": {
+      "title": "Book office hours",
+      "comingSoon": "You'll request office hours from this course's academic and see your meetings here. This part is still being built."
+    },
+    "launchError": {
+      "again": "Go back to the course page on ODTÜClass and open the office hours link again.",
+      "unavailable": {
+        "title": "Office hours can't open right now",
+        "body": "Menton couldn't be reached, or the ODTÜClass connection isn't set up yet."
+      },
+      "rejected": {
+        "title": "The link couldn't be verified",
+        "body": "The sign-in details from ODTÜClass are invalid or were already used."
+      },
+      "no-role": {
+        "title": "You don't have access to office hours in this course",
+        "body": "Office hours are for the course's academics and students only."
+      },
+      "expired": {
+        "title": "Your session has ended",
+        "body": "For your security, the office hours session closes after a while."
+      }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved."
   },
   "adminAcademics": {
     "intro": "Academics come from the institution's records; nobody approves them by hand or edits them here.",

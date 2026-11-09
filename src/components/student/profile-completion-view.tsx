@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { PageHeading, Panel } from "@/components/admin/admin-ui";
+import {
+  GoalField,
+  SubtopicPicker,
+  TopicPicker,
+} from "@/components/student/interest-pickers";
 import { useStudentProfileCompletion } from "@/hooks/use-student-profile-completion";
 import { ProfileCompletionStep } from "@/interfaces/student-profile-completion";
 
@@ -11,7 +16,6 @@ const buttonClass =
 export function StudentProfileCompletionView() {
   const t = useTranslations("studentProfileCompletion");
   const form = useStudentProfileCompletion();
-  const topicLabel = useTranslations("peerTopics");
   return (
     <div className="max-w-3xl space-y-6">
       <PageHeading title={t("title")} subtitle={t("fixtureNotice")} />
@@ -56,62 +60,19 @@ export function StudentProfileCompletionView() {
                 {t(`steps.${form.step}`)}
               </legend>
               {form.step === ProfileCompletionStep.Topics ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {form.categories.map((item) => (
-                    <label
-                      className="flex items-start gap-3 rounded-xl border p-3 text-sm"
-                      key={item.id}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={form.draft!.topics.includes(item.id)}
-                        onChange={() => form.toggleTopic(item.id)}
-                      />
-                      <span>{topicLabel(item.id)}</span>
-                    </label>
-                  ))}
-                </div>
+                <TopicPicker
+                  categories={form.categories}
+                  selected={form.draft.topics}
+                  onToggle={form.toggleTopic}
+                />
               ) : form.step === ProfileCompletionStep.Subtopics ? (
-                <>
-                  {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-                  <p className="text-sm text-[#676e78]">
-                    {t("subtopicNotice")}
-                  </p>
-                  {form.subtopicGroups.length === 0 ? (
-                    <p>{t("noTopics")}</p>
-                  ) : (
-                    form.subtopicGroups.map((item) => (
-                      <fieldset key={item.id} className="space-y-2">
-                        <legend className="mb-2 font-medium">
-                          {topicLabel(item.id)}
-                        </legend>
-                        {item.subtopics.map((sub) => (
-                          <label
-                            key={sub.id}
-                            className="flex items-center gap-3 text-sm"
-                          >
-                            <input
-                              type="checkbox"
-                              checked={form.draft!.subtopics.includes(sub.id)}
-                              onChange={() => form.toggleSubtopic(sub.id)}
-                            />
-                            {t(`subtopics.${sub.labelKey}`)}
-                          </label>
-                        ))}
-                      </fieldset>
-                    ))
-                  )}
-                </>
+                <SubtopicPicker
+                  groups={form.subtopicGroups}
+                  selected={form.draft.subtopics}
+                  onToggle={form.toggleSubtopic}
+                />
               ) : (
-                <label className="block space-y-2 text-sm">
-                  <span>{t("goal")}</span>
-                  <textarea
-                    className="min-h-32 w-full rounded-xl border p-3"
-                    maxLength={1000}
-                    value={form.draft.goal}
-                    onChange={(event) => form.setGoal(event.target.value)}
-                  />
-                </label>
+                <GoalField value={form.draft.goal} onChange={form.setGoal} />
               )}
               {form.saveError ? <p role="alert">{t("saveError")}</p> : null}
               <div className="flex flex-wrap gap-3">

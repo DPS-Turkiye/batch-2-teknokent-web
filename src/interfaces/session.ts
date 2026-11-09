@@ -37,6 +37,8 @@ export type AppSession = {
   institutionKinds?: IdentityKind[];
   /** The workspace the user switched to; see lib/workspaces.ts. */
   activeWorkspace?: Workspace;
+  /** The organization is an ODTÜ student's hidden team of one: no startup, and no Girişim workspace. */
+  personalOrganization?: boolean;
 };
 
 export type BackendUser = {
@@ -55,6 +57,8 @@ export type BackendUser = {
   /** Every active permission, `role` included. */
   permissions?: UserRole[];
   institutionKinds?: IdentityKind[];
+  /** The organization is an ODTÜ student's hidden team of one; organizationName is then null. */
+  personalOrganization?: boolean;
 };
 
 export type SessionData = {
