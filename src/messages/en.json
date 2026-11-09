@@ -3417,7 +3417,8 @@
           "request": "Send a request",
           "requestFrom": "Send a request to {name}",
           "requested": "Your request is waiting",
-          "full": "No places left"
+          "full": "No places left",
+          "noCategories": "Your program has no active peer-mentoring category yet."
         },
         "dialog": {
           "title": "Mentoring with {name}",
@@ -4095,7 +4096,8 @@
       "ELIGIBILITY": "Eligibility",
       "TRAINING": "Peer Mentor training",
       "ARCHIVE": "Archive",
-      "CURRICULUM": "Curriculum & phases"
+      "CURRICULUM": "Curriculum & phases",
+      "PEER_CATEGORIES": "Peer categories"
     },
     "sectionsLabel": "Settings sections",
     "archivedNote": "This program is archived and read-only. Reopen it below to make changes.",
@@ -4143,7 +4145,8 @@
     "archiveFailed": "Couldn't archive the program.",
     "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
     "coordinatorsByAdmin": "The admin assigns coordinators.",
-    "type": "Program type"
+    "type": "Program type",
+    "peerCategoriesNote": "Students and peer mentors only see the categories you turn on here. None is on to begin with."
   },
   "programTeams": {
     "filters": {
@@ -5878,7 +5881,10 @@
     "peerMentoringRequestFailed": "Couldn't send the request.",
     "officeHoursFailed": "The office hours action could not be completed.",
     "invalidRequestBody": "The request body could not be read.",
-    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile."
+    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
+    "peerCategoriesLoadFailed": "Could not load the categories.",
+    "peerCategoriesSaveFailed": "Could not save the categories.",
+    "peerCategoriesInvalid": "The category list is not valid."
   },
   "startupStart": {
     "title": "My startup",
@@ -6240,7 +6246,8 @@
       "clubs": "Example: Student clubs",
       "time": "Example: Time management",
       "exchange": "Example: Exchange programmes"
-    }
+    },
+    "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on."
   },
   "officeHours": {
     "title": "Office hours",
@@ -6448,5 +6455,15 @@
       "proposedPast": "A time in the past cannot be offered.",
       "pickOne": "Pick a time."
     }
+  },
+  "programPeerCategories": {
+    "title": "Peer categories",
+    "noneActive": "No category is on: students cannot look for mentors and peer mentors cannot pick a category for their profile.",
+    "activeCount": "{count, plural, one {# category on} other {# categories on}}",
+    "save": "Save categories",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Categories saved.",
+    "saveFailed": "Could not save the categories."
   }
 }

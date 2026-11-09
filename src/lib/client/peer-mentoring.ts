@@ -5,6 +5,7 @@ import type {
   SavePeerMentorProfileInput,
   PeerMentorFilter,
   PeerMentoringRequest,
+  PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
 import { UserRole } from "@/interfaces/session";
@@ -20,6 +21,20 @@ export async function getPeerMentors(
         q: filter.query || undefined,
       },
     }),
+  );
+}
+
+/** The active categories of the student's program, or (as a peer mentor) of the programs they mentor in. */
+export async function getPeerCategories(
+  side: UserRole.Mentee | UserRole.Mentor = UserRole.Mentee,
+): Promise<PeerTopicCategory[]> {
+  return requireSuccess(
+    await httpClient.get<PeerTopicCategory[]>(
+      "/api/peer-mentoring/categories",
+      side === UserRole.Mentor
+        ? { params: { as: UserRole.Mentor } }
+        : undefined,
+    ),
   );
 }
 

@@ -23,6 +23,18 @@ export function fetchPeerMentors(
   });
 }
 
+/** The categories the caller may use: their program's (MENTEE) or the programs they mentor in (MENTOR). */
+export function fetchPeerCategories(
+  actorId: string,
+  side: UserRole.Mentee | UserRole.Mentor,
+) {
+  return backendRequest<PeerTopicCategory[]>({
+    method: HttpMethod.Get,
+    url: "/api/peer-mentoring/categories",
+    params: { actorId, as: side },
+  });
+}
+
 export function fetchPeerMentoringRequests(
   actorId: string,
   side: UserRole.Mentee | UserRole.Mentor,

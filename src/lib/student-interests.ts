@@ -44,3 +44,14 @@ export function chosenCategories(
 ) {
   return categories.filter((item) => topics.includes(item.id));
 }
+
+/**
+ * The catalogue narrowed to a program's active categories, in the catalogue's order. Sub-topics stay the
+ * catalogue's sample ones until the board names real ones.
+ */
+export function activeCatalogue(
+  catalogue: readonly ProfileCompletionCategory[],
+  active: readonly PeerTopicCategory[],
+): ProfileCompletionCategory[] {
+  return catalogue.filter((item) => active.includes(item.id));
+}
