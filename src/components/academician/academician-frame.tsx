@@ -50,7 +50,6 @@ const NAV: RoleNavItem[] = [
     label: "myProfile",
     icon: "/account-menu/user.svg",
     match: (path) => path.startsWith("/academician/profile"),
-    disabled: true,
   },
 ];
 

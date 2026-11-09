@@ -6374,6 +6374,34 @@
       "notSignedIn": "Has not signed in to Menton yet",
       "empty": "ODTÜ's records show no students you advise.",
       "noMatch": "No students match your search."
+    },
+    "institution": {
+      "title": "Institutional details",
+      "readOnly": "From ODTÜ, read-only",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "syncedAt": "Last updated: {date}",
+      "help": "If something is wrong, tell your unit at ODTÜ; Menton cannot change these details.",
+      "empty": "There is no ODTÜ record for this account."
+    },
+    "profile": {
+      "title": "My profile",
+      "subtitle": "How students find you and where you meet.",
+      "settingsTitle": "Office hours details",
+      "settingsHint": "Students see these when they request an appointment.",
+      "defaultPlace": "Default meeting place",
+      "defaultPlacePlaceholder": "e.g. A-204",
+      "onlineLink": "Online meeting link (optional)",
+      "onlineLinkPlaceholder": "https://…",
+      "contactEmail": "E-mail shown to students (optional)",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Your profile details were saved.",
+      "saveFailed": "Could not save.",
+      "invalidLink": "The link must be a web address starting with https://.",
+      "invalidEmail": "Enter a valid e-mail address."
     }
   }
 }
