@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-profile-completion";
 import {
+  activeCatalogue,
   chosenCategories,
   toggleInterestSubtopic,
   toggleInterestTopic,
@@ -55,5 +56,25 @@ describe("student interests", () => {
       PeerTopicCategory.AcademicDevelopment,
       PeerTopicCategory.International,
     ]);
+  });
+});
+
+describe("activeCatalogue", () => {
+  it("keeps the catalogue's order and only the active categories", () => {
+    const catalogue = [
+      { id: PeerTopicCategory.AcademicDevelopment, subtopics: [] },
+      { id: PeerTopicCategory.CareerInternship, subtopics: [] },
+      { id: PeerTopicCategory.International, subtopics: [] },
+    ];
+    expect(
+      activeCatalogue(catalogue, [
+        PeerTopicCategory.International,
+        PeerTopicCategory.AcademicDevelopment,
+      ]).map((item) => item.id),
+    ).toEqual([
+      PeerTopicCategory.AcademicDevelopment,
+      PeerTopicCategory.International,
+    ]);
+    expect(activeCatalogue(catalogue, [])).toEqual([]);
   });
 });

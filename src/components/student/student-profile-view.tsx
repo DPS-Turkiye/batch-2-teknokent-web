@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { PageHeading, Panel } from "@/components/admin/admin-ui";
+import { MyBadgesSection } from "@/components/badges/my-badges-section";
 import { EmptyState } from "@/components/common/empty-state";
 import {
   GoalField,
@@ -28,7 +29,7 @@ export function StudentProfileView() {
       <PageHeading title={t("title")} subtitle={t("subtitle")} />
       <InstitutionSection />
       <InterestsSection />
-      <BadgesSection />
+      <MyBadgesSection />
     </div>
   );
 }
@@ -154,11 +155,7 @@ function InterestsSection() {
   const { saved, draft } = interests;
 
   return (
-    <Section
-      id="profile-interests"
-      title={t("title")}
-      note={t("fixtureNotice")}
-    >
+    <Section id="profile-interests" title={t("title")} note={t("note")}>
       {interests.isLoading ? (
         <p role="status" className="text-sm text-[#858c96]">
           {t("loading")}
@@ -274,17 +271,6 @@ function InterestsSection() {
           </div>
         </Panel>
       ) : null}
-    </Section>
-  );
-}
-
-// Lane I's badge model (gate badge "Akran Mentoru" + achievements) has no DTO yet; this stays a
-// placeholder until GET /api/me/badges lands.
-function BadgesSection() {
-  const t = useTranslations("odtuWorkspaces.student.profile.badges");
-  return (
-    <Section id="profile-badges" title={t("title")}>
-      <EmptyState className="" title={t("soonTitle")} body={t("soonBody")} />
     </Section>
   );
 }

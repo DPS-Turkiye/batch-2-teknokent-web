@@ -20,6 +20,14 @@ export function TopicPicker({
   onToggle: (id: PeerTopicCategory) => void;
 }) {
   const topicLabel = useTranslations("peerTopics");
+  const t = useTranslations("studentProfileCompletion");
+  if (categories.length === 0) {
+    return (
+      <p className="rounded-xl bg-[#f5f6f8] p-3 text-sm text-[#676e78]">
+        {t("noActiveCategories")}
+      </p>
+    );
+  }
   return (
     <div className="grid gap-3 sm:grid-cols-2">
       {categories.map((item) => (

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 
+import { CourseOfficeHours } from "@/components/office-hours/course-office-hours";
 import { OfficeHoursFrame } from "@/components/office-hours/office-hours-frame";
 import { LtiLaunchError, OfficeHoursRole } from "@/interfaces/office-hours";
 import { fetchOfficeHoursCourse } from "@/lib/api/lti";
@@ -33,24 +34,11 @@ function InstructorCourseSection({ t }: { t: OfficeHoursTexts }) {
   );
 }
 
-function StudentCourseSection({ t }: { t: OfficeHoursTexts }) {
-  return (
-    <section className="mt-8 rounded-2xl border border-[#e4e7ea] bg-white p-6">
-      <h2 className="text-base font-semibold text-[#22262b]">
-        {t("student.title")}
-      </h2>
-      <p className="mt-2 text-sm leading-6 text-[#4a5059]">
-        {t("student.comingSoon")}
-      </p>
-    </section>
-  );
-}
-
 // A Record, so a new Moodle role fails to compile until it has a view.
 const COURSE_VIEWS: Record<
   OfficeHoursRole,
   {
-    Section: (props: { t: OfficeHoursTexts }) => React.JSX.Element;
+    Section: ((props: { t: OfficeHoursTexts }) => React.JSX.Element) | null;
     profile: typeof PROFILE_LINK | null;
   }
 > = {
@@ -58,7 +46,7 @@ const COURSE_VIEWS: Record<
     Section: InstructorCourseSection,
     profile: PROFILE_LINK,
   },
-  [OfficeHoursRole.Student]: { Section: StudentCourseSection, profile: null },
+  [OfficeHoursRole.Student]: { Section: null, profile: null },
 };
 
 export async function generateMetadata() {
@@ -95,7 +83,8 @@ export default async function OfficeHoursCoursePage({
       <p className="mt-2 inline-flex rounded-full bg-[#f2f8fc] px-3 py-1 text-[12px] font-medium text-[#1592ea]">
         {t(`roles.${course.role}`)}
       </p>
-      <Section t={t} />
+      {Section && <Section t={t} />}
+      <CourseOfficeHours courseId={course.courseId} viewer={course.role} />
     </OfficeHoursFrame>
   );
 }
