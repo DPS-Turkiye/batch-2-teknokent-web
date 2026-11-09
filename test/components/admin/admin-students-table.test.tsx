@@ -25,6 +25,21 @@ describe("AdminStudentsTable", () => {
         awardedAt: "2026-11-08T10:00:00Z",
         revokedAt: null,
         reason: null,
+        training: { videoWatched: false, attempts: 0, bestScore: null },
+      },
+      {
+        userId: "u2",
+        fullName: "Mehmet Eğitimde",
+        email: "mehmet@odtu-dev.invalid",
+        programId: "p1",
+        programName: "İŞKUR 2026 Bahar",
+        state: GateBadgeState.None,
+        awardId: null,
+        source: null,
+        awardedAt: null,
+        revokedAt: null,
+        reason: null,
+        training: { videoWatched: true, attempts: 1, bestScore: 5 },
       },
     ]);
   });
@@ -36,7 +51,7 @@ describe("AdminStudentsTable", () => {
     expect(await screen.findByText("Zeynep Öğrenci")).toBeInTheDocument();
     expect(getAdminStudents).toHaveBeenCalledWith(null);
     expect(
-      screen.getByRole("link", { name: "İŞKUR 2026 Bahar" }),
+      screen.getAllByRole("link", { name: "İŞKUR 2026 Bahar" })[0],
     ).toHaveAttribute("href", "/admin/programs/p1/students");
 
     await user.click(screen.getByRole("button", { name: "Akran mentoru" }));
@@ -46,5 +61,21 @@ describe("AdminStudentsTable", () => {
     expect(
       screen.getByRole("button", { name: "Akran mentoru" }),
     ).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("narrows Rozet yok to those in training", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<AdminStudentsTable />);
+    await screen.findByText("Mehmet Eğitimde");
+
+    await user.click(screen.getByRole("button", { name: "Eğitimde" }));
+
+    await waitFor(() =>
+      expect(getAdminStudents).toHaveBeenLastCalledWith(GateBadgeState.None),
+    );
+    await waitFor(() =>
+      expect(screen.queryByText("Zeynep Öğrenci")).not.toBeInTheDocument(),
+    );
+    expect(screen.getByText("Mehmet Eğitimde")).toBeInTheDocument();
   });
 });

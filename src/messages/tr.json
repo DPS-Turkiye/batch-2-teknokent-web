@@ -5538,7 +5538,8 @@
         "ACTIVE_MENTEE": "Geri bildirim verdiğin {current}/{target} görüşme"
       },
       "summary": "{earned}/{total} kazanıldı"
-    }
+    },
+    "inTraining": "Eğitimde"
   },
   "peerParticipants": {
     "loading": "Katılımcılar yükleniyor…",
@@ -5557,13 +5558,16 @@
     "revokeIntro": "Rozet geri alınınca mentorluk verme yetkisi de kalkar. Öğrenci nedeni görür.",
     "reason": "Neden",
     "cancel": "Vazgeç",
-    "confirmRevoke": "Geri al"
+    "confirmRevoke": "Geri al",
+    "trainingWatched": "Video izlendi, sınav bekleniyor",
+    "trainingAttempts": "{count} deneme · en iyi {best}/10"
   },
   "adminStudents": {
     "filterLabel": "Rozet durumu",
     "filters": {
       "ALL": "Tümü",
       "NONE": "Rozet yok",
+      "IN_TRAINING": "Eğitimde",
       "ACTIVE": "Akran mentoru",
       "REVOKED": "Geri alındı"
     },
