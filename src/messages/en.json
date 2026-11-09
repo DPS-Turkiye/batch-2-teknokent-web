@@ -6113,5 +6113,8 @@
         "body": "For your security, the office hours session closes after a while."
       }
     }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved."
   }
 }

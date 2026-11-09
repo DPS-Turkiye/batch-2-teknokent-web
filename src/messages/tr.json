@@ -6113,5 +6113,8 @@
         "body": "Güvenliğin için ofis saatleri oturumu bir süre sonra kapanır."
       }
     }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez."
   }
 }
