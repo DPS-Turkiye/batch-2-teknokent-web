@@ -22,6 +22,7 @@ const TARGETS: Record<NotificationCategory, string> = {
   [NotificationCategory.TaskAssigned]: MOBILE_TASKS,
   [NotificationCategory.TaskDeadline]: MOBILE_TASKS,
   [NotificationCategory.StartupActivity]: MOBILE_STARTUPS,
+  [NotificationCategory.Badge]: MOBILE_NOTIFICATIONS,
 };
 
 export type NotificationTone = { icon: string; background: string };
@@ -54,6 +55,10 @@ const TONES: Record<NotificationCategory, NotificationTone> = {
   [NotificationCategory.StartupActivity]: {
     icon: "/mobile/notice-task.svg",
     background: "bg-[#fff1ec]",
+  },
+  [NotificationCategory.Badge]: {
+    icon: "/mobile/icon-info-muted.svg",
+    background: "bg-[#f5f6f8]",
   },
 };
 
