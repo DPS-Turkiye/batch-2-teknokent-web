@@ -15,6 +15,7 @@ export enum ProgramTab {
   MentorPool = "MENTOR_POOL",
   Students = "STUDENTS",
   PeerMentors = "PEER_MENTORS",
+  Academics = "ACADEMICS",
   Matching = "MATCHING",
   Appointments = "APPOINTMENTS",
   Approvals = "APPROVALS",
@@ -45,6 +46,7 @@ const PARTICIPANT_PAGES = [
   ProgramTab.MentorPool,
   ProgramTab.Students,
   ProgramTab.PeerMentors,
+  ProgramTab.Academics,
 ];
 
 /**
@@ -68,7 +70,7 @@ export function programTabs(
         ? `${base}/teams`
         : peer
           ? `${base}/students`
-          : `${base}/participants`,
+          : `${base}/academics`,
       count: null,
     },
     officeHours
@@ -119,7 +121,11 @@ export function participantTabs(
       ];
     case ProgramType.OfficeHours:
       return [
-        { id: ParticipantTab.Academics, href: null, count: null },
+        {
+          id: ParticipantTab.Academics,
+          href: `${base}/academics`,
+          count: null,
+        },
         { id: ParticipantTab.Students, href: null, count: null },
       ];
     default:
@@ -153,7 +159,8 @@ export function misplacedTabHref(
       if (
         tab === ProgramTab.Participants ||
         tab === ProgramTab.Students ||
-        tab === ProgramTab.PeerMentors
+        tab === ProgramTab.PeerMentors ||
+        tab === ProgramTab.Academics
       )
         return `${base}/teams`;
       if (tab === ProgramTab.Appointments) return `${base}/matching`;
@@ -163,9 +170,10 @@ export function misplacedTabHref(
         tab === ProgramTab.Teams ||
         tab === ProgramTab.MentorPool ||
         tab === ProgramTab.Students ||
-        tab === ProgramTab.PeerMentors
+        tab === ProgramTab.PeerMentors ||
+        tab === ProgramTab.Participants
       )
-        return `${base}/participants`;
+        return `${base}/academics`;
       if (tab === ProgramTab.Matching) return `${base}/appointments`;
       if (tab === ProgramTab.Approvals) return base;
       return null;
@@ -173,7 +181,8 @@ export function misplacedTabHref(
       if (
         tab === ProgramTab.Teams ||
         tab === ProgramTab.MentorPool ||
-        tab === ProgramTab.Participants
+        tab === ProgramTab.Participants ||
+        tab === ProgramTab.Academics
       )
         return `${base}/students`;
       if (tab === ProgramTab.Appointments) return `${base}/matching`;
@@ -187,7 +196,8 @@ export function hasTabContent(type: ProgramType, tab: ProgramTab) {
     type === ProgramType.StartupMentoring ||
     tab === ProgramTab.Settings ||
     (type === ProgramType.PeerMentoring &&
-      (tab === ProgramTab.Students || tab === ProgramTab.PeerMentors))
+      (tab === ProgramTab.Students || tab === ProgramTab.PeerMentors)) ||
+    (type === ProgramType.OfficeHours && tab === ProgramTab.Academics)
   );
 }
 

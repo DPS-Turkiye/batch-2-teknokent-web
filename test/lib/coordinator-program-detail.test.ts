@@ -218,7 +218,19 @@ describe("program tabs by type", () => {
     }
 
     expect(misplacedTabHref(officeHours, "p1", ProgramTab.Teams)).toBe(
-      `${base}/participants`,
+      `${base}/academics`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Participants)).toBe(
+      `${base}/academics`,
+    );
+    expect(
+      misplacedTabHref(officeHours, "p1", ProgramTab.Academics),
+    ).toBeNull();
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Academics)).toBe(
+      `${base}/students`,
+    );
+    expect(misplacedTabHref(startup, "p1", ProgramTab.Academics)).toBe(
+      `${base}/teams`,
     );
     expect(misplacedTabHref(officeHours, "p1", ProgramTab.Matching)).toBe(
       `${base}/appointments`,
@@ -241,7 +253,7 @@ describe("program tabs by type", () => {
       `${base}/teams`,
     );
     expect(misplacedTabHref(officeHours, "p1", ProgramTab.Students)).toBe(
-      `${base}/participants`,
+      `${base}/academics`,
     );
     expect(misplacedTabHref(peer, "p1", ProgramTab.Appointments)).toBe(
       `${base}/matching`,

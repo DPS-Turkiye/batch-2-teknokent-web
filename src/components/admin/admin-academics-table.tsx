@@ -13,7 +13,10 @@ import {
   SearchField,
   StatusChip,
 } from "@/components/admin/admin-ui";
-import { useAdminAcademics } from "@/hooks/use-admin-academics";
+import {
+  type AcademicsList,
+  useAdminAcademics,
+} from "@/hooks/use-admin-academics";
 import type { AdminAcademic } from "@/interfaces/admin-academics";
 import { ACADEMIC_FILTERS } from "@/lib/admin-academics";
 import { errorMessage, formatLongDate, initials } from "@/lib/utils";
@@ -24,11 +27,33 @@ const COLUMNS =
 /** Kullanıcılar › Akademisyenler: the institution's academicians, read-only. */
 export function AdminAcademicsTable() {
   const t = useTranslations("adminAcademics");
-  const academics = useAdminAcademics();
+  return (
+    <AcademicsTable
+      academics={useAdminAcademics()}
+      intro={t("intro")}
+      showContact
+    />
+  );
+}
+
+/**
+ * The academicians list, shared by the admin's Kullanıcılar and an Office Hours program's Katılımcılar.
+ * Without {@code showContact} there is no e-mail or sign-in time to show (the program list leaves them out).
+ */
+export function AcademicsTable({
+  academics,
+  intro,
+  showContact,
+}: {
+  academics: AcademicsList;
+  intro: string;
+  showContact: boolean;
+}) {
+  const t = useTranslations("adminAcademics");
 
   return (
     <div className="space-y-4">
-      <p className="text-[13px] text-[#676e78]">{t("intro")}</p>
+      <p className="text-[13px] text-[#676e78]">{intro}</p>
       <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center">
         <FilterPills
           value={academics.filter}
@@ -92,6 +117,7 @@ export function AdminAcademicsTable() {
               <AcademicRow
                 key={row.personId}
                 row={row}
+                showContact={showContact}
                 onOpen={() => academics.openDrawer(row.personId)}
               />
             ))
@@ -102,6 +128,7 @@ export function AdminAcademicsTable() {
       {academics.open ? (
         <AcademicDrawer
           academic={academics.open}
+          showContact={showContact}
           onClose={academics.closeDrawer}
         />
       ) : null}
@@ -111,9 +138,11 @@ export function AdminAcademicsTable() {
 
 function AcademicRow({
   row,
+  showContact,
   onOpen,
 }: {
   row: AdminAcademic;
+  showContact: boolean;
   onOpen: () => void;
 }) {
   const t = useTranslations("adminAcademics");
@@ -128,7 +157,7 @@ function AcademicRow({
             {[row.academicTitle, row.fullName].filter(Boolean).join(" ")}
           </span>
           <span className="block truncate text-[12px] text-[#858c96]">
-            {row.email ?? "—"}
+            {(showContact ? row.email : row.faculty) ?? "—"}
           </span>
         </span>
       </span>
@@ -164,7 +193,7 @@ function SignInCell({ row }: { row: AdminAcademic }) {
     <span className="text-[12.5px] text-[#22262b]">
       {row.lastLoginAt
         ? t("lastSignIn", { date: formatLongDate(row.lastLoginAt, locale) })
-        : "—"}
+        : t("signedIn")}
     </span>
   );
 }
@@ -180,9 +209,11 @@ function RecordChip({ active }: { active: boolean }) {
 
 function AcademicDrawer({
   academic,
+  showContact,
   onClose,
 }: {
   academic: AdminAcademic;
+  showContact: boolean;
   onClose: () => void;
 }) {
   const t = useTranslations("adminAcademics");
@@ -239,7 +270,9 @@ function AcademicDrawer({
           </Field>
           <Field label={t("drawer.faculty")}>{academic.faculty ?? "—"}</Field>
           <Field label={t("drawer.department")}>{department || "—"}</Field>
-          <Field label={t("drawer.email")}>{academic.email ?? "—"}</Field>
+          {showContact ? (
+            <Field label={t("drawer.email")}>{academic.email ?? "—"}</Field>
+          ) : null}
           <Field label={t("drawer.record")}>
             <RecordChip active={academic.active} />
           </Field>

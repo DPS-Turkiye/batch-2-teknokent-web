@@ -3807,7 +3807,8 @@
       "PARTICIPANTS": "Participants",
       "APPOINTMENTS": "Appointments",
       "STUDENTS": "Students",
-      "PEER_MENTORS": "Peer Mentors"
+      "PEER_MENTORS": "Peer Mentors",
+      "ACADEMICS": "Academics"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -6064,6 +6065,8 @@
       "officeHours": "Office Hours",
       "officeHoursPending": "Office Hours activity isn't in Menton yet; it will show here once connected.",
       "readOnly": "This comes from the institution's records and can't be changed in Menton."
-    }
+    },
+    "programIntro": "Every active ODTÜ academic takes part in Office Hours without an invite; the list comes from the institution's records.",
+    "signedIn": "Signed in"
   }
 }
