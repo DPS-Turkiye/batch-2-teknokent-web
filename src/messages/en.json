@@ -6198,6 +6198,32 @@
       "noteLabel": "Student note",
       "proposedPast": "A time in the past cannot be offered.",
       "pickOne": "Pick a time."
+    },
+    "appointments": {
+      "title": "My appointments",
+      "subtitle": "Your confirmed office hours appointments. Requests are under Appointment requests.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "cancelled": "Cancelled",
+      "empty": "No appointments yet.",
+      "course": "Course: {course}",
+      "place": "Place: {place}",
+      "online": "Online link",
+      "lateCancel": "Cancelled within 24 hours",
+      "reason": "Reason: {reason}",
+      "cancel": "Cancel appointment",
+      "cancelReason": "Reason for the student",
+      "cancelReasonHint": "It starts in less than 24 hours, so a reason is required.",
+      "confirmCancel": "Cancel it",
+      "keep": "Keep",
+      "needReason": "Give a reason for cancelling within 24 hours.",
+      "cancelledToast": "Appointment cancelled; the student will be told.",
+      "cancelFailed": "The appointment could not be cancelled; the list was refreshed.",
+      "emptyView": {
+        "upcoming": "No upcoming appointments.",
+        "past": "No past appointments.",
+        "cancelled": "No cancelled appointments."
+      }
     }
   }
 }
