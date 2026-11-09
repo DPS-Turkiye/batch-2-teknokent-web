@@ -1,5 +1,5 @@
 import { screen, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianHomeView } from "@/components/academician/home-view";
 import type { InstitutionRecord } from "@/interfaces/institution";
@@ -29,6 +29,25 @@ const RECORD = {
   advisor: null,
   syncedAt: null,
 } satisfies InstitutionRecord;
+
+// The sample appointments are placed around "now" when the fixture module loads, so the clock is pinned to a fixed
+// Istanbul morning before those imports and in every test; otherwise the "today" slots turn into past ones late in
+// the day and the tests fail depending on the hour.
+const MORNING = vi.hoisted(() => {
+  const morning = new Date("2026-11-10T07:00:00Z");
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(morning);
+  return morning;
+});
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(MORNING);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 beforeEach(() => {
   resetAcademicianSample();

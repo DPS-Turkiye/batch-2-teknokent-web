@@ -1,12 +1,31 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianAppointmentsView } from "@/components/academician/appointments-view";
 import { groupAppointments } from "@/hooks/use-academician-appointments";
 import { ACADEMICIAN_APPOINTMENTS_SAMPLE } from "@/lib/client/fixtures/academician-office-hours";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// The sample appointments are placed around "now" when the fixture module loads, so the clock is pinned to a fixed
+// Istanbul morning before those imports and in every test; otherwise the "today" slots turn into past ones late in
+// the day and the tests fail depending on the hour.
+const MORNING = vi.hoisted(() => {
+  const morning = new Date("2026-11-10T07:00:00Z");
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(morning);
+  return morning;
+});
+
+beforeEach(() => {
+  vi.useFakeTimers({ toFake: ["Date"] });
+  vi.setSystemTime(MORNING);
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 beforeEach(() => resetAcademicianSample());
 
