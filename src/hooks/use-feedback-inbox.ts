@@ -3,6 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
+import type { ProgramType } from "@/interfaces/program";
 import {
   getPlatformFeedbackInbox,
   readPlatformFeedback,
@@ -14,9 +15,10 @@ export function useFeedbackInbox() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
+  const [programType, setProgramType] = useState<ProgramType | null>(null);
   const query = useQuery({
-    queryKey: [...FEEDBACK_INBOX_QUERY_KEY, page, unreadOnly],
-    queryFn: () => getPlatformFeedbackInbox(page, unreadOnly),
+    queryKey: [...FEEDBACK_INBOX_QUERY_KEY, page, unreadOnly, programType],
+    queryFn: () => getPlatformFeedbackInbox(page, unreadOnly, programType),
   });
   const read = useMutation({
     mutationFn: readPlatformFeedback,
@@ -36,6 +38,12 @@ export function useFeedbackInbox() {
     refetch: query.refetch,
     page,
     unreadOnly,
+    programType,
+    filterProgramType: (value: ProgramType | null) => {
+      setProgramType(value);
+      setPage(0);
+      read.reset();
+    },
     filterUnread: (value: boolean) => {
       setUnreadOnly(value);
       setPage(0);

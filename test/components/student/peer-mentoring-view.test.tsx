@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringView } from "@/components/student/peer-mentoring-view";
+import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 import {
   addPeerMentoringRequestFixture,
   peerMentoringRequestsFixture,
@@ -10,6 +11,17 @@ import {
   resetPeerMentoringFixtures,
 } from "@test/fixtures/peer-mentoring";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+const gate = { state: PeerMentorGateState.Hidden };
+vi.mock("@/hooks/use-peer-mentor-give", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/hooks/use-peer-mentor-give")>()),
+  usePeerMentorGate: () => ({
+    state: gate.state,
+    gateAward: null,
+    isLoading: false,
+    sessionBehind: false,
+  }),
+}));
 
 vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerMentors: vi.fn(async (filter) =>
@@ -25,6 +37,14 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
 
 const replace = vi.fn();
 let search = "";
+vi.mock("@/lib/client/training", async () => {
+  const { TrainingState } = await import("@/interfaces/training");
+  return {
+    getStudentTraining: vi.fn(async () => ({
+      state: TrainingState.NotAvailable,
+    })),
+  };
+});
 vi.mock("next/navigation", () => ({
   usePathname: () => "/student/peer-mentoring",
   useRouter: () => ({ replace }),
@@ -32,6 +52,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 beforeEach(() => {
+  gate.state = PeerMentorGateState.Hidden;
   search = "";
   replace.mockClear();
   resetPeerMentoringFixtures();
@@ -56,6 +77,7 @@ describe("PeerMentoringView › Mentorluk Al", () => {
     ).toBeVisible();
     expect(within(deniz).getByText("Neden önerildi?")).toBeVisible();
     expect(within(deniz).getByText("Bu derste güçlü: CENG 242")).toBeVisible();
+    expect(within(deniz).getByText("10 Görüşme")).toBeVisible();
     expect(
       within(deniz).getByRole("button", {
         name: "Deniz Kaya için talep gönder",
@@ -165,28 +187,39 @@ describe("PeerMentoringView › Mentorluk Al", () => {
 });
 
 describe("PeerMentoringView › switch", () => {
-  it("opens on Mentorluk Al and keeps Mentorluk Ver as Yakında for now", () => {
+  it("shows only Mentorluk Al to a student who is neither in İŞKUR nor a peer mentor", async () => {
     renderWithQueryClient(<PeerMentoringView />);
     expect(screen.getByRole("tab", { name: "Mentorluk Al" })).toHaveAttribute(
       "aria-selected",
       "true",
     );
-    expect(screen.getByRole("tab", { name: /Mentorluk Ver/ })).toBeDisabled();
-    expect(screen.getByText("Yakında")).toBeVisible();
+    expect(screen.queryByRole("tab", { name: "Mentorluk Ver" })).toBeNull();
   });
 
-  it("answers a Mentorluk Ver link with a coming-soon note and a way back", async () => {
+  it("answers a Mentorluk Ver link from such a student with Mentorluk Al", async () => {
     search = "as=MENTOR";
+    renderWithQueryClient(<PeerMentoringView />);
+    expect(
+      await screen.findByRole("region", { name: "Taleplerim" }),
+    ).toBeVisible();
+  });
+
+  it("offers Mentorluk Ver to an İŞKUR student without the badge as Rozet Yok", async () => {
+    gate.state = PeerMentorGateState.NoBadge;
     const user = userEvent.setup();
     renderWithQueryClient(<PeerMentoringView />);
 
-    expect(screen.getByText("Mentorluk Ver yakında")).toBeVisible();
-    expect(screen.queryByRole("region", { name: "Taleplerim" })).toBeNull();
-
-    await user.click(screen.getByRole("tab", { name: "Mentorluk Al" }));
-    expect(replace).toHaveBeenCalledWith("/student/peer-mentoring", {
+    await user.click(screen.getByRole("tab", { name: "Mentorluk Ver" }));
+    expect(replace).toHaveBeenCalledWith("/student/peer-mentoring?as=MENTOR", {
       scroll: false,
     });
+
+    search = "as=MENTOR";
+    renderWithQueryClient(<PeerMentoringView />);
+    expect(screen.getByText("Rozet Yok")).toBeVisible();
+    expect(
+      screen.getByRole("button", { name: "Eğitimi başlat" }),
+    ).toBeDisabled();
   });
 
   it("reads in English", async () => {

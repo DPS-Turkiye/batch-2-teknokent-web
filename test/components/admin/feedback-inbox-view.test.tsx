@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FeedbackInboxView } from "@/components/admin/feedback-inbox-view";
+import { ProgramType } from "@/interfaces/program";
 import {
   getPlatformFeedbackInbox,
   readPlatformFeedback,
@@ -82,7 +83,7 @@ describe("FeedbackInboxView", () => {
     expect(
       await screen.findByRole("heading", { name: "You’re all caught up" }),
     ).toBeInTheDocument();
-    expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, true);
+    expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, true, null);
   });
 
   it("shows a translated loading failure and recovers using Refresh", async () => {
@@ -105,5 +106,51 @@ describe("FeedbackInboxView", () => {
       ).toBeInTheDocument(),
     );
     expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
+  it("labels feedback with the program it came from and filters by program type", async () => {
+    vi.mocked(getPlatformFeedbackInbox).mockResolvedValue(
+      feedbackInbox({
+        page: {
+          ...feedbackInbox().page,
+          totalElements: 2,
+          content: [
+            platformFeedback({
+              programId: "p-peer",
+              programName: "İŞKUR Akran 2026",
+              programType: ProgramType.PeerMentoring,
+            }),
+            platformFeedback({ id: "22222222-2222-4222-8222-222222222222" }),
+          ],
+        },
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<FeedbackInboxView />);
+
+    expect(await screen.findByText("İŞKUR Akran 2026")).toBeInTheDocument();
+    expect(
+      screen.getByText("Akran Mentörlüğü", { selector: "span" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Program bilgisi yok")).toBeInTheDocument();
+
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Program türü" }),
+      ProgramType.PeerMentoring,
+    );
+    await waitFor(() =>
+      expect(getPlatformFeedbackInbox).toHaveBeenLastCalledWith(
+        0,
+        false,
+        ProgramType.PeerMentoring,
+      ),
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Program türü" }),
+      "ALL",
+    );
+    await waitFor(() =>
+      expect(getPlatformFeedbackInbox).toHaveBeenLastCalledWith(0, false, null),
+    );
   });
 });

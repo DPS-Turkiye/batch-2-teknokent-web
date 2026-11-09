@@ -126,6 +126,7 @@ describe("platform feedback routes", () => {
       "signed-in-admin",
       1,
       true,
+      undefined,
     );
     expect(
       (
@@ -166,6 +167,18 @@ describe("platform feedback routes", () => {
       expect(fetchPlatformFeedbackInbox).not.toHaveBeenCalled();
     },
   );
+
+  it("forwards a program-type filter and refuses an unknown one", async () => {
+    await GET(new Request("http://localhost?programType=PEER_MENTORING"));
+    expect(fetchPlatformFeedbackInbox).toHaveBeenLastCalledWith(
+      "signed-in-admin",
+      0,
+      false,
+      "PEER_MENTORING",
+    );
+    const refused = await GET(new Request("http://localhost?programType=NOPE"));
+    expect(refused.status).toBe(400);
+  });
 
   it("validates feedback identifiers before forwarding mark-read requests", async () => {
     expect(
