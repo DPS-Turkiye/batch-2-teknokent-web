@@ -1,5 +1,7 @@
 import type { NextRequest } from "next/server";
 
+import type { OrganizationMemberInput } from "@/interfaces/organization-member";
+
 import {
   createOrganizationMember,
   fetchOrganizationMembers,
@@ -24,10 +26,15 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { organizationId } = await getSessionIds();
-    const payload = (await request.json()) as Record<string, unknown>;
+    const { organizationId, userId } = await getSessionIds();
+    const { fullName, email, jobTitle } =
+      (await request.json()) as OrganizationMemberInput;
     return backendResponse(
-      await createOrganizationMember(organizationId, payload),
+      await createOrganizationMember(organizationId, userId, {
+        fullName,
+        email,
+        jobTitle,
+      }),
     );
   } catch (error) {
     return apiErrorResponse(error, {
