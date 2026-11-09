@@ -6,14 +6,15 @@ import {
   fetchOfficeHoursAvailability,
   saveOfficeHoursAvailability,
 } from "@/lib/api/lti";
-import { getOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { requireOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
 vi.mock("@/lib/api/lti", () => ({
   fetchOfficeHoursAvailability: vi.fn(),
   saveOfficeHoursAvailability: vi.fn(),
 }));
 vi.mock("@/lib/server/office-hours-session", () => ({
-  getOfficeHoursUser: vi.fn(),
+  requireOfficeHoursUser: vi.fn(),
 }));
 
 const backendSettings = {
@@ -35,7 +36,7 @@ const backendSettings = {
 describe("office-hours availability route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getOfficeHoursUser).mockResolvedValue({
+    vi.mocked(requireOfficeHoursUser).mockResolvedValue({
       userId: "user-1",
       fullName: "Ali Kaya",
     });
@@ -96,7 +97,9 @@ describe("office-hours availability route", () => {
   });
 
   it("needs an office-hours session", async () => {
-    vi.mocked(getOfficeHoursUser).mockResolvedValue(null);
+    vi.mocked(requireOfficeHoursUser).mockRejectedValue(
+      new SessionRequiredError(),
+    );
 
     expect((await GET()).status).toBe(401);
     expect(fetchOfficeHoursAvailability).not.toHaveBeenCalled();
