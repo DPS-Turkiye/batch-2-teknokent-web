@@ -1,10 +1,17 @@
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
-import { afterEach, expect, it } from "vitest";
+import { UserRole } from "@/interfaces/session";
+import { afterEach, expect, it, vi } from "vitest";
+import { getPeerCategories } from "@/lib/client/peer-mentoring";
 import {
+  getPeerMentorCategories,
   getStudentProfileCompletion,
   getProfileCompletionCategories,
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
+
+vi.mock("@/lib/client/peer-mentoring", () => ({
+  getPeerCategories: vi.fn(),
+}));
 import { EMPTY_PROFILE_COMPLETION } from "@/lib/client/fixtures/student-profile-completion";
 import { getStudentHome } from "@/lib/client/student-home";
 afterEach(async () => {
@@ -26,9 +33,30 @@ it("clones reads and writes, and shares completion/skip with fixture home", asyn
   await saveStudentProfileCompletion(EMPTY_PROFILE_COMPLETION);
   expect((await getStudentHome()).profileCompleted).toBe(false);
 });
-it("returns a separate sample taxonomy copy with only eight board categories", async () => {
+it("offers only the program's active categories, each with its sample sub-topics", async () => {
+  vi.mocked(getPeerCategories).mockResolvedValue([
+    PeerTopicCategory.International,
+    PeerTopicCategory.CareerInternship,
+  ]);
   const categories = await getProfileCompletionCategories();
-  expect(categories).toHaveLength(8);
-  categories[0].subtopics.length = 0;
-  expect((await getProfileCompletionCategories())[0].subtopics).toHaveLength(1);
+  expect(getPeerCategories).toHaveBeenLastCalledWith(UserRole.Mentee);
+  expect(categories.map((item) => item.id)).toEqual([
+    PeerTopicCategory.CareerInternship,
+    PeerTopicCategory.International,
+  ]);
+  expect(categories[0].subtopics).toHaveLength(1);
+
+  vi.mocked(getPeerCategories).mockResolvedValue([]);
+  expect(await getProfileCompletionCategories()).toEqual([]);
+});
+
+it("gives the peer-mentor wizard the categories of the programs the student mentors in", async () => {
+  vi.mocked(getPeerCategories).mockResolvedValue([
+    PeerTopicCategory.CampusLife,
+  ]);
+  const categories = await getPeerMentorCategories();
+  expect(getPeerCategories).toHaveBeenLastCalledWith(UserRole.Mentor);
+  expect(categories.map((item) => item.id)).toEqual([
+    PeerTopicCategory.CampusLife,
+  ]);
 });

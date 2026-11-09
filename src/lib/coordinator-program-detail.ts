@@ -1,9 +1,10 @@
 import { clientText } from "@/i18n/client-texts";
-import type {
-  CoordinatorProgramDetail,
-  ProgramPhaseInput,
-  ProgramRules,
-  UpdateProgramDetailsInput,
+import {
+  type CoordinatorProgramDetail,
+  ProgramLifecycle,
+  type ProgramPhaseInput,
+  type ProgramRules,
+  type UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import { formatMonthRange, type ProgramsT } from "@/lib/coordinator-programs";
@@ -37,15 +38,25 @@ export enum SettingsSection {
   Rules = "RULES",
   Eligibility = "ELIGIBILITY",
   Training = "TRAINING",
+  PeerCategories = "PEER_CATEGORIES",
   Archive = "ARCHIVE",
 }
 
-/** Only a peer program has the Akran Mentoru training. */
-export function settingsSections(type: ProgramType) {
+/**
+ * The sections Program Ayarları shows: only a peer program has the Akran Mentoru training and chooses
+ * categories, and a draft has no Arşiv.
+ */
+export function settingsSections(
+  type: ProgramType,
+  lifecycle: ProgramLifecycle,
+) {
+  const peer = type === ProgramType.PeerMentoring;
   return Object.values(SettingsSection).filter(
     (section) =>
-      section !== SettingsSection.Training ||
-      type === ProgramType.PeerMentoring,
+      (section !== SettingsSection.Training || peer) &&
+      (section !== SettingsSection.PeerCategories || peer) &&
+      (section !== SettingsSection.Archive ||
+        lifecycle !== ProgramLifecycle.Draft),
   );
 }
 

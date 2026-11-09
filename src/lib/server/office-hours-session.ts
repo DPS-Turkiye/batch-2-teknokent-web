@@ -7,6 +7,7 @@ import type {
   OfficeHoursSessionData,
   OfficeHoursSessionUser,
 } from "@/interfaces/office-hours";
+import { SessionRequiredError } from "@/lib/server/session-error";
 
 export const OFFICE_HOURS_COOKIE = "menton_office_hours";
 const OFFICE_HOURS_MAX_AGE_SECONDS = 60 * 60 * 8;
@@ -46,6 +47,13 @@ export async function saveOfficeHoursUser(user: OfficeHoursSessionUser) {
   session.user = user;
   session.issuedAt = Date.now();
   await session.save();
+}
+
+/** For routes: no office-hours session throws, so apiErrorResponse answers 401 the way Menton routes do. */
+export async function requireOfficeHoursUser() {
+  const user = await getOfficeHoursUser();
+  if (!user) throw new SessionRequiredError();
+  return user;
 }
 
 export async function getOfficeHoursUser(
