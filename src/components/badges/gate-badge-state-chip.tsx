@@ -13,8 +13,17 @@ const TONE: Record<GateBadgeState, "gray" | "green" | "amber"> = {
   [GateBadgeState.Revoked]: "amber",
 };
 
-/** "Rozet Yok" / "Rozet Kazanıldı" / "Süresi doldu" / "Geri alındı". */
-export function GateBadgeStateChip({ state }: { state: GateBadgeState }) {
-  const t = useTranslations("badges.states");
-  return <Badge tone={TONE[state]}>{t(state)}</Badge>;
+/** "Rozet Yok" / "Eğitimde" / "Rozet Kazanıldı" / "Süresi doldu" / "Geri alındı". */
+export function GateBadgeStateChip({
+  state,
+  inTraining = false,
+}: {
+  state: GateBadgeState;
+  inTraining?: boolean;
+}) {
+  const t = useTranslations("badges");
+  if (inTraining && state === GateBadgeState.None) {
+    return <Badge tone="amber">{t("inTraining")}</Badge>;
+  }
+  return <Badge tone={TONE[state]}>{t(`states.${state}`)}</Badge>;
 }

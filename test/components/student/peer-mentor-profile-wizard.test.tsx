@@ -42,6 +42,9 @@ vi.mock("@/lib/client/student-profile-completion", () => ({
   getProfileCompletionCategories: vi.fn(async () =>
     structuredClone(PROFILE_COMPLETION_CATEGORIES),
   ),
+  getPeerMentorCategories: vi.fn(async () =>
+    structuredClone(PROFILE_COMPLETION_CATEGORIES),
+  ),
   getStudentProfileCompletion: vi.fn(),
   saveStudentProfileCompletion: vi.fn(),
 }));

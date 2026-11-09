@@ -3417,7 +3417,8 @@
           "request": "Talep gönder",
           "requestFrom": "{name} için talep gönder",
           "requested": "Talebin yanıt bekliyor",
-          "full": "Kontenjan dolu"
+          "full": "Kontenjan dolu",
+          "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok."
         },
         "dialog": {
           "title": "{name} ile mentorluk",
@@ -4095,7 +4096,8 @@
       "ELIGIBILITY": "Katılım",
       "TRAINING": "Akran Mentoru eğitimi",
       "ARCHIVE": "Arşiv",
-      "CURRICULUM": "Müfredat & fazlar"
+      "CURRICULUM": "Müfredat & fazlar",
+      "PEER_CATEGORIES": "Akran kategorileri"
     },
     "sectionsLabel": "Ayar bölümleri",
     "archivedNote": "Bu program arşivlendi ve salt okunur. Değiştirmek için aşağıdan yeniden açın.",
@@ -4143,7 +4145,8 @@
     "archiveFailed": "Program arşivlenemedi.",
     "adminViewNote": "Program ayarlarını programın koordinatörleri yapılandırır; yönetici olarak yalnızca görüntülersin. Koordinatörleri buradan atayabilirsin.",
     "coordinatorsByAdmin": "Koordinatörleri yönetici atar.",
-    "type": "Program türü"
+    "type": "Program türü",
+    "peerCategoriesNote": "Öğrenciler ve akran mentorları yalnızca burada etkinleştirdiğin kategorileri görür. Başlangıçta hiçbiri etkin değildir."
   },
   "programTeams": {
     "filters": {
@@ -5539,7 +5542,8 @@
         "ACTIVE_MENTEE": "Geri bildirim verdiğin {current}/{target} görüşme"
       },
       "summary": "{earned}/{total} kazanıldı"
-    }
+    },
+    "inTraining": "Eğitimde"
   },
   "peerParticipants": {
     "loading": "Katılımcılar yükleniyor…",
@@ -5558,13 +5562,16 @@
     "revokeIntro": "Rozet geri alınınca mentorluk verme yetkisi de kalkar. Öğrenci nedeni görür.",
     "reason": "Neden",
     "cancel": "Vazgeç",
-    "confirmRevoke": "Geri al"
+    "confirmRevoke": "Geri al",
+    "trainingWatched": "Video izlendi, sınav bekleniyor",
+    "trainingAttempts": "{count} deneme · en iyi {best}/10"
   },
   "adminStudents": {
     "filterLabel": "Rozet durumu",
     "filters": {
       "ALL": "Tümü",
       "NONE": "Rozet yok",
+      "IN_TRAINING": "Eğitimde",
       "ACTIVE": "Akran mentoru",
       "REVOKED": "Geri alındı"
     },
@@ -5876,6 +5883,9 @@
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
     "invalidRequestBody": "İstek gövdesi okunamadı.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
+    "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
+    "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
+    "peerCategoriesInvalid": "Kategori listesi geçersiz.",
     "academicsLoadFailed": "Akademisyenler yüklenemedi."
   },
   "startupStart": {
@@ -6238,7 +6248,8 @@
       "clubs": "Örnek: Öğrenci toplulukları",
       "time": "Örnek: Zaman yönetimi",
       "exchange": "Örnek: Değişim programları"
-    }
+    },
+    "noActiveCategories": "Programında henüz etkin kategori yok. Koordinatörün kategorileri açtığında burada seçebilirsin."
   },
   "officeHours": {
     "title": "Ofis saatleri",
@@ -6410,7 +6421,52 @@
       "saveFailed": "Kaydedilemedi.",
       "invalidLink": "Bağlantı https:// ile başlayan bir web adresi olmalı.",
       "invalidEmail": "Geçerli bir e-posta adresi yaz."
+    },
+    "requests": {
+      "title": "Randevu Talepleri",
+      "subtitle": "Öğrencilerin ofis saati talepleri. Bir talep, sen kabul edene kadar randevu sayılmaz.",
+      "waitingForYou": "Yanıtını bekleyenler",
+      "waitingForStudent": "Öğrencinin yanıtı bekleniyor",
+      "emptyForYou": "Yanıt bekleyen talep yok.",
+      "emptyAll": "Henüz talep yok.",
+      "requestedTimes": "İstenen saat",
+      "requestedTimesMany": "İstenen saatler",
+      "proposedTimes": "Önerdiğin saatler",
+      "requestedAt": "Talep: {date}",
+      "questionAsked": "Soru sordun, öğrencinin cevabı bekleniyor.",
+      "accept": "Kabul Et",
+      "decline": "Reddet",
+      "propose": "Alternatif Saat Öner",
+      "ask": "Soru Sor",
+      "cancel": "Vazgeç",
+      "send": "Gönder",
+      "pickTime": "Hangi saatte görüşeceksiniz?",
+      "reason": "Neden (isteğe bağlı)",
+      "proposeHint": "En fazla {max} saat öner. Öğrenci birini seçtiğinde randevu onaylanır.",
+      "proposedTime": "{number}. saat",
+      "addTime": "Saat ekle",
+      "question": "Öğrenciye sorun",
+      "needTime": "En az bir saat seç.",
+      "needQuestion": "Sorunu yaz.",
+      "accepted": "Talep kabul edildi; randevu Randevularım'da.",
+      "declined": "Talep reddedildi.",
+      "proposed": "Önerdiğin saatler öğrenciye gönderildi.",
+      "asked": "Sorun öğrenciye gönderildi.",
+      "failed": "Talep yanıtlanamadı; liste yenilendi.",
+      "noteLabel": "Öğrencinin notu",
+      "proposedPast": "Geçmiş bir saat önerilemez.",
+      "pickOne": "Bir saat seç."
     }
+  },
+  "programPeerCategories": {
+    "title": "Akran kategorileri",
+    "noneActive": "Hiçbir kategori etkin değil: öğrenciler mentor arayamaz, akran mentorları profilinde kategori seçemez.",
+    "activeCount": "{count, plural, one {# kategori etkin} other {# kategori etkin}}",
+    "save": "Kategorileri kaydet",
+    "saving": "Kaydediliyor…",
+    "cancel": "Vazgeç",
+    "saved": "Kategoriler kaydedildi.",
+    "saveFailed": "Kategoriler kaydedilemedi."
   },
   "adminAcademics": {
     "intro": "Akademisyenler kurum verisinden gelir; elle onaylanmaz, buradan düzenlenmez.",

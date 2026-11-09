@@ -7,7 +7,11 @@ import { useId } from "react";
 import { GateBadgeStateChip } from "@/components/badges/gate-badge-state-chip";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
-import { GateBadgeState, type GateBadgeRow } from "@/interfaces/badges";
+import {
+  GateBadgeState,
+  inTraining,
+  type GateBadgeRow,
+} from "@/interfaces/badges";
 import { useProgramBadges } from "@/hooks/use-program-badges";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { errorMessage, formatLongDate } from "@/lib/utils";
@@ -90,7 +94,20 @@ function PeerParticipantsTable({
                   <p className="text-xs text-[#858c96]">{row.email}</p>
                 </td>
                 <td className="py-3">
-                  <GateBadgeStateChip state={row.state} />
+                  <GateBadgeStateChip
+                    state={row.state}
+                    inTraining={inTraining(row)}
+                  />
+                  {inTraining(row) ? (
+                    <p className="mt-1 text-xs text-[#676e78]">
+                      {row.training.attempts > 0
+                        ? t("trainingAttempts", {
+                            count: row.training.attempts,
+                            best: row.training.bestScore ?? 0,
+                          })
+                        : t("trainingWatched")}
+                    </p>
+                  ) : null}
                   {row.state === GateBadgeState.Revoked && row.reason ? (
                     <p className="mt-1 text-xs text-[#b94f12]">
                       {t("revokedBecause", { reason: row.reason })}

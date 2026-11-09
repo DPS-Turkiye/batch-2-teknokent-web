@@ -15,6 +15,12 @@ export enum PeerTopicCategory {
 
 export const PEER_TOPIC_CATEGORIES = Object.values(PeerTopicCategory);
 
+/** A peer program's active categories (none until its coordinator turns them on). */
+export type ProgramPeerCategories = {
+  programId: string;
+  active: PeerTopicCategory[];
+};
+
 /**
  * A peer mentor of the student's own program, as the student sees them
  * (`GET /api/peer-mentoring/mentors?category=&q=`, the student left out).

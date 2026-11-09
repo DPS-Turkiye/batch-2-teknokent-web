@@ -11,11 +11,11 @@ import {
   getOfficeHoursProfileSettings,
   saveOfficeHoursProfileSettings,
 } from "@/lib/client/academician-office-hours";
+import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
 import { httpUrlOrNull, isEmailAddress } from "@/lib/utils";
 
 export const OFFICE_HOURS_PROFILE_QUERY_KEY = [
-  "academician",
-  "office-hours",
+  ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
   "profile",
 ] as const;
 
