@@ -5715,7 +5715,9 @@
     "approvalsLoadFailed": "Onaylar yüklenemedi.",
     "teamHistoryLoadFailed": "Takım geçmişi yüklenemedi.",
     "teamLeaveFailed": "Takımdan ayrılınamadı.",
-    "programLaunchFailed": "Program başlatılamadı."
+    "programLaunchFailed": "Program başlatılamadı.",
+    "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
+    "peerMentoringRequestFailed": "Talep gönderilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",

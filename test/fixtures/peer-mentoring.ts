@@ -1,11 +1,19 @@
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   type CreatePeerMentoringRequestInput,
+  type PeerMentoringPerson,
   type PeerMentorCard,
   type PeerMentorFilter,
   type PeerMentoringRequest,
   PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+
+// Test stand-in for the peer-mentoring API: the same filtering and request rules the backend applies.
+const STUDENT: PeerMentoringPerson = {
+  userId: "fixture-student-1",
+  fullName: "Ayşe Yılmaz",
+  department: "Bilgisayar Mühendisliği",
+};
 
 export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
   {
@@ -70,10 +78,11 @@ const INITIAL_REQUESTS: PeerMentoringRequest[] = [
   {
     id: "fixture-peer-request-1",
     mentor: {
-      mentorId: "fixture-peer-2",
+      userId: "fixture-peer-2",
       fullName: "Elif Şahin",
       department: "Endüstri Mühendisliği",
     },
+    mentee: STUDENT,
     category: PeerTopicCategory.International,
     message:
       "Bahar döneminde Erasmus'a başvurmak istiyorum, nereden başlamalıyım?",
@@ -82,7 +91,6 @@ const INITIAL_REQUESTS: PeerMentoringRequest[] = [
   },
 ];
 
-// Requests sent while the page is open stay until a reload, as the backend's would.
 let requests: PeerMentoringRequest[] = structuredClone(INITIAL_REQUESTS);
 let nextRequest = 1;
 
@@ -112,10 +120,11 @@ export function addPeerMentoringRequestFixture(
   const request: PeerMentoringRequest = {
     id: `fixture-peer-request-new-${nextRequest++}`,
     mentor: {
-      mentorId: mentor.mentorId,
+      userId: mentor.mentorId,
       fullName: mentor.fullName,
       department: mentor.department,
     },
+    mentee: STUDENT,
     category: input.category,
     message: input.message,
     status: MentorshipRequestStatus.Pending,
@@ -125,7 +134,6 @@ export function addPeerMentoringRequestFixture(
   return request;
 }
 
-/** Tests start every case from the same requests. */
 export function resetPeerMentoringFixtures() {
   requests = structuredClone(INITIAL_REQUESTS);
   nextRequest = 1;

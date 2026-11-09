@@ -5715,7 +5715,9 @@
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
-    "programLaunchFailed": "The program could not be launched."
+    "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request."
   },
   "startupStart": {
     "title": "My startup",
