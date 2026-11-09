@@ -114,12 +114,11 @@ describe("StudentFrame", () => {
   });
 });
 
-const ACADEMICIAN_SCREENS_BUILT = ["Danışan Öğrencilerim"];
+const ACADEMICIAN_SCREENS_BUILT = ["Danışan Öğrencilerim", "Profilim"];
 const ACADEMICIAN_SCREENS_SOON = [
   "Randevu Talepleri",
   "Randevularım",
   "Takvim",
-  "Profilim",
 ];
 
 describe("AcademicianFrame", () => {
