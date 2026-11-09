@@ -16,6 +16,8 @@ import {
   PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 import { type AppSession, IdentityKind, UserRole } from "@/interfaces/session";
+import { type StudentTraining, TrainingState } from "@/interfaces/training";
+import { ClientApiError } from "@/lib/client/api";
 import { getMyBadges } from "@/lib/client/badges";
 import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { getAvailabilitySettings } from "@/lib/client/mentor-profile";
@@ -24,6 +26,7 @@ import {
   getPeerMentorProfile,
   getReceivedPeerRequests,
 } from "@/lib/client/peer-mentoring";
+import { getStudentTraining } from "@/lib/client/training";
 import { renderWithQueryClient } from "@test/test-utils";
 
 let session: AppSession;
@@ -46,6 +49,9 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerMentoringRequests: vi.fn(),
   createPeerMentoringRequest: vi.fn(),
 }));
+vi.mock("@/lib/client/training", () => ({
+  getStudentTraining: vi.fn(),
+}));
 vi.mock("@/lib/client/mentor-requests", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/client/mentor-requests")>()),
   decideMentorRequest: vi.fn(async () => ({})),
@@ -55,6 +61,22 @@ vi.mock("@/lib/client/mentor-profile", async (importOriginal) => ({
   getAvailabilitySettings: vi.fn(),
   updateAvailabilitySettings: vi.fn(),
 }));
+
+function training(state: TrainingState): StudentTraining {
+  return {
+    state,
+    programId: "program-1",
+    programName: "İŞKUR Gençlik Programı",
+    version: 1,
+    videoId: "video-1",
+    videoWatched: state === TrainingState.Quiz,
+    attemptsLeft: 3,
+    nextAttemptAt: null,
+    lastScore: null,
+    passMark: 7,
+    questionCount: 10,
+  };
+}
 
 function student(permissions: UserRole[]): AppSession {
   return {
@@ -124,6 +146,9 @@ beforeEach(() => {
     syncedAt: null,
   });
   vi.mocked(getPeerMentorProfile).mockResolvedValue(null);
+  vi.mocked(getStudentTraining).mockResolvedValue(
+    training(TrainingState.NotAvailable),
+  );
   vi.mocked(getReceivedPeerRequests).mockResolvedValue([]);
   vi.mocked(getAvailabilitySettings).mockResolvedValue({
     rules: [],
@@ -135,16 +160,49 @@ beforeEach(() => {
 });
 
 describe("PeerMentorGiveView", () => {
-  it("tells an İŞKUR student without the badge how it is earned", async () => {
-    session = student([UserRole.Mentee]);
-    vi.mocked(getMyBadges).mockResolvedValue([]);
-    renderWithQueryClient(<PeerMentorGiveView />);
+  it.each([TrainingState.Video, TrainingState.Quiz])(
+    "links a student without the badge to the training while it is takeable (%s)",
+    async (state) => {
+      session = student([UserRole.Mentee]);
+      vi.mocked(getMyBadges).mockResolvedValue([]);
+      vi.mocked(getStudentTraining).mockResolvedValue(training(state));
+      renderWithQueryClient(<PeerMentorGiveView />);
 
-    expect(await screen.findByText("Rozet Yok")).toBeVisible();
-    expect(
-      screen.getByRole("button", { name: "Eğitimi başlat (yakında)" }),
-    ).toBeDisabled();
-  });
+      expect(await screen.findByText("Rozet Yok")).toBeVisible();
+      expect(
+        await screen.findByRole("link", { name: "Eğitimi başlat" }),
+      ).toHaveAttribute("href", "/student/peer-mentoring/training");
+    },
+  );
+
+  it.each([
+    [
+      "the program has no published training",
+      () => Promise.resolve(training(TrainingState.NotAvailable)),
+      "Programının eğitimi henüz yayında değil.",
+    ],
+    [
+      "the training endpoint is absent",
+      () => Promise.reject(new ClientApiError("Not found", 404)),
+      "Eğitim şu an açılamıyor.",
+    ],
+  ])(
+    "keeps the training button disabled with a reason when %s",
+    async (_case, answer, reason) => {
+      session = student([UserRole.Mentee]);
+      vi.mocked(getMyBadges).mockResolvedValue([]);
+      vi.mocked(getStudentTraining).mockImplementation(answer);
+      renderWithQueryClient(<PeerMentorGiveView />);
+
+      expect(await screen.findByText(reason)).toBeVisible();
+      expect(
+        screen.getByRole("button", { name: "Eğitimi başlat" }),
+      ).toBeDisabled();
+      expect(
+        screen.queryByRole("link", { name: "Eğitimi başlat" }),
+      ).not.toBeInTheDocument();
+    },
+  );
 
   // D4 seam: a revoked badge takes MENTOR away and closes the mentor side.
   it("explains a revoked badge with its reason and offers no mentor actions", async () => {

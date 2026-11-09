@@ -40,6 +40,8 @@ export type WeeklyAvailabilitySource = {
   save: (payload: UpdateMentorAvailabilitySettingsPayload) => Promise<unknown>;
   isSaving: boolean;
   numberFields?: readonly AvailabilityNumberField[];
+  /** An owner whose number fields mean something else (a student limit, say) names them itself. */
+  numberFieldLabels?: Partial<Record<AvailabilityNumberField, string>>;
   /** A step that only keeps a draft (the peer-mentor wizard) says nothing on save; the owner confirms later. */
   quiet?: boolean;
 };
@@ -229,6 +231,7 @@ export function useWeeklyAvailabilityForm(
     isSaving: source.isSaving,
     loadError: source.loadFailed ? t("loadFailed") : null,
     numberFields,
+    numberFieldLabels: source.numberFieldLabels ?? {},
     openExceptionForm,
     removeException,
     removeRange,

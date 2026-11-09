@@ -53,6 +53,7 @@ const HOUR_MS = 60 * 60 * 1000;
 const {
   ACCOUNT_RECHECK_MS,
   getSessionIds,
+  getSessionSignedInAt,
   getSessionMentorId,
   getSessionUser,
   LAST_WORKSPACE_COOKIE,
@@ -481,6 +482,14 @@ describe("getSessionIds", () => {
       userId: "founder-1",
       organizationId: "org-1",
     });
+  });
+});
+
+describe("getSessionSignedInAt", () => {
+  it("returns when the sign-in began, for the realtime token", async () => {
+    mockIronSession.issuedAt = 1_762_589_730_123;
+
+    await expect(getSessionSignedInAt()).resolves.toBe(1_762_589_730_123);
   });
 });
 

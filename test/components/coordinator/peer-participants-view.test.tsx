@@ -42,6 +42,7 @@ function row(overrides: Partial<GateBadgeRow>): GateBadgeRow {
     awardedAt: null,
     revokedAt: null,
     reason: null,
+    training: { videoWatched: false, attempts: 0, bestScore: null },
     ...overrides,
   };
 }
@@ -116,6 +117,31 @@ describe("PeerParticipantsView", () => {
     await waitFor(() =>
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument(),
     );
+  });
+
+  // 4T-3: started the training, no badge yet.
+  it("shows who is in training and how far they got", async () => {
+    vi.mocked(getProgramBadgeRoster).mockResolvedValue([
+      row({ training: { videoWatched: true, attempts: 2, bestScore: 7 } }),
+      row({
+        userId: "u3",
+        fullName: "Can İzledi",
+        training: { videoWatched: true, attempts: 0, bestScore: null },
+      }),
+    ]);
+    renderWithQueryClient(
+      <PeerParticipantsView programId="p1" tab={ProgramTab.Students} />,
+    );
+
+    const zeynep = (await screen.findByText("Zeynep Öğrenci")).closest("tr")!;
+    expect(within(zeynep).getByText("Eğitimde")).toBeInTheDocument();
+    expect(
+      within(zeynep).getByText("2 deneme · en iyi 7/10"),
+    ).toBeInTheDocument();
+    const can = screen.getByText("Can İzledi").closest("tr")!;
+    expect(
+      within(can).getByText("Video izlendi, sınav bekleniyor"),
+    ).toBeInTheDocument();
   });
 
   it("asks only for badge holders on Akran Mentorları", async () => {
