@@ -3434,12 +3434,68 @@
           "sent": "Your request was sent.",
           "failed": "Couldn't send the request."
         }
+      },
+      "profile": {
+        "title": "My profile",
+        "subtitle": "Your details from METU, your interests and your badges.",
+        "institution": {
+          "title": "Institutional details",
+          "readOnly": "These come from METU and cannot be changed here.",
+          "loading": "Loading your institutional details…",
+          "loadError": "Couldn't load your institutional details.",
+          "retry": "Try again",
+          "missingTitle": "No METU details for this account",
+          "missingBody": "Institutional details appear for students who sign in with their METU account.",
+          "fullName": "Full name",
+          "email": "E-mail",
+          "faculty": "Faculty",
+          "department": "Department",
+          "classYear": "Year",
+          "classYearValue": "Year {year}",
+          "programLevel": "Level of study",
+          "advisor": "Academic advisor",
+          "iskur": "İŞKUR Youth Programme",
+          "yes": "Participant",
+          "no": "Not a participant",
+          "unknown": "—",
+          "syncedAt": "Last updated: {date}.",
+          "notSynced": "Not updated yet.",
+          "help": "If something is wrong, contact the Registrar’s Office (ÖİDB)."
+        },
+        "interests": {
+          "title": "Your interests and goal",
+          "fixtureNotice": "Sample data: your choices stay in this browser session only and are not saved to your account.",
+          "loading": "Loading your interests…",
+          "loadError": "Couldn't load your interests.",
+          "retry": "Try again",
+          "empty": "You haven't added interests or a goal yet.",
+          "topics": "Interests",
+          "subtopics": "Sub-topics",
+          "goal": "Your goal",
+          "noGoal": "No goal added.",
+          "edit": "Edit",
+          "save": "Save",
+          "saving": "Saving…",
+          "cancel": "Cancel",
+          "saved": "Your interests are updated.",
+          "saveError": "Couldn't save your interests. You can try again."
+        },
+        "badges": {
+          "title": "My badges",
+          "soonTitle": "Your badges will appear here soon",
+          "soonBody": "The Peer Mentor badge and the badges you earn through your sessions will show in this section."
+        }
       }
     },
     "academician": {
       "comingTitle": "The academician workspace is on its way",
       "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
+  },
+  "studyLevel": {
+    "BACHELOR": "Bachelor's",
+    "MASTER": "Master's",
+    "DOCTORATE": "Doctorate"
   },
   "peerTopics": {
     "ACADEMIC_DEVELOPMENT": "Academic development",

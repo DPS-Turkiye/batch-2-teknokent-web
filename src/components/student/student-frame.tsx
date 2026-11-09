@@ -46,13 +46,11 @@ export const STUDENT_NAV: RoleNavItem[] = [
     label: "myProfile",
     icon: "/account-menu/user.svg",
     match: (path) => path.startsWith("/student/profile"),
-    disabled: true,
   },
 ];
 
 /** Whether the workspace screen at `href` (or its section) has landed yet. */
 export function studentRouteReady(href: string) {
-  if (href === "/student/profile/complete") return true;
   const item = STUDENT_NAV.find((nav) => nav.match(href));
   return Boolean(item && !item.disabled);
 }
