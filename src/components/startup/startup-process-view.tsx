@@ -8,6 +8,7 @@ import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
+import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
@@ -237,6 +238,8 @@ export function StartupProcessView() {
   return (
     <StartupPageFrame>
       <div className="space-y-5">
+        <WeeklyCheckIn />
+
         <section aria-label={t("stages")}>
           <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
             {process.stageCards.map((card, index) => (

@@ -4534,6 +4534,26 @@
       "loading": "Loading the report…",
       "downloadXlsx": "Download Excel (.xlsx)",
       "downloadCsv": "Download CSV"
+    },
+    "attendance": {
+      "title": "Weekly attendance",
+      "hint": "The weeks participants checked in on Süreç. Without dates, from the program's start to today.",
+      "from": "From",
+      "to": "To",
+      "wholeProgram": "Whole program",
+      "downloadXlsx": "Download Excel",
+      "downloadCsv": "Download CSV",
+      "rangeInvalid": "Choose a valid date range.",
+      "noWeeks": "No program week has begun in this range.",
+      "noParticipants": "This program has no participants yet.",
+      "name": "Name",
+      "team": "Team",
+      "week": "W{week}",
+      "attendedWeeks": "Attended",
+      "present": "Attended",
+      "absent": "Did not attend",
+      "rate": "Weekly attendance rate",
+      "percent": "{rate}%"
     }
   },
   "programDetail": {
@@ -5180,6 +5200,21 @@
       "accountsDetail": "users created in this window"
     }
   },
+  "weeklyCheckIn": {
+    "title": "Weekly attendance",
+    "week": "Week {week}",
+    "weekOf": "Week {week}/{total}",
+    "hint": "Check in if you took part in this week's program work.",
+    "action": "I took part this week",
+    "saving": "Saving…",
+    "checkedIn": "Your check-in for this week is saved.",
+    "checkedInAt": "Your check-in for this week is saved ({time}).",
+    "done": "Check-in saved.",
+    "failed": "Could not save your check-in.",
+    "notStarted": "The program has not started; you can check in once its first week begins.",
+    "ended": "The program has ended.",
+    "unscheduled": "The program's weeks are not scheduled yet."
+  },
   "meetingRatings": {
     "title": "Meeting ratings",
     "hint": "From the teams' post-meeting survey; scores only (1–5).",
@@ -5761,6 +5796,9 @@
     "meetingHeldFailed": "Could not save whether the meeting was held.",
     "sessionsLoadFailed": "Could not load the sessions and hours report.",
     "sessionsExportFailed": "Could not prepare the report file.",
+    "attendanceLoadFailed": "Could not load attendance.",
+    "attendanceCheckInFailed": "Could not save your check-in.",
+    "attendanceExportFailed": "Could not prepare the attendance file.",
     "assistantShareLoadFailed": "Could not load what the assistant shared.",
     "transcriptOrReportRequired": "A transcript or report is required.",
     "transcriptEmpty": "The meeting transcript is empty.",

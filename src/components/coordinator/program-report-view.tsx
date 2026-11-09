@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { ProgramReporting } from "@/components/admin/reporting-view";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { ProgramAttendanceSection } from "@/components/coordinator/program-attendance-section";
 import { ProgramSessionsSection } from "@/components/coordinator/program-sessions-section";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useProgramReport } from "@/hooks/use-program-report";
@@ -54,6 +55,8 @@ export function ProgramReportView({ programId }: { programId: string }) {
       <ProgramReporting data={data} fixedProgram />
 
       <ProgramSessionsSection programId={programId} />
+
+      <ProgramAttendanceSection programId={programId} />
     </div>
   );
 }

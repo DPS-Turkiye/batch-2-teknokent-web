@@ -18,3 +18,15 @@ export function readReportRange(request: NextRequest) {
   }
   return { from, to };
 }
+
+/**
+ * Like readReportRange, but both days may be left out: null then means "the
+ * whole program", and undefined that the query is malformed (only one day, or
+ * not yyyy-mm-dd).
+ */
+export function readOptionalReportRange(request: NextRequest) {
+  const from = request.nextUrl.searchParams.get("from");
+  const to = request.nextUrl.searchParams.get("to");
+  if (from == null && to == null) return null;
+  return readReportRange(request) ?? undefined;
+}
