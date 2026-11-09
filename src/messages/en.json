@@ -6482,6 +6482,29 @@
         "past": "No past appointments.",
         "cancelled": "No cancelled appointments."
       }
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Your office hours: weekly hours, one-off hours and dates you are away. Changes do not affect existing appointments.",
+      "weeklyTitle": "Weekly office hours",
+      "weeklyHint": "Students can request free times within these ranges.",
+      "save": "Save",
+      "saving": "Saving…",
+      "oneOffTitle": "One-off hours",
+      "oneOffHint": "Add office hours on a particular day outside your weekly pattern.",
+      "oneOffEmpty": "No one-off hours.",
+      "date": "Date",
+      "start": "Start",
+      "end": "End",
+      "place": "Place (optional)",
+      "placeDefault": "Default place",
+      "add": "Add",
+      "remove": "Remove {when}",
+      "needDate": "Pick a date, a start and an end time.",
+      "endAfterStart": "The end must be after the start.",
+      "notPast": "Hours cannot be added in the past.",
+      "oneOffSaved": "One-off hours saved.",
+      "oneOffFailed": "One-off hours could not be saved."
     }
   },
   "programPeerCategories": {

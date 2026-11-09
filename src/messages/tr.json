@@ -6482,6 +6482,29 @@
         "past": "Geçmiş randevun yok.",
         "cancelled": "İptal edilen randevu yok."
       }
+    },
+    "calendar": {
+      "title": "Takvim",
+      "subtitle": "Ofis saatlerin: her hafta tekrarlayan saatler, tek seferlik saatler ve uygun olmadığın tarihler. Değişiklikler mevcut randevuları etkilemez.",
+      "weeklyTitle": "Haftalık ofis saatleri",
+      "weeklyHint": "Öğrenciler bu aralıklardaki boş saatleri talep edebilir.",
+      "save": "Kaydet",
+      "saving": "Kaydediliyor…",
+      "oneOffTitle": "Tek seferlik saatler",
+      "oneOffHint": "Haftalık düzenin dışında bir güne özel ofis saati ekle.",
+      "oneOffEmpty": "Tek seferlik saat yok.",
+      "date": "Tarih",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "place": "Yer (isteğe bağlı)",
+      "placeDefault": "Varsayılan yer",
+      "add": "Ekle",
+      "remove": "{when} kaldır",
+      "needDate": "Tarih, başlangıç ve bitiş saatini seç.",
+      "endAfterStart": "Bitiş saati başlangıçtan sonra olmalı.",
+      "notPast": "Geçmiş bir zamana saat eklenemez.",
+      "oneOffSaved": "Tek seferlik saatler kaydedildi.",
+      "oneOffFailed": "Tek seferlik saatler kaydedilemedi."
     }
   },
   "programPeerCategories": {

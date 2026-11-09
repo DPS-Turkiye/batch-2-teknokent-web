@@ -116,10 +116,11 @@ describe("StudentFrame", () => {
 const ACADEMICIAN_SCREENS_BUILT = [
   "Randevu Talepleri",
   "Randevularım",
+  "Takvim",
   "Danışan Öğrencilerim",
   "Profilim",
 ];
-const ACADEMICIAN_SCREENS_SOON = ["Takvim"];
+const ACADEMICIAN_SCREENS_SOON: string[] = [];
 
 describe("AcademicianFrame", () => {
   it("does not open for a student who is not an academician", () => {
