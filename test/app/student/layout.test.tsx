@@ -2,7 +2,6 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import AcademicianLayout from "@/app/academician/layout";
-import AcademicianHomePage from "@/app/academician/page";
 import StudentLayout from "@/app/student/layout";
 
 class NotFound extends Error {}
@@ -56,9 +55,9 @@ describe("ODTÜ workspace layouts", () => {
 
   it("open the academician workspace in its frame once the flag is on", async () => {
     process.env.ODTU_WORKSPACES_ENABLED = "true";
-    render(await AcademicianLayout({ children: await AcademicianHomePage() }));
+    render(await AcademicianLayout({ children: <p>Randevu Talepleri</p> }));
     expect(screen.getByTestId("academician-frame")).toHaveTextContent(
-      "Akademisyen çalışma alanı hazırlanıyor",
+      "Randevu Talepleri",
     );
   });
 });
