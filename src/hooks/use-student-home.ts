@@ -9,6 +9,6 @@ export const STUDENT_HOME_QUERY_KEY = ["student-home"] as const;
 export function useStudentHome() {
   return useQuery({
     queryKey: STUDENT_HOME_QUERY_KEY,
-    queryFn: getStudentHome,
+    queryFn: () => getStudentHome(),
   });
 }

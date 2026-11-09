@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
 import {
+  type Appointment,
   AppointmentKind,
   AppointmentSide,
   AppointmentStatus,
@@ -30,3 +31,30 @@ export function appointmentRoleKey(
 ) {
   return kind === AppointmentKind.OfficeHours ? kind : side;
 }
+
+/** Still to come: not answered no or called off, and not over yet. */
+const OPEN_STATUSES = new Set([
+  AppointmentStatus.Pending,
+  AppointmentStatus.AlternativeProposed,
+  AppointmentStatus.Confirmed,
+]);
+
+export function isUpcoming(appointment: Appointment, now: Date) {
+  return (
+    OPEN_STATUSES.has(appointment.status) &&
+    Date.parse(appointment.endsAt) > now.getTime()
+  );
+}
+
+/** Upcoming soonest first; everything else (held, cancelled, refused) newest first. */
+export function splitAppointments(appointments: Appointment[], now: Date) {
+  const byStart = appointments.toSorted(
+    (a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt),
+  );
+  return {
+    upcoming: byStart.filter((item) => isUpcoming(item, now)),
+    past: byStart.filter((item) => !isUpcoming(item, now)).reverse(),
+  };
+}
+
+export const HOME_UPCOMING_LIMIT = 3;

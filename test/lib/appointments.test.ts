@@ -1,7 +1,46 @@
 import { describe, expect, it } from "vitest";
 
 import { AppointmentStatus } from "@/interfaces/appointment";
-import { APPOINTMENT_STATUS_TONE } from "@/lib/appointments";
+import {
+  APPOINTMENT_STATUS_TONE,
+  isUpcoming,
+  splitAppointments,
+} from "@/lib/appointments";
+import {
+  APPOINTMENTS_NOW,
+  peerAppointment,
+  STUDENT_APPOINTMENTS,
+} from "@test/fixtures/student-appointments";
+
+describe("splitAppointments", () => {
+  it("puts open sessions still ahead first, soonest first, and the rest newest first", () => {
+    const { upcoming, past } = splitAppointments(
+      STUDENT_APPOINTMENTS,
+      APPOINTMENTS_NOW,
+    );
+    expect(upcoming.map((item) => item.id)).toEqual(["meeting-2", "meeting-1"]);
+    expect(past.map((item) => item.id)).toEqual(["meeting-4", "meeting-3"]);
+  });
+
+  it("treats a session as upcoming until it ends, and never a cancelled or refused one", () => {
+    const now = new Date("2026-11-12T08:30:00.000Z");
+    expect(isUpcoming(peerAppointment(), now)).toBe(true);
+    expect(
+      isUpcoming(peerAppointment(), new Date("2026-11-12T08:45:00.000Z")),
+    ).toBe(false);
+    for (const status of [
+      AppointmentStatus.Cancelled,
+      AppointmentStatus.Rejected,
+      AppointmentStatus.Expired,
+      AppointmentStatus.Withdrawn,
+    ]) {
+      expect(isUpcoming(peerAppointment({ status }), now)).toBe(false);
+    }
+    expect(
+      isUpcoming(peerAppointment({ status: AppointmentStatus.Pending }), now),
+    ).toBe(true);
+  });
+});
 
 describe("APPOINTMENT_STATUS_TONE", () => {
   it("never shows a request that is still open in the confirmed colour", () => {

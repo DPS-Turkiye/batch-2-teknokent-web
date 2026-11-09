@@ -3369,6 +3369,12 @@
       "MENTOR": "Mentor olarak",
       "MENTEE": "Mentee olarak",
       "OFFICE_HOURS": "Office Hours"
+    },
+    "card": {
+      "place": "Yer: {place}",
+      "alternative": "Önerilen alternatif (henüz onaylanmadı)",
+      "rejectReason": "Gerekçe: {reason}",
+      "join": "Görüşmeye katıl"
     }
   },
   "odtuWorkspaces": {
@@ -5886,7 +5892,8 @@
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
     "peerCategoriesInvalid": "Kategori listesi geçersiz.",
     "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
-    "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi."
+    "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
+    "studentAppointmentsLoadFailed": "Randevuların yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6204,16 +6211,19 @@
   },
   "studentAppointments": {
     "title": "Randevularım",
-    "fixtureNotice": "Örnek veriler gösteriliyor. Canlı randevu ve Office Hours entegrasyonu henüz bağlı değil.",
-    "filter": "Durum",
+    "subtitle": "Akran mentörlüğü randevuların, mentee ve mentor olarak. Office Hours randevuları yakında burada olacak.",
+    "filter": "Duruma göre süz",
     "all": "Tümü",
     "loading": "Randevular yükleniyor…",
     "error": "Randevular yüklenemedi.",
     "retry": "Tekrar dene",
     "empty": "Henüz randevun yok.",
     "filteredEmpty": "Bu durumda randevun yok.",
-    "place": "Yer: {place}",
-    "alternative": "Önerilen alternatif (henüz onaylanmadı)"
+    "emptyBody": "Kabul edilen bir talebinden saat seçtiğinde randevun burada görünür.",
+    "findMentor": "Akran mentoru bul",
+    "upcoming": "Yaklaşan",
+    "upcomingEmpty": "Yaklaşan randevun yok.",
+    "past": "Geçmiş"
   },
   "studentProfileCompletion": {
     "title": "Profilini tamamla",
