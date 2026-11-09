@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
+import { ProgramTrainingEditor } from "@/components/coordinator/program-training-editor";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
@@ -19,10 +20,12 @@ import {
   type CoordinatorProgramDetail,
   ProgramLifecycle,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   ProgramTab,
   RULE_LIMITS,
   SettingsSection,
+  settingsSections,
   stepDays,
 } from "@/lib/coordinator-program-detail";
 
@@ -67,7 +70,7 @@ function SettingsBody({
         className="lg:sticky lg:top-6 lg:self-start"
       >
         <ul className="space-y-1">
-          {Object.values(SettingsSection).map((section) => (
+          {settingsSections(detail.program.type).map((section) => (
             <li key={section}>
               <a
                 href={`#${section.toLowerCase()}`}
@@ -178,6 +181,17 @@ function SettingsBody({
           detail={detail}
           editable={navigation.admin && !archived}
         />
+
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.Training}
+            title={t(`sections.${SettingsSection.Training}`)}
+            note={t("trainingNote")}
+          >
+            {/* Admins and the program's coordinators both edit it (D10), so the admin view lock does not apply. */}
+            <ProgramTrainingEditor programId={programId} archived={archived} />
+          </Section>
+        ) : null}
 
         <Section
           id={SettingsSection.Rules}
