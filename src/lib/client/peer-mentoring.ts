@@ -4,26 +4,39 @@ import type {
   PeerMentorFilter,
   PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
-import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
-import {
-  addPeerMentoringRequestFixture,
-  peerMentoringRequestsFixture,
-  peerMentorsFixture,
-} from "@/lib/client/fixtures/peer-mentoring";
+import { requireSuccess } from "@/lib/client/api";
+import { httpClient } from "@/lib/http-client";
 
-// Answer from fixtures until the peer-mentoring endpoints exist (shapes in interfaces/peer-mentoring.ts).
-export function getPeerMentors(
+export async function getPeerMentors(
   filter: PeerMentorFilter,
 ): Promise<PeerMentorCard[]> {
-  return fixtureResponse(peerMentorsFixture(filter));
+  return requireSuccess(
+    await httpClient.get<PeerMentorCard[]>("/api/peer-mentoring/mentors", {
+      params: {
+        category: filter.category ?? undefined,
+        q: filter.query || undefined,
+      },
+    }),
+  );
 }
 
-export function getPeerMentoringRequests(): Promise<PeerMentoringRequest[]> {
-  return fixtureResponse(peerMentoringRequestsFixture());
+export async function getPeerMentoringRequests(): Promise<
+  PeerMentoringRequest[]
+> {
+  return requireSuccess(
+    await httpClient.get<PeerMentoringRequest[]>(
+      "/api/peer-mentoring/requests",
+    ),
+  );
 }
 
-export function createPeerMentoringRequest(
+export async function createPeerMentoringRequest(
   input: CreatePeerMentoringRequestInput,
 ): Promise<PeerMentoringRequest> {
-  return fixtureResponse(addPeerMentoringRequestFixture(input));
+  return requireSuccess(
+    await httpClient.post<PeerMentoringRequest>(
+      "/api/peer-mentoring/requests",
+      input,
+    ),
+  );
 }

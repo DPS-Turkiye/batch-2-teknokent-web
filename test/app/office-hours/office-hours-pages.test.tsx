@@ -42,7 +42,7 @@ describe("office-hours course page", () => {
     });
   });
 
-  it("shows an instructor their course and where hours will be set up", async () => {
+  it("shows an instructor their course and their office hours", async () => {
     vi.mocked(fetchOfficeHoursCourse).mockResolvedValue(
       course(OfficeHoursRole.Instructor),
     );
@@ -56,8 +56,12 @@ describe("office-hours course page", () => {
     expect(screen.getByText("CENG 101")).toBeInTheDocument();
     expect(screen.getByText("Akademisyen")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: "Bu dersin ofis saatleri" }),
-    ).toBeInTheDocument();
+      screen.getByRole("link", { name: "Müsaitliği yönet" }),
+    ).toHaveAttribute("href", "/office-hours/profile");
+    expect(screen.getByRole("link", { name: "Profilim" })).toHaveAttribute(
+      "href",
+      "/office-hours/profile",
+    );
     expect(screen.getByText("Ali Kaya")).toBeInTheDocument();
   });
 
@@ -69,6 +73,9 @@ describe("office-hours course page", () => {
     render(await OfficeHoursCoursePage(params));
 
     expect(screen.getByText("Öğrenci")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Profilim" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: "Ofis saati al" }),
     ).toBeInTheDocument();

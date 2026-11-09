@@ -36,7 +36,17 @@ export enum SettingsSection {
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Eligibility = "ELIGIBILITY",
+  Training = "TRAINING",
   Archive = "ARCHIVE",
+}
+
+/** Only a peer program has the Akran Mentoru training. */
+export function settingsSections(type: ProgramType) {
+  return Object.values(SettingsSection).filter(
+    (section) =>
+      section !== SettingsSection.Training ||
+      type === ProgramType.PeerMentoring,
+  );
 }
 
 const PARTICIPANT_PAGES = [
