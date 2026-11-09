@@ -6115,6 +6115,26 @@
     }
   },
   "academicianWorkspace": {
-    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez."
+    "sampleNotice": "Örnek veriler gösteriliyor: Office Hours henüz bağlı değil, burada yaptığın değişiklikler kaydedilmez.",
+    "queryState": {
+      "loading": "Yükleniyor…",
+      "error": "Yüklenemedi.",
+      "retry": "Tekrar dene"
+    },
+    "studyLevel": {
+      "BACHELOR": "Lisans",
+      "MASTER": "Yüksek lisans",
+      "DOCTORATE": "Doktora"
+    },
+    "advisees": {
+      "title": "Danışan Öğrencilerim",
+      "subtitle": "ODTÜ kayıtlarındaki danışmanlığındaki öğrenciler. Bu bilgiler salt okunurdur.",
+      "search": "Öğrenci ara",
+      "count": "{count} öğrenci",
+      "classYear": "{year}. sınıf",
+      "notSignedIn": "Menton'a henüz giriş yapmadı",
+      "empty": "ODTÜ kayıtlarında danışmanlığında öğrenci görünmüyor.",
+      "noMatch": "Aramana uyan öğrenci yok."
+    }
   }
 }

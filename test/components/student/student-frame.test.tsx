@@ -114,6 +114,14 @@ describe("StudentFrame", () => {
   });
 });
 
+const ACADEMICIAN_SCREENS_BUILT = ["Danışan Öğrencilerim"];
+const ACADEMICIAN_SCREENS_SOON = [
+  "Randevu Talepleri",
+  "Randevularım",
+  "Takvim",
+  "Profilim",
+];
+
 describe("AcademicianFrame", () => {
   it("does not open for a student who is not an academician", () => {
     pathname = "/academician";
@@ -122,7 +130,7 @@ describe("AcademicianFrame", () => {
     expect(replace).toHaveBeenCalledWith("/student");
   });
 
-  it("shows the academician menu with only the home screen open so far", () => {
+  it("shows the academician menu with the screens built so far", () => {
     session = researchAssistant;
     pathname = "/academician";
     render(<AcademicianFrame>x</AcademicianFrame>);
@@ -131,13 +139,10 @@ describe("AcademicianFrame", () => {
       "aria-current",
       "page",
     );
-    for (const label of [
-      "Randevu Talepleri",
-      "Randevularım",
-      "Takvim",
-      "Danışan Öğrencilerim",
-      "Profilim",
-    ]) {
+    for (const label of ACADEMICIAN_SCREENS_BUILT) {
+      expect(within(nav).getByRole("link", { name: label })).toBeVisible();
+    }
+    for (const label of ACADEMICIAN_SCREENS_SOON) {
       expect(within(nav).queryByRole("link", { name: label })).toBeNull();
     }
     expect(screen.getByText("Akademisyen")).toBeInTheDocument();
