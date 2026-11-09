@@ -24,6 +24,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
+import { ToastTone } from "@/interfaces/toast";
 
 /**
  * Profilim › Kurumsal Bilgiler. The backend answers 404 when no institution vouches for the
@@ -63,7 +64,7 @@ export function useStudentInterests() {
       client.setQueryData(PROFILE_COMPLETION_QUERY_KEY, data);
       void client.invalidateQueries({ queryKey: STUDENT_HOME_QUERY_KEY });
       setDraft(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
   });
   const catalogue = categories.data ?? [];

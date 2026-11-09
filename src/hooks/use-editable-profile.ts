@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/stores/toast-store";
 
 import { ClientApiError } from "@/lib/client/api";
+import { ToastTone } from "@/interfaces/toast";
 
 // Shared by the personal and startup sections on /profile, so both are
 // implemented and tested once: load a record, edit it as a draft, save it back.
@@ -47,9 +48,10 @@ export function useEditableProfile<TLoaded, TDraft extends object>({
       queryClient.setQueryData(queryKey, loaded);
       setEdits({});
       setSaved(true);
-      showToast({ message: t("savedToast"), tone: "success" });
+      showToast({ message: t("savedToast"), tone: ToastTone.Success });
     },
-    onError: () => showToast({ message: t("saveFailedToast"), tone: "error" }),
+    onError: () =>
+      showToast({ message: t("saveFailedToast"), tone: ToastTone.Error }),
   });
 
   const loaded = query.data;

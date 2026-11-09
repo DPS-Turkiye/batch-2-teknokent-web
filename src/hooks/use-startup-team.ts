@@ -29,6 +29,7 @@ import {
   MemberFormMode,
 } from "@/lib/startup-team";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** The Ekip tab: the member list, adding, editing and removing (or asking to remove) members. */
 export function useStartupTeam() {
@@ -82,13 +83,13 @@ export function useStartupTeam() {
       }
       showToast({
         message: removalNeedsApproval ? t("removalRequested") : t("removed"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("removeFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -108,20 +109,20 @@ export function useStartupTeam() {
           email: draft.email.trim(),
           jobTitle,
         });
-        showToast({ message: t("added"), tone: "success" });
+        showToast({ message: t("added"), tone: ToastTone.Success });
       } else if (draft.memberId) {
         await update.mutateAsync({
           memberId: draft.memberId,
           fullName,
           jobTitle,
         });
-        showToast({ message: t("updated"), tone: "success" });
+        showToast({ message: t("updated"), tone: ToastTone.Success });
       }
       setDraft(null);
     } catch (error) {
       showToast({
         message: errorMessage(error, t("saveFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       });
     }
   }

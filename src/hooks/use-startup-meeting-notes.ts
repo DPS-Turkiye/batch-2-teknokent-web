@@ -16,6 +16,7 @@ import { STARTUP_DOCUMENTS_QUERY_KEY } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
+import { ToastTone } from "@/interfaces/toast";
 
 /** The notes view's open meeting: its note, its to-dos and its attachments. */
 export function useStartupMeetingNotes(meetingId: string | null) {
@@ -36,12 +37,12 @@ export function useStartupMeetingNotes(meetingId: string | null) {
       void queryClient.invalidateQueries({
         queryKey: STARTUP_DOCUMENTS_QUERY_KEY,
       });
-      showToast({ message: t("fileAdded"), tone: "success" });
+      showToast({ message: t("fileAdded"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("uploadFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

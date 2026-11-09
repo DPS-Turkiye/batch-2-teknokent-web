@@ -1,6 +1,7 @@
 import { create } from "zustand";
 
-export type ToastTone = "success" | "error" | "info";
+import { ToastTone } from "@/interfaces/toast";
+
 type ToastAction = { label: string; onClick: () => void };
 export type ToastInput = {
   message: string;
@@ -33,7 +34,7 @@ export const useToastStore = create<ToastStore>()((set, get) => ({
       set(({ toasts }) => ({
         toasts: [
           ...toasts.slice(-(VISIBLE_TOASTS - 1)),
-          { ...input, id, tone: input.tone ?? "info" },
+          { ...input, id, tone: input.tone ?? ToastTone.Info },
         ],
       }));
       window.setTimeout(() => get().actions.dismiss(id), TOAST_LIFETIME_MS);

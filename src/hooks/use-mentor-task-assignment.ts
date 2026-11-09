@@ -11,6 +11,7 @@ import {
   getTaskAssignees,
 } from "@/lib/client/mentor-task-assignment";
 import { assignMentorshipTaskSchema } from "@/lib/mentor-task-assignment";
+import { ToastTone } from "@/interfaces/toast";
 
 export function useMentorTaskAssignment(requestId: string) {
   const t = useTranslations("mentorHome.assignTask");
@@ -74,7 +75,7 @@ export function useMentorTaskAssignment(requestId: string) {
       await mutation.mutateAsync(parsed.data);
       await queryClient.invalidateQueries({ queryKey: ACTION_ITEMS_QUERY_KEY });
       setOpen(false);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     } catch {
       setError(t("saveFailed"));
     } finally {

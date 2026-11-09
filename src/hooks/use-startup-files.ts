@@ -33,6 +33,7 @@ import {
   StartupFileFilter,
 } from "@/lib/startup-files";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const STARTUP_DOCUMENT_REQUESTS_QUERY_KEY = [
   "startup-document-requests",
@@ -122,12 +123,12 @@ export function useStartupFiles() {
     }) => shareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: t("toasts.shared"), tone: "success" });
+      showToast({ message: t("toasts.shared"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.shareFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -141,12 +142,12 @@ export function useStartupFiles() {
     }) => unshareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: t("toasts.unshared"), tone: "success" });
+      showToast({ message: t("toasts.unshared"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.unshareFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -171,12 +172,12 @@ export function useStartupFiles() {
       void queryClient.invalidateQueries({
         queryKey: STARTUP_DOCUMENT_REQUESTS_QUERY_KEY,
       });
-      showToast({ message: t("toasts.uploaded"), tone: "success" });
+      showToast({ message: t("toasts.uploaded"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.uploadFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -185,12 +186,12 @@ export function useStartupFiles() {
     onSuccess: () => {
       setDeletingId(null);
       void refresh();
-      showToast({ message: t("toasts.deleted"), tone: "success" });
+      showToast({ message: t("toasts.deleted"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.deleteFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

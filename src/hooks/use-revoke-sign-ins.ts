@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useToast } from "@/stores/toast-store";
 import { revokeUserSignIns } from "@/lib/client/admin-users";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** Ends every sign-in of one user after the admin confirms it. */
 export function useRevokeSignIns(user: { id: string; fullName: string }) {
@@ -31,11 +32,14 @@ export function useRevokeSignIns(user: { id: string; fullName: string }) {
         close();
         showToast({
           message: t("done", { name: user.fullName }),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       })
       .catch((error: unknown) =>
-        showToast({ message: errorMessage(error, t("failed")), tone: "error" }),
+        showToast({
+          message: errorMessage(error, t("failed")),
+          tone: ToastTone.Error,
+        }),
       );
   }
 

@@ -10,6 +10,7 @@ import {
   getDocumentDownloadUrl,
   getStartupDocuments,
 } from "@/lib/client/startup-documents";
+import { ToastTone } from "@/interfaces/toast";
 
 export const STARTUP_DOCUMENTS_QUERY_KEY = ["startup-documents"] as const;
 
@@ -53,7 +54,7 @@ export function useOpenDocument() {
         });
         showPreview({ ...link, id: documentId });
       } catch {
-        showToast({ message: t("openFailed"), tone: "error" });
+        showToast({ message: t("openFailed"), tone: ToastTone.Error });
       }
     },
     [queryClient, showPreview, showToast, t],

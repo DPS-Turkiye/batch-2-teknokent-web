@@ -8,6 +8,7 @@ import { useDocumentUrl } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { listOwnDocuments, uploadDocument } from "@/lib/client/documents";
 import { currentAvatar, profilePhotoError } from "@/lib/personal-profile";
+import { ToastTone } from "@/interfaces/toast";
 
 export const OWN_DOCUMENTS_QUERY_KEY = ["own-documents"] as const;
 
@@ -31,18 +32,19 @@ export function useProfilePhoto() {
   const uploadMutation = useMutation({
     mutationFn: (file: File) => uploadDocument(file, DocumentKind.Avatar),
     onSuccess: () => {
-      showToast({ message: t("photoUpdated"), tone: "success" });
+      showToast({ message: t("photoUpdated"), tone: ToastTone.Success });
       return queryClient.invalidateQueries({
         queryKey: OWN_DOCUMENTS_QUERY_KEY,
       });
     },
-    onError: () => showToast({ message: t("photoFailed"), tone: "error" }),
+    onError: () =>
+      showToast({ message: t("photoFailed"), tone: ToastTone.Error }),
   });
 
   const upload = (file: File) => {
     const problem = profilePhotoError(file);
     if (problem) {
-      showToast({ message: t(problem), tone: "error" });
+      showToast({ message: t(problem), tone: ToastTone.Error });
       return;
     }
     uploadMutation.mutate(file);

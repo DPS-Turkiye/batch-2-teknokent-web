@@ -13,6 +13,7 @@ import {
 import type { ProgramInvitation } from "@/interfaces/program";
 import { programsAwaitingReview } from "@/lib/program-invitations";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 /** A mentor's program invitations from coordinators, answered from the dashboard, and their own pending joins. */
 export function useMentorProgramInvitations() {
@@ -38,12 +39,12 @@ export function useMentorProgramInvitations() {
             message: accepted
               ? t("accepted", { name: invitation.programName })
               : t("declined", { name: invitation.programName }),
-            tone: "success",
+            tone: ToastTone.Success,
           }),
         onError: (failure: Error) =>
           showToast({
             message: errorMessage(failure, t("answerFailed")),
-            tone: "error",
+            tone: ToastTone.Error,
           }),
       },
     );

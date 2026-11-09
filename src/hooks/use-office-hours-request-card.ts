@@ -25,6 +25,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { asAvailabilitySlots, counterpartOf } from "@/lib/office-hours-booking";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export type DecisionMode = "accept" | "decline" | "question" | "propose";
 
@@ -75,7 +76,7 @@ export function useOfficeHoursRequestCard(
       await act.mutateAsync({ requestId: request.id, action });
       setMode(null);
       setText("");
-      showToast({ message: t("done"), tone: "success" });
+      showToast({ message: t("done"), tone: ToastTone.Success });
     } catch (actionError) {
       setError(errorMessage(actionError, t("failed")));
     }

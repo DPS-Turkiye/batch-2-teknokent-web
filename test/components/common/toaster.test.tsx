@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import { Toaster } from "@/components/common/toaster";
 import { useToast } from "@/stores/toast-store";
 import { InLocale } from "@test/test-utils";
+import { ToastTone } from "@/interfaces/toast";
 
 function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
   const { showToast } = useToast();
@@ -16,10 +17,13 @@ function ToastTrigger({ withAction = false }: { withAction?: boolean }) {
           ? showToast({
               title: "Deniz Acar onaylandı",
               message: "Deneme programına atandı.",
-              tone: "success",
+              tone: ToastTone.Success,
               action: { label: "Detay", onClick: () => {} },
             })
-          : showToast({ message: "Profil kaydedildi.", tone: "success" })
+          : showToast({
+              message: "Profil kaydedildi.",
+              tone: ToastTone.Success,
+            })
       }
     >
       Kaydet

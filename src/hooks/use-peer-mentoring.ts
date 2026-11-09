@@ -25,6 +25,7 @@ import {
   peerMentoringSide,
 } from "@/lib/peer-mentoring";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
 export const PEER_MENTORING_REQUESTS_QUERY_KEY = [
@@ -134,7 +135,7 @@ export function usePeerMentorRequestForm(
         category,
         message: text,
       });
-      showToast({ message: t("sent"), tone: "success" });
+      showToast({ message: t("sent"), tone: ToastTone.Success });
       onSent();
     } catch (sendError) {
       setError(errorMessage(sendError, t("failed")));

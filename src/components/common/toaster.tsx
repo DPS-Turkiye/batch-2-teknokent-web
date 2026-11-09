@@ -3,22 +3,26 @@
 import { CheckCircle2, CircleAlert, Info, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import {
-  useToastStore,
-  type ToastItem,
-  type ToastTone,
-} from "@/stores/toast-store";
+import { ToastTone } from "@/interfaces/toast";
+import { useToastStore, type ToastItem } from "@/stores/toast-store";
 
 const toneStyles: Record<ToastTone, string> = {
-  success: "border-[#b7dfc7] bg-[#f0faf4] text-[#176b3a]",
-  error: "border-[#f0b9b5] bg-[#fff5f4] text-[#9f2d26]",
-  info: "border-[#bed5f2] bg-[#f4f8fd] text-[#315f91]",
+  [ToastTone.Success]: "border-[#b7dfc7] bg-[#f0faf4] text-[#176b3a]",
+  [ToastTone.Error]: "border-[#f0b9b5] bg-[#fff5f4] text-[#9f2d26]",
+  [ToastTone.Info]: "border-[#bed5f2] bg-[#f4f8fd] text-[#315f91]",
 };
 
 const toneIcons: Record<ToastTone, typeof Info> = {
-  success: CheckCircle2,
-  error: CircleAlert,
-  info: Info,
+  [ToastTone.Success]: CheckCircle2,
+  [ToastTone.Error]: CircleAlert,
+  [ToastTone.Info]: Info,
+};
+
+// Errors interrupt screen readers; the other tones wait their turn.
+const toneRoles: Record<ToastTone, "alert" | "status"> = {
+  [ToastTone.Success]: "status",
+  [ToastTone.Error]: "alert",
+  [ToastTone.Info]: "status",
 };
 
 type ToastProps = { toast: ToastItem; onDismiss: (id: number) => void };
@@ -65,7 +69,7 @@ function PlainToast({ toast, onDismiss }: ToastProps) {
   const Icon = toneIcons[toast.tone];
   return (
     <div
-      role={toast.tone === "error" ? "alert" : "status"}
+      role={toneRoles[toast.tone]}
       className={`pointer-events-auto flex w-full max-w-[380px] gap-3 self-end rounded-xl border p-4 shadow-lg ${toneStyles[toast.tone]}`}
     >
       <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />

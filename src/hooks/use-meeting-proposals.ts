@@ -27,6 +27,7 @@ import {
 } from "@/lib/meeting-proposals";
 import { toDateTimeLocalValue } from "@/lib/utils";
 import { POLL_INTERVAL, polling } from "@/lib/poll";
+import { ToastTone } from "@/interfaces/toast";
 
 export const MEETING_PROPOSALS_QUERY_KEY = ["meeting-proposals"] as const;
 
@@ -209,7 +210,7 @@ export function useRescheduleMeeting(meeting: MeetingItem) {
       });
       showToast({
         message: t("rescheduleProposed"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
   });

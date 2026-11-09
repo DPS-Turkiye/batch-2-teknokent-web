@@ -18,6 +18,7 @@ import {
   type ScheduledMeeting,
 } from "@/lib/client/mentor-requests";
 import { createTestQueryClient } from "@test/test-utils";
+import { ToastTone } from "@/interfaces/toast";
 
 vi.mock("@/lib/client/mentor-requests", () => ({
   postMentorMessage: vi.fn(),
@@ -310,7 +311,7 @@ describe("useRequestFileUpload", () => {
     await waitFor(() =>
       expect(showToast).toHaveBeenCalledWith({
         message: "Dosya boyut sınırını aşıyor.",
-        tone: "error",
+        tone: ToastTone.Error,
       }),
     );
     expect(replyToMentorRequest).not.toHaveBeenCalled();

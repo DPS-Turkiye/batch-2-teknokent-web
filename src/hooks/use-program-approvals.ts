@@ -16,6 +16,7 @@ import {
   getProgramApprovals,
 } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 export const programApprovalsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "approvals"] as const;
@@ -56,13 +57,13 @@ export function useProgramApprovals(programId: string) {
       }
       showToast({
         message: input.accepted ? t("approved") : t("rejected"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure: Error) =>
       showToast({
         message: errorMessage(failure, t("decisionFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

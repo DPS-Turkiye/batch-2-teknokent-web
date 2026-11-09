@@ -22,6 +22,7 @@ import {
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
 import { createTestQueryClient } from "@test/test-utils";
+import { ToastTone } from "@/interfaces/toast";
 
 const { showToast } = vi.hoisted(() => ({ showToast: vi.fn() }));
 
@@ -287,7 +288,7 @@ describe("failed saves report the reason the backend gave", () => {
 
     expect(showToast).toHaveBeenCalledWith({
       message: "Uzmanlık alanı en az bir tane olmalı.",
-      tone: "error",
+      tone: ToastTone.Error,
     });
   });
 
@@ -313,7 +314,7 @@ describe("failed saves report the reason the backend gave", () => {
 
     expect(showToast).toHaveBeenCalledWith({
       message: "En fazla 21 saat aralığı kaydedilebilir.",
-      tone: "error",
+      tone: ToastTone.Error,
     });
     expect(result.current.error).toBe(
       "En fazla 21 saat aralığı kaydedilebilir.",

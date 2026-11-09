@@ -17,6 +17,7 @@ import {
   roundForStage,
   stageCards,
 } from "@/lib/startup-process";
+import { ToastTone } from "@/interfaces/toast";
 
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
@@ -45,12 +46,12 @@ export function useStartupProcess() {
     },
     onSuccess: (process) => {
       queryClient.setQueryData(STARTUP_PROCESS_QUERY_KEY, process);
-      showToast({ message: t("uploaded"), tone: "success" });
+      showToast({ message: t("uploaded"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("uploadFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

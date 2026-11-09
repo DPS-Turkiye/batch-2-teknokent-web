@@ -1,6 +1,7 @@
 import { act, renderHook } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { ToastTone } from "@/interfaces/toast";
 import { useToast, useToastStore } from "@/stores/toast-store";
 
 describe("toast store", () => {
@@ -16,7 +17,7 @@ describe("toast store", () => {
     expect(
       useToastStore.getState().toasts.map((toast) => toast.message),
     ).toEqual(["2", "3", "4", "5"]);
-    expect(useToastStore.getState().toasts[0].tone).toBe("info");
+    expect(useToastStore.getState().toasts[0].tone).toBe(ToastTone.Info);
 
     act(() => vi.advanceTimersByTime(5_000));
     expect(useToastStore.getState().toasts).toEqual([]);

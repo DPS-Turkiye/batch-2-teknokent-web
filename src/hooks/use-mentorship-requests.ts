@@ -23,6 +23,7 @@ import {
   scheduleMeeting,
   withdrawMentorRequest,
 } from "@/lib/client/mentor-requests";
+import { ToastTone } from "@/interfaces/toast";
 
 export const mentorshipRequestsQueryKey = (
   role: UserRole.Mentee | UserRole.Mentor,
@@ -181,7 +182,7 @@ export function useRequestFileUpload(
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("fileSendFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 }

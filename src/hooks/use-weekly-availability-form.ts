@@ -26,6 +26,7 @@ import {
   toAvailabilityPayload,
 } from "@/lib/mentor-availability";
 import { errorMessage } from "@/lib/utils";
+import { ToastTone } from "@/interfaces/toast";
 
 const ALL_NUMBER_FIELDS = AVAILABILITY_NUMBER_FIELDS.map((item) => item.field);
 
@@ -202,12 +203,12 @@ export function useWeeklyAvailabilityForm(
     try {
       await source.save(toAvailabilityPayload(draft));
       setEdits(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
       onSaved();
     } catch (saveError) {
       const message = errorMessage(saveError, t("saveFailed"));
       setError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
     }
   };
 

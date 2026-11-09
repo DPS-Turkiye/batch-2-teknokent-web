@@ -42,6 +42,7 @@ import {
 import { UserAccountStatus } from "@/interfaces/session";
 import { errorMessage, initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
+import { ToastTone } from "@/interfaces/toast";
 
 export type UserTab = "coordinators" | "mentors" | "teams" | "students";
 
@@ -229,13 +230,13 @@ function CoordinatorsTable({
         setApproveId(null);
         showToast({
           message: t("rejected", { name: user.fullName }),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       })
       .catch((error: unknown) =>
         showToast({
           message: errorMessage(error, t("decideFailed")),
-          tone: "error",
+          tone: ToastTone.Error,
         }),
       );
   }
@@ -399,7 +400,7 @@ function CoordinatorsTable({
               message: already
                 ? t("alreadyCoordinator", { program: programName })
                 : t("assignedTo", { program: programName }),
-              tone: "success",
+              tone: ToastTone.Success,
               action: {
                 label: t("detail"),
                 onClick: () => setSelectedId(id),
@@ -408,7 +409,7 @@ function CoordinatorsTable({
           }}
           onFailed={(message) => {
             setApproveId(null);
-            showToast({ message, tone: "error" });
+            showToast({ message, tone: ToastTone.Error });
           }}
         />
       ) : null}
@@ -581,7 +582,7 @@ function MentorsTable({
                                 status === UserAccountStatus.Approved
                                   ? t("approved", { name: user.fullName })
                                   : t("rejected", { name: user.fullName }),
-                              tone: "success",
+                              tone: ToastTone.Success,
                             }),
                           )
                           .catch((error: unknown) =>
@@ -590,7 +591,7 @@ function MentorsTable({
                                 error instanceof Error
                                   ? error.message
                                   : t("decideFailed"),
-                              tone: "error",
+                              tone: ToastTone.Error,
                             }),
                           )
                       }
