@@ -20,7 +20,9 @@ import {
   OutputTokens,
   PhaseTimeline,
 } from "@/components/coordinator/program-phase-list";
+import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
 import { useProgramCurriculum } from "@/hooks/use-program-curriculum";
+import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
   type PhaseDraft,
@@ -52,7 +54,8 @@ export function ProgramCurriculumSection({
   archived: boolean;
 }) {
   const t = useTranslations("programCurriculum");
-  const curriculum = useProgramCurriculum(programId, detail);
+  const weekPlan = useProgramWeekPlan(programId, detail.program);
+  const curriculum = useProgramCurriculum(programId, detail, weekPlan.propose);
   const program = detail.program;
   const [dragging, setDragging] = useState<number | null>(null);
   const locked = archived || curriculum.saving;
@@ -171,6 +174,8 @@ export function ProgramCurriculumSection({
         <Info aria-hidden className="size-4 shrink-0 text-[#858c96]" />
         {t("lockNote", { count: program.teamCount })}
       </p>
+
+      <ProgramWeekPlanEditor plan={weekPlan} locked={archived} />
 
       {curriculum.editing ? (
         <PhaseDrawer

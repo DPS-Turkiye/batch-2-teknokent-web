@@ -5926,7 +5926,10 @@
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
     "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
     "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
-    "academicsLoadFailed": "Could not load the academics."
+    "academicsLoadFailed": "Could not load the academics.",
+    "weekPlanLoadFailed": "Couldn't load the weekly plan.",
+    "weekPlanSaveFailed": "Couldn't save the weekly plan.",
+    "programThisWeekLoadFailed": "Couldn't load this week's plan."
   },
   "startupStart": {
     "title": "My startup",
@@ -6623,5 +6626,53 @@
     },
     "programIntro": "Every active ODTÜ academic takes part in Office Hours without an invite; the list comes from the institution's records.",
     "signedIn": "Signed in"
+  },
+  "programThisWeek": {
+    "eyebrow": "This week",
+    "loading": "Loading this week's plan…",
+    "loadFailed": "Couldn't load this week's plan.",
+    "weekNumber": "Week {week}",
+    "ofTotal": "Week {week} / {total}",
+    "lists": {
+      "topics": "Topics",
+      "activities": "To do",
+      "deliverables": "To hand in"
+    },
+    "expectedOutput": "Expected output: {output}",
+    "notStarted": "The program starts on {date}.",
+    "ended": "The program has ended.",
+    "empty": "The coordinator hasn't added the syllabus for this week yet."
+  },
+  "programWeekPlan": {
+    "title": "Weekly plan",
+    "subtitle": "Participants see only that week's plan on their Process page.",
+    "subtitleWeeks": "The program runs {total} weeks. Participants see only that week's plan on their Process page.",
+    "add": "Add week",
+    "loading": "Loading the weekly plan…",
+    "loadFailed": "Couldn't load the weekly plan.",
+    "empty": "No weekly plan yet. When you upload the syllabus, the AI proposes the weeks; you can also add them by hand.",
+    "proposedNote": "Weeks the AI read from the syllabus. Check and edit them, then save; participants don't see them until you do.",
+    "week": "Week",
+    "weekLabel": "Week {week}",
+    "weekNumberOf": "Week {week} number",
+    "inferred": "Split from a phase",
+    "remove": "Remove {week}",
+    "weekTitle": "Week title",
+    "fields": {
+      "topics": "Topics",
+      "activities": "To do",
+      "deliverables": "To hand in"
+    },
+    "onePerLine": "One item per line",
+    "discard": "Discard",
+    "save": "Save weekly plan",
+    "saving": "Saving…",
+    "saved": "Weekly plan saved.",
+    "saveFailed": "Couldn't save the weekly plan.",
+    "problems": {
+      "MISSING_TITLE": "Give every week a title.",
+      "REPEATED_WEEK": "A week appears more than once.",
+      "PAST_THE_END": "Week numbers must be between 1 and {total}."
+    }
   }
 }

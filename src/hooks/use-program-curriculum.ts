@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useToast } from "@/stores/toast-store";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
+import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import { DocumentKind } from "@/interfaces/startup-document";
 import {
   extractSyllabusPhases,
@@ -49,6 +50,7 @@ type Review = { documentId: string; phases: WizardPhase[] };
 export function useProgramCurriculum(
   programId: string,
   detail: CoordinatorProgramDetail,
+  onWeeksProposed?: (weeks: ProgramPlanWeek[]) => void,
 ) {
   const t = useTranslations("programCurriculum");
   const cache = useProgramCache(programId);
@@ -97,8 +99,10 @@ export function useProgramCurriculum(
         startDate: detail.program.startDate,
         endDate: detail.program.endDate,
       }),
-    onSuccess: (result, documentId) =>
-      startReview({ documentId, phases: proposedPhases(result.phases) }),
+    onSuccess: (result, documentId) => {
+      startReview({ documentId, phases: proposedPhases(result.phases) });
+      if (result.weeks?.length) onWeeksProposed?.(result.weeks);
+    },
     onError: fail(t("readFailed")),
   });
 
