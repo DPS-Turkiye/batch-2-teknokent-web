@@ -14,6 +14,7 @@ import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
 import { UserRole } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
 import type messages from "@/messages/tr.json";
@@ -165,8 +166,12 @@ function RoleShell({
               {accountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
+                  className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
                 >
+                  <WorkspaceSwitcher
+                    itemClassName={MENU_ITEM_CLASS}
+                    onSwitched={() => setAccountOpen(false)}
+                  />
                   <button
                     type="button"
                     role="menuitem"
@@ -174,7 +179,7 @@ function RoleShell({
                       setAccountOpen(false);
                       setSettingsOpen(true);
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <Settings aria-hidden className="size-4" />
                     {tAccount("settings")}
@@ -183,7 +188,7 @@ function RoleShell({
                     type="button"
                     role="menuitem"
                     onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <LogOut className="size-4" />
                     {t("logout")}
@@ -252,6 +257,9 @@ function RoleShell({
     </div>
   );
 }
+
+const MENU_ITEM_CLASS =
+  "flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa] disabled:opacity-60";
 
 function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
   const t = useTranslations("roleFrame");

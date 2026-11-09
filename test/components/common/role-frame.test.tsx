@@ -1,24 +1,28 @@
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoleFrame } from "@/components/common/role-frame";
-import { UserRole } from "@/interfaces/session";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
+import { renderWithQueryClient } from "@test/test-utils";
 
 let pathname = "/admin";
-const admin = {
+const admin: AppSession = {
   userId: "admin",
   fullName: "Admin",
   email: "admin@example.com",
   role: UserRole.Admin,
   jobTitle: "Admin",
 };
+let current: AppSession = admin;
 vi.mock("next/navigation", () => ({
   usePathname: () => pathname,
-  useRouter: () => ({ replace: vi.fn() }),
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn(), refresh: vi.fn() }),
 }));
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () => admin,
-  useSession: () => ({ session: admin, isLoading: false, logout: vi.fn() }),
+  SESSION_QUERY_KEY: ["session"],
+  useAppSession: () => current,
+  useSession: () => ({ session: current, isLoading: false, logout: vi.fn() }),
 }));
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
@@ -26,6 +30,7 @@ vi.mock("@/components/common/notification-menu", () => ({
 
 beforeEach(() => {
   pathname = "/admin";
+  current = admin;
 });
 
 describe("RoleFrame feedback", () => {
@@ -118,5 +123,52 @@ describe("RoleFrame desktop nav between lg and xl", () => {
     expect(
       within(account).getAllByText("Admin")[0].closest("span.hidden"),
     ).toHaveClass("lg:hidden", "xl:block");
+  });
+});
+
+describe("RoleFrame workspace switch", () => {
+  const assistant: AppSession = {
+    userId: "u-1",
+    email: "elif@odtu-dev.invalid",
+    fullName: "Elif Şahin",
+    jobTitle: "Akademisyen",
+    role: UserRole.Academician,
+    permissions: [UserRole.Mentee, UserRole.Academician],
+    institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+  };
+  const frame = (
+    <RoleFrame
+      allowedRoles={Object.values(UserRole)}
+      homeHref="/academician"
+      menuLabel="academicianMenu"
+      nav={[]}
+    >
+      <p>Workspace</p>
+    </RoleFrame>
+  );
+
+  it("lets an account with two workspaces switch from the account menu", async () => {
+    const user = userEvent.setup();
+    current = assistant;
+    renderWithQueryClient(frame);
+    await user.click(
+      document.querySelector<HTMLElement>('button[aria-haspopup="menu"]')!,
+    );
+    const menu = screen.getByRole("menu");
+    expect(
+      within(menu).getByRole("menuitemradio", { name: /Akademisyen/ }),
+    ).toBeVisible();
+    expect(
+      within(menu).getByRole("menuitemradio", { name: /ODTÜ Öğrenci/ }),
+    ).toBeVisible();
+  });
+
+  it("shows no switch for an account with one workspace", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(frame);
+    await user.click(
+      document.querySelector<HTMLElement>('button[aria-haspopup="menu"]')!,
+    );
+    expect(screen.queryByRole("menuitemradio")).toBeNull();
   });
 });
