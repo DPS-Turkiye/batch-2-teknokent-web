@@ -133,6 +133,8 @@ export type CoordinatorProgramDetail = {
   coordinators: CoordinatorRef[];
   missingNoteMeetings: number;
   syllabus: ProgramSyllabus | null;
+  /** Everything Onaylar lists as waiting: applicants, mentor applications, startups and team changes. */
+  pendingApprovalCount: number;
 };
 
 export type UpdateProgramDetailsInput = {

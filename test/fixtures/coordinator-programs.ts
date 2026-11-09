@@ -95,6 +95,7 @@ export function coordinatorProgramDetail(
       { id: "coordinator-2", fullName: "Burcu Şen", owner: false },
     ],
     missingNoteMeetings: 4,
+    pendingApprovalCount: 6,
     ...overrides,
   };
 }

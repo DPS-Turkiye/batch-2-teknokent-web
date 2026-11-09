@@ -52,7 +52,7 @@ describe("program tabs by type", () => {
       within(tabs).getByRole("tab", { name: "Randevular" }),
     ).toHaveAttribute("aria-selected", "true");
     expect(
-      within(tabs).queryByRole("tab", { name: "Onaylar" }),
+      within(tabs).queryByRole("tab", { name: /Onaylar/ }),
     ).not.toBeInTheDocument();
     expect(
       within(tabs).getByRole("tab", { name: "Katılımcılar" }),
