@@ -13,13 +13,15 @@ export enum ProgramTab {
   Participants = "PARTICIPANTS",
   Teams = "TEAMS",
   MentorPool = "MENTOR_POOL",
+  Students = "STUDENTS",
+  PeerMentors = "PEER_MENTORS",
   Matching = "MATCHING",
   Appointments = "APPOINTMENTS",
   Approvals = "APPROVALS",
   Settings = "SETTINGS",
 }
 
-/** The sub-tabs under Katılımcılar; only Girişim's two have screens so far. */
+/** The sub-tabs under Katılımcılar; Girişim's two and the peer program's two have screens so far. */
 export enum ParticipantTab {
   Teams = "TEAMS",
   MentorPool = "MENTOR_POOL",
@@ -34,13 +36,25 @@ export enum SettingsSection {
   Coordinators = "COORDINATORS",
   Rules = "RULES",
   Eligibility = "ELIGIBILITY",
+  Training = "TRAINING",
   Archive = "ARCHIVE",
+}
+
+/** Only a peer program has the Akran Mentoru training. */
+export function settingsSections(type: ProgramType) {
+  return Object.values(SettingsSection).filter(
+    (section) =>
+      section !== SettingsSection.Training ||
+      type === ProgramType.PeerMentoring,
+  );
 }
 
 const PARTICIPANT_PAGES = [
   ProgramTab.Participants,
   ProgramTab.Teams,
   ProgramTab.MentorPool,
+  ProgramTab.Students,
+  ProgramTab.PeerMentors,
 ];
 
 /**
@@ -54,12 +68,17 @@ export function programTabs(
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
   const type = detail.program.type;
   const startup = type === ProgramType.StartupMentoring;
+  const peer = type === ProgramType.PeerMentoring;
   const officeHours = type === ProgramType.OfficeHours;
   return [
     { id: ProgramTab.Overview, href: base, count: null },
     {
       id: ProgramTab.Participants,
-      href: startup ? `${base}/teams` : `${base}/participants`,
+      href: startup
+        ? `${base}/teams`
+        : peer
+          ? `${base}/students`
+          : `${base}/participants`,
       count: null,
     },
     officeHours
@@ -101,8 +120,12 @@ export function participantTabs(
   switch (detail.program.type) {
     case ProgramType.PeerMentoring:
       return [
-        { id: ParticipantTab.Students, href: null, count: null },
-        { id: ParticipantTab.PeerMentors, href: null, count: null },
+        { id: ParticipantTab.Students, href: `${base}/students`, count: null },
+        {
+          id: ParticipantTab.PeerMentors,
+          href: `${base}/peer-mentors`,
+          count: null,
+        },
       ];
     case ProgramType.OfficeHours:
       return [
@@ -137,26 +160,45 @@ export function misplacedTabHref(
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
   switch (detail.program.type) {
     case ProgramType.StartupMentoring:
-      if (tab === ProgramTab.Participants) return `${base}/teams`;
+      if (
+        tab === ProgramTab.Participants ||
+        tab === ProgramTab.Students ||
+        tab === ProgramTab.PeerMentors
+      )
+        return `${base}/teams`;
       if (tab === ProgramTab.Appointments) return `${base}/matching`;
       return null;
     case ProgramType.OfficeHours:
-      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
+      if (
+        tab === ProgramTab.Teams ||
+        tab === ProgramTab.MentorPool ||
+        tab === ProgramTab.Students ||
+        tab === ProgramTab.PeerMentors
+      )
         return `${base}/participants`;
       if (tab === ProgramTab.Matching) return `${base}/appointments`;
       if (tab === ProgramTab.Approvals) return base;
       return null;
     default:
-      if (tab === ProgramTab.Teams || tab === ProgramTab.MentorPool)
-        return `${base}/participants`;
+      if (
+        tab === ProgramTab.Teams ||
+        tab === ProgramTab.MentorPool ||
+        tab === ProgramTab.Participants
+      )
+        return `${base}/students`;
       if (tab === ProgramTab.Appointments) return `${base}/matching`;
       return null;
   }
 }
 
-/** Only Girişim has screens behind its tabs yet; the other types show an empty state apart from the settings. */
+/** Girişim has screens behind its tabs; a peer program its two Katılımcılar lists; the rest an empty state. */
 export function hasTabContent(type: ProgramType, tab: ProgramTab) {
-  return type === ProgramType.StartupMentoring || tab === ProgramTab.Settings;
+  return (
+    type === ProgramType.StartupMentoring ||
+    tab === ProgramTab.Settings ||
+    (type === ProgramType.PeerMentoring &&
+      (tab === ProgramTab.Students || tab === ProgramTab.PeerMentors))
+  );
 }
 
 /** "Şub 2026 – Ara 2026 · Mentorluk dönemi, hafta 6/16 · Koordinatörler: Elif Demir, Burcu Şen". */

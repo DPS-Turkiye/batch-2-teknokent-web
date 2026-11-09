@@ -15,6 +15,7 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
 import type messages from "@/messages/tr.json";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
@@ -32,22 +33,27 @@ export type RoleNavItem = {
   match: (path: string) => boolean;
   /** Shown but not yet clickable: the screen has a design but no page yet. */
   disabled?: boolean;
+  /** Clickable, with a "Yakında" chip: the page says what is coming and when it isn't here yet. */
+  soon?: boolean;
 };
 
 /**
  * The white menton frame shared by the staff and ODTÜ workspaces: logo, pill menu,
- * notifications and account menu. Anyone whose role is not allowed is sent to their own home.
- * `roleLabel` names the workspace under the user's name in place of the account's role.
+ * notifications and account menu. Staff frames pass the permissions they need, ODTÜ frames their
+ * `workspace`; anyone else is sent to their own home. `roleLabel` names the workspace under the
+ * user's name in place of the account's role.
  */
 export function RoleFrame({
-  allowedRoles,
+  allowedRoles = [],
+  workspace,
   homeHref,
   menuLabel,
   nav,
   roleLabel,
   children,
 }: {
-  allowedRoles: UserRole[];
+  allowedRoles?: UserRole[];
+  workspace?: Workspace;
   homeHref: string;
   menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
@@ -55,7 +61,7 @@ export function RoleFrame({
   children: ReactNode;
 }) {
   const t = useTranslations("common");
-  const { allowed, isLoading } = useRoleGate(allowedRoles);
+  const { allowed, isLoading } = useRoleGate(allowedRoles, workspace);
 
   if (isLoading || !allowed) {
     return (
@@ -228,6 +234,7 @@ function RoleShell({
                 >
                   <NavGlyph src={item.icon} />
                   {tFrame(`nav.${item.label}`)}
+                  {item.soon ? <SoonBadge /> : null}
                 </Link>
               ),
             )}
@@ -271,6 +278,15 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     >
       <NavGlyph src={item.icon} />
       {t(`nav.${item.label}`)}
+      {item.soon ? (
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[10.5px] leading-none font-medium ${
+            active ? "bg-white/15 text-white" : "bg-[#f4f5f7] text-[#858c96]"
+          }`}
+        >
+          {t("soon")}
+        </span>
+      ) : null}
     </Link>
   );
 }

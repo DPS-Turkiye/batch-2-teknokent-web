@@ -64,11 +64,13 @@ export function toSession(user: BackendUser): AppSession | null {
   if (user.institutionKinds?.length) {
     session.institutionKinds = user.institutionKinds;
   }
-  if (user.role === UserRole.Mentee) {
-    // Someone who signed up without a startup has none until they join or create one on /startup.
+  // Whoever is mentored carries their team, a research assistant (primary role ACADEMICIAN) included. Someone who
+  // signed up without a startup has none until they join or create one on /startup.
+  if (session.permissions?.includes(UserRole.Mentee)) {
     session.organizationId = user.organizationId ?? undefined;
     session.organizationName = user.organizationName ?? undefined;
     session.individualMentee = user.individualMentee;
+    if (user.personalOrganization) session.personalOrganization = true;
   }
   return session;
 }
@@ -217,6 +219,11 @@ export async function getSessionIds() {
     userId: session.userId,
     organizationId: session.organizationId ?? "",
   };
+}
+
+/** When this sign-in began (epoch ms); an admin's sign-in revoke after it ends the session. */
+export async function getSessionSignedInAt() {
+  return (await getSessionStore()).issuedAt;
 }
 
 export async function getSessionMentorId() {

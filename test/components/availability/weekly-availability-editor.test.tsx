@@ -24,10 +24,15 @@ const settings: MentorAvailabilitySettings = {
 
 type EditorOptions = {
   numberFields?: readonly AvailabilityNumberField[];
+  numberFieldLabels?: Partial<Record<AvailabilityNumberField, string>>;
   showUnavailableDates?: boolean;
 };
 
-function Harness({ numberFields, showUnavailableDates }: EditorOptions) {
+function Harness({
+  numberFields,
+  numberFieldLabels,
+  showUnavailableDates,
+}: EditorOptions) {
   const editor = useWeeklyAvailabilityForm(
     {
       settings,
@@ -35,6 +40,7 @@ function Harness({ numberFields, showUnavailableDates }: EditorOptions) {
       save: vi.fn(),
       isSaving: false,
       numberFields,
+      numberFieldLabels,
     },
     vi.fn(),
   );
@@ -72,6 +78,15 @@ describe("WeeklyAvailabilityEditor", () => {
     expect(screen.queryByText("Eş zamanlı mentorluk limiti")).toBeNull();
     expect(screen.queryByText("İki görüşme arası tampon")).toBeNull();
     expect(screen.queryByText("UYGUN OLMADIĞIN TARİHLER")).toBeNull();
+  });
+
+  it("uses the owner's own name for a number field", () => {
+    renderEditor({
+      numberFieldLabels: { menteeCapacity: "Eş zamanlı öğrenci limiti" },
+    });
+    expect(screen.getByText("Eş zamanlı öğrenci limiti")).toBeInTheDocument();
+    expect(screen.queryByText("Eş zamanlı mentorluk limiti")).toBeNull();
+    expect(screen.getByText("Varsayılan görüşme süresi")).toBeInTheDocument();
   });
 
   it("drops the defaults section when an owner has no number fields", () => {

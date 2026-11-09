@@ -29,7 +29,14 @@ import type {
   AdminRequest,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  PROGRAM_TYPE_FILTERS,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 
@@ -55,11 +62,15 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
   const t = useTranslations("adminMentorships");
   const query = useAdminOverview();
   const [scope, setScope] = useState(ALL);
+  const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   if (!query.data) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
   const data = query.data;
-  const programs = programsInScope(data, scope);
+  const typed = data.programs.filter((program) =>
+    matchesProgramType(program.type, type),
+  );
+  const programs = programsInScope(typed, scope);
   const live = programs.filter((program) => program.status === "ACTIVE");
   const attention = interventionRows(data, live, t);
   const waiting = waitingTeams(data, live);
@@ -87,10 +98,18 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-2.5">
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <TypeSelect
+          value={type}
+          onChange={(value) => {
+            setType(value);
+            setScope(ALL);
+          }}
+        />
         <ScopeSelect
           value={scope}
-          programs={data.programs.map((program) => program.name)}
+          programs={typed.map((program) => program.name)}
           onChange={setScope}
         />
       </div>
@@ -266,8 +285,11 @@ function ProgramHealthRow({
     <div
       className={`${overviewCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
     >
-      <span className="truncate text-[14px] font-medium text-[#22262b]">
-        {program.name}
+      <span className="flex min-w-0 items-center gap-2">
+        <span className="truncate text-[14px] font-medium text-[#22262b]">
+          {program.name}
+        </span>
+        <ProgramTypeChip type={program.type} />
       </span>
       <CoordinatorName program={program} data={data} />
       <span className="text-[14px] font-medium text-[#22262b]">
@@ -725,6 +747,34 @@ function Matching({
   );
 }
 
+function TypeSelect({
+  value,
+  onChange,
+}: {
+  value: ProgramTypeFilter;
+  onChange: (value: ProgramTypeFilter) => void;
+}) {
+  const tType = useTranslations("programTypes");
+  return (
+    <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
+      <span className="text-[#858c96]">{tType("label")}</span>
+      <select
+        aria-label={tType("label")}
+        value={value}
+        onChange={(event) => onChange(event.target.value as ProgramTypeFilter)}
+        className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
+      >
+        {PROGRAM_TYPE_FILTERS.map((option) => (
+          <option key={option} value={option}>
+            {tType(option)}
+          </option>
+        ))}
+      </select>
+      <AdminIcon src="/admin/chevron-down-sm.svg" width={16} height={16} />
+    </label>
+  );
+}
+
 function ScopeSelect({
   value,
   programs,
@@ -1158,9 +1208,9 @@ type MatchRow = {
   waitDays: number | null;
 };
 
-function programsInScope(data: AdminOverview, scope: string) {
-  if (scope === ALL) return data.programs;
-  return data.programs.filter((program) => program.name === scope);
+function programsInScope(programs: AdminProgram[], scope: string) {
+  if (scope === ALL) return programs;
+  return programs.filter((program) => program.name === scope);
 }
 
 function activeMentorships(data: AdminOverview, programs: AdminProgram[]) {

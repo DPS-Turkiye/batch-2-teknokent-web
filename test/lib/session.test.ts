@@ -53,6 +53,7 @@ const HOUR_MS = 60 * 60 * 1000;
 const {
   ACCOUNT_RECHECK_MS,
   getSessionIds,
+  getSessionSignedInAt,
   getSessionMentorId,
   getSessionUser,
   LAST_WORKSPACE_COOKIE,
@@ -101,6 +102,42 @@ describe("toSession", () => {
       toSession(mentee({ individualMentee: true }))?.individualMentee,
     ).toBe(true);
     expect(toSession(mentee())?.individualMentee).toBeUndefined();
+  });
+
+  it("keeps an ODTÜ student's personal team by id only, flagged, with no name", () => {
+    const session = toSession(
+      mentee({
+        organizationId: "personal-1",
+        organizationName: null,
+        personalOrganization: true,
+        permissions: [UserRole.Mentee],
+        institutionKinds: [IdentityKind.Student],
+      }),
+    );
+    expect(session).toMatchObject({
+      organizationId: "personal-1",
+      personalOrganization: true,
+    });
+    expect(session?.organizationName).toBeUndefined();
+    expect(toSession(mentee())?.personalOrganization).toBeUndefined();
+  });
+
+  it("keeps the team of a research assistant, who is mentored but not primarily a mentee", () => {
+    const session = toSession(
+      mentor({
+        role: UserRole.Academician,
+        jobTitle: null,
+        organizationId: "personal-2",
+        organizationName: null,
+        personalOrganization: true,
+        permissions: [UserRole.Mentee, UserRole.Academician],
+        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+      }),
+    );
+    expect(session).toMatchObject({
+      organizationId: "personal-2",
+      personalOrganization: true,
+    });
   });
 
   it("signs in a mentee who has no startup yet", () => {
@@ -445,6 +482,14 @@ describe("getSessionIds", () => {
       userId: "founder-1",
       organizationId: "org-1",
     });
+  });
+});
+
+describe("getSessionSignedInAt", () => {
+  it("returns when the sign-in began, for the realtime token", async () => {
+    mockIronSession.issuedAt = 1_762_589_730_123;
+
+    await expect(getSessionSignedInAt()).resolves.toBe(1_762_589_730_123);
   });
 });
 

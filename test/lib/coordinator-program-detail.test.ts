@@ -7,6 +7,8 @@ import {
   healthShares,
   isActiveTab,
   misplacedTabHref,
+  SettingsSection,
+  settingsSections,
   ParticipantTab,
   participantTabs,
   ProgramTab,
@@ -160,15 +162,29 @@ describe("program tabs by type", () => {
     ]);
   });
 
-  it("gives Akran its own Katılımcılar page and leaves its tabs empty but the settings", () => {
+  it("gives Akran its Öğrenciler and Akran Mentorları lists and leaves its other tabs empty but the settings", () => {
     const detail = detailOf(ProgramType.PeerMentoring);
     expect(programTabs(detail, "p1")[1].href).toBe(
-      "/coordinator/programs/p1/participants",
+      "/coordinator/programs/p1/students",
     );
     expect(participantTabs(detail, "p1")).toEqual([
-      { id: ParticipantTab.Students, href: null, count: null },
-      { id: ParticipantTab.PeerMentors, href: null, count: null },
+      {
+        id: ParticipantTab.Students,
+        href: "/coordinator/programs/p1/students",
+        count: null,
+      },
+      {
+        id: ParticipantTab.PeerMentors,
+        href: "/coordinator/programs/p1/peer-mentors",
+        count: null,
+      },
     ]);
+    expect(hasTabContent(ProgramType.PeerMentoring, ProgramTab.Students)).toBe(
+      true,
+    );
+    expect(
+      hasTabContent(ProgramType.PeerMentoring, ProgramTab.PeerMentors),
+    ).toBe(true);
     expect(hasTabContent(ProgramType.PeerMentoring, ProgramTab.Matching)).toBe(
       false,
     );
@@ -217,11 +233,35 @@ describe("program tabs by type", () => {
     ).toBeNull();
 
     expect(misplacedTabHref(peer, "p1", ProgramTab.MentorPool)).toBe(
+      `${base}/students`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Participants)).toBe(
+      `${base}/students`,
+    );
+    expect(misplacedTabHref(peer, "p1", ProgramTab.Students)).toBeNull();
+    expect(misplacedTabHref(startup, "p1", ProgramTab.PeerMentors)).toBe(
+      `${base}/teams`,
+    );
+    expect(misplacedTabHref(officeHours, "p1", ProgramTab.Students)).toBe(
       `${base}/participants`,
     );
     expect(misplacedTabHref(peer, "p1", ProgramTab.Appointments)).toBe(
       `${base}/matching`,
     );
     expect(misplacedTabHref(peer, "p1", ProgramTab.Approvals)).toBeNull();
+  });
+});
+
+describe("settingsSections", () => {
+  it("gives only a peer program the Akran Mentoru training", () => {
+    expect(settingsSections(ProgramType.PeerMentoring)).toContain(
+      SettingsSection.Training,
+    );
+    expect(settingsSections(ProgramType.StartupMentoring)).not.toContain(
+      SettingsSection.Training,
+    );
+    expect(settingsSections(ProgramType.OfficeHours)).not.toContain(
+      SettingsSection.Training,
+    );
   });
 });
