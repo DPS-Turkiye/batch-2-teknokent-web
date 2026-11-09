@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ProgramReportView } from "@/components/coordinator/program-report-view";
 import { renderWithQueryClient } from "@test/test-utils";
 import {
+  meetingFeedbackState,
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
@@ -28,6 +29,7 @@ vi.mock("@/hooks/use-program-report", () => ({
     isLoading: false,
     error: null,
   }),
+  useProgramMeetingFeedback: () => meetingFeedbackState(),
 }));
 
 describe("coordinator Program raporu", () => {

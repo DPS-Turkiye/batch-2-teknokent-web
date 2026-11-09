@@ -5198,6 +5198,29 @@
       "fit": "Öneriler aşamaya uygundu",
       "expression": "Rahatça ifade edebildi",
       "confidence": "İlerleme güveni"
+    },
+    "mentorQuestions": {
+      "preparedness": "Mentee hazırlıklıydı",
+      "clarity": "Sonuç netleşti"
+    },
+    "details": {
+      "title": "Kim kimi değerlendirdi",
+      "hint": "Her değerlendirme: görüşme, yazan kişi, puanlar ve bıraktığı not.",
+      "empty": "Bu pencerede henüz değerlendirme yok.",
+      "count": "{count} değerlendirme",
+      "mentor": "Mentor: {name}",
+      "noMentor": "Mentor yok",
+      "author": "{name} değerlendirdi",
+      "sides": {
+        "MENTOR": "Mentor",
+        "MENTEE": "Mentee"
+      },
+      "rating": "{rating}/5",
+      "note": "Not",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "page": "Sayfa {page}/{total}",
+      "pager": "Değerlendirme sayfaları"
     }
   },
   "mobile": {

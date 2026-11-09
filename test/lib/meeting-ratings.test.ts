@@ -1,8 +1,13 @@
 import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
-import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 import {
+  MeetingFeedbackSide,
+  type ProgramMeetingRatings,
+} from "@/interfaces/program-report";
+import {
+  feedbackQualities,
+  feedbackRatingRows,
   formatRating,
   ratingQuestionRows,
   ratingResponseRate,
@@ -10,6 +15,8 @@ import {
 } from "@/lib/meeting-ratings";
 import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
+import { OutcomeClarity } from "@/types/mentor-evaluation";
+import { programMeetingFeedback } from "@test/fixtures/program-report";
 
 const t = createTranslator({
   locale: "tr",
@@ -79,5 +86,97 @@ describe("meeting ratings", () => {
       "confidence",
     ]);
     expect(rows[2].average).toBeNull();
+  });
+});
+
+describe("feedbackRatingRows", () => {
+  it("labels a mentee's answers with the mentee form's questions", () => {
+    expect(feedbackRatingRows(programMeetingFeedback())).toEqual([
+      { labelKey: "questions.nextSteps", rating: 5, clarity: null },
+      { labelKey: "questions.fit", rating: 4, clarity: null },
+      { labelKey: "questions.expression", rating: 4, clarity: null },
+      { labelKey: "questions.confidence", rating: 3, clarity: null },
+    ]);
+  });
+
+  it("labels a mentor's answers and reads the clarity score back as the choice made", () => {
+    expect(
+      feedbackRatingRows(
+        programMeetingFeedback({
+          side: MeetingFeedbackSide.Mentor,
+          ratings: [4, 3],
+        }),
+      ),
+    ).toEqual([
+      { labelKey: "mentorQuestions.preparedness", rating: 4, clarity: null },
+      {
+        labelKey: "mentorQuestions.clarity",
+        rating: 3,
+        clarity: OutcomeClarity.Partly,
+      },
+    ]);
+  });
+
+  it("leaves out skipped answers and any past the form's questions", () => {
+    expect(
+      feedbackRatingRows(
+        programMeetingFeedback({
+          side: MeetingFeedbackSide.Mentor,
+          ratings: [0, 5, 5],
+        }),
+      ),
+    ).toEqual([
+      {
+        labelKey: "mentorQuestions.clarity",
+        rating: 5,
+        clarity: OutcomeClarity.Yes,
+      },
+    ]);
+  });
+
+  it("has a label for every key in both languages", () => {
+    for (const messages of [tr, en]) {
+      const translate = createTranslator({
+        locale: "tr",
+        messages,
+        namespace: "meetingRatings",
+      });
+      for (const side of [
+        MeetingFeedbackSide.Mentee,
+        MeetingFeedbackSide.Mentor,
+      ]) {
+        for (const row of feedbackRatingRows(
+          programMeetingFeedback({ side, ratings: [1, 2, 3, 4] }),
+        )) {
+          expect(translate(row.labelKey)).not.toContain("meetingRatings.");
+        }
+      }
+    }
+  });
+});
+
+describe("feedbackQualities", () => {
+  it("finds the message id of each saved quality in the author's form", () => {
+    expect(
+      feedbackQualities(
+        programMeetingFeedback({
+          qualities: ["Somut aksiyonlar belirlemek", "Eski bir seçenek"],
+        }),
+      ),
+    ).toEqual([
+      { text: "Somut aksiyonlar belirlemek", menteeId: "actions" },
+      { text: "Eski bir seçenek" },
+    ]);
+    expect(
+      feedbackQualities(
+        programMeetingFeedback({
+          side: MeetingFeedbackSide.Mentor,
+          qualities: ["Saygılı", "Somut aksiyonlar belirlemek"],
+        }),
+      ),
+    ).toEqual([
+      { text: "Saygılı", mentorId: "respectful" },
+      { text: "Somut aksiyonlar belirlemek" },
+    ]);
   });
 });

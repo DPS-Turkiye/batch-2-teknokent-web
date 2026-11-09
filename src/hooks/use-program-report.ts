@@ -1,11 +1,12 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import type { SessionsExportFormat } from "@/interfaces/program-report";
 import { isoDay } from "@/lib/coordinator-calendar";
 import {
+  getProgramMeetingFeedback,
   getProgramMeetingRatings,
   getProgramReport,
   getProgramSessions,
@@ -29,6 +30,38 @@ export function useProgramMeetingRatings(
     queryFn: () => getProgramMeetingRatings(programId as string, from),
     enabled: Boolean(programId),
   });
+}
+
+/**
+ * Who rated whom, a page at a time, for the same window as the averages. The
+ * caller remounts this per program and window, so the page starts over.
+ */
+export function useProgramMeetingFeedback(
+  programId: string | null,
+  from: string | null,
+) {
+  const [page, setPage] = useState(0);
+  const query = useQuery({
+    queryKey: ["program-meeting-feedback", programId, from, page],
+    queryFn: () =>
+      getProgramMeetingFeedback(programId as string, { from, page }),
+    enabled: Boolean(programId),
+    placeholderData: keepPreviousData,
+  });
+  const totalPages = query.data?.totalPages ?? 0;
+  return {
+    feedback: query.data?.content ?? [],
+    total: query.data?.totalElements ?? 0,
+    page,
+    totalPages,
+    isLoading: query.isLoading,
+    error: query.error,
+    hasPrevious: page > 0,
+    hasNext: page + 1 < totalPages,
+    previous: () => setPage((current) => Math.max(0, current - 1)),
+    next: () =>
+      setPage((current) => (current + 1 < totalPages ? current + 1 : current)),
+  };
 }
 
 function currentMonth(now = new Date()) {

@@ -11,6 +11,29 @@ export type ProgramMeetingRatings = {
   distribution: number[];
 };
 
+/** Which side of the meeting wrote a feedback: its mentor, or someone from the mentored team. */
+export enum MeetingFeedbackSide {
+  Mentor = "MENTOR",
+  Mentee = "MENTEE",
+}
+
+/** One post-meeting feedback in the program report: who rated whom, for which meeting. */
+export type ProgramMeetingFeedback = {
+  id: string;
+  meetingAt: string;
+  meetingTitle: string | null;
+  mentorName: string | null;
+  organizationName: string;
+  authorName: string;
+  side: MeetingFeedbackSide;
+  /** Mentee: in the order of MEETING_FEEDBACK_QUESTIONS. Mentor: preparedness, then outcome clarity. */
+  ratings: number[];
+  qualities: string[];
+  /** The free-text note; null when none was written. */
+  note: string | null;
+  submittedAt: string;
+};
+
 export enum SessionsExportFormat {
   Csv = "CSV",
   Xlsx = "XLSX",

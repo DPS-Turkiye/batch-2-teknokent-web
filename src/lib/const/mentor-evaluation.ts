@@ -2,6 +2,12 @@ import { OutcomeClarity } from "@/types/mentor-evaluation";
 
 export const MENTOR_EVALUATION_QUESTION_COUNT = 3;
 
+/** The two 1–5 ratings the mentor form saves, in order (see evaluationPayload). */
+export const MENTOR_EVALUATION_RATING_IDS = [
+  "preparedness",
+  "clarity",
+] as const;
+
 /** Saved as the review's benefits, so the Turkish text is what gets stored. */
 export const MENTOR_EVALUATION_QUALITIES = [
   "Hazırlıklı",

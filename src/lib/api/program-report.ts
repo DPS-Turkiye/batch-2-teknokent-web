@@ -1,11 +1,14 @@
 import "server-only";
 
 import type { AdminOverview } from "@/interfaces/admin-overview";
+import type { PageResponse } from "@/interfaces/page-response";
 import type {
+  ProgramMeetingFeedback,
   ProgramMeetingRatings,
   ProgramSessions,
   SessionsExportFormat,
 } from "@/interfaces/program-report";
+import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 function programUrl(programId: string) {
@@ -29,6 +32,23 @@ export function fetchProgramMeetingRatings(
     method: "GET",
     url: `${programUrl(programId)}/meeting-ratings`,
     params: from ? { actorId, from } : { actorId },
+  });
+}
+
+export function fetchProgramMeetingFeedback(
+  actorId: string,
+  programId: string,
+  query: { from: string | null; page: number; size: number },
+) {
+  return backendRequest<PageResponse<ProgramMeetingFeedback>>({
+    method: HttpMethod.Get,
+    url: `${programUrl(programId)}/meeting-feedback`,
+    params: {
+      actorId,
+      page: query.page,
+      size: query.size,
+      ...(query.from ? { from: query.from } : {}),
+    },
   });
 }
 

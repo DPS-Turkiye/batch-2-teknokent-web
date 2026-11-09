@@ -1,5 +1,7 @@
 import type { AdminOverview } from "@/interfaces/admin-overview";
+import type { PageResponse } from "@/interfaces/page-response";
 import type {
+  ProgramMeetingFeedback,
   ProgramMeetingRatings,
   ProgramSessions,
   SessionsExportFormat,
@@ -25,6 +27,22 @@ export async function getProgramMeetingRatings(
     await httpClient.get<ProgramMeetingRatings>(
       `${programUrl(programId)}/meeting-ratings`,
       { params: from ? { from } : undefined },
+    ),
+  );
+}
+
+export async function getProgramMeetingFeedback(
+  programId: string,
+  query: { from: string | null; page: number },
+) {
+  return requireSuccess(
+    await httpClient.get<PageResponse<ProgramMeetingFeedback>>(
+      `${programUrl(programId)}/meeting-feedback`,
+      {
+        params: query.from
+          ? { from: query.from, page: query.page }
+          : { page: query.page },
+      },
     ),
   );
 }

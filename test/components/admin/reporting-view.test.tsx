@@ -5,6 +5,7 @@ import { ReportingView } from "@/components/admin/reporting-view";
 import { useProgramMeetingRatings } from "@/hooks/use-program-report";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 import {
+  meetingFeedbackState,
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
@@ -19,6 +20,7 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 
 vi.mock("@/hooks/use-program-report", () => ({
   useProgramMeetingRatings: vi.fn(),
+  useProgramMeetingFeedback: () => meetingFeedbackState(),
 }));
 
 describe("admin Raporlama", () => {

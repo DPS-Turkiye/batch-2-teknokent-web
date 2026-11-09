@@ -1,6 +1,10 @@
 import type { AdminOverview } from "@/interfaces/admin-overview";
 import { ProgramType } from "@/interfaces/program";
-import type { ProgramMeetingRatings } from "@/interfaces/program-report";
+import {
+  MeetingFeedbackSide,
+  type ProgramMeetingFeedback,
+  type ProgramMeetingRatings,
+} from "@/interfaces/program-report";
 
 export function programMeetingRatings(
   overrides: Partial<ProgramMeetingRatings> = {},
@@ -51,4 +55,53 @@ export function reportOverview(overrides: Partial<AdminOverview> = {}) {
     meetings: [],
     ...overrides,
   } satisfies AdminOverview;
+}
+
+export function programMeetingFeedback(
+  overrides: Partial<ProgramMeetingFeedback> = {},
+): ProgramMeetingFeedback {
+  return {
+    id: "feedback-1",
+    meetingAt: "2026-11-05T11:00:00Z",
+    meetingTitle: "UX Flow Review",
+    mentorName: "Leyla Aksoy",
+    organizationName: "Lumen",
+    authorName: "Gülse Buran",
+    side: MeetingFeedbackSide.Mentee,
+    ratings: [5, 4, 4, 3],
+    qualities: ["Somut aksiyonlar belirlemek"],
+    note: "Satış hunisini bir dahaki sefere konuşalım.",
+    submittedAt: "2026-11-05T12:30:00Z",
+    ...overrides,
+  };
+}
+
+/** useProgramMeetingFeedback's result; an empty first page unless told otherwise. */
+export function meetingFeedbackState(
+  overrides: Partial<{
+    feedback: ProgramMeetingFeedback[];
+    total: number;
+    page: number;
+    totalPages: number;
+    isLoading: boolean;
+    error: Error | null;
+    hasPrevious: boolean;
+    hasNext: boolean;
+    previous: () => void;
+    next: () => void;
+  }> = {},
+) {
+  return {
+    feedback: [],
+    total: 0,
+    page: 0,
+    totalPages: 0,
+    isLoading: false,
+    error: null,
+    hasPrevious: false,
+    hasNext: false,
+    previous: () => undefined,
+    next: () => undefined,
+    ...overrides,
+  };
 }
