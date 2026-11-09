@@ -4534,6 +4534,26 @@
       "loading": "Rapor yükleniyor…",
       "downloadXlsx": "Excel (.xlsx) indir",
       "downloadCsv": "CSV indir"
+    },
+    "attendance": {
+      "title": "Haftalık katılım",
+      "hint": "Katılımcıların Süreç'ten işaretlediği haftalar. Tarih seçmezseniz programın başından bugüne kadar.",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "wholeProgram": "Tüm program",
+      "downloadXlsx": "Excel indir",
+      "downloadCsv": "CSV indir",
+      "rangeInvalid": "Geçerli bir tarih aralığı seçin.",
+      "noWeeks": "Bu aralıkta başlamış bir program haftası yok.",
+      "noParticipants": "Bu programda henüz katılımcı yok.",
+      "name": "Ad Soyad",
+      "team": "Takım",
+      "week": "H{week}",
+      "attendedWeeks": "Katıldığı",
+      "present": "Katıldı",
+      "absent": "Katılmadı",
+      "rate": "Haftalık katılım oranı",
+      "percent": "%{rate}"
     }
   },
   "programDetail": {
@@ -5180,6 +5200,21 @@
       "accountsDetail": "bu pencerede oluşturulan kullanıcı"
     }
   },
+  "weeklyCheckIn": {
+    "title": "Haftalık katılım",
+    "week": "Hafta {week}",
+    "weekOf": "Hafta {week}/{total}",
+    "hint": "Bu haftaki program çalışmalarına katıldıysan işaretle.",
+    "action": "Bu hafta katıldım",
+    "saving": "Kaydediliyor…",
+    "checkedIn": "Bu haftaki katılımın kaydedildi.",
+    "checkedInAt": "Bu haftaki katılımın kaydedildi ({time}).",
+    "done": "Katılımın kaydedildi.",
+    "failed": "Katılım kaydedilemedi.",
+    "notStarted": "Program henüz başlamadı; ilk hafta başlayınca katılımını işaretleyebilirsin.",
+    "ended": "Program sona erdi.",
+    "unscheduled": "Programın haftaları henüz planlanmadı."
+  },
   "meetingRatings": {
     "title": "Görüşme değerlendirmeleri",
     "hint": "Takımların görüşme sonrası anketinden; yalnızca puanlar (1–5).",
@@ -5761,6 +5796,9 @@
     "meetingHeldFailed": "Görüşme durumu kaydedilemedi.",
     "sessionsLoadFailed": "Görüşme ve saat raporu yüklenemedi.",
     "sessionsExportFailed": "Rapor dosyası hazırlanamadı.",
+    "attendanceLoadFailed": "Katılım bilgisi yüklenemedi.",
+    "attendanceCheckInFailed": "Katılım kaydedilemedi.",
+    "attendanceExportFailed": "Katılım dosyası hazırlanamadı.",
     "assistantShareLoadFailed": "Asistan paylaşımı yüklenemedi.",
     "transcriptOrReportRequired": "Transkript veya rapor içeriği gerekli.",
     "transcriptEmpty": "Toplantı transkripti boş.",

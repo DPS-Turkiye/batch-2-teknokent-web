@@ -9,6 +9,7 @@ import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
+import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
@@ -243,6 +244,7 @@ export function StartupProcessView() {
           className="flex flex-col gap-4 lg:flex-row lg:items-start"
         >
           <ProgramWeekCard className="lg:flex-1" />
+          <WeeklyCheckIn />
         </div>
         <section aria-label={t("stages")}>
           <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
