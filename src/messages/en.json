@@ -3369,6 +3369,12 @@
       "MENTOR": "As mentor",
       "MENTEE": "As mentee",
       "OFFICE_HOURS": "Office Hours"
+    },
+    "card": {
+      "place": "Place: {place}",
+      "alternative": "Suggested alternative (not confirmed yet)",
+      "rejectReason": "Reason: {reason}",
+      "join": "Join the session"
     }
   },
   "odtuWorkspaces": {
@@ -5888,6 +5894,7 @@
     "peerCategoriesInvalid": "The category list is not valid.",
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
     "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
+    "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
     "academicsLoadFailed": "Could not load the academics."
   },
   "startupStart": {
@@ -6206,16 +6213,19 @@
   },
   "studentAppointments": {
     "title": "My appointments",
-    "fixtureNotice": "Showing sample data. Live appointments and Office Hours integration are not connected yet.",
-    "filter": "Status",
+    "subtitle": "Your peer-mentoring appointments, as mentee and as mentor. Office Hours appointments will show here soon.",
+    "filter": "Filter by status",
     "all": "All",
     "loading": "Loading appointments…",
     "error": "Appointments could not be loaded.",
     "retry": "Try again",
     "empty": "No appointments yet.",
     "filteredEmpty": "No appointments with this status.",
-    "place": "Place: {place}",
-    "alternative": "Proposed alternative (not yet confirmed)"
+    "emptyBody": "Once you pick a time on an accepted request, the appointment shows here.",
+    "findMentor": "Find a peer mentor",
+    "upcoming": "Upcoming",
+    "upcomingEmpty": "No upcoming appointments.",
+    "past": "Past"
   },
   "studentProfileCompletion": {
     "title": "Complete your profile",
@@ -6484,6 +6494,29 @@
         "past": "No past appointments.",
         "cancelled": "No cancelled appointments."
       }
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Your office hours: weekly hours, one-off hours and dates you are away. Changes do not affect existing appointments.",
+      "weeklyTitle": "Weekly office hours",
+      "weeklyHint": "Students can request free times within these ranges.",
+      "save": "Save",
+      "saving": "Saving…",
+      "oneOffTitle": "One-off hours",
+      "oneOffHint": "Add office hours on a particular day outside your weekly pattern.",
+      "oneOffEmpty": "No one-off hours.",
+      "date": "Date",
+      "start": "Start",
+      "end": "End",
+      "place": "Place (optional)",
+      "placeDefault": "Default place",
+      "add": "Add",
+      "remove": "Remove {when}",
+      "needDate": "Pick a date, a start and an end time.",
+      "endAfterStart": "The end must be after the start.",
+      "notPast": "Hours cannot be added in the past.",
+      "oneOffSaved": "One-off hours saved.",
+      "oneOffFailed": "One-off hours could not be saved."
     }
   },
   "programPeerCategories": {

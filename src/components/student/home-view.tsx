@@ -3,7 +3,7 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import {
@@ -13,15 +13,12 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
-import { AppointmentRoleLabel } from "@/components/appointments/appointment-role-label";
-import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
+import { AppointmentCard } from "@/components/appointments/appointment-card";
 import {
   studentRouteReady,
   studentRouteSoon,
 } from "@/components/student/student-frame";
 import { useStudentHome } from "@/hooks/use-student-home";
-import type { Appointment } from "@/interfaces/appointment";
-import { formatDateTime } from "@/lib/utils";
 
 export const STUDENT_PROFILE_COMPLETION_HREF = "/student/profile/complete";
 const APPOINTMENTS_HREF = "/student/appointments";
@@ -78,20 +75,19 @@ export function StudentHomeView() {
                 {t("seeAll")}
               </ReadyLink>
             </div>
-            <Panel>
-              {data.upcomingAppointments.length === 0 ? (
+            {data.upcomingAppointments.length === 0 ? (
+              <Panel>
                 <EmptyNote>{t("upcomingEmpty")}</EmptyNote>
-              ) : (
-                <ul className="divide-y divide-[#eef0f2]">
-                  {data.upcomingAppointments.map((appointment) => (
-                    <UpcomingRow
-                      key={appointment.id}
-                      appointment={appointment}
-                    />
-                  ))}
-                </ul>
-              )}
-            </Panel>
+              </Panel>
+            ) : (
+              <ul className="grid gap-3 lg:grid-cols-3">
+                {data.upcomingAppointments.map((appointment) => (
+                  <li key={appointment.id}>
+                    <AppointmentCard appointment={appointment} upcoming />
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section
@@ -116,30 +112,6 @@ export function StudentHomeView() {
         </>
       ) : null}
     </div>
-  );
-}
-
-function UpcomingRow({ appointment }: { appointment: Appointment }) {
-  const locale = useLocale();
-  const { counterpart } = appointment;
-  const who = counterpart.title
-    ? `${counterpart.title} ${counterpart.fullName}`
-    : counterpart.fullName;
-  return (
-    <li className="flex flex-col gap-2 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="min-w-0">
-        <p className="truncate text-[14px] font-medium text-[#22262b]">
-          {appointment.topic}
-        </p>
-        <p className="mt-0.5 text-[12.5px] text-[#676e78]">
-          {who} · {formatDateTime(appointment.startsAt, locale)}
-        </p>
-      </div>
-      <div className="flex shrink-0 flex-wrap items-center gap-2">
-        <AppointmentRoleLabel kind={appointment.kind} side={appointment.side} />
-        <AppointmentStatusChip status={appointment.status} />
-      </div>
-    </li>
   );
 }
 

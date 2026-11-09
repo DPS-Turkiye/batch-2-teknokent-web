@@ -1,8 +1,10 @@
 import type { Appointment } from "@/interfaces/appointment";
-import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
-import { STUDENT_APPOINTMENTS_FIXTURE } from "@/lib/client/fixtures/student-appointments";
+import { requireSuccess } from "@/lib/client/api";
+import { httpClient } from "@/lib/http-client";
 
-// Display fixtures only. No live appointment API or Office Hours identity mapping is assumed.
-export function getStudentAppointments(): Promise<Appointment[]> {
-  return fixtureResponse(STUDENT_APPOINTMENTS_FIXTURE);
+/** Peer-mentoring sessions only: Office Hours is not connected to Menton yet. */
+export async function getStudentAppointments() {
+  return requireSuccess(
+    await httpClient.get<Appointment[]>("/api/student/appointments"),
+  );
 }

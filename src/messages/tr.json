@@ -3369,6 +3369,12 @@
       "MENTOR": "Mentor olarak",
       "MENTEE": "Mentee olarak",
       "OFFICE_HOURS": "Office Hours"
+    },
+    "card": {
+      "place": "Yer: {place}",
+      "alternative": "Önerilen alternatif (henüz onaylanmadı)",
+      "rejectReason": "Gerekçe: {reason}",
+      "join": "Görüşmeye katıl"
     }
   },
   "odtuWorkspaces": {
@@ -5888,6 +5894,7 @@
     "peerCategoriesInvalid": "Kategori listesi geçersiz.",
     "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
     "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
+    "studentAppointmentsLoadFailed": "Randevuların yüklenemedi.",
     "academicsLoadFailed": "Akademisyenler yüklenemedi."
   },
   "startupStart": {
@@ -6206,16 +6213,19 @@
   },
   "studentAppointments": {
     "title": "Randevularım",
-    "fixtureNotice": "Örnek veriler gösteriliyor. Canlı randevu ve Office Hours entegrasyonu henüz bağlı değil.",
-    "filter": "Durum",
+    "subtitle": "Akran mentörlüğü randevuların, mentee ve mentor olarak. Office Hours randevuları yakında burada olacak.",
+    "filter": "Duruma göre süz",
     "all": "Tümü",
     "loading": "Randevular yükleniyor…",
     "error": "Randevular yüklenemedi.",
     "retry": "Tekrar dene",
     "empty": "Henüz randevun yok.",
     "filteredEmpty": "Bu durumda randevun yok.",
-    "place": "Yer: {place}",
-    "alternative": "Önerilen alternatif (henüz onaylanmadı)"
+    "emptyBody": "Kabul edilen bir talebinden saat seçtiğinde randevun burada görünür.",
+    "findMentor": "Akran mentoru bul",
+    "upcoming": "Yaklaşan",
+    "upcomingEmpty": "Yaklaşan randevun yok.",
+    "past": "Geçmiş"
   },
   "studentProfileCompletion": {
     "title": "Profilini tamamla",
@@ -6484,6 +6494,29 @@
         "past": "Geçmiş randevun yok.",
         "cancelled": "İptal edilen randevu yok."
       }
+    },
+    "calendar": {
+      "title": "Takvim",
+      "subtitle": "Ofis saatlerin: her hafta tekrarlayan saatler, tek seferlik saatler ve uygun olmadığın tarihler. Değişiklikler mevcut randevuları etkilemez.",
+      "weeklyTitle": "Haftalık ofis saatleri",
+      "weeklyHint": "Öğrenciler bu aralıklardaki boş saatleri talep edebilir.",
+      "save": "Kaydet",
+      "saving": "Kaydediliyor…",
+      "oneOffTitle": "Tek seferlik saatler",
+      "oneOffHint": "Haftalık düzenin dışında bir güne özel ofis saati ekle.",
+      "oneOffEmpty": "Tek seferlik saat yok.",
+      "date": "Tarih",
+      "start": "Başlangıç",
+      "end": "Bitiş",
+      "place": "Yer (isteğe bağlı)",
+      "placeDefault": "Varsayılan yer",
+      "add": "Ekle",
+      "remove": "{when} kaldır",
+      "needDate": "Tarih, başlangıç ve bitiş saatini seç.",
+      "endAfterStart": "Bitiş saati başlangıçtan sonra olmalı.",
+      "notPast": "Geçmiş bir zamana saat eklenemez.",
+      "oneOffSaved": "Tek seferlik saatler kaydedildi.",
+      "oneOffFailed": "Tek seferlik saatler kaydedilemedi."
     }
   },
   "programPeerCategories": {
