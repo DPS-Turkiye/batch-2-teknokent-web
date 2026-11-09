@@ -3435,8 +3435,13 @@
           "loading": "Yükleniyor…",
           "noBadge": {
             "title": "Rozet Yok",
-            "body": "Akran Mentoru rozeti, programının eğitimini tamamladığında verilir. Eğitim yakında burada olacak; şimdilik rozetini program koordinatörün verir.",
-            "training": "Eğitimi başlat (yakında)"
+            "body": "Akran Mentoru rozeti, programının eğitimini (kısa bir video ve 10 soruluk bir sınav) geçtiğinde verilir. Rozeti program koordinatörün de verebilir.",
+            "training": "Eğitimi başlat",
+            "trainingReason": {
+              "loading": "Eğitim bilgisi yükleniyor…",
+              "notAvailable": "Programının eğitimi henüz yayında değil.",
+              "unavailable": "Eğitim şu an açılamıyor."
+            }
           },
           "revoked": {
             "title": "Rozetin geri alındı",
