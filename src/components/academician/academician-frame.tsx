@@ -23,7 +23,6 @@ const NAV: RoleNavItem[] = [
     label: "appointmentRequests",
     icon: "/admin/nav-mail.svg",
     match: (path) => path.startsWith("/academician/requests"),
-    disabled: true,
   },
   {
     href: "/academician/appointments",

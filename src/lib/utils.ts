@@ -34,6 +34,18 @@ export function formatDateTime(value: string, locale = "tr") {
   }).format(new Date(value));
 }
 
+/** "12 Kasım 2026 14:00 – 14:30": a start date and time with the end time of the same day. */
+export function formatTimeRange(
+  startsAt: string,
+  endsAt: string,
+  locale = "tr",
+) {
+  const end = new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(
+    new Date(endsAt),
+  );
+  return `${formatDateTime(startsAt, locale)} – ${end}`;
+}
+
 /** "2 Eylül 2026" */
 export function formatLongDate(value: string, locale = "tr") {
   return new Intl.DateTimeFormat(locale, {
