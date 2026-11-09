@@ -3399,9 +3399,6 @@
           "get": "Mentorluk Al",
           "give": "Mentorluk Ver"
         },
-        "soon": "Yakında",
-        "giveSoonTitle": "Mentorluk Ver yakında",
-        "giveSoonBody": "Akran Mentoru rozetini kazanan öğrenciler burada taleplerini, mentee'lerini ve müsaitliklerini yönetecek.",
         "requests": {
           "title": "Taleplerim",
           "empty": "Henüz bir talep göndermedin.",
@@ -3433,6 +3430,88 @@
           "sending": "Gönderiliyor…",
           "sent": "Talebin gönderildi.",
           "failed": "Talep gönderilemedi."
+        },
+        "give": {
+          "loading": "Yükleniyor…",
+          "noBadge": {
+            "title": "Rozet Yok",
+            "body": "Akran Mentoru rozeti, programının eğitimini tamamladığında verilir. Eğitim yakında burada olacak; şimdilik rozetini program koordinatörün verir.",
+            "training": "Eğitimi başlat (yakında)"
+          },
+          "revoked": {
+            "title": "Rozetin geri alındı",
+            "expiredTitle": "Rozetinin süresi doldu",
+            "body": "Akran Mentoru rozetin olmadığı için şu an mentorluk veremezsin. Süren mentorlukların için program koordinatörünle görüş.",
+            "reason": "Neden: {reason}"
+          },
+          "earned": {
+            "title": "Rozet Kazanıldı",
+            "body": "Artık akran mentoru olabilirsin. Mentor profilini oluştur; yayınladığında programındaki öğrenciler seni görür.",
+            "createProfile": "Mentor profilini oluştur",
+            "signInAgain": "Rozetin yeni verildi. Mentorluk işlemleri için çıkış yapıp yeniden giriş yap."
+          },
+          "received": {
+            "title": "Gelen talepler",
+            "empty": "Yanıt bekleyen talep yok.",
+            "accept": "Kabul et",
+            "decline": "Uygun değil",
+            "sentAt": "Gönderildi: {date}"
+          },
+          "mentees": {
+            "title": "Mentee'lerim",
+            "empty": "Henüz kabul ettiğin bir talep yok."
+          },
+          "availability": {
+            "title": "Müsaitlik ve kapasite",
+            "save": "Kaydet",
+            "saving": "Kaydediliyor…"
+          },
+          "profile": {
+            "title": "Mentor profilim",
+            "edit": "Profili düzenle"
+          },
+          "acceptMessage": "Talebini kabul ettim, görüşmek üzere!",
+          "declineMessage": "Şu an bu talebe yardımcı olamıyorum.",
+          "accepted": "Talebi kabul ettin.",
+          "declined": "Talebi uygun değil olarak yanıtladın.",
+          "decisionFailed": "Yanıtın kaydedilemedi."
+        },
+        "wizard": {
+          "title": "Mentor profilini oluştur",
+          "editTitle": "Mentor profilini düzenle",
+          "subtitle": "Yayınladığında programındaki öğrenciler seni akran mentorları arasında görür.",
+          "step": "Adım {number} / {total}",
+          "steps": {
+            "0": "Kategoriler",
+            "1": "Alt konular",
+            "2": "İlgili deneyim",
+            "3": "Neye yardım edebilirsin?",
+            "4": "Bağlantılar (isteğe bağlı)",
+            "5": "Haftalık müsaitlik ve kapasite",
+            "6": "Önizleme"
+          },
+          "strongCourses": "Güçlü olduğun dersler",
+          "projects": "Projelerin",
+          "onePerLine": "Her satıra bir tane.",
+          "erasmus": "Yurt dışı / değişim deneyimin (isteğe bağlı)",
+          "helpWith": "Neye yardım edebilirsin?",
+          "helpWithHint": "Öğrencilerin kartında bu metni görür. En az 20 karakter.",
+          "linkedin": "LinkedIn adresin",
+          "cvLater": "CV ve portfolyo eklemek yakında burada olacak.",
+          "previewNote": "Öğrenciler seni böyle görecek.",
+          "previewHours": "{ranges} haftalık saat aralığı · en fazla {capacity} mentee · görüşmeler {minutes} dk",
+          "back": "Geri",
+          "next": "Devam et",
+          "publish": "Yayınla",
+          "publishing": "Yayınlanıyor…",
+          "cancel": "Vazgeç",
+          "published": "Mentor profilin yayında.",
+          "publishFailed": "Profilin yayınlanamadı.",
+          "errors": {
+            "categories": "En az bir kategori seç.",
+            "helpWith": "Bu metin en az {min} karakter olmalı.",
+            "link": "Bağlantı http:// veya https:// ile başlamalı."
+          }
         }
       },
       "profile": {
@@ -3479,11 +3558,6 @@
           "cancel": "Vazgeç",
           "saved": "İlgi alanların güncellendi.",
           "saveError": "İlgi alanların kaydedilemedi. Tekrar deneyebilirsin."
-        },
-        "badges": {
-          "title": "Rozetlerim",
-          "soonTitle": "Rozetlerin yakında burada",
-          "soonBody": "Akran Mentoru rozeti ve görüşmelerinle kazanacağın rozetler bu bölümde görünecek."
         }
       },
       "officeHours": {
@@ -5793,7 +5867,8 @@
     "peerMentoringLoadFailed": "Akran mentörlüğü bilgileri yüklenemedi.",
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
-    "invalidRequestBody": "İstek gövdesi okunamadı."
+    "invalidRequestBody": "İstek gövdesi okunamadı.",
+    "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi."
   },
   "startupStart": {
     "title": "Startup'ım",

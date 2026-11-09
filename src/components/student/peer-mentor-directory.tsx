@@ -11,6 +11,7 @@ import {
   QueryNotice,
   SearchField,
 } from "@/components/admin/admin-ui";
+import { BadgeChips } from "@/components/badges/badge-chips";
 import { EmptyState } from "@/components/common/empty-state";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
 import { usePeerMentorDirectory } from "@/hooks/use-peer-mentoring";
@@ -72,7 +73,7 @@ export function PeerMentorDirectory() {
         <ul className="grid gap-4 md:grid-cols-2">
           {mentors.map((mentor) => (
             <li key={mentor.mentorId}>
-              <MentorCard
+              <PeerMentorCardView
                 mentor={mentor}
                 hasOpenRequest={directory.hasOpenRequest(mentor.mentorId)}
                 onRequest={() => setRequesting(mentor)}
@@ -91,14 +92,18 @@ export function PeerMentorDirectory() {
   );
 }
 
-function MentorCard({
+/**
+ * A peer mentor as students see them. Without onRequest it is a preview (the peer-mentor wizard shows the student
+ * their own card before publishing), so no request button.
+ */
+export function PeerMentorCardView({
   mentor,
-  hasOpenRequest,
+  hasOpenRequest = false,
   onRequest,
 }: {
   mentor: PeerMentorCard;
-  hasOpenRequest: boolean;
-  onRequest: () => void;
+  hasOpenRequest?: boolean;
+  onRequest?: () => void;
 }) {
   const t = useTranslations("odtuWorkspaces.student.peerMentoring.mentors");
   const tTopic = useTranslations("peerTopics");
@@ -132,6 +137,7 @@ function MentorCard({
         <p className="text-[13px] leading-5 text-[#4a5059]">
           {mentor.helpWith}
         </p>
+        <BadgeChips badges={mentor.badges} max={2} />
         {mentor.recommendationReasons.length > 0 ? (
           <div>
             <p className="text-[12px] font-medium text-[#22262b]">{t("why")}</p>
@@ -142,23 +148,27 @@ function MentorCard({
             </ul>
           </div>
         ) : null}
-        <div className="mt-auto pt-1">
-          <button
-            type="button"
-            onClick={onRequest}
-            disabled={blocked}
-            aria-label={
-              blocked ? undefined : t("requestFrom", { name: mentor.fullName })
-            }
-            className="inline-flex h-10 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:bg-[#f4f5f7] disabled:text-[#858c96]"
-          >
-            {hasOpenRequest
-              ? t("requested")
-              : mentor.capacityFull
-                ? t("full")
-                : t("request")}
-          </button>
-        </div>
+        {onRequest ? (
+          <div className="mt-auto pt-1">
+            <button
+              type="button"
+              onClick={onRequest}
+              disabled={blocked}
+              aria-label={
+                blocked
+                  ? undefined
+                  : t("requestFrom", { name: mentor.fullName })
+              }
+              className="inline-flex h-10 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:bg-[#f4f5f7] disabled:text-[#858c96]"
+            >
+              {hasOpenRequest
+                ? t("requested")
+                : mentor.capacityFull
+                  ? t("full")
+                  : t("request")}
+            </button>
+          </div>
+        ) : null}
       </article>
     </Panel>
   );

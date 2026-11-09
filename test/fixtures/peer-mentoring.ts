@@ -1,3 +1,4 @@
+import { BadgeCode, BadgeKind } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   type CreatePeerMentoringRequestInput,
@@ -29,6 +30,14 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Yazılım stajı başvuruları, CV ve teknik mülakatlara hazırlık konusunda yardımcı olabilirim.",
     recommendationReasons: ["Bu derste güçlü: CENG 242", "Aynı bölüm"],
     capacityFull: false,
+    badges: [
+      {
+        code: BadgeCode.Sessions10,
+        kind: BadgeKind.Achievement,
+        programId: "fixture-program",
+        awardedAt: "2026-10-01T10:00:00+03:00",
+      },
+    ],
   },
   {
     mentorId: "fixture-peer-2",
@@ -43,6 +52,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Erasmus başvurusu, ders denkliği ve yurt dışında bir dönem geçirmek üzerine konuşabiliriz.",
     recommendationReasons: ["Yurt dışı deneyimi var"],
     capacityFull: false,
+    badges: [],
   },
   {
     mentorId: "fixture-peer-3",
@@ -57,6 +67,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Bir proje fikrini prototipe çevirmek ve lisans araştırma projelerine katılmak konusunda deneyimimi paylaşırım.",
     recommendationReasons: ["Benzer bir projede çalıştı"],
     capacityFull: true,
+    badges: [],
   },
   {
     mentorId: "fixture-peer-4",
@@ -71,6 +82,7 @@ export const PEER_MENTORS_FIXTURE: PeerMentorCard[] = [
       "Kampüse uyum, zaman yönetimi ve kulüplerde sorumluluk almak konusunda yanındayım.",
     recommendationReasons: [],
     capacityFull: false,
+    badges: [],
   },
 ];
 

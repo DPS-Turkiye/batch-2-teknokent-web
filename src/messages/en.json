@@ -3399,9 +3399,6 @@
           "get": "Get mentoring",
           "give": "Give mentoring"
         },
-        "soon": "Soon",
-        "giveSoonTitle": "Give mentoring is coming soon",
-        "giveSoonBody": "Students who earn the Peer Mentor badge will manage their requests, mentees and availability here.",
         "requests": {
           "title": "My requests",
           "empty": "You haven't sent a request yet.",
@@ -3433,6 +3430,88 @@
           "sending": "Sending…",
           "sent": "Your request was sent.",
           "failed": "Couldn't send the request."
+        },
+        "give": {
+          "loading": "Loading…",
+          "noBadge": {
+            "title": "No badge yet",
+            "body": "The Peer Mentor badge is awarded when you complete your program's training. The training will be here soon; until then your program coordinator awards the badge.",
+            "training": "Start the training (soon)"
+          },
+          "revoked": {
+            "title": "Your badge was taken back",
+            "expiredTitle": "Your badge has expired",
+            "body": "Without the Peer Mentor badge you cannot mentor right now. Talk to your program coordinator about mentorships that are still running.",
+            "reason": "Reason: {reason}"
+          },
+          "earned": {
+            "title": "Badge earned",
+            "body": "You can be a peer mentor now. Create your mentor profile; once it is published, students in your program can see you.",
+            "createProfile": "Create your mentor profile",
+            "signInAgain": "Your badge is new. Sign out and in again to start mentoring."
+          },
+          "received": {
+            "title": "Requests",
+            "empty": "No requests waiting for an answer.",
+            "accept": "Accept",
+            "decline": "Not a fit",
+            "sentAt": "Sent: {date}"
+          },
+          "mentees": {
+            "title": "My mentees",
+            "empty": "You haven't accepted a request yet."
+          },
+          "availability": {
+            "title": "Availability and capacity",
+            "save": "Save",
+            "saving": "Saving…"
+          },
+          "profile": {
+            "title": "My mentor profile",
+            "edit": "Edit profile"
+          },
+          "acceptMessage": "I accepted your request, talk soon!",
+          "declineMessage": "I can't help with this request right now.",
+          "accepted": "You accepted the request.",
+          "declined": "You answered that the request is not a fit.",
+          "decisionFailed": "Couldn't save your answer."
+        },
+        "wizard": {
+          "title": "Create your mentor profile",
+          "editTitle": "Edit your mentor profile",
+          "subtitle": "Once published, students in your program see you among the peer mentors.",
+          "step": "Step {number} of {total}",
+          "steps": {
+            "0": "Categories",
+            "1": "Sub-topics",
+            "2": "Relevant experience",
+            "3": "What can you help with?",
+            "4": "Links (optional)",
+            "5": "Weekly availability and capacity",
+            "6": "Preview"
+          },
+          "strongCourses": "Courses you are strong in",
+          "projects": "Your projects",
+          "onePerLine": "One per line.",
+          "erasmus": "Exchange or study abroad (optional)",
+          "helpWith": "What can you help with?",
+          "helpWithHint": "Students see this on your card. At least 20 characters.",
+          "linkedin": "Your LinkedIn address",
+          "cvLater": "Adding a CV and portfolio will be here soon.",
+          "previewNote": "This is how students will see you.",
+          "previewHours": "{ranges} weekly time ranges · up to {capacity} mentees · {minutes}-minute sessions",
+          "back": "Back",
+          "next": "Continue",
+          "publish": "Publish",
+          "publishing": "Publishing…",
+          "cancel": "Cancel",
+          "published": "Your mentor profile is live.",
+          "publishFailed": "Couldn't publish your profile.",
+          "errors": {
+            "categories": "Pick at least one category.",
+            "helpWith": "This text needs at least {min} characters.",
+            "link": "The link must start with http:// or https://."
+          }
         }
       },
       "profile": {
@@ -3479,11 +3558,6 @@
           "cancel": "Cancel",
           "saved": "Your interests are updated.",
           "saveError": "Couldn't save your interests. You can try again."
-        },
-        "badges": {
-          "title": "My badges",
-          "soonTitle": "Your badges will appear here soon",
-          "soonBody": "The Peer Mentor badge and the badges you earn through your sessions will show in this section."
         }
       },
       "officeHours": {
@@ -5793,7 +5867,8 @@
     "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
     "peerMentoringRequestFailed": "Couldn't send the request.",
     "officeHoursFailed": "The office hours action could not be completed.",
-    "invalidRequestBody": "The request body could not be read."
+    "invalidRequestBody": "The request body could not be read.",
+    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile."
   },
   "startupStart": {
     "title": "My startup",
