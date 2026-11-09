@@ -10,9 +10,14 @@ import { useStudentHome } from "@/hooks/use-student-home";
 import type { StudentHome } from "@/interfaces/student-home";
 import { getStudentHome } from "@/lib/client/student-home";
 import { STUDENT_HOME_FIXTURE } from "@/lib/client/fixtures/student-home";
+import { EMPTY_PROFILE_COMPLETION } from "@/lib/client/fixtures/student-profile-completion";
+import { getStudentProfileCompletion } from "@/lib/client/student-profile-completion";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-student-home", () => ({ useStudentHome: vi.fn() }));
+vi.mock("@/lib/client/student-profile-completion", () => ({
+  getStudentProfileCompletion: vi.fn(),
+}));
 
 function homeReturns(data: StudentHome | undefined, extra = {}) {
   vi.mocked(useStudentHome).mockReturnValue({
@@ -112,7 +117,22 @@ describe("studentRouteReady", () => {
 });
 
 describe("getStudentHome", () => {
+  it("asks for profile completion until the saved profile is finished or skipped", async () => {
+    vi.mocked(getStudentProfileCompletion).mockResolvedValue(
+      EMPTY_PROFILE_COMPLETION,
+    );
+    expect((await getStudentHome()).profileCompleted).toBe(false);
+    vi.mocked(getStudentProfileCompletion).mockResolvedValue({
+      ...EMPTY_PROFILE_COMPLETION,
+      skipped: true,
+    });
+    expect((await getStudentHome()).profileCompleted).toBe(true);
+  });
+
   it("answers with a fresh copy of the fixture", async () => {
+    vi.mocked(getStudentProfileCompletion).mockResolvedValue(
+      EMPTY_PROFILE_COMPLETION,
+    );
     const first = await getStudentHome();
     first.upcomingAppointments.length = 0;
     expect((await getStudentHome()).upcomingAppointments).toHaveLength(3);

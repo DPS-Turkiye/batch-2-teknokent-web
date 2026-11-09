@@ -1,17 +1,16 @@
 import type { StudentProfileCompletion } from "@/interfaces/student-profile-completion";
 import { UserRole } from "@/interfaces/session";
-import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
-import {
-  EMPTY_PROFILE_COMPLETION,
-  PROFILE_COMPLETION_CATEGORIES,
-} from "@/lib/client/fixtures/student-profile-completion";
+import { requireSuccess } from "@/lib/client/api";
+import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-profile-completion";
 import { getPeerCategories } from "@/lib/client/peer-mentoring";
+import { httpClient } from "@/lib/http-client";
 import { activeCatalogue } from "@/lib/student-interests";
 
-// Browser-module memory only, reset on reload. No localStorage, backend or account mutation.
-let fixtureDraft = structuredClone(EMPTY_PROFILE_COMPLETION);
-export function getStudentProfileCompletion() {
-  return fixtureResponse(fixtureDraft);
+const URL = "/api/student/profile-completion";
+
+/** The signed-in student's saved interests and goal; empty and unfinished until they save once. */
+export async function getStudentProfileCompletion() {
+  return requireSuccess(await httpClient.get<StudentProfileCompletion>(URL));
 }
 /** The categories active in the student's program, each with the catalogue's sample sub-topics. */
 export async function getProfileCompletionCategories() {
@@ -27,7 +26,10 @@ export async function getPeerMentorCategories() {
     await getPeerCategories(UserRole.Mentor),
   );
 }
-export function saveStudentProfileCompletion(draft: StudentProfileCompletion) {
-  fixtureDraft = structuredClone(draft);
-  return fixtureResponse(fixtureDraft);
+export async function saveStudentProfileCompletion(
+  draft: StudentProfileCompletion,
+) {
+  return requireSuccess(
+    await httpClient.put<StudentProfileCompletion>(URL, draft),
+  );
 }

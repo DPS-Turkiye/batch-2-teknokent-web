@@ -3550,7 +3550,7 @@
         },
         "interests": {
           "title": "Your interests and goal",
-          "fixtureNotice": "Sample data: your choices stay in this browser session only and are not saved to your account.",
+          "note": "Sub-topics are examples for now; they'll be updated once the final list is set.",
           "loading": "Loading your interests…",
           "loadError": "Couldn't load your interests.",
           "retry": "Try again",
@@ -5884,7 +5884,9 @@
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
     "peerCategoriesLoadFailed": "Could not load the categories.",
     "peerCategoriesSaveFailed": "Could not save the categories.",
-    "peerCategoriesInvalid": "The category list is not valid."
+    "peerCategoriesInvalid": "The category list is not valid.",
+    "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
+    "studentProfileCompletionSaveFailed": "Couldn't save your interests."
   },
   "startupStart": {
     "title": "My startup",
@@ -6215,11 +6217,11 @@
   },
   "studentProfileCompletion": {
     "title": "Complete your profile",
-    "fixtureNotice": "This screen uses sample data. Choices are kept only in this browser session and reset on reload. Your live profile is not updated.",
+    "subtitle": "Pick your interests and goal; you can change them any time in Profilim.",
     "loading": "Loading profile…",
     "loadError": "Profile could not be loaded.",
     "retry": "Try again",
-    "saved": "Sample profile completed. Nothing was saved to your live account.",
+    "saved": "Your profile is complete.",
     "skipped": "Skipped for now. You can complete your profile later.",
     "home": "Back to home",
     "step": "Step {number} / 3",
@@ -6231,10 +6233,10 @@
     "subtopicNotice": "TEST UI: These subtopics are examples only. The production subtopic list has not been agreed.",
     "noTopics": "No interests selected. Go back or continue without a selection.",
     "goal": "Your goal (optional, up to 1000 characters)",
-    "saveError": "The sample profile could not be saved. Please try again.",
+    "saveError": "Your profile couldn't be saved. Please try again.",
     "back": "Back",
     "next": "Continue",
-    "finish": "Complete sample profile",
+    "finish": "Complete profile",
     "saving": "Saving…",
     "skip": "Skip for now",
     "subtopics": {

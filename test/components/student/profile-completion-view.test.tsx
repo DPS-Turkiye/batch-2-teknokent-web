@@ -67,10 +67,8 @@ describe("profile completion component and hook", () => {
       screen.getByRole("textbox"),
       "  Çalışma planı oluşturmak  ",
     );
-    await user.click(
-      screen.getByRole("button", { name: "Örnek profili tamamla" }),
-    );
-    expect(await screen.findByText(/Örnek profil tamamlandı/)).toBeVisible();
+    await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
+    expect(await screen.findByText(/Profilin tamamlandı/)).toBeVisible();
     expect(saveStudentProfileCompletion).toHaveBeenCalledWith(
       expect.objectContaining({
         topics: [PeerTopicCategory.AcademicDevelopment],
@@ -99,10 +97,8 @@ describe("profile completion component and hook", () => {
     await user.click(screen.getByRole("button", { name: "Devam et" }));
     expect(screen.getByText(/Henüz alan seçmedin/)).toBeVisible();
     await user.click(screen.getByRole("button", { name: "Devam et" }));
-    await user.click(
-      screen.getByRole("button", { name: "Örnek profili tamamla" }),
-    );
-    await screen.findByText(/Örnek profil tamamlandı/);
+    await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
+    await screen.findByText(/Profilin tamamlandı/);
     expect(saveStudentProfileCompletion).toHaveBeenCalledWith(
       expect.objectContaining({ topics: [], subtopics: [], goal: "" }),
       expect.anything(),
@@ -146,16 +142,12 @@ describe("profile completion component and hook", () => {
     await user.click(screen.getByRole("button", { name: "Devam et" }));
     await user.click(screen.getByRole("button", { name: "Devam et" }));
     await user.type(screen.getByRole("textbox"), "Hedefim");
-    await user.click(
-      screen.getByRole("button", { name: "Örnek profili tamamla" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Örnek profil kaydedilemedi",
+      "Profilin kaydedilemedi",
     );
     expect(screen.getByRole("textbox")).toHaveValue("Hedefim");
-    await user.click(
-      screen.getByRole("button", { name: "Örnek profili tamamla" }),
-    );
+    await user.click(screen.getByRole("button", { name: "Profili tamamla" }));
     await waitFor(() => expect(screen.queryByRole("textbox")).toBeNull());
   });
   it("supports English and allows revisiting a previously skipped draft", async () => {
@@ -170,6 +162,6 @@ describe("profile completion component and hook", () => {
     );
     expect(await screen.findByText("Academic development")).toBeVisible();
     expect(screen.getByRole("button", { name: "Skip for now" })).toBeVisible();
-    expect(screen.getByText(/Your live profile is not updated/)).toBeVisible();
+    expect(screen.getByText(/change them any time in Profilim/)).toBeVisible();
   });
 });
