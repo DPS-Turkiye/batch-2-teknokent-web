@@ -38,7 +38,31 @@ describe("program tabs by type", () => {
     navigation.pathname = "/coordinator/programs/program-1/participants";
   });
 
-  it("shows Office Hours Randevular, no Onaylar and empty Katılımcılar", async () => {
+  it("shows Office Hours Randevular (still empty), no Onaylar, and Katılımcılar opening Akademisyenler", async () => {
+    mockType(ProgramType.OfficeHours);
+    renderWithQueryClient(
+      <ProgramTypeTabView
+        programId="program-1"
+        tab={ProgramTab.Appointments}
+      />,
+    );
+
+    const tabs = await screen.findByRole("tablist");
+    expect(
+      within(tabs).getByRole("tab", { name: "Randevular" }),
+    ).toHaveAttribute("aria-selected", "true");
+    expect(
+      within(tabs).queryByRole("tab", { name: "Onaylar" }),
+    ).not.toBeInTheDocument();
+    expect(
+      within(tabs).getByRole("tab", { name: "Katılımcılar" }),
+    ).toHaveAttribute("href", "/coordinator/programs/program-1/academics");
+    expect(
+      screen.getByText(/Office Hours programları için henüz hazır değil/),
+    ).toBeInTheDocument();
+  });
+
+  it("sends an Office Hours program's old Katılımcılar URL to Akademisyenler", async () => {
     mockType(ProgramType.OfficeHours);
     renderWithQueryClient(
       <ProgramTypeTabView
@@ -47,22 +71,11 @@ describe("program tabs by type", () => {
       />,
     );
 
-    const tabs = await screen.findByRole("tablist");
-    expect(
-      within(tabs).getByRole("tab", { name: "Randevular" }),
-    ).toHaveAttribute("href", "/coordinator/programs/program-1/appointments");
-    expect(
-      within(tabs).queryByRole("tab", { name: "Onaylar" }),
-    ).not.toBeInTheDocument();
-    expect(
-      within(tabs).getByRole("tab", { name: "Katılımcılar" }),
-    ).toHaveAttribute("aria-selected", "true");
-    const sub = screen.getByRole("navigation", { name: "Katılımcılar" });
-    expect(within(sub).getByText("Akademisyenler")).toBeInTheDocument();
-    expect(within(sub).queryByRole("link")).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/Office Hours programları için henüz hazır değil/),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(navigation.replace).toHaveBeenCalledWith(
+        "/coordinator/programs/program-1/academics",
+      ),
+    );
   });
 
   it("links Girişim's Katılımcılar sub-tabs to the existing Takımlar and Mentor Havuzu screens", async () => {
@@ -137,12 +150,12 @@ describe("program tabs by type", () => {
   });
 
   it("tells the admin that the coordinators set the program up", async () => {
-    navigation.pathname = "/admin/programs/program-1/participants";
+    navigation.pathname = "/admin/programs/program-1/appointments";
     mockType(ProgramType.OfficeHours);
     renderWithQueryClient(
       <ProgramTypeTabView
         programId="program-1"
-        tab={ProgramTab.Participants}
+        tab={ProgramTab.Appointments}
       />,
     );
 
