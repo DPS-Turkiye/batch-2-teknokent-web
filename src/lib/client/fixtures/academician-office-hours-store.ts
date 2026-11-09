@@ -64,6 +64,8 @@ export function answerSampleRequest(id: string, answer: OfficeHoursAnswer) {
       state.requests = state.requests.filter((item) => item.id !== id);
       state.appointments.push({
         id: `sample-appointment-from-${id}`,
+        requestId: null,
+        category: null,
         kind: ACADEMICIAN_APPOINTMENTS_SAMPLE[0].kind,
         side: ACADEMICIAN_APPOINTMENTS_SAMPLE[0].side,
         status: AppointmentStatus.Confirmed,

@@ -1,3 +1,5 @@
+import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+
 /**
  * One appointment as both ODTÜ workspaces list it: a peer-mentoring session or an Office Hours
  * slot. The board's five statuses plus two end states: a request nobody answered in time
@@ -39,9 +41,13 @@ export type AppointmentCounterpart = {
 
 export type Appointment = AppointmentTime & {
   id: string;
+  /** The peer-mentoring request the session was booked on; null for Office Hours. */
+  requestId: string | null;
   kind: AppointmentKind;
   side: AppointmentSide;
   status: AppointmentStatus;
+  /** The peer-mentoring category; null for Office Hours. */
+  category: PeerTopicCategory | null;
   topic: string;
   counterpart: AppointmentCounterpart;
   place: string | null;

@@ -28,6 +28,14 @@ vi.mock("next/navigation", () => ({
   usePathname: vi.fn(() => "/coordinator/programs/program-1"),
 }));
 
+vi.mock("@/lib/client/program-peer-categories", () => ({
+  getProgramPeerCategories: vi.fn(async () => ({
+    programId: "program-1",
+    active: [],
+  })),
+  replaceProgramPeerCategories: vi.fn(),
+}));
+
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
@@ -487,6 +495,36 @@ describe("coordinator program detail", () => {
       screen.getByText("Koordinatörleri yönetici atar."),
     ).toBeInTheDocument();
     expect(screen.getByText("Program türü")).toBeInTheDocument();
+  });
+
+  it("gives only a peer program the Akran kategorileri section", async () => {
+    const detail = coordinatorProgramDetail();
+    vi.mocked(getCoordinatorProgram).mockResolvedValue({
+      ...detail,
+      program: { ...detail.program, type: ProgramType.PeerMentoring },
+    });
+    const { unmount } = renderWithQueryClient(
+      <ProgramSettingsView programId="program-1" />,
+    );
+    expect(
+      await screen.findByRole("heading", { name: "Akran kategorileri" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Akran kategorileri" }),
+    ).toHaveAttribute("href", "#peer_categories");
+    unmount();
+
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+    expect(
+      await screen.findByText("Genel bilgiler", { selector: "h2" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Akran kategorileri" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Akran kategorileri" }),
+    ).not.toBeInTheDocument();
   });
 
   it("lets the admin view the settings without changing them", async () => {

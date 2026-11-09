@@ -23,21 +23,18 @@ const NAV: RoleNavItem[] = [
     label: "appointmentRequests",
     icon: "/admin/nav-mail.svg",
     match: (path) => path.startsWith("/academician/requests"),
-    disabled: true,
   },
   {
     href: "/academician/appointments",
     label: "myAppointments",
     icon: "/mentor-dashboard/revised/clock.svg",
     match: (path) => path.startsWith("/academician/appointments"),
-    disabled: true,
   },
   {
     href: "/academician/calendar",
     label: "calendar",
     icon: "/admin/nav-calendar.svg",
     match: (path) => path.startsWith("/academician/calendar"),
-    disabled: true,
   },
   {
     href: "/academician/advisees",
@@ -50,7 +47,6 @@ const NAV: RoleNavItem[] = [
     label: "myProfile",
     icon: "/account-menu/user.svg",
     match: (path) => path.startsWith("/academician/profile"),
-    disabled: true,
   },
 ];
 

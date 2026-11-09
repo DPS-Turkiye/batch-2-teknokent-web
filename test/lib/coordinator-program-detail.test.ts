@@ -6,9 +6,9 @@ import {
   hasTabContent,
   healthShares,
   isActiveTab,
-  misplacedTabHref,
-  SettingsSection,
   settingsSections,
+  SettingsSection,
+  misplacedTabHref,
   ParticipantTab,
   participantTabs,
   ProgramTab,
@@ -22,6 +22,7 @@ import {
   stepDays,
   RULE_LIMITS,
 } from "@/lib/coordinator-program-detail";
+import { ProgramLifecycle } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 
@@ -254,14 +255,34 @@ describe("program tabs by type", () => {
 
 describe("settingsSections", () => {
   it("gives only a peer program the Akran Mentoru training", () => {
-    expect(settingsSections(ProgramType.PeerMentoring)).toContain(
-      SettingsSection.Training,
+    expect(
+      settingsSections(ProgramType.PeerMentoring, ProgramLifecycle.Active),
+    ).toContain(SettingsSection.Training);
+    expect(
+      settingsSections(ProgramType.StartupMentoring, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.Training);
+    expect(
+      settingsSections(ProgramType.OfficeHours, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.Training);
+  });
+
+  it("lists Akran kategorileri only for peer programs, before Arşiv, and no Arşiv for a draft", () => {
+    const peer = settingsSections(
+      ProgramType.PeerMentoring,
+      ProgramLifecycle.Active,
     );
-    expect(settingsSections(ProgramType.StartupMentoring)).not.toContain(
-      SettingsSection.Training,
+    expect(peer).toContain(SettingsSection.PeerCategories);
+    expect(peer.indexOf(SettingsSection.PeerCategories)).toBe(
+      peer.indexOf(SettingsSection.Archive) - 1,
     );
-    expect(settingsSections(ProgramType.OfficeHours)).not.toContain(
-      SettingsSection.Training,
-    );
+    expect(
+      settingsSections(ProgramType.StartupMentoring, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.PeerCategories);
+    expect(
+      settingsSections(ProgramType.OfficeHours, ProgramLifecycle.Active),
+    ).not.toContain(SettingsSection.PeerCategories);
+    expect(
+      settingsSections(ProgramType.PeerMentoring, ProgramLifecycle.Draft),
+    ).not.toContain(SettingsSection.Archive);
   });
 });

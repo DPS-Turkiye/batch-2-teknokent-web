@@ -8,12 +8,10 @@ import {
 } from "@/components/student/student-frame";
 import { useStudentHome } from "@/hooks/use-student-home";
 import type { StudentHome } from "@/interfaces/student-home";
-import { getStudentHome } from "@/lib/client/student-home";
-import { STUDENT_HOME_FIXTURE } from "@/lib/client/fixtures/student-home";
+import { STUDENT_APPOINTMENTS } from "@test/fixtures/student-appointments";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-student-home", () => ({ useStudentHome: vi.fn() }));
-
 function homeReturns(data: StudentHome | undefined, extra = {}) {
   vi.mocked(useStudentHome).mockReturnValue({
     data,
@@ -23,24 +21,24 @@ function homeReturns(data: StudentHome | undefined, extra = {}) {
   } as ReturnType<typeof useStudentHome>);
 }
 
-describe("StudentHomeView", () => {
-  beforeEach(() => homeReturns(STUDENT_HOME_FIXTURE));
+const HOME: StudentHome = {
+  profileCompleted: false,
+  upcomingAppointments: [STUDENT_APPOINTMENTS[1], STUDENT_APPOINTMENTS[0]],
+};
 
-  it("lists upcoming appointments with their side and status", () => {
+describe("StudentHomeView", () => {
+  beforeEach(() => homeReturns(HOME));
+
+  it("shows the upcoming sessions as cards with their side and status", () => {
     renderWithQueryClient(<StudentHomeView />);
 
     const rows = screen.getAllByRole("listitem");
-    expect(rows).toHaveLength(3);
-    expect(within(rows[0]).getByText("Staj başvurusu için CV")).toBeVisible();
-    expect(within(rows[0]).getByText("Mentee olarak")).toBeVisible();
-    expect(within(rows[0]).getByText("Onaylandı")).toBeVisible();
-    expect(
-      within(rows[1]).getByText(/Dr\. Öğr\. Üyesi Ayşe Demir/),
-    ).toBeVisible();
-    expect(within(rows[1]).getByText("Office Hours")).toBeVisible();
-    expect(within(rows[1]).getByText("Onay Bekliyor")).toBeVisible();
-    expect(within(rows[2]).getByText("Mentor olarak")).toBeVisible();
-    expect(within(rows[2]).getByText("Alternatif Önerildi")).toBeVisible();
+    expect(rows).toHaveLength(2);
+    expect(within(rows[0]).getByText("Uluslararası Fırsatlar")).toBeVisible();
+    expect(within(rows[0]).getByText("Mentor olarak")).toBeVisible();
+    expect(within(rows[1]).getByText("Kariyer ve Staj")).toBeVisible();
+    expect(within(rows[1]).getByText("Mentee olarak")).toBeVisible();
+    expect(within(rows[1]).getByText("Onaylandı")).toBeVisible();
   });
 
   it("asks for the profile until it is completed or skipped", () => {
@@ -48,7 +46,7 @@ describe("StudentHomeView", () => {
     expect(screen.getByText("Profilini tamamla")).toBeVisible();
     unmount();
 
-    homeReturns({ ...STUDENT_HOME_FIXTURE, profileCompleted: true });
+    homeReturns({ ...HOME, profileCompleted: true });
     renderWithQueryClient(<StudentHomeView />);
     expect(screen.queryByText("Profilini tamamla")).not.toBeInTheDocument();
   });
@@ -67,6 +65,7 @@ describe("StudentHomeView", () => {
     ).toEqual([
       "/student/profile/complete",
       "/student/appointments",
+      "https://meet.google.com/abc-defg-hij",
       "/student/peer-mentoring",
       "/student/office-hours",
     ]);
@@ -108,13 +107,5 @@ describe("studentRouteReady", () => {
     expect(studentRouteSoon("/student/office-hours")).toBe(true);
     expect(studentRouteSoon("/student/appointments")).toBe(false);
     expect(studentRouteSoon("/elsewhere")).toBe(false);
-  });
-});
-
-describe("getStudentHome", () => {
-  it("answers with a fresh copy of the fixture", async () => {
-    const first = await getStudentHome();
-    first.upcomingAppointments.length = 0;
-    expect((await getStudentHome()).upcomingAppointments).toHaveLength(3);
   });
 });
