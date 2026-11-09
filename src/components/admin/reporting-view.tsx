@@ -21,6 +21,7 @@ import {
   countsInProgram,
   needsAttention,
 } from "@/components/admin/admin-model";
+import { MeetingFeedbackList } from "@/components/admin/meeting-feedback-list";
 import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import {
@@ -95,9 +96,10 @@ export function ProgramReporting({
   const pairs = program ? pairsIn(data, program) : [];
   const selected = pairs.find((pair) => pair.id === selectedId) ?? null;
   const meetingsKnown = data.meetings != null;
+  const ratingsFrom = range === "all" || !weeks[0] ? null : isoDay(weeks[0]);
   const ratingsQuery = useProgramMeetingRatings(
     program?.id ?? null,
-    range === "all" || !weeks[0] ? null : isoDay(weeks[0]),
+    ratingsFrom,
   );
 
   return (
@@ -269,6 +271,15 @@ export function ProgramReporting({
               ratings={ratingsQuery.data}
               isLoading={ratingsQuery.isLoading}
               error={ratingsQuery.error}
+              details={
+                program ? (
+                  <MeetingFeedbackList
+                    key={`${program.id}:${ratingsFrom ?? "all"}`}
+                    programId={program.id}
+                    from={ratingsFrom}
+                  />
+                ) : null
+              }
             />
           ) : null}
           {tab === "program" ? (

@@ -7,7 +7,10 @@ import { ReportingView } from "@/components/admin/reporting-view";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { renderWithQueryClient } from "@test/test-utils";
-import { reportOverview } from "@test/fixtures/program-report";
+import {
+  meetingFeedbackState,
+  reportOverview,
+} from "@test/fixtures/program-report";
 
 const state = vi.hoisted(() => ({ overview: null as AdminOverview | null }));
 
@@ -32,6 +35,7 @@ vi.mock("@/hooks/use-program-report", () => ({
     isLoading: false,
     error: null,
   }),
+  useProgramMeetingFeedback: () => meetingFeedbackState(),
 }));
 
 function withPrograms(): AdminOverview {

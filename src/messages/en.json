@@ -5189,6 +5189,29 @@
       "fit": "Advice fit the stage",
       "expression": "Could speak freely",
       "confidence": "Confidence to progress"
+    },
+    "mentorQuestions": {
+      "preparedness": "Mentee came prepared",
+      "clarity": "Outcome was clear"
+    },
+    "details": {
+      "title": "Who rated whom",
+      "hint": "Each rating: the meeting, who wrote it, the scores and their note.",
+      "empty": "No ratings in this window yet.",
+      "count": "{count, plural, one {# rating} other {# ratings}}",
+      "mentor": "Mentor: {name}",
+      "noMentor": "No mentor",
+      "author": "Rated by {name}",
+      "sides": {
+        "MENTOR": "Mentor",
+        "MENTEE": "Mentee"
+      },
+      "rating": "{rating}/5",
+      "note": "Note",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}/{total}",
+      "pager": "Rating pages"
     }
   },
   "mobile": {
