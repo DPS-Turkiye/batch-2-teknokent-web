@@ -52,7 +52,8 @@
     "pagination": "Feedback pages",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {page} of {total}"
+    "page": "Page {page} of {total}",
+    "noProgram": "No program on record"
   },
   "language": {
     "label": "Language",
@@ -3436,8 +3437,13 @@
           "loading": "Loading…",
           "noBadge": {
             "title": "No badge yet",
-            "body": "The Peer Mentor badge is awarded when you complete your program's training. The training will be here soon; until then your program coordinator awards the badge.",
-            "training": "Start the training (soon)"
+            "body": "The Peer Mentor badge is awarded when you pass your program's training (a short video and a 10-question quiz). Your program coordinator can also award it.",
+            "training": "Start the training",
+            "trainingReason": {
+              "loading": "Loading the training…",
+              "notAvailable": "Your program's training isn't published yet.",
+              "unavailable": "The training can't be opened right now."
+            }
           },
           "revoked": {
             "title": "Your badge was taken back",
@@ -3560,6 +3566,18 @@
           "saved": "Your interests are updated.",
           "saveError": "Couldn't save your interests. You can try again."
         }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Request an appointment in academicians' office hours.",
+        "soon": "Coming soon",
+        "soonTitle": "Office Hours is coming to Menton",
+        "soonBody": "Academicians' office hours aren't connected to Menton yet. Once they are, you'll see the hours here and request an appointment.",
+        "today": "For now, Office Hours appointments are booked through METU's Moodle page.",
+        "later": "Once connected, your appointments will show in My appointments, next to your peer-mentoring ones.",
+        "meanwhileTitle": "In the meantime",
+        "meanwhileBody": "You can get support from your program's peer mentors.",
+        "meanwhileAction": "Go to peer mentoring"
       }
     },
     "academician": {
@@ -4049,6 +4067,7 @@
     "autoMatchHint": "A suggestion list is built from expertise, availability and load"
   },
   "programSettings": {
+    "trainingNote": "Students earn the Peer Mentor badge by watching the video and getting at least 8 of the 10 quiz questions right. Edited by the program’s coordinators and admins.",
     "eligibilityNote": "Decides who can join this program. Other programs are not affected; while it is on, admins cannot bypass it either.",
     "eligibleDomain": "Allowed e-mail domain",
     "eligibleDomainHint": "For example metu.edu.tr. Department addresses (ceng.metu.edu.tr) count too. Leave it empty to allow any address.",
@@ -4075,6 +4094,7 @@
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
       "ELIGIBILITY": "Eligibility",
+      "TRAINING": "Peer Mentor training",
       "ARCHIVE": "Archive",
       "CURRICULUM": "Curriculum & phases",
       "PEER_CATEGORIES": "Peer categories"
@@ -5504,6 +5524,23 @@
       "awardedIn": "{program} · {date}",
       "awardedOn": "{date}",
       "revokedBecause": "Taken back because: {reason}"
+    },
+    "achievements": {
+      "title": "Achievement badges",
+      "hint": "Sessions the mentor marked as held and mentees' ratings count.",
+      "loading": "Loading achievement badges…",
+      "loadFailed": "Achievement badges could not be loaded.",
+      "earned": "Earned",
+      "earnedOn": "Earned on {date}",
+      "average": " · average {average} (at least {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} sessions",
+        "SESSIONS_10": "{current}/{target} sessions",
+        "HOURS_25": "{current}/{target} hours",
+        "WELL_RATED": "{current}/{target} ratings",
+        "ACTIVE_MENTEE": "{current}/{target} sessions you gave feedback on"
+      },
+      "summary": "{earned}/{total} earned"
     }
   },
   "peerParticipants": {
@@ -5541,9 +5578,50 @@
     "badge": "Badge state",
     "since": "Date"
   },
+  "trainingEditor": {
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "placeholderNote": "EXAMPLE CONTENT: until the real video and questions arrive, this example video and the [ÖRNEK] questions are shown. Change them and save to publish.",
+    "publishedNote": "Published · version {version} · last changed {date}. A change makes a new version; badge holders keep their badge, students who have not passed start again.",
+    "videoLink": "YouTube video link",
+    "videoHint": "An unlisted YouTube video is recommended. Only YouTube links are accepted.",
+    "question": "Question {number}",
+    "optionsLegend": "Options (mark the correct one)",
+    "markCorrect": "Question {question}, option {option} is correct",
+    "option": "Question {question}, option {option}",
+    "saveAndPublish": "Save and publish",
+    "saving": "Saving…",
+    "saved": "The training is live.",
+    "saveFailed": "Could not save the training."
+  },
+  "studentTraining": {
+    "title": "Peer Mentor training",
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "notAvailable": "The training is not ready yet. It shows up here once your program coordinator publishes it.",
+    "blocked": "Your Peer Mentor badge was taken back, so you cannot earn it again through the training. Talk to your program coordinator.",
+    "badgeActive": "You hold the Peer Mentor badge. You can create your mentor profile and start mentoring.",
+    "toMentorProfile": "Go to Mentoring",
+    "stepVideo": "1. Watch the video",
+    "videoIntro": "The quiz opens once you reach the end of the video.",
+    "videoTitle": "Peer Mentor training video",
+    "stepQuiz": "2. Quiz",
+    "quizIntro": "There are {total} questions; you need at least {pass} right to pass.",
+    "attemptsLeft": "You have {count} attempts left today.",
+    "startQuiz": "Start the quiz",
+    "tryAgain": "Try again",
+    "noAttemptsLeft": "You have used today’s attempts. You can try again after {date}.",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "submitFailed": "Could not submit your answers.",
+    "passed": "Congratulations, you earned the Peer Mentor badge!",
+    "failed": "Not this time.",
+    "score": "{score}/{total} right"
+  },
   "apiErrors": {
-    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
-    "peerMentoringRequestFailed": "Couldn't send the request.",
+    "trainingSubmitFailed": "Could not submit the answers.",
+    "trainingLoadFailed": "Could not load the training.",
+    "trainingSaveFailed": "Could not save the training.",
     "badgesLoadFailed": "Could not load the badges.",
     "badgeAwardFailed": "Could not award the badge.",
     "badgeRevokeFailed": "Could not take the badge back.",
@@ -5795,6 +5873,10 @@
     "teamHistoryLoadFailed": "Could not load the team history.",
     "teamLeaveFailed": "Could not leave the team.",
     "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request.",
+    "officeHoursFailed": "The office hours action could not be completed.",
+    "invalidRequestBody": "The request body could not be read.",
     "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
     "peerCategoriesLoadFailed": "Could not load the categories.",
     "peerCategoriesSaveFailed": "Could not save the categories.",
@@ -6162,6 +6244,178 @@
       "exchange": "Example: Exchange programmes"
     },
     "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on."
+  },
+  "officeHours": {
+    "title": "Office hours",
+    "course": "Course",
+    "roles": {
+      "INSTRUCTOR": "Academic",
+      "STUDENT": "Student"
+    },
+    "instructor": {
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
+    },
+    "launchError": {
+      "again": "Go back to the course page on ODTÜClass and open the office hours link again.",
+      "unavailable": {
+        "title": "Office hours can't open right now",
+        "body": "Menton couldn't be reached, or the ODTÜClass connection isn't set up yet."
+      },
+      "rejected": {
+        "title": "The link couldn't be verified",
+        "body": "The sign-in details from ODTÜClass are invalid or were already used."
+      },
+      "no-role": {
+        "title": "You don't have access to office hours in this course",
+        "body": "Office hours are for the course's academics and students only."
+      },
+      "expired": {
+        "title": "Your session has ended",
+        "body": "For your security, the office hours session closes after a while."
+      }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
+    },
+    "booking": {
+      "academics": "The course's academics",
+      "noAcademics": "The course's academics haven't opened office hours yet.",
+      "request": "Request office hours",
+      "myRequests": "My requests",
+      "incoming": "Incoming requests",
+      "noRequests": "No requests yet.",
+      "meetings": "Upcoming meetings",
+      "noMeetings": "No upcoming meetings.",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load. Try refreshing the page.",
+      "status": {
+        "PENDING": "Waiting for a reply",
+        "ACCEPTED": "Accepted",
+        "DECLINED": "Not available",
+        "MORE_INFO_REQUESTED": "More info requested",
+        "COUNTER_PROPOSED": "Other times offered",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "with": "With {name}",
+      "asked": "Requested times",
+      "proposed": "Offered times",
+      "meetingAt": "Meeting: {time} · {minutes} min",
+      "question": "The academic's question",
+      "answer": "Your answer",
+      "rejection": "Reason: {reason}",
+      "note": "Note: {message}",
+      "outcome": "Expected outcome: {outcome}",
+      "replyPlaceholder": "Write your answer",
+      "sendReply": "Send answer",
+      "takeTime": "Take this time",
+      "withdraw": "Withdraw request",
+      "accept": "Accept",
+      "decline": "Not available",
+      "askQuestion": "Ask a question",
+      "propose": "Offer other times",
+      "cancel": "Cancel",
+      "send": "Send",
+      "pickTime": "Which time will you meet?",
+      "declineReason": "Reason (optional)",
+      "questionPlaceholder": "Ask the student",
+      "proposeHint": "Offer up to 3 times, at least 4 hours from now.",
+      "messagePlaceholder": "Note (optional)",
+      "done": "Saved.",
+      "failed": "The action could not be completed.",
+      "dialog": {
+        "title": "Plan office hours with {name}",
+        "close": "Close",
+        "topic": "What do you want to talk about?",
+        "topicPlaceholder": "E.g. I'm stuck on question 3 of assignment 2.",
+        "outcome": "What do you expect from the meeting? (optional)",
+        "outcomePlaceholder": "E.g. A clear way to solve it.",
+        "availability": "The academic's open times",
+        "nextDays": "The coming days",
+        "noSlots": "The academic has no open times. Enter at least one preferred day and time below (up to three).",
+        "pickable": "Pickable time",
+        "enterPreference": "Or enter the times you prefer",
+        "preferenceHint": "Up to 3 times, on the hour or half hour, at least 4 hours from now.",
+        "preference": "Choice {number}",
+        "preferenceDay": "Day of choice {number}",
+        "preferenceTime": "Time of choice {number}",
+        "pickDay": "Pick a day",
+        "needSlots": "Pick at least one valid time.",
+        "needTopic": "Write what you want to talk about.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Your request was sent."
+      }
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved.",
+    "queryState": {
+      "loading": "Loading…",
+      "error": "Could not load.",
+      "retry": "Try again"
+    },
+    "studyLevel": {
+      "BACHELOR": "Bachelor's",
+      "MASTER": "Master's",
+      "DOCTORATE": "Doctorate"
+    },
+    "advisees": {
+      "title": "My advisees",
+      "subtitle": "Students you advise according to ODTÜ's records. This information is read-only.",
+      "search": "Search students",
+      "count": "{count} students",
+      "classYear": "Year {year}",
+      "notSignedIn": "Has not signed in to Menton yet",
+      "empty": "ODTÜ's records show no students you advise.",
+      "noMatch": "No students match your search."
+    },
+    "institution": {
+      "title": "Institutional details",
+      "readOnly": "From ODTÜ, read-only",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "syncedAt": "Last updated: {date}",
+      "help": "If something is wrong, tell your unit at ODTÜ; Menton cannot change these details.",
+      "empty": "There is no ODTÜ record for this account."
+    },
+    "profile": {
+      "title": "My profile",
+      "subtitle": "How students find you and where you meet.",
+      "settingsTitle": "Office hours details",
+      "settingsHint": "Students see these when they request an appointment.",
+      "defaultPlace": "Default meeting place",
+      "defaultPlacePlaceholder": "e.g. A-204",
+      "onlineLink": "Online meeting link (optional)",
+      "onlineLinkPlaceholder": "https://…",
+      "contactEmail": "E-mail shown to students (optional)",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Your profile details were saved.",
+      "saveFailed": "Could not save.",
+      "invalidLink": "The link must be a web address starting with https://.",
+      "invalidEmail": "Enter a valid e-mail address."
+    }
   },
   "programPeerCategories": {
     "title": "Peer categories",

@@ -5,6 +5,7 @@ import type {
   PlatformFeedbackInbox,
   SubmitPlatformFeedback,
 } from "@/interfaces/platform-feedback";
+import type { ProgramType } from "@/interfaces/program";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -23,11 +24,14 @@ export function fetchPlatformFeedbackInbox(
   actorId: string,
   page: number,
   unreadOnly: boolean,
+  programType?: ProgramType,
 ) {
   return backendRequest<PlatformFeedbackInbox>({
     method: HttpMethod.Get,
     url: "/api/admin/platform-feedback",
-    params: { actorId, page, unreadOnly },
+    params: programType
+      ? { actorId, page, unreadOnly, programType }
+      : { actorId, page, unreadOnly },
   });
 }
 

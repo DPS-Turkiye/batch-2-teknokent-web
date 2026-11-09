@@ -8,6 +8,7 @@ import { ProgramCurriculumSection } from "@/components/coordinator/program-curri
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { ProgramPeerCategories } from "@/components/coordinator/program-peer-categories-section";
 import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
+import { ProgramTrainingEditor } from "@/components/coordinator/program-training-editor";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
@@ -185,6 +186,17 @@ function SettingsBody({
           detail={detail}
           editable={navigation.admin && !archived}
         />
+
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.Training}
+            title={t(`sections.${SettingsSection.Training}`)}
+            note={t("trainingNote")}
+          >
+            {/* Admins and the program's coordinators both edit it (D10), so the admin view lock does not apply. */}
+            <ProgramTrainingEditor programId={programId} archived={archived} />
+          </Section>
+        ) : null}
 
         <Section
           id={SettingsSection.Rules}

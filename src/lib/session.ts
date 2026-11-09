@@ -221,6 +221,11 @@ export async function getSessionIds() {
   };
 }
 
+/** When this sign-in began (epoch ms); an admin's sign-in revoke after it ends the session. */
+export async function getSessionSignedInAt() {
+  return (await getSessionStore()).issuedAt;
+}
+
 export async function getSessionMentorId() {
   const session = await getSessionUser();
   if (!session || !hasPermission(session, UserRole.Mentor)) {

@@ -25,6 +25,9 @@ export const OPEN_PEER_REQUEST_STATUSES: readonly MentorshipRequestStatus[] = [
   MentorshipRequestStatus.CounterProposed,
 ];
 
+/** Lane I's Akran Mentoru training (video + quiz); passing it awards the badge. */
+export const PEER_MENTOR_TRAINING_HREF = "/student/peer-mentoring/training";
+
 /** `/student/peer-mentoring?as=MENTOR` opens Mentorluk Ver, so notifications can deep-link to it. */
 export const PEER_MENTORING_SIDE_PARAM = "as";
 

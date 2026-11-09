@@ -9,10 +9,13 @@ import {
   BadgeStatus,
   type BadgeAward,
 } from "@/interfaces/badges";
-import { getMyBadges } from "@/lib/client/badges";
+import { getMyAchievements, getMyBadges } from "@/lib/client/badges";
 import { renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("@/lib/client/badges", () => ({ getMyBadges: vi.fn() }));
+vi.mock("@/lib/client/badges", () => ({
+  getMyBadges: vi.fn(),
+  getMyAchievements: vi.fn(),
+}));
 
 function award(overrides: Partial<BadgeAward>): BadgeAward {
   return {
@@ -32,9 +35,12 @@ function award(overrides: Partial<BadgeAward>): BadgeAward {
 }
 
 describe("MyBadgesSection", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getMyAchievements).mockResolvedValue([]);
+  });
 
-  it("lists active badges first and shows why one was taken back", async () => {
+  it("lists the gate badge with why it was taken back and leaves active achievements to their own list", async () => {
     vi.mocked(getMyBadges).mockResolvedValue([
       award({
         id: "old",
@@ -52,13 +58,16 @@ describe("MyBadgesSection", () => {
     renderWithQueryClient(<MyBadgesSection />);
 
     const items = await screen.findAllByRole("listitem");
-    expect(items[0]).toHaveTextContent("İlk Görüşme");
-    expect(items[1]).toHaveTextContent("Akran Mentoru");
-    expect(items[1]).toHaveTextContent("Geri alındı");
-    expect(items[1]).toHaveTextContent(
+    expect(items).toHaveLength(1);
+    expect(items[0]).toHaveTextContent("Akran Mentoru");
+    expect(items[0]).toHaveTextContent("Geri alındı");
+    expect(items[0]).toHaveTextContent(
       "Geri alınma nedeni: Görüşmelere gelmedi",
     );
-    expect(items[1]).toHaveTextContent("İŞKUR 2026 Bahar");
+    expect(items[0]).toHaveTextContent("İŞKUR 2026 Bahar");
+    expect(
+      screen.getByRole("heading", { name: "Başarı rozetleri" }),
+    ).toBeInTheDocument();
   });
 
   it("says when there are no badges yet", async () => {

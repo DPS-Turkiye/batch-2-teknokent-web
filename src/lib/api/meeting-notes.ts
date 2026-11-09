@@ -88,11 +88,18 @@ export function deleteMeetingTodo(
   });
 }
 
-export function issueRealtimeToken(session: SessionIds) {
+/** signedInAt (epoch ms) lets the backend close the socket when an admin ends the sign-ins after it. */
+export function issueRealtimeToken(session: SessionIds, signedInAt?: number) {
   return backendRequest({
     method: HttpMethod.Post,
     url: "/api/realtime/token",
-    data: session,
+    data: {
+      ...session,
+      signedInAt:
+        signedInAt === undefined
+          ? undefined
+          : new Date(signedInAt).toISOString(),
+    },
   });
 }
 
