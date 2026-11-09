@@ -14,6 +14,7 @@ import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
 import { UserRole } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
 import type messages from "@/messages/tr.json";
@@ -146,7 +147,8 @@ function RoleShell({
                 <span className="grid size-8 place-items-center rounded-full bg-[#fbe2d0] text-[11px] leading-[1.3] font-semibold text-[#a8480e]">
                   {mark}
                 </span>
-                <span className="hidden text-left leading-tight sm:block">
+                {/* Between lg and xl the name gives its room to the nav, which shares the row. */}
+                <span className="hidden text-left leading-tight sm:block lg:hidden xl:block">
                   <span className="block text-[12.5px] font-medium">
                     {name}
                   </span>
@@ -164,8 +166,12 @@ function RoleShell({
               {accountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
+                  className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
                 >
+                  <WorkspaceSwitcher
+                    itemClassName={MENU_ITEM_CLASS}
+                    onSwitched={() => setAccountOpen(false)}
+                  />
                   <button
                     type="button"
                     role="menuitem"
@@ -173,7 +179,7 @@ function RoleShell({
                       setAccountOpen(false);
                       setSettingsOpen(true);
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <Settings aria-hidden className="size-4" />
                     {tAccount("settings")}
@@ -182,7 +188,7 @@ function RoleShell({
                     type="button"
                     role="menuitem"
                     onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <LogOut className="size-4" />
                     {t("logout")}
@@ -252,6 +258,9 @@ function RoleShell({
   );
 }
 
+const MENU_ITEM_CLASS =
+  "flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa] disabled:opacity-60";
+
 function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
   const t = useTranslations("roleFrame");
   if (item.disabled) {
@@ -259,9 +268,9 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
       <span
         aria-disabled="true"
         title={t("soon")}
-        className="flex cursor-default items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] text-[#cfd4da]"
+        className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-[18px]"
       >
-        <NavGlyph src={item.icon} />
+        <NavGlyph src={item.icon} className="hidden xl:block" />
         {t(`nav.${item.label}`)}
       </span>
     );
@@ -270,13 +279,13 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] ${
+      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] xl:px-[18px] ${
         active
           ? "bg-[#22262b] font-medium text-white"
           : "font-normal text-[#aeb4bc] hover:text-[#676e78]"
       }`}
     >
-      <NavGlyph src={item.icon} />
+      <NavGlyph src={item.icon} className="hidden xl:block" />
       {t(`nav.${item.label}`)}
       {item.soon ? (
         <span
@@ -300,11 +309,17 @@ function SoonBadge() {
   );
 }
 
-function NavGlyph({ src }: { src: string }) {
+function NavGlyph({
+  src,
+  className = "",
+}: {
+  src: string;
+  className?: string;
+}) {
   return (
     <span
       aria-hidden
-      className="size-5 shrink-0 bg-current"
+      className={`size-5 shrink-0 bg-current ${className}`}
       style={{
         mask: `url(${src}) center / 20px 20px no-repeat`,
         WebkitMask: `url(${src}) center / 20px 20px no-repeat`,
