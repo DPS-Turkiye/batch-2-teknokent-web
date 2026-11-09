@@ -5926,7 +5926,10 @@
     "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
     "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
     "studentAppointmentsLoadFailed": "Randevuların yüklenemedi.",
-    "academicsLoadFailed": "Akademisyenler yüklenemedi."
+    "academicsLoadFailed": "Akademisyenler yüklenemedi.",
+    "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
+    "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
+    "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6625,5 +6628,53 @@
     },
     "programIntro": "Office Hours'a ODTÜ'nün tüm aktif akademisyenleri davetsiz katılır; liste kurum verisinden gelir.",
     "signedIn": "Giriş yaptı"
+  },
+  "programThisWeek": {
+    "eyebrow": "Bu hafta",
+    "loading": "Bu haftanın planı yükleniyor…",
+    "loadFailed": "Bu haftanın planı yüklenemedi.",
+    "weekNumber": "Hafta {week}",
+    "ofTotal": "Hafta {week} / {total}",
+    "lists": {
+      "topics": "Konular",
+      "activities": "Yapılacaklar",
+      "deliverables": "Teslim edilecekler"
+    },
+    "expectedOutput": "Beklenen çıktı: {output}",
+    "notStarted": "Program {date} tarihinde başlıyor.",
+    "ended": "Program tamamlandı.",
+    "empty": "Koordinatör henüz bu hafta için müfredat eklemedi."
+  },
+  "programWeekPlan": {
+    "title": "Haftalık plan",
+    "subtitle": "Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
+    "subtitleWeeks": "Program {total} hafta sürüyor. Katılımcılar Süreç sayfasında yalnızca o haftanın planını görür.",
+    "add": "Hafta ekle",
+    "loading": "Haftalık plan yükleniyor…",
+    "loadFailed": "Haftalık plan yüklenemedi.",
+    "empty": "Henüz haftalık plan yok. Müfredatı yüklediğinde AI haftaları önerir; dilersen elle de ekleyebilirsin.",
+    "proposedNote": "AI'nin müfredattan çıkardığı haftalar. Kontrol edip düzenledikten sonra kaydet; kaydedene kadar katılımcılar görmez.",
+    "week": "Hafta",
+    "weekLabel": "Hafta {week}",
+    "weekNumberOf": "Hafta {week} numarası",
+    "inferred": "Fazdan bölündü",
+    "remove": "{week} haftasını kaldır",
+    "weekTitle": "Haftanın başlığı",
+    "fields": {
+      "topics": "Konular",
+      "activities": "Yapılacaklar",
+      "deliverables": "Teslim edilecekler"
+    },
+    "onePerLine": "Her satıra bir madde",
+    "discard": "Vazgeç",
+    "save": "Haftalık planı kaydet",
+    "saving": "Kaydediliyor…",
+    "saved": "Haftalık plan kaydedildi.",
+    "saveFailed": "Haftalık plan kaydedilemedi.",
+    "problems": {
+      "MISSING_TITLE": "Her haftaya bir başlık yaz.",
+      "REPEATED_WEEK": "Aynı hafta birden fazla kez var.",
+      "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
+    }
   }
 }
