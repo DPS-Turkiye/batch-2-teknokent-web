@@ -10,6 +10,7 @@ import {
 } from "@/lib/server/api-response";
 import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
 import { getSessionIds, getSessionUser } from "@/lib/session";
+import { emptyListWithoutOrganization } from "@/lib/server/without-organization";
 
 export async function GET(request: NextRequest) {
   try {
@@ -21,6 +22,7 @@ export async function GET(request: NextRequest) {
       return backendResponse(await fetchMeetings({ mentorId: session.userId }));
     }
     const { organizationId } = await getSessionIds();
+    if (!organizationId) return emptyListWithoutOrganization();
     return backendResponse(await fetchMeetings({ organizationId }));
   } catch (error) {
     return apiErrorResponse(error, {

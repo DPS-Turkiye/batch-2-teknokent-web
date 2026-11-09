@@ -109,3 +109,21 @@ export type AdminOverview = {
   meetingsLast8Weeks: number;
   meetings?: AdminMeetingMark[];
 };
+
+type NamelessTeam<T extends { organizationName: string }> = Omit<
+  T,
+  "organizationName"
+> & { organizationName: string | null };
+
+/**
+ * The overview as the API sends it: a student's personal team (their hidden team of one) has no name, since it is never
+ * shown as a startup. useAdminOverview labels those rows before any screen reads them.
+ */
+export type AdminOverviewResponse = Omit<
+  AdminOverview,
+  "mentorships" | "requests" | "bottlenecks"
+> & {
+  mentorships: NamelessTeam<AdminMentorship>[];
+  requests: NamelessTeam<AdminRequest>[];
+  bottlenecks: NamelessTeam<AdminBottleneck>[];
+};
