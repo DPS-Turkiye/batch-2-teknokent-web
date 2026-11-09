@@ -15,6 +15,7 @@ import {
   useSession,
 } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
 import type messages from "@/messages/tr.json";
 import { useRoleGate } from "@/hooks/use-role-gate";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
@@ -36,18 +37,21 @@ export type RoleNavItem = {
 
 /**
  * The white menton frame shared by the staff and ODTÜ workspaces: logo, pill menu,
- * notifications and account menu. Anyone whose role is not allowed is sent to their own home.
- * `roleLabel` names the workspace under the user's name in place of the account's role.
+ * notifications and account menu. Staff frames pass the permissions they need, ODTÜ frames their
+ * `workspace`; anyone else is sent to their own home. `roleLabel` names the workspace under the
+ * user's name in place of the account's role.
  */
 export function RoleFrame({
-  allowedRoles,
+  allowedRoles = [],
+  workspace,
   homeHref,
   menuLabel,
   nav,
   roleLabel,
   children,
 }: {
-  allowedRoles: UserRole[];
+  allowedRoles?: UserRole[];
+  workspace?: Workspace;
   homeHref: string;
   menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
@@ -55,7 +59,7 @@ export function RoleFrame({
   children: ReactNode;
 }) {
   const t = useTranslations("common");
-  const { allowed, isLoading } = useRoleGate(allowedRoles);
+  const { allowed, isLoading } = useRoleGate(allowedRoles, workspace);
 
   if (isLoading || !allowed) {
     return (

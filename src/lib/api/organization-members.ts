@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { OrganizationMemberInput } from "@/interfaces/organization-member";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -12,12 +13,13 @@ export function fetchOrganizationMembers(organizationId: string) {
 
 export function createOrganizationMember(
   organizationId: string,
-  payload: Record<string, unknown>,
+  actorId: string,
+  payload: OrganizationMemberInput,
 ) {
   return backendRequest({
-    method: "POST",
+    method: HttpMethod.Post,
     url: `/api/organizations/${encodeURIComponent(organizationId)}/members`,
-    data: payload,
+    data: { ...payload, actorId },
   });
 }
 

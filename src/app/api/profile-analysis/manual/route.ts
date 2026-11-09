@@ -7,10 +7,12 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
+import { forbiddenWithoutOrganization } from "@/lib/server/without-organization";
 
 export async function POST(request: NextRequest) {
   try {
     const { organizationId } = await getSessionIds();
+    if (!organizationId) return forbiddenWithoutOrganization();
     const body = (await request.json()) as {
       appUserId?: string;
       [key: string]: unknown;
