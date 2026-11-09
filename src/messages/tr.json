@@ -3434,12 +3434,68 @@
           "sent": "Talebin gönderildi.",
           "failed": "Talep gönderilemedi."
         }
+      },
+      "profile": {
+        "title": "Profilim",
+        "subtitle": "ODTÜ'den gelen bilgilerin, ilgi alanların ve rozetlerin.",
+        "institution": {
+          "title": "Kurumsal Bilgiler",
+          "readOnly": "ODTÜ'den gelir, burada değiştirilemez.",
+          "loading": "Kurumsal bilgiler yükleniyor…",
+          "loadError": "Kurumsal bilgiler yüklenemedi.",
+          "retry": "Tekrar dene",
+          "missingTitle": "Bu hesap için ODTÜ'den gelen bilgi yok",
+          "missingBody": "Kurumsal bilgiler ODTÜ hesabıyla giriş yapan öğrencilerde görünür.",
+          "fullName": "Ad Soyad",
+          "email": "E-posta",
+          "faculty": "Fakülte",
+          "department": "Bölüm",
+          "classYear": "Sınıf",
+          "classYearValue": "{year}. sınıf",
+          "programLevel": "Öğrenim düzeyi",
+          "advisor": "Akademik danışman",
+          "iskur": "İŞKUR Gençlik Programı",
+          "yes": "Katılımcı",
+          "no": "Katılımcı değil",
+          "unknown": "—",
+          "syncedAt": "Son güncelleme: {date}.",
+          "notSynced": "Henüz güncellenmedi.",
+          "help": "Bilgilerin yanlışsa ÖİDB ile iletişime geç."
+        },
+        "interests": {
+          "title": "İlgi alanların ve hedefin",
+          "fixtureNotice": "Örnek veriler: seçimler yalnızca bu tarayıcı oturumunda tutulur, hesabına kaydedilmez.",
+          "loading": "İlgi alanların yükleniyor…",
+          "loadError": "İlgi alanların yüklenemedi.",
+          "retry": "Tekrar dene",
+          "empty": "Henüz ilgi alanı veya hedef eklemedin.",
+          "topics": "İlgi alanları",
+          "subtopics": "Alt konular",
+          "goal": "Hedefin",
+          "noGoal": "Hedef eklemedin.",
+          "edit": "Düzenle",
+          "save": "Kaydet",
+          "saving": "Kaydediliyor…",
+          "cancel": "Vazgeç",
+          "saved": "İlgi alanların güncellendi.",
+          "saveError": "İlgi alanların kaydedilemedi. Tekrar deneyebilirsin."
+        },
+        "badges": {
+          "title": "Rozetlerim",
+          "soonTitle": "Rozetlerin yakında burada",
+          "soonBody": "Akran Mentoru rozeti ve görüşmelerinle kazanacağın rozetler bu bölümde görünecek."
+        }
       }
     },
     "academician": {
       "comingTitle": "Akademisyen çalışma alanı hazırlanıyor",
       "comingBody": "Randevu talepleri, takvimin ve danışan öğrencilerin burada olacak."
     }
+  },
+  "studyLevel": {
+    "BACHELOR": "Lisans",
+    "MASTER": "Yüksek lisans",
+    "DOCTORATE": "Doktora"
   },
   "peerTopics": {
     "ACADEMIC_DEVELOPMENT": "Akademik Gelişim",
