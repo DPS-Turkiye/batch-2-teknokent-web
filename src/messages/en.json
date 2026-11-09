@@ -3368,6 +3368,12 @@
       "MENTOR": "As mentor",
       "MENTEE": "As mentee",
       "OFFICE_HOURS": "Office Hours"
+    },
+    "card": {
+      "place": "Place: {place}",
+      "alternative": "Suggested alternative (not confirmed yet)",
+      "rejectReason": "Reason: {reason}",
+      "join": "Join the session"
     }
   },
   "odtuWorkspaces": {
@@ -5800,7 +5806,8 @@
     "peerCategoriesSaveFailed": "Could not save the categories.",
     "peerCategoriesInvalid": "The category list is not valid.",
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
-    "studentProfileCompletionSaveFailed": "Couldn't save your interests."
+    "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
+    "studentAppointmentsLoadFailed": "Couldn't load your appointments."
   },
   "startupStart": {
     "title": "My startup",
@@ -6118,16 +6125,19 @@
   },
   "studentAppointments": {
     "title": "My appointments",
-    "fixtureNotice": "Showing sample data. Live appointments and Office Hours integration are not connected yet.",
-    "filter": "Status",
+    "subtitle": "Your peer-mentoring appointments, as mentee and as mentor. Office Hours appointments will show here soon.",
+    "filter": "Filter by status",
     "all": "All",
     "loading": "Loading appointments…",
     "error": "Appointments could not be loaded.",
     "retry": "Try again",
     "empty": "No appointments yet.",
     "filteredEmpty": "No appointments with this status.",
-    "place": "Place: {place}",
-    "alternative": "Proposed alternative (not yet confirmed)"
+    "emptyBody": "Once you pick a time on an accepted request, the appointment shows here.",
+    "findMentor": "Find a peer mentor",
+    "upcoming": "Upcoming",
+    "upcomingEmpty": "No upcoming appointments.",
+    "past": "Past"
   },
   "studentProfileCompletion": {
     "title": "Complete your profile",
