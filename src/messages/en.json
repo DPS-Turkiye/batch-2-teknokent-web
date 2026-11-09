@@ -3409,7 +3409,18 @@
         "requests": {
           "title": "My requests",
           "empty": "You haven't sent a request yet.",
-          "sentAt": "Sent: {date}"
+          "sentAt": "Sent: {date}",
+          "book": "Book a time",
+          "sessionAt": "Appointment: {date}",
+          "seeAppointment": "Go to appointment",
+          "booking": {
+            "title": "Book a time with {name}",
+            "subtitle": "Pick one of your mentor's open times; the appointment is confirmed right away.",
+            "loading": "Loading open times…",
+            "empty": "Your mentor has no open times right now. You can check again later.",
+            "booked": "Your appointment is booked.",
+            "close": "Close"
+          }
         },
         "mentors": {
           "title": "Peer mentors",
@@ -3585,10 +3596,6 @@
         "meanwhileBody": "You can get support from your program's peer mentors.",
         "meanwhileAction": "Go to peer mentoring"
       }
-    },
-    "academician": {
-      "comingTitle": "The academician workspace is on its way",
-      "comingBody": "Appointment requests, your calendar and your advisees will be here."
     }
   },
   "studyLevel": {
@@ -4736,7 +4743,8 @@
       "coordinators": "Coordinators",
       "mentors": "Mentors",
       "teams": "Teams",
-      "students": "Students"
+      "students": "Students",
+      "academics": "Academics"
     },
     "addCoordinator": "+ Add a coordinator",
     "filters": {
@@ -5893,7 +5901,8 @@
     "peerCategoriesInvalid": "The category list is not valid.",
     "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
     "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
-    "studentAppointmentsLoadFailed": "Couldn't load your appointments."
+    "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
+    "academicsLoadFailed": "Could not load the academics."
   },
   "startupStart": {
     "title": "My startup",
@@ -6515,6 +6524,26 @@
       "notPast": "Hours cannot be added in the past.",
       "oneOffSaved": "One-off hours saved.",
       "oneOffFailed": "One-off hours could not be saved."
+    },
+    "home": {
+      "greeting": "Hello, {name}",
+      "greetingFallback": "Hello",
+      "subtitle": "Your office hours requests, appointments and advisees.",
+      "pendingTitle": "Requests waiting for you",
+      "pendingHint": "Accept, decline or propose another time.",
+      "pendingLink": "Go to requests",
+      "weekTitle": "Appointments in the next 7 days",
+      "weekHint": "Confirmed office hours appointments.",
+      "weekLink": "My appointments",
+      "adviseesTitle": "Advisees",
+      "adviseesHint": "From ODTÜ's records.",
+      "adviseesLink": "My advisees",
+      "nextTitle": "Next appointments",
+      "nextEmpty": "No upcoming appointments.",
+      "requestsTitle": "Latest requests",
+      "requestsEmpty": "No requests are waiting for you.",
+      "seeAll": "See all",
+      "calendarLink": "Edit office hours"
     }
   },
   "programPeerCategories": {
@@ -6526,5 +6555,47 @@
     "cancel": "Cancel",
     "saved": "Categories saved.",
     "saveFailed": "Could not save the categories."
+  },
+  "adminAcademics": {
+    "intro": "Academics come from the institution's records; nobody approves them by hand or edits them here.",
+    "searchPlaceholder": "Search name, e-mail or department",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "filters": {
+      "ALL": "All",
+      "SIGNED_IN": "Signed in",
+      "NOT_SIGNED_IN": "Not signed in yet",
+      "INACTIVE": "Inactive at the institution"
+    },
+    "columns": {
+      "academic": "Academic",
+      "department": "Department",
+      "advisees": "Advisees",
+      "signIn": "Menton sign-in",
+      "status": "Institution record"
+    },
+    "empty": "No academics in this filter.",
+    "none": "The institution's records list no academics yet.",
+    "loadFailed": "Could not load the academics.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "notSignedIn": "Not signed in yet",
+    "lastSignIn": "Last signed in {date}",
+    "advisees": "{count, plural, =0 {No advisees} one {# advisee} other {# advisees}}",
+    "open": "Details",
+    "close": "Close",
+    "drawer": {
+      "title": "Academic",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "record": "Institution record",
+      "signIn": "Menton sign-in",
+      "advisees": "Advisees",
+      "officeHours": "Office Hours",
+      "officeHoursPending": "Office Hours activity isn't in Menton yet; it will show here once connected.",
+      "readOnly": "This comes from the institution's records and can't be changed in Menton."
+    }
   }
 }

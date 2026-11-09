@@ -16,6 +16,7 @@ import {
   programsForMentor,
   startupsOf,
 } from "@/components/admin/admin-model";
+import { AdminAcademicsTable } from "@/components/admin/admin-academics-table";
 import { AdminStudentsTable } from "@/components/admin/admin-students-table";
 import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { AssignToProgram } from "@/components/admin/assign-to-program";
@@ -44,7 +45,8 @@ import { errorMessage, initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
 import { ToastTone } from "@/interfaces/toast";
 
-export type UserTab = "coordinators" | "mentors" | "teams" | "students";
+export type UserTab =
+  "coordinators" | "mentors" | "teams" | "students" | "academics";
 
 const PAGE_SIZE = 7;
 
@@ -88,6 +90,12 @@ export function UsersView({ tab }: { tab: UserTab }) {
       id: "students" as const,
       href: "/admin/users/students",
       label: t("tabs.students"),
+      count: null,
+    },
+    {
+      id: "academics" as const,
+      href: "/admin/users/academics",
+      label: t("tabs.academics"),
       count: null,
     },
   ];
@@ -155,6 +163,8 @@ export function UsersView({ tab }: { tab: UserTab }) {
       {tab === "teams" ? <TeamsTable data={data} /> : null}
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
       {tab === "students" ? <AdminStudentsTable /> : null}
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {tab === "academics" ? <AdminAcademicsTable /> : null}
       {inviteOpen ? (
         <AddCoordinatorDialog onClose={() => setInviteOpen(false)} />
       ) : null}
