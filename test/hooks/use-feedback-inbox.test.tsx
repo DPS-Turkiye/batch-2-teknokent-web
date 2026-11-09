@@ -44,19 +44,19 @@ describe("useFeedbackInbox", () => {
   it("paginates within bounds and resets the page when filtering unread", async () => {
     const { result } = setup();
     await waitFor(() => expect(result.current.data).toBeDefined());
-    expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, false);
+    expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, false, null);
     act(() => result.current.previous());
     expect(result.current.page).toBe(0);
     act(() => result.current.next());
     await waitFor(() =>
-      expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(1, false),
+      expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(1, false, null),
     );
     await waitFor(() => expect(result.current.isFetching).toBe(false));
     act(() => result.current.next());
     expect(result.current.page).toBe(1);
     act(() => result.current.filterUnread(true));
     await waitFor(() =>
-      expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, true),
+      expect(getPlatformFeedbackInbox).toHaveBeenCalledWith(0, true, null),
     );
     expect(result.current.page).toBe(0);
   });
