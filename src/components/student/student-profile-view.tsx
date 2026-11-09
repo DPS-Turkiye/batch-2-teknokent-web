@@ -155,11 +155,7 @@ function InterestsSection() {
   const { saved, draft } = interests;
 
   return (
-    <Section
-      id="profile-interests"
-      title={t("title")}
-      note={t("fixtureNotice")}
-    >
+    <Section id="profile-interests" title={t("title")} note={t("note")}>
       {interests.isLoading ? (
         <p role="status" className="text-sm text-[#858c96]">
           {t("loading")}

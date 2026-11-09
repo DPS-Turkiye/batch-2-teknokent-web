@@ -175,7 +175,9 @@ describe("StudentProfileView › İlgi alanların", () => {
     expect(await within(interests).findByText("Kariyer ve Staj")).toBeVisible();
     expect(within(interests).getByText("Örnek: CV hazırlama")).toBeVisible();
     expect(within(interests).getByText("Yaz stajı bulmak")).toBeVisible();
-    expect(within(interests).getByText(/hesabına kaydedilmez/)).toBeVisible();
+    expect(
+      within(interests).getByText(/Alt konular şimdilik örnek/),
+    ).toBeVisible();
   });
 
   it("edits topics and goal in place, drops sub-topics of a removed topic, and saves", async () => {

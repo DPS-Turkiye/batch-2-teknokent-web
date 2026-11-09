@@ -29,7 +29,6 @@ const NAV: RoleNavItem[] = [
     label: "myAppointments",
     icon: "/mentor-dashboard/revised/clock.svg",
     match: (path) => path.startsWith("/academician/appointments"),
-    disabled: true,
   },
   {
     href: "/academician/calendar",

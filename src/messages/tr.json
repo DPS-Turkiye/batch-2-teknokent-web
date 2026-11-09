@@ -3550,7 +3550,7 @@
         },
         "interests": {
           "title": "İlgi alanların ve hedefin",
-          "fixtureNotice": "Örnek veriler: seçimler yalnızca bu tarayıcı oturumunda tutulur, hesabına kaydedilmez.",
+          "note": "Alt konular şimdilik örnek; kesin liste belirlenince güncellenecek.",
           "loading": "İlgi alanların yükleniyor…",
           "loadError": "İlgi alanların yüklenemedi.",
           "retry": "Tekrar dene",
@@ -5886,6 +5886,8 @@
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",
     "peerCategoriesInvalid": "Kategori listesi geçersiz.",
+    "studentProfileCompletionLoadFailed": "İlgi alanların yüklenemedi.",
+    "studentProfileCompletionSaveFailed": "İlgi alanların kaydedilemedi.",
     "academicsLoadFailed": "Akademisyenler yüklenemedi."
   },
   "startupStart": {
@@ -6217,11 +6219,11 @@
   },
   "studentProfileCompletion": {
     "title": "Profilini tamamla",
-    "fixtureNotice": "Bu ekran örnek verilerle çalışır. Seçimler yalnızca bu tarayıcı oturumunda tutulur; sayfa yenilenince sıfırlanır. Canlı profil kaydı yapılmaz.",
+    "subtitle": "İlgi alanlarını ve hedefini seç; Profilim'den istediğin zaman değiştirebilirsin.",
     "loading": "Profil yükleniyor…",
     "loadError": "Profil yüklenemedi.",
     "retry": "Tekrar dene",
-    "saved": "Örnek profil tamamlandı. Canlı hesabına kaydedilmedi.",
+    "saved": "Profilin tamamlandı.",
     "skipped": "Şimdilik atladın. İstersen daha sonra profilini tamamlayabilirsin.",
     "home": "Ana sayfaya dön",
     "step": "Adım {number} / 3",
@@ -6233,10 +6235,10 @@
     "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
-    "saveError": "Örnek profil kaydedilemedi. Tekrar deneyebilirsin.",
+    "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",
     "back": "Geri",
     "next": "Devam et",
-    "finish": "Örnek profili tamamla",
+    "finish": "Profili tamamla",
     "saving": "Kaydediliyor…",
     "skip": "Şimdilik atla",
     "subtopics": {
@@ -6456,6 +6458,32 @@
       "noteLabel": "Öğrencinin notu",
       "proposedPast": "Geçmiş bir saat önerilemez.",
       "pickOne": "Bir saat seç."
+    },
+    "appointments": {
+      "title": "Randevularım",
+      "subtitle": "Onaylanmış ofis saati randevuların. Talepler Randevu Talepleri'nde.",
+      "upcoming": "Yaklaşan",
+      "past": "Geçmiş",
+      "cancelled": "İptal edilenler",
+      "empty": "Henüz randevun yok.",
+      "course": "Ders: {course}",
+      "place": "Yer: {place}",
+      "online": "Çevrim içi bağlantı",
+      "lateCancel": "Son 24 saatte iptal edildi",
+      "reason": "Neden: {reason}",
+      "cancel": "Randevuyu iptal et",
+      "cancelReason": "Öğrenciye iptal nedeni",
+      "cancelReasonHint": "Başlangıca 24 saatten az kaldığı için neden yazman gerekiyor.",
+      "confirmCancel": "İptal et",
+      "keep": "Vazgeç",
+      "needReason": "Son 24 saatteki iptal için neden yaz.",
+      "cancelledToast": "Randevu iptal edildi; öğrenciye bildirilecek.",
+      "cancelFailed": "Randevu iptal edilemedi; liste yenilendi.",
+      "emptyView": {
+        "upcoming": "Yaklaşan randevun yok.",
+        "past": "Geçmiş randevun yok.",
+        "cancelled": "İptal edilen randevu yok."
+      }
     }
   },
   "programPeerCategories": {

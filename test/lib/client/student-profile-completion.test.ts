@@ -1,6 +1,6 @@
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
-import { afterEach, expect, it, vi } from "vitest";
+import { beforeEach, expect, it, vi } from "vitest";
 import { getPeerCategories } from "@/lib/client/peer-mentoring";
 import {
   getPeerMentorCategories,
@@ -8,31 +8,58 @@ import {
   getProfileCompletionCategories,
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
+import { EMPTY_PROFILE_COMPLETION } from "@/lib/client/fixtures/student-profile-completion";
+import { httpClient } from "@/lib/http-client";
 
 vi.mock("@/lib/client/peer-mentoring", () => ({
   getPeerCategories: vi.fn(),
 }));
-import { EMPTY_PROFILE_COMPLETION } from "@/lib/client/fixtures/student-profile-completion";
-import { getStudentHome } from "@/lib/client/student-home";
-afterEach(async () => {
-  await saveStudentProfileCompletion(EMPTY_PROFILE_COMPLETION);
+vi.mock("@/lib/http-client", () => ({
+  httpClient: { get: vi.fn(), put: vi.fn() },
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
 });
-it("clones reads and writes, and shares completion/skip with fixture home", async () => {
-  const draft = {
+
+it("reads and saves the student's interests through the app's own API", async () => {
+  const saved = {
     ...EMPTY_PROFILE_COMPLETION,
     topics: [PeerTopicCategory.AcademicDevelopment],
-    skipped: true,
+    goal: "Yaz stajı",
+    completed: true,
   };
-  await saveStudentProfileCompletion(draft);
-  draft.topics.pop();
-  const read = await getStudentProfileCompletion();
-  expect(read.topics).toEqual([PeerTopicCategory.AcademicDevelopment]);
-  read.topics.pop();
-  expect((await getStudentProfileCompletion()).topics).toHaveLength(1);
-  expect((await getStudentHome()).profileCompleted).toBe(true);
-  await saveStudentProfileCompletion(EMPTY_PROFILE_COMPLETION);
-  expect((await getStudentHome()).profileCompleted).toBe(false);
+  vi.mocked(httpClient.get).mockResolvedValue({
+    status: 200,
+    data: EMPTY_PROFILE_COMPLETION,
+  } as never);
+  vi.mocked(httpClient.put).mockResolvedValue({
+    status: 200,
+    data: saved,
+  } as never);
+
+  expect(await getStudentProfileCompletion()).toEqual(EMPTY_PROFILE_COMPLETION);
+  expect(httpClient.get).toHaveBeenCalledWith(
+    "/api/student/profile-completion",
+  );
+  expect(await saveStudentProfileCompletion(saved)).toEqual(saved);
+  expect(httpClient.put).toHaveBeenCalledWith(
+    "/api/student/profile-completion",
+    saved,
+  );
 });
+
+it("turns a refused save into an error instead of a saved profile", async () => {
+  vi.mocked(httpClient.put).mockResolvedValue({
+    status: 400,
+    data: { message: "Bu kategori programında etkin değil." },
+  } as never);
+
+  await expect(
+    saveStudentProfileCompletion(EMPTY_PROFILE_COMPLETION),
+  ).rejects.toThrow("Bu kategori programında etkin değil.");
+});
+
 it("offers only the program's active categories, each with its sample sub-topics", async () => {
   vi.mocked(getPeerCategories).mockResolvedValue([
     PeerTopicCategory.International,
