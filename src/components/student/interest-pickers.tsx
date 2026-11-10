@@ -61,7 +61,8 @@ export function SubtopicPicker({
   const topicLabel = useTranslations("peerTopics");
   return (
     <>
-      <p className="text-sm text-[#676e78]">{t("subtopicNotice")}</p>
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      {/* The sub-topics are sample ids until the board names the real list. */}
       {groups.length === 0 ? (
         <p>{t("noTopics")}</p>
       ) : (

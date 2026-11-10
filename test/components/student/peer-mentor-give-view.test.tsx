@@ -30,8 +30,10 @@ import { getStudentTraining } from "@/lib/client/training";
 import { renderWithQueryClient } from "@test/test-utils";
 
 let session: AppSession;
+const refresh = vi.fn(async () => null);
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => session,
+  useSession: () => ({ session, refresh }),
 }));
 vi.mock("@/lib/client/badges", () => ({
   getMyBadges: vi.fn(),
@@ -226,14 +228,25 @@ describe("PeerMentorGiveView", () => {
     ).toHaveAttribute("href", "/student/peer-mentoring/profile");
   });
 
-  it("asks for a fresh sign-in when the badge is newer than the session", async () => {
+  it("re-reads the session once when the badge is newer than it, and asks for a sign-in only if that can't help", async () => {
     session = student([UserRole.Mentee]);
+    refresh.mockClear();
     renderWithQueryClient(<PeerMentorGiveView />);
 
     expect(
       await screen.findByText(/çıkış yapıp yeniden giriş yap/),
     ).toBeVisible();
+    expect(refresh).toHaveBeenCalledTimes(1);
     expect(getPeerMentorProfile).not.toHaveBeenCalled();
+  });
+
+  it("leaves the session alone when it already carries the badge's permission", async () => {
+    session = student([UserRole.Mentee, UserRole.Mentor]);
+    refresh.mockClear();
+    renderWithQueryClient(<PeerMentorGiveView />);
+
+    expect(await screen.findByText("Rozet Kazanıldı")).toBeVisible();
+    expect(refresh).not.toHaveBeenCalled();
   });
 
   it("lets a published peer mentor accept and decline requests and lists their mentees", async () => {

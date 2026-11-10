@@ -156,6 +156,13 @@ describe("PeerMentorProfileWizard", () => {
     expect(screen.getByText(/1 haftalık saat aralığı/)).toBeVisible();
     expect(savePeerMentorProfile).not.toHaveBeenCalled();
 
+    // The step's main action stands out from Geri and Vazgeç.
+    expect(screen.getByRole("button", { name: "Yayınla" })).toHaveClass(
+      "bg-[#22262b]",
+    );
+    expect(screen.getByRole("button", { name: "Geri" })).not.toHaveClass(
+      "bg-[#22262b]",
+    );
     await user.click(screen.getByRole("button", { name: "Yayınla" }));
 
     await waitFor(() =>

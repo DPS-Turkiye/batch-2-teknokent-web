@@ -23,9 +23,16 @@ import {
   PEER_REQUEST_MESSAGE_MAX,
   PEER_REQUEST_MESSAGE_MIN,
   peerMentoringSide,
+  sharedInterests,
 } from "@/lib/peer-mentoring";
-import { getProfileCompletionCategories } from "@/lib/client/student-profile-completion";
-import { PROFILE_COMPLETION_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
+import {
+  getProfileCompletionCategories,
+  getStudentProfileCompletion,
+} from "@/lib/client/student-profile-completion";
+import {
+  PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
+  PROFILE_COMPLETION_QUERY_KEY,
+} from "@/hooks/use-student-profile-completion";
 import { errorMessage } from "@/lib/utils";
 import { ToastTone } from "@/interfaces/toast";
 
@@ -78,6 +85,12 @@ export function usePeerMentorDirectory() {
     queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
     queryFn: getProfileCompletionCategories,
   });
+  // The student's saved interests, for "Neden önerildi?"; the same query as the profile screens.
+  const profile = useQuery({
+    queryKey: PROFILE_COMPLETION_QUERY_KEY,
+    queryFn: getStudentProfileCompletion,
+  });
+  const interests = profile.data?.topics ?? [];
   const requests = usePeerMentoringRequests();
   const openRequestMentorIds = useMemo(
     () =>
@@ -102,6 +115,8 @@ export function usePeerMentorDirectory() {
     mentors,
     filtered: category != null || deferredQuery !== "",
     hasOpenRequest: (mentorId: string) => openRequestMentorIds.has(mentorId),
+    sharedInterestsOf: (mentor: PeerMentorCard) =>
+      sharedInterests(mentor.categories, interests),
   };
 }
 

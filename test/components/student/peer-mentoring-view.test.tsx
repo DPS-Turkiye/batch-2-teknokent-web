@@ -3,7 +3,12 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentoringView } from "@/components/student/peer-mentoring-view";
-import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
+import { BadgeCode, BadgeKind } from "@/interfaces/badges";
+import {
+  PeerMentorGateState,
+  PeerTopicCategory,
+} from "@/interfaces/peer-mentoring";
+import { getPeerMentors } from "@/lib/client/peer-mentoring";
 import {
   addPeerMentoringRequestFixture,
   peerMentoringRequestsFixture,
@@ -40,6 +45,20 @@ vi.mock("@/lib/client/peer-mentoring", () => ({
   ),
 }));
 
+let interests: string[] = [];
+vi.mock("@/lib/client/student-profile-completion", async (importOriginal) => ({
+  ...(await importOriginal<
+    typeof import("@/lib/client/student-profile-completion")
+  >()),
+  getStudentProfileCompletion: vi.fn(async () => ({
+    topics: interests,
+    subtopics: [],
+    goal: "",
+    completed: true,
+    skipped: false,
+  })),
+}));
+
 const replace = vi.fn();
 let search = "";
 vi.mock("@/lib/client/training", async () => {
@@ -57,6 +76,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 beforeEach(() => {
+  interests = [];
   gate.state = PeerMentorGateState.Hidden;
   search = "";
   replace.mockClear();
@@ -88,6 +108,45 @@ describe("PeerMentoringView › Mentorluk Al", () => {
         name: "Deniz Kaya için talep gönder",
       }),
     ).toBeEnabled();
+  });
+
+  it("adds the student's matching interests to Neden önerildi and shows the Akran Mentoru badge", async () => {
+    interests = [
+      PeerTopicCategory.TechnicalDigital,
+      PeerTopicCategory.CampusLife,
+    ];
+    const [deniz, ...others] = peerMentorsFixture({
+      category: null,
+      query: "",
+    });
+    vi.mocked(getPeerMentors).mockResolvedValueOnce([
+      {
+        ...deniz,
+        badges: [
+          ...deniz.badges,
+          {
+            code: BadgeCode.PeerMentor,
+            kind: BadgeKind.Gate,
+            programId: "fixture-program",
+            awardedAt: "2026-10-01T10:00:00+03:00",
+          },
+        ],
+      },
+      ...others,
+    ]);
+    renderWithQueryClient(<PeerMentoringView />);
+
+    const card = await mentorCard("Deniz Kaya");
+    expect(
+      await within(card).findByText(
+        "İlgi alanlarınla eşleşiyor: Teknik ve Dijital Beceriler",
+      ),
+    ).toBeVisible();
+    expect(within(card).getByText("Aynı bölüm")).toBeVisible();
+    expect(within(card).getByText("Akran Mentoru")).toBeVisible();
+    expect(within(card).getByText("10 Görüşme")).toBeVisible();
+    const elif = await mentorCard("Elif Şahin");
+    expect(within(elif).queryByText(/İlgi alanlarınla eşleşiyor/)).toBeNull();
   });
 
   it("blocks a second request to the same mentor and requests to a full mentor", async () => {

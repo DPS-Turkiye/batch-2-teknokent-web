@@ -4,7 +4,10 @@ import type { StatusChip } from "@/components/admin/admin-ui";
 import { AppointmentSide } from "@/interfaces/appointment";
 import { type BadgeAward, BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
+import {
+  PeerMentorGateState,
+  type PeerTopicCategory,
+} from "@/interfaces/peer-mentoring";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -74,4 +77,12 @@ export function latestGateAward<
         right.awardedAt.localeCompare(left.awardedAt),
       )[0] ?? null
   );
+}
+
+/** The mentor's categories the student also picked as interests, in the mentor's order ("Neden önerildi?"). */
+export function sharedInterests(
+  mentorCategories: readonly PeerTopicCategory[],
+  interests: readonly PeerTopicCategory[],
+) {
+  return mentorCategories.filter((category) => interests.includes(category));
 }

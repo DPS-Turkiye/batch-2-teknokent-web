@@ -3435,7 +3435,8 @@
           "requestFrom": "Send a request to {name}",
           "requested": "Your request is waiting",
           "full": "No places left",
-          "noCategories": "Your program has no active peer-mentoring category yet."
+          "noCategories": "Your program has no active peer-mentoring category yet.",
+          "whyInterests": "Matches your interests: {topics}"
         },
         "dialog": {
           "title": "Mentoring with {name}",
@@ -5967,7 +5968,8 @@
     "academicsLoadFailed": "Could not load the academics.",
     "weekPlanLoadFailed": "Couldn't load the weekly plan.",
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
-    "programThisWeekLoadFailed": "Couldn't load this week's plan."
+    "programThisWeekLoadFailed": "Couldn't load this week's plan.",
+    "sessionRefreshFailed": "Couldn't update your session."
   },
   "startupStart": {
     "title": "My startup",
@@ -6314,7 +6316,6 @@
       "1": "Subtopics",
       "2": "Your goal (optional)"
     },
-    "subtopicNotice": "TEST UI: These subtopics are examples only. The production subtopic list has not been agreed.",
     "noTopics": "No interests selected. Go back or continue without a selection.",
     "goal": "Your goal (optional, up to 1000 characters)",
     "saveError": "Your profile couldn't be saved. Please try again.",

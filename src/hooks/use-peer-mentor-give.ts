@@ -3,9 +3,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { useAppSession } from "@/components/providers/session-provider";
+import { useSession } from "@/components/providers/session-provider";
 import { useToast } from "@/stores/toast-store";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
@@ -78,7 +78,7 @@ const WAITING = [
 
 /** Where the student stands on the Mentorluk Ver side (see peerMentorGateState). */
 export function usePeerMentorGate() {
-  const session = useAppSession();
+  const { session, refresh } = useSession();
   const signedIn = Boolean(session);
   const badges = useMyBadges(signedIn);
   const institution = useInstitutionRecord(signedIn);
@@ -89,12 +89,20 @@ export function usePeerMentorGate() {
     iskurParticipant: institution.data?.iskurParticipant ?? false,
     gateAward,
   });
+  // A badge awarded after sign-in (the training passed, or a coordinator's award) isn't in the session yet: re-read
+  // the account once, so the mentor side opens without signing in again.
+  const sessionBehind = state === PeerMentorGateState.Earned && !holdsMentor;
+  const refreshed = useRef(false);
+  useEffect(() => {
+    if (!sessionBehind || refreshed.current) return;
+    refreshed.current = true;
+    void refresh();
+  }, [sessionBehind, refresh]);
   return {
     state,
     gateAward,
     isLoading: badges.isLoading || institution.isLoading,
-    // An award made after sign-in reaches the session cookie only at its next check; mentor actions wait for it.
-    sessionBehind: state === PeerMentorGateState.Earned && !holdsMentor,
+    sessionBehind,
   };
 }
 
