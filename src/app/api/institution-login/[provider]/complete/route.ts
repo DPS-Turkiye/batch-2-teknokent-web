@@ -9,6 +9,11 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import {
+  endSession,
+  forgetInstitutionLogin,
+  pendingInstitutionLogin,
+} from "@/lib/server/institution-login-cookie";
 import { toInstitutionProvider } from "@/lib/server/institution-provider";
 
 type CompleteBody = { state?: unknown; params?: unknown };
@@ -23,7 +28,8 @@ function stringParams(value: unknown): Record<string, string> | null {
 
 /**
  * Hands what the institution sent back to the backend and trades the one-time code it returns for a Firebase
- * custom token in the same call, so the code never reaches the browser.
+ * custom token in the same call, so the code never reaches the browser. Only the browser that started the login
+ * may finish it, and only once: the binding cookie is cleared whatever the outcome.
  */
 export async function POST(
   request: NextRequest,
@@ -48,16 +54,45 @@ export async function POST(
         { status: 400 },
       );
     }
+    const pending = pendingInstitutionLogin(request, provider, body.state);
+    if (!pending) {
+      return forgetInstitutionLogin(
+        NextResponse.json(
+          {
+            code: "INVALID_REQUEST",
+            message: await apiText("institutionLoginExpired"),
+          },
+          { status: 400 },
+        ),
+      );
+    }
     const callback = await finishInstitutionCallback(
       provider,
       body.state,
       callbackParams,
     );
-    if (callback.status !== 200) return backendResponse(callback);
-    return backendResponse(await exchangeInstitutionCode(callback.data.code));
+    if (callback.status !== 200) {
+      return forgetInstitutionLogin(backendResponse(callback));
+    }
+    const exchange = await exchangeInstitutionCode(callback.data.code);
+    if (exchange.status !== 200) {
+      return forgetInstitutionLogin(backendResponse(exchange));
+    }
+    // Whoever was signed in on this browser before is not who signs in now; a newcomer sent on to /signup
+    // would otherwise be turned back to the old account's workspace.
+    return endSession(
+      forgetInstitutionLogin(
+        backendResponse({
+          ...exchange,
+          data: { ...exchange.data, next: pending.next },
+        }),
+      ),
+    );
   } catch (error) {
-    return apiErrorResponse(error, {
-      message: await apiText("institutionLoginFailed"),
-    });
+    return forgetInstitutionLogin(
+      await apiErrorResponse(error, {
+        message: await apiText("institutionLoginFailed"),
+      }),
+    );
   }
 }

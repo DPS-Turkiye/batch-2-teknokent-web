@@ -71,7 +71,14 @@
     "newHere": "Menton’a yeni misin?",
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
-    "odtu": "ODTÜ Hesabıyla Giriş Yap"
+    "odtu": "ODTÜ Hesabıyla Giriş Yap",
+    "otg": "OTG ile giriş yap"
+  },
+  "otgLogin": {
+    "signingIn": "OTG hesabınla giriş yapılıyor…",
+    "cancelled": "OTG girişini iptal ettin. İstersen yeniden deneyebilirsin.",
+    "failed": "OTG ile giriş tamamlanamadı. Lütfen yeniden dene.",
+    "backToLogin": "Giriş sayfasına dön"
   },
   "workspaceSwitch": {
     "label": "Çalışma alanı",
@@ -5708,6 +5715,7 @@
     "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
     "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
     "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
+    "institutionLoginExpired": "Giriş bağlantısının süresi doldu ya da başka bir tarayıcıda başlatıldı. Lütfen yeniden giriş yap.",
     "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
