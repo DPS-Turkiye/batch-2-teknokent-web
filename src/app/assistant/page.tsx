@@ -41,7 +41,6 @@ function MeetingAssistantWorkspace() {
     botError,
     visibleTranscript,
     canEditTranscript,
-    transcriptDirty,
     updateTranscriptLine,
     removeTranscriptLine,
     notes,
@@ -257,7 +256,6 @@ function MeetingAssistantWorkspace() {
                         disabled={
                           !targetMeetingId ||
                           !meetingReport ||
-                          transcriptDirty ||
                           shareStatus === BotStatus.Sending
                         }
                         className="rounded-[7px] bg-[var(--ma-accent)] px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
@@ -378,11 +376,6 @@ function MeetingAssistantWorkspace() {
                           {t("report")}
                         </span>
                         <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                        {transcriptDirty && meetingReport ? (
-                          <span className="text-[11px] text-[var(--ma-accent)]">
-                            {t("reportStale")}
-                          </span>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() => regenerateReport()}
@@ -402,6 +395,12 @@ function MeetingAssistantWorkspace() {
                         status={reportStatus}
                         error={reportError}
                       />
+                      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                      {canEditTranscript && meetingReport ? (
+                        <p className="mb-2 text-[11px] text-[var(--ma-t3)]">
+                          {t("reportFromRecording")}
+                        </p>
+                      ) : null}
                       {meetingReport ? (
                         <MeetingReportView report={meetingReport} />
                       ) : (

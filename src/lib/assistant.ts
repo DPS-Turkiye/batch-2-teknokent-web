@@ -1,21 +1,18 @@
-import axios, { type AxiosResponse } from "axios";
+import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 import { clientText } from "@/i18n/client-texts";
-import {
-  amplifyBlockedMessage,
-  jsonFitsAmplifyWaf,
-} from "@/lib/amplify-safe-body";
+import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
 import {
   getBotApiUrl,
   getMeetingReportApiUrl,
   getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
+import { bearerHeader } from "@/lib/client/bearer";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 import type {
   AddBotResult,
   MeetingReport,
-  TranscriptLine,
   TranscriptSegment,
 } from "@/types/assistant";
 
@@ -69,10 +66,21 @@ function wrapAssistantError(error: unknown, fallback: string): never {
   throw error;
 }
 
+/** The backend checks the signed-in person against the meeting, so every call carries their own token. */
+async function signedIn(
+  config: AxiosRequestConfig = {},
+): Promise<AxiosRequestConfig> {
+  return { ...config, headers: await bearerHeader() };
+}
+
 export async function addMeetingBot(meetingUrl: string): Promise<AddBotResult> {
   try {
     return requireAssistantOk(
-      await httpClient.post<AddBotResult>(getBotApiUrl(), { meetingUrl }),
+      await httpClient.post<AddBotResult>(
+        getBotApiUrl(),
+        { meetingUrl },
+        await signedIn(),
+      ),
       clientText("assistant.sendFailed"),
     );
   } catch (error) {
@@ -86,7 +94,10 @@ export async function stopMeetingBot(
 ): Promise<void> {
   try {
     requireAssistantOk(
-      await httpClient.delete(getStopBotApiUrl(platform, nativeMeetingId)),
+      await httpClient.delete(
+        getStopBotApiUrl(platform, nativeMeetingId),
+        await signedIn(),
+      ),
       clientText("assistant.stopFailed"),
     );
   } catch (error) {
@@ -102,6 +113,7 @@ export async function fetchTranscript(
     const data = requireAssistantOk(
       await httpClient.get<{ segments?: TranscriptSegment[] }>(
         getTranscriptApiUrl(platform, nativeMeetingId),
+        await signedIn(),
       ),
       clientText("assistant.transcriptFailed"),
     );
@@ -111,21 +123,17 @@ export async function fetchTranscript(
   }
 }
 
+/** The backend reports on the meeting's own transcript, so no lines are sent. */
 export async function generateMeetingReport(
   platform: string,
   nativeMeetingId: string,
-  segments: TranscriptLine[],
 ): Promise<MeetingReport> {
   try {
-    const body =
-      segments.length > 0 && jsonFitsAmplifyWaf({ segments })
-        ? { segments }
-        : {};
     return requireAssistantOk(
       await httpClient.post<MeetingReport>(
         getMeetingReportApiUrl(platform, nativeMeetingId),
-        body,
-        { timeout: UPLOAD_TIMEOUT_MS },
+        undefined,
+        await signedIn({ timeout: UPLOAD_TIMEOUT_MS }),
       ),
       clientText("assistant.reportFailed"),
     );

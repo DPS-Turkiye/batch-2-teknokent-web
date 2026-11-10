@@ -224,6 +224,7 @@ describe("assistant share API route", () => {
     const response = await POST(
       new NextRequest("http://localhost/x", {
         method: "POST",
+        headers: { authorization: "Bearer firebase-token" },
         body: JSON.stringify({
           kind: "PROVIDER_TRANSCRIPT",
           platform: "google_meet",
@@ -237,6 +238,7 @@ describe("assistant share API route", () => {
     expect(fetchMeetingTranscript).toHaveBeenCalledWith(
       "google_meet",
       "abc-defg-hij",
+      "firebase-token",
     );
     expect(publishAssistantShare).toHaveBeenCalledWith(
       "meeting-1",
@@ -248,6 +250,35 @@ describe("assistant share API route", () => {
         ],
       },
     );
+  });
+
+  it("needs the mentor's own token to publish the provider transcript", async () => {
+    vi.mocked(requireMentorSession).mockResolvedValue({
+      ok: true,
+      session: {
+        userId: "mentor-1",
+        email: "leyla@teknokent.demo",
+        fullName: "Leyla Aksoy",
+        jobTitle: "Mentor",
+        role: UserRole.Mentor,
+      },
+    });
+
+    const response = await POST(
+      new NextRequest("http://localhost/x", {
+        method: "POST",
+        body: JSON.stringify({
+          kind: "PROVIDER_TRANSCRIPT",
+          platform: "google_meet",
+          nativeMeetingId: "abc-defg-hij",
+        }),
+      }),
+      { params },
+    );
+
+    expect(response.status).toBe(401);
+    expect(fetchMeetingTranscript).not.toHaveBeenCalled();
+    expect(publishAssistantShare).not.toHaveBeenCalled();
   });
 
   it("publishes a transcript the mentor already uploaded to S3", async () => {

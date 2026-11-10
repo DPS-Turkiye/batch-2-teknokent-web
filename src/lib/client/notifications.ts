@@ -3,15 +3,11 @@ import axios from "axios";
 import type { NotificationPreferences } from "@/interfaces/notification";
 import type { DashboardNotification } from "@/types/landing";
 import { getPublicBackendUrl } from "@/lib/const";
-import { currentIdToken } from "@/lib/firebase/auth";
+import { bearerHeader } from "@/lib/client/bearer";
 import { clientText } from "@/i18n/client-texts";
 
-async function authorization() {
-  const token = await currentIdToken();
-  if (!token) {
-    throw new Error(clientText("notificationsSignIn"));
-  }
-  return { Authorization: `Bearer ${token}` };
+function authorization() {
+  return bearerHeader(clientText("notificationsSignIn"));
 }
 
 export async function getNotifications() {

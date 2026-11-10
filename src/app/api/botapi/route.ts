@@ -5,6 +5,11 @@ import {
 } from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import {
+  assistantMeetingRefusal,
+  assistantSignInRequired,
+} from "@/lib/server/assistant-caller";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import { getSessionIds } from "@/lib/session";
 
 // The backend also passes on the provider's own 409 (a bot is already in that meeting), so match the cap's text.
@@ -13,6 +18,8 @@ const RECORDING_SLOTS_FULL_DETAIL = "All recording slots are in use.";
 export async function POST(request: NextRequest) {
   try {
     await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return assistantSignInRequired();
     const body = await request.json();
     const parsed = addBotBodySchema.safeParse(body);
 
@@ -26,7 +33,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { data, status } = await createMeetingBot(parsed.data);
+    const { data, status } = await createMeetingBot(parsed.data, idToken);
+    const refusal = await assistantMeetingRefusal(status);
+    if (refusal) return refusal;
     if (
       status === 409 &&
       (data as { detail?: unknown } | null)?.detail ===
@@ -51,6 +60,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   try {
     await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return assistantSignInRequired();
     const { searchParams } = request.nextUrl;
     const parsed = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),
@@ -71,8 +82,11 @@ export async function DELETE(request: NextRequest) {
     const { data, status } = await stopMeetingBotBackend(
       platform,
       nativeMeetingId,
+      idToken,
     );
 
+    const refusal = await assistantMeetingRefusal(status);
+    if (refusal) return refusal;
     if (status === 204) {
       return new NextResponse(null, { status: 204 });
     }
