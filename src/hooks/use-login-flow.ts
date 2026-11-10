@@ -5,8 +5,8 @@ import { FormEvent, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
+import { accountNotReadyHref } from "@/lib/account-not-ready";
 import { ClientApiError } from "@/lib/client/api";
-import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import { emailCharacterError } from "@/lib/email";
 import {
   currentIdToken,
@@ -16,9 +16,6 @@ import {
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
-
-import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
-import { signupResumeHref } from "@/lib/signup-resume";
 
 export function useLoginFlow() {
   const router = useRouter();
@@ -73,24 +70,9 @@ export function useLoginFlow() {
    * true when it was routed there.
    */
   async function routeAccountNotReady(error: unknown, idToken: string | null) {
-    if (
-      !(error instanceof ClientApiError) ||
-      (error.code !== ACCOUNT_NOT_APPROVED &&
-        error.code !== REGISTRATION_REQUIRED)
-    ) {
-      return false;
-    }
-    // A signup saved half-way reopens in its wizard; a finished one clears its draft.
-    const draft = idToken
-      ? await fetchOnboardingDraft(idToken).catch(() => null)
-      : null;
-    router.push(
-      draft
-        ? signupResumeHref(draft.kind)
-        : error.code === ACCOUNT_NOT_APPROVED
-          ? "/application-status"
-          : signupResumeHref(),
-    );
+    const href = await accountNotReadyHref(error, idToken);
+    if (!href) return false;
+    router.push(href);
     return true;
   }
 

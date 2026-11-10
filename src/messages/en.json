@@ -71,7 +71,14 @@
     "newHere": "New to Menton?",
     "signUp": "Sign up",
     "invite": "Got an invitation? Continue with your invite code",
-    "odtu": "Sign in with your METU account"
+    "odtu": "Sign in with your METU account",
+    "otg": "Sign in with OTG"
+  },
+  "otgLogin": {
+    "signingIn": "Signing you in with your OTG account…",
+    "cancelled": "You cancelled the OTG sign-in. You can try again.",
+    "failed": "Signing in with OTG could not be completed. Please try again.",
+    "backToLogin": "Back to sign-in"
   },
   "workspaceSwitch": {
     "label": "Workspace",
@@ -5708,6 +5715,7 @@
     "workspaceSwitchFailed": "Could not switch the workspace.",
     "institutionUnknown": "You cannot sign in through this institution.",
     "institutionLoginFailed": "The institution sign-in could not be completed. Please try again.",
+    "institutionLoginExpired": "This sign-in expired or was started in another browser. Please sign in again.",
     "institutionRecordLoadFailed": "Could not load your institution details.",
     "eligibleEmailsLoadFailed": "Could not load the list.",
     "eligibleEmailsSaveFailed": "Could not update the list.",
