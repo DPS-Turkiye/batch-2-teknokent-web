@@ -192,12 +192,20 @@ export async function saveSessionUser(user: AppSession, persist = false) {
 
 /**
  * After joining, creating or leaving a startup, so the next re-check does not end
- * the session for a changed organization. Not a new sign-in: issuedAt stays, so
- * the 12-hour limit and an admin's sign-in revoke still count from the original.
+ * the session for a changed organization, and after a badge changes what the user
+ * may do. Not a new sign-in: issuedAt stays, so the 12-hour limit and an admin's
+ * sign-in revoke still count from the original. `keepWorkspace` stays open when
+ * the account can still use it.
  */
-export async function refreshSessionUser(user: BackendUser) {
+export async function refreshSessionUser(
+  user: BackendUser,
+  keepWorkspace?: Workspace,
+) {
   const next = toSession(user);
   if (!next) return null;
+  if (keepWorkspace && workspacesOf(next).includes(keepWorkspace)) {
+    next.activeWorkspace = keepWorkspace;
+  }
   const session = await getSessionStore();
   session.updateConfig(sessionOptions(session.persist === true));
   session.user = next;

@@ -3435,7 +3435,8 @@
           "requestFrom": "{name} için talep gönder",
           "requested": "Talebin yanıt bekliyor",
           "full": "Kontenjan dolu",
-          "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok."
+          "noCategories": "Programında henüz etkin akran mentörlüğü kategorisi yok.",
+          "whyInterests": "İlgi alanlarınla eşleşiyor: {topics}"
         },
         "dialog": {
           "title": "{name} ile mentorluk",
@@ -5967,7 +5968,8 @@
     "academicsLoadFailed": "Akademisyenler yüklenemedi.",
     "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
-    "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi."
+    "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
+    "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6314,7 +6316,6 @@
       "1": "Alt konular",
       "2": "Hedefin (isteğe bağlı)"
     },
-    "subtopicNotice": "TEST UI: Aşağıdaki alt konular yalnızca örnektir. Üretimde kullanılacak alt konu listesi henüz belirlenmedi.",
     "noTopics": "Henüz alan seçmedin. Geri dönebilir ya da seçim yapmadan devam edebilirsin.",
     "goal": "Hedefin (isteğe bağlı, en fazla 1000 karakter)",
     "saveError": "Profilin kaydedilemedi. Tekrar deneyebilirsin.",

@@ -24,6 +24,9 @@ import { BadgeStatus } from "@/interfaces/badges";
 
 const buttonClass =
   "rounded-full border border-[#d4d8dd] px-4 py-2 text-sm disabled:opacity-50";
+/** The step's main action (Devam et, and Yayınla on the preview), set apart from Geri and Vazgeç. */
+const primaryButtonClass =
+  "rounded-full border border-[#22262b] bg-[#22262b] px-4 py-2 text-sm font-medium text-white disabled:opacity-50";
 const fieldClass =
   "w-full rounded-xl border border-[#d4d8dd] bg-white p-3 text-[13px]";
 
@@ -158,7 +161,11 @@ export function PeerMentorProfileWizard() {
                     {t("back")}
                   </button>
                 ) : null}
-                <button type="submit" className={buttonClass}>
+                <button
+                  type="submit"
+                  className={primaryButtonClass}
+                  disabled={wizard.isPublishing}
+                >
                   {wizard.isPublishing
                     ? t("publishing")
                     : last

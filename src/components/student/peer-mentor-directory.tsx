@@ -81,6 +81,7 @@ export function PeerMentorDirectory() {
               <PeerMentorCardView
                 mentor={mentor}
                 hasOpenRequest={directory.hasOpenRequest(mentor.mentorId)}
+                sharedInterests={directory.sharedInterestsOf(mentor)}
                 onRequest={() => setRequesting(mentor)}
               />
             </li>
@@ -104,15 +105,28 @@ export function PeerMentorDirectory() {
 export function PeerMentorCardView({
   mentor,
   hasOpenRequest = false,
+  sharedInterests = [],
   onRequest,
 }: {
   mentor: PeerMentorCard;
   hasOpenRequest?: boolean;
+  /** The mentor's categories the student also picked as interests. */
+  sharedInterests?: readonly PeerTopicCategory[];
   onRequest?: () => void;
 }) {
   const t = useTranslations("odtuWorkspaces.student.peerMentoring.mentors");
   const tTopic = useTranslations("peerTopics");
   const blocked = hasOpenRequest || mentor.capacityFull;
+  const reasons = [
+    ...(sharedInterests.length > 0
+      ? [
+          t("whyInterests", {
+            topics: sharedInterests.map((topic) => tTopic(topic)).join(", "),
+          }),
+        ]
+      : []),
+    ...mentor.recommendationReasons,
+  ];
   const facts = [
     mentor.department,
     mentor.classYear ? t("classYear", { year: mentor.classYear }) : null,
@@ -142,12 +156,12 @@ export function PeerMentorCardView({
         <p className="text-[13px] leading-5 text-[#4a5059]">
           {mentor.helpWith}
         </p>
-        <BadgeChips badges={mentor.badges} max={2} />
-        {mentor.recommendationReasons.length > 0 ? (
+        <BadgeChips badges={mentor.badges} max={3} includeGate />
+        {reasons.length > 0 ? (
           <div>
             <p className="text-[12px] font-medium text-[#22262b]">{t("why")}</p>
             <ul className="mt-1 list-disc space-y-0.5 pl-4 text-[12.5px] text-[#676e78]">
-              {mentor.recommendationReasons.map((reason) => (
+              {reasons.map((reason) => (
                 <li key={reason}>{reason}</li>
               ))}
             </ul>

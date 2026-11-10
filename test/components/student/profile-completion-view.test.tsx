@@ -54,11 +54,8 @@ describe("profile completion component and hook", () => {
       screen.getByRole("checkbox", { name: "Akademik Gelişim" }),
     );
     await user.click(screen.getByRole("button", { name: "Devam et" }));
-    expect(
-      screen.getByText(
-        /Üretimde kullanılacak alt konu listesi henüz belirlenmedi/,
-      ),
-    ).toBeVisible();
+    // The sub-topics are still samples, but that is a note for the code, not for students.
+    expect(screen.queryByText(/TEST UI/)).toBeNull();
     await user.click(
       screen.getByRole("checkbox", { name: "Örnek: Ders çalışma" }),
     );

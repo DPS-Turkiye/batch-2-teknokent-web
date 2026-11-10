@@ -137,6 +137,22 @@ export async function createSession(idToken: string, rememberMe = false) {
   );
 }
 
+/**
+ * Re-reads the account into the session after something changed what it may do (a badge awarded after sign-in).
+ * Null when the browser has no Firebase sign-in to prove who it is.
+ */
+export async function refreshSession(): Promise<AppSession | null> {
+  const idToken = await currentIdToken();
+  if (!idToken) return null;
+  return requireSuccess(
+    await httpClient.post<AppSession>(
+      "/api/session/refresh",
+      {},
+      bearer(idToken),
+    ),
+  );
+}
+
 export async function switchWorkspace(workspace: Workspace) {
   return requireSuccess(
     await httpClient.post<AppSession>("/api/session/workspace", { workspace }),
