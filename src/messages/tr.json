@@ -72,12 +72,12 @@
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
     "odtu": "ODTÜ Hesabıyla Giriş Yap",
-    "otg": "OTG ile giriş yap"
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
   },
   "otgLogin": {
-    "signingIn": "OTG hesabınla giriş yapılıyor…",
-    "cancelled": "OTG girişini iptal ettin. İstersen yeniden deneyebilirsin.",
-    "failed": "OTG ile giriş tamamlanamadı. Lütfen yeniden dene.",
+    "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",
+    "cancelled": "Girişi iptal ettin. İstersen yeniden deneyebilirsin.",
+    "failed": "ODTÜ TEKNOKENT Girişimcilik ile giriş tamamlanamadı. Lütfen yeniden dene.",
     "backToLogin": "Giriş sayfasına dön"
   },
   "workspaceSwitch": {

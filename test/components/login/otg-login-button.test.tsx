@@ -38,7 +38,9 @@ describe("OTG login button", () => {
     renderButton("/programs/42");
 
     expect(
-      screen.getByRole("link", { name: "OTG ile giriş yap" }),
+      screen.getByRole("link", {
+        name: "ODTÜ TEKNOKENT Girişimcilik ile giriş yap",
+      }),
     ).toHaveAttribute("href", "/auth/otg/start?next=%2Fprograms%2F42");
   });
 
@@ -48,7 +50,7 @@ describe("OTG login button", () => {
     renderButton();
 
     expect(screen.getByRole("alert")).toHaveTextContent(
-      "OTG ile giriş tamamlanamadı.",
+      "ODTÜ TEKNOKENT Girişimcilik ile giriş tamamlanamadı.",
     );
     expect(screen.getByRole("link")).toHaveAttribute("href", "/auth/otg/start");
   });

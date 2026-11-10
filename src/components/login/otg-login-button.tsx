@@ -16,10 +16,18 @@ export function OtgLoginButton({ next }: { next: string | null }) {
       {/* A full page load: the start path is a server redirect to OTG, not an app page. */}
       <a
         href={href}
-        className="flex h-[46px] w-full items-center justify-center gap-2.5 rounded-[20px] border border-[#e4e7ea] text-sm font-semibold text-[#374151] transition hover:border-[#005397] hover:bg-[#f5f9fc]"
+        className="relative flex min-h-[46px] w-full items-center justify-center rounded-[20px] border border-[#e4e7ea] px-11 py-2 text-center text-sm leading-tight font-semibold text-[#374151] transition hover:border-[#005397] hover:bg-[#f5f9fc]"
       >
-        <Image src="/otg-logo.svg" alt="" width={24} height={24} unoptimized />
-        {copy("otg")}
+        {/* Pinned to the edge so the centred name can wrap onto two lines on phones without leaving it behind. */}
+        <Image
+          src="/otg-logo.svg"
+          alt=""
+          width={24}
+          height={24}
+          unoptimized
+          className="absolute top-1/2 left-4 -translate-y-1/2"
+        />
+        <span className="text-balance">{copy("otg")}</span>
       </a>
       {error ? (
         <p role="alert" className="text-xs text-red-700">
