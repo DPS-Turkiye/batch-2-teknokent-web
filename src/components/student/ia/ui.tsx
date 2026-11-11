@@ -45,7 +45,10 @@ const STATUS_BADGE: Record<
   AppointmentStatus,
   { tone: StatusTone; icon: LucideIcon }
 > = {
-  [AppointmentStatus.Confirmed]: { tone: StatusTone.Success, icon: CircleCheck },
+  [AppointmentStatus.Confirmed]: {
+    tone: StatusTone.Success,
+    icon: CircleCheck,
+  },
   [AppointmentStatus.Pending]: { tone: StatusTone.Warning, icon: Hourglass },
   [AppointmentStatus.AlternativeProposed]: {
     tone: StatusTone.Info,

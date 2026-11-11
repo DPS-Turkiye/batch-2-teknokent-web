@@ -50,7 +50,7 @@ export function useStudentHome() {
     isLoading: home.isLoading,
     error: home.error,
     ready: home.data !== undefined,
-    greeting: tCommon(`greeting.${dayPart(now)}`),
+    greeting: tCommon(`greeting.${dayPart()}`),
     name: greetingName(record.data?.fullName),
     advisor: record.data?.advisor ?? null,
     profileHref: home.data?.profileCompleted

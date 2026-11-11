@@ -22,7 +22,10 @@ import {
   SectionHeader,
 } from "@/components/student/ia/ui";
 import { PeerMentorRequestDialog } from "@/components/student/peer-mentor-request-dialog";
-import { useStudentHome, type StudentHomeModel } from "@/hooks/use-student-home";
+import {
+  useStudentHome,
+  type StudentHomeModel,
+} from "@/hooks/use-student-home";
 import {
   AppointmentKind,
   AppointmentStatus,
