@@ -6,6 +6,9 @@
 export const OTG_START_PATH = "/auth/otg/start";
 export const OTG_CALLBACK_PATH = "/auth/otg/callback";
 
+/** The backend gives every Firebase login it makes for an OTG person the uid otg_<their OTG id>. */
+export const OTG_UID_PREFIX = "otg_";
+
 /** Off unless this build sets it, so a deployment that has not been registered with OTG shows nothing. */
 export function isOtgLoginEnabled(): boolean {
   return process.env.NEXT_PUBLIC_OTG_LOGIN_ENABLED === "true";
