@@ -1,1 +1,14 @@
-{}
+{
+  "appointments": {
+    "filterLabel": "Görüşmelerde rolün",
+    "roles": {
+      "all": "Tümü",
+      "asMentor": "Mentor olarak",
+      "asMentee": "Mentee olarak"
+    },
+    "legend": {
+      "asMentor": "Mentorluk verdiğin görüşmeler",
+      "asMentee": "Mentorluk ya da Office Hours randevusu aldığın görüşmeler"
+    }
+  }
+}

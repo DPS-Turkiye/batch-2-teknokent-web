@@ -1,4 +1,4 @@
-import { StudentAppointmentsView } from "@/components/student/appointments-view";
+import { IskurAppointmentsView } from "@/components/student/iskur-appointments-view";
 
 /** `?sent=<name>`: arriving right after a request was sent shows its confirmation banner. */
 export default async function StudentAppointmentsPage({
@@ -7,5 +7,5 @@ export default async function StudentAppointmentsPage({
   searchParams: Promise<{ sent?: string }>;
 }) {
   const { sent } = await searchParams;
-  return <StudentAppointmentsView sentTo={sent?.trim() || null} />;
+  return <IskurAppointmentsView sentTo={sent?.trim() || null} />;
 }

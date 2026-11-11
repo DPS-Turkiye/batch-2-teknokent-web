@@ -1,1 +1,14 @@
-{}
+{
+  "appointments": {
+    "filterLabel": "Your role in meetings",
+    "roles": {
+      "all": "All",
+      "asMentor": "As mentor",
+      "asMentee": "As mentee"
+    },
+    "legend": {
+      "asMentor": "Meetings where you give mentoring",
+      "asMentee": "Meetings where you get mentoring or an Office Hours slot"
+    }
+  }
+}
