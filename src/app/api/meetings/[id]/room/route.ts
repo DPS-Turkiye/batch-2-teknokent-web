@@ -1,13 +1,13 @@
 import { UserRole } from "@/interfaces/session";
 import { fetchMeetingRoom } from "@/lib/api/meetings";
-import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
 import { getSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;

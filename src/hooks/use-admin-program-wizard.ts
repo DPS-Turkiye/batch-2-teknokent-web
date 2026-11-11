@@ -1,31 +1,31 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
-import { useToast } from "@/stores/toast-store";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
   useAdminOverview,
 } from "@/hooks/use-admin-overview";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { ProgramType } from "@/interfaces/program";
+import { ToastTone } from "@/interfaces/toast";
+import { approvedCoordinatorsOf } from "@/lib/admin-model";
 import {
   createProgramInput,
   emptyWizardDraft,
-  type ProgramWizardDraft,
   stepProblem,
   toggleCoordinator,
   WIZARD_STEPS,
-  WizardProblem,
   WizardStep,
+  type ProgramWizardDraft,
+  type WizardProblem,
 } from "@/lib/admin-program-wizard";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. */
 export function useAdminProgramWizard() {
@@ -93,12 +93,14 @@ export function useAdminProgramWizard() {
     next: () => {
       const found = stepProblem(step, draft);
       setProblem(found);
-      if (!found) setStep(WIZARD_STEPS[stepIndex + 1]);
+      const next = WIZARD_STEPS[stepIndex + 1];
+      if (!found && next) setStep(next);
     },
     back: () => {
       setProblem(null);
       create.reset();
-      if (stepIndex > 0) setStep(WIZARD_STEPS[stepIndex - 1]);
+      const previous = WIZARD_STEPS[stepIndex - 1];
+      if (stepIndex > 0 && previous) setStep(previous);
     },
     submit: () => {
       if (draft.type && (create.isIdle || create.isError))

@@ -11,7 +11,7 @@ function addParticipant(
   rows: MeetingParticipant[],
   seen: Set<string>,
   label: string,
-  name: string | undefined,
+  name: string | null | undefined,
 ) {
   const trimmed = name?.trim();
   if (!trimmed) return;

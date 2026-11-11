@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import { transcriptQuerySchema } from "@/lib/assistant-schemas";
-import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { getSessionIds } from "@/lib/session";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
 export async function GET(request: NextRequest) {
   try {

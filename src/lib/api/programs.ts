@@ -1,18 +1,19 @@
 import "server-only";
 
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import type {
   OrganizationPrograms,
-  ProgramName,
   Program,
   ProgramDetail,
   ProgramInvitation,
+  ProgramName,
 } from "@/interfaces/program";
-import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
+/** The JSON is the backend's; an empty answer reads as no programs. */
 export function fetchPrograms(actorId: string) {
-  return backendRequest<Program[]>({
+  return backendRequest<Program[] | null>({
     method: "GET",
     url: "/api/programs",
     params: { actorId },

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import { AcademicianRequestsView } from "@/components/academician/requests-view";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 beforeEach(() => resetAcademicianSample());
@@ -72,7 +73,7 @@ describe("AcademicianRequestsView", () => {
     const form = within(request).getByRole("form", { name: "Kabul Et" });
     await user.click(within(form).getByRole("button", { name: "Kabul Et" }));
     expect(within(form).getByRole("alert")).toHaveTextContent("Bir saat seç.");
-    await user.click(within(form).getAllByRole("radio")[1]);
+    await user.click(itemAt(within(form).getAllByRole("radio"), 1));
     await user.click(within(form).getByRole("button", { name: "Kabul Et" }));
     expect(
       await screen.findByText("Talep kabul edildi; randevu Randevularım'da."),

@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import {
@@ -11,7 +12,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody, stringOrNullSchema } from "@/lib/server/request-body";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
+
+const updateMentorshipSchema = z.object({
+  startDate: z.string().min(1),
+  endDate: stringOrNullSchema,
+  daysPerWeek: z.number(),
+});
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -48,24 +56,18 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const actorId = await getSessionMentorId();
-    const body = (await request.json()) as {
-      startDate?: string;
-      endDate?: string | null;
-      daysPerWeek?: number;
-    };
-    if (!body.startDate || body.daysPerWeek == null) {
-      return apiErrorResponse(new Error("missing fields"), {
-        message: await apiText("startDateAndDaysRequired"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, updateMentorshipSchema, {
+      invalidMessage: "startDateAndDaysRequired",
+    });
+    if (!body.ok) return body.response;
+    const { startDate, endDate, daysPerWeek } = body.data;
     return backendResponse(
       await updateRegularMentorship({
         mentorshipId: id,
         actorId,
-        startDate: body.startDate,
-        endDate: body.endDate ?? null,
-        daysPerWeek: Math.min(7, Math.max(1, body.daysPerWeek)),
+        startDate,
+        endDate,
+        daysPerWeek: Math.min(7, Math.max(1, daysPerWeek)),
       }),
     );
   } catch (error) {

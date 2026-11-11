@@ -42,11 +42,11 @@ function ActionToast({
         aria-hidden
       />
       <div className="min-w-0 flex-1">
-        {toast.title && (
+        {toast.title ? (
           <strong className="block truncate text-[14px] leading-5 font-semibold">
             {toast.title}
           </strong>
-        )}
+        ) : null}
         <p className="truncate text-[13px] leading-5 text-white/70">
           {toast.message}
         </p>
@@ -74,9 +74,9 @@ function PlainToast({ toast, onDismiss }: ToastProps) {
     >
       <Icon className="mt-0.5 size-5 shrink-0" aria-hidden />
       <div className="min-w-0 flex-1">
-        {toast.title && (
+        {toast.title ? (
           <strong className="block text-sm">{toast.title}</strong>
-        )}
+        ) : null}
         <p className="text-sm leading-5">{toast.message}</p>
       </div>
       <button

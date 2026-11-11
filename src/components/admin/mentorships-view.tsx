@@ -1,98 +1,74 @@
 "use client";
 
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useState, type ReactNode } from "react";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
-import {
-  daysSince,
-  mentorshipInPrograms,
-  needsAttention,
-  programForOrganization,
-  programOfMentorship,
-  unmatchedStartups,
-} from "@/components/admin/admin-model";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import {
   InterventionDrawer,
   NotifyInterventionDialog,
 } from "@/components/admin/intervention-follow";
-import { useAdminInterventions } from "@/hooks/use-admin-interventions";
-import { useAdminOverview } from "@/hooks/use-admin-overview";
-import { useOptionLabel } from "@/hooks/use-option-label";
-import { useToast } from "@/stores/toast-store";
-import type {
-  AdminMentorship,
-  AdminOverview,
-  AdminProgram,
-  AdminRequest,
-  AdminStartup,
-} from "@/interfaces/admin-overview";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
+import {
+  useAdminMentorships,
+  useMentorshipInterventions,
+  useMentorshipMatching,
+} from "@/hooks/use-admin-mentorships";
+import { useOptionLabel } from "@/hooks/use-option-label";
+import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import {
-  ALL_PROGRAM_TYPES,
-  matchesProgramType,
+  ALL_PROGRAMS,
+  coordinatorHref,
+  INTERVENTION_FILTERS,
+  interventionSignals,
+  MATCHING_FILTERS,
+  MATCHING_SORTS,
+  missingCoordinatorAccess,
+  overviewSummary,
+  pairLabel,
+  programHealth,
+} from "@/lib/admin-mentorships";
+import {
+  isProgramTypeFilter,
   PROGRAM_TYPE_FILTERS,
   type ProgramTypeFilter,
 } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
-import type messages from "@/messages/tr.json";
-import { ToastTone } from "@/interfaces/toast";
-
-export type MentorshipTab = "overview" | "interventions" | "matching";
-
-type MentorshipsT = ReturnType<typeof useTranslations<"adminMentorships">>;
-type InterventionFilter =
-  keyof (typeof messages)["adminMentorships"]["interventionFilters"];
-type MatchingFilter =
-  keyof (typeof messages)["adminMentorships"]["matchingFilters"];
-
-/** The empty value of the scope and program selects: every program. */
-const ALL = "";
-const INTERVENTION_FILTERS: InterventionFilter[] = [
-  "ALL",
-  "CRITICAL",
-  "BOTTLENECK",
-  "UNANSWERED",
-  "ASSIGNED",
-];
+import {
+  InterventionFilter,
+  InterventionKind,
+  MatchingFilter,
+  MentorshipTab,
+} from "@/types/admin-mentorships";
 
 export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
   const t = useTranslations("adminMentorships");
-  const query = useAdminOverview();
-  const [scope, setScope] = useState(ALL);
-  const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
-  if (!query.data) {
+  const { query, data, screen, type, selectType, scope, setScope } =
+    useAdminMentorships();
+  if (!data || !screen) {
     return <QueryNotice isLoading={query.isLoading} error={query.error} />;
   }
-  const data = query.data;
-  const typed = data.programs.filter((program) =>
-    matchesProgramType(program.type, type),
-  );
-  const programs = programsInScope(typed, scope);
-  const live = programs.filter((program) => program.status === "ACTIVE");
-  const attention = interventionRows(data, live, t);
-  const waiting = waitingTeams(data, live);
+  const { programs, live } = screen;
   const tabs = [
     {
-      id: "overview" as const,
+      id: MentorshipTab.Overview,
       href: "/admin/mentorships",
       label: t("tabs.overview"),
     },
     {
-      id: "interventions" as const,
+      id: MentorshipTab.Interventions,
       href: "/admin/mentorships/interventions",
       label: t("tabs.interventions"),
-      count: attention.length,
+      count: screen.interventionCount,
       alert: true,
     },
     {
-      id: "matching" as const,
+      id: MentorshipTab.Matching,
       href: "/admin/mentorships/matching",
       label: t("tabs.matching"),
-      count: waiting.length,
+      count: screen.waitingCount,
       alert: false,
     },
   ];
@@ -101,16 +77,10 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
     <div className="space-y-6">
       <div className="flex flex-wrap justify-end gap-2.5">
         {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-        <TypeSelect
-          value={type}
-          onChange={(value) => {
-            setType(value);
-            setScope(ALL);
-          }}
-        />
+        <TypeSelect value={type} onChange={selectType} />
         <ScopeSelect
           value={scope}
-          programs={typed.map((program) => program.name)}
+          programs={screen.typedNames}
           onChange={setScope}
         />
       </div>
@@ -158,11 +128,15 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
           );
         })}
       </div>
-      {tab === "overview" ? <Overview data={data} programs={programs} /> : null}
-      {tab === "interventions" ? (
+      {tab === MentorshipTab.Overview ? (
+        <Overview data={data} programs={programs} />
+      ) : null}
+      {tab === MentorshipTab.Interventions ? (
         <Interventions data={data} programs={live} />
       ) : null}
-      {tab === "matching" ? <Matching data={data} programs={live} /> : null}
+      {tab === MentorshipTab.Matching ? (
+        <Matching data={data} programs={live} />
+      ) : null}
     </div>
   );
 }
@@ -175,52 +149,44 @@ function Overview({
   programs: AdminProgram[];
 }) {
   const t = useTranslations("adminMentorships");
-  const live = programs.filter((program) => program.status === "ACTIVE");
-  const active = activeMentorships(data, live);
-  const gaps = active
-    .map((item) => item.daysSinceMeeting)
-    .filter((value): value is number => value != null);
-  const averageGap = gaps.length
-    ? Math.round(gaps.reduce((sum, value) => sum + value, 0) / gaps.length)
-    : null;
-  const rows = interventionRows(data, live, t);
-  const critical = rows.filter((row) => row.kind === "critical");
-  const watch = rows.filter((row) => row.kind === "bottleneck");
-  const criticalPrograms = new Set(critical.map((row) => row.programName));
-  const activePrograms = new Set(
-    active
-      .map((item) => programOfMentorship(data, item)?.name)
-      .filter((name): name is string => Boolean(name)),
-  );
+  const summary = overviewSummary(data, programs, t);
 
   return (
     <div className="space-y-6">
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <Stat
           title={t("stats.active")}
-          value={String(active.length)}
-          detail={t("stats.programs", { count: activePrograms.size })}
+          value={String(summary.activeCount)}
+          detail={t("stats.programs", { count: summary.activeProgramCount })}
         />
         <Stat
           title={t("stats.intervention")}
-          value={String(critical.length)}
-          detail={t("stats.inPrograms", { count: criticalPrograms.size })}
+          value={String(summary.criticalCount)}
+          detail={t("stats.inPrograms", {
+            count: summary.criticalProgramCount,
+          })}
           dot="#d9464b"
           href="/admin/mentorships/interventions"
         />
         <Stat
           title={t("stats.followUp")}
-          value={String(watch.length)}
+          value={String(summary.bottleneckCount)}
           detail={t("stats.openBottleneck")}
           dot="#ffab3d"
-          href="/admin/mentorships/interventions?filter=BOTTLENECK"
+          href={`/admin/mentorships/interventions?filter=${InterventionFilter.Bottleneck}`}
         />
         <Stat
           title={t("stats.averageGap")}
           value={
-            averageGap == null ? "—" : t("stats.days", { count: averageGap })
+            summary.averageGap == null
+              ? "—"
+              : t("stats.days", { count: summary.averageGap })
           }
-          detail={gaps.length ? t("stats.target14") : t("stats.noMeetings")}
+          detail={
+            summary.averageGap == null
+              ? t("stats.noMeetings")
+              : t("stats.target14")
+          }
         />
       </div>
       <section className="overflow-hidden rounded-[28px] border border-[#e9ecef] bg-white">
@@ -277,11 +243,7 @@ function ProgramHealthRow({
   data: AdminOverview;
 }) {
   const t = useTranslations("adminMentorships");
-  const completed = program.status === "COMPLETED";
-  const health = completed
-    ? { green: 0, amber: 0, red: 0 }
-    : mentorshipHealth(program, data);
-  const active = health.green + health.amber + health.red;
+  const health = programHealth(program, data);
   return (
     <div
       className={`${overviewCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
@@ -294,10 +256,10 @@ function ProgramHealthRow({
       </span>
       <CoordinatorName program={program} data={data} />
       <span className="text-[14px] font-medium text-[#22262b]">
-        {completed || active === 0 ? "—" : active}
+        {health.completed || health.active === 0 ? "—" : health.active}
       </span>
       <span>
-        {completed ? (
+        {health.completed ? (
           <span className="text-[13px] text-[#858c96]">{t("completed")}</span>
         ) : (
           <HealthBar
@@ -308,7 +270,7 @@ function ProgramHealthRow({
         )}
       </span>
       <span>
-        {completed ? (
+        {health.completed ? (
           <span className="text-[13px] text-[#aeb4bc]">—</span>
         ) : (
           <RiskCount count={health.red} />
@@ -334,58 +296,8 @@ function Interventions({
   programs: AdminProgram[];
 }) {
   const t = useTranslations("adminMentorships");
-  const params = useSearchParams();
-  const follow = useAdminInterventions();
-  const { showToast } = useToast();
-  const [filter, setFilter] = useState<InterventionFilter>(
-    INTERVENTION_FILTERS.find((id) => id === params.get("filter")) ?? "ALL",
-  );
-  const [program, setProgram] = useState(params.get("program") ?? ALL);
-  const [search, setSearch] = useState("");
-  const [notifyId, setNotifyId] = useState<string | null>(null);
-  const [detailId, setDetailId] = useState<string | null>(null);
-  const rows = interventionRows(data, programs, t);
-  const openFollow = new Map(
-    (follow.data ?? [])
-      .filter((item) => item.resolvedAt == null)
-      .map((item) => [item.mentorshipId, item]),
-  );
-  const tracked = (row: InterventionRow) =>
-    row.mentorshipId ? openFollow.get(row.mentorshipId) : undefined;
-  const unanswered = (row: InterventionRow) => {
-    const item = tracked(row);
-    return item != null && item.readAt == null;
-  };
-  const counts: Record<InterventionFilter, number> = {
-    ALL: rows.length,
-    CRITICAL: rows.filter((row) => row.kind === "critical" && !tracked(row))
-      .length,
-    BOTTLENECK: rows.filter((row) => row.kind === "bottleneck" && !tracked(row))
-      .length,
-    UNANSWERED: rows.filter(unanswered).length,
-    ASSIGNED: rows.filter((row) => tracked(row) != null).length,
-  };
-  const visible = rows.filter((row) => {
-    if (filter === "CRITICAL" && (row.kind !== "critical" || tracked(row))) {
-      return false;
-    }
-    if (
-      filter === "BOTTLENECK" &&
-      (row.kind !== "bottleneck" || tracked(row))
-    ) {
-      return false;
-    }
-    if (filter === "UNANSWERED" && !unanswered(row)) return false;
-    if (filter === "ASSIGNED" && !tracked(row)) return false;
-    if (program !== ALL && row.programName !== program) return false;
-    return `${row.mentorName} ${row.teamName} ${row.programName} ${row.issue}`
-      .toLocaleLowerCase("tr")
-      .includes(search.toLocaleLowerCase("tr"));
-  });
-  const notifyRow = rows.find((row) => row.mentorshipId === notifyId) ?? null;
-  const detail = rows
-    .map((row) => ({ row, item: tracked(row) }))
-    .find((entry) => entry.item?.id === detailId);
+  const view = useMentorshipInterventions(data, programs);
+  const { filter, visible, notifyRow, detail } = view;
 
   return (
     <div className="space-y-4">
@@ -393,17 +305,17 @@ function Interventions({
         filters={INTERVENTION_FILTERS.map((id) => ({
           id,
           label: t(`interventionFilters.${id}`),
-          count: counts[id],
-          dot: id === "CRITICAL",
+          count: view.counts[id],
+          dot: id === InterventionFilter.Critical,
         }))}
         filter={filter}
-        onFilter={(value) => setFilter(value as InterventionFilter)}
-        search={search}
-        onSearch={setSearch}
+        onFilter={view.selectFilter}
+        search={view.search}
+        onSearch={view.setSearch}
         searchPlaceholder={t("searchInterventions")}
-        program={program}
+        program={view.program}
         programs={programs.map((item) => item.name)}
-        onProgram={setProgram}
+        onProgram={view.setProgram}
       />
       <TableShell minWidth={980}>
         <div
@@ -419,123 +331,110 @@ function Interventions({
         </div>
         {visible.length === 0 ? (
           <EmptyNote>
-            {filter === "UNANSWERED"
+            {filter === InterventionFilter.Unanswered
               ? t("noUnopened")
-              : filter === "ASSIGNED"
+              : filter === InterventionFilter.Assigned
                 ? t("noTracked")
                 : t("noInterventions")}
           </EmptyNote>
         ) : (
-          visible.map((row) => (
-            <div
-              key={row.id}
-              className={`${interventionCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
-            >
-              <span className="flex min-w-0 items-center gap-2.5">
-                <Pair mentor={row.mentorName} team={row.teamName} />
-                <span className="truncate text-[13.5px] font-medium text-[#22262b]">
-                  {row.mentorName} ↔ {row.teamName}
-                </span>
-              </span>
-              {tracked(row) ? (
-                <StatusPill tone="track">{t("tracked")}</StatusPill>
-              ) : (
-                <StatusPill tone={row.kind === "critical" ? "red" : "amber"}>
-                  {row.kind === "critical" ? t("critical") : t("bottleneck")}
-                </StatusPill>
-              )}
-              <span className="truncate text-[13px] text-[#676e78]">
-                {row.programName}
-              </span>
-              <span className="truncate text-[13px] text-[#676e78]">
-                {row.issue}
-              </span>
-              <span
-                className={`text-[13px] font-medium ${
-                  row.kind === "critical" ? "text-[#d9464b]" : "text-[#b7791f]"
-                }`}
+          visible.map(({ row, tracked }) => {
+            const critical = row.kind === InterventionKind.Critical;
+            return (
+              <div
+                key={row.id}
+                className={`${interventionCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
               >
-                {row.days == null ? "—" : t("stats.days", { count: row.days })}
-              </span>
-              <span className="truncate text-[13px] text-[#22262b]">
-                {row.coordinatorName}
-              </span>
-              <span className="flex items-center justify-end gap-2">
-                {tracked(row) ? (
-                  <button
-                    type="button"
-                    onClick={() => setDetailId(tracked(row)?.id ?? null)}
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
-                  >
-                    {t("detail")}
-                  </button>
-                ) : row.mentorshipId ? (
-                  <button
-                    type="button"
-                    onClick={() => setNotifyId(row.mentorshipId)}
-                    className={`inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[12.5px] font-medium ${
-                      row.kind === "critical"
-                        ? "bg-[#22262b] text-white"
-                        : "border border-[#e9ecef] bg-white text-[#22262b]"
-                    }`}
-                  >
-                    {t("notifyCoordinator")}
-                  </button>
+                <span className="flex min-w-0 items-center gap-2.5">
+                  <Pair mentor={row.mentorName} team={row.teamName} />
+                  <span className="truncate text-[13.5px] font-medium text-[#22262b]">
+                    {pairLabel(row)}
+                  </span>
+                </span>
+                {tracked ? (
+                  <StatusPill tone="track">{t("tracked")}</StatusPill>
                 ) : (
-                  <Link
-                    href={coordinatorHref(row.coordinatorId)}
-                    className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
-                  >
-                    {t("goToCoordinator")}
-                  </Link>
+                  <StatusPill tone={critical ? "red" : "amber"}>
+                    {critical ? t("critical") : t("bottleneck")}
+                  </StatusPill>
                 )}
-              </span>
-            </div>
-          ))
+                <span className="truncate text-[13px] text-[#676e78]">
+                  {row.programName}
+                </span>
+                <span className="truncate text-[13px] text-[#676e78]">
+                  {row.issue}
+                </span>
+                <span
+                  className={`text-[13px] font-medium ${
+                    critical ? "text-[#d9464b]" : "text-[#b7791f]"
+                  }`}
+                >
+                  {row.days == null
+                    ? "—"
+                    : t("stats.days", { count: row.days })}
+                </span>
+                <span className="truncate text-[13px] text-[#22262b]">
+                  {row.coordinatorName}
+                </span>
+                <span className="flex items-center justify-end gap-2">
+                  {tracked ? (
+                    <button
+                      type="button"
+                      onClick={() => view.openDetail(tracked.id)}
+                      className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
+                    >
+                      {t("detail")}
+                    </button>
+                  ) : row.mentorshipId ? (
+                    <button
+                      type="button"
+                      onClick={() => view.openNotify(row.mentorshipId)}
+                      className={`inline-flex h-9 items-center justify-center rounded-full px-3.5 text-[12.5px] font-medium ${
+                        critical
+                          ? "bg-[#22262b] text-white"
+                          : "border border-[#e9ecef] bg-white text-[#22262b]"
+                      }`}
+                    >
+                      {t("notifyCoordinator")}
+                    </button>
+                  ) : (
+                    <Link
+                      href={coordinatorHref(row.coordinatorId)}
+                      className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
+                    >
+                      {t("goToCoordinator")}
+                    </Link>
+                  )}
+                </span>
+              </div>
+            );
+          })
         )}
       </TableShell>
-      <QueryNotice
-        isLoading={false}
-        error={follow.error instanceof Error ? follow.error : null}
-      />
+      <QueryNotice isLoading={false} error={view.followError} />
       <p className="rounded-2xl bg-[#f7f8fa] px-4 py-3 text-[12.5px] leading-[1.5] text-[#676e78]">
         {t("interventionsNote")}
       </p>
       {notifyRow?.mentorshipId ? (
         <NotifyInterventionDialog
           coordinatorName={notifyRow.coordinatorName}
-          pair={`${notifyRow.mentorName} ↔ ${notifyRow.teamName}`}
+          pair={pairLabel(notifyRow)}
           programName={notifyRow.programName}
-          signals={signalsOf(notifyRow, t)}
+          signals={interventionSignals(notifyRow, t)}
           mentorshipId={notifyRow.mentorshipId}
-          onClose={() => setNotifyId(null)}
-          onOpened={() => {
-            const name = notifyRow.coordinatorName;
-            const pair = `${notifyRow.mentorName} ↔ ${notifyRow.teamName}`;
-            setNotifyId(null);
-            showToast({
-              title: t("notifiedTitle", { name }),
-              message: t("notifiedBody", { pair }),
-              tone: ToastTone.Success,
-            });
-          }}
+          onClose={view.closeNotify}
+          onOpened={view.notified}
         />
       ) : null}
-      {detail?.item ? (
+      {detail?.tracked ? (
         <InterventionDrawer
-          intervention={detail.item}
+          intervention={detail.tracked}
           mentorName={detail.row.mentorName}
           teamName={detail.row.teamName}
           programName={detail.row.programName}
-          signals={signalsOf(detail.row, t)}
-          onClose={() => setDetailId(null)}
-          onResolved={() => {
-            setDetailId(null);
-            showToast({
-              message: t("resolved"),
-              tone: ToastTone.Success,
-            });
-          }}
+          signals={interventionSignals(detail.row, t)}
+          onClose={view.closeDetail}
+          onResolved={view.resolved}
         />
       ) : null}
     </div>
@@ -551,49 +450,11 @@ function Matching({
 }) {
   const t = useTranslations("adminMentorships");
   const optionLabel = useOptionLabel();
-  const [filter, setFilter] = useState<MatchingFilter>("WAITING");
-  const [program, setProgram] = useState(ALL);
-  const [search, setSearch] = useState("");
-  const [sort, setSort] = useState<"WAIT" | "NAME">("WAIT");
-  const waiting = waitingTeams(data, programs);
-  const matched = matchedThisWeek(data, programs);
-  const declined = declinedRequests(data, programs);
-  const waits = waiting
-    .map((item) => item.waitDays)
-    .filter((value): value is number => value != null);
-  const averageWait = waits.length
-    ? Math.round(
-        (waits.reduce((sum, value) => sum + value, 0) / waits.length) * 10,
-      ) / 10
-    : null;
-  const waitingPrograms = new Set(waiting.map((item) => item.programName));
-  const counts: Record<MatchingFilter, number> = {
-    WAITING: waiting.length,
-    THIS_WEEK: matched.length,
-    DECLINED: declined.length,
-  };
-  const visible = (() => {
-    const source =
-      filter === "THIS_WEEK"
-        ? matched
-        : filter === "DECLINED"
-          ? declined
-          : waiting;
-    const rows = source.filter((item) => {
-      if (program !== ALL && item.programName !== program) {
-        return false;
-      }
-      return `${item.teamName} ${item.programName} ${item.need}`
-        .toLocaleLowerCase("tr")
-        .includes(search.toLocaleLowerCase("tr"));
-    });
-    if (sort === "NAME") {
-      return [...rows].sort((a, b) =>
-        a.teamName.localeCompare(b.teamName, "tr"),
-      );
-    }
-    return [...rows].sort((a, b) => (b.waitDays ?? -1) - (a.waitDays ?? -1));
-  })();
+  const view = useMentorshipMatching(data, programs);
+  const { filter, rows, averageWait, visible } = view;
+  const waiting = rows[MatchingFilter.Waiting];
+  const matched = rows[MatchingFilter.ThisWeek];
+  const declined = rows[MatchingFilter.Declined];
 
   return (
     <div className="space-y-4">
@@ -601,7 +462,7 @@ function Matching({
         <Stat
           title={t("stats.waitingTeams")}
           value={String(waiting.length)}
-          detail={t("stats.inPrograms", { count: waitingPrograms.size })}
+          detail={t("stats.inPrograms", { count: view.waitingProgramCount })}
           dot="#d9464b"
         />
         <Stat
@@ -628,39 +489,38 @@ function Matching({
       </div>
       <div className="flex flex-col gap-2.5 xl:flex-row xl:items-center">
         <FilterPills
-          filters={(["WAITING", "THIS_WEEK", "DECLINED"] as const).map(
-            (id) => ({
-              id,
-              label: t(`matchingFilters.${id}`),
-              count: counts[id],
-            }),
-          )}
+          filters={MATCHING_FILTERS.map((id) => ({
+            id,
+            label: t(`matchingFilters.${id}`),
+            count: rows[id].length,
+          }))}
           filter={filter}
-          onFilter={(value) => setFilter(value as MatchingFilter)}
+          onFilter={view.selectFilter}
         />
         <div className="flex flex-1 flex-wrap items-center justify-end gap-2.5">
           <SearchBox
-            value={search}
-            onChange={setSearch}
+            value={view.search}
+            onChange={view.setSearch}
             placeholder={t("searchTeams")}
           />
           <ProgramSelect
-            value={program}
+            value={view.program}
             programs={programs.map((item) => item.name)}
-            onChange={setProgram}
+            onChange={view.setProgram}
           />
           <label className="flex h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
             <span className="text-[#858c96]">{t("sortBy")}</span>
             <select
               aria-label={t("sortLabel")}
-              value={sort}
-              onChange={(event) =>
-                setSort(event.target.value as "WAIT" | "NAME")
-              }
+              value={view.sort}
+              onChange={(event) => view.selectSort(event.target.value)}
               className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
             >
-              <option value="WAIT">{t("sorts.WAIT")}</option>
-              <option value="NAME">{t("sorts.NAME")}</option>
+              {MATCHING_SORTS.map((sort) => (
+                <option key={sort} value={sort}>
+                  {t(`sorts.${sort}`)}
+                </option>
+              ))}
             </select>
             <AdminIcon
               src="/admin/chevron-down-sm.svg"
@@ -727,7 +587,7 @@ function Matching({
                 ) : null}
               </span>
               <span className="flex justify-end">
-                {filter === "WAITING" ? (
+                {filter === MatchingFilter.Waiting ? (
                   <Link
                     href={coordinatorHref(item.coordinatorId)}
                     className="inline-flex h-9 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
@@ -736,7 +596,9 @@ function Matching({
                   </Link>
                 ) : (
                   <span className="text-[13px] text-[#858c96]">
-                    {filter === "THIS_WEEK" ? t("matched") : t("declinedLabel")}
+                    {filter === MatchingFilter.ThisWeek
+                      ? t("matched")
+                      : t("declinedLabel")}
                   </span>
                 )}
               </span>
@@ -762,7 +624,11 @@ function TypeSelect({
       <select
         aria-label={tType("label")}
         value={value}
-        onChange={(event) => onChange(event.target.value as ProgramTypeFilter)}
+        onChange={(event) => {
+          if (isProgramTypeFilter(event.target.value)) {
+            onChange(event.target.value);
+          }
+        }}
         className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
         {PROGRAM_TYPE_FILTERS.map((option) => (
@@ -795,7 +661,7 @@ function ScopeSelect({
         onChange={(event) => onChange(event.target.value)}
         className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
-        <option value={ALL}>{t("allScope")}</option>
+        <option value={ALL_PROGRAMS}>{t("allScope")}</option>
         {programs.map((name) => (
           <option key={name} value={name}>
             {name}
@@ -931,7 +797,7 @@ function ProgramSelect({
         onChange={(event) => onChange(event.target.value)}
         className="max-w-[160px] appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
-        <option value={ALL}>{t("allPrograms")}</option>
+        <option value={ALL_PROGRAMS}>{t("allPrograms")}</option>
         {programs.map((name) => (
           <option key={name} value={name}>
             {name}
@@ -1061,10 +927,7 @@ function CoordinatorName({
 }) {
   const tCommon = useTranslations("adminCommon");
   const t = useTranslations("adminMentorships");
-  const coordinator = data.users.find(
-    (user) => user.id === program.coordinatorId,
-  );
-  const missing = coordinator != null && coordinator.status !== "APPROVED";
+  const missing = missingCoordinatorAccess(data, program);
   const label = programCoordinatorLabel(program, tCommon("unassigned"));
   return (
     <span className="flex min-w-0 items-center gap-2">
@@ -1127,37 +990,6 @@ function StatusPill({
   );
 }
 
-function signalsOf(row: InterventionRow, t: MentorshipsT) {
-  const stale = row.days != null && row.days >= 14;
-  const signals: { label: string; value: string; alert?: boolean }[] = [
-    {
-      label: t("signals.lastMeeting"),
-      value:
-        row.days == null
-          ? "—"
-          : row.noMeeting
-            ? t("signals.noRecord")
-            : t("signals.daysAgo", { days: row.days }),
-      alert: stale || row.noMeeting,
-    },
-  ];
-  if (row.goalTotal != null && row.goalTotal > 0) {
-    signals.push({
-      label: t("signals.tasks"),
-      value: `${row.goalDone ?? 0} / ${row.goalTotal}`,
-      alert: (row.goalDone ?? 0) === 0,
-    });
-  }
-  signals.push({ label: t("signals.issue"), value: row.issue });
-  return signals;
-}
-
-function coordinatorHref(coordinatorId: string | null) {
-  return coordinatorId
-    ? `/admin/users?user=${encodeURIComponent(coordinatorId)}`
-    : "/admin/users";
-}
-
 function TableShell({
   children,
   minWidth,
@@ -1180,257 +1012,3 @@ const interventionCols =
   "grid w-full grid-cols-[minmax(0,1.5fr)_110px_minmax(0,1fr)_minmax(0,1.4fr)_72px_minmax(0,1fr)_168px] items-center";
 const matchingCols =
   "grid w-full grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_minmax(0,1fr)_88px_64px_minmax(0,1fr)_190px] items-center";
-
-type InterventionRow = {
-  id: string;
-  mentorshipId: string | null;
-  kind: "critical" | "bottleneck";
-  mentorName: string;
-  teamName: string;
-  programName: string;
-  coordinatorName: string;
-  coordinatorId: string | null;
-  issue: string;
-  /** A critical pair that has never met; the issue then starts with "no meeting recorded". */
-  noMeeting: boolean;
-  days: number | null;
-  goalDone: number | null;
-  goalTotal: number | null;
-};
-
-type MatchRow = {
-  id: string;
-  teamName: string;
-  programName: string;
-  coordinatorName: string;
-  coordinatorId: string | null;
-  missingAccess: boolean;
-  need: string | null;
-  waitDays: number | null;
-};
-
-function programsInScope(programs: AdminProgram[], scope: string) {
-  if (scope === ALL) return programs;
-  return programs.filter((program) => program.name === scope);
-}
-
-function activeMentorships(data: AdminOverview, programs: AdminProgram[]) {
-  return data.mentorships.filter(
-    (item) => item.status === "ACTIVE" && mentorshipInPrograms(item, programs),
-  );
-}
-
-function organizationIds(programs: AdminProgram[]) {
-  return new Set(
-    programs.flatMap((program) =>
-      program.startups.map((startup) => startup.id),
-    ),
-  );
-}
-
-function mentorshipHealth(program: AdminProgram, data: AdminOverview) {
-  let green = 0;
-  let amber = 0;
-  let red = 0;
-  for (const item of activeMentorships(data, [program])) {
-    if (needsAttention(item)) red += 1;
-    else if (hasBottleneck(data, item.organizationId)) amber += 1;
-    else green += 1;
-  }
-  return { green, amber, red };
-}
-
-function hasBottleneck(data: AdminOverview, organizationId: string) {
-  return data.bottlenecks.some(
-    (item) => item.organizationId === organizationId,
-  );
-}
-
-function interventionRows(
-  data: AdminOverview,
-  programs: AdminProgram[],
-  t: MentorshipsT,
-): InterventionRow[] {
-  const ids = organizationIds(programs);
-  const covered = new Set<string>();
-  const rows: InterventionRow[] = [];
-  for (const item of data.mentorships) {
-    if (!mentorshipInPrograms(item, programs) || !needsAttention(item)) {
-      continue;
-    }
-    const program = programOfMentorship(data, item);
-    const blocks = data.bottlenecks.filter(
-      (block) => block.organizationId === item.organizationId,
-    );
-    covered.add(item.organizationId);
-    rows.push({
-      id: item.id,
-      mentorshipId: item.id,
-      kind: "critical",
-      mentorName: item.mentorName,
-      teamName: item.organizationName,
-      programName: program?.name ?? "—",
-      coordinatorName: program?.coordinatorName ?? "—",
-      coordinatorId: program?.coordinatorId ?? null,
-      issue: [
-        item.daysSinceMeeting == null
-          ? t("noMeetingRecord")
-          : t("lastMeeting", { days: item.daysSinceMeeting }),
-        ...blocks.map((block) => block.title),
-      ].join(" · "),
-      noMeeting: item.daysSinceMeeting == null,
-      days: item.daysSinceMeeting ?? daysSince(item.startDate),
-      goalDone: item.goalDone ?? null,
-      goalTotal: item.goalTotal ?? null,
-    });
-  }
-  const grouped = new Map<string, typeof data.bottlenecks>();
-  for (const block of data.bottlenecks) {
-    if (!ids.has(block.organizationId) || covered.has(block.organizationId)) {
-      continue;
-    }
-    const list = grouped.get(block.organizationId) ?? [];
-    list.push(block);
-    grouped.set(block.organizationId, list);
-  }
-  for (const [organizationId, blocks] of grouped) {
-    const program = programForOrganization(data, organizationId);
-    const mentorship = data.mentorships.find(
-      (item) =>
-        item.organizationId === organizationId && item.status === "ACTIVE",
-    );
-    const oldest = blocks.reduce(
-      (min, block) => (block.createdAt < min ? block.createdAt : min),
-      blocks[0].createdAt,
-    );
-    rows.push({
-      id: blocks.map((block) => block.id).join(":"),
-      mentorshipId: mentorship?.id ?? null,
-      kind: "bottleneck",
-      mentorName: mentorship?.mentorName ?? t("noMentor"),
-      teamName: blocks[0].organizationName,
-      programName: program?.name ?? "—",
-      coordinatorName: program?.coordinatorName ?? "—",
-      coordinatorId: program?.coordinatorId ?? null,
-      issue: blocks.map((block) => block.title).join(" · "),
-      noMeeting: false,
-      days: daysSinceInstant(oldest),
-      goalDone: mentorship?.goalDone ?? null,
-      goalTotal: mentorship?.goalTotal ?? null,
-    });
-  }
-  return rows;
-}
-
-function waitingTeams(
-  data: AdminOverview,
-  programs: AdminProgram[],
-): MatchRow[] {
-  const ids = organizationIds(programs);
-  return unmatchedStartups(data)
-    .filter((startup) => ids.has(startup.id))
-    .map((startup) => toMatchRow(data, startup, openRequest(data, startup.id)));
-}
-
-function matchedThisWeek(
-  data: AdminOverview,
-  programs: AdminProgram[],
-): MatchRow[] {
-  return activeMentorships(data, programs)
-    .filter((item) => {
-      const age = daysSince(item.startDate);
-      return age >= 0 && age <= 7;
-    })
-    .map((item) => mentorshipMatchRow(data, item));
-}
-
-function declinedRequests(
-  data: AdminOverview,
-  programs: AdminProgram[],
-): MatchRow[] {
-  const ids = organizationIds(programs);
-  return data.requests
-    .filter(
-      (item) => item.status === "DECLINED" && ids.has(item.organizationId),
-    )
-    .map((item) => requestMatchRow(data, item));
-}
-
-function toMatchRow(
-  data: AdminOverview,
-  startup: AdminStartup,
-  request: AdminRequest | null,
-): MatchRow {
-  const program = data.programs.find((item) => item.id === startup.programId);
-  return {
-    id: `${startup.programId}:${startup.id}`,
-    teamName: startup.name,
-    programName: startup.programName,
-    coordinatorName: program?.coordinatorName ?? "—",
-    coordinatorId: program?.coordinatorId ?? null,
-    missingAccess: missingCoordinatorAccess(data, program),
-    need: request?.supportArea ?? null,
-    waitDays: request ? daysSinceInstant(request.createdAt) : null,
-  };
-}
-
-function mentorshipMatchRow(
-  data: AdminOverview,
-  item: AdminMentorship,
-): MatchRow {
-  const program = programOfMentorship(data, item);
-  return {
-    id: item.id,
-    teamName: item.organizationName,
-    programName: program?.name ?? "—",
-    coordinatorName: program?.coordinatorName ?? "—",
-    coordinatorId: program?.coordinatorId ?? null,
-    missingAccess: missingCoordinatorAccess(data, program),
-    need: null,
-    waitDays: null,
-  };
-}
-
-function requestMatchRow(data: AdminOverview, item: AdminRequest): MatchRow {
-  const program = programForOrganization(data, item.organizationId);
-  return {
-    id: item.id,
-    teamName: item.organizationName,
-    programName: program?.name ?? "—",
-    coordinatorName: program?.coordinatorName ?? "—",
-    coordinatorId: program?.coordinatorId ?? null,
-    missingAccess: missingCoordinatorAccess(data, program),
-    need: item.supportArea,
-    waitDays: daysSinceInstant(item.createdAt),
-  };
-}
-
-function openRequest(data: AdminOverview, organizationId: string) {
-  return (
-    data.requests.find(
-      (item) =>
-        item.organizationId === organizationId &&
-        (item.status === "PENDING" ||
-          item.status === "MORE_INFO_REQUESTED" ||
-          item.status === "COUNTER_PROPOSED"),
-    ) ?? null
-  );
-}
-
-function missingCoordinatorAccess(
-  data: AdminOverview,
-  program: AdminProgram | undefined,
-) {
-  if (!program) return false;
-  const coordinator = data.users.find(
-    (user) => user.id === program.coordinatorId,
-  );
-  return coordinator != null && coordinator.status !== "APPROVED";
-}
-
-function daysSinceInstant(value: string) {
-  return Math.max(
-    0,
-    Math.floor((Date.now() - new Date(value).getTime()) / 86_400_000),
-  );
-}

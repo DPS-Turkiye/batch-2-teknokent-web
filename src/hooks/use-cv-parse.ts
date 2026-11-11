@@ -14,7 +14,8 @@ export type CvParseResult = {
   expertise: string[];
 };
 
-function texts(...lists: Array<string[] | null | undefined>) {
+/** The parser is a model, so a list it returns may hold nulls despite the schema. */
+function texts(...lists: (readonly (string | null)[] | null | undefined)[]) {
   const seen = new Set<string>();
   for (const list of lists) {
     for (const value of list ?? []) {

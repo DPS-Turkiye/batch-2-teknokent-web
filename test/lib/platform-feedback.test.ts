@@ -10,13 +10,14 @@ import {
   readPlatformFeedback,
   submitPlatformFeedback,
 } from "@/lib/client/platform-feedback";
-import { HttpMethod } from "@/lib/http-method";
 import { httpClient } from "@/lib/http-client";
+import { HttpMethod } from "@/lib/http-method";
 import {
   feedbackInboxQuerySchema,
   platformFeedbackSubmissionSchema,
 } from "@/lib/platform-feedback";
 import { backendRequest } from "@/lib/server/backend-client";
+import { createAxiosResponse } from "@test/fixtures/health";
 import { platformFeedback } from "@test/fixtures/platform-feedback";
 
 vi.mock("@/lib/server/backend-client", () => ({ backendRequest: vi.fn() }));
@@ -26,11 +27,7 @@ vi.mock("@/lib/http-client", () => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
-  const response = {
-    status: 200,
-    data: platformFeedback(),
-    headers: {},
-  } as never;
+  const response = createAxiosResponse(platformFeedback(), 200);
   vi.mocked(httpClient.get).mockResolvedValue(response);
   vi.mocked(httpClient.post).mockResolvedValue(response);
   vi.mocked(httpClient.patch).mockResolvedValue(response);
@@ -77,7 +74,7 @@ describe("platform feedback contracts", () => {
       status: 403,
       data: {},
       headers: {},
-    } as never);
+    });
     await expect(
       submitPlatformFeedback(platformFeedback()),
     ).rejects.toMatchObject({ status: 403 });

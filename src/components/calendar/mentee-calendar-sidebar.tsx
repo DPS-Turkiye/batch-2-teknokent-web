@@ -1,15 +1,15 @@
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import type { ActionItem } from "@/interfaces/action-item";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
-  type CalendarEntry,
   CalendarEntryKind,
   entryWhenLabel,
   prepHeading,
   PrepStatus,
   prepStatus,
+  type CalendarEntry,
 } from "@/lib/mentee-calendar";
 import { meetingNotebookHref } from "@/lib/startup-meetings";
 

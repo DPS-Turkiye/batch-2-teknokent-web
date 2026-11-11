@@ -1,7 +1,7 @@
 import {
-  type Program,
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  type Program,
 } from "@/interfaces/program";
 
 /** Programs the mentor asked to join, or joined through an emailed link, still waiting for the coordinator. */

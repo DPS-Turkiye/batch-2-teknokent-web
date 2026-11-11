@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
+
 export const saveMeetingNoteBodySchema = z.object({
   content: z.string().max(200000),
 });
@@ -30,7 +32,7 @@ const textList = z
 
 export const publishAssistantShareBodySchema = z.union([
   z.object({
-    kind: z.literal("TRANSCRIPT"),
+    kind: z.literal(AssistantShareKind.Transcript),
     transcript: z
       .array(
         z
@@ -50,18 +52,18 @@ export const publishAssistantShareBodySchema = z.union([
       .min(1),
   }),
   z.object({
-    kind: z.literal("PROVIDER_TRANSCRIPT"),
+    kind: z.literal(AssistantShareKind.ProviderTranscript),
     platform: z.string().trim().min(1),
     nativeMeetingId: z.string().trim().min(1),
   }),
   z.object({
-    kind: z.literal("TRANSCRIPT_S3"),
+    kind: z.literal(AssistantShareKind.TranscriptS3),
   }),
   z.object({
-    kind: z.literal("REPORT_S3"),
+    kind: z.literal(AssistantShareKind.ReportS3),
   }),
   z.object({
-    kind: z.literal("REPORT"),
+    kind: z.literal(AssistantShareKind.Report),
     report: z.object({
       title: textField,
       meetingDate: nullableText,

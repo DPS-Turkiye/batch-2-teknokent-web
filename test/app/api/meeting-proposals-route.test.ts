@@ -1,14 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DELETE as withdraw } from "@/app/api/coordinator/meeting-proposals/[id]/route";
 import { POST as remind } from "@/app/api/coordinator/meeting-proposals/[id]/remind/route";
+import { DELETE as withdraw } from "@/app/api/coordinator/meeting-proposals/[id]/route";
 import { GET as coordinatorList } from "@/app/api/coordinator/meeting-proposals/route";
 import { POST as propose } from "@/app/api/coordinator/mentorships/[id]/meeting-proposals/route";
 import { POST as accept } from "@/app/api/meeting-proposals/[id]/accept/route";
 import { POST as decline } from "@/app/api/meeting-proposals/[id]/decline/route";
 import { GET as mine } from "@/app/api/meeting-proposals/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   acceptMeetingProposal,
   declineMeetingProposal,
@@ -18,8 +18,14 @@ import {
   remindMeetingProposal,
   withdrawMeetingProposal,
 } from "@/lib/api/meeting-proposals";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 import { getSessionIds } from "@/lib/session";
+import {
+  answerEachWith,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/meeting-proposals", () => ({
   acceptMeetingProposal: vi.fn(),
@@ -31,22 +37,22 @@ vi.mock("@/lib/api/meeting-proposals", () => ({
   withdrawMeetingProposal: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
 
-const ok = { data: {}, headers: {}, status: 200 } as never;
+const ok = backendResponse({});
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
 
 describe("meeting proposal routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
     vi.mocked(getSessionIds).mockResolvedValue({
       userId: "mentor-1",
@@ -61,7 +67,7 @@ describe("meeting proposal routes", () => {
       remindMeetingProposal,
       withdrawMeetingProposal,
     ]) {
-      vi.mocked(fn).mockResolvedValue(ok);
+      answerEachWith([fn], ok);
     }
   });
 
@@ -104,10 +110,9 @@ describe("meeting proposal routes", () => {
   });
 
   it("stops coordinator routes at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     const response = await remind(
       new Request("http://localhost"),

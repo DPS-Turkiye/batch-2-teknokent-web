@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useEffect, useRef, useState, type RefObject } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
 import {
@@ -8,7 +9,13 @@ import {
   reloadAndCheckEmailVerified,
   resendVerificationEmail,
 } from "@/lib/firebase/auth";
-import { useTranslations } from "next-intl";
+
+/** Marks the check finished; false when the button or an earlier poll already finished it. */
+function markFinished(finished: RefObject<boolean>) {
+  if (finished.current) return false;
+  finished.current = true;
+  return true;
+}
 
 export function VerifyEmailView({
   email,
@@ -30,8 +37,7 @@ export function VerifyEmailView({
     async function poll() {
       if (finishedRef.current) return;
       const verified = await reloadAndCheckEmailVerified();
-      if (cancelled || !verified || finishedRef.current) return;
-      finishedRef.current = true;
+      if (cancelled || !verified || !markFinished(finishedRef)) return;
       await onVerified();
     }
 

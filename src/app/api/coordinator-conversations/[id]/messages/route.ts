@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchCoordinatorMessages,
   sendCoordinatorMessage,
@@ -7,8 +9,11 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
+
+const messageSchema = z.object({ body: z.string() });
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -30,9 +35,10 @@ export async function POST(request: Request, { params }: Params) {
     const { userId } = await getSessionIds();
     if (!userId) throw new SessionRequiredError();
     const { id } = await params;
-    const body = await request.json();
+    const message = await readJsonBody(request, messageSchema);
+    if (!message.ok) return message.response;
     return backendResponse(
-      await sendCoordinatorMessage(userId, id, String(body.body ?? "")),
+      await sendCoordinatorMessage(userId, id, message.data.body),
     );
   } catch (error) {
     return apiErrorResponse(error, {

@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import { ToastTone } from "@/interfaces/toast";
@@ -10,14 +10,15 @@ import {
   getProgramWeekPlan,
   saveProgramWeekPlan,
 } from "@/lib/client/program-weeks";
+import { newRowKey } from "@/lib/keyed-list";
 import {
   nextFreeWeek,
   programTotalWeeks,
   programWeekDays,
-  type WeekDraft,
   weekDraftOf,
   weekInputOf,
   weekPlanProblem,
+  type WeekDraft,
 } from "@/lib/program-week";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
@@ -46,7 +47,12 @@ export function useProgramWeekPlan(
   const totalWeeks =
     query.data?.totalWeeks ??
     programTotalWeeks(program.startDate, program.endDate);
-  const weeks = draft ?? (query.data?.weeks ?? []).map(weekDraftOf);
+  // Built once per answer, so the rows keep their keys until the coordinator edits them.
+  const loaded = useMemo(
+    () => (query.data?.weeks ?? []).map(weekDraftOf),
+    [query.data?.weeks],
+  );
+  const weeks = draft ?? loaded;
 
   const save = useMutation({
     mutationFn: (next: WeekDraft[]) =>
@@ -98,6 +104,7 @@ export function useProgramWeekPlan(
         [
           ...weeks,
           {
+            key: newRowKey(),
             week,
             title: "",
             topics: "",

@@ -32,7 +32,9 @@ vi.mock("next/navigation", () => ({
 
 const params = { params: Promise.resolve({ courseId: "course-1" }) };
 
-function course(role: OfficeHoursRole) {
+function course(
+  role: OfficeHoursRole,
+): Awaited<ReturnType<typeof fetchOfficeHoursCourse>> {
   return {
     status: 200,
     headers: {},
@@ -107,10 +109,11 @@ describe("office-hours course page", () => {
   });
 
   it("does not show a course the person never launched from", async () => {
+    // BackendResponse types `data` as the course whatever the status, so the 404 carries a course body:
+    // the page must go by the status alone.
     vi.mocked(fetchOfficeHoursCourse).mockResolvedValue({
+      ...course(OfficeHoursRole.Student),
       status: 404,
-      headers: {},
-      data: undefined as never,
     });
 
     await expect(OfficeHoursCoursePage(params)).rejects.toThrow(

@@ -1,4 +1,5 @@
 import { NotificationCategory } from "@/interfaces/notification";
+import { isEnumValue } from "@/lib/enum";
 import {
   MOBILE_CALENDAR,
   MOBILE_MESSAGES,
@@ -7,8 +8,8 @@ import {
   MOBILE_TASKS,
   type MobileTexts,
 } from "@/lib/mobile";
-import type { DashboardNotification } from "@/types/landing";
 import { formatDayMonth, relativeDayLabel } from "@/lib/utils";
+import type { DashboardNotification } from "@/types/landing";
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -63,9 +64,7 @@ const TONES: Record<NotificationCategory, NotificationTone> = {
 };
 
 function isCategory(value: unknown): value is NotificationCategory {
-  return Object.values(NotificationCategory).includes(
-    value as NotificationCategory,
-  );
+  return isEnumValue(NotificationCategory, value);
 }
 
 function categoryOf(value: unknown) {

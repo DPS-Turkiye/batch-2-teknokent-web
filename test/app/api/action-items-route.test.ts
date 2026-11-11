@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PATCH } from "@/app/api/action-items/[id]/route";
 import { GET } from "@/app/api/action-items/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchActionItems,
-  fetchOrganizationActionItems,
   fetchActionItemsForRequests,
+  fetchOrganizationActionItems,
   updateActionItem,
 } from "@/lib/api/action-items";
 import { HttpMethod } from "@/lib/http-method";
 import { getSessionUser } from "@/lib/session";
+import { backendResponse } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/action-items", () => ({
   fetchActionItems: vi.fn(),
@@ -24,19 +26,11 @@ vi.mock("@/lib/session", () => ({
   getSessionUser: vi.fn(),
 }));
 
-const ok = { data: [], headers: {}, status: 200 } as Awaited<
-  ReturnType<typeof fetchActionItems>
->;
+const ok = backendResponse([]);
 
-function session(role: AppSession["role"], organizationId?: string) {
-  return {
-    userId: "u-1",
-    email: "u@example.com",
-    fullName: "U",
-    jobTitle: "",
-    role,
-    organizationId,
-  } satisfies AppSession;
+function session(role: UserRole, organizationId?: string) {
+  const user = appSession({ userId: "u-1", role });
+  return organizationId === undefined ? user : { ...user, organizationId };
 }
 
 function patch(body: unknown) {

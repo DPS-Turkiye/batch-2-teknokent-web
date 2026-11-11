@@ -1,11 +1,12 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useStartupProfileImport } from "@/hooks/use-startup-profile-import";
+
 import { useAppSession } from "@/components/providers/session-provider";
+import { useStartupProfileImport } from "@/hooks/use-startup-profile-import";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { getProfileAnalysisRecord } from "@/lib/client/profile-analysis-records";
-import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
 import { ClientApiError } from "@/lib/client/api";
+import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
+import { getProfileAnalysisRecord } from "@/lib/client/profile-analysis-records";
 import { analysis, profileToolsWrapper } from "@test/fixtures/profile-tools";
 
 vi.mock("@/components/providers/session-provider", () => ({

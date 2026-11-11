@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { RestoredDraftNotice } from "@/components/common/restored-draft-notice";
 import { MentorAreasStep } from "@/components/mentor-onboarding/steps/areas-step";
 import { MentorAvailabilityStep } from "@/components/mentor-onboarding/steps/availability-step";
@@ -21,7 +23,7 @@ import {
   MENTOR_STEPS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
-import { useTranslations } from "next-intl";
+import { stringList } from "@/lib/string-list";
 
 const TONE = OnboardingTone.Mentor;
 
@@ -52,7 +54,7 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
         title={text("submittedTitle")}
         submittedAt={wizard.submittedAt}
         lastStepLabel={text("lastStepLabel")}
-        nextSteps={text.raw("nextSteps")}
+        nextSteps={stringList(text.raw("nextSteps") as unknown)}
         onSignOut={exit}
         signingOut={exiting}
       />
@@ -79,7 +81,10 @@ export function MentorOnboardingFlow({ fullName = "" }: { fullName?: string }) {
           currentIndex={MENTOR_STEP_ORDER.indexOf(step)}
           note={text(`steps.${stepKey}.note`)}
           showProgress
-          onStepClick={(index) => wizard.goToStep(MENTOR_STEP_ORDER[index])}
+          onStepClick={(index) => {
+            const next = MENTOR_STEP_ORDER[index];
+            if (next) wizard.goToStep(next);
+          }}
         />
       }
       title={text(`steps.${stepKey}.title`)}

@@ -1,9 +1,10 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DELETE } from "@/app/api/meetings/[id]/route";
 import { POST as inviteGuest } from "@/app/api/meetings/[id]/guests/route";
 import { GET as getRoom } from "@/app/api/meetings/[id]/room/route";
+import { DELETE } from "@/app/api/meetings/[id]/route";
+import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserRole } from "@/interfaces/session";
 import {
   deleteMeeting,
@@ -12,7 +13,6 @@ import {
   inviteMeetingGuest,
 } from "@/lib/api/meetings";
 import { fetchPrograms } from "@/lib/api/programs";
-import { ProgramMentorStatus } from "@/interfaces/program";
 import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/meetings", () => ({

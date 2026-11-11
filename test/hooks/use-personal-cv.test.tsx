@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { usePersonalCv } from "@/hooks/use-personal-cv";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { readCv } from "@/lib/client/profile-analysis";
 import { createTestQueryClient } from "@test/test-utils";
@@ -41,7 +42,12 @@ const parsedProfile = {
 };
 
 function storedCv(originalFilename: string) {
-  return { id: "cv-1", kind: "cv", originalFilename, sizeBytes: 1024 };
+  return {
+    id: "cv-1",
+    kind: DocumentKind.Cv,
+    originalFilename,
+    sizeBytes: 1024,
+  };
 }
 
 describe("usePersonalCv", () => {

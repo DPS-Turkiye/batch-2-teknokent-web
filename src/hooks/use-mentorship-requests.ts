@@ -1,16 +1,15 @@
 "use client";
 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { useToast } from "@/stores/toast-store";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { DocumentKind } from "@/interfaces/startup-document";
-import { UserRole } from "@/interfaces/session";
-import { uploadDocument } from "@/lib/client/documents";
-import { sharedFileMessage } from "@/lib/mentorship-messages";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
+import { uploadDocument } from "@/lib/client/documents";
 import {
   acceptProposedMentorSlot,
   decideMentorRequest,
@@ -23,7 +22,8 @@ import {
   scheduleMeeting,
   withdrawMentorRequest,
 } from "@/lib/client/mentor-requests";
-import { ToastTone } from "@/interfaces/toast";
+import { sharedFileMessage } from "@/lib/mentorship-messages";
+import { useToast } from "@/stores/toast-store";
 
 export const mentorshipRequestsQueryKey = (
   role: UserRole.Mentee | UserRole.Mentor,
@@ -41,7 +41,7 @@ export function useMentorshipRequests(
 export function useMentorshipRequest(id: string | null) {
   return useQuery({
     queryKey: ["mentorship-request", id],
-    queryFn: () => getMentorRequest(id as string),
+    queryFn: () => getMentorRequest(id!),
     enabled: Boolean(id),
   });
 }
@@ -49,7 +49,7 @@ export function useMentorshipRequest(id: string | null) {
 export function useMentorAvailability(id: string | null, enabled: boolean) {
   return useQuery({
     queryKey: ["mentor-availability", id],
-    queryFn: () => getMentorAvailability(id as string),
+    queryFn: () => getMentorAvailability(id!),
     enabled: Boolean(id) && enabled,
   });
 }
@@ -57,7 +57,7 @@ export function useMentorAvailability(id: string | null, enabled: boolean) {
 export function useAlternativeMentors(id: string | null, enabled: boolean) {
   return useQuery({
     queryKey: ["alternative-mentors", id],
-    queryFn: () => getAlternativeMentors(id as string),
+    queryFn: () => getAlternativeMentors(id!),
     enabled: Boolean(id) && enabled,
   });
 }
@@ -65,8 +65,7 @@ export function useAlternativeMentors(id: string | null, enabled: boolean) {
 export function useReplyToMentorRequest(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (message: string) =>
-      replyToMentorRequest({ id: id as string, message }),
+    mutationFn: (message: string) => replyToMentorRequest({ id: id!, message }),
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
@@ -79,8 +78,7 @@ export function useReplyToMentorRequest(id: string | null) {
 export function usePostMentorMessage(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (message: string) =>
-      postMentorMessage({ id: id as string, message }),
+    mutationFn: (message: string) => postMentorMessage({ id: id!, message }),
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
@@ -93,7 +91,7 @@ export function usePostMentorMessage(id: string | null) {
 export function useWithdrawMentorRequest(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => withdrawMentorRequest(id as string),
+    mutationFn: () => withdrawMentorRequest(id!),
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return queryClient.invalidateQueries({
@@ -106,14 +104,16 @@ export function useWithdrawMentorRequest(id: string | null) {
 export function useScheduleMeeting(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (slotId: string) =>
-      scheduleMeeting({ id: id as string, slotId }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["mentor-availability", id] });
-      return queryClient.invalidateQueries({
-        queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
-      });
-    },
+    mutationFn: (slotId: string) => scheduleMeeting({ id: id!, slotId }),
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: ["mentor-availability", id],
+        }),
+        queryClient.invalidateQueries({
+          queryKey: mentorshipRequestsQueryKey(UserRole.Mentee),
+        }),
+      ]),
   });
 }
 
@@ -168,7 +168,7 @@ export function useRequestFileUpload(
       const sendFileMessage =
         role === UserRole.Mentor ? postMentorMessage : replyToMentorRequest;
       const request = await sendFileMessage({
-        id: id as string,
+        id: id!,
         message: sharedFileMessage(stored.originalFilename),
       });
       return { request, stored };
@@ -198,8 +198,8 @@ export function useSlotBooking(id: string | null) {
   }
 
   const bookSlot = async (slotId: string) => {
-    const meeting = await scheduleMutation.mutateAsync(slotId);
-    if (meeting) setScheduledSlotId(slotId);
+    await scheduleMutation.mutateAsync(slotId);
+    setScheduledSlotId(slotId);
   };
 
   return {
@@ -229,7 +229,7 @@ export function useAcceptProposedSlot(id: string | null) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (selectedSlot: string) =>
-      acceptProposedMentorSlot({ id: id as string, selectedSlot }),
+      acceptProposedMentorSlot({ id: id!, selectedSlot }),
     onSuccess: (request) => {
       queryClient.setQueryData(["mentorship-request", id], request);
       return Promise.all([

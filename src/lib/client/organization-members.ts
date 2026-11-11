@@ -1,8 +1,8 @@
 import type {
   OrganizationMember,
   OrganizationMemberInput,
-  OrganizationPendingMember,
   OrganizationMemberUpdate,
+  OrganizationPendingMember,
 } from "@/interfaces/organization-member";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -44,7 +44,7 @@ export async function updateOrganizationMember(
 }
 
 export async function removeOrganizationMember(memberId: string) {
-  return requireSuccess(await httpClient.delete(memberUrl(memberId)));
+  requireSuccess(await httpClient.delete<void>(memberUrl(memberId)));
 }
 
 export async function getPendingMembers() {
@@ -56,8 +56,8 @@ export async function getPendingMembers() {
 }
 
 export async function removePendingMember(pendingId: string) {
-  return requireSuccess(
-    await httpClient.delete(
+  requireSuccess(
+    await httpClient.delete<void>(
       `/api/organization-members/pending/${encodeURIComponent(pendingId)}`,
     ),
   );

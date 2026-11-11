@@ -1,4 +1,5 @@
 import type { MentorProfile } from "@/interfaces/mentor";
+import { MatchingMethod } from "@/interfaces/mentorship-request";
 import type { StartupContext } from "@/interfaces/startup";
 import {
   isValidPreferredSlot,
@@ -50,8 +51,8 @@ export function profileMentorshipSubmission({
   mentor: MentorProfile;
   startup: StartupContext;
   requestedForName: string;
-  problem?: string;
-  outcome?: string;
+  problem?: string | undefined;
+  outcome?: string | undefined;
   preferredSlots?: readonly PreferredSlot[];
 }): MentorshipRequestSubmission {
   const draft = readNeedDraft();
@@ -87,7 +88,7 @@ export function profileMentorshipSubmission({
     requesterMessage: timesLine.join("\n"),
     expectedOutcome: outcome?.trim() || draftOutcome,
     recommendationSnapshot: {
-      matchingMethod: "PROFILE",
+      matchingMethod: MatchingMethod.Profile,
       generatedAt: new Date().toISOString(),
       startupName: startup.name,
       startupSector: startup.sector,

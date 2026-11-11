@@ -1,6 +1,6 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
+import { DocumentKind } from "@/interfaces/startup-document";
 import type { StoredDocument } from "@/lib/client/documents";
 import {
   currentAvatar,
@@ -8,21 +8,16 @@ import {
   mentorshipSessionLabel,
   personalRoleLabel,
   personalSubtitle,
-  type PersonalProfileTexts,
   profilePhotoError,
   startupSummary,
+  type PersonalProfileTexts,
 } from "@/lib/personal-profile";
 import type { ActiveMentorshipRow } from "@/lib/startup-overview";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
 function profileTexts(locale: "tr" | "en"): PersonalProfileTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "personalProfile",
-    }),
+    t: translatorIn(locale, "personalProfile"),
     locale,
   };
 }
@@ -42,7 +37,7 @@ function row(
   };
 }
 
-function document(id: string, kind: string): StoredDocument {
+function document(id: string, kind: DocumentKind): StoredDocument {
   return { id, kind, originalFilename: `${id}.png`, sizeBytes: 10 };
 }
 
@@ -122,12 +117,12 @@ describe("currentAvatar", () => {
   it("takes the first avatar of a newest-first list", () => {
     expect(
       currentAvatar([
-        document("logo", "logo"),
-        document("new", "avatar"),
-        document("old", "avatar"),
+        document("logo", DocumentKind.Logo),
+        document("new", DocumentKind.Avatar),
+        document("old", DocumentKind.Avatar),
       ])?.id,
     ).toBe("new");
-    expect(currentAvatar([document("logo", "logo")])).toBeNull();
+    expect(currentAvatar([document("logo", DocumentKind.Logo)])).toBeNull();
   });
 });
 

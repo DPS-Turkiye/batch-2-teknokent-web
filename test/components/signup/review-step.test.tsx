@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { ReviewStep } from "@/components/signup/steps/review-step";
-import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { signupDraft, signupWizardStub } from "@test/fixtures/signup-wizard";
 
 vi.mock("@/hooks/use-programs", () => ({
   useProgramNames: () => ({
@@ -25,31 +25,12 @@ vi.mock("@/hooks/use-stored-documents", () => ({
 }));
 
 function wizard(programId: string) {
-  return {
-    draft: {
-      personal: {
-        firstName: "Ayşe",
-        lastName: "Yılmaz",
-        role: "Öğrenci",
-        bio: "",
-        contactPreferences: [],
-      },
-      startup: {
-        startupLater: true,
-        programId,
-        name: "",
-        tagline: "",
-        maturity: "",
-        teamMembers: [],
-        supportAreas: [],
-      },
-      documents: {},
-      mvpUrl: "",
-      consent: false,
-    },
-    goToStep: vi.fn(),
-    setConsent: vi.fn(),
-  } as unknown as SignupWizard;
+  return signupWizardStub({
+    draft: signupDraft({
+      personal: { firstName: "Ayşe", lastName: "Yılmaz", role: "Öğrenci" },
+      startup: { startupLater: true, programId },
+    }),
+  });
 }
 
 describe("ReviewStep", () => {

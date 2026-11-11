@@ -1,10 +1,10 @@
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
+  StartupStageState,
   type StartupProcess,
   type StartupRound,
-  StartupStage,
-  StartupStageState,
+  type StartupStage,
 } from "@/interfaces/startup-process";
 import { calendarDay, formatDayMonth } from "@/lib/utils";
 

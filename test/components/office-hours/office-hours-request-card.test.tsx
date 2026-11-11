@@ -7,12 +7,12 @@ import {
   OfficeHoursMessageType,
   OfficeHoursRequestStatus,
   OfficeHoursRole,
-  type OfficeHoursRequest,
 } from "@/interfaces/office-hours";
 import {
   actOnOfficeHoursRequest,
   getInstructorSlots,
 } from "@/lib/client/office-hours-booking";
+import { officeHoursRequest } from "@test/fixtures/office-hours";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/office-hours-booking", () => ({
@@ -20,32 +20,10 @@ vi.mock("@/lib/client/office-hours-booking", () => ({
   getInstructorSlots: vi.fn(),
 }));
 
-function request(
-  overrides: Partial<OfficeHoursRequest> = {},
-): OfficeHoursRequest {
-  return {
-    id: "req-1",
-    courseId: "course-1",
-    status: OfficeHoursRequestStatus.Pending,
-    student: { id: "student-1", fullName: "Ayşe Yılmaz" },
-    instructor: { id: "academic-1", fullName: "Ali Kaya" },
-    topic: "2. ödevin 3. sorusu",
-    expectedOutcome: null,
-    preferredSlots: ["2026-11-12T09:00", "2026-11-12T10:30"],
-    proposedSlots: [],
-    instructorMessage: null,
-    rejectionReason: null,
-    messages: [],
-    meeting: null,
-    createdAt: "2026-11-07T10:00:00Z",
-    ...overrides,
-  };
-}
-
 describe("OfficeHoursRequestCard", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(actOnOfficeHoursRequest).mockResolvedValue(request());
+    vi.mocked(actOnOfficeHoursRequest).mockResolvedValue(officeHoursRequest());
     vi.mocked(getInstructorSlots).mockResolvedValue([]);
   });
 
@@ -53,7 +31,7 @@ describe("OfficeHoursRequestCard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request()}
+        request={officeHoursRequest()}
         viewer={OfficeHoursRole.Instructor}
       />,
     );
@@ -79,7 +57,7 @@ describe("OfficeHoursRequestCard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request()}
+        request={officeHoursRequest()}
         viewer={OfficeHoursRole.Instructor}
       />,
     );
@@ -103,7 +81,7 @@ describe("OfficeHoursRequestCard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request({
+        request={officeHoursRequest({
           status: OfficeHoursRequestStatus.CounterProposed,
           proposedSlots: ["2026-11-19T09:00"],
           instructorMessage: "Bu saat uygun",
@@ -130,7 +108,7 @@ describe("OfficeHoursRequestCard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request({
+        request={officeHoursRequest({
           status: OfficeHoursRequestStatus.MoreInfoRequested,
           messages: [
             {
@@ -162,7 +140,7 @@ describe("OfficeHoursRequestCard", () => {
   it("shows an accepted request's meeting and no more actions", () => {
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request({
+        request={officeHoursRequest({
           status: OfficeHoursRequestStatus.Accepted,
           meeting: { startsAt: "2026-11-12T07:30:00Z", durationMinutes: 45 },
         })}
@@ -181,7 +159,7 @@ describe("OfficeHoursRequestCard", () => {
     const user = userEvent.setup();
     renderWithQueryClient(
       <OfficeHoursRequestCard
-        request={request()}
+        request={officeHoursRequest()}
         viewer={OfficeHoursRole.Student}
       />,
     );

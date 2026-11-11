@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as suggestions } from "@/app/api/coordinator/programs/[id]/matching/[organizationId]/suggestions/route";
 import { GET, POST } from "@/app/api/coordinator/programs/[id]/matching/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchMatching: vi.fn(),
@@ -13,20 +14,19 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   createMatch: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
-const ok = { data: {}, headers: {}, status: 200 } as never;
 const program = { params: Promise.resolve({ id: "program-1" }) };
 
 describe("coordinator matching routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
-      session: { userId: "c-1", role: UserRole.Coordinator } as AppSession,
+      session: appSession({ userId: "c-1", role: UserRole.Coordinator }),
     });
-    for (const fn of Object.values(api)) vi.mocked(fn).mockResolvedValue(ok);
+    answerEachWith(Object.values(api));
   });
 
   it("reads the queue and suggestions, and matches as the signed-in coordinator", async () => {
@@ -60,10 +60,9 @@ describe("coordinator matching routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
     const response = await GET(new Request("http://localhost"), program);
     expect(response.status).toBe(403);
     expect(api.fetchMatching).not.toHaveBeenCalled();

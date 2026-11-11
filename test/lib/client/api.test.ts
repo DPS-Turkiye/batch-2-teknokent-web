@@ -1,11 +1,26 @@
-import { describe, expect, it } from "vitest";
 import type { AxiosResponse } from "axios";
+import { describe, expect, it } from "vitest";
 
 import { ClientApiError, requireSuccess } from "@/lib/client/api";
 import { clientTextsIn } from "@test/client-texts";
+import { createAxiosResponse } from "@test/fixtures/health";
 
-function response<T>(status: number, data: T): AxiosResponse<T> {
-  return { status, data } as AxiosResponse<T>;
+function response<T>(
+  status: number,
+  data: T,
+  headers: Record<string, string> = {},
+): AxiosResponse<T> {
+  return { ...createAxiosResponse(data, status), headers };
+}
+
+/** What `run` threw; fails the test when it returned instead. */
+function errorFrom(run: () => unknown): unknown {
+  try {
+    run();
+  } catch (error) {
+    return error;
+  }
+  throw new Error("Expected the call to throw");
 }
 
 describe("requireSuccess", () => {
@@ -27,11 +42,9 @@ describe("requireSuccess", () => {
       "The record you are looking for was not found.",
     );
     expect(() =>
-      requireSuccess({
-        status: 429,
-        data: {},
-        headers: { "x-rate-limit-retry-after-seconds": "61" },
-      } as unknown as AxiosResponse),
+      requireSuccess(
+        response(429, {}, { "x-rate-limit-retry-after-seconds": "61" }),
+      ),
     ).toThrow("Too many attempts. Try again in 2 minutes.");
   });
 
@@ -56,36 +69,31 @@ describe("requireSuccess", () => {
   });
 
   it("keeps the backend's error code", () => {
-    try {
+    const error = errorFrom(() =>
       requireSuccess(
         response(401, {
           message: "No active session.",
           code: "SESSION_REQUIRED",
         }),
-      );
-      expect.unreachable("should have thrown");
-    } catch (error) {
-      expect(error).toBeInstanceOf(ClientApiError);
-      expect((error as ClientApiError).code).toBe("SESSION_REQUIRED");
-      expect((error as ClientApiError).status).toBe(401);
-    }
+      ),
+    );
+    expect(error).toBeInstanceOf(ClientApiError);
+    expect(error).toMatchObject({ code: "SESSION_REQUIRED", status: 401 });
   });
 
   it("keeps field-level validation messages from the backend", () => {
-    try {
+    const error = errorFrom(() =>
       requireSuccess(
         response(400, {
           message: "Form validation failed.",
           fieldErrors: { phone: "Telefon numarası geçersiz." },
         }),
-      );
-      expect.unreachable("should have thrown");
-    } catch (error) {
-      expect(error).toBeInstanceOf(ClientApiError);
-      expect((error as ClientApiError).fieldErrors).toEqual({
-        phone: "Telefon numarası geçersiz.",
-      });
-    }
+      ),
+    );
+    expect(error).toBeInstanceOf(ClientApiError);
+    expect(error).toHaveProperty("fieldErrors", {
+      phone: "Telefon numarası geçersiz.",
+    });
   });
 
   // A rejection from an edge proxy carries no JSON body, which is how testers
@@ -105,11 +113,11 @@ describe("requireSuccess", () => {
   );
 
   it("says how many minutes to wait after too many tries", () => {
-    const limited = {
-      status: 429,
-      data: { message: "" },
-      headers: { "x-rate-limit-retry-after-seconds": "125" },
-    } as unknown as AxiosResponse;
+    const limited = response(
+      429,
+      { message: "" },
+      { "x-rate-limit-retry-after-seconds": "125" },
+    );
 
     expect(() => requireSuccess(limited)).toThrow(
       "Çok fazla deneme yapıldı. 3 dakika sonra tekrar dene.",

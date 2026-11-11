@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
@@ -9,23 +8,18 @@ import {
 import {
   isProfileOriginRequest,
   meetingCallHref,
-  type MeetingContextTexts,
   meetingInviteeLabels,
   meetingScheduleLabel,
   requestAgendaLines,
   requestExpectedOutcome,
   splitContextLines,
+  type MeetingContextTexts,
 } from "@/lib/meeting-context";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
 function contextTexts(locale: "tr" | "en"): MeetingContextTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "meetingPages.context",
-    }),
+    t: translatorIn(locale, "meetingPages.context"),
     locale,
   };
 }
@@ -76,16 +70,21 @@ function request(
 describe("meeting-context helpers", () => {
   it("reads the stored expected outcome, falling back to the message on older requests", () => {
     expect(
-      requestExpectedOutcome({
-        expectedOutcome: " İlk finansal model ",
-        requesterMessage: "Eski metin",
-      } as MentorshipRequest),
+      requestExpectedOutcome(
+        request({
+          expectedOutcome: " İlk finansal model ",
+          requesterMessage: "Eski metin",
+        }),
+      ),
     ).toBe("İlk finansal model");
     expect(
-      requestExpectedOutcome({
-        expectedOutcome: null,
-        requesterMessage: "Eski metin\nTercih edilen saatler: 2026-09-11|10:30",
-      } as MentorshipRequest),
+      requestExpectedOutcome(
+        request({
+          expectedOutcome: null,
+          requesterMessage:
+            "Eski metin\nTercih edilen saatler: 2026-09-11|10:30",
+        }),
+      ),
     ).toBe("Eski metin");
     expect(requestExpectedOutcome(null)).toBe("");
   });

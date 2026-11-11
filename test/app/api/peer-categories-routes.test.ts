@@ -14,6 +14,7 @@ import {
   replaceProgramPeerCategories,
 } from "@/lib/api/program-peer-categories";
 import { getSessionUser } from "@/lib/session";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => key,
@@ -25,7 +26,7 @@ vi.mock("@/lib/api/program-peer-categories", () => ({
   replaceProgramPeerCategories: vi.fn(),
 }));
 
-const ok = { status: 200, data: [], headers: {} };
+const ok = backendResponse([]);
 const program = { params: Promise.resolve({ id: "p1" }) };
 
 function as(role: UserRole): AppSession {
@@ -41,13 +42,14 @@ function as(role: UserRole): AppSession {
 describe("peer category routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    for (const call of [
-      fetchPeerCategories,
-      fetchProgramPeerCategories,
-      replaceProgramPeerCategories,
-    ]) {
-      vi.mocked(call).mockResolvedValue(ok as never);
-    }
+    answerEachWith(
+      [
+        fetchPeerCategories,
+        fetchProgramPeerCategories,
+        replaceProgramPeerCategories,
+      ],
+      ok,
+    );
   });
 
   it("gives a signed-in student their program's categories, or a mentor's with as=MENTOR", async () => {

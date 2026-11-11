@@ -33,7 +33,7 @@ describe("WeeklyCheckIn", () => {
     fireEvent.click(screen.getByRole("button", { name: "Bu hafta katıldım" }));
 
     await waitFor(() => expect(checkInMyAttendance).toHaveBeenCalled());
-    expect(vi.mocked(checkInMyAttendance).mock.calls[0][0]).toBe(2);
+    expect(vi.mocked(checkInMyAttendance).mock.calls[0]?.[0]).toBe(2);
     expect(
       await screen.findByText(/Bu haftaki katılımın kaydedildi \(/),
     ).toBeInTheDocument();

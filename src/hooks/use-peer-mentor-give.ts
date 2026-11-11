@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
-import { useToast } from "@/stores/toast-store";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
@@ -15,24 +14,25 @@ import {
   MENTOR_PROFILE_QUERY_KEY,
 } from "@/hooks/use-mentor-profile";
 import {
-  PEER_MENTORS_QUERY_KEY,
   PEER_MENTORING_REQUESTS_QUERY_KEY,
+  PEER_MENTORS_QUERY_KEY,
 } from "@/hooks/use-peer-mentoring";
-import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { PEER_MENTOR_CATEGORIES_QUERY_KEY } from "@/hooks/use-student-profile-completion";
+import { STUDENT_TRAINING_QUERY_KEY } from "@/hooks/use-student-training";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
-import {
-  type MentorAvailabilitySettings,
-  type UpdateMentorAvailabilitySettingsPayload,
+import type {
+  MentorAvailabilitySettings,
+  UpdateMentorAvailabilitySettingsPayload,
 } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  type PeerMentorProfile,
   PeerMentorGateState,
+  type PeerMentorProfile,
   type PeerTopicCategory,
   type SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
+import { ToastTone } from "@/interfaces/toast";
 import { TrainingState } from "@/interfaces/training";
 import {
   getAvailabilitySettings,
@@ -44,8 +44,8 @@ import {
   getReceivedPeerRequests,
   savePeerMentorProfile,
 } from "@/lib/client/peer-mentoring";
-import { getStudentTraining } from "@/lib/client/training";
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
+import { getStudentTraining } from "@/lib/client/training";
 import {
   latestGateAward,
   PEER_MENTOR_TRAINING_HREF,
@@ -59,7 +59,7 @@ import {
   toggleInterestTopic,
 } from "@/lib/student-interests";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -192,7 +192,7 @@ export function usePeerRequestDecision() {
   return {
     accept: (id: string) => decide.mutate({ id, accept: true }),
     decline: (id: string) => decide.mutate({ id, accept: false }),
-    pendingId: decide.isPending ? decide.variables?.id : undefined,
+    pendingId: decide.isPending ? decide.variables.id : undefined,
   };
 }
 
@@ -327,7 +327,10 @@ export function usePeerMentorWizard() {
     {
       settings: availabilitySettings,
       loadFailed: false,
-      save: async (payload) => setAvailabilityDraft(payload),
+      save: (payload) => {
+        setAvailabilityDraft(payload);
+        return Promise.resolve();
+      },
       isSaving: false,
       numberFields: ["menteeCapacity", "defaultMeetingDurationMinutes"],
       quiet: true,

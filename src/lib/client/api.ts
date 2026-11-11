@@ -4,6 +4,12 @@ import { clientLocale, clientText } from "@/i18n/client-texts";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
 import { Locale } from "@/lib/i18n";
 
+/** Codes this app gives failures that never reached a route handler; other codes come from the backend. */
+export const ClientErrorCode = {
+  Timeout: "TIMEOUT",
+  Network: "NETWORK",
+} as const;
+
 export class ClientApiError extends Error {
   constructor(
     message: string,
@@ -73,7 +79,7 @@ function visibleServerMessage(body: unknown, status: number) {
 const RETRY_AFTER_HEADER = "x-rate-limit-retry-after-seconds";
 
 function rateLimitMessage(response: AxiosResponse) {
-  const seconds = Number(response.headers?.[RETRY_AFTER_HEADER]);
+  const seconds = Number(response.headers[RETRY_AFTER_HEADER]);
   if (!Number.isFinite(seconds) || seconds <= 0) return fallbackMessage(429);
   const minutes = Math.ceil(seconds / 60);
   return clientText("rateLimit", { minutes });

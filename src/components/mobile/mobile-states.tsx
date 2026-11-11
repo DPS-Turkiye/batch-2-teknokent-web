@@ -1,5 +1,5 @@
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 const CARD_CLASS =
   "flex w-full flex-col gap-3 rounded-[24px] border border-[#e9ecef] bg-white p-5";

@@ -1,31 +1,30 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useLocale, useTranslations } from "next-intl";
 
+import { SampleDataNotice } from "@/components/academician/sample-data-notice";
+import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
+import {
+  DetailBox,
+  EmptyLine,
+  fieldClass,
+  labelClass,
+  PersonLine,
+  WorkspaceList,
+  WorkspaceRow,
+  WorkspaceSection,
+} from "@/components/academician/workspace-ui";
 import {
   OutlineButton,
   PageHeading,
   SolidButton,
 } from "@/components/admin/admin-ui";
 import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
-import { SampleDataNotice } from "@/components/academician/sample-data-notice";
-import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
-import {
-  DetailBox,
-  EmptyLine,
-  PersonLine,
-  WorkspaceList,
-  WorkspaceRow,
-  WorkspaceSection,
-  fieldClass,
-  labelClass,
-} from "@/components/academician/workspace-ui";
 import { EmptyState } from "@/components/common/empty-state";
 import {
-  type AcademicianRequestsState,
   useAcademicianRequests,
+  type AcademicianRequestsState,
 } from "@/hooks/use-academician-requests";
 import {
   MAX_PROPOSED_TIMES,
@@ -258,6 +257,7 @@ function AnswerForm({
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             {state.proposedTimes.map((value, index) => (
+              // eslint-disable-next-line react/no-array-index-key -- proposed times are only ever appended, so a time's position is its identity
               <label key={index} className={`block ${labelClass}`}>
                 {t("proposedTime", { number: index + 1 })}
                 <input

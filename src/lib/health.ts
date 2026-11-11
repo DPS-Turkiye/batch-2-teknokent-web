@@ -1,7 +1,11 @@
+import {
+  HealthStatus,
+  isHealthStatus,
+  type BackendHealthResult,
+  type HealthResponse,
+} from "@/interfaces/health";
 import { getBackendHealthUrl, HEALTH_API_PATH } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
-import type { BackendHealthResult, HealthResponse } from "@/interfaces/health";
-import { HealthStatus, isHealthStatus } from "@/interfaces/health";
 
 export type {
   BackendHealthResult,
@@ -13,7 +17,7 @@ export { HealthStatus, isHealthStatus } from "@/interfaces/health";
 export class HealthFetchError extends Error {
   constructor(
     message: string,
-    readonly cause?: unknown,
+    override readonly cause?: unknown,
   ) {
     super(message);
     this.name = "HealthFetchError";
@@ -36,7 +40,7 @@ export function isValidHealthResponse(value: unknown): value is HealthResponse {
     isHealthStatus(candidate.status) &&
     typeof candidate.timestamp === "string" &&
     typeof candidate.version === "string" &&
-    !!components &&
+    Boolean(components) &&
     typeof components === "object" &&
     isHealthStatus((components as { database: unknown }).database) &&
     isHealthStatus((components as { redis: unknown }).redis)

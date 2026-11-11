@@ -8,11 +8,11 @@ import {
   useReplyForm,
   useRequestFileUpload,
 } from "@/hooks/use-mentorship-requests";
+import { useMyAnnouncements } from "@/hooks/use-program-announcements";
+import { useProgramThreads } from "@/hooks/use-program-threads";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { mentorshipRequestAllowsMessaging } from "@/lib/mentorship-workspace";
-import { useMyAnnouncements } from "@/hooks/use-program-announcements";
-import { useProgramThreads } from "@/hooks/use-program-threads";
 
 export function useMenteeMessages(linkedThreadId: string | null = null) {
   const { session } = useSession();

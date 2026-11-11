@@ -1,10 +1,9 @@
 "use client";
 
-import { Suspense } from "react";
-
-import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
+import { Suspense } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
@@ -174,6 +173,8 @@ function MeetingFeedbackContent() {
               </h2>
               <div className="mt-2.5 flex flex-wrap gap-3">
                 {MEETING_FEEDBACK_BENEFITS.map((benefit, index) => {
+                  const benefitId = MEETING_FEEDBACK_BENEFIT_IDS[index];
+                  if (!benefitId) return null;
                   const selected = selectedBenefits.has(benefit);
                   return (
                     <button
@@ -192,7 +193,7 @@ function MeetingFeedbackContent() {
                               : "hover:border-[#f2b78f]"))
                       }
                     >
-                      {t(`benefits.${MEETING_FEEDBACK_BENEFIT_IDS[index]}`)}
+                      {t(`benefits.${benefitId}`)}
                     </button>
                   );
                 })}

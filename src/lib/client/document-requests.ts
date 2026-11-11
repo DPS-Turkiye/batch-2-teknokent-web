@@ -52,8 +52,8 @@ export async function attachDocumentRequestUpload(
 }
 
 export async function deleteDocumentRequestUpload(uploadId: string) {
-  return requireSuccess(
-    await httpClient.delete(
+  requireSuccess(
+    await httpClient.delete<void>(
       `/api/document-requests/uploads/${encodeURIComponent(uploadId)}`,
     ),
   );

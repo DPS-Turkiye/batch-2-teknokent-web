@@ -1,9 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT } from "@/app/api/programs/mine/active/route";
-import { GET as GET_NAMES } from "@/app/api/programs/names/route";
 import { GET } from "@/app/api/programs/mine/route";
+import { GET as GET_NAMES } from "@/app/api/programs/names/route";
+import type { OrganizationPrograms } from "@/interfaces/program";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   fetchOrganizationPrograms,
@@ -11,6 +12,7 @@ import {
   updateActiveProgram,
 } from "@/lib/api/programs";
 import { requireStartupSession } from "@/lib/server/require-program-access";
+import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/programs", () => ({
   fetchOrganizationPrograms: vi.fn(),
@@ -34,20 +36,17 @@ function startupSession(): AppSession {
 }
 
 // backendRequest resolves an envelope, not the payload.
-const PROGRAMS = {
-  data: {
-    programs: [
-      {
-        id: "prog-1",
-        name: "metustarts 2026",
-        coordinatorName: "Demo Koordinatör",
-      },
-    ],
-    activeProgramId: null,
-  },
-  headers: {},
-  status: 200,
-};
+const PROGRAMS = backendResponse<OrganizationPrograms>({
+  programs: [
+    {
+      id: "prog-1",
+      name: "metustarts 2026",
+      coordinatorName: "Demo Koordinatör",
+      individualMentees: false,
+    },
+  ],
+  activeProgramId: null,
+});
 
 function activeRequest(body: unknown) {
   return new NextRequest("http://localhost/api/programs/mine/active", {
@@ -60,10 +59,7 @@ beforeEach(() => vi.clearAllMocks());
 
 describe("GET /api/programs/mine", () => {
   it("refuses a caller who is not a startup member", async () => {
-    vi.mocked(requireStartupSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireStartupSession).mockResolvedValue(guardRefusal(403));
 
     expect((await GET()).status).toBe(403);
     expect(fetchOrganizationPrograms).not.toHaveBeenCalled();
@@ -87,10 +83,7 @@ describe("GET /api/programs/mine", () => {
 
 describe("PUT /api/programs/mine/active", () => {
   it("refuses a caller who is not a startup member", async () => {
-    vi.mocked(requireStartupSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireStartupSession).mockResolvedValue(guardRefusal(403));
 
     expect((await PUT(activeRequest({ programId: "prog-1" }))).status).toBe(
       403,
@@ -142,7 +135,9 @@ describe("GET /api/programs/names", () => {
   // half-way through signup and has no account yet.
   it("serves the list without requiring a session", async () => {
     vi.mocked(fetchProgramNames).mockResolvedValue({
-      data: [{ id: "prog-1", name: "metustarts 2026" }],
+      data: [
+        { id: "prog-1", name: "metustarts 2026", individualMentees: false },
+      ],
       headers: {},
       status: 200,
     });
@@ -152,7 +147,7 @@ describe("GET /api/programs/names", () => {
     expect(response.status).toBe(200);
     expect(requireStartupSession).not.toHaveBeenCalled();
     await expect(response.json()).resolves.toEqual([
-      { id: "prog-1", name: "metustarts 2026" },
+      { id: "prog-1", name: "metustarts 2026", individualMentees: false },
     ]);
   });
 });

@@ -1,25 +1,34 @@
+import { z } from "zod";
+
 import { extractSyllabusPhases } from "@/lib/api/coordinator-programs";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
-const dateOrNull = (value: unknown) =>
-  typeof value === "string" && value ? value : null;
+/** An empty date field means the program has no date yet. */
+const optionalDateSchema = z
+  .string()
+  .nullish()
+  .transform((value) => value || null);
+
+const extractPhasesSchema = z.object({
+  documentId: z.string(),
+  startDate: optionalDateSchema,
+  endDate: optionalDateSchema,
+});
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
-    const body = await request.json();
+    const body = await readJsonBody(request, extractPhasesSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await extractSyllabusPhases(auth.session.userId, {
-        documentId: String(body.documentId ?? ""),
-        startDate: dateOrNull(body.startDate),
-        endDate: dateOrNull(body.endDate),
-      }),
+      await extractSyllabusPhases(auth.session.userId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

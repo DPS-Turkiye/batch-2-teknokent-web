@@ -6,12 +6,13 @@ import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
-import type { AdminProgram, AdminUser } from "@/interfaces/admin-overview";
-import { UserAccountStatus } from "@/interfaces/session";
+import type { AdminUser } from "@/interfaces/admin-overview";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { decidePendingAccount } from "@/lib/client/admin-users";
 import { ClientApiError } from "@/lib/client/api";
 import { addProgramCoordinator } from "@/lib/client/coordinator-programs";
 import { ALREADY_COORDINATOR } from "@/lib/const";
+import { adminProgram } from "@test/fixtures/admin-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-users", () => ({
@@ -27,27 +28,19 @@ const user: AdminUser = {
   id: "user-1",
   email: "okan.yurt@bigg.gov.tr",
   fullName: "Okan Yurt",
-  role: "COORDINATOR",
-  status: "PENDING",
+  role: UserRole.Coordinator,
+  status: UserAccountStatus.Pending,
   organizationId: null,
   organizationName: "BİGG Ankara",
   jobTitle: null,
   createdAt: "2026-09-24T00:00:00Z",
 };
 
-const program = {
-  id: "program-1",
+const program = adminProgram({
   name: "BİGG Ankara 2027",
-  status: "ACTIVE",
-  createdAt: "2026-01-01T00:00:00Z",
   coordinatorId: "other",
   coordinatorName: "Elif Demir",
-  startupCount: 0,
-  acceptedMentorCount: 0,
-  pendingMentorCount: 0,
-  startups: [],
-  mentors: [],
-} satisfies AdminProgram;
+});
 
 describe("Coordinator approval", () => {
   beforeEach(() => vi.clearAllMocks());
@@ -81,7 +74,7 @@ describe("Coordinator approval", () => {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
-        role: "COORDINATOR" as never,
+        role: UserRole.Coordinator,
         status: UserAccountStatus.Approved,
       },
       inviteCode: null,
@@ -123,7 +116,7 @@ describe("Coordinator approval", () => {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
-        role: "COORDINATOR" as never,
+        role: UserRole.Coordinator,
         status: UserAccountStatus.Approved,
       },
       inviteCode: null,

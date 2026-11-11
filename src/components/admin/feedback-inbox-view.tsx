@@ -12,7 +12,8 @@ import { useLocale, useTranslations } from "next-intl";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useFeedbackInbox } from "@/hooks/use-feedback-inbox";
 import { PlatformFeedbackKind } from "@/interfaces/platform-feedback";
-import type { ProgramType } from "@/interfaces/program";
+import { ProgramType } from "@/interfaces/program";
+import { isEnumValue } from "@/lib/enum";
 import { ALL_PROGRAM_TYPES, PROGRAM_TYPE_FILTERS } from "@/lib/program-types";
 import { formatDateTime } from "@/lib/utils";
 
@@ -65,13 +66,12 @@ export function FeedbackInboxView() {
           <select
             aria-label={tType("label")}
             value={inbox.programType ?? ALL_PROGRAM_TYPES}
-            onChange={(event) =>
+            onChange={(event) => {
+              const { value } = event.target;
               inbox.filterProgramType(
-                event.target.value === ALL_PROGRAM_TYPES
-                  ? null
-                  : (event.target.value as ProgramType),
-              )
-            }
+                isEnumValue(ProgramType, value) ? value : null,
+              );
+            }}
             className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
           >
             {PROGRAM_TYPE_FILTERS.map((option) => (
@@ -104,7 +104,7 @@ export function FeedbackInboxView() {
           {t("readFailed")}
         </p>
       ) : null}
-      {data && data.page.content.length === 0 ? (
+      {data?.page.content.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-[#dde1e6] py-16 text-center">
           <Inbox aria-hidden className="mx-auto size-8 text-[#aeb4bc]" />
           <h2 className="mt-4 text-base font-semibold text-[#515861]">

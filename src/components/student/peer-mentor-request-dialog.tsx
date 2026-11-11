@@ -1,15 +1,15 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useTranslations } from "next-intl";
 
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { usePeerMentorRequestForm } from "@/hooks/use-peer-mentoring";
-import type {
-  PeerMentorCard,
+import {
   PeerTopicCategory,
+  type PeerMentorCard,
 } from "@/interfaces/peer-mentoring";
+import { isEnumValue } from "@/lib/enum";
 
 const fieldClass =
   "w-full rounded-xl border border-[#d4d8dd] bg-white px-3 py-2 text-[13px]! text-[#22262b]";
@@ -46,10 +46,12 @@ export function PeerMentorRequestDialog({
         <label className="flex flex-col gap-1.5 text-[12.5px] font-medium text-[#4a5059]">
           {t("category")}
           <select
-            value={form.category}
-            onChange={(event) =>
-              form.setCategory(event.target.value as PeerTopicCategory)
-            }
+            value={form.category ?? ""}
+            onChange={(event) => {
+              const { value } = event.target;
+              if (isEnumValue(PeerTopicCategory, value))
+                form.setCategory(value);
+            }}
             className={`${fieldClass} h-10`}
           >
             {mentor.categories.map((category) => (

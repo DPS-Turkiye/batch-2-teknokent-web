@@ -11,15 +11,16 @@ import {
 } from "@/components/mentor-dashboard/create-meeting-dialog";
 import { RegularMentorshipWeekChecksPanel } from "@/components/mentor-dashboard/regular-mentorship-week-checks";
 import { useAppSession } from "@/components/providers/session-provider";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import { CALENDAR_HOURS, useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
   CalendarFilter,
   hourOf,
   isSameDay,
+  MENTOR_CALENDAR_FILTERS,
   shortWeekday,
   timeLabel,
-  MENTOR_CALENDAR_FILTERS,
   weekRangeLabel,
 } from "@/lib/calendar";
 import {
@@ -27,7 +28,6 @@ import {
   ensureGoogleCalendarToken,
 } from "@/lib/google-calendar";
 import { AppArea } from "@/types/app-area";
-import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 function toDateKey(value: Date) {
   const year = value.getFullYear();
@@ -172,9 +172,10 @@ export default function MentorCalendarPage() {
   const [isCreating, setIsCreating] = useState(false);
 
   const days = calendar.days;
-  const range = days.length
-    ? weekRangeLabel(days[0], days[days.length - 1], locale)
-    : "";
+  const rangeStart = days[0];
+  const rangeEnd = days[days.length - 1];
+  const range =
+    rangeStart && rangeEnd ? weekRangeLabel(rangeStart, rangeEnd, locale) : "";
   const programEventCount =
     calendar.filter === CalendarFilter.Program ? calendar.programs.length : 0;
 

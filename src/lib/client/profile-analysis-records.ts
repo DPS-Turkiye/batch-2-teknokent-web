@@ -2,8 +2,8 @@ import type {
   ProfileAnalysis,
   ProfileAnalysisRecordScope,
 } from "@/interfaces/profile-analysis";
-import { httpClient } from "@/lib/http-client";
 import { requireSuccess } from "@/lib/client/api";
+import { httpClient } from "@/lib/http-client";
 
 export async function getProfileAnalysisRecord(
   scope: ProfileAnalysisRecordScope,

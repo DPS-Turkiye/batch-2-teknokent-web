@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramWizardView } from "@/components/admin/program-wizard-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
 import { ProgramType } from "@/interfaces/program";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -24,8 +25,8 @@ function user(overrides: Partial<AdminUser>): AdminUser {
     id: "coordinator-1",
     email: "elif@odtu.test",
     fullName: "Elif Demir",
-    role: "COORDINATOR",
-    status: "APPROVED",
+    role: UserRole.Coordinator,
+    status: UserAccountStatus.Approved,
     organizationId: null,
     organizationName: null,
     jobTitle: null,
@@ -37,8 +38,12 @@ const overview: AdminOverview = {
   programs: [],
   users: [
     user({}),
-    user({ id: "coordinator-2", fullName: "Burcu Şen", status: "PENDING" }),
-    user({ id: "mentor-1", fullName: "Ece Mentor", role: "MENTOR" }),
+    user({
+      id: "coordinator-2",
+      fullName: "Burcu Şen",
+      status: UserAccountStatus.Pending,
+    }),
+    user({ id: "mentor-1", fullName: "Ece Mentor", role: UserRole.Mentor }),
   ],
   mentorships: [],
   requests: [],

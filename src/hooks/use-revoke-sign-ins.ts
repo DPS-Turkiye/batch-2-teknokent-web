@@ -4,10 +4,10 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
+import { ToastTone } from "@/interfaces/toast";
 import { revokeUserSignIns } from "@/lib/client/admin-users";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** Ends every sign-in of one user after the admin confirms it. */
 export function useRevokeSignIns(user: { id: string; fullName: string }) {

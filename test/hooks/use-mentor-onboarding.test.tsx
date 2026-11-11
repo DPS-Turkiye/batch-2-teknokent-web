@@ -9,25 +9,26 @@ import {
   MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
 import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
+import {
   clearOnboardingDraft,
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
-import {
-  chooseMentorPrograms,
-  getMentorPrograms,
-} from "@/lib/client/mentor-programs";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
-import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
 import { currentIdToken } from "@/lib/firebase/auth";
+import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
@@ -90,7 +91,7 @@ beforeEach(() => {
   );
   vi.mocked(uploadDocument).mockResolvedValue({
     id: "cv-1",
-    kind: "cv",
+    kind: DocumentKind.Cv,
     originalFilename: "nihan-cv.pdf",
     sizeBytes: 5,
   });
@@ -196,8 +197,8 @@ describe("useMentorOnboarding", () => {
 
   it("asks for an open program on the areas step and starts with the ones the mentor already has", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
-      { id: "p1", name: "METU Stars 2026" },
-      { id: "p2", name: "Growth Circuit 2026" },
+      { id: "p1", name: "METU Stars 2026", individualMentees: false },
+      { id: "p2", name: "Growth Circuit 2026", individualMentees: false },
     ]);
     vi.mocked(getMentorPrograms).mockResolvedValue(["p2"]);
     const { result } = renderHook(() => useMentorOnboarding());
@@ -395,7 +396,7 @@ describe("useMentorOnboarding — reading the CV", () => {
       student_projects: [],
       exchange_experience: null,
     });
-    const { result } = renderHook(() => useMentorOnboarding({}));
+    const { result } = renderHook(() => useMentorOnboarding());
 
     act(
       () =>
@@ -612,6 +613,42 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     expect(second.result.current.droppedFiles).toBe(0);
   });
 
+  it("saves the rows without their React keys and gives restored rows fresh ones", async () => {
+    const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
+    act(() => {
+      first.result.current.addExperience();
+      first.result.current.addEducation();
+      first.result.current.addEducation();
+    });
+    act(() => {
+      first.result.current.updateExperience(0, {
+        title: "Senior PM",
+        organization: "Looply",
+      });
+      first.result.current.updateEducation(0, "school", "ODTÜ");
+      first.result.current.updateEducation(1, "school", "Bilkent");
+    });
+    const typedKey = first.result.current.draft.profile.history[0]?.key;
+    expect(typedKey).toEqual(expect.any(String));
+    await act(async () => {
+      await first.result.current.saveDraft();
+    });
+    first.unmount();
+
+    expect(JSON.stringify(stored?.payload)).not.toContain('"key"');
+
+    const second = renderHook(() => useMentorOnboarding());
+    await waitFor(() =>
+      expect(second.result.current.draft.profile.education).toHaveLength(2),
+    );
+    const { history, education } = second.result.current.draft.profile;
+    expect(history.map((role) => role.title)).toEqual(["Senior PM"]);
+    const keys = [...history, ...education].map((row) => row.key);
+    expect(new Set(keys).size).toBe(3);
+    expect(keys.every((key) => typeof key === "string")).toBe(true);
+  });
+
   it("restores a draft saved before schools existed with an empty school list", async () => {
     stored = {
       kind: "mentor-onboarding",
@@ -636,7 +673,7 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     act(() => result.current.addEducation());
     act(() => result.current.updateEducation(0, "school", "ODTÜ"));
     expect(result.current.draft.profile.education).toEqual([
-      { school: "ODTÜ", degree: "", period: "" },
+      { key: expect.any(String), school: "ODTÜ", degree: "", period: "" },
     ]);
     act(() => result.current.removeEducation(0));
     expect(result.current.draft.profile.education).toEqual([]);

@@ -7,15 +7,16 @@ import {
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
-import {
-  confirmStartupProfileRecord,
-  createStartupProfileRecord,
-} from "@/lib/client/profile-analysis-records";
+
 import { PROFILE_ANALYSIS_MUTATION_KEY } from "@/hooks/use-profile-analysis-record";
 import {
   ProfileAnalysisType,
   type ProfileAnalysis,
 } from "@/interfaces/profile-analysis";
+import {
+  confirmStartupProfileRecord,
+  createStartupProfileRecord,
+} from "@/lib/client/profile-analysis-records";
 import {
   editableProfile,
   profilePayload,
@@ -26,7 +27,7 @@ export function useProfileAnalysisEditor({
   analysis,
   onSaved,
 }: {
-  analysis?: ProfileAnalysis;
+  analysis?: ProfileAnalysis | undefined;
   onSaved: (analysis: ProfileAnalysis) => void;
 }) {
   const t = useTranslations("profileAnalysis");

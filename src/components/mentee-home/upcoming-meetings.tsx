@@ -1,13 +1,13 @@
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import type { MeetingItem } from "@/interfaces/meeting";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { meetingWhenLabel } from "@/lib/mentee-home";
 import { meetingCallHref } from "@/lib/mentorship-workspace";
-import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 const MEETING_LIMIT = 2;
 

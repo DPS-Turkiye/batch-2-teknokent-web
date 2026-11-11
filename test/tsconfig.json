@@ -8,6 +8,6 @@
     },
     "types": ["vitest/globals"]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "../src/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

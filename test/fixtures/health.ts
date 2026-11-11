@@ -1,3 +1,5 @@
+import { AxiosHeaders, type AxiosResponse } from "axios";
+
 import { HealthStatus, type HealthResponse } from "@/interfaces/health";
 
 export const healthyResponse: HealthResponse = {
@@ -20,15 +22,16 @@ export const unhealthyResponse: HealthResponse = {
   },
 };
 
+/** What axios resolves with for a response carrying `data`; the request config is an empty one. */
 export function createAxiosResponse<T>(
   data: T,
   status: number,
-): import("axios").AxiosResponse<T> {
+): AxiosResponse<T> {
   return {
     data,
     status,
     statusText: status >= 200 && status < 300 ? "OK" : "Error",
     headers: {},
-    config: {} as import("axios").AxiosResponse<T>["config"],
+    config: { headers: new AxiosHeaders() },
   };
 }

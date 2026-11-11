@@ -30,7 +30,7 @@ function mockProposals(overrides: Record<string, unknown> = {}) {
     declining: false,
     error: null,
     ...overrides,
-  } as ReturnType<typeof useMeetingProposals>);
+  });
 }
 
 describe("MeetingProposalCards", () => {

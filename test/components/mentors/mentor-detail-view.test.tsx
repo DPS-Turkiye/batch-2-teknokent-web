@@ -7,7 +7,9 @@ import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { submitMentorshipRequest } from "@/lib/mentorship-requests";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 import { mentorProfile } from "@test/fixtures/mentors";
+import { successQuery } from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
@@ -48,10 +50,7 @@ const startup = {
 
 describe("MentorDetailView", () => {
   it("reads in English", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
     renderWithQueryClient(
       <InLocale locale="en">
         <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />
@@ -72,10 +71,7 @@ describe("MentorDetailView", () => {
   });
 
   it("shows a student mentor's studies, and no such card for other mentors", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
     const { unmount } = renderWithQueryClient(
       <MentorDetailView
         mentor={{
@@ -109,10 +105,7 @@ describe("MentorDetailView", () => {
   });
 
   it("opens the Figma mentorship request dialog from the profile CTA", async () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
     const user = userEvent.setup();
     const slotDate = new Date();
     slotDate.setDate(slotDate.getDate() + 1);
@@ -168,16 +161,15 @@ describe("MentorDetailView", () => {
   });
 
   it("opens the accepted request conversation for the selected mentor", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [
-        {
+    vi.mocked(useMentorshipRequests).mockReturnValue(
+      successQuery([
+        menteeRequestFixture({
           id: "request-accepted",
           mentorId: mentorProfile.id,
           status: MentorshipRequestStatus.Accepted,
-        },
-      ],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+        }),
+      ]),
+    );
 
     renderWithQueryClient(
       <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />,
@@ -190,10 +182,7 @@ describe("MentorDetailView", () => {
   });
 
   it("shows mentee load, stats, programs and past roles when the backend sends them", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
 
     renderWithQueryClient(
       <MentorDetailView
@@ -232,10 +221,7 @@ describe("MentorDetailView", () => {
   });
 
   it("lists the mentor's schools apart from the experience", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
 
     renderWithQueryClient(
       <MentorDetailView
@@ -263,10 +249,7 @@ describe("MentorDetailView", () => {
   });
 
   it("falls back to the title and availability when there are no stats", () => {
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [],
-      isLoading: false,
-    } as unknown as ReturnType<typeof useMentorshipRequests>);
+    vi.mocked(useMentorshipRequests).mockReturnValue(successQuery([]));
 
     renderWithQueryClient(
       <MentorDetailView mentor={mentorProfile} slots={[]} startup={startup} />,

@@ -90,16 +90,16 @@ function RequestNotes({ request }: { request: OfficeHoursRequest }) {
   const t = useTranslations("officeHours.booking");
   return (
     <>
-      {request.instructorMessage && (
+      {request.instructorMessage ? (
         <p className="mt-2 text-[12.5px] text-[#4a5059]">
           {t("note", { message: request.instructorMessage })}
         </p>
-      )}
-      {request.rejectionReason && (
+      ) : null}
+      {request.rejectionReason ? (
         <p className="mt-2 text-[12.5px] text-[#4a5059]">
           {t("rejection", { reason: request.rejectionReason })}
         </p>
-      )}
+      ) : null}
       {request.messages.length > 0 && (
         <ul className="mt-3 flex flex-col gap-1.5 rounded-lg bg-[#f8f9fa] p-3 text-[12.5px] text-[#4a5059]">
           {request.messages.map((message) => (
@@ -288,17 +288,19 @@ export function OfficeHoursRequestCard({
         </span>
       </div>
 
-      {request.expectedOutcome && (
+      {request.expectedOutcome ? (
         <p className="mt-2 text-[12.5px] text-[#4a5059]">
           {t("outcome", { outcome: request.expectedOutcome })}
         </p>
-      )}
+      ) : null}
       <RequestTimes request={request} />
       <RequestNotes request={request} />
 
-      {card.can.takeProposed && <ProposedTimes request={request} card={card} />}
-      {card.can.reply && <ReplyForm card={card} />}
-      {card.can.withdraw && (
+      {card.can.takeProposed ? (
+        <ProposedTimes request={request} card={card} />
+      ) : null}
+      {card.can.reply ? <ReplyForm card={card} /> : null}
+      {card.can.withdraw ? (
         <button
           type="button"
           disabled={card.isPending}
@@ -307,17 +309,19 @@ export function OfficeHoursRequestCard({
         >
           {t("withdraw")}
         </button>
-      )}
-      {card.can.decide && card.mode === null && <DecisionButtons card={card} />}
-      {card.can.decide && card.mode !== null && (
+      ) : null}
+      {card.can.decide && card.mode === null ? (
+        <DecisionButtons card={card} />
+      ) : null}
+      {card.can.decide && card.mode !== null ? (
         <DecisionPanel request={request} card={card} mode={card.mode} />
-      )}
+      ) : null}
 
-      {card.error && (
+      {card.error ? (
         <p role="alert" className="mt-2 text-[12.5px] text-[#b42318]">
           {card.error}
         </p>
-      )}
+      ) : null}
     </li>
   );
 }

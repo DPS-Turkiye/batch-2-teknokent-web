@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { Bell, Check, Trash2, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
 import { useDashboardNotifications } from "@/hooks/use-dashboard-notifications";

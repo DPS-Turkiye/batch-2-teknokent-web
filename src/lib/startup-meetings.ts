@@ -32,8 +32,7 @@ export function meetingTiming(meeting: MeetingItem, now = new Date()) {
 /** Cancelled meetings never happened, so no view lists them. */
 export function visibleMeetings(meetings: MeetingItem[]) {
   return meetings.filter(
-    (meeting) =>
-      String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled,
+    (meeting) => meeting.status !== MeetingStatus.Cancelled,
   );
 }
 
@@ -84,17 +83,19 @@ export function groupMeetingsByTopic(
     const ahead = sorted.filter(
       (meeting) => meetingTiming(meeting, now) === MeetingTiming.Upcoming,
     );
+    const latest = sorted[0];
+    if (!latest) return null;
     const upcoming = ahead.at(-1) ?? null;
     return {
       key,
-      title: meetingTitle(upcoming ?? sorted[0], untitled),
+      title: meetingTitle(upcoming ?? latest, untitled),
       meetings: sorted,
-      latest: sorted[0],
+      latest,
       upcoming,
     };
   });
 
-  return sortMeetingStacks(topics);
+  return sortMeetingStacks(topics.filter((topic) => topic != null));
 }
 
 /** One deck per mentor: every meeting this startup had with them. */
@@ -114,17 +115,19 @@ export function groupMeetingsByMentor(
     const ahead = sorted.filter(
       (meeting) => meetingTiming(meeting, now) === MeetingTiming.Upcoming,
     );
+    const latest = sorted[0];
+    if (!latest) return null;
     const upcoming = ahead.at(-1) ?? null;
     return {
       key,
-      title: (upcoming ?? sorted[0]).mentorName?.trim() || unnamed,
+      title: (upcoming ?? latest).mentorName?.trim() || unnamed,
       meetings: sorted,
-      latest: sorted[0],
+      latest,
       upcoming,
     };
   });
 
-  return sortMeetingStacks(stacks);
+  return sortMeetingStacks(stacks.filter((stack) => stack != null));
 }
 
 function sortMeetingStacks(stacks: MeetingTopic[]) {
@@ -171,7 +174,9 @@ export function groupMeetingsByYear(
       left.scheduledAt.localeCompare(right.scheduledAt),
     );
     const year = Number(key.slice(0, 4));
-    const label = monthName.format(new Date(items[0].scheduledAt));
+    const first = items[0];
+    if (!first) continue;
+    const label = monthName.format(new Date(first.scheduledAt));
     years.set(year, [
       ...(years.get(year) ?? []),
       {
@@ -204,8 +209,7 @@ export function notePreview(content: string) {
   const text =
     typeof DOMParser === "undefined"
       ? spaced.replace(/<[^>]+>/g, " ")
-      : (new DOMParser().parseFromString(spaced, "text/html").body
-          .textContent ?? "");
+      : new DOMParser().parseFromString(spaced, "text/html").body.textContent;
   return text.replace(/\s+/g, " ").trim();
 }
 

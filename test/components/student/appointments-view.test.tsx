@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StudentAppointmentsView } from "@/components/student/appointments-view";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { expectLength } from "@test/fixtures/list-assertions";
 import {
   APPOINTMENTS_NOW,
   STUDENT_APPOINTMENTS,
@@ -36,7 +37,7 @@ describe("StudentAppointmentsView", () => {
 
     const upcoming = await screen.findByRole("list", { name: "Yaklaşan" });
     const rows = within(upcoming).getAllByRole("listitem");
-    expect(rows).toHaveLength(2);
+    expectLength(rows, 2);
     expect(within(rows[0]).getByText("Uluslararası Fırsatlar")).toBeVisible();
     expect(within(rows[0]).getByText("Mentor olarak")).toBeVisible();
     expect(within(rows[0]).getByText(/Mert Yılmaz · Fizik/)).toBeVisible();
@@ -47,7 +48,7 @@ describe("StudentAppointmentsView", () => {
     ).toBeVisible();
 
     const past = within(section("Geçmiş")).getAllByRole("listitem");
-    expect(past).toHaveLength(2);
+    expectLength(past, 2);
     expect(within(past[0]).getByText("İptal Edildi")).toBeVisible();
   });
 

@@ -1,9 +1,9 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { needChoices } from "@/lib/mentor-request-need";
 
 import { NeedSituationStep } from "@/components/mentor-request/need-situation-step";
+import { needChoices } from "@/lib/mentor-request-need";
 
 const STARTUP_CHOICES = needChoices(false);
 

@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MobileAppShell } from "@/components/mobile/mobile-app-shell";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
 
 const replace = vi.fn();

@@ -10,6 +10,7 @@ import {
   startLtiLogin,
 } from "@/lib/api/lti";
 import { saveOfficeHoursUser } from "@/lib/server/office-hours-session";
+import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/lti", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/lib/api/lti")>()),
@@ -19,10 +20,6 @@ vi.mock("@/lib/api/lti", async (importOriginal) => ({
 vi.mock("@/lib/server/office-hours-session", () => ({
   saveOfficeHoursUser: vi.fn(),
 }));
-
-function backend<T>(status: number, data: T) {
-  return { status, data, headers: {} };
-}
 
 function formPost(url: string, fields: Record<string, string>) {
   return new NextRequest(url, {
@@ -46,7 +43,9 @@ describe("LTI login initiation", () => {
 
   it("sends the browser on to Moodle with the backend's state and nonce (GET)", async () => {
     vi.mocked(startLtiLogin).mockResolvedValue(
-      backend(200, { redirectUrl: "http://localhost:8081/mod/lti/auth.php?x" }),
+      backendResponse({
+        redirectUrl: "http://localhost:8081/mod/lti/auth.php?x",
+      }),
     );
 
     const response = await loginGet(
@@ -64,7 +63,7 @@ describe("LTI login initiation", () => {
 
   it("reads a form POST the same way", async () => {
     vi.mocked(startLtiLogin).mockResolvedValue(
-      backend(200, { redirectUrl: "http://moodle/auth" }),
+      backendResponse({ redirectUrl: "http://moodle/auth" }),
     );
 
     const response = await loginPost(
@@ -75,7 +74,7 @@ describe("LTI login initiation", () => {
   });
 
   it("explains a refused login instead of starting it", async () => {
-    vi.mocked(startLtiLogin).mockResolvedValue(backend(400, {}));
+    vi.mocked(startLtiLogin).mockResolvedValue(backendRefusal(400));
 
     const response = await loginGet(
       new NextRequest(
@@ -122,7 +121,7 @@ describe("LTI launch", () => {
 
   it("signs the person in and opens the course they came from", async () => {
     vi.mocked(completeLtiLaunch).mockResolvedValue(
-      backend(200, {
+      backendResponse({
         userId: "user-1",
         fullName: "Ayşe Yılmaz",
         courseId: "course-1",
@@ -159,9 +158,7 @@ describe("LTI launch", () => {
   ])(
     "explains a %s from the backend without a session",
     async (status, reason) => {
-      vi.mocked(completeLtiLaunch).mockResolvedValue(
-        backend(status, {}) as never,
-      );
+      vi.mocked(completeLtiLaunch).mockResolvedValue(backendRefusal(status));
 
       const response = await launch(
         formPost("http://localhost:3000/lti/launch", {

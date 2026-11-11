@@ -1,6 +1,5 @@
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-
 import { describe, expect, it } from "vitest";
 
 const API_DIR = path.resolve(__dirname, "../../../src/app/api");
@@ -36,12 +35,14 @@ function functionsOf(source: string) {
   const starts = [
     ...source.matchAll(/^(?:export\s+)?(?:async\s+)?function\s+(\w+)/gm),
   ];
-  return new Map(
-    starts.map((match, index) => [
-      match[1],
-      source.slice(match.index, starts[index + 1]?.index ?? source.length),
-    ]),
-  );
+  const functions = new Map<string, string>();
+  starts.forEach((match, index) => {
+    const [, name] = match;
+    if (name === undefined) return;
+    const end = starts[index + 1]?.index ?? source.length;
+    functions.set(name, source.slice(match.index, end));
+  });
+  return functions;
 }
 
 /** A handler is guarded when it, or a local helper it calls, checks auth. */

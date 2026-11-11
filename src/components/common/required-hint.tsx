@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl";
+
 export function RequiredHint({ show }: { show: boolean }) {
   const t = useTranslations("sharedUi");
   if (!show) return null;

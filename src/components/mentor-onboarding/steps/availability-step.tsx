@@ -1,17 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { ToggleSwitch } from "@/components/common/toggle-switch";
 import {
-  OnboardingCard,
-  OnboardingChips,
-} from "@/components/onboarding/onboarding-ui";
-import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import {
+  OnboardingCard,
+  OnboardingChips,
+} from "@/components/onboarding/onboarding-ui";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { MeetingFrequency, WEEKDAY_ORDER } from "@/interfaces/mentor";
 import {
   CAPACITY_MAX,
@@ -21,8 +23,7 @@ import {
   MEETING_FORMAT_OPTIONS,
   RESPONSE_TIME_OPTIONS,
 } from "@/interfaces/mentor-onboarding";
-import { useOptionLabel } from "@/hooks/use-option-label";
-import { useTranslations } from "next-intl";
+import { isEnumValue } from "@/lib/enum";
 
 const TONE = OnboardingTone.Mentor;
 const focus = ONBOARDING_TONES[TONE].focus;
@@ -188,9 +189,12 @@ export function MentorAvailabilityStep({
             id="mentor-frequency"
             className={`${smallInput} w-full`}
             value={draft.frequency}
-            onChange={(event) =>
-              update("frequency", event.target.value as MeetingFrequency)
-            }
+            onChange={(event) => {
+              const { value } = event.target;
+              if (isEnumValue(MeetingFrequency, value)) {
+                update("frequency", value);
+              }
+            }}
           >
             {Object.values(MeetingFrequency).map((frequency) => (
               <option key={frequency} value={frequency}>

@@ -1,4 +1,12 @@
-import type { ProgramStatus, ProgramType } from "@/interfaces/program";
+import type { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import type { MeetingStatus } from "@/interfaces/meeting";
+import type { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import type {
+  ProgramMentorStatus,
+  ProgramStatus,
+  ProgramType,
+} from "@/interfaces/program";
+import type { UserAccountStatus, UserRole } from "@/interfaces/session";
 
 export type AdminProgram = {
   id: string;
@@ -37,15 +45,15 @@ export type AdminMentorMembership = {
   mentorId: string;
   fullName: string;
   email: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: ProgramMentorStatus;
 };
 
 export type AdminUser = {
   id: string;
   email: string;
   fullName: string;
-  role: "ADMIN" | "COORDINATOR" | "MENTOR" | "MENTEE";
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  role: UserRole;
+  status: UserAccountStatus;
   organizationId: string | null;
   organizationName: string | null;
   jobTitle: string | null;
@@ -61,7 +69,7 @@ export type AdminMentorship = {
   mentorName: string;
   organizationId: string;
   organizationName: string;
-  status: "PLANNED" | "ACTIVE" | "PAUSED" | "COMPLETED" | "CANCELLED";
+  status: MentorshipStatus;
   startDate: string;
   endDate: string | null;
   progressPercent: number;
@@ -76,7 +84,8 @@ export type AdminMeetingMark = {
   mentorId: string;
   organizationId: string;
   scheduledAt: string;
-  status: "SCHEDULED" | "COMPLETED" | "CANCELLED";
+  /** Never GOOGLE_CALENDAR: the overview lists only meetings the app recorded. */
+  status: MeetingStatus;
 };
 
 export type AdminRequest = {
@@ -86,14 +95,22 @@ export type AdminRequest = {
   mentorId: string | null;
   mentorName: string | null;
   supportArea: string | null;
-  status: string;
+  status: MentorshipRequestStatus;
   createdAt: string;
 };
+
+/** How serious a bottleneck is (the backend's BottleneckSeverity). */
+export enum BottleneckSeverity {
+  Low = "LOW",
+  Medium = "MEDIUM",
+  High = "HIGH",
+  Critical = "CRITICAL",
+}
 
 export type AdminBottleneck = {
   id: string;
   title: string;
-  severity: string;
+  severity: BottleneckSeverity;
   status: string;
   organizationId: string;
   organizationName: string;

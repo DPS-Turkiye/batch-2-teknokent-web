@@ -6,7 +6,7 @@ import {
   AccountSettingsDialog,
   NotificationPreferencesDialog,
 } from "@/components/hoc/account-dialogs";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   getNotificationPreferences,
   saveNotificationPreferences,

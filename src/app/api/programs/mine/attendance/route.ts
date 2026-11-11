@@ -1,4 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import {
   checkInMyAttendance,
@@ -9,7 +10,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireStartupSession } from "@/lib/server/require-program-access";
+
+const checkInSchema = z.object({ week: z.int().min(1) });
 
 /** The signed-in participant's own check-in; the actor is always the session user. */
 export async function GET() {
@@ -28,21 +32,12 @@ export async function POST(request: NextRequest) {
   try {
     const auth = await requireStartupSession();
     if (!auth.ok) return auth.response;
-    const body = (await request.json().catch(() => null)) as {
-      week?: unknown;
-    } | null;
-    const week = body?.week;
-    if (typeof week !== "number" || !Number.isInteger(week) || week < 1) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("attendanceCheckInFailed"),
-        },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, checkInSchema, {
+      invalidMessage: "attendanceCheckInFailed",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
-      await checkInMyAttendance(auth.session.userId, week),
+      await checkInMyAttendance(auth.session.userId, body.data.week),
     );
   } catch (error) {
     return apiErrorResponse(error, {

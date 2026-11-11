@@ -4,12 +4,12 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { LanguageSwitch } from "@/components/common/language-switch";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { ToggleSwitch } from "@/components/common/toggle-switch";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useNotificationPreferences } from "@/hooks/use-notification-preferences";
 import { usePasswordReset } from "@/hooks/use-password-reset";
-import { LanguageSwitch } from "@/components/common/language-switch";
 import { ENGLISH_ENABLED } from "@/lib/i18n";
 import { roleWorkspace } from "@/lib/role-workspace";
 

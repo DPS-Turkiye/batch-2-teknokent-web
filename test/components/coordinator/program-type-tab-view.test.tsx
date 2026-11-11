@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramApprovalsView } from "@/components/coordinator/program-approvals-view";
 import { ProgramTypeTabView } from "@/components/coordinator/program-type-tab-view";
 import { ProgramType } from "@/interfaces/program";
-import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { getCoordinatorProgram } from "@/lib/client/coordinator-programs";
+import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
