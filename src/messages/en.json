@@ -6782,6 +6782,8 @@
     "activity": "On Menton",
     "activeMentees": "Active startups",
     "completedMentorships": "Completed mentorships",
-    "registered": "Registered"
+    "registered": "Registered",
+    "open": "View profile",
+    "openFor": "View profile: {name}"
   }
 }
