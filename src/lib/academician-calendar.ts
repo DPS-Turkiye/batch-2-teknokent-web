@@ -14,7 +14,10 @@ import type {
   Weekday,
 } from "@/interfaces/mentor";
 import { isDayOff } from "@/lib/academician-availability";
-import { waitsForAcademician } from "@/lib/academician-office-hours";
+import {
+  turkeyWallClock,
+  waitsForAcademician,
+} from "@/lib/academician-office-hours";
 import {
   monthGridCells,
   monthLabel,
@@ -26,6 +29,7 @@ import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
 import { isEnumValue } from "@/lib/enum";
 import { formatDateRange } from "@/lib/format";
 import { weekdayOf } from "@/lib/mentor-availability";
+import { minutesOfDay } from "@/lib/utils";
 import {
   AppointmentsCalendarView,
   AppointmentsFilter,
@@ -125,10 +129,11 @@ export function appointmentsHref(
   return query === "" ? base : `${base}?${query}`;
 }
 
-/** The anchor day of a view: the date in the URL, or today. */
+/** The anchor day of a view: the date in the URL, or today in Turkey. */
 export function anchorDay(date: string | null, now: Date) {
   if (date === null) {
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const today = turkeyWallClock(now);
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate());
   }
   const [year = 0, month = 0, day = 0] = date.split("-").map(Number);
   return new Date(year, month - 1, day);
@@ -180,8 +185,12 @@ export type CalendarSource = {
   availability: AcademicianAvailability;
 };
 
+/** Spans are on Turkey's wall clock (see turkeyWallClock), like everything the grid draws. */
 function spanOf(time: AppointmentTime): CalendarSpan {
-  return { start: new Date(time.startsAt), end: new Date(time.endsAt) };
+  return {
+    start: turkeyWallClock(time.startsAt),
+    end: turkeyWallClock(time.endsAt),
+  };
 }
 
 function atTime(day: Date, time: string) {
@@ -500,8 +509,9 @@ export function monthCells(
 
 /** Where the red "now" line crosses `day`'s column, in hours from the grid top; null on other days. */
 export function nowOffset(now: Date, day: Date, grid: GridHours) {
-  if (isoDay(now) !== isoDay(day)) return null;
-  const offset = hourOf(now) - grid.startHour;
+  const wall = turkeyWallClock(now);
+  if (isoDay(wall) !== isoDay(day)) return null;
+  const offset = hourOf(wall) - grid.startHour;
   return offset < 0 || offset > grid.hours ? null : offset;
 }
 
@@ -573,13 +583,8 @@ export function awaitingStudent(requests: readonly OfficeHoursRequest[]) {
   );
 }
 
-function minutesOfDay(date: Date) {
+function wallMinutes(date: Date) {
   return date.getHours() * 60 + date.getMinutes();
-}
-
-function minutesOf(time: string) {
-  const [hours = 0, minutes = 0] = time.split(":").map(Number);
-  return hours * 60 + minutes;
 }
 
 function overlaps(a: CalendarSpan, b: CalendarSpan, bufferMs: number) {
@@ -603,7 +608,7 @@ export function requestFit(
 ): { fit: RequestFit; weekday: Weekday } {
   const span = spanOf(time);
   const weekday = weekdayOf(span.start);
-  if (span.start.getTime() <= now.getTime()) {
+  if (span.start.getTime() <= turkeyWallClock(now).getTime()) {
     return { fit: RequestFit.Past, weekday };
   }
   const day = isoDay(span.start);
@@ -617,19 +622,21 @@ export function requestFit(
       overlaps(span, spanOf(appointment), bufferMs),
   );
   if (clash) return { fit: RequestFit.Clash, weekday };
-  const start = minutesOfDay(span.start);
+  const start = wallMinutes(span.start);
   const end = start + (span.end.getTime() - span.start.getTime()) / 60_000;
   const inRule = availability.rules.some(
     (rule) =>
       rule.dayOfWeek === weekday &&
-      minutesOf(rule.startTime) <= start &&
-      end <= minutesOf(rule.endTime),
+      minutesOfDay(rule.startTime) <= start &&
+      end <= minutesOfDay(rule.endTime),
   );
-  const inOneOff = availability.oneOffs.some(
-    (oneOff) =>
-      Date.parse(oneOff.startsAt) <= span.start.getTime() &&
-      span.end.getTime() <= Date.parse(oneOff.endsAt),
-  );
+  const inOneOff = availability.oneOffs.some((oneOff) => {
+    const window = spanOf(oneOff);
+    return (
+      window.start.getTime() <= span.start.getTime() &&
+      span.end.getTime() <= window.end.getTime()
+    );
+  });
   return {
     fit: inRule || inOneOff ? RequestFit.Fits : RequestFit.Outside,
     weekday,

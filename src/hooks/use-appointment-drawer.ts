@@ -10,7 +10,10 @@ import {
 } from "@/interfaces/academician-office-hours";
 import { ToastTone } from "@/interfaces/toast";
 import { cancelNeedsReason } from "@/lib/academician-calendar";
-import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
+import {
+  ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
+  TURKEY_TIME_ZONE,
+} from "@/lib/academician-office-hours";
 import { cancelAcademicianAppointment } from "@/lib/client/academician-office-hours";
 import { formatDateRange } from "@/lib/format";
 import { useToast } from "@/stores/toast-store";
@@ -53,9 +56,14 @@ export function useAppointmentDrawer(
       month: "long",
       year: "numeric",
       weekday: "long",
+      timeZone: TURKEY_TIME_ZONE,
     }).format(start),
     hours: formatDateRange(
-      new Intl.DateTimeFormat(locale, { hour: "2-digit", minute: "2-digit" }),
+      new Intl.DateTimeFormat(locale, {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: TURKEY_TIME_ZONE,
+      }),
       start,
       new Date(appointment.endsAt),
     ),

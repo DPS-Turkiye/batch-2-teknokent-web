@@ -9,6 +9,7 @@ import {
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
 import { requestFit, type CalendarSource } from "@/lib/academician-calendar";
+import { TURKEY_TIME_ZONE } from "@/lib/academician-office-hours";
 import { formatDateRange } from "@/lib/format";
 
 /** The "Randevu talebi" drawer: pick one of the requested times, then accept or decline. */
@@ -45,10 +46,12 @@ export function useRequestDrawer(
     month: "long",
     year: "numeric",
     weekday: "long",
+    timeZone: TURKEY_TIME_ZONE,
   });
   const clock = new Intl.DateTimeFormat(locale, {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: TURKEY_TIME_ZONE,
   });
   const fit = pickedTime ? requestFit(pickedTime, source, now) : null;
 
