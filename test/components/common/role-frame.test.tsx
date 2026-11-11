@@ -112,6 +112,7 @@ describe("RoleFrame desktop nav between lg and xl", () => {
       </RoleFrame>,
     );
     const link = screen.getByRole("link", { name: "Anasayfa" });
+    expect(link).toHaveAttribute("data-tour", "nav-home");
     expect(link).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
     expect(link.querySelector("[aria-hidden]")).toHaveClass(
       "hidden",
