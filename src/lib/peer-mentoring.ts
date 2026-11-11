@@ -138,8 +138,11 @@ export function peerMentorCapacity(
   };
 }
 
-/** The longest "neye yardım edebilirim" text the backend accepts (the shortest is PEER_REQUEST_MESSAGE_MIN). */
+/** The backend's limits on the peer-mentor profile's texts. */
+export const PEER_HELP_WITH_MIN = 20;
 export const PEER_HELP_WITH_MAX = 2000;
+export const PEER_PROFILE_TEXT_MAX = 2000;
+export const PEER_ERASMUS_MAX = 500;
 
 export type WeeklyHours = { dayOfWeek: Weekday; start: string; end: string };
 
@@ -150,32 +153,38 @@ export function weeklyHours(
     "dayOfWeek" | "startTime" | "endTime"
   >[],
 ): WeeklyHours[] {
-  return [...rules]
-    .sort(
-      (left, right) =>
-        WEEKDAY_ORDER.indexOf(left.dayOfWeek) -
-          WEEKDAY_ORDER.indexOf(right.dayOfWeek) ||
-        left.startTime.localeCompare(right.startTime),
-    )
+  return rules
     .map((rule) => ({
       dayOfWeek: rule.dayOfWeek,
       start: toTimeInput(rule.startTime),
       end: toTimeInput(rule.endTime),
-    }));
+    }))
+    .sort(
+      (left, right) =>
+        WEEKDAY_ORDER.indexOf(left.dayOfWeek) -
+          WEEKDAY_ORDER.indexOf(right.dayOfWeek) ||
+        left.start.localeCompare(right.start),
+    );
 }
 
 type Subtopic = ProfileCompletionCategory["subtopics"][number];
 
-/** Each chosen category with how many of its sub-topics are picked ("3 alt konu seçildi"). */
+/** Each chosen category with its sub-topics marked as picked, and how many are ("3 alt konu seçildi"). */
 export function subtopicGroupsWithCounts(
   groups: readonly ProfileCompletionCategory[],
   selected: readonly string[],
 ) {
-  return groups.map((group) => ({
-    ...group,
-    selectedCount: group.subtopics.filter((sub) => selected.includes(sub.id))
-      .length,
-  }));
+  return groups.map((group) => {
+    const subtopics = group.subtopics.map((sub) => ({
+      ...sub,
+      checked: selected.includes(sub.id),
+    }));
+    return {
+      id: group.id,
+      subtopics,
+      selectedCount: subtopics.filter((sub) => sub.checked).length,
+    };
+  });
 }
 
 /** The picked sub-topics in catalogue order, with their labels' keys; ids the catalogue no longer has are left out. */

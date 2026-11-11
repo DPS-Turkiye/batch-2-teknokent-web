@@ -191,6 +191,18 @@ describe("weeklyHours", () => {
     ]);
     expect(weeklyHours([])).toEqual([]);
   });
+
+  it("orders 9:05 before 10:00 whether or not the times carry seconds", () => {
+    const rules = [
+      { dayOfWeek: Weekday.Monday, startTime: "10:00", endTime: "11:00" },
+      { dayOfWeek: Weekday.Monday, startTime: "09:05:00", endTime: "09:35:00" },
+    ];
+    expect(weeklyHours(rules).map((range) => range.start)).toEqual([
+      "09:05",
+      "10:00",
+    ]);
+    expect(rules[0]?.startTime).toBe("10:00");
+  });
 });
 
 const CATALOGUE: ProfileCompletionCategory[] = [
@@ -217,6 +229,13 @@ describe("subtopicGroupsWithCounts", () => {
     ).toEqual([
       [PeerTopicCategory.CareerInternship, 2],
       [PeerTopicCategory.AcademicDevelopment, 0],
+    ]);
+  });
+
+  it("marks each sub-topic as picked or not", () => {
+    expect(subtopicGroupsWithCounts(CATALOGUE, ["cv"])[0]?.subtopics).toEqual([
+      { id: "cv", labelKey: "cv", checked: true },
+      { id: "interview", labelKey: "project", checked: false },
     ]);
   });
 });

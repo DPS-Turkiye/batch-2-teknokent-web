@@ -153,9 +153,7 @@ export function PeerMentorProfileWizard() {
             {wizard.error ? (
               <InlineAlert tone={StatusTone.Error} title={wizard.error} />
             ) : null}
-            <InlineAlert tone={StatusTone.Success} title={t("badge.title")}>
-              {t("badge.body")}
-            </InlineAlert>
+            <BadgeNote />
           </fieldset>
           <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle pt-4">
             {wizard.isFirst ? (
@@ -174,14 +172,12 @@ export function PeerMentorProfileWizard() {
             <div className="flex flex-wrap items-center gap-3">
               {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
               {/* Saving a draft needs a backend draft endpoint (open with Arya). */}
-              <Button
-                variant={ButtonVariant.Ghost}
-                disabled
-                className="max-sm:hidden"
-              >
-                {t("saveDraft")}
-              </Button>
-              <span className="sr-only">{t("draftSoon")}</span>
+              <span className="contents max-sm:hidden">
+                <Button variant={ButtonVariant.Ghost} disabled>
+                  {t("saveDraft")}
+                </Button>
+                <span className="sr-only">{t("draftSoon")}</span>
+              </span>
               <Button type="submit" disabled={wizard.isPublishing}>
                 {wizard.isPublishing
                   ? t("publishing")
@@ -194,6 +190,17 @@ export function PeerMentorProfileWizard() {
         </form>
       )}
     </div>
+  );
+}
+
+function BadgeNote() {
+  const t = useTranslations("iaIskur.wizard.badge");
+  const person = usePeerMentorPreviewPerson();
+  if (!person.badgeVerified) return null;
+  return (
+    <InlineAlert tone={StatusTone.Success} title={t("title")}>
+      {t("body")}
+    </InlineAlert>
   );
 }
 
@@ -222,12 +229,11 @@ function CategoriesStep({ wizard }: { wizard: Wizard }) {
   return (
     <div className="space-y-6">
       <div className="grid gap-3 md:grid-cols-2">
-        {wizard.categories.map((item) => {
-          const checked = wizard.draft.topics.includes(item.id);
-          const art = CATEGORY_ART[item.id];
+        {wizard.categoryOptions.map(({ id, checked }) => {
+          const art = CATEGORY_ART[id];
           return (
             <label
-              key={item.id}
+              key={id}
               className={`flex min-h-[100px] cursor-pointer items-center gap-3.5 rounded-2xl border bg-background-surface p-[18px] transition has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-border-selected ${
                 checked
                   ? "border-brand-odtu-primary"
@@ -238,7 +244,7 @@ function CategoriesStep({ wizard }: { wizard: Wizard }) {
                 type="checkbox"
                 className="sr-only"
                 checked={checked}
-                onChange={() => wizard.toggleTopic(item.id)}
+                onChange={() => wizard.toggleTopic(id)}
               />
               {art ? (
                 <Image
@@ -250,19 +256,14 @@ function CategoriesStep({ wizard }: { wizard: Wizard }) {
                 />
               ) : null}
               <span className="min-w-0 flex-1 type-label text-text-primary">
-                {topicLabel(item.id)}
+                {topicLabel(id)}
               </span>
               {checked ? (
                 <span
                   aria-hidden
-                  className="grid size-[22px] shrink-0 place-items-center rounded-full bg-brand-odtu-primary"
+                  className="grid size-[22px] shrink-0 place-items-center rounded-full bg-brand-odtu-primary text-text-inverse"
                 >
-                  <Image
-                    src="/ia/icons/check-inverse.svg"
-                    alt=""
-                    width={12}
-                    height={12}
-                  />
+                  <Check className="size-3" />
                 </span>
               ) : null}
             </label>
@@ -295,8 +296,7 @@ function SubtopicsStep({ wizard }: { wizard: Wizard }) {
               </span>
             </legend>
             <div className="flex flex-wrap gap-2">
-              {group.subtopics.map((sub) => {
-                const checked = wizard.draft.subtopics.includes(sub.id);
+              {group.subtopics.map(({ checked, ...sub }) => {
                 return (
                   <label
                     key={sub.id}
@@ -323,25 +323,33 @@ function SubtopicsStep({ wizard }: { wizard: Wizard }) {
           </fieldset>
           {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
           {/* A level per category needs a backend field (open with Arya); shown disabled until then. */}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="type-caption text-text-secondary">
+          <fieldset
+            disabled
+            aria-describedby={`level-soon-${group.id}`}
+            className="flex flex-wrap items-center gap-3"
+          >
+            <legend className="float-left mr-3 type-caption text-text-secondary">
               {t("level.label")}
-            </span>
-            <span
-              aria-disabled="true"
-              className="inline-flex rounded-xl bg-background-muted p-1 opacity-60"
-            >
+            </legend>
+            <span className="inline-flex rounded-xl bg-background-muted p-1 opacity-60">
               {LEVELS.map((level) => (
-                <span
+                <label
                   key={level}
                   className="rounded-full px-3.5 py-1.5 type-label text-text-secondary"
                 >
+                  <input
+                    type="radio"
+                    name={`level-${group.id}`}
+                    className="sr-only"
+                  />
                   {t(`level.${level}`)}
-                </span>
+                </label>
               ))}
             </span>
-            <SoonBadge />
-          </div>
+            <span id={`level-soon-${group.id}`}>
+              <SoonBadge />
+            </span>
+          </fieldset>
         </Card>
       ))}
       <Note>{t("subtopicsNote")}</Note>
@@ -358,12 +366,14 @@ function ExperienceStep({ wizard }: { wizard: Wizard }) {
         <TextArea
           label={t("strongCourses")}
           hint={t("onePerLine")}
+          maxLength={wizard.textMax}
           value={wizard.draft.strongCourses}
           onChange={(value) => wizard.setField("strongCourses", value)}
         />
         <TextArea
           label={t("projects")}
           hint={t("onePerLine")}
+          maxLength={wizard.textMax}
           value={wizard.draft.projects}
           onChange={(value) => wizard.setField("projects", value)}
         />
@@ -372,7 +382,7 @@ function ExperienceStep({ wizard }: { wizard: Wizard }) {
           <input
             className={fieldClass}
             value={wizard.draft.erasmus}
-            maxLength={500}
+            maxLength={wizard.erasmusMax}
             onChange={(event) => wizard.setField("erasmus", event.target.value)}
           />
         </label>
@@ -421,6 +431,7 @@ function HelpWithStep({ wizard }: { wizard: Wizard }) {
           className={`${fieldClass} min-h-32`}
           value={wizard.draft.helpWith}
           maxLength={wizard.helpWithMax}
+          aria-required="true"
           aria-describedby="help-with-counter"
           onChange={(event) => wizard.setField("helpWith", event.target.value)}
         />
@@ -493,7 +504,7 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
   const dayLabel = useTranslations("options.weekday");
   const person = usePeerMentorPreviewPerson();
   const capacity = wizard.availabilitySettings.menteeCapacity;
-  const linkedin = wizard.draft.linkedinUrl.trim();
+  const linkedin = wizard.previewLinkedin;
 
   return (
     <div className="space-y-6">
@@ -504,14 +515,16 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
             <h2 className="type-h2 text-text-primary">{person.fullName}</h2>
             <p className="type-body text-text-secondary">
               {person.department}
-              {person.department && person.classYear ? " · " : null}
+              {person.showSeparator ? " · " : null}
               {person.classYear
                 ? t("classYear", { classYear: person.classYear })
                 : null}
             </p>
             <div className="flex flex-wrap gap-2">
               <Tag>{t("peer")}</Tag>
-              <Tag tone={TagTone.Success}>{t("badgeVerified")}</Tag>
+              {person.badgeVerified ? (
+                <Tag tone={TagTone.Success}>{t("badgeVerified")}</Tag>
+              ) : null}
             </div>
           </div>
         </div>
@@ -534,7 +547,7 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
         <div className="space-y-2">
           <h3 className="type-label text-text-primary">{t("helpWith")}</h3>
           <p className="type-body whitespace-pre-line text-text-secondary">
-            {wizard.draft.helpWith.trim()}
+            {wizard.previewHelpWith}
           </p>
         </div>
         <dl className="grid gap-4 sm:grid-cols-[2fr_1fr]">
@@ -546,7 +559,7 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
               ) : (
                 <ul className="flex flex-wrap gap-x-2">
                   {wizard.weeklyHours.map((range) => (
-                    <li key={`${range.dayOfWeek}-${range.start}`}>
+                    <li key={`${range.dayOfWeek}-${range.start}-${range.end}`}>
                       {t("hoursRange", {
                         day: dayLabel(range.dayOfWeek),
                         start: range.start,
@@ -593,11 +606,13 @@ function PreviewStep({ wizard }: { wizard: Wizard }) {
 function TextArea({
   label,
   hint,
+  maxLength,
   value,
   onChange,
 }: {
   label: string;
   hint: string;
+  maxLength: number;
   value: string;
   onChange: (value: string) => void;
 }) {
@@ -608,7 +623,7 @@ function TextArea({
       <textarea
         className={`${fieldClass} min-h-28`}
         value={value}
-        maxLength={2000}
+        maxLength={maxLength}
         onChange={(event) => onChange(event.target.value)}
       />
     </label>

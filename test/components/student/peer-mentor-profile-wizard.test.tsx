@@ -29,6 +29,7 @@ vi.mock("next/navigation", () => ({
 }));
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => session,
+  useSession: () => ({ session, refresh: vi.fn(async () => null) }),
 }));
 vi.mock("@/lib/client/badges", () => ({
   getMyBadges: vi.fn(async () => []),

@@ -53,9 +53,11 @@ import { getStudentTraining } from "@/lib/client/training";
 import {
   chosenSubtopics,
   latestGateAward,
+  PEER_ERASMUS_MAX,
   PEER_HELP_WITH_MAX,
+  PEER_HELP_WITH_MIN,
   PEER_MENTOR_TRAINING_HREF,
-  PEER_REQUEST_MESSAGE_MIN,
+  PEER_PROFILE_TEXT_MAX,
   peerMentorCapacity,
   peerMentorGateState,
   subtopicGroupsWithCounts,
@@ -233,12 +235,17 @@ export function usePeerGivePublished(menteeCapacity: number | null) {
 export function usePeerMentorPreviewPerson() {
   const session = useAppSession();
   const institution = useInstitutionRecord();
+  const gate = usePeerMentorGate();
   const fullName = session?.fullName ?? "";
+  const department = institution.data?.departmentName ?? null;
+  const classYear = institution.data?.classYear ?? null;
   return {
     fullName,
     initials: initials(fullName),
-    department: institution.data?.departmentName ?? null,
-    classYear: institution.data?.classYear ?? null,
+    department,
+    classYear,
+    showSeparator: department !== null && classYear !== null,
+    badgeVerified: gate.state === PeerMentorGateState.Earned,
   };
 }
 
@@ -398,9 +405,9 @@ export function usePeerMentorWizard() {
     }
     if (
       current === PeerMentorWizardStep.HelpWith &&
-      draft.helpWith.trim().length < PEER_REQUEST_MESSAGE_MIN
+      draft.helpWith.trim().length < PEER_HELP_WITH_MIN
     ) {
-      return t("errors.helpWith", { min: PEER_REQUEST_MESSAGE_MIN });
+      return t("errors.helpWith", { min: PEER_HELP_WITH_MIN });
     }
     if (
       current === PeerMentorWizardStep.Links &&
@@ -447,6 +454,10 @@ export function usePeerMentorWizard() {
     isLoading: profile.isLoading || catalogue.isLoading,
     loadError: profile.error ?? catalogue.error,
     categories,
+    categoryOptions: categories.map((item) => ({
+      id: item.id,
+      checked: draft.topics.includes(item.id),
+    })),
     subtopicGroups: subtopicGroupsWithCounts(
       chosenCategories(categories, draft.topics),
       draft.subtopics,
@@ -456,8 +467,12 @@ export function usePeerMentorWizard() {
     availabilitySettings,
     weeklyHours: weeklyHours(availabilitySettings.rules),
     helpWithLength: draft.helpWith.trim().length,
-    helpWithMin: PEER_REQUEST_MESSAGE_MIN,
+    helpWithMin: PEER_HELP_WITH_MIN,
     helpWithMax: PEER_HELP_WITH_MAX,
+    textMax: PEER_PROFILE_TEXT_MAX,
+    erasmusMax: PEER_ERASMUS_MAX,
+    previewHelpWith: draft.helpWith.trim(),
+    previewLinkedin: draft.linkedinUrl.trim(),
     isFirst: step === PeerMentorWizardStep.Categories,
     isLast: step === PeerMentorWizardStep.Preview,
     toggleTopic: (id: PeerTopicCategory) =>
