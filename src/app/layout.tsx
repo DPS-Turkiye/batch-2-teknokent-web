@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import localFont from "next/font/local";
+import { preload } from "react-dom";
 
 import { DocumentPreviewHost } from "@/components/common/document-preview-host";
 import { Toaster } from "@/components/common/toaster";
@@ -39,6 +40,12 @@ export default async function RootLayout({
     getLocale(),
     getAccountType(),
   ]);
+  // The design system's headings use Manrope (globals.css); fetch its Latin face early so headings do not swap late.
+  preload("/fonts/manrope-latin-wght.woff2", {
+    as: "font",
+    type: "font/woff2",
+    crossOrigin: "anonymous",
+  });
   return (
     <html
       lang={locale}

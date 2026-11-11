@@ -82,9 +82,9 @@ describe("IA kit", () => {
 
     const steps = screen.getAllByRole("listitem");
     expect(steps.map((step) => step.textContent)).toEqual([
-      "Program türü",
-      "2Program bilgileri",
-      "3Özet ve kaydet",
+      "Program türü(adım 1, tamamlandı)",
+      "2Program bilgileri(adım 2)",
+      "3Özet ve kaydet(adım 3)",
     ]);
     expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(
       "Program bilgileri",
@@ -96,11 +96,13 @@ describe("IA kit", () => {
       <InLocale locale="tr">
         <ProgramTypeBadge type={ProgramType.OfficeHours} />
         <ProgramTypeBadge type={ProgramType.PeerMentoring} />
+        <ProgramTypeBadge type={ProgramType.StartupMentoring} />
       </InLocale>,
     );
 
     expect(screen.getByText("Office Hours")).toBeInTheDocument();
     expect(screen.getByText("Akran Mentörlüğü")).toBeInTheDocument();
+    expect(screen.getByText("Girişim Mentörlüğü")).toBeInTheDocument();
   });
 
   it("shows a page title with its back link, actions, status and a labelled card", () => {
