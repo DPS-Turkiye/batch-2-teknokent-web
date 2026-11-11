@@ -50,6 +50,7 @@ import {
   latestGateAward,
   PEER_MENTOR_TRAINING_HREF,
   PEER_REQUEST_MESSAGE_MIN,
+  peerMentorCapacity,
   peerMentorGateState,
 } from "@/lib/peer-mentoring";
 import { hasPermission } from "@/lib/permissions";
@@ -60,6 +61,7 @@ import {
 } from "@/lib/student-interests";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
+import { PeerGiveTab } from "@/types/iskur-student";
 
 export const PEER_MENTOR_PROFILE_QUERY_KEY = [
   "peer-mentoring",
@@ -193,6 +195,23 @@ export function usePeerRequestDecision() {
     accept: (id: string) => decide.mutate({ id, accept: true }),
     decline: (id: string) => decide.mutate({ id, accept: false }),
     pendingId: decide.isPending ? decide.variables.id : undefined,
+  };
+}
+
+/**
+ * Mentorluk Ver once the profile is published: the open tab (requests first), the received requests, the decision
+ * actions and the "Kapasiten" card's numbers.
+ */
+export function usePeerGivePublished(menteeCapacity: number | null) {
+  const [tab, setTab] = useState(PeerGiveTab.Requests);
+  const received = useReceivedPeerRequests();
+  const decision = usePeerRequestDecision();
+  return {
+    tab,
+    setTab,
+    received,
+    decision,
+    capacity: peerMentorCapacity(received.mentees.length, menteeCapacity),
   };
 }
 

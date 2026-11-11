@@ -8,6 +8,7 @@ import {
   PeerMentorGateState,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+import { PeerCapacityNote } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -85,4 +86,39 @@ export function sharedInterests(
   interests: readonly PeerTopicCategory[],
 ) {
   return mentorCategories.filter((category) => interests.includes(category));
+}
+
+export type PeerMentorCapacity = {
+  used: number;
+  capacity: number | null;
+  /** Bar fill, 0–100. */
+  percent: number;
+  note: PeerCapacityNote;
+};
+
+/** The "Kapasiten" card: accepted mentees against the mentor's capacity (none set means no limit). */
+export function peerMentorCapacity(
+  mentees: number,
+  capacity: number | null,
+): PeerMentorCapacity {
+  if (capacity === null || capacity <= 0) {
+    return {
+      used: mentees,
+      capacity: null,
+      percent: 0,
+      note: PeerCapacityNote.Unset,
+    };
+  }
+  const note =
+    mentees >= capacity
+      ? PeerCapacityNote.Full
+      : mentees + 1 === capacity
+        ? PeerCapacityNote.LastPlace
+        : PeerCapacityNote.Open;
+  return {
+    used: mentees,
+    capacity,
+    percent: Math.min(100, Math.round((mentees / capacity) * 100)),
+    note,
+  };
 }
