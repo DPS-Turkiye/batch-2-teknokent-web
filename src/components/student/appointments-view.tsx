@@ -47,6 +47,23 @@ const LEGEND_STATUSES = [
   AppointmentStatus.Confirmed,
 ] as const;
 
+/** The ARIA tabs keys: arrows move to the neighbouring tab (wrapping), Home and End to the ends. */
+function tabAfterKey(current: AppointmentsTab, key: string) {
+  const index = TABS.indexOf(current);
+  switch (key) {
+    case "ArrowRight":
+      return TABS[(index + 1) % TABS.length];
+    case "ArrowLeft":
+      return TABS[(index - 1 + TABS.length) % TABS.length];
+    case "Home":
+      return TABS[0];
+    case "End":
+      return TABS.at(-1);
+    default:
+      return undefined;
+  }
+}
+
 type RenderActions = ((appointment: Appointment) => ReactNode) | undefined;
 
 /**
@@ -180,6 +197,15 @@ function ListView({
         role="tablist"
         aria-label={t("tabLabel")}
         className="grid grid-cols-3 border-b border-border-subtle"
+        onKeyDown={(event) => {
+          const next = tabAfterKey(appointments.tab, event.key);
+          if (!next) return;
+          event.preventDefault();
+          appointments.setTab(next);
+          event.currentTarget
+            .querySelector<HTMLElement>(`#appointments-tab-${next}`)
+            ?.focus();
+        }}
       >
         {TABS.map((tab) => {
           const active = appointments.tab === tab;
@@ -191,6 +217,7 @@ function ListView({
               id={`appointments-tab-${tab}`}
               aria-selected={active}
               aria-controls="appointments-panel"
+              tabIndex={active ? 0 : -1}
               onClick={() => appointments.setTab(tab)}
               className={`-mb-px flex items-center justify-center gap-2 border-b-2 py-3 type-label ${
                 active

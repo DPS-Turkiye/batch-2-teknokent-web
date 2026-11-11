@@ -103,6 +103,12 @@ describe("useStudentAppointments", () => {
     act(() => result.current.setView(AppointmentsView.Week));
     const start = result.current.days[0]?.day;
 
+    const confirmed = result.current.days
+      .flatMap((column) => column.items)
+      .find((item) => item.id === "meeting-1");
+    act(() => {
+      if (confirmed) result.current.select(confirmed);
+    });
     act(() => result.current.next());
     expect(result.current.days[0]?.day.getDate()).toBe(
       (start?.getDate() ?? 0) + 7,
@@ -124,5 +130,8 @@ describe("useStudentAppointments", () => {
     expect(result.current.selectedDayItems.map((item) => item.id)).toEqual([
       "meeting-1",
     ]);
+
+    act(() => result.current.next());
+    expect(result.current.selectedDay).toEqual(new Date(2026, 11, 1));
   });
 });

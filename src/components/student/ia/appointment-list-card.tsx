@@ -8,7 +8,8 @@ import {
   AppointmentStatus,
   type Appointment,
 } from "@/interfaces/appointment";
-import { dateBadgeParts, shortWeekday, timeLabel } from "@/lib/calendar";
+import { shortWeekday, timeLabel } from "@/lib/calendar";
+import { dateTile } from "@/lib/coordinator-program-detail";
 import { formatDayMonth } from "@/lib/utils";
 
 const KIND_ICON = {
@@ -33,7 +34,7 @@ export function AppointmentListCard({
   const tKind = useTranslations("iaStudent.common.kind");
   const tTopic = useTranslations("peerTopics");
   const locale = useLocale();
-  const badge = dateBadgeParts(appointment.startsAt, locale);
+  const badge = dateTile(appointment.startsAt, locale);
   const { counterpart, alternative } = appointment;
   const KindIcon = KIND_ICON[appointment.kind];
   const start = new Date(appointment.startsAt);

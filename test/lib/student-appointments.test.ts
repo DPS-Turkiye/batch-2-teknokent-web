@@ -79,22 +79,32 @@ describe("gridPlacement", () => {
   it("places a session by its hours from the first row", () => {
     expect(
       gridPlacement(
-        peerAppointment({ startsAt: at(12, 10, 30), endsAt: at(12, 11, 0) }),
+        peerAppointment({ startsAt: at(12, 10, 30), endsAt: at(12, 11, 30) }),
       ),
-    ).toEqual({ top: 1.5, height: 0.5 });
+    ).toEqual({ top: 1.5, height: 1 });
   });
 
-  it("keeps short and out-of-range sessions on the grid", () => {
+  it("gives a short session half an hour so it stays clickable", () => {
     expect(
       gridPlacement(
-        peerAppointment({ startsAt: at(12, 7), endsAt: at(12, 9, 5) }),
+        peerAppointment({ startsAt: at(12, 10), endsAt: at(12, 10, 10) }),
       ),
-    ).toEqual({ top: 0, height: 0.25 });
-    const last = (APPOINTMENT_GRID_HOURS.at(-1) ?? 0) + 1;
+    ).toEqual({ top: 1, height: 0.5 });
+  });
+
+  it("pins sessions outside the grid's hours to its first or last row", () => {
+    expect(
+      gridPlacement(
+        peerAppointment({ startsAt: at(12, 7), endsAt: at(12, 8) }),
+      ),
+    ).toEqual({ top: 0, height: 0.5 });
     const late = gridPlacement(
-      peerAppointment({ startsAt: at(12, 18, 30), endsAt: at(12, 21) }),
+      peerAppointment({ startsAt: at(12, 20), endsAt: at(12, 21) }),
     );
-    expect(late.top + late.height).toBe(last - 9);
+    expect(late).toEqual({
+      top: APPOINTMENT_GRID_HOURS.length - 0.5,
+      height: 0.5,
+    });
   });
 });
 

@@ -6,6 +6,7 @@ import { useState } from "react";
 import type { Appointment } from "@/interfaces/appointment";
 import { monthGridCells } from "@/lib/calendar";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { startOfDay } from "@/lib/mobile-calendar";
 import {
   appointmentsOnDay,
   appointmentTabs,
@@ -31,9 +32,7 @@ export type StudentAppointmentsOptions = {
 };
 
 function today() {
-  const day = new Date();
-  day.setHours(0, 0, 0, 0);
-  return day;
+  return startOfDay(new Date());
 }
 
 /** Randevularım: the list tabs and the day, week and month calendars over the same appointments. */
@@ -74,6 +73,13 @@ export function useStudentAppointments({
     inRange[0] ??
     null;
 
+  // Paging drops the picked session and day, so the side panel follows what the grid shows.
+  const move = (next: Date) => {
+    setAnchor(next);
+    setSelectedId(null);
+    setSelectedDay(next);
+  };
+
   const changeView = (next: AppointmentsView) => {
     setView(next);
     setSelectedId(null);
@@ -94,12 +100,9 @@ export function useStudentAppointments({
     tabs,
     anchor,
     today: today(),
-    previous: () => setAnchor((current) => shiftAnchor(view, current, -1)),
-    next: () => setAnchor((current) => shiftAnchor(view, current, 1)),
-    goToday: () => {
-      setAnchor(today());
-      setSelectedDay(today());
-    },
+    previous: () => move(shiftAnchor(view, anchor, -1)),
+    next: () => move(shiftAnchor(view, anchor, 1)),
+    goToday: () => move(today()),
     days,
     month,
     selected,
