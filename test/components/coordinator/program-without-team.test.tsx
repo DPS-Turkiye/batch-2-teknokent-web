@@ -20,4 +20,7 @@ it("lists approved people without a startup and exposes their history", async ()
   expect(
     screen.getByRole("button", { name: "Takım geçmişi" }),
   ).toBeInTheDocument();
+  expect(
+    screen.getByRole("link", { name: "Profili gör: Ada Test" }),
+  ).toHaveAttribute("href", "/coordinator/people/u1");
 });

@@ -13,6 +13,7 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { PillSelect } from "@/components/coordinator/pill-select";
+import { ProfileLink } from "@/components/people/profile-link";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { useMentorPool, useMentorReview } from "@/hooks/use-mentor-pool";
 import { useOptionLabel } from "@/hooks/use-option-label";
@@ -25,6 +26,7 @@ import { ProgramTab } from "@/lib/coordinator-program-detail";
 import {
   CapacityFilter,
   loadShare,
+  profileMentorId,
   POOL_STATUS_TONES,
   poolRowNote,
   rowKey,
@@ -181,6 +183,7 @@ function PoolRow({
   const hasLoad =
     row.status === MentorPoolStatus.Active ||
     row.status === MentorPoolStatus.Full;
+  const profileId = profileMentorId(row);
   return (
     <tr className="border-b border-[#f0f2f4] last:border-0">
       <td className="px-6 py-4">
@@ -239,6 +242,8 @@ function PoolRow({
       </td>
       <td className="px-6 py-4">
         <span className="flex justify-end gap-2">
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          {profileId ? <ProfileLink userId={profileId} name={name} /> : null}
           <RowActions row={row} pool={pool} archived={archived} />
         </span>
       </td>

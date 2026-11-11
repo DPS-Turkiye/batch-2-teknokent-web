@@ -2,6 +2,7 @@
 import { useTranslations } from "next-intl";
 import { EmptyNote, Panel, QueryNotice } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useProgramWithoutTeam } from "@/hooks/use-program-without-team";
 export function ProgramWithoutTeam({ programId }: { programId: string }) {
   const t = useTranslations("programApprovals");
@@ -25,12 +26,20 @@ export function ProgramWithoutTeam({ programId }: { programId: string }) {
           ) : (
             query.data.map((person) => (
               <li key={person.id} className="px-5 py-4">
-                <p className="text-[13.5px] font-medium text-[#22262b]">
-                  {person.fullName}
-                </p>
-                <p className="text-[12.5px] text-[#858c96]">
-                  {[person.email, person.jobTitle].filter(Boolean).join(" · ")}
-                </p>
+                {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[13.5px] font-medium text-[#22262b]">
+                      {person.fullName}
+                    </p>
+                    <p className="text-[12.5px] text-[#858c96]">
+                      {[person.email, person.jobTitle]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </p>
+                  </div>
+                  <ProfileLink userId={person.id} name={person.fullName} />
+                </div>
                 <TeamHistory userId={person.id} />
               </li>
             ))
