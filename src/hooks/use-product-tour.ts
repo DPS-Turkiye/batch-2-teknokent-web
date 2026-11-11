@@ -7,11 +7,8 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import { useTourTarget } from "@/hooks/use-tour-target";
 import { Workspace } from "@/interfaces/workspace";
-import { isOnRoute, TOURS, tourRoleOf } from "@/lib/product-tour";
-import {
-  readTourOutcome,
-  writeTourOutcome,
-} from "@/lib/product-tour-storage";
+import { isOnRoute, tourRoleOf, TOURS } from "@/lib/product-tour";
+import { readTourOutcome, writeTourOutcome } from "@/lib/product-tour-storage";
 import { useProductTourStore } from "@/stores/product-tour-store";
 import { TourAdvance, TourOutcome, TourPhase } from "@/types/product-tour";
 

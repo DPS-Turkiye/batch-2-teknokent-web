@@ -261,8 +261,7 @@ export function placeCard(
       },
     },
     [CardPlacement.Right]: {
-      fits:
-        target.left + target.width + GAP + width <= viewport.width - MARGIN,
+      fits: target.left + target.width + GAP + width <= viewport.width - MARGIN,
       position: {
         top: sideTop,
         left: target.left + target.width + GAP,
