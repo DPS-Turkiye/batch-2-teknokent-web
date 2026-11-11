@@ -17,6 +17,7 @@ import {
 } from "@/components/admin/coordinator-approval";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import {
   useCoordinatorsTable,
@@ -24,6 +25,7 @@ import {
   useTeamsTable,
 } from "@/hooks/use-admin-users";
 import { useOptionLabel } from "@/hooks/use-option-label";
+import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
 import {
   ProgramMemberKind,
   type AdminOverview,
@@ -350,6 +352,8 @@ function MentorsTable({
 }) {
   const t = useTranslations("adminUsers");
   const optionLabel = useOptionLabel();
+  const tProfile = useTranslations("personSummary");
+  const profileHref = usePersonProfileHref();
   const table = useMentorsTable(data, focusUserId);
   const { selected } = table;
 
@@ -438,6 +442,8 @@ function MentorsTable({
                         label: t("detail"),
                         onClick: () => table.select(user.id),
                       },
+                      // TEST UI: placeholder until the design team's screen; replace when it arrives.
+                      { label: tProfile("open"), href: profileHref(user.id) },
                     ]}
                   />
                 </span>
@@ -817,6 +823,10 @@ function MentorDrawer({
                 {t("mentorshipCount", { count: mentorships.length })}
                 {activity ? t("registered", { when: activity.label }) : ""}
               </p>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <div className="mt-2">
+                <ProfileLink userId={user.id} name={user.fullName} />
+              </div>
             </div>
           </div>
           <button
@@ -1077,11 +1087,17 @@ function TeamDrawer({
                     key={member.id}
                     className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{member.fullName}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {member.email}
-                      {member.jobTitle ? ` · ${member.jobTitle}` : ""}
-                    </p>
+                    {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{member.fullName}</p>
+                        <p className="text-[12.5px] text-[#858c96]">
+                          {member.email}
+                          {member.jobTitle ? ` · ${member.jobTitle}` : ""}
+                        </p>
+                      </div>
+                      <ProfileLink userId={member.id} name={member.fullName} />
+                    </div>
                     <TeamHistory userId={member.id} />
                   </li>
                 ))}
@@ -1346,11 +1362,11 @@ function LoadBar({ count, warning }: { count: number; warning: boolean }) {
   );
 }
 
-function RowMenu({
-  items,
-}: {
-  items: { label: string; onClick: () => void }[];
-}) {
+/** A menu entry either acts on the row or, for navigation, is a real link. */
+type RowMenuItem =
+  { label: string; onClick: () => void } | { label: string; href: string };
+
+function RowMenu({ items }: { items: RowMenuItem[] }) {
   const t = useTranslations("adminUsers");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1377,19 +1393,29 @@ function RowMenu({
       </button>
       {open ? (
         <div className="absolute right-0 z-20 mt-1 min-w-[180px] rounded-2xl border border-[#e9ecef] bg-white p-1 shadow-[0_8px_24px_rgba(33,38,43,0.12)]">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                item.onClick();
-              }}
-              className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
-            >
-              {item.label}
-            </button>
-          ))}
+          {items.map((item) =>
+            "href" in item ? (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  item.onClick();
+                }}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </button>
+            ),
+          )}
         </div>
       ) : null}
     </div>
