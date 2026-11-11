@@ -74,6 +74,7 @@ beforeEach(() => {
 describe("useStudentHome", () => {
   it("greets the student by first name and finds the advisor", async () => {
     const { result } = renderHook(() => useStudentHome(), { wrapper });
+    expect(result.current.greeting).toBeNull();
     await waitFor(() => expect(result.current.name).toBe("Ayşe"));
 
     // 12:00 in Istanbul.

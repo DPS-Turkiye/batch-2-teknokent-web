@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   CalendarFilter,
-  dateBadgeParts,
   hourOf,
   isSameDay,
   monthGridCells,
@@ -92,13 +91,5 @@ describe("week and month grid helpers", () => {
   it("labels the month in Turkish and English", () => {
     expect(monthLabel(new Date(2026, 8, 15), "tr")).toBe("Eylül 2026");
     expect(monthLabel(new Date(2026, 8, 15), "en")).toBe("September 2026");
-  });
-});
-
-describe("dateBadgeParts", () => {
-  it("splits a date into the day and the upper-cased short month", () => {
-    const at = new Date(2026, 10, 10, 14, 0).toISOString();
-    expect(dateBadgeParts(at, "tr")).toEqual({ day: "10", month: "KAS" });
-    expect(dateBadgeParts(at, "en")).toEqual({ day: "10", month: "NOV" });
   });
 });
