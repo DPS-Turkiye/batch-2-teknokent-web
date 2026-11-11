@@ -15,6 +15,7 @@ import {
   kindSwatch,
 } from "@/components/student/ia/appointment-calendar";
 import { AppointmentListCard } from "@/components/student/ia/appointment-list-card";
+import { OfficeHoursAlternativeActions } from "@/components/student/ia/office-hours-alternative-actions";
 import {
   AppointmentStatusBadge,
   InitialsAvatar,
@@ -31,6 +32,7 @@ import {
 } from "@/interfaces/appointment";
 import { timeLabel } from "@/lib/calendar";
 import { calendarTitle } from "@/lib/student-appointments";
+import { canAnswerAlternative } from "@/lib/student-office-hours";
 import { formatDayMonth } from "@/lib/utils";
 import {
   AppointmentsTab,
@@ -48,6 +50,20 @@ const LEGEND_STATUSES = [
 ] as const;
 
 type RenderActions = ((appointment: Appointment) => ReactNode) | undefined;
+
+/** The card's buttons: Office Hours' own answer to a proposed time, then whatever an edition adds. */
+function actionsFor(appointment: Appointment, renderActions: RenderActions) {
+  const own = canAnswerAlternative(appointment) ? (
+    <OfficeHoursAlternativeActions appointment={appointment} />
+  ) : null;
+  const extra = renderActions?.(appointment) ?? null;
+  return own || extra ? (
+    <>
+      {own}
+      {extra}
+    </>
+  ) : null;
+}
 
 /**
  * Randevularım (Figma 82:496 list, 99:2 / 99:228 / 99:390 calendars). Extension points for other student
@@ -230,7 +246,7 @@ function ListView({
                 <li key={item.id}>
                   <AppointmentListCard
                     appointment={item}
-                    actions={renderActions?.(item)}
+                    actions={actionsFor(item, renderActions)}
                     tourAnchor={
                       appointments.tab === AppointmentsTab.Upcoming &&
                       index === 0
@@ -383,7 +399,7 @@ function CalendarView({
         ) : appointments.selected ? (
           <AppointmentDetail
             appointment={appointments.selected}
-            actions={renderActions?.(appointments.selected)}
+            actions={actionsFor(appointments.selected, renderActions)}
           />
         ) : (
           <Card>

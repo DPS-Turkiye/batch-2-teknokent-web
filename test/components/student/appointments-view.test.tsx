@@ -9,6 +9,7 @@ import {
   AppointmentStatus,
 } from "@/interfaces/appointment";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { answerOfficeHoursAlternative } from "@/lib/client/student-office-hours";
 import {
   APPOINTMENTS_NOW,
   peerAppointment,
@@ -18,6 +19,9 @@ import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/student-appointments", () => ({
   getStudentAppointments: vi.fn(),
+}));
+vi.mock("@/lib/client/student-office-hours", () => ({
+  answerOfficeHoursAlternative: vi.fn(),
 }));
 
 const alternative = peerAppointment({
@@ -86,21 +90,39 @@ describe("StudentAppointmentsView", () => {
     expect(within(card).getByText("Alternatif Önerildi")).toBeVisible();
   });
 
+  it("lets the student accept an Office Hours alternative time", async () => {
+    vi.mocked(answerOfficeHoursAlternative).mockResolvedValue({
+      ...alternative,
+      status: AppointmentStatus.Confirmed,
+    });
+    renderWithQueryClient(<StudentAppointmentsView />);
+    await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
+    const card = within(await panel()).getByRole("article");
+    expect(within(card).getByRole("button", { name: "Reddet" })).toBeVisible();
+    await userEvent.click(
+      within(card).getByRole("button", { name: "Önerilen Saati Kabul Et" }),
+    );
+    expect(answerOfficeHoursAlternative).toHaveBeenCalledWith("alt", true);
+    expect(
+      await screen.findByText(
+        "Önerilen saati kabul ettin; randevun onaylandı.",
+      ),
+    ).toBeVisible();
+  });
+
   it("adds a kind's answer buttons through renderActions", async () => {
     renderWithQueryClient(
       <StudentAppointmentsView
         renderActions={(item) =>
           item.kind === AppointmentKind.OfficeHours ? (
-            <button type="button">Önerilen Saati Kabul Et</button>
+            <button type="button">Ek işlem</button>
           ) : null
         }
       />,
     );
     await userEvent.click(await screen.findByRole("tab", { name: /Talepler/ }));
     expect(
-      within(await panel()).getByRole("button", {
-        name: "Önerilen Saati Kabul Et",
-      }),
+      within(await panel()).getByRole("button", { name: "Ek işlem" }),
     ).toBeVisible();
   });
 
