@@ -1,6 +1,7 @@
 import type {
   AcademicianAvailability,
   OfficeHoursOneOff,
+  UpdateAcademicianAvailabilityPayload,
 } from "@/interfaces/academician-office-hours";
 import {
   WEEKDAY_ORDER,
@@ -8,10 +9,13 @@ import {
   type MentorAvailabilityRule,
   type Weekday,
 } from "@/interfaces/mentor";
-import { rangeMinutes } from "@/lib/academician-office-hours";
+import { rangeMinutes, turkeyTimeRange } from "@/lib/academician-office-hours";
 import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
 import { weekdayOf } from "@/lib/mentor-availability";
-import { AvailabilityItemKind } from "@/types/academician-office-hours";
+import {
+  AvailabilityFormError,
+  AvailabilityItemKind,
+} from "@/types/academician-office-hours";
 
 export type AvailabilityItem =
   | { kind: AvailabilityItemKind.Recurring; rule: MentorAvailabilityRule }
@@ -121,4 +125,236 @@ export function weekAvailability(
     }
   }
   return { minutes, weekdays };
+}
+
+/* ------------------------------------------------------------------ editing */
+
+export type RuleInput = {
+  dayOfWeek: Weekday;
+  startTime: string;
+  endTime: string;
+};
+export type OneOffInput = {
+  date: string;
+  startTime: string;
+  endTime: string;
+  place: string;
+};
+export type DayOffInput = { startsOn: string; endsOn: string; reason: string };
+
+/** What the save sends: everything as it is, without the ids the source hands out. */
+export function toAvailabilityPayload(
+  availability: AcademicianAvailability,
+): UpdateAcademicianAvailabilityPayload {
+  return {
+    rules: availability.rules.map(
+      ({ dayOfWeek, startTime, endTime, slotMinutes }) => ({
+        dayOfWeek,
+        startTime,
+        endTime,
+        slotMinutes,
+      }),
+    ),
+    exceptions: availability.exceptions,
+    menteeCapacity: availability.menteeCapacity,
+    defaultMeetingDurationMinutes: availability.defaultMeetingDurationMinutes,
+    meetingBufferMinutes: availability.meetingBufferMinutes,
+    oneOffs: availability.oneOffs.map(({ startsAt, endsAt, place }) => ({
+      startsAt,
+      endsAt,
+      place,
+    })),
+  };
+}
+
+/** The one-off as a time range typed in Turkey time. */
+export function oneOffTime(input: OneOffInput) {
+  return turkeyTimeRange(
+    `${input.date}T${input.startTime}`,
+    minutesOfDay(input.endTime) - minutesOfDay(input.startTime),
+  );
+}
+
+/** Adds a weekly range, or replaces the one with `replacing`. Slots follow the default meeting length. */
+export function withRule(
+  availability: AcademicianAvailability,
+  input: RuleInput,
+  replacing: string | null,
+): UpdateAcademicianAvailabilityPayload {
+  const rule = {
+    id: replacing ?? "new",
+    ...input,
+    slotMinutes: availability.defaultMeetingDurationMinutes,
+  };
+  return toAvailabilityPayload({
+    ...availability,
+    rules:
+      replacing === null
+        ? [...availability.rules, rule]
+        : availability.rules.map((item) =>
+            item.id === replacing ? rule : item,
+          ),
+  });
+}
+
+export function withoutRule(availability: AcademicianAvailability, id: string) {
+  return toAvailabilityPayload({
+    ...availability,
+    rules: availability.rules.filter((rule) => rule.id !== id),
+  });
+}
+
+export function withOneOff(
+  availability: AcademicianAvailability,
+  input: OneOffInput,
+  replacing: string | null,
+): UpdateAcademicianAvailabilityPayload {
+  const oneOff = {
+    ...oneOffTime(input),
+    place: input.place.trim() === "" ? null : input.place.trim(),
+  };
+  return toAvailabilityPayload({
+    ...availability,
+    oneOffs:
+      replacing === null
+        ? [...availability.oneOffs, oneOff]
+        : availability.oneOffs.map((item) =>
+            item.id === replacing ? oneOff : item,
+          ),
+  });
+}
+
+export function withoutOneOff(
+  availability: AcademicianAvailability,
+  id: string,
+) {
+  return toAvailabilityPayload({
+    ...availability,
+    oneOffs: availability.oneOffs.filter((oneOff) => oneOff.id !== id),
+  });
+}
+
+export function withDayOff(
+  availability: AcademicianAvailability,
+  input: DayOffInput,
+  replacing: string | null,
+): UpdateAcademicianAvailabilityPayload {
+  const exception = {
+    ...(replacing === null ? {} : { id: replacing }),
+    startsOn: input.startsOn,
+    endsOn: input.endsOn === "" ? input.startsOn : input.endsOn,
+    reason: input.reason.trim() === "" ? null : input.reason.trim(),
+  };
+  return toAvailabilityPayload({
+    ...availability,
+    exceptions:
+      replacing === null
+        ? [...availability.exceptions, exception]
+        : availability.exceptions.map((item) =>
+            item.id === replacing ? exception : item,
+          ),
+  });
+}
+
+export function withoutDayOff(
+  availability: AcademicianAvailability,
+  id: string,
+) {
+  return toAvailabilityPayload({
+    ...availability,
+    exceptions: availability.exceptions.filter(
+      (exception) => exception.id !== id,
+    ),
+  });
+}
+
+/* --------------------------------------------------------------- validation */
+
+function rangesOverlap(
+  a: { start: number; end: number },
+  b: { start: number; end: number },
+) {
+  return a.start < b.end && b.start < a.end;
+}
+
+/** Why a weekly range can't be saved: a missing time, an end before the start, or a clash on the same day. */
+export function ruleError(
+  input: RuleInput,
+  rules: readonly MentorAvailabilityRule[],
+  replacing: string | null,
+): AvailabilityFormError | null {
+  if (input.startTime === "" || input.endTime === "") {
+    return AvailabilityFormError.NeedFields;
+  }
+  const range = {
+    start: minutesOfDay(input.startTime),
+    end: minutesOfDay(input.endTime),
+  };
+  if (range.end <= range.start) return AvailabilityFormError.EndAfterStart;
+  const clash = rules.some(
+    (rule) =>
+      rule.id !== replacing &&
+      rule.dayOfWeek === input.dayOfWeek &&
+      rangesOverlap(range, {
+        start: minutesOfDay(rule.startTime),
+        end: minutesOfDay(rule.endTime),
+      }),
+  );
+  return clash ? AvailabilityFormError.Overlap : null;
+}
+
+/**
+ * Why one-off hours can't be saved. A one-off on a day off is refused rather than mixed with it: the day off
+ * would hide it, so the academician lifts the day off first.
+ */
+export function oneOffError(
+  input: OneOffInput,
+  availability: AcademicianAvailability,
+  replacing: string | null,
+  now: Date,
+): AvailabilityFormError | null {
+  if (input.date === "" || input.startTime === "" || input.endTime === "") {
+    return AvailabilityFormError.NeedFields;
+  }
+  if (minutesOfDay(input.endTime) <= minutesOfDay(input.startTime)) {
+    return AvailabilityFormError.EndAfterStart;
+  }
+  const time = oneOffTime(input);
+  if (Date.parse(time.startsAt) <= now.getTime()) {
+    return AvailabilityFormError.Past;
+  }
+  if (isDayOff(input.date, availability.exceptions)) {
+    return AvailabilityFormError.InsideDayOff;
+  }
+  const range = {
+    start: Date.parse(time.startsAt),
+    end: Date.parse(time.endsAt),
+  };
+  const clash = availability.oneOffs.some(
+    (oneOff) =>
+      oneOff.id !== replacing &&
+      rangesOverlap(range, {
+        start: Date.parse(oneOff.startsAt),
+        end: Date.parse(oneOff.endsAt),
+      }),
+  );
+  return clash ? AvailabilityFormError.Overlap : null;
+}
+
+/** Why a day off can't be saved: no start, an end before the start, or the same days again. */
+export function dayOffError(
+  input: DayOffInput,
+  exceptions: readonly MentorAvailabilityException[],
+  replacing: string | null,
+): AvailabilityFormError | null {
+  if (input.startsOn === "") return AvailabilityFormError.NeedFields;
+  const endsOn = input.endsOn === "" ? input.startsOn : input.endsOn;
+  if (endsOn < input.startsOn) return AvailabilityFormError.EndAfterStart;
+  const clash = exceptions.some(
+    (exception) =>
+      exception.id !== replacing &&
+      exception.startsOn <= endsOn &&
+      input.startsOn <= exception.endsOn,
+  );
+  return clash ? AvailabilityFormError.Overlap : null;
 }

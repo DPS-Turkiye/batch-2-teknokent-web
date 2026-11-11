@@ -104,7 +104,7 @@ describe("AcademicianHomeView", () => {
     expect(screen.getByText(/Örnek veriler gösteriliyor/)).toBeVisible();
     expect(
       screen.getByRole("link", { name: "Müsaitliği Düzenle" }),
-    ).toHaveAttribute("href", "/academician/calendar");
+    ).toHaveAttribute("href", "/academician/appointments/availability");
     expect(screen.getByRole("link", { name: "Randevularım" })).toHaveAttribute(
       "href",
       "/academician/appointments",
@@ -137,7 +137,10 @@ describe("AcademicianHomeView", () => {
     );
     expect(
       within(ece).getByRole("link", { name: "Alternatif Saat Öner" }),
-    ).toHaveAttribute("href", "/academician/requests");
+    ).toHaveAttribute(
+      "href",
+      "/academician/appointments?request=sample-request-2&step=propose",
+    );
   });
 
   it("books a request with one time right from its card", async () => {
@@ -176,10 +179,6 @@ describe("AcademicianHomeView", () => {
     expect(availability).toHaveTextContent("Salı14:00 – 16:00");
     expect(availability).toHaveTextContent("Perşembe10:00 – 12:00");
     expect(availability).toHaveTextContent("Müsait değilim (Konferans)");
-    expect(availability.closest("[data-tour]")).toHaveAttribute(
-      "data-tour",
-      "availability-weekly",
-    );
   });
 
   it("asks for availability first when the academician has no open hours", async () => {
@@ -197,7 +196,10 @@ describe("AcademicianHomeView", () => {
       screen.queryByRole("link", { name: "Randevularım" }),
     ).not.toBeInTheDocument();
     const add = screen.getByRole("link", { name: "Müsaitlik Ekle" });
-    expect(add).toHaveAttribute("href", "/academician/calendar");
+    expect(add).toHaveAttribute(
+      "href",
+      "/academician/appointments/availability",
+    );
     expect(add.closest("[data-tour]")).toHaveAttribute(
       "data-tour",
       "availability-add",

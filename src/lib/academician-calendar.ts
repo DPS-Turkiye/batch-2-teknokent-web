@@ -31,6 +31,7 @@ import {
   AppointmentsFilter,
   CalendarEntryKind,
   RequestFit,
+  RequestStep,
 } from "@/types/academician-calendar";
 
 /** Cancelling closer than this to the start needs a reason for the student. */
@@ -51,6 +52,8 @@ export type AppointmentsSearch = {
   filter: AppointmentsFilter;
   /** The request whose drawer is open. */
   request: string | null;
+  /** The drawer, or the dialog that proposes other times for that request. */
+  step: RequestStep;
   /** The appointment whose drawer is open. */
   appointment: string | null;
 };
@@ -60,6 +63,7 @@ export const DEFAULT_APPOINTMENTS_SEARCH: AppointmentsSearch = {
   date: null,
   filter: AppointmentsFilter.All,
   request: null,
+  step: RequestStep.Detail,
   appointment: null,
 };
 
@@ -85,6 +89,8 @@ function idOrNull(value: string | undefined) {
 export function parseAppointmentsSearch(raw: RawSearch): AppointmentsSearch {
   const view = single(raw.view);
   const filter = single(raw.filter);
+  const step = single(raw.step);
+  const request = idOrNull(single(raw.request));
   return {
     view: isEnumValue(AppointmentsCalendarView, view)
       ? view
@@ -93,7 +99,12 @@ export function parseAppointmentsSearch(raw: RawSearch): AppointmentsSearch {
     filter: isEnumValue(AppointmentsFilter, filter)
       ? filter
       : DEFAULT_APPOINTMENTS_SEARCH.filter,
-    request: idOrNull(single(raw.request)),
+    request,
+    // A step means nothing without the request it belongs to.
+    step:
+      request !== null && isEnumValue(RequestStep, step)
+        ? step
+        : DEFAULT_APPOINTMENTS_SEARCH.step,
     appointment: idOrNull(single(raw.appointment)),
   };
 }
@@ -120,6 +131,9 @@ export function appointmentsHref(
     params.set("filter", full.filter);
   }
   if (full.request !== null) params.set("request", full.request);
+  if (full.request !== null && full.step !== DEFAULT_APPOINTMENTS_SEARCH.step) {
+    params.set("step", full.step);
+  }
   if (full.appointment !== null) params.set("appointment", full.appointment);
   const query = params.toString();
   return query === "" ? base : `${base}?${query}`;

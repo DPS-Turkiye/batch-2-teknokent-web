@@ -193,7 +193,7 @@ function AvailabilityCard({
       )}
       <Button
         variant={ButtonVariant.Secondary}
-        href={calendar.links.calendar}
+        href={calendar.links.availability}
         fullWidth
       >
         {t("editAvailability")}

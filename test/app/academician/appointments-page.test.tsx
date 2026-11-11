@@ -5,6 +5,7 @@ import { AcademicianAppointmentsView } from "@/components/academician/appointmen
 import {
   AppointmentsCalendarView,
   AppointmentsFilter,
+  RequestStep,
 } from "@/types/academician-calendar";
 
 vi.mock("@/components/academician/appointments-view", () => ({
@@ -29,6 +30,7 @@ describe("academician appointments page", () => {
         date: "2026-11-17",
         filter: AppointmentsFilter.All,
         request: "sample-request-1",
+        step: RequestStep.Detail,
         appointment: null,
       },
     });

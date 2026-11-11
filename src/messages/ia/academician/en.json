@@ -181,5 +181,87 @@
     "cancelled": "Appointment cancelled.",
     "failed": "Couldn't cancel the appointment; the list was refreshed.",
     "gone": "This appointment is no longer on your calendar."
+  },
+  "propose": {
+    "title": "Propose another time",
+    "requested": "{name} · requested: {when}",
+    "daysLabel": "Choose a day",
+    "dayHeading": "{day} · your open times",
+    "picked": "Your picks ({count}/{max})",
+    "remove": "Remove {time}",
+    "limit": "You can propose up to {max} times.",
+    "note": "Note to the student (optional)",
+    "infoTitle": "The student has to accept",
+    "infoBody": "A time you propose isn't booked until the student accepts it. The request shows as \"Other time proposed\" meanwhile.",
+    "cancel": "Cancel",
+    "send": "Send proposal"
+  },
+  "availability": {
+    "title": "Edit availability",
+    "subtitle": "Students can request only the times that are open here.",
+    "back": "My appointments",
+    "add": "Add availability",
+    "cards": {
+      "recurring": {
+        "title": "Weekly recurring hours",
+        "hint": "Same day and time every week",
+        "rowHint": "Weekly recurring hours",
+        "empty": "No weekly hours yet."
+      },
+      "oneOff": {
+        "title": "One-off hours",
+        "hint": "A specific date and time",
+        "rowHint": "One-off hours",
+        "rowHintPlace": "One-off hours · {place}",
+        "empty": "No one-off hours."
+      },
+      "unavailable": {
+        "title": "Days I'm unavailable",
+        "hint": "Closes the weekly hours on those days",
+        "rowHint": "Unavailable (exception)",
+        "rowHintReason": "Unavailable ({reason})",
+        "empty": "No unavailable days."
+      }
+    },
+    "addTo": "Add",
+    "addToLabel": "Add to {list}",
+    "recurringRow": "Every {weekday} · {hours}",
+    "dateRow": "{date} · {hours}",
+    "allDay": "All day",
+    "howTitle": "How is it worked out?",
+    "howBody": "Students see: weekly hours + one-off hours − the days you're unavailable. An exception always wins.",
+    "menu": {
+      "label": "Options for {item}",
+      "edit": "Edit",
+      "remove": "Delete",
+      "confirm": "Delete it?",
+      "confirmYes": "Yes, delete",
+      "confirmNo": "Cancel"
+    },
+    "dialog": {
+      "addTitle": "Add availability",
+      "editTitle": "Edit availability",
+      "kind": "What do you want to add?",
+      "weekday": "Day",
+      "start": "Start",
+      "end": "End",
+      "date": "Date",
+      "place": "Place (optional)",
+      "startsOn": "First day",
+      "endsOn": "Last day (optional)",
+      "reason": "Reason (optional)",
+      "save": "Save",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "needFields": "Fill in the date and the times.",
+      "endAfterStart": "The end has to be after the start.",
+      "overlap": "These hours overlap an existing entry.",
+      "past": "You can't add hours in the past.",
+      "insideDayOff": "This day is marked unavailable; remove that day first."
+    },
+    "saved": "Availability saved.",
+    "removed": "Deleted.",
+    "failed": "Couldn't save; please try again."
   }
 }

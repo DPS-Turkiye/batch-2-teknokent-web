@@ -99,15 +99,14 @@ export function RequestDrawer({
   isAdvisee,
   source,
   now,
-  proposeHref,
+  onPropose,
   onClose,
 }: {
   request: OfficeHoursRequest;
   isAdvisee: boolean;
   source: Pick<CalendarSource, "availability" | "appointments">;
   now: Date;
-  /** Where "Alternatif Saat Öner" leads until the propose dialog lands. */
-  proposeHref: string;
+  onPropose: () => void;
   onClose: () => void;
 }) {
   const t = useTranslations("iaAcademician.requestDrawer");
@@ -124,7 +123,7 @@ export function RequestDrawer({
       onClose={onClose}
       footer={
         answerable ? (
-          <RequestDrawerFooter drawer={drawer} proposeHref={proposeHref} />
+          <RequestDrawerFooter drawer={drawer} onPropose={onPropose} />
         ) : undefined
       }
     >
@@ -255,10 +254,10 @@ export function RequestDrawer({
 
 function RequestDrawerFooter({
   drawer,
-  proposeHref,
+  onPropose,
 }: {
   drawer: RequestDrawerState;
-  proposeHref: string;
+  onPropose: () => void;
 }) {
   const t = useTranslations("iaAcademician.requestDrawer");
   if (drawer.declining) {
@@ -288,7 +287,7 @@ function RequestDrawerFooter({
       {drawer.canPropose ? (
         <Button
           variant={ButtonVariant.Secondary}
-          href={proposeHref}
+          onClick={onPropose}
           className="flex-1"
         >
           <CalendarClock aria-hidden className="size-4" />

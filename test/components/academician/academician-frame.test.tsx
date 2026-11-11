@@ -59,13 +59,13 @@ describe("AcademicianFrame", () => {
     ]);
   });
 
-  it.each(["/academician/requests", "/academician/calendar"])(
-    "keeps Randevularım selected on the old %s page",
+  it.each(["/academician/appointments/availability"])(
+    "keeps Randevularım selected on %s",
     (path) => {
       pathname = path;
       renderWithQueryClient(
         <AcademicianFrame>
-          <p>Eski sayfa</p>
+          <p>Alt sayfa</p>
         </AcademicianFrame>,
       );
       expect(

@@ -6,6 +6,7 @@ import { AppointmentDrawer } from "@/components/academician/appointment-drawer";
 import { AppointmentsCalendarCard } from "@/components/academician/appointments-calendar";
 import { AppointmentsFilterChips } from "@/components/academician/appointments-filter-chips";
 import { AppointmentsRail } from "@/components/academician/appointments-rail";
+import { ProposeTimesDialog } from "@/components/academician/propose-times-dialog";
 import {
   GoneDrawer,
   RequestDrawer,
@@ -19,6 +20,7 @@ import {
   type AcademicianAppointmentsCalendar,
 } from "@/hooks/use-academician-appointments-calendar";
 import type { AppointmentsSearch } from "@/lib/academician-calendar";
+import { RequestStep } from "@/types/academician-calendar";
 
 export function AcademicianAppointmentsView({
   initial,
@@ -35,7 +37,7 @@ export function AcademicianAppointmentsView({
         actions={
           <Button
             variant={ButtonVariant.Secondary}
-            href={calendar?.links.calendar}
+            href={calendar?.links.availability}
           >
             {t("editAvailability")}
           </Button>
@@ -79,11 +81,27 @@ function AppointmentsContent({
   );
 }
 
-function Drawers({ calendar }: { calendar: AcademicianAppointmentsCalendar }) {
+export function Drawers({
+  calendar,
+}: {
+  calendar: AcademicianAppointmentsCalendar;
+}) {
   const tRequest = useTranslations("iaAcademician.requestDrawer");
   const tAppointment = useTranslations("iaAcademician.appointmentDrawer");
   if (calendar.selectedRequest) {
     const request = calendar.selectedRequest;
+    if (calendar.step === RequestStep.Propose) {
+      return (
+        <ProposeTimesDialog
+          key={request.id}
+          request={request}
+          source={calendar.source}
+          now={calendar.now}
+          onDone={calendar.closeDrawer}
+          onCancel={calendar.backToRequest}
+        />
+      );
+    }
     return (
       <RequestDrawer
         key={request.id}
@@ -91,7 +109,7 @@ function Drawers({ calendar }: { calendar: AcademicianAppointmentsCalendar }) {
         isAdvisee={calendar.isAdvisee(request.student.userId)}
         source={calendar.source}
         now={calendar.now}
-        proposeHref={calendar.links.requests}
+        onPropose={calendar.openPropose}
         onClose={calendar.closeDrawer}
       />
     );

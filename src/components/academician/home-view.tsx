@@ -66,7 +66,10 @@ function HomeHeader({ home }: { home: AcademicianHome }) {
       title={home.greeting}
       actions={
         <>
-          <Button variant={ButtonVariant.Secondary} href={home.links.calendar}>
+          <Button
+            variant={ButtonVariant.Secondary}
+            href={home.links.availability}
+          >
             {t("editAvailability")}
           </Button>
           <Button href={home.links.appointments}>{t("appointments")}</Button>
@@ -223,7 +226,7 @@ function PendingRequestCard({
         {card.canPropose ? (
           <Button
             variant={ButtonVariant.Secondary}
-            href={home.links.requests}
+            href={card.proposeHref}
             className="flex-1"
           >
             <CalendarClock aria-hidden className="size-4" />
@@ -307,34 +310,32 @@ function AvailabilityCard({ home }: { home: AcademicianHome }) {
     (row) => row.kind !== AvailabilityItemKind.Unavailable,
   );
   return (
-    <div data-tour="availability-weekly">
-      <Card labelledBy={titleId} compact className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 id={titleId} className="type-h4 text-text-primary">
-            {t("title")}
-          </h2>
-          <Link
-            href={home.links.calendar}
-            className="type-label text-brand-odtu-strong"
-          >
-            {t("edit")}
-          </Link>
-        </div>
-        <dl className="space-y-3">
-          {hours.map((row) => (
-            <AvailabilityLine key={row.key} row={row} />
-          ))}
-        </dl>
-        {dayOffs.map((row) => (
-          <p
-            key={row.key}
-            className="rounded-xl bg-brand-odtu-bg px-3 py-2 type-caption text-brand-odtu-strong"
-          >
-            {row.label}
-          </p>
+    <Card labelledBy={titleId} compact className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 id={titleId} className="type-h4 text-text-primary">
+          {t("title")}
+        </h2>
+        <Link
+          href={home.links.availability}
+          className="type-label text-brand-odtu-strong"
+        >
+          {t("edit")}
+        </Link>
+      </div>
+      <dl className="space-y-3">
+        {hours.map((row) => (
+          <AvailabilityLine key={row.key} row={row} />
         ))}
-      </Card>
-    </div>
+      </dl>
+      {dayOffs.map((row) => (
+        <p
+          key={row.key}
+          className="rounded-xl bg-brand-odtu-bg px-3 py-2 type-caption text-brand-odtu-strong"
+        >
+          {row.label}
+        </p>
+      ))}
+    </Card>
   );
 }
 
@@ -428,7 +429,7 @@ function EmptyAvailability({ home }: { home: AcademicianHome }) {
         </div>
         <p className="max-w-xl type-body text-text-secondary">{t("body")}</p>
         <div data-tour="availability-add" className="w-fit">
-          <Button href={home.links.calendar}>{t("cta")}</Button>
+          <Button href={home.links.availability}>{t("cta")}</Button>
         </div>
       </div>
       <ul aria-label={t("examplesLabel")} className="space-y-3">

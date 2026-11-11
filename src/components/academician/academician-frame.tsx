@@ -9,13 +9,6 @@ import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 
 export const ACADEMICIAN_HOME = ACADEMICIAN_ROUTES.home;
 
-/** Randevularım covers the old Talepler and Takvim pages too, until their redirects land. */
-const APPOINTMENT_PATHS = [
-  ACADEMICIAN_ROUTES.appointments,
-  ACADEMICIAN_ROUTES.requests,
-  ACADEMICIAN_ROUTES.calendar,
-];
-
 const NAV: RoleNavItem[] = [
   {
     href: ACADEMICIAN_ROUTES.home,
@@ -27,8 +20,7 @@ const NAV: RoleNavItem[] = [
     href: ACADEMICIAN_ROUTES.appointments,
     label: "myAppointments",
     icon: "/admin/nav-calendar.svg",
-    match: (path) =>
-      APPOINTMENT_PATHS.some((prefix) => path.startsWith(prefix)),
+    match: (path) => path.startsWith(ACADEMICIAN_ROUTES.appointments),
   },
   {
     href: ACADEMICIAN_ROUTES.advisees,

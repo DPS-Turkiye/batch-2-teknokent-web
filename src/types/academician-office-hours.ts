@@ -4,3 +4,12 @@ export enum AvailabilityItemKind {
   OneOff = "oneOff",
   Unavailable = "unavailable",
 }
+
+/** Why an availability form can't be saved; each has its own message. */
+export enum AvailabilityFormError {
+  NeedFields = "needFields",
+  EndAfterStart = "endAfterStart",
+  Overlap = "overlap",
+  Past = "past",
+  InsideDayOff = "insideDayOff",
+}

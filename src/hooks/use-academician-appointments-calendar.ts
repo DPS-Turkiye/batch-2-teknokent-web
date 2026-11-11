@@ -50,6 +50,7 @@ import { formatDateRange } from "@/lib/format";
 import {
   AppointmentsCalendarView,
   CalendarEntryKind,
+  RequestStep,
   type AppointmentsFilter,
 } from "@/types/academician-calendar";
 
@@ -92,6 +93,8 @@ const MONTH_HEADER_DAYS = 7;
  */
 export function useAcademicianAppointmentsCalendar(
   initial: AppointmentsSearch,
+  /** The page the URL state belongs to: Randevularım, or the availability page that shows the same calendar. */
+  basePath: string = ACADEMICIAN_ROUTES.appointments,
 ) {
   const t = useTranslations("iaAcademician.appointments");
   const tWeekday = useTranslations("options.weekday");
@@ -127,19 +130,11 @@ export function useAcademicianAppointmentsCalendar(
   // Opening a drawer adds a history entry, so Back closes it; changing the view only rewrites the current one.
   const push = (next: AppointmentsSearch) => {
     setSearch(next);
-    window.history.pushState(
-      null,
-      "",
-      appointmentsHref(ACADEMICIAN_ROUTES.appointments, next),
-    );
+    window.history.pushState(null, "", appointmentsHref(basePath, next));
   };
   const replace = (next: AppointmentsSearch) => {
     setSearch(next);
-    window.history.replaceState(
-      null,
-      "",
-      appointmentsHref(ACADEMICIAN_ROUTES.appointments, next),
-    );
+    window.history.replaceState(null, "", appointmentsHref(basePath, next));
   };
   const update = (change: Partial<AppointmentsSearch>) => {
     replace({ ...search, ...change });
@@ -186,7 +181,12 @@ export function useAcademicianAppointmentsCalendar(
   });
 
   const openRequest = (id: string) => {
-    push({ ...search, request: id, appointment: null });
+    push({
+      ...search,
+      request: id,
+      step: RequestStep.Detail,
+      appointment: null,
+    });
   };
   const openAppointment = (id: string) => {
     push({ ...search, appointment: id, request: null });
@@ -388,8 +388,20 @@ export function useAcademicianAppointmentsCalendar(
         search.appointment !== null &&
         !source.appointments.some((item) => item.id === search.appointment),
       isAdvisee: (userId: string) => advisor.has(userId),
+      step: search.step,
+      openPropose: () => {
+        push({ ...search, step: RequestStep.Propose });
+      },
+      backToRequest: () => {
+        replace({ ...search, step: RequestStep.Detail });
+      },
       closeDrawer: () => {
-        replace({ ...search, request: null, appointment: null });
+        replace({
+          ...search,
+          request: null,
+          step: RequestStep.Detail,
+          appointment: null,
+        });
       },
       source,
       now,
