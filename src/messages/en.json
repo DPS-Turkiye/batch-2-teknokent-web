@@ -6473,12 +6473,6 @@
     }
   },
   "academicianWorkspace": {
-    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved.",
-    "queryState": {
-      "loading": "Loading…",
-      "error": "Could not load.",
-      "retry": "Try again"
-    },
     "studyLevel": {
       "BACHELOR": "Bachelor's",
       "MASTER": "Master's",
@@ -6607,26 +6601,6 @@
       "oneOffFailed": "One-off hours could not be saved.",
       "insideDayOff": "This date is within your unavailable dates. Remove those dates first.",
       "insideDayOffReason": "This date is within your unavailable dates ({reason}). Remove those dates first."
-    },
-    "home": {
-      "greeting": "Hello, {name}",
-      "greetingFallback": "Hello",
-      "subtitle": "Your office hours requests, appointments and advisees.",
-      "pendingTitle": "Requests waiting for you",
-      "pendingHint": "Accept, decline or propose another time.",
-      "pendingLink": "Go to requests",
-      "weekTitle": "Appointments in the next 7 days",
-      "weekHint": "Confirmed office hours appointments.",
-      "weekLink": "My appointments",
-      "adviseesTitle": "Advisees",
-      "adviseesHint": "From ODTÜ's records.",
-      "adviseesLink": "My advisees",
-      "nextTitle": "Next appointments",
-      "nextEmpty": "No upcoming appointments.",
-      "requestsTitle": "Latest requests",
-      "requestsEmpty": "No requests are waiting for you.",
-      "seeAll": "See all",
-      "calendarLink": "Edit office hours"
     }
   },
   "programPeerCategories": {

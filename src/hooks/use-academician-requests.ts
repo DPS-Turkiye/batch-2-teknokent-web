@@ -10,23 +10,19 @@ import {
   type OfficeHoursAnswer,
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
-import { AppointmentStatus } from "@/interfaces/appointment";
 import { ToastTone } from "@/interfaces/toast";
 import {
   ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
+  ACADEMICIAN_REQUESTS_QUERY_KEY,
   rangeMinutes,
   turkeyTimeRange,
+  waitsForAcademician,
 } from "@/lib/academician-office-hours";
 import {
   answerAcademicianRequest,
   getAcademicianRequests,
 } from "@/lib/client/academician-office-hours";
 import { useToast } from "@/stores/toast-store";
-
-export const ACADEMICIAN_REQUESTS_QUERY_KEY = [
-  ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
-  "requests",
-] as const;
 
 const DONE_MESSAGE = {
   [OfficeHoursRequestAction.Accept]: "accepted",
@@ -36,14 +32,6 @@ const DONE_MESSAGE = {
 } as const;
 
 type OpenForm = { id: string; action: OfficeHoursRequestAction };
-
-/** The academician answers it now: pending and not waiting on a question to the student. */
-export function waitsForAcademician(request: OfficeHoursRequest) {
-  return (
-    request.status === AppointmentStatus.Pending &&
-    !request.awaitingStudentReply
-  );
-}
 
 /** Randevu Talepleri: open requests and the answers each request's source allows. */
 export function useAcademicianRequests() {

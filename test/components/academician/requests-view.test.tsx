@@ -31,7 +31,7 @@ describe("AcademicianRequestsView", () => {
       within(theirs).getByText("Soru sordun, öğrencinin cevabı bekleniyor."),
     ).toBeVisible();
     expect(within(theirs).getByText("Önerdiğin saatler")).toBeVisible();
-    expect(screen.getByRole("note")).toHaveTextContent("Örnek veriler");
+    expect(screen.getByText(/Örnek veriler/)).toBeVisible();
 
     const single = await card("2. ödevdeki 3. soruda takıldım");
     expect(
