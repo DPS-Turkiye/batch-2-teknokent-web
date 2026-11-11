@@ -5,7 +5,10 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { useSession } from "@/components/providers/session-provider";
+import {
+  useAppSession,
+  useSession,
+} from "@/components/providers/session-provider";
 import { useMyBadges } from "@/hooks/use-badges";
 import { useInstitutionRecord } from "@/hooks/use-institution-record";
 import {
@@ -48,11 +51,15 @@ import {
 import { getPeerMentorCategories } from "@/lib/client/student-profile-completion";
 import { getStudentTraining } from "@/lib/client/training";
 import {
+  chosenSubtopics,
   latestGateAward,
+  PEER_HELP_WITH_MAX,
   PEER_MENTOR_TRAINING_HREF,
   PEER_REQUEST_MESSAGE_MIN,
   peerMentorCapacity,
   peerMentorGateState,
+  subtopicGroupsWithCounts,
+  weeklyHours,
 } from "@/lib/peer-mentoring";
 import { hasPermission } from "@/lib/permissions";
 import {
@@ -60,7 +67,7 @@ import {
   toggleInterestSubtopic,
   toggleInterestTopic,
 } from "@/lib/student-interests";
-import { errorMessage } from "@/lib/utils";
+import { errorMessage, initials } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 import { PeerGiveTab } from "@/types/iskur-student";
 
@@ -222,6 +229,19 @@ export function usePeerGivePublished(menteeCapacity: number | null) {
   };
 }
 
+/** Who the wizard's preview card shows: the student, from the session and the institution record. */
+export function usePeerMentorPreviewPerson() {
+  const session = useAppSession();
+  const institution = useInstitutionRecord();
+  const fullName = session?.fullName ?? "";
+  return {
+    fullName,
+    initials: initials(fullName),
+    department: institution.data?.departmentName ?? null,
+    classYear: institution.data?.classYear ?? null,
+  };
+}
+
 export enum PeerMentorWizardStep {
   Categories,
   Subtopics,
@@ -319,7 +339,7 @@ function toSettings(
  * availability settings live on the profile row the publish creates; publishing saves the profile, then the hours.
  */
 export function usePeerMentorWizard() {
-  const t = useTranslations("odtuWorkspaces.student.peerMentoring.wizard");
+  const t = useTranslations("iaIskur.wizard");
   const router = useRouter();
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -427,9 +447,19 @@ export function usePeerMentorWizard() {
     isLoading: profile.isLoading || catalogue.isLoading,
     loadError: profile.error ?? catalogue.error,
     categories,
-    subtopicGroups: chosenCategories(categories, draft.topics),
+    subtopicGroups: subtopicGroupsWithCounts(
+      chosenCategories(categories, draft.topics),
+      draft.subtopics,
+    ),
+    previewSubtopics: chosenSubtopics(categories, draft.subtopics),
     availability,
     availabilitySettings,
+    weeklyHours: weeklyHours(availabilitySettings.rules),
+    helpWithLength: draft.helpWith.trim().length,
+    helpWithMin: PEER_REQUEST_MESSAGE_MIN,
+    helpWithMax: PEER_HELP_WITH_MAX,
+    isFirst: step === PeerMentorWizardStep.Categories,
+    isLast: step === PeerMentorWizardStep.Preview,
     toggleTopic: (id: PeerTopicCategory) =>
       change((current) => toggleInterestTopic(current, id, categories)),
     toggleSubtopic: (id: string) =>
