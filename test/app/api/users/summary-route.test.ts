@@ -79,10 +79,11 @@ describe("GET /api/users/[id]/summary", () => {
     expect(response.status).toBe(404);
   });
 
-  it("answers 404 for an id that is not a uuid, without calling the backend", async () => {
+  it("answers 400 for an id that is not a uuid, without calling the backend", async () => {
     const response = await get("..");
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ code: "INVALID_REQUEST" });
     expect(fetchPersonSummary).not.toHaveBeenCalled();
   });
 });
