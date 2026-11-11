@@ -74,7 +74,7 @@ export function Button({
   const classes = `${buttonClasses(variant, size, fullWidth)} ${className}`;
   if (href !== undefined && !disabled) {
     return (
-      <Link href={href} onClick={onClick} className={classes}>
+      <Link href={href} className={classes} {...(onClick ? { onClick } : {})}>
         {children}
       </Link>
     );
