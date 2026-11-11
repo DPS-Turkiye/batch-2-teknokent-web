@@ -56,5 +56,74 @@
       "reply": "Yanıtla",
       "waiting": "Yanıt Bekliyor"
     }
+  },
+  "appointments": {
+    "title": "Randevularım",
+    "subtitle": "Office Hours ve akran mentörlüğü randevuların tek yerde.",
+    "viewLabel": "Görünüm",
+    "views": {
+      "list": "Liste",
+      "day": "Gün",
+      "week": "Hafta",
+      "month": "Ay"
+    },
+    "tabLabel": "Randevu listesi",
+    "tabs": {
+      "upcoming": "Yaklaşan",
+      "requests": "Talepler",
+      "past": "Geçmiş"
+    },
+    "tabEmpty": {
+      "upcoming": "Onaylanmış yaklaşan randevun yok.",
+      "requests": "Yanıt bekleyen talebin yok.",
+      "past": "Geçmiş randevun yok."
+    },
+    "seeAll": "Tümü",
+    "sent": {
+      "title": "Randevu talebin gönderildi",
+      "body": "{name} yanıtladığında sana bildirim göndereceğiz."
+    },
+    "alternative": {
+      "requested": "Talep ettiğin",
+      "proposed": "Önerilen"
+    },
+    "rejectReason": "Gerekçe: {reason}",
+    "legend": {
+      "title": "Durumlar ne anlama geliyor?",
+      "PENDING": "Akademisyen veya mentor henüz yanıtlamadı. Randevu kesinleşmedi.",
+      "ALTERNATIVE_PROPOSED": "Yeni saati sen kabul edene kadar randevu onaylanmaz.",
+      "CONFIRMED": "Randevu kesinleşti; iki tarafın takviminde görünür."
+    },
+    "calendar": {
+      "today": "Bugün",
+      "previous": "Önceki",
+      "next": "Sonraki",
+      "day": "{date}, {count, plural, =0 {randevu yok} other {# randevu}}",
+      "time": "Saat",
+      "proposedTime": "Önerilen saat",
+      "nothingInView": "Bu aralıkta randevun yok.",
+      "emptyDay": "Bu gün randevun yok."
+    },
+    "colors": {
+      "title": "Renkler",
+      "OFFICE_HOURS": {
+        "title": "Office Hours",
+        "body": "Akademisyenle randevu"
+      },
+      "PEER_MENTORING": {
+        "title": "Akran Mentörlüğü",
+        "body": "Akran mentoruyla görüşme"
+      },
+      "dashed": {
+        "title": "Kesikli çerçeve",
+        "body": "Henüz onaylanmadı: Onay Bekliyor veya Alternatif Saat Önerildi"
+      }
+    },
+    "loading": "Randevular yükleniyor…",
+    "error": "Randevular yüklenemedi.",
+    "retry": "Tekrar dene",
+    "empty": "Henüz randevun yok",
+    "emptyBody": "Bir akran mentordan ya da Office Hours'tan randevu iste; burada görünür.",
+    "findMentor": "Mentor bul"
   }
 }

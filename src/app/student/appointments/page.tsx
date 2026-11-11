@@ -1,6 +1,11 @@
-// TEST UI: placeholder until the design team's screen; replace when it arrives.
 import { StudentAppointmentsView } from "@/components/student/appointments-view";
 
-export default function StudentAppointmentsPage() {
-  return <StudentAppointmentsView />;
+/** `?sent=<name>`: arriving right after a request was sent shows its confirmation banner. */
+export default async function StudentAppointmentsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sent?: string }>;
+}) {
+  const { sent } = await searchParams;
+  return <StudentAppointmentsView sentTo={sent?.trim() || null} />;
 }

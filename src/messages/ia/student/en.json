@@ -56,5 +56,74 @@
       "reply": "Reply",
       "waiting": "Awaiting reply"
     }
+  },
+  "appointments": {
+    "title": "My appointments",
+    "subtitle": "Your Office Hours and peer mentoring appointments in one place.",
+    "viewLabel": "View",
+    "views": {
+      "list": "List",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month"
+    },
+    "tabLabel": "Appointment list",
+    "tabs": {
+      "upcoming": "Upcoming",
+      "requests": "Requests",
+      "past": "Past"
+    },
+    "tabEmpty": {
+      "upcoming": "You have no confirmed upcoming appointments.",
+      "requests": "You have no requests awaiting an answer.",
+      "past": "You have no past appointments."
+    },
+    "seeAll": "All",
+    "sent": {
+      "title": "Your appointment request was sent",
+      "body": "We'll notify you when {name} replies."
+    },
+    "alternative": {
+      "requested": "You asked for",
+      "proposed": "Proposed"
+    },
+    "rejectReason": "Reason: {reason}",
+    "legend": {
+      "title": "What do the statuses mean?",
+      "PENDING": "The academician or mentor hasn't answered yet. The appointment isn't set.",
+      "ALTERNATIVE_PROPOSED": "The appointment isn't confirmed until you accept the new time.",
+      "CONFIRMED": "The appointment is set and shows in both calendars."
+    },
+    "calendar": {
+      "today": "Today",
+      "previous": "Previous",
+      "next": "Next",
+      "day": "{date}, {count, plural, =0 {no appointments} one {# appointment} other {# appointments}}",
+      "time": "Time",
+      "proposedTime": "Proposed time",
+      "nothingInView": "You have no appointments in this range.",
+      "emptyDay": "You have no appointments on this day."
+    },
+    "colors": {
+      "title": "Colours",
+      "OFFICE_HOURS": {
+        "title": "Office Hours",
+        "body": "Appointment with an academician"
+      },
+      "PEER_MENTORING": {
+        "title": "Peer Mentoring",
+        "body": "Session with a peer mentor"
+      },
+      "dashed": {
+        "title": "Dashed frame",
+        "body": "Not confirmed yet: awaiting approval or an alternative time proposed"
+      }
+    },
+    "loading": "Loading appointments…",
+    "error": "Appointments could not be loaded.",
+    "retry": "Try again",
+    "empty": "No appointments yet",
+    "emptyBody": "Ask a peer mentor or Office Hours for an appointment; it will show up here.",
+    "findMentor": "Find a mentor"
   }
 }
