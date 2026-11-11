@@ -1,25 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { LogOut, Menu, Settings, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { AdminIcon } from "@/components/admin/admin-ui";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
+import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
+import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
-import type { UserRole } from "@/interfaces/session";
-import type messages from "@/messages/tr.json";
 import { useRoleGate } from "@/hooks/use-role-gate";
-import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
-import { roleWorkspace } from "@/lib/role-workspace";
+import { UserRole } from "@/interfaces/session";
+import type { Workspace } from "@/interfaces/workspace";
 import { initials } from "@/lib/utils";
+import type messages from "@/messages/tr.json";
+
+export type RoleMenuLabel = Extract<
+  keyof (typeof messages)["roleFrame"],
+  `${string}Menu`
+>;
 
 export type RoleNavItem = {
   href: string;
@@ -28,27 +34,35 @@ export type RoleNavItem = {
   match: (path: string) => boolean;
   /** Shown but not yet clickable: the screen has a design but no page yet. */
   disabled?: boolean;
+  /** Clickable, with a "Yakında" chip: the page says what is coming and when it isn't here yet. */
+  soon?: boolean;
 };
 
 /**
- * The white menton frame shared by the staff workspaces (admin, coordinator): logo, pill menu,
- * notifications and account menu. Anyone whose role is not allowed is sent to their own home.
+ * The white menton frame shared by the staff and ODTÜ workspaces: logo, pill menu,
+ * notifications and account menu. Staff frames pass the permissions they need, ODTÜ frames their
+ * `workspace`; anyone else is sent to their own home. `roleLabel` names the workspace under the
+ * user's name in place of the account's role.
  */
 export function RoleFrame({
-  allowedRoles,
+  allowedRoles = [],
+  workspace,
   homeHref,
   menuLabel,
   nav,
+  roleLabel,
   children,
 }: {
-  allowedRoles: UserRole[];
+  allowedRoles?: UserRole[];
+  workspace?: Workspace;
   homeHref: string;
-  menuLabel: "coordinatorMenu" | "adminMenu";
+  menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
+  roleLabel?: string | undefined;
   children: ReactNode;
 }) {
   const t = useTranslations("common");
-  const { allowed, isLoading } = useRoleGate(allowedRoles);
+  const { allowed, isLoading } = useRoleGate(allowedRoles, workspace);
 
   if (isLoading || !allowed) {
     return (
@@ -59,7 +73,12 @@ export function RoleFrame({
   }
 
   return (
-    <RoleShell homeHref={homeHref} menuLabel={menuLabel} nav={nav}>
+    <RoleShell
+      homeHref={homeHref}
+      menuLabel={menuLabel}
+      nav={nav}
+      roleLabel={roleLabel}
+    >
       {children}
     </RoleShell>
   );
@@ -69,11 +88,13 @@ function RoleShell({
   homeHref,
   menuLabel,
   nav,
+  roleLabel: workspaceLabel,
   children,
 }: {
   homeHref: string;
-  menuLabel: "coordinatorMenu" | "adminMenu";
+  menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
+  roleLabel?: string | undefined;
   children: ReactNode;
 }) {
   const pathname = usePathname();
@@ -85,8 +106,8 @@ function RoleShell({
   const [accountOpen, setAccountOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const tAccount = useTranslations("accountMenu");
-  const workspace = roleWorkspace(session?.role);
-  const roleLabel = session ? t(`roles.${session.role}`) : workspace.roleLabel;
+  const roleLabel =
+    workspaceLabel ?? t(`roles.${session?.role ?? UserRole.Mentee}`);
   const name = session?.fullName ?? roleLabel;
   const mark = initials(name) || "AD";
 
@@ -126,7 +147,8 @@ function RoleShell({
                 <span className="grid size-8 place-items-center rounded-full bg-[#fbe2d0] text-[11px] leading-[1.3] font-semibold text-[#a8480e]">
                   {mark}
                 </span>
-                <span className="hidden text-left leading-tight sm:block">
+                {/* Between lg and xl the name gives its room to the nav, which shares the row. */}
+                <span className="hidden text-left leading-tight sm:block lg:hidden xl:block">
                   <span className="block text-[12.5px] font-medium">
                     {name}
                   </span>
@@ -144,8 +166,12 @@ function RoleShell({
               {accountOpen ? (
                 <div
                   role="menu"
-                  className="absolute right-0 top-12 z-50 w-44 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
+                  className="absolute right-0 top-12 z-50 w-56 overflow-hidden rounded-2xl border border-[#e9ecef] bg-white py-1 shadow-lg"
                 >
+                  <WorkspaceSwitcher
+                    itemClassName={MENU_ITEM_CLASS}
+                    onSwitched={() => setAccountOpen(false)}
+                  />
                   <button
                     type="button"
                     role="menuitem"
@@ -153,7 +179,7 @@ function RoleShell({
                       setAccountOpen(false);
                       setSettingsOpen(true);
                     }}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <Settings aria-hidden className="size-4" />
                     {tAccount("settings")}
@@ -162,7 +188,7 @@ function RoleShell({
                     type="button"
                     role="menuitem"
                     onClick={() => void handleLogout()}
-                    className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa]"
+                    className={MENU_ITEM_CLASS}
                   >
                     <LogOut className="size-4" />
                     {t("logout")}
@@ -214,6 +240,7 @@ function RoleShell({
                 >
                   <NavGlyph src={item.icon} />
                   {tFrame(`nav.${item.label}`)}
+                  {item.soon ? <SoonBadge /> : null}
                 </Link>
               ),
             )}
@@ -231,6 +258,9 @@ function RoleShell({
   );
 }
 
+const MENU_ITEM_CLASS =
+  "flex w-full items-center gap-2 px-3 py-2.5 text-left text-[13px] text-[#22262b] hover:bg-[#f8f9fa] disabled:opacity-60";
+
 function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
   const t = useTranslations("roleFrame");
   if (item.disabled) {
@@ -238,9 +268,9 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
       <span
         aria-disabled="true"
         title={t("soon")}
-        className="flex cursor-default items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] text-[#cfd4da]"
+        className="flex cursor-default items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] text-[#cfd4da] xl:px-[18px]"
       >
-        <NavGlyph src={item.icon} />
+        <NavGlyph src={item.icon} className="hidden xl:block" />
         {t(`nav.${item.label}`)}
       </span>
     );
@@ -249,14 +279,23 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      className={`flex items-center gap-2 rounded-full px-[18px] py-[11px] text-[14px] leading-[1.3] ${
+      className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] text-[14px] leading-[1.3] xl:px-[18px] ${
         active
           ? "bg-[#22262b] font-medium text-white"
           : "font-normal text-[#aeb4bc] hover:text-[#676e78]"
       }`}
     >
-      <NavGlyph src={item.icon} />
+      <NavGlyph src={item.icon} className="hidden xl:block" />
       {t(`nav.${item.label}`)}
+      {item.soon ? (
+        <span
+          className={`rounded-full px-1.5 py-0.5 text-[10.5px] leading-none font-medium ${
+            active ? "bg-white/15 text-white" : "bg-[#f4f5f7] text-[#858c96]"
+          }`}
+        >
+          {t("soon")}
+        </span>
+      ) : null}
     </Link>
   );
 }
@@ -270,11 +309,17 @@ function SoonBadge() {
   );
 }
 
-function NavGlyph({ src }: { src: string }) {
+function NavGlyph({
+  src,
+  className = "",
+}: {
+  src: string;
+  className?: string;
+}) {
   return (
     <span
       aria-hidden
-      className="size-5 shrink-0 bg-current"
+      className={`size-5 shrink-0 bg-current ${className}`}
       style={{
         mask: `url(${src}) center / 20px 20px no-repeat`,
         WebkitMask: `url(${src}) center / 20px 20px no-repeat`,

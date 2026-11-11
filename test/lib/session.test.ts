@@ -1,36 +1,49 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  IdentityKind,
   UserAccountStatus,
   UserRole,
   type BackendUser,
 } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 
+const cookieJar = vi.hoisted(() => ({
+  get: vi.fn(),
+  set: vi.fn(),
+}));
 vi.mock("next/headers", () => ({
-  cookies: vi.fn().mockResolvedValue({}),
+  cookies: vi.fn().mockResolvedValue(cookieJar),
 }));
 
+// A cleared iron-session field reads back as undefined, so the fake store holds undefined too.
 const mockIronSession: {
   user?: unknown;
-  issuedAt?: number;
-  checkedAt?: number;
-  persist?: boolean;
+  issuedAt?: number | undefined;
+  checkedAt?: number | undefined;
+  persist?: boolean | undefined;
 } = {};
 let savedSession: Record<string, unknown> & {
   save: ReturnType<typeof vi.fn>;
   destroy: ReturnType<typeof vi.fn>;
   updateConfig: ReturnType<typeof vi.fn>;
 } = { save: vi.fn(), destroy: vi.fn(), updateConfig: vi.fn() };
+
+/** Opens the fake cookie session: what mockIronSession holds, plus spies for what lib/session calls. */
+function openFakeSession(destroy: () => void = () => undefined) {
+  savedSession = {
+    ...mockIronSession,
+    save: vi.fn(),
+    destroy: vi.fn(destroy),
+    updateConfig: vi.fn(),
+  };
+  return Promise.resolve(savedSession);
+}
+const iron = vi.hoisted(() => ({ getIronSession: vi.fn() }));
 vi.mock("iron-session", () => ({
-  getIronSession: vi.fn().mockImplementation(() => {
-    savedSession = {
-      ...mockIronSession,
-      save: vi.fn(),
-      destroy: vi.fn(),
-      updateConfig: vi.fn(),
-    };
-    return Promise.resolve(savedSession);
-  }),
+  getIronSession: iron.getIronSession.mockImplementation(() =>
+    openFakeSession(),
+  ),
 }));
 
 const { fetchUser } = vi.hoisted(() => ({ fetchUser: vi.fn() }));
@@ -47,9 +60,13 @@ const HOUR_MS = 60 * 60 * 1000;
 const {
   ACCOUNT_RECHECK_MS,
   getSessionIds,
+  getSessionSignedInAt,
   getSessionMentorId,
   getSessionUser,
+  LAST_WORKSPACE_COOKIE,
+  refreshSessionUser,
   saveSessionUser,
+  switchSessionWorkspace,
   toSession,
 } = await import("@/lib/session");
 const { SessionRequiredError } = await import("@/lib/server/session-error");
@@ -87,12 +104,72 @@ describe("toSession", () => {
     });
   });
 
+  it("keeps the sign-in flag of an individual program's student", () => {
+    expect(
+      toSession(mentee({ individualMentee: true }))?.individualMentee,
+    ).toBe(true);
+    expect(toSession(mentee())?.individualMentee).toBeUndefined();
+  });
+
+  it("keeps an ODTÜ student's personal team by id only, flagged, with no name", () => {
+    const session = toSession(
+      mentee({
+        organizationId: "personal-1",
+        organizationName: null,
+        personalOrganization: true,
+        permissions: [UserRole.Mentee],
+        institutionKinds: [IdentityKind.Student],
+      }),
+    );
+    expect(session).toMatchObject({
+      organizationId: "personal-1",
+      personalOrganization: true,
+    });
+    expect(session?.organizationName).toBeUndefined();
+    expect(toSession(mentee())?.personalOrganization).toBeUndefined();
+  });
+
+  it("keeps the team of a research assistant, who is mentored but not primarily a mentee", () => {
+    const session = toSession(
+      mentor({
+        role: UserRole.Academician,
+        jobTitle: null,
+        organizationId: "personal-2",
+        organizationName: null,
+        personalOrganization: true,
+        permissions: [UserRole.Mentee, UserRole.Academician],
+        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+      }),
+    );
+    expect(session).toMatchObject({
+      organizationId: "personal-2",
+      personalOrganization: true,
+    });
+  });
+
   it("signs in a mentee who has no startup yet", () => {
     const session = toSession(
       mentee({ organizationId: null, organizationName: null }),
     );
     expect(session).not.toBeNull();
     expect(session?.organizationId).toBeUndefined();
+  });
+
+  it("signs in an ODTÜ academician and keeps what the institution says they are", () => {
+    const session = toSession(
+      mentor({
+        role: UserRole.Academician,
+        jobTitle: null,
+        permissions: [UserRole.Mentee, UserRole.Academician],
+        institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+      }),
+    );
+    expect(session).toMatchObject({
+      role: UserRole.Academician,
+      jobTitle: "Akademisyen",
+      permissions: [UserRole.Mentee, UserRole.Academician],
+      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    });
   });
 
   it("builds a mentor session without requiring an organization", () => {
@@ -103,6 +180,7 @@ describe("toSession", () => {
       fullName: "Ece Demir",
       jobTitle: "Mentor",
       role: UserRole.Mentor,
+      permissions: [UserRole.Mentor],
     });
   });
 
@@ -122,6 +200,7 @@ describe("toSession", () => {
       fullName: "Deniz Arslan",
       jobTitle: "Admin",
       role: UserRole.Admin,
+      permissions: [UserRole.Admin],
     });
   });
 
@@ -141,6 +220,7 @@ describe("toSession", () => {
       fullName: "Deniz Arslan",
       jobTitle: "Koordinatör",
       role: UserRole.Coordinator,
+      permissions: [UserRole.Coordinator],
     });
   });
 });
@@ -219,7 +299,11 @@ describe("getSessionUser account re-check", () => {
     await expect(getSessionUser()).resolves.toEqual(signedIn);
 
     // Well under the backend client's 15 s, so a hung backend can't stall every request.
-    expect(fetchUser).toHaveBeenCalledWith(signedIn.userId, 3000);
+    expect(fetchUser).toHaveBeenCalledWith(
+      signedIn.userId,
+      signedIn.userId,
+      3000,
+    );
     expect(savedSession.checkedAt).toBeGreaterThanOrEqual(before);
     expect(savedSession.issuedAt).toBe(issuedAt);
     expect(savedSession.save).toHaveBeenCalledOnce();
@@ -251,10 +335,15 @@ describe("getSessionUser account re-check", () => {
     ["back to pending", { status: UserAccountStatus.Pending }],
     ["given another role", { role: UserRole.Mentor }],
     [
+      "given another permission",
+      { permissions: [UserRole.Mentor, UserRole.Mentee] },
+    ],
+    [
       "moved to another organization",
       { organizationId: "20000000-0000-0000-0000-000000000002" },
     ],
     ["left without an organization", { organizationId: null }],
+    ["left without its primary permission", { permissions: [] }],
   ])("signs out an account %s", async (_, overrides) => {
     fetchUser.mockResolvedValue(account(overrides));
 
@@ -262,6 +351,15 @@ describe("getSessionUser account re-check", () => {
 
     expect(savedSession.destroy).toHaveBeenCalledOnce();
     expect(savedSession.save).not.toHaveBeenCalled();
+  });
+
+  it("keeps a cookie issued before permissions existed while the account holds only its role", async () => {
+    const older = { ...signedIn, permissions: undefined };
+    mockIronSession.user = older;
+    fetchUser.mockResolvedValue(account({ permissions: [UserRole.Mentee] }));
+
+    await expect(getSessionUser()).resolves.toEqual(older);
+    expect(savedSession.destroy).not.toHaveBeenCalled();
   });
 
   it("signs out a session that began before an admin ended the account's sign-ins", async () => {
@@ -317,20 +415,38 @@ describe("getSessionUser account re-check", () => {
     fetchUser.mockResolvedValue(
       account({ status: UserAccountStatus.Rejected }),
     );
-    const { getIronSession } = await import("iron-session");
-    vi.mocked(getIronSession).mockImplementationOnce(() => {
-      savedSession = {
-        ...mockIronSession,
-        save: vi.fn(),
-        destroy: vi.fn(() => {
-          throw new Error("Cookies can only be modified in a Route Handler");
-        }),
-        updateConfig: vi.fn(),
-      };
-      return Promise.resolve(savedSession) as never;
-    });
+    iron.getIronSession.mockImplementationOnce(() =>
+      openFakeSession(() => {
+        throw new Error("Cookies can only be modified in a Route Handler");
+      }),
+    );
 
     await expect(getSessionUser()).resolves.toBeNull();
+  });
+});
+
+describe("refreshSessionUser", () => {
+  it("swaps the user but keeps the original sign-in time and cookie lifetime", async () => {
+    const issuedAt = Date.now() - HOUR_MS;
+    const checkedAt = Date.now() - 60_000;
+    const { organizationId: _organizationId, ...withoutTeam } = mentee();
+    mockIronSession.user = toSession(withoutTeam);
+    mockIronSession.issuedAt = issuedAt;
+    mockIronSession.checkedAt = checkedAt;
+    mockIronSession.persist = true;
+
+    const next = await refreshSessionUser(mentee());
+
+    expect(next).toEqual(toSession(mentee()));
+    expect(savedSession.user).toEqual(next);
+    expect(savedSession.issuedAt).toBe(issuedAt);
+    expect(savedSession.checkedAt).toBe(checkedAt);
+    expect(savedSession.updateConfig).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cookieOptions: expect.objectContaining({ maxAge: 12 * 60 * 60 }),
+      }),
+    );
+    expect(savedSession.save).toHaveBeenCalledOnce();
   });
 });
 
@@ -338,7 +454,13 @@ describe("saveSessionUser", () => {
   it("records when the session was saved", async () => {
     const before = Date.now();
     await saveSessionUser(
-      { userId: "founder-1", role: UserRole.Mentee } as never,
+      {
+        userId: "founder-1",
+        email: "founder@teknokent.demo",
+        fullName: "Deniz Arslan",
+        jobTitle: "Kurucu",
+        role: UserRole.Mentee,
+      },
       true,
     );
     expect(savedSession.issuedAt).toBeGreaterThanOrEqual(before);
@@ -374,6 +496,14 @@ describe("getSessionIds", () => {
   });
 });
 
+describe("getSessionSignedInAt", () => {
+  it("returns when the sign-in began, for the realtime token", async () => {
+    mockIronSession.issuedAt = 1_762_589_730_123;
+
+    await expect(getSessionSignedInAt()).resolves.toBe(1_762_589_730_123);
+  });
+});
+
 describe("getSessionMentorId", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -392,9 +522,58 @@ describe("getSessionMentorId", () => {
     );
   });
 
+  // A peer mentor's primary role is MENTEE; the "Mentorluk Ver" lists ask for the mentor side.
+  it("returns the mentor id of a mentee who also holds the mentor permission", async () => {
+    mockIronSession.user = {
+      userId: "00000000-0000-0000-0000-000000000013",
+      role: UserRole.Mentee,
+      permissions: [UserRole.Mentor, UserRole.Mentee],
+    };
+    mockIronSession.issuedAt = Date.now();
+
+    await expect(getSessionMentorId()).resolves.toBe(
+      "00000000-0000-0000-0000-000000000013",
+    );
+  });
+
   it("throws when there is no mentor session", async () => {
     await expect(getSessionMentorId()).rejects.toBeInstanceOf(
       SessionRequiredError,
     );
+  });
+});
+
+describe("switchSessionWorkspace", () => {
+  const assistant = toSession(
+    mentor({
+      role: UserRole.Academician,
+      permissions: [UserRole.Mentee, UserRole.Academician],
+      institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+    }),
+  )!;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockIronSession.user = assistant;
+    mockIronSession.issuedAt = Date.now();
+  });
+
+  it("saves the switch and remembers it for the next sign-in", async () => {
+    await expect(
+      switchSessionWorkspace(Workspace.OdtuStudent),
+    ).resolves.toMatchObject({ activeWorkspace: Workspace.OdtuStudent });
+
+    expect(savedSession.save).toHaveBeenCalledOnce();
+    expect(cookieJar.set).toHaveBeenCalledWith(
+      LAST_WORKSPACE_COOKIE,
+      Workspace.OdtuStudent,
+      expect.objectContaining({ httpOnly: true }),
+    );
+  });
+
+  it("refuses a workspace the account cannot open", async () => {
+    await expect(switchSessionWorkspace(Workspace.Admin)).resolves.toBeNull();
+    expect(savedSession.save).not.toHaveBeenCalled();
+    expect(cookieJar.set).not.toHaveBeenCalled();
   });
 });

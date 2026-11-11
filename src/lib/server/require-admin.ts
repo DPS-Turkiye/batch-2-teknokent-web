@@ -1,10 +1,10 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 import { apiText } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
 export async function requireAdminSession() {
   const session = await getSessionUser();
@@ -17,7 +17,7 @@ export async function requireAdminSession() {
       ),
     };
   }
-  if (session.role !== UserRole.Admin) {
+  if (!hasPermission(session, UserRole.Admin)) {
     return {
       ok: false as const,
       response: NextResponse.json(

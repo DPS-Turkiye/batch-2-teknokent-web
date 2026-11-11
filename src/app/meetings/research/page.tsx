@@ -1,20 +1,19 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link from "next/link";
-import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
+import { Suspense, type ReactNode } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { MentorshipsBackLink } from "@/components/mentorships/mentorships-back-link";
-import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
-import { StartupNameLink } from "@/components/common/startup-name-link";
-import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
 import { useMeetings } from "@/hooks/use-meetings";
@@ -85,7 +84,7 @@ function MeetingDetailContent() {
   const mentorProgramsQuery = useQuery({
     queryKey: PROGRAMS_QUERY_KEY,
     queryFn: getPrograms,
-    enabled: Boolean(isMentor) && Boolean(meeting) && calendarMode,
+    enabled: isMentor && Boolean(meeting) && calendarMode,
   });
   const orgProgramsQuery = useQuery({
     queryKey: ORGANIZATION_PROGRAMS_QUERY_KEY,
@@ -106,12 +105,7 @@ function MeetingDetailContent() {
     );
   }
 
-  const counterpart = meetingCounterpartName(
-    meeting,
-    request,
-    Boolean(isMentor),
-    texts,
-  );
+  const counterpart = meetingCounterpartName(meeting, request, isMentor, texts);
   const schedule = meetingScheduleLabel(meeting, texts);
   const relatedPrograms = isMentor
     ? programsForOrganization(
@@ -149,7 +143,7 @@ function MeetingDetailContent() {
       counterpart
     );
   const invitees = meetingInviteeLabels(roomQuery.data ?? [meeting], texts);
-  const supportArea = request?.supportArea?.trim();
+  const supportArea = request?.supportArea.trim();
   const calendarTopic =
     meeting.agenda?.trim() ||
     (supportArea && supportArea !== CALENDAR_SUPPORT_AREA
@@ -168,7 +162,7 @@ function MeetingDetailContent() {
       title={t("title")}
       backHref={MENTORSHIPS_ACTIVE_HREF}
     >
-      <MentorAccent enabled={Boolean(isMentor)}>
+      <MentorAccent enabled={isMentor}>
         <div className="mx-auto w-full max-w-[1116px] px-4 pb-14 pt-6 sm:px-8">
           <MentorshipsBackLink href={MENTORSHIPS_ACTIVE_HREF} />
           <nav className="mt-4 flex items-center gap-1.5 text-[13px]">
@@ -368,7 +362,7 @@ function MeetingDetailContent() {
                 meetingId: meeting.id,
                 mentorshipRequestId: meeting.mentorshipRequestId ?? undefined,
               }}
-              canManage={Boolean(isMentor)}
+              canManage={isMentor}
               canUpload={!isMentor}
             />
           </div>

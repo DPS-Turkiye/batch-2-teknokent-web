@@ -1,7 +1,7 @@
 "use client";
 
 import { useLocale } from "next-intl";
-import { useRef, useState, type FormEvent } from "react";
+import { useRef, useState, type SubmitEvent } from "react";
 
 import {
   FeedbackSubmitError,
@@ -38,7 +38,7 @@ export function usePlatformFeedback() {
     setOpen(true);
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     setAttempted(true);
     if (!parsed.success || submittingRef.current) return;

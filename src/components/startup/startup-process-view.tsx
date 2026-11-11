@@ -1,20 +1,22 @@
 "use client";
 
 import { Check, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 
+import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
+import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   ASSIGNMENT_STATUS_TONES,
   assignmentSourceKind,
@@ -237,6 +239,13 @@ export function StartupProcessView() {
   return (
     <StartupPageFrame>
       <div className="space-y-5">
+        <div
+          data-slot="this-week"
+          className="flex flex-col gap-4 lg:flex-row lg:items-start"
+        >
+          <ProgramWeekCard className="lg:flex-1" />
+          <WeeklyCheckIn />
+        </div>
         <section aria-label={t("stages")}>
           <ol className="grid auto-cols-[minmax(150px,1fr)] grid-flow-col gap-3 overflow-x-auto pb-1">
             {process.stageCards.map((card, index) => (

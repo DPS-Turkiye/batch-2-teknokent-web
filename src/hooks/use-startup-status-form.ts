@@ -4,10 +4,11 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { STARTUP_PROFILE_QUERY_KEY } from "@/hooks/use-startup-profile";
 import type { StartupProfile } from "@/interfaces/organization";
+import { ToastTone } from "@/interfaces/toast";
 import { saveStartupStatus } from "@/lib/client/organization";
+import { useToast } from "@/stores/toast-store";
 
 export type StartupStatusDraft = {
   statusVersion: string;
@@ -52,9 +53,10 @@ export function useStartupStatusForm(profile: StartupProfile | null) {
     onSuccess: (saved) => {
       queryClient.setQueryData(STARTUP_PROFILE_QUERY_KEY, saved);
       setIsOpen(false);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
-    onError: () => showToast({ message: t("saveFailed"), tone: "error" }),
+    onError: () =>
+      showToast({ message: t("saveFailed"), tone: ToastTone.Error }),
   });
 
   const error = isValidPercent(draft.completionPercent)

@@ -1,7 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+
 import { StartupProfileSection } from "@/components/profile/startup-profile-section";
 import { StartupProfileImport } from "@/components/startup/startup-profile-import";
 

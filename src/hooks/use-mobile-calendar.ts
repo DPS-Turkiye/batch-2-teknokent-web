@@ -158,7 +158,7 @@ export function useMobileCalendar() {
                 meetings: meetings.data ?? [],
                 requests: requests.data ?? [],
                 members: members.data ?? [],
-                mentorName: session?.fullName ?? "",
+                mentorName: session.fullName,
                 texts,
                 now,
               })

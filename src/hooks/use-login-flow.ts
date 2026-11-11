@@ -1,12 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
+import { accountNotReadyHref } from "@/lib/account-not-ready";
 import { ClientApiError } from "@/lib/client/api";
-import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
 import { emailCharacterError } from "@/lib/email";
 import {
   currentIdToken,
@@ -16,9 +16,6 @@ import {
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
-
-import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
-import { signupResumeHref } from "@/lib/signup-resume";
 
 export function useLoginFlow() {
   const router = useRouter();
@@ -32,9 +29,8 @@ export function useLoginFlow() {
 
   const isReady = true;
 
-  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isReady) return;
     setLoginError("");
     setNotice("");
     setStep(LoginFlowStep.Verifying);
@@ -55,24 +51,8 @@ export function useLoginFlow() {
       await login(idToken);
       setStep(LoginFlowStep.Verified);
     } catch (error) {
+      if (await routeAccountNotReady(error, idToken)) return;
       if (error instanceof ClientApiError) {
-        if (
-          error.code === ACCOUNT_NOT_APPROVED ||
-          error.code === REGISTRATION_REQUIRED
-        ) {
-          // A signup saved half-way reopens in its wizard; a finished one clears its draft.
-          const draft = idToken
-            ? await fetchOnboardingDraft(idToken).catch(() => null)
-            : null;
-          router.push(
-            draft
-              ? signupResumeHref(draft.kind)
-              : error.code === ACCOUNT_NOT_APPROVED
-                ? "/application-status"
-                : signupResumeHref(),
-          );
-          return;
-        }
         await signOutOfFirebase().catch(() => undefined);
       }
       setLoginError(
@@ -82,6 +62,32 @@ export function useLoginFlow() {
       );
       setStep(LoginFlowStep.Login);
     }
+  }
+
+  /**
+   * A pending or half-registered account keeps its Firebase session and goes to its status page or saved signup;
+   * true when it was routed there.
+   */
+  async function routeAccountNotReady(error: unknown, idToken: string | null) {
+    const href = await accountNotReadyHref(error, idToken);
+    if (!href) return false;
+    router.push(href);
+    return true;
+  }
+
+  async function continueAfterEmailVerified() {
+    const idToken = await currentIdToken();
+    if (!idToken) {
+      throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+    }
+    try {
+      await login(idToken);
+    } catch (error) {
+      if (await routeAccountNotReady(error, idToken)) return;
+      throw error;
+    }
+    setNeedsEmailVerification(false);
+    setStep(LoginFlowStep.Verified);
   }
 
   async function sendPasswordReset() {
@@ -112,15 +118,7 @@ export function useLoginFlow() {
     submitLogin,
     sendPasswordReset,
     needsEmailVerification,
-    continueAfterEmailVerified: async () => {
-      const idToken = await currentIdToken();
-      if (!idToken) {
-        throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
-      }
-      await login(idToken);
-      setNeedsEmailVerification(false);
-      setStep(LoginFlowStep.Verified);
-    },
+    continueAfterEmailVerified,
     isReady,
     isVerifying: step === LoginFlowStep.Verifying,
     isVerified: step === LoginFlowStep.Verified,

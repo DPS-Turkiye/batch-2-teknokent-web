@@ -1,10 +1,11 @@
 import {
-  type CoordinatorProgram,
-  type CoordinatorProgramDetail,
   ProgramEventKind,
   ProgramLifecycle,
+  type CoordinatorProgram,
+  type CoordinatorProgramDetail,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 
 export function phase(
   id: string,
@@ -20,8 +21,9 @@ export function coordinatorProgram(
   return {
     id: "program-1",
     name: "METU Stars 2026",
-    status: "ACTIVE",
+    status: ProgramStatus.Active,
     lifecycle: ProgramLifecycle.Active,
+    type: ProgramType.StartupMentoring,
     description: null,
     startDate: "2026-02-01",
     endDate: "2026-12-10",
@@ -64,6 +66,9 @@ export function coordinatorProgramDetail(
       defaultMentorCapacity: 4,
       communicationGapDays: 14,
       bottleneckFlagDays: 21,
+      eligibleEmailDomain: null,
+      rosterOnly: false,
+      individualMentees: false,
     },
     health: {
       healthy: 48,
@@ -90,6 +95,8 @@ export function coordinatorProgramDetail(
       { id: "coordinator-2", fullName: "Burcu Şen", owner: false },
     ],
     missingNoteMeetings: 4,
+    pendingApprovalCount: 6,
+    syllabus: null,
     ...overrides,
   };
 }

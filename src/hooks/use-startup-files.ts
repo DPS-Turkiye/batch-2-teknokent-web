@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import {
@@ -16,6 +16,7 @@ import type { DocumentRequestItem } from "@/interfaces/document-request";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { attachDocumentRequestUpload } from "@/lib/client/document-requests";
 import { uploadDocument } from "@/lib/client/documents";
 import {
@@ -32,6 +33,7 @@ import {
   StartupFileFilter,
 } from "@/lib/startup-files";
 import { errorMessage } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_DOCUMENT_REQUESTS_QUERY_KEY = [
   "startup-document-requests",
@@ -53,6 +55,7 @@ export function useStartupFiles() {
   const membersQuery = useOrganizationMembers();
   const mentorshipRequestsQuery = useMentorshipRequests(UserRole.Mentee);
   const { programName } = useStartupHeader();
+  const { individual } = useIndividualProgram();
   const [filter, setFilter] = useState(StartupFileFilter.All);
   const [sharingId, setSharingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -75,8 +78,17 @@ export function useStartupFiles() {
         ),
         programName,
         texts: { t, locale },
+        student: individual,
       }),
-    [documents, documentRequests, membersQuery.data, programName, t, locale],
+    [
+      documents,
+      documentRequests,
+      membersQuery.data,
+      programName,
+      t,
+      locale,
+      individual,
+    ],
   );
   const rows = useMemo(() => rowsForFilter(allRows, filter), [allRows, filter]);
   const counts = useMemo(() => countRowsByFilter(allRows), [allRows]);
@@ -111,12 +123,12 @@ export function useStartupFiles() {
     }) => shareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: t("toasts.shared"), tone: "success" });
+      showToast({ message: t("toasts.shared"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.shareFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -130,12 +142,12 @@ export function useStartupFiles() {
     }) => unshareDocument(documentId, mentorId),
     onSuccess: () => {
       void refresh();
-      showToast({ message: t("toasts.unshared"), tone: "success" });
+      showToast({ message: t("toasts.unshared"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.unshareFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -160,12 +172,12 @@ export function useStartupFiles() {
       void queryClient.invalidateQueries({
         queryKey: STARTUP_DOCUMENT_REQUESTS_QUERY_KEY,
       });
-      showToast({ message: t("toasts.uploaded"), tone: "success" });
+      showToast({ message: t("toasts.uploaded"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.uploadFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -174,17 +186,23 @@ export function useStartupFiles() {
     onSuccess: () => {
       setDeletingId(null);
       void refresh();
-      showToast({ message: t("toasts.deleted"), tone: "success" });
+      showToast({ message: t("toasts.deleted"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("toasts.deleteFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
+  const filterLabel = (filter: StartupFileFilter) =>
+    individual && filter === StartupFileFilter.Startup
+      ? t("filters.studentProject")
+      : t(`filters.${filter}`);
+
   return {
     askDelete: setDeletingId,
+    filterLabel,
     cancelDelete: () => setDeletingId(null),
     closeShare: () => setSharingId(null),
     confirmDelete: () => {
@@ -219,7 +237,7 @@ export function useStartupFiles() {
     uploadForRequest: (item: DocumentRequestItem, file: File) =>
       answerRequest.mutate({ item, file }),
     uploadingRequestId: answerRequest.isPending
-      ? answerRequest.variables?.item.id
+      ? answerRequest.variables.item.id
       : undefined,
   };
 }

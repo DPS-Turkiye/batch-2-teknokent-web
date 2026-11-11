@@ -8,7 +8,8 @@ export enum ActionItemStatus {
 export interface ActionItem {
   id: string;
   organizationId: string;
-  organizationName?: string;
+  /** Null for a personal team (Organization.visibleName), which is never shown as a team. */
+  organizationName?: string | null;
   meetingId?: string | null;
   ownerId: string;
   ownerName?: string;

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { currentIdToken } from "@/lib/firebase/auth";
+
 const auth = vi.hoisted(() => ({
   currentUser: null as { getIdToken: () => Promise<string> } | null,
   authStateReady: async () => {},
 }));
 
 vi.mock("@/lib/firebase/client", () => ({ firebaseAuth: () => auth }));
-
-import { currentIdToken } from "@/lib/firebase/auth";
 
 describe("currentIdToken", () => {
   beforeEach(() => {

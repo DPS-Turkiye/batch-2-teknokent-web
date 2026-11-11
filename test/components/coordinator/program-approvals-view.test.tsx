@@ -1,5 +1,6 @@
 import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { usePathname } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramApprovalsView } from "@/components/coordinator/program-approvals-view";
@@ -7,14 +8,18 @@ import {
   ApprovalKind,
   type ProgramApprovals,
 } from "@/interfaces/program-approvals";
+import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import {
   decideProgramApproval,
   getCoordinatorProgram,
   getProgramApprovals,
 } from "@/lib/client/coordinator-programs";
-import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+vi.mock("next/navigation", () => ({
+  usePathname: vi.fn(() => "/coordinator/programs/program-1/approvals"),
+}));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -96,6 +101,9 @@ const approvals: ProgramApprovals = {
 describe("ProgramApprovalsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(usePathname).mockReturnValue(
+      "/coordinator/programs/program-1/approvals",
+    );
     vi.mocked(getCoordinatorProgram).mockResolvedValue(
       coordinatorProgramDetail(),
     );
@@ -110,10 +118,46 @@ describe("ProgramApprovalsView", () => {
     expect(screen.getByText(/Startup: Döngü/)).toBeInTheDocument();
     expect(screen.getByText("Kargo AI")).toBeInTheDocument();
     expect(screen.getByText(/Kuran: Mehmet Can/)).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "Onaylar" })).toHaveAttribute(
+    expect(screen.getByRole("tab", { name: /^Onaylar\s*6$/ })).toHaveAttribute(
       "aria-selected",
       "true",
     );
+  });
+
+  it("counts down the Onaylar tab after a decision", async () => {
+    vi.mocked(getCoordinatorProgram)
+      .mockResolvedValueOnce(coordinatorProgramDetail())
+      .mockResolvedValue(coordinatorProgramDetail({ pendingApprovalCount: 5 }));
+    vi.mocked(decideProgramApproval).mockResolvedValue({
+      ...approvals,
+      people: approvals.people.slice(1),
+    });
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
+
+    expect(
+      await screen.findByRole("tab", { name: /^Onaylar\s*6$/ }),
+    ).toBeInTheDocument();
+    const zeynep = (await screen.findByText("Zeynep Kaya")).closest(
+      "li",
+    ) as HTMLElement;
+    await user.click(within(zeynep).getByRole("button", { name: "Onayla" }));
+
+    expect(
+      await screen.findByRole("tab", { name: /^Onaylar\s*5$/ }),
+    ).toBeInTheDocument();
+    expect(getProgramApprovals).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the counted Onaylar tab in the admin shell", async () => {
+    vi.mocked(usePathname).mockReturnValue(
+      "/admin/programs/program-1/approvals",
+    );
+    renderWithQueryClient(<ProgramApprovalsView programId="program-1" />);
+
+    expect(
+      await screen.findByRole("tab", { name: /^Onaylar\s*6$/ }),
+    ).toHaveAttribute("href", "/admin/programs/program-1/approvals");
   });
 
   it("approves a person and rejects a startup", async () => {
@@ -189,6 +233,9 @@ describe("ProgramApprovalsView", () => {
 describe("ProgramApprovalsView team changes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(usePathname).mockReturnValue(
+      "/coordinator/programs/program-1/approvals",
+    );
     vi.mocked(getCoordinatorProgram).mockResolvedValue(
       coordinatorProgramDetail(),
     );

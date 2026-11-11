@@ -3,8 +3,8 @@ import { act, renderHook, screen, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DocumentPreviewProvider } from "@/components/providers/document-preview-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { DocumentPreviewHost } from "@/components/common/document-preview-host";
+import { Toaster } from "@/components/common/toaster";
 import {
   useDocumentUrl,
   useOpenDocument,
@@ -25,9 +25,9 @@ vi.mock("@/lib/client/startup-documents", async (importOriginal) => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>
-        <DocumentPreviewProvider>{children}</DocumentPreviewProvider>
-      </ToastProvider>
+      {children}
+      <Toaster />
+      <DocumentPreviewHost />
     </QueryClientProvider>
   );
 }

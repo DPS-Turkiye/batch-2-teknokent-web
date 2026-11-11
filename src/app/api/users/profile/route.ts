@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import type { UserProfileInput } from "@/interfaces/user-profile";
-import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
 import { fetchSignedInUser } from "@/lib/api/auth";
+import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
 import {
   apiErrorResponse,
   apiText,
@@ -32,11 +32,13 @@ export async function GET(request: Request) {
       const me = await fetchSignedInUser(idToken);
       if (me.status !== 200) return backendResponse(me);
       const userId = (me.data as { id: string }).id;
-      return backendResponse(await fetchUserProfile(userId, idToken));
+      return backendResponse(await fetchUserProfile(userId, userId, idToken));
     }
     const auth = await requireSession();
     if (!auth.ok) return auth.response;
-    return backendResponse(await fetchUserProfile(auth.session.userId));
+    return backendResponse(
+      await fetchUserProfile(auth.session.userId, auth.session.userId),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("profileLoadFailed"),

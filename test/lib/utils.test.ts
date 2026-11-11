@@ -3,11 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   calendarDay,
   dayPart,
+  distinctBy,
   errorMessage,
+  formatFileSize,
   formatLongDate,
   formatShortDate,
-  formatFileSize,
   httpUrlOrNull,
+  isAdminArea,
+  isUuid,
+  splitFullName,
 } from "@/lib/utils";
 
 describe("dayPart", () => {
@@ -81,5 +85,46 @@ describe("httpUrlOrNull", () => {
     expect(httpUrlOrNull("linkedin.com/in/ada")).toBeNull();
     expect(httpUrlOrNull("")).toBeNull();
     expect(httpUrlOrNull(null)).toBeNull();
+  });
+});
+
+describe("isUuid", () => {
+  it("accepts backend ids and nothing that could change a URL path", () => {
+    expect(isUuid("00000000-0000-0000-0000-0000000000AB")).toBe(true);
+    expect(isUuid("..")).toBe(false);
+    expect(isUuid("00000000-0000-0000-0000-000000000001/../x")).toBe(false);
+    expect(isUuid("")).toBe(false);
+  });
+});
+
+describe("isAdminArea", () => {
+  it("is true only inside the admin frame", () => {
+    expect(isAdminArea("/admin/users/u1")).toBe(true);
+    expect(isAdminArea("/coordinator/people/u1")).toBe(false);
+    expect(isAdminArea("/administration")).toBe(false);
+    expect(isAdminArea(null)).toBe(false);
+  });
+});
+
+describe("distinctBy", () => {
+  it("keeps the first of each key, in order, with the key alongside", () => {
+    expect(distinctBy(["b", "a", "b"], (item) => item)).toEqual([
+      { key: "b", item: "b" },
+      { key: "a", item: "a" },
+    ]);
+  });
+});
+
+describe("splitFullName", () => {
+  it("keeps the last word as the surname", () => {
+    expect(splitFullName("  Ayşe Nur   Yılmaz ")).toEqual({
+      firstName: "Ayşe Nur",
+      lastName: "Yılmaz",
+    });
+  });
+
+  it("takes a single word as the first name", () => {
+    expect(splitFullName("Ayşe")).toEqual({ firstName: "Ayşe", lastName: "" });
+    expect(splitFullName("")).toEqual({ firstName: "", lastName: "" });
   });
 });

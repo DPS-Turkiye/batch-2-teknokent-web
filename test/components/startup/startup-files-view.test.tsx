@@ -7,12 +7,15 @@ import { StartupFilesView } from "@/components/startup/startup-files-view";
 import { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupFiles } from "@/hooks/use-startup-files";
-import type { DocumentRequestItem } from "@/interfaces/document-request";
+import { DocumentKind } from "@/interfaces/startup-document";
 import {
   StartupFileFilter,
-  type StartupFileRow,
   StartupFileStatus,
+  type StartupFileRow,
 } from "@/lib/startup-files";
+import tr from "@/messages/tr.json";
+import { documentRequestItem } from "@test/fixtures/document-requests";
+import { expectLength } from "@test/fixtures/list-assertions";
 import { documentFixture } from "@test/fixtures/startup-files";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -62,10 +65,9 @@ const rows: StartupFileRow[] = [
     date: "2026-08-20T09:00:00Z",
     status: StartupFileStatus.Waiting,
     ownDocument: null,
-    pendingRequest: {
-      id: "deck-request",
+    pendingRequest: documentRequestItem("deck-request", {
       title: "pitch-deck-v3.pdf",
-    } as DocumentRequestItem,
+    }),
   },
   {
     key: "document:notes",
@@ -99,6 +101,7 @@ function state(overrides: Partial<Files> = {}): Files {
     deletingDocument: null,
     error: null,
     filter: StartupFileFilter.All,
+    filterLabel: (filter: StartupFileFilter) => tr.startupFiles.filters[filter],
     isDeleting: false,
     isLoading: false,
     isSharing: false,
@@ -117,9 +120,18 @@ function state(overrides: Partial<Files> = {}): Files {
   };
 }
 
-const uploadForm = { isOpen: false, open: vi.fn() } as unknown as ReturnType<
-  typeof useFileUploadForm
->;
+const uploadForm: ReturnType<typeof useFileUploadForm> = {
+  canSubmit: false,
+  close: vi.fn(),
+  file: null,
+  isOpen: false,
+  isUploading: false,
+  kind: DocumentKind.PitchDeck,
+  open: vi.fn(),
+  setFile: vi.fn(),
+  setKind: vi.fn(),
+  submit: vi.fn(),
+};
 
 describe("StartupFilesView", () => {
   const openDocument = vi.fn();
@@ -134,7 +146,9 @@ describe("StartupFilesView", () => {
   it("shows every file with its source, context, date and status", () => {
     renderWithQueryClient(<StartupFilesView />);
 
-    const [, own, pending, fromMentor] = screen.getAllByRole("row");
+    const rows = screen.getAllByRole("row");
+    expectLength(rows, 4);
+    const [, own, pending, fromMentor] = rows;
     expect(within(own).getByText("Pitch_Deck_v3.pdf")).toBeInTheDocument();
     expect(within(own).getByText("2.3 MB")).toBeInTheDocument();
     expect(within(own).getByText("Gülse Buran yükledi")).toBeInTheDocument();

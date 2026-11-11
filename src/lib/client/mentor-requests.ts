@@ -1,10 +1,10 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import type { PageResponse } from "@/interfaces/page-response";
 import type {
   MentorAvailabilitySlot,
   MentorProfile,
 } from "@/interfaces/mentor";
+import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import type { PageResponse } from "@/interfaces/page-response";
 import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -144,7 +144,7 @@ export type LogMeetingPayload = {
   notes?: string;
   outcomes?: string;
   status: MeetingStatus;
-  meetLink?: string;
+  meetLink?: string | undefined;
   transcribeRequested?: boolean;
 };
 

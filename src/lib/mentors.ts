@@ -1,14 +1,15 @@
+import { getTranslations } from "next-intl/server";
 import "server-only";
 
 import type { MentorProfile } from "@/interfaces/mentor";
-import { getSessionIds } from "@/lib/session";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
+import { getSessionIds } from "@/lib/session";
 
 export class MentorFetchError extends Error {
   constructor(
     message: string,
-    readonly cause?: unknown,
+    override readonly cause?: unknown,
   ) {
     super(message);
     this.name = "MentorFetchError";
@@ -69,7 +70,7 @@ export function isMentorProfile(value: unknown): value is MentorProfile {
 export async function fetchMentors(): Promise<MentorProfile[]> {
   try {
     const { userId } = await getSessionIds();
-    const response = await backendRequest<unknown>({
+    const response = await backendRequest({
       method: HttpMethod.Get,
       params: { actorId: userId },
       url: "/api/mentors",
@@ -106,7 +107,7 @@ export async function loadMentors(): Promise<{
     const message =
       error instanceof MentorFetchError
         ? error.message
-        : "Mentorlar yüklenirken beklenmedik bir hata oluştu.";
+        : (await getTranslations("loadErrors"))("mentorsUnexpected");
     return { mentors: [], error: message };
   }
 }

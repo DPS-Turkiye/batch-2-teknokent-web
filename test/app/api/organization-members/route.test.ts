@@ -6,8 +6,8 @@ import {
   createOrganizationMember,
   fetchOrganizationMembers,
 } from "@/lib/api/organization-members";
-import { getSessionIds } from "@/lib/session";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionIds } from "@/lib/session";
 
 vi.mock("@/lib/api/organization-members", () => ({
   fetchOrganizationMembers: vi.fn(),
@@ -52,7 +52,7 @@ describe("/api/organization-members", () => {
     expect(fetchOrganizationMembers).not.toHaveBeenCalled();
   });
 
-  it("POST scopes the new member to the session's own organization", async () => {
+  it("POST scopes the new member to the session's own organization and user", async () => {
     vi.mocked(createOrganizationMember).mockResolvedValue({
       data: {},
       headers: {},
@@ -62,13 +62,20 @@ describe("/api/organization-members", () => {
     await POST(
       new NextRequest("http://localhost/api/organization-members", {
         method: "POST",
-        body: JSON.stringify({ fullName: "Yeni Üye", email: "yeni@x.demo" }),
+        body: JSON.stringify({
+          fullName: "Yeni Üye",
+          email: "yeni@x.demo",
+          jobTitle: "Ürün",
+          actorId: "founder-1",
+          organizationId: "org-2",
+        }),
       }),
     );
 
-    expect(createOrganizationMember).toHaveBeenCalledWith("org-1", {
+    expect(createOrganizationMember).toHaveBeenCalledWith("org-1", "user-1", {
       fullName: "Yeni Üye",
       email: "yeni@x.demo",
+      jobTitle: "Ürün",
     });
   });
 });

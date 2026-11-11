@@ -14,12 +14,14 @@ import {
 } from "@/components/admin/admin-ui";
 import { MentorshipDrawer } from "@/components/coordinator/mentorship-drawer";
 import { PillSelect } from "@/components/coordinator/pill-select";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useCoordinatorMentorshipList } from "@/hooks/use-coordinator-mentorships";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import {
-  type CoordinatorMentorship,
   CoordinatorMentorshipHealth,
+  type CoordinatorMentorship,
 } from "@/interfaces/coordinator-mentorship";
+import type { ProgramType } from "@/interfaces/program";
 import {
   actionsLabel,
   ALL_TOPICS,
@@ -29,6 +31,8 @@ import {
   needsIntervention,
   nextMeetingLabel,
 } from "@/lib/coordinator-mentorships";
+import { isEnumValue } from "@/lib/enum";
+import { isProgramTypeFilter, PROGRAM_TYPE_FILTERS } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 
 const GRID =
@@ -40,6 +44,7 @@ export function CoordinatorMentorshipsView({
   initialSelectedId: string | null;
 }) {
   const t = useTranslations("coordinatorMentorships");
+  const tType = useTranslations("programTypes");
   const optionLabel = useOptionLabel();
   const list = useCoordinatorMentorshipList(initialSelectedId);
 
@@ -72,10 +77,24 @@ export function CoordinatorMentorshipsView({
           <PillSelect
             label={t("sortBy")}
             value={list.sort}
-            onChange={(value) => list.setSort(value as MentorshipSort)}
+            onChange={(value) => {
+              if (isEnumValue(MentorshipSort, value)) list.setSort(value);
+            }}
             options={Object.values(MentorshipSort).map((sort) => ({
               value: sort,
               label: t(`sort.${sort}`),
+            }))}
+          />
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <PillSelect
+            label={tType("label")}
+            value={list.type}
+            onChange={(value) => {
+              if (isProgramTypeFilter(value)) list.setType(value);
+            }}
+            options={PROGRAM_TYPE_FILTERS.map((value) => ({
+              value,
+              label: tType(value),
             }))}
           />
           <PillSelect
@@ -115,6 +134,7 @@ export function CoordinatorMentorshipsView({
                 <MentorshipRow
                   key={row.id}
                   row={row}
+                  type={list.typeOf(row.programId)}
                   onOpen={() => list.open(row.id)}
                 />
               ))}
@@ -147,9 +167,11 @@ export function CoordinatorMentorshipsView({
 
 function MentorshipRow({
   row,
+  type,
   onOpen,
 }: {
   row: CoordinatorMentorship;
+  type: ProgramType | null;
   onOpen: () => void;
 }) {
   const t = useTranslations("coordinatorMentorships");
@@ -185,8 +207,9 @@ function MentorshipRow({
           <span className="block truncate text-[13.5px] text-[#22262b]">
             {pair}
           </span>
-          <span className="block truncate text-[12px] text-[#858c96]">
-            {row.programName}
+          <span className="flex min-w-0 items-center gap-1.5 text-[12px] text-[#858c96]">
+            <span className="truncate">{row.programName}</span>
+            {type ? <ProgramTypeChip type={type} /> : null}
           </span>
         </span>
       </span>

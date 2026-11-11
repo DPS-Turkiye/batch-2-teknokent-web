@@ -1,12 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { useAssistantShare } from "@/hooks/use-meeting-notes";
 import { TRANSCRIPT_SCROLL_CLASS } from "@/lib/const/notes";
-import type { MeetingReport, TranscriptLine } from "@/types/assistant";
+import type { ReceivedMeetingReport, TranscriptLine } from "@/types/assistant";
 
 function ShareFold({
   icon,
@@ -56,7 +56,7 @@ export function ReportBlock({
   report,
   compact = false,
 }: {
-  report: MeetingReport;
+  report: ReceivedMeetingReport;
   compact?: boolean;
 }) {
   const t = useTranslations("notes.share");
@@ -117,8 +117,8 @@ export function ReportBlock({
             {t("actions")}
           </p>
           <ul className="mt-1 space-y-1 text-sm text-[#22262b]">
-            {actions.map((item, index) => (
-              <li key={`${item.task}-${index}`}>
+            {actions.map((item) => (
+              <li key={item.task}>
                 <span className="font-medium">{item.task}</span>
                 {item.owner || item.due ? (
                   <span className="mt-0.5 block text-xs text-[#858c96]">

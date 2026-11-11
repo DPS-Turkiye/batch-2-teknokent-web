@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import {
   useCreateMeetingTodo,
   useMeetingNote,
@@ -17,6 +17,7 @@ import {
 import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
+import { idleMutation, successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-meeting-notes", () => ({
@@ -36,7 +37,10 @@ const updateTodo = vi.fn();
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }
@@ -44,12 +48,11 @@ function wrapper({ children }: { children: ReactNode }) {
 describe("useStartupMeetingNotes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useMeetingNote).mockReturnValue({
-      data: { meetingId: "m-1", content: "<p>Not</p>", version: 1 },
-      isLoading: false,
-    } as never);
-    vi.mocked(useMeetingTodos).mockReturnValue({
-      data: [
+    vi.mocked(useMeetingNote).mockReturnValue(
+      successQuery({ meetingId: "m-1", content: "<p>Not</p>", version: 1 }),
+    );
+    vi.mocked(useMeetingTodos).mockReturnValue(
+      successQuery([
         {
           id: "t-1",
           meetingId: "m-1",
@@ -57,19 +60,18 @@ describe("useStartupMeetingNotes", () => {
           done: false,
           displayOrder: 0,
         },
-      ],
-    } as never);
+      ]),
+    );
     createTodo.mockImplementation(
       (_title: string, options?: { onSuccess?: () => void }) =>
         options?.onSuccess?.(),
     );
-    vi.mocked(useCreateMeetingTodo).mockReturnValue({
-      mutate: createTodo,
-      isPending: false,
-    } as never);
-    vi.mocked(useUpdateMeetingTodo).mockReturnValue({
-      mutate: updateTodo,
-    } as never);
+    vi.mocked(useCreateMeetingTodo).mockReturnValue(
+      idleMutation({ mutate: createTodo }),
+    );
+    vi.mocked(useUpdateMeetingTodo).mockReturnValue(
+      idleMutation({ mutate: updateTodo }),
+    );
   });
 
   it("adds a trimmed to-do and clears the field", () => {
@@ -80,7 +82,7 @@ describe("useStartupMeetingNotes", () => {
     act(() => result.current.setTodoDraft("  Kullanıcı testi  "));
     act(() => result.current.addTodo());
 
-    expect(createTodo.mock.calls[0][0]).toBe("Kullanıcı testi");
+    expect(createTodo.mock.calls[0]?.[0]).toBe("Kullanıcı testi");
     expect(result.current.todoDraft).toBe("");
   });
 

@@ -1,12 +1,14 @@
 import type { MetadataRoute } from "next";
+import { getTranslations } from "next-intl/server";
 
 import { MOBILE_HOME } from "@/lib/mobile";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const t = await getTranslations("metadata");
   return {
     name: "Menton",
     short_name: "Menton",
-    description: "Mentorluk görüşmelerin, görevlerin ve mesajların cebinde.",
+    description: t("manifestDescription"),
     lang: "tr",
     start_url: MOBILE_HOME,
     scope: "/",

@@ -37,13 +37,17 @@ export interface StartupProfile {
 /** "Startup'ımı oluştur" on /startup; the program is the creator's own. */
 export type CreateStartupInput = {
   name: string;
-  description?: string;
-  website?: string;
-  mvpUrl?: string;
-  foundedYear?: number;
-  maturity?: string;
+  description?: string | undefined;
+  website?: string | undefined;
+  mvpUrl?: string | undefined;
+  foundedYear?: number | undefined;
+  maturity?: string | undefined;
   supportAreas: string[];
-  teamMembers: { fullName: string; jobTitle?: string; email?: string }[];
+  teamMembers: {
+    fullName: string;
+    jobTitle?: string | undefined;
+    email?: string | undefined;
+  }[];
 };
 
 /** The "Durum" card. Saved on its own so the profile form can never wipe it. */

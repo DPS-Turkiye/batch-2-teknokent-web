@@ -3,6 +3,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MentorshipsView } from "@/components/admin/mentorships-view";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
+import { MentorshipTab } from "@/types/admin-mentorships";
+import {
+  adminMentorship,
+  adminProgram,
+  adminStartup,
+} from "@test/fixtures/admin-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({
@@ -20,75 +26,50 @@ vi.mock("@/hooks/use-admin-interventions", () => ({
 }));
 
 function program(id: string, name: string): AdminProgram {
-  return {
+  return adminProgram({
     id,
     name,
-    status: "ACTIVE",
-    createdAt: "2026-01-01T00:00:00Z",
     coordinatorId: "coord-1",
     coordinatorName: "Deniz Acar",
     startupCount: 1,
     acceptedMentorCount: 1,
-    pendingMentorCount: 0,
-    startups: [
-      {
-        id: "org-1",
-        name: "Lumen",
-        sector: null,
-        programId: id,
-        programName: name,
-      },
-    ],
-    mentors: [],
-  };
+    startups: [adminStartup({ programId: id, programName: name })],
+  });
 }
 
 const today = new Date().toISOString().slice(0, 10);
 
-const overview = {
+const overview: AdminOverview = {
   programs: [
     program("program-1", "ODTÜ Stars 2026"),
     program("program-2", "Growth Circuit 2026"),
   ],
   users: [],
   mentorships: [
-    {
-      id: "m-1",
-      mentorId: "mentor-1",
-      mentorName: "Ayşe Demir",
-      organizationId: "org-1",
-      organizationName: "Lumen",
-      status: "ACTIVE",
+    adminMentorship({
       startDate: today,
-      endDate: null,
-      progressPercent: 0,
       daysSinceMeeting: 2,
       programId: "program-1",
-    },
-    {
+    }),
+    adminMentorship({
       id: "m-2",
       mentorId: "mentor-2",
       mentorName: "Kerem Tan",
-      organizationId: "org-1",
-      organizationName: "Lumen",
-      status: "ACTIVE",
       startDate: today,
-      endDate: null,
-      progressPercent: 0,
       daysSinceMeeting: 20,
       programId: "program-2",
-    },
+    }),
   ],
   requests: [],
   bottlenecks: [],
   meetingsLast8Weeks: 0,
-} satisfies AdminOverview;
+};
 
 // Program names also fill the scope <select>, so skip the <option>s.
 function rowOf(text: string) {
   const cell = screen
     .getAllByText(text)
-    .find((element) => element.tagName !== "OPTION");
+    .find((element) => !(element instanceof HTMLOptionElement));
   const row = cell?.closest("div");
   if (!row) throw new Error(`No row for ${text}`);
   return row;
@@ -96,7 +77,7 @@ function rowOf(text: string) {
 
 describe("Admin mentorships: a team in two programs", () => {
   it("counts each mentorship once, under the program it was made in", () => {
-    renderWithQueryClient(<MentorshipsView tab="overview" />);
+    renderWithQueryClient(<MentorshipsView tab={MentorshipTab.Overview} />);
 
     expect(screen.getByText("2 program")).toBeInTheDocument();
     for (const name of ["ODTÜ Stars 2026", "Growth Circuit 2026"]) {
@@ -106,7 +87,9 @@ describe("Admin mentorships: a team in two programs", () => {
   });
 
   it("lists the overdue pair under its own program only", () => {
-    renderWithQueryClient(<MentorshipsView tab="interventions" />);
+    renderWithQueryClient(
+      <MentorshipsView tab={MentorshipTab.Interventions} />,
+    );
 
     expect(screen.queryByText("Ayşe Demir ↔ Lumen")).not.toBeInTheDocument();
     const row = rowOf("Kerem Tan ↔ Lumen");

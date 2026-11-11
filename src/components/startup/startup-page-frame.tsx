@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { StartupTabs } from "@/components/startup/startup-tabs";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 
@@ -26,6 +27,14 @@ export function StartupPageFrame({
   const t = useTranslations("startupFrame");
   const optionLabel = useOptionLabel();
   const header = useStartupHeader();
+  // TEST UI: placeholder until the design team's screen; replace when it arrives.
+  const { individual, isLoading } = useIndividualProgram();
+  // A student's team of one has no startup name, stage or funding to show.
+  const title = isLoading
+    ? "…"
+    : individual
+      ? t("studentTitle")
+      : (header.name ?? (header.isLoading ? "…" : t("fallbackName")));
 
   return (
     <div className="space-y-6">
@@ -34,7 +43,7 @@ export function StartupPageFrame({
           {header.logoUrl ? (
             <span
               role="img"
-              aria-label={t("logo", { name: header.name ?? "Startup" })}
+              aria-label={t("logo", { name: header.name ?? t("nameFallback") })}
               className="size-[52px] shrink-0 rounded-xl border border-[#e4e7ea] bg-contain bg-center bg-no-repeat"
               style={{ backgroundImage: `url("${header.logoUrl}")` }}
             />
@@ -48,7 +57,7 @@ export function StartupPageFrame({
           )}
           <div className="min-w-0 space-y-1">
             <h1 className="truncate text-[28px] font-semibold leading-[42px] text-[#22262b]">
-              {header.name ?? (header.isLoading ? "…" : t("fallbackName"))}
+              {title}
             </h1>
             <div className="flex flex-wrap items-center gap-2">
               {header.programName ? (
@@ -56,14 +65,14 @@ export function StartupPageFrame({
                   {header.programName}
                 </span>
               ) : null}
-              {header.stageName ? (
+              {header.stageName && !individual ? (
                 <span
                   className={`${chipClass} border-[#f6c9a5] bg-[#fff4ec] text-[#9e4400]`}
                 >
                   {t("stage", { stage: header.stageName })}
                 </span>
               ) : null}
-              {header.fundingStage ? (
+              {header.fundingStage && !individual ? (
                 <span
                   className={`${chipClass} border-[#e4e7ea] bg-[#f3f4f6] text-[#676e78]`}
                 >

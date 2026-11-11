@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { CreateStartupInput } from "@/interfaces/organization";
 import { UserRole } from "@/interfaces/session";
 import { createStartup } from "@/lib/api/organization";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
@@ -15,7 +16,8 @@ import { getSessionUser, refreshSessionUser } from "@/lib/session";
 export async function POST(request: Request) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentee) throw new SessionRequiredError();
+    if (!session || !hasPermission(session, UserRole.Mentee))
+      throw new SessionRequiredError();
     const input = (await request.json()) as CreateStartupInput;
     const response = await createStartup(session.userId, input);
     if (response.status !== 201) return backendResponse(response);

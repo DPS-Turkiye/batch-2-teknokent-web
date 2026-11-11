@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
-import { UserAccountStatus } from "@/interfaces/session";
+import type { UserAccountStatus } from "@/interfaces/session";
 import {
   decidePendingAccount,
   getPendingAccounts,

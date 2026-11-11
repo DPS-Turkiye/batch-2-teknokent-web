@@ -4,27 +4,28 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type { MatchCandidate } from "@/interfaces/program-matching";
+import { ToastTone } from "@/interfaces/toast";
+import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
 import {
   createMatch,
   getMatching,
   getMatchSuggestions,
 } from "@/lib/client/coordinator-programs";
-import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
 import { proposeMeeting } from "@/lib/client/meeting-proposals";
 import { defaultProposalStart } from "@/lib/meeting-proposals";
 import {
   filterPool,
   findMatch,
-  type FirstSteps,
   INTRO_AGENDA,
   INTRO_MEETING_MINUTES,
   MatchTab,
+  type FirstSteps,
 } from "@/lib/program-matching";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const matchingQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "matching"] as const;
@@ -123,7 +124,7 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
       if (followUpFailed) {
         showToast({
           message: t("followUpFailed"),
-          tone: "error",
+          tone: ToastTone.Error,
         });
       }
       void queryClient.invalidateQueries({
@@ -142,13 +143,13 @@ export function useProgramMatching(programId: string, initialTeamId?: string) {
           team: team!.name,
           mentor: candidate.fullName,
         }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("matchFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

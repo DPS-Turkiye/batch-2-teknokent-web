@@ -10,6 +10,11 @@ import {
   programFilterOptions,
   ProgramListFilter,
 } from "@/lib/coordinator-programs";
+import {
+  ALL_PROGRAM_TYPES,
+  PROGRAM_TYPE_FILTERS,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 
 export const COORDINATOR_PROGRAMS_QUERY_KEY = ["coordinator-programs"] as const;
 
@@ -20,12 +25,14 @@ export function useCoordinatorPrograms() {
   });
 }
 
-/** The Programlarım list: the programs plus the lifecycle filter and name search. */
+/** The Programlarım list: the programs plus the lifecycle and type filters and the name search. */
 export function useCoordinatorProgramList() {
   const t = useTranslations("coordinatorPrograms");
+  const tType = useTranslations("programTypes");
   const query = useCoordinatorPrograms();
   const [filter, setFilter] = useState(ProgramListFilter.All);
   const [search, setSearch] = useState("");
+  const [type, setType] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   const programs = query.data ?? [];
 
   return {
@@ -35,6 +42,9 @@ export function useCoordinatorProgramList() {
     search,
     setSearch,
     options: programFilterOptions(programs, t),
-    visible: filterPrograms(programs, filter, search),
+    type,
+    setType,
+    typeOptions: PROGRAM_TYPE_FILTERS.map((id) => ({ id, label: tType(id) })),
+    visible: filterPrograms(programs, filter, search, type),
   };
 }

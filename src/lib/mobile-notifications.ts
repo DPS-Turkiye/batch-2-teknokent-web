@@ -1,4 +1,5 @@
 import { NotificationCategory } from "@/interfaces/notification";
+import { isEnumValue } from "@/lib/enum";
 import {
   MOBILE_CALENDAR,
   MOBILE_MESSAGES,
@@ -7,8 +8,8 @@ import {
   MOBILE_TASKS,
   type MobileTexts,
 } from "@/lib/mobile";
-import type { DashboardNotification } from "@/types/landing";
 import { formatDayMonth, relativeDayLabel } from "@/lib/utils";
+import type { DashboardNotification } from "@/types/landing";
 
 const MINUTE_MS = 60_000;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -22,6 +23,7 @@ const TARGETS: Record<NotificationCategory, string> = {
   [NotificationCategory.TaskAssigned]: MOBILE_TASKS,
   [NotificationCategory.TaskDeadline]: MOBILE_TASKS,
   [NotificationCategory.StartupActivity]: MOBILE_STARTUPS,
+  [NotificationCategory.Badge]: MOBILE_NOTIFICATIONS,
 };
 
 export type NotificationTone = { icon: string; background: string };
@@ -55,12 +57,14 @@ const TONES: Record<NotificationCategory, NotificationTone> = {
     icon: "/mobile/notice-task.svg",
     background: "bg-[#fff1ec]",
   },
+  [NotificationCategory.Badge]: {
+    icon: "/mobile/icon-info-muted.svg",
+    background: "bg-[#f5f6f8]",
+  },
 };
 
 function isCategory(value: unknown): value is NotificationCategory {
-  return Object.values(NotificationCategory).includes(
-    value as NotificationCategory,
-  );
+  return isEnumValue(NotificationCategory, value);
 }
 
 function categoryOf(value: unknown) {

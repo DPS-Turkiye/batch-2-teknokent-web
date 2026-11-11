@@ -1,17 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
 import { getLocale } from "next-intl/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
 import { isLocale } from "@/lib/i18n";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import {
   destroySession,
   getSessionUser,
+  lastWorkspace,
   saveSessionUser,
   toSession,
 } from "@/lib/session";
-import { apiErrorResponse, apiText } from "@/lib/server/api-response";
-import { readBearerToken } from "@/lib/server/bearer-token";
+import { workspacesOf } from "@/lib/workspaces";
 
 async function readRememberMe(request: NextRequest): Promise<boolean> {
   try {
@@ -107,6 +109,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const remembered = await lastWorkspace();
+    if (remembered && workspacesOf(session).includes(remembered)) {
+      session.activeWorkspace = remembered;
+    }
     const persist = await readRememberMe(request);
     await saveSessionUser(session, persist);
     return NextResponse.json(session);

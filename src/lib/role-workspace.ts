@@ -1,4 +1,6 @@
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
+import { activeWorkspaceOf } from "@/lib/workspaces";
 
 export type RoleWorkspace = {
   homeHref: string;
@@ -6,9 +8,17 @@ export type RoleWorkspace = {
   /** Where "Kişisel bilgileri düzenle" in Hesap ayarları leads; staff have no personal page. */
   personalInfoHref: string | null;
   notificationsHref: string;
-  roleLabel: string;
   showNotificationBadge: boolean;
   usesRoleSubtitle: boolean;
+};
+
+const STUDENT_WORKSPACE: RoleWorkspace = {
+  homeHref: "/student",
+  profileHref: "/student",
+  personalInfoHref: "/student",
+  notificationsHref: "/student",
+  showNotificationBadge: true,
+  usesRoleSubtitle: false,
 };
 
 export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
@@ -19,7 +29,6 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         profileHref: "/admin",
         personalInfoHref: null,
         notificationsHref: "/admin",
-        roleLabel: "Admin",
         showNotificationBadge: true,
         usesRoleSubtitle: true,
       };
@@ -29,8 +38,16 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         profileHref: "/coordinator",
         personalInfoHref: null,
         notificationsHref: "/coordinator",
-        roleLabel: "Koordinatör",
         showNotificationBadge: false,
+        usesRoleSubtitle: true,
+      };
+    case UserRole.Academician:
+      return {
+        homeHref: "/academician",
+        profileHref: "/academician",
+        personalInfoHref: "/academician",
+        notificationsHref: "/academician",
+        showNotificationBadge: true,
         usesRoleSubtitle: true,
       };
     case UserRole.Mentor:
@@ -39,7 +56,6 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         profileHref: "/mentor-profile",
         personalInfoHref: "/mentor-profile",
         notificationsHref: "/mentor-dashboard#notifications",
-        roleLabel: "Mentor",
         showNotificationBadge: true,
         usesRoleSubtitle: true,
       };
@@ -49,22 +65,24 @@ export function roleWorkspace(role?: UserRole | null): RoleWorkspace {
         profileHref: "/profile/personal",
         personalInfoHref: "/profile/personal",
         notificationsHref: "/dashboard#notifications",
-        roleLabel: "Girişim Ekibi",
         showNotificationBadge: true,
         usesRoleSubtitle: false,
       };
   }
 }
 
+const ROLE_OF_WORKSPACE: Record<Workspace, UserRole> = {
+  [Workspace.Admin]: UserRole.Admin,
+  [Workspace.Coordinator]: UserRole.Coordinator,
+  [Workspace.OdtuAcademician]: UserRole.Academician,
+  [Workspace.OdtuStudent]: UserRole.Mentee,
+  [Workspace.GirisimMentor]: UserRole.Mentor,
+  [Workspace.GirisimMentee]: UserRole.Mentee,
+};
+
+/** The links of the workspace the account is in (see lib/workspaces.ts). */
 export function workspaceForSession(session: AppSession | null) {
-  const workspace = roleWorkspace(session?.role);
-  return {
-    ...workspace,
-    title: workspace.usesRoleSubtitle
-      ? (session?.fullName ?? workspace.roleLabel)
-      : (session?.organizationName ?? ""),
-    displayOrganization: workspace.usesRoleSubtitle
-      ? workspace.roleLabel
-      : (session?.organizationName ?? ""),
-  };
+  const active = session ? activeWorkspaceOf(session) : null;
+  if (active === Workspace.OdtuStudent) return STUDENT_WORKSPACE;
+  return roleWorkspace(active ? ROLE_OF_WORKSPACE[active] : session?.role);
 }

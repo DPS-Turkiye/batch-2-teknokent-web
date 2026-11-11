@@ -4,11 +4,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-notes";
 import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
+import { expectLength } from "@test/fixtures/list-assertions";
+import { successQuery } from "@test/mocks/query-results";
 import { InLocale } from "@test/test-utils";
 
 function stub(overrides: Partial<CoordinatorNotes> = {}): CoordinatorNotes {
   return {
-    query: {} as CoordinatorNotes["query"],
+    query: successQuery([]),
     notes: [],
     composing: false,
     openComposer: vi.fn(),
@@ -66,7 +68,7 @@ describe("CoordinatorNotesSection", () => {
     expect(screen.getByText("Not a")).toBeInTheDocument();
     expect(screen.getByText(/Burcu Şen/)).toBeInTheDocument();
     const deletes = screen.getAllByRole("button", { name: "Notu sil" });
-    expect(deletes).toHaveLength(1);
+    expectLength(deletes, 1);
     await user.click(deletes[0]);
     expect(notes.remove).toHaveBeenCalledWith("b");
   });

@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import {
   mentorProfileFormError,
   useMentorProfileForm,
@@ -15,6 +15,8 @@ import {
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
 import { updateMentorProfile } from "@/lib/client/mentor-profile";
+import { withKey } from "@/lib/keyed-list";
+import { toMentorCvResult } from "@/lib/mentor-cv";
 import { mentorProfile } from "@test/fixtures/mentors";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -29,12 +31,15 @@ vi.mock("@/lib/client/mentor-profile", () => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }
 
-const baseForm = {
+const baseForm: Parameters<typeof mentorProfileFormError>[0] = {
   professionalTitle: "Mentor",
   company: "Looply",
   availabilityLabel: "",
@@ -47,8 +52,10 @@ const baseForm = {
   sectorExperience: "",
   startupStages: "",
   specialties: [],
+  offerings: [],
   menteeCapacity: null,
   experiences: [],
+  educations: [],
   about: "",
   meetingFrequency: null,
   prepFileRequirement: null,
@@ -65,7 +72,12 @@ describe("mentorProfileFormError", () => {
   });
 
   it("needs a title on every past role that has anything filled in", () => {
-    const role = { title: "", organization: "Looply", period: "", summary: "" };
+    const role = withKey({
+      title: "",
+      organization: "Looply",
+      period: "",
+      summary: "",
+    });
     expect(mentorProfileFormError({ ...baseForm, experiences: [role] })).toBe(
       "Her deneyim için bir ünvan gir.",
     );
@@ -136,7 +148,7 @@ describe("useMentorProfileForm meeting preferences, languages and program roles"
     expect(result.current.programRole("p1")).toBe("Design mentor");
     await act(() => result.current.handleSave());
 
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
       languages: [MentorLanguage.Turkish, MentorLanguage.English],
       meetingFrequency: MeetingFrequency.Biweekly,
       prepFileRequirement: PrepFileRequirement.Required,
@@ -168,7 +180,13 @@ describe("useMentorProfileForm capacity and past roles", () => {
 
     expect(result.current.form.menteeCapacity).toBe(6);
     expect(result.current.form.experiences).toEqual([
-      { title: "Mentor", organization: "", period: "", summary: "" },
+      {
+        key: expect.any(String),
+        title: "Mentor",
+        organization: "",
+        period: "",
+        summary: "",
+      },
     ]);
   });
 
@@ -187,7 +205,7 @@ describe("useMentorProfileForm capacity and past roles", () => {
     await act(() => result.current.handleSave());
 
     await waitFor(() => expect(updateMentorProfile).toHaveBeenCalled());
-    expect(vi.mocked(updateMentorProfile).mock.calls[0][0]).toMatchObject({
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
       menteeCapacity: 5,
       experiences: [
         { title: "Head of Product", organization: "", period: "", summary: "" },
@@ -221,5 +239,156 @@ describe("useMentorProfileForm capacity and past roles", () => {
 
     expect(result.current.form.experiences).toEqual([]);
     expect(result.current.form.menteeCapacity).toBeNull();
+  });
+});
+
+describe("useMentorProfileForm schools", () => {
+  beforeEach(() => vi.mocked(updateMentorProfile).mockReset());
+
+  it("starts from the saved schools and saves edits, dropping empty rows", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
+    const { result } = renderHook(
+      () =>
+        useMentorProfileForm({
+          ...mentorProfile,
+          educations: [{ school: "ODTÜ", degree: null, period: "2022 – 2026" }],
+        }),
+      { wrapper },
+    );
+
+    expect(result.current.form.educations).toEqual([
+      {
+        key: expect.any(String),
+        school: "ODTÜ",
+        degree: "",
+        period: "2022 – 2026",
+      },
+    ]);
+    act(() => {
+      result.current.updateEducation(0, "degree", "Lisans, Fizik");
+      result.current.addEducation();
+    });
+    await act(() => result.current.handleSave());
+
+    // toEqual, not toMatchObject: the rows' React keys must not reach the backend.
+    expect(
+      vi.mocked(updateMentorProfile).mock.calls[0]?.[0].educations,
+    ).toEqual([
+      { school: "ODTÜ", degree: "Lisans, Fizik", period: "2022 – 2026" },
+    ]);
+  });
+
+  it("does not save a school row without the school's name", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "degree", "Lisans"));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe("Her okul için bir ad gir.");
+    act(() => result.current.removeEducation(0));
+    expect(result.current.form.educations).toEqual([]);
+  });
+});
+
+describe("useMentorProfileForm student studies", () => {
+  const studentMentor = {
+    ...mentorProfile,
+    studentProfile: {
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "3. sınıf",
+      strongCourses: ["CENG 140", "MATH 119"],
+      projects: ["Kampüs uygulaması"],
+      erasmus: null,
+    },
+  };
+
+  beforeEach(() => vi.mocked(updateMentorProfile).mockReset());
+
+  it("starts from the saved studies and saves the edits as lists", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(studentMentor);
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    expect(result.current.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "3. sınıf",
+      courses: "CENG 140, MATH 119",
+      projects: "Kampüs uygulaması",
+      erasmus: "",
+    });
+    act(() => {
+      result.current.updateStudent("studyYear", "4. sınıf");
+      result.current.updateStudent("erasmus", "TU Delft, 2025 güz");
+    });
+    await act(() => result.current.handleSave());
+
+    expect(vi.mocked(updateMentorProfile).mock.calls[0]?.[0]).toMatchObject({
+      studentProfile: {
+        department: "Bilgisayar Mühendisliği",
+        studyYear: "4. sınıf",
+        strongCourses: ["CENG 140", "MATH 119"],
+        projects: ["Kampüs uygulaması"],
+        erasmus: "TU Delft, 2025 güz",
+      },
+    });
+  });
+
+  it("never sends studies for a mentor who is not a student", async () => {
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
+    const { result } = renderHook(() => useMentorProfileForm(mentorProfile), {
+      wrapper,
+    });
+
+    expect(result.current.student).toBeNull();
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).toHaveBeenCalledOnce();
+    expect(
+      vi.mocked(updateMentorProfile).mock.calls[0]?.[0],
+    ).not.toHaveProperty("studentProfile");
+  });
+
+  it("fills the studies from the CV the mentor asked for", () => {
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    act(() =>
+      result.current.applyCv({
+        ...toMentorCvResult({}),
+        studies: {
+          department: "",
+          studyYear: "4. sınıf",
+          courses: "CENG 213",
+          projects: "",
+          erasmus: "TU Delft, 2025 güz",
+        },
+      }),
+    );
+
+    expect(result.current.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "4. sınıf",
+      courses: "CENG 213",
+      projects: "Kampüs uygulaması",
+      erasmus: "TU Delft, 2025 güz",
+    });
+  });
+
+  it("does not save a student mentor without a department", async () => {
+    const { result } = renderHook(() => useMentorProfileForm(studentMentor), {
+      wrapper,
+    });
+
+    act(() => result.current.updateStudent("department", "  "));
+    await act(() => result.current.handleSave());
+
+    expect(updateMentorProfile).not.toHaveBeenCalled();
+    expect(result.current.saveError).toBe("Bölümünü ve sınıfını gir.");
   });
 });

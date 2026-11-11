@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MeetingEvaluationView } from "@/components/mentor-evaluation/meeting-evaluation-view";
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
 import { InLocale } from "@test/test-utils";
 
@@ -19,6 +20,8 @@ const handlers = {
   setPreparedness: vi.fn(),
   submit: vi.fn(),
   toggleQuality: vi.fn(),
+  confirmHeld: vi.fn(),
+  undoHeld: vi.fn(),
 };
 
 function state(overrides: Partial<Evaluation> = {}): Evaluation {
@@ -27,6 +30,9 @@ function state(overrides: Partial<Evaluation> = {}): Evaluation {
     answered: 0,
     canSubmit: false,
     error: null,
+    held: false,
+    heldError: null,
+    isSavingHeld: false,
     isLoading: false,
     isSubmitting: false,
     isSent: false,
@@ -35,7 +41,7 @@ function state(overrides: Partial<Evaluation> = {}): Evaluation {
       organizationId: "org-1",
       scheduledAt: "2026-09-05T11:00:00Z",
       durationMinutes: 45,
-      status: "COMPLETED",
+      status: MeetingStatus.Completed,
     },
     meta: "Döngü · Gülse · UX Flow Review · 5 Eylül · 14:00 · 45 dk",
     startupInitials: "DÖ",
@@ -175,5 +181,25 @@ describe("MeetingEvaluationView", () => {
     render(<MeetingEvaluationView meetingId="m1" />);
 
     expect(screen.getByText("Görüşme bulunamadı.")).toBeInTheDocument();
+  });
+
+  it("lets the mentor confirm the meeting was held, and undo it", async () => {
+    const user = userEvent.setup();
+    const { rerender } = render(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(screen.getByText("Bu görüşme yapıldı mı?")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Görüşme yapıldı" }));
+    expect(handlers.confirmHeld).toHaveBeenCalled();
+
+    vi.mocked(useMentorMeetingEvaluation).mockReturnValue(
+      state({ held: true, isSent: true }),
+    );
+    rerender(<MeetingEvaluationView meetingId="m1" />);
+
+    expect(
+      screen.getByText("Görüşme yapıldı olarak işaretlendi."),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Geri al" }));
+    expect(handlers.undoHeld).toHaveBeenCalled();
   });
 });

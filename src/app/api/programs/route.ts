@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
 import {
@@ -6,16 +7,15 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { UserRole } from "@/interfaces/session";
-import {
-  requireCoordinatorOrMentorSession,
-  requireCoordinatorSession,
-} from "@/lib/server/require-program-access";
-import { getSessionUser } from "@/lib/session";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorMentorOrAdminSession } from "@/lib/server/require-program-access";
+
+const createProgramSchema = z.object({ name: z.string().trim().min(1) });
 
 export async function GET() {
   try {
-    const auth = await requireCoordinatorOrMentorSession();
+    const auth = await requireCoordinatorMentorOrAdminSession();
     if (!auth.ok) return auth.response;
     return backendResponse(await fetchPrograms(auth.session.userId));
   } catch (error) {
@@ -27,24 +27,17 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const session = await getSessionUser();
-    const auth =
-      session?.role === UserRole.Admin
-        ? { ok: true as const, session }
-        : await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession(
+      "coordinatorsOnlyManage",
+    );
     if (!auth.ok) return auth.response;
-    const body = (await request.json()) as { name?: string };
-    const name = body.name?.trim() ?? "";
-    if (!name) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("programNameRequired"),
-        },
-        { status: 400 },
-      );
-    }
-    return backendResponse(await createProgram(auth.session.userId, name));
+    const body = await readJsonBody(request, createProgramSchema, {
+      invalidMessage: "programNameRequired",
+    });
+    if (!body.ok) return body.response;
+    return backendResponse(
+      await createProgram(auth.session.userId, body.data.name),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("programCreateFailed"),

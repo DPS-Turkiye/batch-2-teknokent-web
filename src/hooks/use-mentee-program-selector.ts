@@ -1,16 +1,17 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { MENTORS_QUERY_KEY } from "@/hooks/use-mentors";
 import {
   useOrganizationPrograms,
   useSetActiveProgram,
 } from "@/hooks/use-programs";
+import { ToastTone } from "@/interfaces/toast";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
+import { useToast } from "@/stores/toast-store";
 
 /** Lets a startup in several programs choose whose mentor pool it sees. */
 export function useMenteeProgramSelector() {
@@ -26,21 +27,21 @@ export function useMenteeProgramSelector() {
   function select(programId: string) {
     if (!programId || programId === current?.id) return;
     setActive.mutate(programId, {
-      onSuccess: async (data) => {
-        await queryClient.invalidateQueries({ queryKey: MENTORS_QUERY_KEY });
+      onSuccess: (data) => {
+        void queryClient.invalidateQueries({ queryKey: MENTORS_QUERY_KEY });
         // Server-rendered lists (the request wizard's mentors, the Startup'ım header) reload too.
         router.refresh();
         showToast({
           message: t("switched", {
             name: currentOrganizationProgram(data)?.name ?? "",
           }),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       },
       onError: (error) =>
         showToast({
           message: error instanceof Error ? error.message : t("switchFailed"),
-          tone: "error",
+          tone: ToastTone.Error,
         }),
     });
   }

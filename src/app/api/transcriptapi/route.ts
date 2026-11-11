@@ -1,12 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import { transcriptQuerySchema } from "@/lib/assistant-schemas";
-import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import {
+  assistantMeetingRefusal,
+  assistantSignInRequired,
+} from "@/lib/server/assistant-caller";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import { getSessionIds } from "@/lib/session";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
 export async function GET(request: NextRequest) {
   try {
     await getSessionIds();
+    const idToken = readBearerToken(request);
+    if (!idToken) return await assistantSignInRequired();
     const { searchParams } = request.nextUrl;
 
     const parsed = transcriptQuerySchema.safeParse({
@@ -28,9 +36,13 @@ export async function GET(request: NextRequest) {
     const { data, status } = await fetchMeetingTranscript(
       platform,
       nativeMeetingId,
+      idToken,
     );
 
-    return NextResponse.json(data, { status });
+    return (
+      (await assistantMeetingRefusal(status)) ??
+      NextResponse.json(data, { status })
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("transcriptServiceUnavailable"),

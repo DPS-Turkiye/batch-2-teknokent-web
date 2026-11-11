@@ -7,11 +7,25 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { idleQuery, successQuery } from "@test/mocks/query-results";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const { searchParams } = vi.hoisted(() => ({
   searchParams: { current: new URLSearchParams() },
 }));
+
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
 
 vi.mock("next/navigation", () => ({
   useSearchParams: () => searchParams.current,
@@ -47,11 +61,11 @@ const baseRequest: MentorshipRequest = {
   plannedSessionCount: 3,
 };
 
+/** The request loaded, or, with none, the disabled query a missing id leaves. */
 function mockRequest(request: MentorshipRequest | undefined) {
-  vi.mocked(useMentorshipRequest).mockReturnValue({
-    data: request,
-    error: null,
-  } as unknown as ReturnType<typeof useMentorshipRequest>);
+  vi.mocked(useMentorshipRequest).mockReturnValue(
+    request ? successQuery(request) : idleQuery(),
+  );
 }
 
 describe("MenteeRequestDetailPage", () => {
@@ -80,6 +94,20 @@ describe("MenteeRequestDetailPage", () => {
     expect(
       screen.queryByRole("link", { name: "Süreci aç" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("leaves out a student's team of one, already named as the requester", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    mockRequest(baseRequest);
+
+    renderWithQueryClient(<MenteeRequestDetailPage />);
+
+    expect(screen.getByText("Sude Yılmaz")).toBeInTheDocument();
+    expect(screen.queryByText("GreenLoop")).not.toBeInTheDocument();
+    expect(screen.queryByText("Startup")).not.toBeInTheDocument();
   });
 
   it("asks to pick a request when no id is given", () => {

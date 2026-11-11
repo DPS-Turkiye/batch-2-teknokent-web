@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "@/app/api/meetings/route";
+import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserRole } from "@/interfaces/session";
 import { createMeeting, fetchMeetings } from "@/lib/api/meetings";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
 import { fetchPrograms } from "@/lib/api/programs";
-import { ProgramMentorStatus } from "@/interfaces/program";
 import { getSessionIds, getSessionUser } from "@/lib/session";
+import { program, programMentor } from "@test/fixtures/program";
+import { backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/meetings", () => ({
   fetchMeetings: vi.fn(),
@@ -26,6 +28,10 @@ vi.mock("@/lib/session", () => ({
   getSessionIds: vi.fn(),
   getSessionUser: vi.fn(),
 }));
+
+function listRequest(query = "") {
+  return new NextRequest(`http://localhost/api/meetings${query}`);
+}
 
 describe("GET /api/meetings", () => {
   beforeEach(() => {
@@ -46,7 +52,7 @@ describe("GET /api/meetings", () => {
       role: UserRole.Mentor,
     });
 
-    await GET();
+    await GET(listRequest());
 
     expect(fetchMeetings).toHaveBeenCalledWith({ mentorId: "mentor-1" });
     expect(getSessionIds).not.toHaveBeenCalled();
@@ -67,9 +73,57 @@ describe("GET /api/meetings", () => {
       organizationId: "org-1",
     });
 
-    await GET();
+    await GET(listRequest());
 
     expect(fetchMeetings).toHaveBeenCalledWith({ organizationId: "org-1" });
+  });
+});
+
+describe("GET /api/meetings for an account on both sides", () => {
+  const peerMentor = {
+    userId: "student-1",
+    email: "zeynep@odtu-dev.invalid",
+    fullName: "Zeynep Demir",
+    jobTitle: "Mentee",
+    organizationId: "team-of-one",
+    role: UserRole.Mentee,
+    permissions: [UserRole.Mentor, UserRole.Mentee],
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(fetchMeetings).mockResolvedValue({
+      data: [],
+      headers: {},
+      status: 200,
+    });
+    vi.mocked(getSessionUser).mockResolvedValue(peerMentor);
+    vi.mocked(getSessionIds).mockResolvedValue({
+      userId: "student-1",
+      organizationId: "team-of-one",
+    });
+  });
+
+  // "Mentorluk Ver" names its side; without it the primary role (mentee) decides, as before.
+  it("lists the mentor side when the screen asks for it", async () => {
+    await GET(listRequest("?as=MENTOR"));
+    expect(fetchMeetings).toHaveBeenCalledWith({ mentorId: "student-1" });
+  });
+
+  it("stays on the mentee side by default", async () => {
+    await GET(listRequest());
+    expect(fetchMeetings).toHaveBeenCalledWith({
+      organizationId: "team-of-one",
+    });
+  });
+
+  it("never gives a side the account does not hold", async () => {
+    vi.mocked(getSessionUser).mockResolvedValue({
+      ...peerMentor,
+      permissions: [UserRole.Mentee],
+    });
+    await GET(listRequest("?as=MENTOR"));
+    expect(fetchMeetings).not.toHaveBeenCalledWith({ mentorId: "student-1" });
   });
 });
 
@@ -141,22 +195,14 @@ describe("POST /api/meetings", () => {
 
   it("resolves the organization from a program startup the mentor joined", async () => {
     signInAsMentor();
-    vi.mocked(fetchPrograms).mockResolvedValue({
-      data: [
-        {
-          id: "prog-1",
+    vi.mocked(fetchPrograms).mockResolvedValue(
+      backendResponse([
+        program({
           startups: [{ id: "org-greenloop", name: "GreenLoop" }],
-          mentors: [
-            {
-              mentorId: "mentor-1",
-              status: ProgramMentorStatus.Accepted,
-            },
-          ],
-        },
-      ],
-      headers: {},
-      status: 200,
-    } as Awaited<ReturnType<typeof fetchPrograms>>);
+          mentors: [programMentor({ mentorId: "mentor-1" })],
+        }),
+      ]),
+    );
 
     await POST(
       new NextRequest("http://localhost/api/meetings", {
@@ -183,30 +229,21 @@ describe("POST /api/meetings", () => {
 
   it("also creates the meeting for other accepted mentors in the program", async () => {
     signInAsMentor();
-    vi.mocked(fetchPrograms).mockResolvedValue({
-      data: [
-        {
-          id: "prog-1",
+    vi.mocked(fetchPrograms).mockResolvedValue(
+      backendResponse([
+        program({
           startups: [{ id: "org-greenloop", name: "GreenLoop" }],
           mentors: [
-            {
-              mentorId: "mentor-1",
-              status: ProgramMentorStatus.Accepted,
-            },
-            {
-              mentorId: "mentor-2",
-              status: ProgramMentorStatus.Accepted,
-            },
-            {
+            programMentor({ mentorId: "mentor-1" }),
+            programMentor({ mentorId: "mentor-2" }),
+            programMentor({
               mentorId: "mentor-3",
               status: ProgramMentorStatus.Pending,
-            },
+            }),
           ],
-        },
-      ],
-      headers: {},
-      status: 200,
-    } as Awaited<ReturnType<typeof fetchPrograms>>);
+        }),
+      ]),
+    );
 
     await POST(
       new NextRequest("http://localhost/api/meetings", {
@@ -230,17 +267,14 @@ describe("POST /api/meetings", () => {
 
   it("refuses a program startup when the mentor has not joined", async () => {
     signInAsMentor();
-    vi.mocked(fetchPrograms).mockResolvedValue({
-      data: [
-        {
-          id: "prog-1",
+    vi.mocked(fetchPrograms).mockResolvedValue(
+      backendResponse([
+        program({
           startups: [{ id: "org-greenloop", name: "GreenLoop" }],
           mentors: [],
-        },
-      ],
-      headers: {},
-      status: 200,
-    } as Awaited<ReturnType<typeof fetchPrograms>>);
+        }),
+      ]),
+    );
 
     const response = await POST(
       new NextRequest("http://localhost/api/meetings", {

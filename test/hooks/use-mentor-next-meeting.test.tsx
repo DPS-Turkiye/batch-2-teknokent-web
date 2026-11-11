@@ -3,7 +3,7 @@ import { act, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useMentorNextMeeting } from "@/hooks/use-mentor-next-meeting";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { updateMeeting } from "@/lib/client/meetings";
@@ -14,7 +14,10 @@ vi.mock("@/lib/client/meetings", () => ({ updateMeeting: vi.fn() }));
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }

@@ -1,4 +1,15 @@
+import { useLocale, useTranslations } from "next-intl";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type SubmitEvent,
+} from "react";
+
 import { useMeetings } from "@/hooks/use-meetings";
+import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
 import {
   addMeetingBot,
   fetchTranscript,
@@ -6,23 +17,22 @@ import {
   stopMeetingBot,
 } from "@/lib/assistant";
 import {
+  isAssistantCalendarMeeting,
   matchCalendarMeetingId,
   platformLabel,
   toAssistantMeeting,
-  isAssistantCalendarMeeting,
   withAssistantOverlay,
 } from "@/lib/assistant-meetings";
 import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
-import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
-import { updateMeeting } from "@/lib/client/meetings";
 import {
   getAssistantShare,
-  publishTranscriptShare,
   publishReportShare,
+  publishTranscriptShare,
 } from "@/lib/client/meeting-notes";
+import { updateMeeting } from "@/lib/client/meetings";
 import {
   MEETING_STATUS_META,
   TRANSCRIPT_BOT_MAX_TIMER_MS,
@@ -38,17 +48,9 @@ import {
   MeetingStatus,
   type Meeting,
   type MeetingReport,
+  type MeetingReportActionItem,
   type TranscriptLine,
 } from "@/types/assistant";
-import { useLocale, useTranslations } from "next-intl";
-import {
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
 
 export { MEETING_STATUS_META as STATUS_META };
 
@@ -75,7 +77,13 @@ function mapSegments(
   }));
 }
 
-function normalizeReport(report: MeetingReport): MeetingReport {
+/** A report as the AI backend sends it: its JSON is not validated, so any field may be missing. */
+type UnvalidatedReport = {
+  [Key in Exclude<keyof MeetingReport, "actionItems">]?:
+    MeetingReport[Key] | null;
+} & { actionItems?: Partial<MeetingReportActionItem>[] | null };
+
+function normalizeReport(report: UnvalidatedReport): MeetingReport {
   return {
     ...report,
     title: report.title || "Toplantı raporu",
@@ -202,9 +210,6 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const selectedTranscript = selected
     ? (transcriptByMeeting[selected.id] ?? [])
     : [];
-  const transcriptDirty = selected
-    ? Boolean(transcriptDirtyByMeeting[selected.id])
-    : false;
   const canEditTranscript = selected?.status === MeetingStatus.Completed;
   const meetingReport = selected
     ? (reportByMeeting[selected.id] ?? null)
@@ -242,14 +247,15 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
             [meetingId]: share.transcript ?? [],
           }));
         }
-        if (share.report) {
+        const { report } = share;
+        if (report) {
           setReportByMeeting((prev) => ({
             ...prev,
-            [meetingId]: normalizeReport(share.report as MeetingReport),
+            [meetingId]: normalizeReport(report),
           }));
         }
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Failed to load saved transcript", error);
       })
       .finally(() => {
@@ -323,7 +329,12 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       };
     }
 
-    const timer = window.setInterval(whenVisible(load), TRANSCRIPT_POLL_MS);
+    const timer = window.setInterval(
+      whenVisible(() => {
+        void load();
+      }),
+      TRANSCRIPT_POLL_MS,
+    );
     return () => {
       cancelled = true;
       window.clearInterval(timer);
@@ -469,7 +480,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const status = selected
     ? MEETING_STATUS_META[selected.status]
     : MEETING_STATUS_META[MeetingStatus.Scheduled];
-  const addBot = async (event?: FormEvent) => {
+  const addBot = async (event?: SubmitEvent) => {
     event?.preventDefault();
     await sendBotForUrl(selectedMeetLink || meetingUrl);
   };
@@ -477,7 +488,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const requestMeetingReport = useCallback(
     async (lines?: TranscriptLine[], meeting?: Meeting) => {
       const target = meeting ?? selected;
-      if (!target?.platformKey || !target?.nativeMeetingId) return;
+      if (!target?.platformKey || !target.nativeMeetingId) return;
       const segments = (
         lines ??
         transcriptByMeetingRef.current[target.id] ??
@@ -502,16 +513,11 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
             await generateMeetingReport(
               target.platformKey,
               target.nativeMeetingId,
-              segments,
             ),
           );
           setReportByMeeting((prev) => ({
             ...prev,
             [target.id]: report,
-          }));
-          setTranscriptDirtyByMeeting((prev) => ({
-            ...prev,
-            [target.id]: false,
           }));
           setReportStatus(BotStatus.Ok);
           window.setTimeout(() => setReportStatus(null), 4000);
@@ -574,7 +580,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
 
   const stopBot = async () => {
     const meeting = selected;
-    if (!meeting?.platformKey || !meeting?.nativeMeetingId) return;
+    if (!meeting?.platformKey || !meeting.nativeMeetingId) return;
     if (botStatus === BotStatus.Sending) return;
 
     setBotStatus(BotStatus.Sending);
@@ -673,7 +679,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   };
 
   const sendReport = async () => {
-    if (!notebookMeetingId || !meetingReport || transcriptDirty) return;
+    if (!notebookMeetingId || !meetingReport) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
@@ -699,7 +705,6 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     botError,
     visibleTranscript,
     canEditTranscript,
-    transcriptDirty,
     updateTranscriptLine,
     removeTranscriptLine,
     notes,

@@ -3,19 +3,23 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Toaster } from "@/components/common/toaster";
 import { useAppSession } from "@/components/providers/session-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { useStartupTeam } from "@/hooks/use-startup-team";
 import { useStartupInProgram } from "@/hooks/use-team-changes";
+import { TeamChangeKind } from "@/interfaces/team-change";
 import {
   addOrganizationMember,
   removeOrganizationMember,
   updateOrganizationMember,
 } from "@/lib/client/organization-members";
-import { MemberFormMode } from "@/lib/startup-team";
 import { requestRemoval } from "@/lib/client/team-changes";
+import { MemberFormMode } from "@/lib/startup-team";
+import { appSession } from "@test/fixtures/session";
 import { memberFixture } from "@test/fixtures/startup-team";
+import { leaveRequestOf } from "@test/fixtures/team-changes";
+import { successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -41,7 +45,10 @@ vi.mock("@/lib/client/organization-members", () => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }
@@ -54,18 +61,16 @@ const cto = memberFixture("cto");
 const designer = memberFixture("designer", { fullName: "Ece Demir" });
 
 function signedInAs(userId: string) {
-  vi.mocked(useAppSession).mockReturnValue({ userId } as never);
+  vi.mocked(useAppSession).mockReturnValue(appSession({ userId }));
 }
 
 describe("useStartupTeam", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useStartupInProgram).mockReturnValue(false);
-    vi.mocked(useOrganizationMembers).mockReturnValue({
-      data: [cto, founder, designer],
-      isLoading: false,
-      error: null,
-    } as never);
+    vi.mocked(useOrganizationMembers).mockReturnValue(
+      successQuery([cto, founder, designer]),
+    );
   });
 
   it("lists the founder first", () => {
@@ -114,7 +119,7 @@ describe("useStartupTeam", () => {
     });
     await act(() => result.current.submitForm());
 
-    expect(vi.mocked(addOrganizationMember).mock.calls[0][0]).toEqual({
+    expect(vi.mocked(addOrganizationMember).mock.calls[0]?.[0]).toEqual({
       fullName: "Ece Demir",
       email: "ece@dongu.co",
       jobTitle: "Tasarımcı",
@@ -158,7 +163,7 @@ describe("useStartupTeam", () => {
 
   it("removes a member after confirming", async () => {
     signedInAs("founder");
-    vi.mocked(removeOrganizationMember).mockResolvedValue(undefined as never);
+    vi.mocked(removeOrganizationMember).mockResolvedValue(undefined);
     const { result } = renderHook(() => useStartupTeam(), { wrapper });
 
     act(() => result.current.askRemove("cto"));
@@ -166,13 +171,18 @@ describe("useStartupTeam", () => {
     act(() => result.current.confirmRemove());
 
     await waitFor(() => expect(result.current.removingMember).toBeNull());
-    expect(vi.mocked(removeOrganizationMember).mock.calls[0][0]).toBe("cto");
+    expect(vi.mocked(removeOrganizationMember).mock.calls[0]?.[0]).toBe("cto");
   });
 
   it("only asks the coordinator to remove a member inside a program", async () => {
     signedInAs("founder");
     vi.mocked(useStartupInProgram).mockReturnValue(true);
-    vi.mocked(requestRemoval).mockResolvedValue({} as never);
+    vi.mocked(requestRemoval).mockResolvedValue(
+      leaveRequestOf("cto", {
+        kind: TeamChangeKind.Remove,
+        requestedById: "founder",
+      }),
+    );
     const { result } = renderHook(() => useStartupTeam(), { wrapper });
 
     expect(result.current.removalNeedsApproval).toBe(true);
@@ -180,7 +190,7 @@ describe("useStartupTeam", () => {
     act(() => result.current.confirmRemove());
 
     await waitFor(() => expect(result.current.removingMember).toBeNull());
-    expect(vi.mocked(requestRemoval).mock.calls[0][0]).toBe("cto");
+    expect(vi.mocked(requestRemoval).mock.calls[0]?.[0]).toBe("cto");
     expect(removeOrganizationMember).not.toHaveBeenCalled();
   });
 });

@@ -1,17 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
 import { PersonProfileView } from "@/components/profile/person-profile-view";
 import { useAppSession } from "@/components/providers/session-provider";
+import { UserRole, type BackendUser } from "@/interfaces/session";
 import type { UserProfile } from "@/interfaces/user-profile";
-import type { BackendUser } from "@/interfaces/session";
-import { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 import { organizationStartupHref } from "@/lib/program-links";

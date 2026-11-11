@@ -1,13 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { Suspense, useState } from "react";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Suspense, useState } from "react";
 
-import { AppShell } from "@/components/hoc/app-shell";
+import { EmptyState } from "@/components/common/empty-state";
 import { ListPagination } from "@/components/common/list-pagination";
+import { AppShell } from "@/components/hoc/app-shell";
 import { MenteeProgramSelector } from "@/components/mentors/mentee-program-selector";
 import { MentorsDirectory } from "@/components/mentors/mentors-directory";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
@@ -19,23 +20,23 @@ import {
   useMentorshipRequestsPage,
   useMentorshipWorkspace,
 } from "@/hooks/use-mentorship-workspace";
-import { formatMeetingShort } from "@/lib/format";
+import type { MeetingItem } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
 import { MENTORSHIPS_TABS } from "@/lib/const";
+import { formatMeetingShort } from "@/lib/format";
 import {
   activeMentorshipHref,
   meetingAboutHref,
   meetingCallHref,
-  menteeRequestOwnerLabel,
   menteeRequestDetailHref,
+  menteeRequestOwnerLabel,
   menteeRequestStatusHref,
   pickRequestMeeting,
   requestProgressPercent,
 } from "@/lib/mentorship-workspace";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { UserRole } from "@/interfaces/session";
 import { AppArea } from "@/types/app-area";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
-import type { MeetingItem } from "@/interfaces/meeting";
 
 function tabFromSearchParam(value: string | null): MentorshipWorkspaceTab {
   if (value === MentorshipWorkspaceTab.Requests) {
@@ -182,7 +183,7 @@ function RequestsTab() {
     );
   }
   if (requests.length === 0) {
-    return <EmptyState />;
+    return <EmptyState title={t("emptyTitle")} body={t("emptyBody")} />;
   }
 
   return (
@@ -377,7 +378,7 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
         {t("historyTitle")}
       </h2>
       {requests.length === 0 ? (
-        <EmptyState />
+        <EmptyState title={t("emptyTitle")} body={t("emptyBody")} />
       ) : (
         <>
           <div className="mt-[22px] grid gap-[22px]">
@@ -433,16 +434,5 @@ function HistoryTab({ meetings }: { meetings: MeetingItem[] }) {
         </>
       )}
     </section>
-  );
-}
-
-function EmptyState() {
-  const t = useTranslations("mentorships");
-  return (
-    <div className="mt-5 rounded-[20px] border border-dashed border-[#d6dade] bg-white p-12 text-center">
-      <Sparkles className="mx-auto size-7 text-[#e86f22]" />
-      <h2 className="mt-4 text-base font-semibold">{t("emptyTitle")}</h2>
-      <p className="mt-1 text-sm text-[#676e78]">{t("emptyBody")}</p>
-    </div>
   );
 }

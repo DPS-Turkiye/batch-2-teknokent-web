@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { MentorPoolRow } from "@/interfaces/mentor-pool";
+import { ToastTone } from "@/interfaces/toast";
 import {
   cancelMentorInvite,
   decideProgramMentor,
@@ -25,6 +25,7 @@ import {
   poolFilterOptions,
 } from "@/lib/mentor-pool";
 import { errorMessage, isEmailAddress } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const mentorPoolQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "mentors"] as const;
@@ -61,7 +62,10 @@ export function useMentorPool(programId: string) {
     });
   };
   const onError = (fallback: string) => (failure: Error) =>
-    showToast({ message: errorMessage(failure, fallback), tone: "error" });
+    showToast({
+      message: errorMessage(failure, fallback),
+      tone: ToastTone.Error,
+    });
 
   const invite = useMutation({
     mutationFn: (value: string) => inviteProgramMentor(programId, value),
@@ -76,12 +80,12 @@ export function useMentorPool(programId: string) {
         await copyInviteLink(link.inviteCode);
         showToast({
           message: t("invitedLink", { email: value.trim() }),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       } else {
         showToast({
           message: t("invited"),
-          tone: "success",
+          tone: ToastTone.Success,
         });
       }
     },
@@ -90,13 +94,13 @@ export function useMentorPool(programId: string) {
   });
   const renew = useMutation({
     mutationFn: (row: MentorPoolRow) =>
-      renewMentorInvite(programId, row.inviteId as string),
+      renewMentorInvite(programId, row.inviteId!),
     onSuccess: async (rows, row) => {
       saved(rows);
-      await copyInviteLink(row.inviteCode as string);
+      await copyInviteLink(row.inviteCode!);
       showToast({
         message: t("renewed"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: onError(t("renewFailed")),
@@ -105,10 +109,10 @@ export function useMentorPool(programId: string) {
     mutationFn: (row: MentorPoolRow) =>
       row.inviteId
         ? cancelMentorInvite(programId, row.inviteId)
-        : withdrawProgramMentorInvite(programId, row.mentorId as string),
+        : withdrawProgramMentorInvite(programId, row.mentorId!),
     onSuccess: (rows) => {
       saved(rows);
-      showToast({ message: t("takenBack"), tone: "success" });
+      showToast({ message: t("takenBack"), tone: ToastTone.Success });
     },
     onError: onError(t("takeBackFailed")),
   });
@@ -155,7 +159,7 @@ export function useMentorPool(programId: string) {
     copyLink: async (row: MentorPoolRow) => {
       if (!row.inviteCode) return;
       await copyInviteLink(row.inviteCode);
-      showToast({ message: t("linkCopied"), tone: "success" });
+      showToast({ message: t("linkCopied"), tone: ToastTone.Success });
     },
     renew: (row: MentorPoolRow) => renew.mutate(row),
     takeBack: (row: MentorPoolRow) => takeBack.mutate(row),
@@ -188,13 +192,13 @@ export function useMentorReview(
       const name = query.data?.fullName ?? t("nameFallback");
       showToast({
         message: accepted ? t("added", { name }) : t("rejected", { name }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("decideFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   const review = query.data;

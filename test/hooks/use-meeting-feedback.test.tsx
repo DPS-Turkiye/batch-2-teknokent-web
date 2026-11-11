@@ -3,9 +3,12 @@ import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useMeetingFeedback } from "@/hooks/use-meeting-lifecycle";
-import { getMeetingFeedback } from "@/lib/client/meetings";
+import {
+  getMeetingFeedback,
+  type MeetingFeedbackItem,
+} from "@/lib/client/meetings";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/meetings", async (importOriginal) => ({
@@ -17,7 +20,10 @@ vi.mock("@/lib/client/meetings", async (importOriginal) => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }
@@ -27,9 +33,13 @@ describe("useMeetingFeedback", () => {
 
   it("loads the saved evaluation of the meeting the page resolved", async () => {
     vi.mocked(getMeetingFeedback).mockResolvedValue({
+      id: "feedback-1",
+      meetingId: "meeting-1",
+      authorId: "mentee-1",
       ratings: [5, 4, 5],
       benefits: [],
-    } as unknown as Awaited<ReturnType<typeof getMeetingFeedback>>);
+      createdAt: "2026-11-04T09:00:00Z",
+    } satisfies MeetingFeedbackItem);
 
     const { result } = renderHook(() => useMeetingFeedback("meeting-1"), {
       wrapper,

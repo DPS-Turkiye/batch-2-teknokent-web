@@ -1,24 +1,23 @@
-import { NextIntlClientProvider } from "next-intl";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { NextIntlClientProvider } from "next-intl";
 import type { ReactNode } from "react";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-import toolsEn from "@/messages/profile-tools/en.json";
-import toolsTr from "@/messages/profile-tools/tr.json";
-import { createTestQueryClient } from "@test/test-utils";
-import type { ProfileAnalysis } from "@/interfaces/profile-analysis";
 
-export function profileToolsWrapper(locale: "tr" | "en" = "en") {
+import {
+  ProfileAnalysisStatus,
+  ProfileAnalysisType,
+  type ProfileAnalysis,
+} from "@/interfaces/profile-analysis";
+import { appMessages, asLocale, type TestLocale } from "@test/i18n";
+import { createTestQueryClient } from "@test/test-utils";
+
+export function profileToolsWrapper(locale: TestLocale = "en") {
   const client = createTestQueryClient();
   return {
     client,
     Wrapper: ({ children }: { children: ReactNode }) => (
       <NextIntlClientProvider
-        locale={locale}
-        messages={{
-          ...(locale === "en" ? en : tr),
-          profileTools: locale === "en" ? toolsEn : toolsTr,
-        }}
+        locale={asLocale(locale)}
+        messages={appMessages(locale)}
       >
         <QueryClientProvider client={client}>{children}</QueryClientProvider>
       </NextIntlClientProvider>
@@ -32,8 +31,8 @@ export function analysis(
   return {
     id: "analysis-1",
     sourceFilename: "startup.pdf",
-    profileType: "mentee",
-    status: "DRAFT",
+    profileType: ProfileAnalysisType.Startup,
+    status: ProfileAnalysisStatus.Draft,
     createdAt: "2026-11-03T10:00:00Z",
     profile: {
       startup_name: "Launch Team",

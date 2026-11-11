@@ -6,6 +6,7 @@ import {
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
+  signInWithCustomToken,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -19,6 +20,7 @@ import {
 } from "@/lib/client/auth-email";
 import { EMAIL_VERIFICATION_EXEMPT } from "@/lib/const";
 import { firebaseAuth } from "@/lib/firebase/client";
+import { OTG_UID_PREFIX } from "@/lib/otg-login";
 
 const TOO_MANY_REQUESTS = 429;
 
@@ -93,7 +95,7 @@ export function isCurrentEmailVerified(): boolean {
   try {
     const user = firebaseAuth().currentUser;
     if (!user) return false;
-    return user.emailVerified === true || isEmailVerificationExempt(user.email);
+    return user.emailVerified || isEmailVerificationExempt(user.email);
   } catch {
     return false;
   }
@@ -104,6 +106,8 @@ export async function reloadAndCheckEmailVerified(): Promise<boolean> {
   if (!user) return false;
   if (isEmailVerificationExempt(user.email)) return true;
   await user.reload();
+  // reload() leaves the cached ID token alone, and the backend reads email_verified from the token.
+  if (user.emailVerified) await user.getIdToken(true);
   return user.emailVerified;
 }
 
@@ -125,6 +129,14 @@ export async function signInToFirebase(
   return credential.user.getIdToken();
 }
 
+/** Signs in with the token the backend minted after an institution (ODTÜ) login; returns the ID token. */
+export async function signInWithInstitutionToken(
+  customToken: string,
+): Promise<string> {
+  const credential = await signInWithCustomToken(firebaseAuth(), customToken);
+  return credential.user.getIdToken();
+}
+
 export async function requestPasswordReset(email: string): Promise<void> {
   const address = email.trim();
   await sendOwnEmailOrFirebase(
@@ -141,25 +153,47 @@ export function currentUserEmail(): string | null {
   }
 }
 
-export async function currentFirebaseAccount(): Promise<{
+export type FirebaseAccount = {
   email: string;
   fullName: string;
   verified: boolean;
-} | null> {
+};
+
+async function signedInAccount(): Promise<
+  (FirebaseAccount & { uid: string }) | null
+> {
   try {
     const auth = firebaseAuth();
     await auth.authStateReady();
     const user = auth.currentUser;
     if (!user?.email) return null;
     return {
+      uid: user.uid,
       email: user.email,
       fullName: user.displayName?.trim() ?? "",
-      verified:
-        user.emailVerified === true || isEmailVerificationExempt(user.email),
+      verified: user.emailVerified || isEmailVerificationExempt(user.email),
     };
   } catch {
     return null;
   }
+}
+
+export async function currentFirebaseAccount(): Promise<FirebaseAccount | null> {
+  const account = await signedInAccount();
+  if (!account) return null;
+  const { email, fullName, verified } = account;
+  return { email, fullName, verified };
+}
+
+/**
+ * The signed-in Firebase login when it is one the backend made for an OTG person, else null. Only such a login
+ * may stand in for a new account: any other leftover session is someone else's.
+ */
+export async function currentOtgAccount(): Promise<FirebaseAccount | null> {
+  const account = await signedInAccount();
+  if (!account?.uid.startsWith(OTG_UID_PREFIX)) return null;
+  const { email, fullName, verified } = account;
+  return { email, fullName, verified };
 }
 
 export async function currentIdToken(): Promise<string | null> {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
@@ -16,10 +17,13 @@ export function MeetingRatingsSection({
   ratings,
   isLoading,
   error,
+  details,
 }: {
   ratings: ProgramMeetingRatings | undefined;
   isLoading: boolean;
   error: Error | null;
+  /** Shown under the averages: who rated whom. */
+  details?: ReactNode;
 }) {
   const t = useTranslations("meetingRatings");
   const tQuestions = useTranslations("meetingPages.feedback.questions");
@@ -39,7 +43,7 @@ export function MeetingRatingsSection({
           </h2>
           <p className="mt-1 text-[12.5px] text-[#858c96]">{t("hint")}</p>
         </div>
-        {ratings && ratings.average != null ? (
+        {ratings?.average != null ? (
           <div className="text-right">
             <p className="text-[28px] leading-none font-semibold text-[#22262b]">
               {formatRating(ratings.average, locale)}
@@ -123,6 +127,7 @@ export function MeetingRatingsSection({
           </div>
         </div>
       )}
+      {details}
     </section>
   );
 }

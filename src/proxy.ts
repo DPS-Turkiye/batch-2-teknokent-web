@@ -1,6 +1,5 @@
 import { unsealData } from "iron-session";
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import type { AppSession, SessionData } from "@/interfaces/session";
 import {
@@ -13,6 +12,7 @@ import {
   PREFER_WEB_COOKIE,
   PREFER_WEB_PARAM,
 } from "@/lib/mobile";
+import { OTG_FAILURE_PARAM, otgLoginFailure } from "@/lib/otg-login";
 import {
   currentSessionUser,
   isPublicPath,
@@ -27,6 +27,17 @@ const SIGNED_OUT_ONLY_PATHS = new Set(["/login", "/signup", MOBILE_LOGIN]);
 const PREFER_WEB_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
 type SessionRead = { signedIn: boolean; user?: AppSession };
+
+/**
+ * The phone login a signed-out phone is sent to from /login. Only a known OTG failure is carried over, so the
+ * phone login can still say why OTG sign-in did not start; nothing else from the query is passed on.
+ */
+function phoneLoginPath(searchParams: URLSearchParams) {
+  const failure = otgLoginFailure(searchParams.get(OTG_FAILURE_PARAM));
+  return failure
+    ? `${MOBILE_LOGIN}?${new URLSearchParams({ [OTG_FAILURE_PARAM]: failure })}`
+    : MOBILE_LOGIN;
+}
 
 /**
  * Only a page load the visitor made may switch a phone to the web pages. Next.js
@@ -97,7 +108,7 @@ export async function proxy(request: NextRequest) {
     phoneUser &&
     isPhoneUserAgent(request.headers.get("user-agent"))
   ) {
-    return redirect(signedIn ? MOBILE_HOME : MOBILE_LOGIN);
+    return redirect(signedIn ? MOBILE_HOME : phoneLoginPath(searchParams));
   }
 
   if (signedIn && SIGNED_OUT_ONLY_PATHS.has(pathname)) {

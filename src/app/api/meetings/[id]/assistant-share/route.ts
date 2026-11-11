@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchAssistantShare,
@@ -11,8 +12,15 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import {
+  assistantMeetingRefusal,
+  assistantSignInRequired,
+} from "@/lib/server/assistant-caller";
+import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { sessionSide, SIDE_PARAM } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
@@ -20,12 +28,15 @@ type RouteContext = {
   params: Promise<{ id: string }>;
 };
 
-export async function GET(_request: NextRequest, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
     const { id } = await context.params;
-    if (session.role === UserRole.Mentor) {
+    if (
+      sessionSide(session, request.nextUrl.searchParams.get(SIDE_PARAM)) ===
+      UserRole.Mentor
+    ) {
       return backendResponse(
         await fetchAssistantShare(id, { viewerId: session.userId }),
       );
@@ -46,24 +57,24 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireMentorSession();
     if (!auth.ok) return auth.response;
     const { id } = await context.params;
-    const parsed = publishAssistantShareBodySchema.safeParse(
-      await request.json(),
+    const parsed = await readJsonBody(
+      request,
+      publishAssistantShareBodySchema,
+      { invalidMessage: "transcriptOrReportRequired" },
     );
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("transcriptOrReportRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    if (!parsed.ok) return parsed.response;
     const body = parsed.data;
-    if (body.kind === "PROVIDER_TRANSCRIPT") {
+    if (body.kind === AssistantShareKind.ProviderTranscript) {
+      // The backend lets only that Meet code's participants read its transcript.
+      const idToken = readBearerToken(request);
+      if (!idToken) return await assistantSignInRequired();
       const transcript = await fetchMeetingTranscript(
         body.platform,
         body.nativeMeetingId,
+        idToken,
       );
+      const refusal = await assistantMeetingRefusal(transcript.status);
+      if (refusal) return refusal;
       if (transcript.status < 200 || transcript.status >= 300) {
         return NextResponse.json(transcript.data, {
           status: transcript.status,
@@ -81,7 +92,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
       return backendResponse(
         await publishAssistantShare(id, auth.session.userId, {
-          kind: "TRANSCRIPT",
+          kind: AssistantShareKind.Transcript,
           transcript: segments,
         }),
       );

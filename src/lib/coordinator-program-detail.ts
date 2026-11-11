@@ -1,54 +1,236 @@
 import { clientText } from "@/i18n/client-texts";
-import type {
-  CoordinatorProgramDetail,
-  ProgramPhaseInput,
-  ProgramRules,
-  UpdateProgramDetailsInput,
+import {
+  ProgramLifecycle,
+  type CoordinatorProgramDetail,
+  type ProgramPhaseInput,
+  type ProgramRules,
+  type UpdateProgramDetailsInput,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import { formatMonthRange, type ProgramsT } from "@/lib/coordinator-programs";
 
 export enum ProgramTab {
   Overview = "OVERVIEW",
+  Participants = "PARTICIPANTS",
   Teams = "TEAMS",
   MentorPool = "MENTOR_POOL",
+  Students = "STUDENTS",
+  PeerMentors = "PEER_MENTORS",
+  Academics = "ACADEMICS",
   Matching = "MATCHING",
+  Appointments = "APPOINTMENTS",
   Approvals = "APPROVALS",
   Settings = "SETTINGS",
 }
+
+/**
+ * The sub-tabs under Katılımcılar; Girişim's two and the peer program's two have screens so far.
+ * They are program tabs too, so the sub-tab row can compare one with the current tab.
+ */
+export const ParticipantTab = {
+  Teams: ProgramTab.Teams,
+  MentorPool: ProgramTab.MentorPool,
+  Students: ProgramTab.Students,
+  PeerMentors: ProgramTab.PeerMentors,
+  Academics: ProgramTab.Academics,
+} as const;
+export type ParticipantTab =
+  (typeof ParticipantTab)[keyof typeof ParticipantTab];
 
 export enum SettingsSection {
   General = "GENERAL",
   Curriculum = "CURRICULUM",
   Coordinators = "COORDINATORS",
   Rules = "RULES",
+  Eligibility = "ELIGIBILITY",
+  Training = "TRAINING",
+  PeerCategories = "PEER_CATEGORIES",
   Archive = "ARCHIVE",
 }
 
+/**
+ * The sections Program Ayarları shows: only a peer program has the Akran Mentoru training and chooses
+ * categories, and a draft has no Arşiv.
+ */
+export function settingsSections(
+  type: ProgramType,
+  lifecycle: ProgramLifecycle,
+) {
+  const peer = type === ProgramType.PeerMentoring;
+  return Object.values(SettingsSection).filter(
+    (section) =>
+      (section !== SettingsSection.Training || peer) &&
+      (section !== SettingsSection.PeerCategories || peer) &&
+      (section !== SettingsSection.Archive ||
+        lifecycle !== ProgramLifecycle.Draft),
+  );
+}
+
+const PARTICIPANT_PAGES = [
+  ProgramTab.Participants,
+  ProgramTab.Teams,
+  ProgramTab.MentorPool,
+  ProgramTab.Students,
+  ProgramTab.PeerMentors,
+  ProgramTab.Academics,
+];
+
+/**
+ * The shared tabs, adapted to the type: Girişim keeps its screens under Katılımcılar,
+ * Office Hours shows Randevular in place of Eşleşmeler and has no Onaylar.
+ */
 export function programTabs(
   detail: CoordinatorProgramDetail,
   programId: string,
 ) {
   const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  const type = detail.program.type;
+  const startup = type === ProgramType.StartupMentoring;
+  const peer = type === ProgramType.PeerMentoring;
+  const officeHours = type === ProgramType.OfficeHours;
   return [
     { id: ProgramTab.Overview, href: base, count: null },
     {
-      id: ProgramTab.Teams,
-      href: `${base}/teams`,
-      count: detail.program.teamCount,
+      id: ProgramTab.Participants,
+      href: startup
+        ? `${base}/teams`
+        : peer
+          ? `${base}/students`
+          : `${base}/academics`,
+      count: null,
     },
-    {
-      id: ProgramTab.MentorPool,
-      href: `${base}/mentors`,
-      count: detail.program.mentorCount,
-    },
-    {
-      id: ProgramTab.Matching,
-      href: `${base}/matching`,
-      count: detail.program.awaitingMatchCount,
-    },
-    { id: ProgramTab.Approvals, href: `${base}/approvals`, count: null },
+    officeHours
+      ? {
+          id: ProgramTab.Appointments,
+          href: `${base}/appointments`,
+          count: null,
+        }
+      : {
+          id: ProgramTab.Matching,
+          href: `${base}/matching`,
+          count: startup ? detail.program.awaitingMatchCount : null,
+        },
+    ...(officeHours
+      ? []
+      : [
+          {
+            id: ProgramTab.Approvals,
+            href: `${base}/approvals`,
+            count: detail.pendingApprovalCount,
+          },
+        ]),
     { id: ProgramTab.Settings, href: `${base}/settings`, count: null },
   ];
+}
+
+/** Takımlar and Mentor Havuzu light up the Katılımcılar tab. */
+export function isActiveTab(item: ProgramTab, current: ProgramTab) {
+  return (
+    item === current ||
+    (item === ProgramTab.Participants && PARTICIPANT_PAGES.includes(current))
+  );
+}
+
+export function isParticipantsTab(tab: ProgramTab) {
+  return PARTICIPANT_PAGES.includes(tab);
+}
+
+/** Katılımcılar's sub-tabs; the ones without a screen yet have no link. */
+export function participantTabs(
+  detail: CoordinatorProgramDetail,
+  programId: string,
+): { id: ParticipantTab; href: string | null; count: number | null }[] {
+  const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  switch (detail.program.type) {
+    case ProgramType.PeerMentoring:
+      return [
+        { id: ParticipantTab.Students, href: `${base}/students`, count: null },
+        {
+          id: ParticipantTab.PeerMentors,
+          href: `${base}/peer-mentors`,
+          count: null,
+        },
+      ];
+    case ProgramType.OfficeHours:
+      return [
+        {
+          id: ParticipantTab.Academics,
+          href: `${base}/academics`,
+          count: null,
+        },
+        { id: ParticipantTab.Students, href: null, count: null },
+      ];
+    default:
+      return [
+        {
+          id: ParticipantTab.Teams,
+          href: `${base}/teams`,
+          count: detail.program.teamCount,
+        },
+        {
+          id: ParticipantTab.MentorPool,
+          href: `${base}/mentors`,
+          count: detail.program.mentorCount,
+        },
+      ];
+  }
+}
+
+/**
+ * Where a tab URL that the program's type does not show should go instead, or null when the type
+ * shows it. Keeps a typed or old link from opening another type's screen or a wrong empty state.
+ */
+export function misplacedTabHref(
+  detail: CoordinatorProgramDetail,
+  programId: string,
+  tab: ProgramTab,
+): string | null {
+  const base = `/coordinator/programs/${encodeURIComponent(programId)}`;
+  switch (detail.program.type) {
+    case ProgramType.StartupMentoring:
+      if (
+        tab === ProgramTab.Participants ||
+        tab === ProgramTab.Students ||
+        tab === ProgramTab.PeerMentors ||
+        tab === ProgramTab.Academics
+      )
+        return `${base}/teams`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+    case ProgramType.OfficeHours:
+      if (
+        tab === ProgramTab.Teams ||
+        tab === ProgramTab.MentorPool ||
+        tab === ProgramTab.Students ||
+        tab === ProgramTab.PeerMentors ||
+        tab === ProgramTab.Participants
+      )
+        return `${base}/academics`;
+      if (tab === ProgramTab.Matching) return `${base}/appointments`;
+      if (tab === ProgramTab.Approvals) return base;
+      return null;
+    default:
+      if (
+        tab === ProgramTab.Teams ||
+        tab === ProgramTab.MentorPool ||
+        tab === ProgramTab.Participants ||
+        tab === ProgramTab.Academics
+      )
+        return `${base}/students`;
+      if (tab === ProgramTab.Appointments) return `${base}/matching`;
+      return null;
+  }
+}
+
+/** Girişim has screens behind its tabs; a peer program its two Katılımcılar lists; the rest an empty state. */
+export function hasTabContent(type: ProgramType, tab: ProgramTab) {
+  return (
+    type === ProgramType.StartupMentoring ||
+    tab === ProgramTab.Settings ||
+    (type === ProgramType.PeerMentoring &&
+      (tab === ProgramTab.Students || tab === ProgramTab.PeerMentors)) ||
+    (type === ProgramType.OfficeHours && tab === ProgramTab.Academics)
+  );
 }
 
 /** "Şub 2026 – Ara 2026 · Mentorluk dönemi, hafta 6/16 · Koordinatörler: Elif Demir, Burcu Şen". */
@@ -267,7 +449,18 @@ export function detailsInput(
     defaultMentorCapacity: draft.defaultMentorCapacity,
     communicationGapDays: draft.communicationGapDays,
     bottleneckFlagDays: draft.bottleneckFlagDays,
+    eligibleEmailDomain: draft.eligibleEmailDomain?.trim() ?? "",
+    rosterOnly: draft.rosterOnly,
+    individualMentees: draft.individualMentees,
   };
+}
+
+/** Addresses pasted into the program list: one per line, or separated by commas, semicolons or spaces. */
+export function parseEmailList(text: string): string[] {
+  return text
+    .split(/[\s,;]+/)
+    .map((email) => email.trim())
+    .filter(Boolean);
 }
 
 export function phasesInput(phases: PhaseDraft[]): ProgramPhaseInput[] {

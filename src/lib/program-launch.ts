@@ -1,98 +1,20 @@
 import type { useTranslations } from "next-intl";
 
-import { clientText } from "@/i18n/client-texts";
-import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
-  type CoordinatorProgramDetail,
-  type CreateProgramInput,
   ProgramLifecycle,
-  type ProgramTeam,
   TeamJoinStatus,
+  type CoordinatorProgramDetail,
+  type ProgramTeam,
 } from "@/interfaces/coordinator-program";
-import { phasesInput } from "@/lib/coordinator-program-detail";
-import { PhaseSource, type WizardPhase } from "@/lib/program-phases";
+import type { ProgramsT } from "@/lib/coordinator-programs";
 import { formatDayMonth, isEmailAddress } from "@/lib/utils";
 
-export enum LaunchStep {
-  Basics = "BASICS",
-  Curriculum = "CURRICULUM",
-  Rules = "RULES",
-  Teams = "TEAMS",
-}
-
-export const LAUNCH_STEPS = [
-  LaunchStep.Basics,
-  LaunchStep.Curriculum,
-  LaunchStep.Rules,
-  LaunchStep.Teams,
-] as const;
-
-/** The uploaded syllabus; `pageCount` arrives once its phases have been read. */
-export type LaunchSyllabus = {
-  documentId: string;
-  filename: string;
-  sizeBytes: number;
-  pageCount: number | null;
-};
-
-export type LaunchRules = Pick<
-  CreateProgramInput,
-  | "defaultMentorCapacity"
-  | "meetingFrequencyDays"
-  | "communicationGapDays"
-  | "bottleneckFlagDays"
->;
-
-export const DEFAULT_LAUNCH_RULES: LaunchRules = {
-  defaultMentorCapacity: 4,
-  meetingFrequencyDays: 14,
-  communicationGapDays: 14,
-  bottleneckFlagDays: 21,
-};
-
 export type TeamRowDraft = { key: string; teamName: string; leadEmail: string };
-
-export type LaunchDraft = {
-  name: string;
-  description: string;
-  startDate: string;
-  endDate: string;
-  rules: LaunchRules;
-  teams: TeamRowDraft[];
-  phaseSource: PhaseSource;
-  syllabus: LaunchSyllabus | null;
-  phases: WizardPhase[];
-};
 
 let rowKeySeed = 0;
 export function emptyTeamRow(): TeamRowDraft {
   rowKeySeed += 1;
   return { key: `team-row-${rowKeySeed}`, teamName: "", leadEmail: "" };
-}
-
-export function emptyLaunchDraft(): LaunchDraft {
-  return {
-    name: "",
-    description: "",
-    startDate: "",
-    endDate: "",
-    rules: { ...DEFAULT_LAUNCH_RULES },
-    teams: [emptyTeamRow()],
-    phaseSource: PhaseSource.File,
-    syllabus: null,
-    phases: [],
-  };
-}
-
-export const MAX_LAUNCH_TEAMS = 200;
-
-/** The first problem with step 1, or null. */
-export function basicsError(draft: LaunchDraft) {
-  if (!draft.name.trim()) return clientText("programSettings.nameRequired");
-  if (draft.startDate && draft.endDate && draft.endDate < draft.startDate) {
-    return clientText("programSettings.endBeforeStart");
-  }
-  return null;
 }
 
 export enum TeamRowProblem {
@@ -122,56 +44,6 @@ export function teamRowProblems(rows: TeamRowDraft[]) {
     seen.add(email);
   }
   return problems;
-}
-
-export function filledTeamRows(rows: TeamRowDraft[]) {
-  return rows.filter((row) => !isBlankRow(row));
-}
-
-/** Mirrors the backend's TeamCodes.prefix so the wizard can preview "BIGG26-····". */
-export function teamCodePrefix(programName: string) {
-  const ascii = programName
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
-    .replace(/ı/g, "i")
-    .toUpperCase();
-  const words = ascii.split(/[^A-Z0-9]+/).filter(Boolean);
-  const year = words.filter((word) => /^\d{4}$/.test(word)).at(-1);
-  const word = words.filter((value) => !/^\d+$/.test(value)).at(-1) ?? "TAKIM";
-  return word.slice(0, 6) + (year ? year.slice(2) : "");
-}
-
-/** "Takım adı, e-posta" per line; a header line and blank lines are skipped. */
-export function parseTeamsCsv(text: string): TeamRowDraft[] {
-  return text
-    .split(/\r?\n/)
-    .map((line) => line.split(/[,;\t]/).map((cell) => cell.trim()))
-    .filter(([name, email]) => name && email && email.includes("@"))
-    .map(([teamName, leadEmail]) => ({
-      ...emptyTeamRow(),
-      teamName,
-      leadEmail,
-    }));
-}
-
-export function createProgramInput(draft: LaunchDraft): CreateProgramInput {
-  return {
-    name: draft.name.trim(),
-    description: draft.description.trim() || null,
-    startDate: draft.startDate || null,
-    endDate: draft.endDate || null,
-    coordinatorIds: [],
-    ...draft.rules,
-    teams: filledTeamRows(draft.teams).map((row) => ({
-      teamName: row.teamName.trim(),
-      leadEmail: row.leadEmail.trim(),
-    })),
-    phases: phasesInput(draft.phases),
-    syllabusDocumentId:
-      draft.phaseSource === PhaseSource.File
-        ? (draft.syllabus?.documentId ?? null)
-        : null,
-  };
 }
 
 export enum TeamFilter {

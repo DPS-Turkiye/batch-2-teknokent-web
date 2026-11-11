@@ -13,6 +13,19 @@ import { joinStartup } from "@/lib/client/organization";
 import { StartupAccess } from "@/lib/startup-access";
 import { renderWithQueryClient } from "@test/test-utils";
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("@/hooks/use-startup-access", () => ({ useStartupAccess: vi.fn() }));
 vi.mock("@/hooks/use-organization-members", () => ({
   useViewerIsFounder: vi.fn(),
@@ -103,6 +116,27 @@ describe("StartupApprovalBanner", () => {
       "Kurucu profili güncelleyip tekrar onaya gönderebilir.",
     );
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
+  });
+
+  it("tells a rejected student about their application, not a startup", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    vi.mocked(useStartupAccess).mockReturnValue({
+      access: StartupAccess.Rejected,
+      isLoading: false,
+    });
+    vi.mocked(useViewerIsFounder).mockReturnValue(true);
+    renderWithQueryClient(<StartupApprovalBanner />);
+
+    expect(screen.getByRole("status")).toHaveTextContent(
+      "Başvurunuz onaylanmadı. Tekrar onaya gönderebilirsiniz.",
+    );
+    expect(screen.getByRole("status")).not.toHaveTextContent(/startup/i);
+    expect(
+      screen.getByRole("button", { name: "Tekrar onaya gönder" }),
+    ).toBeInTheDocument();
   });
 
   it("tells a member waiting for approval that the pages open afterwards", () => {

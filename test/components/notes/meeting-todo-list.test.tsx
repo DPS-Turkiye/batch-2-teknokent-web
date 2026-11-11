@@ -3,8 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MeetingTodoList } from "@/components/notes/meeting-todo-list";
-import { type MeetingTodo, MeetingTodoSource } from "@/interfaces/meeting-note";
+import { MeetingTodoSource, type MeetingTodo } from "@/interfaces/meeting-note";
 import { getMeetingTodos, patchMeetingTodo } from "@/lib/client/meeting-notes";
+import { expectLength } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/meeting-notes", () => ({
@@ -50,10 +51,11 @@ describe("MeetingTodoList", () => {
     const user = userEvent.setup();
     renderWithQueryClient(<MeetingTodoList meetingId="meeting-1" />);
 
-    const [editReportTask, editTypedTask] = await screen.findAllByRole(
-      "button",
-      { name: "Maddeyi düzenle" },
-    );
+    const editButtons = await screen.findAllByRole("button", {
+      name: "Maddeyi düzenle",
+    });
+    expectLength(editButtons, 2);
+    const [editReportTask, editTypedTask] = editButtons;
     await user.click(editReportTask);
     const input = screen.getByRole("textbox", { name: "Maddeyi düzenle" });
     await user.clear(input);

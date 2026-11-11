@@ -1,14 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import {
   createMeetingTodo,
+  createReportUpload,
+  createTranscriptUpload,
   deleteMeetingTodo,
   fetchAssistantShare,
   fetchMeetingNote,
   fetchMeetingNoteDocument,
+  issueRealtimeToken,
   publishAssistantShare,
-  createTranscriptUpload,
-  createReportUpload,
   saveMeetingNote,
   updateMeetingTodo,
 } from "@/lib/api/meeting-notes";
@@ -24,6 +26,16 @@ const session = { userId: "user-1", organizationId: "org-1" };
 describe("meeting note server API", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("sends when the sign-in began with a realtime token request", async () => {
+    await issueRealtimeToken(session, Date.parse("2026-11-08T08:15:30.123Z"));
+
+    expect(backendRequest).toHaveBeenCalledWith({
+      method: HttpMethod.Post,
+      url: "/api/realtime/token",
+      data: { ...session, signedInAt: "2026-11-08T08:15:30.123Z" },
+    });
   });
 
   it("scopes note reads to the caller organization", async () => {
@@ -105,7 +117,7 @@ describe("meeting note server API", () => {
   it("reads and publishes assistant shares", async () => {
     await fetchAssistantShare("meeting-1", { organizationId: "org-1" });
     await publishAssistantShare("meeting-1", "mentor-1", {
-      kind: "TRANSCRIPT",
+      kind: AssistantShareKind.Transcript,
       transcript: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
     });
 

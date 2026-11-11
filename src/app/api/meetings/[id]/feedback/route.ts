@@ -9,6 +9,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -31,8 +32,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const { userId } = await getSessionIds();
-    const payload = (await request.json()) as Record<string, unknown>;
-    return backendResponse(await submitMeetingFeedback(id, userId, payload));
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(await submitMeetingFeedback(id, userId, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("feedbackSaveFailed"),

@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
 import { SectionHeader } from "@/components/mentee-home/section-header";
 import { SectionPlaceholder } from "@/components/mentee-home/section-placeholder";
@@ -83,14 +83,14 @@ export function TaskList({
                   {task.subtitle}
                 </small>
               </span>
-              {task.dueLabel && (
+              {task.dueLabel ? (
                 <span
                   className={`inline-flex min-w-[95px] items-center justify-center gap-1.5 rounded-full px-2.5 py-1 text-[11.5px] font-medium leading-[17.25px] ${tone.chip}`}
                 >
                   <span className={`size-1.5 rounded-full ${tone.dot}`} />
                   {task.dueLabel}
                 </span>
-              )}
+              ) : null}
               {onOpenTask &&
               task.kind === HomeTaskKind.ActionItem &&
               task.requestId ? (
@@ -111,7 +111,7 @@ export function TaskList({
                   {task.actionLabel}
                 </Link>
               )}
-              {onDismiss && (
+              {onDismiss ? (
                 <button
                   type="button"
                   aria-label={t("dismiss", { title: task.title })}
@@ -126,7 +126,7 @@ export function TaskList({
                     className="size-3.5"
                   />
                 </button>
-              )}
+              ) : null}
             </div>
           );
         })}

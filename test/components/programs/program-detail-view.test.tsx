@@ -3,13 +3,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramDetailView } from "@/components/programs/program-detail-view";
 import {
-  type ProgramDetail,
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  type ProgramDetail,
 } from "@/interfaces/program";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import type { AppSession } from "@/interfaces/session";
 import { getProgramDetail } from "@/lib/client/programs";
+import { appSession } from "@test/fixtures/session";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() => {
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  });
+  mockSession.mockReturnValue(mentee);
+});
 
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "program-1" }),
@@ -21,9 +36,11 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+const mentee = appSession({ organizationId: "org-1" });
+const mockSession = vi.fn<() => AppSession>();
+
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () =>
-    ({ userId: "user-1", role: UserRole.Mentee }) as AppSession,
+  useAppSession: () => mockSession(),
 }));
 
 vi.mock("@/lib/client/programs", () => ({
@@ -77,6 +94,69 @@ describe("ProgramDetailView", () => {
     expect(screen.getByText("Koordinatör")).toBeInTheDocument();
     expect(screen.getByText("1 kişi")).toBeInTheDocument();
     expect(screen.getByText("Kurucu")).toBeInTheDocument();
+  });
+
+  it("calls the program's teams participants for a student", async () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+      programId: "program-1",
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Katılımcılar" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Startuplar" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps Startuplar on another program than the student's own", async () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+      programId: "program-2",
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Startuplar" }),
+    ).toBeInTheDocument();
+  });
+
+  it("links a mentee's teammates and the coordinator, not other teams' members", async () => {
+    vi.mocked(getProgramDetail).mockResolvedValue({
+      ...detail,
+      startups: [
+        ...detail.startups,
+        {
+          id: "org-2",
+          name: "Başka Girişim",
+          members: [
+            {
+              id: "member-2",
+              fullName: "Deniz Yıldız",
+              jobTitle: null,
+              founder: false,
+            },
+          ],
+        },
+      ],
+    });
+    renderWithQueryClient(<ProgramDetailView />);
+
+    expect(
+      await screen.findByRole("link", { name: /Gamze Kozak/ }),
+    ).toHaveAttribute("href", "/people/member-1");
+    expect(screen.getByRole("link", { name: /Elif Demir/ })).toHaveAttribute(
+      "href",
+      "/people/coordinator-1",
+    );
+    expect(screen.getByText("Deniz Yıldız")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: /Deniz Yıldız/ }),
+    ).not.toBeInTheDocument();
   });
 
   it("reads in English", async () => {

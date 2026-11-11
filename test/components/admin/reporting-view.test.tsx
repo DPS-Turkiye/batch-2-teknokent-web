@@ -3,11 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportingView } from "@/components/admin/reporting-view";
 import { useProgramMeetingRatings } from "@/hooks/use-program-report";
-import { InLocale, renderWithQueryClient } from "@test/test-utils";
 import {
+  meetingFeedbackState,
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
+import { successQuery } from "@test/mocks/query-results";
+import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-admin-overview", () => ({
   useAdminOverview: () => ({
@@ -19,15 +21,14 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 
 vi.mock("@/hooks/use-program-report", () => ({
   useProgramMeetingRatings: vi.fn(),
+  useProgramMeetingFeedback: () => meetingFeedbackState(),
 }));
 
 describe("admin Raporlama", () => {
   beforeEach(() => {
-    vi.mocked(useProgramMeetingRatings).mockReturnValue({
-      data: programMeetingRatings(),
-      isLoading: false,
-      error: null,
-    } as unknown as ReturnType<typeof useProgramMeetingRatings>);
+    vi.mocked(useProgramMeetingRatings).mockReturnValue(
+      successQuery(programMeetingRatings()),
+    );
   });
 
   it("fills Memnuniyet from the post-meeting ratings and shows them in detail", () => {

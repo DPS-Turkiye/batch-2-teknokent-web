@@ -5,8 +5,15 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
-import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
+  MAX_EDUCATIONS,
+  MeetingFrequency,
+  type MentorEducationInput,
+  type Weekday,
+} from "@/interfaces/mentor";
+import {
+  EMPTY_STUDENT_DRAFT,
+  emptyWeek,
   IntroPhase,
   MAX_EXPERIENCES,
   MAX_MENTOR_TOPICS,
@@ -15,52 +22,57 @@ import {
   MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
   PLACEHOLDER_PARSED_PROFILE,
-  emptyWeek,
   type MentorOnboardingDraft,
   type ParsedExperience,
   type ParsedProfile,
+  type StudentOnboardingDraft,
   type WeeklySlot,
 } from "@/interfaces/mentor-onboarding";
 import type { OnboardingDraftRecord } from "@/interfaces/onboarding-draft";
+import { ProfileAnalysisType } from "@/interfaces/profile-analysis";
 import type { ProgramName } from "@/interfaces/program";
-import type { UploadedFile } from "@/interfaces/signup";
+import { STARTUP_STAGE_OPTIONS, type UploadedFile } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
-import {
-  chooseMentorPrograms,
-  getMentorPrograms,
-} from "@/lib/client/mentor-programs";
-import { getProgramNames } from "@/lib/client/programs";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
+import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
+import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { dropDetachedFile } from "@/lib/draft-storage";
+import { isOneOf } from "@/lib/enum";
 import { currentIdToken, describeAuthError } from "@/lib/firebase/auth";
-import { fillOnboardingProfile, toMentorCvResult } from "@/lib/mentor-cv";
+import { withKey, withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
+import {
+  fillOnboardingProfile,
+  fillStudies,
+  toMentorCvResult,
+} from "@/lib/mentor-cv";
 import {
   invalidDays,
   openDays,
   toAvailabilityPayload,
   toMentorProfilePayload,
 } from "@/lib/mentor-onboarding";
-import { scrollToTop } from "@/lib/utils";
+import {
+  isStudentLevel,
+  isStudentTopic,
+  STUDENT_LEVELS,
+  STUDENT_TOPICS,
+} from "@/lib/student-topics";
+import { scrollToTop, splitFullName } from "@/lib/utils";
 
 const DRAFT_KIND = "mentor-onboarding" as const;
 
-function splitName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length < 2) return { firstName: parts[0] ?? "", lastName: "" };
-  return {
-    firstName: parts.slice(0, -1).join(" "),
-    lastName: parts.at(-1) ?? "",
-  };
-}
-
 function emptyDraft(fullName = ""): MentorOnboardingDraft {
   return {
-    ...splitName(fullName),
+    ...splitFullName(fullName),
     linkedin: "",
     about: "",
     photo: null,
@@ -71,6 +83,7 @@ function emptyDraft(fullName = ""): MentorOnboardingDraft {
     topics: [],
     stages: [],
     offerings: [],
+    student: { ...EMPTY_STUDENT_DRAFT },
     week: emptyWeek(),
     capacity: 3,
     durationMinutes: 45,
@@ -92,6 +105,13 @@ async function requireToken() {
   const idToken = await currentIdToken();
   if (!idToken) throw new Error(clientText("sessionExpired"));
   return idToken;
+}
+
+/** A mentor in a program of individual students (İŞKUR) mentors students, so they get the student lists. */
+function mentorsStudents(programs: ProgramName[] | null, programIds: string[]) {
+  return (programs ?? []).some(
+    (program) => program.individualMentees && programIds.includes(program.id),
+  );
 }
 
 export function useMentorOnboarding(
@@ -144,20 +164,30 @@ export function useMentorOnboarding(
   }, []);
 
   const onRestore = useCallback((saved: OnboardingDraftRecord) => {
+    if (!saved.payload || typeof saved.payload !== "object") return;
     const payload = saved.payload as Partial<MentorOnboardingDraft> & {
       introPhase?: IntroPhase;
     };
-    if (!payload || typeof payload !== "object") return;
     const photo = dropDetachedFile(payload.photo ?? null);
     const cv = dropDetachedFile(payload.cv ?? null);
-    setDraft((current) => ({
-      ...current,
-      ...payload,
-      week: { ...current.week, ...payload.week },
-      photo: photo.value,
-      cv: cv.value,
-      consent: false,
-    }));
+    setDraft((current) => {
+      // A draft saved before a profile field existed still gets its default.
+      const profile = { ...current.profile, ...payload.profile };
+      return {
+        ...current,
+        ...payload,
+        // Saved rows have no keys (and keys from another page load could collide), so each gets a fresh one.
+        profile: {
+          ...profile,
+          history: withKeys(profile.history),
+          education: withKeys(profile.education),
+        },
+        week: { ...current.week, ...payload.week },
+        photo: photo.value,
+        cv: cv.value,
+        consent: false,
+      };
+    });
     // A CV that already reached the server is not lost, only its browser handle is.
     setDroppedFiles(photo.dropped + (payload.cvStoredName ? 0 : cv.dropped));
     setCvUploaded(Boolean(payload.cvStoredName));
@@ -166,12 +196,21 @@ export function useMentorOnboarding(
         ? IntroPhase.Review
         : IntroPhase.Upload,
     );
-    const nextStep = Number(saved.step) as MentorOnboardingStep;
-    if (MENTOR_STEP_ORDER.includes(nextStep)) setStep(nextStep);
+    const nextStep = Number(saved.step);
+    if (isOneOf(MENTOR_STEP_ORDER, nextStep)) setStep(nextStep);
   }, []);
 
+  // The saved draft keeps its shape: the rows' React keys stay in the browser.
   const remotePayload = useMemo(
-    () => ({ ...draft, introPhase: phase }),
+    () => ({
+      ...draft,
+      profile: {
+        ...draft.profile,
+        history: withoutKeys(draft.profile.history),
+        education: withoutKeys(draft.profile.education),
+      },
+      introPhase: phase,
+    }),
     [draft, phase],
   );
   const { saveNow, clearRemote } = useOnboardingDraftSync({
@@ -214,21 +253,28 @@ export function useMentorOnboarding(
       setPhase(IntroPhase.Parsing);
       try {
         const idToken = await requireToken();
-        const stored = await uploadDocument(file.file, "cv", idToken);
+        const stored = await uploadDocument(
+          file.file,
+          DocumentKind.Cv,
+          idToken,
+        );
         setCvUploaded(true);
         setDraft((current) => ({ ...current, cvStoredName: file.name }));
         try {
-          const cv = toMentorCvResult(await parseStoredCv(stored.id, "mentor"));
+          const cv = toMentorCvResult(
+            await parseStoredCv(stored.id, ProfileAnalysisType.Mentor),
+          );
           setDraft((current) => {
             const names =
               current.firstName.trim() || !cv.fullName
                 ? {}
-                : splitName(cv.fullName);
+                : splitFullName(cv.fullName);
             return {
               ...current,
               ...names,
               about: current.about.trim() ? current.about : cv.about,
               profile: fillOnboardingProfile(current.profile, cv),
+              student: fillStudies(current.student, cv.studies),
             };
           });
         } catch {
@@ -261,7 +307,12 @@ export function useMentorOnboarding(
               ...current.profile,
               history: [
                 ...current.profile.history,
-                { title: "", organization: "", period: "", summary: "" },
+                withKey({
+                  title: "",
+                  organization: "",
+                  period: "",
+                  summary: "",
+                }),
               ],
             },
           },
@@ -274,8 +325,9 @@ export function useMentorOnboarding(
         ...current,
         profile: {
           ...current.profile,
+          // The editor hands back the role's fields; the row keeps its key.
           history: current.profile.history.map((role, i) =>
-            i === index ? value : role,
+            i === index ? { ...value, key: role.key } : role,
           ),
         },
       })),
@@ -292,6 +344,45 @@ export function useMentorOnboarding(
       },
     }));
   }, []);
+
+  const updateEducations = useCallback(
+    (
+      change: (
+        schools: Keyed<MentorEducationInput>[],
+      ) => Keyed<MentorEducationInput>[],
+    ) =>
+      setDraft((current) => ({
+        ...current,
+        profile: {
+          ...current.profile,
+          education: change(current.profile.education),
+        },
+      })),
+    [],
+  );
+  const addEducation = useCallback(
+    () =>
+      updateEducations((schools) =>
+        schools.length >= MAX_EDUCATIONS
+          ? schools
+          : [...schools, withKey({ school: "", degree: "", period: "" })],
+      ),
+    [updateEducations],
+  );
+  const updateEducation = useCallback(
+    (index: number, key: keyof MentorEducationInput, value: string) =>
+      updateEducations((schools) =>
+        schools.map((school, i) =>
+          i === index ? { ...school, [key]: value } : school,
+        ),
+      ),
+    [updateEducations],
+  );
+  const removeEducation = useCallback(
+    (index: number) =>
+      updateEducations((schools) => schools.filter((_, i) => i !== index)),
+    [updateEducations],
+  );
 
   const toggleTopic = useCallback((topic: string) => {
     setDraft((current) => {
@@ -314,12 +405,41 @@ export function useMentorOnboarding(
     [],
   );
 
-  const toggleProgram = useCallback((programId: string) => {
-    setDraft((current) => ({
-      ...current,
-      programIds: toggle(current.programIds, programId),
-    }));
-  }, []);
+  // Moving between a student program and a startup program drops the choices the other list does not offer.
+  const toggleProgram = useCallback(
+    (programId: string) => {
+      setDraft((current) => {
+        const programIds = toggle(current.programIds, programId);
+        const student = mentorsStudents(programs, programIds);
+        if (student === mentorsStudents(programs, current.programIds)) {
+          return { ...current, programIds };
+        }
+        return {
+          ...current,
+          programIds,
+          topics: current.topics.filter(
+            (topic) => isStudentTopic(topic) === student,
+          ),
+          stages: current.stages.filter(
+            (stage) => isStudentLevel(stage) === student,
+          ),
+        };
+      });
+    },
+    [programs],
+  );
+
+  const updateStudent = useCallback(
+    <K extends keyof StudentOnboardingDraft>(
+      key: K,
+      value: StudentOnboardingDraft[K],
+    ) =>
+      setDraft((current) => ({
+        ...current,
+        student: { ...current.student, [key]: value },
+      })),
+    [],
+  );
 
   const addOffering = useCallback((text: string) => {
     const value = text.trim();
@@ -386,7 +506,13 @@ export function useMentorOnboarding(
     setIsSaving(true);
     try {
       const idToken = await requireToken();
-      await updateMentorProfile(toMentorProfilePayload(draft), idToken);
+      await updateMentorProfile(
+        toMentorProfilePayload(
+          draft,
+          mentorsStudents(programs, draft.programIds),
+        ),
+        idToken,
+      );
       await updateAvailabilitySettings(toAvailabilityPayload(draft), idToken);
       await chooseMentorPrograms(draft.programIds, idToken);
       const current = await getUserProfile(idToken);
@@ -403,9 +529,9 @@ export function useMentorOnboarding(
         idToken,
       );
       if (draft.photo?.file)
-        await uploadDocument(draft.photo.file, "avatar", idToken);
+        await uploadDocument(draft.photo.file, DocumentKind.Avatar, idToken);
       if (draft.cv?.file && !cvUploaded)
-        await uploadDocument(draft.cv.file, "cv", idToken);
+        await uploadDocument(draft.cv.file, DocumentKind.Cv, idToken);
       await clearRemote();
       setSubmittedAt(new Date());
     } catch (error) {
@@ -413,7 +539,7 @@ export function useMentorOnboarding(
     } finally {
       setIsSaving(false);
     }
-  }, [clearRemote, cvUploaded, draft]);
+  }, [clearRemote, cvUploaded, draft, programs]);
 
   const canContinue = useMemo(() => {
     if (step === MentorOnboardingStep.Profile) {
@@ -429,8 +555,14 @@ export function useMentorOnboarding(
     }
     if (step === MentorOnboardingStep.Areas) {
       const programChosen = !programs?.length || draft.programIds.length > 0;
+      const studentReady =
+        !mentorsStudents(programs, draft.programIds) ||
+        Boolean(draft.student.department.trim() && draft.student.studyYear);
       return (
-        draft.topics.length > 0 && draft.stages.length > 0 && programChosen
+        draft.topics.length > 0 &&
+        draft.stages.length > 0 &&
+        programChosen &&
+        studentReady
       );
     }
     if (step === MentorOnboardingStep.Availability) {
@@ -441,16 +573,26 @@ export function useMentorOnboarding(
     return draft.consent;
   }, [draft, phase, programs, step]);
 
+  const studentMentor = mentorsStudents(programs, draft.programIds);
+
   const topicOptions = useMemo(
     () => [
-      ...new Set([
-        ...MENTOR_TOPIC_OPTIONS,
-        ...draft.profile.inferredAreas,
-        ...draft.topics,
-      ]),
+      ...new Set(
+        studentMentor
+          ? [...STUDENT_TOPICS, ...draft.topics]
+          : [
+              ...MENTOR_TOPIC_OPTIONS,
+              ...draft.profile.inferredAreas,
+              ...draft.topics,
+            ],
+      ),
     ],
-    [draft.profile.inferredAreas, draft.topics],
+    [draft.profile.inferredAreas, draft.topics, studentMentor],
   );
+
+  const stageOptions: readonly string[] = studentMentor
+    ? STUDENT_LEVELS
+    : STARTUP_STAGE_OPTIONS;
 
   return {
     step,
@@ -465,6 +607,8 @@ export function useMentorOnboarding(
     droppedFiles,
     canContinue,
     topicOptions,
+    stageOptions,
+    studentMentor,
     programs: programs ?? [],
     programsLoading: programs === null,
     topicLimitReached: draft.topics.length >= MAX_MENTOR_TOPICS,
@@ -487,6 +631,10 @@ export function useMentorOnboarding(
     toggleProgram,
     addOffering,
     removeOffering,
+    updateStudent,
+    addEducation,
+    updateEducation,
+    removeEducation,
     updateDay,
     goNext,
     goBack,

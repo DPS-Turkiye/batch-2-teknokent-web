@@ -4,9 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramTeamsView } from "@/components/coordinator/program-teams-view";
 import {
-  type ProgramTeam,
   TeamJoinStatus,
+  type ProgramTeam,
 } from "@/interfaces/coordinator-program";
+import { StartupStage } from "@/interfaces/startup-process";
 import {
   addProgramTeams,
   getCoordinatorProgram,
@@ -16,10 +17,16 @@ import {
   sendProgramTeamCode,
   updateProgramTeam,
 } from "@/lib/client/coordinator-programs";
-import { StartupStage } from "@/interfaces/startup-process";
 import { getTeamProcess, updateTeamStage } from "@/lib/client/startup-process";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { startupProcess } from "@test/fixtures/startup-process";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// Rendered outside the App Router, the real usePathname returns null.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: () => "/coordinator/programs/program-1",
+}));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -37,9 +44,7 @@ vi.mock("@/lib/client/startup-process", () => ({
 }));
 
 const teamProcess = (currentStage: StartupStage | null) =>
-  ({ organizationId: "org-1", currentStage }) as Awaited<
-    ReturnType<typeof getTeamProcess>
-  >;
+  startupProcess({ currentStage });
 
 const joined: ProgramTeam = {
   inviteId: "invite-1",
@@ -188,6 +193,9 @@ describe("ProgramTeamsView", () => {
 
     const drawer = await screen.findByRole("dialog", { name: "Takım detayı" });
     expect(await within(drawer).findByText("Cem Tunç")).toBeInTheDocument();
+    expect(
+      within(drawer).getByRole("link", { name: "Profili gör: Cem Tunç" }),
+    ).toHaveAttribute("href", "/coordinator/people/member-1");
     expect(getProgramTeamDetail).toHaveBeenCalledWith("program-1", "org-1");
     expect(
       within(drawer).getByRole("link", { name: "Takıma mesaj gönder" }),

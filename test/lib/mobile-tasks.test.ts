@@ -4,7 +4,10 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { ProgramEventKind } from "@/interfaces/coordinator-program";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { MobileTaskSource, MobileTaskTone } from "@/interfaces/mobile";
-import type { ProcessAssignment } from "@/interfaces/startup-process";
+import {
+  StartupStage,
+  type ProcessAssignment,
+} from "@/interfaces/startup-process";
 import {
   collectTasks,
   completedTasks,
@@ -31,11 +34,13 @@ const REQUEST = menteeRequestFixture({
   supportArea: "Ürün stratejisi",
 });
 
-function assignment(overrides: Partial<ProcessAssignment> = {}) {
+function assignment(
+  overrides: Partial<ProcessAssignment> = {},
+): ProcessAssignment {
   return {
     id: "p1",
     roundId: null,
-    stage: "MVP",
+    stage: StartupStage.Mvp,
     title: "Finansal model",
     description: null,
     status: ActionItemStatus.Open,
@@ -46,7 +51,7 @@ function assignment(overrides: Partial<ProcessAssignment> = {}) {
     createdByRole: null,
     createdAt: "2026-09-01T10:00:00Z",
     ...overrides,
-  } as ProcessAssignment;
+  };
 }
 
 const RATING_MEETING = menteeMeetingFixture({

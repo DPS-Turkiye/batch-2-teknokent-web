@@ -12,6 +12,7 @@ import {
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
+import { expectLength } from "@test/fixtures/list-assertions";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/startup/startup-page-frame", () => ({
@@ -179,9 +180,11 @@ describe("StartupProcessView", () => {
   it("lists each Ödev with where it came from, its due date and status", () => {
     renderWithQueryClient(<StartupProcessView />);
 
-    const [open, done] = within(
+    const items = within(
       screen.getByRole("region", { name: "Bu aşamadaki ödevlerin" }),
     ).getAllByRole("listitem");
+    expectLength(items, 2);
+    const [open, done] = items;
     expect(
       within(open).getByText("Çağrı Yılmaz · mentorluk ödevi · MVP test turu"),
     ).toBeInTheDocument();

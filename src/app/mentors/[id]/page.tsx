@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 
-import { MentorDetailView } from "@/components/mentors/mentor-detail-view";
 import { AppShell } from "@/components/hoc/app-shell";
+import { MentorDetailView } from "@/components/mentors/mentor-detail-view";
 import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { fetchMentorAvailability } from "@/lib/api/mentor-profile";
 import { loadMentors } from "@/lib/mentors";

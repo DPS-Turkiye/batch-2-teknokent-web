@@ -1,19 +1,39 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingConsent,
   OnboardingNote,
   OnboardingReviewCard,
 } from "@/components/onboarding/onboarding-ui";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import { useProgramNames } from "@/hooks/use-programs";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { SignupStep, StartupDocumentKind } from "@/interfaces/signup";
 import { truncate } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
+
+type ReviewRow = { label: string; value: string };
+
+/**
+ * What the startup card summarises. Each case owns its rows, so a new kind of program adds a case here
+ * instead of another branch inside the card.
+ */
+enum StartupSummary {
+  /** An individual program gives each student a team of one, so there is no startup to show or create later. */
+  Individual = "INDIVIDUAL",
+  Later = "LATER",
+  Startup = "STARTUP",
+}
+
+function startupSummaryOf(startupLater: boolean, individual: boolean) {
+  if (!startupLater) return StartupSummary.Startup;
+  if (individual) return StartupSummary.Individual;
+  return StartupSummary.Later;
+}
 
 export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const copy = useTranslations("signupReview");
@@ -24,9 +44,14 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const programs = useProgramNames();
   const stored = useStoredDocuments();
 
-  const programName =
-    programs.data?.find((program) => program.id === startup.programId)?.name ??
-    "";
+  const program = programs.data?.find(
+    (candidate) => candidate.id === startup.programId,
+  );
+  const programName = program?.name ?? "";
+  const summary = startupSummaryOf(
+    startup.startupLater ?? false,
+    program?.individualMentees ?? false,
+  );
 
   function fileName(kind: StartupDocumentKind) {
     return (
@@ -41,8 +66,38 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
   const mvp =
     mvpFile === NOT_UPLOADED ? draft.mvpUrl.trim() || NOT_UPLOADED : mvpFile;
   const missingKeyFiles =
-    !startup.startupLater &&
+    summary === StartupSummary.Startup &&
     (pitchDeck === NOT_UPLOADED || mvp === NOT_UPLOADED);
+
+  function startupRows(): ReviewRow[] {
+    const programRow = { label: copy("program"), value: programName };
+    switch (summary) {
+      case StartupSummary.Individual:
+        return [programRow];
+      case StartupSummary.Later:
+        return [
+          programRow,
+          { label: copy("startupName"), value: copy("startupLater") },
+        ];
+      case StartupSummary.Startup:
+        return [
+          { label: copy("startupName"), value: startup.name.trim() },
+          { label: copy("tagline"), value: startup.tagline.trim() },
+          {
+            label: copy("programStage"),
+            value: [programName, startup.maturity].filter(Boolean).join(" · "),
+          },
+          {
+            label: copy("team"),
+            value: copy("teamCount", { count: startup.teamMembers.length + 1 }),
+          },
+          {
+            label: copy("supportAreas"),
+            value: startup.supportAreas.join(", "),
+          },
+        ];
+    }
+  }
 
   return (
     <>
@@ -65,44 +120,13 @@ export function ReviewStep({ wizard }: { wizard: SignupWizard }) {
           },
         ]}
       />
-      {startup.startupLater ? (
-        <OnboardingReviewCard
-          tone={TONE}
-          title={copy("startup")}
-          onEdit={() => goToStep(SignupStep.StartupProfile)}
-          rows={[
-            { label: copy("program"), value: programName },
-            { label: copy("startupName"), value: copy("startupLater") },
-          ]}
-        />
-      ) : (
-        <OnboardingReviewCard
-          tone={TONE}
-          title={copy("startup")}
-          onEdit={() => goToStep(SignupStep.StartupProfile)}
-          rows={[
-            { label: copy("startupName"), value: startup.name.trim() },
-            { label: copy("tagline"), value: startup.tagline.trim() },
-            {
-              label: copy("programStage"),
-              value: [programName, startup.maturity]
-                .filter(Boolean)
-                .join(" · "),
-            },
-            {
-              label: copy("team"),
-              value: copy("teamCount", {
-                count: startup.teamMembers.length + 1,
-              }),
-            },
-            {
-              label: copy("supportAreas"),
-              value: startup.supportAreas.join(", "),
-            },
-          ]}
-        />
-      )}
-      {startup.startupLater ? null : (
+      <OnboardingReviewCard
+        tone={TONE}
+        title={copy("startup")}
+        onEdit={() => goToStep(SignupStep.StartupProfile)}
+        rows={startupRows()}
+      />
+      {summary === StartupSummary.Startup && (
         <OnboardingReviewCard
           tone={TONE}
           title={copy("files")}

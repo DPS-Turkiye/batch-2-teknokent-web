@@ -1,13 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
+import { StartupInviteCode } from "@/components/startup/startup-invite-code";
 import {
   StartupPageFrame,
   startupPrimaryActionClass,
 } from "@/components/startup/startup-page-frame";
-import { StartupInviteCode } from "@/components/startup/startup-invite-code";
 import {
   LeaveTeamDialog,
   MemberFormDialog,

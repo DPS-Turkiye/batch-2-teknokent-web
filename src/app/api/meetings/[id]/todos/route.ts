@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { createMeetingTodo, fetchMeetingTodos } from "@/lib/api/meeting-notes";
 import { createMeetingTodoBodySchema } from "@/lib/notes-schemas";
@@ -7,6 +7,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -28,16 +29,10 @@ export async function GET(_request: NextRequest, context: RouteContext) {
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
-    const body = createMeetingTodoBodySchema.safeParse(await request.json());
-    if (!body.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("taskTitleRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, createMeetingTodoBodySchema, {
+      invalidMessage: "taskTitleRequired",
+    });
+    if (!body.ok) return body.response;
 
     const session = await getSessionIds();
     return backendResponse(await createMeetingTodo(id, session, body.data));

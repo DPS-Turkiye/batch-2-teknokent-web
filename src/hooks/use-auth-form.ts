@@ -1,8 +1,9 @@
 "use client";
 
-import { type FormEvent, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type SubmitEvent } from "react";
 
-import { type RegisterForm } from "@/interfaces/auth";
+import type { RegisterForm } from "@/interfaces/auth";
+import { ClientApiError } from "@/lib/client/api";
 import { ALLOWED_EMAIL_DOMAINS } from "@/lib/const";
 import {
   EMAIL_PATTERN,
@@ -10,10 +11,18 @@ import {
   formatEmailDomains,
   isAllowedEmailDomain,
 } from "@/lib/email";
-import { ClientApiError } from "@/lib/client/api";
 import { describeAuthError } from "@/lib/firebase/auth";
 import { passwordStrengthError } from "@/lib/password";
 import { normalizePhoneInput, phoneNumberError } from "@/lib/phone";
+
+const EMPTY_FORM: RegisterForm = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  phone: "",
+  password: "",
+  passwordConfirm: "",
+};
 
 export function useRegisterForm(
   onSubmit?: (form: RegisterForm) => Promise<void>,
@@ -21,20 +30,29 @@ export function useRegisterForm(
 ) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [form, setForm] = useState<RegisterForm>({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    password: "",
-    passwordConfirm: "",
-  });
+  const [form, setForm] = useState<RegisterForm>(EMPTY_FORM);
 
   const update = useCallback(
     <K extends keyof RegisterForm>(key: K, value: RegisterForm[K]) =>
       setForm((current) => ({ ...current, [key]: value })),
     [],
   );
+
+  /** Fills only fields that are still empty, so a value that arrives late never overwrites what was typed. */
+  const prefill = useCallback((values: Partial<RegisterForm>) => {
+    setForm((current) => {
+      const next = { ...current };
+      for (const [key, value] of Object.entries(values) as [
+        keyof RegisterForm,
+        string,
+      ][]) {
+        if (value && !current[key].trim()) next[key] = value;
+      }
+      return next;
+    });
+  }, []);
+
+  const reset = useCallback(() => setForm(EMPTY_FORM), []);
 
   const passwordStrengthErrorMessage = passwordStrengthError(form.password);
   const phoneErrorMessage = phoneNumberError(form.phone);
@@ -78,7 +96,7 @@ export function useRegisterForm(
     ],
   );
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!onSubmit || !canSubmit || submitting) return;
     setSubmitting(true);
@@ -98,6 +116,8 @@ export function useRegisterForm(
   return {
     form,
     update,
+    prefill,
+    reset,
     updatePhone,
     canSubmit,
     passwordStrengthErrorMessage,

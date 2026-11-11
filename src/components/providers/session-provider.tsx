@@ -2,10 +2,10 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import type { AppSession } from "@/interfaces/session";
-import { createSession } from "@/lib/client/auth";
+import { createSession, refreshSession } from "@/lib/client/auth";
 import { signOutOfFirebase } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
 import { isPublicPath, loginPathFor } from "@/lib/public-paths";
@@ -14,6 +14,8 @@ type SessionContextValue = {
   isLoading: boolean;
   login: (idToken: string, rememberMe?: boolean) => Promise<AppSession>;
   logout: () => Promise<void>;
+  /** Re-reads the account's permissions into the session; null when that isn't possible. */
+  refresh: () => Promise<AppSession | null>;
   session: AppSession | null;
 };
 
@@ -43,7 +45,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       rememberMe,
     }: {
       idToken: string;
-      rememberMe?: boolean;
+      rememberMe?: boolean | undefined;
     }) => createSession(idToken, rememberMe ?? false),
     onSuccess: (session) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, session);
@@ -58,6 +60,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (leaving) router.replace(loginPathFor(pathname));
   }, [leaving, pathname, router]);
+
+  const refreshMutation = useMutation({
+    mutationFn: refreshSession,
+    onSuccess: (session) => {
+      if (session) queryClient.setQueryData(SESSION_QUERY_KEY, session);
+    },
+  });
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
@@ -77,6 +86,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         login: (idToken, rememberMe) =>
           loginMutation.mutateAsync({ idToken, rememberMe }),
         logout: logoutMutation.mutateAsync,
+        refresh: () => refreshMutation.mutateAsync().catch(() => null),
         session: sessionQuery.data ?? null,
       }}
     >

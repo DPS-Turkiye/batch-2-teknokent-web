@@ -1,16 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET as getDetail } from "@/app/api/coordinator/mentorships/[id]/route";
 import { POST as remind } from "@/app/api/coordinator/mentorships/[id]/remind/route";
+import { GET as getDetail } from "@/app/api/coordinator/mentorships/[id]/route";
 import { GET } from "@/app/api/coordinator/mentorships/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchCoordinatorMentorship,
   fetchCoordinatorMentorships,
   remindCoordinatorMentorship,
 } from "@/lib/api/coordinator-mentorships";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import {
+  coordinatorMentorship,
+  coordinatorMentorshipDetail,
+} from "@test/fixtures/coordinator-mentorships";
+import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-mentorships", () => ({
   fetchCoordinatorMentorships: vi.fn(),
@@ -19,19 +25,18 @@ vi.mock("@/lib/api/coordinator-mentorships", () => ({
 }));
 
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
-const ok = (status = 200) => ({ data: {}, headers: {}, status });
 const params = { params: Promise.resolve({ id: "mentorship-1" }) };
 
 function signIn() {
-  vi.mocked(requireCoordinatorSession).mockResolvedValue({
+  vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
     ok: true,
-    session: {
+    session: appSession({
       userId: "coordinator-1",
       role: UserRole.Coordinator,
-    } as AppSession,
+    }),
   });
 }
 
@@ -41,7 +46,7 @@ describe("coordinator mentorship routes", () => {
   it("lists for the signed-in coordinator and passes the program through", async () => {
     signIn();
     vi.mocked(fetchCoordinatorMentorships).mockResolvedValue(
-      ok() as Awaited<ReturnType<typeof fetchCoordinatorMentorships>>,
+      backendResponse([coordinatorMentorship()]),
     );
 
     const response = await GET(
@@ -60,10 +65,10 @@ describe("coordinator mentorship routes", () => {
   it("opens one mentorship and forwards a reminder's status", async () => {
     signIn();
     vi.mocked(fetchCoordinatorMentorship).mockResolvedValue(
-      ok() as Awaited<ReturnType<typeof fetchCoordinatorMentorship>>,
+      backendResponse(coordinatorMentorshipDetail()),
     );
     vi.mocked(remindCoordinatorMentorship).mockResolvedValue(
-      ok(400) as Awaited<ReturnType<typeof remindCoordinatorMentorship>>,
+      backendResponse(undefined, 400),
     );
 
     expect(
@@ -83,10 +88,9 @@ describe("coordinator mentorship routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
 
     expect((await remind(new Request("http://localhost"), params)).status).toBe(
       403,

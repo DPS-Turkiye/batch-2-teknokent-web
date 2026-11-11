@@ -3,13 +3,22 @@ import { usePathname } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
 
 import { ProgramReportView } from "@/components/coordinator/program-report-view";
-import { renderWithQueryClient } from "@test/test-utils";
 import {
+  meetingFeedbackState,
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
+import { renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => null) }));
+vi.mock("next/navigation", () => ({
+  usePathname: vi.fn(() => "/coordinator/programs/program-1"),
+}));
+
+vi.mock("@/components/coordinator/program-sessions-section", () => ({
+  ProgramSessionsSection: ({ programId }: { programId: string }) => (
+    <div data-testid="program-sessions">{programId}</div>
+  ),
+}));
 
 vi.mock("@/hooks/use-program-report", () => ({
   useProgramReport: () => ({
@@ -22,6 +31,7 @@ vi.mock("@/hooks/use-program-report", () => ({
     isLoading: false,
     error: null,
   }),
+  useProgramMeetingFeedback: () => meetingFeedbackState(),
 }));
 
 describe("coordinator Program raporu", () => {
@@ -41,6 +51,9 @@ describe("coordinator Program raporu", () => {
     expect(
       screen.queryByRole("button", { name: "Sistem Aktivitesi" }),
     ).not.toBeInTheDocument();
+    expect(screen.getByTestId("program-sessions")).toHaveTextContent(
+      "program-1",
+    );
   });
 
   it("keeps an admin's breadcrumbs in the admin workspace", () => {

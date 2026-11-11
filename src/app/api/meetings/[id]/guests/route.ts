@@ -2,16 +2,18 @@ import type { NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { inviteMeetingGuest } from "@/lib/api/meetings";
-import {
-  requireOwnedMeeting,
-  resolveGuestMentor,
-  resolveMentorMeetingOrganization,
-} from "@/lib/server/mentor-meeting";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import {
+  requireOwnedMeeting,
+  resolveGuestMentor,
+  resolveMentorMeetingOrganization,
+} from "@/lib/server/mentor-meeting";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { getSessionUser } from "@/lib/session";
 
 type RouteContext = {
@@ -21,7 +23,7 @@ type RouteContext = {
 export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentor) {
+    if (!session || !hasPermission(session, UserRole.Mentor)) {
       return Response.json(
         {
           code: "FORBIDDEN",
@@ -34,7 +36,9 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const owned = await requireOwnedMeeting(session.userId, id);
     if ("error" in owned) return owned.error;
 
-    const payload = (await request.json()) as Record<string, unknown>;
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    const payload = body.data;
     const guest: { organizationId?: string; mentorId?: string } = {};
     const mentorId =
       typeof payload.mentorId === "string" ? payload.mentorId : "";

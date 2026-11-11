@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -18,34 +18,51 @@ import {
 } from "recharts";
 
 import {
-  countsInProgram,
-  needsAttention,
-} from "@/components/admin/admin-model";
-import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
-import {
   AdminIcon,
   AdminOverlay,
   EmptyNote,
   QueryNotice,
 } from "@/components/admin/admin-ui";
+import { MeetingFeedbackList } from "@/components/admin/meeting-feedback-list";
+import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
-import { useProgramMeetingRatings } from "@/hooks/use-program-report";
+import { useAdminReporting } from "@/hooks/use-admin-reporting";
 import type {
   AdminMeetingMark,
-  AdminMentorship,
   AdminOverview,
   AdminProgram,
 } from "@/interfaces/admin-overview";
+import { MeetingStatus } from "@/interfaces/meeting";
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
-import { isoDay } from "@/lib/coordinator-calendar";
+import { coordinatorUsersHref } from "@/lib/admin-model";
+import {
+  activityCounts,
+  bottlenecksOpenedThisWeek,
+  cellState,
+  countSummaryRows,
+  csvText,
+  flagCounts,
+  flagListCounts,
+  formatPercent,
+  gapTop,
+  goalRate,
+  meetingCount,
+  meetingRate,
+  meetingSummaryRows,
+  pairsWithMeeting,
+  pairWeekPoints,
+  programSummaryRows,
+  REPORT_RANGES,
+  reportTabs,
+  weekLabel,
+  type ReportPair,
+  type WeekPoint,
+} from "@/lib/admin-reporting";
 import { satisfactionKpi } from "@/lib/meeting-ratings";
+import { isProgramTypeFilter, PROGRAM_TYPE_FILTERS } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
-
-type RangeId = "8" | "13" | "all";
-type TabId = "program" | "health" | "activity";
-type ReportingT = ReturnType<typeof useTranslations<"adminReporting">>;
-
-const RANGES: RangeId[] = ["8", "13", "all"];
+import { HeatCell, ReportTab } from "@/types/admin-reporting";
 
 export function ReportingView() {
   const query = useAdminOverview();
@@ -67,36 +84,69 @@ export function ProgramReporting({
   fixedProgram?: boolean;
 }) {
   const t = useTranslations("adminReporting");
-  const [programId, setProgramId] = useState<string | null>(null);
-  const [range, setRange] = useState<RangeId>("8");
-  const [tab, setTab] = useState<TabId>("program");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const tType = useTranslations("programTypes");
+  const {
+    type,
+    chooseType,
+    programs,
+    program,
+    chooseProgram,
+    range,
+    setRange,
+    tab,
+    setTab,
+    weeks,
+    pairs,
+    selected,
+    selectPair,
+    ratingsFrom,
+    ratingsQuery,
+  } = useAdminReporting(data);
   const [notice, setNotice] = useState<{ title: string; body: string } | null>(
     null,
   );
-  const program =
-    data.programs.find((item) => item.id === programId) ??
-    data.programs.find((item) => item.status === "ACTIVE") ??
-    data.programs[0] ??
-    null;
-  const weeks = weekStarts(range, program?.createdAt);
-  const pairs = program ? pairsIn(data, program) : [];
-  const selected = pairs.find((pair) => pair.id === selectedId) ?? null;
   const meetingsKnown = data.meetings != null;
-  const ratingsQuery = useProgramMeetingRatings(
-    program?.id ?? null,
-    range === "all" || !weeks[0] ? null : isoDay(weeks[0]),
-  );
 
   return (
     <div className="space-y-5">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p className="text-[13px] text-[#858c96]">
-          {program
-            ? `${program.name} · ${t(`ranges.${range}`)}`
-            : t("noProgram")}
+        <p className="flex flex-wrap items-center gap-2 text-[13px] text-[#858c96]">
+          {program ? (
+            <>
+              {`${program.name} · ${t(`ranges.${range}`)}`}
+              <ProgramTypeChip type={program.type} />
+            </>
+          ) : (
+            t("noProgram")
+          )}
         </p>
         <div className="flex flex-wrap items-center gap-2">
+          {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+          <label
+            className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
+          >
+            <span className="text-[#858c96]">{tType("label")}</span>
+            <select
+              aria-label={tType("label")}
+              value={type}
+              onChange={(event) => {
+                if (!isProgramTypeFilter(event.target.value)) return;
+                chooseType(event.target.value);
+              }}
+              className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
+            >
+              {PROGRAM_TYPE_FILTERS.map((option) => (
+                <option key={option} value={option}>
+                  {tType(option)}
+                </option>
+              ))}
+            </select>
+            <AdminIcon
+              src="/admin/chevron-down-sm.svg"
+              width={16}
+              height={16}
+            />
+          </label>
           <label
             className={`${fixedProgram ? "hidden" : "flex"} h-[42px] items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]`}
           >
@@ -104,13 +154,10 @@ export function ProgramReporting({
             <select
               aria-label={t("programLabel")}
               value={program?.id ?? ""}
-              onChange={(event) => {
-                setProgramId(event.target.value);
-                setSelectedId(null);
-              }}
+              onChange={(event) => chooseProgram(event.target.value)}
               className="max-w-[180px] appearance-none bg-transparent font-medium text-[#22262b] outline-none"
             >
-              {data.programs.map((item) => (
+              {programs.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.name}
                 </option>
@@ -123,7 +170,7 @@ export function ProgramReporting({
             />
           </label>
           <div className="flex rounded-full bg-[#f5f6f8] p-1">
-            {RANGES.map((item) => (
+            {REPORT_RANGES.map((item) => (
               <button
                 key={item}
                 type="button"
@@ -151,31 +198,29 @@ export function ProgramReporting({
       </div>
 
       <div className="flex border-b border-[#e9ecef]">
-        {(["program", "health", "activity"] as const)
-          .filter((id) => !(fixedProgram && id === "activity"))
-          .map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className="flex flex-1 flex-col items-center gap-3 px-4"
+        {reportTabs(fixedProgram).map((id) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className="flex flex-1 flex-col items-center gap-3 px-4"
+          >
+            <span
+              className={`text-[14.5px] leading-[1.3] ${
+                tab === id ? "font-semibold text-[#22262b]" : "text-[#676e78]"
+              }`}
             >
-              <span
-                className={`text-[14.5px] leading-[1.3] ${
-                  tab === id ? "font-semibold text-[#22262b]" : "text-[#676e78]"
-                }`}
-              >
-                {t(`tabs.${id}`)}
-              </span>
-              <span
-                className={`h-[2.5px] w-full rounded-sm ${tab === id ? "bg-[#22262b]" : ""}`}
-              />
-            </button>
-          ))}
+              {t(`tabs.${id}`)}
+            </span>
+            <span
+              className={`h-[2.5px] w-full rounded-sm ${tab === id ? "bg-[#22262b]" : ""}`}
+            />
+          </button>
+        ))}
       </div>
 
-      {tab === "activity" ? (
-        <Activity data={data} program={program} weeks={weeks} />
+      {tab === ReportTab.Activity ? (
+        <Activity data={data} pairs={pairs} weeks={weeks} />
       ) : (
         <>
           <div className="flex items-start justify-between gap-4 rounded-2xl bg-[#f7f8fa] px-4 py-3">
@@ -195,7 +240,7 @@ export function ProgramReporting({
               {t("whatVisibleLink")}
             </button>
           </div>
-          {tab === "program" ? (
+          {tab === ReportTab.Program ? (
             <Kpis
               data={data}
               pairs={pairs}
@@ -210,7 +255,7 @@ export function ProgramReporting({
             meetings={data.meetings ?? []}
             meetingsKnown={meetingsKnown}
             selectedId={selected?.id ?? null}
-            onSelect={setSelectedId}
+            onSelect={selectPair}
           />
           {selected ? (
             <PairDetail
@@ -220,14 +265,23 @@ export function ProgramReporting({
               program={program}
             />
           ) : null}
-          {tab === "program" ? (
+          {tab === ReportTab.Program ? (
             <MeetingRatingsSection
               ratings={ratingsQuery.data}
               isLoading={ratingsQuery.isLoading}
               error={ratingsQuery.error}
+              details={
+                program ? (
+                  <MeetingFeedbackList
+                    key={`${program.id}:${ratingsFrom ?? "all"}`}
+                    programId={program.id}
+                    from={ratingsFrom}
+                  />
+                ) : null
+              }
             />
           ) : null}
-          {tab === "program" ? (
+          {tab === ReportTab.Program ? (
             <div className="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(280px,0.8fr)]">
               <Flags pairs={pairs} />
               <Exports program={program} pairs={pairs} />
@@ -270,7 +324,7 @@ function Kpis({
   ratings,
 }: {
   data: AdminOverview;
-  pairs: Pair[];
+  pairs: ReportPair[];
   weeks: Date[];
   meetingsKnown: boolean;
   ratings: ProgramMeetingRatings | undefined;
@@ -282,18 +336,12 @@ function Kpis({
   const rate = meetingRate(pairs, data.meetings ?? [], weeks);
   const goals = goalRate(pairs);
   const flags = flagCounts(pairs);
-  const openedThisWeek = data.bottlenecks.filter((item) =>
-    pairs.some(
-      (pair) =>
-        pair.organizationId === item.organizationId &&
-        daysSinceInstant(item.createdAt) <= 7,
-    ),
-  ).length;
+  const openedThisWeek = bottlenecksOpenedThisWeek(data.bottlenecks, pairs);
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <Kpi
         title={t("meetingRate")}
-        value={rate == null ? "—" : percent(rate.percent, locale)}
+        value={rate == null ? "—" : formatPercent(rate.percent, locale)}
         detail={
           rate == null
             ? meetingsKnown
@@ -308,7 +356,7 @@ function Kpis({
       <Kpi title={t("communication")} value="—" detail={t("noMessages")} />
       <Kpi
         title={t("tasks")}
-        value={goals == null ? "—" : percent(goals.percent, locale)}
+        value={goals == null ? "—" : formatPercent(goals.percent, locale)}
         detail={
           goals == null
             ? t("noGoals")
@@ -346,7 +394,7 @@ function Heatmap({
   selectedId,
   onSelect,
 }: {
-  pairs: Pair[];
+  pairs: ReportPair[];
   weeks: Date[];
   meetings: AdminMeetingMark[];
   meetingsKnown: boolean;
@@ -355,11 +403,7 @@ function Heatmap({
 }) {
   const t = useTranslations("adminReporting.heatmap");
   const locale = useLocale();
-  const withMeeting = pairs.filter((pair) =>
-    weeks.some(
-      (week) => cellState(pair, week, meetings, meetingsKnown) === "held",
-    ),
-  ).length;
+  const withMeeting = pairsWithMeeting(pairs, weeks, meetings, meetingsKnown);
   const [tip, setTip] = useState<{
     x: number;
     y: number;
@@ -429,7 +473,7 @@ function Heatmap({
                       pair,
                       week,
                       meetings,
-                      "COMPLETED",
+                      MeetingStatus.Completed,
                     );
                     const body = t("tip", {
                       pair: `${pair.mentorName} ↔ ${pair.organizationName}`,
@@ -460,7 +504,7 @@ function Heatmap({
                               : ""
                           }`}
                         >
-                          {state === "unknown" ? "—" : count}
+                          {state === HeatCell.Unknown ? "—" : count}
                         </button>
                       </td>
                     );
@@ -510,29 +554,17 @@ function PairDetail({
   meetings,
   program,
 }: {
-  pair: Pair;
+  pair: ReportPair;
   weeks: Date[];
   meetings: AdminMeetingMark[];
   program: AdminProgram | null;
 }) {
   const t = useTranslations("adminReporting.pair");
   const tHeat = useTranslations("adminReporting.heatmap");
-  const gaps = weeks.map((week) => gapAtWeekEnd(pair, week, meetings));
-  const completed = cumulative(pair, weeks, meetings, "COMPLETED");
-  const planned = weeks.map((_, index) => {
-    let total = 0;
-    for (let cursor = 0; cursor <= index; cursor += 1) {
-      total += plannedInWeek(pair, weeks[cursor], meetings);
-    }
-    return total;
-  });
   const goals = pair.goalTotal > 0 ? `${pair.goalDone}/${pair.goalTotal}` : "—";
-  const rows = weeks.map((_, index) => ({
-    week: tHeat("week", { n: index + 1 }),
-    gap: gaps[index],
-    planned: planned[index],
-    completed: completed[index],
-  }));
+  const rows = pairWeekPoints(pair, weeks, meetings, (index) =>
+    tHeat("week", { n: index + 1 }),
+  );
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
       <div className="flex items-center gap-2">
@@ -580,11 +612,7 @@ function PairDetail({
       </div>
       <div className="mt-5 flex flex-wrap gap-2">
         <Link
-          href={
-            program?.coordinatorId
-              ? `/admin/users?user=${encodeURIComponent(program.coordinatorId)}`
-              : "/admin/users"
-          }
+          href={coordinatorUsersHref(program)}
           className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
         >
           {t("goToCoordinator")}
@@ -640,13 +668,6 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-type WeekPoint = {
-  week: string;
-  gap: number | null;
-  planned: number;
-  completed: number;
-};
-
 const axisTick = { fill: "#aeb4bc", fontSize: 11 };
 const tooltipStyle = {
   border: "1px solid #e9ecef",
@@ -654,11 +675,6 @@ const tooltipStyle = {
   fontSize: 12,
   boxShadow: "none",
 };
-
-function gapTop(rows: WeekPoint[]) {
-  const peak = rows.reduce((max, row) => Math.max(max, row.gap ?? 0), 0);
-  return Math.max(28, Math.ceil((peak * 1.15) / 7) * 7);
-}
 
 function GapLine({ rows }: { rows: WeekPoint[] }) {
   const t = useTranslations("adminReporting.pair");
@@ -758,23 +774,13 @@ function BurnChart({ rows }: { rows: WeekPoint[] }) {
   );
 }
 
-function Flags({ pairs }: { pairs: Pair[] }) {
+function Flags({ pairs }: { pairs: ReportPair[] }) {
   const t = useTranslations("adminReporting.flags");
+  const counts = flagListCounts(pairs);
   const rows = [
-    {
-      label: t("stale"),
-      count: pairs.filter((pair) => pair.stale).length,
-    },
-    {
-      label: t("bottleneck"),
-      count: pairs.filter((pair) => pair.bottlenecks > 0).length,
-    },
-    {
-      label: t("lowGoals"),
-      count: pairs.filter(
-        (pair) => pair.goalTotal > 0 && pair.goalDone / pair.goalTotal < 0.5,
-      ).length,
-    },
+    { label: t("stale"), count: counts.stale },
+    { label: t("bottleneck"), count: counts.bottleneck },
+    { label: t("lowGoals"), count: counts.lowGoals },
   ];
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
@@ -802,7 +808,7 @@ function Exports({
   pairs,
 }: {
   program: AdminProgram | null;
-  pairs: Pair[];
+  pairs: ReportPair[];
 }) {
   const t = useTranslations("adminReporting");
   const items = [
@@ -848,66 +854,8 @@ function Exports({
   );
 }
 
-function programSummaryRows(
-  program: AdminProgram | null,
-  t: ReportingT,
-): string[][] {
-  return [
-    [
-      t("csv.program"),
-      t("csv.coordinator"),
-      t("csv.teams"),
-      t("csv.mentors"),
-      t("csv.pendingInvites"),
-    ],
-    [
-      program?.name ?? "",
-      program?.coordinatorName ?? "",
-      String(program?.startupCount ?? 0),
-      String(program?.acceptedMentorCount ?? 0),
-      String(program?.pendingMentorCount ?? 0),
-    ],
-  ];
-}
-
-function meetingSummaryRows(pairs: Pair[], t: ReportingT): string[][] {
-  return [
-    [
-      t("csv.mentor"),
-      t("csv.team"),
-      t("csv.lastMeetingDays"),
-      t("csv.goalsDone"),
-      t("csv.goalsTotal"),
-      t("csv.openBottlenecks"),
-    ],
-    ...pairs.map((pair) => [
-      pair.mentorName,
-      pair.organizationName,
-      pair.daysSinceMeeting == null ? "" : String(pair.daysSinceMeeting),
-      String(pair.goalDone),
-      String(pair.goalTotal),
-      String(pair.bottlenecks),
-    ]),
-  ];
-}
-
-function countSummaryRows(pairs: Pair[], t: ReportingT): string[][] {
-  return [
-    [t("csv.activePairs"), t("csv.stale"), t("csv.withBottleneck")],
-    [
-      String(pairs.length),
-      String(pairs.filter((pair) => pair.stale).length),
-      String(pairs.filter((pair) => pair.bottlenecks > 0).length),
-    ],
-  ];
-}
-
 function downloadCsv(filename: string, rows: string[][]) {
-  const csv = rows
-    .map((row) =>
-      row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(","),
-    )
-    .join("\n");
+  const csv = csvText(rows);
   const url = URL.createObjectURL(
     new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" }),
   );
@@ -920,50 +868,39 @@ function downloadCsv(filename: string, rows: string[][]) {
 
 function Activity({
   data,
-  program,
+  pairs,
   weeks,
 }: {
   data: AdminOverview;
-  program: AdminProgram | null;
+  pairs: ReportPair[];
   weeks: Date[];
 }) {
   const t = useTranslations("adminReporting.activity");
   const from = weeks[0];
-  const pairs = program ? pairsIn(data, program) : [];
-  const ids = new Set(pairs.map((pair) => pair.organizationId));
-  const meetings = (data.meetings ?? []).filter((item) => {
-    if (!ids.has(item.organizationId) || item.status === "CANCELLED")
-      return false;
-    return new Date(item.scheduledAt) >= from;
-  });
-  const completed = meetings.filter(
-    (item) => item.status === "COMPLETED",
-  ).length;
-  const bottlenecks = data.bottlenecks.filter(
-    (item) => ids.has(item.organizationId) && new Date(item.createdAt) >= from,
-  ).length;
-  const users = data.users.filter(
-    (user) => user.createdAt && new Date(user.createdAt) >= from,
-  ).length;
+  if (!from) return null;
+  const counts = activityCounts(data, pairs, from);
   return (
     <div className="grid gap-3 sm:grid-cols-3">
       <Kpi
         title={t("meetings")}
-        value={data.meetings ? String(completed) : "—"}
+        value={data.meetings ? String(counts.completed) : "—"}
         detail={
           data.meetings
-            ? t("meetingsDetail", { total: meetings.length, completed })
+            ? t("meetingsDetail", {
+                total: counts.meetings,
+                completed: counts.completed,
+              })
             : t("noMeetingDates")
         }
       />
       <Kpi
         title={t("bottlenecks")}
-        value={String(bottlenecks)}
+        value={String(counts.bottlenecks)}
         detail={t("bottlenecksDetail")}
       />
       <Kpi
         title={t("accounts")}
-        value={String(users)}
+        value={String(counts.accounts)}
         detail={t("accountsDetail")}
       />
     </div>
@@ -979,7 +916,7 @@ function Kpi({
   title: string;
   value: string;
   detail: string;
-  valueClass?: string;
+  valueClass?: string | undefined;
 }) {
   return (
     <article className="rounded-[24px] border border-[#e9ecef] bg-white px-4 py-4">
@@ -1029,231 +966,13 @@ function PairMarks({ mentor, team }: { mentor: string; team: string }) {
   );
 }
 
-type Pair = AdminMentorship & {
-  bottlenecks: number;
-  stale: boolean;
-  goalDone: number;
-  goalTotal: number;
-};
-
-function pairsIn(data: AdminOverview, program: AdminProgram): Pair[] {
-  const ids = new Set(program.startups.map((startup) => startup.id));
-  return data.mentorships
-    .filter(
-      (item) =>
-        item.status === "ACTIVE" &&
-        ids.has(item.organizationId) &&
-        countsInProgram(item, program.id),
-    )
-    .map((item) => ({
-      ...item,
-      bottlenecks: data.bottlenecks.filter(
-        (block) => block.organizationId === item.organizationId,
-      ).length,
-      stale: needsAttention(item),
-      goalDone: item.goalDone ?? 0,
-      goalTotal: item.goalTotal ?? 0,
-    }));
-}
-
-function meetingRate(
-  pairs: Pair[],
-  meetings: AdminMeetingMark[],
-  weeks: Date[],
-) {
-  if (meetings.length === 0 && pairs.length > 0) {
-    const any = pairs.some((pair) => pair.daysSinceMeeting != null);
-    if (!any && meetings.length === 0) return null;
+function cellClass(state: HeatCell) {
+  switch (state) {
+    case HeatCell.Held:
+      return "bg-[#e7f6d4] text-[#3d6b00]";
+    case HeatCell.Missed:
+      return "bg-[#fde8e8] text-[#d9464b]";
+    case HeatCell.Unknown:
+      return "bg-[#f5f6f8] text-[#aeb4bc]";
   }
-  const from = weeks[0];
-  const until = addDays(weeks[weeks.length - 1], 7);
-  const now = new Date();
-  let completed = 0;
-  let planned = 0;
-  for (const meeting of meetings) {
-    if (
-      !pairs.some(
-        (pair) =>
-          pair.mentorId === meeting.mentorId &&
-          pair.organizationId === meeting.organizationId,
-      )
-    ) {
-      continue;
-    }
-    const at = new Date(meeting.scheduledAt);
-    if (at < from || at >= until || meeting.status === "CANCELLED") continue;
-    if (meeting.status === "COMPLETED") {
-      completed += 1;
-      planned += 1;
-    } else if (at <= now) {
-      planned += 1;
-    }
-  }
-  if (planned === 0) return null;
-  return {
-    completed,
-    planned,
-    percent: Math.round((completed / planned) * 100),
-  };
-}
-
-function goalRate(pairs: Pair[]) {
-  const withGoals = pairs.filter((pair) => pair.goalTotal > 0);
-  if (withGoals.length === 0) return null;
-  const done = withGoals.reduce((sum, pair) => sum + pair.goalDone, 0);
-  const total = withGoals.reduce((sum, pair) => sum + pair.goalTotal, 0);
-  return { done, total, percent: Math.round((done / total) * 100) };
-}
-
-function flagCounts(pairs: Pair[]) {
-  const red = pairs.filter((pair) => pair.stale).length;
-  const amber = pairs.filter(
-    (pair) =>
-      !pair.stale &&
-      (pair.bottlenecks > 0 ||
-        (pair.goalTotal > 0 && pair.goalDone / pair.goalTotal < 0.5)),
-  ).length;
-  return { red, amber };
-}
-
-type Cell = "held" | "missed" | "unknown";
-
-function cellState(
-  pair: Pair,
-  week: Date,
-  meetings: AdminMeetingMark[],
-  meetingsKnown: boolean,
-): Cell {
-  if (!meetingsKnown) return "unknown";
-  const end = addDays(week, 7);
-  const now = new Date();
-  if (week > now) return "unknown";
-  const started = new Date(`${pair.startDate}T00:00:00`);
-  if (end <= started) return "unknown";
-  if (meetingCount(pair, week, meetings, "COMPLETED") > 0) return "held";
-  return "missed";
-}
-
-function meetingCount(
-  pair: Pair,
-  week: Date,
-  meetings: AdminMeetingMark[],
-  status: AdminMeetingMark["status"],
-) {
-  const end = addDays(week, 7);
-  return meetings.filter((meeting) => {
-    if (
-      meeting.mentorId !== pair.mentorId ||
-      meeting.organizationId !== pair.organizationId ||
-      meeting.status !== status
-    ) {
-      return false;
-    }
-    const at = new Date(meeting.scheduledAt);
-    return at >= week && at < end;
-  }).length;
-}
-
-function gapAtWeekEnd(pair: Pair, week: Date, meetings: AdminMeetingMark[]) {
-  const end = addDays(week, 7);
-  const asOf = end.getTime() < Date.now() ? end : new Date();
-  const started = new Date(`${pair.startDate}T00:00:00`);
-  if (asOf.getTime() <= started.getTime()) return null;
-  const held = meetings
-    .filter(
-      (meeting) =>
-        meeting.mentorId === pair.mentorId &&
-        meeting.organizationId === pair.organizationId &&
-        meeting.status === "COMPLETED" &&
-        new Date(meeting.scheduledAt).getTime() <= asOf.getTime(),
-    )
-    .map((meeting) => new Date(meeting.scheduledAt).getTime());
-  const last = held.length ? Math.max(...held) : started.getTime();
-  return Math.max(0, Math.floor((asOf.getTime() - last) / 86_400_000));
-}
-
-function plannedInWeek(pair: Pair, week: Date, meetings: AdminMeetingMark[]) {
-  const end = addDays(week, 7);
-  const now = Date.now();
-  return meetings.filter((meeting) => {
-    if (
-      meeting.mentorId !== pair.mentorId ||
-      meeting.organizationId !== pair.organizationId ||
-      meeting.status === "CANCELLED"
-    ) {
-      return false;
-    }
-    const at = new Date(meeting.scheduledAt).getTime();
-    if (at < week.getTime() || at >= end.getTime()) return false;
-    return meeting.status === "COMPLETED" || at <= now;
-  }).length;
-}
-
-function cumulative(
-  pair: Pair,
-  weeks: Date[],
-  meetings: AdminMeetingMark[],
-  status: AdminMeetingMark["status"],
-) {
-  let total = 0;
-  return weeks.map((week) => {
-    total += meetingCount(pair, week, meetings, status);
-    return total;
-  });
-}
-
-function cellClass(state: Cell) {
-  if (state === "held") return "bg-[#e7f6d4] text-[#3d6b00]";
-  if (state === "missed") return "bg-[#fde8e8] text-[#d9464b]";
-  return "bg-[#f5f6f8] text-[#aeb4bc]";
-}
-
-function weekStarts(range: RangeId, createdAt?: string) {
-  const thisWeek = startOfWeek(new Date());
-  let count = range === "13" ? 13 : 8;
-  if (range === "all" && createdAt) {
-    const start = startOfWeek(new Date(createdAt));
-    count = Math.min(
-      16,
-      Math.max(
-        1,
-        Math.round((thisWeek.getTime() - start.getTime()) / 604_800_000) + 1,
-      ),
-    );
-  }
-  return Array.from({ length: count }, (_, index) =>
-    addDays(thisWeek, (index - (count - 1)) * 7),
-  );
-}
-
-function startOfWeek(date: Date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  const day = copy.getDay();
-  copy.setDate(copy.getDate() + (day === 0 ? -6 : 1 - day));
-  return copy;
-}
-
-function addDays(date: Date, days: number) {
-  const copy = new Date(date);
-  copy.setDate(copy.getDate() + days);
-  return copy;
-}
-
-function weekLabel(week: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "short",
-  }).formatRange(week, addDays(week, 6));
-}
-
-/** "%75" in Turkish, "75%" in English. */
-function percent(value: number, locale: string) {
-  return new Intl.NumberFormat(locale, { style: "percent" }).format(
-    value / 100,
-  );
-}
-
-function daysSinceInstant(value: string) {
-  return Math.floor((Date.now() - new Date(value).getTime()) / 86_400_000);
 }

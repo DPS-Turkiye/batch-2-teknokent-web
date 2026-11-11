@@ -2,6 +2,7 @@ import axios from "axios";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { backendRequest } from "@/lib/server/backend-client";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 vi.mock("axios", () => ({ default: { request: vi.fn() } }));
 
@@ -20,7 +21,9 @@ describe("backendRequest", () => {
   it("tells the backend which language the reader uses", async () => {
     await backendRequest({ method: "GET", url: "/api/health" });
 
-    expect(vi.mocked(axios.request).mock.calls[0][0].headers).toMatchObject({
+    expect(
+      itemAt(vi.mocked(axios.request).mock.calls, 0)[0].headers,
+    ).toMatchObject({
       "Accept-Language": "tr",
     });
   });

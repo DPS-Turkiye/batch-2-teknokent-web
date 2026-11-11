@@ -5,7 +5,10 @@
     "intro": "Let’s make Menton better together.",
     "close": "Close feedback panel",
     "category": "What would you like to share?",
-    "kinds": { "FEEDBACK": "Feedback", "SUGGESTION": "Suggestion" },
+    "kinds": {
+      "FEEDBACK": "Feedback",
+      "SUGGESTION": "Suggestion"
+    },
     "subject": "Subject",
     "subjectPlaceholder": "A short summary",
     "subjectRequired": "Please add a subject.",
@@ -42,11 +45,15 @@
     "read": "Read",
     "markRead": "Mark as read",
     "language": "Submitted in {language}",
-    "languages": { "tr": "Turkish", "en": "English" },
+    "languages": {
+      "tr": "Turkish",
+      "en": "English"
+    },
     "pagination": "Feedback pages",
     "previous": "Previous",
     "next": "Next",
-    "page": "Page {page} of {total}"
+    "page": "Page {page} of {total}",
+    "noProgram": "No program on record"
   },
   "language": {
     "label": "Language",
@@ -63,7 +70,38 @@
     "submitting": "Signing in…",
     "newHere": "New to Menton?",
     "signUp": "Sign up",
-    "invite": "Got an invitation? Continue with your invite code"
+    "invite": "Got an invitation? Continue with your invite code",
+    "odtu": "Sign in with your METU account",
+    "otg": "Sign in with ODTÜ TEKNOKENT Girişimcilik"
+  },
+  "otgLogin": {
+    "signingIn": "Signing you in with your ODTÜ TEKNOKENT Girişimcilik account…",
+    "cancelled": "You cancelled the sign-in. You can try again.",
+    "failed": "Signing in with ODTÜ TEKNOKENT Girişimcilik could not be completed. Please try again.",
+    "backToLogin": "Back to sign-in"
+  },
+  "workspaceSwitch": {
+    "label": "Workspace",
+    "names": {
+      "ADMIN": "Administration",
+      "COORDINATOR": "Coordinator",
+      "ODTU_ACADEMICIAN": "Academician",
+      "ODTU_STUDENT": "METU student",
+      "GIRISIM_MENTOR": "Startups · Mentor",
+      "GIRISIM_MENTEE": "Startups"
+    }
+  },
+  "odtuDevLogin": {
+    "title": "METU test sign-in",
+    "intro": "Pick a test person for local development. This page goes away once METU's real sign-in arrives.",
+    "loading": "Loading test people…",
+    "empty": "No test people found. Is INSTITUTION_LOGIN_DEV_STUB on in the backend?",
+    "signingIn": "Signing in…",
+    "kinds": {
+      "STUDENT": "Student",
+      "ACADEMIC": "Academician",
+      "STAFF": "Staff"
+    }
   },
   "auth": {
     "firstName": "First name",
@@ -108,6 +146,8 @@
     "code": "Invite code",
     "submit": "Join the team",
     "noCode": "No invite code?",
+    "otgAccount": "You are joining with your ODTÜ TEKNOKENT Girişimcilik account:",
+    "otgSwitch": "Join with another account",
     "backToLogin": "Back to sign in"
   },
   "verifyEmail": {
@@ -131,7 +171,9 @@
     "rejectedDetail": "The coordinator did not approve your application. Write to info@metu.edu.tr for details.",
     "willActivate": "Startup will become active",
     "reviewing": "Under review",
-    "reviewingDetail": "Coordinators review your profile. This usually takes 1–3 business days."
+    "reviewingDetail": "Coordinators review your profile. This usually takes 1–3 business days.",
+    "studentActive": "Account active",
+    "studentWillActivate": "Account will become active"
   },
   "submittedProfile": {
     "title": "Submitted profile",
@@ -180,6 +222,7 @@
     }
   },
   "signupFlow": {
+    "mentorRegistrationFailed": "The mentor account could not be completed.",
     "resumeTitle": "Complete your mentor account",
     "resumeIntro": "Complete your account details before opening your mentor profile.",
     "fullName": "Full name",
@@ -189,6 +232,7 @@
     "retry": "Try again"
   },
   "signupWizard": {
+    "programRequired": "Please select a program.",
     "steps": {
       "personal": {
         "title": "Create your personal profile",
@@ -281,6 +325,9 @@
     "programSubtitle": "Your application goes to this program's coordinator.",
     "startupLater": "I'll create my startup later",
     "startupLaterHint": "Once approved, you can create your startup or join a team from the My startup page.",
+    "individualProgram": "You join this program on your own; no startup details are needed.",
+    "programEligibilityChecking": "Checking whether you can join this program…",
+    "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
     "stageSubtitle": "What matters most for matching you with the right mentor."
   },
   "signupDocuments": {
@@ -388,6 +435,14 @@
     "lastStepLabel": "Your mentor profile joins the pool",
     "cvUnreadable": "We couldn't read your CV; you can enter your details below yourself."
   },
+  "mentorStudentProfile": {
+    "title": "Studies",
+    "department": "Department",
+    "year": "Year",
+    "courses": "Strong courses",
+    "erasmus": "Erasmus & abroad",
+    "projects": "Projects"
+  },
   "mentorSteps": {
     "uploadCv": "Upload your CV",
     "uploadHint": "PDF or DOCX · Max. 25 MB",
@@ -431,6 +486,22 @@
     "stagesTitle": "Which stages do you work with?",
     "stagesSubtitle": "Requests that don't fit the stage are not sent to you.",
     "stagesLabel": "Startup stages",
+    "studentTopicsNote": "You will mentor students in the program you chose, so student topics are shown.",
+    "studentLevelsTitle": "Which students can you help?",
+    "studentLevelsSubtitle": "Shown on your profile; students look at it when choosing a mentor.",
+    "studentLevelsLabel": "Years",
+    "studentProfileTitle": "Your studies",
+    "studentProfileSubtitle": "Students see these when choosing a mentor.",
+    "studentDepartment": "Department",
+    "studentDepartmentPlaceholder": "e.g. Computer Engineering",
+    "studentYear": "Year",
+    "studentCourses": "Courses you are strong in",
+    "studentCoursesPlaceholder": "Comma-separated: CENG 140, MATH 119",
+    "studentProjects": "Your projects",
+    "studentProjectsPlaceholder": "One project per line",
+    "studentErasmus": "Erasmus or study abroad",
+    "studentErasmusPlaceholder": "e.g. TU Delft, fall 2025",
+    "studentInternshipsNote": "Add your internships as experience in step 1.",
     "offeringsTitle": "What can you offer in this mentorship?",
     "offeringsSubtitle": "Shown as a list on your profile. Startups read it before sending a request.",
     "addOffering": "+ Add item",
@@ -749,7 +820,8 @@
       "notes": "Notes",
       "mentors": "Mentors",
       "programs": "Programs",
-      "applications": "Applications"
+      "applications": "Applications",
+      "project": "My project"
     },
     "mainMenu": "Main menu",
     "openMenu": "Open menu",
@@ -765,8 +837,10 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTOR": "Mentor",
-      "MENTEE": "Startup team"
-    }
+      "MENTEE": "Startup team",
+      "ACADEMICIAN": "Academician"
+    },
+    "student": "Student"
   },
   "accountMenu": {
     "open": "{name} · Open account menu",
@@ -921,7 +995,9 @@
     "mentorProfile": {
       "capacity": "Mentee capacity must be between 1 and 50.",
       "roleTitle": "Enter a title for each role.",
-      "programRole": "A program role can be at most {max} characters."
+      "programRole": "A program role can be at most {max} characters.",
+      "studentRequired": "Enter your department and year.",
+      "schoolName": "Enter a name for every school."
     },
     "assistant": {
       "network": "network error",
@@ -949,6 +1025,7 @@
     }
   },
   "metadata": {
+    "manifestDescription": "Your mentoring meetings, tasks and messages in your pocket.",
     "defaultTitle": "Mentoring and Startup Programs Platform",
     "titleTemplate": "%s | ODTÜ Teknokent",
     "description": "ODTÜ Teknokent's platform for mentoring, training and startup programs.",
@@ -962,7 +1039,8 @@
     "mentorDashboard": "Mentor Dashboard | Teknokent",
     "mentorDashboardDescription": "Review and decide on incoming mentorship requests.",
     "calendar": "My Calendar | Teknokent",
-    "calendarDescription": "Mentoring meetings and your personal meeting calendar."
+    "calendarDescription": "Mentoring meetings and your personal meeting calendar.",
+    "studentProject": "My project"
   },
   "common": {
     "greeting": {
@@ -1135,6 +1213,38 @@
       "other": {
         "title": "Something else",
         "description": "If none of these fit, describe it briefly yourself."
+      },
+      "career": {
+        "title": "Career planning",
+        "description": "I can’t decide which field to go into."
+      },
+      "internship": {
+        "title": "Internship",
+        "description": "I need help finding or applying for an internship."
+      },
+      "cv": {
+        "title": "CV & LinkedIn",
+        "description": "I want to strengthen my CV or LinkedIn profile."
+      },
+      "interview": {
+        "title": "Interviews",
+        "description": "I want to prepare for an interview."
+      },
+      "job": {
+        "title": "Job search & first job",
+        "description": "I don’t know where to start looking for my first job."
+      },
+      "courses": {
+        "title": "Courses",
+        "description": "I’m struggling with my courses or study routine."
+      },
+      "erasmus": {
+        "title": "Erasmus & abroad",
+        "description": "I want to apply for Erasmus or a programme abroad."
+      },
+      "project": {
+        "title": "Projects & entrepreneurship",
+        "description": "I’m working on a project or a startup idea."
       }
     },
     "situations": {
@@ -1161,6 +1271,22 @@
       "none": {
         "title": "None of these",
         "description": "I'll describe it briefly myself."
+      },
+      "start": {
+        "title": "I don’t know where to start",
+        "description": "I’ve just started thinking about it and need a roadmap."
+      },
+      "decide": {
+        "title": "I need to make a decision",
+        "description": "I’m stuck between a few options and don’t know which suits me."
+      },
+      "apply": {
+        "title": "I’m preparing an application",
+        "description": "I have an internship, job or programme application coming up."
+      },
+      "review": {
+        "title": "I want feedback on my work",
+        "description": "I’d like an opinion on my CV, project or application text."
       }
     },
     "goals": {
@@ -1215,7 +1341,7 @@
       },
       "headingRecommended": "Best-matched mentors",
       "headingAll": "All mentors",
-      "matching": "Preparing suggestions from your request and startup profile…",
+      "matching": "Preparing suggestions from your request and profile…",
       "matchingFailed": "{error} You can pick from the All list.",
       "emptyRecommended": "No mentors were suggested for this need. Have a look at the All list.",
       "emptyFilter": "No mentors match this filter.",
@@ -1229,6 +1355,8 @@
     }
   },
   "loadErrors": {
+    "startupFallbackName": "Startup",
+    "mentorsUnexpected": "An unexpected error occurred while loading mentors.",
     "mentors": "Couldn't load mentors.",
     "profileUnavailable": "The profile service didn't respond; showing your organization's details.",
     "startup": "Couldn't load your startup's details."
@@ -1388,6 +1516,7 @@
     "responseTime": "Response time · {time}",
     "about": "About",
     "experience": "Experience",
+    "education": "Education",
     "topics": "What can you work on with this mentor?",
     "availability": "Availability",
     "nextDays": "Next 7 days",
@@ -1544,6 +1673,7 @@
     "clearSearch": "Clear search",
     "specialty": "Expertise",
     "stage": "Startup stage",
+    "studentLevel": "Year",
     "availability": "Availability",
     "chip": "{filter} - {value}",
     "more": "+ More",
@@ -1627,6 +1757,9 @@
       "close": "Close"
     },
     "sync": {
+      "icalDescription": "Teknokent Mentoring Meeting. Link: {link}",
+      "googleDetails": "Teknokent Mentoring Meeting.\nMeeting link: {link}",
+      "eventTitle": "Mentoring Meeting",
       "addGoogle": "Add to Google Calendar",
       "downloadIcs": "Download iCal (.ics)"
     }
@@ -1749,6 +1882,7 @@
     "close": "Close"
   },
   "startupFrame": {
+    "nameFallback": "Startup",
     "logo": "{name} logo",
     "fallbackName": "My startup",
     "stage": "{stage} stage",
@@ -1759,7 +1893,9 @@
       "meetings": "Meetings",
       "files": "Files",
       "team": "Team"
-    }
+    },
+    "studentTitle": "My project",
+    "studentTabsLabel": "Project tabs"
   },
   "startupProfile": {
     "edit": "Edit profile",
@@ -1923,7 +2059,8 @@
       "mentorship": "Mentorship files",
       "program": "Program",
       "startup": "Startup documents",
-      "pending": "Pending requests"
+      "pending": "Pending requests",
+      "studentProject": "Project documents"
     },
     "filterCount": "{label} ({count})",
     "status": {
@@ -1995,7 +2132,8 @@
       "deleted": "File deleted.",
       "deleteFailed": "Couldn't delete the file.",
       "openFailed": "Couldn't open the file."
-    }
+    },
+    "studentDoc": "Project document"
   },
   "startupProcess": {
     "assignmentStatus": {
@@ -2085,7 +2223,8 @@
     "password": "Password",
     "sending": "Sending…",
     "sendReset": "Send a reset email",
-    "loadFailed": "Couldn't load the profile."
+    "loadFailed": "Couldn't load the profile.",
+    "cvWhoSeesStudent": "Only you can see it."
   },
   "cvFile": {
     "intro": "{whoSees} The CV you upload is saved right away; your profile changes when you press Save.",
@@ -2114,7 +2253,8 @@
       "ADMIN": "Admin",
       "COORDINATOR": "Coordinator",
       "MENTEE": "Mentee",
-      "MENTOR": "Mentor"
+      "MENTOR": "Mentor",
+      "ACADEMICIAN": "Academician"
     },
     "about": "About",
     "noBio": "No about text added yet.",
@@ -2334,6 +2474,7 @@
       "pageLoading": "Loading the meeting details…"
     },
     "feedback": {
+      "mentorFallback": "Mentor",
       "title": "Rate the meeting",
       "readOnlyTitle": "Your rating",
       "loading": "Loading the rating…",
@@ -2389,6 +2530,7 @@
       "sentToast": "Your rating was sent."
     },
     "summary": {
+      "mentorFallback": "Mentor",
       "title": "Meeting summary",
       "minutes": "{count} min",
       "heading": "Finish the meeting notes",
@@ -2545,6 +2687,7 @@
     "minutes": "{count} min"
   },
   "mentorHome": {
+    "firstNameFallback": "Mentor",
     "greetingWithName": "{greeting}, {name}",
     "summary": "{active} active mentorships · {pending} new requests",
     "manageAvailability": "Manage availability",
@@ -2748,6 +2891,7 @@
       "noLink": "No meeting link"
     },
     "create": {
+      "defaultAgenda": "Mentor: {name}",
       "label": "Create a meeting",
       "title": "Choose who the meeting is with",
       "close": "Close",
@@ -3027,6 +3171,7 @@
       "role": "Your role in this program",
       "rolePlaceholder": "e.g. Design mentor",
       "status": {
+        "DRAFT": "Draft",
         "ACTIVE": "Active",
         "COMPLETED": "Completed"
       }
@@ -3045,42 +3190,50 @@
       "title": "Edit availability",
       "subtitle": "Startups can only propose meetings in the hours you leave open.",
       "close": "Close the editor",
-      "loading": "Loading...",
-      "loadFailed": "Couldn't load your availability settings.",
-      "weekly": "WEEKLY AVAILABILITY",
-      "dayOpen": "Available on {day}",
-      "range": "{day} range {number}",
-      "rangeStart": "{range} start",
-      "rangeEnd": "{range} end",
-      "addRange": "Add a time range on {day}",
-      "removeRange": "Remove {range}",
-      "closed": "Closed",
-      "defaults": "CAPACITY AND DEFAULTS",
-      "menteeCapacity": "Concurrent mentorship limit",
-      "defaultMeetingDurationMinutes": "Default meeting length",
-      "meetingBufferMinutes": "Buffer between meetings",
-      "minutesUnit": "min",
-      "unavailable": "DATES YOU'RE UNAVAILABLE",
-      "removeDate": "Remove {date}",
-      "addDate": "Add a date",
-      "startDate": "Start date",
-      "endDate": "End date",
-      "reason": "Reason",
-      "reasonPlaceholder": "Reason (optional)",
-      "cancelDate": "Cancel",
-      "confirmDate": "Add the date",
       "footer": "Changes don't affect upcoming meetings.",
       "cancel": "Cancel",
       "saving": "Saving…",
-      "save": "Save",
-      "saved": "Your availability settings are saved.",
-      "saveFailed": "Couldn't save your availability settings."
+      "save": "Save"
     }
+  },
+  "availabilityEditor": {
+    "loading": "Loading...",
+    "loadFailed": "Couldn't load your availability settings.",
+    "weekly": "WEEKLY AVAILABILITY",
+    "dayOpen": "Available on {day}",
+    "range": "{day} range {number}",
+    "rangeStart": "{range} start",
+    "rangeEnd": "{range} end",
+    "addRange": "Add a time range on {day}",
+    "removeRange": "Remove {range}",
+    "closed": "Closed",
+    "defaults": "CAPACITY AND DEFAULTS",
+    "menteeCapacity": "Concurrent mentorship limit",
+    "defaultMeetingDurationMinutes": "Default meeting length",
+    "meetingBufferMinutes": "Buffer between meetings",
+    "minutesUnit": "min",
+    "unavailable": "DATES YOU'RE UNAVAILABLE",
+    "removeDate": "Remove {date}",
+    "addDate": "Add a date",
+    "startDate": "Start date",
+    "endDate": "End date",
+    "reason": "Reason",
+    "reasonPlaceholder": "Reason (optional)",
+    "cancelDate": "Cancel",
+    "confirmDate": "Add the date",
+    "saved": "Your availability settings are saved.",
+    "saveFailed": "Couldn't save your availability settings."
   },
   "mentorEvaluation": {
     "breadcrumb": "Location",
     "breadcrumbRoot": "My mentorships",
     "breadcrumbPage": "Meeting review",
+    "heldQuestion": "Did this meeting take place?",
+    "heldHint": "Meetings you confirm count in the program's sessions and hours report.",
+    "heldConfirm": "Meeting held",
+    "heldDone": "Marked as held.",
+    "heldUndo": "Undo",
+    "heldSaving": "Saving…",
     "title": "How did this meeting go?",
     "info": "3 short questions · about 1 minute. This review isn't a score for the mentee; it tells us how productive the meeting was.",
     "preparedness": "1. How prepared was the mentee for today's meeting, and how clearly did they explain where the startup stands?",
@@ -3147,6 +3300,7 @@
     "sendTranscriptHint": "Send to the bottom of the mentee's notebook",
     "sendTranscript": "Send transcript",
     "sendReport": "Send report",
+    "reportFromRecording": "The report is made from the meeting's recording; your transcript edits don't change it.",
     "stop": "Stop the assistant",
     "stopHint": "To see the transcript and create a report, press <b>Stop the assistant</b>. Once it stops, the transcript is locked and the report is created automatically.",
     "transcript": "Transcript",
@@ -3158,7 +3312,6 @@
     "line": "Transcript line",
     "deleteLine": "Delete line",
     "report": "Meeting report",
-    "reportStale": "The transcript changed. Create the report again to update it.",
     "generating": "Creating…",
     "generate": "Create report",
     "reportEmpty": "Press Stop the assistant to lock the transcript and create the report automatically. Send it so it lands at the bottom of the mentee's notebook.",
@@ -3189,6 +3342,8 @@
     "soon": "Coming soon",
     "coordinatorMenu": "Coordinator menu",
     "adminMenu": "Admin menu",
+    "studentMenu": "Student menu",
+    "academicianMenu": "Academician menu",
     "nav": {
       "feedback": "Feedback",
       "home": "Home",
@@ -3198,8 +3353,277 @@
       "mentorships": "Mentorships",
       "calendar": "Calendar",
       "messages": "Messages",
-      "reporting": "Reporting"
+      "reporting": "Reporting",
+      "peerMentoring": "Peer Mentoring",
+      "officeHours": "Office Hours",
+      "myAppointments": "My appointments",
+      "myProfile": "My profile",
+      "appointmentRequests": "Appointment requests",
+      "advisees": "My advisees"
+    },
+    "workspace": {
+      "student": "Student",
+      "academician": "Academician"
     }
+  },
+  "appointments": {
+    "status": {
+      "PENDING": "Awaiting approval",
+      "CONFIRMED": "Confirmed",
+      "REJECTED": "Declined",
+      "ALTERNATIVE_PROPOSED": "Alternative proposed",
+      "CANCELLED": "Cancelled",
+      "EXPIRED": "Expired",
+      "WITHDRAWN": "Withdrawn"
+    },
+    "role": {
+      "MENTOR": "As mentor",
+      "MENTEE": "As mentee",
+      "OFFICE_HOURS": "Office Hours"
+    },
+    "card": {
+      "place": "Place: {place}",
+      "alternative": "Suggested alternative (not confirmed yet)",
+      "rejectReason": "Reason: {reason}",
+      "join": "Join the session"
+    }
+  },
+  "odtuWorkspaces": {
+    "student": {
+      "home": {
+        "title": "Home",
+        "subtitle": "Your appointments and mentoring areas at a glance.",
+        "profileTitle": "Complete your profile",
+        "profileBody": "Pick the topics you care about so we can surface the right peer mentors and Office Hours.",
+        "profileAction": "Complete profile",
+        "upcomingTitle": "Upcoming appointments",
+        "seeAll": "See all",
+        "upcomingEmpty": "You have no upcoming appointments.",
+        "entryLabel": "Workspace sections",
+        "peerMentoring": {
+          "title": "Peer Mentoring",
+          "body": "Get support from a peer mentor, or mentor others once you hold the badge."
+        },
+        "officeHours": {
+          "title": "Office Hours",
+          "body": "Request an appointment in an academician's office hours."
+        }
+      },
+      "peerMentoring": {
+        "title": "Peer Mentoring",
+        "subtitle": "Get support from METU peer mentors.",
+        "switchLabel": "Peer mentoring side",
+        "switch": {
+          "get": "Get mentoring",
+          "give": "Give mentoring"
+        },
+        "requests": {
+          "title": "My requests",
+          "empty": "You haven't sent a request yet.",
+          "sentAt": "Sent: {date}",
+          "book": "Book a time",
+          "sessionAt": "Appointment: {date}",
+          "seeAppointment": "Go to appointment",
+          "booking": {
+            "title": "Book a time with {name}",
+            "subtitle": "Pick one of your mentor's open times; the appointment is confirmed right away.",
+            "loading": "Loading open times…",
+            "empty": "Your mentor has no open times right now. You can check again later.",
+            "booked": "Your appointment is booked.",
+            "close": "Close"
+          }
+        },
+        "mentors": {
+          "title": "Peer mentors",
+          "search": "Search name, department or topic",
+          "allCategories": "All",
+          "empty": "No peer mentors are listed right now.",
+          "noMatch": "No peer mentors match these filters.",
+          "classYear": "Year {year}",
+          "categories": "Topics",
+          "why": "Why recommended?",
+          "request": "Send a request",
+          "requestFrom": "Send a request to {name}",
+          "requested": "Your request is waiting",
+          "full": "No places left",
+          "noCategories": "Your program has no active peer-mentoring category yet.",
+          "whyInterests": "Matches your interests: {topics}"
+        },
+        "dialog": {
+          "title": "Mentoring with {name}",
+          "subtitle": "Pick a topic and briefly say what you need.",
+          "category": "Topic",
+          "message": "Your message",
+          "messagePlaceholder": "For example: I would like a review of my CV for a summer internship.",
+          "messageTooShort": "Your message needs at least {min} characters.",
+          "cancel": "Cancel",
+          "send": "Send the request",
+          "sending": "Sending…",
+          "sent": "Your request was sent.",
+          "failed": "Couldn't send the request."
+        },
+        "give": {
+          "loading": "Loading…",
+          "noBadge": {
+            "title": "No badge yet",
+            "body": "The Peer Mentor badge is awarded when you pass your program's training (a short video and a 10-question quiz). Your program coordinator can also award it.",
+            "training": "Start the training",
+            "trainingReason": {
+              "loading": "Loading the training…",
+              "notAvailable": "Your program's training isn't published yet.",
+              "unavailable": "The training can't be opened right now."
+            }
+          },
+          "revoked": {
+            "title": "Your badge was taken back",
+            "expiredTitle": "Your badge has expired",
+            "body": "Without the Peer Mentor badge you cannot mentor right now. Talk to your program coordinator about mentorships that are still running.",
+            "reason": "Reason: {reason}"
+          },
+          "earned": {
+            "title": "Badge earned",
+            "body": "You can be a peer mentor now. Create your mentor profile; once it is published, students in your program can see you.",
+            "createProfile": "Create your mentor profile",
+            "signInAgain": "Your badge is new. Sign out and in again to start mentoring."
+          },
+          "received": {
+            "title": "Requests",
+            "empty": "No requests waiting for an answer.",
+            "accept": "Accept",
+            "decline": "Not a fit",
+            "sentAt": "Sent: {date}"
+          },
+          "mentees": {
+            "title": "My mentees",
+            "empty": "You haven't accepted a request yet."
+          },
+          "availability": {
+            "title": "Availability and capacity",
+            "save": "Save",
+            "saving": "Saving…"
+          },
+          "profile": {
+            "title": "My mentor profile",
+            "edit": "Edit profile"
+          },
+          "acceptMessage": "I accepted your request, talk soon!",
+          "declineMessage": "I can't help with this request right now.",
+          "accepted": "You accepted the request.",
+          "declined": "You answered that the request is not a fit.",
+          "decisionFailed": "Couldn't save your answer."
+        },
+        "wizard": {
+          "title": "Create your mentor profile",
+          "editTitle": "Edit your mentor profile",
+          "subtitle": "Once published, students in your program see you among the peer mentors.",
+          "step": "Step {number} of {total}",
+          "steps": {
+            "0": "Categories",
+            "1": "Sub-topics",
+            "2": "Relevant experience",
+            "3": "What can you help with?",
+            "4": "Links (optional)",
+            "5": "Weekly availability and capacity",
+            "6": "Preview"
+          },
+          "strongCourses": "Courses you are strong in",
+          "projects": "Your projects",
+          "onePerLine": "One per line.",
+          "erasmus": "Exchange or study abroad (optional)",
+          "helpWith": "What can you help with?",
+          "helpWithHint": "Students see this on your card. At least 20 characters.",
+          "linkedin": "Your LinkedIn address",
+          "cvLater": "Adding a CV and portfolio will be here soon.",
+          "previewNote": "This is how students will see you.",
+          "previewHours": "{ranges} weekly time ranges · up to {capacity} mentees · {minutes}-minute sessions",
+          "back": "Back",
+          "next": "Continue",
+          "publish": "Publish",
+          "publishing": "Publishing…",
+          "cancel": "Cancel",
+          "published": "Your mentor profile is live.",
+          "publishFailed": "Couldn't publish your profile.",
+          "errors": {
+            "categories": "Pick at least one category.",
+            "helpWith": "This text needs at least {min} characters.",
+            "link": "The link must start with http:// or https://."
+          }
+        }
+      },
+      "profile": {
+        "title": "My profile",
+        "subtitle": "Your details from METU, your interests and your badges.",
+        "institution": {
+          "title": "Institutional details",
+          "readOnly": "These come from METU and cannot be changed here.",
+          "loading": "Loading your institutional details…",
+          "loadError": "Couldn't load your institutional details.",
+          "retry": "Try again",
+          "missingTitle": "No METU details for this account",
+          "missingBody": "Institutional details appear for students who sign in with their METU account.",
+          "fullName": "Full name",
+          "email": "E-mail",
+          "faculty": "Faculty",
+          "department": "Department",
+          "classYear": "Year",
+          "classYearValue": "Year {year}",
+          "programLevel": "Level of study",
+          "advisor": "Academic advisor",
+          "iskur": "İŞKUR Youth Programme",
+          "yes": "Participant",
+          "no": "Not a participant",
+          "unknown": "—",
+          "syncedAt": "Last updated: {date}.",
+          "notSynced": "Not updated yet.",
+          "help": "If something is wrong, contact the Registrar’s Office (ÖİDB)."
+        },
+        "interests": {
+          "title": "Your interests and goal",
+          "note": "Sub-topics are examples for now; they'll be updated once the final list is set.",
+          "loading": "Loading your interests…",
+          "loadError": "Couldn't load your interests.",
+          "retry": "Try again",
+          "empty": "You haven't added interests or a goal yet.",
+          "topics": "Interests",
+          "subtopics": "Sub-topics",
+          "goal": "Your goal",
+          "noGoal": "No goal added.",
+          "edit": "Edit",
+          "save": "Save",
+          "saving": "Saving…",
+          "cancel": "Cancel",
+          "saved": "Your interests are updated.",
+          "saveError": "Couldn't save your interests. You can try again."
+        }
+      },
+      "officeHours": {
+        "title": "Office Hours",
+        "subtitle": "Request an appointment in academicians' office hours.",
+        "soon": "Coming soon",
+        "soonTitle": "Office Hours is coming to Menton",
+        "soonBody": "Academicians' office hours aren't connected to Menton yet. Once they are, you'll see the hours here and request an appointment.",
+        "today": "For now, Office Hours appointments are booked through METU's Moodle page.",
+        "later": "Once connected, your appointments will show in My appointments, next to your peer-mentoring ones.",
+        "meanwhileTitle": "In the meantime",
+        "meanwhileBody": "You can get support from your program's peer mentors.",
+        "meanwhileAction": "Go to peer mentoring"
+      }
+    }
+  },
+  "studyLevel": {
+    "BACHELOR": "Bachelor's",
+    "MASTER": "Master's",
+    "DOCTORATE": "Doctorate"
+  },
+  "peerTopics": {
+    "ACADEMIC_DEVELOPMENT": "Academic development",
+    "CAREER_INTERNSHIP": "Careers and internships",
+    "TECHNICAL_DIGITAL": "Technical and digital skills",
+    "RESEARCH_ACADEMIC_CAREER": "Research and academic careers",
+    "ENTREPRENEURSHIP": "Entrepreneurship and projects",
+    "CAMPUS_LIFE": "University and campus life",
+    "PERSONAL_PROFESSIONAL": "Personal and professional skills",
+    "INTERNATIONAL": "International opportunities"
   },
   "coordinatorHome": {
     "kinds": {
@@ -3504,17 +3928,18 @@
   "coordinatorPrograms": {
     "filters": {
       "ALL": "All {count}",
+      "DRAFT": "Draft {count}",
       "ACTIVE": "Active {count}",
       "UPCOMING": "Upcoming {count}",
       "COMPLETED": "Completed {count}"
     },
     "lifecycle": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Archived"
     },
     "search": "Search programs",
-    "launch": "Launch a program",
     "noMatch": "No programs match this filter.",
     "none": "You don't manage any programs yet.",
     "upcoming": "Upcoming",
@@ -3552,7 +3977,12 @@
       "MENTOR_POOL": "Mentor pool",
       "MATCHING": "Matches",
       "SETTINGS": "Program settings",
-      "APPROVALS": "Approvals"
+      "APPROVALS": "Approvals",
+      "PARTICIPANTS": "Participants",
+      "APPOINTMENTS": "Appointments",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer Mentors",
+      "ACADEMICS": "Academics"
     },
     "phaseWeek": "{phase}, week {current}/{total}",
     "coordinators": "{count, plural, =1 {Coordinator} other {Coordinators}}: {names}",
@@ -3624,7 +4054,23 @@
       "mentors": "Mentors",
       "activeMentorships": "Active mentorships",
       "awaitingMatch": "Waiting for a match"
-    }
+    },
+    "draftBannerAdmin": "This program has not been launched. Its coordinators set up the conditions; launch it when it is ready.",
+    "draftBannerCoordinator": "This program has not been launched. Set up its conditions in Program settings; participants see it once the admin launches it.",
+    "launchProgram": "Launch the program",
+    "launching": "Launching…",
+    "launched": "{name} was launched.",
+    "launchFailed": "The program could not be launched.",
+    "launchNeedsCoordinator": "Assign a coordinator before launching.",
+    "participantTabs": {
+      "TEAMS": "Teams",
+      "MENTOR_POOL": "Mentor pool",
+      "STUDENTS": "Students",
+      "PEER_MENTORS": "Peer mentors",
+      "ACADEMICS": "Academics"
+    },
+    "typeTabEmptyAdmin": "This section is not ready for {type} programs yet. The program’s coordinators set up its conditions in Program settings.",
+    "typeTabEmpty": "This section is not ready for {type} programs yet. You can set up the program’s conditions in Program settings."
   },
   "programRules": {
     "days": "days",
@@ -3647,12 +4093,37 @@
     "autoMatchHint": "A suggestion list is built from expertise, availability and load"
   },
   "programSettings": {
+    "trainingNote": "Students earn the Peer Mentor badge by watching the video and getting at least 8 of the 10 quiz questions right. Edited by the program’s coordinators and admins.",
+    "eligibilityNote": "Decides who can join this program. Other programs are not affected; while it is on, admins cannot bypass it either.",
+    "eligibleDomain": "Allowed e-mail domain",
+    "eligibleDomainHint": "For example metu.edu.tr. Department addresses (ceng.metu.edu.tr) count too. Leave it empty to allow any address.",
+    "rosterOnly": "Only people on the list",
+    "rosterOnlyHint": "Only people whose e-mail is on the list below can join the program.",
+    "individualMentees": "Individual participants",
+    "individualMenteesHint": "Participants join under their own name as a team of one, without creating a startup.",
+    "roster": {
+      "paste": "Paste e-mail addresses",
+      "placeholder": "One address per line: student@metu.edu.tr",
+      "add": "Add to list",
+      "adding": "Saving…",
+      "saved": "List updated.",
+      "failed": "Could not update the list.",
+      "count": "{count, plural, =0 {No addresses on the list} one {# address on the list} other {# addresses on the list}}",
+      "empty": "No addresses on the list yet.",
+      "registered": "Signed up",
+      "notRegistered": "Not signed up yet",
+      "remove": "Remove",
+      "removeLabel": "Remove {email} from the list"
+    },
     "sections": {
       "GENERAL": "General",
       "COORDINATORS": "Coordinators",
       "RULES": "Mentorship rules",
+      "ELIGIBILITY": "Eligibility",
+      "TRAINING": "Peer Mentor training",
       "ARCHIVE": "Archive",
-      "CURRICULUM": "Curriculum & phases"
+      "CURRICULUM": "Curriculum & phases",
+      "PEER_CATEGORIES": "Peer categories"
     },
     "sectionsLabel": "Settings sections",
     "archivedNote": "This program is archived and read-only. Reopen it below to make changes.",
@@ -3697,7 +4168,11 @@
     "archive": "Archive the program",
     "archived": "Program archived.",
     "reopened": "Program reopened.",
-    "archiveFailed": "Couldn't archive the program."
+    "archiveFailed": "Couldn't archive the program.",
+    "adminViewNote": "The program’s coordinators set up its settings; as an admin you only view them. You can assign coordinators here.",
+    "coordinatorsByAdmin": "The admin assigns coordinators.",
+    "type": "Program type",
+    "peerCategoriesNote": "Students and peer mentors only see the categories you turn on here. None is on to begin with."
   },
   "programTeams": {
     "filters": {
@@ -4053,7 +4528,45 @@
     "myPrograms": "My programs",
     "programFallback": "Program",
     "title": "Program report",
-    "subtitle": "{name} · rates, numbers and meeting ratings"
+    "subtitle": "{name} · rates, numbers and meeting ratings",
+    "sessions": {
+      "title": "Sessions and hours",
+      "hint": "Only meetings the mentor confirmed as held count. A group session counts once for the mentor.",
+      "from": "From",
+      "to": "To",
+      "rangeInvalid": "The end date cannot be before the start.",
+      "mentors": "Mentors",
+      "students": "Mentees",
+      "name": "Name",
+      "email": "Email",
+      "sessions": "Sessions",
+      "hours": "Hours",
+      "days": "Days",
+      "empty": "No confirmed meetings in this range.",
+      "loading": "Loading the report…",
+      "downloadXlsx": "Download Excel (.xlsx)",
+      "downloadCsv": "Download CSV"
+    },
+    "attendance": {
+      "title": "Weekly attendance",
+      "hint": "The weeks participants checked in on Süreç. Without dates, from the program's start to today.",
+      "from": "From",
+      "to": "To",
+      "wholeProgram": "Whole program",
+      "downloadXlsx": "Download Excel",
+      "downloadCsv": "Download CSV",
+      "rangeInvalid": "Choose a valid date range.",
+      "noWeeks": "No program week has begun in this range.",
+      "noParticipants": "This program has no participants yet.",
+      "name": "Name",
+      "team": "Team",
+      "week": "W{week}",
+      "attendedWeeks": "Attended",
+      "present": "Attended",
+      "absent": "Did not attend",
+      "rate": "Weekly attendance rate",
+      "percent": "{rate}%"
+    }
   },
   "programDetail": {
     "home": "Home",
@@ -4070,10 +4583,14 @@
     "noMembers": "No team members.",
     "memberCount": "{count, plural, one {# person} other {# people}}",
     "memberFallback": "Member",
-    "founder": "Founder"
+    "founder": "Founder",
+    "participants": "Participants",
+    "noParticipants": "No participants in the program yet."
   },
   "adminCommon": {
+    "peerMentorship": "Peer mentoring",
     "programStatus": {
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "COMPLETED": "Completed"
     },
@@ -4166,6 +4683,7 @@
   "adminPrograms": {
     "filters": {
       "ALL": "All",
+      "DRAFT": "Draft",
       "ACTIVE": "Active",
       "UPCOMING": "Upcoming",
       "COMPLETED": "Completed"
@@ -4210,7 +4728,8 @@
       "ADMIN": "an admin",
       "COORDINATOR": "a coordinator",
       "MENTOR": "a mentor",
-      "MENTEE": "a founder"
+      "MENTEE": "a founder",
+      "ACADEMICIAN": "an academician"
     },
     "userFallback": "a user",
     "candidate": {
@@ -4256,7 +4775,9 @@
     "tabs": {
       "coordinators": "Coordinators",
       "mentors": "Mentors",
-      "teams": "Teams"
+      "teams": "Teams",
+      "students": "Students",
+      "academics": "Academics"
     },
     "addCoordinator": "+ Add a coordinator",
     "filters": {
@@ -4691,6 +5212,21 @@
       "accountsDetail": "users created in this window"
     }
   },
+  "weeklyCheckIn": {
+    "title": "Weekly attendance",
+    "week": "Week {week}",
+    "weekOf": "Week {week}/{total}",
+    "hint": "Check in if you took part in this week's program work.",
+    "action": "I took part this week",
+    "saving": "Saving…",
+    "checkedIn": "Your check-in for this week is saved.",
+    "checkedInAt": "Your check-in for this week is saved ({time}).",
+    "done": "Check-in saved.",
+    "failed": "Could not save your check-in.",
+    "notStarted": "The program has not started; you can check in once its first week begins.",
+    "ended": "The program has ended.",
+    "unscheduled": "The program's weeks are not scheduled yet."
+  },
   "meetingRatings": {
     "title": "Meeting ratings",
     "hint": "From the teams' post-meeting survey; scores only (1–5).",
@@ -4709,6 +5245,29 @@
       "fit": "Advice fit the stage",
       "expression": "Could speak freely",
       "confidence": "Confidence to progress"
+    },
+    "mentorQuestions": {
+      "preparedness": "Mentee came prepared",
+      "clarity": "Outcome was clear"
+    },
+    "details": {
+      "title": "Who rated whom",
+      "hint": "Each rating: the meeting, who wrote it, the scores and their note.",
+      "empty": "No ratings in this window yet.",
+      "count": "{count, plural, one {# rating} other {# ratings}}",
+      "mentor": "Mentor: {name}",
+      "noMentor": "No mentor",
+      "author": "Rated by {name}",
+      "sides": {
+        "MENTOR": "Mentor",
+        "MENTEE": "Mentee"
+      },
+      "rating": "{rating}/5",
+      "note": "Note",
+      "previous": "Previous",
+      "next": "Next",
+      "page": "Page {page}/{total}",
+      "pager": "Rating pages"
     }
   },
   "mobile": {
@@ -5012,7 +5571,158 @@
       }
     }
   },
+  "badges": {
+    "listLabel": "Badges",
+    "more": "+{count}",
+    "names": {
+      "PEER_MENTOR": "Peer Mentor",
+      "FIRST_SESSION": "First Session",
+      "SESSIONS_10": "10 Sessions",
+      "HOURS_25": "25 Hours of Mentoring",
+      "WELL_RATED": "Recommended by Mentees",
+      "ACTIVE_MENTEE": "Active Mentee"
+    },
+    "descriptions": {
+      "PEER_MENTOR": "Can give peer mentoring.",
+      "FIRST_SESSION": "Held their first mentoring session.",
+      "SESSIONS_10": "Held 10 mentoring sessions.",
+      "HOURS_25": "Gave 25 hours of mentoring.",
+      "WELL_RATED": "Mentee ratings of 4.5 or higher.",
+      "ACTIVE_MENTEE": "Attended their sessions and gave feedback."
+    },
+    "states": {
+      "NONE": "No badge",
+      "ACTIVE": "Badge earned",
+      "EXPIRED": "Expired",
+      "REVOKED": "Taken back"
+    },
+    "statuses": {
+      "ACTIVE": "Active",
+      "EXPIRED": "Expired",
+      "REVOKED": "Taken back"
+    },
+    "mine": {
+      "title": "My badges",
+      "loading": "Loading badges…",
+      "loadFailed": "Could not load your badges.",
+      "empty": "You have no badges yet.",
+      "awardedIn": "{program} · {date}",
+      "awardedOn": "{date}",
+      "revokedBecause": "Taken back because: {reason}"
+    },
+    "achievements": {
+      "title": "Achievement badges",
+      "hint": "Sessions the mentor marked as held and mentees' ratings count.",
+      "loading": "Loading achievement badges…",
+      "loadFailed": "Achievement badges could not be loaded.",
+      "earned": "Earned",
+      "earnedOn": "Earned on {date}",
+      "average": " · average {average} (at least {needed})",
+      "progress": {
+        "FIRST_SESSION": "{current}/{target} sessions",
+        "SESSIONS_10": "{current}/{target} sessions",
+        "HOURS_25": "{current}/{target} hours",
+        "WELL_RATED": "{current}/{target} ratings",
+        "ACTIVE_MENTEE": "{current}/{target} sessions you gave feedback on"
+      },
+      "summary": "{earned}/{total} earned"
+    },
+    "inTraining": "In training"
+  },
+  "peerParticipants": {
+    "loading": "Loading participants…",
+    "loadFailed": "Could not load the participants.",
+    "actionFailed": "That could not be completed.",
+    "noStudents": "This program has no students yet.",
+    "noMentors": "Nobody in this program holds the Peer Mentor badge yet.",
+    "name": "Name",
+    "badge": "Peer Mentor badge",
+    "since": "Date",
+    "actions": "Actions",
+    "award": "Award badge",
+    "revoke": "Take back badge",
+    "revokedBecause": "Reason: {reason}",
+    "revokeTitle": "Take back the badge from {name}",
+    "revokeIntro": "Taking the badge back also ends their right to mentor. The student sees the reason.",
+    "reason": "Reason",
+    "cancel": "Cancel",
+    "confirmRevoke": "Take back",
+    "trainingWatched": "Video watched, quiz not taken yet",
+    "trainingAttempts": "{count} attempts · best {best}/10"
+  },
+  "adminStudents": {
+    "filterLabel": "Badge state",
+    "filters": {
+      "ALL": "All",
+      "NONE": "No badge",
+      "IN_TRAINING": "In training",
+      "ACTIVE": "Peer mentor",
+      "REVOKED": "Taken back"
+    },
+    "loading": "Loading students…",
+    "loadFailed": "Could not load the students.",
+    "empty": "No students for this filter.",
+    "name": "Name",
+    "program": "Program",
+    "badge": "Badge state",
+    "since": "Date"
+  },
+  "trainingEditor": {
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "placeholderNote": "EXAMPLE CONTENT: until the real video and questions arrive, this example video and the [ÖRNEK] questions are shown. Change them and save to publish.",
+    "publishedNote": "Published · version {version} · last changed {date}. A change makes a new version; badge holders keep their badge, students who have not passed start again.",
+    "videoLink": "YouTube video link",
+    "videoHint": "An unlisted YouTube video is recommended. Only YouTube links are accepted.",
+    "question": "Question {number}",
+    "optionsLegend": "Options (mark the correct one)",
+    "markCorrect": "Question {question}, option {option} is correct",
+    "option": "Question {question}, option {option}",
+    "saveAndPublish": "Save and publish",
+    "saving": "Saving…",
+    "saved": "The training is live.",
+    "saveFailed": "Could not save the training."
+  },
+  "studentTraining": {
+    "title": "Peer Mentor training",
+    "loading": "Loading the training…",
+    "loadFailed": "Could not load the training.",
+    "notAvailable": "The training is not ready yet. It shows up here once your program coordinator publishes it.",
+    "blocked": "Your Peer Mentor badge was taken back, so you cannot earn it again through the training. Talk to your program coordinator.",
+    "badgeActive": "You hold the Peer Mentor badge. You can create your mentor profile and start mentoring.",
+    "toMentorProfile": "Go to Mentoring",
+    "stepVideo": "1. Watch the video",
+    "videoIntro": "The quiz opens once you reach the end of the video.",
+    "videoTitle": "Peer Mentor training video",
+    "stepQuiz": "2. Quiz",
+    "quizIntro": "There are {total} questions; you need at least {pass} right to pass.",
+    "attemptsLeft": "You have {count} attempts left today.",
+    "startQuiz": "Start the quiz",
+    "tryAgain": "Try again",
+    "noAttemptsLeft": "You have used today’s attempts. You can try again after {date}.",
+    "submit": "Submit",
+    "submitting": "Submitting…",
+    "submitFailed": "Could not submit your answers.",
+    "passed": "Congratulations, you earned the Peer Mentor badge!",
+    "failed": "Not this time.",
+    "score": "{score}/{total} right"
+  },
   "apiErrors": {
+    "trainingSubmitFailed": "Could not submit the answers.",
+    "trainingLoadFailed": "Could not load the training.",
+    "trainingSaveFailed": "Could not save the training.",
+    "badgesLoadFailed": "Could not load the badges.",
+    "badgeAwardFailed": "Could not award the badge.",
+    "badgeRevokeFailed": "Could not take the badge back.",
+    "badgeRevokeReasonRequired": "Write a reason to take the badge back.",
+    "workspaceNotAvailable": "This account cannot open that workspace.",
+    "workspaceSwitchFailed": "Could not switch the workspace.",
+    "institutionUnknown": "You cannot sign in through this institution.",
+    "institutionLoginFailed": "The institution sign-in could not be completed. Please try again.",
+    "institutionLoginExpired": "This sign-in expired or was started in another browser. Please sign in again.",
+    "institutionRecordLoadFailed": "Could not load your institution details.",
+    "eligibleEmailsLoadFailed": "Could not load the list.",
+    "eligibleEmailsSaveFailed": "Could not update the list.",
     "platformFeedbackInvalid": "Check the feedback details and try again.",
     "platformFeedbackSendFailed": "Feedback could not be sent. Please try again.",
     "platformFeedbackLoadFailed": "Feedback could not be loaded.",
@@ -5040,6 +5750,8 @@
     "platformAndMeetingIdRequired": "A platform and a meeting ID are required.",
     "reportRequestInvalid": "The report request is not valid.",
     "reportServiceUnavailable": "The meeting report service is unavailable.",
+    "assistantMeetingForbidden": "Only this meeting's participants can use its assistant.",
+    "assistantMeetingNotFound": "There is no meeting for this link. The assistant works only for meetings in the calendar.",
     "messagesLoadFailed": "Could not load the messages.",
     "conversationStartFailed": "Could not start the conversation.",
     "messageSendFailed": "Could not send the message.",
@@ -5095,6 +5807,13 @@
     "meetingUpdateFailed": "Could not update the meeting.",
     "onlyMentorDeletesMeeting": "Only the mentor can delete the meeting.",
     "meetingDeleteFailed": "Could not delete the meeting.",
+    "onlyMentorConfirmsMeeting": "Only the mentor can confirm that the meeting was held.",
+    "meetingHeldFailed": "Could not save whether the meeting was held.",
+    "sessionsLoadFailed": "Could not load the sessions and hours report.",
+    "sessionsExportFailed": "Could not prepare the report file.",
+    "attendanceLoadFailed": "Could not load attendance.",
+    "attendanceCheckInFailed": "Could not save your check-in.",
+    "attendanceExportFailed": "Could not prepare the attendance file.",
     "assistantShareLoadFailed": "Could not load what the assistant shared.",
     "transcriptOrReportRequired": "A transcript or report is required.",
     "transcriptEmpty": "The meeting transcript is empty.",
@@ -5247,7 +5966,27 @@
     "teamLeaveRequestFailed": "Could not send the leave request.",
     "approvalsLoadFailed": "Could not load the approvals.",
     "teamHistoryLoadFailed": "Could not load the team history.",
-    "teamLeaveFailed": "Could not leave the team."
+    "teamLeaveFailed": "Could not leave the team.",
+    "programLaunchFailed": "The program could not be launched.",
+    "peerMentoringLoadFailed": "Couldn't load peer mentoring.",
+    "peerMentoringRequestFailed": "Couldn't send the request.",
+    "officeHoursFailed": "The office hours action could not be completed.",
+    "invalidRequestBody": "The request body could not be read.",
+    "invalidRequestFields": "Some fields in the request are missing or invalid.",
+    "peerMentorProfileSaveFailed": "Couldn't save your mentor profile.",
+    "peerCategoriesLoadFailed": "Could not load the categories.",
+    "peerCategoriesSaveFailed": "Could not save the categories.",
+    "peerCategoriesInvalid": "The category list is not valid.",
+    "studentProfileCompletionLoadFailed": "Couldn't load your interests.",
+    "studentProfileCompletionSaveFailed": "Couldn't save your interests.",
+    "studentAppointmentsLoadFailed": "Couldn't load your appointments.",
+    "academicsLoadFailed": "Could not load the academics.",
+    "weekPlanLoadFailed": "Couldn't load the weekly plan.",
+    "weekPlanSaveFailed": "Couldn't save the weekly plan.",
+    "programThisWeekLoadFailed": "Couldn't load this week's plan.",
+    "sessionRefreshFailed": "Couldn't update your session.",
+    "personSummaryLoadFailed": "Could not load the profile.",
+    "personIdInvalid": "Choose a valid person."
   },
   "startupStart": {
     "title": "My startup",
@@ -5276,7 +6015,9 @@
     "rejectedBanner": "Your startup was not approved. You can update the profile and send it for approval again.",
     "rejectedBannerMember": "Your startup was not approved. The founder can update the profile and send it for approval again.",
     "resubmit": "Send for approval again",
-    "resubmitFailed": "Could not send it again."
+    "resubmitFailed": "Could not send it again.",
+    "studentPendingBanner": "Your application is waiting for the coordinator's approval. All pages open once it is approved.",
+    "studentRejectedBanner": "Your application was not approved. You can send it for approval again."
   },
   "programPhases": {
     "timelineLabel": "Phase timeline",
@@ -5384,7 +6125,18 @@
       "title": "Your startup was not approved",
       "body": "You can update the profile on the My startup page and send it for approval again."
     },
-    "goToStartup": "Go to My startup"
+    "goToStartup": "Go to My startup",
+    "student": {
+      "pending": {
+        "title": "Your application is waiting for the coordinator's approval.",
+        "body": "This page opens once it is approved. Meanwhile you can upload files on the My project page."
+      },
+      "rejected": {
+        "title": "Your application was not approved",
+        "body": "You can send your application for approval again on the My project page."
+      },
+      "goToProject": "Go to My project"
+    }
   },
   "programApprovals": {
     "approve": "Approve",
@@ -5430,5 +6182,609 @@
     "declined": "You declined the invitation to {name}.",
     "answerFailed": "Could not answer the invitation.",
     "awaitingReview": "Waiting for the coordinator's approval"
+  },
+  "programsPage": {
+    "title": "Programs",
+    "actionFailed": "The action could not be completed.",
+    "created": "Program created.",
+    "createFirst": "Create a program first.",
+    "startupAdded": "Startup added to the program.",
+    "createTitle": "Create a program",
+    "namePlaceholder": "Program name",
+    "create": "Create",
+    "startups": "Startups",
+    "startupsHint": "All startups are listed below the search bar. Add them to the program you select.",
+    "targetProgram": "Target program",
+    "searchStartups": "Search startups",
+    "loading": "Loading...",
+    "noStartups": "No startups found.",
+    "addToProgram": "Add to program",
+    "programs": "Programs",
+    "noPrograms": "No programs yet.",
+    "noProgramStartups": "This program has no startups yet.",
+    "startupRemoved": "Startup removed.",
+    "mentors": "Mentors",
+    "noMentors": "No mentor has accepted yet.",
+    "awaitingMentor": "Awaiting mentor response",
+    "mentorApplications": "Mentor applications",
+    "mentorAccepted": "Mentor accepted.",
+    "accept": "Accept",
+    "mentorRejected": "Mentor rejected.",
+    "reject": "Reject",
+    "pickMentor": "Select a mentor",
+    "inviteSent": "Invitation sent. The mentor can accept or decline it from the notification.",
+    "inviteMentor": "Invite mentor"
+  },
+  "mentorEducation": {
+    "title": "Education",
+    "subtitle": "Your schools; if your CV was read, you can correct them here.",
+    "school": "School",
+    "schoolPlaceholder": "METU",
+    "degree": "Degree and department",
+    "degreePlaceholder": "BSc, Computer Engineering",
+    "period": "Years",
+    "periodPlaceholder": "2022 – 2026",
+    "add": "+ Add school",
+    "remove": "Remove",
+    "removeNamed": "Remove {school}",
+    "empty": "No schools added yet."
+  },
+  "programTypes": {
+    "label": "Program type",
+    "ALL": "All types",
+    "STARTUP_MENTORING": "Startup mentoring",
+    "PEER_MENTORING": "Peer mentoring",
+    "OFFICE_HOURS": "Office hours"
+  },
+  "adminProgramWizard": {
+    "breadcrumb": "Programs",
+    "newProgram": "Create a new program",
+    "stepOf": "Step {current} of {total}",
+    "steps": {
+      "TYPE": {
+        "label": "Program type",
+        "hint": "Startup, peer or office hours",
+        "title": "Choose the program type",
+        "note": "The type decides which structures the program has and cannot change later."
+      },
+      "INFO": {
+        "label": "Program details",
+        "hint": "Name, description, dates",
+        "title": "Program details",
+        "note": "Dates are optional; the coordinator can add them later."
+      },
+      "COORDINATORS": {
+        "label": "Coordinator",
+        "hint": "Who runs the program",
+        "title": "Assign coordinators",
+        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+      },
+      "SUMMARY": {
+        "label": "Summary",
+        "hint": "Check and save",
+        "title": "Summary and save",
+        "note": "The program is saved as a draft; participants see it only after you launch it."
+      }
+    },
+    "typeNotes": {
+      "STARTUP_MENTORING": "Today’s structure as is: Teams · Mentor pool · Matching · Approvals",
+      "PEER_MENTORING": "Mentees: METU students · Mentors: İŞKUR students with a verified badge",
+      "OFFICE_HOURS": "Every METU academic included, no invitations · Students request appointments"
+    },
+    "name": "Program name",
+    "namePlaceholder": "e.g. METU Peer Mentoring 2026",
+    "description": "Description",
+    "optional": "optional",
+    "start": "Start",
+    "end": "End",
+    "coordinatorsLabel": "Coordinators",
+    "coordinatorsFailed": "Couldn’t load the coordinators.",
+    "retry": "Try again",
+    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
+    "summaryType": "Program type",
+    "summaryName": "Program name",
+    "summaryDates": "Dates",
+    "noDates": "Not set",
+    "summaryCoordinators": "Coordinators",
+    "summaryStatus": "Status",
+    "draft": "Draft",
+    "problems": {
+      "TYPE_REQUIRED": "Choose a program type.",
+      "NAME_REQUIRED": "Enter the program name.",
+      "DATES_ORDER": "The end date cannot be before the start date.",
+      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+    },
+    "cancel": "Cancel",
+    "back": "Back",
+    "continue": "Continue: {step}",
+    "create": "Save as draft",
+    "creating": "Saving…",
+    "created": "{name} was created as a draft.",
+    "createFailed": "The program could not be created."
+  },
+  "studentAppointments": {
+    "title": "My appointments",
+    "subtitle": "Your peer-mentoring appointments, as mentee and as mentor. Office Hours appointments will show here soon.",
+    "filter": "Filter by status",
+    "all": "All",
+    "loading": "Loading appointments…",
+    "error": "Appointments could not be loaded.",
+    "retry": "Try again",
+    "empty": "No appointments yet.",
+    "filteredEmpty": "No appointments with this status.",
+    "emptyBody": "Once you pick a time on an accepted request, the appointment shows here.",
+    "findMentor": "Find a peer mentor",
+    "upcoming": "Upcoming",
+    "upcomingEmpty": "No upcoming appointments.",
+    "past": "Past"
+  },
+  "studentProfileCompletion": {
+    "title": "Complete your profile",
+    "subtitle": "Pick your interests and goal; you can change them any time in Profilim.",
+    "loading": "Loading profile…",
+    "loadError": "Profile could not be loaded.",
+    "retry": "Try again",
+    "saved": "Your profile is complete.",
+    "skipped": "Skipped for now. You can complete your profile later.",
+    "home": "Back to home",
+    "step": "Step {number} / 3",
+    "steps": {
+      "0": "Your interests",
+      "1": "Subtopics",
+      "2": "Your goal (optional)"
+    },
+    "noTopics": "No interests selected. Go back or continue without a selection.",
+    "goal": "Your goal (optional, up to 1000 characters)",
+    "saveError": "Your profile couldn't be saved. Please try again.",
+    "back": "Back",
+    "next": "Continue",
+    "finish": "Complete profile",
+    "saving": "Saving…",
+    "skip": "Skip for now",
+    "subtopics": {
+      "study": "Example: Study skills",
+      "cv": "Example: CV preparation",
+      "code": "Example: Programming",
+      "methods": "Example: Research methods",
+      "project": "Example: Project ideas",
+      "clubs": "Example: Student clubs",
+      "time": "Example: Time management",
+      "exchange": "Example: Exchange programmes"
+    },
+    "noActiveCategories": "Your program has no active category yet. You can choose here once your coordinator turns them on."
+  },
+  "officeHours": {
+    "title": "Office hours",
+    "course": "Course",
+    "roles": {
+      "INSTRUCTOR": "Academic",
+      "STUDENT": "Student"
+    },
+    "instructor": {
+      "manageAvailability": "Manage availability",
+      "availabilityHint": "Your office hours come from the availability on your profile and apply to every course you teach."
+    },
+    "launchError": {
+      "again": "Go back to the course page on ODTÜClass and open the office hours link again.",
+      "unavailable": {
+        "title": "Office hours can't open right now",
+        "body": "Menton couldn't be reached, or the ODTÜClass connection isn't set up yet."
+      },
+      "rejected": {
+        "title": "The link couldn't be verified",
+        "body": "The sign-in details from ODTÜClass are invalid or were already used."
+      },
+      "no-role": {
+        "title": "You don't have access to office hours in this course",
+        "body": "Office hours are for the course's academics and students only."
+      },
+      "expired": {
+        "title": "Your session has ended",
+        "body": "For your security, the office hours session closes after a while."
+      }
+    },
+    "availability": {
+      "title": "Edit office hours",
+      "subtitle": "Students can only request office hours in the hours you leave open.",
+      "close": "Close the editor",
+      "footer": "Changes don't affect upcoming meetings.",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "studentCapacity": "Concurrent student limit"
+    },
+    "profile": {
+      "title": "My profile",
+      "role": "Academic",
+      "editAvailability": "Edit availability",
+      "availabilityTitle": "Availability",
+      "weekly": "Recurring weekly availability",
+      "empty": "No weekly hours set.",
+      "edit": "Edit",
+      "loading": "Loading...",
+      "loadFailed": "Couldn't load availability."
+    },
+    "booking": {
+      "academics": "The course's academics",
+      "noAcademics": "The course's academics haven't opened office hours yet.",
+      "request": "Request office hours",
+      "myRequests": "My requests",
+      "incoming": "Incoming requests",
+      "noRequests": "No requests yet.",
+      "meetings": "Upcoming meetings",
+      "noMeetings": "No upcoming meetings.",
+      "loading": "Loading…",
+      "loadFailed": "Couldn't load. Try refreshing the page.",
+      "status": {
+        "PENDING": "Waiting for a reply",
+        "ACCEPTED": "Accepted",
+        "DECLINED": "Not available",
+        "MORE_INFO_REQUESTED": "More info requested",
+        "COUNTER_PROPOSED": "Other times offered",
+        "WITHDRAWN": "Withdrawn"
+      },
+      "with": "With {name}",
+      "asked": "Requested times",
+      "proposed": "Offered times",
+      "meetingAt": "Meeting: {time} · {minutes} min",
+      "question": "The academic's question",
+      "answer": "Your answer",
+      "rejection": "Reason: {reason}",
+      "note": "Note: {message}",
+      "outcome": "Expected outcome: {outcome}",
+      "replyPlaceholder": "Write your answer",
+      "sendReply": "Send answer",
+      "takeTime": "Take this time",
+      "withdraw": "Withdraw request",
+      "accept": "Accept",
+      "decline": "Not available",
+      "askQuestion": "Ask a question",
+      "propose": "Offer other times",
+      "cancel": "Cancel",
+      "send": "Send",
+      "pickTime": "Which time will you meet?",
+      "declineReason": "Reason (optional)",
+      "questionPlaceholder": "Ask the student",
+      "proposeHint": "Offer up to 3 times, at least 4 hours from now.",
+      "messagePlaceholder": "Note (optional)",
+      "done": "Saved.",
+      "failed": "The action could not be completed.",
+      "dialog": {
+        "title": "Plan office hours with {name}",
+        "close": "Close",
+        "topic": "What do you want to talk about?",
+        "topicPlaceholder": "E.g. I'm stuck on question 3 of assignment 2.",
+        "outcome": "What do you expect from the meeting? (optional)",
+        "outcomePlaceholder": "E.g. A clear way to solve it.",
+        "availability": "The academic's open times",
+        "nextDays": "The coming days",
+        "noSlots": "The academic has no open times. Enter at least one preferred day and time below (up to three).",
+        "pickable": "Pickable time",
+        "enterPreference": "Or enter the times you prefer",
+        "preferenceHint": "Up to 3 times, on the hour or half hour, at least 4 hours from now.",
+        "preference": "Choice {number}",
+        "preferenceDay": "Day of choice {number}",
+        "preferenceTime": "Time of choice {number}",
+        "pickDay": "Pick a day",
+        "needSlots": "Pick at least one valid time.",
+        "needTopic": "Write what you want to talk about.",
+        "send": "Send request",
+        "sending": "Sending…",
+        "sent": "Your request was sent."
+      }
+    }
+  },
+  "academicianWorkspace": {
+    "sampleNotice": "Sample data: Office Hours is not connected yet, so changes here are not saved.",
+    "queryState": {
+      "loading": "Loading…",
+      "error": "Could not load.",
+      "retry": "Try again"
+    },
+    "studyLevel": {
+      "BACHELOR": "Bachelor's",
+      "MASTER": "Master's",
+      "DOCTORATE": "Doctorate"
+    },
+    "advisees": {
+      "title": "My advisees",
+      "subtitle": "Students you advise according to ODTÜ's records. This information is read-only.",
+      "search": "Search students",
+      "count": "{count} students",
+      "classYear": "Year {year}",
+      "notSignedIn": "Has not signed in to Menton yet",
+      "empty": "ODTÜ's records show no students you advise.",
+      "noMatch": "No students match your search."
+    },
+    "institution": {
+      "title": "Institutional details",
+      "readOnly": "From ODTÜ, read-only",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "syncedAt": "Last updated: {date}",
+      "help": "If something is wrong, tell your unit at ODTÜ; Menton cannot change these details.",
+      "empty": "There is no ODTÜ record for this account."
+    },
+    "profile": {
+      "title": "My profile",
+      "subtitle": "How students find you and where you meet.",
+      "settingsTitle": "Office hours details",
+      "settingsHint": "Students see these when they request an appointment.",
+      "defaultPlace": "Default meeting place",
+      "defaultPlacePlaceholder": "e.g. A-204",
+      "onlineLink": "Online meeting link (optional)",
+      "onlineLinkPlaceholder": "https://…",
+      "contactEmail": "E-mail shown to students (optional)",
+      "save": "Save",
+      "saving": "Saving…",
+      "saved": "Your profile details were saved.",
+      "saveFailed": "Could not save.",
+      "invalidLink": "The link must be a web address starting with https://.",
+      "invalidEmail": "Enter a valid e-mail address."
+    },
+    "requests": {
+      "title": "Appointment requests",
+      "subtitle": "Students' office hours requests. A request is not an appointment until you accept it.",
+      "waitingForYou": "Waiting for your answer",
+      "waitingForStudent": "Waiting for the student",
+      "emptyForYou": "No requests are waiting for you.",
+      "emptyAll": "No requests yet.",
+      "requestedTimes": "Requested time",
+      "requestedTimesMany": "Requested times",
+      "proposedTimes": "Times you offered",
+      "requestedAt": "Requested {date}",
+      "questionAsked": "You asked a question; waiting for the student's answer.",
+      "accept": "Accept",
+      "decline": "Decline",
+      "propose": "Propose another time",
+      "ask": "Ask a question",
+      "cancel": "Cancel",
+      "send": "Send",
+      "pickTime": "Which time will you meet?",
+      "reason": "Reason (optional)",
+      "proposeHint": "Offer up to {max} times. The appointment is confirmed once the student picks one.",
+      "proposedTime": "Time {number}",
+      "addTime": "Add a time",
+      "question": "Your question to the student",
+      "needTime": "Pick at least one time.",
+      "needQuestion": "Write your question.",
+      "accepted": "Request accepted; the appointment is in My appointments.",
+      "declined": "Request declined.",
+      "proposed": "Your times were sent to the student.",
+      "asked": "Your question was sent to the student.",
+      "failed": "The request could not be answered; the list was refreshed.",
+      "noteLabel": "Student note",
+      "proposedPast": "A time in the past cannot be offered.",
+      "pickOne": "Pick a time."
+    },
+    "appointments": {
+      "title": "My appointments",
+      "subtitle": "Your confirmed office hours appointments. Requests are under Appointment requests.",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "cancelled": "Cancelled",
+      "empty": "No appointments yet.",
+      "course": "Course: {course}",
+      "place": "Place: {place}",
+      "online": "Online link",
+      "lateCancel": "Cancelled within 24 hours",
+      "reason": "Reason: {reason}",
+      "cancel": "Cancel appointment",
+      "cancelReason": "Reason for the student",
+      "cancelReasonHint": "It starts in less than 24 hours, so a reason is required.",
+      "confirmCancel": "Cancel it",
+      "keep": "Keep",
+      "needReason": "Give a reason for cancelling within 24 hours.",
+      "cancelledToast": "Appointment cancelled; the student will be told.",
+      "cancelFailed": "The appointment could not be cancelled; the list was refreshed.",
+      "emptyView": {
+        "upcoming": "No upcoming appointments.",
+        "past": "No past appointments.",
+        "cancelled": "No cancelled appointments."
+      }
+    },
+    "calendar": {
+      "title": "Calendar",
+      "subtitle": "Your office hours: weekly hours, one-off hours and dates you are away. Changes do not affect existing appointments.",
+      "weeklyTitle": "Weekly office hours",
+      "weeklyHint": "Students can request free times within these ranges.",
+      "save": "Save",
+      "saving": "Saving…",
+      "oneOffTitle": "One-off hours",
+      "oneOffHint": "Add office hours on a particular day outside your weekly pattern.",
+      "oneOffEmpty": "No one-off hours.",
+      "date": "Date",
+      "start": "Start",
+      "end": "End",
+      "place": "Place (optional)",
+      "placeDefault": "Default place",
+      "add": "Add",
+      "remove": "Remove {when}",
+      "needDate": "Pick a date, a start and an end time.",
+      "endAfterStart": "The end must be after the start.",
+      "notPast": "Hours cannot be added in the past.",
+      "oneOffSaved": "One-off hours saved.",
+      "oneOffFailed": "One-off hours could not be saved.",
+      "insideDayOff": "This date is within your unavailable dates. Remove those dates first.",
+      "insideDayOffReason": "This date is within your unavailable dates ({reason}). Remove those dates first."
+    },
+    "home": {
+      "greeting": "Hello, {name}",
+      "greetingFallback": "Hello",
+      "subtitle": "Your office hours requests, appointments and advisees.",
+      "pendingTitle": "Requests waiting for you",
+      "pendingHint": "Accept, decline or propose another time.",
+      "pendingLink": "Go to requests",
+      "weekTitle": "Appointments in the next 7 days",
+      "weekHint": "Confirmed office hours appointments.",
+      "weekLink": "My appointments",
+      "adviseesTitle": "Advisees",
+      "adviseesHint": "From ODTÜ's records.",
+      "adviseesLink": "My advisees",
+      "nextTitle": "Next appointments",
+      "nextEmpty": "No upcoming appointments.",
+      "requestsTitle": "Latest requests",
+      "requestsEmpty": "No requests are waiting for you.",
+      "seeAll": "See all",
+      "calendarLink": "Edit office hours"
+    }
+  },
+  "programPeerCategories": {
+    "title": "Peer categories",
+    "noneActive": "No category is on: students cannot look for mentors and peer mentors cannot pick a category for their profile.",
+    "activeCount": "{count, plural, one {# category on} other {# categories on}}",
+    "save": "Save categories",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "saved": "Categories saved.",
+    "saveFailed": "Could not save the categories."
+  },
+  "adminAcademics": {
+    "intro": "Academics come from the institution's records; nobody approves them by hand or edits them here.",
+    "searchPlaceholder": "Search name, e-mail or department",
+    "department": "Department",
+    "allDepartments": "All departments",
+    "filters": {
+      "ALL": "All",
+      "SIGNED_IN": "Signed in",
+      "NOT_SIGNED_IN": "Not signed in yet",
+      "INACTIVE": "Inactive at the institution"
+    },
+    "columns": {
+      "academic": "Academic",
+      "department": "Department",
+      "advisees": "Advisees",
+      "signIn": "Menton sign-in",
+      "status": "Institution record"
+    },
+    "empty": "No academics in this filter.",
+    "none": "The institution's records list no academics yet.",
+    "loadFailed": "Could not load the academics.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "notSignedIn": "Not signed in yet",
+    "lastSignIn": "Last signed in {date}",
+    "advisees": "{count, plural, =0 {No advisees} one {# advisee} other {# advisees}}",
+    "open": "Details",
+    "close": "Close",
+    "drawer": {
+      "title": "Academic",
+      "academicTitle": "Title",
+      "faculty": "Faculty",
+      "department": "Department",
+      "email": "E-mail",
+      "record": "Institution record",
+      "signIn": "Menton sign-in",
+      "advisees": "Advisees",
+      "officeHours": "Office Hours",
+      "officeHoursPending": "Office Hours activity isn't in Menton yet; it will show here once connected.",
+      "readOnly": "This comes from the institution's records and can't be changed in Menton."
+    },
+    "programIntro": "Every active ODTÜ academic takes part in Office Hours without an invite; the list comes from the institution's records.",
+    "signedIn": "Signed in"
+  },
+  "programThisWeek": {
+    "eyebrow": "This week",
+    "loading": "Loading this week's plan…",
+    "loadFailed": "Couldn't load this week's plan.",
+    "weekNumber": "Week {week}",
+    "ofTotal": "Week {week} / {total}",
+    "lists": {
+      "topics": "Topics",
+      "activities": "To do",
+      "deliverables": "To hand in"
+    },
+    "expectedOutput": "Expected output: {output}",
+    "notStarted": "The program starts on {date}.",
+    "ended": "The program has ended.",
+    "empty": "The coordinator hasn't added the syllabus for this week yet."
+  },
+  "programWeekPlan": {
+    "title": "Weekly plan",
+    "subtitle": "Participants see only that week's plan on their Process page.",
+    "subtitleWeeks": "The program runs {total} weeks. Participants see only that week's plan on their Process page.",
+    "add": "Add week",
+    "loading": "Loading the weekly plan…",
+    "loadFailed": "Couldn't load the weekly plan.",
+    "empty": "No weekly plan yet. When you upload the syllabus, the AI proposes the weeks; you can also add them by hand.",
+    "proposedNote": "Weeks the AI read from the syllabus. Check and edit them, then save; participants don't see them until you do.",
+    "week": "Week",
+    "weekLabel": "Week {week}",
+    "weekNumberOf": "Week {week} number",
+    "inferred": "Split from a phase",
+    "remove": "Remove {week}",
+    "weekTitle": "Week title",
+    "fields": {
+      "topics": "Topics",
+      "activities": "To do",
+      "deliverables": "To hand in"
+    },
+    "onePerLine": "One item per line",
+    "discard": "Discard",
+    "save": "Save weekly plan",
+    "saving": "Saving…",
+    "saved": "Weekly plan saved.",
+    "saveFailed": "Couldn't save the weekly plan.",
+    "problems": {
+      "MISSING_TITLE": "Give every week a title.",
+      "REPEATED_WEEK": "A week appears more than once.",
+      "PAST_THE_END": "Week numbers must be between 1 and {total}."
+    }
+  },
+  "personSummary": {
+    "back": "Back",
+    "loading": "Loading the profile…",
+    "notFound": "This profile was not found, or you can't see it.",
+    "toList": "Back to the list",
+    "roles": {
+      "MENTOR": "Mentor",
+      "MENTEE": "Founder"
+    },
+    "statuses": {
+      "APPROVED": "Approved",
+      "PENDING": "Awaiting approval",
+      "REJECTED": "Rejected"
+    },
+    "linkedin": "LinkedIn profile",
+    "about": "About",
+    "noAbout": "No introduction yet.",
+    "expertise": "Areas of expertise",
+    "mentoring": "Mentoring",
+    "facts": {
+      "experienceLevel": "Experience level",
+      "sectorExperience": "Sector experience",
+      "startupStages": "Startup stages",
+      "meetingMode": "Meeting format",
+      "languages": "Languages"
+    },
+    "offerings": "Offers",
+    "experience": "Experience",
+    "education": "Education",
+    "startup": "Startup",
+    "noStartup": "Not part of a startup.",
+    "startupFields": {
+      "sector": "Sector",
+      "maturity": "Stage",
+      "fundingStage": "Funding stage",
+      "foundedYear": "Founded",
+      "problem": "Problem",
+      "solution": "Solution",
+      "website": "Website"
+    },
+    "programs": "Programs",
+    "noPrograms": "Not in a program you can see.",
+    "relations": {
+      "MENTOR": "In the mentor pool",
+      "MENTEE": "Participant"
+    },
+    "mentorPending": "Request to join awaiting approval",
+    "activity": "On Menton",
+    "activeMentees": "Active startups",
+    "completedMentorships": "Completed mentorships",
+    "registered": "Registered",
+    "open": "View profile",
+    "openFor": "View profile: {name}"
   }
 }

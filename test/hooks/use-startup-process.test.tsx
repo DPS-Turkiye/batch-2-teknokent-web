@@ -3,14 +3,13 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ToastProvider } from "@/components/providers/toast-provider";
+import { Toaster } from "@/components/common/toaster";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { DocumentKind } from "@/interfaces/startup-document";
 import {
   StartupStage,
   StartupStageState,
-  type ProcessAssignment,
   type StartupProcess,
 } from "@/interfaces/startup-process";
 import { uploadDocument } from "@/lib/client/documents";
@@ -18,6 +17,7 @@ import {
   getStartupProcess,
   submitAssignment,
 } from "@/lib/client/startup-process";
+import { processAssignment } from "@test/fixtures/process-assignments";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/startup-process", () => ({
@@ -32,7 +32,10 @@ vi.mock("@/lib/client/documents", () => ({
 function wrapper({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={createTestQueryClient()}>
-      <ToastProvider>{children}</ToastProvider>
+      <>
+        {children}
+        <Toaster />
+      </>
     </QueryClientProvider>
   );
 }
@@ -41,19 +44,8 @@ function assignment(
   id: string,
   stage: StartupStage,
   status = ActionItemStatus.Open,
-): ProcessAssignment {
-  return {
-    id,
-    roundId: null,
-    stage,
-    title: "Finansal model",
-    description: null,
-    status,
-    dueDate: null,
-    submissionDocumentId: null,
-    submissionFilename: null,
-    createdAt: "2026-08-10T09:00:00Z",
-  };
+) {
+  return processAssignment({ id, stage, status });
 }
 
 const round = {
@@ -163,7 +155,7 @@ describe("useStartupProcess", () => {
     act(() => result.current.uploadAssignment("mvp", file));
 
     await waitFor(() =>
-      expect(result.current.assignments[0].status).toBe(
+      expect(result.current.assignments[0]?.status).toBe(
         ActionItemStatus.Completed,
       ),
     );

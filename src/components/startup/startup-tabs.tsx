@@ -1,18 +1,25 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 
-import { STARTUP_TABS } from "@/lib/startup-tabs";
+import { useIndividualProgram } from "@/hooks/use-individual-program";
+import { startupTabsFor } from "@/lib/startup-tabs";
 
 export function StartupTabs() {
   const t = useTranslations("startupFrame");
   const pathname = usePathname();
+  const student = useIndividualProgram();
+  // Wait for the program, so a student never sees the startup-only tabs flash.
+  if (student.isLoading) return null;
 
   return (
-    <nav aria-label={t("tabsLabel")} className="flex overflow-x-auto">
-      {STARTUP_TABS.map((tab) => {
+    <nav
+      aria-label={t(student.individual ? "studentTabsLabel" : "tabsLabel")}
+      className="flex overflow-x-auto"
+    >
+      {startupTabsFor(student.individual).map((tab) => {
         const selected = pathname === tab.href;
         return (
           <Link

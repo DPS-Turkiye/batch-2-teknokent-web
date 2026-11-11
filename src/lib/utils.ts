@@ -34,6 +34,18 @@ export function formatDateTime(value: string, locale = "tr") {
   }).format(new Date(value));
 }
 
+/** "12 Kasım 2026 14:00 – 14:30": a start date and time with the end time of the same day. */
+export function formatTimeRange(
+  startsAt: string,
+  endsAt: string,
+  locale = "tr",
+) {
+  const end = new Intl.DateTimeFormat(locale, { timeStyle: "short" }).format(
+    new Date(endsAt),
+  );
+  return `${formatDateTime(startsAt, locale)} – ${end}`;
+}
+
 /** "2 Eylül 2026" */
 export function formatLongDate(value: string, locale = "tr") {
   return new Intl.DateTimeFormat(locale, {
@@ -61,6 +73,16 @@ export function formatShortDate(value: string, locale = "tr") {
 export function toDateTimeLocalValue(date: Date) {
   const pad = (value: number) => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+/** "Ayşe Nur Yılmaz" → "Ayşe Nur" + "Yılmaz"; a single word is the first name. */
+export function splitFullName(fullName: string) {
+  const parts = fullName.trim().split(/\s+/).filter(Boolean);
+  if (parts.length < 2) return { firstName: parts[0] ?? "", lastName: "" };
+  return {
+    firstName: parts.slice(0, -1).join(" "),
+    lastName: parts.at(-1) ?? "",
+  };
 }
 
 export function initials(name: string) {
@@ -106,3 +128,28 @@ export function httpUrlOrNull(value: string | null | undefined) {
   const trimmed = value?.trim() ?? "";
   return /^https?:\/\/\S+$/i.test(trimmed) ? trimmed : null;
 }
+
+/** Each distinct item once, keyed by `keyOf`: stable React keys for read-only lists without index keys. */
+export function distinctBy<T>(items: readonly T[], keyOf: (item: T) => string) {
+  const byKey = new Map<string, T>();
+  for (const item of items) {
+    const key = keyOf(item);
+    if (!byKey.has(key)) byKey.set(key, item);
+  }
+  return [...byKey].map(([key, item]) => ({ key, item }));
+}
+
+/** A backend id; anything else (say `..`) never reaches a backend URL. */
+export function isUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+    value,
+  );
+}
+
+/** Whether a page sits in the admin frame; shared screens use it to keep links inside that frame. */
+export function isAdminArea(pathname: string | null) {
+  return pathname?.startsWith("/admin/") ?? false;
+}
+
+/** A yyyy-mm-dd day, the way the report and calendar endpoints take it. */
+export const ISO_DAY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;

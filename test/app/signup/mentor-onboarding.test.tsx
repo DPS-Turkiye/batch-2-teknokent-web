@@ -1,4 +1,4 @@
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +10,7 @@ import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
+import { getProgramNames } from "@/lib/client/programs";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
 const searchParams = new URLSearchParams();
@@ -226,6 +227,52 @@ describe("Mentor onboarding flow", () => {
     expect(
       screen.getByRole("link", { name: "Gönderilen profili görüntüle" }),
     ).toHaveAttribute("href", "/application-status");
+  });
+
+  it("shows a mentor who picks İŞKUR the student topics and years", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const user = userEvent.setup();
+    render(<MentorOnboardingFlow fullName="Nihan Öztürk" />);
+
+    await fillProfileStep(user);
+    await user.click(screen.getByRole("button", { name: "Devam et" }));
+    await user.click(await screen.findByRole("button", { name: "İŞKUR" }));
+
+    expect(
+      screen.getByText(
+        "Seçtiğin programda öğrencilere mentorluk yapacağın için öğrenci konuları gösteriliyor.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", {
+        name: "Hangi öğrencilere destek verebilirsin?",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Finans" })).toBeNull();
+    expect(screen.queryByRole("button", { name: "MVP" })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: "Staj" }));
+    await user.click(
+      within(screen.getByRole("group", { name: "Sınıflar" })).getByRole(
+        "button",
+        { name: "3. sınıf" },
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Devam et" })).toBeDisabled();
+
+    await user.type(
+      screen.getByLabelText("Bölümün"),
+      "Bilgisayar Mühendisliği",
+    );
+    await user.click(
+      within(screen.getByRole("group", { name: "Sınıfın" })).getByRole(
+        "button",
+        { name: "4. sınıf" },
+      ),
+    );
+    expect(screen.getByRole("button", { name: "Devam et" })).toBeEnabled();
   });
 
   it("goes back from the form to the CV upload, then disables Geri on the first screen", async () => {

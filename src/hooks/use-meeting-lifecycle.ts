@@ -1,19 +1,20 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useMemo, useState } from "react";
 
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import { useToast } from "@/components/providers/toast-provider";
 import { useMeetings, useUpdateMeeting } from "@/hooks/use-meetings";
 import { RATED_MEETINGS_QUERY_KEY } from "@/hooks/use-meetings-awaiting-feedback";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
+import { ToastTone } from "@/interfaces/toast";
 import { getMeetingFeedback, postMeetingFeedback } from "@/lib/client/meetings";
 import {
   MEETING_FEEDBACK_BENEFITS,
   MEETING_FEEDBACK_QUESTIONS,
 } from "@/lib/const";
+import { useToast } from "@/stores/toast-store";
 
 function chooseMeeting(meetings: MeetingItem[], requestedId: string | null) {
   if (requestedId) {
@@ -75,10 +76,10 @@ export function useMeetingLifecycle() {
         notes: draft.notes,
         outcomes: draft.outcomes,
       });
-      showToast({ message: t("notesSaved"), tone: "success" });
+      showToast({ message: t("notesSaved"), tone: ToastTone.Success });
       router.push(meetingHref("/meetings/research/summary"));
     } catch {
-      showToast({ message: t("notesFailed"), tone: "error" });
+      showToast({ message: t("notesFailed"), tone: ToastTone.Error });
     }
   }
 
@@ -90,10 +91,10 @@ export function useMeetingLifecycle() {
         outcomes: draft.outcomes,
         status: MeetingStatus.Completed,
       });
-      showToast({ message: t("completed"), tone: "success" });
+      showToast({ message: t("completed"), tone: ToastTone.Success });
       router.push(meetingHref("/meetings/research/feedback"));
     } catch {
-      showToast({ message: t("completeFailed"), tone: "error" });
+      showToast({ message: t("completeFailed"), tone: ToastTone.Error });
     }
   }
 
@@ -200,12 +201,12 @@ export function useMeetingFeedback(meetingId: string | null) {
       await queryClient.invalidateQueries({
         queryKey: RATED_MEETINGS_QUERY_KEY,
       });
-      showToast({ message: t("sentToast"), tone: "success" });
+      showToast({ message: t("sentToast"), tone: ToastTone.Success });
     } catch {
       setSubmitError(t("saveFailed"));
       showToast({
         message: t("saveFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       });
     } finally {
       setSubmitting(false);

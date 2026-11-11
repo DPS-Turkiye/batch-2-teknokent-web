@@ -1,11 +1,16 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import type { MeetingItem } from "@/interfaces/meeting";
-import { googleCalendarAddUrl, icalFileContents } from "@/lib/calendar-sync";
 
-function downloadICalFile(meeting: MeetingItem) {
-  const blob = new Blob([icalFileContents(meeting)], {
+import type { MeetingItem } from "@/interfaces/meeting";
+import {
+  googleCalendarAddUrl,
+  icalFileContents,
+  type CalendarEventText,
+} from "@/lib/calendar-sync";
+
+function downloadICalFile(meeting: MeetingItem, text: CalendarEventText) {
+  const blob = new Blob([icalFileContents(meeting, text)], {
     type: "text/calendar;charset=utf-8",
   });
   const url = URL.createObjectURL(blob);
@@ -26,10 +31,18 @@ function downloadICalFile(meeting: MeetingItem) {
  */
 export function SyncMeetingActions({ meeting }: { meeting: MeetingItem }) {
   const t = useTranslations("calendar.sync");
+  const googleText: CalendarEventText = {
+    fallbackTitle: t("eventTitle"),
+    description: (link) => t("googleDetails", { link }),
+  };
+  const icalText: CalendarEventText = {
+    fallbackTitle: t("eventTitle"),
+    description: (link) => t("icalDescription", { link }),
+  };
   return (
     <div className="flex flex-col gap-2 sm:flex-row">
       <a
-        href={googleCalendarAddUrl(meeting)}
+        href={googleCalendarAddUrl(meeting, googleText)}
         target="_blank"
         rel="noreferrer"
         className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#2f7ff0] py-2.5 text-center text-xs font-bold text-white transition hover:bg-[#1f6fe0]"
@@ -38,7 +51,7 @@ export function SyncMeetingActions({ meeting }: { meeting: MeetingItem }) {
       </a>
       <button
         type="button"
-        onClick={() => downloadICalFile(meeting)}
+        onClick={() => downloadICalFile(meeting, icalText)}
         className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-[#e4e7ea] bg-white py-2.5 text-center text-xs font-bold text-[#22262b] transition hover:bg-[#f8f9fa]"
       >
         {t("downloadIcs")}

@@ -1,5 +1,9 @@
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
+import type { ProgramStatus, ProgramType } from "@/interfaces/program";
+import type { ProgramPlanWeek } from "@/interfaces/program-week";
+
 export enum ProgramLifecycle {
+  Draft = "DRAFT",
   Upcoming = "UPCOMING",
   Active = "ACTIVE",
   Completed = "COMPLETED",
@@ -27,8 +31,9 @@ export type ProgramSyllabus = {
 export type CoordinatorProgram = {
   id: string;
   name: string;
-  status: "ACTIVE" | "COMPLETED";
+  status: ProgramStatus;
   lifecycle: ProgramLifecycle;
+  type: ProgramType;
   description: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -88,6 +93,20 @@ export type ProgramRules = {
   defaultMentorCapacity: number;
   communicationGapDays: number;
   bottleneckFlagDays: number;
+  /** Lowercase, no "@" (metu.edu.tr); null lets any address join. */
+  eligibleEmailDomain: string | null;
+  /** Only addresses on the program's list may join (İŞKUR). */
+  rosterOnly: boolean;
+  /** Each mentee joins as a team of one, without creating a startup. */
+  individualMentees: boolean;
+};
+
+/** One address on a roster-only program's list; `registered` once an account uses it. */
+export type ProgramEligibleEmail = {
+  id: string;
+  email: string;
+  addedAt: string;
+  registered: boolean;
 };
 
 /** One program in full (`GET /api/coordinator/programs/{id}`): Genel Bakış and Program Ayarları. */
@@ -116,6 +135,8 @@ export type CoordinatorProgramDetail = {
   coordinators: CoordinatorRef[];
   missingNoteMeetings: number;
   syllabus: ProgramSyllabus | null;
+  /** Everything Onaylar lists as waiting: applicants, mentor applications, startups and team changes. */
+  pendingApprovalCount: number;
 };
 
 export type UpdateProgramDetailsInput = {
@@ -128,9 +149,13 @@ export type UpdateProgramDetailsInput = {
   meetingNoteRequired: boolean;
   autoMatchSuggestions: boolean;
   /** Omitted keeps the saved value. */
-  defaultMentorCapacity?: number;
-  communicationGapDays?: number;
-  bottleneckFlagDays?: number;
+  defaultMentorCapacity?: number | undefined;
+  communicationGapDays?: number | undefined;
+  bottleneckFlagDays?: number | undefined;
+  /** An empty string clears the domain. */
+  eligibleEmailDomain?: string | null | undefined;
+  rosterOnly?: boolean | undefined;
+  individualMentees?: boolean | undefined;
 };
 
 export type ProgramPhaseInput = {
@@ -143,7 +168,13 @@ export type ProgramPhaseInput = {
 /** A phase read from a syllabus; nothing is saved until the coordinator confirms it. */
 export type ProposedPhase = ProgramPhaseInput;
 
-export type SyllabusPhases = { phases: ProposedPhase[]; pageCount: number };
+/** Phases and a week-by-week plan read from a syllabus; nothing is saved until the coordinator confirms them. */
+export type SyllabusPhases = {
+  phases: ProposedPhase[];
+  /** Missing from a backend that predates the week plan. */
+  weeks?: ProgramPlanWeek[];
+  pageCount: number;
+};
 
 export type ExtractSyllabusPhasesInput = {
   documentId: string;
@@ -176,19 +207,20 @@ export type ProgramTeam = {
 
 export type TeamInviteInput = { teamName: string; leadEmail: string };
 
-/** The "Yeni program" wizard, sent in one request. */
+/** The admin's "Yeni Program Oluştur", sent in one request; the program starts as a draft. */
 export type CreateProgramInput = {
+  type: ProgramType;
   name: string;
   description: string | null;
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
-  defaultMentorCapacity: number;
-  meetingFrequencyDays: number;
-  communicationGapDays: number;
-  bottleneckFlagDays: number;
-  teams: TeamInviteInput[];
-  phases?: ProgramPhaseInput[];
+  defaultMentorCapacity?: number | undefined;
+  meetingFrequencyDays?: number | undefined;
+  communicationGapDays?: number | undefined;
+  bottleneckFlagDays?: number | undefined;
+  teams?: TeamInviteInput[] | undefined;
+  phases?: ProgramPhaseInput[] | undefined;
   syllabusDocumentId?: string | null;
 };
 

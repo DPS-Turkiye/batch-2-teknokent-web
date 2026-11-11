@@ -1,6 +1,12 @@
 import { toCvParseResult } from "@/hooks/use-cv-parse";
-import type { ParsedProfile } from "@/interfaces/mentor-onboarding";
+import { MAX_EDUCATIONS, type MentorEducationInput } from "@/interfaces/mentor";
+import type {
+  ParsedProfile,
+  StudentOnboardingDraft,
+} from "@/interfaces/mentor-onboarding";
 import type { ParsedCvProfile } from "@/lib/client/profile-analysis";
+import { withKeys, type Keyed } from "@/lib/keyed-list";
+import { isStudentLevel } from "@/lib/student-topics";
 
 export type MentorCvRole = {
   title: string;
@@ -18,6 +24,9 @@ export type MentorCvResult = {
   sectorExperience: string;
   specialties: string[];
   history: MentorCvRole[];
+  education: MentorEducationInput[];
+  /** A student mentor's studies, empty for anyone else. */
+  studies: StudentOnboardingDraft;
 };
 
 const text = (value: string | null | undefined) => value?.trim() ?? "";
@@ -44,6 +53,47 @@ export function toMentorCvResult(profile: ParsedCvProfile): MentorCvResult {
         summary: text(role.summary),
       }))
       .filter((role) => role.title),
+    education: (profile.education ?? [])
+      .map((school) => ({
+        school: text(school.school),
+        degree: text(school.degree),
+        period: text(school.period),
+      }))
+      .filter((school) => school.school),
+    studies: toStudies(profile),
+  };
+}
+
+function toStudies(profile: ParsedCvProfile): StudentOnboardingDraft {
+  const list = (values: string[] | null | undefined) =>
+    (values ?? []).map((value) => value.trim()).filter(Boolean);
+  const year = text(profile.study_year);
+  return {
+    department: text(profile.department),
+    studyYear: isStudentLevel(year) ? year : "",
+    courses: list(profile.strong_courses).join(", "),
+    projects: list(profile.student_projects).join("\n"),
+    erasmus: text(profile.exchange_experience),
+  };
+}
+
+/**
+ * Signup keeps what the student already typed; on the profile page the mentor
+ * asked for the CV, so whatever it found replaces the field (as applyMentorCv does).
+ */
+export function fillStudies(
+  current: StudentOnboardingDraft,
+  cv: StudentOnboardingDraft,
+  cvFirst = false,
+): StudentOnboardingDraft {
+  const choose = (mine: string, found: string) =>
+    cvFirst ? found || mine : mine.trim() ? mine : found;
+  return {
+    department: choose(current.department, cv.department),
+    studyYear: choose(current.studyYear, cv.studyYear),
+    courses: choose(current.courses, cv.courses),
+    projects: choose(current.projects, cv.projects),
+    erasmus: choose(current.erasmus, cv.erasmus),
   };
 }
 
@@ -62,7 +112,10 @@ export function fillOnboardingProfile(
     title: keep(profile.title, cv.title),
     company: keep(profile.company, cv.company),
     totalExperience: keep(profile.totalExperience, cv.experienceLevel),
-    history: profile.history.length ? profile.history : cv.history,
+    history: profile.history.length ? profile.history : withKeys(cv.history),
+    education: profile.education.length
+      ? profile.education
+      : withKeys(cv.education),
     inferredAreas: [
       ...profile.inferredAreas,
       ...cv.specialties.filter((area) => !profile.inferredAreas.includes(area)),
@@ -77,8 +130,12 @@ type MentorCvForm = {
   experienceLevel: string;
   sectorExperience: string;
   specialties: string[];
-  experiences: MentorCvRole[];
+  experiences: Keyed<MentorCvRole>[];
+  educations: Keyed<MentorEducationInput>[];
 };
+
+const schoolKey = (school: MentorEducationInput) =>
+  `${school.school.trim().toLocaleLowerCase("tr")}|${school.degree.trim().toLocaleLowerCase("tr")}`;
 
 const roleKey = (role: { title: string; organization: string }) =>
   `${role.title.trim().toLocaleLowerCase("tr")}|${role.organization.trim().toLocaleLowerCase("tr")}`;
@@ -92,7 +149,9 @@ export function applyMentorCv<F extends MentorCvForm>(
   form: F,
   cv: MentorCvResult,
   maxExperiences: number,
+  maxEducations = MAX_EDUCATIONS,
 ): F {
+  const schools = new Set(form.educations.map(schoolKey));
   const pick = (current: string, next: string) => next || current;
   const listed = new Set(form.experiences.map(roleKey));
   return {
@@ -108,7 +167,13 @@ export function applyMentorCv<F extends MentorCvForm>(
     ],
     experiences: [
       ...form.experiences,
-      ...cv.history.filter((role) => !listed.has(roleKey(role))),
+      ...withKeys(cv.history.filter((role) => !listed.has(roleKey(role)))),
     ].slice(0, maxExperiences),
+    educations: [
+      ...form.educations,
+      ...withKeys(
+        cv.education.filter((school) => !schools.has(schoolKey(school))),
+      ),
+    ].slice(0, maxEducations),
   };
 }

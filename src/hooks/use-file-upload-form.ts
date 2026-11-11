@@ -1,13 +1,14 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { STARTUP_DOCUMENTS_QUERY_KEY } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { uploadDocument } from "@/lib/client/documents";
+import { useToast } from "@/stores/toast-store";
 
 /** The "Dosya Yükle" dialog: which kind of file, which file, and the upload. */
 export function useFileUploadForm() {
@@ -26,12 +27,12 @@ export function useFileUploadForm() {
         queryKey: STARTUP_DOCUMENTS_QUERY_KEY,
       });
       setIsOpen(false);
-      showToast({ message: t("uploaded"), tone: "success" });
+      showToast({ message: t("uploaded"), tone: ToastTone.Success });
     },
     onError: (error) =>
       showToast({
         message: error instanceof Error ? error.message : t("uploadFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

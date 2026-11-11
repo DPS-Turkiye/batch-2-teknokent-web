@@ -1,3 +1,5 @@
+import { formatDateRange } from "@/lib/format";
+
 export enum CalendarFilter {
   All = "all",
   Mentorship = "mentorship",
@@ -42,10 +44,11 @@ export function isSameDay(iso: string, day: Date) {
 
 /** "14–18 Eylül", "31 Ağustos – 4 Eylül" */
 export function weekRangeLabel(start: Date, end: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-  }).formatRange(start, end);
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { day: "numeric", month: "long" }),
+    start,
+    end,
+  );
 }
 
 /** The mentee week grid runs 09:00–18:00, Monday to Friday. */
@@ -88,7 +91,8 @@ export function monthGridCells(monthDate: Date): MonthCell[] {
     cells.push({ date: new Date(year, month, day), inCurrentMonth: true });
   }
   while (cells.length % 7 !== 0) {
-    const last = cells[cells.length - 1].date;
+    const last = cells.at(-1)?.date;
+    if (!last) break;
     const date = new Date(last);
     date.setDate(date.getDate() + 1);
     cells.push({ date, inCurrentMonth: false });

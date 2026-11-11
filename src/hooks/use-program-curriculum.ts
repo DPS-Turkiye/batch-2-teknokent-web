@@ -4,10 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
+import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import {
   extractSyllabusPhases,
   replaceCoordinatorProgramPhases,
@@ -17,10 +18,10 @@ import { isoDay } from "@/lib/coordinator-calendar";
 import {
   emptyPhase,
   MAX_PHASES,
-  type PhaseDraft,
   phaseDraftError,
   phasesInput,
   savedPhases,
+  type PhaseDraft,
 } from "@/lib/coordinator-program-detail";
 import {
   curriculumError,
@@ -35,6 +36,7 @@ import {
   type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 type Editing = { index: number | null; draft: WizardPhase };
 type Review = { documentId: string; phases: WizardPhase[] };
@@ -48,6 +50,7 @@ type Review = { documentId: string; phases: WizardPhase[] };
 export function useProgramCurriculum(
   programId: string,
   detail: CoordinatorProgramDetail,
+  onWeeksProposed?: (weeks: ProgramPlanWeek[]) => void,
 ) {
   const t = useTranslations("programCurriculum");
   const cache = useProgramCache(programId);
@@ -62,7 +65,10 @@ export function useProgramCurriculum(
     review?.phases ?? saved.map((phase) => ({ ...phase, fromFile: false }));
 
   const fail = (fallback: string) => (failure: Error) =>
-    showToast({ message: errorMessage(failure, fallback), tone: "error" });
+    showToast({
+      message: errorMessage(failure, fallback),
+      tone: ToastTone.Error,
+    });
 
   const save = useMutation({
     mutationFn: ({
@@ -81,7 +87,7 @@ export function useProgramCurriculum(
       cache.put(next);
       setEditing(null);
       startReview(null);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: fail(t("saveFailed")),
   });
@@ -93,8 +99,10 @@ export function useProgramCurriculum(
         startDate: detail.program.startDate,
         endDate: detail.program.endDate,
       }),
-    onSuccess: (result, documentId) =>
-      startReview({ documentId, phases: proposedPhases(result.phases) }),
+    onSuccess: (result, documentId) => {
+      startReview({ documentId, phases: proposedPhases(result.phases) });
+      if (result.weeks?.length) onWeeksProposed?.(result.weeks);
+    },
     onError: fail(t("readFailed")),
   });
 
@@ -152,7 +160,7 @@ export function useProgramCurriculum(
             problem === SyllabusFileProblem.NotPdf
               ? t("pdfOnly")
               : t("tooLarge"),
-          tone: "error",
+          tone: ToastTone.Error,
         });
         return;
       }
@@ -209,7 +217,9 @@ export function useProgramCurriculum(
     editError,
     openPhase: (index: number) => {
       setEditError(null);
-      setEditing({ index, draft: { ...listed[index] } });
+      const phase = listed[index];
+      if (!phase) return;
+      setEditing({ index, draft: { ...phase } });
     },
     openNew: () => {
       setEditError(null);

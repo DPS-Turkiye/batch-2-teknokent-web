@@ -4,8 +4,8 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
 import { useCoordinatorNotes } from "@/hooks/use-coordinator-notes";
+import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import {
   getCoordinatorMentorship,
@@ -23,6 +23,11 @@ import {
   sortMentorships,
   topicOptions,
 } from "@/lib/coordinator-mentorships";
+import {
+  ALL_PROGRAM_TYPES,
+  matchesProgramType,
+  type ProgramTypeFilter,
+} from "@/lib/program-types";
 
 export const COORDINATOR_MENTORSHIPS_QUERY_KEY = [
   "coordinator-mentorships",
@@ -40,6 +45,7 @@ export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
   const t = useTranslations("coordinatorMentorships");
   const programs = useCoordinatorPrograms();
   const [programId, setProgramIdState] = useState<string | null>(null);
+  const [type, setTypeState] = useState<ProgramTypeFilter>(ALL_PROGRAM_TYPES);
   const query = useCoordinatorMentorships(programId);
   const [health, setHealthState] = useState(MentorshipHealthFilter.All);
   const [search, setSearchState] = useState("");
@@ -48,7 +54,12 @@ export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
   const [limit, setLimit] = useState(MENTORSHIP_PAGE_SIZE);
   const [selectedId, setSelectedId] = useState(initialSelectedId);
 
-  const rows = query.data ?? [];
+  const typeOf = new Map(
+    (programs.data ?? []).map((program) => [program.id, program.type]),
+  );
+  const rows = (query.data ?? []).filter(
+    (row) => type === ALL_PROGRAM_TYPES || typeOf.get(row.programId) === type,
+  );
   const filtered = sortMentorships(
     filterMentorships(rows, { health, search, topic }),
     sort,
@@ -62,9 +73,19 @@ export function useCoordinatorMentorshipList(initialSelectedId: string | null) {
 
   return {
     query,
-    programOptions: programs.data ?? [],
+    programOptions: (programs.data ?? []).filter((program) =>
+      matchesProgramType(program.type, type),
+    ),
     programId,
     setProgramId: resetting(setProgramIdState),
+    type,
+    /** A type change also clears the program, which may not be of that type. */
+    setType: (value: ProgramTypeFilter) => {
+      setTypeState(value);
+      setProgramIdState(null);
+      setLimit(MENTORSHIP_PAGE_SIZE);
+    },
+    typeOf: (rowProgramId: string) => typeOf.get(rowProgramId) ?? null,
     health,
     setHealth: resetting(setHealthState),
     healthOptions: healthFilterOptions(rows, t),

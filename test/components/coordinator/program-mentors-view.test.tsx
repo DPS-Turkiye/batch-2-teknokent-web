@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramMentorsView } from "@/components/coordinator/program-mentors-view";
-import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
+import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import {
   cancelMentorInvite,
   decideProgramMentor,
@@ -15,6 +15,12 @@ import {
 } from "@/lib/client/coordinator-programs";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// Rendered outside the App Router, the real usePathname returns null.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: () => "/coordinator/programs/program-1",
+}));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
@@ -85,6 +91,29 @@ describe("ProgramMentorsView", () => {
     await user.click(screen.getByRole("button", { name: "Davet bekliyor 1" }));
     expect(screen.queryByText("Nihan Öztürk")).not.toBeInTheDocument();
     expect(screen.getByText("cagri@yilmazfinans.com")).toBeInTheDocument();
+  });
+
+  it("links pool mentors and join requests to their profile, but not open invites", async () => {
+    renderWithQueryClient(<ProgramMentorsView programId="program-1" />);
+
+    await screen.findByText("Nihan Öztürk");
+    expect(
+      within(screen.getByRole("row", { name: /Nihan Öztürk/ })).getByRole(
+        "link",
+        { name: "Profili gör: Nihan Öztürk" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-1");
+    expect(
+      within(screen.getByRole("row", { name: /Zeynep Arslan/ })).getByRole(
+        "link",
+        { name: "Profili gör: Zeynep Arslan" },
+      ),
+    ).toHaveAttribute("href", "/coordinator/people/mentor-2");
+    expect(
+      within(
+        screen.getByRole("row", { name: /cagri@yilmazfinans\.com/ }),
+      ).queryByRole("link", { name: /^Profili gör/ }),
+    ).toBeNull();
   });
 
   it("reads in English and filters by capacity", async () => {

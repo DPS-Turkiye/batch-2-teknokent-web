@@ -1,22 +1,25 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRef } from "react";
 
+import { EducationListEditor } from "@/components/mentors/education-list-editor";
+import {
+  ONBOARDING_TONES,
+  OnboardingTone,
+} from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingCard,
   OnboardingCounter,
   OnboardingField,
   OnboardingFileField,
   OnboardingImagePicker,
+  onboardingInputClass,
   OnboardingListRow,
   OnboardingTextAction,
-  onboardingInputClass,
 } from "@/components/onboarding/onboarding-ui";
-import {
-  ONBOARDING_TONES,
-  OnboardingTone,
-} from "@/components/onboarding/onboarding-tone";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { MAX_EDUCATIONS } from "@/interfaces/mentor";
 import {
   ABOUT_MAX_LENGTH,
   IntroPhase,
@@ -24,7 +27,6 @@ import {
 } from "@/interfaces/mentor-onboarding";
 import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;
@@ -126,6 +128,7 @@ function ExperienceEditor({
 }) {
   const copy = useTranslations("mentorSteps");
   const role = wizard.draft.profile.history[index];
+  if (!role) return null;
   const set = (
     key: "title" | "organization" | "period" | "summary",
     value: string,
@@ -360,10 +363,10 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
       >
         {history.map((role, index) =>
           wizard.editingExperience === index ? (
-            <ExperienceEditor key={index} wizard={wizard} index={index} />
+            <ExperienceEditor key={role.key} wizard={wizard} index={index} />
           ) : (
             <OnboardingListRow
-              key={index}
+              key={role.key}
               actionLabel={copy("edit")}
               actionAriaLabel={copy("editExperience", {
                 title: role.title || copy("experience"),
@@ -383,6 +386,22 @@ function FormPhase({ wizard }: { wizard: MentorOnboarding }) {
             </OnboardingListRow>
           ),
         )}
+      </OnboardingCard>
+
+      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+      <OnboardingCard
+        title={t("mentorEducation.title")}
+        subtitle={t("mentorEducation.subtitle")}
+      >
+        <EducationListEditor
+          items={draft.profile.education}
+          canAdd={draft.profile.education.length < MAX_EDUCATIONS}
+          onAdd={wizard.addEducation}
+          onChange={wizard.updateEducation}
+          onRemove={wizard.removeEducation}
+          inputClass={inputClass}
+          labelClass="flex flex-col gap-1.5 text-xs font-medium text-[#4a5059]"
+        />
       </OnboardingCard>
     </>
   );

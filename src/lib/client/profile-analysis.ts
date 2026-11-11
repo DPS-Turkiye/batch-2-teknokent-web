@@ -1,23 +1,15 @@
-import type {
-  OcrMode,
-  ProfileAnalysis,
-  ProfileType,
+import {
+  ProfileAnalysisType,
+  type ProfileAnalysis,
+  type ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
+import { bearerHeader } from "@/lib/client/bearer";
 import { getPublicBackendUrl } from "@/lib/const";
-import { currentIdToken } from "@/lib/firebase/auth";
-import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
-import { clientText } from "@/i18n/client-texts";
+import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 async function uploadConfig() {
-  const token = await currentIdToken();
-  if (!token) {
-    throw new Error(clientText("sessionExpired"));
-  }
-  return {
-    headers: { Authorization: `Bearer ${token}` },
-    timeout: UPLOAD_TIMEOUT_MS,
-  };
+  return { headers: await bearerHeader(), timeout: UPLOAD_TIMEOUT_MS };
 }
 
 export async function getLatestProfileAnalysis(appUserId?: string) {
@@ -30,8 +22,8 @@ export async function getLatestProfileAnalysis(appUserId?: string) {
 
 export async function uploadProfileAnalysis(input: {
   file: File;
-  ocrMode: OcrMode;
-  profileType: ProfileType;
+  ocrMode: ProfileOcrMode;
+  profileType: ProfileAnalysisType;
   appUserId?: string;
 }) {
   const data = new FormData();
@@ -53,7 +45,7 @@ export async function uploadProfileAnalysis(input: {
 
 export async function createManualProfile(input: {
   profile: Record<string, unknown>;
-  profileType: ProfileType;
+  profileType: ProfileAnalysisType;
   appUserId?: string;
 }) {
   return requireSuccess(
@@ -93,6 +85,18 @@ export type ParsedCvProfile = {
   experience_level?: string | null;
   years_of_experience?: number | null;
   work_history?: ParsedCvRole[] | null;
+  department?: string | null;
+  study_year?: string | null;
+  strong_courses?: string[] | null;
+  student_projects?: string[] | null;
+  exchange_experience?: string | null;
+  education?: ParsedCvEducation[] | null;
+};
+
+export type ParsedCvEducation = {
+  school: string;
+  degree: string | null;
+  period: string | null;
 };
 
 export type ParsedCvRole = {
@@ -107,7 +111,7 @@ export type CvSource = File | { documentId: string };
 /** A new file is sent along; a stored CV is read where it already is. */
 export function readCv(
   source: CvSource,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   return source instanceof File
     ? parseCv(source, profileType)
@@ -117,7 +121,7 @@ export function readCv(
 /** Parses a CV the person already uploaded, so it does not travel again. */
 export async function parseStoredCv(
   documentId: string,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const query = new URLSearchParams({
     profileType,
@@ -134,7 +138,7 @@ export async function parseStoredCv(
 
 export async function parseCv(
   file: File,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const data = new FormData();
   data.set("file", file);

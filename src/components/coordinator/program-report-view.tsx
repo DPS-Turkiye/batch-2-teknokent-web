@@ -1,14 +1,17 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { QueryNotice } from "@/components/admin/admin-ui";
 import { ProgramReporting } from "@/components/admin/reporting-view";
+import { ProgramAttendanceSection } from "@/components/coordinator/program-attendance-section";
 import { ProgramGlyph } from "@/components/coordinator/program-glyph";
+import { ProgramSessionsSection } from "@/components/coordinator/program-sessions-section";
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { useProgramReport } from "@/hooks/use-program-report";
+import { ProgramStatus } from "@/interfaces/program";
 
 /** Program raporu: the admin Raporlama numbers, for this one program. */
 export function ProgramReportView({ programId }: { programId: string }) {
@@ -39,7 +42,7 @@ export function ProgramReportView({ programId }: { programId: string }) {
       </nav>
 
       <header className="flex items-start gap-4">
-        <ProgramGlyph muted={program?.status === "COMPLETED"} />
+        <ProgramGlyph muted={program?.status === ProgramStatus.Completed} />
         <div className="min-w-0 flex-1">
           <h1 className="text-[28px] font-semibold tracking-[-0.03em] text-[#22262b]">
             {t("title")}
@@ -51,6 +54,10 @@ export function ProgramReportView({ programId }: { programId: string }) {
       </header>
 
       <ProgramReporting data={data} fixedProgram />
+
+      <ProgramSessionsSection programId={programId} />
+
+      <ProgramAttendanceSection programId={programId} />
     </div>
   );
 }

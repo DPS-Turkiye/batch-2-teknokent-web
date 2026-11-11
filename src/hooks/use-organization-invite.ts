@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { ToastTone } from "@/interfaces/toast";
 import {
   getInviteCode,
   rotateInviteCode,
 } from "@/lib/client/organization-invite";
+import { useToast } from "@/stores/toast-store";
 
 export const ORGANIZATION_INVITE_QUERY_KEY = ["organization-invite"] as const;
 
@@ -47,17 +48,17 @@ export function useInviteCodeCard() {
       if (!code) return;
       await navigator.clipboard.writeText(code);
       setCopied(true);
-      showToast({ message: t("copiedToast"), tone: "success" });
+      showToast({ message: t("copiedToast"), tone: ToastTone.Success });
     },
     async rotate() {
       setCopied(false);
       try {
         await rotate.mutateAsync();
-        showToast({ message: t("rotated"), tone: "success" });
+        showToast({ message: t("rotated"), tone: ToastTone.Success });
       } catch (reason) {
         showToast({
           message: reason instanceof Error ? reason.message : t("rotateFailed"),
-          tone: "error",
+          tone: ToastTone.Error,
         });
       }
     },

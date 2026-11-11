@@ -1,9 +1,9 @@
 import Link from "next/link";
 
+import { LanguageSwitch } from "@/components/common/language-switch";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingScroll } from "@/hooks/use-landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
-import { LanguageSwitch } from "@/components/common/language-switch";
 import type { LandingLink } from "@/types/landing";
 
 export function LandingLogo({ withTag = false }: { withTag?: boolean }) {
@@ -41,14 +41,11 @@ export function LandingNav({
           <div className={cx("nav-actions")}>
             <LanguageSwitch />
             <div className={cx("nav-auth-links")}>
-              <Link
-                className={cx("btn", signup ? "btn-ghost" : "btn-or")}
-                href={login.href}
-              >
+              <Link className={cx("btn", "btn-or")} href={login.href}>
                 {login.label}
               </Link>
               {signup ? (
-                <Link className={cx("btn", "btn-or")} href={signup.href}>
+                <Link className={cx("btn", "btn-ghost")} href={signup.href}>
                   {signup.label}
                 </Link>
               ) : null}

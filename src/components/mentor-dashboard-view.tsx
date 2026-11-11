@@ -1,21 +1,20 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, type ReactNode } from "react";
 
-import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
-import { AppShell } from "@/components/hoc/app-shell";
-import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
 import { MentorProgramInvitations } from "@/components/dashboard/mentor-program-invitations";
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
+import { AppShell } from "@/components/hoc/app-shell";
+import { MeetingProposalCards } from "@/components/meeting-proposal-cards";
+import { AssignTaskButton } from "@/components/mentor-dashboard/assign-task-button";
 import { useMentorDashboard } from "@/hooks/use-mentor-dashboard";
 import { useMentorNextMeeting } from "@/hooks/use-mentor-next-meeting";
 import { useMentorshipFiles } from "@/hooks/use-mentorship-files";
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { meetingDayLabel, meetingWhenLabel } from "@/lib/mentor-dashboard";
 import {
   MentorDecisionMode,
   type MentorshipRequest,
@@ -23,10 +22,11 @@ import {
 import { formatMeetingShort, formatSlotDateTime } from "@/lib/format";
 import { requestExpectedOutcome } from "@/lib/meeting-context";
 import { parsePreferredSlotsFromMessage } from "@/lib/mentor-availability-days";
-import { initials as toInitials } from "@/lib/utils";
-import { AppArea } from "@/types/app-area";
+import { meetingDayLabel, meetingWhenLabel } from "@/lib/mentor-dashboard";
 import { mentorMeetingEvaluationHref } from "@/lib/mentor-evaluation";
 import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
+import { initials as toInitials } from "@/lib/utils";
+import { AppArea } from "@/types/app-area";
 
 const ACTION_ITEM_TONES: Record<
   ActionItemStatus,

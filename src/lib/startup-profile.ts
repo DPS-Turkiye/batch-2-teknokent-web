@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import "server-only";
 
 import type { StartupContext } from "@/interfaces/startup";
@@ -49,7 +50,7 @@ export enum StartupContextError {
 
 export async function loadStartupContext(organizationId: string): Promise<{
   startup: StartupContext;
-  error?: StartupContextError;
+  error?: StartupContextError | undefined;
 }> {
   try {
     const [organizationResponse, profileResponse] = await Promise.all([
@@ -70,11 +71,9 @@ export async function loadStartupContext(organizationId: string): Promise<{
       );
     }
 
-    const organization = organizationResponse.data as OrganizationResponse;
+    const organization = organizationResponse.data;
     const analysis =
-      profileResponse.status === 200
-        ? (profileResponse.data as ProfileAnalysisResponse)
-        : null;
+      profileResponse.status === 200 ? profileResponse.data : null;
     const profile = profileObject(analysis?.profile);
     const sectors = textList(profile.sectors);
     const confirmedProfile = analysis !== null;
@@ -106,7 +105,7 @@ export async function loadStartupContext(organizationId: string): Promise<{
     return {
       startup: {
         organizationId,
-        name: "Girişim",
+        name: (await getTranslations("loadErrors"))("startupFallbackName"),
         summary: "",
         sector: "",
         stage: "",

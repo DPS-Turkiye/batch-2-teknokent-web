@@ -2,9 +2,10 @@ import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
-  CreateProgramInput,
   CreateProgramEventInput,
+  CreateProgramInput,
   ExtractSyllabusPhasesInput,
+  ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
@@ -87,6 +88,15 @@ export async function extractSyllabusPhases(input: ExtractSyllabusPhasesInput) {
   );
 }
 
+export async function launchCoordinatorProgram(programId: string) {
+  return requireSuccess(
+    await httpClient.post<CoordinatorProgramDetail>(
+      `${programUrl(programId)}/launch`,
+      {},
+    ),
+  );
+}
+
 export async function setCoordinatorProgramArchived(
   programId: string,
   archived: boolean,
@@ -131,6 +141,37 @@ export async function removeProgramCoordinator(
   return requireSuccess(
     await httpClient.delete<CoordinatorRef[]>(
       `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    ),
+  );
+}
+
+export async function getProgramEligibleEmails(programId: string) {
+  return requireSuccess(
+    await httpClient.get<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails`,
+    ),
+  );
+}
+
+export async function addProgramEligibleEmails(
+  programId: string,
+  emails: string[],
+) {
+  return requireSuccess(
+    await httpClient.post<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails`,
+      { emails },
+    ),
+  );
+}
+
+export async function removeProgramEligibleEmail(
+  programId: string,
+  entryId: string,
+) {
+  return requireSuccess(
+    await httpClient.delete<ProgramEligibleEmail[]>(
+      `${programUrl(programId)}/eligible-emails/${encodeURIComponent(entryId)}`,
     ),
   );
 }

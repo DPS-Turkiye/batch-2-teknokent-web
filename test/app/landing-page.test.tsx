@@ -3,12 +3,19 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import Home, { dynamic } from "@/app/(public)/page";
-import type { AppSession } from "@/interfaces/session";
-import { UserRole } from "@/interfaces/session";
+import { styles } from "@/components/landing/landing-styles";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { InLocale } from "@test/test-utils";
 
 let mockSession: AppSession | null = null;
 let isLoading = false;
+
+/** The scoped class landing.module.css gives one of the design's class names. */
+function moduleClass(name: string) {
+  const scoped = styles[name];
+  if (!scoped) throw new Error(`landing.module.css has no .${name}`);
+  return scoped;
+}
 
 vi.mock("@/components/providers/session-provider", () => ({
   useSession: () => ({ isLoading, session: mockSession }),
@@ -89,6 +96,12 @@ describe("Landing page", () => {
         "href",
         "/login",
       );
+      expect(header.getByRole("link", { name: loginLabel })).toHaveClass(
+        moduleClass("btn-or"),
+      );
+      expect(header.getByRole("link", { name: signupLabel })).toHaveClass(
+        moduleClass("btn-ghost"),
+      );
       const signupLinks = screen.getAllByRole("link", { name: signupLabel });
       expect(signupLinks).toHaveLength(4);
       signupLinks.forEach((link) =>
@@ -115,11 +128,13 @@ describe("Landing page", () => {
     const tabs = within(
       screen.getByRole("tablist", { name: "Mentorluk adımları" }),
     ).getAllByRole("tab");
-    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    const [first, , third, fourth] = tabs;
+    if (!first || !third || !fourth) throw new Error("Expected four steps.");
+    expect(first).toHaveAttribute("aria-selected", "true");
     expect(screen.getByText("Mentee / Startup")).toBeInTheDocument();
 
-    await user.click(tabs[2]);
-    expect(tabs[2]).toHaveAttribute("aria-selected", "true");
+    await user.click(third);
+    expect(third).toHaveAttribute("aria-selected", "true");
     expect(
       screen.getByText("Değer önerisi taslağının kritiği"),
     ).toBeInTheDocument();
@@ -128,8 +143,8 @@ describe("Landing page", () => {
     ).toBeInTheDocument();
 
     await user.keyboard("{ArrowDown}");
-    expect(tabs[3]).toHaveAttribute("aria-selected", "true");
-    expect(tabs[3]).toHaveFocus();
+    expect(fourth).toHaveAttribute("aria-selected", "true");
+    expect(fourth).toHaveFocus();
 
     await user.click(screen.getByRole("button", { name: "Duraklat" }));
     expect(screen.getByRole("button", { name: "Oynat" })).toBeInTheDocument();

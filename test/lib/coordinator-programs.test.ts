@@ -1,7 +1,7 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ProgramLifecycle } from "@/interfaces/coordinator-program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import {
   daysUntil,
   filterPrograms,
@@ -12,21 +12,12 @@ import {
   programFilterOptions,
   ProgramListFilter,
 } from "@/lib/coordinator-programs";
+import { ALL_PROGRAM_TYPES } from "@/lib/program-types";
 import { coordinatorProgram, phase } from "@test/fixtures/coordinator-programs";
+import { translatorIn } from "@test/translators";
 
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "coordinatorPrograms",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "coordinatorPrograms",
-});
+const t = translatorIn("tr", "coordinatorPrograms");
+const tEn = translatorIn("en", "coordinatorPrograms");
 
 const active = coordinatorProgram({ id: "a", name: "METU Stars 2026" });
 const upcoming = coordinatorProgram({
@@ -38,17 +29,25 @@ const completed = coordinatorProgram({
   id: "c",
   name: "METU Stars 2025",
   lifecycle: ProgramLifecycle.Completed,
-  status: "COMPLETED",
+  status: ProgramStatus.Completed,
 });
-const all = [active, upcoming, completed];
+const draft = coordinatorProgram({
+  id: "d",
+  name: "ODTÜ Akran 2027",
+  lifecycle: ProgramLifecycle.Draft,
+  status: ProgramStatus.Draft,
+  type: ProgramType.PeerMentoring,
+});
+const all = [active, upcoming, completed, draft];
 
 describe("coordinator program helpers", () => {
   it("labels each filter with its count", () => {
     expect(
       programFilterOptions(all, tEn).map((option) => option.label),
-    ).toEqual(["All 3", "Active 1", "Upcoming 1", "Completed 1"]);
+    ).toEqual(["All 4", "Draft 1", "Active 1", "Upcoming 1", "Completed 1"]);
     expect(programFilterOptions(all, t).map((option) => option.label)).toEqual([
-      "Tümü 3",
+      "Tümü 4",
+      "Taslak 1",
       "Aktif 1",
       "Yaklaşan 1",
       "Tamamlanan 1",
@@ -63,6 +62,19 @@ describe("coordinator program helpers", () => {
       upcoming,
     ]);
     expect(filterPrograms(all, ProgramListFilter.Active, "2025")).toEqual([]);
+  });
+
+  it("filters drafts and program types", () => {
+    expect(filterPrograms(all, ProgramListFilter.Draft, "")).toEqual([draft]);
+    expect(
+      filterPrograms(all, ProgramListFilter.All, "", ProgramType.PeerMentoring),
+    ).toEqual([draft]);
+    expect(
+      filterPrograms(all, ProgramListFilter.All, "", ProgramType.OfficeHours),
+    ).toEqual([]);
+    expect(
+      filterPrograms(all, ProgramListFilter.All, "", ALL_PROGRAM_TYPES),
+    ).toHaveLength(4);
   });
 
   it("counts waiting teams, pending mentors and risky mentorships as actions", () => {
@@ -86,13 +98,14 @@ describe("coordinator program helpers", () => {
   });
 
   it("marks phases before the current one as done", () => {
+    const matching = phase("p2", "Eşleşme", 1);
     const phases = [
       phase("p1", "Başvuru", 0),
-      phase("p2", "Eşleşme", 1),
+      matching,
       phase("p3", "Demo Day", 2),
     ];
     const states = phaseStates(
-      coordinatorProgram({ phases, currentPhase: phases[1] }),
+      coordinatorProgram({ phases, currentPhase: matching }),
     ).map(({ state }) => state);
     expect(states).toEqual([
       PhaseState.Done,

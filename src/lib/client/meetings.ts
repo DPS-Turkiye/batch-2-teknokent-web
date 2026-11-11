@@ -1,9 +1,16 @@
 import type { MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import type { UserRole } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
-export async function getMeetings() {
-  return requireSuccess(await httpClient.get<MeetingItem[]>("/api/meetings"));
+/** `as` picks the side for an account that mentors and is mentored; omitted, the primary role decides. */
+export async function getMeetings(as?: UserRole.Mentor | UserRole.Mentee) {
+  return requireSuccess(
+    await httpClient.get<MeetingItem[]>(
+      "/api/meetings",
+      as ? { params: { as } } : undefined,
+    ),
+  );
 }
 
 export async function postMeeting(payload: Record<string, unknown>) {
@@ -57,7 +64,7 @@ export async function postMeetingFeedback(
   payload: MeetingFeedbackPayload,
 ) {
   return requireSuccess(
-    await httpClient.post(
+    await httpClient.post<MeetingFeedbackItem>(
       `/api/meetings/${encodeURIComponent(meetingId)}/feedback`,
       payload,
     ),
@@ -70,6 +77,15 @@ export async function updateMeeting(id: string, payload: UpdateMeetingPayload) {
       `/api/meetings/${encodeURIComponent(id)}`,
       payload,
     ),
+  );
+}
+
+export async function setMeetingHeld(id: string, held: boolean) {
+  const url = `/api/meetings/${encodeURIComponent(id)}/held`;
+  return requireSuccess(
+    held
+      ? await httpClient.post<MeetingItem>(url)
+      : await httpClient.delete<MeetingItem>(url),
   );
 }
 
@@ -94,7 +110,7 @@ export async function postMeetingGuest(
 }
 
 export async function deleteMeeting(id: string) {
-  return requireSuccess(
-    await httpClient.delete(`/api/meetings/${encodeURIComponent(id)}`),
+  requireSuccess(
+    await httpClient.delete<void>(`/api/meetings/${encodeURIComponent(id)}`),
   );
 }

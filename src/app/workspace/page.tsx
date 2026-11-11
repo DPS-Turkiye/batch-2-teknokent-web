@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import { MentonWordmark } from "@/components/common/menton-wordmark";

@@ -7,13 +7,14 @@ import {
   useHomeTaskNotebook,
   useTaskNotebook,
 } from "@/hooks/use-task-notebook";
-import { type ActionItem, ActionItemStatus } from "@/interfaces/action-item";
+import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import {
   changeActionItemStatus,
   getActionItems,
 } from "@/lib/client/action-items";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/action-items", () => ({
@@ -71,18 +72,18 @@ describe("useTaskNotebook", () => {
     const { result } = renderHook(() => useTaskNotebook("r1"), { wrapper });
     await waitFor(() => expect(result.current.items).toHaveLength(1));
 
-    act(() => result.current.toggle(result.current.items[0], true));
+    act(() => result.current.toggle(itemAt(result.current.items, 0), true));
     await waitFor(() => expect(changeActionItemStatus).toHaveBeenCalled());
-    expect(vi.mocked(changeActionItemStatus).mock.calls[0][0]).toEqual({
+    expect(vi.mocked(changeActionItemStatus).mock.calls[0]?.[0]).toEqual({
       id: "a1",
       status: ActionItemStatus.Completed,
     });
 
-    act(() => result.current.toggle(result.current.items[0], false));
+    act(() => result.current.toggle(itemAt(result.current.items, 0), false));
     await waitFor(() =>
       expect(changeActionItemStatus).toHaveBeenCalledTimes(2),
     );
-    expect(vi.mocked(changeActionItemStatus).mock.calls[1][0]).toEqual({
+    expect(vi.mocked(changeActionItemStatus).mock.calls[1]?.[0]).toEqual({
       id: "a1",
       status: ActionItemStatus.Open,
     });

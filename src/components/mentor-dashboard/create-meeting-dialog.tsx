@@ -8,6 +8,8 @@ import { TranscribeRequestedField } from "@/components/meetings/transcribe-reque
 import {
   DocumentRequestTitleEditor,
   normalizeDocumentTitles,
+  titlesOf,
+  type DocumentTitleRow,
 } from "@/components/mentorships/document-request-title-editor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
@@ -66,7 +68,7 @@ function StartupCard({
 
 export type CreateMeetingRecipient = {
   mentorshipRequestId?: string;
-  programId?: string;
+  programId?: string | undefined;
   organizationId?: string;
 };
 
@@ -83,11 +85,21 @@ export type CreateMeetingBatch = {
   scheduledAt: string;
   durationMinutes: number;
   agenda: string;
-  meetLink?: string;
+  meetLink?: string | undefined;
   transcribeRequested?: boolean;
   requestedDocuments?: string[];
   recipients: CreateMeetingRecipient[];
 };
+
+/** Preselects the first program's startups, or else the first regular mentee. */
+function defaultSelectedKeys(grouped: ReturnType<typeof groupMeetingTargets>) {
+  const firstProgram = grouped.byProgram[0];
+  if (firstProgram && firstProgram.items.length > 0) {
+    return firstProgram.items.map((item) => item.key);
+  }
+  const firstRegular = grouped.regular[0];
+  return firstRegular ? [firstRegular.key] : [];
+}
 
 export function CreateMeetingDialog({
   mentorName,
@@ -124,24 +136,20 @@ export function CreateMeetingDialog({
     [grouped],
   );
   const hasTargets = allTargets.length > 0;
-  const defaultKeys = (() => {
-    if ((grouped.byProgram[0]?.items.length ?? 0) > 0) {
-      return grouped.byProgram[0].items.map((item) => item.key);
-    }
-    if (grouped.regular[0]) return [grouped.regular[0].key];
-    return [];
-  })();
-
-  const [selectedKeys, setSelectedKeys] = useState<string[]>(defaultKeys);
+  const [selectedKeys, setSelectedKeys] = useState<string[]>(() =>
+    defaultSelectedKeys(grouped),
+  );
   const [slotIso, setSlotIso] = useState("");
   const [openProgramId, setOpenProgramId] = useState(
     grouped.byProgram[0]?.program.id ?? "",
   );
-  const [agenda, setAgenda] = useState(`Mentor: ${mentorName}`);
+  const [agenda, setAgenda] = useState(
+    t("defaultAgenda", { name: mentorName }),
+  );
   const [manualMeetLink, setManualMeetLink] = useState("");
   const [linkError, setLinkError] = useState("");
   const [transcribeRequested, setTranscribeRequested] = useState(false);
-  const [documentTitles, setDocumentTitles] = useState<string[]>([]);
+  const [documentTitles, setDocumentTitles] = useState<DocumentTitleRow[]>([]);
 
   const columns = useMemo(() => upcomingHourColumns(), []);
   const scheduledAt = startAt ?? (slotIso ? new Date(slotIso) : null);
@@ -182,7 +190,7 @@ export function CreateMeetingDialog({
       agenda,
       meetLink,
       transcribeRequested,
-      requestedDocuments: normalizeDocumentTitles(documentTitles),
+      requestedDocuments: normalizeDocumentTitles(titlesOf(documentTitles)),
       recipients: [...uniqueRecipients.values()],
     });
   }
@@ -404,7 +412,7 @@ export function CreateMeetingDialog({
             />
 
             <DocumentRequestTitleEditor
-              titles={documentTitles}
+              rows={documentTitles}
               onChange={setDocumentTitles}
               disabled={isSaving}
             />

@@ -2,17 +2,19 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
+  EMPTY_STUDENT_DRAFT,
   emptyWeek,
   PLACEHOLDER_PARSED_PROFILE,
   type MentorOnboardingDraft,
 } from "@/interfaces/mentor-onboarding";
+import { withKeys } from "@/lib/keyed-list";
 import {
   invalidDays,
   openDays,
   toAvailabilityPayload,
   toMentorProfilePayload,
-  weekSummary,
   weeklyCapacity,
+  weekSummary,
 } from "@/lib/mentor-onboarding";
 
 function draft(
@@ -28,12 +30,14 @@ function draft(
     about: "  On yıllık ürün deneyimi. ",
     photo: null,
     cv: null,
+    cvStoredName: null,
+    programIds: [],
     profile: {
       ...PLACEHOLDER_PARSED_PROFILE,
       title: " Ürün Direktörü ",
       company: "Peak",
       totalExperience: "9 yıl",
-      history: [
+      history: withKeys([
         {
           title: "Senior PM",
           organization: "Looply",
@@ -41,11 +45,12 @@ function draft(
           summary: "",
         },
         { title: "  ", organization: "Boş satır" },
-      ],
+      ]),
     },
     topics: ["Finans", "Satış"],
     stages: ["Fikir", "MVP"],
     offerings: ["Pitch deck incelemesi"],
+    student: { ...EMPTY_STUDENT_DRAFT },
     week,
     capacity: 3,
     durationMinutes: 45,
@@ -80,6 +85,47 @@ describe("mentor onboarding helpers", () => {
   it("works out the weekly hours and how many meetings fit with the buffer", () => {
     // Tuesday 180 min fits 3 × (45 + 15); Friday 90 min fits 1.
     expect(weeklyCapacity(draft())).toEqual({ hours: 4.5, meetings: 4 });
+  });
+
+  it("sends a student mentor's studies as lists, and nothing for other mentors", () => {
+    const student = {
+      ...draft(),
+      student: {
+        department: " Bilgisayar Mühendisliği ",
+        studyYear: "4. sınıf",
+        courses: "CENG 140, MATH 119 ,, ",
+        projects: "Kampüs uygulaması\n\n  Robot takımı ",
+        erasmus: "  ",
+      },
+    };
+
+    expect(toMentorProfilePayload(student, true).studentProfile).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "4. sınıf",
+      strongCourses: ["CENG 140", "MATH 119"],
+      projects: ["Kampüs uygulaması", "Robot takımı"],
+      erasmus: null,
+    });
+    expect(toMentorProfilePayload(student)).not.toHaveProperty(
+      "studentProfile",
+    );
+  });
+
+  it("sends the typed schools, trimmed, and drops one without a name", () => {
+    const base = draft();
+    const payload = toMentorProfilePayload({
+      ...base,
+      profile: {
+        ...base.profile,
+        education: withKeys([
+          { school: " ODTÜ ", degree: " Lisans ", period: "2022 – 2026" },
+          { school: " ", degree: "Lise", period: "" },
+        ]),
+      },
+    });
+    expect(payload.educations).toEqual([
+      { school: "ODTÜ", degree: "Lisans", period: "2022 – 2026" },
+    ]);
   });
 
   it("builds the mentor profile payload, dropping empty roles and trimming text", () => {

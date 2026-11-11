@@ -1,48 +1,45 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useToast } from "@/components/providers/toast-provider";
-import { clientText } from "@/i18n/client-texts";
+import { useState } from "react";
 
+import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
+import { clientText } from "@/i18n/client-texts";
 import {
-  type MeetingFrequency,
-  type MentorExperienceInput,
+  MAX_EDUCATIONS,
   MentorLanguage,
+  type MeetingFrequency,
+  type MentorEducationInput,
+  type MentorExperienceInput,
   type MentorProfile,
   type PrepFileRequirement,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
-  type Weekday,
-  WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
+import type { StudentOnboardingDraft } from "@/interfaces/mentor-onboarding";
+import { ToastTone } from "@/interfaces/toast";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
+  getAvailabilitySettings,
   getMentorAvailability,
   getMentorProfile,
-  updateMentorProfile,
-  getAvailabilitySettings,
   updateAvailabilitySettings,
+  updateMentorProfile,
 } from "@/lib/client/mentor-profile";
-import { applyMentorCv, type MentorCvResult } from "@/lib/mentor-cv";
+import { withKey, withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import {
-  AVAILABILITY_NUMBER_FIELDS,
-  type AvailabilityDraft,
-  type AvailabilityNumberField,
-  availabilityDraftError,
-  DEFAULT_RANGE,
-  EMPTY_EXCEPTION_INPUT,
-  exceptionError,
-  type ExceptionInput,
-  nextRangeAfter,
-  rangesForDay,
-  stepNumberValue,
-  toAvailabilityDraft,
-  toAvailabilityPayload,
-} from "@/lib/mentor-availability";
+  applyMentorCv,
+  fillStudies,
+  type MentorCvResult,
+} from "@/lib/mentor-cv";
+import {
+  toStudentDraft,
+  toStudentProfilePayload,
+} from "@/lib/mentor-onboarding";
 import { errorMessage, toDateTimeLocalValue } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const MENTOR_PROFILE_QUERY_KEY = ["mentor-profile"] as const;
 export const MENTOR_AVAILABILITY_QUERY_KEY = [
@@ -125,7 +122,15 @@ export function useDeleteAvailabilitySlot() {
   });
 }
 
-type MentorProfileForm = Required<UpdateMentorProfilePayload>;
+// A student mentor's studies are edited beside the form, so mentors who are not students never send them.
+// Past roles and schools carry React keys while they are edited (see keyed-list); handleSave takes them off.
+type MentorProfileForm = Omit<
+  Required<Omit<UpdateMentorProfilePayload, "studentProfile">>,
+  "experiences" | "educations"
+> & {
+  experiences: Keyed<MentorExperienceInput>[];
+  educations: Keyed<MentorEducationInput>[];
+};
 
 function toEditablePayload(profile: MentorProfile): MentorProfileForm {
   return {
@@ -142,12 +147,21 @@ function toEditablePayload(profile: MentorProfile): MentorProfileForm {
     startupStages: profile.startupStages,
     specialties: profile.specialties,
     menteeCapacity: profile.menteeCapacity ?? null,
-    experiences: (profile.experiences ?? []).map((experience) => ({
-      title: experience.title,
-      organization: experience.organization ?? "",
-      period: experience.period ?? "",
-      summary: experience.summary ?? "",
-    })),
+    experiences: withKeys(
+      (profile.experiences ?? []).map((experience) => ({
+        title: experience.title,
+        organization: experience.organization ?? "",
+        period: experience.period ?? "",
+        summary: experience.summary ?? "",
+      })),
+    ),
+    educations: withKeys(
+      (profile.educations ?? []).map((education) => ({
+        school: education.school,
+        degree: education.degree ?? "",
+        period: education.period ?? "",
+      })),
+    ),
     about: profile.about ?? "",
     meetingFrequency: profile.meetingFrequency ?? null,
     prepFileRequirement: profile.prepFileRequirement ?? null,
@@ -170,12 +184,40 @@ const EMPTY_EXPERIENCE: MentorExperienceInput = {
   summary: "",
 };
 
+function isBlankSchool(school: MentorEducationInput) {
+  return [school.school, school.degree, school.period].every(
+    (value) => !value.trim(),
+  );
+}
+
 function isBlankExperience(experience: MentorExperienceInput) {
-  return Object.values(experience).every((value) => !value.trim());
+  return [
+    experience.title,
+    experience.organization,
+    experience.period,
+    experience.summary,
+  ].every((value) => !value.trim());
+}
+
+function studentDraftOf(profile: MentorProfile) {
+  return profile.studentProfile ? toStudentDraft(profile.studentProfile) : null;
 }
 
 /** The first problem that would make the backend refuse the save, or "". */
-export function mentorProfileFormError(form: MentorProfileForm) {
+export function mentorProfileFormError(
+  form: MentorProfileForm,
+  student: StudentOnboardingDraft | null = null,
+) {
+  if (
+    form.educations.some(
+      (school) => !isBlankSchool(school) && !school.school.trim(),
+    )
+  ) {
+    return clientText("mentorProfile.schoolName");
+  }
+  if (student && !(student.department.trim() && student.studyYear)) {
+    return clientText("mentorProfile.studentRequired");
+  }
   const capacity = form.menteeCapacity;
   if (
     capacity !== null &&
@@ -210,6 +252,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
   const [form, setForm] = useState<MentorProfileForm>(() =>
     toEditablePayload(profile),
   );
+  const [student, setStudent] = useState(() => studentDraftOf(profile));
   const [specialtyInput, setSpecialtyInput] = useState("");
   const [saveError, setSaveError] = useState("");
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -225,10 +268,16 @@ export function useMentorProfileForm(profile: MentorProfile) {
       | "prepFileRequirement"
       | "languages"
       | "programRoles"
+      | "studentProfile"
+      | "educations"
     >,
     value: string,
   ) => {
     setForm((previous) => ({ ...previous, [key]: value }));
+  };
+
+  const updateStudent = (key: keyof StudentOnboardingDraft, value: string) => {
+    setStudent((previous) => (previous ? { ...previous, [key]: value } : null));
   };
 
   const updateCapacity = (value: string) => {
@@ -275,7 +324,7 @@ export function useMentorProfileForm(profile: MentorProfile) {
         ? previous
         : {
             ...previous,
-            experiences: [...previous.experiences, EMPTY_EXPERIENCE],
+            experiences: [...previous.experiences, withKey(EMPTY_EXPERIENCE)],
           },
     );
   };
@@ -302,6 +351,42 @@ export function useMentorProfileForm(profile: MentorProfile) {
     }));
   };
 
+  const addEducation = () => {
+    setForm((previous) =>
+      previous.educations.length >= MAX_EDUCATIONS
+        ? previous
+        : {
+            ...previous,
+            educations: [
+              ...previous.educations,
+              withKey({ school: "", degree: "", period: "" }),
+            ],
+          },
+    );
+  };
+
+  const updateEducation = (
+    index: number,
+    field: keyof MentorEducationInput,
+    value: string,
+  ) => {
+    setForm((previous) => ({
+      ...previous,
+      educations: previous.educations.map((school, position) =>
+        position === index ? { ...school, [field]: value } : school,
+      ),
+    }));
+  };
+
+  const removeEducation = (index: number) => {
+    setForm((previous) => ({
+      ...previous,
+      educations: previous.educations.filter(
+        (_, position) => position !== index,
+      ),
+    }));
+  };
+
   const addSpecialty = () => {
     const value = specialtyInput.trim();
     if (!value || form.specialties.includes(value)) return;
@@ -321,13 +406,16 @@ export function useMentorProfileForm(profile: MentorProfile) {
 
   const applyCv = (cv: MentorCvResult) => {
     setForm((previous) => applyMentorCv(previous, cv, MAX_EXPERIENCES));
+    setStudent((previous) =>
+      previous ? fillStudies(previous, cv.studies, true) : previous,
+    );
   };
 
   /** True once the backend has the profile, so callers can leave edit mode. */
   const handleSave = async () => {
     setSaveError("");
     setSaveSuccess(false);
-    const problem = mentorProfileFormError(form);
+    const problem = mentorProfileFormError(form, student);
     if (problem) {
       setSaveError(problem);
       return false;
@@ -335,17 +423,25 @@ export function useMentorProfileForm(profile: MentorProfile) {
     try {
       await updateProfileMutation.mutateAsync({
         ...form,
-        experiences: form.experiences.filter(
-          (experience) => !isBlankExperience(experience),
+        experiences: withoutKeys(
+          form.experiences.filter(
+            (experience) => !isBlankExperience(experience),
+          ),
         ),
+        educations: withoutKeys(
+          form.educations.filter((school) => !isBlankSchool(school)),
+        ),
+        ...(student
+          ? { studentProfile: toStudentProfilePayload(student) }
+          : {}),
       });
       setSaveSuccess(true);
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
       return true;
     } catch (error) {
       const message = errorMessage(error, t("saveFailed"));
       setSaveError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
       return false;
     }
   };
@@ -359,12 +455,14 @@ export function useMentorProfileForm(profile: MentorProfile) {
   // availability editor since this form mounted is not sent back stale.
   const startEditing = () => {
     setForm(toEditablePayload(profile));
+    setStudent(studentDraftOf(profile));
     setSaveError("");
     setIsEditing(true);
   };
 
   const cancelEditing = () => {
     setForm(toEditablePayload(profile));
+    setStudent(studentDraftOf(profile));
     setSpecialtyInput("");
     setSaveError("");
     setIsEditing(false);
@@ -382,6 +480,8 @@ export function useMentorProfileForm(profile: MentorProfile) {
     cancelEditing,
     saveAndFinish,
     updateField,
+    student,
+    updateStudent,
     updateCapacity,
     setMeetingFrequency,
     setPrepFileRequirement,
@@ -394,6 +494,10 @@ export function useMentorProfileForm(profile: MentorProfile) {
     updateExperience,
     removeExperience,
     canAddExperience: form.experiences.length < MAX_EXPERIENCES,
+    addEducation,
+    updateEducation,
+    removeEducation,
+    canAddEducation: form.educations.length < MAX_EDUCATIONS,
     addSpecialty,
     removeSpecialty,
     applyCv,
@@ -426,22 +530,28 @@ export function useAvailabilitySlotForm() {
         startsAt: defaultSlotStart(),
         durationMinutes: 60,
       });
-      showToast({ message: "Müsaitlik saati eklendi.", tone: "success" });
+      showToast({
+        message: "Müsaitlik saati eklendi.",
+        tone: ToastTone.Success,
+      });
     } catch (error) {
       const message = errorMessage(error, "Müsaitlik saati eklenemedi.");
       setSlotError(message);
-      showToast({ message, tone: "error" });
+      showToast({ message, tone: ToastTone.Error });
     }
   };
 
   const handleDeleteSlot = async (slotId: string) => {
     try {
       await deleteSlotMutation.mutateAsync(slotId);
-      showToast({ message: "Müsaitlik saati silindi.", tone: "success" });
+      showToast({
+        message: "Müsaitlik saati silindi.",
+        tone: ToastTone.Success,
+      });
     } catch (error) {
       showToast({
         message: errorMessage(error, "Müsaitlik saati silinemedi."),
-        tone: "error",
+        tone: ToastTone.Error,
       });
     }
   };
@@ -457,191 +567,17 @@ export function useAvailabilitySlotForm() {
   };
 }
 
-/** The "Müsaitliği düzenle" modal: weekly ranges, defaults and unavailable dates. */
+/** The "Müsaitliği düzenle" modal: the weekly availability editor on the mentor's own settings. */
 export function useAvailabilitySettingsForm(onSaved: () => void) {
-  const t = useTranslations("mentorProfile.dialog");
-  const tOptions = useTranslations("options");
-  const { showToast } = useToast();
   const settingsQuery = useMentorAvailabilitySettings();
   const updateSettings = useUpdateMentorAvailabilitySettings();
-  const loaded = useMemo(
-    () => (settingsQuery.data ? toAvailabilityDraft(settingsQuery.data) : null),
-    [settingsQuery.data],
+  return useWeeklyAvailabilityForm(
+    {
+      settings: settingsQuery.data,
+      loadFailed: Boolean(settingsQuery.error),
+      save: updateSettings.mutateAsync,
+      isSaving: updateSettings.isPending,
+    },
+    onSaved,
   );
-  const [edits, setEdits] = useState<AvailabilityDraft | null>(null);
-  const [exception, setException] = useState<ExceptionInput>(
-    EMPTY_EXCEPTION_INPUT,
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [isAddingException, setIsAddingException] = useState(false);
-  const nextKey = useRef(0);
-  const draft = edits ?? loaded;
-
-  const change = (
-    update: (current: AvailabilityDraft) => AvailabilityDraft,
-  ) => {
-    setError(null);
-    setEdits((current) => {
-      const base = current ?? loaded;
-      return base ? update(base) : current;
-    });
-  };
-  // Keys are taken in the handler, not inside the state updater, so the updater stays pure.
-  const newKey = () => `new-${(nextKey.current += 1)}`;
-
-  const toggleDay = (day: Weekday) => {
-    const key = newKey();
-    change((current) =>
-      current.ranges.some((range) => range.dayOfWeek === day)
-        ? {
-            ...current,
-            ranges: current.ranges.filter((range) => range.dayOfWeek !== day),
-          }
-        : {
-            ...current,
-            ranges: [
-              ...current.ranges,
-              { key, dayOfWeek: day, ...DEFAULT_RANGE, slotMinutes: null },
-            ],
-          },
-    );
-  };
-
-  const addRange = (day: Weekday) => {
-    const key = newKey();
-    change((current) => ({
-      ...current,
-      ranges: [
-        ...current.ranges,
-        {
-          key,
-          dayOfWeek: day,
-          ...nextRangeAfter(rangesForDay(current, day)),
-          slotMinutes: null,
-        },
-      ],
-    }));
-  };
-
-  const removeRange = (key: string) =>
-    change((current) => ({
-      ...current,
-      ranges: current.ranges.filter((range) => range.key !== key),
-    }));
-
-  const updateRange = (
-    key: string,
-    field: "startTime" | "endTime",
-    value: string,
-  ) =>
-    change((current) => ({
-      ...current,
-      ranges: current.ranges.map((range) =>
-        range.key === key ? { ...range, [field]: value } : range,
-      ),
-    }));
-
-  const setNumber = (field: AvailabilityNumberField, value: string) =>
-    change((current) => ({ ...current, [field]: value }));
-
-  const stepNumber = (field: AvailabilityNumberField, direction: 1 | -1) => {
-    const bounds = AVAILABILITY_NUMBER_FIELDS.find(
-      (item) => item.field === field,
-    );
-    if (!bounds) return;
-    change((current) => ({
-      ...current,
-      [field]: stepNumberValue(current[field], bounds, direction),
-    }));
-  };
-
-  const openExceptionForm = () => setIsAddingException(true);
-
-  const closeExceptionForm = () => {
-    setIsAddingException(false);
-    setException(EMPTY_EXCEPTION_INPUT);
-    setError(null);
-  };
-
-  const setExceptionField = (field: keyof ExceptionInput, value: string) => {
-    setError(null);
-    setException((current) => ({ ...current, [field]: value }));
-  };
-
-  const addException = () => {
-    if (!draft) return;
-    const candidate = {
-      startsOn: exception.startsOn,
-      endsOn: exception.endsOn || exception.startsOn,
-      reason: exception.reason.trim() || null,
-    };
-    const problem = exceptionError(candidate, draft.exceptions);
-    if (problem) {
-      setError(problem);
-      return;
-    }
-    change((current) => ({
-      ...current,
-      exceptions: [...current.exceptions, candidate],
-    }));
-    setException(EMPTY_EXCEPTION_INPUT);
-    setIsAddingException(false);
-  };
-
-  const removeException = (index: number) =>
-    change((current) => ({
-      ...current,
-      exceptions: current.exceptions.filter(
-        (_, position) => position !== index,
-      ),
-    }));
-
-  const save = async () => {
-    if (!draft) return;
-    const problem = availabilityDraftError(draft, {
-      capacityRequired: settingsQuery.data?.menteeCapacity != null,
-    });
-    if (problem) {
-      setError(problem);
-      return;
-    }
-    try {
-      await updateSettings.mutateAsync(toAvailabilityPayload(draft));
-      setEdits(null);
-      showToast({ message: t("saved"), tone: "success" });
-      onSaved();
-    } catch (saveError) {
-      const message = errorMessage(saveError, t("saveFailed"));
-      setError(message);
-      showToast({ message, tone: "error" });
-    }
-  };
-
-  return {
-    addException,
-    addRange,
-    closeExceptionForm,
-    days: draft
-      ? WEEKDAY_ORDER.map((day) => ({
-          day,
-          label: tOptions(`weekday.${day}`),
-          ranges: rangesForDay(draft, day),
-        }))
-      : [],
-    draft,
-    error,
-    exception,
-    isAddingException,
-    isSaving: updateSettings.isPending,
-    loadError: settingsQuery.error ? t("loadFailed") : null,
-    openExceptionForm,
-    removeException,
-    removeRange,
-    save,
-    setExceptionField,
-    setNumber,
-    stepNumber,
-    toggleDay,
-    updateRange,
-  };
 }

@@ -4,8 +4,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
 import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
+import { ToastTone } from "@/interfaces/toast";
+import {
+  addedMessage,
+  isAssignable,
+  nameRequired,
+} from "@/lib/admin-coordinators";
 import {
   addCoordinator,
   getCoordinatorCandidate,
@@ -16,12 +21,8 @@ import {
   addProgramCoordinator,
   getProgramCoordinatorCandidates,
 } from "@/lib/client/coordinator-programs";
-import {
-  addedMessage,
-  isAssignable,
-  nameRequired,
-} from "@/lib/admin-coordinators";
 import { errorMessage, isEmailAddress } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 const CANDIDATE_QUERY_KEY = ["admin-coordinator-candidate"] as const;
 const CHECK_DELAY_MS = 400;
@@ -71,13 +72,13 @@ export function useAddCoordinatorForm(onDone: () => void, programId?: string) {
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
       void queryClient.invalidateQueries({ queryKey: CANDIDATE_QUERY_KEY });
-      showToast({ message: addedMessage(account, t), tone: "success" });
+      showToast({ message: addedMessage(account, t), tone: ToastTone.Success });
       onDone();
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("addFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 
@@ -115,13 +116,13 @@ export function useCoordinatorAccess() {
         message: active
           ? t("reactivated", { name: account.fullName })
           : t("deactivated", { name: account.fullName }),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("accessFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return {
@@ -139,12 +140,12 @@ export function useCoordinatorPasswordSetup() {
     onSuccess: (account) =>
       showToast({
         message: t("setupSent", { email: account.email }),
-        tone: "success",
+        tone: ToastTone.Success,
       }),
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("setupFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return {
@@ -172,13 +173,13 @@ export function useAssignProgramCoordinator(
       void queryClient.invalidateQueries({
         queryKey: ADMIN_OVERVIEW_QUERY_KEY,
       });
-      showToast({ message: t("assigned"), tone: "success" });
+      showToast({ message: t("assigned"), tone: ToastTone.Success });
       onDone();
     },
     onError: (error) =>
       showToast({
         message: errorMessage(error, t("addFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
 

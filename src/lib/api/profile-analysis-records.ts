@@ -1,5 +1,6 @@
 import "server-only";
-import { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
+
+import type { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 

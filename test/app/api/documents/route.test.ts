@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "@/app/api/documents/route";
 import { listStoredDocuments } from "@/lib/api/documents";
 import { getSessionIds } from "@/lib/session";
+import { backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/documents", () => ({
   listStoredDocuments: vi.fn(),
@@ -23,10 +24,7 @@ describe("/api/documents", () => {
   beforeEach(() => {
     vi.mocked(listStoredDocuments).mockReset();
     vi.mocked(getSessionIds).mockReset();
-    vi.mocked(listStoredDocuments).mockResolvedValue({
-      status: 200,
-      data: [],
-    } as never);
+    vi.mocked(listStoredDocuments).mockResolvedValue(backendResponse([]));
   });
 
   // The upload moved straight to the backend to clear the ~8KB edge limit, but
@@ -40,7 +38,10 @@ describe("/api/documents", () => {
   });
 
   it("falls back to the session user when there is no token", async () => {
-    vi.mocked(getSessionIds).mockResolvedValue({ userId: "user-1" } as never);
+    vi.mocked(getSessionIds).mockResolvedValue({
+      userId: "user-1",
+      organizationId: "",
+    });
 
     await GET(request());
 

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { UserRole } from "@/interfaces/session";
 import {
@@ -10,7 +11,15 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
+
+const createMentorshipSchema = z.object({
+  organizationId: z.string().min(1),
+  startDate: z.string().min(1),
+  endDate: z.string().min(1),
+  daysPerWeek: z.number(),
+});
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,26 +46,19 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const mentorId = await getSessionMentorId();
-    const body = (await request.json()) as {
-      organizationId?: string;
-      startDate?: string;
-      endDate?: string;
-      daysPerWeek?: number;
-    };
-    if (!body.organizationId || !body.startDate || !body.endDate) {
-      return apiErrorResponse(new Error("Eksik alanlar"), {
-        message: await apiText("regularMentorshipFieldsRequired"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, createMentorshipSchema, {
+      invalidMessage: "regularMentorshipFieldsRequired",
+    });
+    if (!body.ok) return body.response;
+    const { organizationId, startDate, endDate, daysPerWeek } = body.data;
     return backendResponse(
       await createRegularMentorship({
         mentorId,
-        organizationId: body.organizationId,
+        organizationId,
         status: "ACTIVE",
-        startDate: body.startDate,
-        endDate: body.endDate,
-        daysPerWeek: Math.min(7, Math.max(1, body.daysPerWeek ?? 1)),
+        startDate,
+        endDate,
+        daysPerWeek: Math.min(7, Math.max(1, daysPerWeek)),
       }),
     );
   } catch (error) {

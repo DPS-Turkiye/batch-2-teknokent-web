@@ -3,19 +3,27 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PATCH as patchActionItem } from "@/app/api/action-items/[id]/route";
 import { GET as listActionItems } from "@/app/api/action-items/route";
-import { POST as addBotRoute } from "@/app/api/botapi/route";
+import { POST as reportRoute } from "@/app/api/botapi/report/route";
+import {
+  POST as addBotRoute,
+  DELETE as stopBotRoute,
+} from "@/app/api/botapi/route";
 import { GET as listDocumentRequestsRoute } from "@/app/api/document-requests/route";
 import { POST as recommendMentorsRoute } from "@/app/api/mentor-recommendations/route";
 import { GET as getMentorRequest } from "@/app/api/mentor-requests/[id]/route";
 import { PATCH as confirmProfile } from "@/app/api/profile-analysis/[id]/confirmation/route";
 import { GET as transcriptRoute } from "@/app/api/transcriptapi/route";
+import { UserRole } from "@/interfaces/session";
 import { fetchActionItems, updateActionItem } from "@/lib/api/action-items";
 import { fetchDocumentRequests } from "@/lib/api/document-requests";
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
 import { confirmStartupProfileRecord } from "@/lib/api/profile-analysis-records";
-import { createMeetingBot } from "@/lib/botapi";
-import { UserRole } from "@/interfaces/session";
+import {
+  createMeetingBot,
+  generateMeetingReportBackend,
+  stopMeetingBotBackend,
+} from "@/lib/botapi";
 import { HttpMethod } from "@/lib/http-method";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds, getSessionUser } from "@/lib/session";
@@ -26,7 +34,11 @@ vi.mock("@/lib/session", () => ({
   getSessionMentorId: vi.fn(),
   getSessionUser: vi.fn(),
 }));
-vi.mock("@/lib/botapi", () => ({ createMeetingBot: vi.fn() }));
+vi.mock("@/lib/botapi", () => ({
+  createMeetingBot: vi.fn(),
+  generateMeetingReportBackend: vi.fn(),
+  stopMeetingBotBackend: vi.fn(),
+}));
 vi.mock("@/lib/transcriptapi", () => ({ fetchMeetingTranscript: vi.fn() }));
 vi.mock("@/lib/api/document-requests", () => ({
   fetchDocumentRequests: vi.fn(),
@@ -54,12 +66,20 @@ const mentee = {
 } as const;
 const params = { params: Promise.resolve({ id: "target-1" }) };
 
-function request(method: HttpMethod, body?: unknown) {
+function request(
+  method: HttpMethod,
+  body?: unknown,
+  headers?: Record<string, string>,
+) {
   return new NextRequest("http://localhost/x?requestId=req-1", {
     method,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    ...(headers ? { headers } : {}),
+    body: body === undefined ? null : JSON.stringify(body),
   });
 }
+
+// The assistant routes also need the caller's own Firebase token.
+const bearer = { authorization: "Bearer firebase-token" };
 
 const cases = [
   {
@@ -96,11 +116,35 @@ const cases = [
     name: "POST /api/botapi",
     call: () =>
       addBotRoute(
-        request(HttpMethod.Post, {
-          meetingUrl: "https://meet.google.com/abc-defg-hij",
-        }),
+        request(
+          HttpMethod.Post,
+          { meetingUrl: "https://meet.google.com/abc-defg-hij" },
+          bearer,
+        ),
       ),
     backend: createMeetingBot,
+  },
+  {
+    name: "DELETE /api/botapi",
+    call: () =>
+      stopBotRoute(
+        new NextRequest(
+          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
+          { method: HttpMethod.Delete, headers: bearer },
+        ),
+      ),
+    backend: stopMeetingBotBackend,
+  },
+  {
+    name: "POST /api/botapi/report",
+    call: () =>
+      reportRoute(
+        new NextRequest(
+          "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
+          { method: HttpMethod.Post, headers: bearer },
+        ),
+      ),
+    backend: generateMeetingReportBackend,
   },
   {
     name: "GET /api/transcriptapi",
@@ -108,6 +152,7 @@ const cases = [
       transcriptRoute(
         new NextRequest(
           "http://localhost/x?platform=google_meet&nativeMeetingId=abc-defg-hij",
+          { headers: bearer },
         ),
       ),
     backend: fetchMeetingTranscript,

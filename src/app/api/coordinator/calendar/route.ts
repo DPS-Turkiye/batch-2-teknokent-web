@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchCoordinatorCalendar } from "@/lib/api/coordinator-calendar";
 import {
@@ -6,18 +6,17 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
-
-const DAY = /^\d{4}-\d{2}-\d{2}$/;
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { ISO_DAY_PATTERN } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const search = request.nextUrl.searchParams;
     const from = search.get("from") ?? "";
     const to = search.get("to") ?? "";
-    if (!DAY.test(from) || !DAY.test(to)) {
+    if (!ISO_DAY_PATTERN.test(from) || !ISO_DAY_PATTERN.test(to)) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",

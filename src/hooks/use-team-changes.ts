@@ -1,16 +1,16 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
 import { useOrganizationPrograms } from "@/hooks/use-programs";
 import { useAdoptStartupSession } from "@/hooks/use-startup-membership";
 import type { OrganizationMember } from "@/interfaces/organization-member";
 import type { TeamChange } from "@/interfaces/team-change";
+import { ToastTone } from "@/interfaces/toast";
 import {
   cancelTeamChange,
   getTeamChanges,
@@ -18,6 +18,7 @@ import {
   requestLeave,
 } from "@/lib/client/team-changes";
 import { errorMessage } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const TEAM_CHANGES_QUERY_KEY = ["team-changes"] as const;
 
@@ -63,14 +64,17 @@ export function useTeamChanges(members: OrganizationMember[]) {
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: TEAM_CHANGES_QUERY_KEY });
   const fail = (fallback: string) => (error: Error) =>
-    showToast({ message: errorMessage(error, fallback), tone: "error" });
+    showToast({
+      message: errorMessage(error, fallback),
+      tone: ToastTone.Error,
+    });
 
   const askLeave = useMutation({
     mutationFn: requestLeave,
     onSuccess: () => {
       setConfirmingLeave(false);
       void refresh();
-      showToast({ message: t("leaveRequested"), tone: "success" });
+      showToast({ message: t("leaveRequested"), tone: ToastTone.Success });
     },
     onError: fail(t("leaveRequestFailed")),
   });
@@ -79,7 +83,7 @@ export function useTeamChanges(members: OrganizationMember[]) {
     mutationFn: cancelTeamChange,
     onSuccess: () => {
       void refresh();
-      showToast({ message: t("cancelled"), tone: "success" });
+      showToast({ message: t("cancelled"), tone: ToastTone.Success });
     },
     onError: fail(t("cancelFailed")),
   });
@@ -89,7 +93,7 @@ export function useTeamChanges(members: OrganizationMember[]) {
     onSuccess: (nextSession) => {
       setConfirmingLeave(false);
       adopt(nextSession);
-      showToast({ message: t("left"), tone: "success" });
+      showToast({ message: t("left"), tone: ToastTone.Success });
       router.replace("/startup");
     },
     onError: fail(t("leaveFailed")),

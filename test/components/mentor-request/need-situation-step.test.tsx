@@ -3,11 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
 import { NeedSituationStep } from "@/components/mentor-request/need-situation-step";
+import { needChoices } from "@/lib/mentor-request-need";
+
+const STARTUP_CHOICES = needChoices(false);
 
 describe("NeedSituationStep", () => {
   it("renders the Figma Durum step copy and situations", () => {
     render(
       <NeedSituationStep
+        situations={STARTUP_CHOICES.situations}
         situationId="onboarding"
         noneSummary=""
         onSelectSituation={vi.fn()}
@@ -36,6 +40,7 @@ describe("NeedSituationStep", () => {
     const user = userEvent.setup();
     const { rerender } = render(
       <NeedSituationStep
+        situations={STARTUP_CHOICES.situations}
         situationId="onboarding"
         noneSummary=""
         onSelectSituation={onSelectSituation}
@@ -50,6 +55,7 @@ describe("NeedSituationStep", () => {
 
     rerender(
       <NeedSituationStep
+        situations={STARTUP_CHOICES.situations}
         situationId="none"
         noneSummary=""
         onSelectSituation={onSelectSituation}

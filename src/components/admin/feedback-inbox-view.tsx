@@ -1,16 +1,27 @@
 "use client";
 
-import { Check, Inbox, LoaderCircle, RefreshCw } from "lucide-react";
+import {
+  Check,
+  ChevronDown,
+  Inbox,
+  LoaderCircle,
+  RefreshCw,
+} from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useFeedbackInbox } from "@/hooks/use-feedback-inbox";
 import { PlatformFeedbackKind } from "@/interfaces/platform-feedback";
+import { ProgramType } from "@/interfaces/program";
+import { isEnumValue } from "@/lib/enum";
+import { ALL_PROGRAM_TYPES, PROGRAM_TYPE_FILTERS } from "@/lib/program-types";
 import { formatDateTime } from "@/lib/utils";
 
 export function FeedbackInboxView() {
   const t = useTranslations("feedbackInbox");
   const tFeedback = useTranslations("platformFeedback");
   const tRoles = useTranslations("appShell.roles");
+  const tType = useTranslations("programTypes");
   const locale = useLocale();
   const inbox = useFeedbackInbox();
   const data = inbox.data;
@@ -39,15 +50,39 @@ export function FeedbackInboxView() {
           {t("refresh")}
         </button>
       </header>
-      <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#515861]">
-        <input
-          type="checkbox"
-          checked={inbox.unreadOnly}
-          onChange={(event) => inbox.filterUnread(event.target.checked)}
-          className="size-4 accent-[#e86f22]"
-        />
-        {t("unreadOnly")}
-      </label>
+      <div className="flex flex-wrap items-center gap-4">
+        <label className="inline-flex cursor-pointer items-center gap-2 text-sm text-[#515861]">
+          <input
+            type="checkbox"
+            checked={inbox.unreadOnly}
+            onChange={(event) => inbox.filterUnread(event.target.checked)}
+            className="size-4 accent-[#e86f22]"
+          />
+          {t("unreadOnly")}
+        </label>
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <label className="flex h-10 items-center gap-2 rounded-full border border-[#e9ecef] bg-white px-4 text-[13px]">
+          <span className="text-[#858c96]">{tType("label")}</span>
+          <select
+            aria-label={tType("label")}
+            value={inbox.programType ?? ALL_PROGRAM_TYPES}
+            onChange={(event) => {
+              const { value } = event.target;
+              inbox.filterProgramType(
+                isEnumValue(ProgramType, value) ? value : null,
+              );
+            }}
+            className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
+          >
+            {PROGRAM_TYPE_FILTERS.map((option) => (
+              <option key={option} value={option}>
+                {tType(option)}
+              </option>
+            ))}
+          </select>
+          <ChevronDown aria-hidden className="size-4 text-[#858c96]" />
+        </label>
+      </div>
       {inbox.isLoading ? (
         <p role="status" className="py-12 text-center text-sm text-[#858c96]">
           {t("loading")}
@@ -69,7 +104,7 @@ export function FeedbackInboxView() {
           {t("readFailed")}
         </p>
       ) : null}
-      {data && data.page.content.length === 0 ? (
+      {data?.page.content.length === 0 ? (
         <div className="rounded-3xl border border-dashed border-[#dde1e6] py-16 text-center">
           <Inbox aria-hidden className="mx-auto size-8 text-[#aeb4bc]" />
           <h2 className="mt-4 text-base font-semibold text-[#515861]">
@@ -119,6 +154,16 @@ export function FeedbackInboxView() {
                 <p className="break-words font-semibold text-[#515861]">
                   {feedback.authorName} · {tRoles(feedback.authorRole)}
                 </p>
+                {feedback.programType ? (
+                  <p className="mt-1 flex flex-wrap items-center gap-2">
+                    {feedback.programName ? (
+                      <span>{feedback.programName}</span>
+                    ) : null}
+                    <ProgramTypeChip type={feedback.programType} />
+                  </p>
+                ) : (
+                  <p className="mt-1">{t("noProgram")}</p>
+                )}
                 <p className="break-all">{feedback.authorEmail}</p>
                 <p>
                   {t("language", {

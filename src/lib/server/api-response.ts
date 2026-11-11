@@ -1,12 +1,11 @@
+import { AxiosError } from "axios";
+import { getTranslations } from "next-intl/server";
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { AxiosError } from "axios";
-import { NextResponse } from "next/server";
-import { getTranslations } from "next-intl/server";
-
 import type { BackendResponse } from "@/lib/server/backend-client";
-import type messages from "@/messages/tr.json";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import type messages from "@/messages/tr.json";
 
 export type ApiTextKey = keyof (typeof messages)["apiErrors"];
 
@@ -19,7 +18,9 @@ export async function apiText(key: ApiTextKey) {
 export type ApiErrorCode =
   | "BACKEND_TIMEOUT"
   | "BACKEND_UNAVAILABLE"
+  | "FORBIDDEN"
   | "INVALID_REQUEST"
+  | "NOT_FOUND"
   | "RECORDING_SLOTS_FULL"
   | "SESSION_REQUIRED";
 

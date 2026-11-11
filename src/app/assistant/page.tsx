@@ -1,22 +1,22 @@
 "use client";
 
-import { Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { Calendar } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
+import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
+import { MeetingReportView } from "@/components/assistant/meeting-report-view";
+import { AppShell } from "@/components/hoc/app-shell";
+import { useAppSession } from "@/components/providers/session-provider";
 import {
   STATUS_META,
   useMeetingAssistant,
 } from "@/hooks/use-meeting-assistant";
-import { useAppSession } from "@/components/providers/session-provider";
-import { AppShell } from "@/components/hoc/app-shell";
-import { MeetingReportView } from "@/components/assistant/meeting-report-view";
-import { BotStatusRenderer } from "@/components/assistant/bot-status-renderer";
 import { formatSlotDateTime } from "@/lib/format";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 import { BotStatus, MeetingStatus } from "@/types/assistant";
-import { Calendar } from "lucide-react";
 
 export default function AssistantPage() {
   return (
@@ -30,7 +30,7 @@ function MeetingAssistantWorkspace() {
   const t = useTranslations("assistant");
   const locale = useLocale();
   const session = useAppSession();
-  const requestedMeetingId = useSearchParams()?.get("meetingId") ?? undefined;
+  const requestedMeetingId = useSearchParams().get("meetingId") ?? undefined;
   const {
     meetings,
     selected,
@@ -41,7 +41,6 @@ function MeetingAssistantWorkspace() {
     botError,
     visibleTranscript,
     canEditTranscript,
-    transcriptDirty,
     updateTranscriptLine,
     removeTranscriptLine,
     notes,
@@ -257,7 +256,6 @@ function MeetingAssistantWorkspace() {
                         disabled={
                           !targetMeetingId ||
                           !meetingReport ||
-                          transcriptDirty ||
                           shareStatus === BotStatus.Sending
                         }
                         className="rounded-[7px] bg-[var(--ma-accent)] px-2.5 py-1 text-xs font-semibold text-white disabled:opacity-50"
@@ -378,11 +376,6 @@ function MeetingAssistantWorkspace() {
                           {t("report")}
                         </span>
                         <span className="h-px flex-1 bg-[var(--ma-line)]" />
-                        {transcriptDirty && meetingReport ? (
-                          <span className="text-[11px] text-[var(--ma-accent)]">
-                            {t("reportStale")}
-                          </span>
-                        ) : null}
                         <button
                           type="button"
                           onClick={() => regenerateReport()}
@@ -402,6 +395,12 @@ function MeetingAssistantWorkspace() {
                         status={reportStatus}
                         error={reportError}
                       />
+                      {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                      {canEditTranscript && meetingReport ? (
+                        <p className="mb-2 text-[11px] text-[var(--ma-t3)]">
+                          {t("reportFromRecording")}
+                        </p>
+                      ) : null}
                       {meetingReport ? (
                         <MeetingReportView report={meetingReport} />
                       ) : (

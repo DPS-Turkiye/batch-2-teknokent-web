@@ -1,26 +1,26 @@
 "use client";
 
-import { ProgramContext } from "@/components/common/program-context";
-import Image from "next/image";
-import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
 
-import { AppShell } from "@/components/hoc/app-shell";
+import { EmptyState } from "@/components/common/empty-state";
 import { ListPagination } from "@/components/common/list-pagination";
+import { ProgramContext } from "@/components/common/program-context";
+import { AppShell } from "@/components/hoc/app-shell";
+import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { MeetLinkDisplay } from "@/components/mentorships/meet-link-display";
 import { MentorMeetLinkDialog } from "@/components/mentorships/mentor-meet-link-dialog";
 import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
-import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
 import { RegularMentorshipsTab } from "@/components/mentorships/regular-mentorships-tab";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
+import { useMentorRequestDecision } from "@/hooks/use-mentorship-requests";
 import {
   useMentorshipRequestsPage,
   useMentorshipWorkspace,
 } from "@/hooks/use-mentorship-workspace";
-import { useMentorRequestDecision } from "@/hooks/use-mentorship-requests";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
@@ -39,6 +39,7 @@ import {
 } from "@/lib/const/mentorships";
 import { formatMeetingShort } from "@/lib/format";
 import { normalizeMeetLink } from "@/lib/meet-link";
+import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   preferredSlotMachineValue,
   preferredSlotStartsAt,
@@ -46,7 +47,6 @@ import {
   type ParsedPreferredSlot,
   type PreferredSlot,
 } from "@/lib/mentor-availability-days";
-import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   activeMentorshipHref,
   assistantMeetingHref,
@@ -355,7 +355,7 @@ function RequestsTab({
     );
   }
   if (requests.length === 0) {
-    return <EmptyState message={t("requests.empty")} />;
+    return <EmptyState accent="blue" title={t("requests.empty")} />;
   }
 
   return (
@@ -757,14 +757,5 @@ function PastMentorshipRow({
         </div>
       ) : null}
     </article>
-  );
-}
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="mt-5 rounded-[20px] border border-dashed border-[#d6dade] bg-white p-12 text-center">
-      <Sparkles className="mx-auto size-7 text-[#26a4ff]" />
-      <h2 className="mt-4 text-base font-semibold">{message}</h2>
-    </div>
   );
 }

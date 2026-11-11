@@ -4,16 +4,17 @@ import type {
   CoordinatorProgram,
   CoordinatorProgramDetail,
   CoordinatorRef,
-  CreateProgramInput,
   CreateProgramEventInput,
+  CreateProgramInput,
+  ExtractSyllabusPhasesInput,
+  ProgramEligibleEmail,
   ProgramEvent,
   ProgramPhaseInput,
   ProgramTeam,
   ProgramTeamDetail,
+  SyllabusPhases,
   TeamInviteInput,
   UpdateProgramDetailsInput,
-  ExtractSyllabusPhasesInput,
-  SyllabusPhases,
 } from "@/interfaces/coordinator-program";
 import type { MentorPoolReview, MentorPoolRow } from "@/interfaces/mentor-pool";
 import type {
@@ -95,6 +96,14 @@ export function extractSyllabusPhases(
   });
 }
 
+export function launchCoordinatorProgram(actorId: string, programId: string) {
+  return backendRequest<CoordinatorProgramDetail>({
+    method: HttpMethod.Post,
+    url: `${programUrl(programId)}/launch`,
+    params: { actorId },
+  });
+}
+
 export function setCoordinatorProgramArchived(
   actorId: string,
   programId: string,
@@ -139,6 +148,38 @@ export function removeProgramCoordinator(
   return backendRequest<CoordinatorRef[]>({
     method: "DELETE",
     url: `${programUrl(programId)}/coordinators/${encodeURIComponent(userId)}`,
+    params: { actorId },
+  });
+}
+
+export function fetchProgramEligibleEmails(actorId: string, programId: string) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "GET",
+    url: `${programUrl(programId)}/eligible-emails`,
+    params: { actorId },
+  });
+}
+
+export function addProgramEligibleEmails(
+  actorId: string,
+  programId: string,
+  emails: string[],
+) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "POST",
+    url: `${programUrl(programId)}/eligible-emails`,
+    data: { actorId, emails },
+  });
+}
+
+export function removeProgramEligibleEmail(
+  actorId: string,
+  programId: string,
+  entryId: string,
+) {
+  return backendRequest<ProgramEligibleEmail[]>({
+    method: "DELETE",
+    url: `${programUrl(programId)}/eligible-emails/${encodeURIComponent(entryId)}`,
     params: { actorId },
   });
 }

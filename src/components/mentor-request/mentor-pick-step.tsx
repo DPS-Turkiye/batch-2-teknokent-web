@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { CheckCircle2 } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { Avatar } from "@/components/common/avatar";
 import { Badge } from "@/components/common/badge";
@@ -97,7 +97,9 @@ export function MentorPickStep({
                     {item.fullName}
                   </h3>
                   <p className="mt-0.5 text-xs text-[#777]">
-                    {item.professionalTitle} · {item.company}
+                    {[item.professionalTitle, item.company]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </p>
                   <div className="mt-2 flex flex-wrap gap-1.5">
                     {item.specialties.map((tag) => (

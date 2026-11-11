@@ -12,7 +12,10 @@ import {
 export const MEETINGS_QUERY_KEY = ["meetings"] as const;
 
 export function useMeetings() {
-  return useQuery({ queryKey: MEETINGS_QUERY_KEY, queryFn: getMeetings });
+  return useQuery({
+    queryKey: MEETINGS_QUERY_KEY,
+    queryFn: () => getMeetings(),
+  });
 }
 
 export function useCreateMeeting() {
@@ -27,8 +30,7 @@ export function useCreateMeeting() {
 export function useUpdateMeeting(id: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: UpdateMeetingPayload) =>
-      updateMeeting(id as string, payload),
+    mutationFn: (payload: UpdateMeetingPayload) => updateMeeting(id!, payload),
     onSuccess: (meeting) => {
       queryClient.setQueryData(
         MEETINGS_QUERY_KEY,

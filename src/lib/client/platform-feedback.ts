@@ -3,6 +3,7 @@ import type {
   PlatformFeedbackInbox,
   SubmitPlatformFeedback,
 } from "@/interfaces/platform-feedback";
+import type { ProgramType } from "@/interfaces/program";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
@@ -15,11 +16,16 @@ export async function submitPlatformFeedback(feedback: SubmitPlatformFeedback) {
 export async function getPlatformFeedbackInbox(
   page: number,
   unreadOnly: boolean,
+  programType: ProgramType | null = null,
 ) {
   return requireSuccess(
     await httpClient.get<PlatformFeedbackInbox>(
       "/api/admin/platform-feedback",
-      { params: { page, unreadOnly } },
+      {
+        params: programType
+          ? { page, unreadOnly, programType }
+          : { page, unreadOnly },
+      },
     ),
   );
 }

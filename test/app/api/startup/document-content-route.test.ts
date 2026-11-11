@@ -46,7 +46,7 @@ describe("/api/startup/documents/[id]/content", () => {
         contentType: "application/pdf",
       },
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       new NextRequest("http://localhost/api/startup/documents/doc-1/content"),
@@ -71,7 +71,7 @@ describe("/api/startup/documents/[id]/content", () => {
         contentType: "application/pdf",
       },
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       new NextRequest("http://localhost/api/startup/documents/doc-1/content"),
@@ -88,7 +88,7 @@ describe("/api/startup/documents/[id]/content", () => {
       status: 403,
       data: { message: "You cannot open this document" },
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       new NextRequest("http://localhost/api/startup/documents/doc-2/content"),

@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { ChevronDown, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useEffect, type ReactNode } from "react";
 
 type AdminIconProps = {
@@ -225,16 +225,19 @@ export function SolidButton({
   children,
   onClick,
   type = "button",
+  disabled = false,
 }: {
   children: ReactNode;
   onClick?: () => void;
   type?: "button" | "submit";
+  disabled?: boolean;
 }) {
   return (
     <button
       type={type}
       onClick={onClick}
-      className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white"
+      disabled={disabled}
+      className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-[#22262b] px-4 text-[13px] font-medium text-white disabled:opacity-50"
     >
       {children}
     </button>
@@ -244,15 +247,18 @@ export function SolidButton({
 export function OutlineButton({
   children,
   onClick,
+  disabled = false,
 }: {
   children: ReactNode;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b]"
+      disabled={disabled}
+      className="inline-flex h-9 shrink-0 items-center justify-center rounded-full border border-[#e9ecef] bg-white px-3.5 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
     >
       {children}
     </button>

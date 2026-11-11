@@ -1,10 +1,10 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
+import { hasPermission } from "@/lib/permissions";
 import { apiText, type ApiTextKey } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
 async function requireRole(
   role: UserRole,
@@ -22,7 +22,7 @@ async function requireRole(
       ),
     };
   }
-  if (session.role !== role) {
+  if (!hasPermission(session, role)) {
     return {
       ok: false,
       response: NextResponse.json(
@@ -32,10 +32,6 @@ async function requireRole(
     };
   }
   return { ok: true, session };
-}
-
-export function requireCoordinatorSession() {
-  return requireRole(UserRole.Coordinator, "coordinatorsOnlyManage");
 }
 
 export function requireMentorSession() {
@@ -60,7 +56,7 @@ export async function requireStartupSession() {
       ),
     };
   }
-  if (session.role !== UserRole.Mentee || !session.organizationId) {
+  if (!hasPermission(session, UserRole.Mentee) || !session.organizationId) {
     return {
       ok: false as const,
       response: NextResponse.json(
@@ -75,7 +71,7 @@ export async function requireStartupSession() {
   return { ok: true as const, session };
 }
 
-export async function requireCoordinatorOrMentorSession() {
+export async function requireCoordinatorMentorOrAdminSession() {
   const session = await getSessionUser();
   if (!session) {
     return {
@@ -87,9 +83,9 @@ export async function requireCoordinatorOrMentorSession() {
     };
   }
   if (
-    session.role !== UserRole.Coordinator &&
-    session.role !== UserRole.Mentor &&
-    session.role !== UserRole.Admin
+    !hasPermission(session, UserRole.Coordinator) &&
+    !hasPermission(session, UserRole.Mentor) &&
+    !hasPermission(session, UserRole.Admin)
   ) {
     return {
       ok: false as const,

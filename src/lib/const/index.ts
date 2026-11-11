@@ -1,14 +1,11 @@
-import type { LoginRoleGroup } from "@/interfaces/login";
-import { LoginRoleId } from "@/interfaces/login";
 import type { MeetingItem } from "@/interfaces/meeting";
-import { parseEmailDomains } from "@/lib/email";
 import {
   MentorRequestFilter,
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import type { MeetingStatusMeta } from "@/types/assistant";
-import { MeetingStatus } from "@/types/assistant";
+import { parseEmailDomains } from "@/lib/email";
+import { MeetingStatus, type MeetingStatusMeta } from "@/types/assistant";
 import { MentorshipWorkspaceTab } from "@/types/mentorship";
 
 export const DEFAULT_APP_URL = "http://localhost:3000";
@@ -158,24 +155,6 @@ export function getMeetingPresenceDestination(meetingId: string): string {
   return `/app/meetings/${meetingId}/presence`;
 }
 
-export const DASHBOARD_REQUEST_STATUS_LABELS = {
-  [MentorshipRequestStatus.Accepted]: "Aktif",
-  [MentorshipRequestStatus.CounterProposed]: "Saat önerisi",
-  [MentorshipRequestStatus.Declined]: "Uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Bilgi bekliyor",
-  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-} satisfies Record<MentorshipRequestStatus, string>;
-
-export const MENTORSHIPS_REQUEST_STATUS_LABELS = {
-  [MentorshipRequestStatus.Accepted]: "Aktif mentorluk",
-  [MentorshipRequestStatus.CounterProposed]: "Mentör saat önerdi",
-  [MentorshipRequestStatus.Declined]: "Uygun değil",
-  [MentorshipRequestStatus.MoreInfoRequested]: "Ek bilgi istendi",
-  [MentorshipRequestStatus.Pending]: "Yanıt bekleniyor",
-  [MentorshipRequestStatus.Withdrawn]: "Geri çekildi",
-} satisfies Record<MentorshipRequestStatus, string>;
-
 export const MENTORSHIPS_TABS = [
   MentorshipWorkspaceTab.MentorPool,
   MentorshipWorkspaceTab.Active,
@@ -218,95 +197,12 @@ export const DASHBOARD_FALLBACK_MEETINGS: MeetingItem[] = [];
 
 export const DASHBOARD_FALLBACK_REQUESTS: MentorshipRequest[] = [];
 
-export const LOGIN_ROLE_GROUPS: LoginRoleGroup[] = [
-  {
-    id: "management",
-    title: "Kurum Yönetimi",
-    description:
-      "Programları, kullanıcıları ve kurum operasyonlarını yöneten kullanıcılar.",
-    roles: [
-      {
-        id: LoginRoleId.Admin,
-        label: "Admin",
-        description:
-          "Kurum ayarlarını, kullanıcıları ve sistem yetkilerini yönetin.",
-      },
-      {
-        id: LoginRoleId.ProgramManager,
-        label: "Program Yöneticisi",
-        description:
-          "Programları, katılımcıları ve süreç operasyonlarını takip edin.",
-      },
-    ],
-  },
-  {
-    id: "mentorship",
-    title: "Mentorluk ve Eğitim",
-    description:
-      "Girişimlere mentorluk veya eğitim desteği sağlayan kullanıcılar.",
-    roles: [
-      {
-        id: LoginRoleId.Mentor,
-        label: "Mentor",
-        description:
-          "Atandığınız girişimlerle görüşmeler gerçekleştirin, öneri ve aksiyonlar oluşturun.",
-      },
-      {
-        id: LoginRoleId.Trainer,
-        label: "Eğitmen",
-        description:
-          "Eğitimleri, katılımcıları, materyalleri ve ödevleri yönetin.",
-      },
-    ],
-  },
-  {
-    id: "startup",
-    title: "Girişim Ekibi",
-    description:
-      "Startup süreçlerini, görevlerini ve ilerlemelerini yöneten ekip üyeleri.",
-    roles: [
-      {
-        id: LoginRoleId.StartupOwner,
-        label: "Startup Yetkilisi",
-        description:
-          "Startup profilini, ekip üyelerini, destek taleplerini ve program süreçlerini yönetin.",
-      },
-      {
-        id: LoginRoleId.Mentee,
-        label: "Mentee / Ekip Üyesi",
-        description:
-          "Görevlerinizi, görüşmelerinizi, kayıtlarınızı ve startup ilerlemenizi takip edin.",
-      },
-    ],
-  },
-];
-
+/** The rating questions in order; their copy is `meetingPages.feedback.questions.<id>`. */
 export const MEETING_FEEDBACK_QUESTIONS = [
-  {
-    id: "nextSteps",
-    prompt: "Görüşme sonunda bir sonraki adımlarım ne kadar netleşti?",
-    low: "1 — Hiç netleşmedi",
-    high: "5 — Tamamen netleşti",
-  },
-  {
-    id: "fit",
-    prompt: "Öneriler girişimimin mevcut aşamasına ne kadar uygundu?",
-    low: "1 — Hiç uygun değildi",
-    high: "5 — Tamamen uygundu",
-  },
-  {
-    id: "expression",
-    prompt: "Fikirlerimi, sorularımı ve çekincelerimi rahatça ifade edebildim.",
-    low: "1 — Hiç katılmıyorum",
-    high: "5 — Tamamen katılıyorum",
-  },
-  {
-    id: "confidence",
-    prompt:
-      "Bu konuda ilerleyebileceğime dair güvenim görüşme sonrasında nasıl değişti?",
-    low: "1 — Azaldı",
-    high: "5 — Belirgin şekilde arttı",
-  },
+  { id: "nextSteps" },
+  { id: "fit" },
+  { id: "expression" },
+  { id: "confidence" },
 ] as const;
 
 export const MEETING_FEEDBACK_BENEFITS = [
@@ -326,46 +222,6 @@ export const MEETING_FEEDBACK_BENEFIT_IDS = [
   "actions",
   "perspective",
   "resources",
-] as const;
-
-export const SITE_NAV_ITEMS = [
-  { href: "#duyurular", label: "Duyurular" },
-  { href: "#mentorluk", label: "Mentorluk Nedir?" },
-  { href: "#programlar", label: "Programlar" },
-  { href: "#egitimler", label: "Eğitimler" },
-  { href: "#sss", label: "Sıkça Sorulan Sorular" },
-  { href: "#yardim", label: "Yardım" },
-] as const;
-
-export const SITE_FOOTER_GROUPS = [
-  {
-    title: "Platform",
-    links: [
-      { href: "/#mentorluk", label: "Mentorluk Nedir?" },
-      { href: "/#programlar", label: "Programlar" },
-      { href: "/#egitimler", label: "Eğitimler" },
-      { href: "/#duyurular", label: "Duyurular" },
-    ],
-  },
-  {
-    title: "Destek",
-    links: [
-      {
-        href: "mailto:info@metu.edu.tr?subject=METUal%20Destek",
-        label: "Yardım Merkezi",
-      },
-      { href: "/#sss", label: "Sıkça Sorulan Sorular" },
-      { href: "mailto:info@metu.edu.tr", label: "İletişim" },
-    ],
-  },
-  {
-    title: "Yasal",
-    links: [
-      { href: null, label: "Gizlilik" },
-      { href: null, label: "Kullanım Koşulları" },
-      { href: null, label: "KVKK" },
-    ],
-  },
 ] as const;
 
 export const ACCEPTED_CALENDAR_DAYS = [
@@ -404,3 +260,11 @@ export const DOCUMENT_UPLOAD_ACCEPT = ".pdf,.docx,.xlsx,.pptx";
 export const DOCUMENT_MAX_BYTES = 25 * 1024 * 1024;
 
 export const SUPPORT_EMAIL = "info@menton.com.tr";
+
+/**
+ * The ODTÜ dev persona login (/login/odtu/dev). Local development only, together with the backend's
+ * INSTITUTION_LOGIN_DEV_STUB; the real ODTÜ login replaces it once ODTÜ's protocol is known.
+ */
+export function isOdtuDevLoginEnabled(): boolean {
+  return process.env.NEXT_PUBLIC_ODTU_DEV_LOGIN === "true";
+}

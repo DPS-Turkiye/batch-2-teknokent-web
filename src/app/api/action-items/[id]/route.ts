@@ -2,11 +2,13 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { updateActionItem } from "@/lib/api/action-items";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
 
@@ -17,7 +19,7 @@ export async function PATCH(
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
-    if (session.role !== UserRole.Mentee || !session.organizationId) {
+    if (!hasPermission(session, UserRole.Mentee) || !session.organizationId) {
       return NextResponse.json(
         {
           code: "FORBIDDEN",
@@ -27,10 +29,11 @@ export async function PATCH(
       );
     }
     const { id } = await params;
-    const payload = (await request.json()) as Record<string, unknown>;
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
 
     return backendResponse(
-      await updateActionItem(id, session.organizationId, payload),
+      await updateActionItem(id, session.organizationId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

@@ -1,12 +1,15 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useCallback, useState } from "react";
 
-import type { RegisteredAccount } from "@/interfaces/auth";
-import type { SignupDraft } from "@/interfaces/signup";
 import { startupRequestFields } from "@/hooks/use-startup-draft";
+import type { RegisteredAccount } from "@/interfaces/auth";
+import { StartupDocumentKind, type SignupDraft } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { registerFounder } from "@/lib/client/auth";
 import { uploadDocument } from "@/lib/client/documents";
+import { isEnumValue } from "@/lib/enum";
 import { currentIdToken } from "@/lib/firebase/auth";
 
 export function signupFullName(draft: SignupDraft) {
@@ -18,16 +21,18 @@ export function signupFullName(draft: SignupDraft) {
 
 /** Registers the founder (with their startup, or into the program without one), then uploads the files. */
 export function useFounderApplication(account: RegisteredAccount) {
+  const tErrors = useTranslations("clientErrors");
+  const tWizard = useTranslations("signupWizard");
   const [submittedAt, setSubmittedAt] = useState<Date | null>(null);
 
   const submitApplication = useCallback(
     async (draft: SignupDraft) => {
       const idToken = await currentIdToken();
       if (!idToken) {
-        throw new Error("Oturumunuz sona erdi. Lütfen tekrar giriş yapın.");
+        throw new Error(tErrors("sessionExpired"));
       }
       const { programId, startupLater } = draft.startup;
-      if (!programId) throw new Error("Lütfen bir program seçin.");
+      if (!programId) throw new Error(tWizard("programRequired"));
       const personal = {
         fullName: signupFullName(draft) || account.fullName,
         email: account.email,
@@ -49,22 +54,26 @@ export function useFounderApplication(account: RegisteredAccount) {
         );
       }
       if (draft.personal.cv?.file) {
-        await uploadDocument(draft.personal.cv.file, "cv", idToken);
+        await uploadDocument(draft.personal.cv.file, DocumentKind.Cv, idToken);
       }
       // Without a startup there is nowhere for its logo and files to go yet.
       if (!startupLater) {
         if (draft.startup.logo?.file) {
-          await uploadDocument(draft.startup.logo.file, "logo", idToken);
+          await uploadDocument(
+            draft.startup.logo.file,
+            DocumentKind.Logo,
+            idToken,
+          );
         }
         for (const [kind, uploaded] of Object.entries(draft.documents)) {
-          if (uploaded?.file) {
+          if (uploaded.file && isEnumValue(StartupDocumentKind, kind)) {
             await uploadDocument(uploaded.file, kind, idToken);
           }
         }
       }
       setSubmittedAt(new Date());
     },
-    [account],
+    [account, tErrors, tWizard],
   );
 
   return { submitApplication, submittedAt };

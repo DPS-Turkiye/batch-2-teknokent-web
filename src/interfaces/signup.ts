@@ -1,4 +1,5 @@
 import { DocumentKind } from "@/interfaces/startup-document";
+import type { Keyed } from "@/lib/keyed-list";
 
 /** The `?role=` value on /signup; the role page sets it. */
 export enum SignupRole {
@@ -13,29 +14,13 @@ export enum SignupStep {
   Review = 4,
 }
 
-export const SIGNUP_STEPS: { step: SignupStep; title: string; hint: string }[] =
-  [
-    {
-      step: SignupStep.PersonalProfile,
-      title: "Kişisel profilin",
-      hint: "Mentorlar seni bu bilgilerle tanır",
-    },
-    {
-      step: SignupStep.StartupProfile,
-      title: "Startup profilin",
-      hint: "Koordinatör ve mentorlar görür",
-    },
-    {
-      step: SignupStep.Documents,
-      title: "Dosyalar",
-      hint: "Kanvas, pitch deck, prototip",
-    },
-    {
-      step: SignupStep.Review,
-      title: "Gözden geçir ve gönder",
-      hint: "Koordinatör onayına gider",
-    },
-  ];
+/** The wizard's steps in order; their copy is `signupWizard.steps.<key>`. */
+export const SIGNUP_STEPS: { step: SignupStep }[] = [
+  { step: SignupStep.PersonalProfile },
+  { step: SignupStep.StartupProfile },
+  { step: SignupStep.Documents },
+  { step: SignupStep.Review },
+];
 
 export const SIGNUP_STEP_ORDER: SignupStep[] = SIGNUP_STEPS.map(
   (item) => item.step,
@@ -75,46 +60,18 @@ export const SUPPORT_AREA_OPTIONS = [
   "Yatırım",
 ] as const;
 
-/** The four documents the signup wizard asks a startup for. */
-export enum StartupDocumentKind {
-  Canvas = DocumentKind.Canvas,
-  PitchDeck = DocumentKind.PitchDeck,
-  Mvp = DocumentKind.Mvp,
-  Validation = DocumentKind.Validation,
-}
-
-export interface StartupDocumentSpec {
-  kind: StartupDocumentKind;
-  title: string;
-  description: string;
-}
-
-export const STARTUP_DOCUMENTS: StartupDocumentSpec[] = [
-  {
-    kind: StartupDocumentKind.Canvas,
-    title: "Kanvas yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.PitchDeck,
-    title: "Pitch Deck yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.Mvp,
-    title: "MVP/Prototip yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-  {
-    kind: StartupDocumentKind.Validation,
-    title: "Doğrulama Çıktısı yükle",
-    description:
-      "PDF veya DOCX formatındaki dosyanızı kullanarak profilinizi hazırlayın.",
-  },
-];
+/**
+ * The four documents the signup wizard asks a startup for. A subset of DocumentKind rather than an enum of its own,
+ * so a signup file's kind is a DocumentKind wherever stored documents are looked up or uploaded.
+ */
+export const StartupDocumentKind = {
+  Canvas: DocumentKind.Canvas,
+  PitchDeck: DocumentKind.PitchDeck,
+  Mvp: DocumentKind.Mvp,
+  Validation: DocumentKind.Validation,
+} as const;
+export type StartupDocumentKind =
+  (typeof StartupDocumentKind)[keyof typeof StartupDocumentKind];
 
 export interface UploadedFile {
   name: string;
@@ -149,7 +106,8 @@ export interface StartupProfileDraft {
   /** "Startup'ı daha sonra oluşturacağım": sign up into the program without a startup. */
   startupLater?: boolean;
   maturity: string;
-  teamMembers: TeamMemberDraft[];
+  /** Rows carry React keys while edited (see keyed-list); the saved draft and the payloads leave them out. */
+  teamMembers: Keyed<TeamMemberDraft>[];
   supportAreas: string[];
   logo: UploadedFile | null;
 }

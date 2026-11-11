@@ -1,11 +1,13 @@
 import {
+  Weekday,
+  WEEKDAY_ORDER,
+  type StudentProfile,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
-  WEEKDAY_ORDER,
-  Weekday,
 } from "@/interfaces/mentor";
 import type {
   MentorOnboardingDraft,
+  StudentOnboardingDraft,
   WeeklyAvailability,
 } from "@/interfaces/mentor-onboarding";
 
@@ -20,7 +22,7 @@ const SHORT_DAY: Record<Weekday, string> = {
 };
 
 function minutesOf(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
   return hours * 60 + (minutes || 0);
 }
 
@@ -72,10 +74,44 @@ export function weeklyCapacity(draft: MentorOnboardingDraft) {
   return { hours: Math.round((minutes / 60) * 10) / 10, meetings: perDay };
 }
 
+export function toStudentProfilePayload(
+  student: StudentOnboardingDraft,
+): StudentProfile {
+  const list = (text: string, separator: RegExp) =>
+    text
+      .split(separator)
+      .map((item) => item.trim())
+      .filter(Boolean);
+  return {
+    department: student.department.trim() || null,
+    studyYear: student.studyYear || null,
+    strongCourses: list(student.courses, /,/),
+    projects: list(student.projects, /\n/),
+    erasmus: student.erasmus.trim() || null,
+  };
+}
+
+export function toStudentDraft(
+  profile: StudentProfile,
+): StudentOnboardingDraft {
+  return {
+    department: profile.department ?? "",
+    studyYear: profile.studyYear ?? "",
+    courses: profile.strongCourses.join(", "),
+    projects: profile.projects.join("\n"),
+    erasmus: profile.erasmus ?? "",
+  };
+}
+
+/** A student mentor's studies go with the profile; anyone else's draft never sends them. */
 export function toMentorProfilePayload(
   draft: MentorOnboardingDraft,
+  studentMentor = false,
 ): UpdateMentorProfilePayload & { offerings: string[] } {
   return {
+    ...(studentMentor
+      ? { studentProfile: toStudentProfilePayload(draft.student) }
+      : {}),
     professionalTitle: draft.profile.title.trim(),
     company: draft.profile.company.trim(),
     availabilityLabel: "",
@@ -100,6 +136,13 @@ export function toMentorProfilePayload(
         summary: role.summary?.trim() ?? "",
       })),
     offerings: draft.offerings,
+    educations: draft.profile.education
+      .filter((school) => school.school.trim())
+      .map((school) => ({
+        school: school.school.trim(),
+        degree: school.degree.trim(),
+        period: school.period.trim(),
+      })),
   };
 }
 

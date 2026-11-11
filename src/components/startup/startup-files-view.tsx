@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 
 import {
@@ -215,7 +215,7 @@ export function StartupFilesView() {
                 className={`${chipClass} transition ${filterChipClass(filter, selected)}`}
               >
                 {t("filterCount", {
-                  label: t(`filters.${filter}`),
+                  label: files.filterLabel(filter),
                   count: files.counts[filter],
                 })}
               </button>

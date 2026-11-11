@@ -63,5 +63,5 @@ export async function unshareDocument(documentId: string, mentorId: string) {
 }
 
 export async function deleteDocument(documentId: string) {
-  return requireSuccess(await httpClient.delete(documentUrl(documentId)));
+  requireSuccess(await httpClient.delete<void>(documentUrl(documentId)));
 }

@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorMentorshipsView } from "@/components/coordinator/mentorships-view";
 import { CoordinatorMentorshipHealth } from "@/interfaces/coordinator-mentorship";
+import { ProgramType } from "@/interfaces/program";
 import {
   getCoordinatorMentorship,
   getCoordinatorMentorships,
@@ -15,6 +16,7 @@ import {
   coordinatorMentorshipDetail,
 } from "@test/fixtures/coordinator-mentorships";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-mentorships", () => ({
@@ -25,6 +27,16 @@ vi.mock("@/lib/client/coordinator-mentorships", () => ({
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorPrograms: vi.fn(),
+}));
+
+vi.mock("@/lib/client/meeting-proposals", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/meeting-proposals")>()),
+  getMentorshipMeetingProposals: vi.fn(async () => []),
+}));
+
+vi.mock("@/lib/client/coordinator-notes", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/client/coordinator-notes")>()),
+  getCoordinatorNotes: vi.fn(async () => []),
 }));
 
 const lumen = coordinatorMentorship();
@@ -46,6 +58,43 @@ describe("CoordinatorMentorshipsView", () => {
     vi.mocked(getCoordinatorMentorship).mockResolvedValue(
       coordinatorMentorshipDetail(),
     );
+  });
+
+  it("shows each mentorship's program type and narrows the list to one type", async () => {
+    vi.mocked(getCoordinatorPrograms).mockResolvedValue([
+      coordinatorProgram(),
+      coordinatorProgram({
+        id: "program-peer",
+        name: "İŞKUR Akran 2026",
+        type: ProgramType.PeerMentoring,
+      }),
+    ]);
+    vi.mocked(getCoordinatorMentorships).mockResolvedValue([
+      lumen,
+      { ...kavun, programId: "program-peer", programName: "İŞKUR Akran 2026" },
+    ]);
+    const user = userEvent.setup();
+    renderWithQueryClient(
+      <CoordinatorMentorshipsView initialSelectedId={null} />,
+    );
+
+    expect(await screen.findByText("Ayşe Demir ↔ Kavun")).toBeInTheDocument();
+    expect(
+      screen.getByText("Akran Mentörlüğü", { selector: "span" }),
+    ).toBeInTheDocument();
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Program türü" }),
+      ProgramType.PeerMentoring,
+    );
+
+    expect(screen.queryByText("Ayşe Demir ↔ Lumen")).not.toBeInTheDocument();
+    expect(screen.getByText("Ayşe Demir ↔ Kavun")).toBeInTheDocument();
+    const program = screen.getByRole("combobox", { name: "Program:" });
+    expect(
+      within(program)
+        .getAllByRole("option")
+        .map((option) => option.textContent),
+    ).toEqual(["Tüm programlar", "İŞKUR Akran 2026"]);
   });
 
   it("lists the mentorships with an intervention button on the risky one", async () => {
@@ -159,7 +208,10 @@ describe("CoordinatorMentorshipsView", () => {
     );
 
     await user.click(
-      within(dialog).getAllByRole("button", { name: "İki tarafa hatırlat" })[0],
+      itemAt(
+        within(dialog).getAllByRole("button", { name: "İki tarafa hatırlat" }),
+        0,
+      ),
     );
 
     expect(remindCoordinatorMentorship).toHaveBeenCalledWith("mentorship-1");

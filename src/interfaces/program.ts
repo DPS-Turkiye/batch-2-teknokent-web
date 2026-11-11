@@ -10,14 +10,17 @@ export enum ProgramMentorInvitedBy {
 }
 
 export enum ProgramStatus {
+  Draft = "DRAFT",
   Active = "ACTIVE",
   Completed = "COMPLETED",
 }
 
-export const PROGRAM_STATUS_LABELS: Record<ProgramStatus, string> = {
-  [ProgramStatus.Active]: "Aktif",
-  [ProgramStatus.Completed]: "Tamamlandı",
-};
+/** Mirrors the backend ProgramType; decides which tabs and structures a program has. */
+export enum ProgramType {
+  StartupMentoring = "STARTUP_MENTORING",
+  PeerMentoring = "PEER_MENTORING",
+  OfficeHours = "OFFICE_HOURS",
+}
 
 export type ProgramStartup = {
   id: string;
@@ -78,19 +81,12 @@ export type ProgramInvitation = {
   createdAt: string;
 };
 
-export type ProgramDirectory = {
-  startups: ProgramStartup[];
-  mentors: Array<{
-    id: string;
-    fullName: string;
-    email: string;
-  }>;
-};
-
 export type OrganizationProgram = {
   id: string;
   name: string;
   coordinatorName: string;
+  /** Students who joined as a team of one, so mentee screens drop the startup pages and wording. */
+  individualMentees: boolean;
 };
 
 export type OrganizationPrograms = {
@@ -101,4 +97,12 @@ export type OrganizationPrograms = {
 export type ProgramName = {
   id: string;
   name: string;
+  /** Students join as a team of one, so signup skips the startup questions. */
+  individualMentees: boolean;
+};
+
+/** Whether the signed-in address may join a program; `message` says why not. */
+export type ProgramEligibility = {
+  eligible: boolean;
+  message: string | null;
 };

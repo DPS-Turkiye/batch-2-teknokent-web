@@ -5,6 +5,19 @@ import { StartupPageFrame } from "@/components/startup/startup-page-frame";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import { StartupFundingStage } from "@/interfaces/organization";
 
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/startup/files",
 }));
@@ -54,6 +67,46 @@ describe("StartupPageFrame", () => {
       "page",
     );
     expect(screen.getByText("İçerik")).toBeInTheDocument();
+  });
+
+  it("hides workspace wording and tabs until the session is known", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: false,
+      isLoading: true,
+    });
+    render(
+      <StartupPageFrame>
+        <p>İçerik</p>
+      </StartupPageFrame>,
+    );
+    expect(
+      screen.getByRole("heading", { level: 1, name: "…" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("navigation")).not.toBeInTheDocument();
+  });
+
+  it("calls a student's page Projem, under their program, with no startup chips", () => {
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    vi.mocked(useStartupHeader).mockReturnValue(header({ name: "Elif Kaya" }));
+
+    render(
+      <StartupPageFrame>
+        <p>İçerik</p>
+      </StartupPageFrame>,
+    );
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Projem" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("METU Stars 2026")).toBeInTheDocument();
+    expect(screen.queryByText("MVP aşaması")).not.toBeInTheDocument();
+    expect(screen.queryByText("Pre-seed")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Profil" }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows the signed logo when there is one", () => {

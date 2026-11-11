@@ -1,17 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import { saveSignedInLanguage } from "@/lib/api/auth";
-import { isLocale } from "@/lib/i18n";
+import { Locale } from "@/lib/i18n";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
+
+const languageSchema = z.object({ language: z.enum(Locale) });
 
 export async function PUT(request: NextRequest) {
   try {
     const idToken = readBearerToken(request);
-    const body = (await request.json().catch(() => ({}))) as {
-      language?: unknown;
-    };
-    if (!idToken || !isLocale(body.language)) {
+    if (!idToken) {
       return NextResponse.json(
         {
           code: "INVALID_REQUEST",
@@ -20,7 +21,11 @@ export async function PUT(request: NextRequest) {
         { status: 400 },
       );
     }
-    const response = await saveSignedInLanguage(idToken, body.language);
+    const body = await readJsonBody(request, languageSchema, {
+      invalidMessage: "languageSaveFailed",
+    });
+    if (!body.ok) return body.response;
+    const response = await saveSignedInLanguage(idToken, body.data.language);
     return new NextResponse(null, { status: response.status });
   } catch (error) {
     return apiErrorResponse(error, {

@@ -9,24 +9,26 @@ import {
   MENTOR_TOPIC_OPTIONS,
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
 import {
+  chooseMentorPrograms,
+  getMentorPrograms,
+} from "@/lib/client/mentor-programs";
+import {
   clearOnboardingDraft,
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/client/onboarding-draft";
-import {
-  chooseMentorPrograms,
-  getMentorPrograms,
-} from "@/lib/client/mentor-programs";
 import { parseStoredCv } from "@/lib/client/profile-analysis";
 import { getProgramNames } from "@/lib/client/programs";
 import { getUserProfile, saveUserProfile } from "@/lib/client/user-profile";
 import { currentIdToken } from "@/lib/firebase/auth";
+import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
 
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
@@ -89,7 +91,7 @@ beforeEach(() => {
   );
   vi.mocked(uploadDocument).mockResolvedValue({
     id: "cv-1",
-    kind: "cv",
+    kind: DocumentKind.Cv,
     originalFilename: "nihan-cv.pdf",
     sizeBytes: 5,
   });
@@ -195,8 +197,8 @@ describe("useMentorOnboarding", () => {
 
   it("asks for an open program on the areas step and starts with the ones the mentor already has", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
-      { id: "p1", name: "METU Stars 2026" },
-      { id: "p2", name: "Growth Circuit 2026" },
+      { id: "p1", name: "METU Stars 2026", individualMentees: false },
+      { id: "p2", name: "Growth Circuit 2026", individualMentees: false },
     ]);
     vi.mocked(getMentorPrograms).mockResolvedValue(["p2"]);
     const { result } = renderHook(() => useMentorOnboarding());
@@ -214,6 +216,69 @@ describe("useMentorOnboarding", () => {
     expect(result.current.canContinue).toBe(false);
     act(() => result.current.toggleProgram("p1"));
     expect(result.current.canContinue).toBe(true);
+  });
+
+  it("gives a mentor of a student program the student topics and years", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+      { id: "bigg", name: "BİGG", individualMentees: false },
+    ]);
+    vi.mocked(getMentorPrograms).mockResolvedValue([]);
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(result.current.programs).toHaveLength(2));
+    expect(result.current.studentMentor).toBe(false);
+    expect(result.current.topicOptions).toEqual(
+      expect.arrayContaining([...MENTOR_TOPIC_OPTIONS]),
+    );
+
+    act(() => result.current.toggleProgram("iskur"));
+
+    expect(result.current.studentMentor).toBe(true);
+    expect(result.current.topicOptions).toEqual([...STUDENT_TOPICS]);
+    expect(result.current.stageOptions).toEqual(STUDENT_LEVELS);
+    act(() => {
+      result.current.toggleTopic("Staj");
+      result.current.toggleStage("3. sınıf");
+    });
+    act(() => result.current.goToStep(MentorOnboardingStep.Areas));
+    expect(result.current.canContinue).toBe(false);
+    act(() => {
+      result.current.updateStudent("department", "Bilgisayar Mühendisliği");
+      result.current.updateStudent("studyYear", "4. sınıf");
+    });
+    expect(result.current.canContinue).toBe(true);
+  });
+
+  it("drops the other list's choices when the mentor switches between a student and a startup program", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+      { id: "bigg", name: "BİGG", individualMentees: false },
+    ]);
+    vi.mocked(getMentorPrograms).mockResolvedValue([]);
+    const { result } = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(result.current.programs).toHaveLength(2));
+
+    act(() => result.current.toggleProgram("bigg"));
+    act(() => {
+      result.current.toggleTopic(MENTOR_TOPIC_OPTIONS[0]);
+      result.current.toggleStage("MVP");
+    });
+    act(() => result.current.toggleProgram("iskur"));
+    expect(result.current.draft.topics).toEqual([]);
+    expect(result.current.draft.stages).toEqual([]);
+
+    act(() => {
+      result.current.toggleTopic("Erasmus & yurt dışı");
+      result.current.toggleStage("Yüksek lisans");
+    });
+    act(() => result.current.toggleProgram("bigg"));
+    expect(result.current.studentMentor).toBe(true);
+    expect(result.current.draft.topics).toEqual(["Erasmus & yurt dışı"]);
+
+    act(() => result.current.toggleProgram("iskur"));
+    expect(result.current.studentMentor).toBe(false);
+    expect(result.current.draft.topics).toEqual([]);
+    expect(result.current.draft.stages).toEqual([]);
   });
 
   it("does not hold the mentor back when no program is open", async () => {
@@ -321,6 +386,35 @@ describe("useMentorOnboarding — reading the CV", () => {
     expect(result.current.topicOptions).toContain("UX");
     expect(result.current.draft.firstName).toBe("Nihan");
     expect(result.current.parseNote).toBe("");
+  });
+
+  it("fills a student's studies from the CV", async () => {
+    vi.mocked(parseStoredCv).mockResolvedValue({
+      department: "Bilgisayar Mühendisliği",
+      study_year: "2. sınıf",
+      strong_courses: ["CENG 140"],
+      student_projects: [],
+      exchange_experience: null,
+    });
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(result.current.draft.student).toEqual({
+      department: "Bilgisayar Mühendisliği",
+      studyYear: "2. sınıf",
+      courses: "CENG 140",
+      projects: "",
+      erasmus: "",
+    });
   });
 
   it("still opens the form, with a note, when the CV cannot be read", async () => {
@@ -435,6 +529,38 @@ describe("useMentorOnboarding — sending the profile", () => {
     expect(chooseMentorPrograms).toHaveBeenCalledWith(["p1"], "id-token");
   });
 
+  it("sends a student mentor's studies with the profile", async () => {
+    vi.mocked(getProgramNames).mockResolvedValue([
+      { id: "iskur", name: "İŞKUR", individualMentees: true },
+    ]);
+    const { result } = readyToSend();
+    await waitFor(() => expect(result.current.programs).toHaveLength(1));
+    act(() => result.current.toggleProgram("iskur"));
+    act(() => {
+      result.current.toggleTopic("Staj");
+      result.current.toggleStage("3. sınıf");
+      result.current.updateStudent("department", "Endüstri Mühendisliği");
+      result.current.updateStudent("studyYear", "3. sınıf");
+      result.current.updateStudent("erasmus", "Politecnico di Milano");
+    });
+
+    await act(async () => {
+      await result.current.complete();
+    });
+
+    expect(updateMentorProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        specialties: ["Staj"],
+        studentProfile: expect.objectContaining({
+          department: "Endüstri Mühendisliği",
+          studyYear: "3. sınıf",
+          erasmus: "Politecnico di Milano",
+        }),
+      }),
+      "id-token",
+    );
+  });
+
   it("surfaces a save failure instead of claiming the profile was sent", async () => {
     vi.mocked(updateAvailabilitySettings).mockRejectedValue(
       new Error("Müsaitlik kaydedilemedi."),
@@ -485,6 +611,72 @@ describe("useMentorOnboarding — resuming after a refresh", () => {
     expect(second.result.current.draft.profile.company).toBe("Peak");
     expect(second.result.current.draft.consent).toBe(false);
     expect(second.result.current.droppedFiles).toBe(0);
+  });
+
+  it("saves the rows without their React keys and gives restored rows fresh ones", async () => {
+    const first = renderHook(() => useMentorOnboarding());
+    await waitFor(() => expect(fetchOnboardingDraft).toHaveBeenCalled());
+    act(() => {
+      first.result.current.addExperience();
+      first.result.current.addEducation();
+      first.result.current.addEducation();
+    });
+    act(() => {
+      first.result.current.updateExperience(0, {
+        title: "Senior PM",
+        organization: "Looply",
+      });
+      first.result.current.updateEducation(0, "school", "ODTÜ");
+      first.result.current.updateEducation(1, "school", "Bilkent");
+    });
+    const typedKey = first.result.current.draft.profile.history[0]?.key;
+    expect(typedKey).toEqual(expect.any(String));
+    await act(async () => {
+      await first.result.current.saveDraft();
+    });
+    first.unmount();
+
+    expect(JSON.stringify(stored?.payload)).not.toContain('"key"');
+
+    const second = renderHook(() => useMentorOnboarding());
+    await waitFor(() =>
+      expect(second.result.current.draft.profile.education).toHaveLength(2),
+    );
+    const { history, education } = second.result.current.draft.profile;
+    expect(history.map((role) => role.title)).toEqual(["Senior PM"]);
+    const keys = [...history, ...education].map((row) => row.key);
+    expect(new Set(keys).size).toBe(3);
+    expect(keys.every((key) => typeof key === "string")).toBe(true);
+  });
+
+  it("restores a draft saved before schools existed with an empty school list", async () => {
+    stored = {
+      kind: "mentor-onboarding",
+      step: "PROFILE",
+      payload: {
+        profile: {
+          fullName: "",
+          title: "Mentor",
+          company: "Peak",
+          totalExperience: "",
+          history: [],
+          inferredAreas: [],
+        },
+      },
+    };
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    await waitFor(() =>
+      expect(result.current.draft.profile.company).toBe("Peak"),
+    );
+    expect(result.current.draft.profile.education).toEqual([]);
+    act(() => result.current.addEducation());
+    act(() => result.current.updateEducation(0, "school", "ODTÜ"));
+    expect(result.current.draft.profile.education).toEqual([
+      { key: expect.any(String), school: "ODTÜ", degree: "", period: "" },
+    ]);
+    act(() => result.current.removeEducation(0));
+    expect(result.current.draft.profile.education).toEqual([]);
   });
 
   it("keeps a CV that already reached the server instead of asking for it again", async () => {

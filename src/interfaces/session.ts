@@ -1,8 +1,18 @@
+import type { Workspace } from "@/interfaces/workspace";
+
 export enum UserRole {
   Admin = "ADMIN",
   Coordinator = "COORDINATOR",
   Mentee = "MENTEE",
   Mentor = "MENTOR",
+  Academician = "ACADEMICIAN",
+}
+
+/** What an institution (ODTÜ) says a person is; Teknokent accounts have none. */
+export enum IdentityKind {
+  Student = "STUDENT",
+  Academic = "ACADEMIC",
+  Staff = "STAFF",
 }
 
 export enum UserAccountStatus {
@@ -16,10 +26,19 @@ export type AppSession = {
   email: string;
   fullName: string;
   jobTitle: string;
-  role:
-    UserRole.Mentee | UserRole.Mentor | UserRole.Admin | UserRole.Coordinator;
-  organizationId?: string;
-  organizationName?: string;
+  role: UserRole;
+  organizationId?: string | undefined;
+  organizationName?: string | undefined;
+  /** /api/auth/me's individualMentee at sign-in: useIndividualProgram's first guess until the programs load. */
+  individualMentee?: boolean | undefined;
+  /** Every active permission; `role` is the primary one. Missing on cookies issued before permissions existed. */
+  permissions?: UserRole[] | undefined;
+  /** From /api/auth/me; non-empty for an ODTÜ account, which is what makes it one. */
+  institutionKinds?: IdentityKind[];
+  /** The workspace the user switched to; see lib/workspaces.ts. */
+  activeWorkspace?: Workspace;
+  /** The organization is an ODTÜ student's hidden team of one: no startup, and no Girişim workspace. */
+  personalOrganization?: boolean;
 };
 
 export type BackendUser = {
@@ -33,6 +52,13 @@ export type BackendUser = {
   jobTitle?: string | null;
   /** When an admin last ended all of this user's sign-ins (ISO time). */
   signInsRevokedAt?: string | null;
+  /** A mentee of an individual program (İŞKUR-style); only /api/auth/me fills it. */
+  individualMentee?: boolean;
+  /** Every active permission, `role` included. */
+  permissions?: UserRole[];
+  institutionKinds?: IdentityKind[];
+  /** The organization is an ODTÜ student's hidden team of one; organizationName is then null. */
+  personalOrganization?: boolean;
 };
 
 export type SessionData = {

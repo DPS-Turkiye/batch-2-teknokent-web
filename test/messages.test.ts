@@ -11,7 +11,9 @@ function leaves(value: unknown, path = ""): Record<string, string[]> {
       /(?:=\d+|zero|one|two|few|many|other)\s*\{[^{}]*\}/g,
       "",
     );
-    const names = [...args.matchAll(/\{(\w+)/g)].map((match) => match[1]);
+    const names = [...args.matchAll(/\{(\w+)/g)]
+      .map((match) => match[1])
+      .filter((name) => name !== undefined);
     return { [path]: [...new Set(names)].sort() };
   }
   if (Array.isArray(value)) {
@@ -20,9 +22,10 @@ function leaves(value: unknown, path = ""): Record<string, string[]> {
       ...value.map((item, index) => leaves(item, `${path}.${index}`)),
     );
   }
+  if (typeof value !== "object" || value === null) return {};
   return Object.assign(
     {},
-    ...Object.entries(value as Record<string, unknown>).map(([key, item]) =>
+    ...Object.entries(value).map(([key, item]: [string, unknown]) =>
       leaves(item, path ? `${path}.${key}` : key),
     ),
   );

@@ -4,8 +4,9 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/components/providers/toast-provider";
+import { ToastTone } from "@/interfaces/toast";
 import { requestPasswordReset } from "@/lib/firebase/auth";
+import { useToast } from "@/stores/toast-store";
 
 /** Sends the signed-in person a Firebase password-reset e-mail and says how it went. */
 export function usePasswordReset() {
@@ -21,12 +22,12 @@ export function usePasswordReset() {
       await requestPasswordReset(session.email);
       showToast({
         message: t("resetSent"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     } catch {
       showToast({
         message: t("resetFailed"),
-        tone: "error",
+        tone: ToastTone.Error,
       });
     } finally {
       setIsSendingReset(false);

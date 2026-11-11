@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,11 @@ import {
   useProfileAnalysis,
   useUploadProfileAnalysis,
 } from "@/hooks/use-profile-analysis";
+import {
+  ProfileAnalysisStatus,
+  ProfileAnalysisType,
+  ProfileOcrMode,
+} from "@/interfaces/profile-analysis";
 import {
   getLatestProfileAnalysis,
   uploadProfileAnalysis,
@@ -52,12 +57,12 @@ describe("useProfileAnalysis", () => {
     vi.mocked(getLatestProfileAnalysis).mockResolvedValue(null);
     const queryClient = createTestQueryClient();
 
+    const signedInUser: { appUserId: string | undefined } = {
+      appUserId: undefined,
+    };
     const { result, rerender } = renderHook(
-      ({ appUserId }: { appUserId?: string }) => useProfileAnalysis(appUserId),
-      {
-        wrapper: wrapperFor(queryClient),
-        initialProps: { appUserId: undefined },
-      },
+      ({ appUserId }) => useProfileAnalysis(appUserId),
+      { wrapper: wrapperFor(queryClient), initialProps: signedInUser },
     );
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
@@ -76,9 +81,9 @@ describe("useProfileAnalysis", () => {
       id: "analysis-1",
       appUserId: "member-1",
       sourceFilename: "cv.pdf",
-      profileType: "individual_mentee" as const,
+      profileType: ProfileAnalysisType.Personal,
       profile: {},
-      status: "DRAFT" as const,
+      status: ProfileAnalysisStatus.Draft,
       createdAt: "2026-08-26T00:00:00Z",
     };
     vi.mocked(uploadProfileAnalysis).mockResolvedValue(analysis);
@@ -90,8 +95,8 @@ describe("useProfileAnalysis", () => {
 
     await result.current.mutateAsync({
       file: new File(["x"], "cv.pdf"),
-      ocrMode: "auto",
-      profileType: "individual_mentee",
+      ocrMode: ProfileOcrMode.Auto,
+      profileType: ProfileAnalysisType.Personal,
       appUserId: "member-1",
     });
 

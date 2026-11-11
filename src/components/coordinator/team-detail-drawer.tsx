@@ -1,8 +1,8 @@
 "use client";
 
 import { Copy, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -13,6 +13,7 @@ import {
 } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
 import { TeamStage } from "@/components/coordinator/team-stage";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramTeamDetail } from "@/hooks/use-program-team-detail";
 import { mentorshipHref } from "@/lib/coordinator-calendar";
@@ -130,7 +131,7 @@ export function TeamDetailDrawer({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onCopyCode(team.code as string)}
+                      onClick={() => onCopyCode(team.code!)}
                       className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[12.5px] font-medium text-[#22262b]"
                     >
                       <Copy aria-hidden className="size-3.5" /> {t("copy")}
@@ -169,12 +170,14 @@ export function TeamDetailDrawer({
                           <TeamHistory userId={member.id} />
                         </div>
                         {member.joinedAt ? (
-                          <span className="text-[12px] text-[#858c96]">
+                          <span className="shrink-0 whitespace-nowrap text-[12px] text-[#858c96]">
                             {t("joinedOn", {
                               date: formatShortDate(member.joinedAt, locale),
                             })}
                           </span>
                         ) : null}
+                        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                        <ProfileLink userId={member.id} name={member.name} />
                       </li>
                     ))}
                   </ul>

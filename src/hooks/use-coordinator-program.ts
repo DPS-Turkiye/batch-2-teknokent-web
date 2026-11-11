@@ -4,28 +4,36 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/components/providers/toast-provider";
+import { ADMIN_OVERVIEW_QUERY_KEY } from "@/hooks/use-admin-overview";
 import { COORDINATOR_PROGRAMS_QUERY_KEY } from "@/hooks/use-coordinator-programs";
 import type {
   CoordinatorProgramDetail,
   CoordinatorRef,
+  ProgramEligibleEmail,
 } from "@/interfaces/coordinator-program";
+import { ToastTone } from "@/interfaces/toast";
 import {
   addProgramCoordinator,
+  addProgramEligibleEmails,
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
+  getProgramEligibleEmails,
+  launchCoordinatorProgram,
   removeProgramCoordinator,
+  removeProgramEligibleEmail,
   setCoordinatorProgramArchived,
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
 import {
   detailsInput,
-  type ProgramSettingsDraft,
-  SettingsSection,
+  parseEmailList,
   settingsDraftError,
   settingsDraftOf,
+  SettingsSection,
+  type ProgramSettingsDraft,
 } from "@/lib/coordinator-program-detail";
 import { errorMessage } from "@/lib/utils";
+import { useToast } from "@/stores/toast-store";
 
 export const coordinatorProgramQueryKey = (programId: string) =>
   ["coordinator-program", programId] as const;
@@ -73,7 +81,7 @@ export function useProgramSettings(
     onSuccess: (saved) => {
       cache.put(saved);
       setDraft(settingsDraftOf(saved));
-      showToast({ message: t("saved"), tone: "success" });
+      showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: (failure) => setError(errorMessage(failure, t("saveFailed"))),
   });
@@ -120,19 +128,24 @@ export function useProgramCoordinators(
   const onError = (failure: Error) =>
     showToast({
       message: errorMessage(failure, t("coordinatorFailed")),
-      tone: "error",
+      tone: ToastTone.Error,
     });
+  const queryClient = useQueryClient();
+  const refresh = () => {
+    void cache.refresh();
+    void queryClient.invalidateQueries({ queryKey: ADMIN_OVERVIEW_QUERY_KEY });
+  };
   const add = useMutation({
     mutationFn: (userId: string) => addProgramCoordinator(programId, userId),
     onSuccess: () => {
       setPicking(false);
-      void cache.refresh();
+      refresh();
     },
     onError,
   });
   const remove = useMutation({
     mutationFn: (userId: string) => removeProgramCoordinator(programId, userId),
-    onSuccess: () => void cache.refresh(),
+    onSuccess: refresh,
     onError,
   });
   return {
@@ -144,6 +157,61 @@ export function useProgramCoordinators(
     candidatesLoading: candidates.isLoading,
     add: (userId: string) => add.mutate(userId),
     remove: (userId: string) => remove.mutate(userId),
+    busy: add.isPending || remove.isPending,
+  };
+}
+
+/**
+ * The program's list of allowed addresses. It saves on each add/remove, apart from the settings draft, because
+ * a coordinator pastes the list while the rule may already be on.
+ */
+export function useProgramRoster(programId: string) {
+  const t = useTranslations("programSettings");
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const [text, setText] = useState("");
+  const queryKey = [
+    ...coordinatorProgramQueryKey(programId),
+    "eligible-emails",
+  ];
+  const entries = useQuery({
+    queryKey,
+    queryFn: () => getProgramEligibleEmails(programId),
+  });
+  const onSaved = (saved: ProgramEligibleEmail[]) =>
+    queryClient.setQueryData(queryKey, saved);
+  const onError = (failure: Error) =>
+    showToast({
+      message: errorMessage(failure, t("roster.failed")),
+      tone: ToastTone.Error,
+    });
+  const add = useMutation({
+    mutationFn: (emails: string[]) =>
+      addProgramEligibleEmails(programId, emails),
+    onSuccess: (saved) => {
+      onSaved(saved);
+      setText("");
+      showToast({ message: t("roster.saved"), tone: ToastTone.Success });
+    },
+    onError,
+  });
+  const remove = useMutation({
+    mutationFn: (entryId: string) =>
+      removeProgramEligibleEmail(programId, entryId),
+    onSuccess: onSaved,
+    onError,
+  });
+  const pasted = parseEmailList(text);
+  return {
+    entries: entries.data ?? [],
+    loading: entries.isLoading,
+    text,
+    setText,
+    canAdd: pasted.length > 0 && !add.isPending,
+    add: () => {
+      if (pasted.length > 0) add.mutate(pasted);
+    },
+    remove: (entryId: string) => remove.mutate(entryId),
     busy: add.isPending || remove.isPending,
   };
 }
@@ -162,13 +230,13 @@ export function useProgramArchive(programId: string, archived: boolean) {
       setConfirming(false);
       showToast({
         message: value ? t("archived") : t("reopened"),
-        tone: "success",
+        tone: ToastTone.Success,
       });
     },
     onError: (failure) =>
       showToast({
         message: errorMessage(failure, t("archiveFailed")),
-        tone: "error",
+        tone: ToastTone.Error,
       }),
   });
   return {
@@ -180,4 +248,31 @@ export function useProgramArchive(programId: string, archived: boolean) {
     restore: () => mutation.mutate(false),
     busy: mutation.isPending,
   };
+}
+
+/** "Programı Başlat": the admin turns a draft active; the admin's program list is refreshed too. */
+export function useLaunchProgram(programId: string) {
+  const t = useTranslations("coordinatorPrograms");
+  const cache = useProgramCache(programId);
+  const queryClient = useQueryClient();
+  const { showToast } = useToast();
+  const mutation = useMutation({
+    mutationFn: () => launchCoordinatorProgram(programId),
+    onSuccess: (detail) => {
+      cache.put(detail);
+      void queryClient.invalidateQueries({
+        queryKey: ADMIN_OVERVIEW_QUERY_KEY,
+      });
+      showToast({
+        message: t("launched", { name: detail.program.name }),
+        tone: ToastTone.Success,
+      });
+    },
+    onError: (failure) =>
+      showToast({
+        message: errorMessage(failure, t("launchFailed")),
+        tone: ToastTone.Error,
+      }),
+  });
+  return { launch: () => mutation.mutate(), launching: mutation.isPending };
 }

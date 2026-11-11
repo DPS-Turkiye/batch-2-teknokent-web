@@ -1,11 +1,12 @@
 import { UserRole } from "@/interfaces/session";
 import { fetchMeetingRoom } from "@/lib/api/meetings";
-import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { requireOwnedMeeting } from "@/lib/server/mentor-meeting";
 import { getSessionUser } from "@/lib/session";
 
 type RouteContext = {
@@ -15,7 +16,7 @@ type RouteContext = {
 export async function GET(_request: Request, context: RouteContext) {
   try {
     const session = await getSessionUser();
-    if (session?.role !== UserRole.Mentor) {
+    if (!session || !hasPermission(session, UserRole.Mentor)) {
       return Response.json(
         { code: "FORBIDDEN", message: await apiText("meetingRoomMentorOnly") },
         { status: 403 },

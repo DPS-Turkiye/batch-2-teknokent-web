@@ -1,6 +1,6 @@
 import type { useTranslations } from "next-intl";
 
-import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
+import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import { SignupRole } from "@/interfaces/signup";
 import { daysWaiting } from "@/lib/program-launch";
 
@@ -134,6 +134,18 @@ export function poolRowNote(row: MentorPoolRow, t: PoolT, now = new Date()) {
     default:
       return null;
   }
+}
+
+/**
+ * The mentor id to open "Profili gör" with, or null. The backend only shows a mentor in the pool or one who asked to
+ * join; a coordinator's open invite does not count, so invited rows get no link.
+ */
+export function profileMentorId(row: MentorPoolRow) {
+  const reachable =
+    row.status === MentorPoolStatus.Active ||
+    row.status === MentorPoolStatus.Full ||
+    row.status === MentorPoolStatus.AwaitingApproval;
+  return reachable ? row.mentorId : null;
 }
 
 export function loadShare(row: MentorPoolRow) {

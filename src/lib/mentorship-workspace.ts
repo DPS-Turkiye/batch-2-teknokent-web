@@ -23,7 +23,7 @@ export function meetingsForRequest(
 }
 
 export function isMeetingEnded(meeting: MeetingItem, now = new Date()) {
-  if (String(meeting.status).toUpperCase() === MeetingStatus.Completed) {
+  if (meeting.status === MeetingStatus.Completed) {
     return true;
   }
   const startMs = new Date(meeting.scheduledAt).getTime();
@@ -180,8 +180,7 @@ export function requestProgressPercent(
 ) {
   const related = meetingsForRequest(meetings, request);
   const completed = related.filter(
-    (meeting) =>
-      String(meeting.status).toUpperCase() === MeetingStatus.Completed,
+    (meeting) => meeting.status === MeetingStatus.Completed,
   ).length;
   return Math.min(90, 8 + completed * 18);
 }

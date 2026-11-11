@@ -6,8 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionUser } from "@/lib/session";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionUser } from "@/lib/session";
 
 export async function GET(
   _request: NextRequest,

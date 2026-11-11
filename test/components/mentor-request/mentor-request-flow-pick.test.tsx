@@ -44,6 +44,9 @@ vi.mock("@/components/hoc/app-shell", () => ({
   ),
 }));
 
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => ({ individual: false, isLoading: false }),
+}));
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => ({
     userId: "user-1",

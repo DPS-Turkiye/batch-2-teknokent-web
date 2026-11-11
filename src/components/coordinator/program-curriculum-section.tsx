@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { type HTMLAttributes, useRef, useState } from "react";
+import { useRef, useState, type HTMLAttributes } from "react";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import {
@@ -20,11 +20,13 @@ import {
   OutputTokens,
   PhaseTimeline,
 } from "@/components/coordinator/program-phase-list";
+import { ProgramWeekPlanEditor } from "@/components/coordinator/program-week-plan-editor";
 import { useProgramCurriculum } from "@/hooks/use-program-curriculum";
+import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
-  type PhaseDraft,
   SettingsSection,
+  type PhaseDraft,
 } from "@/lib/coordinator-program-detail";
 import { parseDay } from "@/lib/coordinator-programs";
 import {
@@ -52,7 +54,8 @@ export function ProgramCurriculumSection({
   archived: boolean;
 }) {
   const t = useTranslations("programCurriculum");
-  const curriculum = useProgramCurriculum(programId, detail);
+  const weekPlan = useProgramWeekPlan(programId, detail.program);
+  const curriculum = useProgramCurriculum(programId, detail, weekPlan.propose);
   const program = detail.program;
   const [dragging, setDragging] = useState<number | null>(null);
   const locked = archived || curriculum.saving;
@@ -172,6 +175,8 @@ export function ProgramCurriculumSection({
         {t("lockNote", { count: program.teamCount })}
       </p>
 
+      <ProgramWeekPlanEditor plan={weekPlan} locked={archived} />
+
       {curriculum.editing ? (
         <PhaseDrawer
           curriculum={curriculum}
@@ -219,6 +224,7 @@ function SyllabusCard({
         type="file"
         accept="application/pdf,.pdf"
         className="sr-only"
+        disabled={busy}
         aria-label={t("chooseFile")}
         onChange={(event) => {
           const file = event.target.files?.[0];
@@ -296,10 +302,12 @@ function PhaseRow({
   week: string | null;
   editable: boolean;
   onEdit: () => void;
-  dragProps?: Pick<
-    HTMLAttributes<HTMLLIElement>,
-    "draggable" | "onDragStart" | "onDragOver" | "onDrop"
-  >;
+  dragProps?:
+    | Pick<
+        HTMLAttributes<HTMLLIElement>,
+        "draggable" | "onDragStart" | "onDragOver" | "onDrop"
+      >
+    | undefined;
 }) {
   const t = useTranslations("programCurriculum");
   const locale = useLocale();

@@ -1,14 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { AuthField } from "@/components/auth/auth-field";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { EmailDomainNote } from "@/components/auth/email-domain-note";
 import { useRegisterForm } from "@/hooks/use-auth-form";
-import { type RegisterForm } from "@/interfaces/auth";
+import type { RegisterForm } from "@/interfaces/auth";
 import { PASSWORD_HINT } from "@/lib/password";
-import { useTranslations } from "next-intl";
 
 export function RegisterView({
   onSubmit,

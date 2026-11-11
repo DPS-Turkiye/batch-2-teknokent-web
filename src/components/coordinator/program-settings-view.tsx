@@ -6,20 +6,27 @@ import type { ReactNode } from "react";
 
 import { ProgramCurriculumSection } from "@/components/coordinator/program-curriculum-section";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramPeerCategories } from "@/components/coordinator/program-peer-categories-section";
+import { ProgramRosterSection } from "@/components/coordinator/program-roster-section";
+import { ProgramTrainingEditor } from "@/components/coordinator/program-training-editor";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { RuleStepper } from "@/components/coordinator/rule-stepper";
 import {
   useProgramArchive,
   useProgramCoordinators,
   useProgramSettings,
 } from "@/hooks/use-coordinator-program";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import {
-  type CoordinatorProgramDetail,
   ProgramLifecycle,
+  type CoordinatorProgramDetail,
 } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   ProgramTab,
   RULE_LIMITS,
   SettingsSection,
+  settingsSections,
   stepDays,
 } from "@/lib/coordinator-program-detail";
 
@@ -51,6 +58,10 @@ function SettingsBody({
   const tRule = useTranslations("programRules");
   const settings = useProgramSettings(programId, detail);
   const archived = detail.program.lifecycle === ProgramLifecycle.Completed;
+  const draftProgram = detail.program.lifecycle === ProgramLifecycle.Draft;
+  const navigation = useProgramNavigation(programId);
+  // the admin views a program's settings; its coordinators change them
+  const locked = archived || navigation.admin;
   const draft = settings.draft;
 
   return (
@@ -60,22 +71,26 @@ function SettingsBody({
         className="lg:sticky lg:top-6 lg:self-start"
       >
         <ul className="space-y-1">
-          {Object.values(SettingsSection).map((section) => (
-            <li key={section}>
-              <a
-                href={`#${section.toLowerCase()}`}
-                onClick={() => settings.setSection(section)}
-                aria-current={settings.section === section ? "true" : undefined}
-                className={`block rounded-2xl px-4 py-2.5 text-[13.5px] ${
-                  settings.section === section
-                    ? "bg-[#f4f5f7] text-[#22262b]"
-                    : "text-[#676e78]"
-                }`}
-              >
-                {t(`sections.${section}`)}
-              </a>
-            </li>
-          ))}
+          {settingsSections(detail.program.type, detail.program.lifecycle).map(
+            (section) => (
+              <li key={section}>
+                <a
+                  href={`#${section.toLowerCase()}`}
+                  onClick={() => settings.setSection(section)}
+                  aria-current={
+                    settings.section === section ? "true" : undefined
+                  }
+                  className={`block rounded-2xl px-4 py-2.5 text-[13.5px] ${
+                    settings.section === section
+                      ? "bg-[#f4f5f7] text-[#22262b]"
+                      : "text-[#676e78]"
+                  }`}
+                >
+                  {t(`sections.${section}`)}
+                </a>
+              </li>
+            ),
+          )}
         </ul>
       </nav>
 
@@ -85,18 +100,29 @@ function SettingsBody({
             {t("archivedNote")}
           </p>
         ) : null}
+        {navigation.admin ? (
+          <p className="rounded-2xl bg-[#f4f5f7] px-5 py-3 text-[13px] text-[#676e78]">
+            {t("adminViewNote")}
+          </p>
+        ) : null}
 
         <Section
           id={SettingsSection.General}
           title={t(`sections.${SettingsSection.General}`)}
         >
           <Row>
+            <p className="flex items-center gap-2 text-[12.5px] font-medium text-[#676e78]">
+              {t("type")}
+              <ProgramTypeChip type={detail.program.type} />
+            </p>
+          </Row>
+          <Row>
             <label className="block text-[12.5px] font-medium text-[#676e78]">
               {t("name")}
               <input
                 value={draft.name}
                 maxLength={255}
-                disabled={archived}
+                disabled={locked}
                 onChange={(event) =>
                   settings.update({ name: event.target.value })
                 }
@@ -111,7 +137,7 @@ function SettingsBody({
                 value={draft.description ?? ""}
                 maxLength={2000}
                 rows={3}
-                disabled={archived}
+                disabled={locked}
                 onChange={(event) =>
                   settings.update({ description: event.target.value })
                 }
@@ -126,7 +152,7 @@ function SettingsBody({
                 <input
                   type="date"
                   value={draft.startDate ?? ""}
-                  disabled={archived}
+                  disabled={locked}
                   onChange={(event) =>
                     settings.update({ startDate: event.target.value || null })
                   }
@@ -138,7 +164,7 @@ function SettingsBody({
                 <input
                   type="date"
                   value={draft.endDate ?? ""}
-                  disabled={archived}
+                  disabled={locked}
                   onChange={(event) =>
                     settings.update({ endDate: event.target.value || null })
                   }
@@ -152,14 +178,25 @@ function SettingsBody({
         <ProgramCurriculumSection
           programId={programId}
           detail={detail}
-          archived={archived}
+          archived={locked}
         />
 
         <CoordinatorsSection
           programId={programId}
           detail={detail}
-          archived={archived}
+          editable={navigation.admin ? !archived : false}
         />
+
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.Training}
+            title={t(`sections.${SettingsSection.Training}`)}
+            note={t("trainingNote")}
+          >
+            {/* Admins and the program's coordinators both edit it (D10), so the admin view lock does not apply. */}
+            <ProgramTrainingEditor programId={programId} archived={archived} />
+          </Section>
+        ) : null}
 
         <Section
           id={SettingsSection.Rules}
@@ -171,7 +208,7 @@ function SettingsBody({
               title={tRule("meetingFrequency")}
               hint={tRule("meetingFrequencyHint")}
               value={draft.meetingFrequencyDays}
-              disabled={archived}
+              disabled={locked}
               onChange={(delta) =>
                 settings.update({
                   meetingFrequencyDays: stepDays(
@@ -188,7 +225,7 @@ function SettingsBody({
               title={tRule("stale")}
               hint={tRule("staleHint")}
               value={draft.staleAfterDays}
-              disabled={archived}
+              disabled={locked}
               onChange={(delta) =>
                 settings.update({
                   staleAfterDays: stepDays(
@@ -205,7 +242,7 @@ function SettingsBody({
               title={tRule("communicationGap")}
               hint={tRule("communicationGapHint")}
               value={draft.communicationGapDays}
-              disabled={archived}
+              disabled={locked}
               onChange={(delta) =>
                 settings.update({
                   communicationGapDays: stepDays(
@@ -222,7 +259,7 @@ function SettingsBody({
               title={tRule("bottleneck")}
               hint={tRule("bottleneckHint")}
               value={draft.bottleneckFlagDays}
-              disabled={archived}
+              disabled={locked}
               onChange={(delta) =>
                 settings.update({
                   bottleneckFlagDays: stepDays(
@@ -240,7 +277,7 @@ function SettingsBody({
               hint={tRule("capacityHint")}
               value={draft.defaultMentorCapacity}
               unit={tRule("teams")}
-              disabled={archived}
+              disabled={locked}
               onChange={(delta) =>
                 settings.update({
                   defaultMentorCapacity: stepDays(
@@ -257,7 +294,7 @@ function SettingsBody({
               title={tRule("noteRequired")}
               hint={tRule("noteRequiredHint")}
               checked={draft.meetingNoteRequired}
-              disabled={archived}
+              disabled={locked}
               onChange={(value) =>
                 settings.update({ meetingNoteRequired: value })
               }
@@ -268,7 +305,7 @@ function SettingsBody({
               title={tRule("autoMatch")}
               hint={tRule("autoMatchHint")}
               checked={draft.autoMatchSuggestions}
-              disabled={archived}
+              disabled={locked}
               onChange={(value) =>
                 settings.update({ autoMatchSuggestions: value })
               }
@@ -276,7 +313,77 @@ function SettingsBody({
           </Row>
         </Section>
 
-        <ArchiveSection programId={programId} archived={archived} />
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <Section
+          id={SettingsSection.Eligibility}
+          title={t(`sections.${SettingsSection.Eligibility}`)}
+          note={t("eligibilityNote")}
+        >
+          <Row>
+            <label className="block text-[12.5px] font-medium text-[#676e78]">
+              {t("eligibleDomain")}
+              <input
+                value={draft.eligibleEmailDomain ?? ""}
+                maxLength={255}
+                disabled={locked}
+                placeholder="metu.edu.tr"
+                onChange={(event) =>
+                  settings.update({ eligibleEmailDomain: event.target.value })
+                }
+                className={FIELD}
+              />
+            </label>
+            <p className="mt-1.5 text-[12.5px] text-[#858c96]">
+              {t("eligibleDomainHint")}
+            </p>
+          </Row>
+          <Row>
+            <Toggle
+              title={t("rosterOnly")}
+              hint={t("rosterOnlyHint")}
+              checked={draft.rosterOnly}
+              disabled={locked}
+              onChange={(value) => settings.update({ rosterOnly: value })}
+            />
+          </Row>
+          {draft.rosterOnly ? (
+            <Row>
+              <ProgramRosterSection programId={programId} archived={locked} />
+            </Row>
+          ) : null}
+          <Row>
+            <Toggle
+              title={t("individualMentees")}
+              hint={t("individualMenteesHint")}
+              checked={draft.individualMentees}
+              disabled={locked}
+              onChange={(value) =>
+                settings.update({ individualMentees: value })
+              }
+            />
+          </Row>
+        </Section>
+
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        {detail.program.type === ProgramType.PeerMentoring ? (
+          <Section
+            id={SettingsSection.PeerCategories}
+            title={t(`sections.${SettingsSection.PeerCategories}`)}
+            note={t("peerCategoriesNote")}
+          >
+            <Row>
+              <ProgramPeerCategories programId={programId} readOnly={locked} />
+            </Row>
+          </Section>
+        ) : null}
+
+        {draftProgram ? null : (
+          <ArchiveSection
+            programId={programId}
+            archived={archived}
+            readOnly={navigation.admin}
+          />
+        )}
 
         {settings.error ? (
           <p role="alert" className="text-[13px] text-[#d9464b]">
@@ -295,7 +402,7 @@ function SettingsBody({
           <button
             type="button"
             onClick={settings.save}
-            disabled={archived || !settings.dirty || settings.saving}
+            disabled={locked || !settings.dirty || settings.saving}
             className="rounded-full bg-[#22262b] px-5 py-[11px] text-[13.5px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
             {settings.saving ? t("saving") : t("save")}
@@ -306,14 +413,15 @@ function SettingsBody({
   );
 }
 
+/** The admin assigns and changes coordinators; coordinators see the list only. */
 function CoordinatorsSection({
   programId,
   detail,
-  archived,
+  editable,
 }: {
   programId: string;
   detail: CoordinatorProgramDetail;
-  archived: boolean;
+  editable: boolean;
 }) {
   const t = useTranslations("programSettings");
   const team = useProgramCoordinators(programId, detail.coordinators);
@@ -336,10 +444,10 @@ function CoordinatorsSection({
                     </span>
                   ) : null}
                 </span>
-                {!coordinator.owner ? (
+                {editable && !coordinator.owner ? (
                   <button
                     type="button"
-                    disabled={archived || team.busy}
+                    disabled={team.busy}
                     onClick={() => team.remove(coordinator.id)}
                     aria-label={t("removeLabel", {
                       name: coordinator.fullName,
@@ -355,7 +463,11 @@ function CoordinatorsSection({
         ))}
       </ul>
       <Row>
-        {team.picking ? (
+        {!editable ? (
+          <p className="text-[13px] text-[#858c96]">
+            {t("coordinatorsByAdmin")}
+          </p>
+        ) : team.picking ? (
           <div className="space-y-2">
             {team.candidatesLoading ? (
               <p className="text-[13px] text-[#858c96]">{t("loading")}</p>
@@ -388,7 +500,6 @@ function CoordinatorsSection({
         ) : (
           <button
             type="button"
-            disabled={archived}
             onClick={team.openPicker}
             className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[13px] text-[#22262b] disabled:text-[#aeb4bc]"
           >
@@ -403,9 +514,11 @@ function CoordinatorsSection({
 function ArchiveSection({
   programId,
   archived,
+  readOnly,
 }: {
   programId: string;
   archived: boolean;
+  readOnly: boolean;
 }) {
   const t = useTranslations("programSettings");
   const archive = useProgramArchive(programId, archived);
@@ -433,9 +546,9 @@ function ArchiveSection({
         {archived ? (
           <button
             type="button"
-            disabled={archive.busy}
+            disabled={readOnly || archive.busy}
             onClick={archive.restore}
-            className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white"
+            className="rounded-full bg-[#22262b] px-4 py-2 text-[13px] font-medium text-white disabled:bg-[#aeb4bc]"
           >
             {t("reopen")}
           </button>
@@ -461,8 +574,9 @@ function ArchiveSection({
         ) : (
           <button
             type="button"
+            disabled={readOnly}
             onClick={archive.ask}
-            className="rounded-full bg-[#fdeeee] px-4 py-2 text-[13px] font-medium text-[#d9464b]"
+            className="rounded-full bg-[#fdeeee] px-4 py-2 text-[13px] font-medium text-[#d9464b] disabled:opacity-50"
           >
             {t("archive")}
           </button>

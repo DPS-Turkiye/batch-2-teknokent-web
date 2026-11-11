@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import ProfilePage from "@/app/profile/page";
 import StartupProfileToolsPage from "@/app/startup/profile-tools/page";
-import { getSessionUser } from "@/lib/session";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { fetchOrganizationPrograms } from "@/lib/api/programs";
+import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
+vi.mock("@/lib/api/programs", () => ({ fetchOrganizationPrograms: vi.fn() }));
 vi.mock("next/navigation", () => ({
   redirect: (path: string) => {
     throw new Error("REDIRECT:" + path);
@@ -13,7 +16,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/components/startup/startup-profile-tools-view", () => ({
   StartupProfileToolsView: () => null,
 }));
-beforeEach(() => vi.clearAllMocks());
+function inPrograms(individualMentees: boolean) {
+  vi.mocked(fetchOrganizationPrograms).mockResolvedValue({
+    status: 200,
+    data: {
+      programs: [
+        { id: "p1", name: "İŞKUR", coordinatorName: "Elif", individualMentees },
+      ],
+      activeProgramId: "p1",
+    },
+  } as Awaited<ReturnType<typeof fetchOrganizationPrograms>>);
+}
+beforeEach(() => {
+  vi.clearAllMocks();
+  inPrograms(false);
+});
 function session(role: UserRole) {
   vi.mocked(getSessionUser).mockResolvedValue({
     role,
@@ -27,6 +44,16 @@ describe("legacy profile retirement", () => {
     await expect(
       ProfilePage({ searchParams: Promise.resolve({}) }),
     ).rejects.toThrow("REDIRECT:/startup/profile-tools");
+  });
+  it("sends a student of an individual program to their personal profile", async () => {
+    session(UserRole.Mentee);
+    inPrograms(true);
+    await expect(
+      ProfilePage({ searchParams: Promise.resolve({}) }),
+    ).rejects.toThrow("REDIRECT:/profile/personal");
+    await expect(StartupProfileToolsPage()).rejects.toThrow(
+      "REDIRECT:/startup/process",
+    );
   });
   it("keeps the explicit mobile web preference", async () => {
     session(UserRole.Mentee);

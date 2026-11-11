@@ -2,8 +2,8 @@ import { act, renderHook, screen } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { Toaster } from "@/components/common/toaster";
 import { useAppSession } from "@/components/providers/session-provider";
-import { ToastProvider } from "@/components/providers/toast-provider";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
@@ -11,8 +11,25 @@ import { usePersonalProfilePage } from "@/hooks/use-personal-profile-page";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
+import { StartupFundingStage } from "@/interfaces/organization";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { requestPasswordReset } from "@/lib/firebase/auth";
+import { startupProfile } from "@test/fixtures/startup-profile";
+import { memberFixture } from "@test/fixtures/startup-team";
+import { successQuery } from "@test/mocks/query-results";
+
+const mockIndividualProgram = vi.fn();
+
+vi.mock("@/hooks/use-individual-program", () => ({
+  useIndividualProgram: () => mockIndividualProgram(),
+}));
+
+beforeEach(() =>
+  mockIndividualProgram.mockReturnValue({
+    individual: false,
+    isLoading: false,
+  }),
+);
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: vi.fn(),
@@ -34,7 +51,12 @@ vi.mock("@/hooks/use-startup-overview", () => ({
 vi.mock("@/lib/firebase/auth", () => ({ requestPasswordReset: vi.fn() }));
 
 function Wrapper({ children }: { children: ReactNode }) {
-  return <ToastProvider>{children}</ToastProvider>;
+  return (
+    <>
+      {children}
+      <Toaster />
+    </>
+  );
 }
 
 const discard = vi.fn();
@@ -53,49 +75,56 @@ function session(overrides: Partial<AppSession> = {}): AppSession {
   };
 }
 
+/** A member who has left their startup, so the session names none. */
+function sessionWithoutStartup(): AppSession {
+  const {
+    organizationId: _organizationId,
+    organizationName: _organizationName,
+    ...rest
+  } = session();
+  return rest;
+}
+
 function mockAll({
   founder = true,
   withSession = session(),
 }: { founder?: boolean; withSession?: AppSession } = {}) {
   vi.mocked(useAppSession).mockReturnValue(withSession);
-  vi.mocked(usePersonalProfile).mockImplementation(
-    () =>
-      ({
-        draft: {
-          fullName: "Gülse Buran",
-          jobTitle: "Product Designer",
-          phone: null,
-          bio: "Kurucu ortağım.",
-          linkedinUrl: null,
-          expertise: [],
-        },
-        setField: vi.fn(),
-        save: vi.fn(),
-        discard,
-        saved,
-        isDirty: false,
-        isLoading: false,
-        isSaving: false,
-        loadError: null,
-        saveError: null,
-        fieldErrors: {},
-        canSave: true,
-      }) as unknown as ReturnType<typeof usePersonalProfile>,
-  );
+  vi.mocked(usePersonalProfile).mockImplementation(() => ({
+    draft: {
+      fullName: "Gülse Buran",
+      jobTitle: "Product Designer",
+      phone: null,
+      bio: "Kurucu ortağım.",
+      linkedinUrl: null,
+      expertise: [],
+    },
+    setField: vi.fn(),
+    save: vi.fn(),
+    discard,
+    saved,
+    isDirty: false,
+    isLoading: false,
+    isSaving: false,
+    loadError: null,
+    saveError: null,
+    fieldErrors: {},
+    canSave: true,
+  }));
   vi.mocked(useProfilePhoto).mockReturnValue({
     photoUrl: null,
     isUploading: false,
     upload: vi.fn(),
   });
   vi.mocked(useStartupHeader).mockReturnValue({
-    fundingStage: "Pre-seed",
+    fundingStage: StartupFundingStage.PreSeed,
     initials: "DÖ",
     isLoading: false,
     logoUrl: null,
     name: "Döngü",
     programName: "METU Stars 2026",
     stageName: null,
-  } as unknown as ReturnType<typeof useStartupHeader>);
+  });
   vi.mocked(useStartupOverview).mockReturnValue({
     mentorships: [
       {
@@ -108,12 +137,18 @@ function mockAll({
       },
     ],
     mentorshipsLoading: false,
-    profile: { maturity: "MVP yayında" },
+    canvas: null,
+    documentsLoading: false,
+    error: null,
+    isLoading: false,
+    profile: startupProfile({ maturity: "MVP yayında" }),
+    programName: "METU Stars 2026",
+    stageName: null,
     teamSize: 4,
-  } as unknown as ReturnType<typeof useStartupOverview>);
-  vi.mocked(useOrganizationMembers).mockReturnValue({
-    data: [{ id: "user-1", founder }],
-  } as unknown as ReturnType<typeof useOrganizationMembers>);
+  });
+  vi.mocked(useOrganizationMembers).mockReturnValue(
+    successQuery([memberFixture("user-1", { founder })]),
+  );
   vi.mocked(useOpenActionCounts).mockReturnValue({ r1: 1 });
 }
 
@@ -153,10 +188,7 @@ describe("usePersonalProfilePage", () => {
   it("drops Kurucu for other members and the startup card without a startup", () => {
     mockAll({
       founder: false,
-      withSession: session({
-        organizationId: undefined,
-        organizationName: undefined,
-      }),
+      withSession: sessionWithoutStartup(),
     });
     const { result } = renderHook(() => usePersonalProfilePage(), {
       wrapper: Wrapper,
@@ -164,6 +196,25 @@ describe("usePersonalProfilePage", () => {
 
     expect(result.current.role).toBe("Product Designer");
     expect(result.current.startup).toBeNull();
+  });
+
+  it("shows a student of an individual program no startup, founder or funding", () => {
+    mockAll();
+    mockIndividualProgram.mockReturnValue({
+      individual: true,
+      isLoading: false,
+    });
+    const { result } = renderHook(() => usePersonalProfilePage(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.subtitle).toBe("Product Designer");
+    expect(result.current.chips.map((chip) => chip.label)).toEqual([
+      "METU Stars 2026",
+      "Mentorluk alıyor",
+    ]);
+    expect(result.current.startup).toBeNull();
+    expect(result.current.cvWhoSees).toBe("Sadece sen görürsün.");
   });
 
   it("enters edit mode from a clean draft and leaves it once saved", () => {

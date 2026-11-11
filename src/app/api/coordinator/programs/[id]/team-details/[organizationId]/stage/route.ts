@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { StartupStage } from "@/interfaces/startup-process";
@@ -12,7 +11,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; organizationId: string }> };
 
@@ -23,7 +23,7 @@ const stageBodySchema = z.object({ stage: z.enum(StartupStage) });
  * (or admin) whose program the team is in may, so the team lookup runs first.
  */
 async function requireProgramTeam({ params }: Params) {
-  const auth = await requireCoordinatorSession();
+  const auth = await requireCoordinatorOrAdminSession();
   if (!auth.ok) return auth;
   const { id, organizationId } = await params;
   const team = await fetchProgramTeamDetail(
@@ -55,13 +55,10 @@ export async function PUT(request: Request, context: Params) {
   try {
     const access = await requireProgramTeam(context);
     if (!access.ok) return access.response;
-    const parsed = stageBodySchema.safeParse(await request.json());
-    if (!parsed.success) {
-      return NextResponse.json(
-        { code: "INVALID_REQUEST", message: await apiText("stageInvalid") },
-        { status: 400 },
-      );
-    }
+    const parsed = await readJsonBody(request, stageBodySchema, {
+      invalidMessage: "stageInvalid",
+    });
+    if (!parsed.ok) return parsed.response;
     return backendResponse(
       await updateProcessStage(
         access.organizationId,

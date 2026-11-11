@@ -1,10 +1,10 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCaret from "@tiptap/extension-collaboration-caret";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import { useTranslations } from "next-intl";
 import {
   useCallback,
   useEffect,
@@ -20,8 +20,8 @@ import { useAppSession } from "@/components/providers/session-provider";
 import { DocumentStatus } from "@/hooks/use-meeting-note-document";
 import { useMeetingNote, useSaveMeetingNote } from "@/hooks/use-meeting-notes";
 import {
-  CONTRIBUTORS_KEY,
   bindMeetingNoteContributors,
+  CONTRIBUTORS_KEY,
   formatMeetingNoteContributors,
 } from "@/lib/meeting-note-document";
 import { pickPresenceColor } from "@/lib/meeting-note-presence";

@@ -2,17 +2,19 @@ import { Check } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NeedWizardStepper } from "@/components/mentor-request/need-wizard-stepper";
-import {
-  MENTOR_REQUEST_NEED_TOPICS,
-  type MentorRequestNeedTopicId,
+import type {
+  MentorRequestNeedTopicId,
+  NeedTopicChoice,
 } from "@/lib/mentor-request-need";
 
 export function NeedTopicStep({
+  topics,
   topicId,
   otherSummary,
   onSelectTopic,
   onOtherSummaryChange,
 }: {
+  topics: readonly NeedTopicChoice[];
   topicId: MentorRequestNeedTopicId;
   otherSummary: string;
   onSelectTopic: (id: MentorRequestNeedTopicId) => void;
@@ -28,7 +30,7 @@ export function NeedTopicStep({
       </h1>
 
       <div className="mt-6 grid gap-3 md:grid-cols-2">
-        {MENTOR_REQUEST_NEED_TOPICS.map((topic) => {
+        {topics.map((topic) => {
           const selected = topic.id === topicId;
           return (
             <button
