@@ -2,13 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { InstitutionProvider } from "@/interfaces/institution-login";
 import { startInstitutionLogin } from "@/lib/api/institution-login";
-import { isOtgLoginEnabled, OtgLoginFailure } from "@/lib/otg-login";
+import {
+  isOtgLoginEnabled,
+  OTG_FAILURE_PARAM,
+  OtgLoginFailure,
+} from "@/lib/otg-login";
 import { safeNextPath } from "@/lib/public-paths";
 import { rememberInstitutionLogin } from "@/lib/server/institution-login-cookie";
 
 function backToLogin(request: NextRequest, next: string | null) {
   const login = new URL("/login", request.url);
-  login.searchParams.set("otg", OtgLoginFailure.Failed);
+  login.searchParams.set(OTG_FAILURE_PARAM, OtgLoginFailure.Failed);
   if (next) login.searchParams.set("next", next);
   return NextResponse.redirect(login);
 }

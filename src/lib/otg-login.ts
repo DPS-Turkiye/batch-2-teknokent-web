@@ -22,3 +22,13 @@ export function otgStartHref(next: string | null) {
 export enum OtgLoginFailure {
   Failed = "hata",
 }
+
+/** The login page's query key for an OTG failure. */
+export const OTG_FAILURE_PARAM = "otg";
+
+/** The failure a ?otg= value names; null for anything else, so only known values are ever shown or passed on. */
+export function otgLoginFailure(value: string | null): OtgLoginFailure | null {
+  return (
+    Object.values(OtgLoginFailure).find((known) => known === value) ?? null
+  );
+}

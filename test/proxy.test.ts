@@ -200,6 +200,35 @@ describe("proxy on a phone", () => {
     }
   });
 
+  // A failed OTG start lands on /login?otg=hata; on a phone the alert must survive the hop to /m/login.
+  it("keeps a known OTG failure when it sends a signed-out phone to the phone login", async () => {
+    const response = await request("/login?otg=hata", undefined, IPHONE);
+    expect(location(response)).toBe("http://localhost:3000/m/login?otg=hata");
+  });
+
+  // Only an allowlisted value under the one known key is carried; nothing else from the query goes through.
+  it("passes nothing else from the query on to the phone login", async () => {
+    for (const path of [
+      "/login?otg=evil",
+      "/login?otg=%3Cscript%3E",
+      "/login?next=%2F%2Fevil.example&foo=bar",
+    ]) {
+      const response = await request(path, undefined, IPHONE);
+      expect(location(response)).toBe("http://localhost:3000/m/login");
+    }
+    const mixed = await request(
+      "/login?otg=hata&next=https%3A%2F%2Fevil.example&foo=bar",
+      undefined,
+      IPHONE,
+    );
+    expect(location(mixed)).toBe("http://localhost:3000/m/login?otg=hata");
+  });
+
+  it("still sends a signed-in phone to the phone app, without the failure", async () => {
+    const response = await request("/login?otg=hata", signedIn, IPHONE);
+    expect(location(response)).toBe("http://localhost:3000/m");
+  });
+
   it("sends a signed-in mentee's phone from the web home to the phone app", async () => {
     for (const path of ["/dashboard", "/workspace", "/login"]) {
       const response = await request(path, signedIn, IPHONE);
