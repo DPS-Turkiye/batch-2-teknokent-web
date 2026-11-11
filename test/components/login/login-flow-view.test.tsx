@@ -99,6 +99,7 @@ describe("Login screen", () => {
     );
 
     expect(screen.getByLabelText(/Şifre/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/E-posta/)).toHaveFocus();
     expect(
       screen.queryByRole("button", { name: "E-posta ile giriş yap" }),
     ).toBeNull();

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
@@ -42,7 +42,13 @@ export function LoginFlowView({ edition }: { edition: Edition }) {
   } = useLoginFlow();
   const choices = useLoginChoices(edition);
   // ODTÜ's own sign-in leads; e-mail is for staff and opens on request (Figma 79:13).
-  const [emailOpen, setEmailOpen] = useState(!choices.odtu);
+  const [emailRequested, setEmailRequested] = useState(false);
+  const emailOpen = !choices.odtu || emailRequested;
+  const emailInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (emailRequested) emailInput.current?.focus();
+  }, [emailRequested]);
 
   // The gate sends a signed-out visitor to /login?next=<where they were going>;
   // ignoring it landed everyone on the dashboard instead.
@@ -86,7 +92,7 @@ export function LoginFlowView({ edition }: { edition: Edition }) {
                 variant={ButtonVariant.Secondary}
                 size={ButtonSize.Large}
                 fullWidth
-                onClick={() => setEmailOpen(true)}
+                onClick={() => setEmailRequested(true)}
               >
                 {copy("emailLogin")}
               </Button>
@@ -106,6 +112,7 @@ export function LoginFlowView({ edition }: { edition: Edition }) {
                   {copy("email")} <span className="text-[#e5701d]">*</span>
                 </label>
                 <input
+                  ref={emailInput}
                   id="login-email"
                   type="text"
                   inputMode="email"
