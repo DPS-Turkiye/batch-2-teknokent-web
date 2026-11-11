@@ -65,7 +65,7 @@ describe("GET /api/users", () => {
     const response = await GET();
 
     expect(response.status).toBe(200);
-    expect(fetchUsers).toHaveBeenCalledWith({
+    expect(fetchUsers).toHaveBeenCalledWith("admin-1", {
       status: UserAccountStatus.Pending,
     });
   });
