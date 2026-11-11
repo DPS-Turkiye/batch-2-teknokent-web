@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { registerPushToken } from "@/lib/client/notifications";
-import { syncPushDevice } from "@/lib/push-device";
 import {
   currentPushToken,
   needsHomeScreenInstall,
@@ -11,6 +10,7 @@ import {
   pushSupported,
   requestPushPermission,
 } from "@/lib/firebase/messaging";
+import { syncPushDevice } from "@/lib/push-device";
 
 export enum PushDeviceState {
   Checking = "checking",

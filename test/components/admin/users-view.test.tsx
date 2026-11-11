@@ -3,14 +3,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import { UsersView } from "@/components/admin/users-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const coordinator = (overrides: Partial<AdminUser>): AdminUser => ({
   id: "c1",
   email: "ayla@tekno.co",
   fullName: "Ayla Bekler",
-  role: "COORDINATOR",
-  status: "APPROVED",
+  role: UserRole.Coordinator,
+  status: UserAccountStatus.Approved,
   organizationId: null,
   organizationName: null,
   jobTitle: null,
@@ -47,9 +48,9 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 }));
 
 function rowOf(name: string) {
-  return screen
-    .getByText(name)
-    .closest('div[class*="border-[#f0f2f4]"]') as HTMLElement;
+  const row = screen.getByText(name).closest('div[class*="border-[#f0f2f4]"]');
+  if (!(row instanceof HTMLElement)) throw new Error(`No row for ${name}`);
+  return row;
 }
 
 describe("UsersView", () => {

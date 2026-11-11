@@ -3,7 +3,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 
-import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import { mentorPoolQueryKey } from "@/hooks/use-mentor-pool";
 import { programTeamsQueryKey } from "@/hooks/use-program-teams";
@@ -11,12 +10,13 @@ import {
   ApprovalKind,
   type ProgramApprovals,
 } from "@/interfaces/program-approvals";
+import { ToastTone } from "@/interfaces/toast";
 import {
   decideProgramApproval,
   getProgramApprovals,
 } from "@/lib/client/coordinator-programs";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const programApprovalsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "approvals"] as const;
@@ -82,7 +82,7 @@ export function useProgramApprovals(programId: string) {
     mentors: query.data?.mentors ?? [],
     startups: query.data?.startups ?? [],
     teamChanges: query.data?.teamChanges ?? [],
-    deciding: decide.isPending ? decide.variables?.id : null,
+    deciding: decide.isPending ? decide.variables.id : null,
     decidePerson: (id: string, accepted: boolean) =>
       run(ApprovalKind.People, id, accepted),
     decideMentor: (id: string, accepted: boolean) =>

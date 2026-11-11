@@ -88,7 +88,8 @@ export function monthGridCells(monthDate: Date): MonthCell[] {
     cells.push({ date: new Date(year, month, day), inCurrentMonth: true });
   }
   while (cells.length % 7 !== 0) {
-    const last = cells[cells.length - 1].date;
+    const last = cells.at(-1)?.date;
+    if (!last) break;
     const date = new Date(last);
     date.setDate(date.getDate() + 1);
     cells.push({ date, inCurrentMonth: false });

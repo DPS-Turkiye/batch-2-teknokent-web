@@ -1,16 +1,17 @@
 import { NextResponse, type NextRequest } from "next/server";
+
 import { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
-import { startupAnalysisRequestSchema } from "@/lib/profile-analysis-request";
-import { requireProfileAnalysisSession } from "@/lib/server/profile-analysis-access";
 import {
   createStartupProfileRecord,
   fetchProfileAnalysisRecord,
 } from "@/lib/api/profile-analysis-records";
+import { startupAnalysisRequestSchema } from "@/lib/profile-analysis-request";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { requireProfileAnalysisSession } from "@/lib/server/profile-analysis-access";
 
 export async function GET(request: NextRequest) {
   try {

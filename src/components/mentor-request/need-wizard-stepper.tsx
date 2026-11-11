@@ -7,7 +7,7 @@ export function NeedWizardStepper({
   onSelectStep,
 }: {
   current: number;
-  onSelectStep?: (index: number) => void;
+  onSelectStep?: ((index: number) => void) | undefined;
 }) {
   const t = useTranslations("mentorRequest.steps");
   return (

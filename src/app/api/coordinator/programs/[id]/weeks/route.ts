@@ -1,6 +1,6 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
-import type { ProgramPlanWeekInput } from "@/interfaces/program-week";
 import {
   fetchProgramWeekPlan,
   replaceProgramWeekPlan,
@@ -10,15 +10,34 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
-type Context = { params: Promise<{ id: string }> };
+/** Each line is trimmed and blank ones are dropped. */
+const linesSchema = z
+  .array(z.string())
+  .transform((lines) =>
+    lines.map((line) => line.trim()).filter((line) => line !== ""),
+  );
 
-function lines(value: unknown): string[] {
-  return Array.isArray(value)
-    ? value.map((item) => String(item).trim()).filter(Boolean)
-    : [];
-}
+const weekPlanSchema = z.object({
+  weeks: z.array(
+    z.object({
+      week: z.number(),
+      title: z.string(),
+      topics: linesSchema,
+      activities: linesSchema,
+      deliverables: linesSchema,
+      // Round-tripped from the GET; an AI week without the flag was saved as not inferred before.
+      inferred: z
+        .boolean()
+        .nullish()
+        .transform((inferred) => inferred ?? false),
+    }),
+  ),
+});
+
+type Context = { params: Promise<{ id: string }> };
 
 export async function GET(_request: NextRequest, { params }: Context) {
   try {
@@ -39,21 +58,10 @@ export async function PUT(request: NextRequest, { params }: Context) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = (await request.json().catch(() => ({}))) as {
-      weeks?: unknown;
-    };
-    const weeks: ProgramPlanWeekInput[] = (
-      Array.isArray(body.weeks) ? body.weeks : []
-    ).map((week: Record<string, unknown>) => ({
-      week: Number(week.week),
-      title: String(week.title ?? ""),
-      topics: lines(week.topics),
-      activities: lines(week.activities),
-      deliverables: lines(week.deliverables),
-      inferred: week.inferred === true,
-    }));
+    const body = await readJsonBody(request, weekPlanSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await replaceProgramWeekPlan(auth.session.userId, id, weeks),
+      await replaceProgramWeekPlan(auth.session.userId, id, body.data.weeks),
     );
   } catch (error) {
     return apiErrorResponse(error, {

@@ -1,6 +1,5 @@
-import "server-only";
-
 import type { NextRequest } from "next/server";
+import "server-only";
 
 import { ISO_DAY_PATTERN } from "@/lib/utils";
 

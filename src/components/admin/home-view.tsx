@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -27,6 +27,7 @@ import type {
   AdminProgram,
 } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
+import { isEnumValue } from "@/lib/enum";
 import { initials } from "@/lib/utils";
 
 type HomeT = ReturnType<typeof useTranslations<"adminHome">>;
@@ -281,7 +282,10 @@ function ProgramsSection({ data }: { data: AdminOverview }) {
             <select
               aria-label={t("scopeLabel")}
               value={scope}
-              onChange={(event) => setScope(event.target.value as Scope)}
+              onChange={(event) => {
+                const { value } = event.target;
+                if (isEnumValue(Scope, value)) setScope(value);
+              }}
               className="appearance-none bg-transparent text-[13.5px] leading-[1.3] font-medium text-[#22262b] outline-none"
             >
               {Object.values(Scope).map((option) => (
@@ -472,7 +476,7 @@ function ProgramStatusChip({ status }: { status: AdminProgram["status"] }) {
         width={6}
         height={6}
       />
-      {t(`programStatus.${status as ProgramStatus}`)}
+      {t(`programStatus.${status}`)}
     </span>
   );
 }
@@ -554,8 +558,8 @@ type Intervention = {
     leftTitle: string;
     chips: string[];
     pool: string;
-    demand?: string;
-    poolNote?: string;
+    demand?: string | undefined;
+    poolNote?: string | undefined;
     action: string;
   };
 };
@@ -602,56 +606,61 @@ function interventionRows(data: AdminOverview, t: HomeT): Intervention[] {
     const key = item.title.trim().toLocaleLowerCase("tr");
     groups.set(key, [...(groups.get(key) ?? []), item]);
   }
-  const bottleneckRows = [...groups.values()].map((items) => {
-    const first = items[0];
-    const programs = [
-      ...new Set(
-        items
-          .map((item) => programForOrganization(data, item.organizationId))
-          .filter((program) => program != null),
-      ),
-    ];
-    const accepted = programs.reduce(
-      (sum, program) => sum + program.acceptedMentorCount,
-      0,
-    );
-    const orgIds = new Set(items.map((item) => item.organizationId));
-    const demand = data.requests.filter((request) =>
-      orgIds.has(request.organizationId),
-    ).length;
-    const critical = items.some((item) => item.severity === "CRITICAL");
-    return {
-      id: first.id,
-      kind: "bottleneck" as const,
-      title:
-        items.length > 1
-          ? t("bottleneck.recurring", {
-              count: items.length,
-              title: first.title.toLocaleLowerCase("tr"),
-            })
-          : first.title,
-      owner: programs[0]?.coordinatorName ?? first.organizationName,
-      tone: critical ? ("red" as const) : ("amber" as const),
-      label: critical ? t("critical") : t("attention"),
-      action: t("review"),
-      href: "/admin/mentorships/interventions",
-      detail: {
-        leftTitle: t("bottleneck.leftTitle"),
-        chips: items.map((item) => item.organizationName),
-        pool: t("bottleneck.accepted", { count: accepted }),
-        demand: demand ? t("bottleneck.demand", { count: demand }) : undefined,
-        poolNote: programs.some((program) => program.pendingMentorCount > 0)
-          ? t("bottleneck.pendingInvites", {
-              count: programs.reduce(
-                (sum, program) => sum + program.pendingMentorCount,
-                0,
-              ),
-            })
-          : undefined,
-        action: t("bottleneck.suggestion"),
-      },
-    };
-  });
+  const bottleneckRows = [...groups.values()]
+    .map((items) => {
+      const first = items[0];
+      if (!first) return null;
+      const programs = [
+        ...new Set(
+          items
+            .map((item) => programForOrganization(data, item.organizationId))
+            .filter((program) => program != null),
+        ),
+      ];
+      const accepted = programs.reduce(
+        (sum, program) => sum + program.acceptedMentorCount,
+        0,
+      );
+      const orgIds = new Set(items.map((item) => item.organizationId));
+      const demand = data.requests.filter((request) =>
+        orgIds.has(request.organizationId),
+      ).length;
+      const critical = items.some((item) => item.severity === "CRITICAL");
+      return {
+        id: first.id,
+        kind: "bottleneck" as const,
+        title:
+          items.length > 1
+            ? t("bottleneck.recurring", {
+                count: items.length,
+                title: first.title.toLocaleLowerCase("tr"),
+              })
+            : first.title,
+        owner: programs[0]?.coordinatorName ?? first.organizationName,
+        tone: critical ? ("red" as const) : ("amber" as const),
+        label: critical ? t("critical") : t("attention"),
+        action: t("review"),
+        href: "/admin/mentorships/interventions",
+        detail: {
+          leftTitle: t("bottleneck.leftTitle"),
+          chips: items.map((item) => item.organizationName),
+          pool: t("bottleneck.accepted", { count: accepted }),
+          demand: demand
+            ? t("bottleneck.demand", { count: demand })
+            : undefined,
+          poolNote: programs.some((program) => program.pendingMentorCount > 0)
+            ? t("bottleneck.pendingInvites", {
+                count: programs.reduce(
+                  (sum, program) => sum + program.pendingMentorCount,
+                  0,
+                ),
+              })
+            : undefined,
+          action: t("bottleneck.suggestion"),
+        },
+      };
+    })
+    .filter((row) => row != null);
 
   const accessGroups = new Map<string, ReturnType<typeof pendingMemberships>>();
   for (const item of pendingMemberships(data)) {

@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";

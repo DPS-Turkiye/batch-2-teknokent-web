@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { sendVerificationEmail } from "@/lib/api/auth-email";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";

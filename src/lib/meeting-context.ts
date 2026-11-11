@@ -21,7 +21,7 @@ export function isCalendarOriginRequest(
 ) {
   if (!request) return true;
   if (request.mentorMessage?.trim() === "Takvimden oluşturuldu") return true;
-  const area = request.supportArea?.trim() ?? "";
+  const area = request.supportArea.trim();
   if (!area || area === CALENDAR_SUPPORT_AREA) return true;
   if (request.recommendationSnapshot?.matchingMethod === "PROFILE") {
     return false;
@@ -69,7 +69,7 @@ export function meetingScheduleLabel(
     minute: "2-digit",
   });
   const range = `${time.format(start)}–${time.format(end)}`;
-  const status = String(meeting.status).toUpperCase();
+  const status = meeting.status;
   const statusLabel =
     status === MeetingStatus.Completed
       ? t("completed")
@@ -142,7 +142,7 @@ export function isFirstMeetingWithMentor(
       item.id !== meeting.id &&
       item.mentorId === mentorId &&
       item.organizationId === organizationId &&
-      String(item.status).toUpperCase() === MeetingStatus.Completed,
+      item.status === MeetingStatus.Completed,
   );
 }
 

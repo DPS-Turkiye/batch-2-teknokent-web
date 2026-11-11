@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import {
@@ -14,9 +14,12 @@ import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
+import { UserAccountStatus } from "@/interfaces/session";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
+import { isEnumValue } from "@/lib/enum";
 import {
   ALL_PROGRAM_TYPES,
+  isProgramTypeFilter,
   matchesProgramType,
   PROGRAM_TYPE_FILTERS,
   type ProgramTypeFilter,
@@ -143,7 +146,9 @@ export function ProgramsView() {
           <SelectPill
             label={tType("label")}
             value={type}
-            onChange={(value) => setType(value as ProgramTypeFilter)}
+            onChange={(value) => {
+              if (isProgramTypeFilter(value)) setType(value);
+            }}
             options={PROGRAM_TYPE_FILTERS.map((value) => ({
               value,
               label: tType(value),
@@ -161,7 +166,9 @@ export function ProgramsView() {
           <SelectPill
             label={t("sortBy")}
             value={sort}
-            onChange={(value) => setSort(value as Sort)}
+            onChange={(value) => {
+              if (isEnumValue(Sort, value)) setSort(value);
+            }}
             options={Object.values(Sort).map((value) => ({
               value,
               label: t(`sorts.${value}`),
@@ -221,7 +228,7 @@ function ProgramRow({
     (user) => user.id === program.coordinatorId,
   );
   const missingAccess =
-    coordinator != null && coordinator.status !== "APPROVED";
+    coordinator != null && coordinator.status !== UserAccountStatus.Approved;
   const [assigning, setAssigning] = useState(false);
   return (
     <div
@@ -346,7 +353,7 @@ function StatusPill({ status }: { status: AdminProgram["status"] }) {
         width={6}
         height={6}
       />
-      {t(`programStatus.${status as ProgramStatus}`)}
+      {t(`programStatus.${status}`)}
     </span>
   );
 }

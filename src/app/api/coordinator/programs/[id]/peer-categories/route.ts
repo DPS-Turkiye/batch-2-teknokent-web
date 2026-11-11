@@ -1,7 +1,6 @@
-import {
-  PEER_TOPIC_CATEGORIES,
-  type PeerTopicCategory,
-} from "@/interfaces/peer-mentoring";
+import { z } from "zod";
+
+import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   fetchProgramPeerCategories,
   replaceProgramPeerCategories,
@@ -11,7 +10,13 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+// Never fall back to [] here: an empty set turns every category off.
+const peerCategoriesSchema = z.object({
+  categories: z.array(z.enum(PeerTopicCategory)),
+});
 
 type Context = { params: Promise<{ id: string }> };
 
@@ -35,27 +40,15 @@ export async function PUT(request: Request, { params }: Context) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = (await request.json().catch(() => null)) as {
-      categories?: unknown;
-    } | null;
-    const categories = body?.categories;
-    // Never fall back to [] here: an empty set turns every category off.
-    if (
-      !Array.isArray(categories) ||
-      !categories.every((value) =>
-        PEER_TOPIC_CATEGORIES.includes(value as PeerTopicCategory),
-      )
-    ) {
-      return apiErrorResponse(new Error("Invalid categories"), {
-        message: await apiText("peerCategoriesInvalid"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, peerCategoriesSchema, {
+      invalidMessage: "peerCategoriesInvalid",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
       await replaceProgramPeerCategories(
         auth.session.userId,
         id,
-        categories as PeerTopicCategory[],
+        body.data.categories,
       ),
     );
   } catch (error) {

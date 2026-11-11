@@ -3,30 +3,16 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AssignToProgram } from "@/components/admin/assign-to-program";
-import {
-  ProgramMemberKind,
-  type AdminProgram,
-} from "@/interfaces/admin-overview";
+import { ProgramMemberKind } from "@/interfaces/admin-overview";
 import { assignToProgram } from "@/lib/client/admin-program-members";
+import { adminProgram } from "@test/fixtures/admin-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-program-members", () => ({
   assignToProgram: vi.fn(),
 }));
 
-const program: AdminProgram = {
-  id: "program-1",
-  name: "METU Stars 2026",
-  status: "ACTIVE",
-  createdAt: "2026-01-01T00:00:00Z",
-  coordinatorId: null,
-  coordinatorName: null,
-  startupCount: 0,
-  acceptedMentorCount: 0,
-  pendingMentorCount: 0,
-  startups: [],
-  mentors: [],
-};
+const program = adminProgram({ name: "METU Stars 2026" });
 
 describe("AssignToProgram", () => {
   beforeEach(() => {

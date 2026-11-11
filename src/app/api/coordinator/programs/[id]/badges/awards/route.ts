@@ -1,4 +1,5 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { awardGateBadge } from "@/lib/api/badges";
 import {
@@ -6,7 +7,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+const awardSchema = z.object({ userId: z.string().min(1) });
 
 export async function POST(
   request: NextRequest,
@@ -16,17 +20,12 @@ export async function POST(
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = (await request.json().catch(() => ({}))) as {
-      userId?: unknown;
-    };
-    if (typeof body.userId !== "string" || !body.userId) {
-      return NextResponse.json(
-        { code: "INVALID_REQUEST", message: await apiText("badgeAwardFailed") },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, awardSchema, {
+      invalidMessage: "badgeAwardFailed",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
-      await awardGateBadge(auth.session.userId, id, body.userId),
+      await awardGateBadge(auth.session.userId, id, body.data.userId),
     );
   } catch (error) {
     return apiErrorResponse(error, {

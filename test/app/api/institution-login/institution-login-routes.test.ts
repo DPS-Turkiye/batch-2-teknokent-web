@@ -11,6 +11,7 @@ import {
   finishInstitutionCallback,
   startInstitutionLogin,
 } from "@/lib/api/institution-login";
+import { backendRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/institution-login", () => ({
   startInstitutionLogin: vi.fn(),
@@ -91,11 +92,11 @@ describe("institution login routes", () => {
   });
 
   it("passes the backend's refusal through without asking for a token", async () => {
-    vi.mocked(finishInstitutionCallback).mockResolvedValue({
-      status: 403,
-      data: { message: "Bu hesap için menton erişimi bulunamadı." },
-      headers: {},
-    });
+    vi.mocked(finishInstitutionCallback).mockResolvedValue(
+      backendRefusal(403, {
+        message: "Bu hesap için menton erişimi bulunamadı.",
+      }),
+    );
 
     const response = await complete(
       completeRequest({ state: "s-1", params: { persona: "dev-personel-1" } }),

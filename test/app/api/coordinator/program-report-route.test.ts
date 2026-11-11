@@ -3,12 +3,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as getRatings } from "@/app/api/coordinator/programs/[id]/meeting-ratings/route";
 import { GET as getReport } from "@/app/api/coordinator/programs/[id]/report/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchProgramMeetingRatings,
   fetchProgramReport,
 } from "@/lib/api/program-report";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-report", () => ({
   fetchProgramReport: vi.fn(),
@@ -25,7 +26,7 @@ const params = { params: Promise.resolve({ id: "program-1" }) };
 function signIn(role = UserRole.Coordinator) {
   vi.mocked(requireCoordinatorSession).mockResolvedValue({
     ok: true,
-    session: { userId: "user-1", role } as AppSession,
+    session: appSession({ userId: "user-1", role }),
   });
 }
 

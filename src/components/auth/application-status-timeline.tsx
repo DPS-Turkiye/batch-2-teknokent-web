@@ -1,10 +1,10 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import tr from "@/messages/tr.json";
-import { useTranslations } from "next-intl";
 
 type TimelineEntry = {
   title: string;

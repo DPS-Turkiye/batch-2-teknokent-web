@@ -16,9 +16,9 @@ import { usePublicSessionDestination } from "@/hooks/use-public-session-destinat
 import { LANDING_FAQ_DIFFERENCE_INDEX } from "@/lib/const/landing";
 
 const REVEAL_CLASSES = {
-  reveal: styles.rv,
-  revealText: styles.rvt,
-  shown: styles.in,
+  reveal: styles.rv ?? "",
+  revealText: styles.rvt ?? "",
+  shown: styles.in ?? "",
 };
 
 /** menton.com.tr's front page. */

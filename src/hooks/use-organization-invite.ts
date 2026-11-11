@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
+import { ToastTone } from "@/interfaces/toast";
 import {
   getInviteCode,
   rotateInviteCode,
 } from "@/lib/client/organization-invite";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const ORGANIZATION_INVITE_QUERY_KEY = ["organization-invite"] as const;
 

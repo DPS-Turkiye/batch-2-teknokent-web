@@ -1,6 +1,5 @@
-import "server-only";
-
 import { NextResponse, type NextRequest } from "next/server";
+import "server-only";
 
 import {
   apiErrorResponse,
@@ -46,7 +45,7 @@ export function allowlistedProxy<P>(options: AllowlistedProxyOptions<P>) {
         await backendRequest({
           method,
           url: options.backendUrl(userId, params as P, joined),
-          data: body ? JSON.parse(body) : undefined,
+          data: body ? (JSON.parse(body) as unknown) : undefined,
         }),
       );
     } catch (error) {

@@ -67,7 +67,7 @@ export function updateMeetingTodo(
   meetingId: string,
   todoId: string,
   organizationId: string,
-  payload: { title?: string; done?: boolean },
+  payload: { title?: string | undefined; done?: boolean | undefined },
 ) {
   return backendRequest({
     method: HttpMethod.Patch,

@@ -5,7 +5,7 @@ import {
   POST as post,
 } from "@/app/api/coordinator/programs/[id]/announcements/route";
 import { GET as mine } from "@/app/api/program-announcements/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchMyAnnouncements,
   fetchProgramAnnouncements,
@@ -13,6 +13,8 @@ import {
 } from "@/lib/api/program-announcements";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 import { getSessionIds } from "@/lib/session";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-announcements", () => ({
   fetchMyAnnouncements: vi.fn(),
@@ -24,7 +26,7 @@ vi.mock("@/lib/server/require-coordinator", () => ({
 }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
 
-const ok = { data: [], headers: {}, status: 200 } as never;
+const ok = backendResponse([]);
 const params = { params: Promise.resolve({ id: "program-1" }) };
 
 describe("program announcement routes", () => {
@@ -32,18 +34,23 @@ describe("program announcement routes", () => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
     vi.mocked(getSessionIds).mockResolvedValue({
       userId: "mentee-1",
       organizationId: "org-1",
     });
-    vi.mocked(fetchMyAnnouncements).mockResolvedValue(ok);
-    vi.mocked(fetchProgramAnnouncements).mockResolvedValue(ok);
-    vi.mocked(postProgramAnnouncement).mockResolvedValue(ok);
+    answerEachWith(
+      [
+        fetchMyAnnouncements,
+        fetchProgramAnnouncements,
+        postProgramAnnouncement,
+      ],
+      ok,
+    );
   });
 
   it("lets a coordinator read and post a program's announcements", async () => {

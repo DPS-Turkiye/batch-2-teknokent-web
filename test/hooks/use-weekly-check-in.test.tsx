@@ -45,7 +45,7 @@ describe("useWeeklyCheckIn", () => {
     await waitFor(() =>
       expect(result.current.status?.state).toBe(AttendanceState.CheckedIn),
     );
-    expect(vi.mocked(checkInMyAttendance).mock.calls[0][0]).toBe(2);
+    expect(vi.mocked(checkInMyAttendance).mock.calls[0]?.[0]).toBe(2);
     expect(result.current.canCheckIn).toBe(false);
   });
 

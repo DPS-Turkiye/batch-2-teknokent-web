@@ -12,14 +12,15 @@ import { getSessionUser } from "@/lib/session";
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 
 function as(role: AppSession["role"], organizationId?: string): AppSession {
-  return {
+  const session: AppSession = {
     userId: `${role}-1`,
     email: "someone@teknokent.demo",
     fullName: "Someone",
     jobTitle: "x",
     role,
-    organizationId,
   };
+  if (organizationId !== undefined) session.organizationId = organizationId;
+  return session;
 }
 
 async function statusOf(

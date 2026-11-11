@@ -1,16 +1,16 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { MentorshipsBackLink } from "@/components/mentorships/mentorships-back-link";
 import { REGULAR_MENTORSHIPS_QUERY_KEY } from "@/components/mentorships/regular-mentorships-tab";
-import { StartupNameLink } from "@/components/common/startup-name-link";
 import { useAppSession } from "@/components/providers/session-provider";
 import { UserRole } from "@/interfaces/session";
 import {
@@ -26,6 +26,7 @@ import { AppArea } from "@/types/app-area";
 
 export default function RegularMentorshipDetailPage() {
   const t = useTranslations("regularMentorships");
+  const tCommon = useTranslations("adminCommon");
   const locale = useLocale();
   const day = (value: string | null) =>
     value ? formatCalendarDay(value, locale) : t("noEnd");
@@ -114,10 +115,15 @@ export default function RegularMentorshipDetailPage() {
     <AppShell
       active={AppArea.Mentorships}
       mentorHome={isMentor}
-      title={mentorship?.organizationName}
+      // A personal team has no team name; read it as peer mentoring, as the admin screens do.
+      title={
+        mentorship
+          ? (mentorship.organizationName ?? tCommon("peerMentorship"))
+          : undefined
+      }
       backHref={MENTORSHIPS_REGULAR_HREF}
     >
-      <MentorAccent enabled={Boolean(isMentor)}>
+      <MentorAccent enabled={isMentor}>
         <div className="mx-auto w-full max-w-[720px] px-4 pb-14 pt-8 sm:px-8">
           <MentorshipsBackLink href={MENTORSHIPS_REGULAR_HREF} />
 

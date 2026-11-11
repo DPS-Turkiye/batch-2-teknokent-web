@@ -34,7 +34,7 @@ export async function stopMeetingBotBackend(
 export async function generateMeetingReportBackend(
   platform: string,
   nativeMeetingId: string,
-  body: { model?: string; segments?: unknown[] },
+  body: { model?: string | undefined; segments?: unknown[] | undefined },
 ): Promise<{ data: unknown; status: number }> {
   const response = await backendRequest({
     method: "POST",

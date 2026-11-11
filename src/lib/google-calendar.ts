@@ -1,4 +1,27 @@
 import { clientText } from "@/i18n/client-texts";
+import { MeetingStatus } from "@/interfaces/meeting";
+
+/** The token the OAuth popup posts back (see relayGoogleOAuthTokenFromUrl), or null for any other message. */
+function oauthToken(
+  data: unknown,
+): { token: string; expiresIn: unknown } | null {
+  if (!data || typeof data !== "object") return null;
+  if (!("type" in data) || data.type !== "GOOGLE_OAUTH_TOKEN") return null;
+  if (!("token" in data) || typeof data.token !== "string" || !data.token) {
+    return null;
+  }
+  return {
+    token: data.token,
+    expiresIn: "expiresIn" in data ? data.expiresIn : undefined,
+  };
+}
+
+function googleErrorMessage(body: unknown) {
+  if (!body || typeof body !== "object" || !("error" in body)) return null;
+  const error = body.error;
+  if (!error || typeof error !== "object" || !("message" in error)) return null;
+  return typeof error.message === "string" ? error.message : null;
+}
 
 export type GoogleCalendarEvent = {
   id: string;
@@ -15,10 +38,12 @@ export type GoogleCalendarEvent = {
   };
 };
 
-export type GoogleCalendarResponse = {
-  items: GoogleCalendarEvent[];
-  summary?: string;
-};
+/** The events of a Calendar API list response; Google's event shape is trusted as documented. */
+function calendarEvents(data: unknown): GoogleCalendarEvent[] {
+  if (!data || typeof data !== "object" || !("items" in data)) return [];
+  const { items } = data;
+  return Array.isArray(items) ? (items as GoogleCalendarEvent[]) : [];
+}
 
 const ACCESS_TOKEN_KEY = "metual.googleCalendar.accessToken";
 const ACCESS_TOKEN_EXPIRES_KEY = "metual.googleCalendar.expiresAt";
@@ -78,9 +103,10 @@ export function relayGoogleOAuthTokenFromUrl(): boolean {
   const hashParams = new URLSearchParams(window.location.hash.substring(1));
   const token = hashParams.get("access_token");
   const expiresIn = hashParams.get("expires_in");
-  if (!token || !window.opener) return false;
+  const opener = window.opener as Window | null;
+  if (!token || !opener) return false;
 
-  window.opener.postMessage(
+  opener.postMessage(
     { type: "GOOGLE_OAUTH_TOKEN", token, expiresIn },
     window.location.origin,
   );
@@ -131,16 +157,16 @@ export async function authenticateWithGoogle(
 
     const messageHandler = (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
-      if (event.data?.type === "GOOGLE_OAUTH_TOKEN" && event.data?.token) {
-        const expiresIn = Number(event.data.expiresIn);
-        storeAccessToken(
-          event.data.token,
-          Number.isFinite(expiresIn) ? expiresIn : undefined,
-        );
-        cleanup();
-        if (!popup.closed) popup.close();
-        resolve({ token: event.data.token });
-      }
+      const token = oauthToken(event.data);
+      if (!token) return;
+      const expiresIn = Number(token.expiresIn);
+      storeAccessToken(
+        token.token,
+        Number.isFinite(expiresIn) ? expiresIn : undefined,
+      );
+      cleanup();
+      if (!popup.closed) popup.close();
+      resolve({ token: token.token });
     };
 
     window.addEventListener("message", messageHandler);
@@ -154,7 +180,7 @@ export async function authenticateWithGoogle(
         }
 
         const href = popup.location.href;
-        if (href && href.includes("access_token")) {
+        if (href.includes("access_token")) {
           const hashIndex = href.indexOf("#");
           if (hashIndex !== -1) {
             const hashParams = new URLSearchParams(
@@ -262,7 +288,7 @@ export async function fetchGoogleCalendarEvents(accessToken: string) {
         durationMinutes: 60,
         agenda: "Google Takvim: Ar-Ge Proje İnceleme",
         meetLink: "https://meet.google.com/abc-defg-hij",
-        status: "GOOGLE_CALENDAR",
+        status: MeetingStatus.GoogleCalendar,
       },
       {
         id: `gcal-live-2`,
@@ -271,7 +297,7 @@ export async function fetchGoogleCalendarEvents(accessToken: string) {
         durationMinutes: 45,
         agenda: "Google Takvim: Ekip Haftalık Senkronizasyon",
         meetLink: "https://meet.google.com/xyz-uvwx-rst",
-        status: "GOOGLE_CALENDAR",
+        status: MeetingStatus.GoogleCalendar,
       },
     ];
   }
@@ -287,19 +313,18 @@ export async function fetchGoogleCalendarEvents(accessToken: string) {
   });
 
   if (!res.ok) {
-    const errorBody = await res.json().catch(() => ({}));
+    const errorBody: unknown = await res.json().catch(() => null);
     throw new Error(
-      errorBody.error?.message ?? clientText("googleCalendar.fetchFailed"),
+      googleErrorMessage(errorBody) ?? clientText("googleCalendar.fetchFailed"),
     );
   }
 
-  const data: GoogleCalendarResponse = await res.json();
-  const items = data.items || [];
+  const data: unknown = await res.json();
 
-  return items.map((item) => {
+  return calendarEvents(data).map((item) => {
     let rawStart =
       item.start?.dateTime || item.start?.date || new Date().toISOString();
-    if (rawStart && !rawStart.includes("T")) {
+    if (!rawStart.includes("T")) {
       rawStart = `${rawStart}T09:00:00Z`;
     }
     const startIso = new Date(rawStart).toISOString();
@@ -320,7 +345,7 @@ export async function fetchGoogleCalendarEvents(accessToken: string) {
       agenda: item.summary || "Google Takvim Etkinliği",
       notes: item.description,
       meetLink: item.hangoutLink || item.htmlLink || item.location,
-      status: "GOOGLE_CALENDAR",
+      status: MeetingStatus.GoogleCalendar,
     };
   });
 }

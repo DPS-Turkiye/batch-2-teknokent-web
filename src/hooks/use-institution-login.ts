@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import { InstitutionProvider } from "@/interfaces/institution-login";
+import { assignLocation } from "@/lib/assign-location";
 import { startInstitutionLogin } from "@/lib/client/institution-login";
 import { isOdtuDevLoginEnabled } from "@/lib/const";
 import { describeAuthError } from "@/lib/firebase/auth";
@@ -19,7 +20,7 @@ export function useInstitutionLogin() {
       const { redirectUrl } = await startInstitutionLogin(
         InstitutionProvider.Odtu,
       );
-      window.location.assign(redirectUrl);
+      assignLocation(redirectUrl);
     } catch (caught) {
       setError(describeAuthError(caught));
       setStarting(false);

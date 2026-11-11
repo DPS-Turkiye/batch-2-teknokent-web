@@ -3,10 +3,10 @@
 import { Check, Pencil } from "lucide-react";
 import { useTranslations } from "next-intl";
 import {
-  type InputHTMLAttributes,
   useLayoutEffect,
   useRef,
   useState,
+  type InputHTMLAttributes,
 } from "react";
 
 import { EditableChips } from "@/components/common/editable-chips";
@@ -45,10 +45,10 @@ function AutoResizeTextarea({
   id: string;
   value: string;
   onChange: (value: string) => void;
-  placeholder?: string;
+  placeholder?: string | undefined;
   required?: boolean;
-  error?: string;
-  maxLength?: number;
+  error?: string | undefined;
+  maxLength?: number | undefined;
 }) {
   const ref = useAutoResize(value);
   return (
@@ -89,7 +89,7 @@ export function EditableInfoField({
   multiline?: boolean;
   placeholder?: string;
   required?: boolean;
-  error?: string;
+  error?: string | undefined;
   inputMode?: InputHTMLAttributes<HTMLInputElement>["inputMode"];
   maxLength?: number;
 }) {
@@ -174,7 +174,7 @@ export function EditableInfoChips({
   label: string;
   values: string[];
   onChange: (values: string[]) => void;
-  error?: string;
+  error?: string | undefined;
 }) {
   const t = useTranslations("profileSections");
   const [isEditing, setIsEditing] = useState(false);

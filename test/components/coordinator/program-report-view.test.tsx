@@ -3,14 +3,16 @@ import { usePathname } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
 
 import { ProgramReportView } from "@/components/coordinator/program-report-view";
-import { renderWithQueryClient } from "@test/test-utils";
 import {
   meetingFeedbackState,
   programMeetingRatings,
   reportOverview,
 } from "@test/fixtures/program-report";
+import { renderWithQueryClient } from "@test/test-utils";
 
-vi.mock("next/navigation", () => ({ usePathname: vi.fn(() => null) }));
+vi.mock("next/navigation", () => ({
+  usePathname: vi.fn(() => "/coordinator/programs/program-1"),
+}));
 
 vi.mock("@/components/coordinator/program-sessions-section", () => ({
   ProgramSessionsSection: ({ programId }: { programId: string }) => (

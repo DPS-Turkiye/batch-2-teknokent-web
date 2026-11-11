@@ -1,15 +1,15 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 
 import { OnboardingTopbar } from "@/components/onboarding/onboarding-layout";
 import {
   ONBOARDING_TONES,
-  OnboardingTone,
+  type OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
 import { formatDateTime, initials } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 interface TimelineRow {
   label: string;

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchProgramAnnouncements,
   postProgramAnnouncement,
@@ -7,7 +9,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+const announcementSchema = z.object({ body: z.string() });
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -31,9 +36,14 @@ export async function POST(request: Request, { params }: Params) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const announcement = await readJsonBody(request, announcementSchema);
+    if (!announcement.ok) return announcement.response;
     return backendResponse(
-      await postProgramAnnouncement(auth.session.userId, id, body.body),
+      await postProgramAnnouncement(
+        auth.session.userId,
+        id,
+        announcement.data.body,
+      ),
     );
   } catch (error) {
     return apiErrorResponse(error, {

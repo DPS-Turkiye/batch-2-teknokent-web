@@ -6,8 +6,8 @@ import {
   createOrganizationMember,
   fetchOrganizationMembers,
 } from "@/lib/api/organization-members";
-import { getSessionIds } from "@/lib/session";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionIds } from "@/lib/session";
 
 vi.mock("@/lib/api/organization-members", () => ({
   fetchOrganizationMembers: vi.fn(),

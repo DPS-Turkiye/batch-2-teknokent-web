@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect } from "react";
@@ -9,7 +10,6 @@ import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { OdtuLoginButton } from "@/components/login/odtu-login-button";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { safeNextPath } from "@/lib/public-paths";
-import { useTranslations } from "next-intl";
 
 const inputClass =
   "h-11 w-full rounded-[20px] border border-[#e8eaed] bg-white px-3.5 text-sm text-[#111827] outline-none placeholder:text-[#9ca3af] focus:border-[#e86f22] focus:ring-2 focus:ring-[#fde4d3]";

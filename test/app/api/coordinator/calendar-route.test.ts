@@ -1,12 +1,14 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/coordinator/calendar/route";
 import { POST } from "@/app/api/coordinator/programs/[id]/events/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import { fetchCoordinatorCalendar } from "@/lib/api/coordinator-calendar";
 import { createCoordinatorProgramEvent } from "@/lib/api/coordinator-programs";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-calendar", () => ({
   fetchCoordinatorCalendar: vi.fn(),
@@ -23,10 +25,10 @@ vi.mock("@/lib/server/require-coordinator", () => ({
 function signIn() {
   vi.mocked(requireCoordinatorSession).mockResolvedValue({
     ok: true,
-    session: {
+    session: appSession({
       userId: "coordinator-1",
       role: UserRole.Coordinator,
-    } as AppSession,
+    }),
   });
 }
 
@@ -104,10 +106,7 @@ describe("coordinator calendar routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     const response = await GET(
       new NextRequest(

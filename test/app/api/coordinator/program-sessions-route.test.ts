@@ -4,12 +4,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as exportSessions } from "@/app/api/coordinator/programs/[id]/sessions/export/route";
 import { GET as getSessions } from "@/app/api/coordinator/programs/[id]/sessions/route";
 import { SessionsExportFormat } from "@/interfaces/program-report";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   exportProgramSessions,
   fetchProgramSessions,
 } from "@/lib/api/program-report";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-report", () => ({
   fetchProgramSessions: vi.fn(),
@@ -28,7 +29,7 @@ describe("program sessions routes", () => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
-      session: { userId: "coord-1", role: UserRole.Coordinator } as AppSession,
+      session: appSession({ userId: "coord-1", role: UserRole.Coordinator }),
     });
   });
 
@@ -72,7 +73,7 @@ describe("program sessions routes", () => {
           'attachment; filename="gorusmeler-2026-11-01-2026-11-30.csv"',
       },
       status: 200,
-    } as Awaited<ReturnType<typeof exportProgramSessions>>);
+    });
 
     const response = await exportSessions(
       new NextRequest(

@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { Avatar } from "@/components/common/avatar";
 import type { MeetingItem } from "@/interfaces/meeting";

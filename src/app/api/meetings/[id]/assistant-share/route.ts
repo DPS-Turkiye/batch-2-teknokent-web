@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import {
@@ -11,9 +11,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
-import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
+import { sessionSide, SIDE_PARAM } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
@@ -50,18 +51,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireMentorSession();
     if (!auth.ok) return auth.response;
     const { id } = await context.params;
-    const parsed = publishAssistantShareBodySchema.safeParse(
-      await request.json(),
+    const parsed = await readJsonBody(
+      request,
+      publishAssistantShareBodySchema,
+      { invalidMessage: "transcriptOrReportRequired" },
     );
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("transcriptOrReportRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    if (!parsed.ok) return parsed.response;
     const body = parsed.data;
     if (body.kind === "PROVIDER_TRANSCRIPT") {
       const transcript = await fetchMeetingTranscript(

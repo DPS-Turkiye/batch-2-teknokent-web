@@ -12,7 +12,7 @@ import {
   X,
 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { type HTMLAttributes, useRef, useState } from "react";
+import { useRef, useState, type HTMLAttributes } from "react";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";
 import {
@@ -25,8 +25,8 @@ import { useProgramCurriculum } from "@/hooks/use-program-curriculum";
 import { useProgramWeekPlan } from "@/hooks/use-program-week-plan";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import {
-  type PhaseDraft,
   SettingsSection,
+  type PhaseDraft,
 } from "@/lib/coordinator-program-detail";
 import { parseDay } from "@/lib/coordinator-programs";
 import {
@@ -302,10 +302,12 @@ function PhaseRow({
   week: string | null;
   editable: boolean;
   onEdit: () => void;
-  dragProps?: Pick<
-    HTMLAttributes<HTMLLIElement>,
-    "draggable" | "onDragStart" | "onDragOver" | "onDrop"
-  >;
+  dragProps?:
+    | Pick<
+        HTMLAttributes<HTMLLIElement>,
+        "draggable" | "onDragStart" | "onDragOver" | "onDrop"
+      >
+    | undefined;
 }) {
   const t = useTranslations("programCurriculum");
   const locale = useLocale();

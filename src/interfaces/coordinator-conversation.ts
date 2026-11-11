@@ -7,12 +7,13 @@ export enum CoordinatorConversationCounterpart {
 export type CoordinatorConversation = {
   id: string;
   programId: string;
-  programName: string;
+  programName: string | null;
   counterpartType: CoordinatorConversationCounterpart;
   counterpartId: string;
   counterpartName: string;
-  coordinatorId: string;
-  coordinatorName: string;
+  /** Null when neither the thread's coordinator nor the program's creator is known. */
+  coordinatorId: string | null;
+  coordinatorName: string | null;
   lastMessagePreview: string | null;
   lastMessageAt: string | null;
   unread: boolean;
@@ -22,8 +23,9 @@ export type CoordinatorConversation = {
 
 export type CoordinatorMessage = {
   id: string;
-  senderId: string;
-  senderName: string;
+  /** Null once the sender's account was deleted (sender_id ON DELETE SET NULL). */
+  senderId: string | null;
+  senderName: string | null;
   mine: boolean;
   body: string;
   createdAt: string;

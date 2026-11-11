@@ -1,20 +1,26 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { GET as teamDetail } from "@/app/api/coordinator/programs/[id]/team-details/[organizationId]/route";
 import {
   DELETE,
   PUT,
 } from "@/app/api/coordinator/programs/[id]/teams/[inviteId]/route";
-import {
-  GET as listTeams,
-  POST as addTeams,
-} from "@/app/api/coordinator/programs/[id]/teams/route";
-import { GET as teamDetail } from "@/app/api/coordinator/programs/[id]/team-details/[organizationId]/route";
 import { POST as sendCode } from "@/app/api/coordinator/programs/[id]/teams/[inviteId]/send-code/route";
+import {
+  POST as addTeams,
+  GET as listTeams,
+} from "@/app/api/coordinator/programs/[id]/teams/route";
 import { POST as create } from "@/app/api/coordinator/programs/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { ProgramType } from "@/interfaces/program";
+import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import {
+  answerEachWith,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorPrograms: vi.fn(),
@@ -30,7 +36,7 @@ vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorSession: vi.fn(),
 }));
 
-const ok = { data: [], headers: {}, status: 200 } as never;
+const ok = backendResponse([]);
 const teamParams = { params: Promise.resolve({ id: "program-1" }) };
 const inviteParams = {
   params: Promise.resolve({ id: "program-1", inviteId: "invite-1" }),
@@ -43,10 +49,10 @@ describe("coordinator program launch routes", () => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
     for (const fn of [
       api.createCoordinatorProgram,
@@ -57,19 +63,60 @@ describe("coordinator program launch routes", () => {
       api.sendProgramTeamCode,
       api.fetchProgramTeamDetail,
     ]) {
-      vi.mocked(fn).mockResolvedValue(ok);
+      answerEachWith([fn], ok);
     }
   });
 
   it("creates a program as the signed-in coordinator", async () => {
-    const input = { name: "METU BİGG 2026", teams: [] };
-    const response = await create(request("POST", input));
+    const response = await create(
+      request("POST", {
+        type: "PEER_MENTORING",
+        name: "METU BİGG 2026",
+        startDate: "2026-09-01",
+        coordinatorIds: ["coordinator-2"],
+        meetingFrequencyDays: 14,
+        defaultMentorCapacity: null,
+        teams: [{ teamName: "Kavşak", leadEmail: "deniz@kavsak.co" }],
+        unknownField: "dropped",
+      }),
+    );
 
     expect(response.status).toBe(200);
-    expect(api.createCoordinatorProgram).toHaveBeenCalledWith(
-      "coordinator-1",
-      input,
+    expect(api.createCoordinatorProgram).toHaveBeenCalledWith("coordinator-1", {
+      type: ProgramType.PeerMentoring,
+      name: "METU BİGG 2026",
+      description: null,
+      startDate: "2026-09-01",
+      endDate: null,
+      coordinatorIds: ["coordinator-2"],
+      defaultMentorCapacity: undefined,
+      meetingFrequencyDays: 14,
+      communicationGapDays: undefined,
+      bottleneckFlagDays: undefined,
+      teams: [{ teamName: "Kavşak", leadEmail: "deniz@kavsak.co" }],
+      phases: undefined,
+      syllabusDocumentId: null,
+    });
+  });
+
+  it.each([
+    ["an unknown type", { type: "HACKATHON" }],
+    ["no type", { type: undefined }],
+    ["a coordinator id that is not a string", { coordinatorIds: ["c-2", 7] }],
+    ["a rule given as text", { meetingFrequencyDays: "14" }],
+    ["a team that is not an object", { teams: ["bad"] }],
+  ])("refuses a program with %s instead of guessing", async (_case, change) => {
+    const response = await create(
+      request("POST", {
+        type: "PEER_MENTORING",
+        name: "METU BİGG 2026",
+        coordinatorIds: [],
+        ...change,
+      }),
     );
+
+    expect(response.status).toBe(400);
+    expect(api.createCoordinatorProgram).not.toHaveBeenCalled();
   });
 
   it("lists and adds teams", async () => {
@@ -134,10 +181,7 @@ describe("coordinator program launch routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     const response = await create(request("POST", { name: "X" }));
 

@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   addProgramEligibleEmails,
   fetchProgramEligibleEmails,
@@ -7,7 +9,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+const eligibleEmailsSchema = z.object({ emails: z.array(z.string()) });
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -31,10 +36,10 @@ export async function POST(request: Request, { params }: Params) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
-    const emails = Array.isArray(body.emails) ? body.emails.map(String) : [];
+    const body = await readJsonBody(request, eligibleEmailsSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await addProgramEligibleEmails(auth.session.userId, id, emails),
+      await addProgramEligibleEmails(auth.session.userId, id, body.data.emails),
     );
   } catch (error) {
     return apiErrorResponse(error, {

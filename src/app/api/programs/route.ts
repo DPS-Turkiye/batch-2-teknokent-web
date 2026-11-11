@@ -1,18 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
+import { UserRole } from "@/interfaces/session";
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { UserRole } from "@/interfaces/session";
+import { readJsonBody } from "@/lib/server/request-body";
 import {
   requireCoordinatorOrMentorSession,
   requireCoordinatorSession,
 } from "@/lib/server/require-program-access";
 import { getSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
+
+const createProgramSchema = z.object({ name: z.string().trim().min(1) });
 
 export async function GET() {
   try {
@@ -34,18 +38,13 @@ export async function POST(request: NextRequest) {
         ? { ok: true as const, session }
         : await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
-    const body = (await request.json()) as { name?: string };
-    const name = body.name?.trim() ?? "";
-    if (!name) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("programNameRequired"),
-        },
-        { status: 400 },
-      );
-    }
-    return backendResponse(await createProgram(auth.session.userId, name));
+    const body = await readJsonBody(request, createProgramSchema, {
+      invalidMessage: "programNameRequired",
+    });
+    if (!body.ok) return body.response;
+    return backendResponse(
+      await createProgram(auth.session.userId, body.data.name),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("programCreateFailed"),

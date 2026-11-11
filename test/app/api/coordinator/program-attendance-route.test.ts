@@ -1,15 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as exportFile } from "@/app/api/coordinator/programs/[id]/attendance/export/route";
 import { GET } from "@/app/api/coordinator/programs/[id]/attendance/route";
 import { SessionsExportFormat } from "@/interfaces/program-report";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   exportProgramAttendance,
   fetchProgramAttendance,
 } from "@/lib/api/program-attendance";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-attendance", () => ({
   fetchProgramAttendance: vi.fn(),
@@ -28,13 +30,9 @@ describe("coordinator attendance routes", () => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
-      session: { userId: "coord-1", role: UserRole.Coordinator } as AppSession,
+      session: appSession({ userId: "coord-1", role: UserRole.Coordinator }),
     });
-    vi.mocked(fetchProgramAttendance).mockResolvedValue({
-      data: {},
-      headers: {},
-      status: 200,
-    } as never);
+    answerEachWith([fetchProgramAttendance]);
     vi.mocked(exportProgramAttendance).mockResolvedValue({
       data: new ArrayBuffer(3),
       headers: {
@@ -42,7 +40,7 @@ describe("coordinator attendance routes", () => {
         "content-disposition": 'attachment; filename="katilim.csv"',
       },
       status: 200,
-    } as never);
+    });
   });
 
   it("covers the whole program without dates, or the chosen range", async () => {
@@ -111,10 +109,7 @@ describe("coordinator attendance routes", () => {
   });
 
   it("stops anyone who is not a coordinator or admin", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     expect((await GET(new NextRequest(url), params)).status).toBe(403);
     expect(

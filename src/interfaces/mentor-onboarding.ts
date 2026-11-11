@@ -1,10 +1,11 @@
 import {
-  MeetingFrequency,
-  type MentorEducationInput,
-  Weekday,
   WEEKDAY_ORDER,
+  type MeetingFrequency,
+  type MentorEducationInput,
+  type Weekday,
 } from "@/interfaces/mentor";
 import type { UploadedFile } from "@/interfaces/signup";
+import type { Keyed } from "@/lib/keyed-list";
 
 export enum MentorOnboardingStep {
   Profile = 1,
@@ -41,8 +42,9 @@ export interface ParsedProfile {
   title: string;
   company: string;
   totalExperience: string;
-  history: ParsedExperience[];
-  education: MentorEducationInput[];
+  /** Rows carry React keys while edited (see keyed-list); the saved draft and the payloads leave them out. */
+  history: Keyed<ParsedExperience>[];
+  education: Keyed<MentorEducationInput>[];
   inferredAreas: string[];
 }
 

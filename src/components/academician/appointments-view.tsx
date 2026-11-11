@@ -1,9 +1,18 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useLocale, useTranslations } from "next-intl";
 
+import { SampleDataNotice } from "@/components/academician/sample-data-notice";
+import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
+import {
+  DetailBox,
+  fieldClass,
+  labelClass,
+  PersonLine,
+  WorkspaceList,
+  WorkspaceRow,
+} from "@/components/academician/workspace-ui";
 import {
   FilterPills,
   OutlineButton,
@@ -11,21 +20,11 @@ import {
   SolidButton,
 } from "@/components/admin/admin-ui";
 import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
-import { SampleDataNotice } from "@/components/academician/sample-data-notice";
-import {
-  DetailBox,
-  PersonLine,
-  WorkspaceList,
-  WorkspaceRow,
-  fieldClass,
-  labelClass,
-} from "@/components/academician/workspace-ui";
-import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import { EmptyState } from "@/components/common/empty-state";
 import {
-  type AcademicianAppointmentsState,
   AppointmentsView,
   useAcademicianAppointments,
+  type AcademicianAppointmentsState,
 } from "@/hooks/use-academician-appointments";
 import {
   OfficeHoursAppointmentAction,

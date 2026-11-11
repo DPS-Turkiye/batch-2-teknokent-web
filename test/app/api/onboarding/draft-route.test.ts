@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DELETE, GET, PUT } from "@/app/api/onboarding/draft/route";
@@ -7,6 +6,7 @@ import {
   fetchOnboardingDraft,
   saveOnboardingDraft,
 } from "@/lib/api/onboarding-draft";
+import { tokenRequest } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/onboarding-draft", () => ({
   fetchOnboardingDraft: vi.fn(),
@@ -15,16 +15,7 @@ vi.mock("@/lib/api/onboarding-draft", () => ({
 }));
 
 function request(options: { method: string; token?: string; body?: unknown }) {
-  return {
-    method: options.method,
-    headers: {
-      get: (name: string) =>
-        name.toLowerCase() === "authorization" && options.token
-          ? `Bearer ${options.token}`
-          : null,
-    },
-    json: async () => options.body ?? {},
-  } as unknown as NextRequest;
+  return tokenRequest("http://localhost/api/onboarding/draft", options);
 }
 
 describe("/api/onboarding/draft", () => {

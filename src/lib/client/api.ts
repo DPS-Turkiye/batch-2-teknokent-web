@@ -73,7 +73,7 @@ function visibleServerMessage(body: unknown, status: number) {
 const RETRY_AFTER_HEADER = "x-rate-limit-retry-after-seconds";
 
 function rateLimitMessage(response: AxiosResponse) {
-  const seconds = Number(response.headers?.[RETRY_AFTER_HEADER]);
+  const seconds = Number(response.headers[RETRY_AFTER_HEADER]);
   if (!Number.isFinite(seconds) || seconds <= 0) return fallbackMessage(429);
   const minutes = Math.ceil(seconds / 60);
   return clientText("rateLimit", { minutes });

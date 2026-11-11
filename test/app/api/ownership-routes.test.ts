@@ -100,7 +100,7 @@ describe("PATCH /api/meetings/[id]", () => {
     vi.mocked(getSessionUser).mockResolvedValue({
       ...mentor,
       role: UserRole.Coordinator,
-    } as AppSession);
+    });
 
     expect((await patchMeeting()).status).toBe(403);
     expect(updateMeeting).not.toHaveBeenCalled();

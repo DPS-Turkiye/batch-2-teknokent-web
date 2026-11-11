@@ -1,12 +1,13 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchOnboardingDraft } from "@/lib/client/onboarding-draft";
+import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
 import { emailCharacterError } from "@/lib/email";
 import {
   currentIdToken,
@@ -16,8 +17,6 @@ import {
   signInToFirebase,
   signOutOfFirebase,
 } from "@/lib/firebase/auth";
-
-import { ACCOUNT_NOT_APPROVED, REGISTRATION_REQUIRED } from "@/lib/const";
 import { signupResumeHref } from "@/lib/signup-resume";
 
 export function useLoginFlow() {
@@ -32,9 +31,8 @@ export function useLoginFlow() {
 
   const isReady = true;
 
-  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isReady) return;
     setLoginError("");
     setNotice("");
     setStep(LoginFlowStep.Verifying);

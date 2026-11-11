@@ -8,9 +8,10 @@ import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  type StartupProfile,
   StartupFundingStage,
+  type StartupProfile,
 } from "@/interfaces/organization";
+import { UserAccountStatus } from "@/interfaces/session";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { StartupStage, StartupStageState } from "@/interfaces/startup-process";
 import { getMeetings } from "@/lib/client/meetings";
@@ -20,6 +21,7 @@ import { getOrganizationMembers } from "@/lib/client/organization-members";
 import { getOrganizationPrograms } from "@/lib/client/programs";
 import { getStartupDocuments } from "@/lib/client/startup-documents";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { organizationProgram } from "@test/fixtures/organization-programs";
 import { documentFixture } from "@test/fixtures/startup-files";
 import { createTestQueryClient } from "@test/test-utils";
 
@@ -75,6 +77,7 @@ const profile: StartupProfile = {
   completionPercent: 72,
   fundingStage: StartupFundingStage.PreSeed,
   foundedYear: 2026,
+  approvalStatus: UserAccountStatus.Approved,
   createdAt: "2026-06-12T09:00:00Z",
   updatedAt: "2026-09-02T09:00:00Z",
 };
@@ -105,8 +108,10 @@ describe("useStartupOverview", () => {
     ]);
     vi.mocked(getOrganizationPrograms).mockResolvedValue({
       programs: [
-        { id: "p-0", name: "Eski program", coordinatorName: "Ece" },
-        { id: "p-1", name: "METU Stars 2026", coordinatorName: "Ece" },
+        organizationProgram("p-0", "Eski program", { coordinatorName: "Ece" }),
+        organizationProgram("p-1", "METU Stars 2026", {
+          coordinatorName: "Ece",
+        }),
       ],
       activeProgramId: "p-1",
     });
@@ -172,7 +177,7 @@ describe("useStartupOverview", () => {
 
     await waitFor(() => expect(result.current.mentorships).toHaveLength(1));
     await waitFor(() =>
-      expect(result.current.mentorships[0].heldSessions).toBe(1),
+      expect(result.current.mentorships[0]?.heldSessions).toBe(1),
     );
     expect(result.current.mentorships[0]).toEqual({
       id: "r-1",

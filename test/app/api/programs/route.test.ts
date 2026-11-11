@@ -1,11 +1,13 @@
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "@/app/api/programs/route";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { createProgram, fetchPrograms } from "@/lib/api/programs";
 import { requireCoordinatorOrMentorSession } from "@/lib/server/require-program-access";
 import { getSessionUser } from "@/lib/session";
-import { UserRole, type AppSession } from "@/interfaces/session";
-import { NextRequest, NextResponse } from "next/server";
+import { program } from "@test/fixtures/program";
+import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/programs", () => ({
   fetchPrograms: vi.fn(),
@@ -37,13 +39,9 @@ describe("GET /api/programs", () => {
   });
 
   it("rejects a missing session", async () => {
-    vi.mocked(requireCoordinatorOrMentorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json(
-        { code: "SESSION_REQUIRED" },
-        { status: 401 },
-      ),
-    });
+    vi.mocked(requireCoordinatorOrMentorSession).mockResolvedValue(
+      guardRefusal(401),
+    );
 
     const response = await GET();
     expect(response.status).toBe(401);
@@ -80,19 +78,9 @@ describe("POST /api/programs", () => {
       ok: true,
       session: coordinatorSession(),
     });
-    vi.mocked(createProgram).mockResolvedValue({
-      data: {
-        id: "program-1",
-        name: "Seed 2026",
-        coordinatorId: "coord-1",
-        coordinatorName: "Demo Coordinator",
-        createdAt: "2026-09-01T08:00:00Z",
-        startups: [],
-        mentors: [],
-      },
-      headers: {},
-      status: 201,
-    });
+    vi.mocked(createProgram).mockResolvedValue(
+      backendResponse(program({ id: "program-1" }), 201),
+    );
 
     const response = await POST(
       new NextRequest("http://localhost/api/programs", {

@@ -2,17 +2,19 @@ import { describe, expect, it } from "vitest";
 
 import { MeetingFrequency, Weekday } from "@/interfaces/mentor";
 import {
+  EMPTY_STUDENT_DRAFT,
   emptyWeek,
   PLACEHOLDER_PARSED_PROFILE,
   type MentorOnboardingDraft,
 } from "@/interfaces/mentor-onboarding";
+import { withKeys } from "@/lib/keyed-list";
 import {
   invalidDays,
   openDays,
   toAvailabilityPayload,
   toMentorProfilePayload,
-  weekSummary,
   weeklyCapacity,
+  weekSummary,
 } from "@/lib/mentor-onboarding";
 
 function draft(
@@ -28,12 +30,14 @@ function draft(
     about: "  On yıllık ürün deneyimi. ",
     photo: null,
     cv: null,
+    cvStoredName: null,
+    programIds: [],
     profile: {
       ...PLACEHOLDER_PARSED_PROFILE,
       title: " Ürün Direktörü ",
       company: "Peak",
       totalExperience: "9 yıl",
-      history: [
+      history: withKeys([
         {
           title: "Senior PM",
           organization: "Looply",
@@ -41,11 +45,12 @@ function draft(
           summary: "",
         },
         { title: "  ", organization: "Boş satır" },
-      ],
+      ]),
     },
     topics: ["Finans", "Satış"],
     stages: ["Fikir", "MVP"],
     offerings: ["Pitch deck incelemesi"],
+    student: { ...EMPTY_STUDENT_DRAFT },
     week,
     capacity: 3,
     durationMinutes: 45,
@@ -112,10 +117,10 @@ describe("mentor onboarding helpers", () => {
       ...base,
       profile: {
         ...base.profile,
-        education: [
+        education: withKeys([
           { school: " ODTÜ ", degree: " Lisans ", period: "2022 – 2026" },
           { school: " ", degree: "Lise", period: "" },
-        ],
+        ]),
       },
     });
     expect(payload.educations).toEqual([

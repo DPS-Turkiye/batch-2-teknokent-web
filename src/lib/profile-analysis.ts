@@ -1,7 +1,6 @@
-import { ProfileAnalysisType } from "@/interfaces/profile-analysis";
-import type {
-  ProfileAnalysis as Analysis,
-  ProfileType,
+import {
+  ProfileAnalysisType,
+  type ProfileAnalysis as Analysis,
 } from "@/interfaces/profile-analysis";
 
 /** Largest pitch deck or CV the parser accepts. */
@@ -36,7 +35,7 @@ export function list(value: unknown) {
 }
 
 export function profileFields(
-  profileType: ProfileType,
+  profileType: ProfileAnalysisType,
 ): ProfileFieldDefinition[] {
   return profileType === ProfileAnalysisType.Personal
     ? [
@@ -58,16 +57,23 @@ export function profileFields(
       ];
 }
 
+function fieldText(value: unknown) {
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean")
+    return String(value);
+  return "";
+}
+
 export function editableProfile(
   profile: Record<string, unknown>,
-  profileType: ProfileType,
+  profileType: ProfileAnalysisType,
 ): EditableProfile {
   return Object.fromEntries(
     profileFields(profileType).map(([key]) => [
       key,
       Array.isArray(profile[key])
         ? list(profile[key]).join(", ")
-        : String(profile[key] ?? ""),
+        : fieldText(profile[key]),
     ]),
   );
 }
@@ -75,39 +81,40 @@ export function editableProfile(
 export function profilePayload(
   original: Record<string, unknown>,
   draft: EditableProfile,
-  profileType: ProfileType,
+  profileType: ProfileAnalysisType,
 ) {
   const listKeys = new Set(
     profileType === ProfileAnalysisType.Personal
       ? ["industries", "technologies", "skills_to_develop"]
       : ["sectors", "target_markets", "technologies"],
   );
-  const payload = Object.fromEntries(
-    Object.entries({ ...original, ...draft }).map(([key, value]) => [
-      key,
-      listKeys.has(key) && typeof value === "string"
-        ? value
-            .split(",")
-            .map((item) => item.trim())
-            .filter(Boolean)
-        : value,
-    ]),
-  );
+  const payload: Record<string, unknown> = { ...original, ...draft };
+  for (const key of listKeys) {
+    const value = payload[key];
+    if (typeof value !== "string") continue;
+    payload[key] = value
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+  const technologies = payload.technologies;
   const retainedTechnologies = new Set(
-    Array.isArray(payload.technologies)
-      ? payload.technologies.filter(
+    Array.isArray(technologies)
+      ? technologies.filter(
           (technology): technology is string => typeof technology === "string",
         )
       : [],
   );
-  if (Array.isArray(payload.technology_inferences)) {
-    payload.technology_inferences = payload.technology_inferences.filter(
-      (inference) =>
-        inference &&
-        typeof inference === "object" &&
-        "tag" in inference &&
-        typeof inference.tag === "string" &&
-        retainedTechnologies.has(inference.tag),
+  const inferences = payload.technology_inferences;
+  if (Array.isArray(inferences)) {
+    payload.technology_inferences = inferences.filter(
+      (inference): inference is Record<string, unknown> => {
+        if (!inference || typeof inference !== "object") return false;
+        const record = inference as Record<string, unknown>;
+        return (
+          typeof record.tag === "string" && retainedTechnologies.has(record.tag)
+        );
+      },
     );
   }
   return payload;
@@ -116,21 +123,29 @@ export function profilePayload(
 export function technologyInferences(
   profile: Record<string, unknown>,
 ): TechnologyInference[] {
-  if (!Array.isArray(profile.technology_inferences)) return [];
-  return profile.technology_inferences.filter(
-    (item): item is TechnologyInference =>
-      Boolean(item) &&
-      typeof item === "object" &&
-      "tag" in item &&
-      typeof item.tag === "string" &&
-      "type" in item &&
-      (item.type === "EXPLICIT_RECOVERY" ||
-        item.type === "DERIVED_CAPABILITY") &&
-      "confidence" in item &&
-      (item.confidence === "HIGH" || item.confidence === "MEDIUM") &&
-      "evidence" in item &&
-      typeof item.evidence === "string",
-  );
+  const value = profile.technology_inferences;
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const record = item as Record<string, unknown>;
+    if (
+      typeof record.tag !== "string" ||
+      (record.type !== "EXPLICIT_RECOVERY" &&
+        record.type !== "DERIVED_CAPABILITY") ||
+      (record.confidence !== "HIGH" && record.confidence !== "MEDIUM") ||
+      typeof record.evidence !== "string"
+    ) {
+      return [];
+    }
+    return [
+      {
+        tag: record.tag,
+        type: record.type,
+        confidence: record.confidence,
+        evidence: record.evidence,
+      },
+    ];
+  });
 }
 
 export function toProfileObject(

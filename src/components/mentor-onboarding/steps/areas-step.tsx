@@ -1,25 +1,26 @@
 "use client";
 
-import {
-  OnboardingCard,
-  OnboardingChips,
-  OnboardingListRow,
-  OnboardingTextAction,
-  onboardingInputClass,
-} from "@/components/onboarding/onboarding-ui";
+import { useTranslations } from "next-intl";
+
+import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
 import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import {
+  OnboardingCard,
+  OnboardingChips,
+  onboardingInputClass,
+  OnboardingListRow,
+  OnboardingTextAction,
+} from "@/components/onboarding/onboarding-ui";
 import { useInlineEntry } from "@/hooks/use-inline-entry";
-import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   MAX_MENTOR_TOPICS,
   MAX_OFFERINGS,
 } from "@/interfaces/mentor-onboarding";
-import { useOptionLabel } from "@/hooks/use-option-label";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentor;
 const theme = ONBOARDING_TONES[TONE];
@@ -130,7 +131,7 @@ export function MentorAreasStep({ wizard }: { wizard: MentorOnboarding }) {
           <OnboardingListRow
             key={offering}
             actionLabel={copy("remove")}
-            actionAriaLabel={copy("removeOffering", { offering: offering })}
+            actionAriaLabel={copy("removeOffering", { offering })}
             onAction={() => wizard.removeOffering(index)}
           >
             <span

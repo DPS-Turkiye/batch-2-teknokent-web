@@ -7,12 +7,17 @@ import { useMeetings } from "@/hooks/use-meetings";
 import { useMenteeCalendar } from "@/hooks/use-mentee-calendar";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { CalendarFilter } from "@/lib/calendar";
 import { getActionItems } from "@/lib/client/action-items";
 import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { menteeActionItemFixture } from "@test/fixtures/mentee-home";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import { processAssignment } from "@test/fixtures/process-assignments";
+import { startupProcess } from "@test/fixtures/startup-process";
+import { successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
@@ -49,7 +54,7 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const meeting = {
+const meeting: MeetingItem = {
   id: "m-1",
   organizationId: "org-1",
   mentorName: "Nihan Öztürk",
@@ -64,32 +69,35 @@ describe("useMenteeCalendar", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date(2026, 7, 26, 9, 0));
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [meeting],
-      isLoading: false,
-      error: null,
-    } as never);
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [{ id: "req-1", status: MentorshipRequestStatus.Accepted }],
-    } as never);
+    vi.mocked(useMeetings).mockReturnValue(successQuery([meeting]));
+    vi.mocked(useMentorshipRequests).mockReturnValue(
+      successQuery([
+        mentorshipRequest({
+          id: "req-1",
+          status: MentorshipRequestStatus.Accepted,
+        }),
+      ]),
+    );
     vi.mocked(getActionItems).mockResolvedValue([
-      {
+      menteeActionItemFixture({
         id: "ai-1",
         title: "User Flow dosyasını yükle",
         dueDate: "2026-08-27",
         status: ActionItemStatus.Open,
-      },
-    ] as never);
-    vi.mocked(getStartupProcess).mockResolvedValue({
-      assignments: [
-        {
-          id: "as-1",
-          title: "Finansal model",
-          dueDate: "2026-08-25",
-          status: ActionItemStatus.InProgress,
-        },
-      ],
-    } as never);
+      }),
+    ]);
+    vi.mocked(getStartupProcess).mockResolvedValue(
+      startupProcess({
+        assignments: [
+          processAssignment({
+            id: "as-1",
+            title: "Finansal model",
+            dueDate: "2026-08-25",
+            status: ActionItemStatus.InProgress,
+          }),
+        ],
+      }),
+    );
   });
 
   afterEach(() => {
@@ -144,18 +152,16 @@ describe("useMenteeCalendar", () => {
   });
 
   it("counts only what the Monday–Friday grid can show", async () => {
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
+    vi.mocked(useMeetings).mockReturnValue(
+      successQuery([
         meeting,
         {
           ...meeting,
           id: "m-2",
           scheduledAt: new Date(2026, 7, 29, 11, 0).toISOString(),
         },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+      ]),
+    );
     const { result } = renderHook(() => useMenteeCalendar(), { wrapper });
 
     await waitFor(() =>

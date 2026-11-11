@@ -1,16 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProgramDetail } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { PROGRAM_CARD_CLASS } from "@/lib/const/programs";
-import { StartupNameLink } from "@/components/common/startup-name-link";
 import { programPersonHref } from "@/lib/program-links";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";

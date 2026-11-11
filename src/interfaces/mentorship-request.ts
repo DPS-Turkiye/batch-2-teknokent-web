@@ -55,13 +55,14 @@ export type MentorshipRequest = {
   requesterId: string;
   requesterName?: string;
   organizationId: string;
-  organizationName?: string;
+  /** Null for a personal team (Organization.visibleName), which is never shown as a team. */
+  organizationName?: string | null;
   mentorId: string;
   mentorName: string;
   requestedForName?: string;
   supportArea: string;
   summary?: string;
-  requesterMessage?: string;
+  requesterMessage?: string | null;
   /** The mentee's "BEKLENEN ÇIKTI"; null on requests sent before it had its own field. */
   expectedOutcome?: string | null;
   status: MentorshipRequestStatus;

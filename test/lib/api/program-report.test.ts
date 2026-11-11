@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fetchProgramMeetingFeedback } from "@/lib/api/program-report";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 vi.mock("@/lib/server/backend-client", () => ({
   backendRequest: vi.fn(),
@@ -32,7 +33,7 @@ describe("program report server API", () => {
       size: 20,
     });
 
-    expect(vi.mocked(backendRequest).mock.calls[0][0].params).toEqual({
+    expect(itemAt(vi.mocked(backendRequest).mock.calls, 0)[0].params).toEqual({
       actorId: "coord-1",
       page: 0,
       size: 20,

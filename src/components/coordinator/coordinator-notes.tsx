@@ -4,8 +4,8 @@ import { Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import {
-  type CoordinatorNotes,
   MAX_COORDINATOR_NOTE,
+  type CoordinatorNotes,
 } from "@/hooks/use-coordinator-notes";
 import { formatDateTime } from "@/lib/utils";
 

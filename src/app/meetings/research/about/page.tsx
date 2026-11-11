@@ -1,19 +1,18 @@
 "use client";
 
-import type { ReactNode } from "react";
-import Link from "next/link";
-import { Suspense } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
+import { Suspense, type ReactNode } from "react";
 
 import { Avatar } from "@/components/common/avatar";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { MeetingUnavailable } from "@/components/meetings/meeting-unavailable";
+import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { MentorshipsBackLink } from "@/components/mentorships/mentorships-back-link";
-import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
 import { RequestDetailsPanel } from "@/components/mentorships/request-details-panel";
-import { StartupNameLink } from "@/components/common/startup-name-link";
 import { ReportBlock } from "@/components/notes/meeting-assistant-share-panel";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useMeetingLifecycle } from "@/hooks/use-meeting-lifecycle";
@@ -22,6 +21,7 @@ import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { UserRole } from "@/interfaces/session";
 import { getMeetingRoom } from "@/lib/client/meetings";
+import { MENTORSHIPS_HISTORY_HREF } from "@/lib/const";
 import {
   isCalendarOriginRequest,
   meetingCounterpartName,
@@ -30,7 +30,6 @@ import {
 } from "@/lib/meeting-context";
 import { needLabels } from "@/lib/mentor-request-need";
 import { buildRequestDetailContent } from "@/lib/request-detail-content";
-import { MENTORSHIPS_HISTORY_HREF } from "@/lib/const";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -92,12 +91,7 @@ function MeetingAboutContent() {
     );
   }
 
-  const counterpart = meetingCounterpartName(
-    meeting,
-    request,
-    Boolean(isMentor),
-    texts,
-  );
+  const counterpart = meetingCounterpartName(meeting, request, isMentor, texts);
   const organizationId = meeting.organizationId || request?.organizationId;
   const startupTitle =
     isMentor && organizationId ? (
@@ -124,7 +118,7 @@ function MeetingAboutContent() {
       title={t("title")}
       backHref={MENTORSHIPS_HISTORY_HREF}
     >
-      <MentorAccent enabled={Boolean(isMentor)}>
+      <MentorAccent enabled={isMentor}>
         <div className="mx-auto w-full max-w-[1116px] px-4 pb-14 pt-6 sm:px-8">
           <MentorshipsBackLink href={MENTORSHIPS_HISTORY_HREF} />
           <nav className="mt-4 flex items-center gap-1.5 text-[13px]">
@@ -157,11 +151,9 @@ function MeetingAboutContent() {
               <p className="mt-1 text-[13px] text-[#858c96]">
                 {t("meta", {
                   minutes: meeting.durationMinutes,
-                  status: Object.values(MeetingStatus).includes(
-                    meeting.status as MeetingStatus,
-                  )
-                    ? tStatus(meeting.status as MeetingStatus)
-                    : String(meeting.status),
+                  status: Object.values(MeetingStatus).includes(meeting.status)
+                    ? tStatus(meeting.status)
+                    : meeting.status,
                 })}
               </p>
             </div>

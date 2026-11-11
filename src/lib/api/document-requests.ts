@@ -4,9 +4,9 @@ import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchDocumentRequests(params: {
-  mentorshipRequestId?: string;
-  meetingId?: string;
-  mentorshipId?: string;
+  mentorshipRequestId?: string | undefined;
+  meetingId?: string | undefined;
+  mentorshipId?: string | undefined;
 }) {
   return backendRequest({
     method: HttpMethod.Get,
@@ -17,9 +17,9 @@ export function fetchDocumentRequests(params: {
 
 export function replaceDocumentRequests(
   params: {
-    mentorshipRequestId?: string;
-    meetingId?: string;
-    mentorshipId?: string;
+    mentorshipRequestId?: string | undefined;
+    meetingId?: string | undefined;
+    mentorshipId?: string | undefined;
   },
   data: { actorId: string; titles: string[] },
 ) {

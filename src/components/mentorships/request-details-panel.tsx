@@ -1,6 +1,6 @@
-import { ProgramContext } from "@/components/common/program-context";
 import { useLocale, useTranslations } from "next-intl";
 
+import { ProgramContext } from "@/components/common/program-context";
 import { useTopicLabel } from "@/hooks/use-option-label";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { needLabels } from "@/lib/mentor-request-need";
@@ -69,8 +69,8 @@ export function RequestDetailsPanel({
             {t("fields.preferredSlots")}
           </p>
           <ul className="mt-2 space-y-1 text-[#22262b]">
-            {detail.preferredSlots.map((slot, index) => (
-              <li key={`${slot.label}-${index}`}>{slot.label}</li>
+            {detail.preferredSlots.map((slot) => (
+              <li key={slot.label}>{slot.label}</li>
             ))}
           </ul>
         </div>

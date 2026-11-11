@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   addProgramTeams,
   fetchProgramTeams,
@@ -7,7 +9,11 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { teamInviteSchema } from "@/lib/server/coordinator-program-schemas";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+const addTeamsSchema = z.object({ teams: z.array(teamInviteSchema) });
 
 export async function GET(
   _request: Request,
@@ -33,9 +39,10 @@ export async function POST(
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, addTeamsSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await addProgramTeams(auth.session.userId, id, body.teams),
+      await addProgramTeams(auth.session.userId, id, body.data.teams),
     );
   } catch (error) {
     return apiErrorResponse(error, {

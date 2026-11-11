@@ -9,12 +9,13 @@ import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import type { useFileUploadForm } from "@/hooks/use-file-upload-form";
 import type { ShareableMentor } from "@/hooks/use-startup-files";
-import type {
+import {
   DocumentKind,
-  StartupDocument,
+  type StartupDocument,
 } from "@/interfaces/startup-document";
-import { UPLOADABLE_KINDS } from "@/lib/startup-files";
 import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
+import { isEnumValue } from "@/lib/enum";
+import { UPLOADABLE_KINDS } from "@/lib/startup-files";
 
 type UploadForm = ReturnType<typeof useFileUploadForm>;
 
@@ -32,7 +33,10 @@ export function FileUploadDialog({ form }: { form: UploadForm }) {
         <select
           className={fieldClass}
           value={form.kind}
-          onChange={(event) => form.setKind(event.target.value as DocumentKind)}
+          onChange={(event) => {
+            const { value } = event.target;
+            if (isEnumValue(DocumentKind, value)) form.setKind(value);
+          }}
         >
           {UPLOADABLE_KINDS.map((kind) => (
             <option key={kind} value={kind}>

@@ -1,17 +1,19 @@
 "use client";
-import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
-import { useState } from "react";
+
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
+import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   ProfileCompletionStep,
   type StudentProfileCompletion,
 } from "@/interfaces/student-profile-completion";
 import {
-  getStudentProfileCompletion,
   getProfileCompletionCategories,
+  getStudentProfileCompletion,
   saveStudentProfileCompletion,
 } from "@/lib/client/student-profile-completion";
-import { STUDENT_HOME_QUERY_KEY } from "@/hooks/use-student-home";
 import {
   chosenCategories,
   toggleInterestSubtopic,

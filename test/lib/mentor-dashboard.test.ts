@@ -1,9 +1,8 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { DocumentRequestItem } from "@/interfaces/document-request";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   conversationMeetingLabel,
   isOverdueActionItem,
@@ -17,16 +16,11 @@ import {
   mentorWeekMeetingCount,
   type MentorHomeTexts,
 } from "@/lib/mentor-dashboard";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
 function homeTexts(locale: "tr" | "en"): MentorHomeTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "mentorHome",
-    }),
+    t: translatorIn(locale, "mentorHome"),
     locale,
   };
 }
@@ -227,9 +221,11 @@ describe("mentorTodayActions", () => {
       new Date("2026-09-11T09:00:00.000Z"),
     );
 
-    expect(row.chip).toBeNull();
-    expect(row.action).toBe("Aç");
-    expect(row.startup).toBe("Mentorluk");
+    expect(row).toMatchObject({
+      chip: null,
+      action: "Aç",
+      startup: "Mentorluk",
+    });
   });
 });
 

@@ -9,7 +9,7 @@ export type TranscriptBotAction = {
 };
 
 function isScheduled(status: MeetingItem["status"]): boolean {
-  return status === MeetingStatus.Scheduled || status === "SCHEDULED";
+  return status === MeetingStatus.Scheduled;
 }
 
 export function isTranscriptBotDue(
@@ -17,7 +17,7 @@ export function isTranscriptBotDue(
   now = Date.now(),
 ): boolean {
   const action = transcriptBotActionFor(meeting, now);
-  return action != null && action.delayMs === 0;
+  return action?.delayMs === 0;
 }
 
 export function nextTranscriptBotAction(

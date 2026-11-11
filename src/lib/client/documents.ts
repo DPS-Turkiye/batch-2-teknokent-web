@@ -1,14 +1,15 @@
 import type { AxiosResponse } from "axios";
 
-import { getPublicBackendUrl } from "@/lib/const";
-import { ClientApiError, requireSuccess } from "@/lib/client/api";
-import { currentIdToken } from "@/lib/firebase/auth";
-import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
 import { clientText } from "@/i18n/client-texts";
+import type { DocumentKind } from "@/interfaces/startup-document";
+import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import { getPublicBackendUrl } from "@/lib/const";
+import { currentIdToken } from "@/lib/firebase/auth";
+import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 export type StoredDocument = {
   id: string;
-  kind: string;
+  kind: DocumentKind;
   originalFilename: string;
   sizeBytes: number;
 };
@@ -59,7 +60,7 @@ function uploaded(response: AxiosResponse<StoredDocument>) {
  */
 export async function uploadDocument(
   file: File,
-  kind: string,
+  kind: DocumentKind,
   idToken?: string,
   meetingId?: string,
 ) {

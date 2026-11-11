@@ -1,5 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { MeetingStatus } from "@/interfaces/meeting";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { UserRole } from "@/interfaces/session";
 import {
   decideMentorRequest,
   getMentorRequests,
@@ -8,9 +11,6 @@ import {
   markMentorRequestRead,
 } from "@/lib/client/mentor-requests";
 import { httpClient } from "@/lib/http-client";
-import { UserRole } from "@/interfaces/session";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
-import { MeetingStatus } from "@/interfaces/meeting";
 import { createMentorResponse } from "@test/fixtures/mentors";
 
 vi.mock("@/lib/http-client", () => ({

@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, PUT } from "@/app/api/coordinator/programs/[id]/weeks/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import type { ProgramWeekPlan } from "@/interfaces/program-week";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchProgramWeekPlan,
   replaceProgramWeekPlan,
 } from "@/lib/api/program-weeks";
 import { HttpMethod } from "@/lib/http-method";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { backendResponse, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/program-weeks", () => ({
   fetchProgramWeekPlan: vi.fn(),
@@ -19,11 +22,16 @@ vi.mock("@/lib/server/require-coordinator", () => ({
 }));
 
 const context = { params: Promise.resolve({ id: "program-1" }) };
-const ok = {
-  data: { totalWeeks: 12, weeks: [] },
-  headers: {},
-  status: 200,
-} as never;
+const ok = backendResponse<ProgramWeekPlan>({ totalWeeks: 12, weeks: [] });
+/** A valid week, for the cases that break one field of it. */
+const week = {
+  week: 2,
+  title: "Görüşmeler",
+  topics: [],
+  activities: [],
+  deliverables: [],
+  inferred: false,
+};
 
 function put(body: unknown) {
   return new NextRequest(
@@ -39,10 +47,10 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(requireCoordinatorSession).mockResolvedValue({
     ok: true,
-    session: {
+    session: appSession({
       userId: "coordinator-1",
       role: UserRole.Coordinator,
-    } as AppSession,
+    }),
   });
   vi.mocked(fetchProgramWeekPlan).mockResolvedValue(ok);
   vi.mocked(replaceProgramWeekPlan).mockResolvedValue(ok);
@@ -50,10 +58,7 @@ beforeEach(() => {
 
 describe("coordinator weekly plan proxy", () => {
   it("stops at the coordinator check for reading and saving", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     expect(
       (await GET(new NextRequest("http://localhost"), context)).status,
@@ -71,18 +76,18 @@ describe("coordinator weekly plan proxy", () => {
     );
   });
 
-  it("saves the whole plan as the session user, keeping only real lines and a real flag", async () => {
+  it("saves the whole plan as the session user, trimming lines and dropping blank ones", async () => {
     await PUT(
       put({
         actorId: "someone-else",
         weeks: [
           {
-            week: "2",
+            week: 2,
             title: "Görüşmeler",
             topics: [" Problem ", ""],
-            activities: "not a list",
+            activities: [],
             deliverables: ["Notlar"],
-            inferred: "yes",
+            inferred: false,
           },
         ],
       }),
@@ -104,4 +109,39 @@ describe("coordinator weekly plan proxy", () => {
       ],
     );
   });
+
+  it("saves a week the backend returned without its inferred flag as not inferred", async () => {
+    const { inferred: _inferred, ...withoutFlag } = week;
+    await PUT(
+      put({ weeks: [withoutFlag, { ...week, week: 3, inferred: null }] }),
+      context,
+    );
+
+    expect(replaceProgramWeekPlan).toHaveBeenCalledWith(
+      "coordinator-1",
+      "program-1",
+      [
+        expect.objectContaining({ week: week.week, inferred: false }),
+        expect.objectContaining({ week: 3, inferred: false }),
+      ],
+    );
+  });
+
+  it.each([
+    ["no weeks", {}],
+    ["a week number given as text", { weeks: [{ ...week, week: "2" }] }],
+    [
+      "activities that are not a list",
+      { weeks: [{ ...week, activities: "x" }] },
+    ],
+    ["a flag that is not a boolean", { weeks: [{ ...week, inferred: "yes" }] }],
+  ])(
+    "refuses a plan with %s instead of wiping or guessing",
+    async (_case, body) => {
+      const response = await PUT(put(body), context);
+
+      expect(response.status).toBe(400);
+      expect(replaceProgramWeekPlan).not.toHaveBeenCalled();
+    },
+  );
 });

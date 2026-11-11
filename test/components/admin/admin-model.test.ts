@@ -13,53 +13,46 @@ import type {
   AdminMentorship,
   AdminOverview,
   AdminProgram,
+  AdminStartup,
 } from "@/interfaces/admin-overview";
+import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import {
+  adminMentorship,
+  adminProgram,
+  adminStartup,
+} from "@test/fixtures/admin-programs";
 
-function program(id: string, name: string): AdminProgram {
-  return {
-    id,
-    name,
-    status: "ACTIVE",
-    createdAt: "2026-01-01T00:00:00Z",
-    coordinatorId: null,
-    coordinatorName: null,
+/** A program holding just the given team. */
+function programOf(team: AdminStartup): AdminProgram {
+  return adminProgram({
+    id: team.programId,
+    name: team.programName,
     startupCount: 1,
-    acceptedMentorCount: 0,
-    pendingMentorCount: 0,
-    startups: [
-      {
-        id: "org-1",
-        name: "Lumen",
-        sector: null,
-        programId: id,
-        programName: name,
-      },
-    ],
-    mentors: [],
-  };
+    startups: [team],
+  });
+}
+
+function lumenIn(programId: string, programName: string): AdminStartup {
+  return adminStartup({ programId, programName });
 }
 
 function mentorship(
   id: string,
   programId: string | null | undefined,
 ): AdminMentorship {
-  return {
+  const made = adminMentorship({
     id,
     mentorId: `mentor-${id}`,
     mentorName: `Mentor ${id}`,
-    organizationId: "org-1",
-    organizationName: "Lumen",
-    status: "ACTIVE",
-    startDate: "2026-01-01",
-    endDate: null,
-    progressPercent: 0,
     daysSinceMeeting: 3,
-    programId,
-  };
+  });
+  return programId === undefined ? made : { ...made, programId };
 }
 
-const stars = program("program-1", "ODTÜ Stars 2026");
-const growth = program("program-2", "Growth Circuit 2026");
+const lumenInStars = lumenIn("program-1", "ODTÜ Stars 2026");
+const lumenInGrowth = lumenIn("program-2", "Growth Circuit 2026");
+const stars = programOf(lumenInStars);
+const growth = programOf(lumenInGrowth);
 
 function overview(mentorships: AdminMentorship[]): AdminOverview {
   return {
@@ -74,8 +67,8 @@ function overview(mentorships: AdminMentorship[]): AdminOverview {
 
 describe("admin-model programs the admin can still assign to", () => {
   const closed: AdminProgram = {
-    ...program("program-3", "Kapanan Program"),
-    status: "COMPLETED",
+    ...programOf(lumenIn("program-3", "Kapanan Program")),
+    status: ProgramStatus.Completed,
   };
   const withMentors: AdminProgram = {
     ...growth,
@@ -84,13 +77,13 @@ describe("admin-model programs the admin can still assign to", () => {
         mentorId: "mentor-a",
         fullName: "A",
         email: "a@test.co",
-        status: "ACCEPTED",
+        status: ProgramMentorStatus.Accepted,
       },
       {
         mentorId: "mentor-b",
         fullName: "B",
         email: "b@test.co",
-        status: "PENDING",
+        status: ProgramMentorStatus.Pending,
       },
     ],
   };
@@ -141,26 +134,24 @@ describe("admin-model program attribution", () => {
   it("keeps a team matched in one program waiting in the other", () => {
     const data = overview([mentorship("m-1", "program-1")]);
 
-    expect(activeMentorshipFor(data, stars.startups[0])?.id).toBe("m-1");
-    expect(activeMentorshipFor(data, growth.startups[0])).toBeUndefined();
+    expect(activeMentorshipFor(data, lumenInStars)?.id).toBe("m-1");
+    expect(activeMentorshipFor(data, lumenInGrowth)).toBeUndefined();
     expect(unmatchedStartups(data).map((startup) => startup.programId)).toEqual(
       ["program-2"],
     );
   });
 
   it("names the program a mentorship was made in, not the team's first program", () => {
-    const data = overview([mentorship("m-2", "program-2")]);
+    const item = mentorship("m-2", "program-2");
+    const data = overview([item]);
 
-    expect(programOfMentorship(data, data.mentorships[0])?.name).toBe(
-      "Growth Circuit 2026",
-    );
+    expect(programOfMentorship(data, item)?.name).toBe("Growth Circuit 2026");
   });
 
   it("falls back to the team's program for an older mentorship", () => {
-    const data = overview([mentorship("m-old", null)]);
+    const item = mentorship("m-old", null);
+    const data = overview([item]);
 
-    expect(programOfMentorship(data, data.mentorships[0])?.name).toBe(
-      "ODTÜ Stars 2026",
-    );
+    expect(programOfMentorship(data, item)?.name).toBe("ODTÜ Stars 2026");
   });
 });

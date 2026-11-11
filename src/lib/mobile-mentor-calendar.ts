@@ -1,24 +1,24 @@
 import type { MeetingItem } from "@/interfaces/meeting";
 import {
-  type MeetingProposal,
   MeetingProposalStatus,
+  type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
 import {
-  type MentorshipRequest,
   MentorshipRequestStatus,
+  type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import type { OrganizationMember } from "@/interfaces/organization-member";
 import {
   parsePreferredSlotsFromMessage,
   preferredSlotStartsAt,
 } from "@/lib/mentor-availability-days";
+import { mobileClock, type MobileTexts } from "@/lib/mobile";
 import {
   dayHeading,
   MobileAgendaKind,
   startsInLabel,
   type MobileAgendaEntry,
 } from "@/lib/mobile-calendar";
-import { mobileClock, type MobileTexts } from "@/lib/mobile";
 import { meetingTitle } from "@/lib/mobile-home";
 import { mentorMeetingSummary } from "@/lib/mobile-mentor-home";
 import { initials } from "@/lib/utils";
@@ -88,7 +88,7 @@ function awaitingEntry(
     minutes: number;
     startupName: string;
     topic: string;
-    requestId?: string;
+    requestId?: string | undefined;
   },
   { t, locale }: MobileTexts,
 ): MobileAgendaEntry {

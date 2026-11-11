@@ -4,13 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { StartupProfileSection } from "@/components/profile/startup-profile-section";
 import {
-  type StartupProfile,
   StartupFundingStage,
+  type StartupProfile,
 } from "@/interfaces/organization";
 import {
   getStartupProfile,
   saveStartupProfile,
 } from "@/lib/client/organization";
+import { startupProfile } from "@test/fixtures/startup-profile";
 import { renderWithQueryClient as render } from "@test/test-utils";
 
 vi.mock("@/lib/client/organization", () => ({
@@ -19,25 +20,16 @@ vi.mock("@/lib/client/organization", () => ({
 }));
 
 function profile(overrides: Partial<StartupProfile> = {}): StartupProfile {
-  return {
-    id: "org-1",
-    name: "Döngü",
+  return startupProfile({
     description: "Gönüllülük platformu",
     website: "dongu.co",
     problem: "Gönüllüler bulunamıyor",
-    solution: null,
-    currentSolution: null,
-    targetUser: null,
     sector: "SaaS",
     maturity: "MVP",
-    programLevel: null,
     supportAreas: ["Finans"],
-    fundingStage: null,
-    foundedYear: null,
-    createdAt: "2026-09-01T12:00:00Z",
     updatedAt: "2026-09-03T09:00:00Z",
     ...overrides,
-  };
+  });
 }
 
 describe("StartupProfileSection", () => {
@@ -82,9 +74,7 @@ describe("StartupProfileSection", () => {
     await user.click(
       screen.getByRole("button", { name: "Startup adı alanını düzenle" }),
     );
-    await user.clear(
-      screen.getByRole("textbox", { name: "Startup adı*", exact: true }),
-    );
+    await user.clear(screen.getByRole("textbox", { name: "Startup adı*" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Startup adı zorunludur.",

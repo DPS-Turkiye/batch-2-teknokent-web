@@ -1,10 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
+import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
+import { AdminAcademicsTable } from "@/components/admin/admin-academics-table";
 import {
   activeMentorshipFor,
   assignableProgramsForMentor,
@@ -16,19 +18,16 @@ import {
   programsForMentor,
   startupsOf,
 } from "@/components/admin/admin-model";
-import { AdminAcademicsTable } from "@/components/admin/admin-academics-table";
 import { AdminStudentsTable } from "@/components/admin/admin-students-table";
-import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
-import { AssignToProgram } from "@/components/admin/assign-to-program";
-import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
-import { TeamHistory } from "@/components/common/team-history";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
+import { AssignToProgram } from "@/components/admin/assign-to-program";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
-import { useToast } from "@/stores/toast-store";
+import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
+import { TeamHistory } from "@/components/common/team-history";
 import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
@@ -40,10 +39,12 @@ import {
   type AdminStartup,
   type AdminUser,
 } from "@/interfaces/admin-overview";
+import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus } from "@/interfaces/session";
+import { ToastTone } from "@/interfaces/toast";
 import { errorMessage, initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export type UserTab =
   "coordinators" | "mentors" | "teams" | "students" | "academics";
@@ -195,21 +196,27 @@ function CoordinatorsTable({
   if (focusUserId !== seenFocus) {
     setSeenFocus(focusUserId);
     const focused = users.find((item) => item.id === focusUserId);
-    if (focused?.status === "PENDING") setReviewId(focused.id);
+    if (focused?.status === UserAccountStatus.Pending) setReviewId(focused.id);
     else if (focused) setSelectedId(focused.id);
   }
   const counts: Partial<Record<Filter, number>> = {
     ALL: users.length,
-    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
-    PENDING: users.filter((user) => user.status === "PENDING").length,
+    ACTIVE: users.filter((user) => user.status === UserAccountStatus.Approved)
+      .length,
+    PENDING: users.filter((user) => user.status === UserAccountStatus.Pending)
+      .length,
     NO_ACCESS: 0,
-    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
+    INACTIVE: users.filter((user) => user.status === UserAccountStatus.Rejected)
+      .length,
   };
   const rows = useMemo(() => {
     return users.filter((user) => {
-      if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
-      if (filter === "PENDING" && user.status !== "PENDING") return false;
-      if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
+      if (filter === "ACTIVE" && user.status !== UserAccountStatus.Approved)
+        return false;
+      if (filter === "PENDING" && user.status !== UserAccountStatus.Pending)
+        return false;
+      if (filter === "INACTIVE" && user.status !== UserAccountStatus.Rejected)
+        return false;
       if (filter === "NO_ACCESS") return false;
       if (
         program &&
@@ -315,7 +322,7 @@ function CoordinatorsTable({
                   {activity?.label ?? "—"}
                 </span>
                 <span className="flex items-center justify-end gap-1">
-                  {user.status === "PENDING" ? (
+                  {user.status === UserAccountStatus.Pending ? (
                     <>
                       <button
                         type="button"
@@ -341,11 +348,11 @@ function CoordinatorsTable({
                       {
                         label: t("detail"),
                         onClick: () =>
-                          user.status === "PENDING"
+                          user.status === UserAccountStatus.Pending
                             ? setReviewId(user.id)
                             : setSelectedId(user.id),
                       },
-                      ...(user.status === "APPROVED"
+                      ...(user.status === UserAccountStatus.Approved
                         ? [
                             {
                               label: t("deactivate"),
@@ -353,7 +360,7 @@ function CoordinatorsTable({
                             },
                           ]
                         : []),
-                      ...(user.status === "REJECTED"
+                      ...(user.status === UserAccountStatus.Rejected
                         ? [
                             {
                               label: t("reactivate"),
@@ -453,22 +460,34 @@ function MentorsTable({
   const invited = (user: AdminUser) =>
     data.programs.some((item) =>
       item.mentors.some(
-        (mentor) => mentor.mentorId === user.id && mentor.status === "PENDING",
+        (mentor) =>
+          mentor.mentorId === user.id &&
+          mentor.status === ProgramMentorStatus.Pending,
       ),
     );
   const counts: Partial<Record<Filter, number>> = {
     ALL: users.length,
-    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
-    PENDING: users.filter((user) => user.status === "PENDING").length,
-    INVITED: users.filter((user) => user.status === "APPROVED" && invited(user))
+    ACTIVE: users.filter((user) => user.status === UserAccountStatus.Approved)
       .length,
-    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
+    PENDING: users.filter((user) => user.status === UserAccountStatus.Pending)
+      .length,
+    INVITED: users.filter(
+      (user) => user.status === UserAccountStatus.Approved && invited(user),
+    ).length,
+    INACTIVE: users.filter((user) => user.status === UserAccountStatus.Rejected)
+      .length,
   };
   const rows = users.filter((user) => {
-    if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
-    if (filter === "PENDING" && user.status !== "PENDING") return false;
-    if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
-    if (filter === "INVITED" && !(user.status === "APPROVED" && invited(user)))
+    if (filter === "ACTIVE" && user.status !== UserAccountStatus.Approved)
+      return false;
+    if (filter === "PENDING" && user.status !== UserAccountStatus.Pending)
+      return false;
+    if (filter === "INACTIVE" && user.status !== UserAccountStatus.Rejected)
+      return false;
+    if (
+      filter === "INVITED" &&
+      !(user.status === UserAccountStatus.Approved && invited(user))
+    )
       return false;
     if (
       program &&
@@ -532,11 +551,12 @@ function MentorsTable({
               (item) => item.status === "ACTIVE" && needsAttention(item),
             );
             const pendingInvite =
-              user.status === "APPROVED" &&
+              user.status === UserAccountStatus.Approved &&
               programs.some((item) =>
                 item.mentors.some(
                   (mentor) =>
-                    mentor.mentorId === user.id && mentor.status === "PENDING",
+                    mentor.mentorId === user.id &&
+                    mentor.status === ProgramMentorStatus.Pending,
                 ),
               );
             return (
@@ -545,9 +565,9 @@ function MentorsTable({
                 className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
               >
                 <PersonCell user={user} tone="mentor" />
-                {user.status === "PENDING" ? (
+                {user.status === UserAccountStatus.Pending ? (
                   <StatusPill tone="amber">{t("pending")}</StatusPill>
-                ) : user.status === "REJECTED" ? (
+                ) : user.status === UserAccountStatus.Rejected ? (
                   <StatusPill tone="neutral">{t("inactive")}</StatusPill>
                 ) : pendingInvite ? (
                   <StatusPill tone="blue">{t("inviteSent")}</StatusPill>
@@ -580,7 +600,7 @@ function MentorsTable({
                 <ProgramChips programs={programs} empty={t("unassigned")} />
                 <LoadBar count={load.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
-                  {user.status === "PENDING" ? (
+                  {user.status === UserAccountStatus.Pending ? (
                     <DecideButtons
                       busy={decide.isPending}
                       onDecide={(status) =>
@@ -1116,7 +1136,7 @@ function MentorDrawer({
                     <p className="text-[12.5px] text-[#858c96]">
                       {item.mentors.find(
                         (mentor) => mentor.mentorId === user.id,
-                      )?.status === "PENDING"
+                      )?.status === ProgramMentorStatus.Pending
                         ? t("invitePending")
                         : t("accepted")}
                     </p>
@@ -1526,12 +1546,12 @@ function AccessChip({
 }) {
   const t = useTranslations("adminUsers");
   // An added coordinator is approved at once but cannot sign in before the e-mailed link sets a password.
-  if (status === "APPROVED" && passwordSet === false)
+  if (status === UserAccountStatus.Approved && passwordSet === false)
     return <StatusPill tone="amber">{t("passwordNotSet")}</StatusPill>;
-  if (status === "APPROVED") {
+  if (status === UserAccountStatus.Approved) {
     return <StatusPill tone="green">{t("active")}</StatusPill>;
   }
-  if (status === "PENDING") {
+  if (status === UserAccountStatus.Pending) {
     return <StatusPill tone="amber">{t("pending")}</StatusPill>;
   }
   return <StatusPill tone="neutral">{t("inactive")}</StatusPill>;

@@ -1,4 +1,4 @@
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { deleteDocumentRequestUpload } from "@/lib/api/document-requests";
 import {

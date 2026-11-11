@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { StartupStage } from "@/interfaces/startup-process";
@@ -12,6 +11,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; organizationId: string }> };
@@ -55,13 +55,10 @@ export async function PUT(request: Request, context: Params) {
   try {
     const access = await requireProgramTeam(context);
     if (!access.ok) return access.response;
-    const parsed = stageBodySchema.safeParse(await request.json());
-    if (!parsed.success) {
-      return NextResponse.json(
-        { code: "INVALID_REQUEST", message: await apiText("stageInvalid") },
-        { status: 400 },
-      );
-    }
+    const parsed = await readJsonBody(request, stageBodySchema, {
+      invalidMessage: "stageInvalid",
+    });
+    if (!parsed.ok) return parsed.response;
     return backendResponse(
       await updateProcessStage(
         access.organizationId,

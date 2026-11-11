@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchMentorPool,
   inviteProgramMentor,
@@ -7,7 +9,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+
+const inviteMentorSchema = z.object({ email: z.string() });
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -29,13 +34,10 @@ export async function POST(request: Request, { params }: Params) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, inviteMentorSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await inviteProgramMentor(
-        auth.session.userId,
-        id,
-        String(body.email ?? ""),
-      ),
+      await inviteProgramMentor(auth.session.userId, id, body.data.email),
     );
   } catch (error) {
     return apiErrorResponse(error, {

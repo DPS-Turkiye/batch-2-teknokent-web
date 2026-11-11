@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -18,10 +18,10 @@ import {
   InterventionDrawer,
   NotifyInterventionDialog,
 } from "@/components/admin/intervention-follow";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminInterventions } from "@/hooks/use-admin-interventions";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
-import { useToast } from "@/stores/toast-store";
 import type {
   AdminMentorship,
   AdminOverview,
@@ -29,17 +29,20 @@ import type {
   AdminRequest,
   AdminStartup,
 } from "@/interfaces/admin-overview";
-import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
+import { ProgramStatus } from "@/interfaces/program";
+import { UserAccountStatus } from "@/interfaces/session";
+import { ToastTone } from "@/interfaces/toast";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
 import {
   ALL_PROGRAM_TYPES,
+  isProgramTypeFilter,
   matchesProgramType,
   PROGRAM_TYPE_FILTERS,
   type ProgramTypeFilter,
 } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export type MentorshipTab = "overview" | "interventions" | "matching";
 
@@ -72,7 +75,9 @@ export function MentorshipsView({ tab }: { tab: MentorshipTab }) {
     matchesProgramType(program.type, type),
   );
   const programs = programsInScope(typed, scope);
-  const live = programs.filter((program) => program.status === "ACTIVE");
+  const live = programs.filter(
+    (program) => program.status === ProgramStatus.Active,
+  );
   const attention = interventionRows(data, live, t);
   const waiting = waitingTeams(data, live);
   const tabs = [
@@ -175,7 +180,9 @@ function Overview({
   programs: AdminProgram[];
 }) {
   const t = useTranslations("adminMentorships");
-  const live = programs.filter((program) => program.status === "ACTIVE");
+  const live = programs.filter(
+    (program) => program.status === ProgramStatus.Active,
+  );
   const active = activeMentorships(data, live);
   const gaps = active
     .map((item) => item.daysSinceMeeting)
@@ -277,7 +284,7 @@ function ProgramHealthRow({
   data: AdminOverview;
 }) {
   const t = useTranslations("adminMentorships");
-  const completed = program.status === "COMPLETED";
+  const completed = program.status === ProgramStatus.Completed;
   const health = completed
     ? { green: 0, amber: 0, red: 0 }
     : mentorshipHealth(program, data);
@@ -762,7 +769,11 @@ function TypeSelect({
       <select
         aria-label={tType("label")}
         value={value}
-        onChange={(event) => onChange(event.target.value as ProgramTypeFilter)}
+        onChange={(event) => {
+          if (isProgramTypeFilter(event.target.value)) {
+            onChange(event.target.value);
+          }
+        }}
         className="appearance-none bg-transparent font-medium text-[#22262b] outline-none"
       >
         {PROGRAM_TYPE_FILTERS.map((option) => (
@@ -1064,7 +1075,8 @@ function CoordinatorName({
   const coordinator = data.users.find(
     (user) => user.id === program.coordinatorId,
   );
-  const missing = coordinator != null && coordinator.status !== "APPROVED";
+  const missing =
+    coordinator != null && coordinator.status !== UserAccountStatus.Approved;
   const label = programCoordinatorLabel(program, tCommon("unassigned"));
   return (
     <span className="flex min-w-0 items-center gap-2">
@@ -1299,16 +1311,18 @@ function interventionRows(
       (item) =>
         item.organizationId === organizationId && item.status === "ACTIVE",
     );
+    const lead = blocks[0];
+    if (!lead) continue;
     const oldest = blocks.reduce(
       (min, block) => (block.createdAt < min ? block.createdAt : min),
-      blocks[0].createdAt,
+      lead.createdAt,
     );
     rows.push({
       id: blocks.map((block) => block.id).join(":"),
       mentorshipId: mentorship?.id ?? null,
       kind: "bottleneck",
       mentorName: mentorship?.mentorName ?? t("noMentor"),
-      teamName: blocks[0].organizationName,
+      teamName: lead.organizationName,
       programName: program?.name ?? "—",
       coordinatorName: program?.coordinatorName ?? "—",
       coordinatorId: program?.coordinatorId ?? null,
@@ -1425,7 +1439,9 @@ function missingCoordinatorAccess(
   const coordinator = data.users.find(
     (user) => user.id === program.coordinatorId,
   );
-  return coordinator != null && coordinator.status !== "APPROVED";
+  return (
+    coordinator != null && coordinator.status !== UserAccountStatus.Approved
+  );
 }
 
 function daysSinceInstant(value: string) {

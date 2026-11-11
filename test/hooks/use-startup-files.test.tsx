@@ -21,7 +21,10 @@ import {
   unshareDocument,
 } from "@/lib/client/startup-documents";
 import { StartupFileFilter } from "@/lib/startup-files";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
 import { documentFixture } from "@test/fixtures/startup-files";
+import { memberFixture } from "@test/fixtures/startup-team";
+import { failedQuery, successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 const mockIndividualProgram = vi.fn();
@@ -72,16 +75,17 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-function query<T>(data: T) {
-  return { data, isLoading: false, error: null } as never;
-}
-
 function request(
   mentorId: string,
   mentorName: string,
   status: MentorshipRequestStatus,
 ) {
-  return { id: `req-${mentorId}-${status}`, mentorId, mentorName, status };
+  return mentorshipRequest({
+    id: `req-${mentorId}-${status}`,
+    mentorId,
+    mentorName,
+    status,
+  });
 }
 
 const deck = documentFixture("deck");
@@ -109,16 +113,24 @@ const programRequest: DocumentRequestItem = {
 describe("useStartupFiles", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useStartupDocuments).mockReturnValue(query([deck, mentorNotes]));
+    vi.mocked(useStartupDocuments).mockReturnValue(
+      successQuery([deck, mentorNotes]),
+    );
     vi.mocked(useOrganizationMembers).mockReturnValue(
-      query([{ id: "user-1", fullName: "Gülse Buran" }]),
+      successQuery([memberFixture("user-1", { fullName: "Gülse Buran" })]),
     );
     vi.mocked(useStartupHeader).mockReturnValue({
+      fundingStage: null,
+      initials: "D",
+      isLoading: false,
+      logoUrl: null,
+      name: "Döngü",
       programName: "METU Stars 2026",
-    } as never);
+      stageName: null,
+    });
     vi.mocked(getStartupDocumentRequests).mockResolvedValue([programRequest]);
     vi.mocked(useMentorshipRequests).mockReturnValue(
-      query([
+      successQuery([
         request("m-1", "Nihan Öztürk", MentorshipRequestStatus.Accepted),
         request("m-1", "Nihan Öztürk", MentorshipRequestStatus.Accepted),
         request("m-2", "Ahmet Yılmaz", MentorshipRequestStatus.Pending),
@@ -186,11 +198,9 @@ describe("useStartupFiles", () => {
   });
 
   it("reports a team that could not be loaded instead of mislabelling the files", () => {
-    vi.mocked(useOrganizationMembers).mockReturnValue({
-      data: undefined,
-      isLoading: false,
-      error: new Error("Ekip yüklenemedi."),
-    } as never);
+    vi.mocked(useOrganizationMembers).mockReturnValue(
+      failedQuery(new Error("Ekip yüklenemedi.")),
+    );
 
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 
@@ -207,7 +217,7 @@ describe("useStartupFiles", () => {
 
   it("shares and unshares the document picked from the menu", async () => {
     vi.mocked(shareDocument).mockResolvedValue(deck);
-    vi.mocked(unshareDocument).mockResolvedValue(undefined as never);
+    vi.mocked(unshareDocument).mockResolvedValue({ ...deck, shares: [] });
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 
     act(() => result.current.openShare("deck"));
@@ -225,7 +235,7 @@ describe("useStartupFiles", () => {
   });
 
   it("deletes only after confirming", async () => {
-    vi.mocked(deleteDocument).mockResolvedValue(undefined as never);
+    vi.mocked(deleteDocument).mockResolvedValue(undefined);
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 
     act(() => result.current.askDelete("deck"));
@@ -235,7 +245,7 @@ describe("useStartupFiles", () => {
     act(() => result.current.confirmDelete());
 
     await waitFor(() => expect(result.current.deletingDocument).toBeNull());
-    expect(vi.mocked(deleteDocument).mock.calls[0][0]).toBe("deck");
+    expect(vi.mocked(deleteDocument).mock.calls[0]?.[0]).toBe("deck");
   });
 
   it("keeps the confirmation open when the delete fails", async () => {
@@ -251,8 +261,22 @@ describe("useStartupFiles", () => {
   });
 
   it("uploads a requested file and attaches it to the request", async () => {
-    vi.mocked(uploadDocument).mockResolvedValue({ id: "stored-1" } as never);
-    vi.mocked(attachDocumentRequestUpload).mockResolvedValue({} as never);
+    vi.mocked(uploadDocument).mockResolvedValue({
+      id: "stored-1",
+      kind: DocumentKind.RequestedDoc,
+      originalFilename: "deck.pdf",
+      sizeBytes: 4,
+    });
+    vi.mocked(attachDocumentRequestUpload).mockResolvedValue({
+      id: "upload-1",
+      storedDocumentId: "stored-1",
+      originalFilename: "deck.pdf",
+      contentType: "application/pdf",
+      sizeBytes: 4,
+      uploadedById: "user-1",
+      uploadedByName: "Gülse Buran",
+      createdAt: "2026-09-12T12:00:00Z",
+    });
     const file = new File(["deck"], "deck.pdf", { type: "application/pdf" });
     const { result } = renderHook(() => useStartupFiles(), { wrapper });
 

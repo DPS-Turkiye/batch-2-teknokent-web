@@ -4,6 +4,7 @@ import { POST } from "@/app/api/organizations/join/route";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { joinStartup } from "@/lib/api/organization";
 import { getSessionUser, refreshSessionUser } from "@/lib/session";
+import { backendRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/organization", () => ({
   joinStartup: vi.fn(),
@@ -66,11 +67,11 @@ describe("POST /api/organizations/join", () => {
 
   it("passes the backend's refusal through and keeps the session as it was", async () => {
     vi.mocked(getSessionUser).mockResolvedValue(withoutStartup);
-    vi.mocked(joinStartup).mockResolvedValue({
-      status: 400,
-      data: { message: "Bu kod başka bir programdaki startup'a ait." },
-      headers: {},
-    } as never);
+    vi.mocked(joinStartup).mockResolvedValue(
+      backendRefusal(400, {
+        message: "Bu kod başka bir programdaki startup'a ait.",
+      }),
+    );
 
     const response = await POST(request({ inviteCode: "OTHER1" }));
 

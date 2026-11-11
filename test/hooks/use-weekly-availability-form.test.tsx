@@ -7,7 +7,7 @@ import {
   useWeeklyAvailabilityForm,
   type WeeklyAvailabilitySource,
 } from "@/hooks/use-weekly-availability-form";
-import { type MentorAvailabilitySettings, Weekday } from "@/interfaces/mentor";
+import { Weekday, type MentorAvailabilitySettings } from "@/interfaces/mentor";
 
 function Wrapper({ children }: { children: ReactNode }) {
   return (

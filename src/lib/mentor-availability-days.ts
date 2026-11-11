@@ -224,8 +224,10 @@ export function parsePreferredSlotMachineValue(
   value: string,
 ): PreferredSlot | null {
   const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}:\d{2})$/.exec(value.trim());
-  if (!match) return null;
-  return { date: match[1], time: match[2] };
+  const date = match?.[1];
+  const time = match?.[2];
+  if (!date || !time) return null;
+  return { date, time };
 }
 
 export function preferredSlotsMessageLines(slots: readonly PreferredSlot[]) {
@@ -260,6 +262,7 @@ export function preferredSlotStartsAt(slot: PreferredSlot) {
   const date = parseLocalDate(slot.date);
   if (!date || !isHalfOrFullHour(slot.time)) return null;
   const [hours, minutes] = slot.time.split(":").map(Number);
+  if (hours === undefined || minutes === undefined) return null;
   date.setHours(hours, minutes, 0, 0);
   return date.toISOString();
 }

@@ -1,11 +1,10 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
-import { apiText } from "@/lib/server/api-response";
 import { hasPermission } from "@/lib/permissions";
+import { apiText } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
 /** Coordinators run their programs; an admin may open any coordinator screen too. */
 export async function requireCoordinatorSession() {

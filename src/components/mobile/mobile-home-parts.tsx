@@ -1,8 +1,8 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { MobileAccountButton } from "@/components/mobile/mobile-account-button";

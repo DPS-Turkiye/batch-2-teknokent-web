@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { UserRole } from "@/interfaces/session";
-import { ClientApiError } from "@/lib/client/api";
 import { revokeUserSignIns } from "@/lib/client/admin-users";
+import { ClientApiError } from "@/lib/client/api";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/admin-users", () => ({

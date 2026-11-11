@@ -18,7 +18,7 @@ describe("startup document client", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 200,
       data: { id: "doc 1" },
-    } as never);
+    });
 
     await expect(shareDocument("doc 1", "mentor-1")).resolves.toEqual({
       id: "doc 1",
@@ -35,7 +35,7 @@ describe("startup document client", () => {
     vi.mocked(httpClient.delete).mockResolvedValue({
       status: 204,
       data: "",
-    } as never);
+    });
 
     await unshareDocument("doc-1", "mentor-1");
     await deleteDocument("doc-1");
@@ -52,7 +52,7 @@ describe("startup document client", () => {
     vi.mocked(httpClient.delete).mockResolvedValue({
       status: 404,
       data: {},
-    } as never);
+    });
 
     await expect(deleteDocument("doc-1")).rejects.toThrow(
       "Aradığın kayıt bulunamadı.",

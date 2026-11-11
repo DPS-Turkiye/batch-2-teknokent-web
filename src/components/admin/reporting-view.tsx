@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useId, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -21,15 +21,15 @@ import {
   countsInProgram,
   needsAttention,
 } from "@/components/admin/admin-model";
-import { MeetingFeedbackList } from "@/components/admin/meeting-feedback-list";
-import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
-import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import {
   AdminIcon,
   AdminOverlay,
   EmptyNote,
   QueryNotice,
 } from "@/components/admin/admin-ui";
+import { MeetingFeedbackList } from "@/components/admin/meeting-feedback-list";
+import { MeetingRatingsSection } from "@/components/admin/meeting-ratings-section";
+import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useProgramMeetingRatings } from "@/hooks/use-program-report";
 import type {
@@ -38,11 +38,13 @@ import type {
   AdminOverview,
   AdminProgram,
 } from "@/interfaces/admin-overview";
+import { ProgramStatus } from "@/interfaces/program";
 import type { ProgramMeetingRatings } from "@/interfaces/program-report";
 import { isoDay } from "@/lib/coordinator-calendar";
 import { satisfactionKpi } from "@/lib/meeting-ratings";
 import {
   ALL_PROGRAM_TYPES,
+  isProgramTypeFilter,
   matchesProgramType,
   PROGRAM_TYPE_FILTERS,
   type ProgramTypeFilter,
@@ -89,7 +91,7 @@ export function ProgramReporting({
   );
   const program =
     typed.find((item) => item.id === programId) ??
-    typed.find((item) => item.status === "ACTIVE") ??
+    typed.find((item) => item.status === ProgramStatus.Active) ??
     typed[0] ??
     null;
   const weeks = weekStarts(range, program?.createdAt);
@@ -125,7 +127,8 @@ export function ProgramReporting({
               aria-label={tType("label")}
               value={type}
               onChange={(event) => {
-                setType(event.target.value as ProgramTypeFilter);
+                if (!isProgramTypeFilter(event.target.value)) return;
+                setType(event.target.value);
                 setProgramId(null);
                 setSelectedId(null);
               }}
@@ -577,17 +580,32 @@ function PairDetail({
   const planned = weeks.map((_, index) => {
     let total = 0;
     for (let cursor = 0; cursor <= index; cursor += 1) {
-      total += plannedInWeek(pair, weeks[cursor], meetings);
+      const week = weeks[cursor];
+      if (week) total += plannedInWeek(pair, week, meetings);
     }
     return total;
   });
   const goals = pair.goalTotal > 0 ? `${pair.goalDone}/${pair.goalTotal}` : "—";
-  const rows = weeks.map((_, index) => ({
-    week: tHeat("week", { n: index + 1 }),
-    gap: gaps[index],
-    planned: planned[index],
-    completed: completed[index],
-  }));
+  const rows = weeks.flatMap((_, index) => {
+    const gap = gaps[index];
+    const plannedCount = planned[index];
+    const completedCount = completed[index];
+    if (
+      gap === undefined ||
+      plannedCount === undefined ||
+      completedCount === undefined
+    ) {
+      return [];
+    }
+    return [
+      {
+        week: tHeat("week", { n: index + 1 }),
+        gap,
+        planned: plannedCount,
+        completed: completedCount,
+      },
+    ];
+  });
   return (
     <section className="rounded-[28px] border border-[#e9ecef] bg-white p-5">
       <div className="flex items-center gap-2">
@@ -984,6 +1002,7 @@ function Activity({
 }) {
   const t = useTranslations("adminReporting.activity");
   const from = weeks[0];
+  if (!from) return null;
   const pairs = program ? pairsIn(data, program) : [];
   const ids = new Set(pairs.map((pair) => pair.organizationId));
   const meetings = (data.meetings ?? []).filter((item) => {
@@ -1034,7 +1053,7 @@ function Kpi({
   title: string;
   value: string;
   detail: string;
-  valueClass?: string;
+  valueClass?: string | undefined;
 }) {
   return (
     <article className="rounded-[24px] border border-[#e9ecef] bg-white px-4 py-4">
@@ -1118,10 +1137,12 @@ function meetingRate(
 ) {
   if (meetings.length === 0 && pairs.length > 0) {
     const any = pairs.some((pair) => pair.daysSinceMeeting != null);
-    if (!any && meetings.length === 0) return null;
+    if (!any) return null;
   }
   const from = weeks[0];
-  const until = addDays(weeks[weeks.length - 1], 7);
+  const lastWeek = weeks[weeks.length - 1];
+  if (!from || !lastWeek) return null;
+  const until = addDays(lastWeek, 7);
   const now = new Date();
   let completed = 0;
   let planned = 0;

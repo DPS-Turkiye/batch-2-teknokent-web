@@ -2,7 +2,6 @@
 
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { useToast } from "@/stores/toast-store";
 
 import {
   useMentorAvailability,
@@ -13,9 +12,10 @@ import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
+import { ToastTone } from "@/interfaces/toast";
 import { MENTOR_ACCEPT_MESSAGE } from "@/lib/const/mentorships";
 import { formatSlotDateTime } from "@/lib/format";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 const decisionStatuses: Record<MentorDecisionMode, MentorshipRequestStatus> = {
   [MentorDecisionMode.Accept]: MentorshipRequestStatus.Accepted,

@@ -1,9 +1,9 @@
 import type { useTranslations } from "next-intl";
 
-import {
-  type MatchCandidate,
-  type MatchingOverview,
-  type WaitingTeam,
+import type {
+  MatchCandidate,
+  MatchingOverview,
+  WaitingTeam,
 } from "@/interfaces/program-matching";
 
 export enum MatchTab {

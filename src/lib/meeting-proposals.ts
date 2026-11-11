@@ -1,9 +1,9 @@
 import type { useTranslations } from "next-intl";
 
-import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
-  type MeetingProposal,
   MeetingProposalStatus,
+  type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
 
 export const PROPOSAL_DURATIONS = [30, 45, 60, 90] as const;

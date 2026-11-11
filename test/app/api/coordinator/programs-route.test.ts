@@ -1,10 +1,11 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/coordinator/programs/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchCoordinatorPrograms } from "@/lib/api/coordinator-programs";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorPrograms: vi.fn(),
@@ -15,13 +16,12 @@ vi.mock("@/lib/server/require-coordinator", () => ({
 }));
 
 function coordinatorSession(): AppSession {
-  return {
+  return appSession({
     userId: "coordinator-1",
     email: "elif@tekno.test",
     fullName: "Elif Demir",
-    jobTitle: null,
     role: UserRole.Coordinator,
-  } as AppSession;
+  });
 }
 
 describe("GET /api/coordinator/programs", () => {
@@ -36,7 +36,7 @@ describe("GET /api/coordinator/programs", () => {
       data: [],
       headers: {},
       status: 200,
-    } as Awaited<ReturnType<typeof fetchCoordinatorPrograms>>);
+    });
 
     const response = await GET();
 
@@ -45,10 +45,7 @@ describe("GET /api/coordinator/programs", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     const response = await GET();
 

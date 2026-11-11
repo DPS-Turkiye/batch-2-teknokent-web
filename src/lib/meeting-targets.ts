@@ -1,17 +1,18 @@
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { ProgramMentorStatus, type Program } from "@/interfaces/program";
+import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 
 export type MeetingTarget = {
   key: string;
   organizationId: string;
-  organizationName: string;
+  /** Null for a personal team; meetingTargetLabel then shows only the requester. */
+  organizationName: string | null;
   /** Empty for a regular mentorship, whose subtitle the dialog builds from `daysPerWeek`. */
   subtitle: string;
   daysPerWeek?: number;
-  requesterName?: string;
-  mentorshipRequestId?: string;
-  programId?: string;
+  requesterName?: string | undefined;
+  mentorshipRequestId?: string | undefined;
+  programId?: string | undefined;
   regularMentorshipId?: string;
 };
 
@@ -37,7 +38,7 @@ export function meetingTargetLabel(target: MeetingTarget) {
 
 export function meetingRecipient(target: MeetingTarget): {
   mentorshipRequestId?: string;
-  programId?: string;
+  programId?: string | undefined;
   organizationId?: string;
 } {
   if (target.mentorshipRequestId) {

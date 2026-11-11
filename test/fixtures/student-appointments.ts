@@ -1,8 +1,8 @@
 import {
-  type Appointment,
   AppointmentKind,
   AppointmentSide,
   AppointmentStatus,
+  type Appointment,
 } from "@/interfaces/appointment";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 

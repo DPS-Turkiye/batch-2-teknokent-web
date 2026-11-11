@@ -36,7 +36,7 @@ function overview(): AdminOverviewResponse {
     ],
     requests: [],
     bottlenecks: [],
-  } as AdminOverviewResponse;
+  };
 }
 
 describe("labelPersonalTeams", () => {

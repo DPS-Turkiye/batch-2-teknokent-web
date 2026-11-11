@@ -70,11 +70,11 @@ export function OfficeHoursRequestDialog({
           value={form.preferredSlots}
           onChange={form.setPreferredSlots}
         />
-        {form.error && (
+        {form.error ? (
           <p role="alert" className="text-sm text-[#b42318]">
             {form.error}
           </p>
-        )}
+        ) : null}
       </div>
       <footer className="flex justify-end border-t border-[#eceef0] px-6 py-4">
         <button

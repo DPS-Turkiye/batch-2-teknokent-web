@@ -50,8 +50,8 @@ export function profileMentorshipSubmission({
   mentor: MentorProfile;
   startup: StartupContext;
   requestedForName: string;
-  problem?: string;
-  outcome?: string;
+  problem?: string | undefined;
+  outcome?: string | undefined;
   preferredSlots?: readonly PreferredSlot[];
 }): MentorshipRequestSubmission {
   const draft = readNeedDraft();

@@ -1,6 +1,6 @@
+import { getTranslations } from "next-intl/server";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getTranslations } from "next-intl/server";
 
 import { CourseOfficeHours } from "@/components/office-hours/course-office-hours";
 import { OfficeHoursFrame } from "@/components/office-hours/office-hours-frame";
@@ -72,7 +72,9 @@ export default async function OfficeHoursCoursePage({
     <OfficeHoursFrame
       productName={t("title")}
       userName={course.userFullName}
-      profile={profile && { href: profile.href, label: t(profile.labelKey) }}
+      profile={
+        profile ? { href: profile.href, label: t(profile.labelKey) } : null
+      }
     >
       <p className="text-[12px] font-medium uppercase tracking-[0.04em] text-[#e86f22]">
         {course.shortName ?? t("course")}
@@ -83,7 +85,7 @@ export default async function OfficeHoursCoursePage({
       <p className="mt-2 inline-flex rounded-full bg-[#f2f8fc] px-3 py-1 text-[12px] font-medium text-[#1592ea]">
         {t(`roles.${course.role}`)}
       </p>
-      {Section && <Section t={t} />}
+      {Section ? <Section t={t} /> : null}
       <CourseOfficeHours courseId={course.courseId} viewer={course.role} />
     </OfficeHoursFrame>
   );

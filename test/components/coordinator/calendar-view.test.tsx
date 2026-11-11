@@ -19,8 +19,8 @@ import {
   calendarMeeting,
   coordinatorCalendar,
 } from "@test/fixtures/coordinator-calendar";
-import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-calendar", () => ({
@@ -192,7 +192,7 @@ describe("CoordinatorCalendarView", () => {
 
     const wednesday = screen
       .getByRole("heading", { name: "16 Eylül Çarşamba" })
-      .closest("section") as HTMLElement;
+      .closest("section")!;
     expect(within(wednesday).getAllByText("Çakışma")).toHaveLength(2);
     expect(
       within(wednesday).getByText("Nihan Öztürk ↔ Atlas AI"),

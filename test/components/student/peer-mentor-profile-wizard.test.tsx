@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentorProfileWizard } from "@/components/student/peer-mentor-profile-wizard";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
-import { type AppSession, IdentityKind, UserRole } from "@/interfaces/session";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-profile-completion";
 import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { updateAvailabilitySettings } from "@/lib/client/mentor-profile";

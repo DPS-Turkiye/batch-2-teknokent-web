@@ -110,13 +110,13 @@ export function CourseOfficeHours({
       )}
       <OfficeHoursMeetings courseId={courseId} viewer={viewer} />
       <CourseRequests courseId={courseId} viewer={viewer} />
-      {requesting && (
+      {requesting ? (
         <OfficeHoursRequestDialog
           courseId={courseId}
           instructor={requesting}
           onClose={() => setRequesting(null)}
         />
-      )}
+      ) : null}
     </>
   );
 }

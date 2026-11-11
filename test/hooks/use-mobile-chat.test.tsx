@@ -32,6 +32,7 @@ import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { program } from "@test/fixtures/program";
 import { programAnnouncement } from "@test/fixtures/program-announcements";
 import { createTestQueryClient, InLocale } from "@test/test-utils";
 
@@ -168,8 +169,11 @@ describe("useMobileChat for a mentorship thread", () => {
       }),
     );
     vi.mocked(getPrograms).mockResolvedValue([
-      { name: "METU Stars 2026", startups: [{ id: "org-1" }], mentors: [] },
-    ] as never);
+      program({
+        name: "METU Stars 2026",
+        startups: [{ id: "org-1", name: "Atlas AI" }],
+      }),
+    ]);
     const { result } = renderHook(
       () => useMobileChat(MobileConversationKind.Mentorship, "r1"),
       { wrapper },
@@ -358,11 +362,9 @@ describe("useMobileChat for a Duyurular thread", () => {
     expect(result.current.header?.name).toBe("METU Stars 2026 — Duyuru");
     expect(result.current.header?.subtitle).toBe("42 takım · 28 mentor");
     expect(
-      result.current.items
-        .filter((item) => item.kind === MobileChatItemKind.Message)
-        .map((item) =>
-          item.kind === MobileChatItemKind.Message ? item.body : "",
-        ),
+      result.current.items.flatMap((item) =>
+        item.kind === MobileChatItemKind.Message ? [item.body] : [],
+      ),
     ).toEqual(["Birinci", "İkinci"]);
     expect(result.current.canSend).toBe(false);
     expect(result.current.closedNote).toMatch(/yalnızca okunur/);

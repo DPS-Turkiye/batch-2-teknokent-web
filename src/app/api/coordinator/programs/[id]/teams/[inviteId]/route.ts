@@ -7,6 +7,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { teamInviteSchema } from "@/lib/server/coordinator-program-schemas";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
 
 type Params = { params: Promise<{ id: string; inviteId: string }> };
@@ -16,12 +18,10 @@ export async function PUT(request: Request, { params }: Params) {
     const auth = await requireCoordinatorSession();
     if (!auth.ok) return auth.response;
     const { id, inviteId } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, teamInviteSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await updateProgramTeam(auth.session.userId, id, inviteId, {
-        teamName: body.teamName,
-        leadEmail: body.leadEmail,
-      }),
+      await updateProgramTeam(auth.session.userId, id, inviteId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

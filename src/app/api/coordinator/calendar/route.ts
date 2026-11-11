@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchCoordinatorCalendar } from "@/lib/api/coordinator-calendar";
 import {
@@ -6,8 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { ISO_DAY_PATTERN } from "@/lib/utils";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { ISO_DAY_PATTERN } from "@/lib/utils";
 
 export async function GET(request: NextRequest) {
   try {

@@ -1,8 +1,8 @@
 "use client";
 
 import { Copy, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -130,7 +130,7 @@ export function TeamDetailDrawer({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onCopyCode(team.code as string)}
+                      onClick={() => onCopyCode(team.code!)}
                       className="inline-flex items-center gap-1.5 rounded-full border border-[#e9ecef] px-4 py-2 text-[12.5px] font-medium text-[#22262b]"
                     >
                       <Copy aria-hidden className="size-3.5" /> {t("copy")}

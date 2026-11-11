@@ -48,5 +48,5 @@ function editorResponse(
   response: BackendResponse<BackendOfficeHoursAvailability>,
 ) {
   if (response.status !== 200) return backendResponse(response);
-  return NextResponse.json(toEditorSettings(response.data as never));
+  return NextResponse.json(toEditorSettings(response.data));
 }

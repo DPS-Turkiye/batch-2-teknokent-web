@@ -2,13 +2,13 @@ import type { NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { setMeetingHeld } from "@/lib/api/meetings";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
 import { getSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;

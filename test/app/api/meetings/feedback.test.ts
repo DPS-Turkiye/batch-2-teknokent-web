@@ -19,12 +19,12 @@ describe("GET /api/meetings/feedback", () => {
     vi.mocked(getSessionIds).mockResolvedValue({
       userId: "mentee-1",
       organizationId: "org-1",
-    } as Awaited<ReturnType<typeof getSessionIds>>);
+    });
     vi.mocked(fetchRatedMeetingIds).mockResolvedValue({
       data: ["m-1"],
       headers: {},
       status: 200,
-    } as Awaited<ReturnType<typeof fetchRatedMeetingIds>>);
+    });
   });
 
   it("asks the backend once, as the signed-in user, for every meeting id", async () => {

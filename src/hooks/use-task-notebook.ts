@@ -6,7 +6,7 @@ import {
   useActionItems,
   useChangeActionItemStatus,
 } from "@/hooks/use-action-items";
-import { type ActionItem, ActionItemStatus } from "@/interfaces/action-item";
+import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { HomeTask } from "@/lib/mentee-home";
 
 /** Which home task's notebook popup is open. */

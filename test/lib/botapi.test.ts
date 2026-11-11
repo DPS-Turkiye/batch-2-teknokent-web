@@ -5,8 +5,8 @@ import {
   generateMeetingReportBackend,
   stopMeetingBotBackend,
 } from "@/lib/botapi";
-import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 import { backendRequest } from "@/lib/server/backend-client";
+import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
 vi.mock("@/lib/server/backend-client", () => ({
   backendRequest: vi.fn(),

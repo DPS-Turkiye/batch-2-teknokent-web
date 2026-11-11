@@ -18,17 +18,19 @@ export function approvedCoordinatorsOf(data: AdminOverview) {
 }
 
 export function mentorsOf(data: AdminOverview) {
-  return data.users.filter((user) => user.role === "MENTOR");
+  return data.users.filter((user) => user.role === UserRole.Mentor);
 }
 
 export function pendingMentors(data: AdminOverview) {
-  return mentorsOf(data).filter((user) => user.status === "PENDING");
+  return mentorsOf(data).filter(
+    (user) => user.status === UserAccountStatus.Pending,
+  );
 }
 
 export function pendingMemberships(data: AdminOverview) {
   return data.programs.flatMap((program) =>
     program.mentors
-      .filter((mentor) => mentor.status === "PENDING")
+      .filter((mentor) => mentor.status === ProgramMentorStatus.Pending)
       .map((mentor) => ({ ...mentor, programName: program.name })),
   );
 }

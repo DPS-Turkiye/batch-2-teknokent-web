@@ -1,11 +1,10 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
-import { apiText, type ApiTextKey } from "@/lib/server/api-response";
 import { hasPermission } from "@/lib/permissions";
+import { apiText, type ApiTextKey } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
 async function requireRole(
   role: UserRole,

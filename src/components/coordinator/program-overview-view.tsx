@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight, Check, ChevronRight } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { EmptyNote } from "@/components/admin/admin-ui";
@@ -148,8 +148,8 @@ function Card({
   children,
 }: {
   title: string;
-  note?: string;
-  link?: { label: string; href: string };
+  note?: string | undefined;
+  link?: { label: string; href: string } | undefined;
   children: ReactNode;
 }) {
   const { resolveHref } = useProgramNavigation("");

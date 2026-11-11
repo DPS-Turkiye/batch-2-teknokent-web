@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import { Weekday } from "@/interfaces/mentor";
 import {
-  type AvailabilityDraft,
   availabilityDraftError,
   exceptionError,
   exceptionLabel,
@@ -11,19 +10,27 @@ import {
   stepNumberValue,
   toAvailabilityDraft,
   toAvailabilityPayload,
+  type AvailabilityDraft,
+  type AvailabilityRange,
 } from "@/lib/mentor-availability";
+
+/** Tuesday 10:00–13:00 in hour-long slots, the draft's one range unless told otherwise. */
+function tuesdayRange(
+  overrides: Partial<AvailabilityRange> = {},
+): AvailabilityRange {
+  return {
+    key: "rule-1",
+    dayOfWeek: Weekday.Tuesday,
+    startTime: "10:00",
+    endTime: "13:00",
+    slotMinutes: 60,
+    ...overrides,
+  };
+}
 
 function draft(overrides: Partial<AvailabilityDraft> = {}): AvailabilityDraft {
   return {
-    ranges: [
-      {
-        key: "rule-1",
-        dayOfWeek: Weekday.Tuesday,
-        startTime: "10:00",
-        endTime: "13:00",
-        slotMinutes: 60,
-      },
-    ],
+    ranges: [tuesdayRange()],
     exceptions: [],
     menteeCapacity: "",
     defaultMeetingDurationMinutes: "45",
@@ -108,7 +115,7 @@ describe("availabilityDraftError", () => {
       ],
     });
     const backwards = draft({
-      ranges: [{ ...draft().ranges[0], startTime: "13:00", endTime: "10:00" }],
+      ranges: [tuesdayRange({ startTime: "13:00", endTime: "10:00" })],
     });
 
     expect(availabilityDraftError(overlapping)).toBe(
@@ -274,9 +281,10 @@ describe("nextRangeAfter", () => {
       startTime: "13:00",
       endTime: "14:00",
     });
-    expect(
-      nextRangeAfter([{ ...draft().ranges[0], endTime: "23:30" }]),
-    ).toEqual({ startTime: "23:30", endTime: "23:59" });
+    expect(nextRangeAfter([tuesdayRange({ endTime: "23:30" })])).toEqual({
+      startTime: "23:30",
+      endTime: "23:59",
+    });
   });
 });
 

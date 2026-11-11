@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchProgramAttendance } from "@/lib/api/program-attendance";
 import {

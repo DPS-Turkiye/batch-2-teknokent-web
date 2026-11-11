@@ -56,7 +56,7 @@ describe("program announcement hooks", () => {
       wrapper,
     });
     await waitFor(() =>
-      expect(result.current.threads[0].latest).not.toBeNull(),
+      expect(result.current.threads[0]?.latest ?? null).not.toBeNull(),
     );
 
     act(() => result.current.open("program-1"));

@@ -8,10 +8,11 @@ import { usePendingMembers } from "@/hooks/use-pending-members";
 import { useStartupTeam } from "@/hooks/use-startup-team";
 import { useTeamChanges } from "@/hooks/use-team-changes";
 import {
-  type TeamChange,
   TeamChangeKind,
   TeamChangeStatus,
+  type TeamChange,
 } from "@/interfaces/team-change";
+import { expectLength } from "@test/fixtures/list-assertions";
 import { memberFixture } from "@test/fixtures/startup-team";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -164,7 +165,9 @@ describe("StartupTeamView", () => {
     vi.mocked(useStartupTeam).mockReturnValue(state());
     renderWithQueryClient(<StartupTeamView />);
 
-    const [first, second] = screen.getAllByRole("listitem");
+    const members = screen.getAllByRole("listitem");
+    expectLength(members, 2);
+    const [first, second] = members;
     expect(within(first).getByText("CEO · Kurucu")).toBeInTheDocument();
     expect(within(first).getByText("founder@dongu.co")).toBeInTheDocument();
     expect(within(first).getByText("Katılım: 12 Haz 2026")).toBeInTheDocument();
@@ -181,7 +184,9 @@ describe("StartupTeamView", () => {
       </InLocale>,
     );
 
-    const [first, second] = screen.getAllByRole("listitem");
+    const members = screen.getAllByRole("listitem");
+    expectLength(members, 2);
+    const [first, second] = members;
     expect(within(first).getByText("CEO · Founder")).toBeInTheDocument();
     expect(within(first).getByText("Joined: Jun 12, 2026")).toBeInTheDocument();
     expect(within(first).getByText("Admin")).toBeInTheDocument();
@@ -244,7 +249,7 @@ describe("StartupTeamView", () => {
 
     const pending = screen
       .getByRole("heading", { name: "Katılım bekleyenler" })
-      .closest("section") as HTMLElement;
+      .closest("section")!;
     expect(within(pending).getByText("Ece Kaya")).toBeInTheDocument();
     expect(within(pending).getByText("Katılım bekleniyor")).toBeInTheDocument();
   });

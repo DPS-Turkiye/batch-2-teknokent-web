@@ -1,18 +1,23 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
-  GET as list,
   POST as add,
+  GET as list,
 } from "@/app/api/coordinator/mentorships/[id]/notes/route";
 import { DELETE as remove } from "@/app/api/coordinator/notes/[id]/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   addCoordinatorNote,
   deleteCoordinatorNote,
   fetchCoordinatorNotes,
 } from "@/lib/api/coordinator-notes";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import {
+  answerEachWith,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-notes", () => ({
   addCoordinatorNote: vi.fn(),
@@ -23,7 +28,7 @@ vi.mock("@/lib/server/require-coordinator", () => ({
   requireCoordinatorSession: vi.fn(),
 }));
 
-const ok = { data: {}, headers: {}, status: 200 } as never;
+const ok = backendResponse({});
 const params = (id: string) => ({ params: Promise.resolve({ id }) });
 
 describe("coordinator note routes", () => {
@@ -31,14 +36,15 @@ describe("coordinator note routes", () => {
     vi.clearAllMocks();
     vi.mocked(requireCoordinatorSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
-    vi.mocked(fetchCoordinatorNotes).mockResolvedValue(ok);
-    vi.mocked(addCoordinatorNote).mockResolvedValue(ok);
-    vi.mocked(deleteCoordinatorNote).mockResolvedValue(ok);
+    answerEachWith(
+      [fetchCoordinatorNotes, addCoordinatorNote, deleteCoordinatorNote],
+      ok,
+    );
   });
 
   it("lists, adds and deletes as the signed-in coordinator", async () => {
@@ -62,10 +68,7 @@ describe("coordinator note routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorSession).mockResolvedValue(guardRefusal(403));
 
     const response = await list(new Request("http://localhost"), params("m-1"));
 

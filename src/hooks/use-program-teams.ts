@@ -4,12 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type {
   ProgramTeam,
   TeamInviteInput,
 } from "@/interfaces/coordinator-program";
+import { ToastTone } from "@/interfaces/toast";
 import {
   addProgramTeams,
   getProgramTeams,
@@ -22,11 +22,11 @@ import {
   filterTeams,
   TeamFilter,
   teamFilterOptions,
-  type TeamRowDraft,
   teamRowProblems,
+  type TeamRowDraft,
 } from "@/lib/program-launch";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const programTeamsQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "teams"] as const;
@@ -95,7 +95,7 @@ export function useProgramTeams(programId: string) {
 
   const sendCode = useMutation({
     mutationFn: (team: ProgramTeam) =>
-      sendProgramTeamCode(programId, team.inviteId as string),
+      sendProgramTeamCode(programId, team.inviteId!),
     onSuccess: (teams, team) => {
       saved(teams);
       const row = teams.find((item) => item.inviteId === team.inviteId);
@@ -173,7 +173,7 @@ export function useProgramTeams(programId: string) {
     },
     sendCode: (team: ProgramTeam) => team.inviteId && sendCode.mutate(team),
     sendingCodeFor: sendCode.isPending
-      ? (sendCode.variables?.inviteId ?? null)
+      ? (sendCode.variables.inviteId ?? null)
       : null,
     detailId,
     openDetail: (organizationId: string) => setDetailId(organizationId),

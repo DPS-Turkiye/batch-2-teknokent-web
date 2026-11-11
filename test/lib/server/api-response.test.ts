@@ -8,21 +8,17 @@ import {
 } from "@/lib/server/api-response";
 import type { BackendResponse } from "@/lib/server/backend-client";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import type { MessageNamespace, TestLocale } from "@test/i18n";
 
-const reader = vi.hoisted(() => ({ locale: "tr" as "tr" | "en" }));
+const reader = vi.hoisted((): { locale: TestLocale } => ({ locale: "tr" }));
 
 // The caller's language comes from the request; here a switch stands in for the cookie.
 vi.mock("next-intl/server", async () => {
-  const { createTranslator } = await import("next-intl");
-  const { default: tr } = await import("@/messages/tr.json");
-  const { default: en } = await import("@/messages/en.json");
+  const { translatorIn } = await import("@test/translators");
   return {
-    getTranslations: async (namespace: string) =>
-      createTranslator({
-        locale: reader.locale,
-        messages: reader.locale === "en" ? en : tr,
-        namespace: namespace as never,
-      }),
+    getTranslations: async <Namespace extends MessageNamespace>(
+      namespace: Namespace,
+    ) => translatorIn(reader.locale, namespace),
   };
 });
 

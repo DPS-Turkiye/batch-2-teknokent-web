@@ -1,4 +1,9 @@
-import type { ProgramStatus, ProgramType } from "@/interfaces/program";
+import type {
+  ProgramMentorStatus,
+  ProgramStatus,
+  ProgramType,
+} from "@/interfaces/program";
+import type { UserAccountStatus, UserRole } from "@/interfaces/session";
 
 export type AdminProgram = {
   id: string;
@@ -37,15 +42,15 @@ export type AdminMentorMembership = {
   mentorId: string;
   fullName: string;
   email: string;
-  status: "PENDING" | "ACCEPTED" | "REJECTED";
+  status: ProgramMentorStatus;
 };
 
 export type AdminUser = {
   id: string;
   email: string;
   fullName: string;
-  role: "ADMIN" | "COORDINATOR" | "MENTOR" | "MENTEE";
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  role: UserRole;
+  status: UserAccountStatus;
   organizationId: string | null;
   organizationName: string | null;
   jobTitle: string | null;
