@@ -73,9 +73,11 @@ vi.mock("@/hooks/use-admin-overview", () => ({
 }));
 
 function rowOf(name: string) {
-  return screen
+  const row = screen
     .getByText(name)
-    .closest('div[class*="border-[#f0f2f4]"]') as HTMLElement;
+    .closest<HTMLElement>('div[class*="border-[#f0f2f4]"]');
+  if (!row) throw new Error(`No table row holds "${name}".`);
+  return row;
 }
 
 describe("UsersView › Profili gör", () => {
