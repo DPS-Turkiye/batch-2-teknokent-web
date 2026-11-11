@@ -5977,7 +5977,8 @@
     "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
-    "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi."
+    "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
+    "personSummaryLoadFailed": "Profil yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",
@@ -6723,5 +6724,57 @@
       "REPEATED_WEEK": "Aynı hafta birden fazla kez var.",
       "PAST_THE_END": "Hafta numaraları 1 ile {total} arasında olmalı."
     }
+  },
+  "personSummary": {
+    "back": "Geri",
+    "loading": "Profil yükleniyor…",
+    "notFound": "Bu profil bulunamadı ya da görme yetkin yok.",
+    "toList": "Listeye dön",
+    "roles": {
+      "MENTOR": "Mentor",
+      "MENTEE": "Girişimci"
+    },
+    "statuses": {
+      "APPROVED": "Onaylı",
+      "PENDING": "Onay bekliyor",
+      "REJECTED": "Reddedildi"
+    },
+    "linkedin": "LinkedIn profili",
+    "about": "Hakkında",
+    "noAbout": "Henüz bir tanıtım yazısı eklenmemiş.",
+    "expertise": "Uzmanlık alanları",
+    "mentoring": "Mentorluk",
+    "facts": {
+      "experienceLevel": "Deneyim düzeyi",
+      "sectorExperience": "Sektör deneyimi",
+      "startupStages": "Çalıştığı aşamalar",
+      "meetingMode": "Görüşme biçimi",
+      "languages": "Diller"
+    },
+    "offerings": "Sunduğu destek",
+    "experience": "Deneyim",
+    "education": "Eğitim",
+    "startup": "Girişim",
+    "noStartup": "Bir girişime bağlı değil.",
+    "startupFields": {
+      "sector": "Sektör",
+      "maturity": "Aşama",
+      "fundingStage": "Yatırım aşaması",
+      "foundedYear": "Kuruluş yılı",
+      "problem": "Problem",
+      "solution": "Çözüm",
+      "website": "Web sitesi"
+    },
+    "programs": "Programlar",
+    "noPrograms": "Görebildiğin bir programda değil.",
+    "relations": {
+      "MENTOR": "Mentor havuzunda",
+      "MENTEE": "Katılımcı"
+    },
+    "mentorPending": "Katılma isteği onay bekliyor",
+    "activity": "Menton'da",
+    "activeMentees": "Aktif girişim",
+    "completedMentorships": "Tamamlanan mentorluk",
+    "registered": "Kayıt tarihi"
   }
 }
