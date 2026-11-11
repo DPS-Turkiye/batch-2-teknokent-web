@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/mentor-requests/[id]/task-assignees/route";
 import { POST } from "@/app/api/mentor-requests/[id]/tasks/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   assignMentorshipTask,
   fetchTaskAssignees,

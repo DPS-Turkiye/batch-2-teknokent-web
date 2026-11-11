@@ -2,9 +2,10 @@ import { vi } from "vitest";
 
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import {
-  type MeetingProposal,
   MeetingProposalStatus,
+  type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
+import { successQuery } from "@test/mocks/query-results";
 
 export function meetingProposal(
   overrides: Partial<MeetingProposal> = {},
@@ -41,7 +42,7 @@ export function mentorshipProposalsStub(
   overrides: Partial<MentorshipMeetingProposals> = {},
 ): MentorshipMeetingProposals {
   return {
-    query: {} as MentorshipMeetingProposals["query"],
+    query: successQuery<MeetingProposal[]>([]),
     open: null,
     latest: null,
     declined: null,

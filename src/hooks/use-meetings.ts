@@ -30,8 +30,7 @@ export function useCreateMeeting() {
 export function useUpdateMeeting(id: string | undefined) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (payload: UpdateMeetingPayload) =>
-      updateMeeting(id as string, payload),
+    mutationFn: (payload: UpdateMeetingPayload) => updateMeeting(id!, payload),
     onSuccess: (meeting) => {
       queryClient.setQueryData(
         MEETINGS_QUERY_KEY,

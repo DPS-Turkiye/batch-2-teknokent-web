@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 import type { UserProfileInput } from "@/interfaces/user-profile";
-import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
 import { fetchSignedInUser } from "@/lib/api/auth";
+import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
 import {
   apiErrorResponse,
   apiText,

@@ -1,10 +1,13 @@
 import { render, screen } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
-import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
-import { type MentorAvailabilitySettings, Weekday } from "@/interfaces/mentor";
-import type { AvailabilityNumberField } from "@/lib/mentor-availability";
+import {
+  useWeeklyAvailabilityForm,
+  type WeeklyAvailabilitySource,
+} from "@/hooks/use-weekly-availability-form";
+import { Weekday, type MentorAvailabilitySettings } from "@/interfaces/mentor";
 
 const settings: MentorAvailabilitySettings = {
   rules: [
@@ -22,38 +25,41 @@ const settings: MentorAvailabilitySettings = {
   meetingBufferMinutes: 0,
 };
 
-type EditorOptions = {
-  numberFields?: readonly AvailabilityNumberField[];
-  numberFieldLabels?: Partial<Record<AvailabilityNumberField, string>>;
-  showUnavailableDates?: boolean;
-};
+/** What the owner passes to the form hook. */
+type SourceOptions = Pick<
+  WeeklyAvailabilitySource,
+  "numberFields" | "numberFieldLabels"
+>;
+type EditorProps = Omit<
+  ComponentProps<typeof WeeklyAvailabilityEditor>,
+  "editor"
+>;
 
 function Harness({
-  numberFields,
-  numberFieldLabels,
-  showUnavailableDates,
-}: EditorOptions) {
+  source,
+  editorProps,
+}: {
+  source: SourceOptions;
+  editorProps: EditorProps;
+}) {
   const editor = useWeeklyAvailabilityForm(
     {
       settings,
       loadFailed: false,
       save: vi.fn(),
       isSaving: false,
-      numberFields,
-      numberFieldLabels,
+      ...source,
     },
     vi.fn(),
   );
-  return (
-    <WeeklyAvailabilityEditor
-      editor={editor}
-      showUnavailableDates={showUnavailableDates}
-    />
-  );
+  return <WeeklyAvailabilityEditor editor={editor} {...editorProps} />;
 }
 
-function renderEditor(options: EditorOptions = {}) {
-  return render(<Harness {...options} />);
+function renderEditor(
+  source: SourceOptions = {},
+  editorProps: EditorProps = {},
+) {
+  return render(<Harness source={source} editorProps={editorProps} />);
 }
 
 describe("WeeklyAvailabilityEditor", () => {
@@ -70,10 +76,10 @@ describe("WeeklyAvailabilityEditor", () => {
   });
 
   it("shows only the parts an owner uses", () => {
-    renderEditor({
-      numberFields: ["defaultMeetingDurationMinutes"],
-      showUnavailableDates: false,
-    });
+    renderEditor(
+      { numberFields: ["defaultMeetingDurationMinutes"] },
+      { showUnavailableDates: false },
+    );
     expect(screen.getByText("Varsayılan görüşme süresi")).toBeInTheDocument();
     expect(screen.queryByText("Eş zamanlı mentorluk limiti")).toBeNull();
     expect(screen.queryByText("İki görüşme arası tampon")).toBeNull();

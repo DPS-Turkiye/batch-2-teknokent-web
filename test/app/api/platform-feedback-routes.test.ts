@@ -1,10 +1,9 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { GET } from "@/app/api/admin/platform-feedback/route";
 import { PATCH } from "@/app/api/admin/platform-feedback/[id]/read/route";
+import { GET } from "@/app/api/admin/platform-feedback/route";
 import { POST } from "@/app/api/platform-feedback/route";
-import { UserRole, type AppSession } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchPlatformFeedbackInbox,
   markPlatformFeedbackRead,
@@ -16,6 +15,8 @@ import {
   feedbackInbox,
   platformFeedback,
 } from "@test/fixtures/platform-feedback";
+import { backendRefusal, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/platform-feedback", () => ({
   fetchPlatformFeedbackInbox: vi.fn(),
@@ -40,7 +41,7 @@ beforeEach(() => {
   });
   vi.mocked(requireAdminSession).mockResolvedValue({
     ok: true,
-    session: { userId: "signed-in-admin", role: UserRole.Admin } as AppSession,
+    session: appSession({ userId: "signed-in-admin", role: UserRole.Admin }),
   });
   vi.mocked(postPlatformFeedback).mockResolvedValue({
     status: 201,
@@ -142,13 +143,10 @@ describe("platform feedback routes", () => {
     );
   });
 
-  it.each([401, 403])(
+  it.each([401, 403] as const)(
     "rejects unauthorized admin access (%s)",
     async (status) => {
-      vi.mocked(requireAdminSession).mockResolvedValue({
-        ok: false,
-        response: NextResponse.json({}, { status }),
-      });
+      vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(status));
       expect((await GET(new Request("http://localhost"))).status).toBe(status);
       expect(
         (await PATCH(new Request("http://localhost"), params)).status,
@@ -192,11 +190,7 @@ describe("platform feedback routes", () => {
   });
 
   it("preserves backend errors and localizes a transport failure", async () => {
-    vi.mocked(postPlatformFeedback).mockResolvedValueOnce({
-      status: 429,
-      data: {} as never,
-      headers: {},
-    });
+    vi.mocked(postPlatformFeedback).mockResolvedValueOnce(backendRefusal(429));
     expect((await POST(request(platformFeedback()))).status).toBe(429);
     vi.mocked(postPlatformFeedback).mockRejectedValueOnce(new Error("offline"));
     vi.spyOn(console, "error").mockImplementation(() => {});

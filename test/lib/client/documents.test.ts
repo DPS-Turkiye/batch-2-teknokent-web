@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DocumentKind } from "@/interfaces/startup-document";
 import { ClientApiError } from "@/lib/client/api";
 import { uploadDocument } from "@/lib/client/documents";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 vi.mock("@/lib/http-client", () => ({
   httpClient: { post: vi.fn() },
@@ -31,11 +33,11 @@ describe("uploadDocument", () => {
         originalFilename: "cv.pdf",
         sizeBytes: 2,
       },
-    } as never);
+    });
 
-    await uploadDocument(file, "cv", "id-token");
+    await uploadDocument(file, DocumentKind.Cv, "id-token");
 
-    const [url, , config] = vi.mocked(httpClient.post).mock.calls[0];
+    const [url, , config] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).toMatch(/^http:\/\/localhost:8080\/api\/documents$/);
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer id-token" },
@@ -55,22 +57,24 @@ describe("uploadDocument", () => {
           originalFilename: "cv.pdf",
           sizeBytes: 2,
         },
-      } as never);
+      });
 
-    await uploadDocument(file, "requested-doc", "id-token");
+    await uploadDocument(file, DocumentKind.RequestedDoc, "id-token");
 
     expect(httpClient.post).toHaveBeenCalledTimes(2);
-    expect(vi.mocked(httpClient.post).mock.calls[1][0]).toBe("/api/documents");
+    expect(itemAt(vi.mocked(httpClient.post).mock.calls, 1)[0]).toBe(
+      "/api/documents",
+    );
   });
 
   it("says why the backend refused the file, in Turkish", async () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 400,
       data: { status: 400, message: "The file is too large." },
-    } as never);
+    });
 
     await expect(
-      uploadDocument(file, "pitch-deck", "id-token"),
+      uploadDocument(file, DocumentKind.PitchDeck, "id-token"),
     ).rejects.toThrow("Dosya boyut sınırını aşıyor.");
   });
 
@@ -85,9 +89,11 @@ describe("uploadDocument", () => {
           status: 400,
           message: "Please upload a PDF, DOCX or XLSX file.",
         },
-      } as never);
+      });
 
-    await expect(uploadDocument(file, "other", "id-token")).rejects.toThrow(
+    await expect(
+      uploadDocument(file, DocumentKind.Other, "id-token"),
+    ).rejects.toThrow(
       "Yalnızca PDF, DOCX, XLSX veya PPTX dosyası yükleyebilirsin.",
     );
   });
@@ -97,7 +103,9 @@ describe("uploadDocument", () => {
       new ClientApiError("Sunucuya ulaşılamadı.", 0, "NETWORK"),
     );
 
-    await expect(uploadDocument(file, "other", "id-token")).rejects.toThrow(
+    await expect(
+      uploadDocument(file, DocumentKind.Other, "id-token"),
+    ).rejects.toThrow(
       "Dosya sunucusuna ulaşılamadı. Bağlantını kontrol edip tekrar dene.",
     );
   });
@@ -112,12 +120,12 @@ describe("uploadDocument", () => {
         originalFilename: "cv.pdf",
         sizeBytes: 2,
       },
-    } as never);
+    });
 
-    await uploadDocument(file, "cv");
+    await uploadDocument(file, DocumentKind.Cv);
 
     expect(currentIdToken).toHaveBeenCalled();
-    const [, , config] = vi.mocked(httpClient.post).mock.calls[0];
+    const [, , config] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer fresh-token" },
     });
@@ -132,19 +140,27 @@ describe("uploadDocument", () => {
         originalFilename: "cv.pdf",
         sizeBytes: 2,
       },
-    } as never);
+    });
 
-    await uploadDocument(file, "meeting-file", "id-token", "meeting-1");
+    await uploadDocument(
+      file,
+      DocumentKind.MeetingFile,
+      "id-token",
+      "meeting-1",
+    );
 
-    const [, body] = vi.mocked(httpClient.post).mock.calls[0];
-    expect((body as FormData).get("meetingId")).toBe("meeting-1");
-    expect((body as FormData).get("kind")).toBe("meeting-file");
+    const [, body] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
+    if (!(body instanceof FormData)) {
+      throw new Error("Expected the upload to post FormData");
+    }
+    expect(body.get("meetingId")).toBe("meeting-1");
+    expect(body.get("kind")).toBe("meeting-file");
   });
 
   it("fails clearly instead of uploading unauthenticated", async () => {
     vi.mocked(currentIdToken).mockResolvedValue(null);
 
-    await expect(uploadDocument(file, "cv")).rejects.toThrow(
+    await expect(uploadDocument(file, DocumentKind.Cv)).rejects.toThrow(
       "Oturumunuz sona erdi. Lütfen tekrar giriş yapın.",
     );
     expect(httpClient.post).not.toHaveBeenCalled();

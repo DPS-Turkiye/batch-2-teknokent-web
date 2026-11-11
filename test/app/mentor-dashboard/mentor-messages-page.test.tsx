@@ -16,6 +16,7 @@ import {
   programThreadsStub,
 } from "@test/fixtures/coordinator-conversations";
 import { myAnnouncementsStub } from "@test/fixtures/program-announcements";
+import { idleMutation } from "@test/mocks/query-results";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -77,11 +78,16 @@ function conversation(
   };
 }
 
-const select = vi.fn();
-const openProgramThread = vi.fn();
-const sendMessage = vi.fn().mockResolvedValue(undefined);
-const setMessage = vi.fn();
-const shareFile = vi.fn().mockResolvedValue(undefined);
+type MentorMessages = ReturnType<typeof useMentorMessages>;
+type MessageForm = MentorMessages["messageForm"];
+
+const select = vi.fn<MentorMessages["select"]>();
+const openProgramThread = vi.fn<MentorMessages["openProgramThread"]>();
+const sendMessage = vi
+  .fn<MessageForm["sendMessage"]>()
+  .mockResolvedValue(undefined);
+const setMessage = vi.fn<MessageForm["setMessage"]>();
+const shareFile = vi.fn<MentorMessages["fileUpload"]["mutate"]>();
 
 function meeting(): MeetingItem {
   return {
@@ -93,19 +99,17 @@ function meeting(): MeetingItem {
   };
 }
 
-function mockMessages(overrides: Record<string, unknown> = {}) {
-  const conversations = [
-    conversation("r1", "Döngü", "Gülse Buran"),
-    conversation("r2", "Atlas AI", "Emir Kaplan"),
-  ];
-  const value = {
-    active: conversations[0],
+/** Two accepted mentorships, the first one open, with an empty composer. */
+function mockMessages(overrides: Partial<MentorMessages> = {}) {
+  const first = conversation("r1", "Döngü", "Gülse Buran");
+  const value: MentorMessages = {
+    active: first,
     activeId: "r1",
     activeMeeting: meeting(),
     meetingLabel: "Sonraki görüşme 14 Eyl · 14:00",
-    conversations,
+    conversations: [first, conversation("r2", "Atlas AI", "Emir Kaplan")],
     error: null,
-    fileUpload: { isPending: false, mutate: shareFile },
+    fileUpload: idleMutation({ mutate: shareFile }),
     isLoading: false,
     messageForm: {
       message: "",
@@ -117,14 +121,12 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
     programThreads: programThreadsStub(),
     announcements: myAnnouncementsStub(),
     openProgramThread,
-    openAnnouncements: vi.fn(),
+    openAnnouncements: vi.fn<MentorMessages["openAnnouncements"]>(),
     select,
     viewerUserId: VIEWER,
     ...overrides,
   };
-  vi.mocked(useMentorMessages).mockReturnValue(
-    value as unknown as ReturnType<typeof useMentorMessages>,
-  );
+  vi.mocked(useMentorMessages).mockReturnValue(value);
   return value;
 }
 

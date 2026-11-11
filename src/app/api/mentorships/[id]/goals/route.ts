@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { createMentorshipGoal } from "@/lib/api/mentorships";
 import {
@@ -6,7 +7,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionMentorId } from "@/lib/session";
+
+const goalSchema = z.object({ title: z.string().trim().min(1) });
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -16,18 +20,15 @@ export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const actorId = await getSessionMentorId();
-    const body = (await request.json()) as { title?: string };
-    if (!body.title?.trim()) {
-      return apiErrorResponse(new Error("title required"), {
-        message: await apiText("goalTextRequired"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, goalSchema, {
+      invalidMessage: "goalTextRequired",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
       await createMentorshipGoal({
         mentorshipId: id,
         actorId,
-        title: body.title.trim(),
+        title: body.data.title,
       }),
     );
   } catch (error) {

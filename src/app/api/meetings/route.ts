@@ -1,16 +1,17 @@
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { createMeeting, fetchMeetings } from "@/lib/api/meetings";
-import { resolveMentorMeetingOrganization } from "@/lib/server/mentor-meeting";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
-import { getSessionIds, getSessionUser } from "@/lib/session";
+import { resolveMentorMeetingOrganization } from "@/lib/server/mentor-meeting";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
+import { sessionSide, SIDE_PARAM } from "@/lib/server/session-side";
 import { emptyListWithoutOrganization } from "@/lib/server/without-organization";
+import { getSessionIds, getSessionUser } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {
@@ -34,7 +35,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSessionUser();
-    const payload = (await request.json()) as Record<string, unknown>;
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    const payload = body.data;
     const isMentor =
       session != null &&
       sessionSide(session, request.nextUrl.searchParams.get(SIDE_PARAM)) ===

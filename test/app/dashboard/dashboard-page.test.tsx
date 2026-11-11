@@ -66,9 +66,7 @@ function dashboardData(overrides: Partial<DashboardData> = {}): DashboardData {
 
 function section(heading: string) {
   return within(
-    screen
-      .getByRole("heading", { name: heading })
-      .closest("section") as HTMLElement,
+    screen.getByRole("heading", { name: heading }).closest("section")!,
   );
 }
 

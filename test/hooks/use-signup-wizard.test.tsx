@@ -305,6 +305,52 @@ describe("useSignupWizard", () => {
     expect(result.current.draft.startup.name).toBe("Döngü");
   });
 
+  it("saves team members without their React keys and gives restored ones fresh keys", async () => {
+    const { result } = await renderWizard();
+    act(() => {
+      result.current.addTeamMember({
+        fullName: "Deniz Kaya",
+        jobTitle: "CTO",
+        email: "deniz@dongu.co",
+      });
+      result.current.addTeamMember({
+        fullName: "Deniz Kaya",
+        jobTitle: "CTO",
+        email: "deniz@dongu.co",
+      });
+    });
+    const [first, second] = result.current.draft.startup.teamMembers;
+    expect(first?.key).not.toBe(second?.key);
+
+    await act(async () => {
+      await result.current.saveDraft();
+    });
+    const saved = vi.mocked(saveOnboardingDraft).mock.calls.at(-1)?.[1];
+    expect(JSON.stringify(saved?.payload)).not.toContain('"key"');
+
+    vi.mocked(fetchOnboardingDraft).mockResolvedValue({
+      kind: "signup-wizard",
+      step: "2",
+      payload: {
+        startup: {
+          name: "Döngü",
+          teamMembers: [
+            { fullName: "Deniz Kaya", jobTitle: "CTO", email: "" },
+            { fullName: "Ece Su", jobTitle: "", email: "" },
+          ],
+        },
+      },
+    });
+    const restored = await renderWizard();
+    await waitFor(() =>
+      expect(restored.result.current.draft.startup.teamMembers).toHaveLength(2),
+    );
+    const keys = restored.result.current.draft.startup.teamMembers.map(
+      (member) => member.key,
+    );
+    expect(new Set(keys).size).toBe(2);
+  });
+
   it("keeps the startup stage, program and founding year in the draft", async () => {
     const { result } = await renderWizard();
 

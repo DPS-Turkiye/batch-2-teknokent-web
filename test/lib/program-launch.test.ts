@@ -1,13 +1,12 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
-  type ProgramTeam,
   TeamJoinStatus,
+  type ProgramTeam,
 } from "@/interfaces/coordinator-program";
 import {
-  daysWaiting,
   codeSentLabel,
+  daysWaiting,
   filterTeams,
   isTeamProblem,
   setupSteps,
@@ -17,30 +16,12 @@ import {
   teamRowProblems,
 } from "@/lib/program-launch";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { translatorIn } from "@test/translators";
 
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "coordinatorPrograms",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "coordinatorPrograms",
-});
-const tTeams = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "programTeams",
-});
-const tTeamsEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "programTeams",
-});
+const t = translatorIn("tr", "coordinatorPrograms");
+const tEn = translatorIn("en", "coordinatorPrograms");
+const tTeams = translatorIn("tr", "programTeams");
+const tTeamsEn = translatorIn("en", "programTeams");
 
 function team(overrides: Partial<ProgramTeam> = {}): ProgramTeam {
   return {
@@ -126,8 +107,8 @@ describe("program launch helpers", () => {
     const steps = setupSteps(fresh, [team()], t);
 
     expect(steps?.map((step) => step.done)).toEqual([true, true, false, false]);
-    expect(steps?.[1].detail).toBe("0 yetkili katıldı · 1 bekleniyor");
-    expect(setupSteps(fresh, [team()], tEn)?.[1].detail).toBe(
+    expect(steps?.[1]?.detail).toBe("0 yetkili katıldı · 1 bekleniyor");
+    expect(setupSteps(fresh, [team()], tEn)?.[1]?.detail).toBe(
       "0 leads joined · 1 waiting",
     );
     expect(setupSteps(coordinatorProgramDetail(), [team()], t)).toBeNull();

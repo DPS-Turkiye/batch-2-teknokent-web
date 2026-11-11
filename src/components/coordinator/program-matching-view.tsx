@@ -7,8 +7,8 @@ import {
   ChevronDown,
   X,
 } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 
 import {
@@ -20,11 +20,11 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import { FirstStepsDrawer } from "@/components/coordinator/first-steps-drawer";
-import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
 import { MAX_COORDINATOR_NOTE } from "@/hooks/use-coordinator-notes";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProgramMatching } from "@/hooks/use-program-matching";
+import { useProgramNavigation } from "@/hooks/use-program-navigation";
 import type {
   MatchCandidate,
   ProgramMatch,
@@ -63,7 +63,7 @@ export function ProgramMatchingView({
   initialTeamId,
 }: {
   programId: string;
-  initialTeamId?: string;
+  initialTeamId?: string | undefined;
 }) {
   return (
     <ProgramDetailFrame programId={programId} tab={ProgramTab.Matching}>
@@ -79,7 +79,7 @@ function MatchingBody({
   initialTeamId,
 }: {
   programId: string;
-  initialTeamId?: string;
+  initialTeamId?: string | undefined;
 }) {
   const { resolveHref } = useProgramNavigation(programId);
   const t = useTranslations("programMatching");
@@ -180,7 +180,7 @@ function WaitingList({ matching }: { matching: Matching }) {
         <p className="text-[12.5px] text-[#858c96]">
           {t("waitingSummary", {
             count: matching.waiting.length,
-            oldest: waitingLabel(oldest.waitingDays, t),
+            oldest: oldest ? waitingLabel(oldest.waitingDays, t) : "—",
           })}
         </p>
       </div>
@@ -314,7 +314,7 @@ function TeamPanel({
             ))}
           </ul>
         )
-      ) : suggestions && suggestions.recommended.length === 0 ? (
+      ) : suggestions?.recommended.length === 0 ? (
         <EmptyNote>{t("noSuggestions")}</EmptyNote>
       ) : (
         <ul className="space-y-3" aria-label={t("suggested")}>

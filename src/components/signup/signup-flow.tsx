@@ -1,6 +1,7 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { useTranslations } from "next-intl";
+import { useState, type SubmitEvent } from "react";
 
 import { AuthShell } from "@/components/auth/auth-shell";
 import { RegisterView } from "@/components/auth/register-view";
@@ -10,7 +11,6 @@ import { RoleSelectView } from "@/components/signup/role-select-view";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import { MentorRegistration, useSignupFlow } from "@/hooks/use-signup-flow";
 import type { RegisteredAccount } from "@/interfaces/auth";
-import { useTranslations } from "next-intl";
 
 function ResumeMentorIdentity({
   account,
@@ -24,7 +24,7 @@ function ResumeMentorIdentity({
   const [fullName, setFullName] = useState(account.fullName);
   const [phone, setPhone] = useState(account.phone);
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!fullName.trim()) return;
     onContinue({ ...account, fullName: fullName.trim(), phone: phone.trim() });

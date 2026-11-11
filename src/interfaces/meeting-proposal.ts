@@ -8,8 +8,10 @@ export enum MeetingProposalStatus {
 /** A coordinator's proposed meeting time that the mentor and the team lead each accept. */
 export type MeetingProposal = {
   id: string;
-  mentorshipId: string;
-  programId: string;
+  /** Null for a meeting proposed between a mentor and team outside a mentorship. */
+  mentorshipId: string | null;
+  /** Null for a proposal that is not tied to a program. */
+  programId: string | null;
   programName: string | null;
   mentorId: string;
   mentorName: string;

@@ -1,4 +1,4 @@
-import { LoginRoleId, type LoginRoleOption } from "@/interfaces/login";
+import type { LoginRoleId, LoginRoleOption } from "@/interfaces/login";
 
 export function RoleOptionCard({
   role,

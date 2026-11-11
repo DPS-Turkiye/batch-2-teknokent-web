@@ -1,27 +1,33 @@
+import { z } from "zod";
+
 import { proposeMeeting } from "@/lib/api/meeting-proposals";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody, stringOrNullSchema } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+
+const proposeMeetingSchema = z.object({
+  scheduledAt: z.string(),
+  durationMinutes: z.number(),
+  agenda: stringOrNullSchema,
+  replacesMeetingId: stringOrNullSchema,
+});
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, proposeMeetingSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await proposeMeeting(auth.session.userId, id, {
-        scheduledAt: body.scheduledAt,
-        durationMinutes: body.durationMinutes,
-        agenda: body.agenda ?? null,
-        replacesMeetingId: body.replacesMeetingId ?? null,
-      }),
+      await proposeMeeting(auth.session.userId, id, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

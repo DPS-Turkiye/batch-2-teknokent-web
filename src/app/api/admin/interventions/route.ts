@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchAdminInterventions,
   openAdminIntervention,
@@ -7,7 +9,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireAdminSession } from "@/lib/server/require-admin";
+
+const openInterventionSchema = z.object({
+  mentorshipId: z.string(),
+  action: z.string(),
+  note: z.string(),
+});
 
 export async function GET() {
   try {
@@ -25,13 +34,10 @@ export async function POST(request: Request) {
   try {
     const auth = await requireAdminSession();
     if (!auth.ok) return auth.response;
-    const body = await request.json();
+    const body = await readJsonBody(request, openInterventionSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await openAdminIntervention(auth.session.userId, {
-        mentorshipId: String(body.mentorshipId ?? ""),
-        action: String(body.action ?? ""),
-        note: String(body.note ?? ""),
-      }),
+      await openAdminIntervention(auth.session.userId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

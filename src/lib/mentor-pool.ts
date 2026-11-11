@@ -1,6 +1,6 @@
 import type { useTranslations } from "next-intl";
 
-import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
+import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import { SignupRole } from "@/interfaces/signup";
 import { daysWaiting } from "@/lib/program-launch";
 

@@ -1,40 +1,31 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import {
-  activeMentorshipFor,
-  assignableProgramsForMentor,
-  assignableProgramsForStartup,
-  coordinatorsOf,
-  mentorsOf,
-  needsAttention,
-  programsForCoordinator,
-  programsForMentor,
-  startupsOf,
-} from "@/components/admin/admin-model";
+import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
 import { AdminAcademicsTable } from "@/components/admin/admin-academics-table";
 import { AdminStudentsTable } from "@/components/admin/admin-students-table";
-import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog";
-import { AssignToProgram } from "@/components/admin/assign-to-program";
-import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
-import { TeamHistory } from "@/components/common/team-history";
-import { ProfileLink } from "@/components/people/profile-link";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
+import { AssignToProgram } from "@/components/admin/assign-to-program";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import {
   ApproveCoordinatorDialog,
   CoordinatorApplicationDialog,
 } from "@/components/admin/coordinator-approval";
-import { useToast } from "@/stores/toast-store";
-import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
+import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
+import { TeamHistory } from "@/components/common/team-history";
+import { ProfileLink } from "@/components/people/profile-link";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
+import {
+  useCoordinatorsTable,
+  useMentorsTable,
+  useTeamsTable,
+} from "@/hooks/use-admin-users";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
-import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import {
   ProgramMemberKind,
   type AdminOverview,
@@ -42,21 +33,41 @@ import {
   type AdminStartup,
   type AdminUser,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { UserAccountStatus } from "@/interfaces/session";
-import { errorMessage, initials } from "@/lib/utils";
+import {
+  activeMentorshipFor,
+  assignableProgramsForStartup,
+  coordinatorsOf,
+  mentorsOf,
+  programsForCoordinator,
+  startupsOf,
+} from "@/lib/admin-model";
+import {
+  COORDINATOR_FILTERS,
+  COORDINATOR_SECTIONS,
+  hasStaleMentorship,
+  isInvitePending,
+  MENTOR_FILTERS,
+  MENTOR_SECTIONS,
+  ofOrganization,
+  pageRange,
+  relativeTime,
+  TEAM_FILTERS,
+  TEAM_SECTIONS,
+  teamHealth,
+  type FilterCounts,
+} from "@/lib/admin-users";
+import { initials } from "@/lib/utils";
 import type messages from "@/messages/tr.json";
-import { ToastTone } from "@/interfaces/toast";
-
-export type UserTab =
-  "coordinators" | "mentors" | "teams" | "students" | "academics";
-
-const PAGE_SIZE = 7;
+import {
+  TeamHealth,
+  UserDrawerSection,
+  UserTab,
+  type UserFilter,
+} from "@/types/admin-users";
 
 type AccountDecision = UserAccountStatus.Approved | UserAccountStatus.Rejected;
-
-type UsersT = ReturnType<typeof useTranslations<"adminUsers">>;
-type Filter = keyof (typeof messages)["adminUsers"]["filters"];
-type Section = keyof (typeof messages)["adminUsers"]["sections"];
 
 export function UsersView({ tab }: { tab: UserTab }) {
   const t = useTranslations("adminUsers");
@@ -69,33 +80,33 @@ export function UsersView({ tab }: { tab: UserTab }) {
   const data = query.data;
   const tabs = [
     {
-      id: "coordinators" as const,
+      id: UserTab.Coordinators,
       href: "/admin/users",
       label: t("tabs.coordinators"),
       count: coordinatorsOf(data).length,
     },
     {
-      id: "mentors" as const,
+      id: UserTab.Mentors,
       href: "/admin/users/mentors",
       label: t("tabs.mentors"),
       count: mentorsOf(data).length,
       dot: "#26a4ff",
     },
     {
-      id: "teams" as const,
+      id: UserTab.Teams,
       href: "/admin/users/teams",
       label: t("tabs.teams"),
       count: startupsOf(data).length,
       dot: "#ff6a3d",
     },
     {
-      id: "students" as const,
+      id: UserTab.Students,
       href: "/admin/users/students",
       label: t("tabs.students"),
       count: null,
     },
     {
-      id: "academics" as const,
+      id: UserTab.Academics,
       href: "/admin/users/academics",
       label: t("tabs.academics"),
       count: null,
@@ -156,17 +167,17 @@ export function UsersView({ tab }: { tab: UserTab }) {
           );
         })}
       </div>
-      {tab === "coordinators" ? (
+      {tab === UserTab.Coordinators ? (
         <CoordinatorsTable data={data} focusUserId={focusUserId} />
       ) : null}
-      {tab === "mentors" ? (
+      {tab === UserTab.Mentors ? (
         <MentorsTable data={data} focusUserId={focusUserId} />
       ) : null}
-      {tab === "teams" ? <TeamsTable data={data} /> : null}
+      {tab === UserTab.Teams ? <TeamsTable data={data} /> : null}
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-      {tab === "students" ? <AdminStudentsTable /> : null}
+      {tab === UserTab.Students ? <AdminStudentsTable /> : null}
       {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
-      {tab === "academics" ? <AdminAcademicsTable /> : null}
+      {tab === UserTab.Academics ? <AdminAcademicsTable /> : null}
       {inviteOpen ? (
         <AddCoordinatorDialog onClose={() => setInviteOpen(false)} />
       ) : null}
@@ -182,99 +193,22 @@ function CoordinatorsTable({
   focusUserId: string | null;
 }) {
   const t = useTranslations("adminUsers");
-  const users = coordinatorsOf(data);
-  const decide = useDecidePendingAccount();
-  const access = useCoordinatorAccess();
-  const { showToast } = useToast();
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [program, setProgram] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [reviewId, setReviewId] = useState<string | null>(null);
-  const [approveId, setApproveId] = useState<string | null>(null);
-  const [seenFocus, setSeenFocus] = useState(focusUserId);
-  if (focusUserId !== seenFocus) {
-    setSeenFocus(focusUserId);
-    const focused = users.find((item) => item.id === focusUserId);
-    if (focused?.status === "PENDING") setReviewId(focused.id);
-    else if (focused) setSelectedId(focused.id);
-  }
-  const counts: Partial<Record<Filter, number>> = {
-    ALL: users.length,
-    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
-    PENDING: users.filter((user) => user.status === "PENDING").length,
-    NO_ACCESS: 0,
-    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
-  };
-  const rows = useMemo(() => {
-    return users.filter((user) => {
-      if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
-      if (filter === "PENDING" && user.status !== "PENDING") return false;
-      if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
-      if (filter === "NO_ACCESS") return false;
-      if (
-        program &&
-        !programsForCoordinator(data, user.id).some(
-          (item) => item.name === program,
-        )
-      ) {
-        return false;
-      }
-      return `${user.fullName} ${user.email}`
-        .toLocaleLowerCase("tr")
-        .includes(search.toLocaleLowerCase("tr"));
-    });
-  }, [data, filter, program, search, users]);
-  const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const selected = users.find((user) => user.id === selectedId) ?? null;
-  const review = users.find((user) => user.id === reviewId) ?? null;
-  const approving = users.find((user) => user.id === approveId) ?? null;
-
-  function reject(user: AdminUser) {
-    void decide
-      .mutateAsync({
-        userId: user.id,
-        status: UserAccountStatus.Rejected,
-      })
-      .then(() => {
-        setReviewId(null);
-        setApproveId(null);
-        showToast({
-          message: t("rejected", { name: user.fullName }),
-          tone: ToastTone.Success,
-        });
-      })
-      .catch((error: unknown) =>
-        showToast({
-          message: errorMessage(error, t("decideFailed")),
-          tone: ToastTone.Error,
-        }),
-      );
-  }
+  const table = useCoordinatorsTable(data, focusUserId);
+  const { selected, review, approving } = table;
 
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={["ALL", "ACTIVE", "PENDING", "NO_ACCESS", "INACTIVE"]}
-        counts={counts}
-        filter={filter}
-        onFilter={(value) => {
-          setFilter(value);
-          setPage(0);
-        }}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value);
-          setPage(0);
-        }}
+        filters={COORDINATOR_FILTERS}
+        counts={table.counts}
+        filter={table.filters.filter}
+        onFilter={table.filters.onFilter}
+        search={table.filters.search}
+        onSearch={table.filters.onSearch}
         searchPlaceholder={t("searchCoordinators")}
-        program={program}
+        program={table.filters.program}
         programs={data.programs.map((item) => item.name)}
-        onProgram={(value) => {
-          setProgram(value);
-          setPage(0);
-        }}
+        onProgram={table.filters.onProgram}
       />
       <TableCard>
         <div
@@ -287,17 +221,19 @@ function CoordinatorsTable({
           <span>{t("coordinatorColumns.activity")}</span>
           <span />
         </div>
-        {visible.length === 0 ? (
+        {table.visible.length === 0 ? (
           <EmptyNote>{t("noCoordinators")}</EmptyNote>
         ) : (
-          visible.map((user) => {
+          table.visible.map((user) => {
             const programs = programsForCoordinator(data, user.id);
             const activity = relativeTime(user.createdAt, t);
             return (
               <div
                 key={user.id}
                 className={`${coordCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0 ${
-                  selectedId === user.id ? "rounded-[18px] bg-[#fafafb]" : ""
+                  table.selectedId === user.id
+                    ? "rounded-[18px] bg-[#fafafb]"
+                    : ""
                 }`}
               >
                 <PersonCell user={user} tone="coordinator" />
@@ -317,49 +253,46 @@ function CoordinatorsTable({
                   {activity?.label ?? "—"}
                 </span>
                 <span className="flex items-center justify-end gap-1">
-                  {user.status === "PENDING" ? (
+                  {user.status === UserAccountStatus.Pending ? (
                     <>
                       <button
                         type="button"
-                        disabled={decide.isPending}
-                        onClick={() => reject(user)}
+                        disabled={table.isDeciding}
+                        onClick={() => table.reject(user)}
                         className="rounded-full border border-[#e9ecef] bg-white px-3.5 py-2 text-[12.5px] font-medium text-[#22262b] disabled:opacity-50"
                       >
                         {t("reject")}
                       </button>
                       <button
                         type="button"
-                        onClick={() => setReviewId(user.id)}
+                        onClick={() => table.startReview(user.id)}
                         className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
                       >
                         {t("approve")}
                       </button>
                     </>
                   ) : (
-                    <DetailButton onClick={() => setSelectedId(user.id)} />
+                    <DetailButton onClick={() => table.select(user.id)} />
                   )}
                   <RowMenu
                     items={[
                       {
                         label: t("detail"),
-                        onClick: () =>
-                          user.status === "PENDING"
-                            ? setReviewId(user.id)
-                            : setSelectedId(user.id),
+                        onClick: () => table.openDetail(user),
                       },
-                      ...(user.status === "APPROVED"
+                      ...(user.status === UserAccountStatus.Approved
                         ? [
                             {
                               label: t("deactivate"),
-                              onClick: () => access.setAccess(user.id, false),
+                              onClick: () => table.setAccess(user.id, false),
                             },
                           ]
                         : []),
-                      ...(user.status === "REJECTED"
+                      ...(user.status === UserAccountStatus.Rejected
                         ? [
                             {
                               label: t("reactivate"),
-                              onClick: () => access.setAccess(user.id, true),
+                              onClick: () => table.setAccess(user.id, true),
                             },
                           ]
                         : []),
@@ -372,16 +305,16 @@ function CoordinatorsTable({
         )}
       </TableCard>
       <Pager
-        total={rows.length}
-        page={page}
-        onPage={setPage}
+        total={table.total}
+        page={table.filters.page}
+        onPage={table.filters.setPage}
         noun="coordinators"
       />
       {selected ? (
         <CoordinatorDrawer
           user={selected}
           programs={programsForCoordinator(data, selected.id)}
-          onClose={() => setSelectedId(null)}
+          onClose={table.closeDrawer}
         />
       ) : null}
       {review ? (
@@ -389,40 +322,21 @@ function CoordinatorsTable({
           user={review}
           programs={programsForCoordinator(data, review.id)}
           appliedLabel={relativeTime(review.createdAt, t)?.label ?? null}
-          busy={decide.isPending}
-          onClose={() => setReviewId(null)}
-          onReject={() => reject(review)}
-          onApprove={() => {
-            setReviewId(null);
-            setApproveId(review.id);
-          }}
+          busy={table.isDeciding}
+          onClose={table.closeReview}
+          onReject={() => table.reject(review)}
+          onApprove={() => table.startApproval(review)}
         />
       ) : null}
       {approving ? (
         <ApproveCoordinatorDialog
           user={approving}
           programs={data.programs}
-          onClose={() => setApproveId(null)}
-          onApproved={(programName, already) => {
-            const name = approving.fullName;
-            const id = approving.id;
-            setApproveId(null);
-            showToast({
-              title: t("approvedTitle", { name }),
-              message: already
-                ? t("alreadyCoordinator", { program: programName })
-                : t("assignedTo", { program: programName }),
-              tone: ToastTone.Success,
-              action: {
-                label: t("detail"),
-                onClick: () => setSelectedId(id),
-              },
-            });
-          }}
-          onFailed={(message) => {
-            setApproveId(null);
-            showToast({ message, tone: ToastTone.Error });
-          }}
+          onClose={table.closeApproval}
+          onApproved={(programName, already) =>
+            table.approved(approving, programName, already)
+          }
+          onFailed={table.approveFailed}
         />
       ) : null}
     </div>
@@ -437,79 +351,25 @@ function MentorsTable({
   focusUserId: string | null;
 }) {
   const t = useTranslations("adminUsers");
-  const tProfile = useTranslations("personSummary");
-  const router = useRouter();
-  const profileHref = usePersonProfileHref();
   const optionLabel = useOptionLabel();
-  const users = mentorsOf(data);
-  const decide = useDecidePendingAccount();
-  const { showToast } = useToast();
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [program, setProgram] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [seenFocus, setSeenFocus] = useState(focusUserId);
-  if (focusUserId !== seenFocus) {
-    setSeenFocus(focusUserId);
-    if (users.some((user) => user.id === focusUserId))
-      setSelectedId(focusUserId);
-  }
-  const invited = (user: AdminUser) =>
-    data.programs.some((item) =>
-      item.mentors.some(
-        (mentor) => mentor.mentorId === user.id && mentor.status === "PENDING",
-      ),
-    );
-  const counts: Partial<Record<Filter, number>> = {
-    ALL: users.length,
-    ACTIVE: users.filter((user) => user.status === "APPROVED").length,
-    PENDING: users.filter((user) => user.status === "PENDING").length,
-    INVITED: users.filter((user) => user.status === "APPROVED" && invited(user))
-      .length,
-    INACTIVE: users.filter((user) => user.status === "REJECTED").length,
-  };
-  const rows = users.filter((user) => {
-    if (filter === "ACTIVE" && user.status !== "APPROVED") return false;
-    if (filter === "PENDING" && user.status !== "PENDING") return false;
-    if (filter === "INACTIVE" && user.status !== "REJECTED") return false;
-    if (filter === "INVITED" && !(user.status === "APPROVED" && invited(user)))
-      return false;
-    if (
-      program &&
-      !programsForMentor(data, user.id).some((item) => item.name === program)
-    ) {
-      return false;
-    }
-    return `${user.fullName} ${user.email} ${(user.expertise ?? []).join(" ")}`
-      .toLocaleLowerCase("tr")
-      .includes(search.toLocaleLowerCase("tr"));
-  });
-  const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const selected = users.find((user) => user.id === selectedId) ?? null;
+  const tProfile = useTranslations("personSummary");
+  const profileHref = usePersonProfileHref();
+  const table = useMentorsTable(data, focusUserId);
+  const { selected } = table;
 
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={["ALL", "ACTIVE", "PENDING", "INVITED", "INACTIVE"]}
-        counts={counts}
-        filter={filter}
-        onFilter={(value) => {
-          setFilter(value);
-          setPage(0);
-        }}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value);
-          setPage(0);
-        }}
+        filters={MENTOR_FILTERS}
+        counts={table.counts}
+        filter={table.filters.filter}
+        onFilter={table.filters.onFilter}
+        search={table.filters.search}
+        onSearch={table.filters.onSearch}
         searchPlaceholder={t("searchMentors")}
-        program={program}
+        program={table.filters.program}
         programs={data.programs.map((item) => item.name)}
-        onProgram={(value) => {
-          setProgram(value);
-          setPage(0);
-        }}
+        onProgram={table.filters.onProgram}
       />
       <TableCard>
         <div
@@ -523,36 +383,19 @@ function MentorsTable({
           <span>{t("mentorColumns.load")}</span>
           <span />
         </div>
-        {visible.length === 0 ? (
+        {table.visible.length === 0 ? (
           <EmptyNote>{t("noMentors")}</EmptyNote>
         ) : (
-          visible.map((user) => {
-            const programs = programsForMentor(data, user.id);
-            const load = data.mentorships.filter(
-              (item) =>
-                item.mentorId === user.id &&
-                (item.status === "ACTIVE" || item.status === "PLANNED"),
-            );
-            const stale = load.some(
-              (item) => item.status === "ACTIVE" && needsAttention(item),
-            );
-            const pendingInvite =
-              user.status === "APPROVED" &&
-              programs.some((item) =>
-                item.mentors.some(
-                  (mentor) =>
-                    mentor.mentorId === user.id && mentor.status === "PENDING",
-                ),
-              );
-            return (
+          table.visible.map(
+            ({ user, programs, mentorships, stale, pendingInvite }) => (
               <div
                 key={user.id}
                 className={`${mentorCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
               >
                 <PersonCell user={user} tone="mentor" />
-                {user.status === "PENDING" ? (
+                {user.status === UserAccountStatus.Pending ? (
                   <StatusPill tone="amber">{t("pending")}</StatusPill>
-                ) : user.status === "REJECTED" ? (
+                ) : user.status === UserAccountStatus.Rejected ? (
                   <StatusPill tone="neutral">{t("inactive")}</StatusPill>
                 ) : pendingInvite ? (
                   <StatusPill tone="blue">{t("inviteSent")}</StatusPill>
@@ -583,68 +426,45 @@ function MentorsTable({
                   )}
                 </span>
                 <ProgramChips programs={programs} empty={t("unassigned")} />
-                <LoadBar count={load.length} warning={stale} />
+                <LoadBar count={mentorships.length} warning={stale} />
                 <span className="flex items-center justify-end gap-1">
-                  {user.status === "PENDING" ? (
+                  {user.status === UserAccountStatus.Pending ? (
                     <DecideButtons
-                      busy={decide.isPending}
-                      onDecide={(status) =>
-                        void decide
-                          .mutateAsync({ userId: user.id, status })
-                          .then(() =>
-                            showToast({
-                              message:
-                                status === UserAccountStatus.Approved
-                                  ? t("approved", { name: user.fullName })
-                                  : t("rejected", { name: user.fullName }),
-                              tone: ToastTone.Success,
-                            }),
-                          )
-                          .catch((error: unknown) =>
-                            showToast({
-                              message:
-                                error instanceof Error
-                                  ? error.message
-                                  : t("decideFailed"),
-                              tone: ToastTone.Error,
-                            }),
-                          )
-                      }
+                      busy={table.isDeciding}
+                      onDecide={(status) => table.decideAccount(user, status)}
                     />
                   ) : (
-                    <DetailButton onClick={() => setSelectedId(user.id)} />
+                    <DetailButton onClick={() => table.select(user.id)} />
                   )}
                   <RowMenu
                     items={[
                       {
                         label: t("detail"),
-                        onClick: () => setSelectedId(user.id),
+                        onClick: () => table.select(user.id),
                       },
                       // TEST UI: placeholder until the design team's screen; replace when it arrives.
-                      {
-                        label: tProfile("open"),
-                        onClick: () => router.push(profileHref(user.id)),
-                      },
+                      { label: tProfile("open"), href: profileHref(user.id) },
                     ]}
                   />
                 </span>
               </div>
-            );
-          })
+            ),
+          )
         )}
       </TableCard>
-      <Pager total={rows.length} page={page} onPage={setPage} noun="mentors" />
+      <Pager
+        total={table.total}
+        page={table.filters.page}
+        onPage={table.filters.setPage}
+        noun="mentors"
+      />
       {selected ? (
         <MentorDrawer
-          user={selected}
-          programs={programsForMentor(data, selected.id)}
-          assignable={assignableProgramsForMentor(data, selected.id)}
-          mentorships={data.mentorships.filter(
-            (item) =>
-              item.mentorId === selected.id &&
-              (item.status === "ACTIVE" || item.status === "PLANNED"),
-          )}
-          onClose={() => setSelectedId(null)}
+          user={selected.user}
+          programs={selected.programs}
+          assignable={selected.assignable}
+          mentorships={selected.mentorships}
+          onClose={table.closeDrawer}
         />
       ) : null}
     </div>
@@ -653,61 +473,21 @@ function MentorsTable({
 
 function TeamsTable({ data }: { data: AdminOverview }) {
   const t = useTranslations("adminUsers");
-  const teams = startupsOf(data);
-  const [filter, setFilter] = useState<Filter>("ALL");
-  const [program, setProgram] = useState("");
-  const [search, setSearch] = useState("");
-  const [page, setPage] = useState(0);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
-  const risky = (startup: AdminStartup) => {
-    const mentorship = activeMentorshipFor(data, startup);
-    return Boolean(mentorship && needsAttention(mentorship));
-  };
-  const waiting = (startup: AdminStartup) =>
-    !activeMentorshipFor(data, startup);
-  const counts: Partial<Record<Filter, number>> = {
-    ALL: teams.length,
-    MENTORED: teams.filter((startup) => !waiting(startup)).length,
-    WAITING: teams.filter(waiting).length,
-    RISKY: teams.filter(risky).length,
-  };
-  const rows = teams.filter((startup) => {
-    if (filter === "MENTORED" && waiting(startup)) return false;
-    if (filter === "WAITING" && !waiting(startup)) return false;
-    if (filter === "RISKY" && !risky(startup)) return false;
-    if (program && startup.programName !== program) return false;
-    return `${startup.name} ${startup.founderName ?? ""} ${startup.programName}`
-      .toLocaleLowerCase("tr")
-      .includes(search.toLocaleLowerCase("tr"));
-  });
-  const visible = rows.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-  const selected =
-    teams.find(
-      (startup) => `${startup.programId}:${startup.id}` === selectedKey,
-    ) ?? null;
+  const table = useTeamsTable(data);
 
   return (
     <div className="space-y-4">
       <Toolbar
-        filters={["ALL", "MENTORED", "WAITING", "RISKY"]}
-        counts={counts}
-        filter={filter}
-        onFilter={(value) => {
-          setFilter(value);
-          setPage(0);
-        }}
-        search={search}
-        onSearch={(value) => {
-          setSearch(value);
-          setPage(0);
-        }}
+        filters={TEAM_FILTERS}
+        counts={table.counts}
+        filter={table.filters.filter}
+        onFilter={table.filters.onFilter}
+        search={table.filters.search}
+        onSearch={table.filters.onSearch}
         searchPlaceholder={t("searchTeams")}
-        program={program}
+        program={table.filters.program}
         programs={data.programs.map((item) => item.name)}
-        onProgram={(value) => {
-          setProgram(value);
-          setPage(0);
-        }}
+        onProgram={table.filters.onProgram}
       />
       <TableCard>
         <div
@@ -722,116 +502,109 @@ function TeamsTable({ data }: { data: AdminOverview }) {
           <span>{t("teamColumns.mentor")}</span>
           <span />
         </div>
-        {visible.length === 0 ? (
+        {table.visible.length === 0 ? (
           <EmptyNote>{t("noTeams")}</EmptyNote>
         ) : (
-          visible.map((startup) => {
-            const mentorship = activeMentorshipFor(data, startup);
-            const blocked = data.bottlenecks.some(
-              (item) => item.organizationId === startup.id,
-            );
-            const members = data.users.filter(
-              (user) => user.organizationId === startup.id,
-            );
-            const attention = Boolean(mentorship && needsAttention(mentorship));
-            return (
-              <div
-                key={`${startup.programId}:${startup.id}`}
-                className={`${teamCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
-              >
-                <span className="flex min-w-0 items-center gap-2.5">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#fff1ec] text-[12px] font-semibold text-[#e0522a]">
-                    {initials(startup.name)}
-                  </span>
-                  <span className="min-w-0">
-                    <span className="block truncate text-[14px] font-medium text-[#22262b]">
-                      {startup.name}
-                    </span>
-                    <span className="block truncate text-[12px] text-[#858c96]">
-                      {startup.sector ?? t("noSector")}
-                    </span>
-                  </span>
-                </span>
-                {mentorship ? (
-                  <StatusPill tone={attention ? "amber" : "green"}>
-                    {mentorship.status === "ACTIVE"
-                      ? t("active")
-                      : t("planned")}
-                  </StatusPill>
-                ) : (
-                  <StatusPill tone="amber">{t("waiting")}</StatusPill>
-                )}
-                <span>
-                  {!mentorship ? (
-                    <span className="text-[13px] text-[#aeb4bc]">—</span>
-                  ) : attention ? (
-                    <StatusPill tone="red">{t("health.RISKY")}</StatusPill>
-                  ) : blocked ? (
-                    <span className="rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
-                      {t("health.FOLLOW_UP")}
-                    </span>
-                  ) : (
-                    <StatusPill tone="green">{t("health.HEALTHY")}</StatusPill>
-                  )}
-                </span>
-                <span>
-                  <span className="rounded-full border border-[#e9ecef] bg-white px-2.5 py-1 text-[11.5px] font-medium text-[#676e78]">
-                    {startup.programName}
-                  </span>
+          table.visible.map(({ startup, key, mentorship, members, health }) => (
+            <div
+              key={key}
+              className={`${teamCols} border-b border-[#f0f2f4] px-5 py-3.5 last:border-0`}
+            >
+              <span className="flex min-w-0 items-center gap-2.5">
+                <span className="grid size-9 shrink-0 place-items-center rounded-[12px] bg-[#fff1ec] text-[12px] font-semibold text-[#e0522a]">
+                  {initials(startup.name)}
                 </span>
                 <span className="min-w-0">
-                  {startup.founderName ? (
-                    <>
-                      <span className="block truncate text-[13px] text-[#22262b]">
-                        {startup.founderName}
-                      </span>
-                      <span className="block truncate text-[12px] text-[#858c96]">
-                        {startup.founderJobTitle ?? t("leadFallback")}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-[13px] text-[#aeb4bc]">
-                      {t("notAssigned")}
+                  <span className="block truncate text-[14px] font-medium text-[#22262b]">
+                    {startup.name}
+                  </span>
+                  <span className="block truncate text-[12px] text-[#858c96]">
+                    {startup.sector ?? t("noSector")}
+                  </span>
+                </span>
+              </span>
+              {mentorship ? (
+                <StatusPill
+                  tone={health === TeamHealth.Risky ? "amber" : "green"}
+                >
+                  {mentorship.status === MentorshipStatus.Active
+                    ? t("active")
+                    : t("planned")}
+                </StatusPill>
+              ) : (
+                <StatusPill tone="amber">{t("waiting")}</StatusPill>
+              )}
+              <span>
+                {health === null ? (
+                  <span className="text-[13px] text-[#aeb4bc]">—</span>
+                ) : health === TeamHealth.Risky ? (
+                  <StatusPill tone="red">{t("health.RISKY")}</StatusPill>
+                ) : health === TeamHealth.FollowUp ? (
+                  <span className="rounded-full bg-[#fff6e5] px-2.5 py-1 text-[11.5px] font-medium text-[#b7791f]">
+                    {t("health.FOLLOW_UP")}
+                  </span>
+                ) : (
+                  <StatusPill tone="green">{t("health.HEALTHY")}</StatusPill>
+                )}
+              </span>
+              <span>
+                <span className="rounded-full border border-[#e9ecef] bg-white px-2.5 py-1 text-[11.5px] font-medium text-[#676e78]">
+                  {startup.programName}
+                </span>
+              </span>
+              <span className="min-w-0">
+                {startup.founderName ? (
+                  <>
+                    <span className="block truncate text-[13px] text-[#22262b]">
+                      {startup.founderName}
                     </span>
-                  )}
-                </span>
-                <span className="text-[13.5px] font-medium text-[#22262b]">
-                  {members.length === 0 ? "—" : members.length}
-                </span>
-                <span className="flex min-w-0 items-center gap-2">
-                  {mentorship ? (
-                    <>
-                      <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#eaf6ff] text-[10px] font-semibold text-[#1583d6]">
-                        {initials(mentorship.mentorName)}
-                      </span>
-                      <span className="truncate text-[13px] text-[#22262b]">
-                        {mentorship.mentorName}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-[13px] text-[#aeb4bc]">
-                      {t("notAssigned")}
+                    <span className="block truncate text-[12px] text-[#858c96]">
+                      {startup.founderJobTitle ?? t("leadFallback")}
                     </span>
-                  )}
-                </span>
-                <span className="flex justify-end">
-                  <DetailButton
-                    onClick={() =>
-                      setSelectedKey(`${startup.programId}:${startup.id}`)
-                    }
-                  />
-                </span>
-              </div>
-            );
-          })
+                  </>
+                ) : (
+                  <span className="text-[13px] text-[#aeb4bc]">
+                    {t("notAssigned")}
+                  </span>
+                )}
+              </span>
+              <span className="text-[13.5px] font-medium text-[#22262b]">
+                {members.length === 0 ? "—" : members.length}
+              </span>
+              <span className="flex min-w-0 items-center gap-2">
+                {mentorship ? (
+                  <>
+                    <span className="grid size-7 shrink-0 place-items-center rounded-full bg-[#eaf6ff] text-[10px] font-semibold text-[#1583d6]">
+                      {initials(mentorship.mentorName)}
+                    </span>
+                    <span className="truncate text-[13px] text-[#22262b]">
+                      {mentorship.mentorName}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[13px] text-[#aeb4bc]">
+                    {t("notAssigned")}
+                  </span>
+                )}
+              </span>
+              <span className="flex justify-end">
+                <DetailButton onClick={() => table.select(key)} />
+              </span>
+            </div>
+          ))
         )}
       </TableCard>
-      <Pager total={rows.length} page={page} onPage={setPage} noun="teams" />
-      {selected ? (
+      <Pager
+        total={table.total}
+        page={table.filters.page}
+        onPage={table.filters.setPage}
+        noun="teams"
+      />
+      {table.selected ? (
         <TeamDrawer
-          startup={selected}
+          startup={table.selected}
           data={data}
-          onClose={() => setSelectedKey(null)}
+          onClose={table.closeDrawer}
         />
       ) : null}
     </div>
@@ -848,7 +621,9 @@ function CoordinatorDrawer({
   onClose: () => void;
 }) {
   const t = useTranslations("adminUsers");
-  const [section, setSection] = useState<Section>("OVERVIEW");
+  const [section, setSection] = useState<UserDrawerSection>(
+    UserDrawerSection.Overview,
+  );
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
   const activity = relativeTime(user.createdAt, t);
@@ -910,19 +685,17 @@ function CoordinatorDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {(["OVERVIEW", "ASSIGNED", "ACCESS", "ACTIVITY"] as const).map(
-            (item) => (
-              <SectionTab
-                key={item}
-                label={t(`sections.${item}`)}
-                active={section === item}
-                onClick={() => setSection(item)}
-              />
-            ),
-          )}
+          {COORDINATOR_SECTIONS.map((item) => (
+            <SectionTab
+              key={item}
+              label={t(`sections.${item}`)}
+              active={section === item}
+              onClick={() => setSection(item)}
+            />
+          ))}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "OVERVIEW" ? (
+          {section === UserDrawerSection.Overview ? (
             <div className="space-y-3">
               <p>
                 <span className="text-[#858c96]">{t("email")}</span>
@@ -935,7 +708,7 @@ function CoordinatorDrawer({
               <ProgramChips programs={programs} empty={t("unassigned")} />
             </div>
           ) : null}
-          {section === "ASSIGNED" ? (
+          {section === UserDrawerSection.Assigned ? (
             programs.length === 0 ? (
               <p className="text-[#858c96]">{t("noPrograms")}</p>
             ) : (
@@ -957,7 +730,7 @@ function CoordinatorDrawer({
               </ul>
             )
           ) : null}
-          {section === "ACCESS" ? (
+          {section === UserDrawerSection.Access ? (
             <div className="space-y-3">
               <AccessChip status={user.status} passwordSet={user.passwordSet} />
               <p className="text-[13px] leading-[1.5] text-[#676e78]">
@@ -966,7 +739,7 @@ function CoordinatorDrawer({
               <CoordinatorAccessControl id={user.id} status={user.status} />
             </div>
           ) : null}
-          {section === "ACTIVITY" ? (
+          {section === UserDrawerSection.Activity ? (
             <p className="text-[#676e78]">
               {activity
                 ? t("createdAt", { when: activity.label })
@@ -997,13 +770,13 @@ function MentorDrawer({
 }) {
   const t = useTranslations("adminUsers");
   const optionLabel = useOptionLabel();
-  const [section, setSection] = useState<Section>("OVERVIEW");
+  const [section, setSection] = useState<UserDrawerSection>(
+    UserDrawerSection.Overview,
+  );
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
   const activity = relativeTime(user.createdAt, t);
-  const stale = mentorships.some(
-    (item) => item.status === "ACTIVE" && needsAttention(item),
-  );
+  const stale = hasStaleMentorship(mentorships);
 
   function requestClose() {
     if (closing.current) return;
@@ -1066,19 +839,17 @@ function MentorDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {(["OVERVIEW", "PROGRAMS", "MENTORSHIPS", "ACTIVITY"] as const).map(
-            (item) => (
-              <SectionTab
-                key={item}
-                label={t(`sections.${item}`)}
-                active={section === item}
-                onClick={() => setSection(item)}
-              />
-            ),
-          )}
+          {MENTOR_SECTIONS.map((item) => (
+            <SectionTab
+              key={item}
+              label={t(`sections.${item}`)}
+              active={section === item}
+              onClick={() => setSection(item)}
+            />
+          ))}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "OVERVIEW" ? (
+          {section === UserDrawerSection.Overview ? (
             <div className="space-y-3">
               <p>
                 <span className="text-[#858c96]">{t("email")}</span>
@@ -1109,14 +880,14 @@ function MentorDrawer({
               ) : null}
             </div>
           ) : null}
-          {section === "PROGRAMS" ? (
+          {section === UserDrawerSection.Programs ? (
             <AssignToProgram
               kind={ProgramMemberKind.Mentors}
               targetId={user.id}
               programs={assignable}
             />
           ) : null}
-          {section === "PROGRAMS" ? (
+          {section === UserDrawerSection.Programs ? (
             programs.length === 0 ? (
               <p className="mt-3 text-[#858c96]">{t("noPrograms")}</p>
             ) : (
@@ -1128,9 +899,7 @@ function MentorDrawer({
                   >
                     <p className="font-medium">{item.name}</p>
                     <p className="text-[12.5px] text-[#858c96]">
-                      {item.mentors.find(
-                        (mentor) => mentor.mentorId === user.id,
-                      )?.status === "PENDING"
+                      {isInvitePending(item, user.id)
                         ? t("invitePending")
                         : t("accepted")}
                     </p>
@@ -1139,7 +908,7 @@ function MentorDrawer({
               </ul>
             )
           ) : null}
-          {section === "MENTORSHIPS" ? (
+          {section === UserDrawerSection.Mentorships ? (
             mentorships.length === 0 ? (
               <p className="text-[#858c96]">{t("noActiveMentorship")}</p>
             ) : (
@@ -1151,7 +920,9 @@ function MentorDrawer({
                   >
                     <p className="font-medium">{item.organizationName}</p>
                     <p className="text-[12.5px] text-[#858c96]">
-                      {item.status === "ACTIVE" ? t("active") : t("planned")}
+                      {item.status === MentorshipStatus.Active
+                        ? t("active")
+                        : t("planned")}
                       {item.daysSinceMeeting == null
                         ? ""
                         : t("lastMeeting", { days: item.daysSinceMeeting })}
@@ -1161,7 +932,7 @@ function MentorDrawer({
               </ul>
             )
           ) : null}
-          {section === "ACTIVITY" ? (
+          {section === UserDrawerSection.Activity ? (
             <p className="text-[#676e78]">
               {activity
                 ? t("createdAt", { when: activity.label })
@@ -1188,27 +959,16 @@ function TeamDrawer({
 }) {
   const t = useTranslations("adminUsers");
   const optionLabel = useOptionLabel();
-  const [section, setSection] = useState<Section>("OVERVIEW");
+  const [section, setSection] = useState<UserDrawerSection>(
+    UserDrawerSection.Overview,
+  );
   const [leaving, setLeaving] = useState(false);
   const closing = useRef(false);
   const mentorship = activeMentorshipFor(data, startup);
-  const members = data.users.filter(
-    (user) => user.organizationId === startup.id,
-  );
-  const bottlenecks = data.bottlenecks.filter(
-    (item) => item.organizationId === startup.id,
-  );
-  const requests = data.requests.filter(
-    (item) => item.organizationId === startup.id,
-  );
-  const attention = Boolean(mentorship && needsAttention(mentorship));
-  const health = !mentorship
-    ? null
-    : attention
-      ? ("RISKY" as const)
-      : bottlenecks.length > 0
-        ? ("FOLLOW_UP" as const)
-        : ("HEALTHY" as const);
+  const members = ofOrganization(data.users, startup.id);
+  const bottlenecks = ofOrganization(data.bottlenecks, startup.id);
+  const requests = ofOrganization(data.requests, startup.id);
+  const health = teamHealth(data, startup);
 
   function requestClose() {
     if (closing.current) return;
@@ -1246,9 +1006,9 @@ function TeamDrawer({
                 {health ? (
                   <StatusPill
                     tone={
-                      health === "RISKY"
+                      health === TeamHealth.Risky
                         ? "red"
-                        : health === "FOLLOW_UP"
+                        : health === TeamHealth.FollowUp
                           ? "amber"
                           : "green"
                     }
@@ -1280,7 +1040,7 @@ function TeamDrawer({
           </button>
         </div>
         <div className="mt-5 flex gap-5 border-b border-[#e9ecef] px-6">
-          {(["OVERVIEW", "TEAM", "MENTORSHIP"] as const).map((item) => (
+          {TEAM_SECTIONS.map((item) => (
             <SectionTab
               key={item}
               label={t(`sections.${item}`)}
@@ -1290,7 +1050,7 @@ function TeamDrawer({
           ))}
         </div>
         <div className="flex-1 overflow-y-auto px-6 py-5 text-[13.5px] text-[#22262b]">
-          {section === "OVERVIEW" ? (
+          {section === UserDrawerSection.Overview ? (
             <div className="space-y-3">
               <p>
                 <span className="text-[#858c96]">{t("programField")}</span>
@@ -1317,7 +1077,7 @@ function TeamDrawer({
               </p>
             </div>
           ) : null}
-          {section === "TEAM" ? (
+          {section === UserDrawerSection.Team ? (
             members.length === 0 ? (
               <p className="text-[#858c96]">{t("noMembers")}</p>
             ) : (
@@ -1344,13 +1104,13 @@ function TeamDrawer({
               </ul>
             )
           ) : null}
-          {section === "MENTORSHIP" ? (
+          {section === UserDrawerSection.Mentorship ? (
             <div className="space-y-4">
               {mentorship ? (
                 <div className="rounded-[20px] border border-[#e9ecef] px-4 py-3">
                   <p className="font-medium">{mentorship.mentorName}</p>
                   <p className="text-[12.5px] text-[#858c96]">
-                    {mentorship.status === "ACTIVE"
+                    {mentorship.status === MentorshipStatus.Active
                       ? t("active")
                       : t("planned")}
                     {mentorship.daysSinceMeeting == null
@@ -1415,10 +1175,10 @@ function Toolbar({
   programs,
   onProgram,
 }: {
-  filters: Filter[];
-  counts: Partial<Record<Filter, number>>;
-  filter: Filter;
-  onFilter: (value: Filter) => void;
+  filters: readonly UserFilter[];
+  counts: FilterCounts;
+  filter: UserFilter;
+  onFilter: (value: UserFilter) => void;
   search: string;
   onSearch: (value: string) => void;
   searchPlaceholder: string;
@@ -1546,12 +1306,12 @@ function AccessChip({
 }) {
   const t = useTranslations("adminUsers");
   // An added coordinator is approved at once but cannot sign in before the e-mailed link sets a password.
-  if (status === "APPROVED" && passwordSet === false)
+  if (status === UserAccountStatus.Approved && passwordSet === false)
     return <StatusPill tone="amber">{t("passwordNotSet")}</StatusPill>;
-  if (status === "APPROVED") {
+  if (status === UserAccountStatus.Approved) {
     return <StatusPill tone="green">{t("active")}</StatusPill>;
   }
-  if (status === "PENDING") {
+  if (status === UserAccountStatus.Pending) {
     return <StatusPill tone="amber">{t("pending")}</StatusPill>;
   }
   return <StatusPill tone="neutral">{t("inactive")}</StatusPill>;
@@ -1602,11 +1362,11 @@ function LoadBar({ count, warning }: { count: number; warning: boolean }) {
   );
 }
 
-function RowMenu({
-  items,
-}: {
-  items: { label: string; onClick: () => void }[];
-}) {
+/** A menu entry either acts on the row or, for navigation, is a real link. */
+type RowMenuItem =
+  { label: string; onClick: () => void } | { label: string; href: string };
+
+function RowMenu({ items }: { items: RowMenuItem[] }) {
   const t = useTranslations("adminUsers");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
@@ -1633,19 +1393,29 @@ function RowMenu({
       </button>
       {open ? (
         <div className="absolute right-0 z-20 mt-1 min-w-[180px] rounded-2xl border border-[#e9ecef] bg-white p-1 shadow-[0_8px_24px_rgba(33,38,43,0.12)]">
-          {items.map((item) => (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                item.onClick();
-              }}
-              className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
-            >
-              {item.label}
-            </button>
-          ))}
+          {items.map((item) =>
+            "href" in item ? (
+              <Link
+                key={item.label}
+                href={item.href}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </Link>
+            ) : (
+              <button
+                key={item.label}
+                type="button"
+                onClick={() => {
+                  setOpen(false);
+                  item.onClick();
+                }}
+                className="block w-full rounded-xl px-3 py-2 text-left text-[13px] text-[#22262b] hover:bg-[#f5f6f8]"
+              >
+                {item.label}
+              </button>
+            ),
+          )}
         </div>
       ) : null}
     </div>
@@ -1742,9 +1512,7 @@ function Pager({
 }) {
   const t = useTranslations("adminUsers");
   const label = t(`nouns.${noun}`, { count: total });
-  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const start = total === 0 ? 0 : page * PAGE_SIZE + 1;
-  const end = Math.min(total, (page + 1) * PAGE_SIZE);
+  const { pages, start, end } = pageRange(total, page);
   return (
     <div className="flex items-center justify-between text-[12.5px] text-[#858c96]">
       <span>
@@ -1773,21 +1541,6 @@ function Pager({
       </span>
     </div>
   );
-}
-
-function relativeTime(value: string | null | undefined, t: UsersT) {
-  if (!value) return null;
-  const then = new Date(value).getTime();
-  if (Number.isNaN(then)) return null;
-  const minutes = Math.floor((Date.now() - then) / 60000);
-  let label = t("justNow");
-  if (minutes >= 60 * 24 * 2) {
-    label = t("daysAgo", { count: Math.floor(minutes / (60 * 24)) });
-  } else if (minutes >= 60 * 24) label = t("yesterday");
-  else if (minutes >= 60) {
-    label = t("hoursAgo", { count: Math.floor(minutes / 60) });
-  } else if (minutes >= 1) label = t("minutesAgo", { count: minutes });
-  return { label, stale: minutes >= 60 * 24 * 7 };
 }
 
 const coordCols =

@@ -1,12 +1,12 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { GateBadgeStateChip } from "@/components/badges/gate-badge-state-chip";
-import { inTraining, StudentFilter } from "@/interfaces/badges";
 import { useAdminStudents } from "@/hooks/use-admin-students";
+import { inTraining, StudentFilter } from "@/interfaces/badges";
 import { errorMessage, formatLongDate } from "@/lib/utils";
 
 /**

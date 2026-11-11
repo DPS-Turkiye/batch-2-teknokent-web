@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { isRegisterRole, registerAccount } from "@/lib/api/auth";
 import {
@@ -7,6 +7,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 
 export async function POST(
   request: NextRequest,
@@ -35,8 +36,9 @@ export async function POST(
       );
     }
 
-    const payload = await request.json();
-    return backendResponse(await registerAccount(role, payload, idToken));
+    const payload = await readJsonBody(request, jsonObjectSchema);
+    if (!payload.ok) return payload.response;
+    return backendResponse(await registerAccount(role, payload.data, idToken));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("registrationFailed"),

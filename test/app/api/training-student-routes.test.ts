@@ -9,6 +9,7 @@ import {
   submitTrainingAttempt,
 } from "@/lib/api/training";
 import { getSessionUser } from "@/lib/session";
+import { answerEachWith } from "@test/fixtures/route-handlers";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => key,
@@ -37,16 +38,8 @@ function post(body: unknown) {
 describe("student training routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(fetchStudentTraining).mockResolvedValue({
-      status: 200,
-      data: {},
-      headers: {},
-    } as never);
-    vi.mocked(submitTrainingAttempt).mockResolvedValue({
-      status: 200,
-      data: {},
-      headers: {},
-    } as never);
+    answerEachWith([fetchStudentTraining]);
+    answerEachWith([submitTrainingAttempt]);
   });
 
   it("needs a session and acts as its student", async () => {

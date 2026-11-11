@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 
 import { EmptyNote } from "@/components/admin/admin-ui";
 import { useTeamStage } from "@/hooks/use-team-stage";
-import type { StartupStage } from "@/interfaces/startup-process";
+import { StartupStage } from "@/interfaces/startup-process";
+import { isEnumValue } from "@/lib/enum";
 
 const pillClass =
   "rounded-full px-4 py-2 text-[12.5px] font-medium disabled:opacity-50";
@@ -45,9 +46,10 @@ export function TeamStage({
             {t("newStage")}
             <select
               value={stage.draft ?? ""}
-              onChange={(event) =>
-                stage.pick(event.target.value as StartupStage)
-              }
+              onChange={(event) => {
+                const { value } = event.target;
+                if (isEnumValue(StartupStage, value)) stage.pick(value);
+              }}
               className="rounded-xl border border-[#e9ecef] px-3 py-2 text-[13px] text-[#22262b]"
             >
               {stage.options.map((option) => (

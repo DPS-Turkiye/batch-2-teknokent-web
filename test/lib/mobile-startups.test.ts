@@ -4,18 +4,18 @@ import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
-import type { StartupDocument } from "@/interfaces/startup-document";
 import {
   activeStartupCards,
   pastStartupCards,
-  StartupHealth,
   startupDetail,
+  StartupHealth,
 } from "@/lib/mobile-startups";
 import {
   menteeActionItemFixture,
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { documentFixture } from "@test/fixtures/startup-files";
 import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 12, 0);
@@ -79,14 +79,23 @@ describe("activeStartupCards", () => {
 
 describe("pastStartupCards", () => {
   it("lists ended regular mentorships once, leaving out startups still active", () => {
-    const mentorship = (organizationId: string, status: string) =>
-      ({
-        id: `${organizationId}-${status}`,
-        organizationId,
-        organizationName: organizationId.toUpperCase(),
-        status,
-        endDate: "2026-08-31",
-      }) as RegularMentorship;
+    const mentorship = (
+      organizationId: string,
+      status: string,
+    ): RegularMentorship => ({
+      id: `${organizationId}-${status}`,
+      mentorId: "m1",
+      mentorName: "Nihan Öztürk",
+      organizationId,
+      organizationName: organizationId.toUpperCase(),
+      status,
+      startDate: "2026-03-01",
+      endDate: "2026-08-31",
+      daysPerWeek: 1,
+      goals: null,
+      goalItems: [],
+      progressPercent: 100,
+    });
 
     const cards = pastStartupCards(
       [
@@ -110,6 +119,25 @@ describe("pastStartupCards", () => {
       )[0]?.nextLine,
     ).toBe("Ended · August 31, 2026");
   });
+
+  it("leaves out a student's personal team, which is never shown as a startup", () => {
+    const personal: RegularMentorship = {
+      id: "personal-1",
+      mentorId: "m1",
+      mentorName: "Nihan Öztürk",
+      organizationId: "personal",
+      organizationName: null,
+      status: "COMPLETED",
+      startDate: "2026-03-01",
+      endDate: "2026-08-31",
+      daysPerWeek: 1,
+      goals: null,
+      goalItems: [],
+      progressPercent: 100,
+    };
+
+    expect(pastStartupCards([personal], new Set(), mobileTexts())).toEqual([]);
+  });
 });
 
 describe("startupDetail", () => {
@@ -131,9 +159,9 @@ describe("startupDetail", () => {
       },
     ],
     documents: [
-      { createdAt: "2026-09-21T10:00:00Z" },
-      { createdAt: "2026-09-01T10:00:00Z" },
-    ] as StartupDocument[],
+      documentFixture("deck", { createdAt: "2026-09-21T10:00:00Z" }),
+      documentFixture("plan", { createdAt: "2026-09-01T10:00:00Z" }),
+    ],
     actionItems: [
       menteeActionItemFixture({
         id: "a",

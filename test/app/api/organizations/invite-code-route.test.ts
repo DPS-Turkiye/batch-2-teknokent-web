@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, POST } from "@/app/api/organizations/invite-code/route";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import {
   fetchInviteCode,
   regenerateInviteCode,
 } from "@/lib/api/organization-invite";
-import { UserRole, type AppSession } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/api/organization-invite", () => ({

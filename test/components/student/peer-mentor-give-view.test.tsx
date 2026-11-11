@@ -4,19 +4,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PeerMentorGiveView } from "@/components/student/peer-mentor-give-view";
 import {
-  type BadgeAward,
   BadgeCode,
   BadgeKind,
   BadgeSource,
   BadgeStatus,
+  type BadgeAward,
 } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  type PeerMentoringRequest,
   PeerTopicCategory,
+  type PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
-import { type AppSession, IdentityKind, UserRole } from "@/interfaces/session";
-import { type StudentTraining, TrainingState } from "@/interfaces/training";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
+import { TrainingState, type StudentTraining } from "@/interfaces/training";
 import { ClientApiError } from "@/lib/client/api";
 import { getMyBadges } from "@/lib/client/badges";
 import { fetchInstitutionRecord } from "@/lib/client/institution";

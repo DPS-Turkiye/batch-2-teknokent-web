@@ -1,6 +1,6 @@
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";

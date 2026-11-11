@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { WeeklyAvailabilityEditor } from "@/components/availability/weekly-availability-editor";
 import { ModalDialog } from "@/components/common/modal-dialog";

@@ -1,11 +1,11 @@
+import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import type {
   OrganizationPrograms,
-  ProgramName,
   Program,
   ProgramDetail,
   ProgramInvitation,
+  ProgramName,
 } from "@/interfaces/program";
-import type { MemberProgramEvent } from "@/interfaces/coordinator-program";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 

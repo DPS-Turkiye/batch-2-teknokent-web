@@ -54,7 +54,7 @@ describe("MeetingFeedbackList", () => {
     expect(screen.getByText("2 değerlendirme")).toBeInTheDocument();
     const [mentee, mentor] = screen
       .getAllByRole("listitem")
-      .filter((item) => item.textContent?.includes("değerlendirdi"));
+      .filter((item) => item.textContent.includes("değerlendirdi"));
     expect(mentee).toHaveTextContent("UX Flow Review");
     expect(mentee).toHaveTextContent("Lumen · Mentor: Leyla Aksoy");
     expect(mentee).toHaveTextContent("Gülse Buran değerlendirdi");

@@ -4,7 +4,6 @@ import { useMutation, useQueries, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import {
   meetingTodosQueryKey,
   useCreateMeetingTodo,
@@ -14,9 +13,10 @@ import {
 } from "@/hooks/use-meeting-notes";
 import { STARTUP_DOCUMENTS_QUERY_KEY } from "@/hooks/use-startup-documents";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { uploadDocument } from "@/lib/client/documents";
 import { getMeetingTodos } from "@/lib/client/meeting-notes";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** The notes view's open meeting: its note, its to-dos and its attachments. */
 export function useStartupMeetingNotes(meetingId: string | null) {
@@ -80,9 +80,10 @@ export function useOpenTodoCounts(meetingIds: string[]) {
     combine: (results) => {
       const counts = new Map<string, number>();
       results.forEach((result, index) => {
-        if (result.data) {
+        const meetingId = meetingIds[index];
+        if (meetingId && result.data) {
           counts.set(
-            meetingIds[index],
+            meetingId,
             result.data.filter((todo) => !todo.done).length,
           );
         }

@@ -4,14 +4,17 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   getMeetingFeedback,
   getMeetings,
   postMeetingFeedback,
   setMeetingHeld,
+  type MeetingFeedbackItem,
 } from "@/lib/client/meetings";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/meetings", () => ({
@@ -33,7 +36,7 @@ function wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-const meeting = {
+const meeting: MeetingItem = {
   id: "m1",
   organizationId: "org-1",
   organizationName: "Döngü",
@@ -41,15 +44,30 @@ const meeting = {
   scheduledAt: "2026-09-05T11:00:00Z",
   durationMinutes: 45,
   agenda: "UX Flow Review",
-  status: "COMPLETED",
+  status: MeetingStatus.Completed,
 };
+
+/** The mentor's evaluation of the meeting, as the backend keeps it. */
+function sentFeedback(
+  overrides: Partial<MeetingFeedbackItem> = {},
+): MeetingFeedbackItem {
+  return {
+    id: "f1",
+    meetingId: "m1",
+    authorId: "mentor-1",
+    ratings: [4, 3],
+    benefits: [],
+    createdAt: "2026-09-05T12:00:00Z",
+    ...overrides,
+  };
+}
 
 describe("useMentorMeetingEvaluation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMeetings).mockResolvedValue([meeting]);
     vi.mocked(getMentorRequests).mockResolvedValue([
-      { id: "r1", requesterName: "Gülse Buran" } as never,
+      mentorshipRequest({ id: "r1", requesterName: "Gülse Buran" }),
     ]);
     vi.mocked(getMeetingFeedback).mockResolvedValue(null);
   });
@@ -88,7 +106,9 @@ describe("useMentorMeetingEvaluation", () => {
   });
 
   it("sends the answers and switches to the sent state", async () => {
-    vi.mocked(postMeetingFeedback).mockResolvedValue({ id: "f1" });
+    vi.mocked(postMeetingFeedback).mockResolvedValue(
+      sentFeedback({ ratings: [5, 5], benefits: ["Saygılı"] }),
+    );
     const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
       wrapper,
     });
@@ -110,14 +130,7 @@ describe("useMentorMeetingEvaluation", () => {
   });
 
   it("opens straight on the sent state when the mentor already evaluated it", async () => {
-    vi.mocked(getMeetingFeedback).mockResolvedValue({
-      id: "f1",
-      meetingId: "m1",
-      authorId: "mentor-1",
-      ratings: [4, 3],
-      benefits: [],
-      createdAt: "2026-09-05T12:00:00Z",
-    });
+    vi.mocked(getMeetingFeedback).mockResolvedValue(sentFeedback());
     const { result } = renderHook(() => useMentorMeetingEvaluation("m1"), {
       wrapper,
     });

@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MeetingTopicStackDialog } from "@/components/startup/meeting-topic-stack-dialog";
 import { groupMeetingsByTopic } from "@/lib/startup-meetings";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 import {
   detailsFixture,
   meetingFixture,
@@ -11,23 +12,26 @@ import {
 
 const NOW = new Date("2026-09-11T12:00:00Z");
 
-const topic = groupMeetingsByTopic(
-  [
-    meetingFixture("finance-1", "2026-07-10T09:00:00Z", {
-      agenda: "Financial Model & Sustainability",
-      mentorshipRequestId: "req-finance",
-    }),
-    meetingFixture("finance-2", "2026-08-18T09:00:00Z", {
-      agenda: "Financial Model & Sustainability",
-      mentorshipRequestId: "req-finance",
-    }),
-    meetingFixture("finance-3", "2026-09-01T09:00:00Z", {
-      agenda: "Financial Model & Sustainability",
-      mentorshipRequestId: "req-finance",
-    }),
-  ],
-  NOW,
-)[0];
+const topic = itemAt(
+  groupMeetingsByTopic(
+    [
+      meetingFixture("finance-1", "2026-07-10T09:00:00Z", {
+        agenda: "Financial Model & Sustainability",
+        mentorshipRequestId: "req-finance",
+      }),
+      meetingFixture("finance-2", "2026-08-18T09:00:00Z", {
+        agenda: "Financial Model & Sustainability",
+        mentorshipRequestId: "req-finance",
+      }),
+      meetingFixture("finance-3", "2026-09-01T09:00:00Z", {
+        agenda: "Financial Model & Sustainability",
+        mentorshipRequestId: "req-finance",
+      }),
+    ],
+    NOW,
+  ),
+  0,
+);
 
 describe("MeetingTopicStackDialog", () => {
   it("lists the topic's meetings newest-first with orange accents", async () => {
@@ -55,7 +59,7 @@ describe("MeetingTopicStackDialog", () => {
     const cards = within(dialog)
       .getAllByRole("button")
       .filter((el) => el.getAttribute("tabindex") === "0");
-    expect(cards).toHaveLength(3);
+    expectLength(cards, 3);
 
     await user.click(cards[0]);
     expect(onSelectMeeting).toHaveBeenCalledWith("finance-3");

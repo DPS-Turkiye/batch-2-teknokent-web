@@ -6,8 +6,8 @@ import {
   loadMentors,
   MentorFetchError,
 } from "@/lib/mentors";
-import { getSessionIds } from "@/lib/session";
 import { backendRequest } from "@/lib/server/backend-client";
+import { getSessionIds } from "@/lib/session";
 import { createMentorResponse, mentorProfile } from "@test/fixtures/mentors";
 
 vi.mock("@/lib/session", () => ({

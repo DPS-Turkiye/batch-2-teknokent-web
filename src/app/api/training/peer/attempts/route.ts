@@ -1,46 +1,36 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
+import { submitTrainingAttempt } from "@/lib/api/training";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
-import { submitTrainingAttempt } from "@/lib/api/training";
 
-function answersOf(value: unknown): Record<string, number> | null {
-  if (!value || typeof value !== "object") return null;
-  const entries = Object.entries(value);
-  return entries.every(([, option]) => Number.isInteger(option))
-    ? (Object.fromEntries(entries) as Record<string, number>)
-    : null;
-}
+/** Each answer is the chosen option's index, keyed by question. */
+const attemptSchema = z.object({
+  version: z.int(),
+  answers: z.record(z.string(), z.int()),
+});
 
 /** The backend grades; this only checks the shape and acts as the session's student. */
 export async function POST(request: NextRequest) {
   try {
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
-    const body = (await request.json().catch(() => ({}))) as {
-      version?: unknown;
-      answers?: unknown;
-    };
-    const answers = answersOf(body.answers);
-    if (!Number.isInteger(body.version) || !answers) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("trainingSubmitFailed"),
-        },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, attemptSchema, {
+      invalidMessage: "trainingSubmitFailed",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
       await submitTrainingAttempt(
         session.userId,
-        body.version as number,
-        answers,
+        body.data.version,
+        body.data.answers,
       ),
     );
   } catch (error) {

@@ -94,7 +94,7 @@ export function isCurrentEmailVerified(): boolean {
   try {
     const user = firebaseAuth().currentUser;
     if (!user) return false;
-    return user.emailVerified === true || isEmailVerificationExempt(user.email);
+    return user.emailVerified || isEmailVerificationExempt(user.email);
   } catch {
     return false;
   }
@@ -165,8 +165,7 @@ export async function currentFirebaseAccount(): Promise<{
     return {
       email: user.email,
       fullName: user.displayName?.trim() ?? "",
-      verified:
-        user.emailVerified === true || isEmailVerificationExempt(user.email),
+      verified: user.emailVerified || isEmailVerificationExempt(user.email),
     };
   } catch {
     return null;

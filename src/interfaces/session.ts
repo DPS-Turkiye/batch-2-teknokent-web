@@ -27,12 +27,12 @@ export type AppSession = {
   fullName: string;
   jobTitle: string;
   role: UserRole;
-  organizationId?: string;
-  organizationName?: string;
+  organizationId?: string | undefined;
+  organizationName?: string | undefined;
   /** /api/auth/me's individualMentee at sign-in: useIndividualProgram's first guess until the programs load. */
-  individualMentee?: boolean;
+  individualMentee?: boolean | undefined;
   /** Every active permission; `role` is the primary one. Missing on cookies issued before permissions existed. */
-  permissions?: UserRole[];
+  permissions?: UserRole[] | undefined;
   /** From /api/auth/me; non-empty for an ODTÜ account, which is what makes it one. */
   institutionKinds?: IdentityKind[];
   /** The workspace the user switched to; see lib/workspaces.ts. */

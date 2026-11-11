@@ -1,9 +1,9 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
-  type CoordinatorAgendaItem,
   CoordinatorAgendaKind,
+  type CoordinatorAgendaItem,
+  type CoordinatorNextMeeting,
 } from "@/interfaces/coordinator-overview";
 import {
   agendaForToday,
@@ -12,16 +12,11 @@ import {
   meetingSlotLabel,
   type CoordinatorHomeTexts,
 } from "@/lib/coordinator-home";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
 function texts(locale: "tr" | "en"): CoordinatorHomeTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "coordinatorHome",
-    }),
+    t: translatorIn(locale, "coordinatorHome"),
     locale,
   };
 }
@@ -58,10 +53,20 @@ describe("coordinator home helpers", () => {
   });
 
   it("describes the next meeting's slot", () => {
-    const meeting = {
+    const meeting: CoordinatorNextMeeting = {
+      meetingId: "meeting-1",
+      title: "Finansal model",
       scheduledAt: new Date(2026, 8, 25, 14, 0).toISOString(),
       durationMinutes: 60,
-    } as Parameters<typeof meetingSlotLabel>[0];
+      meetLink: null,
+      sequence: 1,
+      mentorId: "mentor-1",
+      mentorName: "Ahmet Can",
+      mentorTitle: null,
+      organizationId: "org-1",
+      organizationName: "Nova Robotics",
+      founderName: null,
+    };
     expect(meetingSlotLabel(meeting, "tr", now)).toBe("Yarın · 14:00–15:00");
     expect(meetingSlotLabel(meeting, "en", now)).toMatch(
       /^Tomorrow · 2:00\s–\s3:00\sPM$/,

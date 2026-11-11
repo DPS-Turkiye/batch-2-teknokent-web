@@ -1,8 +1,10 @@
 import { redirect } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
+
 import ProgramDetailPage from "@/app/programs/[id]/page";
 import { UserRole } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
+
 vi.mock("next/navigation", () => ({
   redirect: vi.fn(() => {
     throw new Error("redirect");

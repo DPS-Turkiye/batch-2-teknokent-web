@@ -18,11 +18,12 @@ import { ProgramDetailFrame } from "@/components/coordinator/program-detail-fram
 import { useMentorPool, useMentorReview } from "@/hooks/use-mentor-pool";
 import { useOptionLabel } from "@/hooks/use-option-label";
 import {
-  type CoordinatorProgramDetail,
   ProgramLifecycle,
+  type CoordinatorProgramDetail,
 } from "@/interfaces/coordinator-program";
-import { type MentorPoolRow, MentorPoolStatus } from "@/interfaces/mentor-pool";
+import { MentorPoolStatus, type MentorPoolRow } from "@/interfaces/mentor-pool";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
+import { isEnumValue } from "@/lib/enum";
 import {
   CapacityFilter,
   loadShare,
@@ -90,7 +91,9 @@ function PoolBody({
               value,
               label: t(`capacityFilters.${value}`),
             }))}
-            onChange={(value) => pool.setCapacity(value as CapacityFilter)}
+            onChange={(value) => {
+              if (isEnumValue(CapacityFilter, value)) pool.setCapacity(value);
+            }}
           />
           {archived ? null : (
             <button
@@ -269,7 +272,7 @@ function RowActions({
       return (
         <button
           type="button"
-          onClick={() => pool.openReview(row.mentorId as string)}
+          onClick={() => pool.openReview(row.mentorId!)}
           className="rounded-full bg-[#22262b] px-3.5 py-2 text-[12.5px] font-medium text-white"
         >
           {t("review")}

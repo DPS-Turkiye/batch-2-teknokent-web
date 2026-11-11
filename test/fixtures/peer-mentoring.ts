@@ -1,12 +1,12 @@
 import { BadgeCode, BadgeKind } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
+  PeerTopicCategory,
   type CreatePeerMentoringRequestInput,
-  type PeerMentoringPerson,
   type PeerMentorCard,
   type PeerMentorFilter,
+  type PeerMentoringPerson,
   type PeerMentoringRequest,
-  PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
 
 // Test stand-in for the peer-mentoring API: the same filtering and request rules the backend applies.

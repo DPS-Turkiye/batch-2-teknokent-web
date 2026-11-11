@@ -1,9 +1,9 @@
 import { useTranslations } from "next-intl";
 
-import type { MeetingReport } from "@/types/assistant";
+import type { ReceivedMeetingReport } from "@/types/assistant";
 
 type Props = {
-  report: MeetingReport;
+  report: ReceivedMeetingReport;
 };
 
 function Section({
@@ -84,17 +84,17 @@ export function MeetingReportView({ report }: Props) {
           </p>
         ) : (
           <ul className="space-y-2">
-            {actionItems.map((item, index) => (
+            {actionItems.map((item) => (
               <li
-                key={`${item?.task ?? "task"}-${index}`}
+                key={item.task}
                 className="text-[12.5px] leading-relaxed text-[var(--ma-t1)]"
               >
-                <span className="font-medium">{item?.task || "—"}</span>
-                {(item?.owner || item?.due) && (
+                <span className="font-medium">{item.task || "—"}</span>
+                {item.owner || item.due ? (
                   <span className="mt-0.5 block text-[11.5px] text-[var(--ma-t3)]">
                     {[item.owner, item.due].filter(Boolean).join(" · ")}
                   </span>
-                )}
+                ) : null}
               </li>
             ))}
           </ul>

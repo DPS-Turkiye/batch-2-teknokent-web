@@ -1,7 +1,8 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { FileText } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 import {
   ProfileAnalysisStatus,
   ProfileAnalysisType,

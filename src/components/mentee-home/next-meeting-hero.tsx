@@ -1,13 +1,13 @@
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useLocale, useTranslations } from "next-intl";
 
 import { Avatar } from "@/components/common/avatar";
+import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { meetingWhenLabel } from "@/lib/mentee-home";
 import { meetingCallHref } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
-import { RescheduleMeetingButton } from "@/components/reschedule-meeting-button";
 
 const whiteButton =
   "inline-flex items-center justify-center rounded-full border border-white bg-white px-3.5 py-2 text-[12.5px] font-medium leading-[18px] text-[#4a5059] hover:bg-[#fff7f1]";

@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { ApplicationStatusTimeline } from "@/components/auth/application-status-timeline";
 import { AuthShell } from "@/components/auth/auth-shell";

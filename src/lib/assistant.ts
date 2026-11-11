@@ -100,7 +100,8 @@ export async function fetchTranscript(
 ): Promise<TranscriptSegment[]> {
   try {
     const data = requireAssistantOk(
-      await httpClient.get<{ segments?: TranscriptSegment[] }>(
+      // The bot API may answer an unknown meeting with an empty body.
+      await httpClient.get<{ segments?: TranscriptSegment[] } | null>(
         getTranscriptApiUrl(platform, nativeMeetingId),
       ),
       clientText("assistant.transcriptFailed"),

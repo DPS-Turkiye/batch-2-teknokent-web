@@ -3,11 +3,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramDetailView } from "@/components/programs/program-detail-view";
 import {
-  type ProgramDetail,
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  type ProgramDetail,
 } from "@/interfaces/program";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { getProgramDetail } from "@/lib/client/programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -35,8 +35,13 @@ vi.mock("@/components/hoc/app-shell", () => ({
 }));
 
 vi.mock("@/components/providers/session-provider", () => ({
-  useAppSession: () =>
-    ({ userId: "user-1", role: UserRole.Mentee }) as AppSession,
+  useAppSession: (): AppSession => ({
+    userId: "user-1",
+    email: "mentee@dongu.co",
+    fullName: "Gülse Buran",
+    jobTitle: "",
+    role: UserRole.Mentee,
+  }),
 }));
 
 vi.mock("@/lib/client/programs", () => ({

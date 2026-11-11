@@ -1,6 +1,5 @@
 import Image from "next/image";
 import Link from "next/link";
-import type { CSSProperties } from "react";
 
 import {
   ArrowIcon,
@@ -9,8 +8,8 @@ import {
 } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingHero, useLandingPointerEffects } from "@/hooks/use-landing";
-import { LANDING_PHOTOS } from "@/lib/const/landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import { LANDING_PHOTOS } from "@/lib/const/landing";
 import type { LandingLink } from "@/types/landing";
 
 export function LandingHero({ action }: { action: LandingLink }) {
@@ -39,6 +38,7 @@ export function LandingHero({ action }: { action: LandingLink }) {
           </div>
           <h1 aria-label={landing.hero.headline}>
             {words.map((word, index) => (
+              // eslint-disable-next-line react/no-array-index-key -- the headline's words can repeat, and each keeps its place for the staggered reveal
               <span key={`${word}-${index}`}>
                 <span
                   aria-hidden
@@ -47,7 +47,7 @@ export function LandingHero({ action }: { action: LandingLink }) {
                     word.startsWith(landing.hero.accentPrefix) && "accent",
                   )}
                 >
-                  <span style={{ "--i": index } as CSSProperties}>{word}</span>
+                  <span style={{ "--i": index }}>{word}</span>
                 </span>{" "}
               </span>
             ))}

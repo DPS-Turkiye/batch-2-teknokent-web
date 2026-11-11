@@ -1,16 +1,21 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { useAppSession } from "@/components/providers/session-provider";
-import { UserRole, type AppSession } from "@/interfaces/session";
 import { StartupProfileImport } from "@/components/startup/startup-profile-import";
 import {
-  getProfileAnalysisRecord,
-  createStartupProfileRecord,
-  confirmStartupProfileRecord,
-} from "@/lib/client/profile-analysis-records";
+  ProfileAnalysisStatus,
+  ProfileAnalysisType,
+} from "@/interfaces/profile-analysis";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
+import {
+  confirmStartupProfileRecord,
+  createStartupProfileRecord,
+  getProfileAnalysisRecord,
+} from "@/lib/client/profile-analysis-records";
 import { analysis, profileToolsWrapper } from "@test/fixtures/profile-tools";
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -36,10 +41,10 @@ beforeEach(() => {
   );
   vi.mocked(uploadProfileAnalysis).mockResolvedValue(analysis());
   vi.mocked(confirmStartupProfileRecord).mockResolvedValue(
-    analysis({ status: "CONFIRMED" }),
+    analysis({ status: ProfileAnalysisStatus.Confirmed }),
   );
   vi.mocked(createStartupProfileRecord).mockResolvedValue(
-    analysis({ status: "CONFIRMED" }),
+    analysis({ status: ProfileAnalysisStatus.Confirmed }),
   );
 });
 function setup(locale: "en" | "tr" = "en") {
@@ -138,7 +143,7 @@ describe("embedded startup profile import", () => {
   it("shows a retriable loading error instead of treating a server failure as an empty profile", async () => {
     vi.mocked(getProfileAnalysisRecord)
       .mockRejectedValueOnce(new ClientApiError("Unavailable", 503))
-      .mockResolvedValue(analysis({ status: "CONFIRMED" }));
+      .mockResolvedValue(analysis({ status: ProfileAnalysisStatus.Confirmed }));
     const { user } = setup();
     await screen.findByRole("alert");
     await user.click(screen.getByRole("button", { name: "Try again" }));
@@ -147,7 +152,7 @@ describe("embedded startup profile import", () => {
   });
   it("does not put a historical personal CV in the startup review form", async () => {
     vi.mocked(getProfileAnalysisRecord).mockResolvedValue(
-      analysis({ profileType: "individual_mentee" }),
+      analysis({ profileType: ProfileAnalysisType.Personal }),
     );
     setup();
     await screen.findByText(/No startup profile/);

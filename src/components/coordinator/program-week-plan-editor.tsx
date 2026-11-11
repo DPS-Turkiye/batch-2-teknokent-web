@@ -1,7 +1,6 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { Plus, Sparkles, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
@@ -84,7 +83,7 @@ export function ProgramWeekPlanEditor({
         <ol className="space-y-3" aria-label={t("title")}>
           {plan.weeks.map((week, index) => (
             <WeekRow
-              key={`${week.week}-${index}`}
+              key={week.key}
               week={week}
               index={index}
               plan={plan}

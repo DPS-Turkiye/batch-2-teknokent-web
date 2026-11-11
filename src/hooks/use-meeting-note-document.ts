@@ -50,7 +50,7 @@ export function useMeetingNoteDocument(
         setSeedFromSnapshot(document.seedFromSnapshot);
         setStatus(DocumentStatus.Ready);
       })
-      .catch((error) => {
+      .catch((error: unknown) => {
         console.error("Meeting note document could not be loaded", error);
         if (!cancelled) setStatus(DocumentStatus.Failed);
       });

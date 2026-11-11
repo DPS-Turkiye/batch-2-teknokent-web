@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import {
   deleteOnboardingDraft,
@@ -11,6 +12,13 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
+
+const draftSchema = z.object({
+  kind: z.enum(["signup-wizard", "mentor-onboarding"]),
+  step: z.string(),
+  payload: z.unknown(),
+});
 
 async function requireIdToken(request: NextRequest) {
   const idToken = readBearerToken(request);
@@ -40,18 +48,9 @@ export async function PUT(request: NextRequest) {
   try {
     const idToken = await requireIdToken(request);
     if (idToken instanceof NextResponse) return idToken;
-    const body = (await request.json()) as {
-      kind?: string;
-      step?: string;
-      payload?: unknown;
-    };
-    return backendResponse(
-      await saveOnboardingDraft(idToken, {
-        kind: body.kind as "signup-wizard" | "mentor-onboarding",
-        step: String(body.step ?? ""),
-        payload: body.payload,
-      }),
-    );
+    const body = await readJsonBody(request, draftSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(await saveOnboardingDraft(idToken, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("signupDraftSaveFailed"),

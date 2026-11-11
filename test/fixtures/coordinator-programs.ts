@@ -1,11 +1,11 @@
 import {
-  type CoordinatorProgram,
-  type CoordinatorProgramDetail,
   ProgramEventKind,
   ProgramLifecycle,
+  type CoordinatorProgram,
+  type CoordinatorProgramDetail,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
-import { ProgramType } from "@/interfaces/program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 
 export function phase(
   id: string,
@@ -21,7 +21,7 @@ export function coordinatorProgram(
   return {
     id: "program-1",
     name: "METU Stars 2026",
-    status: "ACTIVE",
+    status: ProgramStatus.Active,
     lifecycle: ProgramLifecycle.Active,
     type: ProgramType.StartupMentoring,
     description: null,
@@ -96,6 +96,7 @@ export function coordinatorProgramDetail(
     ],
     missingNoteMeetings: 4,
     pendingApprovalCount: 6,
+    syllabus: null,
     ...overrides,
   };
 }

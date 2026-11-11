@@ -1,6 +1,6 @@
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 
-const HIDDEN_STATUSES = new Set<string>([
+const HIDDEN_STATUSES = new Set([
   MeetingStatus.Cancelled,
   MeetingStatus.Completed,
 ]);
@@ -20,9 +20,7 @@ export function pickUpcomingMeetings(
 
   const upcoming = meetings
     .filter((meeting) => {
-      if (HIDDEN_STATUSES.has(String(meeting.status).toUpperCase())) {
-        return false;
-      }
+      if (HIDDEN_STATUSES.has(meeting.status)) return false;
       const endMs = meetingEndMs(meeting);
       return Number.isFinite(endMs) && endMs > nowMs;
     })

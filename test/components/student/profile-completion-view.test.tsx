@@ -1,17 +1,18 @@
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { StudentProfileCompletionView } from "@/components/student/profile-completion-view";
-import {
-  getStudentProfileCompletion,
-  getProfileCompletionCategories,
-  saveStudentProfileCompletion,
-} from "@/lib/client/student-profile-completion";
+import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import {
   EMPTY_PROFILE_COMPLETION,
   PROFILE_COMPLETION_CATEGORIES,
 } from "@/lib/client/fixtures/student-profile-completion";
+import {
+  getProfileCompletionCategories,
+  getStudentProfileCompletion,
+  saveStudentProfileCompletion,
+} from "@/lib/client/student-profile-completion";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/student-profile-completion", () => ({

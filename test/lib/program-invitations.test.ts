@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  type Program,
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
   ProgramStatus,
+  type Program,
 } from "@/interfaces/program";
 import { programsAwaitingReview } from "@/lib/program-invitations";
 

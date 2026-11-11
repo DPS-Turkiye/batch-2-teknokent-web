@@ -1,14 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import {
-  type KeyboardEvent,
-  type ReactNode,
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent,
+  type ReactNode,
 } from "react";
 
 import { PhotoAvatar } from "@/components/common/avatar";
@@ -112,9 +112,10 @@ export function AccountMenu({
       End: items.length - 1,
     };
     const next = moves[event.key];
-    if (next === undefined || items.length === 0) return;
+    const item = next === undefined ? undefined : items[next];
+    if (!item) return;
     event.preventDefault();
-    items[next].focus();
+    item.focus();
   }
 
   return (

@@ -1,5 +1,22 @@
 {
   "semi": true,
   "singleQuote": false,
-  "trailingComma": "all"
+  "trailingComma": "all",
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": [
+    "<BUILTIN_MODULES>",
+    "<THIRD_PARTY_MODULES>",
+    "",
+    "^@(test/|/)(.*)$",
+    "",
+    "^[.]"
+  ],
+  "importOrderParserPlugins": ["typescript", "jsx", "decorators-legacy"],
+  "importOrderTypeScriptVersion": "6.0.3",
+  "importOrderCaseSensitive": false,
+  "importOrderSafeSideEffects": [
+    "^server-only$",
+    "^@testing-library/jest-dom/vitest$",
+    "\\.css$"
+  ]
 }

@@ -1,14 +1,13 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { useSignupProgramChoice } from "@/hooks/use-signup-program-choice";
-import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { getProgramEligibility } from "@/lib/client/auth";
 import { getProgramNames } from "@/lib/client/programs";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { QueryClientProvider } from "@tanstack/react-query";
-import type { ReactNode } from "react";
-
+import { signupDraft, signupWizardStub } from "@test/fixtures/signup-wizard";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/programs", () => ({
@@ -27,10 +26,9 @@ function createQueryWrapper() {
 }
 
 function wizardWith(programId: string | null, startupLater = false) {
-  return {
-    draft: { startup: { programId, startupLater } },
-    updateStartup: vi.fn(),
-  } as unknown as SignupWizard;
+  return signupWizardStub({
+    draft: signupDraft({ startup: { programId, startupLater } }),
+  });
 }
 
 describe("useSignupProgramChoice", () => {

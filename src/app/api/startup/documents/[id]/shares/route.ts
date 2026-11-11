@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { shareStartupDocument } from "@/lib/api/startup-documents";
 import {
@@ -6,7 +7,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
+
+const shareSchema = z.object({ mentorId: z.string() });
 
 export async function POST(
   request: NextRequest,
@@ -15,8 +19,11 @@ export async function POST(
   try {
     const { id } = await params;
     const { userId } = await getSessionIds();
-    const { mentorId } = (await request.json()) as { mentorId: string };
-    return backendResponse(await shareStartupDocument(id, userId, mentorId));
+    const body = await readJsonBody(request, shareSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(
+      await shareStartupDocument(id, userId, body.data.mentorId),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("fileShareFailed"),

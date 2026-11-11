@@ -1,22 +1,20 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import { sendPasswordResetEmail } from "@/lib/api/auth-email";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
+
+const passwordResetSchema = z.object({ email: z.string().trim().min(1) });
 
 // Public: "Şifremi unuttum" is used signed out. The backend answers the same for known and unknown addresses.
 export async function POST(request: NextRequest) {
   try {
-    const body = (await request.json().catch(() => ({}))) as {
-      email?: unknown;
-    };
-    const email = typeof body.email === "string" ? body.email.trim() : "";
-    if (!email) {
-      return NextResponse.json(
-        { code: "INVALID_REQUEST", message: await apiText("authEmailFailed") },
-        { status: 400 },
-      );
-    }
-    const response = await sendPasswordResetEmail(email);
+    const body = await readJsonBody(request, passwordResetSchema, {
+      invalidMessage: "authEmailFailed",
+    });
+    if (!body.ok) return body.response;
+    const response = await sendPasswordResetEmail(body.data.email);
     return new NextResponse(null, { status: response.status });
   } catch (error) {
     return apiErrorResponse(error, {

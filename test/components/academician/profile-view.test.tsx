@@ -5,12 +5,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AcademicianProfileView } from "@/components/academician/profile-view";
 import type { InstitutionRecord } from "@/interfaces/institution";
 import { IdentityKind } from "@/interfaces/session";
-import { ClientApiError } from "@/lib/client/api";
-import { fetchInstitutionRecord } from "@/lib/client/institution";
 import {
   getOfficeHoursProfileSettings,
   saveOfficeHoursProfileSettings,
 } from "@/lib/client/academician-office-hours";
+import { ClientApiError } from "@/lib/client/api";
+import { fetchInstitutionRecord } from "@/lib/client/institution";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/institution", () => ({
