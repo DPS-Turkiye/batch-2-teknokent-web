@@ -3,13 +3,15 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AdminHomeView } from "@/components/admin/home-view";
-import type {
-  AdminBottleneck,
-  AdminMentorMembership,
-  AdminOverview,
-  AdminRequest,
-  AdminUser,
+import {
+  BottleneckSeverity,
+  type AdminBottleneck,
+  type AdminMentorMembership,
+  type AdminOverview,
+  type AdminRequest,
+  type AdminUser,
 } from "@/interfaces/admin-overview";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
@@ -49,7 +51,7 @@ function bottleneck(overrides: Partial<AdminBottleneck>): AdminBottleneck {
   return {
     id: "b-1",
     title: "Fiyatlama",
-    severity: "HIGH",
+    severity: BottleneckSeverity.High,
     status: "OPEN",
     organizationId: "org-2",
     organizationName: "Nova",
@@ -76,7 +78,7 @@ const request: AdminRequest = {
   mentorId: null,
   mentorName: null,
   supportArea: null,
-  status: "PENDING",
+  status: MentorshipRequestStatus.Pending,
   createdAt: "2026-11-01T09:00:00Z",
 };
 
@@ -157,7 +159,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
       bottleneck({
         id: "b-3",
         title: "Ekip",
-        severity: "CRITICAL",
+        severity: BottleneckSeverity.Critical,
         organizationId: "org-x",
         organizationName: "Delta",
       }),

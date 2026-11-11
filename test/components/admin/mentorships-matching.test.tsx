@@ -8,8 +8,10 @@ import type {
   AdminRequest,
   AdminUser,
 } from "@/interfaces/admin-overview";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { MentorshipTab } from "@/types/admin-mentorships";
 import {
   adminMentorship,
   adminProgram,
@@ -91,7 +93,7 @@ function request(overrides: Partial<AdminRequest>): AdminRequest {
     mentorId: null,
     mentorName: null,
     supportArea: null,
-    status: "PENDING",
+    status: MentorshipRequestStatus.Pending,
     createdAt: "2026-11-06T10:00:00+03:00",
     ...overrides,
   };
@@ -127,14 +129,14 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
         id: "r-zeta",
         organizationId: "org-4",
         organizationName: "Zeta",
-        status: "MORE_INFO_REQUESTED",
+        status: MentorshipRequestStatus.MoreInfoRequested,
         createdAt: "2026-11-10T10:00:00+03:00",
       }),
       request({
         id: "r-nova",
         organizationId: "org-2",
         organizationName: "Nova",
-        status: "DECLINED",
+        status: MentorshipRequestStatus.Declined,
         supportArea: "Finans",
         createdAt: "2026-11-01T10:00:00+03:00",
       }),
@@ -142,7 +144,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
         id: "r-kappa",
         organizationId: "org-5",
         organizationName: "Kappa",
-        status: "DECLINED",
+        status: MentorshipRequestStatus.Declined,
       }),
     ],
     bottlenecks: [],
@@ -153,7 +155,7 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
 
 function show(data: AdminOverview) {
   overviewState.current = data;
-  renderWithQueryClient(<MentorshipsView tab="matching" />);
+  renderWithQueryClient(<MentorshipsView tab={MentorshipTab.Matching} />);
 }
 
 function stat(title: string) {

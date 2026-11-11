@@ -4,6 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 import { UsersView } from "@/components/admin/users-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
+import { UserTab } from "@/types/admin-users";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const coordinator = (overrides: Partial<AdminUser>): AdminUser => ({
@@ -55,7 +56,7 @@ function rowOf(name: string) {
 
 describe("UsersView", () => {
   it("has an Akademisyenler tab that shows the institution's academicians", async () => {
-    renderWithQueryClient(<UsersView tab="academics" />);
+    renderWithQueryClient(<UsersView tab={UserTab.Academics} />);
 
     expect(
       screen.getByRole("link", { name: /Akademisyenler/ }),
@@ -66,7 +67,7 @@ describe("UsersView", () => {
   });
 
   it("marks an added coordinator who has not set a password yet", () => {
-    renderWithQueryClient(<UsersView tab="coordinators" />);
+    renderWithQueryClient(<UsersView tab={UserTab.Coordinators} />);
 
     expect(
       within(rowOf("Ayla Bekler")).getByText("Şifre belirlenmedi"),
@@ -80,7 +81,7 @@ describe("UsersView", () => {
   it("reads in English", () => {
     renderWithQueryClient(
       <InLocale locale="en">
-        <UsersView tab="coordinators" />
+        <UsersView tab={UserTab.Coordinators} />
       </InLocale>,
     );
 

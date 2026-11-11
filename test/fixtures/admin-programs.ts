@@ -3,6 +3,7 @@ import type {
   AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 
 /** A startup as the admin overview lists it inside a program. */
@@ -50,7 +51,7 @@ export function adminMentorship(
     mentorName: "Ayşe Demir",
     organizationId: "org-1",
     organizationName: "Lumen",
-    status: "ACTIVE",
+    status: MentorshipStatus.Active,
     startDate: "2026-01-01",
     endDate: null,
     progressPercent: 0,

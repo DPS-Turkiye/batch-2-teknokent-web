@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import {
   createMeetingTodo,
   createReportUpload,
@@ -116,7 +117,7 @@ describe("meeting note server API", () => {
   it("reads and publishes assistant shares", async () => {
     await fetchAssistantShare("meeting-1", { organizationId: "org-1" });
     await publishAssistantShare("meeting-1", "mentor-1", {
-      kind: "TRANSCRIPT",
+      kind: AssistantShareKind.Transcript,
       transcript: [{ id: "s1", speaker: "Ayşe", text: "Merhaba", at: "00:10" }],
     });
 

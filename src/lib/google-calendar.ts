@@ -1,12 +1,15 @@
 import { clientText } from "@/i18n/client-texts";
 import { MeetingStatus } from "@/interfaces/meeting";
 
+/** The message type the OAuth popup posts its token under. */
+const OAUTH_TOKEN_MESSAGE = "GOOGLE_OAUTH_TOKEN";
+
 /** The token the OAuth popup posts back (see relayGoogleOAuthTokenFromUrl), or null for any other message. */
 function oauthToken(
   data: unknown,
 ): { token: string; expiresIn: unknown } | null {
   if (!data || typeof data !== "object") return null;
-  if (!("type" in data) || data.type !== "GOOGLE_OAUTH_TOKEN") return null;
+  if (!("type" in data) || data.type !== OAUTH_TOKEN_MESSAGE) return null;
   if (!("token" in data) || typeof data.token !== "string" || !data.token) {
     return null;
   }
@@ -107,7 +110,7 @@ export function relayGoogleOAuthTokenFromUrl(): boolean {
   if (!token || !opener) return false;
 
   opener.postMessage(
-    { type: "GOOGLE_OAUTH_TOKEN", token, expiresIn },
+    { type: OAUTH_TOKEN_MESSAGE, token, expiresIn },
     window.location.origin,
   );
   window.close();

@@ -14,10 +14,11 @@ import {
   usePublishAssistantShare,
   useSaveMeetingNote,
 } from "@/hooks/use-meeting-notes";
-import type {
-  MeetingAssistantShare,
-  MeetingNote,
-  MeetingTodo,
+import {
+  AssistantShareKind,
+  type MeetingAssistantShare,
+  type MeetingNote,
+  type MeetingTodo,
 } from "@/interfaces/meeting-note";
 import {
   getAssistantShare,
@@ -256,7 +257,7 @@ describe("meeting notes hooks", () => {
     await act(() =>
       result.current.mutateAsync({
         meetingId: "m-2",
-        payload: { kind: "REPORT", report },
+        payload: { kind: AssistantShareKind.Report, report },
       }),
     );
 

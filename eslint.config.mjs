@@ -90,6 +90,20 @@ const eslintConfig = defineConfig([
           message:
             "`as never` turns off type checking for the value: fix the types, or build a complete typed value.",
         },
+        // Domain values (ACTIVE, IN_PROGRESS, PEER_MENTORING…) are compared through enums, so a renamed or
+        // removed value is a compile error instead of a silent mismatch.
+        {
+          selector:
+            "BinaryExpression[operator=/^[!=]==?$/] > Literal[value=/^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$|^[A-Z]{3,}$/]",
+          message:
+            "Compare a domain value against an enum member (or a named constant), not a string literal.",
+        },
+        {
+          selector:
+            "SwitchCase > Literal[value=/^[A-Z][A-Z0-9]*(_[A-Z0-9]+)+$|^[A-Z]{3,}$/]",
+          message:
+            "Switch on an enum and use its members as cases, not string literals.",
+        },
       ],
       "@typescript-eslint/consistent-type-imports": [
         "error",

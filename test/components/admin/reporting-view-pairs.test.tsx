@@ -4,12 +4,15 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramReporting } from "@/components/admin/reporting-view";
 import { useProgramMeetingRatings } from "@/hooks/use-program-report";
-import type {
-  AdminBottleneck,
-  AdminMeetingMark,
-  AdminOverview,
-  AdminUser,
+import {
+  BottleneckSeverity,
+  type AdminBottleneck,
+  type AdminMeetingMark,
+  type AdminOverview,
+  type AdminUser,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
@@ -81,7 +84,7 @@ function meetingMark(overrides: Partial<AdminMeetingMark>): AdminMeetingMark {
     mentorId: "mentor-1",
     organizationId: "org-1",
     scheduledAt: "2026-11-10T10:00:00+03:00",
-    status: "COMPLETED",
+    status: MeetingStatus.Completed,
     ...overrides,
   };
 }
@@ -90,15 +93,15 @@ const meetings: AdminMeetingMark[] = [
   meetingMark({}),
   meetingMark({
     scheduledAt: "2026-11-03T10:00:00+03:00",
-    status: "SCHEDULED",
+    status: MeetingStatus.Scheduled,
   }),
   meetingMark({
     scheduledAt: "2026-11-04T10:00:00+03:00",
-    status: "CANCELLED",
+    status: MeetingStatus.Cancelled,
   }),
   meetingMark({
     scheduledAt: "2026-11-20T10:00:00+03:00",
-    status: "SCHEDULED",
+    status: MeetingStatus.Scheduled,
   }),
   meetingMark({
     mentorId: "mentor-2",
@@ -110,7 +113,7 @@ const meetings: AdminMeetingMark[] = [
 const bottleneck: AdminBottleneck = {
   id: "b-1",
   title: "Fiyatlama",
-  severity: "HIGH",
+  severity: BottleneckSeverity.High,
   status: "OPEN",
   organizationId: "org-1",
   organizationName: "Lumen",
@@ -143,7 +146,11 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
     mentorships: [
       ayseLumen,
       canNova,
-      adminMentorship({ id: "paused", status: "PAUSED", programId: null }),
+      adminMentorship({
+        id: "paused",
+        status: MentorshipStatus.Paused,
+        programId: null,
+      }),
       adminMentorship({ id: "elsewhere", programId: "program-9" }),
     ],
     requests: [],

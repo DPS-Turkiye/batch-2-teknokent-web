@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { approvedCoordinatorsOf } from "@/components/admin/admin-model";
 import {
   ADMIN_OVERVIEW_QUERY_KEY,
   useAdminOverview,
@@ -13,6 +12,7 @@ import {
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { ProgramType } from "@/interfaces/program";
 import { ToastTone } from "@/interfaces/toast";
+import { approvedCoordinatorsOf } from "@/lib/admin-model";
 import {
   createProgramInput,
   emptyWizardDraft,

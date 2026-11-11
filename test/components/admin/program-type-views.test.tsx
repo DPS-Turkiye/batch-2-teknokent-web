@@ -6,6 +6,7 @@ import { MentorshipsView } from "@/components/admin/mentorships-view";
 import { ReportingView } from "@/components/admin/reporting-view";
 import type { AdminOverview } from "@/interfaces/admin-overview";
 import { ProgramType } from "@/interfaces/program";
+import { MentorshipTab } from "@/types/admin-mentorships";
 import { adminProgram } from "@test/fixtures/admin-programs";
 import {
   meetingFeedbackState,
@@ -55,7 +56,7 @@ describe("program type on admin Mentorluklar and Raporlama", () => {
   it("labels each program with its type and narrows Mentorluklar to one type", async () => {
     state.overview = withPrograms();
     const user = userEvent.setup();
-    renderWithQueryClient(<MentorshipsView tab="overview" />);
+    renderWithQueryClient(<MentorshipsView tab={MentorshipTab.Overview} />);
 
     expect(
       screen.getByText("İŞKUR Akran 2026", { selector: "span" }),

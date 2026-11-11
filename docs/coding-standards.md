@@ -55,7 +55,8 @@ The compiler runs with `strict`, `noUncheckedIndexedAccess`, `exactOptionalPrope
 ## Enums, not string literals
 
 Domain values (statuses, roles, kinds, categories) are TypeScript string enums in `src/interfaces` (or `src/types`
-for UI-only values). Their values match what the backend sends.
+for UI-only values). Their values match what the backend sends. ESLint rejects comparing or switching on an
+UPPER_CASE string literal, so `status === "ACTIVE"` does not get past CI.
 
 ```ts
 // ✗
@@ -73,6 +74,11 @@ if (meeting.status === MeetingStatus.Completed) …
 - Search before adding an enum. Do not create a second enum with an existing name; two `MeetingStatus` enums already
   exist (`src/interfaces/meeting.ts` for meetings, `src/types/assistant.ts` for the transcript bot) and must not be
   mixed.
+- When the backend keeps a value as free text (a `string` field) or a value mixes backend and app codes, an enum would
+  trip `no-unsafe-enum-comparison`. Use a named `as const` object instead, as `HttpMethod`, `MatchingMethod` and
+  `ClientErrorCode` do, and compare against its members.
+- When parsing untrusted data into a small set of values, check it against a `const` list with `isOneOf`
+  (see `technologyInferences` in `src/lib/profile-analysis.ts`).
 - The same goes for other magic values: use named constants from `src/lib/const` instead of repeating a number or a
   path.
 

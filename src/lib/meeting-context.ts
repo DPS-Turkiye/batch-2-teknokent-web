@@ -1,7 +1,10 @@
 import type { useTranslations } from "next-intl";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  MatchingMethod,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
 import { CALENDAR_SUPPORT_AREA } from "@/lib/const";
 import { requestOutcomeFromMessage } from "@/lib/mentor-availability-days";
@@ -23,7 +26,9 @@ export function isCalendarOriginRequest(
   if (request.mentorMessage?.trim() === "Takvimden oluşturuldu") return true;
   const area = request.supportArea.trim();
   if (!area || area === CALENDAR_SUPPORT_AREA) return true;
-  if (request.recommendationSnapshot?.matchingMethod === "PROFILE") {
+  if (
+    request.recommendationSnapshot?.matchingMethod === MatchingMethod.Profile
+  ) {
     return false;
   }
   const summary = request.summary?.trim() ?? "";

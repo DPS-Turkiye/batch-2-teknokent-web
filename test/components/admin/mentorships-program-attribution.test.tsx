@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MentorshipsView } from "@/components/admin/mentorships-view";
 import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
+import { MentorshipTab } from "@/types/admin-mentorships";
 import {
   adminMentorship,
   adminProgram,
@@ -68,7 +69,7 @@ const overview: AdminOverview = {
 function rowOf(text: string) {
   const cell = screen
     .getAllByText(text)
-    .find((element) => element.tagName !== "OPTION");
+    .find((element) => !(element instanceof HTMLOptionElement));
   const row = cell?.closest("div");
   if (!row) throw new Error(`No row for ${text}`);
   return row;
@@ -76,7 +77,7 @@ function rowOf(text: string) {
 
 describe("Admin mentorships: a team in two programs", () => {
   it("counts each mentorship once, under the program it was made in", () => {
-    renderWithQueryClient(<MentorshipsView tab="overview" />);
+    renderWithQueryClient(<MentorshipsView tab={MentorshipTab.Overview} />);
 
     expect(screen.getByText("2 program")).toBeInTheDocument();
     for (const name of ["ODTÜ Stars 2026", "Growth Circuit 2026"]) {
@@ -86,7 +87,9 @@ describe("Admin mentorships: a team in two programs", () => {
   });
 
   it("lists the overdue pair under its own program only", () => {
-    renderWithQueryClient(<MentorshipsView tab="interventions" />);
+    renderWithQueryClient(
+      <MentorshipsView tab={MentorshipTab.Interventions} />,
+    );
 
     expect(screen.queryByText("Ayşe Demir ↔ Lumen")).not.toBeInTheDocument();
     const row = rowOf("Kerem Tan ↔ Lumen");

@@ -2,7 +2,11 @@ import type { AxiosResponse } from "axios";
 
 import { clientText } from "@/i18n/client-texts";
 import type { DocumentKind } from "@/interfaces/startup-document";
-import { ClientApiError, requireSuccess } from "@/lib/client/api";
+import {
+  ClientApiError,
+  ClientErrorCode,
+  requireSuccess,
+} from "@/lib/client/api";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
@@ -82,15 +86,25 @@ export async function uploadDocument(
   try {
     return uploaded(await post(`${getPublicBackendUrl()}/api/documents`));
   } catch (error) {
-    if (!(error instanceof ClientApiError) || error.code !== "NETWORK") {
+    if (
+      !(error instanceof ClientApiError) ||
+      error.code !== ClientErrorCode.Network
+    ) {
       throw error;
     }
   }
   try {
     return uploaded(await post("/api/documents"));
   } catch (error) {
-    if (error instanceof ClientApiError && error.code === "NETWORK") {
-      throw new ClientApiError(UPLOAD_UNREACHABLE_MESSAGE, 0, "NETWORK");
+    if (
+      error instanceof ClientApiError &&
+      error.code === ClientErrorCode.Network
+    ) {
+      throw new ClientApiError(
+        UPLOAD_UNREACHABLE_MESSAGE,
+        0,
+        ClientErrorCode.Network,
+      );
     }
     throw error;
   }

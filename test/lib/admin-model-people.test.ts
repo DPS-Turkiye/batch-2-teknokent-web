@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import type {
+  AdminMentorMembership,
+  AdminOverview,
+  AdminUser,
+} from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
+import { ProgramMentorStatus } from "@/interfaces/program";
+import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   approvedCoordinatorsOf,
   coordinatorsOf,
@@ -12,14 +20,7 @@ import {
   programsForCoordinator,
   programsForMentor,
   startupsOf,
-} from "@/components/admin/admin-model";
-import type {
-  AdminMentorMembership,
-  AdminOverview,
-  AdminUser,
-} from "@/interfaces/admin-overview";
-import { ProgramMentorStatus } from "@/interfaces/program";
-import { UserAccountStatus, UserRole } from "@/interfaces/session";
+} from "@/lib/admin-model";
 import {
   adminMentorship,
   adminProgram,
@@ -167,9 +168,9 @@ describe("needsAttention", () => {
   const now = new Date("2026-11-11T09:00:00");
 
   it.each([
-    ["PAUSED", 30],
-    ["COMPLETED", 30],
-    ["PLANNED", 30],
+    [MentorshipStatus.Paused, 30],
+    [MentorshipStatus.Completed, 30],
+    [MentorshipStatus.Planned, 30],
   ] as const)(
     "never flags a %s mentorship, however long ago it met",
     (status, days) => {

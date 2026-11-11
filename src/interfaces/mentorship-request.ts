@@ -28,6 +28,15 @@ export enum MentorshipRequestMessageType {
   MentorMessage = "MENTOR_MESSAGE",
 }
 
+/**
+ * How a recommendation was made. The backend stores it as free text: it reports its own method in a header, and a
+ * request started from a startup's profile is marked by this app.
+ */
+export const MatchingMethod = {
+  Deterministic: "DETERMINISTIC",
+  Profile: "PROFILE",
+} as const;
+
 export type RequestMessage = {
   id: string;
   authorId: string;

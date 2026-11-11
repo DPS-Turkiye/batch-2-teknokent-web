@@ -2,6 +2,7 @@ import {
   ProfileAnalysisType,
   type ProfileAnalysis as Analysis,
 } from "@/interfaces/profile-analysis";
+import { isOneOf } from "@/lib/enum";
 
 /** Largest pitch deck or CV the parser accepts. */
 export const PROFILE_ANALYSIS_MAX_BYTES = 50 * 1024 * 1024;
@@ -21,10 +22,13 @@ type ProfileFieldKey =
   | "sectors"
   | "target_markets";
 export type ProfileFieldDefinition = [ProfileFieldKey, "input" | "textarea"];
+const INFERENCE_TYPES = ["EXPLICIT_RECOVERY", "DERIVED_CAPABILITY"] as const;
+const INFERENCE_CONFIDENCES = ["HIGH", "MEDIUM"] as const;
+
 type TechnologyInference = {
   tag: string;
-  type: "EXPLICIT_RECOVERY" | "DERIVED_CAPABILITY";
-  confidence: "HIGH" | "MEDIUM";
+  type: (typeof INFERENCE_TYPES)[number];
+  confidence: (typeof INFERENCE_CONFIDENCES)[number];
   evidence: string;
 };
 
@@ -128,23 +132,16 @@ export function technologyInferences(
   return value.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
     const record = item as Record<string, unknown>;
+    const { tag, type, confidence, evidence } = record;
     if (
-      typeof record.tag !== "string" ||
-      (record.type !== "EXPLICIT_RECOVERY" &&
-        record.type !== "DERIVED_CAPABILITY") ||
-      (record.confidence !== "HIGH" && record.confidence !== "MEDIUM") ||
-      typeof record.evidence !== "string"
+      typeof tag !== "string" ||
+      !isOneOf(INFERENCE_TYPES, type) ||
+      !isOneOf(INFERENCE_CONFIDENCES, confidence) ||
+      typeof evidence !== "string"
     ) {
       return [];
     }
-    return [
-      {
-        tag: record.tag,
-        type: record.type,
-        confidence: record.confidence,
-        evidence: record.evidence,
-      },
-    ];
+    return [{ tag, type, confidence, evidence }];
   });
 }
 

@@ -4,6 +4,12 @@ import { clientLocale, clientText } from "@/i18n/client-texts";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
 import { Locale } from "@/lib/i18n";
 
+/** Codes this app gives failures that never reached a route handler; other codes come from the backend. */
+export const ClientErrorCode = {
+  Timeout: "TIMEOUT",
+  Network: "NETWORK",
+} as const;
+
 export class ClientApiError extends Error {
   constructor(
     message: string,

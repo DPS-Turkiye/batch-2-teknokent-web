@@ -1,4 +1,5 @@
 import type { MentorProfile } from "@/interfaces/mentor";
+import { MatchingMethod } from "@/interfaces/mentorship-request";
 import type { StartupContext } from "@/interfaces/startup";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -52,7 +53,8 @@ export async function getMentorRecommendations(
     mentors,
     metadata: {
       matchingMethod:
-        headerText(response.headers["x-matching-method"]) ?? "DETERMINISTIC",
+        headerText(response.headers["x-matching-method"]) ??
+        MatchingMethod.Deterministic,
       matchingModel:
         headerText(response.headers["x-matching-model"]) || undefined,
       generatedAt:

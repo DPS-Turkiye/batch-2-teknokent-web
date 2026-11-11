@@ -3,15 +3,18 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UsersView } from "@/components/admin/users-view";
-import type {
-  AdminMentorMembership,
-  AdminOverview,
-  AdminUser,
+import {
+  BottleneckSeverity,
+  type AdminMentorMembership,
+  type AdminOverview,
+  type AdminUser,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { setCoordinatorAccess } from "@/lib/client/admin-coordinators";
 import { decidePendingAccount } from "@/lib/client/admin-users";
+import { UserTab } from "@/types/admin-users";
 import {
   adminMentorship,
   adminProgram,
@@ -76,7 +79,10 @@ function overview(overrides: Partial<AdminOverview> = {}): AdminOverview {
   };
 }
 
-function show(tab: "coordinators" | "mentors" | "teams", data: AdminOverview) {
+function show(
+  tab: UserTab.Coordinators | UserTab.Mentors | UserTab.Teams,
+  data: AdminOverview,
+) {
   overviewState.current = data;
   renderWithQueryClient(<UsersView tab={tab} />);
 }
@@ -146,7 +152,7 @@ describe("UsersView coordinators", () => {
 
   it("counts coordinators per status and pages them seven at a time", async () => {
     const user = userEvent.setup();
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     expect(filterPill("Tümü")).toHaveTextContent("9");
     expect(filterPill("Aktif")).toHaveTextContent("7");
@@ -164,7 +170,7 @@ describe("UsersView coordinators", () => {
 
   it("goes back to the first page when the filter changes", async () => {
     const user = userEvent.setup();
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
     await user.click(screen.getByRole("button", { name: "Sonraki" }));
 
     await user.click(filterPill("Onay bekliyor"));
@@ -176,7 +182,7 @@ describe("UsersView coordinators", () => {
 
   it("lists no one under Erişim gönderilmedi yet", async () => {
     const user = userEvent.setup();
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     await user.click(filterPill("Erişim gönderilmedi"));
 
@@ -188,7 +194,7 @@ describe("UsersView coordinators", () => {
 
   it("finds a coordinator by e-mail with Turkish casing and by the program they run", async () => {
     const user = userEvent.setup();
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     await user.type(screen.getByPlaceholderText("Koordinatör ara"), "ipek");
     expect(screen.getByText("Burcu Şen")).toBeInTheDocument();
@@ -201,7 +207,7 @@ describe("UsersView coordinators", () => {
   });
 
   it("shows how long ago each coordinator joined, warning after a week", () => {
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     expect(rowOf("Ayla Bekler").getByText("30 dk önce")).toBeInTheDocument();
     expect(rowOf("Burcu Şen").getByText("3 saat önce")).toBeInTheDocument();
@@ -213,7 +219,7 @@ describe("UsersView coordinators", () => {
 
   it("shows a dash for a coordinator without a join date, and their programs", () => {
     show(
-      "coordinators",
+      UserTab.Coordinators,
       overview({ programs: [stars], users: [{ ...ayla, createdAt: null }] }),
     );
 
@@ -233,7 +239,7 @@ describe("UsersView coordinators", () => {
       },
       inviteCode: null,
     });
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     await user.click(
       rowOf("Burcu Şen").getByRole("button", { name: "Reddet" }),
@@ -253,7 +259,7 @@ describe("UsersView coordinators", () => {
     vi.mocked(decidePendingAccount).mockRejectedValue(
       new Error("Hesap zaten onaylandı."),
     );
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     await user.click(
       rowOf("Burcu Şen").getByRole("button", { name: "Reddet" }),
@@ -273,7 +279,7 @@ describe("UsersView coordinators", () => {
       status: UserAccountStatus.Rejected,
       outcome: null,
     });
-    show("coordinators", data());
+    show(UserTab.Coordinators, data());
 
     await user.click(
       rowOf("Ayla Bekler").getByRole("button", { name: "Diğer işlemler" }),
@@ -358,7 +364,7 @@ describe("UsersView mentors", () => {
           id: "m-2",
           mentorId: "m-ok",
           organizationId: "org-2",
-          status: "PLANNED",
+          status: MentorshipStatus.Planned,
         }),
       ],
     });
@@ -374,7 +380,7 @@ describe("UsersView mentors", () => {
   });
 
   it("names each mentor's state, counting an approved mentor with an open invite as invited", () => {
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     expect(rowOf("Leyla Aksoy").getByText("Aktif")).toBeInTheDocument();
     expect(
@@ -386,7 +392,7 @@ describe("UsersView mentors", () => {
   });
 
   it("warns about a mentor whose active mentorship has not met for two weeks", () => {
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     expect(rowOf("Leyla Aksoy").getByText("Görüşme yok")).toBeInTheDocument();
     expect(rowOf("Kerem Tan").queryByText("Görüşme yok")).toBeNull();
@@ -394,7 +400,7 @@ describe("UsersView mentors", () => {
 
   it("lists only invited mentors under Davet bekliyor", async () => {
     const user = userEvent.setup();
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     await user.click(filterPill("Davet bekliyor"));
 
@@ -405,7 +411,7 @@ describe("UsersView mentors", () => {
 
   it("finds a mentor by expertise", async () => {
     const user = userEvent.setup();
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     await user.type(
       screen.getByPlaceholderText("Mentor veya uzmanlık ara"),
@@ -427,7 +433,7 @@ describe("UsersView mentors", () => {
       },
       inviteCode: null,
     });
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     await user.click(rowOf("Selin Ak").getByRole("button", { name: "Onayla" }));
 
@@ -441,7 +447,7 @@ describe("UsersView mentors", () => {
   it("falls back to a generic message when a decision fails without an error", async () => {
     const user = userEvent.setup();
     vi.mocked(decidePendingAccount).mockRejectedValue("offline");
-    show("mentors", data());
+    show(UserTab.Mentors, data());
 
     await user.click(rowOf("Selin Ak").getByRole("button", { name: "Reddet" }));
 
@@ -504,14 +510,14 @@ describe("UsersView teams", () => {
           id: "m-4",
           organizationId: "org-4",
           organizationName: "Zeta",
-          status: "PLANNED",
+          status: MentorshipStatus.Planned,
         }),
       ],
       bottlenecks: [
         {
           id: "b-1",
           title: "Fiyatlama",
-          severity: "HIGH",
+          severity: BottleneckSeverity.High,
           status: "OPEN",
           organizationId: "org-4",
           organizationName: "Zeta",
@@ -530,7 +536,7 @@ describe("UsersView teams", () => {
   });
 
   it("counts mentored, waiting and risky teams", () => {
-    show("teams", data());
+    show(UserTab.Teams, data());
 
     expect(filterPill("Tümü")).toHaveTextContent("4");
     expect(filterPill("Aktif mentorluk")).toHaveTextContent("3");
@@ -539,7 +545,7 @@ describe("UsersView teams", () => {
   });
 
   it("rates each team's mentorship healthy, risky, followed up or waiting", () => {
-    show("teams", data());
+    show(UserTab.Teams, data());
 
     const lumen = rowOf("Lumen");
     expect(lumen.getByText("Sağlıklı")).toBeInTheDocument();
@@ -564,7 +570,7 @@ describe("UsersView teams", () => {
 
   it("filters to risky teams and finds a team by its founder", async () => {
     const user = userEvent.setup();
-    show("teams", data());
+    show(UserTab.Teams, data());
 
     await user.click(filterPill("Riskli"));
     expect(screen.getByText("Nova")).toBeInTheDocument();
@@ -582,7 +588,7 @@ describe("UsersView teams", () => {
   it("says there are no teams when the program filter matches none", async () => {
     const user = userEvent.setup();
     show(
-      "teams",
+      UserTab.Teams,
       overview({
         programs: [program, adminProgram({ id: "empty", name: "Boş" })],
       }),

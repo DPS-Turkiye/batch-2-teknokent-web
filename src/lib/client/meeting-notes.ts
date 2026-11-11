@@ -1,11 +1,12 @@
 import { clientText } from "@/i18n/client-texts";
-import type {
-  MeetingAssistantShare,
-  MeetingNote,
-  MeetingNoteDocument,
-  MeetingTodo,
-  PublishAssistantSharePayload,
-  RealtimeToken,
+import {
+  AssistantShareKind,
+  type MeetingAssistantShare,
+  type MeetingNote,
+  type MeetingNoteDocument,
+  type MeetingTodo,
+  type PublishAssistantSharePayload,
+  type RealtimeToken,
 } from "@/interfaces/meeting-note";
 import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import { requireSuccess } from "@/lib/client/api";
@@ -181,7 +182,10 @@ export async function publishTranscriptShare(
   meetingId: string,
   lines: TranscriptLine[],
 ) {
-  const payload = { kind: "TRANSCRIPT" as const, transcript: lines };
+  const payload = {
+    kind: AssistantShareKind.Transcript as const,
+    transcript: lines,
+  };
   // Only a failed upload falls back to sending the transcript inline; a failed share post is the caller's error.
   try {
     const upload = await createTranscriptUpload(meetingId);
@@ -190,14 +194,16 @@ export async function publishTranscriptShare(
     if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
-  return postAssistantShare(meetingId, { kind: "TRANSCRIPT_S3" });
+  return postAssistantShare(meetingId, {
+    kind: AssistantShareKind.TranscriptS3,
+  });
 }
 
 export async function publishReportShare(
   meetingId: string,
   report: MeetingReport,
 ) {
-  const payload = { kind: "REPORT" as const, report };
+  const payload = { kind: AssistantShareKind.Report as const, report };
   // Only a failed upload falls back to sending the report inline; a failed share post is the caller's error.
   try {
     const upload = await createReportUpload(meetingId);
@@ -206,5 +212,5 @@ export async function publishReportShare(
     if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
-  return postAssistantShare(meetingId, { kind: "REPORT_S3" });
+  return postAssistantShare(meetingId, { kind: AssistantShareKind.ReportS3 });
 }

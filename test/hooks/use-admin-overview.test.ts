@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { labelPersonalTeams } from "@/hooks/use-admin-overview";
 import type { AdminOverviewResponse } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 
 function overview(): AdminOverviewResponse {
   return {
@@ -15,7 +16,7 @@ function overview(): AdminOverviewResponse {
         mentorName: "Deniz Kaya",
         organizationId: "personal-1",
         organizationName: null,
-        status: "ACTIVE",
+        status: MentorshipStatus.Active,
         startDate: "2026-11-01",
         endDate: null,
         progressPercent: 0,
@@ -27,7 +28,7 @@ function overview(): AdminOverviewResponse {
         mentorName: "Elif Şahin",
         organizationId: "org-1",
         organizationName: "Flexvision",
-        status: "ACTIVE",
+        status: MentorshipStatus.Active,
         startDate: "2026-11-01",
         endDate: null,
         progressPercent: 0,

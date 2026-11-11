@@ -1,21 +1,23 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  activeMentorshipFor,
-  assignableProgramsForMentor,
-  assignableProgramsForStartup,
-  countsInProgram,
-  mentorshipInPrograms,
-  programOfMentorship,
-  unmatchedStartups,
-} from "@/components/admin/admin-model";
 import type {
   AdminMentorship,
   AdminOverview,
   AdminProgram,
   AdminStartup,
 } from "@/interfaces/admin-overview";
+import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import { ProgramMentorStatus, ProgramStatus } from "@/interfaces/program";
+import {
+  activeMentorshipFor,
+  assignableProgramsForMentor,
+  assignableProgramsForStartup,
+  coordinatorUsersHref,
+  countsInProgram,
+  mentorshipInPrograms,
+  programOfMentorship,
+  unmatchedStartups,
+} from "@/lib/admin-model";
 import {
   adminMentorship,
   adminProgram,
@@ -153,5 +155,28 @@ describe("admin-model program attribution", () => {
     const data = overview([item]);
 
     expect(programOfMentorship(data, item)?.name).toBe("ODTÜ Stars 2026");
+  });
+});
+
+describe("admin-model current mentorship", () => {
+  it.each([
+    [MentorshipStatus.Active, "m-1"],
+    [MentorshipStatus.Planned, "m-1"],
+    [MentorshipStatus.Paused, undefined],
+    [MentorshipStatus.Completed, undefined],
+  ])("treats a %s mentorship as the team's match: %s", (status, id) => {
+    const data = overview([{ ...mentorship("m-1", "program-1"), status }]);
+
+    expect(activeMentorshipFor(data, lumenInStars)?.id).toBe(id);
+  });
+});
+
+describe("admin-model coordinator link", () => {
+  it("opens the user list on the program's coordinator, or the whole list", () => {
+    expect(coordinatorUsersHref({ coordinatorId: "coord 1" })).toBe(
+      "/admin/users?user=coord%201",
+    );
+    expect(coordinatorUsersHref({ coordinatorId: null })).toBe("/admin/users");
+    expect(coordinatorUsersHref(undefined)).toBe("/admin/users");
   });
 });

@@ -46,7 +46,8 @@ Built on `eslint-config-next` (Next.js, React, hooks and accessibility rules) an
   catch floating promises, unsafe `any` flows, unnecessary conditions, enum comparisons with strings, and more.
 - `switch-exhaustiveness-check`: a `switch` over an enum must handle every member.
 - `consistent-type-assertions`: no `{ … } as T` object literals except as call arguments.
-- A ban on `as unknown as T` and `as never` (`no-restricted-syntax`).
+- `no-restricted-syntax` bans `as unknown as T` and `as never`, and comparing or switching on an UPPER_CASE string
+  literal (`status === "ACTIVE"`, `case "IN_PROGRESS":`): domain values go through enums.
 - `require-array-sort-compare`, `eqeqeq`, `no-param-reassign`, `no-implicit-coercion`, `no-console` (warn and error
   allowed), `react/jsx-no-leaked-render`, `react/no-array-index-key`.
 - **ESLint comments:** a suppression must name its rule and give a reason; unused suppressions are errors.

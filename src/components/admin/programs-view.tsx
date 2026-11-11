@@ -4,10 +4,6 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import {
-  activeMentorshipFor,
-  needsAttention,
-} from "@/components/admin/admin-model";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { AssignCoordinatorDialog } from "@/components/admin/assign-coordinator-dialog";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
@@ -16,6 +12,7 @@ import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
 import { ProgramStatus } from "@/interfaces/program";
 import { UserAccountStatus } from "@/interfaces/session";
 import { programCoordinatorLabel } from "@/lib/admin-coordinators";
+import { activeMentorshipFor, needsAttention } from "@/lib/admin-model";
 import { isEnumValue } from "@/lib/enum";
 import {
   ALL_PROGRAM_TYPES,

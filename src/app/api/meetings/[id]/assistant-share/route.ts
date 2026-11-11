@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchAssistantShare,
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
     );
     if (!parsed.ok) return parsed.response;
     const body = parsed.data;
-    if (body.kind === "PROVIDER_TRANSCRIPT") {
+    if (body.kind === AssistantShareKind.ProviderTranscript) {
       const transcript = await fetchMeetingTranscript(
         body.platform,
         body.nativeMeetingId,
@@ -80,7 +81,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
       return backendResponse(
         await publishAssistantShare(id, auth.session.userId, {
-          kind: "TRANSCRIPT",
+          kind: AssistantShareKind.Transcript,
           transcript: segments,
         }),
       );

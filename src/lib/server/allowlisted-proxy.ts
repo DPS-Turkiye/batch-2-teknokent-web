@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import "server-only";
 
+import { HttpMethod } from "@/lib/http-method";
 import {
   apiErrorResponse,
   apiText,
@@ -40,7 +41,7 @@ export function allowlistedProxy<P>(options: AllowlistedProxyOptions<P>) {
     }
     try {
       const userId = await options.requireUserId();
-      const body = method === "POST" ? await request.text() : "";
+      const body = method === HttpMethod.Post ? await request.text() : "";
       return backendResponse(
         await backendRequest({
           method,
