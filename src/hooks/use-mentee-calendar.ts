@@ -30,6 +30,7 @@ import {
   upcomingEntries,
   weekSummary,
 } from "@/lib/mentee-calendar";
+import { formatDateRange } from "@/lib/format";
 
 const UPCOMING_LIMIT = 3;
 const PREP_LIMIT = 3;
@@ -143,11 +144,15 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     days,
     hours: MENTEE_WEEK_HOURS,
     now,
-    rangeLabel: new Intl.DateTimeFormat(texts.locale, {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).formatRange(days[0], lastDay),
+    rangeLabel: formatDateRange(
+      new Intl.DateTimeFormat(texts.locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      days[0],
+      lastDay,
+    ),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),
     today: () => {

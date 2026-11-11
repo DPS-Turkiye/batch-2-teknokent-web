@@ -7,6 +7,7 @@ import type {
 import { clientText } from "@/i18n/client-texts";
 import { WEEKDAY_ORDER } from "@/interfaces/mentor";
 import { calendarDay } from "@/lib/utils";
+import { formatDateRange } from "@/lib/format";
 
 /** One weekly time range as the editor holds it; `key` is stable across edits. */
 export type AvailabilityRange = {
@@ -221,11 +222,15 @@ export function exceptionLabel(
 ) {
   const start = calendarDay(exception.startsOn);
   const end = calendarDay(exception.endsOn);
-  const range = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-    year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
-  }).formatRange(start, end);
+  const range = formatDateRange(
+    new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "long",
+      year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
+    }),
+    start,
+    end,
+  );
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 

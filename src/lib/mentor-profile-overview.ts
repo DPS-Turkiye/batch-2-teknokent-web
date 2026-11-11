@@ -13,6 +13,7 @@ import {
 } from "@/interfaces/mentor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { toTimeInput } from "@/lib/mentor-availability";
+import { formatDateRange } from "@/lib/format";
 
 /** The profile page's translators and language, for the labels built here. */
 export type MentorProfileTexts = {
@@ -86,10 +87,11 @@ export function mentorshipDurationLabel(
 
 /** "Mar – Haz 2026", "Kas 2025 – Şub 2026", or "Mar 2026" within one month. */
 function periodLabel(start: Date, end: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    month: "short",
-    year: "numeric",
-  }).formatRange(start, end);
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { month: "short", year: "numeric" }),
+    start,
+    end,
+  );
 }
 
 /** Accepted mentorships, each with its period and completed sessions. */

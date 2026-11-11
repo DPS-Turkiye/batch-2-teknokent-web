@@ -48,6 +48,7 @@ import {
   type ProgramTypeFilter,
 } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
+import { formatDateRange } from "@/lib/format";
 
 type RangeId = "8" | "13" | "all";
 type TabId = "program" | "health" | "activity";
@@ -1296,10 +1297,11 @@ function addDays(date: Date, days: number) {
 }
 
 function weekLabel(week: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "short",
-  }).formatRange(week, addDays(week, 6));
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { day: "numeric", month: "short" }),
+    week,
+    addDays(week, 6),
+  );
 }
 
 /** "%75" in Turkish, "75%" in English. */
