@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 export type StepPill = {
@@ -18,6 +19,7 @@ export function StepPills({
   currentIndex: number;
   label: string;
 }) {
+  const t = useTranslations("iaKit.stepPills");
   return (
     <ol aria-label={label} className="flex flex-wrap items-center gap-2">
       {steps.map((step, index) => {
@@ -63,6 +65,11 @@ export function StepPills({
                 )}
               </span>
               {step.label}
+              <span className="sr-only">
+                {done
+                  ? t("done", { step: index + 1 })
+                  : t("step", { step: index + 1 })}
+              </span>
             </span>
           </li>
         );

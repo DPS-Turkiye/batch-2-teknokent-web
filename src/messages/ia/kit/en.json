@@ -2,6 +2,11 @@
   "simpleHeader": {
     "help": "Help",
     "logout": "Sign out",
-    "loggingOut": "Signing out…"
+    "loggingOut": "Signing out…",
+    "label": "Account"
+  },
+  "stepPills": {
+    "step": "(step {step})",
+    "done": "(step {step}, done)"
   }
 }

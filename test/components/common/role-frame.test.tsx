@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleFrame } from "@/components/common/role-frame";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
+import { IaAccent } from "@/types/ia-theme";
 import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -26,11 +27,25 @@ vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => current,
   useSession: () => ({ session: current, isLoading: false, logout: vi.fn() }),
 }));
+// The theme test checks only the frame's paint, so it lets the student in whatever the deployment's edition is.
+const gate = vi.hoisted(() => ({ forceAllowed: false }));
+vi.mock("@/hooks/use-role-gate", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/hooks/use-role-gate")>();
+  return {
+    useRoleGate: (...args: Parameters<typeof actual.useRoleGate>) => {
+      const real = actual.useRoleGate(...args);
+      return gate.forceAllowed
+        ? { ...real, allowed: true, isLoading: false }
+        : real;
+    },
+  };
+});
 vi.mock("@/components/common/notification-menu", () => ({
   NotificationMenu: () => null,
 }));
 
 beforeEach(() => {
+  gate.forceAllowed = false;
   pathname = "/admin";
   current = admin;
 });
@@ -120,6 +135,7 @@ describe("RoleFrame desktop nav between lg and xl", () => {
     );
     const soon = screen.getByText("Kullanıcılar").closest("[aria-disabled]");
     expect(soon).toHaveClass("whitespace-nowrap", "px-3", "xl:px-4");
+    expect(soon).toHaveAttribute("data-tour", "nav-users");
     const account = document.querySelector<HTMLElement>(
       'button[aria-haspopup="menu"]',
     )!;
@@ -188,6 +204,7 @@ describe("RoleFrame theme", () => {
   };
 
   it("paints the student workspace in ODTÜ red and staff frames in ink", () => {
+    gate.forceAllowed = true;
     current = student;
     const { container, unmount } = renderWithQueryClient(
       <RoleFrame
@@ -201,7 +218,7 @@ describe("RoleFrame theme", () => {
     );
     expect(container.querySelector("[data-ia-accent]")).toHaveAttribute(
       "data-ia-accent",
-      "odtu",
+      IaAccent.Odtu,
     );
     unmount();
 
@@ -217,6 +234,7 @@ describe("RoleFrame theme", () => {
       </RoleFrame>,
     );
     expect(staff.container.querySelector("[data-ia-accent]")).toBeNull();
+    gate.forceAllowed = false;
     expect(screen.getByText("Admin", { selector: "p" })).toBeInTheDocument();
   });
 });
