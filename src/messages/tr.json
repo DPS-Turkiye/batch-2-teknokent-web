@@ -3338,7 +3338,8 @@
       "risks": "Riskler / engeller",
       "nextSteps": "Sonraki adımlar",
       "none": "Belirtilmedi."
-    }
+    },
+    "reportOff": "Bu sistemde toplantı raporu üretilmiyor; yalnızca transkript tutulur."
   },
   "roleFrame": {
     "soon": "Yakında",
@@ -6101,7 +6102,8 @@
     "readFailed": "Müfredat okunamadı.",
     "uploadFailed": "Dosya yüklenemedi.",
     "pdfOnly": "Yalnızca PDF yükleyebilirsin.",
-    "tooLarge": "Dosya en fazla 10 MB olabilir."
+    "tooLarge": "Dosya en fazla 10 MB olabilir.",
+    "manualHint": "Bu sistemde müfredat dosyası otomatik okunmuyor; fazları burada, haftaları Haftalık plan'da elle ekle."
   },
   "teamHistory": {
     "show": "Takım geçmişi",

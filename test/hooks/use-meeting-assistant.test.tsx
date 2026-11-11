@@ -2,6 +2,7 @@ import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetingAssistant } from "@/hooks/use-meeting-assistant";
 import {
   MeetingStatus as CalendarStatus,
@@ -26,6 +27,7 @@ import {
   type MeetingReport,
   type TranscriptSegment,
 } from "@/types/assistant";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { menteeMeetingFixture } from "@test/fixtures/mentee-home";
 import { InLocale } from "@test/test-utils";
 
@@ -34,6 +36,7 @@ const calendar = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
+vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: () => ({
     data: calendar.meetings,
@@ -122,6 +125,7 @@ describe("useMeetingAssistant", () => {
     vi.useFakeTimers();
     vi.setSystemTime(NOW);
     calendar.meetings = [];
+    vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
     vi.mocked(getAssistantShare).mockResolvedValue(share());
     vi.mocked(fetchTranscript).mockResolvedValue([]);
     vi.mocked(updateMeeting).mockResolvedValue(calendarMeeting());
@@ -408,6 +412,23 @@ describe("useMeetingAssistant", () => {
       expect(generateMeetingReport).toHaveBeenCalledWith("google_meet", CODE);
       expect(result.current.meetingReport?.summary).toBe("Özet");
       expect(result.current.reportStatus).toBe(BotStatus.Ok);
+    });
+
+    it("never asks for a report, on its own or by hand, when meeting reports are switched off", async () => {
+      vi.mocked(useAiFeatures).mockReturnValue(
+        aiFeatures({ meetingReport: false }),
+      );
+      vi.mocked(fetchTranscript).mockResolvedValue([segment("a", "Merhaba")]);
+      const { result } = renderAssistant("cal-1");
+      await flush();
+      await flush(4_000);
+      act(() => result.current.regenerateReport());
+      await flush();
+
+      expect(result.current.canReport).toBe(false);
+      expect(generateMeetingReport).not.toHaveBeenCalled();
+      expect(result.current.reportStatus).toBeNull();
+      expect(result.current.visibleTranscript).toHaveLength(1);
     });
 
     it("asks for a transcript first when regenerating with none", async () => {
