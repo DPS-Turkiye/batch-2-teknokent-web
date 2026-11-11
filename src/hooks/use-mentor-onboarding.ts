@@ -62,22 +62,13 @@ import {
   STUDENT_LEVELS,
   STUDENT_TOPICS,
 } from "@/lib/student-topics";
-import { scrollToTop } from "@/lib/utils";
+import { scrollToTop, splitFullName } from "@/lib/utils";
 
 const DRAFT_KIND = "mentor-onboarding" as const;
 
-function splitName(fullName: string) {
-  const parts = fullName.trim().split(/\s+/).filter(Boolean);
-  if (parts.length < 2) return { firstName: parts[0] ?? "", lastName: "" };
-  return {
-    firstName: parts.slice(0, -1).join(" "),
-    lastName: parts.at(-1) ?? "",
-  };
-}
-
 function emptyDraft(fullName = ""): MentorOnboardingDraft {
   return {
-    ...splitName(fullName),
+    ...splitFullName(fullName),
     linkedin: "",
     about: "",
     photo: null,
@@ -250,7 +241,7 @@ export function useMentorOnboarding(
             const names =
               current.firstName.trim() || !cv.fullName
                 ? {}
-                : splitName(cv.fullName);
+                : splitFullName(cv.fullName);
             return {
               ...current,
               ...names,

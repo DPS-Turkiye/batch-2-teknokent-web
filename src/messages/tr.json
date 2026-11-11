@@ -144,6 +144,8 @@
     "code": "Davet kodu",
     "submit": "Ekibe katıl",
     "noCode": "Davet kodun yok mu?",
+    "otgAccount": "ODTÜ TEKNOKENT Girişimcilik hesabınla katılıyorsun:",
+    "otgSwitch": "Başka bir hesapla katıl",
     "backToLogin": "Giriş ekranına dön"
   },
   "verifyEmail": {

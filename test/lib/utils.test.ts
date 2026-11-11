@@ -8,6 +8,7 @@ import {
   formatShortDate,
   formatFileSize,
   httpUrlOrNull,
+  splitFullName,
 } from "@/lib/utils";
 
 describe("dayPart", () => {
@@ -81,5 +82,19 @@ describe("httpUrlOrNull", () => {
     expect(httpUrlOrNull("linkedin.com/in/ada")).toBeNull();
     expect(httpUrlOrNull("")).toBeNull();
     expect(httpUrlOrNull(null)).toBeNull();
+  });
+});
+
+describe("splitFullName", () => {
+  it("keeps the last word as the surname", () => {
+    expect(splitFullName("  Ayşe Nur   Yılmaz ")).toEqual({
+      firstName: "Ayşe Nur",
+      lastName: "Yılmaz",
+    });
+  });
+
+  it("takes a single word as the first name", () => {
+    expect(splitFullName("Ayşe")).toEqual({ firstName: "Ayşe", lastName: "" });
+    expect(splitFullName("")).toEqual({ firstName: "", lastName: "" });
   });
 });

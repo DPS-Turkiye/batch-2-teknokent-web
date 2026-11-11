@@ -144,6 +144,8 @@
     "code": "Invite code",
     "submit": "Join the team",
     "noCode": "No invite code?",
+    "otgAccount": "You are joining with your ODTÜ TEKNOKENT Girişimcilik account:",
+    "otgSwitch": "Join with another account",
     "backToLogin": "Back to sign in"
   },
   "verifyEmail": {
