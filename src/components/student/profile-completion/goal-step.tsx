@@ -19,80 +19,70 @@ export function GoalStep({
   summary: Summary;
   onGoalChange: (value: string) => void;
 }) {
-  const t = useTranslations("studentProfileCompletion");
+  const t = useTranslations("iaProfile.goalStep");
+  const tCatalogue = useTranslations("studentProfileCompletion");
   const topicLabel = useTranslations("peerTopics");
   const chips = [
     ...summary.topics.map((id) => ({ key: id, label: topicLabel(id) })),
     ...summary.subtopics.map((sub) => ({
       key: sub.id,
-      label: t(`subtopics.${sub.labelKey}`),
+      label: tCatalogue(`subtopics.${sub.labelKey}`),
     })),
   ];
   return (
     <>
-      <StepHeading
-        title={t("goalStep.title")}
-        subtitle={t("goalStep.subtitle")}
-      />
+      <StepHeading title={t("title")} subtitle={t("subtitle")} />
       <div className="flex flex-col gap-2">
         <label
           htmlFor="completion-goal"
-          className="text-sm font-medium leading-5 tracking-[-0.014px] text-[#1c2026]"
+          className="type-label text-text-primary"
         >
-          {t("goalStep.label")}
+          {t("label")}
         </label>
         <textarea
           id="completion-goal"
           aria-describedby="completion-goal-help"
-          className="min-h-[120px] w-full rounded-[12px] border border-[#868f99] bg-white px-4 py-3 text-sm leading-[22px] text-[#1c2026] placeholder:text-[#6e7681] focus:border-[#1c2026] focus:outline-none focus:ring-[3px] focus:ring-[#fdedef]"
+          className="min-h-[120px] w-full rounded-input border border-border-control bg-background-elevated px-4 py-3 type-body text-text-primary placeholder:text-text-placeholder focus:border-border-selected focus:outline-none focus:ring-[3px] focus:ring-background-selected"
           maxLength={STUDENT_GOAL_MAX}
-          placeholder={t("goalStep.placeholder")}
+          placeholder={t("placeholder")}
           value={goal}
           onChange={(event) => onGoalChange(event.target.value)}
         />
         <p
           id="completion-goal-help"
-          className="flex items-center gap-1 text-xs leading-4"
+          className="flex items-center gap-1 type-caption"
         >
           <Image src="/ia/profile/info-alt.svg" alt="" width={16} height={16} />
-          <span className="text-[#575f69]">
-            {t("goalStep.limit", { max: STUDENT_GOAL_MAX })}
+          <span className="text-text-secondary">
+            {t("limit", { max: STUDENT_GOAL_MAX })}
           </span>
-          <span className="text-[#6e7681]">
-            {t("goalStep.count", {
-              count: goal.length,
-              max: STUDENT_GOAL_MAX,
-            })}
+          <span className="text-text-muted">
+            {t("count", { count: goal.length, max: STUDENT_GOAL_MAX })}
           </span>
         </p>
       </div>
       <section
         aria-labelledby="completion-summary"
-        className="flex flex-col gap-2.5 rounded-[20px] border border-[#f9c9cf] p-5"
+        className="flex flex-col gap-2.5 rounded-[20px] border border-card-featured-border bg-background-surface p-5"
       >
-        <h2
-          id="completion-summary"
-          className="text-sm font-medium leading-5 tracking-[-0.014px] text-[#1c2026]"
-        >
-          {t("goalStep.summaryTitle")}
+        <h2 id="completion-summary" className="type-label text-text-primary">
+          {t("summaryTitle")}
         </h2>
         {chips.length === 0 ? (
-          <p className="text-sm text-[#575f69]">{t("goalStep.summaryEmpty")}</p>
+          <p className="type-body text-text-secondary">{t("summaryEmpty")}</p>
         ) : (
           <ul className="flex flex-wrap gap-2">
             {chips.map((chip) => (
               <li
                 key={chip.key}
-                className="flex h-8 items-center rounded-full bg-[#fdedef] px-3 text-xs font-medium leading-4 text-[#d0112b]"
+                className="flex h-8 items-center rounded-full bg-brand-mentee-bg px-3 type-label-sm text-brand-mentee-strong"
               >
                 {chip.label}
               </li>
             ))}
           </ul>
         )}
-        <p className="text-xs leading-4 text-[#575f69]">
-          {t("goalStep.summaryNote")}
-        </p>
+        <p className="type-caption text-text-secondary">{t("summaryNote")}</p>
       </section>
     </>
   );

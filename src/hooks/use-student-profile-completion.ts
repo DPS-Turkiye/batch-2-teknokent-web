@@ -51,7 +51,7 @@ export function useStudentProfileCompletion() {
     queryKey: PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
     queryFn: getProfileCompletionCategories,
   });
-  const t = useTranslations("studentProfileCompletion.welcome");
+  const t = useTranslations("iaProfile.welcome");
   const tLevel = useTranslations("studyLevel");
   const institution = useStudentInstitution();
   const photo = useProfilePhoto();

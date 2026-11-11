@@ -3,6 +3,15 @@
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
+import {
+  Button,
+  buttonClasses,
+  ButtonSize,
+  ButtonVariant,
+} from "@/components/ia/button";
+import { Card } from "@/components/ia/card";
+import { PageHeader } from "@/components/ia/page-header";
+import { StatusBadge, StatusTone } from "@/components/ia/status-badge";
 import type { useStudentProfileCompletion } from "@/hooks/use-student-profile-completion";
 import { PROFILE_PHOTO_TYPES } from "@/lib/personal-profile";
 
@@ -16,7 +25,7 @@ export function WelcomeStep({
   welcome: Completion["welcome"];
   photo: Completion["photo"];
 }) {
-  const t = useTranslations("studentProfileCompletion.welcome");
+  const t = useTranslations("iaProfile.welcome");
   return (
     <>
       <StepHeading
@@ -29,7 +38,7 @@ export function WelcomeStep({
       />
       <RecordCard welcome={welcome} />
       <PhotoCard photo={photo} />
-      <p className="flex items-start gap-2 text-xs leading-4 text-[#6e7681]">
+      <p className="flex items-start gap-2 type-caption text-text-muted">
         <Image
           src="/ia/profile/info.svg"
           alt=""
@@ -52,25 +61,22 @@ export function StepHeading({
   subtitle: string;
 }) {
   return (
-    <div className="flex flex-col gap-2">
-      <h1 className="text-[26px] font-bold leading-[34px] tracking-[-0.48px] text-[#1c2026] sm:text-[32px] sm:leading-10">
-        {title}
-      </h1>
-      <p className="text-base leading-6 text-[#575f69]">{subtitle}</p>
-    </div>
+    <PageHeader title={title}>
+      <p className="type-body-lg text-text-secondary">{subtitle}</p>
+    </PageHeader>
   );
 }
 
 function RecordCard({ welcome }: { welcome: Completion["welcome"] }) {
-  const t = useTranslations("studentProfileCompletion.welcome");
+  const t = useTranslations("iaProfile.welcome");
   return (
     <section
       aria-labelledby="completion-record"
-      className="overflow-hidden rounded-[20px] border border-[#e5e9ed] bg-white"
+      className="overflow-hidden rounded-[20px] border border-border-subtle bg-background-surface"
     >
       <div className="flex flex-wrap items-center justify-between gap-3 px-6 py-5">
         <div className="flex items-center gap-3">
-          <span className="grid size-10 place-items-center rounded-[12px] bg-[#fdedef]">
+          <span className="grid size-10 place-items-center rounded-[12px] bg-brand-odtu-bg">
             <Image
               src="/ia/profile/academic-odtu.svg"
               alt=""
@@ -80,53 +86,57 @@ function RecordCard({ welcome }: { welcome: Completion["welcome"] }) {
           </span>
           <h2
             id="completion-record"
-            className="text-base font-bold leading-[22px] tracking-[-0.032px] text-[#1c2026]"
+            className="type-title-card text-text-primary"
           >
             {t("recordTitle")}
           </h2>
         </div>
-        <span className="flex items-center gap-1.5 rounded-full bg-[#f4f6f8] px-2.5 py-1.5 text-xs font-medium leading-4 text-[#575f69]">
-          <Image src="/ia/profile/lock.svg" alt="" width={14} height={14} />
+        <StatusBadge
+          tone={StatusTone.Neutral}
+          icon={
+            <Image src="/ia/profile/lock.svg" alt="" width={14} height={14} />
+          }
+        >
           {t("readOnly")}
-        </span>
+        </StatusBadge>
       </div>
       {welcome.isLoading ? (
         <p
           role="status"
-          className="border-t border-[#e5e9ed] px-6 py-4 text-sm text-[#575f69]"
+          className="border-t border-border-subtle px-6 py-4 type-body text-text-secondary"
         >
           {t("loading")}
         </p>
       ) : welcome.missing ? (
-        <p className="border-t border-[#e5e9ed] px-6 py-4 text-sm leading-[22px] text-[#575f69]">
+        <p className="border-t border-border-subtle px-6 py-4 type-body text-text-secondary">
           {t("missing")}
         </p>
       ) : welcome.error ? (
         <div
           role="alert"
-          className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e5e9ed] px-6 py-4 text-sm text-[#6e0816]"
+          className="flex flex-wrap items-center justify-between gap-3 border-t border-border-subtle px-6 py-4 type-body text-status-error-text"
         >
           <p>{t("loadError")}</p>
-          <button
-            type="button"
-            className="h-9 rounded-[12px] border border-[#dce1e6] px-3 text-[13px] font-semibold text-[#1c2026] disabled:opacity-50"
+          <Button
+            variant={ButtonVariant.Ghost}
+            size={ButtonSize.Small}
             disabled={welcome.isFetching}
             onClick={welcome.retry}
           >
             {t("retry")}
-          </button>
+          </Button>
         </div>
       ) : welcome.facts ? (
         <dl>
           {welcome.facts.map((fact) => (
             <div
               key={fact.key}
-              className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-[#e5e9ed] px-6 py-4 text-sm"
+              className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 border-t border-border-subtle px-6 py-4"
             >
-              <dt className="leading-[22px] text-[#575f69]">
+              <dt className="type-body text-text-secondary">
                 {t(`facts.${fact.key}`)}
               </dt>
-              <dd className="min-w-0 break-words font-medium leading-5 tracking-[-0.014px] text-[#1c2026]">
+              <dd className="min-w-0 break-words type-label text-text-primary">
                 {fact.value ?? t("unknown")}
               </dd>
             </div>
@@ -138,42 +148,34 @@ function RecordCard({ welcome }: { welcome: Completion["welcome"] }) {
 }
 
 function PhotoCard({ photo }: { photo: Completion["photo"] }) {
-  const t = useTranslations("studentProfileCompletion.photo");
+  const t = useTranslations("iaProfile.photo");
   return (
-    <section
-      aria-labelledby="completion-photo"
-      className="flex flex-col gap-3.5 rounded-[20px] border border-[#e5e9ed] bg-white p-6"
-    >
+    <Card labelledBy="completion-photo" className="flex flex-col gap-3.5">
       <div className="flex items-center gap-2">
-        <h2
-          id="completion-photo"
-          className="text-base font-bold leading-[22px] tracking-[-0.032px] text-[#1c2026]"
-        >
+        <h2 id="completion-photo" className="type-title-card text-text-primary">
           {t("title")}
         </h2>
-        <span className="flex h-8 items-center rounded-full bg-[#edf0f3] px-3 text-xs font-medium leading-4 text-[#40464f]">
-          {t("optional")}
-        </span>
+        <StatusBadge tone={StatusTone.Neutral}>{t("optional")}</StatusBadge>
       </div>
       <div className="flex items-center gap-4">
         {photo.url ? (
           <span
             role="img"
             aria-label={t("current")}
-            className="block size-[72px] shrink-0 rounded-full bg-[#fdedef] bg-cover bg-center"
+            className="block size-[72px] shrink-0 rounded-full bg-brand-odtu-bg bg-cover bg-center"
             style={{ backgroundImage: `url("${photo.url}")` }}
           />
         ) : (
           <span
             aria-hidden
-            className="grid size-[72px] shrink-0 place-items-center rounded-full border border-dashed border-[#dce1e6] bg-[#fdedef] text-xl font-bold leading-7 tracking-[-0.1px] text-[#d0112b]"
+            className="grid size-[72px] shrink-0 place-items-center rounded-full border border-dashed border-border-default bg-brand-odtu-bg type-h3 text-brand-odtu-strong"
           >
             {photo.initials}
           </span>
         )}
         <div className="flex min-w-0 flex-col items-start gap-2">
           <label
-            className={`inline-flex h-9 cursor-pointer items-center justify-center rounded-[12px] bg-[#fdedef] px-3 text-[13px] font-semibold leading-[18px] text-[#b00e24] focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#1c2026] ${
+            className={`${buttonClasses(ButtonVariant.Secondary, ButtonSize.Small)} cursor-pointer focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-border-selected ${
               photo.isUploading ? "pointer-events-none opacity-60" : ""
             }`}
           >
@@ -194,12 +196,12 @@ function PhotoCard({ photo }: { photo: Completion["photo"] }) {
                 ? t("replace")
                 : t("upload")}
           </label>
-          <p className="text-xs leading-4 text-[#6e7681]">{t("hint")}</p>
+          <p className="type-caption text-text-muted">{t("hint")}</p>
         </div>
       </div>
-      <p className="max-w-[600px] text-xs leading-4 text-[#575f69]">
+      <p className="max-w-[600px] type-caption text-text-secondary">
         {t("privacy")}
       </p>
-    </section>
+    </Card>
   );
 }
