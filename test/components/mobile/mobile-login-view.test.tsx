@@ -1,6 +1,6 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import MobileLoginPage from "@/app/m/login/page";
 import {
@@ -43,6 +43,12 @@ async function signIn(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole("button", { name: "Giriş Yap" }));
 }
 
+function otgLink() {
+  return screen
+    .queryAllByRole("link")
+    .find((link) => link.getAttribute("href")?.startsWith("/auth/otg/start"));
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(signInToFirebase).mockResolvedValue("id-token");
@@ -51,7 +57,38 @@ beforeEach(() => {
   searchParams = new URLSearchParams();
 });
 
+afterEach(() => {
+  vi.unstubAllEnvs();
+});
+
 describe("Phone login", () => {
+  // Phones are sent here from /login, so the OTG sign-in must be offered here too.
+  it("offers the OTG sign-in when it is switched on, keeping where the visitor was headed", () => {
+    vi.stubEnv("NEXT_PUBLIC_OTG_LOGIN_ENABLED", "true");
+    searchParams = new URLSearchParams("next=/m/mentorships");
+    render(<MobileLoginPage />);
+
+    expect(otgLink()).toHaveAttribute(
+      "href",
+      "/auth/otg/start?next=%2Fm%2Fmentorships",
+    );
+  });
+
+  it("shows no OTG sign-in while it is switched off", () => {
+    vi.stubEnv("NEXT_PUBLIC_OTG_LOGIN_ENABLED", undefined);
+    render(<MobileLoginPage />);
+
+    expect(otgLink()).toBeUndefined();
+  });
+
+  it("says when an earlier OTG attempt could not start", () => {
+    vi.stubEnv("NEXT_PUBLIC_OTG_LOGIN_ENABLED", "true");
+    searchParams = new URLSearchParams("otg=hata");
+    render(<MobileLoginPage />);
+
+    expect(screen.getByRole("alert")).toHaveTextContent("tamamlanamadı");
+  });
+
   it("renders the login frame with a web sign-up link", () => {
     render(<MobileLoginPage />);
 

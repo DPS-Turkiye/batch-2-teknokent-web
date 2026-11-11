@@ -4,6 +4,7 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
+import { OtgLoginButton } from "@/components/login/otg-login-button";
 import { BottomSheet } from "@/components/mobile/bottom-sheet";
 import {
   MobileButton,
@@ -178,6 +179,9 @@ export function MobileLoginView() {
             {login.isVerifying ? t("submitting") : t("submit")}
           </MobileButton>
         </form>
+
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <OtgLoginButton next={login.next} />
 
         <div className="flex flex-col items-center gap-2 border-t border-[#f0f2f4] pt-[18px]">
           <button

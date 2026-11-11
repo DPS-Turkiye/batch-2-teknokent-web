@@ -6,6 +6,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { rememberInstitutionLogin } from "@/lib/server/institution-login-cookie";
 import { toInstitutionProvider } from "@/lib/server/institution-provider";
 
 export async function POST(
@@ -20,7 +21,15 @@ export async function POST(
         { status: 404 },
       );
     }
-    return backendResponse(await startInstitutionLogin(provider));
+    const started = await startInstitutionLogin(provider);
+    const response = backendResponse(started);
+    return started.status === 200
+      ? rememberInstitutionLogin(response, {
+          provider,
+          state: started.data.state,
+          next: null,
+        })
+      : response;
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("institutionLoginFailed"),

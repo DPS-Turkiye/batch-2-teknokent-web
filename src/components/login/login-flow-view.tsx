@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { VerifyEmailView } from "@/components/auth/verify-email-view";
 import { OdtuLoginButton } from "@/components/login/odtu-login-button";
+import { OtgLoginButton } from "@/components/login/otg-login-button";
 import { useLoginFlow } from "@/hooks/use-login-flow";
 import { safeNextPath } from "@/lib/public-paths";
 
@@ -113,6 +114,7 @@ export function LoginFlowView() {
             {isVerifying ? copy("submitting") : copy("submit")}
           </button>
           <OdtuLoginButton />
+          <OtgLoginButton next={next} />
         </div>
 
         {loginError ? (

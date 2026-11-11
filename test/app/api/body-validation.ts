@@ -10,10 +10,14 @@ export function jsonRequest(
   method = "POST",
   url = "http://localhost/api/test",
   token?: string,
+  cookie?: string,
 ) {
+  const headers = new Headers();
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  if (cookie) headers.set("Cookie", cookie);
   return new NextRequest(url, {
     method,
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
+    headers,
     body: typeof body === "string" ? body : JSON.stringify(body),
   });
 }
@@ -27,6 +31,8 @@ export type BodyCase = {
   url?: string;
   /** A Firebase ID token, for routes used before there is a session. */
   token?: string;
+  /** A `Cookie` header, for routes that also need a cookie the browser holds. */
+  cookie?: string;
   valid: unknown;
   /** The mocked `lib/api` (or other backend) function the route calls. */
   backend: (...args: never[]) => unknown;
@@ -50,20 +56,23 @@ export function itChecksTheBody({
   method = "POST",
   url,
   token,
+  cookie,
   valid,
   backend,
   expected,
   invalid,
 }: BodyCase) {
   it("passes a valid body on to the backend", async () => {
-    const response = await send(jsonRequest(valid, method, url, token));
+    const response = await send(jsonRequest(valid, method, url, token, cookie));
 
     expect(response.status).toBe(200);
     expect(backend).toHaveBeenCalledWith(...expected);
   });
 
   it("refuses malformed JSON", async () => {
-    const response = await send(jsonRequest("{not json", method, url, token));
+    const response = await send(
+      jsonRequest("{not json", method, url, token, cookie),
+    );
 
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({
@@ -74,7 +83,7 @@ export function itChecksTheBody({
   });
 
   it.each(Object.entries(invalid))("refuses %s", async (_case, body) => {
-    const response = await send(jsonRequest(body, method, url, token));
+    const response = await send(jsonRequest(body, method, url, token, cookie));
 
     expect(response.status).toBe(400);
     expect(await response.json()).toMatchObject({ code: "INVALID_REQUEST" });

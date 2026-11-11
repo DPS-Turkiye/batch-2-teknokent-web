@@ -28,6 +28,7 @@ import * as attendance from "@/lib/api/program-attendance";
 import * as programs from "@/lib/api/programs";
 import * as botapi from "@/lib/botapi";
 import { Locale } from "@/lib/i18n";
+import { INSTITUTION_LOGIN_COOKIE } from "@/lib/server/institution-login-cookie";
 import { requireAdminSession } from "@/lib/server/require-admin";
 import {
   requireCoordinatorSession,
@@ -158,6 +159,14 @@ const cases: BodyCase[] = [
       institutionCompleteRoute(request, {
         params: Promise.resolve({ provider: InstitutionProvider.Odtu }),
       }),
+    // Only the browser that started the login may finish it.
+    cookie: `${INSTITUTION_LOGIN_COOKIE}=${encodeURIComponent(
+      JSON.stringify({
+        provider: InstitutionProvider.Odtu,
+        state: "state-1",
+        next: null,
+      }),
+    )}`,
     valid: { state: "state-1", params: { code: "c-1" } },
     backend: institutionLogin.finishInstitutionCallback,
     expected: [InstitutionProvider.Odtu, "state-1", { code: "c-1" }],
