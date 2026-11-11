@@ -85,7 +85,12 @@ export function phaseRangeProblem(
   if (phases.length > MAX_PHASES) return PhaseRangeProblem.TooMany;
   let previousLast = 0;
   for (const phase of phases) {
-    if (phase.lastWeek < phase.firstWeek || phase.firstWeek <= previousLast) {
+    if (
+      !Number.isInteger(phase.firstWeek) ||
+      !Number.isInteger(phase.lastWeek) ||
+      phase.lastWeek < phase.firstWeek ||
+      phase.firstWeek <= previousLast
+    ) {
       return PhaseRangeProblem.OutOfOrder;
     }
     if (phase.lastWeek > totalWeeks) return PhaseRangeProblem.PastTheEnd;
