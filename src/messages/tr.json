@@ -2040,7 +2040,8 @@
     "avatar": "Profil fotoğrafı",
     "profile-pdf": "Profil PDF'i",
     "requested-doc": "İstenen belge",
-    "syllabus": "Müfredat"
+    "syllabus": "Müfredat",
+    "weekly-program": "Haftalık program"
   },
   "startupStages": {
     "PROBLEM": "Problem",
@@ -5981,6 +5982,8 @@
     "academicsLoadFailed": "Akademisyenler yüklenemedi.",
     "weekPlanLoadFailed": "Haftalık plan yüklenemedi.",
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
+    "weeklyProgramReadFailed": "Haftalık program okunamadı.",
+    "weeklyProgramSaveFailed": "Haftalık program kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
