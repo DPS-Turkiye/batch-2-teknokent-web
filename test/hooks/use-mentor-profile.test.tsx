@@ -6,14 +6,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   MENTOR_AVAILABILITY_QUERY_KEY,
   MENTOR_PROFILE_QUERY_KEY,
+  useAvailabilitySettingsForm,
   useAvailabilitySlotForm,
   useCreateAvailabilitySlot,
   useDeleteAvailabilitySlot,
-  useAvailabilitySettingsForm,
   useMentorProfileForm,
   useUpdateMentorProfile,
 } from "@/hooks/use-mentor-profile";
 import type { MentorProfile } from "@/interfaces/mentor";
+import { ToastTone } from "@/interfaces/toast";
 import {
   createAvailabilitySlot,
   deleteAvailabilitySlot,
@@ -21,8 +22,8 @@ import {
   updateAvailabilitySettings,
   updateMentorProfile,
 } from "@/lib/client/mentor-profile";
+import { mentorProfile } from "@test/fixtures/mentors";
 import { createTestQueryClient } from "@test/test-utils";
-import { ToastTone } from "@/interfaces/toast";
 
 const { showToast } = vi.hoisted(() => ({ showToast: vi.fn() }));
 
@@ -54,7 +55,7 @@ describe("mentor profile mutations", () => {
   });
 
   it("invalidates the profile query after a successful update", async () => {
-    vi.mocked(updateMentorProfile).mockResolvedValue({} as never);
+    vi.mocked(updateMentorProfile).mockResolvedValue(mentorProfile);
     const queryClient = createTestQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -85,7 +86,12 @@ describe("mentor profile mutations", () => {
   });
 
   it("invalidates the availability query after creating a slot", async () => {
-    vi.mocked(createAvailabilitySlot).mockResolvedValue({} as never);
+    vi.mocked(createAvailabilitySlot).mockResolvedValue({
+      id: "slot-1",
+      startsAt: "2026-09-15T11:00:00Z",
+      durationMinutes: 30,
+      booked: false,
+    });
     const queryClient = createTestQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -106,7 +112,7 @@ describe("mentor profile mutations", () => {
   });
 
   it("invalidates the availability query after deleting a slot", async () => {
-    vi.mocked(deleteAvailabilitySlot).mockResolvedValue(undefined as never);
+    vi.mocked(deleteAvailabilitySlot).mockResolvedValue(undefined);
     const queryClient = createTestQueryClient();
     const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -189,7 +195,7 @@ describe("useMentorProfileForm", () => {
   });
 
   it("saves the form through the update mutation and reports success", async () => {
-    vi.mocked(updateMentorProfile).mockResolvedValue(profile() as never);
+    vi.mocked(updateMentorProfile).mockResolvedValue(profile());
     const { result } = renderHook(() => useMentorProfileForm(profile()), {
       wrapper: wrapperFor(createTestQueryClient()),
     });
@@ -224,7 +230,12 @@ describe("useAvailabilitySlotForm", () => {
   });
 
   it("adds a slot and resets the form on success", async () => {
-    vi.mocked(createAvailabilitySlot).mockResolvedValue({} as never);
+    vi.mocked(createAvailabilitySlot).mockResolvedValue({
+      id: "slot-1",
+      startsAt: "2026-09-15T11:00:00Z",
+      durationMinutes: 30,
+      booked: false,
+    });
     const { result } = renderHook(() => useAvailabilitySlotForm(), {
       wrapper: wrapperFor(createTestQueryClient()),
     });
@@ -253,7 +264,7 @@ describe("useAvailabilitySlotForm", () => {
   });
 
   it("deletes a slot by id", async () => {
-    vi.mocked(deleteAvailabilitySlot).mockResolvedValue(undefined as never);
+    vi.mocked(deleteAvailabilitySlot).mockResolvedValue(undefined);
     const { result } = renderHook(() => useAvailabilitySlotForm(), {
       wrapper: wrapperFor(createTestQueryClient()),
     });
@@ -299,7 +310,7 @@ describe("failed saves report the reason the backend gave", () => {
       menteeCapacity: null,
       defaultMeetingDurationMinutes: 60,
       meetingBufferMinutes: 15,
-    } as never);
+    });
     vi.mocked(updateAvailabilitySettings).mockRejectedValue(
       new Error("En fazla 21 saat aralığı kaydedilebilir."),
     );

@@ -14,8 +14,8 @@ import {
   StatusChip,
 } from "@/components/admin/admin-ui";
 import {
-  type AcademicsList,
   useAdminAcademics,
+  type AcademicsList,
 } from "@/hooks/use-admin-academics";
 import type { AdminAcademic } from "@/interfaces/admin-academics";
 import { ACADEMIC_FILTERS } from "@/lib/admin-academics";

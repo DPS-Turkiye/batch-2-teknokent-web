@@ -1,13 +1,9 @@
 import { act, renderHook } from "@testing-library/react";
-import type { FormEvent } from "react";
+import { FirebaseError } from "firebase/app";
 import { describe, expect, it, vi } from "vitest";
 
 import { useRegisterForm } from "@/hooks/use-auth-form";
-import { FirebaseError } from "firebase/app";
-
-function submitEvent() {
-  return { preventDefault: vi.fn() } as unknown as FormEvent<HTMLFormElement>;
-}
+import { formSubmitEvent } from "@test/fixtures/form-events";
 
 const STRONG_PASSWORD = "Sifre1234!";
 
@@ -91,7 +87,7 @@ describe("useRegisterForm", () => {
   it("blocks invalid submission and prevents the browser navigation", async () => {
     const onSubmit = vi.fn();
     const { result } = renderHook(() => useRegisterForm(onSubmit));
-    const event = submitEvent();
+    const event = formSubmitEvent();
 
     await act(() => result.current.submit(event));
 
@@ -112,11 +108,11 @@ describe("useRegisterForm", () => {
     fillValid(result);
     let pending!: Promise<void>;
     act(() => {
-      pending = result.current.submit(submitEvent());
+      pending = result.current.submit(formSubmitEvent());
     });
 
     expect(result.current.submitting).toBe(true);
-    await act(() => result.current.submit(submitEvent()));
+    await act(() => result.current.submit(formSubmitEvent()));
     expect(onSubmit).toHaveBeenCalledTimes(1);
     await act(async () => {
       resolve();
@@ -134,13 +130,13 @@ describe("useRegisterForm", () => {
     const { result } = renderHook(() => useRegisterForm(onSubmit));
     fillValid(result);
 
-    await act(() => result.current.submit(submitEvent()));
+    await act(() => result.current.submit(formSubmitEvent()));
 
     expect(result.current.error).not.toBe("");
     expect(result.current.error).not.toBe("Firebase error");
     expect(result.current.submitting).toBe(false);
     expect(result.current.form.email).toBe("gulse@dongu.co");
-    await act(() => result.current.submit(submitEvent()));
+    await act(() => result.current.submit(formSubmitEvent()));
     expect(result.current.error).toBe("");
     expect(onSubmit).toHaveBeenCalledTimes(2);
   });

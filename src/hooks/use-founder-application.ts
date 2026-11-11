@@ -1,13 +1,15 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import { useTranslations } from "next-intl";
+import { useCallback, useState } from "react";
 
-import type { RegisteredAccount } from "@/interfaces/auth";
-import type { SignupDraft } from "@/interfaces/signup";
 import { startupRequestFields } from "@/hooks/use-startup-draft";
+import type { RegisteredAccount } from "@/interfaces/auth";
+import { StartupDocumentKind, type SignupDraft } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { registerFounder } from "@/lib/client/auth";
 import { uploadDocument } from "@/lib/client/documents";
+import { isEnumValue } from "@/lib/enum";
 import { currentIdToken } from "@/lib/firebase/auth";
 
 export function signupFullName(draft: SignupDraft) {
@@ -52,15 +54,19 @@ export function useFounderApplication(account: RegisteredAccount) {
         );
       }
       if (draft.personal.cv?.file) {
-        await uploadDocument(draft.personal.cv.file, "cv", idToken);
+        await uploadDocument(draft.personal.cv.file, DocumentKind.Cv, idToken);
       }
       // Without a startup there is nowhere for its logo and files to go yet.
       if (!startupLater) {
         if (draft.startup.logo?.file) {
-          await uploadDocument(draft.startup.logo.file, "logo", idToken);
+          await uploadDocument(
+            draft.startup.logo.file,
+            DocumentKind.Logo,
+            idToken,
+          );
         }
         for (const [kind, uploaded] of Object.entries(draft.documents)) {
-          if (uploaded?.file) {
+          if (uploaded.file && isEnumValue(StartupDocumentKind, kind)) {
             await uploadDocument(uploaded.file, kind, idToken);
           }
         }

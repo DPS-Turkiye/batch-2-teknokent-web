@@ -4,20 +4,20 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { DocumentKind } from "@/interfaces/startup-document";
+import type { StartupStage } from "@/interfaces/startup-process";
+import { ToastTone } from "@/interfaces/toast";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   getStartupProcess,
   submitAssignment,
 } from "@/lib/client/startup-process";
-import type { StartupStage } from "@/interfaces/startup-process";
 import {
   completedStages,
   roundForStage,
   stageCards,
 } from "@/lib/startup-process";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_PROCESS_QUERY_KEY = ["startup-process"] as const;
 
@@ -101,7 +101,7 @@ export function useStartupProcess() {
     uploadAssignment: (assignmentId: string, file: File) =>
       upload.mutate({ assignmentId, file }),
     uploadingAssignmentId: upload.isPending
-      ? (upload.variables?.assignmentId ?? null)
+      ? upload.variables.assignmentId
       : null,
   };
 }

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { CreateStartupInput } from "@/interfaces/organization";
 import { UserRole } from "@/interfaces/session";
 import { createStartup } from "@/lib/api/organization";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
@@ -10,7 +11,6 @@ import {
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser, refreshSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
 
 /** "Startup'ımı oluştur" on /startup. Answers with the session, now carrying the startup. */
 export async function POST(request: Request) {

@@ -1,7 +1,9 @@
 import { screen } from "@testing-library/react";
 import { expect, it } from "vitest";
+
 import { ProgramContext } from "@/components/common/program-context";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
 it("names the program supplied by the relationship", () => {
   renderWithQueryClient(<ProgramContext name="METU Stars" />);
   expect(screen.getByText("METU Stars")).toBeInTheDocument();

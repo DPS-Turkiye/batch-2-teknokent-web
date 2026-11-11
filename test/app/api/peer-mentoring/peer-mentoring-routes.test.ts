@@ -6,7 +6,11 @@ import {
   GET as getRequests,
   POST as postRequest,
 } from "@/app/api/peer-mentoring/requests/route";
-import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import {
+  PeerTopicCategory,
+  type PeerMentoringRequest,
+} from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
 import {
   createPeerMentoringRequest,
@@ -14,6 +18,7 @@ import {
   fetchPeerMentors,
 } from "@/lib/api/peer-mentoring";
 import { getSessionUser } from "@/lib/session";
+import { backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/peer-mentoring", () => ({
   fetchPeerMentors: vi.fn(),
@@ -22,7 +27,15 @@ vi.mock("@/lib/api/peer-mentoring", () => ({
 }));
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 
-const ok = { data: [], headers: {}, status: 200 };
+const sentRequest: PeerMentoringRequest = {
+  id: "peer-request-1",
+  mentor: { userId: "mentor-1", fullName: "Deniz Kara", department: null },
+  mentee: { userId: "student-1", fullName: "Ayşe Yılmaz", department: null },
+  category: PeerTopicCategory.International,
+  message: "Erasmus başvurusu için nereden başlamalıyım?",
+  status: MentorshipRequestStatus.Pending,
+  createdAt: "2026-11-06T10:15:00+03:00",
+};
 
 function request(
   url: string,
@@ -40,12 +53,11 @@ beforeEach(() => {
     jobTitle: "",
     role: UserRole.Mentee,
   });
-  vi.mocked(fetchPeerMentors).mockResolvedValue(ok);
-  vi.mocked(fetchPeerMentoringRequests).mockResolvedValue(ok);
-  vi.mocked(createPeerMentoringRequest).mockResolvedValue({
-    ...ok,
-    status: 201,
-  });
+  vi.mocked(fetchPeerMentors).mockResolvedValue(backendResponse([]));
+  vi.mocked(fetchPeerMentoringRequests).mockResolvedValue(backendResponse([]));
+  vi.mocked(createPeerMentoringRequest).mockResolvedValue(
+    backendResponse(sentRequest, 201),
+  );
 });
 
 describe("peer-mentoring proxy routes", () => {

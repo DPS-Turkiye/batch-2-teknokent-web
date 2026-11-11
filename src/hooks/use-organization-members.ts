@@ -3,12 +3,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { isFounder } from "@/lib/startup-team";
-
 import {
   addOrganizationMember,
   getOrganizationMembers,
 } from "@/lib/client/organization-members";
+import { isFounder } from "@/lib/startup-team";
 
 export const ORGANIZATION_MEMBERS_QUERY_KEY = ["organization-members"] as const;
 

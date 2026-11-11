@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
@@ -14,6 +13,7 @@ import {
   isoDay,
   mentorshipHref,
   placeDayItems,
+  proposalItems,
   rangeLabel,
   recordingNote,
   shiftAnchor,
@@ -21,27 +21,22 @@ import {
   startOfWeek,
   viewDays,
   viewRange,
-  proposalItems,
   type CalendarTexts,
 } from "@/lib/coordinator-calendar";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import {
   at,
   calendarMeeting,
   coordinatorCalendar,
 } from "@test/fixtures/coordinator-calendar";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
+import { translatorIn } from "@test/translators";
 
 const WEDNESDAY = new Date(2026, 8, 16, 15, 0);
 
 function texts(locale: "tr" | "en"): CalendarTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "coordinatorCalendar",
-    }),
+    t: translatorIn(locale, "coordinatorCalendar"),
     locale,
   };
 }
@@ -67,8 +62,8 @@ describe("coordinator calendar", () => {
 
   it("covers whole weeks around a month and steps by month", () => {
     const days = viewDays(CalendarView.Month, WEDNESDAY);
-    expect(isoDay(days[0])).toBe("2026-08-31");
-    expect(isoDay(days[days.length - 1])).toBe("2026-10-04");
+    expect(isoDay(itemAt(days, 0))).toBe("2026-08-31");
+    expect(isoDay(itemAt(days, -1))).toBe("2026-10-04");
     expect(days.length % 7).toBe(0);
     expect(rangeLabel(CalendarView.Month, WEDNESDAY, "tr")).toBe("Eylül 2026");
     expect(rangeLabel(CalendarView.Month, WEDNESDAY, "en")).toBe(
@@ -104,7 +99,7 @@ describe("coordinator calendar", () => {
       ["late", 2.5, 1],
       ["deadline", 9.25, 0],
     ]);
-    expect(placed[2].height).toBe(0.75);
+    expect(placed[2]?.height).toBe(0.75);
   });
 
   it("labels slots and conflicts", () => {
@@ -123,16 +118,13 @@ describe("coordinator calendar", () => {
       ),
     ).toBe("Per 17 Eyl · 23:59");
     const calendar = coordinatorCalendar();
-    expect(
-      conflictSummary(calendar.conflicts[0], calendar.items, texts("tr")),
-    ).toEqual({
+    const conflict = itemAt(calendar.conflicts, 0);
+    expect(conflictSummary(conflict, calendar.items, texts("tr"))).toEqual({
       heading: "2 çakışma",
       who: "Ahmet Can · Çar",
       body: "Nova Robotics (11:00) ve Vega (11:30) görüşmeleri üst üste bindi.",
     });
-    expect(
-      conflictSummary(calendar.conflicts[0], calendar.items, texts("en")),
-    ).toEqual({
+    expect(conflictSummary(conflict, calendar.items, texts("en"))).toEqual({
       heading: "2 conflicts",
       who: "Ahmet Can · Wed",
       body: "The meetings with Nova Robotics (11:00 AM) and Vega (11:30 AM) overlap.",
@@ -218,5 +210,18 @@ describe("coordinator calendar", () => {
       endsAt: "2026-09-18T08:15:00.000Z",
       conflict: false,
     });
+  });
+
+  it("leaves out a proposal that belongs to no program", () => {
+    const items = proposalItems(
+      [
+        meetingProposal({ id: "outside", programId: null, mentorshipId: null }),
+        meetingProposal({ scheduledAt: "2026-09-18T07:30:00Z" }),
+      ],
+      { from: "2026-09-14", to: "2026-09-20" },
+      "Önerilen slot",
+    );
+
+    expect(items.map((item) => item.proposalId)).toEqual(["proposal-1"]);
   });
 });

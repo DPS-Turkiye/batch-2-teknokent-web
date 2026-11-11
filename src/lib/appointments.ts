@@ -2,10 +2,10 @@ import type { ComponentProps } from "react";
 
 import type { StatusChip } from "@/components/admin/admin-ui";
 import {
-  type Appointment,
   AppointmentKind,
-  AppointmentSide,
   AppointmentStatus,
+  type Appointment,
+  type AppointmentSide,
 } from "@/interfaces/appointment";
 
 type AppointmentTone = ComponentProps<typeof StatusChip>["tone"];

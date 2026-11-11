@@ -1,11 +1,12 @@
-import type {
-  MentorAvailabilityException,
-  MentorAvailabilitySettings,
-  UpdateMentorAvailabilitySettingsPayload,
-  Weekday,
-} from "@/interfaces/mentor";
 import { clientText } from "@/i18n/client-texts";
-import { WEEKDAY_ORDER } from "@/interfaces/mentor";
+import {
+  WEEKDAY_ORDER,
+  type MentorAvailabilityException,
+  type MentorAvailabilitySettings,
+  type UpdateMentorAvailabilitySettingsPayload,
+  type Weekday,
+} from "@/interfaces/mentor";
+import { formatDateRange } from "@/lib/format";
 import { calendarDay } from "@/lib/utils";
 
 /** One weekly time range as the editor holds it; `key` is stable across edits. */
@@ -102,7 +103,8 @@ export function rangesForDay(draft: AvailabilityDraft, day: Weekday) {
 
 function addHour(time: string) {
   const [hours, minutes] = time.split(":").map(Number);
-  if (hours >= 23) return "23:59";
+  if (hours === undefined || minutes === undefined || hours >= 23)
+    return "23:59";
   return `${String(hours + 1).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
 }
 
@@ -221,11 +223,15 @@ export function exceptionLabel(
 ) {
   const start = calendarDay(exception.startsOn);
   const end = calendarDay(exception.endsOn);
-  const range = new Intl.DateTimeFormat(locale, {
-    day: "numeric",
-    month: "long",
-    year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
-  }).formatRange(start, end);
+  const range = formatDateRange(
+    new Intl.DateTimeFormat(locale, {
+      day: "numeric",
+      month: "long",
+      year: end.getFullYear() === now.getFullYear() ? undefined : "numeric",
+    }),
+    start,
+    end,
+  );
   return exception.reason ? `${range} · ${exception.reason}` : range;
 }
 

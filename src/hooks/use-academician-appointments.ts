@@ -2,17 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import type { AcademicianAppointment } from "@/interfaces/academician-office-hours";
 import { AppointmentStatus } from "@/interfaces/appointment";
+import { ToastTone } from "@/interfaces/toast";
+import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
 import {
   cancelAcademicianAppointment,
   getAcademicianAppointments,
 } from "@/lib/client/academician-office-hours";
-import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const ACADEMICIAN_APPOINTMENTS_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -87,7 +87,7 @@ export function useAcademicianAppointments() {
     Date.parse(appointment.startsAt) - Date.now() < LATE_CANCEL_MS;
 
   const submitCancel =
-    (appointment: AcademicianAppointment) => (event: FormEvent) => {
+    (appointment: AcademicianAppointment) => (event: SubmitEvent) => {
       event.preventDefault();
       const why = reason.trim() || null;
       if (!why && isLate(appointment)) {

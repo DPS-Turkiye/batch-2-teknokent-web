@@ -1,10 +1,10 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
   MeetingFeedbackSide,
   type ProgramMeetingRatings,
 } from "@/interfaces/program-report";
+import { Locale } from "@/lib/i18n";
 import {
   feedbackQualities,
   feedbackRatingRows,
@@ -13,21 +13,12 @@ import {
   ratingResponseRate,
   satisfactionKpi,
 } from "@/lib/meeting-ratings";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
 import { programMeetingFeedback } from "@test/fixtures/program-report";
+import { translatorIn } from "@test/translators";
 
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "meetingRatings",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "meetingRatings",
-});
+const t = translatorIn("tr", "meetingRatings");
+const tEn = translatorIn("en", "meetingRatings");
 
 function ratings(
   overrides: Partial<ProgramMeetingRatings> = {},
@@ -85,7 +76,7 @@ describe("meeting ratings", () => {
       "expression",
       "confidence",
     ]);
-    expect(rows[2].average).toBeNull();
+    expect(rows[2]?.average).toBeNull();
   });
 });
 
@@ -135,12 +126,8 @@ describe("feedbackRatingRows", () => {
   });
 
   it("has a label for every key in both languages", () => {
-    for (const messages of [tr, en]) {
-      const translate = createTranslator({
-        locale: "tr",
-        messages,
-        namespace: "meetingRatings",
-      });
+    for (const locale of [Locale.Tr, Locale.En]) {
+      const translate = translatorIn(locale, "meetingRatings");
       for (const side of [
         MeetingFeedbackSide.Mentee,
         MeetingFeedbackSide.Mentor,

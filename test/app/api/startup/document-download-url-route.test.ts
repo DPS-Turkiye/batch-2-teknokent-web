@@ -27,7 +27,7 @@ describe("/api/startup/documents/[id]/download-url", () => {
       status: 200,
       data: { url: "https://bucket.s3/deck.pdf?sig", filename: "deck.pdf" },
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       new NextRequest(
@@ -45,7 +45,7 @@ describe("/api/startup/documents/[id]/download-url", () => {
       status: 400,
       data: { message: "You cannot open this document" },
       headers: {},
-    } as never);
+    });
 
     const response = await GET(
       new NextRequest(

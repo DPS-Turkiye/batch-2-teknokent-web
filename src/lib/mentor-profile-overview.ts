@@ -1,17 +1,18 @@
 import type { useTranslations } from "next-intl";
 
 import type { useOptionLabel } from "@/hooks/use-option-label";
-import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
+  WEEKDAY_ORDER,
   type MentorAvailabilityRule,
   type MentorAvailabilitySettings,
   type MentorLanguage,
   type MentorProfile,
   type MentorProgram,
   type Weekday,
-  WEEKDAY_ORDER,
 } from "@/interfaces/mentor";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { formatDateRange } from "@/lib/format";
 import { toTimeInput } from "@/lib/mentor-availability";
 
 /** The profile page's translators and language, for the labels built here. */
@@ -48,7 +49,7 @@ export function ratingLabel(
 /** "Design / UX Mentor · Döngü Labs · 12 yıl" */
 export function profileSubtitle(profile: MentorProfile) {
   return [profile.professionalTitle, profile.company, profile.experienceLevel]
-    .map((part) => part?.trim())
+    .map((part) => part.trim())
     .filter(Boolean)
     .join(" · ");
 }
@@ -86,10 +87,11 @@ export function mentorshipDurationLabel(
 
 /** "Mar – Haz 2026", "Kas 2025 – Şub 2026", or "Mar 2026" within one month. */
 function periodLabel(start: Date, end: Date, locale: string) {
-  return new Intl.DateTimeFormat(locale, {
-    month: "short",
-    year: "numeric",
-  }).formatRange(start, end);
+  return formatDateRange(
+    new Intl.DateTimeFormat(locale, { month: "short", year: "numeric" }),
+    start,
+    end,
+  );
 }
 
 /** Accepted mentorships, each with its period and completed sessions. */
@@ -126,16 +128,16 @@ export function workingStyleBullets(
   profile: MentorProfile,
   { t }: Pick<MentorProfileTexts, "t">,
 ) {
-  const bullets = (profile.mentoringStyle ?? "")
+  const bullets = profile.mentoringStyle
     .split(/\n|•/)
     .map((line) => line.trim())
     .filter(Boolean);
-  if (profile.sectorExperience?.trim()) {
+  if (profile.sectorExperience.trim()) {
     bullets.push(
       t("style.sectorBullet", { value: profile.sectorExperience.trim() }),
     );
   }
-  if (profile.startupStages?.trim()) {
+  if (profile.startupStages.trim()) {
     bullets.push(
       t("style.stagesBullet", { value: profile.startupStages.trim() }),
     );
@@ -175,7 +177,7 @@ export function meetingPreferenceRows(
         : "",
     },
   ];
-  return rows.filter((row) => Boolean(row.value?.trim()));
+  return rows.filter((row) => Boolean(row.value.trim()));
 }
 
 /** "Türkçe · İngilizce", or "" when the mentor has not chosen any. */

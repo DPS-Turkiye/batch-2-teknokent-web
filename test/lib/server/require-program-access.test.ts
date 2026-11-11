@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UserRole, type AppSession } from "@/interfaces/session";
 import {
-  requireCoordinatorOrMentorSession,
-  requireCoordinatorSession,
+  requireCoordinatorMentorOrAdminSession,
   requireMentorSession,
   requireStartupSession,
 } from "@/lib/server/require-program-access";
@@ -12,14 +11,15 @@ import { getSessionUser } from "@/lib/session";
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 
 function as(role: AppSession["role"], organizationId?: string): AppSession {
-  return {
+  const session: AppSession = {
     userId: `${role}-1`,
     email: "someone@teknokent.demo",
     fullName: "Someone",
     jobTitle: "x",
     role,
-    organizationId,
   };
+  if (organizationId !== undefined) session.organizationId = organizationId;
+  return session;
 }
 
 async function statusOf(
@@ -35,10 +35,9 @@ describe("program access guards", () => {
   });
 
   it.each([
-    requireCoordinatorSession,
     requireMentorSession,
     requireStartupSession,
-    requireCoordinatorOrMentorSession,
+    requireCoordinatorMentorOrAdminSession,
   ])("%o answers 401 without a session", async (guard) => {
     vi.mocked(getSessionUser).mockResolvedValue(null);
     expect(await statusOf(guard)).toBe(401);
@@ -51,21 +50,8 @@ describe("program access guards", () => {
     });
     expect(await statusOf(requireMentorSession)).toBe(200);
     expect(await statusOf(requireStartupSession)).toBe(200);
-    expect(await statusOf(requireCoordinatorSession)).toBe(403);
+    expect(await statusOf(requireCoordinatorMentorOrAdminSession)).toBe(200);
   });
-
-  it.each([
-    [UserRole.Coordinator, 200],
-    [UserRole.Admin, 403],
-    [UserRole.Mentor, 403],
-    [UserRole.Mentee, 403],
-  ] as const)(
-    "requireCoordinatorSession lets only a coordinator through (%s → %i)",
-    async (role, status) => {
-      vi.mocked(getSessionUser).mockResolvedValue(as(role));
-      expect(await statusOf(requireCoordinatorSession)).toBe(status);
-    },
-  );
 
   it.each([
     [UserRole.Mentor, 200],
@@ -97,10 +83,12 @@ describe("program access guards", () => {
     [UserRole.Admin, 200],
     [UserRole.Mentee, 403],
   ] as const)(
-    "requireCoordinatorOrMentorSession refuses startup members (%s → %i)",
+    "requireCoordinatorMentorOrAdminSession refuses startup members (%s → %i)",
     async (role, status) => {
       vi.mocked(getSessionUser).mockResolvedValue(as(role, "org-1"));
-      expect(await statusOf(requireCoordinatorOrMentorSession)).toBe(status);
+      expect(await statusOf(requireCoordinatorMentorOrAdminSession)).toBe(
+        status,
+      );
     },
   );
 

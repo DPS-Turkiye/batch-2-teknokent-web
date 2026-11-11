@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { LanguageSwitch } from "@/components/common/language-switch";
 import { MentonWordmark } from "@/components/common/menton-wordmark";

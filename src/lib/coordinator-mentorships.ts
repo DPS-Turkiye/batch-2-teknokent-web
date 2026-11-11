@@ -1,10 +1,10 @@
 import type { useTranslations } from "next-intl";
 
 import {
-  type CoordinatorMentorship,
-  type CoordinatorMentorshipDetail,
   CoordinatorMentorshipHealth,
   MentorshipStatus,
+  type CoordinatorMentorship,
+  type CoordinatorMentorshipDetail,
 } from "@/interfaces/coordinator-mentorship";
 import { formatDayMonth, formatLongDate, relativeDayLabel } from "@/lib/utils";
 
@@ -72,7 +72,9 @@ export function healthFilterOptions(
 
 export function topicOptions(rows: CoordinatorMentorship[]) {
   const topics = new Set(
-    rows.map((row) => row.topic).filter((topic): topic is string => !!topic),
+    rows
+      .map((row) => row.topic)
+      .filter((topic): topic is string => Boolean(topic)),
   );
   return [ALL_TOPICS, ...[...topics].sort((a, b) => a.localeCompare(b, "tr"))];
 }

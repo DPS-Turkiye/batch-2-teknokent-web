@@ -4,6 +4,7 @@ import {
   getOfficeHoursUser,
   saveOfficeHoursUser,
 } from "@/lib/server/office-hours-session";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 const store: { user?: unknown; issuedAt?: number; save: () => Promise<void> } =
   { save: vi.fn().mockResolvedValue(undefined) };
@@ -25,7 +26,7 @@ describe("office-hours session", () => {
   it("keeps its own cookie, apart from the Menton session", async () => {
     await saveOfficeHoursUser({ userId: "u1", fullName: "Ayşe Yılmaz" });
 
-    const options = getIronSession.mock.calls[0][1];
+    const options = itemAt(getIronSession.mock.calls, 0)[1];
     expect(options.cookieName).toBe("menton_office_hours");
     expect(options.cookieOptions.httpOnly).toBe(true);
     expect(store.user).toEqual({ userId: "u1", fullName: "Ayşe Yılmaz" });

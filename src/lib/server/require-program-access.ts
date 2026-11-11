@@ -1,11 +1,10 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
-import { apiText, type ApiTextKey } from "@/lib/server/api-response";
 import { hasPermission } from "@/lib/permissions";
+import { apiText, type ApiTextKey } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
 async function requireRole(
   role: UserRole,
@@ -33,10 +32,6 @@ async function requireRole(
     };
   }
   return { ok: true, session };
-}
-
-export function requireCoordinatorSession() {
-  return requireRole(UserRole.Coordinator, "coordinatorsOnlyManage");
 }
 
 export function requireMentorSession() {
@@ -76,7 +71,7 @@ export async function requireStartupSession() {
   return { ok: true as const, session };
 }
 
-export async function requireCoordinatorOrMentorSession() {
+export async function requireCoordinatorMentorOrAdminSession() {
   const session = await getSessionUser();
   if (!session) {
     return {

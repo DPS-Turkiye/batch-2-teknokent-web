@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 /** Keep shared program screens inside the role shell that opened them. */
 export function useProgramNavigation(programId: string) {
   const pathname = usePathname();
-  const admin = pathname?.startsWith("/admin/") ?? false;
+  const admin = pathname.startsWith("/admin/");
   const listHref = admin ? "/admin/programs" : "/coordinator/programs";
   const baseHref = `${listHref}/${encodeURIComponent(programId)}`;
   const resolveHref = (href: string) => {

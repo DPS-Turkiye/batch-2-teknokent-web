@@ -1,11 +1,14 @@
-import type {
-  MeetingAssistantShare,
-  MeetingNote,
-  MeetingNoteDocument,
-  MeetingTodo,
-  PublishAssistantSharePayload,
-  RealtimeToken,
+import { clientText } from "@/i18n/client-texts";
+import {
+  AssistantShareKind,
+  type MeetingAssistantShare,
+  type MeetingNote,
+  type MeetingNoteDocument,
+  type MeetingTodo,
+  type PublishAssistantSharePayload,
+  type RealtimeToken,
 } from "@/interfaces/meeting-note";
+import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import { requireSuccess } from "@/lib/client/api";
 import {
   getAssistantShareApiUrl,
@@ -18,9 +21,7 @@ import {
   REALTIME_TOKEN_API_PATH,
 } from "@/lib/const";
 import { httpClient } from "@/lib/http-client";
-import { jsonFitsAmplifyWaf } from "@/lib/amplify-safe-body";
 import type { MeetingReport, TranscriptLine } from "@/types/assistant";
-import { clientText } from "@/i18n/client-texts";
 
 export async function getMeetingNote(meetingId: string) {
   return requireSuccess(
@@ -62,7 +63,7 @@ export async function postMeetingTodo(meetingId: string, title: string) {
 export async function patchMeetingTodo(
   meetingId: string,
   todoId: string,
-  payload: { title?: string; done?: boolean },
+  payload: { title?: string | undefined; done?: boolean | undefined },
 ) {
   return requireSuccess(
     await httpClient.patch<MeetingTodo[]>(
@@ -181,28 +182,35 @@ export async function publishTranscriptShare(
   meetingId: string,
   lines: TranscriptLine[],
 ) {
-  const payload = { kind: "TRANSCRIPT" as const, transcript: lines };
+  const payload = {
+    kind: AssistantShareKind.Transcript as const,
+    transcript: lines,
+  };
+  // Only a failed upload falls back to sending the transcript inline; a failed share post is the caller's error.
   try {
     const upload = await createTranscriptUpload(meetingId);
     await putTranscriptToPresignedUrl(upload, lines);
-    return postAssistantShare(meetingId, { kind: "TRANSCRIPT_S3" });
   } catch (error) {
     if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
+  return postAssistantShare(meetingId, {
+    kind: AssistantShareKind.TranscriptS3,
+  });
 }
 
 export async function publishReportShare(
   meetingId: string,
   report: MeetingReport,
 ) {
-  const payload = { kind: "REPORT" as const, report };
+  const payload = { kind: AssistantShareKind.Report as const, report };
+  // Only a failed upload falls back to sending the report inline; a failed share post is the caller's error.
   try {
     const upload = await createReportUpload(meetingId);
     await putJsonToPresignedUrl(upload, report, "Rapor S3'e yüklenemedi.");
-    return postAssistantShare(meetingId, { kind: "REPORT_S3" });
   } catch (error) {
     if (!jsonFitsAmplifyWaf(payload)) throw error;
     return postAssistantShare(meetingId, payload);
   }
+  return postAssistantShare(meetingId, { kind: AssistantShareKind.ReportS3 });
 }

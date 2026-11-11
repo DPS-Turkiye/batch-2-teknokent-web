@@ -1,5 +1,3 @@
-import { NextResponse } from "next/server";
-
 import { postPlatformFeedback } from "@/lib/api/platform-feedback";
 import { platformFeedbackSubmissionSchema } from "@/lib/platform-feedback";
 import {
@@ -7,6 +5,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
 
@@ -14,18 +13,12 @@ export async function POST(request: Request) {
   try {
     const { userId } = await getSessionIds();
     if (!userId) throw new SessionRequiredError();
-    const parsed = platformFeedbackSubmissionSchema.safeParse(
-      await request.json().catch(() => null),
+    const parsed = await readJsonBody(
+      request,
+      platformFeedbackSubmissionSchema,
+      { invalidMessage: "platformFeedbackInvalid" },
     );
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("platformFeedbackInvalid"),
-        },
-        { status: 400 },
-      );
-    }
+    if (!parsed.ok) return parsed.response;
     return backendResponse(await postPlatformFeedback(userId, parsed.data));
   } catch (error) {
     return apiErrorResponse(error, {

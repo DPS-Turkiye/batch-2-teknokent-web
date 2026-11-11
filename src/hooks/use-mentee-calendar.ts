@@ -19,6 +19,7 @@ import {
 } from "@/lib/calendar";
 import { ClientApiError } from "@/lib/client/api";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { formatDateRange } from "@/lib/format";
 import {
   CalendarEntryKind,
   deliverableEntries,
@@ -128,6 +129,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     });
   }
 
+  const firstDay = days[0];
   const lastDay = days[days.length - 1];
   // No startup means no process (the proxy answers 401); anything else is a real failure.
   const processFailed =
@@ -143,11 +145,15 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     days,
     hours: MENTEE_WEEK_HOURS,
     now,
-    rangeLabel: new Intl.DateTimeFormat(texts.locale, {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    }).formatRange(days[0], lastDay),
+    rangeLabel: formatDateRange(
+      new Intl.DateTimeFormat(texts.locale, {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }),
+      firstDay ?? lastDay ?? new Date(),
+      lastDay ?? new Date(),
+    ),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),
     today: () => {

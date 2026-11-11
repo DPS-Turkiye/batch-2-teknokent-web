@@ -1,4 +1,5 @@
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { attachDocumentRequestUpload } from "@/lib/api/document-requests";
 import {
@@ -6,7 +7,10 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
+
+const uploadSchema = z.object({ storedDocumentId: z.string() });
 
 type RouteContext = { params: Promise<{ itemId: string }> };
 
@@ -14,20 +18,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
   try {
     const { itemId } = await context.params;
     const { userId } = await getSessionIds();
-    const body = (await request.json()) as { storedDocumentId?: unknown };
-    if (typeof body.storedDocumentId !== "string") {
-      return Response.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("storedDocumentIdRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, uploadSchema, {
+      invalidMessage: "storedDocumentIdRequired",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
       await attachDocumentRequestUpload(itemId, {
         actorId: userId,
-        storedDocumentId: body.storedDocumentId,
+        storedDocumentId: body.data.storedDocumentId,
       }),
     );
   } catch (error) {

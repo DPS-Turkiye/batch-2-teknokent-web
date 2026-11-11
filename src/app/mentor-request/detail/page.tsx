@@ -1,8 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { Suspense, type ReactNode } from "react";
 import { useSearchParams } from "next/navigation";
+import { Suspense, type ReactNode } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { SecondaryButton } from "@/components/common/secondary-button";
@@ -81,8 +81,8 @@ function OtherDetails({ request }: { request: MentorshipRequest }) {
       {proposedSlots.length > 0 ? (
         <InfoRow label={t("proposedSlots")}>
           <ul className="space-y-1">
-            {proposedSlots.map((slot, index) => (
-              <li key={`${slot.label}-${index}`}>{slot.label}</li>
+            {proposedSlots.map((slot) => (
+              <li key={slot.label}>{slot.label}</li>
             ))}
           </ul>
         </InfoRow>

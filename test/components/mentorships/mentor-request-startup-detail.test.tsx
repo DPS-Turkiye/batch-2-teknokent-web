@@ -3,10 +3,8 @@ import type { ReactNode } from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { MentorRequestStartupDetail } from "@/components/mentorships/mentor-request-startup-detail";
-import {
-  MentorshipRequestStatus,
-  type MentorshipRequest,
-} from "@/interfaces/mentorship-request";
+import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
@@ -22,20 +20,21 @@ vi.mock("@/hooks/use-startup-documents", () => ({
 vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorRequestDecision: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useMentorshipRequest: () => ({
-    data: {
+    // No organization, so the team's profile, members and files are not fetched.
+    data: menteeRequestFixture({
       programName: "QA Recorded Program",
       id: "req-1",
       mentorId: "mentor-1",
       requesterId: "mentee-1",
       requesterName: "Gülse Buran",
-      organizationId: null,
+      organizationId: "",
       organizationName: "Döngü",
       supportArea: "Ürün",
       summary: "MVP önceliklerini netleştirmek",
       requesterMessage: "",
       status: MentorshipRequestStatus.Pending,
       createdAt: "2026-10-01T09:00:00Z",
-    } as unknown as MentorshipRequest,
+    }),
     isLoading: false,
     error: null,
   }),

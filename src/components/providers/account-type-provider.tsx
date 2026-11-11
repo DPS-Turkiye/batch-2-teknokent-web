@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext } from "react";
+import { createContext, useContext, type ReactNode } from "react";
 
 import { AccountType } from "@/interfaces/account-type";
 

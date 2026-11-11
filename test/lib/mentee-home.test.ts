@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import { MeetingStatus } from "@/interfaces/meeting";
@@ -6,7 +5,6 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   activeMentorshipFooter,
   buildHomeTasks,
-  type HomeTexts,
   dueState,
   meetingDayLabel,
   meetingWhenLabel,
@@ -14,25 +12,21 @@ import {
   requestStatusHref,
   sentRequestState,
   writeDismissedHomeTasks,
+  type HomeTexts,
 } from "@/lib/mentee-home";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import { DueTone, HomeTaskKind, SentRequestState } from "@/types/mentee-home";
 import {
   menteeActionItemFixture as actionItem,
   menteeMeetingFixture as meeting,
   menteeRequestFixture as request,
 } from "@test/fixtures/mentee-home";
+import { translatorIn } from "@test/translators";
 
 const now = new Date(2026, 8, 14, 10, 0);
 
 function homeTexts(locale: "tr" | "en"): HomeTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "menteeHome",
-    }),
+    t: translatorIn(locale, "menteeHome"),
     locale,
   };
 }
@@ -216,7 +210,7 @@ describe("buildHomeTasks", () => {
       actionLabel: "Yanıtla",
       href: "/mentor-request/status?id=r1",
     });
-    expect(tasks[2].dueLabel).toBe("18 Eylül");
+    expect(tasks[2]?.dueLabel).toBe("18 Eylül");
   });
 
   it("falls back to the owner and the mentorships page for an unlinked item", () => {
@@ -252,7 +246,7 @@ describe("buildHomeTasks", () => {
       now,
     });
 
-    expect(task.subtitle).toBe(
+    expect(task?.subtitle).toBe(
       "Ece Demir · Mentorluk görevi · Kerem Yıldırım ekipten ayrıldı, sana devredildi",
     );
   });

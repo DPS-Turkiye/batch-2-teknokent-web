@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import {
   EmptyNote,
@@ -14,8 +14,8 @@ import { ProgramGlyph } from "@/components/coordinator/program-glyph";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useCoordinatorProgramList } from "@/hooks/use-coordinator-programs";
 import {
-  type CoordinatorProgram,
   ProgramLifecycle,
+  type CoordinatorProgram,
 } from "@/interfaces/coordinator-program";
 import { ProgramType } from "@/interfaces/program";
 import {

@@ -69,18 +69,20 @@ export function parseICalText(icsText: string): MeetingItem[] {
 
   for (let i = 1; i < veventBlocks.length; i++) {
     const block = veventBlocks[i];
-    const summaryMatch = block.match(/SUMMARY:(.*)/);
-    const dtstartMatch = block.match(
-      /DTSTART[:;](?:TZID=[^:]+:)?(\d{8}T?\d{0,6}Z?)/,
+    if (!block) continue;
+    const summaryMatch = /SUMMARY:(.*)/.exec(block);
+    const dtstartMatch = /DTSTART[:;](?:TZID=[^:]+:)?(\d{8}T?\d{0,6}Z?)/.exec(
+      block,
     );
-    const dtendMatch = block.match(
-      /DTEND[:;](?:TZID=[^:]+:)?(\d{8}T?\d{0,6}Z?)/,
+    const dtendMatch = /DTEND[:;](?:TZID=[^:]+:)?(\d{8}T?\d{0,6}Z?)/.exec(
+      block,
     );
-    const locationMatch = block.match(/LOCATION:(.*)/);
+    const locationMatch = /LOCATION:(.*)/.exec(block);
 
     if (!dtstartMatch) continue;
 
     const rawStart = dtstartMatch[1];
+    if (!rawStart) continue;
     const y = parseInt(rawStart.substring(0, 4), 10);
     const m = parseInt(rawStart.substring(4, 6), 10) - 1;
     const d = parseInt(rawStart.substring(6, 8), 10);
@@ -88,29 +90,35 @@ export function parseICalText(icsText: string): MeetingItem[] {
     let mm = 0;
     if (rawStart.includes("T")) {
       const timePart = rawStart.split("T")[1];
-      hh = parseInt(timePart.substring(0, 2), 10);
-      mm = parseInt(timePart.substring(2, 4), 10);
+      if (timePart) {
+        hh = parseInt(timePart.substring(0, 2), 10);
+        mm = parseInt(timePart.substring(2, 4), 10);
+      }
     }
     const startDate = new Date(Date.UTC(y, m, d, hh, mm));
 
     let duration = 45;
     if (dtendMatch) {
       const rawEnd = dtendMatch[1];
-      const ey = parseInt(rawEnd.substring(0, 4), 10);
-      const em = parseInt(rawEnd.substring(4, 6), 10) - 1;
-      const ed = parseInt(rawEnd.substring(6, 8), 10);
-      let ehh = 12;
-      let emm = 0;
-      if (rawEnd.includes("T")) {
-        const timePart = rawEnd.split("T")[1];
-        ehh = parseInt(timePart.substring(0, 2), 10);
-        emm = parseInt(timePart.substring(2, 4), 10);
+      if (rawEnd) {
+        const ey = parseInt(rawEnd.substring(0, 4), 10);
+        const em = parseInt(rawEnd.substring(4, 6), 10) - 1;
+        const ed = parseInt(rawEnd.substring(6, 8), 10);
+        let ehh = 12;
+        let emm = 0;
+        if (rawEnd.includes("T")) {
+          const timePart = rawEnd.split("T")[1];
+          if (timePart) {
+            ehh = parseInt(timePart.substring(0, 2), 10);
+            emm = parseInt(timePart.substring(2, 4), 10);
+          }
+        }
+        const endDate = new Date(Date.UTC(ey, em, ed, ehh, emm));
+        duration = Math.max(
+          15,
+          Math.round((endDate.getTime() - startDate.getTime()) / 60000),
+        );
       }
-      const endDate = new Date(Date.UTC(ey, em, ed, ehh, emm));
-      duration = Math.max(
-        15,
-        Math.round((endDate.getTime() - startDate.getTime()) / 60000),
-      );
     }
 
     events.push({
@@ -118,8 +126,8 @@ export function parseICalText(icsText: string): MeetingItem[] {
       organizationId: "google-import",
       scheduledAt: startDate.toISOString(),
       durationMinutes: duration,
-      agenda: summaryMatch ? summaryMatch[1].trim() : "Google Takvim Etkinliği",
-      meetLink: locationMatch ? locationMatch[1].trim() : undefined,
+      agenda: summaryMatch?.[1]?.trim() || "Google Takvim Etkinliği",
+      meetLink: locationMatch?.[1]?.trim() || undefined,
       status: MeetingStatus.GoogleCalendar,
     });
   }

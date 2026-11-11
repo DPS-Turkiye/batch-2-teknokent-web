@@ -2,12 +2,14 @@ import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
 import { expect, it } from "vitest";
+
 import { StartupFields } from "@/components/signup/steps/startup-fields";
 import {
   emptySignupDraft,
   useStartupDraftEditors,
 } from "@/hooks/use-startup-draft";
 import { renderWithQueryClient } from "@test/test-utils";
+
 function Form() {
   const [draft, setDraft] = useState(() => {
     const value = emptySignupDraft();

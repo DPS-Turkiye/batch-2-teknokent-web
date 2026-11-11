@@ -1,8 +1,8 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { TrainingVideo } from "@/components/training/training-video";
 import { useStudentTraining } from "@/hooks/use-student-training";

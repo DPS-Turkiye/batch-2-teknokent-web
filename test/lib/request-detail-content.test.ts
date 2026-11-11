@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,13 +5,13 @@ import {
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { needLabels } from "@/lib/mentor-request-need";
-import en from "@/messages/en.json";
 import {
-  needTopicTitleForSupportArea,
   buildRequestDetailContent,
   isNeedOriginRequest,
+  needTopicTitleForSupportArea,
   RequestDetailFieldKey,
 } from "@/lib/request-detail-content";
+import { translatorIn } from "@test/translators";
 
 function request(
   overrides: Partial<MentorshipRequest> = {},
@@ -108,13 +107,7 @@ describe("request-detail-content", () => {
           "Bir karar vermek, Yol haritası oluşturmak\nKendi notum",
       }),
       {
-        labels: needLabels(
-          createTranslator({
-            locale: "en",
-            messages: en,
-            namespace: "mentorRequest",
-          }),
-        ),
+        labels: needLabels(translatorIn("en", "mentorRequest")),
         locale: "en",
       },
     );

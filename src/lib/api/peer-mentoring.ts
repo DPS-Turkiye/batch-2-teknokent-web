@@ -3,10 +3,10 @@ import "server-only";
 import type {
   CreatePeerMentoringRequestInput,
   PeerMentorCard,
-  PeerMentorProfile,
-  SavePeerMentorProfileInput,
   PeerMentoringRequest,
+  PeerMentorProfile,
   PeerTopicCategory,
+  SavePeerMentorProfileInput,
 } from "@/interfaces/peer-mentoring";
 import type { UserRole } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
@@ -14,7 +14,7 @@ import { backendRequest } from "@/lib/server/backend-client";
 
 export function fetchPeerMentors(
   actorId: string,
-  filter: { category?: PeerTopicCategory; q?: string },
+  filter: { category?: PeerTopicCategory | undefined; q?: string | undefined },
 ) {
   return backendRequest<PeerMentorCard[]>({
     method: HttpMethod.Get,

@@ -1,19 +1,19 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
-import {
-  MeetingFiles,
-  MeetingPerson,
-  MeetingWhen,
-} from "@/components/startup/meeting-card-parts";
 import {
   TodoBlankRows,
   TodoCheckbox,
   TodoNotebook,
 } from "@/components/notes/todo-notebook";
+import {
+  MeetingFiles,
+  MeetingPerson,
+  MeetingWhen,
+} from "@/components/startup/meeting-card-parts";
 import {
   useOpenTodoCounts,
   useStartupMeetingNotes,

@@ -1,15 +1,20 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT } from "@/app/api/admin/interventions/[id]/resolve/route";
 import { GET, POST } from "@/app/api/admin/interventions/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   fetchAdminInterventions,
   openAdminIntervention,
   resolveAdminIntervention,
 } from "@/lib/api/admin-interventions";
 import { requireAdminSession } from "@/lib/server/require-admin";
+import {
+  answerEachWith,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/admin-interventions", () => ({
   fetchAdminInterventions: vi.fn(),
@@ -20,12 +25,12 @@ vi.mock("@/lib/server/require-admin", () => ({
   requireAdminSession: vi.fn(),
 }));
 
-const ok = { data: [], headers: {}, status: 200 } as never;
+const ok = backendResponse([]);
 
 function signIn() {
   vi.mocked(requireAdminSession).mockResolvedValue({
     ok: true,
-    session: { userId: "admin-1", role: UserRole.Admin } as AppSession,
+    session: appSession({ userId: "admin-1", role: UserRole.Admin }),
   });
 }
 
@@ -34,9 +39,14 @@ describe("admin intervention routes", () => {
 
   it("lists, opens and resolves as the signed-in admin", async () => {
     signIn();
-    vi.mocked(fetchAdminInterventions).mockResolvedValue(ok);
-    vi.mocked(openAdminIntervention).mockResolvedValue(ok);
-    vi.mocked(resolveAdminIntervention).mockResolvedValue(ok);
+    answerEachWith(
+      [
+        fetchAdminInterventions,
+        openAdminIntervention,
+        resolveAdminIntervention,
+      ],
+      ok,
+    );
 
     await GET();
     expect(fetchAdminInterventions).toHaveBeenCalledWith("admin-1");
@@ -68,10 +78,7 @@ describe("admin intervention routes", () => {
   });
 
   it("stops anyone who is not an admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
 
     expect((await GET()).status).toBe(403);
     expect(fetchAdminInterventions).not.toHaveBeenCalled();

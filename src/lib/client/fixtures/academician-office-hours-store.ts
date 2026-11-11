@@ -1,4 +1,3 @@
-import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   OfficeHoursAppointmentAction,
   OfficeHoursMessageAuthor,
@@ -10,6 +9,7 @@ import {
   type OfficeHoursRequest,
   type UpdateAcademicianAvailabilityPayload,
 } from "@/interfaces/academician-office-hours";
+import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   ACADEMICIAN_APPOINTMENTS_SAMPLE,
   ACADEMICIAN_AVAILABILITY_SAMPLE,
@@ -48,7 +48,7 @@ export function sampleState(): SampleState {
 
 function openRequest(id: string) {
   const request = state.requests.find((item) => item.id === id);
-  if (!request || !request.allowedActions.length) {
+  if (!request?.allowedActions.length) {
     throw new Error("Bu talep artık yanıtlanamıyor.");
   }
   return request;
@@ -62,12 +62,15 @@ export function answerSampleRequest(id: string, answer: OfficeHoursAnswer) {
   switch (answer.action) {
     case OfficeHoursRequestAction.Accept:
       state.requests = state.requests.filter((item) => item.id !== id);
+      const sample = ACADEMICIAN_APPOINTMENTS_SAMPLE[0];
+      if (!sample)
+        throw new Error("Office hours sample appointments are missing");
       state.appointments.push({
         id: `sample-appointment-from-${id}`,
         requestId: null,
         category: null,
-        kind: ACADEMICIAN_APPOINTMENTS_SAMPLE[0].kind,
-        side: ACADEMICIAN_APPOINTMENTS_SAMPLE[0].side,
+        kind: sample.kind,
+        side: sample.side,
         status: AppointmentStatus.Confirmed,
         topic: request.topic,
         counterpart: request.student,

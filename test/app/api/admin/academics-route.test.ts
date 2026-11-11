@@ -30,7 +30,7 @@ describe("admin academics route", () => {
       status: 200,
       data: [],
       headers: {},
-    } as never);
+    });
   });
 
   it("lists academicians for an admin, as that admin", async () => {

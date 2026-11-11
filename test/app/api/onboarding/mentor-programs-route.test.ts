@@ -1,4 +1,3 @@
-import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, PUT } from "@/app/api/onboarding/mentor-programs/route";
@@ -6,6 +5,7 @@ import {
   fetchMentorPrograms,
   saveMentorPrograms,
 } from "@/lib/api/mentor-programs";
+import { tokenRequest } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/mentor-programs", () => ({
   fetchMentorPrograms: vi.fn(),
@@ -13,16 +13,10 @@ vi.mock("@/lib/api/mentor-programs", () => ({
 }));
 
 function request(options: { method: string; token?: string; body?: unknown }) {
-  return {
-    method: options.method,
-    headers: {
-      get: (name: string) =>
-        name.toLowerCase() === "authorization" && options.token
-          ? `Bearer ${options.token}`
-          : null,
-    },
-    json: async () => options.body ?? {},
-  } as unknown as NextRequest;
+  return tokenRequest(
+    "http://localhost/api/onboarding/mentor-programs",
+    options,
+  );
 }
 
 describe("/api/onboarding/mentor-programs", () => {
@@ -57,8 +51,20 @@ describe("/api/onboarding/mentor-programs", () => {
     expect(fetchMentorPrograms).toHaveBeenCalledWith("id-token");
   });
 
-  it("sends only the program ids that are strings", async () => {
+  it("sends the chosen program ids", async () => {
     await PUT(
+      request({
+        method: "PUT",
+        token: "id-token",
+        body: { programIds: ["p1", "p2"] },
+      }),
+    );
+
+    expect(saveMentorPrograms).toHaveBeenCalledWith("id-token", ["p1", "p2"]);
+  });
+
+  it("refuses program ids that are not all strings", async () => {
+    const response = await PUT(
       request({
         method: "PUT",
         token: "id-token",
@@ -66,6 +72,7 @@ describe("/api/onboarding/mentor-programs", () => {
       }),
     );
 
-    expect(saveMentorPrograms).toHaveBeenCalledWith("id-token", ["p1", "p2"]);
+    expect(response.status).toBe(400);
+    expect(saveMentorPrograms).not.toHaveBeenCalled();
   });
 });

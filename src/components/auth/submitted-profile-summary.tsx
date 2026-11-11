@@ -1,9 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useSubmittedProfile } from "@/hooks/use-submitted-profile";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { formatFileSize } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -19,7 +20,7 @@ function Row({ label, value }: { label: string; value: string }) {
 export function SubmittedProfileSummary({
   organizationName,
 }: {
-  organizationName?: string | null;
+  organizationName?: string | null | undefined;
 }) {
   const copy = useTranslations("submittedProfile");
   const tOptions = useTranslations("options");
@@ -74,10 +75,8 @@ export function SubmittedProfileSummary({
                 >
                   <span className="min-w-0 truncate text-[#1f2328]">
                     <span className="font-medium">
-                      {Object.values(DocumentKind).includes(
-                        document.kind as DocumentKind,
-                      )
-                        ? tKinds(document.kind as DocumentKind)
+                      {Object.values(DocumentKind).includes(document.kind)
+                        ? tKinds(document.kind)
                         : document.kind}
                     </span>
                     {" · "}

@@ -1,20 +1,21 @@
 "use client";
 
-import {
-  OnboardingCard,
-  OnboardingField,
-  OnboardingFileField,
-  OnboardingNote,
-  onboardingInputClass,
-} from "@/components/onboarding/onboarding-ui";
+import { useTranslations } from "next-intl";
+
 import {
   ONBOARDING_TONES,
   OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
+import {
+  OnboardingCard,
+  OnboardingField,
+  OnboardingFileField,
+  onboardingInputClass,
+  OnboardingNote,
+} from "@/components/onboarding/onboarding-ui";
 import type { StartupDraftForm } from "@/hooks/use-startup-draft";
 import { useStoredDocuments } from "@/hooks/use-stored-documents";
 import { StartupDocumentKind } from "@/interfaces/signup";
-import { useTranslations } from "next-intl";
 
 const TONE = OnboardingTone.Mentee;
 const inputClass = `${onboardingInputClass} ${ONBOARDING_TONES[TONE].focus}`;

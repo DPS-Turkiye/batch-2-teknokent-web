@@ -1,4 +1,3 @@
-import { NextResponse } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT as archive } from "@/app/api/coordinator/programs/[id]/archive/route";
@@ -7,9 +6,11 @@ import { POST as addCoordinator } from "@/app/api/coordinator/programs/[id]/coor
 import { PUT as phases } from "@/app/api/coordinator/programs/[id]/phases/route";
 import { GET, PUT } from "@/app/api/coordinator/programs/[id]/route";
 import { POST as readSyllabus } from "@/app/api/coordinator/programs/syllabus/phases/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import * as api from "@/lib/api/coordinator-programs";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+import { answerEachWith, guardRefusal } from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/coordinator-programs", () => ({
   fetchCoordinatorProgram: vi.fn(),
@@ -22,10 +23,9 @@ vi.mock("@/lib/api/coordinator-programs", () => ({
   removeProgramCoordinator: vi.fn(),
 }));
 vi.mock("@/lib/server/require-coordinator", () => ({
-  requireCoordinatorSession: vi.fn(),
+  requireCoordinatorOrAdminSession: vi.fn(),
 }));
 
-const ok = { data: {}, headers: {}, status: 200 } as never;
 const params = { params: Promise.resolve({ id: "program-1" }) };
 const body = (value: unknown) =>
   new Request("http://localhost", {
@@ -36,14 +36,14 @@ const body = (value: unknown) =>
 describe("coordinator program detail routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue({
       ok: true,
-      session: {
+      session: appSession({
         userId: "coordinator-1",
         role: UserRole.Coordinator,
-      } as AppSession,
+      }),
     });
-    for (const fn of Object.values(api)) vi.mocked(fn).mockResolvedValue(ok);
+    answerEachWith(Object.values(api));
   });
 
   it("reads and saves the program as the signed-in coordinator", async () => {
@@ -56,10 +56,12 @@ describe("coordinator program detail routes", () => {
     await PUT(
       body({
         name: "METU",
-        meetingFrequencyDays: "10",
+        meetingFrequencyDays: 10,
         staleAfterDays: 20,
         meetingNoteRequired: true,
-        bottleneckFlagDays: "30",
+        autoMatchSuggestions: false,
+        bottleneckFlagDays: 30,
+        eligibleEmailDomain: null,
         actorId: "someone-else",
       }),
       params,
@@ -82,7 +84,7 @@ describe("coordinator program detail routes", () => {
   });
 
   it("reads a syllabus as the signed-in coordinator, passing only the document and dates", async () => {
-    vi.mocked(api.extractSyllabusPhases).mockResolvedValue(ok);
+    answerEachWith([api.extractSyllabusPhases]);
 
     await readSyllabus(
       body({
@@ -144,10 +146,9 @@ describe("coordinator program detail routes", () => {
   });
 
   it("stops at the session check", async () => {
-    vi.mocked(requireCoordinatorSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireCoordinatorOrAdminSession).mockResolvedValue(
+      guardRefusal(403),
+    );
     expect((await archive(body({ archived: true }), params)).status).toBe(403);
     expect(api.setCoordinatorProgramArchived).not.toHaveBeenCalled();
     expect((await readSyllabus(body({ documentId: "doc-1" }))).status).toBe(

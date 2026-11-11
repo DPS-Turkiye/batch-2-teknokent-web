@@ -1,6 +1,6 @@
 import { screen } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MeetingNoteRoomView } from "@/components/notes/meeting-note-room-view";
 import {
@@ -10,14 +10,15 @@ import {
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
 import {
-  useOpenTodoCounts,
-  useStartupMeetingNotes,
-} from "@/hooks/use-startup-meeting-notes";
-import {
   useOpenDocument,
   useStartupDocuments,
 } from "@/hooks/use-startup-documents";
+import {
+  useOpenTodoCounts,
+  useStartupMeetingNotes,
+} from "@/hooks/use-startup-meeting-notes";
 import { meetingFixture } from "@test/fixtures/startup-meetings";
+import { successQuery } from "@test/mocks/query-results";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -108,9 +109,7 @@ describe("MeetingNoteRoomView", () => {
     vi.mocked(useMentors).mockReturnValue({
       data: [{ id: "mentor-1", professionalTitle: "UX/UI Mentor" }],
     } as ReturnType<typeof useMentors>);
-    vi.mocked(useStartupDocuments).mockReturnValue({
-      data: [],
-    } as ReturnType<typeof useStartupDocuments>);
+    vi.mocked(useStartupDocuments).mockReturnValue(successQuery([]));
     vi.mocked(useOpenDocument).mockReturnValue(vi.fn());
     vi.mocked(useOpenTodoCounts).mockReturnValue(new Map([["finance", 1]]));
     vi.mocked(useStartupMeetingNotes).mockReturnValue({
@@ -132,7 +131,7 @@ describe("MeetingNoteRoomView", () => {
       publishDocumentUpdate: vi.fn(),
       subscribeToPresenceUpdates: vi.fn(),
       publishPresenceUpdate: vi.fn(),
-    } as ReturnType<typeof useMeetingRoomSocket>);
+    });
   });
 
   it("opens the live notebook and horizontally lists other notes with the same mentor", () => {

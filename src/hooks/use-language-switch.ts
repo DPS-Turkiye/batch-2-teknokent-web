@@ -1,13 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 
 import { saveLanguage } from "@/lib/client/auth";
 import {
-  type Locale,
   LOCALE_COOKIE,
   LOCALE_COOKIE_MAX_AGE_SECONDS,
+  type Locale,
 } from "@/lib/i18n";
 
 /** The current language, and a setter that remembers the choice and re-renders the page in it. */

@@ -1,7 +1,7 @@
-import type { Awareness } from "y-protocols/awareness";
 import {
   applyAwarenessUpdate,
   encodeAwarenessUpdate,
+  type Awareness,
 } from "y-protocols/awareness";
 
 import { base64ToBytes, bytesToBase64 } from "@/lib/base64";
@@ -48,7 +48,7 @@ export function pickPresenceColor(seed: string): string {
   for (let index = 0; index < seed.length; index += 1) {
     hash = (hash * 31 + seed.charCodeAt(index)) % 1000003;
   }
-  return PRESENCE_COLORS[hash % PRESENCE_COLORS.length];
+  return PRESENCE_COLORS[hash % PRESENCE_COLORS.length] ?? "#4f39f6";
 }
 
 export function bindMeetingNotePresence(
@@ -70,7 +70,7 @@ export function bindMeetingNotePresence(
       return;
     }
 
-    const local = awareness.getLocalState() as Record<string, unknown> | null;
+    const local = awareness.getLocalState();
     if (
       publishedCursor &&
       local != null &&

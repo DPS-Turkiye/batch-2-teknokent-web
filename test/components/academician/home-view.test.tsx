@@ -4,11 +4,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AcademicianHomeView } from "@/components/academician/home-view";
 import type { InstitutionRecord } from "@/interfaces/institution";
 import { IdentityKind } from "@/interfaces/session";
+import { ClientApiError } from "@/lib/client/api";
+import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import {
   fetchInstitutionAdvisees,
   fetchInstitutionRecord,
 } from "@/lib/client/institution";
-import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/institution", () => ({
@@ -82,14 +83,14 @@ describe("AcademicianHomeView", () => {
     ).toBeVisible();
     const pending = (await screen.findByText("Yanıt bekleyen talep")).closest(
       "div",
-    )!.parentElement as HTMLElement;
+    )!.parentElement!;
     expect(pending).toHaveTextContent("2");
     expect(
       within(pending).getByRole("link", { name: /Taleplere git/ }),
     ).toHaveAttribute("href", "/academician/requests");
     const advisees = (await screen.findByText("Danışan öğrenci")).closest(
       "div",
-    )!.parentElement as HTMLElement;
+    )!.parentElement!;
     expect(advisees).toHaveTextContent("2");
     expect(screen.getByRole("note")).toHaveTextContent("Örnek veriler");
   });
@@ -112,8 +113,9 @@ describe("AcademicianHomeView", () => {
   });
 
   it("falls back to a plain greeting without an ODTÜ record, and reads in English", async () => {
-    vi.mocked(fetchInstitutionRecord).mockResolvedValue(
-      null as unknown as InstitutionRecord,
+    // The backend answers 404 when no institution vouches for the caller.
+    vi.mocked(fetchInstitutionRecord).mockRejectedValue(
+      new ClientApiError("Not found", 404),
     );
     renderWithQueryClient(
       <InLocale locale="en">

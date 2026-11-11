@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchProgramAnnouncements,
   postProgramAnnouncement,
@@ -7,13 +9,16 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+
+const announcementSchema = z.object({ body: z.string() });
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(
@@ -28,12 +33,17 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const announcement = await readJsonBody(request, announcementSchema);
+    if (!announcement.ok) return announcement.response;
     return backendResponse(
-      await postProgramAnnouncement(auth.session.userId, id, body.body),
+      await postProgramAnnouncement(
+        auth.session.userId,
+        id,
+        announcement.data.body,
+      ),
     );
   } catch (error) {
     return apiErrorResponse(error, {

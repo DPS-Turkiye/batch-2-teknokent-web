@@ -9,13 +9,13 @@ import { POST as recommendMentorsRoute } from "@/app/api/mentor-recommendations/
 import { GET as getMentorRequest } from "@/app/api/mentor-requests/[id]/route";
 import { PATCH as confirmProfile } from "@/app/api/profile-analysis/[id]/confirmation/route";
 import { GET as transcriptRoute } from "@/app/api/transcriptapi/route";
+import { UserRole } from "@/interfaces/session";
 import { fetchActionItems, updateActionItem } from "@/lib/api/action-items";
 import { fetchDocumentRequests } from "@/lib/api/document-requests";
 import { recommendMentors } from "@/lib/api/mentor-recommendations";
 import { fetchMentorRequest } from "@/lib/api/mentor-requests";
 import { confirmStartupProfileRecord } from "@/lib/api/profile-analysis-records";
 import { createMeetingBot } from "@/lib/botapi";
-import { UserRole } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds, getSessionUser } from "@/lib/session";
@@ -57,7 +57,7 @@ const params = { params: Promise.resolve({ id: "target-1" }) };
 function request(method: HttpMethod, body?: unknown) {
   return new NextRequest("http://localhost/x?requestId=req-1", {
     method,
-    body: body === undefined ? undefined : JSON.stringify(body),
+    body: body === undefined ? null : JSON.stringify(body),
   });
 }
 

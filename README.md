@@ -37,36 +37,45 @@ Environment variables (see `.env.example`):
 | `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | Firebase sender ID                       | empty                    |
 | `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET`      | Firebase storage bucket                  | empty                    |
 
-If a variable is missing, localhost defaults from `src/lib/const.ts` are used.
+If a variable is missing, localhost defaults from `src/lib/const/` are used.
 Firebase login stays off until the three required `NEXT_PUBLIC_FIREBASE_*` keys are set.
+
+## Documentation
+
+New to the codebase? Read [`docs/`](docs/README.md), starting with
+[getting started](docs/getting-started.md) and [architecture](docs/architecture.md). The binding repository rules
+for people and coding agents are in [`AGENTS.md`](AGENTS.md).
 
 ## Development
 
 ```bash
-npm run dev          # start dev server
-npm run ci           # lint, format check, typecheck, test
-npm run build        # production build
-npm test             # run tests once
-npm run test:watch   # run tests in watch mode
-npm run format       # format with Prettier
+npm run dev            # start dev server
+npm run ci             # lint, format check, typecheck (src + test), tests with coverage thresholds
+npm run build          # production build
+npm test               # run tests once
+npm run test:watch     # run tests in watch mode
+npm run lint:fix       # ESLint with autofix
+npm run format         # format with Prettier
 ```
 
-`npm install` enables Husky git hooks. Pre-commit runs `npm run ci`. Skip with `git commit --no-verify`.
-
-Pull requests to `main` run the GitHub Actions workflow (`.github/workflows/pr-build.yml`).
+`npm install` enables Husky git hooks: pre-commit lints and formats the staged files, pre-push runs the type check
+and the tests. Pull requests and pushes to `main` run the full pipeline in GitHub Actions
+(`.github/workflows/pr-build.yml`). See [quality gates](docs/quality-gates.md).
 
 ## Stack
 
-Next.js 16, React 19, TypeScript, TanStack Query, Axios, Tailwind CSS 4, Vitest, Testing Library.
+Next.js 16, React 19, TypeScript 6, TanStack Query, Axios, zod, next-intl, zustand, Tailwind CSS 4, Vitest,
+Testing Library.
 
-Project layout:
+Project layout (details in [architecture](docs/architecture.md)):
 
-- `src/app/` — Next.js App Router pages and API routes
-- `src/components/` — UI components
-- `src/hooks/` — React hooks
-- `src/interfaces/` — shared TypeScript types
-- `src/lib/` — app logic (health client, HTTP client, constants)
-- `test/` — Vitest tests
+- `src/app/` — App Router pages, and the API route handlers in `src/app/api/`
+- `src/components/` — UI components, grouped by feature
+- `src/hooks/` — screen state and data fetching
+- `src/lib/` — domain logic and shared helpers; `client/` (browser → `/api`), `api/` and `server/` (server → backend)
+- `src/interfaces/`, `src/types/` — domain/API types and UI-only types
+- `src/messages/` — UI text (Turkish source, English)
+- `test/` — Vitest tests, mirroring `src/`
 
 ## Implemented MVP features
 

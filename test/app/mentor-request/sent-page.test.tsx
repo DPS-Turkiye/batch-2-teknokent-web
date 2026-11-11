@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import RequestSentPage from "@/app/mentor-request/sent/page";
 import { useMentorshipRequest } from "@/hooks/use-mentorship-requests";
+import { idleQuery, loadingQuery } from "@test/mocks/query-results";
 
 let search = new URLSearchParams();
 const redirect = vi.fn();
@@ -22,13 +23,14 @@ vi.mock("@/hooks/use-mentorship-requests", () => ({
   useMentorshipRequest: vi.fn(),
 }));
 
-function mockQuery(value: Record<string, unknown>) {
-  vi.mocked(useMentorshipRequest).mockReturnValue({
-    data: undefined,
-    error: null,
-    isLoading: false,
-    ...value,
-  } as unknown as ReturnType<typeof useMentorshipRequest>);
+/** The request is still being fetched. */
+function mockLoading() {
+  vi.mocked(useMentorshipRequest).mockReturnValue(loadingQuery());
+}
+
+/** No request and not fetching one: the query is disabled (no id) or nothing came back. */
+function mockNoRequest() {
+  vi.mocked(useMentorshipRequest).mockReturnValue(idleQuery());
 }
 
 describe("RequestSentPage", () => {
@@ -39,7 +41,7 @@ describe("RequestSentPage", () => {
 
   // The page only confirms a request that was just sent.
   it("sends a visit without a request to the sent requests tab", () => {
-    mockQuery({});
+    mockNoRequest();
     render(<RequestSentPage />);
 
     expect(redirect).toHaveBeenCalledWith("/mentorships?tab=requests");
@@ -47,7 +49,7 @@ describe("RequestSentPage", () => {
 
   it("stays on the page when a request is given", () => {
     search = new URLSearchParams("request=req-1");
-    mockQuery({ isLoading: true });
+    mockLoading();
     render(<RequestSentPage />);
 
     expect(redirect).not.toHaveBeenCalled();
@@ -55,7 +57,7 @@ describe("RequestSentPage", () => {
 
   it("explains a request that could not be found", () => {
     search = new URLSearchParams("request=missing");
-    mockQuery({});
+    mockNoRequest();
     render(<RequestSentPage />);
 
     expect(screen.queryByText("Talep yükleniyor…")).not.toBeInTheDocument();
@@ -64,7 +66,7 @@ describe("RequestSentPage", () => {
 
   it("shows the loading state only while the request is being fetched", () => {
     search = new URLSearchParams("request=req-1");
-    mockQuery({ isLoading: true });
+    mockLoading();
     render(<RequestSentPage />);
 
     expect(screen.getByText("Talep yükleniyor…")).toBeInTheDocument();
@@ -72,7 +74,7 @@ describe("RequestSentPage", () => {
 
   it("links withdrawing to the request's status page", () => {
     search = new URLSearchParams("request=req-1");
-    mockQuery({ isLoading: true });
+    mockLoading();
     render(<RequestSentPage />);
 
     expect(

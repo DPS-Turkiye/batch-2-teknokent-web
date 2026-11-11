@@ -122,9 +122,9 @@ export function AcademicProfileView({ fullName }: { fullName: string }) {
         />
       </section>
 
-      {editing && (
+      {editing ? (
         <OfficeHoursAvailabilityDialog onClose={() => setEditing(false)} />
-      )}
+      ) : null}
     </>
   );
 }

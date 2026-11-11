@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   fetchCoordinatorConversations,
   startCoordinatorConversation,
@@ -7,8 +9,15 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody, stringOrNullSchema } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
+
+const startConversationSchema = z.object({
+  programId: z.string(),
+  organizationId: stringOrNullSchema,
+  mentorId: stringOrNullSchema,
+});
 
 // Coordinators, mentors and team members all have threads; the backend scopes each call to the actor.
 export async function GET() {
@@ -27,13 +36,10 @@ export async function POST(request: Request) {
   try {
     const { userId } = await getSessionIds();
     if (!userId) throw new SessionRequiredError();
-    const body = await request.json();
+    const body = await readJsonBody(request, startConversationSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await startCoordinatorConversation(userId, {
-        programId: body.programId,
-        organizationId: body.organizationId ?? null,
-        mentorId: body.mentorId ?? null,
-      }),
+      await startCoordinatorConversation(userId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

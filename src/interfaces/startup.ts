@@ -4,8 +4,8 @@ export interface StartupContext {
   summary: string;
   sector: string;
   stage: string;
-  teamSize?: number;
+  teamSize?: number | undefined;
   technologies: string[];
   confirmedProfile: boolean;
-  sourceFilename?: string;
+  sourceFilename?: string | undefined;
 }

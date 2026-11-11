@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
-import { createContext, ReactNode, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 
 import type { AppSession } from "@/interfaces/session";
 import { createSession, refreshSession } from "@/lib/client/auth";
@@ -45,7 +45,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       rememberMe,
     }: {
       idToken: string;
-      rememberMe?: boolean;
+      rememberMe?: boolean | undefined;
     }) => createSession(idToken, rememberMe ?? false),
     onSuccess: (session) => {
       queryClient.setQueryData(SESSION_QUERY_KEY, session);

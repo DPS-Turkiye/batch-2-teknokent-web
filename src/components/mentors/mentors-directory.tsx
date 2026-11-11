@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { ChevronRight, Filter, Search, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { Avatar } from "@/components/common/avatar";
@@ -29,7 +29,7 @@ export function MentorsDirectory({
   mentors: mentorsProp,
 }: {
   embedded?: boolean;
-  error?: string;
+  error?: string | undefined;
   mentors?: MentorProfile[];
 }) {
   const t = useTranslations("mentorsDirectory");

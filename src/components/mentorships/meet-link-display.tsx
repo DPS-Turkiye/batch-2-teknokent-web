@@ -1,13 +1,14 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+
 import { meetLinkHref } from "@/lib/meet-link";
 
 export function MeetLinkDisplay({
   meetLink,
   className = "",
 }: {
-  meetLink?: string | null;
+  meetLink?: string | null | undefined;
   className?: string;
 }) {
   const t = useTranslations("meetLink");

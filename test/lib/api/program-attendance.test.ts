@@ -9,6 +9,7 @@ import {
 } from "@/lib/api/program-attendance";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 vi.mock("@/lib/server/backend-client", () => ({ backendRequest: vi.fn() }));
 
@@ -38,11 +39,11 @@ describe("program attendance server API", () => {
       format: SessionsExportFormat.Xlsx,
     });
 
-    expect(vi.mocked(backendRequest).mock.calls[0][0]).toMatchObject({
+    expect(itemAt(vi.mocked(backendRequest).mock.calls, 0)[0]).toMatchObject({
       url: "/api/coordinator/programs/program-1/attendance",
       params: { actorId: "coord-1" },
     });
-    expect(vi.mocked(backendRequest).mock.calls[1][0]).toMatchObject({
+    expect(itemAt(vi.mocked(backendRequest).mock.calls, 1)[0]).toMatchObject({
       url: "/api/coordinator/programs/program-1/attendance/export",
       params: {
         actorId: "coord-1",

@@ -3,10 +3,10 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useUpdateMeeting } from "@/hooks/use-meetings";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /**
  * The next meeting banner: its Meet link and whether a transcript is wanted.

@@ -31,7 +31,7 @@ describe("startup process routes", () => {
   });
 
   it("reads the session startup's process", async () => {
-    vi.mocked(fetchStartupProcess).mockResolvedValue(ok as never);
+    vi.mocked(fetchStartupProcess).mockResolvedValue(ok);
 
     const response = await GET();
 
@@ -49,7 +49,7 @@ describe("startup process routes", () => {
   });
 
   it("submits an Ödev as the session user", async () => {
-    vi.mocked(submitProcessAssignment).mockResolvedValue(ok as never);
+    vi.mocked(submitProcessAssignment).mockResolvedValue(ok);
 
     await PUT(
       new NextRequest(

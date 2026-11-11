@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { reloadAndCheckEmailVerified } from "@/lib/firebase/auth";
+
 type FakeUser = {
   email: string;
   emailVerified: boolean;
@@ -10,8 +12,6 @@ type FakeUser = {
 const auth = vi.hoisted(() => ({ currentUser: null as FakeUser | null }));
 
 vi.mock("@/lib/firebase/client", () => ({ firebaseAuth: () => auth }));
-
-import { reloadAndCheckEmailVerified } from "@/lib/firebase/auth";
 
 function user(verifiedAfterReload: boolean): FakeUser {
   const fake: FakeUser = {

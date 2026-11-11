@@ -1,10 +1,10 @@
 import axios from "axios";
 
+import { clientText } from "@/i18n/client-texts";
 import type { NotificationPreferences } from "@/interfaces/notification";
-import type { DashboardNotification } from "@/types/landing";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { clientText } from "@/i18n/client-texts";
+import type { DashboardNotification } from "@/types/landing";
 
 async function authorization() {
   const token = await currentIdToken();

@@ -1,11 +1,4 @@
 import {
-  AppointmentKind,
-  AppointmentSide,
-  AppointmentStatus,
-  type AppointmentCounterpart,
-  type AppointmentTime,
-} from "@/interfaces/appointment";
-import {
   OfficeHoursAppointmentAction,
   OfficeHoursMessageAuthor,
   OfficeHoursRequestAction,
@@ -14,6 +7,13 @@ import {
   type OfficeHoursProfileSettings,
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
+import {
+  AppointmentKind,
+  AppointmentSide,
+  AppointmentStatus,
+  type AppointmentCounterpart,
+  type AppointmentTime,
+} from "@/interfaces/appointment";
 import { Weekday } from "@/interfaces/mentor";
 
 // Sample data for the academician workspace until an Office Hours source is connected. Times

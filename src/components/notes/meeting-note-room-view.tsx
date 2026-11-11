@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { AppShell } from "@/components/hoc/app-shell";
@@ -25,21 +25,21 @@ import {
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
 import {
-  useOpenTodoCounts,
-  useStartupMeetingNotes,
-} from "@/hooks/use-startup-meeting-notes";
-import {
   useOpenDocument,
   useStartupDocuments,
 } from "@/hooks/use-startup-documents";
 import {
+  useOpenTodoCounts,
+  useStartupMeetingNotes,
+} from "@/hooks/use-startup-meeting-notes";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
+import {
+  meetingsWithSameMentor,
   meetingTiming,
   meetingTitle,
-  meetingsWithSameMentor,
   visibleMeetings,
 } from "@/lib/startup-meetings";
 import { AppArea } from "@/types/app-area";
-import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 function UploadButton({
   accept,

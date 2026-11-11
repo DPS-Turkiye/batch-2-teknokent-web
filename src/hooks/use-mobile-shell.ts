@@ -46,7 +46,7 @@ export function useMobileShell() {
   }, [redirectTo, router]);
 
   const { unreadTotal } = useMobileConversations();
-  usePushSync(role && hasMobileApp(role) ? (session?.userId ?? null) : null);
+  usePushSync(role && hasMobileApp(role) ? session.userId : null);
 
   return {
     session,

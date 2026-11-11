@@ -1,6 +1,5 @@
-import "server-only";
-
 import { NextResponse } from "next/server";
+import "server-only";
 
 import type { PageResponse } from "@/interfaces/page-response";
 

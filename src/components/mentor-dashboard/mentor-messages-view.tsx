@@ -1,9 +1,9 @@
 "use client";
 
 import { ChevronRight, Mail, Search, Upload } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -19,11 +19,11 @@ import { useMentorMessages } from "@/hooks/use-mentor-messages";
 import type { MyAnnouncements } from "@/hooks/use-program-announcements";
 import type { ProgramThreads } from "@/hooks/use-program-threads";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
+import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
-import { mentorRequestStartupHref } from "@/lib/mentorship-workspace";
 
 const ACCENT = { strong: "#26a4ff", soft: "#f2f8fc" };
 

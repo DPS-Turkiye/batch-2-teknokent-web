@@ -1,8 +1,7 @@
 import { z } from "zod";
 
-import { ProgramType } from "@/interfaces/program";
-
 import { PlatformFeedbackKind } from "@/interfaces/platform-feedback";
+import { ProgramType } from "@/interfaces/program";
 import { Locale } from "@/lib/i18n";
 
 export const FEEDBACK_SUBJECT_LIMIT = 120;

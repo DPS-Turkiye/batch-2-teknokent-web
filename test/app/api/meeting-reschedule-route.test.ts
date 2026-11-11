@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "@/app/api/meetings/[id]/reschedule-proposals/route";
 import { proposeReschedule } from "@/lib/api/meeting-proposals";
 import { getSessionIds } from "@/lib/session";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/meeting-proposals", () => ({ proposeReschedule: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
@@ -17,11 +18,7 @@ const body = (value: unknown) =>
 describe("meeting reschedule route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(proposeReschedule).mockResolvedValue({
-      data: {},
-      headers: {},
-      status: 201,
-    } as never);
+    answerEachWith([proposeReschedule], backendResponse({}, 201));
   });
 
   it("proposes as the signed-in user, passing only the time and length", async () => {

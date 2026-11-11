@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MyProgramsPanel } from "@/components/dashboard/my-programs-panel";
 import { useOrganizationPrograms, usePrograms } from "@/hooks/use-programs";
+import { idleQuery } from "@test/mocks/query-results";
 
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: () => ({ userId: "mentor-1" }),
@@ -13,17 +14,11 @@ vi.mock("@/hooks/use-programs", () => ({
   usePrograms: vi.fn(),
 }));
 
-const idle = { data: undefined, isLoading: false, error: null };
-
 describe("MyProgramsPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(useOrganizationPrograms).mockReturnValue(
-      idle as unknown as ReturnType<typeof useOrganizationPrograms>,
-    );
-    vi.mocked(usePrograms).mockReturnValue(
-      idle as unknown as ReturnType<typeof usePrograms>,
-    );
+    vi.mocked(useOrganizationPrograms).mockReturnValue(idleQuery());
+    vi.mocked(usePrograms).mockReturnValue(idleQuery());
   });
 
   it("asks a mentor's home only for mentor programs", () => {

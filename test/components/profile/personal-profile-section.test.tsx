@@ -78,9 +78,7 @@ describe("PersonalProfileSection", () => {
     await user.click(
       screen.getByRole("button", { name: "Ad soyad alanını düzenle" }),
     );
-    await user.clear(
-      screen.getByRole("textbox", { name: "Ad soyad*", exact: true }),
-    );
+    await user.clear(screen.getByRole("textbox", { name: "Ad soyad*" }));
 
     expect(screen.getByRole("alert")).toHaveTextContent("Ad soyad zorunludur.");
     expect(

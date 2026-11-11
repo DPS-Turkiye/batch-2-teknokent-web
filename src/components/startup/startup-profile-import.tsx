@@ -1,14 +1,15 @@
 "use client";
 
-import { useId } from "react";
-import { useTranslations } from "next-intl";
 import { ChevronDown } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useId } from "react";
+
 import { FileDrop } from "@/components/common/file-drop";
 import { cardClass, cardHeadingClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
-import { OnboardingConsent } from "@/components/onboarding/onboarding-ui";
 import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
+import { OnboardingConsent } from "@/components/onboarding/onboarding-ui";
 import { ProfileAnalysisEditor } from "@/components/profile/profile-analysis-editor";
 import { ProfileAnalysisSummary } from "@/components/profile/profile-analysis-summary";
 import { useStartupProfileImport } from "@/hooks/use-startup-profile-import";

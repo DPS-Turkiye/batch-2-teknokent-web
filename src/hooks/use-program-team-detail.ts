@@ -12,7 +12,7 @@ export function useProgramTeamDetail(
 ) {
   return useQuery({
     queryKey: [...programTeamsQueryKey(programId), "detail", organizationId],
-    queryFn: () => getProgramTeamDetail(programId, organizationId as string),
+    queryFn: () => getProgramTeamDetail(programId, organizationId!),
     enabled: Boolean(organizationId),
   });
 }

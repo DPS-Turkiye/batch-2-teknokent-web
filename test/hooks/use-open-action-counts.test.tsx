@@ -4,10 +4,12 @@ import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
+import { ActionItemStatus } from "@/interfaces/action-item";
 import {
   getActionItems,
   getActionItemsForRequests,
 } from "@/lib/client/action-items";
+import { menteeActionItemFixture } from "@test/fixtures/mentee-home";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/action-items", () => {
@@ -40,8 +42,8 @@ function Wrapper({ children }: { children: ReactNode }) {
   );
 }
 
-function item(id: string, status: string) {
-  return { id, status } as Awaited<ReturnType<typeof getActionItems>>[number];
+function item(id: string, status: ActionItemStatus) {
+  return menteeActionItemFixture({ id, status });
 }
 
 describe("useOpenActionCounts", () => {
@@ -50,8 +52,12 @@ describe("useOpenActionCounts", () => {
   it("counts only open and in-progress items per request", async () => {
     vi.mocked(getActionItems).mockImplementation(async (requestId) =>
       requestId === "r1"
-        ? [item("a", "OPEN"), item("b", "IN_PROGRESS"), item("c", "DONE")]
-        : [item("d", "DONE")],
+        ? [
+            item("a", ActionItemStatus.Open),
+            item("b", ActionItemStatus.InProgress),
+            item("c", ActionItemStatus.Completed),
+          ]
+        : [item("d", ActionItemStatus.Completed)],
     );
 
     const { result } = renderHook(() => useOpenActionCounts(["r1", "r2"]), {
@@ -83,7 +89,9 @@ describe("useOpenActionCounts", () => {
   });
 
   it("keeps the same result for a new array with the same ids", async () => {
-    vi.mocked(getActionItems).mockResolvedValue([item("a", "OPEN")]);
+    vi.mocked(getActionItems).mockResolvedValue([
+      item("a", ActionItemStatus.Open),
+    ]);
     const { result, rerender } = renderHook(
       ({ ids }) => useOpenActionCounts(ids),
       { wrapper: Wrapper, initialProps: { ids: ["r1"] } },

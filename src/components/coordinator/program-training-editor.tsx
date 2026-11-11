@@ -78,6 +78,7 @@ export function ProgramTrainingEditor({
       <ol className="space-y-4">
         {draft.questions.map((question, index) => (
           <li
+            // eslint-disable-next-line react/no-array-index-key -- the quiz has a fixed set of questions; a question's position is its identity
             key={index}
             className="space-y-2 rounded-2xl border border-[#eceef0] p-4"
           >
