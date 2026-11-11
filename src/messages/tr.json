@@ -5984,7 +5984,8 @@
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
     "personSummaryLoadFailed": "Profil yüklenemedi.",
-    "personIdInvalid": "Geçerli bir kişi seçin."
+    "personIdInvalid": "Geçerli bir kişi seçin.",
+    "aiFeaturesLoadFailed": "Yapay zekâ ayarları yüklenemedi."
   },
   "startupStart": {
     "title": "Startup'ım",

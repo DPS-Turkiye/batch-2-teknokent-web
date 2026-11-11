@@ -5984,7 +5984,8 @@
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
     "sessionRefreshFailed": "Couldn't update your session.",
     "personSummaryLoadFailed": "Could not load the profile.",
-    "personIdInvalid": "Choose a valid person."
+    "personIdInvalid": "Choose a valid person.",
+    "aiFeaturesLoadFailed": "Could not load the AI settings."
   },
   "startupStart": {
     "title": "My startup",
