@@ -9,6 +9,14 @@ import { MAX_PHASES } from "@/lib/coordinator-program-detail";
 import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import { weekInputOf, type WeekDraft } from "@/lib/program-week";
 
+/** The backend's limits for what the review edits. */
+export const PHASE_NAME_MAX_LENGTH = 120;
+export const PHASE_OUTPUT_MAX_LENGTH = 200;
+export const WEEK_TITLE_MAX_LENGTH = 160;
+
+/** The phase picker's value for a week no phase covers. */
+export const NO_PHASE = -1;
+
 /** A phase under review: a named range of program weeks. */
 export type PhaseRangeDraft = Keyed<WeeklyProgramPhaseInput>;
 

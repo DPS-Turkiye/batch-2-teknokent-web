@@ -3,10 +3,17 @@
 
 import { AlertTriangle, Info, Trash2 } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 
 import type { useWeeklyProgramImport } from "@/hooks/use-weekly-program-import";
 import { dayRangeLabel, type WeekDraft } from "@/lib/program-week";
-import { weekListLabel } from "@/lib/weekly-program";
+import {
+  NO_PHASE,
+  PHASE_NAME_MAX_LENGTH,
+  PHASE_OUTPUT_MAX_LENGTH,
+  WEEK_TITLE_MAX_LENGTH,
+  weekListLabel,
+} from "@/lib/weekly-program";
 
 type Import = ReturnType<typeof useWeeklyProgramImport>;
 
@@ -23,6 +30,9 @@ export function WeeklyProgramReview({ weekly }: { weekly: Import }) {
   const t = useTranslations("weeklyProgram");
   const tWeek = useTranslations("programWeekPlan");
   const locale = useLocale();
+  const heading = useRef<HTMLHeadingElement>(null);
+  // The review opens below the file row; take keyboard and screen-reader users there.
+  useEffect(() => heading.current?.focus(), []);
   const proposal = weekly.proposal;
   if (!proposal) return null;
   const locked = weekly.saving;
@@ -35,7 +45,9 @@ export function WeeklyProgramReview({ weekly }: { weekly: Import }) {
       <div className="space-y-1">
         <h3
           id="weekly-program-review-title"
-          className="text-[15px] font-semibold text-[#22262b]"
+          ref={heading}
+          tabIndex={-1}
+          className="text-[15px] font-semibold text-[#22262b] outline-none"
         >
           {t("reviewTitle")}
         </h3>
@@ -76,62 +88,55 @@ export function WeeklyProgramReview({ weekly }: { weekly: Import }) {
       ) : null}
 
       <div className="space-y-2">
-        <h4 className="text-[13px] font-semibold text-[#22262b]">
+        <h4
+          id="weekly-program-phases"
+          className="text-[13px] font-semibold text-[#22262b]"
+        >
           {t("phasesTitle")}
         </h4>
-        <ol className="space-y-2" aria-label={t("phasesTitle")}>
-          {weekly.phases.map((phase, index) => {
-            const days = weekly.phaseDays(phase);
-            const dates =
-              (days && dayRangeLabel(days.start, days.end, locale)) ?? "";
-            return (
-              <li
-                key={phase.key}
-                className="grid gap-2 rounded-[16px] border border-[#e9ecef] p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-center"
-              >
-                <input
-                  value={phase.name}
-                  maxLength={120}
-                  disabled={locked}
-                  aria-label={t("phaseName", { n: index + 1 })}
-                  onChange={(event) =>
-                    weekly.updatePhase(index, { name: event.target.value })
-                  }
-                  className={FIELD}
-                />
-                <input
-                  value={phase.expectedOutput ?? ""}
-                  maxLength={200}
-                  disabled={locked}
-                  placeholder={t("outputPlaceholder")}
-                  aria-label={t("phaseOutput", { n: index + 1 })}
-                  onChange={(event) =>
-                    weekly.updatePhase(index, {
-                      expectedOutput: event.target.value || null,
-                    })
-                  }
-                  className={FIELD}
-                />
-                <span className="text-[12px] whitespace-nowrap text-[#858c96]">
-                  {phase.firstWeek === phase.lastWeek
-                    ? t("phaseRangeOne", { week: phase.firstWeek, dates })
-                    : t("phaseRange", {
-                        first: phase.firstWeek,
-                        last: phase.lastWeek,
-                        dates,
-                      })}
-                </span>
-              </li>
-            );
-          })}
+        <ol className="space-y-2" aria-labelledby="weekly-program-phases">
+          {weekly.phases.map((phase, index) => (
+            <li
+              key={phase.key}
+              className="grid gap-2 rounded-[16px] border border-[#e9ecef] p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-center"
+            >
+              <input
+                value={phase.name}
+                maxLength={PHASE_NAME_MAX_LENGTH}
+                disabled={locked}
+                aria-label={t("phaseName", { n: index + 1 })}
+                onChange={(event) =>
+                  weekly.renamePhase(index, event.target.value)
+                }
+                className={FIELD}
+              />
+              <input
+                value={phase.expectedOutput ?? ""}
+                maxLength={PHASE_OUTPUT_MAX_LENGTH}
+                disabled={locked}
+                placeholder={t("outputPlaceholder")}
+                aria-label={t("phaseOutput", { n: index + 1 })}
+                onChange={(event) =>
+                  weekly.setPhaseOutput(index, event.target.value)
+                }
+                className={FIELD}
+              />
+              <span className="text-[12px] whitespace-nowrap text-[#858c96]">
+                {weekly.phaseRangeLabel(phase)}
+              </span>
+            </li>
+          ))}
         </ol>
       </div>
 
       <div className="space-y-2">
-        <h4 className="text-[13px] font-semibold text-[#22262b]">
+        <h4
+          id="weekly-program-weeks"
+          className="text-[13px] font-semibold text-[#22262b]"
+        >
           {t("weeksTitle")}
         </h4>
-        <ol className="space-y-3" aria-label={t("weeksTitle")}>
+        <ol className="space-y-3" aria-labelledby="weekly-program-weeks">
           {weekly.weeks.map((week, index) => (
             <ReviewWeek
               key={week.key}
@@ -271,10 +276,12 @@ function ReviewWeek({
             }
             className="rounded-full border border-[#e4e7ea] px-3 py-1 text-[12.5px] text-[#22262b]"
           >
-            {phaseIndex < 0 ? <option value={-1}>{t("noPhase")}</option> : null}
+            {phaseIndex === NO_PHASE ? (
+              <option value={NO_PHASE}>{t("noPhase")}</option>
+            ) : null}
             {weekly.phases.map((phase, at) => (
               <option key={phase.key} value={at}>
-                {phase.name.trim() || `${at + 1}.`}
+                {weekly.phaseOptionLabel(phase, at)}
               </option>
             ))}
           </select>
@@ -293,7 +300,7 @@ function ReviewWeek({
         {tWeek("weekTitle")}
         <input
           value={week.title}
-          maxLength={160}
+          maxLength={WEEK_TITLE_MAX_LENGTH}
           disabled={locked}
           onChange={(event) =>
             weekly.updateWeek(index, { title: event.target.value })

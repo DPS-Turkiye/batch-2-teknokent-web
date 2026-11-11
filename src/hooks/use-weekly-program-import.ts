@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useProgramCache } from "@/hooks/use-coordinator-program";
@@ -21,12 +21,13 @@ import {
 } from "@/lib/client/weekly-program";
 import { ProgramFileProblem, programFileProblem } from "@/lib/program-phases";
 import {
+  dayRangeLabel,
   programWeekDays,
   weekDraftOf,
   weekPlanProblem,
   type WeekDraft,
 } from "@/lib/program-week";
-import { errorMessage } from "@/lib/utils";
+import { errorMessage, formatLongDate } from "@/lib/utils";
 import {
   isStalePlanError,
   lastKeptWeek,
@@ -71,11 +72,14 @@ export function useWeeklyProgramImport(
   detail: CoordinatorProgramDetail,
 ) {
   const t = useTranslations("weeklyProgram");
+  const locale = useLocale();
   const cache = useProgramCache(programId);
   const client = useQueryClient();
   const { showToast } = useToast();
   const [review, setReview] = useState<Review | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  // The file just uploaded, so a read that failed after the upload can be tried again on it.
+  const [uploadedId, setUploadedId] = useState<string | null>(null);
   const file = detail.syllabus;
   const hasDates = Boolean(detail.program.startDate && detail.program.endDate);
 
@@ -98,7 +102,10 @@ export function useWeeklyProgramImport(
   const upload = useMutation({
     mutationFn: (chosen: File) =>
       uploadDocument(chosen, DocumentKind.WeeklyProgram),
-    onSuccess: (stored) => read.mutate(stored.id),
+    onSuccess: (stored) => {
+      setUploadedId(stored.id);
+      read.mutate(stored.id);
+    },
     onError: fail(t("uploadFailed")),
   });
 
@@ -106,6 +113,7 @@ export function useWeeklyProgramImport(
     mutationFn: (input: SaveWeeklyProgramInput) =>
       saveWeeklyProgram(programId, input),
     onSuccess: (saved) => {
+      setUploadedId(null);
       cache.put(saved.program);
       client.setQueryData(programWeekPlanQueryKey(programId), saved.plan);
       setReview(null);
@@ -120,21 +128,35 @@ export function useWeeklyProgramImport(
       }),
   });
 
-  const change = (patch: Partial<Review>) => {
+  /** Every edit works on the latest review, so two edits in one tick both land. */
+  const edit = (next: (current: Review) => Partial<Review>) => {
     setProblem(null);
-    setReview((current) => (current ? { ...current, ...patch } : null));
+    setReview((current) => (current ? { ...current, ...next(current) } : null));
   };
 
   const existing = review?.proposal.existing ?? null;
   const daysOf = (week: number) =>
     programWeekDays(detail.program.startDate, detail.program.endDate, week);
+  const rereadId =
+    uploadedId ?? (file?.kind === DocumentKind.WeeklyProgram ? file.id : null);
+  const reading = upload.isPending || read.isPending;
 
   return {
     file,
-    /** The program's file is an older syllabus: it stays readable, but is not read again. */
-    oldSyllabus: file?.kind === DocumentKind.Syllabus,
     needsDates: !hasDates,
-    reading: upload.isPending || read.isPending,
+    reading,
+    /** Reading, saving or reviewing a file, or no program dates yet: the file row waits. */
+    busy: reading || save.isPending || review !== null || !hasDates,
+    /** The line under the file name. */
+    fileHint: reading
+      ? t("reading")
+      : !hasDates
+        ? t("needsDates")
+        : file
+          ? file.kind === DocumentKind.Syllabus
+            ? t("oldSyllabus")
+            : t("uploaded", { date: formatLongDate(file.uploadedAt, locale) })
+          : t("noFileHint"),
     chooseFile: (chosen: File) => {
       const fileProblem = programFileProblem(chosen);
       if (fileProblem) {
@@ -149,9 +171,9 @@ export function useWeeklyProgramImport(
       }
       upload.mutate(chosen);
     },
-    canReread: file?.kind === DocumentKind.WeeklyProgram && hasDates,
+    canReread: rereadId !== null && hasDates,
     reread: () => {
-      if (file?.kind === DocumentKind.WeeklyProgram) read.mutate(file.id);
+      if (rereadId) read.mutate(rereadId);
     },
 
     reviewing: review !== null,
@@ -167,42 +189,55 @@ export function useWeeklyProgramImport(
     problem,
     daysOf,
     /** From the first day of the phase's first week to the last day of its last week. */
-    phaseDays: (phase: WeeklyProgramPhaseInput) => {
+    /** "Hafta 1–3 · 27 Eki – 16 Kas" */
+    phaseRangeLabel: (phase: WeeklyProgramPhaseInput) => {
       const first = daysOf(phase.firstWeek);
       const last = daysOf(phase.lastWeek);
-      return first && last ? { start: first.start, end: last.end } : null;
+      const dates =
+        (first && last && dayRangeLabel(first.start, last.end, locale)) ?? "";
+      return phase.firstWeek === phase.lastWeek
+        ? t("phaseRangeOne", { week: phase.firstWeek, dates })
+        : t("phaseRange", {
+            first: phase.firstWeek,
+            last: phase.lastWeek,
+            dates,
+          });
     },
+    /** The phase picker's label; an unnamed phase goes by its number. */
+    phaseOptionLabel: (phase: WeeklyProgramPhaseInput, index: number) =>
+      phase.name.trim() || t("unnamedPhase", { n: index + 1 }),
     phaseIndexOf: (week: number) =>
       phaseIndexOfWeek(review?.phases ?? [], week),
-    setKeepPast: (keepPast: boolean) => change({ keepPast }),
-    setConfirmed: (confirmed: boolean) => change({ confirmed }),
-    updateWeek: (index: number, patch: Partial<WeekDraft>) => {
-      if (!review) return;
-      change({
-        weeks: review.weeks.map((week, at) =>
+    setKeepPast: (keepPast: boolean) => edit(() => ({ keepPast })),
+    setConfirmed: (confirmed: boolean) => edit(() => ({ confirmed })),
+    updateWeek: (index: number, patch: Partial<WeekDraft>) =>
+      edit((current) => ({
+        weeks: current.weeks.map((week, at) =>
           at === index ? { ...week, ...patch } : week,
         ),
-      });
-    },
-    removeWeek: (index: number) => {
-      if (!review) return;
-      change({ weeks: review.weeks.filter((_, at) => at !== index) });
-    },
-    updatePhase: (
-      index: number,
-      patch: Partial<Pick<WeeklyProgramPhaseInput, "name" | "expectedOutput">>,
-    ) => {
-      if (!review) return;
-      change({
-        phases: review.phases.map((phase, at) =>
-          at === index ? { ...phase, ...patch } : phase,
+      })),
+    removeWeek: (index: number) =>
+      edit((current) => ({
+        weeks: current.weeks.filter((_, at) => at !== index),
+      })),
+    renamePhase: (index: number, name: string) =>
+      edit((current) => ({
+        phases: current.phases.map((phase, at) =>
+          at === index ? { ...phase, name } : phase,
         ),
-      });
-    },
-    moveWeek: (week: number, target: number) => {
-      if (!review) return;
-      change({ phases: moveWeekToPhase(review.phases, week, target) });
-    },
+      })),
+    /** An emptied output means the phase has none. */
+    setPhaseOutput: (index: number, output: string) =>
+      edit((current) => ({
+        phases: current.phases.map((phase, at) =>
+          at === index ? { ...phase, expectedOutput: output || null } : phase,
+        ),
+      })),
+    /** `target` is a phase's position, or NO_PHASE, which leaves the phases as they are. */
+    moveWeek: (week: number, target: number) =>
+      edit((current) => ({
+        phases: moveWeekToPhase(current.phases, week, target),
+      })),
     discard: () => {
       setProblem(null);
       setReview(null);

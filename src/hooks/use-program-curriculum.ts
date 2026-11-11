@@ -42,10 +42,9 @@ export function useProgramCurriculum(
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const today = isoDay(new Date());
-  const saved = savedPhases(detail);
+  const listed = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
-  const listed = saved;
 
   const fail = (fallback: string) => (failure: Error) =>
     showToast({

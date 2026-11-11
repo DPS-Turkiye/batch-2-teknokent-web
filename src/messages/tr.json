@@ -6779,7 +6779,8 @@
       "PHASES_REBUILT": "Fazlar haftaların konularına göre yeniden gruplandı; adlarını kontrol et.",
       "PHASES_MERGED": "12'den fazla faz vardı; son fazlar birleştirildi.",
       "NO_PHASES": "Dosyadan faz çıkarılamadı. Kaydettikten sonra “Faz ekle” ile ekleyebilirsin."
-    }
+    },
+    "unnamedPhase": "{n}. faz"
   },
   "personSummary": {
     "back": "Geri",

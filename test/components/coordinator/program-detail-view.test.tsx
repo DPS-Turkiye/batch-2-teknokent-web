@@ -436,6 +436,12 @@ describe("coordinator program detail", () => {
     expect(
       within(review).getByText("9 Ocak Cumartesi — Demo Day"),
     ).toBeVisible();
+    // The other two editors wait while the read plan is under review.
+    expect(screen.getByRole("button", { name: "Faz ekle" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Hafta ekle" })).toBeDisabled();
+    expect(
+      within(review).getByRole("heading", { name: "Dosyadan okunan plan" }),
+    ).toHaveFocus();
 
     const name = within(review).getByRole("textbox", { name: "1. faz adı" });
     await user.clear(name);

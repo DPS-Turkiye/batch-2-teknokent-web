@@ -60,7 +60,9 @@ export function ProgramCurriculumSection({
   const weekly = useWeeklyProgramImport(programId, detail);
   const program = detail.program;
   const [dragging, setDragging] = useState<number | null>(null);
-  const locked = archived || curriculum.saving;
+  // The import and the two editors each replace a whole list, so one waits while another is open.
+  const importing = weekly.reviewing || weekly.saving;
+  const locked = archived || curriculum.saving || importing;
   const week =
     program.currentWeek && program.totalWeeks
       ? t("week", { current: program.currentWeek, total: program.totalWeeks })
@@ -93,7 +95,15 @@ export function ProgramCurriculumSection({
         </button>
       </div>
 
-      <WeeklyProgramCard weekly={weekly} archived={archived} />
+      <WeeklyProgramCard
+        weekly={weekly}
+        blocked={
+          archived ||
+          weekPlan.dirty ||
+          curriculum.editing !== null ||
+          curriculum.saving
+        }
+      />
 
       {weekly.reviewing ? <WeeklyProgramReview weekly={weekly} /> : null}
 
@@ -147,7 +157,7 @@ export function ProgramCurriculumSection({
         {t("lockNote", { count: program.teamCount })}
       </p>
 
-      <ProgramWeekPlanEditor plan={weekPlan} locked={archived} />
+      <ProgramWeekPlanEditor plan={weekPlan} locked={archived || importing} />
 
       {curriculum.editing ? (
         <PhaseDrawer
