@@ -14,6 +14,9 @@ vi.mock("@/components/hoc/app-shell", () => ({
 vi.mock("@/components/mentorships/document-request-checklist", () => ({
   DocumentRequestChecklist: () => null,
 }));
+vi.mock("@/hooks/use-member-profile-links", () => ({
+  useMemberProfileLinks: () => () => true,
+}));
 vi.mock("@/hooks/use-startup-documents", () => ({
   useOpenDocument: () => vi.fn(),
 }));

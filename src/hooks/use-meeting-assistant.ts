@@ -210,9 +210,6 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const selectedTranscript = selected
     ? (transcriptByMeeting[selected.id] ?? [])
     : [];
-  const transcriptDirty = selected
-    ? Boolean(transcriptDirtyByMeeting[selected.id])
-    : false;
   const canEditTranscript = selected?.status === MeetingStatus.Completed;
   const meetingReport = selected
     ? (reportByMeeting[selected.id] ?? null)
@@ -516,16 +513,11 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
             await generateMeetingReport(
               target.platformKey,
               target.nativeMeetingId,
-              segments,
             ),
           );
           setReportByMeeting((prev) => ({
             ...prev,
             [target.id]: report,
-          }));
-          setTranscriptDirtyByMeeting((prev) => ({
-            ...prev,
-            [target.id]: false,
           }));
           setReportStatus(BotStatus.Ok);
           window.setTimeout(() => setReportStatus(null), 4000);
@@ -687,7 +679,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   };
 
   const sendReport = async () => {
-    if (!notebookMeetingId || !meetingReport || transcriptDirty) return;
+    if (!notebookMeetingId || !meetingReport) return;
     setShareStatus(BotStatus.Sending);
     setShareError(null);
     try {
@@ -713,7 +705,6 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
     botError,
     visibleTranscript,
     canEditTranscript,
-    transcriptDirty,
     updateTranscriptLine,
     removeTranscriptLine,
     notes,

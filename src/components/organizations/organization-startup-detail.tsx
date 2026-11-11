@@ -6,8 +6,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo } from "react";
 
+import { PersonLink } from "@/components/common/person-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import type { OrganizationMember } from "@/interfaces/organization-member";
 import { UserRole } from "@/interfaces/session";
@@ -20,7 +22,6 @@ import {
   STARTUP_INFO_CARD_CLASS,
   STARTUP_INFO_CARD_TITLE_CLASS,
 } from "@/lib/const/programs";
-import { programPersonHref } from "@/lib/program-links";
 import { formatFileSize, formatLongDate, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 
@@ -34,6 +35,7 @@ export function OrganizationStartupDetail({
   const session = useAppSession();
   const openDocument = useOpenDocument();
   const isMentor = session?.role === UserRole.Mentor;
+  const canOpenMember = useMemberProfileLinks();
 
   const profileQuery = useQuery({
     queryKey: ["organization", organizationId],
@@ -219,7 +221,11 @@ export function OrganizationStartupDetail({
                 ) : (
                   <ul className="space-y-3">
                     {members.map((member) => (
-                      <MemberRow key={member.id} member={member} />
+                      <MemberRow
+                        key={member.id}
+                        member={member}
+                        linked={canOpenMember(organizationId)}
+                      />
                     ))}
                   </ul>
                 )}
@@ -241,12 +247,19 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function MemberRow({ member }: { member: OrganizationMember }) {
+function MemberRow({
+  member,
+  linked,
+}: {
+  member: OrganizationMember;
+  linked: boolean;
+}) {
   const t = useTranslations("organizationStartup");
   return (
-    <Link
-      href={programPersonHref({ userId: member.id })}
-      className="flex items-center gap-2.5 rounded-lg hover:bg-[#f7f8f9]"
+    <PersonLink
+      userId={member.id}
+      linked={linked}
+      className="flex items-center gap-2.5 rounded-lg"
     >
       <span className="grid size-9 place-items-center rounded-full bg-[#fdebdd] text-[11px] font-medium text-[#a8480e]">
         {initials(member.fullName)}
@@ -261,6 +274,6 @@ function MemberRow({ member }: { member: OrganizationMember }) {
             .join(" · ") || t("memberFallback")}
         </span>
       </span>
-    </Link>
+    </PersonLink>
   );
 }
