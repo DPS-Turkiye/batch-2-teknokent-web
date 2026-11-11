@@ -128,6 +128,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
     });
   }
 
+  const firstDay = days[0];
   const lastDay = days[days.length - 1];
   // No startup means no process (the proxy answers 401); anything else is a real failure.
   const processFailed =
@@ -147,7 +148,7 @@ export function useMenteeCalendar(importedMeetings: MeetingItem[] = []) {
       day: "numeric",
       month: "long",
       year: "numeric",
-    }).formatRange(days[0], lastDay),
+    }).formatRange(firstDay ?? lastDay ?? new Date(), lastDay ?? new Date()),
     previous: () => moveWeek(-1),
     next: () => moveWeek(1),
     today: () => {

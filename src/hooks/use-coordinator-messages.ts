@@ -8,8 +8,8 @@ import { useCoordinatorMentorships } from "@/hooks/use-coordinator-mentorships";
 import { useCoordinatorPrograms } from "@/hooks/use-coordinator-programs";
 import { useCoordinatorAnnouncements } from "@/hooks/use-program-announcements";
 import {
-  type CoordinatorConversation,
   CoordinatorConversationCounterpart,
+  type CoordinatorConversation,
   type StartCoordinatorConversationInput,
 } from "@/interfaces/coordinator-conversation";
 import { ProgramMentorStatus } from "@/interfaces/program";
@@ -71,7 +71,7 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
   const messages = useQuery({
     queryKey: [...COORDINATOR_CONVERSATIONS_QUERY_KEY, "messages", openId],
     queryFn: () => getCoordinatorMessages(openId ?? ""),
-    enabled: !!openId,
+    enabled: Boolean(openId),
     ...polling(POLL_INTERVAL.messages),
   });
 
@@ -149,7 +149,7 @@ export function useCoordinatorMessages(link: MessagesDeepLink) {
     messages,
     draft,
     setDraft: (value: string) => setDraft(value.slice(0, MAX_MESSAGE_LENGTH)),
-    canSend: !!open && trimmed.length > 0 && !send.isPending,
+    canSend: Boolean(open) && trimmed.length > 0 && !send.isPending,
     sendMessage: () => {
       if (open && trimmed) send.mutate({ id: open.id, body: trimmed });
     },
@@ -173,7 +173,7 @@ export function useConversationTargets(programId: string | null) {
   const detail = useQuery({
     queryKey: ["program-detail", programId],
     queryFn: () => getProgramDetail(programId ?? ""),
-    enabled: !!programId,
+    enabled: Boolean(programId),
   });
   const teams = (detail.data?.startups ?? []).map((startup) => ({
     type: CoordinatorConversationCounterpart.Team,

@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import ProfilePage from "@/app/profile/page";
 import StartupProfileToolsPage from "@/app/startup/profile-tools/page";
-import { getSessionUser } from "@/lib/session";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchOrganizationPrograms } from "@/lib/api/programs";
+import { getSessionUser } from "@/lib/session";
 
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 vi.mock("@/lib/api/programs", () => ({ fetchOrganizationPrograms: vi.fn() }));

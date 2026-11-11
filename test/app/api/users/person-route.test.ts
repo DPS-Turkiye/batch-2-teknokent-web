@@ -3,27 +3,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET as getPersonProfile } from "@/app/api/users/[id]/profile/route";
 import { GET as getPerson } from "@/app/api/users/[id]/route";
-import { UserRole, type BackendUser } from "@/interfaces/session";
 import type { UserProfile } from "@/interfaces/user-profile";
 import { fetchUser } from "@/lib/api/accounts";
 import { fetchUserProfile } from "@/lib/api/user-profile";
-import type { BackendResponse } from "@/lib/server/backend-client";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
+import { backendRefusal, backendResponse } from "@test/fixtures/route-handlers";
+import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts", () => ({ fetchUser: vi.fn() }));
 vi.mock("@/lib/api/user-profile", () => ({ fetchUserProfile: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSessionIds: vi.fn() }));
 
-const person: BackendUser = {
+const person = backendUser({
   id: "person-2",
-  email: "kisi@example.test",
-  fullName: "Örnek Kişi",
-  role: UserRole.Mentee,
   organizationId: "org-1",
   organizationName: "Örnek Girişim",
-  jobTitle: null,
-};
+});
 
 const profile: UserProfile = {
   id: "person-2",
@@ -36,10 +32,6 @@ const profile: UserProfile = {
   expertise: [],
   contactPreferences: [],
 };
-
-function answer<T>(data: T, status = 200): BackendResponse<T> {
-  return { data, headers: {}, status };
-}
 
 // The id in the query is what a browser could forge; the routes must ignore it.
 const request = new NextRequest(
@@ -75,7 +67,7 @@ describe("/api/users/[id] and /api/users/[id]/profile", () => {
   });
 
   it("asks for the account as the session user, not the forged actor", async () => {
-    vi.mocked(fetchUser).mockResolvedValue(answer(person));
+    vi.mocked(fetchUser).mockResolvedValue(backendResponse(person));
 
     const response = await getPerson(request, params);
 
@@ -85,7 +77,7 @@ describe("/api/users/[id] and /api/users/[id]/profile", () => {
   });
 
   it("asks for the profile as the session user, not the forged actor", async () => {
-    vi.mocked(fetchUserProfile).mockResolvedValue(answer(profile));
+    vi.mocked(fetchUserProfile).mockResolvedValue(backendResponse(profile));
 
     const response = await getPersonProfile(request, params);
 
@@ -95,7 +87,9 @@ describe("/api/users/[id] and /api/users/[id]/profile", () => {
   });
 
   it("passes the backend's not found through for someone unrelated", async () => {
-    vi.mocked(fetchUserProfile).mockResolvedValue(answer(profile, 404));
+    vi.mocked(fetchUserProfile).mockResolvedValue(
+      backendRefusal(404, { message: "User not found: person-2" }),
+    );
 
     const response = await getPersonProfile(request, params);
 

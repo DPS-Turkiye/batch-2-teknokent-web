@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
+
+import { ProfileAnalysisType } from "@/interfaces/profile-analysis";
 import {
   editableProfile,
   profilePayload,
   toProfileObject,
 } from "@/lib/profile-analysis";
-import { ProfileAnalysisType } from "@/interfaces/profile-analysis";
 
 describe("extracted profile review data", () => {
   it("keeps unedited matching evidence while removing suggestions the user rejected", () => {

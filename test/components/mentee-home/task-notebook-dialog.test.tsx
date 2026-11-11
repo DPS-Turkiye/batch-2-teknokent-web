@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TaskNotebookDialog } from "@/components/mentee-home/task-notebook-dialog";
 import { useTaskNotebook } from "@/hooks/use-task-notebook";
-import { type ActionItem, ActionItemStatus } from "@/interfaces/action-item";
+import { ActionItemStatus, type ActionItem } from "@/interfaces/action-item";
 import type { HomeTask } from "@/lib/mentee-home";
 import { DueTone, HomeTaskKind } from "@/types/mentee-home";
 

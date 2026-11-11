@@ -5,14 +5,15 @@ import {
   groupMeetingsByMentor,
   groupMeetingsByTopic,
   groupMeetingsByYear,
-  MeetingTiming,
-  meetingTiming,
   meetingNotebookHref,
   meetingsWithSameMentor,
+  MeetingTiming,
+  meetingTiming,
   meetingTitle,
   notePreview,
   visibleMeetings,
 } from "@/lib/startup-meetings";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 
 const NOW = new Date("2026-09-11T12:00:00Z");
 
@@ -88,6 +89,7 @@ describe("groupMeetingsByTopic", () => {
       "req-mvp",
       "req-finance",
     ]);
+    expectLength(topics, 2);
     expect(topics[0].upcoming?.id).toBe("mvp-2");
     expect(topics[0].meetings.map((item) => item.id)).toEqual([
       "mvp-2",
@@ -106,7 +108,7 @@ describe("groupMeetingsByTopic", () => {
       NOW,
     );
 
-    expect(topics).toHaveLength(1);
+    expectLength(topics, 1);
     expect(topics[0].meetings).toHaveLength(2);
   });
 });
@@ -121,15 +123,17 @@ describe("groupMeetingsByYear", () => {
     ]);
 
     expect(years.map((year) => year.year)).toEqual([2026, 2025]);
-    expect(years[0].months.map((month) => month.label)).toEqual([
+    expectLength(years, 2);
+    const [thisYear, lastYear] = years;
+    expect(thisYear.months.map((month) => month.label)).toEqual([
       "Eylül",
       "Ağustos",
     ]);
-    expect(years[0].months[0].meetings.map((item) => item.id)).toEqual([
+    expect(itemAt(thisYear.months, 0).meetings.map((item) => item.id)).toEqual([
       "sep-early",
       "sep-late",
     ]);
-    expect(years[1].months[0].label).toBe("Kasım");
+    expect(lastYear.months.map((month) => month.label)).toEqual(["Kasım"]);
   });
 });
 
@@ -151,6 +155,7 @@ describe("groupMeetingsByMentor", () => {
       "Nihan Öztürk",
       "Ahmet Yılmaz",
     ]);
+    expectLength(stacks, 2);
     expect(stacks[0].meetings.map((item) => item.id)).toEqual(["next", "held"]);
     expect(stacks[1].upcoming).toBeNull();
   });
@@ -176,9 +181,10 @@ describe("meetingsWithSameMentor", () => {
   });
 
   it("returns nothing when the meeting has no mentor", () => {
-    const current = meeting("solo", "2026-08-18T09:00:00Z", {
-      mentorId: undefined,
-    });
+    const { mentorId: _mentorId, ...current } = meeting(
+      "solo",
+      "2026-08-18T09:00:00Z",
+    );
     expect(
       meetingsWithSameMentor(
         [current, meeting("kept", "2026-09-01T09:00:00Z")],

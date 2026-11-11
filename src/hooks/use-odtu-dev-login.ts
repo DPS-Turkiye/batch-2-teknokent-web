@@ -36,7 +36,7 @@ export function useOdtuDevLogin(state: string | null) {
     if (state) return;
     startInstitutionLogin(InstitutionProvider.Odtu)
       .then(({ redirectUrl }) => router.replace(redirectUrl))
-      .catch((caught) => setError(describeAuthError(caught)));
+      .catch((caught: unknown) => setError(describeAuthError(caught)));
   }, [router, state]);
 
   async function signInAs(personaId: string) {

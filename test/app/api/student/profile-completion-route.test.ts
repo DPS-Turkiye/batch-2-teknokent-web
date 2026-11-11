@@ -4,12 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GET, PUT } from "@/app/api/student/profile-completion/route";
 import { PeerTopicCategory } from "@/interfaces/peer-mentoring";
 import { UserRole } from "@/interfaces/session";
+import type { StudentProfileCompletion } from "@/interfaces/student-profile-completion";
 import {
   fetchStudentProfileCompletion,
   saveStudentProfileCompletion,
 } from "@/lib/api/student-profile-completion";
 import { HttpMethod } from "@/lib/http-method";
 import { getSessionUser } from "@/lib/session";
+import { backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/student-profile-completion", () => ({
   fetchStudentProfileCompletion: vi.fn(),
@@ -17,7 +19,13 @@ vi.mock("@/lib/api/student-profile-completion", () => ({
 }));
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 
-const ok = { data: {}, headers: {}, status: 200 };
+const ok = backendResponse<StudentProfileCompletion>({
+  topics: [],
+  subtopics: [],
+  goal: "",
+  completed: false,
+  skipped: false,
+});
 
 function put(body: unknown) {
   return new NextRequest(
@@ -54,14 +62,14 @@ describe("student profile-completion proxy", () => {
     expect(fetchStudentProfileCompletion).toHaveBeenCalledWith("student-1");
   });
 
-  it("saves for the session user only, keeping known categories and real booleans", async () => {
+  it("saves for the session user only, dropping categories the board no longer offers", async () => {
     await PUT(
       put({
         actorId: "someone-else",
         topics: [PeerTopicCategory.International, "NOT_A_CATEGORY"],
         subtopics: ["fixture-exchange"],
         goal: "Erasmus",
-        completed: "true",
+        completed: false,
         skipped: true,
       }),
     );
@@ -73,5 +81,41 @@ describe("student profile-completion proxy", () => {
       completed: false,
       skipped: true,
     });
+  });
+
+  it("saves a never-saved profile sent back with nulls as an empty one", async () => {
+    const response = await PUT(
+      put({
+        topics: null,
+        subtopics: null,
+        goal: null,
+        completed: null,
+        skipped: true,
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(saveStudentProfileCompletion).toHaveBeenCalledWith("student-1", {
+      topics: [],
+      subtopics: [],
+      goal: "",
+      completed: false,
+      skipped: true,
+    });
+  });
+
+  it("refuses a flag that is not a boolean instead of reading it as false", async () => {
+    const response = await PUT(
+      put({
+        topics: [],
+        subtopics: [],
+        goal: "",
+        completed: "true",
+        skipped: false,
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(saveStudentProfileCompletion).not.toHaveBeenCalled();
   });
 });

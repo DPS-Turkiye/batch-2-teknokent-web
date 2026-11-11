@@ -7,6 +7,7 @@ import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
 import { getOrganizationPrograms } from "@/lib/client/programs";
 import { MENTOR_REQUEST_NEED_DRAFT_KEY } from "@/lib/mentor-request-need";
+import { organizationProgram } from "@test/fixtures/organization-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
@@ -57,7 +58,7 @@ describe("MentorRequestFlow — Need step", () => {
     push.mockReset();
     sessionStorage.clear();
     vi.mocked(getOrganizationPrograms).mockResolvedValue({
-      programs: [{ id: "p-1", name: "Alpha 2026", coordinatorName: "Elif" }],
+      programs: [organizationProgram("p-1", "Alpha 2026")],
       activeProgramId: null,
     });
   });
@@ -65,8 +66,8 @@ describe("MentorRequestFlow — Need step", () => {
   it("lets a startup in two programs choose the program before suggestions are made", async () => {
     vi.mocked(getOrganizationPrograms).mockResolvedValue({
       programs: [
-        { id: "p-1", name: "Alpha 2026", coordinatorName: "Elif" },
-        { id: "p-2", name: "Beta 2026", coordinatorName: "Burcu" },
+        organizationProgram("p-1", "Alpha 2026"),
+        organizationProgram("p-2", "Beta 2026", { coordinatorName: "Burcu" }),
       ],
       activeProgramId: "p-1",
     });

@@ -1,12 +1,12 @@
 import type { useTranslations } from "next-intl";
 
-import type { ProgramsT } from "@/lib/coordinator-programs";
 import {
-  type CoordinatorProgramDetail,
   ProgramLifecycle,
-  type ProgramTeam,
   TeamJoinStatus,
+  type CoordinatorProgramDetail,
+  type ProgramTeam,
 } from "@/interfaces/coordinator-program";
+import type { ProgramsT } from "@/lib/coordinator-programs";
 import { formatDayMonth, isEmailAddress } from "@/lib/utils";
 
 export type TeamRowDraft = { key: string; teamName: string; leadEmail: string };

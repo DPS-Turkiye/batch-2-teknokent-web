@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import {
   addBotBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
 import { createMeetingBot, stopMeetingBotBackend } from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 // The backend also passes on the provider's own 409 (a bot is already in that meeting), so match the cap's text.
@@ -13,20 +15,12 @@ const RECORDING_SLOTS_FULL_DETAIL = "All recording slots are in use.";
 export async function POST(request: NextRequest) {
   try {
     await getSessionIds();
-    const body = await request.json();
-    const parsed = addBotBodySchema.safeParse(body);
+    const body = await readJsonBody(request, addBotBodySchema, {
+      invalidMessage: "meetingLinkRequired",
+    });
+    if (!body.ok) return body.response;
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("meetingLinkRequired"),
-        },
-        { status: 400 },
-      );
-    }
-
-    const { data, status } = await createMeetingBot(parsed.data);
+    const { data, status } = await createMeetingBot(body.data);
     if (
       status === 409 &&
       (data as { detail?: unknown } | null)?.detail ===

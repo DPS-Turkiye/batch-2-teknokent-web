@@ -3,8 +3,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchActionItems,
-  fetchOrganizationActionItems,
   fetchActionItemsForRequests,
+  fetchOrganizationActionItems,
 } from "@/lib/api/action-items";
 import {
   apiErrorResponse,
@@ -12,7 +12,7 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { SessionRequiredError } from "@/lib/server/session-error";
-import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
+import { sessionSide, SIDE_PARAM } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 
 async function missingRequestId() {
@@ -66,7 +66,7 @@ export async function GET(request: NextRequest) {
       );
     }
     const requestId = request.nextUrl.searchParams.get("requestId");
-    if (!requestId) return missingRequestId();
+    if (!requestId) return await missingRequestId();
 
     return backendResponse(await fetchActionItems(requestId, caller));
   } catch (error) {

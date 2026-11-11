@@ -1,44 +1,33 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
+import { ProgramLifecycle } from "@/interfaces/coordinator-program";
+import { ProgramType } from "@/interfaces/program";
 import {
   emptyPhase,
   hasTabContent,
   healthShares,
   isActiveTab,
-  settingsSections,
-  SettingsSection,
   misplacedTabHref,
+  overviewActions,
   ParticipantTab,
   participantTabs,
-  ProgramTab,
-  programTabs,
-  overviewActions,
   phaseDraftError,
   programHeaderLine,
+  ProgramTab,
+  programTabs,
+  RULE_LIMITS,
   savedPhases,
   settingsDraftError,
   settingsDraftOf,
+  SettingsSection,
+  settingsSections,
   stepDays,
-  RULE_LIMITS,
 } from "@/lib/coordinator-program-detail";
-import { ProgramLifecycle } from "@/interfaces/coordinator-program";
-import { ProgramType } from "@/interfaces/program";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
+import { translatorIn } from "@test/translators";
 
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
-
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "coordinatorPrograms",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "coordinatorPrograms",
-});
+const t = translatorIn("tr", "coordinatorPrograms");
+const tEn = translatorIn("en", "coordinatorPrograms");
 
 describe("coordinator program detail", () => {
   it("writes the header line with the phase, week and every coordinator", () => {
@@ -167,7 +156,7 @@ describe("program tabs by type", () => {
 
   it("gives Akran its Öğrenciler and Akran Mentorları lists and leaves its other tabs empty but the settings", () => {
     const detail = detailOf(ProgramType.PeerMentoring);
-    expect(programTabs(detail, "p1")[1].href).toBe(
+    expect(programTabs(detail, "p1")[1]?.href).toBe(
       "/coordinator/programs/p1/students",
     );
     expect(

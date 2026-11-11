@@ -9,6 +9,9 @@ import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { getActionItems } from "@/lib/client/action-items";
 import { getStartupProcess } from "@/lib/client/startup-process";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import { startupProcess } from "@test/fixtures/startup-process";
+import { successQuery } from "@test/mocks/query-results";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const mockUseMeetings = vi.fn();
@@ -86,11 +89,16 @@ beforeEach(() => {
   vi.setSystemTime(new Date(2026, 7, 26, 9, 0));
   mockUseMeetings.mockReset();
   mockCreateMeeting.mockReset();
-  vi.mocked(useMentorshipRequests).mockReturnValue({
-    data: [{ id: "req-1", status: MentorshipRequestStatus.Accepted }],
-  } as never);
+  vi.mocked(useMentorshipRequests).mockReturnValue(
+    successQuery([
+      menteeRequestFixture({
+        id: "req-1",
+        status: MentorshipRequestStatus.Accepted,
+      }),
+    ]),
+  );
   vi.mocked(getActionItems).mockResolvedValue([]);
-  vi.mocked(getStartupProcess).mockResolvedValue({ assignments: [] } as never);
+  vi.mocked(getStartupProcess).mockResolvedValue(startupProcess());
 });
 
 afterEach(() => {
@@ -285,9 +293,8 @@ describe("CalendarView", () => {
       "END:VCALENDAR",
     ].join("\r\n");
     const file = new File([ics], "export.ics", { type: "text/calendar" });
-    const input = document.querySelector(
-      'input[type="file"]',
-    ) as HTMLInputElement;
+    const input = document.querySelector('input[type="file"]');
+    if (!(input instanceof HTMLInputElement)) throw new Error("No file input");
     await user.upload(input, file);
 
     await waitFor(() => expect(mockCreateMeeting).toHaveBeenCalledTimes(1));

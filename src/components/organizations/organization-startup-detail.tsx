@@ -1,17 +1,19 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
+import Link from "next/link";
 import { useMemo } from "react";
 
+import { PersonLink } from "@/components/common/person-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import type { OrganizationMember } from "@/interfaces/organization-member";
-import { DocumentKind } from "@/interfaces/startup-document";
 import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { getOrganizationById } from "@/lib/client/organization";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getOrganizationDocuments } from "@/lib/client/startup-documents";
@@ -20,8 +22,6 @@ import {
   STARTUP_INFO_CARD_CLASS,
   STARTUP_INFO_CARD_TITLE_CLASS,
 } from "@/lib/const/programs";
-import { PersonLink } from "@/components/common/person-link";
-import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { formatFileSize, formatLongDate, initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
 

@@ -4,7 +4,6 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
 import type { SessionsExportFormat } from "@/interfaces/program-report";
-import { isoDay } from "@/lib/coordinator-calendar";
 import {
   getProgramMeetingFeedback,
   getProgramMeetingRatings,
@@ -12,6 +11,7 @@ import {
   getProgramSessions,
   programSessionsExportHref,
 } from "@/lib/client/program-report";
+import { isoDay } from "@/lib/coordinator-calendar";
 
 export function useProgramReport(programId: string) {
   return useQuery({
@@ -27,7 +27,7 @@ export function useProgramMeetingRatings(
 ) {
   return useQuery({
     queryKey: ["program-meeting-ratings", programId, from],
-    queryFn: () => getProgramMeetingRatings(programId as string, from),
+    queryFn: () => getProgramMeetingRatings(programId!, from),
     enabled: Boolean(programId),
   });
 }
@@ -43,8 +43,7 @@ export function useProgramMeetingFeedback(
   const [page, setPage] = useState(0);
   const query = useQuery({
     queryKey: ["program-meeting-feedback", programId, from, page],
-    queryFn: () =>
-      getProgramMeetingFeedback(programId as string, { from, page }),
+    queryFn: () => getProgramMeetingFeedback(programId!, { from, page }),
     enabled: Boolean(programId),
     placeholderData: keepPreviousData,
   });

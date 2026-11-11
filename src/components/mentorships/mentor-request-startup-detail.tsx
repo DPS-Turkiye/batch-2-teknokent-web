@@ -1,34 +1,36 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useLocale, useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
-import { AppShell } from "@/components/hoc/app-shell";
+import { PersonLink } from "@/components/common/person-link";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
 import { StartupNameLink } from "@/components/common/startup-name-link";
-import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
+import { AppShell } from "@/components/hoc/app-shell";
 import { DocumentRequestChecklist } from "@/components/mentorships/document-request-checklist";
-import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { normalizeDocumentTitles } from "@/components/mentorships/document-request-title-editor";
+import { MentorAccent } from "@/components/mentorships/mentor-accent";
+import { MentorRequestReviewDialog } from "@/components/mentorships/mentor-request-review-dialog";
 import { MEETINGS_QUERY_KEY } from "@/hooks/use-meetings";
-import { useTopicLabel } from "@/hooks/use-option-label";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import {
   useMentorRequestDecision,
   useMentorshipRequest,
 } from "@/hooks/use-mentorship-requests";
+import { useTopicLabel } from "@/hooks/use-option-label";
 import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
-import type { OrganizationMember } from "@/interfaces/organization-member";
 import type { StartupProfile } from "@/interfaces/organization";
+import type { OrganizationMember } from "@/interfaces/organization-member";
 import {
   DocumentKind,
   type StartupDocument,
@@ -49,8 +51,6 @@ import {
   STARTUP_INFO_CARD_TITLE_CLASS,
 } from "@/lib/const/programs";
 import { normalizeMeetLink } from "@/lib/meet-link";
-import { PersonLink } from "@/components/common/person-link";
-import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import {
   preferredSlotMachineValue,
   preferredSlotStartsAt,
@@ -120,17 +120,17 @@ export function MentorRequestStartupDetail({
 
   const profileQuery = useQuery({
     queryKey: ["organization", organizationId],
-    queryFn: () => getOrganizationById(organizationId as string),
+    queryFn: () => getOrganizationById(organizationId!),
     enabled: Boolean(organizationId),
   });
   const membersQuery = useQuery({
     queryKey: ["organization-members", organizationId],
-    queryFn: () => getOrganizationMembersById(organizationId as string),
+    queryFn: () => getOrganizationMembersById(organizationId!),
     enabled: Boolean(organizationId),
   });
   const documentsQuery = useQuery({
     queryKey: ["organization-documents", organizationId],
-    queryFn: () => getOrganizationDocuments(organizationId as string),
+    queryFn: () => getOrganizationDocuments(organizationId!),
     enabled: Boolean(organizationId),
   });
 
@@ -522,12 +522,10 @@ export function MentorRequestStartupDetail({
                     )}
                   </section>
 
-                  {request ? (
-                    <DocumentRequestChecklist
-                      scope={{ mentorshipRequestId: request.id }}
-                      canManage
-                    />
-                  ) : null}
+                  <DocumentRequestChecklist
+                    scope={{ mentorshipRequestId: request.id }}
+                    canManage
+                  />
 
                   <section className={STARTUP_INFO_CARD_CLASS}>
                     <h2 className={STARTUP_INFO_CARD_TITLE_CLASS}>

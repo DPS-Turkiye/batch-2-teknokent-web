@@ -56,7 +56,7 @@ describe("SlotDayTimePicker", () => {
     );
     const times = screen
       .getAllByText(/dk/)
-      .map((button) => button.textContent?.split(" ·")[0]);
+      .map((button) => button.textContent.split(" ·")[0]);
     expect(times).toEqual([
       slotTimeLabel("2026-10-08T09:30:00"),
       slotTimeLabel("2026-10-08T14:00:00"),

@@ -19,7 +19,7 @@ describe("getMentors", () => {
     vi.mocked(httpClient.get).mockResolvedValue({
       status: 200,
       data: [mentorProfile],
-    } as never);
+    });
 
     await expect(getMentors()).resolves.toEqual([mentorProfile]);
     expect(httpClient.get).toHaveBeenCalledWith("/api/mentors");

@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TeamSummarySection } from "@/components/profile/team-summary-section";
 import type { OrganizationMember } from "@/interfaces/organization-member";
+import { memberFixture } from "@test/fixtures/startup-team";
 import { InLocale } from "@test/test-utils";
 
 const mockUseOrganizationMembers = vi.fn();
@@ -11,14 +12,15 @@ vi.mock("@/hooks/use-organization-members", () => ({
   useOrganizationMembers: () => mockUseOrganizationMembers(),
 }));
 
-function member(overrides: Partial<OrganizationMember> = {}) {
-  return {
-    id: "member-1",
+function member(
+  overrides: Partial<OrganizationMember> = {},
+): OrganizationMember {
+  return memberFixture("member-1", {
     fullName: "Gülse Buran",
     email: "gulse@dongu.co",
     jobTitle: "CTO",
     ...overrides,
-  } as OrganizationMember;
+  });
 }
 
 function membersResult(overrides: Record<string, unknown> = {}) {

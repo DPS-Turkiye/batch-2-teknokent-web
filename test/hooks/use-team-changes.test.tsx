@@ -3,22 +3,21 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useAppSession } from "@/components/providers/session-provider";
 import { Toaster } from "@/components/common/toaster";
+import { useAppSession } from "@/components/providers/session-provider";
 import { useOrganizationPrograms } from "@/hooks/use-programs";
 import { useAdoptStartupSession } from "@/hooks/use-startup-membership";
 import { useTeamChanges } from "@/hooks/use-team-changes";
-import {
-  type TeamChange,
-  TeamChangeKind,
-  TeamChangeStatus,
-} from "@/interfaces/team-change";
 import {
   getTeamChanges,
   leaveTeam,
   requestLeave,
 } from "@/lib/client/team-changes";
+import { organizationProgram } from "@test/fixtures/organization-programs";
+import { appSession } from "@test/fixtures/session";
 import { memberFixture } from "@test/fixtures/startup-team";
+import { leaveRequestOf } from "@test/fixtures/team-changes";
+import { successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 const replace = vi.fn();
@@ -53,33 +52,19 @@ function wrapper({ children }: { children: ReactNode }) {
 const founder = memberFixture("founder", { founder: true });
 const cto = memberFixture("cto");
 const designer = memberFixture("designer");
-
-function leaveOf(memberId: string): TeamChange {
-  return {
-    id: `tc-${memberId}`,
-    kind: TeamChangeKind.Leave,
-    status: TeamChangeStatus.Pending,
-    organizationId: "org-1",
-    organizationName: "Döngü",
-    memberId,
-    memberName: "Kerem Aksoy",
-    memberEmail: `${memberId}@dongu.co`,
-    requestedById: memberId,
-    requestedByName: "Kerem Aksoy",
-    createdAt: "2026-11-04T09:00:00Z",
-  };
-}
+/** The leader's session once they have left: no startup any more. */
+const withoutStartup = appSession({ userId: "founder" });
 
 function setup(userId: string, { inProgram = true } = {}) {
-  vi.mocked(useAppSession).mockReturnValue({ userId } as never);
-  vi.mocked(useOrganizationPrograms).mockReturnValue({
-    data: {
+  vi.mocked(useAppSession).mockReturnValue(appSession({ userId }));
+  vi.mocked(useOrganizationPrograms).mockReturnValue(
+    successQuery({
       programs: inProgram
-        ? [{ id: "p1", name: "Growth", coordinatorName: "Ayşe" }]
+        ? [organizationProgram("p1", "Growth", { coordinatorName: "Ayşe" })]
         : [],
       activeProgramId: null,
-    },
-  } as never);
+    }),
+  );
 }
 
 describe("useTeamChanges", () => {
@@ -107,7 +92,7 @@ describe("useTeamChanges", () => {
 
   it("sends a member's leave as a request", async () => {
     setup("cto");
-    vi.mocked(requestLeave).mockResolvedValue(leaveOf("cto"));
+    vi.mocked(requestLeave).mockResolvedValue(leaveRequestOf("cto"));
     const { result } = renderHook(
       () => useTeamChanges([founder, cto, designer]),
       { wrapper },
@@ -123,7 +108,7 @@ describe("useTeamChanges", () => {
 
   it("hides the leave button while the member's own request waits", async () => {
     setup("cto");
-    vi.mocked(getTeamChanges).mockResolvedValue([leaveOf("cto")]);
+    vi.mocked(getTeamChanges).mockResolvedValue([leaveRequestOf("cto")]);
     const { result } = renderHook(
       () => useTeamChanges([founder, cto, designer]),
       { wrapper },
@@ -135,7 +120,7 @@ describe("useTeamChanges", () => {
 
   it("offers only members who are staying as the next leader", async () => {
     setup("founder");
-    vi.mocked(getTeamChanges).mockResolvedValue([leaveOf("cto")]);
+    vi.mocked(getTeamChanges).mockResolvedValue([leaveRequestOf("cto")]);
     const { result } = renderHook(
       () => useTeamChanges([founder, cto, designer]),
       { wrapper },
@@ -150,7 +135,7 @@ describe("useTeamChanges", () => {
 
   it("waits for a successor, then the leader leaves and goes to Startup'ım", async () => {
     setup("founder");
-    vi.mocked(leaveTeam).mockResolvedValue({ userId: "founder" } as never);
+    vi.mocked(leaveTeam).mockResolvedValue(withoutStartup);
     const { result } = renderHook(
       () => useTeamChanges([founder, cto, designer]),
       { wrapper },
@@ -165,12 +150,12 @@ describe("useTeamChanges", () => {
 
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/startup"));
     expect(leaveTeam).toHaveBeenCalledWith("designer");
-    expect(adopt).toHaveBeenCalledWith({ userId: "founder" });
+    expect(adopt).toHaveBeenCalledWith(withoutStartup);
   });
 
   it("lets a leader alone in the team leave without a successor", async () => {
     setup("founder", { inProgram: false });
-    vi.mocked(leaveTeam).mockResolvedValue({ userId: "founder" } as never);
+    vi.mocked(leaveTeam).mockResolvedValue(withoutStartup);
     const { result } = renderHook(() => useTeamChanges([founder]), {
       wrapper,
     });

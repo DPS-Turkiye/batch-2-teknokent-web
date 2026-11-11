@@ -1,8 +1,8 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import Image from "next/image";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { useOtgLogin } from "@/hooks/use-otg-login";
 

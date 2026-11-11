@@ -1,5 +1,3 @@
-import type { CSSProperties } from "react";
-
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingPointerEffects } from "@/hooks/use-landing";
@@ -83,7 +81,7 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
             <article
               key={key}
               className={cx("ccard", key, "rv", from)}
-              style={{ "--d": `${delay}ms` } as CSSProperties}
+              style={{ "--d": `${delay}ms` }}
               onPointerMove={pointer.tilt}
               onPointerLeave={pointer.reset}
             >
@@ -93,15 +91,13 @@ export function LandingCompare({ onDifference }: { onDifference: () => void }) {
               <p>{card.text}</p>
               <ul className={cx("clist")}>
                 {card.points.map((point, index) => (
-                  // Keyed by position: a text key remounts the bullet on a language switch, and the reveal hook never shows the new one.
                   <li
+                    // eslint-disable-next-line react/no-array-index-key -- keyed by position: a text key remounts the bullet on a language switch, and the reveal hook never shows the new one
                     key={index}
                     className={cx("rv")}
-                    style={
-                      {
-                        "--d": `${firstPoint + index * 100}ms`,
-                      } as CSSProperties
-                    }
+                    style={{
+                      "--d": `${firstPoint + index * 100}ms`,
+                    }}
                   >
                     <span className={cx("dot")}>
                       <CheckIcon size={12} strokeWidth={3} />

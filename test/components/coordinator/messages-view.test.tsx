@@ -4,7 +4,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorMessagesView } from "@/components/coordinator/messages-view";
 import { CoordinatorConversationCounterpart } from "@/interfaces/coordinator-conversation";
-import { ProgramMentorStatus } from "@/interfaces/program";
+import {
+  ProgramMentorInvitedBy,
+  ProgramMentorStatus,
+} from "@/interfaces/program";
 import {
   getCoordinatorConversations,
   getCoordinatorMessages,
@@ -212,11 +215,11 @@ describe("CoordinatorMessagesView", () => {
           fullName: "Bekleyen Mentor",
           email: "m@tekno.test",
           status: ProgramMentorStatus.Pending,
-          invitedBy: "COORDINATOR",
+          invitedBy: ProgramMentorInvitedBy.Coordinator,
           createdAt: "2026-02-01T09:00:00Z",
         },
       ],
-    } as never);
+    });
     vi.mocked(startCoordinatorConversation).mockResolvedValue(
       coordinatorConversation({
         id: "conversation-9",

@@ -1,6 +1,9 @@
 import { UserRole } from "@/interfaces/session";
 
-type PermissionHolder = { role: UserRole; permissions?: readonly UserRole[] };
+type PermissionHolder = {
+  role: UserRole;
+  permissions?: readonly UserRole[] | undefined;
+};
 
 /** The holder's active permissions; an older cookie or response without the list holds just its role. */
 export function permissionsOf(holder: PermissionHolder): UserRole[] {

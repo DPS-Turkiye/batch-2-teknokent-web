@@ -4,7 +4,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET as start } from "@/app/auth/otg/start/route";
 import { InstitutionProvider } from "@/interfaces/institution-login";
 import { startInstitutionLogin } from "@/lib/api/institution-login";
-import { INSTITUTION_LOGIN_COOKIE } from "@/lib/server/institution-login-cookie";
+import {
+  INSTITUTION_LOGIN_COOKIE,
+  type PendingInstitutionLogin,
+} from "@/lib/server/institution-login-cookie";
 
 vi.mock("@/lib/api/institution-login", () => ({
   startInstitutionLogin: vi.fn(),
@@ -17,10 +20,13 @@ function open(query = "") {
   return start(new NextRequest(`http://localhost:3000/auth/otg/start${query}`));
 }
 
-function savedLogin(response: Response) {
+function savedLogin(response: Response): PendingInstitutionLogin {
   const cookie = response.headers.get("set-cookie") ?? "";
-  const value = cookie.split(";")[0].split("=").slice(1).join("=");
-  return JSON.parse(decodeURIComponent(value));
+  const [pair = ""] = cookie.split(";");
+  const value = pair.split("=").slice(1).join("=");
+  // The tests below check the parsed cookie's whole shape with toEqual.
+  const saved: PendingInstitutionLogin = JSON.parse(decodeURIComponent(value));
+  return saved;
 }
 
 describe("GET /auth/otg/start", () => {

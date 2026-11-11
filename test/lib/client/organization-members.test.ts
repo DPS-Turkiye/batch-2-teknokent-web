@@ -17,7 +17,7 @@ describe("organization member client", () => {
     vi.mocked(httpClient.patch).mockResolvedValue({
       status: 200,
       data: { id: "c 1" },
-    } as never);
+    });
 
     await updateOrganizationMember("c 1", {
       fullName: "Kerem Aksoy",
@@ -35,8 +35,8 @@ describe("organization member client", () => {
 
   it("removes a member and surfaces a refusal", async () => {
     vi.mocked(httpClient.delete)
-      .mockResolvedValueOnce({ status: 204, data: "" } as never)
-      .mockResolvedValueOnce({ status: 403, data: {} } as never);
+      .mockResolvedValueOnce({ status: 204, data: "" })
+      .mockResolvedValueOnce({ status: 403, data: {} });
 
     await removeOrganizationMember("cto");
     await expect(removeOrganizationMember("founder")).rejects.toThrow(

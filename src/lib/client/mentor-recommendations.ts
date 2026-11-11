@@ -1,4 +1,5 @@
 import type { MentorProfile } from "@/interfaces/mentor";
+import { MatchingMethod } from "@/interfaces/mentorship-request";
 import type { StartupContext } from "@/interfaces/startup";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
@@ -8,14 +9,18 @@ import type {
   MentorshipFormat,
 } from "@/types/mentor-request";
 
+function headerText(value: unknown) {
+  return typeof value === "string" ? value : undefined;
+}
+
 export type RecommendationMetadata = {
   generatedAt: string;
   matchingMethod: string;
-  matchingModel?: string;
+  matchingModel?: string | undefined;
 };
 
 export type RecommendationSpecification = {
-  excludedMentorId?: string;
+  excludedMentorId?: string | undefined;
   meetingMode: MentorMeetingMode;
   mentorshipFormat: MentorshipFormat;
   startup: StartupContext;
@@ -47,10 +52,13 @@ export async function getMentorRecommendations(
   return {
     mentors,
     metadata: {
-      matchingMethod: response.headers["x-matching-method"] ?? "DETERMINISTIC",
-      matchingModel: response.headers["x-matching-model"] || undefined,
+      matchingMethod:
+        headerText(response.headers["x-matching-method"]) ??
+        MatchingMethod.Deterministic,
+      matchingModel:
+        headerText(response.headers["x-matching-model"]) || undefined,
       generatedAt:
-        response.headers["x-recommendation-generated-at"] ??
+        headerText(response.headers["x-recommendation-generated-at"]) ??
         new Date().toISOString(),
     } satisfies RecommendationMetadata,
   };

@@ -5,9 +5,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   decideProgramInvitation,
   getOrganizationPrograms,
-  getProgramNames,
   getProgramDetail,
   getProgramInvitations,
+  getProgramNames,
   getPrograms,
   setActiveProgram,
 } from "@/lib/client/programs";
@@ -55,7 +55,7 @@ export function usePrograms({ enabled = true } = {}) {
 export function useProgramDetail(programId: string | null) {
   return useQuery({
     queryKey: [PROGRAM_DETAIL_QUERY_KEY, programId],
-    queryFn: () => getProgramDetail(programId as string),
+    queryFn: () => getProgramDetail(programId!),
     enabled: Boolean(programId),
   });
 }

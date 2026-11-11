@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PUT } from "@/app/api/admin/coordinators/[id]/access/route";
 import { POST as resendSetup } from "@/app/api/admin/coordinators/[id]/password-setup/route";
 import { GET } from "@/app/api/admin/coordinators/candidate/route";
 import { POST } from "@/app/api/admin/coordinators/route";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole } from "@/interfaces/session";
 import {
   addCoordinator,
   fetchCoordinatorCandidate,
@@ -13,6 +13,12 @@ import {
   setCoordinatorAccess,
 } from "@/lib/api/admin-coordinators";
 import { requireAdminSession } from "@/lib/server/require-admin";
+import {
+  answerEachWith,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/admin-coordinators", () => ({
   fetchCoordinatorCandidate: vi.fn(),
@@ -24,12 +30,12 @@ vi.mock("@/lib/server/require-admin", () => ({
   requireAdminSession: vi.fn(),
 }));
 
-const ok = { data: {}, headers: {}, status: 200 } as never;
+const ok = backendResponse({});
 
 function signIn() {
   vi.mocked(requireAdminSession).mockResolvedValue({
     ok: true,
-    session: { userId: "admin-1", role: UserRole.Admin } as AppSession,
+    session: appSession({ userId: "admin-1", role: UserRole.Admin }),
   });
 }
 
@@ -45,9 +51,10 @@ describe("admin coordinator routes", () => {
 
   it("checks, adds and deactivates as the signed-in admin", async () => {
     signIn();
-    vi.mocked(fetchCoordinatorCandidate).mockResolvedValue(ok);
-    vi.mocked(addCoordinator).mockResolvedValue(ok);
-    vi.mocked(setCoordinatorAccess).mockResolvedValue(ok);
+    answerEachWith(
+      [fetchCoordinatorCandidate, addCoordinator, setCoordinatorAccess],
+      ok,
+    );
 
     await GET(
       new NextRequest(
@@ -76,7 +83,7 @@ describe("admin coordinator routes", () => {
     });
     expect(setCoordinatorAccess).toHaveBeenCalledWith("admin-1", "c-1", false);
 
-    vi.mocked(resendCoordinatorPasswordSetup).mockResolvedValue(ok);
+    answerEachWith([resendCoordinatorPasswordSetup], ok);
     await resendSetup(json("POST", {}), {
       params: Promise.resolve({ id: "c-1" }),
     });
@@ -87,10 +94,7 @@ describe("admin coordinator routes", () => {
   });
 
   it("stops anyone who is not an admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
 
     expect(
       (await POST(json("POST", { fullName: "x", email: "x@y.com" }))).status,

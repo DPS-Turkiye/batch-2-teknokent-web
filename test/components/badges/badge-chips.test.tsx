@@ -6,13 +6,14 @@ import { BadgeCode, BadgeKind, type PublicBadge } from "@/interfaces/badges";
 import { InLocale } from "@test/test-utils";
 
 const at = "2026-11-08T10:00:00Z";
+const gate: PublicBadge = {
+  code: BadgeCode.PeerMentor,
+  kind: BadgeKind.Gate,
+  programId: "p1",
+  awardedAt: at,
+};
 const badges: PublicBadge[] = [
-  {
-    code: BadgeCode.PeerMentor,
-    kind: BadgeKind.Gate,
-    programId: "p1",
-    awardedAt: at,
-  },
+  gate,
   {
     code: BadgeCode.Sessions10,
     kind: BadgeKind.Achievement,
@@ -61,7 +62,7 @@ describe("BadgeChips", () => {
   it("renders nothing without achievements", () => {
     render(
       <InLocale locale="tr">
-        <BadgeChips badges={[badges[0]]} />
+        <BadgeChips badges={[gate]} />
       </InLocale>,
     );
     expect(screen.queryByRole("list")).not.toBeInTheDocument();

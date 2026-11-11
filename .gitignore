@@ -41,10 +41,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# next dev regenerates these AI-agent guidance files on every run
-AGENTS.md
-CLAUDE.md
-
 # iCloud sync spawns byte-identical copies ("file 2.sql", "file 3.ts").
 # Two migrations at one version stop Flyway from starting, and a stray
 # `git add -A` has committed these before. Never track them.

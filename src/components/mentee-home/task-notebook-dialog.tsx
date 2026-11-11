@@ -11,7 +11,7 @@ import {
 } from "@/components/notes/todo-notebook";
 import { useTaskNotebook } from "@/hooks/use-task-notebook";
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { type HomeTask, homeTaskId } from "@/lib/mentee-home";
+import { homeTaskId, type HomeTask } from "@/lib/mentee-home";
 import { HomeTaskKind } from "@/types/mentee-home";
 
 const TITLE_ID = "home-task-notebook-title";

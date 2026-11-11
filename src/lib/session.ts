@@ -1,13 +1,12 @@
-import "server-only";
-
 import { getIronSession, type SessionOptions } from "iron-session";
 import { cookies } from "next/headers";
+import "server-only";
 
 import {
   UserAccountStatus,
   UserRole,
-  type BackendUser,
   type AppSession,
+  type BackendUser,
   type SessionData,
 } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
@@ -17,12 +16,12 @@ import {
   permissionsOf,
   samePermissions,
 } from "@/lib/permissions";
-import { isWorkspace, workspacesOf } from "@/lib/workspaces";
 import {
   currentSessionUser,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/public-paths";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { isWorkspace, workspacesOf } from "@/lib/workspaces";
 
 function sessionOptions(persist = false): SessionOptions {
   const password = process.env.SESSION_PASSWORD;
@@ -176,7 +175,7 @@ export async function getSessionUser() {
       session.checkedAt = now;
       await session.save();
     } else {
-      await session.destroy();
+      session.destroy();
     }
   } catch {
     // Server components may read cookies but not write them; the verdict still
@@ -219,7 +218,7 @@ export async function refreshSessionUser(
 
 export async function destroySession() {
   const session = await getSessionStore();
-  await session.destroy();
+  session.destroy();
 }
 
 export async function getSessionIds() {

@@ -1,5 +1,5 @@
 import type { AdminOverview } from "@/interfaces/admin-overview";
-import { ProgramType } from "@/interfaces/program";
+import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import {
   MeetingFeedbackSide,
   type ProgramMeetingFeedback,
@@ -27,7 +27,7 @@ export function reportOverview(overrides: Partial<AdminOverview> = {}) {
       {
         id: "program-1",
         name: "ODTÜ Stars 2026",
-        status: "ACTIVE",
+        status: ProgramStatus.Active,
         type: ProgramType.StartupMentoring,
         createdAt: "2026-01-01T00:00:00Z",
         coordinatorId: "coord-1",

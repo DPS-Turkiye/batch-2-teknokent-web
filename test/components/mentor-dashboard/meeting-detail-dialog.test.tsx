@@ -7,8 +7,11 @@ import { MeetingStatus } from "@/interfaces/meeting";
 import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  ProgramStatus,
+  type Program,
 } from "@/interfaces/program";
 import { getMeetingRoom } from "@/lib/client/meetings";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/meetings", () => ({
@@ -28,13 +31,14 @@ const meeting = {
   status: MeetingStatus.Scheduled,
 };
 
-const programs = [
+const programs: Program[] = [
   {
     id: "prog-1",
     name: "DPS",
     coordinatorId: "c1",
     coordinatorName: "Koordinator",
     createdAt: "2026-01-01T00:00:00.000Z",
+    status: ProgramStatus.Active,
     startups: [
       { id: "org-1", name: "Döngü" },
       { id: "org-2", name: "NovaMed" },
@@ -84,7 +88,9 @@ describe("MeetingDetailDialog", () => {
       screen.getByLabelText("Startup ekle"),
       "program:prog-1:org-2",
     );
-    await user.click(screen.getAllByRole("button", { name: "Ekle" })[0]);
+    await user.click(
+      itemAt(screen.getAllByRole("button", { name: "Ekle" }), 0),
+    );
 
     expect(onAddStartup).toHaveBeenCalledWith(
       expect.objectContaining({ organizationId: "org-2", programId: "prog-1" }),

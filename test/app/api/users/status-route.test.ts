@@ -1,14 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PATCH } from "@/app/api/users/[id]/status/route";
-import { decideAccountStatus } from "@/lib/api/accounts";
-import { requireAdminSession } from "@/lib/server/require-admin";
 import {
   UserAccountStatus,
   UserRole,
   type AppSession,
 } from "@/interfaces/session";
+import { decideAccountStatus } from "@/lib/api/accounts";
+import { requireAdminSession } from "@/lib/server/require-admin";
+import { guardRefusal } from "@test/fixtures/route-handlers";
+import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts", () => ({
   decideAccountStatus: vi.fn(),
@@ -49,7 +51,7 @@ describe("PATCH /api/users/[id]/status", () => {
 
   it("takes actorId from the session cookie, not the request body", async () => {
     vi.mocked(decideAccountStatus).mockResolvedValue({
-      data: { user: { id: "user-1" }, inviteCode: "ABCD2345" },
+      data: { user: backendUser(), inviteCode: "ABCD2345" },
       headers: {},
       status: 200,
     });
@@ -81,10 +83,7 @@ describe("PATCH /api/users/[id]/status", () => {
   });
 
   it("does not call Spring when the caller is not an admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
 
     const response = await patch(UserAccountStatus.Approved);
 

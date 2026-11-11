@@ -2,8 +2,8 @@ import { vi } from "vitest";
 
 import type { ProgramThreads } from "@/hooks/use-program-threads";
 import {
-  type CoordinatorConversation,
   CoordinatorConversationCounterpart,
+  type CoordinatorConversation,
   type CoordinatorMessage,
 } from "@/interfaces/coordinator-conversation";
 

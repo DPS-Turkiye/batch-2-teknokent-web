@@ -4,8 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramsListView } from "@/components/coordinator/programs-list-view";
 import {
-  type CoordinatorProgram,
   ProgramLifecycle,
+  type CoordinatorProgram,
 } from "@/interfaces/coordinator-program";
 import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
@@ -24,11 +24,9 @@ describe("ProgramsListView", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("shows an active program's counts, actions and phase bar", async () => {
-    const phases = [
-      phase("p1", "Başvuru", 0),
-      phase("p2", "Mentorluk dönemi", 1),
-    ];
-    mockPrograms([coordinatorProgram({ phases, currentPhase: phases[1] })]);
+    const mentoring = phase("p2", "Mentorluk dönemi", 1);
+    const phases = [phase("p1", "Başvuru", 0), mentoring];
+    mockPrograms([coordinatorProgram({ phases, currentPhase: mentoring })]);
 
     renderWithQueryClient(<ProgramsListView />);
 
@@ -91,7 +89,7 @@ describe("ProgramsListView", () => {
       coordinatorProgram({
         name: "METU Stars 2025",
         lifecycle: ProgramLifecycle.Completed,
-        status: "COMPLETED",
+        status: ProgramStatus.Completed,
         startDate: "2025-02-01",
         endDate: "2025-12-15",
         teamCount: 38,

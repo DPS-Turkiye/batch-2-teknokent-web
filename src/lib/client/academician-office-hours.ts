@@ -6,7 +6,6 @@ import type {
   OfficeHoursRequest,
   UpdateAcademicianAvailabilityPayload,
 } from "@/interfaces/academician-office-hours";
-import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
 import {
   answerSampleRequest,
   cancelSampleAppointment,
@@ -14,6 +13,7 @@ import {
   saveSampleAvailability,
   saveSampleProfile,
 } from "@/lib/client/fixtures/academician-office-hours-store";
+import { fixtureResponse } from "@/lib/client/fixtures/fixture-response";
 
 // Sample data only: no Office Hours source serves ODTÜ-signed-in academicians yet. Connecting
 // one (Göksu's backend through an account link, or a Menton-account service) replaces these

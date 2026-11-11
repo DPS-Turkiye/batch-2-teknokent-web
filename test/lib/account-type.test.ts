@@ -14,11 +14,10 @@ import odtuEn from "@/messages/odtu/en.json";
 import odtuTr from "@/messages/odtu/tr.json";
 import trBase from "@/messages/tr.json";
 
-type Tree = { [key: string]: string | Tree };
-
-function leafPaths(tree: Tree, prefix = ""): string[] {
-  return Object.entries(tree).flatMap(([key, value]) =>
-    typeof value === "object"
+/** Every text's dotted path in a messages file. */
+function leafPaths(tree: object, prefix = ""): string[] {
+  return Object.entries(tree).flatMap(([key, value]: [string, unknown]) =>
+    typeof value === "object" && value !== null
       ? leafPaths(value, `${prefix}${key}.`)
       : [`${prefix}${key}`],
   );
@@ -85,19 +84,13 @@ describe("mergeMessages", () => {
 
 describe("ODTÜ overlay files", () => {
   it("only override texts that exist in the base messages", () => {
-    const trKeys = new Set(leafPaths(trBase as Tree));
-    const enKeys = new Set(leafPaths(enBase as Tree));
-    expect(leafPaths(odtuTr as Tree).filter((key) => !trKeys.has(key))).toEqual(
-      [],
-    );
-    expect(leafPaths(odtuEn as Tree).filter((key) => !enKeys.has(key))).toEqual(
-      [],
-    );
+    const trKeys = new Set(leafPaths(trBase));
+    const enKeys = new Set(leafPaths(enBase));
+    expect(leafPaths(odtuTr).filter((key) => !trKeys.has(key))).toEqual([]);
+    expect(leafPaths(odtuEn).filter((key) => !enKeys.has(key))).toEqual([]);
   });
 
   it("override the same texts in Turkish and English", () => {
-    expect(leafPaths(odtuEn as Tree).sort()).toEqual(
-      leafPaths(odtuTr as Tree).sort(),
-    );
+    expect(leafPaths(odtuEn).sort()).toEqual(leafPaths(odtuTr).sort());
   });
 });

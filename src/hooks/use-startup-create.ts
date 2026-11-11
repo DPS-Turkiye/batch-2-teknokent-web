@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
@@ -14,9 +14,15 @@ import {
 } from "@/hooks/use-startup-draft";
 import { useAdoptStartupSession } from "@/hooks/use-startup-membership";
 import type { AppSession } from "@/interfaces/session";
-import { MAX_SUPPORT_AREAS, type SignupDraft } from "@/interfaces/signup";
+import {
+  MAX_SUPPORT_AREAS,
+  StartupDocumentKind,
+  type SignupDraft,
+} from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { uploadDocument } from "@/lib/client/documents";
 import { createStartup } from "@/lib/client/organization";
+import { isEnumValue } from "@/lib/enum";
 import { StartupAccess } from "@/lib/startup-access";
 import { errorMessage, scrollToTop } from "@/lib/utils";
 
@@ -53,10 +59,12 @@ export function useStartupCreate() {
       // The startup exists now; a failed upload can be retried from its Dosyalar tab.
       try {
         if (draft.startup.logo?.file) {
-          await uploadDocument(draft.startup.logo.file, "logo");
+          await uploadDocument(draft.startup.logo.file, DocumentKind.Logo);
         }
         for (const [kind, uploaded] of Object.entries(draft.documents)) {
-          if (uploaded?.file) await uploadDocument(uploaded.file, kind);
+          if (uploaded.file && isEnumValue(StartupDocumentKind, kind)) {
+            await uploadDocument(uploaded.file, kind);
+          }
         }
         return { session: next, destination: "/startup" };
       } catch {

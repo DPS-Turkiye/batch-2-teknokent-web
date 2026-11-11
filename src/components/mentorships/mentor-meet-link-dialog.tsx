@@ -3,11 +3,11 @@
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";
-import { mentorWorkspaceName } from "@/lib/mentorship-workspace";
+import { TranscribeRequestedField } from "@/components/meetings/transcribe-requested-field";
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { mentorWorkspaceName } from "@/lib/mentorship-workspace";
 
 export function MentorMeetLinkDialog({
   request,

@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, PUT } from "@/app/api/users/profile/route";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchSignedInUser } from "@/lib/api/auth";
 import { fetchUserProfile, updateUserProfile } from "@/lib/api/user-profile";
-import { UserRole, type AppSession } from "@/interfaces/session";
 import { getSessionUser } from "@/lib/session";
+import { backendRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/user-profile", () => ({
   fetchUserProfile: vi.fn(),
@@ -142,10 +143,9 @@ describe("/api/users/profile", () => {
   });
 
   it("PUT passes the backend's refusal through when the token is not registered", async () => {
-    vi.mocked(fetchSignedInUser).mockResolvedValue({
-      data: { code: "REGISTRATION_REQUIRED" },
-      status: 401,
-    } as Awaited<ReturnType<typeof fetchSignedInUser>>);
+    vi.mocked(fetchSignedInUser).mockResolvedValue(
+      backendRefusal(401, { code: "REGISTRATION_REQUIRED" }),
+    );
 
     const response = await PUT(
       new Request("http://localhost/api/users/profile", {

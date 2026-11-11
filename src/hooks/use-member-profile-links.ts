@@ -4,15 +4,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { MENTOR_REGULAR_MENTORSHIPS_QUERY_KEY } from "@/hooks/use-mobile-startups";
 import { mentorshipRequestsQueryKey } from "@/hooks/use-mentorship-requests";
+import { MENTOR_REGULAR_MENTORSHIPS_QUERY_KEY } from "@/hooks/use-mobile-startups";
 import { UserRole } from "@/interfaces/session";
+import { getMentorRequests } from "@/lib/client/mentor-requests";
+import { getRegularMentorships } from "@/lib/client/mentorships";
 import {
   canOpenMemberProfile,
   mentorLinkedStartupIds,
 } from "@/lib/member-profile-links";
-import { getMentorRequests } from "@/lib/client/mentor-requests";
-import { getRegularMentorships } from "@/lib/client/mentorships";
 import { hasPermission } from "@/lib/permissions";
 
 /**

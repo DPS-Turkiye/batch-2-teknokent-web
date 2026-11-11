@@ -2,18 +2,18 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useStudentInstitution } from "@/hooks/use-student-profile";
 import type { OfficeHoursProfileSettings } from "@/interfaces/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
+import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
 import {
   getOfficeHoursProfileSettings,
   saveOfficeHoursProfileSettings,
 } from "@/lib/client/academician-office-hours";
-import { ACADEMICIAN_OFFICE_HOURS_QUERY_KEY } from "@/lib/academician-office-hours";
 import { httpUrlOrNull, isEmailAddress } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const OFFICE_HOURS_PROFILE_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -70,7 +70,7 @@ export function useAcademicianProfile() {
     setEdits({ ...form, [field]: value });
   };
 
-  const submit = (event: FormEvent) => {
+  const submit = (event: SubmitEvent) => {
     event.preventDefault();
     if (!form) return;
     const next: Partial<Record<ProfileField, string>> = {};

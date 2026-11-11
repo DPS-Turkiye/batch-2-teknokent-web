@@ -5,18 +5,26 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useDeferredValue, useMemo, useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
+import {
+  PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
+  PROFILE_COMPLETION_QUERY_KEY,
+} from "@/hooks/use-student-profile-completion";
 import { AppointmentSide } from "@/interfaces/appointment";
 import type {
   CreatePeerMentoringRequestInput,
   PeerMentorCard,
   PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
+import { ToastTone } from "@/interfaces/toast";
 import {
   createPeerMentoringRequest,
   getPeerMentoringRequests,
   getPeerMentors,
 } from "@/lib/client/peer-mentoring";
+import {
+  getProfileCompletionCategories,
+  getStudentProfileCompletion,
+} from "@/lib/client/student-profile-completion";
 import {
   OPEN_PEER_REQUEST_STATUSES,
   PEER_MENTORING_SIDE_PARAM,
@@ -25,16 +33,8 @@ import {
   peerMentoringSide,
   sharedInterests,
 } from "@/lib/peer-mentoring";
-import {
-  getProfileCompletionCategories,
-  getStudentProfileCompletion,
-} from "@/lib/client/student-profile-completion";
-import {
-  PROFILE_COMPLETION_CATEGORIES_QUERY_KEY,
-  PROFILE_COMPLETION_QUERY_KEY,
-} from "@/hooks/use-student-profile-completion";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const PEER_MENTORS_QUERY_KEY = ["peer-mentors"] as const;
 export const PEER_MENTORING_REQUESTS_QUERY_KEY = [
@@ -128,8 +128,8 @@ export function usePeerMentorRequestForm(
   const t = useTranslations("odtuWorkspaces.student.peerMentoring.dialog");
   const { showToast } = useToast();
   const queryClient = useQueryClient();
-  const [category, setCategory] = useState<PeerTopicCategory>(
-    mentor.categories[0],
+  const [category, setCategory] = useState<PeerTopicCategory | null>(
+    mentor.categories[0] ?? null,
   );
   const [message, setMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -153,6 +153,7 @@ export function usePeerMentorRequestForm(
       setError(t("messageTooShort", { min: PEER_REQUEST_MESSAGE_MIN }));
       return;
     }
+    if (!category) return;
     try {
       await send.mutateAsync({
         mentorId: mentor.mentorId,

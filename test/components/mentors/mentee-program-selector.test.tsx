@@ -9,6 +9,7 @@ import {
   getOrganizationPrograms,
   setActiveProgram,
 } from "@/lib/client/programs";
+import { organizationProgram } from "@test/fixtures/organization-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const refresh = vi.fn();
@@ -22,8 +23,10 @@ vi.mock("@/lib/client/programs", () => ({
   setActiveProgram: vi.fn(),
 }));
 
-const alpha = { id: "p-1", name: "Alpha 2026", coordinatorName: "Elif" };
-const beta = { id: "p-2", name: "Beta 2026", coordinatorName: "Burcu" };
+const alpha = organizationProgram("p-1", "Alpha 2026");
+const beta = organizationProgram("p-2", "Beta 2026", {
+  coordinatorName: "Burcu",
+});
 
 function programs(
   list = [alpha, beta],

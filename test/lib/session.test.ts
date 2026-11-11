@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { Workspace } from "@/interfaces/workspace";
 import {
   IdentityKind,
   UserAccountStatus,
   UserRole,
   type BackendUser,
 } from "@/interfaces/session";
+import { Workspace } from "@/interfaces/workspace";
 
 const cookieJar = vi.hoisted(() => ({
   get: vi.fn(),
@@ -16,27 +16,34 @@ vi.mock("next/headers", () => ({
   cookies: vi.fn().mockResolvedValue(cookieJar),
 }));
 
+// A cleared iron-session field reads back as undefined, so the fake store holds undefined too.
 const mockIronSession: {
   user?: unknown;
-  issuedAt?: number;
-  checkedAt?: number;
-  persist?: boolean;
+  issuedAt?: number | undefined;
+  checkedAt?: number | undefined;
+  persist?: boolean | undefined;
 } = {};
 let savedSession: Record<string, unknown> & {
   save: ReturnType<typeof vi.fn>;
   destroy: ReturnType<typeof vi.fn>;
   updateConfig: ReturnType<typeof vi.fn>;
 } = { save: vi.fn(), destroy: vi.fn(), updateConfig: vi.fn() };
+
+/** Opens the fake cookie session: what mockIronSession holds, plus spies for what lib/session calls. */
+function openFakeSession(destroy: () => void = () => undefined) {
+  savedSession = {
+    ...mockIronSession,
+    save: vi.fn(),
+    destroy: vi.fn(destroy),
+    updateConfig: vi.fn(),
+  };
+  return Promise.resolve(savedSession);
+}
+const iron = vi.hoisted(() => ({ getIronSession: vi.fn() }));
 vi.mock("iron-session", () => ({
-  getIronSession: vi.fn().mockImplementation(() => {
-    savedSession = {
-      ...mockIronSession,
-      save: vi.fn(),
-      destroy: vi.fn(),
-      updateConfig: vi.fn(),
-    };
-    return Promise.resolve(savedSession);
-  }),
+  getIronSession: iron.getIronSession.mockImplementation(() =>
+    openFakeSession(),
+  ),
 }));
 
 const { fetchUser } = vi.hoisted(() => ({ fetchUser: vi.fn() }));
@@ -408,18 +415,11 @@ describe("getSessionUser account re-check", () => {
     fetchUser.mockResolvedValue(
       account({ status: UserAccountStatus.Rejected }),
     );
-    const { getIronSession } = await import("iron-session");
-    vi.mocked(getIronSession).mockImplementationOnce(() => {
-      savedSession = {
-        ...mockIronSession,
-        save: vi.fn(),
-        destroy: vi.fn(() => {
-          throw new Error("Cookies can only be modified in a Route Handler");
-        }),
-        updateConfig: vi.fn(),
-      };
-      return Promise.resolve(savedSession) as never;
-    });
+    iron.getIronSession.mockImplementationOnce(() =>
+      openFakeSession(() => {
+        throw new Error("Cookies can only be modified in a Route Handler");
+      }),
+    );
 
     await expect(getSessionUser()).resolves.toBeNull();
   });
@@ -429,7 +429,8 @@ describe("refreshSessionUser", () => {
   it("swaps the user but keeps the original sign-in time and cookie lifetime", async () => {
     const issuedAt = Date.now() - HOUR_MS;
     const checkedAt = Date.now() - 60_000;
-    mockIronSession.user = toSession(mentee({ organizationId: undefined }));
+    const { organizationId: _organizationId, ...withoutTeam } = mentee();
+    mockIronSession.user = toSession(withoutTeam);
     mockIronSession.issuedAt = issuedAt;
     mockIronSession.checkedAt = checkedAt;
     mockIronSession.persist = true;
@@ -453,7 +454,13 @@ describe("saveSessionUser", () => {
   it("records when the session was saved", async () => {
     const before = Date.now();
     await saveSessionUser(
-      { userId: "founder-1", role: UserRole.Mentee } as never,
+      {
+        userId: "founder-1",
+        email: "founder@teknokent.demo",
+        fullName: "Deniz Arslan",
+        jobTitle: "Kurucu",
+        role: UserRole.Mentee,
+      },
       true,
     );
     expect(savedSession.issuedAt).toBeGreaterThanOrEqual(before);

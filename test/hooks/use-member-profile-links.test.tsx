@@ -1,17 +1,15 @@
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
-import {
-  type MentorshipRequest,
-  MentorshipRequestStatus,
-} from "@/interfaces/mentorship-request";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
-import { type AppSession, UserRole } from "@/interfaces/session";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getRegularMentorships } from "@/lib/client/mentorships";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import { appSession } from "@test/fixtures/session";
 import { createTestQueryClient } from "@test/test-utils";
 
 const mockSession = vi.fn<() => AppSession | null>();
@@ -27,33 +25,13 @@ vi.mock("@/lib/client/mentorships", () => ({
 }));
 
 function session(role: UserRole): AppSession {
-  return {
-    userId: "viewer-1",
-    email: "kisi@example.test",
-    fullName: "Örnek Kişi",
-    jobTitle: "",
-    role,
-    organizationId: "own",
-  };
+  return appSession({ userId: "viewer-1", role, organizationId: "own" });
 }
 
-const request: MentorshipRequest = {
-  id: "req-1",
-  requesterId: "mentee-1",
-  requesterName: "Örnek Kişi",
+const request = mentorshipRequest({
   organizationId: "asked",
-  organizationName: "Örnek Girişim",
   mentorId: "viewer-1",
-  mentorName: "Örnek Mentor",
-  supportArea: "Ürün",
-  summary: "Öncelikler",
-  status: MentorshipRequestStatus.Pending,
-  mentorMessage: null,
-  rejectionReason: null,
-  createdAt: "2026-11-01T09:00:00Z",
-  messages: [],
-  recommendationSnapshot: null,
-};
+});
 
 const mentorship: RegularMentorship = {
   id: "ms-1",

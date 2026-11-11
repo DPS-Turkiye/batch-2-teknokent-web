@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
 
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
 import {
   CalendarFilter,
   hourOf,
@@ -14,6 +12,9 @@ import {
   weekDays,
   weekRangeLabel,
 } from "@/lib/calendar";
+import en from "@/messages/en.json";
+import tr from "@/messages/tr.json";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 
 describe("calendar helpers", () => {
   it("reads the local hour from an ISO timestamp", () => {
@@ -73,7 +74,7 @@ describe("week and month grid helpers", () => {
   it("generates the requested number of consecutive days", () => {
     const start = new Date(2026, 7, 31);
     const days = weekDays(start, 7);
-    expect(days).toHaveLength(7);
+    expectLength(days, 7);
     expect(days[0].getDate()).toBe(31);
     expect(days[6].getDate()).toBe(6);
   });
@@ -81,8 +82,9 @@ describe("week and month grid helpers", () => {
   it("pads the month grid so the first cell is always a Monday", () => {
     // September 2026 starts on a Tuesday, so one leading cell is expected.
     const cells = monthGridCells(new Date(2026, 8, 15));
-    expect(cells[0].date.getDay()).toBe(1);
-    expect(cells[0].inCurrentMonth).toBe(false);
+    const first = itemAt(cells, 0);
+    expect(first.date.getDay()).toBe(1);
+    expect(first.inCurrentMonth).toBe(false);
     expect(cells.length % 7).toBe(0);
   });
 

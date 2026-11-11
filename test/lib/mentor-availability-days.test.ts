@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import {
   assignPreferredSlot,
   availabilityColumns,
@@ -16,11 +17,10 @@ import {
   requestOutcomeFromMessage,
   slotDayLabel,
   slotFromStartsAt,
+  slotTimeLabel,
   timeFromStartsAt,
   upcomingPreferenceDays,
-  slotTimeLabel,
 } from "@/lib/mentor-availability-days";
-import type { MentorAvailabilitySlot } from "@/interfaces/mentor";
 import { freezeDate } from "@test/test-utils";
 
 function slot(

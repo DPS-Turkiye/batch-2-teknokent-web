@@ -1,16 +1,17 @@
 import type { NextRequest } from "next/server";
 
+import { fetchSignedInUser } from "@/lib/api/auth";
 import {
   fetchMentorAvailabilitySettings,
   updateMentorAvailabilitySettings,
 } from "@/lib/api/mentor-profile";
-import { fetchSignedInUser } from "@/lib/api/auth";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
@@ -26,7 +27,9 @@ export async function GET() {
 
 export async function PUT(request: NextRequest) {
   try {
-    const payload = (await request.json()) as Record<string, unknown>;
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    const payload = body.data;
     const idToken = readBearerToken(request);
     if (idToken) {
       // Onboarding saves availability before approval, when there is no session cookie.

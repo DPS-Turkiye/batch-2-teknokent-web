@@ -23,13 +23,16 @@ vi.mock("@/hooks/use-personal-profile-page", () => ({
 
 vi.mock("@/hooks/use-personal-cv", () => ({ usePersonalCv: vi.fn() }));
 
+type Cv = ReturnType<typeof usePersonalCv>;
+type Page = ReturnType<typeof usePersonalProfilePage>;
+
 const cvActions = {
-  choose: vi.fn(),
-  fillFromStored: vi.fn(),
-  setExpertise: vi.fn(),
+  choose: vi.fn<Cv["choose"]>(),
+  fillFromStored: vi.fn<Cv["fillFromStored"]>(),
+  setExpertise: vi.fn<Cv["setExpertise"]>(),
 };
 
-function mockCv(overrides: Record<string, unknown> = {}) {
+function mockCv(overrides: Partial<Cv> = {}) {
   vi.mocked(usePersonalCv).mockReturnValue({
     ...cvActions,
     selected: null,
@@ -46,16 +49,16 @@ function mockCv(overrides: Record<string, unknown> = {}) {
 }
 
 const actions = {
-  cancelEditing: vi.fn(),
-  save: vi.fn(),
-  sendPasswordReset: vi.fn(),
-  setField: vi.fn(),
-  showComingSoon: vi.fn(),
-  startEditing: vi.fn(),
+  cancelEditing: vi.fn<Page["cancelEditing"]>(),
+  save: vi.fn<Page["save"]>(),
+  sendPasswordReset: vi.fn<Page["sendPasswordReset"]>(),
+  setField: vi.fn<Page["setField"]>(),
+  showComingSoon: vi.fn<Page["showComingSoon"]>(),
+  startEditing: vi.fn<Page["startEditing"]>(),
 };
-const upload = vi.fn();
+const upload = vi.fn<Page["photo"]["upload"]>();
 
-function mockPage(overrides: Record<string, unknown> = {}) {
+function mockPage(overrides: Partial<Page> = {}) {
   vi.mocked(usePersonalProfilePage).mockReturnValue({
     ...actions,
     isLoading: false,
@@ -84,6 +87,7 @@ function mockPage(overrides: Record<string, unknown> = {}) {
     isSaving: false,
     saveError: null,
     isEditing: false,
+    cvWhoSees: "Sadece sen ve startup ekibin görür.",
     startup: {
       name: "Döngü",
       initials: "DÖ",
@@ -103,7 +107,7 @@ function mockPage(overrides: Record<string, unknown> = {}) {
     mentorshipsLoading: false,
     isSendingReset: false,
     ...overrides,
-  } as unknown as ReturnType<typeof usePersonalProfilePage>);
+  });
 }
 
 describe("PersonalProfileView", () => {

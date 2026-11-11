@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const addBotBodySchema = z.object({
-  meetingUrl: z.string().trim().url(),
+  meetingUrl: z.string().trim().pipe(z.url()),
 });
 
 export const transcriptQuerySchema = z.object({

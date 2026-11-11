@@ -10,11 +10,12 @@ import {
   coordinatorMessage,
   programThreadsStub,
 } from "@test/fixtures/coordinator-conversations";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 import {
   myAnnouncementsStub,
   programAnnouncement,
 } from "@test/fixtures/program-announcements";
-import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import { idleMutation } from "@test/mocks/query-results";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/hoc/app-shell", () => ({
@@ -30,10 +31,12 @@ vi.mock("@/hooks/use-mentee-messages", () => ({
   useMenteeMessages: vi.fn(),
 }));
 
-const select = vi.fn();
-const openProgramThread = vi.fn();
+const select = vi.fn<(id: string) => void>();
+const openProgramThread = vi.fn<(id: string) => void>();
 
-function mockMessages(overrides: Record<string, unknown> = {}) {
+type Messages = ReturnType<typeof useMenteeMessages>;
+
+function mockMessages(overrides: Partial<Messages> = {}) {
   const request = menteeRequestFixture({
     id: "r1",
     mentorName: "Barış Öztürk",
@@ -45,22 +48,23 @@ function mockMessages(overrides: Record<string, unknown> = {}) {
     activeId: "r1",
     conversations: [request],
     error: null,
-    fileUpload: { isPending: false, mutateAsync: vi.fn() },
+    fileUpload: idleMutation(),
     isLoading: false,
     messageForm: {
       reply: "",
-      setReply: vi.fn(),
-      sendReply: vi.fn(),
+      setReply: vi.fn<Messages["messageForm"]["setReply"]>(),
+      sendReply: vi.fn<Messages["messageForm"]["sendReply"]>(),
       isSending: false,
+      error: null,
     },
     programThreads: programThreadsStub(),
     announcements: myAnnouncementsStub(),
     openProgramThread,
-    openAnnouncements: vi.fn(),
+    openAnnouncements: vi.fn<Messages["openAnnouncements"]>(),
     select,
     viewerUserId: "mentee-1",
     ...overrides,
-  } as unknown as ReturnType<typeof useMenteeMessages>);
+  });
 }
 
 describe("MenteeMessagesView", () => {
@@ -129,7 +133,7 @@ describe("MenteeMessagesView", () => {
 
   it("shows the program's announcements read-only", async () => {
     const user = userEvent.setup();
-    const openAnnouncements = vi.fn();
+    const openAnnouncements = vi.fn<Messages["openAnnouncements"]>();
     const announcement = programAnnouncement();
     const thread = {
       programId: "program-1",

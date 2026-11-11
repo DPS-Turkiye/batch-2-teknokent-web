@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+import type { DocumentKind } from "@/interfaces/startup-document";
 import { listDocuments } from "@/lib/client/documents";
 import { currentIdToken } from "@/lib/firebase/auth";
 
@@ -21,7 +22,7 @@ export function useStoredDocuments() {
     },
   });
 
-  function byKind(kind: string) {
+  function byKind(kind: DocumentKind) {
     return query.data?.find((document) => document.kind === kind) ?? null;
   }
 

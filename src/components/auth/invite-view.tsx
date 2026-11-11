@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -18,7 +19,6 @@ import {
   isCurrentEmailVerified,
 } from "@/lib/firebase/auth";
 import { PASSWORD_HINT } from "@/lib/password";
-import { useTranslations } from "next-intl";
 
 export function InviteView() {
   const copy = useTranslations("invite");

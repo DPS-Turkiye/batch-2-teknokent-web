@@ -1,8 +1,6 @@
-import "server-only";
-
 import { timingSafeEqual } from "node:crypto";
-
 import type { NextRequest, NextResponse } from "next/server";
+import "server-only";
 
 import type { InstitutionProvider } from "@/interfaces/institution-login";
 import { safeNextPath, SESSION_COOKIE } from "@/lib/public-paths";

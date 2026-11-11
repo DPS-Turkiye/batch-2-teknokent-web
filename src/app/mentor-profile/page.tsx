@@ -2,15 +2,15 @@
 
 import { X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
-import { AppShell } from "@/components/hoc/app-shell";
 import { ListPagination } from "@/components/common/list-pagination";
-import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
-import { MentorAccent } from "@/components/mentorships/mentor-accent";
+import { AppShell } from "@/components/hoc/app-shell";
 import { StudentProfileCard } from "@/components/mentor-onboarding/steps/student-profile-card";
+import { AvailabilityDialog } from "@/components/mentor-profile/availability-dialog";
 import { EducationListEditor } from "@/components/mentors/education-list-editor";
 import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
+import { MentorAccent } from "@/components/mentorships/mentor-accent";
 import { CvFileSection } from "@/components/profile/cv-file-section";
 import { useClientPagination } from "@/hooks/use-client-pagination";
 import { useMentorCv } from "@/hooks/use-mentor-cv";
@@ -23,15 +23,15 @@ import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   MeetingFrequency,
   MentorLanguage,
-  type MentorProfile,
   PrepFileRequirement,
+  type MentorProfile,
 } from "@/interfaces/mentor";
+import { MENTOR_PROFILE_HISTORY_PAGE_SIZE } from "@/lib/const/mentorships";
+import { educationLine } from "@/lib/mentor-detail";
 import type {
   LabelValue,
   MentorshipHistoryRow,
 } from "@/lib/mentor-profile-overview";
-import { MENTOR_PROFILE_HISTORY_PAGE_SIZE } from "@/lib/const/mentorships";
-import { educationLine } from "@/lib/mentor-detail";
 import { initials as toInitials } from "@/lib/utils";
 
 type ProfileForm = ReturnType<typeof useMentorProfileForm>;
@@ -124,7 +124,7 @@ function Card({
   children,
 }: {
   title: string;
-  onEdit?: () => void;
+  onEdit?: (() => void) | undefined;
   focusFirstField?: boolean;
   children: ReactNode;
 }) {
@@ -559,7 +559,7 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               <Card title={t("roles.title")}>
                 {form.form.experiences.map((experience, index) => (
                   <fieldset
-                    key={index}
+                    key={experience.key}
                     className="grid gap-2 rounded-lg border border-[#e4e7ea] p-3 sm:grid-cols-2"
                   >
                     <legend className="sr-only">
@@ -624,8 +624,11 @@ function ProfileBody({ profile }: { profile: MentorProfile }) {
               ) : form.form.educations.length === 0 ? (
                 <p className={emptyClass}>{tEducation("empty")}</p>
               ) : (
-                form.form.educations.map((school, index) => (
-                  <p key={index} className="text-[13px] text-[#22262b]">
+                form.form.educations.map((school) => (
+                  <p
+                    key={educationLine(school)}
+                    className="text-[13px] text-[#22262b]"
+                  >
                     {educationLine(school)}
                   </p>
                 ))

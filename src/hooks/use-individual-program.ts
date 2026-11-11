@@ -26,7 +26,7 @@ export function useIndividualProgram() {
       programId: current?.id ?? null,
     };
   }
-  const guess = session?.individualMentee;
+  const guess = session.individualMentee;
   return {
     individual: guess ?? false,
     isLoading: guess === undefined && programs.isLoading,

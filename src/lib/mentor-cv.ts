@@ -1,10 +1,11 @@
 import { toCvParseResult } from "@/hooks/use-cv-parse";
+import { MAX_EDUCATIONS, type MentorEducationInput } from "@/interfaces/mentor";
 import type {
   ParsedProfile,
   StudentOnboardingDraft,
 } from "@/interfaces/mentor-onboarding";
-import { MAX_EDUCATIONS, type MentorEducationInput } from "@/interfaces/mentor";
 import type { ParsedCvProfile } from "@/lib/client/profile-analysis";
+import { withKeys, type Keyed } from "@/lib/keyed-list";
 import { isStudentLevel } from "@/lib/student-topics";
 
 export type MentorCvRole = {
@@ -111,8 +112,10 @@ export function fillOnboardingProfile(
     title: keep(profile.title, cv.title),
     company: keep(profile.company, cv.company),
     totalExperience: keep(profile.totalExperience, cv.experienceLevel),
-    history: profile.history.length ? profile.history : cv.history,
-    education: profile.education.length ? profile.education : cv.education,
+    history: profile.history.length ? profile.history : withKeys(cv.history),
+    education: profile.education.length
+      ? profile.education
+      : withKeys(cv.education),
     inferredAreas: [
       ...profile.inferredAreas,
       ...cv.specialties.filter((area) => !profile.inferredAreas.includes(area)),
@@ -127,8 +130,8 @@ type MentorCvForm = {
   experienceLevel: string;
   sectorExperience: string;
   specialties: string[];
-  experiences: MentorCvRole[];
-  educations: MentorEducationInput[];
+  experiences: Keyed<MentorCvRole>[];
+  educations: Keyed<MentorEducationInput>[];
 };
 
 const schoolKey = (school: MentorEducationInput) =>
@@ -164,11 +167,13 @@ export function applyMentorCv<F extends MentorCvForm>(
     ],
     experiences: [
       ...form.experiences,
-      ...cv.history.filter((role) => !listed.has(roleKey(role))),
+      ...withKeys(cv.history.filter((role) => !listed.has(roleKey(role)))),
     ].slice(0, maxExperiences),
     educations: [
       ...form.educations,
-      ...cv.education.filter((school) => !schools.has(schoolKey(school))),
+      ...withKeys(
+        cv.education.filter((school) => !schools.has(schoolKey(school))),
+      ),
     ].slice(0, maxEducations),
   };
 }

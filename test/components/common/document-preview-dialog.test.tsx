@@ -71,6 +71,24 @@ describe("DocumentPreviewDialog", () => {
     });
   });
 
+  it("shows an image from its blob URL as is, without the image optimizer", async () => {
+    render(
+      <DocumentPreviewDialog
+        file={{
+          id: "doc-2",
+          url: "https://bucket.s3/logo.png?sig",
+          filename: "logo.png",
+          contentType: "image/png",
+        }}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const image = await screen.findByRole("img", { name: "logo.png" });
+    expect(image).toHaveAttribute("src", blobUrl);
+    expect(image).not.toHaveAttribute("srcset");
+  });
+
   it("shows an error when the file cannot be read", async () => {
     vi.mocked(fetch).mockResolvedValue({ ok: false } as Response);
 

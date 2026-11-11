@@ -5,6 +5,7 @@ import {
   ensureGoogleCalendarToken,
   parseGoogleMeetLink,
 } from "@/lib/google-calendar";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 describe("ensureGoogleCalendarToken", () => {
   afterEach(() => {
@@ -63,7 +64,9 @@ describe("createGoogleMeetEvent", () => {
         }),
       }),
     );
-    const body = JSON.parse(fetchMock.mock.calls[0][1].body as string) as {
+    const body = JSON.parse(
+      itemAt(fetchMock.mock.calls, 0)[1].body as string,
+    ) as {
       conferenceData: {
         createRequest: { conferenceSolutionKey: { type: string } };
       };

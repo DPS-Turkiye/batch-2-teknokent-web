@@ -2,9 +2,8 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useWeeklyAvailabilityForm } from "@/hooks/use-weekly-availability-form";
 import type {
   AcademicianAvailability,
@@ -12,15 +11,16 @@ import type {
   UpdateAcademicianAvailabilityPayload,
 } from "@/interfaces/academician-office-hours";
 import type { UpdateMentorAvailabilitySettingsPayload } from "@/interfaces/mentor";
-import {
-  getAcademicianAvailability,
-  saveAcademicianAvailability,
-} from "@/lib/client/academician-office-hours";
+import { ToastTone } from "@/interfaces/toast";
 import {
   ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
   turkeyTimeRange,
 } from "@/lib/academician-office-hours";
-import { ToastTone } from "@/interfaces/toast";
+import {
+  getAcademicianAvailability,
+  saveAcademicianAvailability,
+} from "@/lib/client/academician-office-hours";
+import { useToast } from "@/stores/toast-store";
 
 export const ACADEMICIAN_AVAILABILITY_QUERY_KEY = [
   ...ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
@@ -109,7 +109,7 @@ export function useAcademicianCalendar() {
     }
   };
 
-  const addOneOff = async (event: FormEvent) => {
+  const addOneOff = async (event: SubmitEvent) => {
     event.preventDefault();
     if (!saved) return;
     if (!oneOff.date || !oneOff.start || !oneOff.end) {
@@ -122,6 +122,14 @@ export function useAcademicianCalendar() {
     }
     const [startHour, startMinute] = oneOff.start.split(":").map(Number);
     const [endHour, endMinute] = oneOff.end.split(":").map(Number);
+    if (
+      startHour === undefined ||
+      startMinute === undefined ||
+      endHour === undefined ||
+      endMinute === undefined
+    ) {
+      return;
+    }
     const range = turkeyTimeRange(
       `${oneOff.date}T${oneOff.start}`,
       endHour * 60 + endMinute - (startHour * 60 + startMinute),

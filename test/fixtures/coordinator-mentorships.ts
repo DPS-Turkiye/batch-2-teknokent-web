@@ -1,8 +1,8 @@
 import {
-  type CoordinatorMentorship,
-  type CoordinatorMentorshipDetail,
   CoordinatorMentorshipHealth,
   MentorshipStatus,
+  type CoordinatorMentorship,
+  type CoordinatorMentorshipDetail,
 } from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
 

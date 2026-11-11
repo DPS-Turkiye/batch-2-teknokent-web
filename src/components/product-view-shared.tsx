@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { PrimaryButton } from "@/components/common/primary-button";

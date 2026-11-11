@@ -1,5 +1,7 @@
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
-import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
+import {
+  MentorshipRequestStatus,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
 import { UserRole } from "@/interfaces/session";
 import { hasPermission } from "@/lib/permissions";
@@ -25,9 +27,9 @@ export function mentorLinkedStartupIds(
 
 type Viewer = {
   role: UserRole;
-  permissions?: readonly UserRole[];
-  organizationId?: string | null;
-  personalOrganization?: boolean;
+  permissions?: readonly UserRole[] | undefined;
+  organizationId?: string | null | undefined;
+  personalOrganization?: boolean | undefined;
 };
 
 /**

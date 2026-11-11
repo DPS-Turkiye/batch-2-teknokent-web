@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { Weekday } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { CalendarFilter } from "@/lib/calendar";
@@ -13,6 +14,8 @@ import {
   getAvailabilityRules,
   getMentorAvailability,
 } from "@/lib/client/mentor-profile";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import { successQuery } from "@test/mocks/query-results";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -52,13 +55,13 @@ const NOW = new Date(2026, 9, 21, 10, 0);
 const at = (day: number, hour: number) =>
   new Date(2026, 9, day, hour, 0).toISOString();
 
-function meeting(id: string, scheduledAt: string) {
+function meeting(id: string, scheduledAt: string): MeetingItem {
   return {
     id,
     organizationId: "org-1",
     scheduledAt,
     durationMinutes: 45,
-    status: "SCHEDULED",
+    status: MeetingStatus.Scheduled,
   };
 }
 
@@ -89,7 +92,7 @@ describe("useMentorCalendar", () => {
       meeting("last-week", at(16, 14)),
       meeting("this-week", at(20, 14)),
       meeting("next-week", at(27, 14)),
-    ] as never);
+    ]);
     vi.mocked(getMentorAvailability).mockResolvedValue([
       slot("next-week-free", at(27, 10)),
       slot("this-week-booked", at(22, 11), true),
@@ -118,12 +121,18 @@ describe("useMentorCalendar", () => {
         slotMinutes: 30,
       },
     ]);
-    vi.mocked(useMentorshipRequests).mockReturnValue({
-      data: [
-        { id: "accepted", status: MentorshipRequestStatus.Accepted },
-        { id: "pending", status: MentorshipRequestStatus.Pending },
-      ],
-    } as never);
+    vi.mocked(useMentorshipRequests).mockReturnValue(
+      successQuery([
+        mentorshipRequest({
+          id: "accepted",
+          status: MentorshipRequestStatus.Accepted,
+        }),
+        mentorshipRequest({
+          id: "pending",
+          status: MentorshipRequestStatus.Pending,
+        }),
+      ]),
+    );
   });
 
   afterEach(() => {
@@ -198,7 +207,7 @@ describe("useMentorCalendar", () => {
   });
 
   it("creates meetings as scheduled", async () => {
-    vi.mocked(postMeeting).mockResolvedValue({} as never);
+    vi.mocked(postMeeting).mockResolvedValue(meeting("created", at(22, 10)));
     const { result } = await renderCalendar();
 
     await act(() =>
@@ -209,7 +218,7 @@ describe("useMentorCalendar", () => {
       }),
     );
 
-    expect(vi.mocked(postMeeting).mock.calls[0][0]).toEqual({
+    expect(vi.mocked(postMeeting).mock.calls[0]?.[0]).toEqual({
       scheduledAt: at(22, 10),
       durationMinutes: 30,
       agenda: "Yol haritası",

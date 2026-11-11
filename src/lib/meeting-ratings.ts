@@ -16,7 +16,7 @@ import {
   MENTOR_EVALUATION_RATING_IDS,
   OUTCOME_CLARITY_RATINGS,
 } from "@/lib/const/mentor-evaluation";
-import type { OutcomeClarity } from "@/types/mentor-evaluation";
+import { OutcomeClarity } from "@/types/mentor-evaluation";
 
 type MeetingFeedbackBenefitId = (typeof MEETING_FEEDBACK_BENEFIT_IDS)[number];
 type MentorEvaluationQualityId = (typeof MENTOR_EVALUATION_QUALITY_IDS)[number];
@@ -79,9 +79,9 @@ export type FeedbackRatingRow = {
 };
 
 const CLARITY_BY_RATING = new Map(
-  Object.entries(OUTCOME_CLARITY_RATINGS).map(([clarity, rating]) => [
-    rating,
-    clarity as OutcomeClarity,
+  Object.values(OutcomeClarity).map((clarity) => [
+    OUTCOME_CLARITY_RATINGS[clarity],
+    clarity,
   ]),
 );
 
@@ -111,16 +111,16 @@ export function feedbackRatingRows(
 }
 
 const MENTEE_QUALITY_IDS = new Map<string, MeetingFeedbackBenefitId>(
-  MEETING_FEEDBACK_BENEFITS.map((text, index) => [
-    text,
-    MEETING_FEEDBACK_BENEFIT_IDS[index],
-  ]),
+  MEETING_FEEDBACK_BENEFITS.flatMap((text, index) => {
+    const id = MEETING_FEEDBACK_BENEFIT_IDS[index];
+    return id ? [[text, id] as const] : [];
+  }),
 );
 const MENTOR_QUALITY_IDS = new Map<string, MentorEvaluationQualityId>(
-  MENTOR_EVALUATION_QUALITIES.map((text, index) => [
-    text,
-    MENTOR_EVALUATION_QUALITY_IDS[index],
-  ]),
+  MENTOR_EVALUATION_QUALITIES.flatMap((text, index) => {
+    const id = MENTOR_EVALUATION_QUALITY_IDS[index];
+    return id ? [[text, id] as const] : [];
+  }),
 );
 
 export type FeedbackQuality =

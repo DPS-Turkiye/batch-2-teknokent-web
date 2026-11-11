@@ -1,8 +1,8 @@
 "use client";
 
 import { FileSpreadsheet, Paperclip, Search } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";
 
 import {
@@ -21,11 +21,11 @@ import type {
   MentorshipRequest,
   RequestMessage,
 } from "@/interfaces/mentorship-request";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import { withoutSlotLines } from "@/lib/mentor-availability-days";
 import { sharedFileName } from "@/lib/mentorship-messages";
 import { formatDayMonth, initials, relativeDayLabel } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 
 const ACCENT = { strong: "#e86f22", soft: "#fdebdd" };
 

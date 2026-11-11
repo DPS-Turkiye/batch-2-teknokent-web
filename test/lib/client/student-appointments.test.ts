@@ -20,7 +20,7 @@ beforeEach(() => {
   vi.mocked(httpClient.get).mockResolvedValue({
     status: 200,
     data: STUDENT_APPOINTMENTS,
-  } as never);
+  });
   vi.mocked(getStudentProfileCompletion).mockResolvedValue({
     topics: [],
     subtopics: [],
@@ -51,7 +51,7 @@ it("gives Ana Sayfa at most three upcoming sessions, soonest first, and the prof
         endsAt: "2026-11-21T08:30:00.000Z",
       }),
     ],
-  } as never);
+  });
 
   const home = await getStudentHome(APPOINTMENTS_NOW);
 

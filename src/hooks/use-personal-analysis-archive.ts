@@ -3,8 +3,8 @@
 import { useAppSession } from "@/components/providers/session-provider";
 import { useProfileAnalysisRecord } from "@/hooks/use-profile-analysis-record";
 import {
-  ProfileAnalysisType,
   ProfileAnalysisRecordScope,
+  ProfileAnalysisType,
 } from "@/interfaces/profile-analysis";
 import { UserRole } from "@/interfaces/session";
 

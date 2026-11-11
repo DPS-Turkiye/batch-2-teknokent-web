@@ -141,7 +141,9 @@ describe("AddCoordinatorDialog", () => {
     renderWithQueryClient(<AddCoordinatorDialog onClose={vi.fn()} />);
 
     await user.type(screen.getByLabelText("E-posta"), "elif@");
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 500);
+    });
 
     expect(getCoordinatorCandidate).not.toHaveBeenCalled();
   });

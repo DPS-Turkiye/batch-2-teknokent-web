@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import { useSession } from "@/components/providers/session-provider";
 import { LoginFlowStep } from "@/interfaces/login";
@@ -29,9 +29,8 @@ export function useLoginFlow() {
 
   const isReady = true;
 
-  async function submitLogin(event: FormEvent<HTMLFormElement>) {
+  async function submitLogin(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!isReady) return;
     setLoginError("");
     setNotice("");
     setStep(LoginFlowStep.Verifying);

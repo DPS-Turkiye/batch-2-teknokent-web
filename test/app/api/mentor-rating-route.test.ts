@@ -16,7 +16,7 @@ describe("mentor rating route", () => {
       data: {},
       headers: {},
       status: 200,
-    } as never);
+    });
   });
 
   it("reads a mentor's rating for a signed-in user", async () => {

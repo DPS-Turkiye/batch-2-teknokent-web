@@ -12,6 +12,7 @@ import {
 import { MobileChatItemKind } from "@/interfaces/mobile";
 import { UserRole } from "@/interfaces/session";
 import {
+  groupedMentorshipConversations,
   mentorshipChatItems,
   mentorshipChatSubtitle,
   mentorshipConversation,
@@ -21,7 +22,6 @@ import {
   programChatItems,
   programConversation,
   searchConversations,
-  groupedMentorshipConversations,
   threadTopics,
 } from "@/lib/mobile-messages";
 import {
@@ -169,10 +169,16 @@ describe("programConversation", () => {
   });
 
   it("falls back to one unread when an older server sends only the flag", () => {
-    expect(
-      programConversation(programThread({ unreadCount: undefined }), TR, NOW)
-        .unreadCount,
-    ).toBe(1);
+    const { unreadCount: _unreadCount, ...olderThread } = programThread();
+    expect(programConversation(olderThread, TR, NOW).unreadCount).toBe(1);
+  });
+
+  it("names a thread whose program the server could not resolve as Program", () => {
+    const orphan = programThread({ programName: null, coordinatorName: null });
+    expect(programConversation(orphan, TR, NOW)).toMatchObject({
+      name: "Program",
+      initials: "P",
+    });
   });
 });
 

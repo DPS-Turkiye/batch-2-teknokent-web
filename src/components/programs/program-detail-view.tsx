@@ -1,18 +1,18 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useTranslations } from "next-intl";
 
+import { PersonLink } from "@/components/common/person-link";
+import { StartupNameLink } from "@/components/common/startup-name-link";
 import { AppShell } from "@/components/hoc/app-shell";
 import { useAppSession } from "@/components/providers/session-provider";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
+import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { useProgramDetail } from "@/hooks/use-programs";
 import { UserRole } from "@/interfaces/session";
 import { PROGRAM_CARD_CLASS } from "@/lib/const/programs";
-import { PersonLink } from "@/components/common/person-link";
-import { StartupNameLink } from "@/components/common/startup-name-link";
-import { useMemberProfileLinks } from "@/hooks/use-member-profile-links";
 import { programPersonHref } from "@/lib/program-links";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";

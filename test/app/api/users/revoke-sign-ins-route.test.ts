@@ -1,10 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/users/[id]/sign-ins/revoke/route";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { revokeSignIns } from "@/lib/api/accounts";
 import { requireAdminSession } from "@/lib/server/require-admin";
+import {
+  backendRefusal,
+  backendResponse,
+  guardRefusal,
+} from "@test/fixtures/route-handlers";
+import { backendUser } from "@test/fixtures/session";
 
 vi.mock("@/lib/api/accounts", () => ({
   revokeSignIns: vi.fn(),
@@ -42,11 +48,11 @@ describe("POST /api/users/[id]/sign-ins/revoke", () => {
   });
 
   it("acts as the signed-in admin, not an actor named in the body", async () => {
-    vi.mocked(revokeSignIns).mockResolvedValue({
-      data: { id: "user-1", signInsRevokedAt: "2026-10-23T15:00:00Z" },
-      headers: {},
-      status: 200,
-    });
+    vi.mocked(revokeSignIns).mockResolvedValue(
+      backendResponse(
+        backendUser({ signInsRevokedAt: "2026-10-23T15:00:00Z" }),
+      ),
+    );
 
     const response = await post({ actorId: "forged-admin" });
 
@@ -55,10 +61,7 @@ describe("POST /api/users/[id]/sign-ins/revoke", () => {
   });
 
   it("refuses anyone who is not an admin", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
 
     const response = await post();
 
@@ -67,11 +70,9 @@ describe("POST /api/users/[id]/sign-ins/revoke", () => {
   });
 
   it("passes a backend failure through with its status", async () => {
-    vi.mocked(revokeSignIns).mockResolvedValue({
-      data: { message: "Firebase" },
-      headers: {},
-      status: 502,
-    });
+    vi.mocked(revokeSignIns).mockResolvedValue(
+      backendRefusal(502, { message: "Firebase" }),
+    );
 
     const response = await post();
 

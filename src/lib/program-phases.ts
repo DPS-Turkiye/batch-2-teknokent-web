@@ -65,7 +65,8 @@ export function joinOutputs(tokens: string[]) {
 export function reorderPhases<T>(phases: T[], from: number, to: number) {
   if (from === to || to < 0 || to >= phases.length) return phases;
   const next = [...phases];
-  const [moved] = next.splice(from, 1);
+  const moved = next.splice(from, 1)[0];
+  if (moved === undefined) return phases;
   next.splice(to, 0, moved);
   return next;
 }

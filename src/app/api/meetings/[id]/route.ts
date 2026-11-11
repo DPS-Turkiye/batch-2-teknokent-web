@@ -2,18 +2,19 @@ import type { NextRequest } from "next/server";
 
 import { UserRole } from "@/interfaces/session";
 import { deleteMeeting, updateMeeting } from "@/lib/api/meetings";
-import {
-  requireMeetingAccess,
-  requireOwnedMeeting,
-} from "@/lib/server/mentor-meeting";
+import { hasPermission } from "@/lib/permissions";
 import {
   apiErrorResponse,
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import {
+  requireMeetingAccess,
+  requireOwnedMeeting,
+} from "@/lib/server/mentor-meeting";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionUser } from "@/lib/session";
-import { hasPermission } from "@/lib/permissions";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -26,8 +27,9 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const access = await requireMeetingAccess(session, id);
     if ("error" in access) return access.error;
-    const payload = (await request.json()) as Record<string, unknown>;
-    return backendResponse(await updateMeeting(id, payload));
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(await updateMeeting(id, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("meetingUpdateFailed"),

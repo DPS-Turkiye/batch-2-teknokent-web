@@ -4,18 +4,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CoordinatorMentorshipsView } from "@/components/coordinator/mentorships-view";
 import { CoordinatorMentorshipHealth } from "@/interfaces/coordinator-mentorship";
+import { ProgramType } from "@/interfaces/program";
 import {
   getCoordinatorMentorship,
   getCoordinatorMentorships,
   remindCoordinatorMentorship,
 } from "@/lib/client/coordinator-mentorships";
-import { ProgramType } from "@/interfaces/program";
 import { getCoordinatorPrograms } from "@/lib/client/coordinator-programs";
 import {
   coordinatorMentorship,
   coordinatorMentorshipDetail,
 } from "@test/fixtures/coordinator-mentorships";
 import { coordinatorProgram } from "@test/fixtures/coordinator-programs";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/coordinator-mentorships", () => ({
@@ -207,7 +208,10 @@ describe("CoordinatorMentorshipsView", () => {
     );
 
     await user.click(
-      within(dialog).getAllByRole("button", { name: "İki tarafa hatırlat" })[0],
+      itemAt(
+        within(dialog).getAllByRole("button", { name: "İki tarafa hatırlat" }),
+        0,
+      ),
     );
 
     expect(remindCoordinatorMentorship).toHaveBeenCalledWith("mentorship-1");

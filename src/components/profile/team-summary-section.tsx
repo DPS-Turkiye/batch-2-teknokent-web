@@ -1,8 +1,8 @@
 "use client";
 
+import { ArrowRight, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { ArrowRight, UserPlus } from "lucide-react";
 
 import { Avatar } from "@/components/common/avatar";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";

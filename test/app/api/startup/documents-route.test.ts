@@ -28,7 +28,7 @@ describe("/api/startup/documents", () => {
       status: 200,
       data: [{ id: "doc-1" }],
       headers: {},
-    } as never);
+    });
 
     const response = await GET();
 

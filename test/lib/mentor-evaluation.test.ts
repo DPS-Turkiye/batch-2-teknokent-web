@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   answeredQuestionCount,
   evaluationMeetingMeta,
@@ -11,6 +10,7 @@ import {
   type MentorEvaluationAnswers,
 } from "@/lib/mentor-evaluation";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
 
 const empty: MentorEvaluationAnswers = {
   preparedness: null,
@@ -86,13 +86,13 @@ describe("evaluationMeetingMeta", () => {
     scheduledAt: "2026-09-05T11:00:00Z",
     durationMinutes: 45,
     agenda: "UX Flow Review",
-    status: "COMPLETED",
+    status: MeetingStatus.Completed,
   };
 
   it("names the startup, the mentee, the meeting and when it was", () => {
     const meta = evaluationMeetingMeta(
       meeting,
-      { requesterName: "Gülse Buran" } as MentorshipRequest,
+      menteeRequestFixture({ requesterName: "Gülse Buran" }),
       { minutes: (count) => `${count} dk`, locale: "tr" },
     );
 
@@ -102,12 +102,17 @@ describe("evaluationMeetingMeta", () => {
   });
 
   it("falls back to the request's topic and skips what is unknown", () => {
+    const {
+      agenda: _agenda,
+      organizationName: _organizationName,
+      ...untitled
+    } = meeting;
     const meta = evaluationMeetingMeta(
-      { ...meeting, agenda: undefined, organizationName: undefined },
-      {
+      untitled,
+      menteeRequestFixture({
         organizationName: "Döngü",
         supportArea: "Fiyatlandırma",
-      } as MentorshipRequest,
+      }),
       { minutes: (count) => `${count} dk`, locale: "tr" },
     );
 

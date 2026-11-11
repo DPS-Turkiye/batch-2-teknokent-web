@@ -1,7 +1,6 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
@@ -62,7 +61,7 @@ export function PeerMentorDirectory() {
         isLoading={directory.mentors.isLoading}
         error={directory.mentors.error}
       />
-      {mentors && mentors.length === 0 ? (
+      {mentors?.length === 0 ? (
         <EmptyState
           className=""
           title={

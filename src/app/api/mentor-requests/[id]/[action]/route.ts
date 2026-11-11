@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import {
   isMentorRequestAction,
@@ -11,6 +11,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 type RouteContext = {
@@ -32,10 +33,12 @@ async function forward(request: NextRequest, context: RouteContext) {
 
     const { userId } = await getSessionIds();
     const method = request.method as HttpMethod;
-    const data =
-      method === HttpMethod.Get
-        ? undefined
-        : ((await request.json()) as Record<string, unknown>);
+    let data: Record<string, unknown> | undefined;
+    if (method !== HttpMethod.Get) {
+      const body = await readJsonBody(request, jsonObjectSchema);
+      if (!body.ok) return body.response;
+      data = body.data;
+    }
     const mentorId =
       action === MentorRequestAction.Decision ||
       action === MentorRequestAction.MentorMessages
