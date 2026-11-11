@@ -3,7 +3,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import {
   STORED_DOCUMENTS_QUERY_KEY,
   useStoredDocuments,
@@ -28,10 +28,16 @@ export function useCvFile<T>({
 }) {
   const queryClient = useQueryClient();
   const canRead = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const storedCv = useStoredDocuments().byKind(DocumentKind.Cv);
   const [selected, setSelected] = useState<UploadedFile | null>(null);
   const [filled, setFilled] = useState(false);
-  const parse = useMutation({ mutationFn: read });
+  const parse = useMutation({
+    mutationFn: read,
+    onError: (error) => {
+      refused(error);
+    },
+  });
   const upload = useMutation({
     mutationFn: (file: File) => uploadDocument(file, DocumentKind.Cv),
     onSuccess: () =>

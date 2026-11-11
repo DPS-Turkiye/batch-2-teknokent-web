@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useOnboardingDraftSync } from "@/hooks/use-onboarding-draft-sync";
 import { clientText } from "@/i18n/client-texts";
 import {
@@ -120,6 +120,7 @@ export function useMentorOnboarding(
 ) {
   const t = useTranslations("mentorOnboarding");
   const canReadCv = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const [step, setStep] = useState<MentorOnboardingStep>(
     MentorOnboardingStep.Profile,
   );
@@ -283,7 +284,8 @@ export function useMentorOnboarding(
               student: fillStudies(current.student, cv.studies),
             };
           });
-        } catch {
+        } catch (failure) {
+          refused(failure);
           setParseNote(t("cvUnreadable"));
         }
         setPhase(IntroPhase.Review);
@@ -292,7 +294,7 @@ export function useMentorOnboarding(
         setPhase(IntroPhase.Upload);
       }
     },
-    [t, canReadCv],
+    [t, canReadCv, refused],
   );
 
   const enterManually = useCallback(() => setPhase(IntroPhase.Review), []);

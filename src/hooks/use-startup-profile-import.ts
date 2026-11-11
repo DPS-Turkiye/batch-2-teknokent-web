@@ -8,7 +8,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import {
   PROFILE_ANALYSIS_MUTATION_KEY,
   useProfileAnalysisRecord,
@@ -18,7 +18,6 @@ import {
   ProfileOcrMode,
   type ProfileAnalysis,
 } from "@/interfaces/profile-analysis";
-import { isAiFeatureDisabledError } from "@/lib/ai-features";
 import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
 import { PROFILE_ANALYSIS_MAX_BYTES } from "@/lib/profile-analysis";
 
@@ -29,6 +28,7 @@ export function useStartupProfileImport() {
   const record = useProfileAnalysisRecord();
   // Where the deck cannot be read the manual editor is the only way in, so it stays open.
   const canRead = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const [inputVersion, setInputVersion] = useState(0);
   const [file, setFile] = useState<File | null>(null);
   const [consent, setConsent] = useState(false);
@@ -91,7 +91,7 @@ export function useStartupProfileImport() {
       setInputVersion((value) => value + 1);
       setConsent(false);
     } catch (failure) {
-      if (isAiFeatureDisabledError(failure)) {
+      if (refused(failure)) {
         setShowManual(true);
         setError(labels("readOff"));
       } else {
