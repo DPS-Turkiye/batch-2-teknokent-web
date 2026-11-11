@@ -221,7 +221,19 @@
           "Koordinatör onayı"
         ],
         "action": "Mentor olarak devam et"
+      },
+      "student": {
+        "badge": "İŞKUR Öğrencisi",
+        "title": "Akran mentörlüğüne katılmak istiyorum",
+        "description": "Kişisel profilini oluşturur, katılacağın programı seçersin; koordinatör onayından sonra akran mentörlüğüne erişirsin.",
+        "steps": ["Kişisel profil", "Program seçimi", "Koordinatör onayı"],
+        "action": "Öğrenci olarak devam et"
       }
+    },
+    "odtuBanner": {
+      "title": "ODTÜ öğrencisi veya akademisyeni misin?",
+      "tag": "Kayıt gerekmez",
+      "text": "ODTÜ hesabınla giriş yap. Office Hours, Akran Mentörlüğü ve akademik danışmanın hesabındaki bilgilere göre açılır."
     }
   },
   "signupFlow": {

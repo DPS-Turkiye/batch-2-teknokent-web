@@ -221,7 +221,19 @@
           "Coordinator approval"
         ],
         "action": "Continue as a mentor"
+      },
+      "student": {
+        "badge": "İŞKUR Student",
+        "title": "I want to join peer mentoring",
+        "description": "You create your personal profile and choose your program; after the coordinator approves, you get access to peer mentoring.",
+        "steps": ["Personal profile", "Program choice", "Coordinator approval"],
+        "action": "Continue as a student"
       }
+    },
+    "odtuBanner": {
+      "title": "Are you a METU student or academic?",
+      "tag": "No sign-up needed",
+      "text": "Sign in with your METU account. Office Hours, peer mentoring and your academic advisor open based on your account."
     }
   },
   "signupFlow": {
