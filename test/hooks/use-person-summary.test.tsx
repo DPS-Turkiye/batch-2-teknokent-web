@@ -3,7 +3,6 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
 import { usePersonSummary } from "@/hooks/use-person-summary";
 import { getPersonSummary } from "@/lib/client/person-summary";
 import { mentorSummary } from "@test/fixtures/person-summary";
@@ -43,19 +42,31 @@ describe("usePersonSummary", () => {
       wrapper,
     });
 
-    await waitFor(() => expect(result.current.summary?.id).toBe("mentor-1"));
+    await waitFor(() => expect(result.current.view?.userId).toBe("mentor-1"));
     expect(result.current.listHref).toBe("/admin/users");
-    expect(result.current.programHref("p 1")).toBe("/admin/programs/p%201");
+    expect(
+      result.current.view?.programs.map((program) => program.href),
+    ).toEqual(["/admin/programs/program-1", "/admin/programs/program-2"]);
+    expect(result.current.view?.status.label).toBe("Onaylı");
+    expect(result.current.view?.mentor?.facts).toContainEqual({
+      key: "facts.languages",
+      label: "Diller",
+      value: "Türkçe, İngilizce",
+    });
   });
 
-  it("keeps coordinators in their frame", () => {
+  it("keeps coordinators in their frame", async () => {
     navigation.pathname = "/coordinator/people/mentor-1";
     const { result } = renderHook(() => usePersonSummary("mentor-1"), {
       wrapper,
     });
 
     expect(result.current.listHref).toBe("/coordinator/programs");
-    expect(result.current.programHref("p")).toBe("/coordinator/programs/p");
+    await waitFor(() =>
+      expect(result.current.view?.programs[0]?.href).toBe(
+        "/coordinator/programs/program-1",
+      ),
+    );
   });
 
   it("goes back when there is a page to go back to, else to the list", () => {
@@ -72,17 +83,5 @@ describe("usePersonSummary", () => {
     length.mockReturnValue(1);
     act(() => result.current.goBack());
     expect(navigation.push).toHaveBeenCalledWith("/admin/users");
-  });
-});
-
-describe("usePersonProfileHref", () => {
-  it("links admins to the admin page and coordinators to theirs", () => {
-    navigation.pathname = "/admin/users/mentors";
-    const admin = renderHook(() => usePersonProfileHref());
-    expect(admin.result.current("u/1")).toBe("/admin/users/u%2F1");
-
-    navigation.pathname = "/coordinator/programs/p/mentors";
-    const coordinator = renderHook(() => usePersonProfileHref());
-    expect(coordinator.result.current("u1")).toBe("/coordinator/people/u1");
   });
 });
