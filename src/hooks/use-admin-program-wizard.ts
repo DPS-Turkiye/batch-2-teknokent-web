@@ -10,6 +10,7 @@ import {
   useAdminOverview,
 } from "@/hooks/use-admin-overview";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
+import { useEdition } from "@/hooks/use-edition";
 import type { ProgramType } from "@/interfaces/program";
 import { ToastTone } from "@/interfaces/toast";
 import { approvedCoordinatorsOf } from "@/lib/admin-model";
@@ -24,18 +25,25 @@ import {
   type WizardProblem,
 } from "@/lib/admin-program-wizard";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
+import { programTypesOf } from "@/lib/edition-screens";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
-/** The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. */
+/**
+ * The admin's "Yeni Program Oluştur": type, details, coordinators, summary; saved as a draft at the end. Only the
+ * deployment's own program types are offered; the backend refuses the others.
+ */
 export function useAdminProgramWizard() {
   const t = useTranslations("adminProgramWizard");
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const overview = useAdminOverview();
+  const programTypes = programTypesOf(useEdition());
   const [step, setStep] = useState(WizardStep.Type);
-  const [draft, setDraft] = useState<ProgramWizardDraft>(emptyWizardDraft);
+  const [draft, setDraft] = useState<ProgramWizardDraft>(() =>
+    emptyWizardDraft(programTypes),
+  );
   const [problem, setProblem] = useState<WizardProblem | null>(null);
   const stepIndex = WIZARD_STEPS.indexOf(step);
 
@@ -72,6 +80,7 @@ export function useAdminProgramWizard() {
     step,
     stepIndex,
     last: stepIndex === WIZARD_STEPS.length - 1,
+    programTypes,
     draft,
     update,
     coordinators,

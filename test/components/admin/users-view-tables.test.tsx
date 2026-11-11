@@ -32,6 +32,10 @@ vi.mock("next/navigation", () => ({
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/admin/users",
 }));
+vi.mock("@/hooks/use-edition", async () => {
+  const { Edition } = await import("@/interfaces/edition");
+  return { useEdition: () => Edition.Teknokent };
+});
 vi.mock("@/hooks/use-admin-overview", () => ({
   ADMIN_OVERVIEW_QUERY_KEY: ["admin-overview"],
   useAdminOverview: () => ({

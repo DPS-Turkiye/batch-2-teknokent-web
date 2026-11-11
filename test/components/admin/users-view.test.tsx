@@ -1,8 +1,9 @@
 import { screen, within } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { UsersView } from "@/components/admin/users-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
+import { Edition } from "@/interfaces/edition";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { UserTab } from "@/types/admin-users";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
@@ -36,7 +37,15 @@ const overview: AdminOverview = {
   meetingsLast8Weeks: 0,
 };
 
+const editionState = vi.hoisted(() => ({ current: "ODTU" }));
+
+vi.mock("@/hooks/use-edition", () => ({
+  useEdition: () => editionState.current,
+}));
 vi.mock("next/navigation", () => ({
+  notFound: () => {
+    throw new Error("NEXT_NOT_FOUND");
+  },
   useRouter: () => ({ push: vi.fn(), replace: vi.fn() }),
   useSearchParams: () => new URLSearchParams(),
   usePathname: () => "/admin/users",
@@ -54,7 +63,47 @@ function rowOf(name: string) {
   return row;
 }
 
+function tabNames() {
+  return screen
+    .getAllByRole("link")
+    .filter((link) => link.getAttribute("href")?.startsWith("/admin/users"))
+    .map((link) => link.getAttribute("href"));
+}
+
 describe("UsersView", () => {
+  beforeEach(() => {
+    editionState.current = Edition.Odtu;
+  });
+
+  it("shows ODTÜ coordinators, students and academicians, and no startup tabs", () => {
+    renderWithQueryClient(<UsersView tab={UserTab.Coordinators} />);
+
+    expect(tabNames()).toEqual([
+      "/admin/users",
+      "/admin/users/students",
+      "/admin/users/academics",
+    ]);
+  });
+
+  it("shows Teknokent coordinators, mentors and teams, and no ODTÜ tabs", () => {
+    editionState.current = Edition.Teknokent;
+    renderWithQueryClient(<UsersView tab={UserTab.Coordinators} />);
+
+    expect(tabNames()).toEqual([
+      "/admin/users",
+      "/admin/users/mentors",
+      "/admin/users/teams",
+    ]);
+  });
+
+  it("answers another edition's tab like a page that does not exist", () => {
+    editionState.current = Edition.Teknokent;
+
+    expect(() =>
+      renderWithQueryClient(<UsersView tab={UserTab.Students} />),
+    ).toThrow("NEXT_NOT_FOUND");
+  });
+
   it("has an Akademisyenler tab that shows the institution's academicians", async () => {
     renderWithQueryClient(<UsersView tab={UserTab.Academics} />);
 

@@ -7,7 +7,6 @@ import type { ReactNode } from "react";
 
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useAdminProgramWizard } from "@/hooks/use-admin-program-wizard";
-import { ProgramType } from "@/interfaces/program";
 import { WIZARD_STEPS, WizardStep } from "@/lib/admin-program-wizard";
 import { formatLongDate } from "@/lib/utils";
 
@@ -165,7 +164,7 @@ function TypeStep({ wizard }: { wizard: Wizard }) {
   return (
     <fieldset className="grid gap-3">
       <legend className="sr-only">{tType("label")}</legend>
-      {Object.values(ProgramType).map((type) => {
+      {wizard.programTypes.map((type) => {
         const chosen = wizard.draft.type === type;
         return (
           <label

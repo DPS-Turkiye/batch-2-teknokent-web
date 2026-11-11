@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProgramWizardView } from "@/components/admin/program-wizard-view";
 import type { AdminOverview, AdminUser } from "@/interfaces/admin-overview";
+import { Edition } from "@/interfaces/edition";
 import { ProgramType } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { createCoordinatorProgram } from "@/lib/client/coordinator-programs";
@@ -51,6 +52,12 @@ const overview: AdminOverview = {
   meetingsLast8Weeks: 0,
 };
 
+const editionState = vi.hoisted(() => ({ current: "ODTU" }));
+
+vi.mock("@/hooks/use-edition", () => ({
+  useEdition: () => editionState.current,
+}));
+
 const overviewState = vi.hoisted(() => ({
   error: null as Error | null,
   refetch: vi.fn(),
@@ -79,6 +86,37 @@ describe("admin Yeni Program Oluştur", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     overviewState.error = null;
+    editionState.current = Edition.Odtu;
+  });
+
+  it("offers ODTÜ only peer mentoring and Office Hours", () => {
+    renderWithQueryClient(<ProgramWizardView />);
+
+    expect(
+      screen.getAllByRole("radio").map((radio) => radio.getAttribute("value")),
+    ).toEqual([ProgramType.PeerMentoring, ProgramType.OfficeHours]);
+    expect(
+      screen.getByRole("radio", { name: /Office Hours/ }),
+    ).not.toBeChecked();
+    expect(screen.queryByText("Girişim Mentörlüğü")).not.toBeInTheDocument();
+  });
+
+  it("starts Teknokent on its only type, so the admin can go straight on", async () => {
+    editionState.current = Edition.Teknokent;
+    const clicker = userEvent.setup();
+    renderWithQueryClient(<ProgramWizardView />);
+
+    expect(
+      screen.getByRole("radio", { name: /Girişim Mentörlüğü/ }),
+    ).toBeChecked();
+    expect(screen.getAllByRole("radio")).toHaveLength(1);
+    await clicker.click(screen.getByRole("button", { name: /Devam/ }));
+
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Program adı")).toBeInTheDocument();
+    expect(screen.getByRole("listitem", { current: "step" })).toHaveTextContent(
+      "Program bilgileri",
+    );
   });
 
   it("walks type, details, coordinators and summary, then saves a draft", async () => {
