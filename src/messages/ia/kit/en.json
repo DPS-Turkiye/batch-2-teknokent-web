@@ -1,0 +1,7 @@
+{
+  "simpleHeader": {
+    "help": "Help",
+    "logout": "Sign out",
+    "loggingOut": "Signing out…"
+  }
+}
