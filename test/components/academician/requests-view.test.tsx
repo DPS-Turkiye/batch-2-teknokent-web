@@ -58,7 +58,7 @@ describe("AcademicianRequestsView", () => {
     await user.click(within(request).getByRole("button", { name: "Kabul Et" }));
     await user.click(within(request).getByRole("button", { name: "Kabul Et" }));
     expect(
-      await screen.findByText("Talep kabul edildi; randevu Randevularım'da."),
+      await screen.findByText("Talep kabul edildi, randevu oluşturuldu."),
     ).toBeVisible();
     expect(
       screen.queryByRole("heading", { name: "2. ödevdeki 3. soruda takıldım" }),
@@ -76,7 +76,7 @@ describe("AcademicianRequestsView", () => {
     await user.click(itemAt(within(form).getAllByRole("radio"), 1));
     await user.click(within(form).getByRole("button", { name: "Kabul Et" }));
     expect(
-      await screen.findByText("Talep kabul edildi; randevu Randevularım'da."),
+      await screen.findByText("Talep kabul edildi, randevu oluşturuldu."),
     ).toBeVisible();
   });
 

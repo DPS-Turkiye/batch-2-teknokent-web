@@ -11,6 +11,7 @@ import {
   httpUrlOrNull,
   isAdminArea,
   isUuid,
+  minutesOfDay,
   splitFullName,
 } from "@/lib/utils";
 
@@ -126,5 +127,13 @@ describe("splitFullName", () => {
   it("takes a single word as the first name", () => {
     expect(splitFullName("Ayşe")).toEqual({ firstName: "Ayşe", lastName: "" });
     expect(splitFullName("")).toEqual({ firstName: "", lastName: "" });
+  });
+});
+
+describe("minutesOfDay", () => {
+  it("counts minutes since midnight of an HH:mm time", () => {
+    expect(minutesOfDay("00:00")).toBe(0);
+    expect(minutesOfDay("09:30")).toBe(570);
+    expect(minutesOfDay("23:59")).toBe(1439);
   });
 });

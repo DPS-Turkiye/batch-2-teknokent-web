@@ -1,43 +1,30 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState, type SubmitEvent } from "react";
 
+import { useRequestAnswer } from "@/hooks/use-request-answer";
 import {
   MAX_PROPOSED_TIMES,
   OfficeHoursRequestAction,
   type OfficeHoursAnswer,
   type OfficeHoursRequest,
 } from "@/interfaces/academician-office-hours";
-import { ToastTone } from "@/interfaces/toast";
 import {
-  ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
   ACADEMICIAN_REQUESTS_QUERY_KEY,
   rangeMinutes,
   turkeyTimeRange,
   waitsForAcademician,
 } from "@/lib/academician-office-hours";
-import {
-  answerAcademicianRequest,
-  getAcademicianRequests,
-} from "@/lib/client/academician-office-hours";
-import { useToast } from "@/stores/toast-store";
-
-const DONE_MESSAGE = {
-  [OfficeHoursRequestAction.Accept]: "accepted",
-  [OfficeHoursRequestAction.Decline]: "declined",
-  [OfficeHoursRequestAction.ProposeTimes]: "proposed",
-  [OfficeHoursRequestAction.AskQuestion]: "asked",
-} as const;
+import { getAcademicianRequests } from "@/lib/client/academician-office-hours";
 
 type OpenForm = { id: string; action: OfficeHoursRequestAction };
 
 /** Randevu Talepleri: open requests and the answers each request's source allows. */
 export function useAcademicianRequests() {
   const t = useTranslations("academicianWorkspace.requests");
-  const queryClient = useQueryClient();
-  const { showToast } = useToast();
+  const { answer, answeringId } = useRequestAnswer();
   const query = useQuery({
     queryKey: ACADEMICIAN_REQUESTS_QUERY_KEY,
     queryFn: getAcademicianRequests,
@@ -54,27 +41,6 @@ export function useAcademicianRequests() {
       Date.parse(a.requestedTimes[0]?.startsAt ?? a.requestedAt) -
       Date.parse(b.requestedTimes[0]?.startsAt ?? b.requestedAt),
   );
-
-  const answer = useMutation({
-    mutationFn: ({ id, reply }: { id: string; reply: OfficeHoursAnswer }) =>
-      answerAcademicianRequest(id, reply),
-    onSuccess: (_, { reply }) => {
-      void queryClient.invalidateQueries({
-        queryKey: ACADEMICIAN_OFFICE_HOURS_QUERY_KEY,
-      });
-      showToast({
-        message: t(DONE_MESSAGE[reply.action]),
-        tone: ToastTone.Success,
-      });
-      setForm(null);
-    },
-    onError: () => {
-      // Usually the student withdrew or the request changed meanwhile: show the current list.
-      void query.refetch();
-      showToast({ message: t("failed"), tone: ToastTone.Error });
-      setForm(null);
-    },
-  });
 
   const open = (
     request: OfficeHoursRequest,
@@ -133,7 +99,9 @@ export function useAcademicianRequests() {
       setFormError(reply);
       return;
     }
-    answer.mutate({ id: request.id, reply });
+    answer(request.id, reply, () => {
+      setForm(null);
+    });
   };
 
   return {
@@ -150,7 +118,7 @@ export function useAcademicianRequests() {
     open,
     close: () => setForm(null),
     submit,
-    isAnswering: answer.isPending,
+    isAnswering: answeringId !== null,
     formError,
     pickedTime,
     setPickedTime,

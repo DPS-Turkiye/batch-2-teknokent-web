@@ -6542,11 +6542,6 @@
       "question": "Öğrenciye sorun",
       "needTime": "En az bir saat seç.",
       "needQuestion": "Sorunu yaz.",
-      "accepted": "Talep kabul edildi; randevu Randevularım'da.",
-      "declined": "Talep reddedildi.",
-      "proposed": "Önerdiğin saatler öğrenciye gönderildi.",
-      "asked": "Sorun öğrenciye gönderildi.",
-      "failed": "Talep yanıtlanamadı; liste yenilendi.",
       "noteLabel": "Öğrencinin notu",
       "proposedPast": "Geçmiş bir saat önerilemez.",
       "pickOne": "Bir saat seç."

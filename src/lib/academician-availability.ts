@@ -8,9 +8,13 @@ import {
   type MentorAvailabilityRule,
   type Weekday,
 } from "@/interfaces/mentor";
-import { rangeMinutes } from "@/lib/academician-office-hours";
-import { addDays, isoDay, startOfWeek } from "@/lib/coordinator-calendar";
-import { weekdayOf } from "@/lib/mentor-availability";
+import {
+  rangeMinutes,
+  shiftDay,
+  turkeyDay,
+  weekdayOfDay,
+} from "@/lib/academician-office-hours";
+import { minutesOfDay } from "@/lib/utils";
 import { AvailabilityItemKind } from "@/types/academician-office-hours";
 
 export type AvailabilityItem =
@@ -22,11 +26,6 @@ export type AvailabilityItem =
     };
 
 export type WeekAvailability = { minutes: number; weekdays: Weekday[] };
-
-function minutesOfDay(time: string) {
-  const [hours = 0, minutes = 0] = time.split(":").map(Number);
-  return hours * 60 + minutes;
-}
 
 function ruleMinutes(rule: MentorAvailabilityRule) {
   return minutesOfDay(rule.endTime) - minutesOfDay(rule.startTime);
@@ -63,7 +62,7 @@ export function availabilitySummary(
   availability: AcademicianAvailability,
   now: Date,
 ): AvailabilityItem[] {
-  const today = isoDay(now);
+  const today = turkeyDay(now);
   const recurring = availability.rules
     .toSorted(
       (a, b) =>
@@ -93,27 +92,27 @@ export function availabilitySummary(
 }
 
 /**
- * The open hours of the week `now` falls in, Monday to Sunday: weekly ranges plus one-offs, minus days off. Booked
- * time is not subtracted; the home card reads "müsait saat", the hours students can pick from.
+ * The open hours of the Turkey week `now` falls in, Monday to Sunday: weekly ranges plus one-offs, minus days off.
+ * Booked time is not subtracted; the home card reads "müsait saat", the hours students can pick from.
  */
 export function weekAvailability(
   availability: AcademicianAvailability,
   now: Date,
 ): WeekAvailability {
-  const monday = startOfWeek(now);
+  const today = turkeyDay(now);
+  const monday = shiftDay(today, -WEEKDAY_ORDER.indexOf(weekdayOfDay(today)));
   let minutes = 0;
   const weekdays: Weekday[] = [];
   for (let offset = 0; offset < WEEKDAY_ORDER.length; offset += 1) {
-    const date = addDays(monday, offset);
-    const day = isoDay(date);
+    const day = shiftDay(monday, offset);
     if (isDayOff(day, availability.exceptions)) continue;
-    const weekday = weekdayOf(date);
+    const weekday = weekdayOfDay(day);
     const dayMinutes =
       availability.rules
         .filter((rule) => rule.dayOfWeek === weekday)
         .reduce((sum, rule) => sum + ruleMinutes(rule), 0) +
       availability.oneOffs
-        .filter((oneOff) => isoDay(new Date(oneOff.startsAt)) === day)
+        .filter((oneOff) => turkeyDay(oneOff.startsAt) === day)
         .reduce((sum, oneOff) => sum + rangeMinutes(oneOff), 0);
     if (dayMinutes > 0) {
       minutes += dayMinutes;

@@ -23,7 +23,9 @@ import {
   ACADEMICIAN_APPOINTMENTS_QUERY_KEY,
   ACADEMICIAN_AVAILABILITY_QUERY_KEY,
   ACADEMICIAN_REQUESTS_QUERY_KEY,
+  acceptableTime,
   slotWhenLabel,
+  turkeyTime,
 } from "@/lib/academician-office-hours";
 import { ACADEMICIAN_ROUTES } from "@/lib/academician-routes";
 import { adviseeIds } from "@/lib/academician-students";
@@ -32,7 +34,6 @@ import {
   getAcademicianAvailability,
   getAcademicianRequests,
 } from "@/lib/client/academician-office-hours";
-import { timeLabel } from "@/lib/coordinator-calendar";
 import { dayPart } from "@/lib/utils";
 import { AppointmentsFilter } from "@/types/academician-calendar";
 
@@ -109,19 +110,14 @@ export function useAcademicianHome() {
     appointmentsHref(ACADEMICIAN_ROUTES.appointments, search);
 
   const toCard = (request: OfficeHoursRequest): HomeRequestCard => {
-    const [first, ...others] = request.requestedTimes;
+    const [first] = request.requestedTimes;
     return {
       id: request.id,
       studentName: request.student.fullName,
       isAdvisee: advisor.has(request.student.userId),
       when: first ? slotWhenLabel(first, locale) : "",
       topic: request.topic,
-      acceptTime:
-        first &&
-        others.length === 0 &&
-        request.allowedActions.includes(OfficeHoursRequestAction.Accept)
-          ? first
-          : null,
+      acceptTime: acceptableTime(request),
       canDecline: request.allowedActions.includes(
         OfficeHoursRequestAction.Decline,
       ),
@@ -161,7 +157,7 @@ export function useAcademicianHome() {
           value: summary.today.length,
           hint: first
             ? t("home.stats.todayFirst", {
-                time: timeLabel(first.startsAt, locale),
+                time: turkeyTime(first.startsAt, locale),
               })
             : t("home.stats.todayNone"),
         },
@@ -179,7 +175,7 @@ export function useAcademicianHome() {
       requests: summary.latestRequests.map(toCard),
       today: summary.today.map((item) => ({
         id: item.id,
-        time: timeLabel(item.startsAt, locale),
+        time: turkeyTime(item.startsAt, locale),
         studentName: item.counterpart.fullName,
         topic: item.topic,
         href: calendarHref({ appointment: item.id }),
