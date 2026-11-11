@@ -287,6 +287,7 @@ function NavLink({ item, active }: { item: RoleNavItem; active: boolean }) {
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
+      data-tour={`nav-${item.label}`}
       className={`flex items-center gap-2 whitespace-nowrap rounded-full px-3 py-[11px] type-label xl:px-4 ${
         active
           ? "bg-action-accent text-text-inverse"

@@ -7,6 +7,8 @@ import iskurEn from "@/messages/ia/iskur/en.json";
 import iskurTr from "@/messages/ia/iskur/tr.json";
 import kitEn from "@/messages/ia/kit/en.json";
 import kitTr from "@/messages/ia/kit/tr.json";
+import profileEn from "@/messages/ia/profile/en.json";
+import profileTr from "@/messages/ia/profile/tr.json";
 import studentEn from "@/messages/ia/student/en.json";
 import studentTr from "@/messages/ia/student/tr.json";
 import tourEn from "@/messages/ia/tour/en.json";
@@ -23,6 +25,7 @@ export const IA_MESSAGES = {
     iaIskur: iskurTr,
     iaAcademician: academicianTr,
     iaCoordinator: coordinatorTr,
+    iaProfile: profileTr,
     iaTour: tourTr,
   },
   [Locale.En]: {
@@ -31,6 +34,7 @@ export const IA_MESSAGES = {
     iaIskur: iskurEn,
     iaAcademician: academicianEn,
     iaCoordinator: coordinatorEn,
+    iaProfile: profileEn,
     iaTour: tourEn,
   },
 };
