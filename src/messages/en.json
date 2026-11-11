@@ -326,7 +326,8 @@
     "individualProgram": "You join this program on your own; no startup details are needed.",
     "programEligibilityChecking": "Checking whether you can join this program…",
     "programEligibilityRefused": "You cannot join this program with this e-mail address. Ask the program coordinator, or choose another program.",
-    "stageSubtitle": "What matters most for matching you with the right mentor."
+    "stageSubtitle": "What matters most for matching you with the right mentor.",
+    "cvManual": "Your CV is not read automatically on this system; the file is only stored. Fill in your details above yourself."
   },
   "signupDocuments": {
     "canvasSubtitle": "A one-page summary of your business model.",
@@ -509,7 +510,9 @@
     "offeringPlaceholder": "E.g. Sharpening the value proposition",
     "cancel": "Cancel",
     "add": "Add",
-    "noOfferings": "You haven't added any items yet."
+    "noOfferings": "You haven't added any items yet.",
+    "uploadOnlyHint": "Your CV is not read automatically on this system; the file is only stored and you fill in your details in the next step.",
+    "uploading": "Uploading your CV…"
   },
   "mentorAvailability": {
     "weekly": "Weekly availability",
@@ -2231,7 +2234,8 @@
     "fill": "Fill in my profile from the CV",
     "needPdf": "Upload your CV as a PDF to fill in your profile.",
     "uploading": "Uploading CV…",
-    "reading": "Reading your CV and filling in the fields…"
+    "reading": "Reading your CV and filling in the fields…",
+    "manual": "Your CV is not read automatically on this system; the file is only stored. Fill in your profile yourself."
   },
   "editableChips": {
     "add": "Add…",

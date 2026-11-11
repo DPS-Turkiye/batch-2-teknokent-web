@@ -326,7 +326,8 @@
     "individualProgram": "Bu programa bireysel katılıyorsun; startup bilgisi gerekmez.",
     "programEligibilityChecking": "Bu programa katılıp katılamayacağın kontrol ediliyor…",
     "programEligibilityRefused": "Bu programa bu e-posta adresiyle katılamazsın. Program koordinatörüne başvur ya da başka bir program seç.",
-    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi."
+    "stageSubtitle": "Doğru mentorla eşleşmen için en belirleyici bilgi.",
+    "cvManual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Bilgilerini yukarıya kendin gir."
   },
   "signupDocuments": {
     "canvasSubtitle": "İş modelini tek sayfada özetleyen doküman.",
@@ -509,7 +510,9 @@
     "offeringPlaceholder": "Örn. Değer önerisini netleştirme",
     "cancel": "Vazgeç",
     "add": "Ekle",
-    "noOfferings": "Henüz madde eklemedin."
+    "noOfferings": "Henüz madde eklemedin.",
+    "uploadOnlyHint": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir, bilgilerini bir sonraki adımda kendin girersin.",
+    "uploading": "CV yükleniyor…"
   },
   "mentorAvailability": {
     "weekly": "Haftalık uygunluk",
@@ -2231,7 +2234,8 @@
     "fill": "Profili CV'den doldur",
     "needPdf": "Profili doldurmak için CV'ni PDF olarak yükle.",
     "uploading": "CV yükleniyor…",
-    "reading": "CV okunuyor, alanların dolduruluyor…"
+    "reading": "CV okunuyor, alanların dolduruluyor…",
+    "manual": "Bu sistemde CV otomatik okunmuyor; dosyan yalnızca kaydedilir. Profil bilgilerini kendin gir."
   },
   "editableChips": {
     "add": "Ekle…",

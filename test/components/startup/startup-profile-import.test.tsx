@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { StartupProfileImport } from "@/components/startup/startup-profile-import";
+import { useAiFeatures } from "@/hooks/use-ai-features";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import {
   ProfileAnalysisStatus,
   ProfileAnalysisType,
@@ -16,8 +18,10 @@ import {
   createStartupProfileRecord,
   getProfileAnalysisRecord,
 } from "@/lib/client/profile-analysis-records";
+import { aiFeatures } from "@test/fixtures/ai-features";
 import { analysis, profileToolsWrapper } from "@test/fixtures/profile-tools";
 
+vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: vi.fn(),
 }));
@@ -31,6 +35,7 @@ vi.mock("@/lib/client/profile-analysis", () => ({
 }));
 beforeEach(() => {
   vi.clearAllMocks();
+  vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
   vi.mocked(useAppSession).mockReturnValue({
     role: UserRole.Mentee,
     userId: "me",
@@ -115,6 +120,44 @@ describe("embedded startup profile import", () => {
     await screen.findByRole("heading", { name: /Review/ });
     expect(uploadProfileAnalysis).toHaveBeenCalledTimes(2);
   });
+  it("offers only the manual profile when deck reading is switched off", async () => {
+    vi.mocked(useAiFeatures).mockReturnValue(
+      aiFeatures({ profileParsing: false }),
+    );
+    setup();
+
+    expect(
+      await screen.findByText(
+        "Decks are not read automatically on this system; fill in the startup profile below by hand.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.queryByLabelText("Choose a pitch deck")).toBeNull();
+    expect(
+      screen.queryByRole("button", { name: "Extract profile" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Confirm and save manual profile" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the manual profile when the backend refuses a switched-off read", async () => {
+    vi.mocked(uploadProfileAnalysis).mockRejectedValueOnce(
+      new ClientApiError("off", 403, BackendErrorCode.AiFeatureDisabled),
+    );
+    const { user } = setup();
+    const file = new File(["pdf"], "pitch.pdf", { type: "application/pdf" });
+    await user.upload(screen.getByLabelText("Choose a pitch deck"), file);
+    await user.click(screen.getByRole("checkbox"));
+    await user.click(screen.getByRole("button", { name: "Extract profile" }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "Decks are not read automatically on this system",
+    );
+    expect(
+      screen.getByRole("button", { name: "Close the manual form" }),
+    ).toBeInTheDocument();
+  });
+
   it("validates manual minimum input and creates a startup matching profile without a person id", async () => {
     const { user } = setup();
     await user.click(
