@@ -1,7 +1,6 @@
-import "server-only";
-
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
+import "server-only";
 
 /**
  * The ODTÜ student and academician workspaces stay unreachable until this is "true". Unset

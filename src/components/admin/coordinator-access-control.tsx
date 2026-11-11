@@ -14,7 +14,7 @@ export function CoordinatorAccessControl({
   status,
 }: {
   id: string;
-  status: string;
+  status: UserAccountStatus;
 }) {
   const t = useTranslations("adminCoordinators");
   const access = useCoordinatorAccess();

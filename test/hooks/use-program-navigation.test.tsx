@@ -1,7 +1,9 @@
 import { renderHook } from "@testing-library/react";
 import { usePathname } from "next/navigation";
 import { describe, expect, it, vi } from "vitest";
+
 import { useProgramNavigation } from "@/hooks/use-program-navigation";
+
 vi.mock("next/navigation", () => ({ usePathname: vi.fn() }));
 describe("program navigation", () => {
   it("keeps admins in the admin workspace", () => {

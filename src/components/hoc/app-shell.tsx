@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
   CalendarDays,
   ClipboardList,
@@ -17,8 +16,9 @@ import {
   X,
   type LucideIcon,
 } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { ReactNode, useState } from "react";
+import { useTranslations, type Messages } from "next-intl";
+import Link from "next/link";
+import { useState, type ReactNode } from "react";
 
 import { Avatar } from "@/components/common/avatar";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
@@ -31,11 +31,11 @@ import {
 } from "@/components/hoc/account-dialogs";
 import { AccountMenu } from "@/components/hoc/account-menu";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
-import { StartupGate } from "@/components/startup/startup-gate";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
+import { StartupGate } from "@/components/startup/startup-gate";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { UserRole } from "@/interfaces/session";
@@ -43,17 +43,16 @@ import { roleWorkspace } from "@/lib/role-workspace";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
 import { initials } from "@/lib/utils";
 import { AppArea } from "@/types/app-area";
-import type { Messages } from "next-intl";
 
 interface AppShellProps {
   menteeHome?: boolean;
   mentorHome?: boolean;
   active?: AppArea;
   actions?: ReactNode;
-  backHref?: string;
+  backHref?: string | undefined;
   children: ReactNode;
   subtitle?: string;
-  title?: string;
+  title?: string | undefined;
 }
 type NavLabel = keyof Messages["appShell"]["nav"];
 
@@ -324,9 +323,9 @@ export function AppShell({
               </button>
             </div>
             <nav className="mt-8 space-y-1">
-              {navigation.map((item, index) => (
+              {navigation.map((item) => (
                 <Link
-                  key={`${item.label}-${index}`}
+                  key={`${item.label}-${item.href}`}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm text-[#676e78] hover:bg-[#fdebdd] hover:text-[#c85816]"

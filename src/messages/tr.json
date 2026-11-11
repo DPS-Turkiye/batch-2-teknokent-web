@@ -5968,6 +5968,7 @@
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
     "invalidRequestBody": "İstek gövdesi okunamadı.",
+    "invalidRequestFields": "İstekteki bazı bilgiler eksik ya da geçersiz.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",

@@ -32,7 +32,7 @@ describe("program academics route", () => {
       status: 200,
       data: [],
       headers: {},
-    } as never);
+    });
   });
 
   it("lists a program's academicians for its coordinator, as that coordinator", async () => {

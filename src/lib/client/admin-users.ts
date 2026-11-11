@@ -1,4 +1,4 @@
-import { UserAccountStatus, type BackendUser } from "@/interfaces/session";
+import type { BackendUser, UserAccountStatus } from "@/interfaces/session";
 import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 

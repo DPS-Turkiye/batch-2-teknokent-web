@@ -49,7 +49,7 @@ export function useConfirmProfile() {
   return useMutation({
     mutationFn: confirmProfile,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["profile-analysis"] });
+      void queryClient.invalidateQueries({ queryKey: ["profile-analysis"] });
     },
   });
 }

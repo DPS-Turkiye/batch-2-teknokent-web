@@ -3,14 +3,16 @@
 import { Megaphone } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
-import type { AnnouncementThread } from "@/interfaces/program-announcement";
+import type {
+  AnnouncementThread,
+  ProgramAnnouncement,
+} from "@/interfaces/program-announcement";
 import {
   conversationTime,
   messageDayLabel,
   messageTime,
 } from "@/lib/coordinator-messages";
 import { MAX_ANNOUNCEMENT_LENGTH } from "@/lib/program-announcements";
-import type { ProgramAnnouncement } from "@/interfaces/program-announcement";
 
 type Accent = { strong: string; soft: string };
 

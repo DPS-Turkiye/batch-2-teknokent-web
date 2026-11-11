@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/stores/toast-store";
 import {
   ORGANIZATION_MEMBERS_QUERY_KEY,
   useAddOrganizationMember,
@@ -16,6 +15,7 @@ import {
   useStartupInProgram,
 } from "@/hooks/use-team-changes";
 import type { OrganizationMember } from "@/interfaces/organization-member";
+import { ToastTone } from "@/interfaces/toast";
 import {
   removeOrganizationMember,
   updateOrganizationMember,
@@ -24,12 +24,12 @@ import { requestRemoval } from "@/lib/client/team-changes";
 import {
   foundersFirst,
   isFounder,
-  type MemberDraft,
   memberDraftError,
   MemberFormMode,
+  type MemberDraft,
 } from "@/lib/startup-team";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** The Ekip tab: the member list, adding, editing and removing (or asking to remove) members. */
 export function useStartupTeam() {
@@ -68,10 +68,10 @@ export function useStartupTeam() {
 
   // Inside a program the coordinator decides; the member stays until then.
   const remove = useMutation({
-    mutationFn: (memberId: string) =>
-      removalNeedsApproval
-        ? requestRemoval(memberId)
-        : removeOrganizationMember(memberId),
+    mutationFn: async (memberId: string) => {
+      if (removalNeedsApproval) await requestRemoval(memberId);
+      else await removeOrganizationMember(memberId);
+    },
     onSuccess: () => {
       setRemovingId(null);
       if (removalNeedsApproval) {

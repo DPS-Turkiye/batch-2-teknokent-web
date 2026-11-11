@@ -77,7 +77,7 @@ describe("AcademicianCalendarView", () => {
 
     const removeB110 = within(list)
       .getAllByRole("button")
-      .find((button) => button.closest("li")?.textContent?.includes("B-110"))!;
+      .find((button) => button.closest("li")?.textContent.includes("B-110"))!;
     await user.click(removeB110);
     await screen.findAllByText("Tek seferlik saatler kaydedildi.");
     expect(await within(list).findByText("Lab 3")).toBeVisible();

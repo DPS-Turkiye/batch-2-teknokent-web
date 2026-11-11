@@ -1,10 +1,10 @@
 "use client";
 
-import { type FormEvent, useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type SubmitEvent } from "react";
 
-import { type RegisterForm } from "@/interfaces/auth";
-import { emailCharacterError } from "@/lib/email";
+import type { RegisterForm } from "@/interfaces/auth";
 import { ClientApiError } from "@/lib/client/api";
+import { emailCharacterError } from "@/lib/email";
 import { describeAuthError } from "@/lib/firebase/auth";
 import { passwordStrengthError } from "@/lib/password";
 import { normalizePhoneInput, phoneNumberError } from "@/lib/phone";
@@ -83,7 +83,7 @@ export function useRegisterForm(
     ],
   );
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!onSubmit || !canSubmit || submitting) return;
     setSubmitting(true);

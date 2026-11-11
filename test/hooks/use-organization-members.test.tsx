@@ -1,5 +1,5 @@
-import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -13,6 +13,8 @@ import {
   addOrganizationMember,
   getOrganizationMembers,
 } from "@/lib/client/organization-members";
+import { appSession } from "@test/fixtures/session";
+import { memberFixture } from "@test/fixtures/startup-team";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/organization-members", () => ({
@@ -56,7 +58,7 @@ describe("organization members hooks", () => {
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toHaveLength(1);
-    expect(result.current.data?.[0].fullName).toBe("Ekip Üyesi");
+    expect(result.current.data?.[0]?.fullName).toBe("Ekip Üyesi");
   });
 
   it("invalidates the members list after adding one", async () => {
@@ -87,11 +89,11 @@ describe("organization members hooks", () => {
     ["founder-1", true],
     ["member-1", false],
   ])("tells whether %s is the founder", async (userId, expected) => {
-    vi.mocked(useAppSession).mockReturnValue({ userId } as never);
+    vi.mocked(useAppSession).mockReturnValue(appSession({ userId }));
     vi.mocked(getOrganizationMembers).mockResolvedValue([
-      { id: "founder-1", founder: true },
-      { id: "member-1", founder: false },
-    ] as never);
+      memberFixture("founder-1", { founder: true }),
+      memberFixture("member-1", { founder: false }),
+    ]);
 
     const { result } = renderHook(() => useViewerIsFounder(), {
       wrapper: wrapperFor(createTestQueryClient()),

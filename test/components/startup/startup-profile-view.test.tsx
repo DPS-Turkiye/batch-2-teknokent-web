@@ -9,9 +9,10 @@ import { useOpenDocument } from "@/hooks/use-startup-documents";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
 import {
-  type StartupProfile,
   StartupFundingStage,
+  type StartupProfile,
 } from "@/interfaces/organization";
+import { UserAccountStatus } from "@/interfaces/session";
 import { DocumentKind } from "@/interfaces/startup-document";
 import { documentFixture } from "@test/fixtures/startup-files";
 import { renderWithQueryClient } from "@test/test-utils";
@@ -70,6 +71,7 @@ const profile: StartupProfile = {
   completionPercent: 72,
   fundingStage: StartupFundingStage.PreSeed,
   foundedYear: 2026,
+  approvalStatus: UserAccountStatus.Approved,
   createdAt: "2026-06-12T09:00:00Z",
   updatedAt: "2026-09-02T09:00:00Z",
 };

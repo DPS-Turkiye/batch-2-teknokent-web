@@ -3,7 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AcademicianFrame } from "@/components/academician/academician-frame";
 import { StudentFrame } from "@/components/student/student-frame";
-import { type AppSession, IdentityKind, UserRole } from "@/interfaces/session";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 const replace = vi.fn();
 let pathname = "/student";
@@ -48,7 +49,7 @@ vi.mock("@/components/common/notification-menu", () => ({
 }));
 
 function desktopNav(name: string) {
-  return screen.getAllByRole("navigation", { name })[0];
+  return itemAt(screen.getAllByRole("navigation", { name }), 0);
 }
 
 beforeEach(() => {

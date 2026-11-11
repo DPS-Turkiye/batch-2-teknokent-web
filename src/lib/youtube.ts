@@ -40,19 +40,17 @@ let loading: Promise<YoutubeNamespace> | null = null;
 /** Loads the IFrame Player API once (its script comes from www.youtube.com, allowed in the CSP). */
 export function loadYoutubeApi(): Promise<YoutubeNamespace> {
   if (window.YT?.Player) return Promise.resolve(window.YT);
-  if (!loading) {
-    loading = new Promise((resolve) => {
-      const previous = window.onYouTubeIframeAPIReady;
-      window.onYouTubeIframeAPIReady = () => {
-        previous?.();
-        if (window.YT) resolve(window.YT);
-      };
-      const script = document.createElement("script");
-      script.src = "https://www.youtube.com/iframe_api";
-      script.async = true;
-      document.head.appendChild(script);
-    });
-  }
+  loading ??= new Promise((resolve) => {
+    const previous = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      previous?.();
+      if (window.YT) resolve(window.YT);
+    };
+    const script = document.createElement("script");
+    script.src = "https://www.youtube.com/iframe_api";
+    script.async = true;
+    document.head.appendChild(script);
+  });
   return loading;
 }
 

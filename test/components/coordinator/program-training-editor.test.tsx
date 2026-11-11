@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramTrainingEditor } from "@/components/coordinator/program-training-editor";
 import type { TrainingModuleForEditor } from "@/interfaces/training";
 import { getTrainingForEditor, putTraining } from "@/lib/client/training";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/training", () => ({
@@ -55,7 +56,7 @@ describe("ProgramTrainingEditor", () => {
     await user.click(screen.getByRole("button", { name: "Kaydet ve yayınla" }));
 
     await waitFor(() => expect(putTraining).toHaveBeenCalledOnce());
-    const [programId, input] = vi.mocked(putTraining).mock.calls[0];
+    const [programId, input] = itemAt(vi.mocked(putTraining).mock.calls, 0);
     expect(programId).toBe("p1");
     expect(input.videoUrl).toBe("https://youtu.be/abcdefghijk");
     expect(input.questions).toHaveLength(10);

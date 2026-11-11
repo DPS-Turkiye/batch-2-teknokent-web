@@ -5,10 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorCalendarPage from "@/app/mentor-dashboard/calendar/page";
 import { useMentorCalendar } from "@/hooks/use-mentor-calendar";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import { Weekday, type MentorAvailabilityRule } from "@/interfaces/mentor";
+import { Weekday } from "@/interfaces/mentor";
 import { CalendarFilter } from "@/lib/calendar";
 import { weeklyAvailabilityRows } from "@/lib/mentor-profile-overview";
 import tr from "@/messages/tr.json";
+import { program } from "@test/fixtures/program";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/components/reschedule-meeting-button", () => ({
@@ -68,15 +69,35 @@ function meeting(overrides: Partial<MeetingItem> = {}): MeetingItem {
   };
 }
 
-const setFilter = vi.fn();
-const nextWeek = vi.fn();
-const previousWeek = vi.fn();
-const thisWeek = vi.fn();
-const removeMeeting = vi.fn().mockResolvedValue(undefined);
+type MentorCalendar = ReturnType<typeof useMentorCalendar>;
 
-function mockCalendar(overrides: Record<string, unknown> = {}) {
-  const value = {
+const setFilter = vi.fn<MentorCalendar["setFilter"]>();
+const nextWeek = vi.fn<MentorCalendar["nextWeek"]>();
+const previousWeek = vi.fn<MentorCalendar["previousWeek"]>();
+const thisWeek = vi.fn<MentorCalendar["thisWeek"]>();
+const removeMeeting = vi
+  .fn<MentorCalendar["removeMeeting"]>()
+  .mockResolvedValue(undefined);
+
+/** The week of 14–18 September as useMentorCalendar shows it; availability rows follow the rules. */
+function mockCalendar(overrides: Partial<MentorCalendar> = {}) {
+  const rules = overrides.rules ?? [
+    {
+      id: "rule-1",
+      dayOfWeek: Weekday.Monday,
+      startTime: "09:00:00",
+      endTime: "12:00:00",
+      slotMinutes: 60,
+    },
+  ];
+  const value: MentorCalendar = {
+    availabilityRows: weeklyAvailabilityRows(rules, {
+      weekday: (day) => tr.options.weekday[day],
+      otherDays: "Diğer günler",
+      closed: "Kapalı",
+    }),
     days: WEEK,
+    weekStart: new Date("2026-09-14T00:00:00"),
     meetings: [meeting()],
     slots: [
       {
@@ -86,17 +107,10 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
         booked: false,
       },
     ],
-    rules: [
-      {
-        id: "rule-1",
-        dayOfWeek: Weekday.Monday,
-        startTime: "09:00:00",
-        endTime: "12:00:00",
-        slotMinutes: 60,
-      },
-    ],
+    upcomingSlots: [],
+    rules,
     weekExceptionLabels: [],
-    programs: [{ id: "p1", name: "METU Stars 2026" }],
+    programs: [program({ id: "p1", name: "METU Stars 2026" })],
     mentorships: [],
     regularMentorships: [],
     freeSlotCount: 3,
@@ -105,34 +119,26 @@ function mockCalendar(overrides: Record<string, unknown> = {}) {
     isLoading: false,
     isSavingMeeting: false,
     meetingError: null,
+    isSavingRule: false,
+    ruleError: null,
     nextWeek,
     previousWeek,
     thisWeek,
     removeMeeting,
-    addMeeting: vi.fn(),
+    addMeeting: vi.fn<MentorCalendar["addMeeting"]>(),
+    inviteGuest: vi.fn<MentorCalendar["inviteGuest"]>(),
+    addRule: vi.fn<MentorCalendar["addRule"]>(),
+    removeRule: vi.fn<MentorCalendar["removeRule"]>(),
     ...overrides,
   };
-  const withRows = {
-    ...value,
-    availabilityRows: weeklyAvailabilityRows(
-      value.rules as MentorAvailabilityRule[],
-      {
-        weekday: (day) => tr.options.weekday[day],
-        otherDays: "Diğer günler",
-        closed: "Kapalı",
-      },
-    ),
-  };
-  vi.mocked(useMentorCalendar).mockReturnValue(
-    withRows as unknown as ReturnType<typeof useMentorCalendar>,
-  );
-  return withRows;
+  vi.mocked(useMentorCalendar).mockReturnValue(value);
+  return value;
 }
 
 function grid() {
   return screen
     .getByRole("heading", { name: /^14\s–\s18 Eylül$/ })
-    .closest("section") as HTMLElement;
+    .closest("section")!;
 }
 
 describe("MentorCalendarPage", () => {
@@ -261,9 +267,8 @@ describe("MentorCalendarPage", () => {
 
   it("says when a meeting has no notes yet", async () => {
     const user = userEvent.setup();
-    mockCalendar({
-      meetings: [meeting({ agenda: undefined, meetLink: undefined })],
-    });
+    const { agenda: _agenda, meetLink: _meetLink, ...withoutNotes } = meeting();
+    mockCalendar({ meetings: [withoutNotes] });
     render(<MentorCalendarPage />);
 
     await user.click(within(grid()).getByRole("button", { name: /Döngü/ }));
@@ -330,7 +335,7 @@ describe("MentorCalendarPage", () => {
 
     const panel = screen
       .getByRole("heading", { name: "Sıradaki görüşmeler" })
-      .closest("section") as HTMLElement;
+      .closest("section")!;
     expect(
       within(panel).getByRole("button", { name: /UX Research Review/ }),
     ).toBeInTheDocument();

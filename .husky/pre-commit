@@ -1,1 +1,1 @@
-npm run ci
+npx lint-staged

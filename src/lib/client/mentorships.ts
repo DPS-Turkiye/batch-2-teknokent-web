@@ -56,8 +56,8 @@ export async function updateRegularMentorship(options: {
 }
 
 export async function deleteRegularMentorship(mentorshipId: string) {
-  return requireSuccess(
-    await httpClient.delete(
+  requireSuccess(
+    await httpClient.delete<void>(
       `/api/mentorships/${encodeURIComponent(mentorshipId)}`,
     ),
   );

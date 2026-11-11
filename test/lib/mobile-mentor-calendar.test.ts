@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  type MeetingProposal,
   MeetingProposalStatus,
+  type MeetingProposal,
 } from "@/interfaces/meeting-proposal";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { agendaEntries, startsInLabel } from "@/lib/mobile-calendar";
@@ -11,10 +11,12 @@ import {
   mentorAwaitingEntries,
   mentorEntryDetail,
 } from "@/lib/mobile-mentor-calendar";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { memberFixture } from "@test/fixtures/startup-team";
 import { mobileTexts } from "@test/mobile-texts";
 
 const NOW = new Date(2026, 8, 23, 16, 25);
@@ -37,6 +39,11 @@ const REQUEST = menteeRequestFixture({
   requesterName: "Gülse Buran",
   supportArea: "Positioning",
 });
+
+const MEMBERS = [
+  memberFixture("u1", { fullName: "Gülse Buran", founder: true }),
+  memberFixture("u2", { fullName: "Can Er" }),
+];
 
 describe("mentorAgendaEntries", () => {
   it("names meetings by startup, topic and the person who asked", () => {
@@ -77,10 +84,7 @@ describe("mentorEntryDetail", () => {
         entry: entry!,
         meetings: [MEETING],
         requests: [REQUEST],
-        members: [
-          { id: "u1", fullName: "Gülse Buran", founder: true },
-          { id: "u2", fullName: "Can Er" },
-        ] as never,
+        members: MEMBERS,
         mentorName: "Nihan Öztürk",
         texts: mobileTexts(),
         now: NOW,
@@ -108,10 +112,7 @@ describe("mentorEntryDetail", () => {
       entry: entry!,
       meetings: [MEETING],
       requests: [REQUEST],
-      members: [
-        { id: "u1", fullName: "Gülse Buran", founder: true },
-        { id: "u2", fullName: "Can Er" },
-      ] as never,
+      members: MEMBERS,
       mentorName: "Nihan Öztürk",
       texts: mobileTexts("en"),
       now: NOW,
@@ -163,7 +164,7 @@ describe("startsInLabel", () => {
 
 describe("mentorAwaitingEntries", () => {
   const proposal = (overrides: Partial<MeetingProposal>) =>
-    ({
+    meetingProposal({
       id: "p1",
       organizationName: "Atlas AI",
       scheduledAt: new Date(2026, 8, 24, 11, 0).toISOString(),
@@ -172,7 +173,7 @@ describe("mentorAwaitingEntries", () => {
       status: MeetingProposalStatus.Pending,
       canRespond: true,
       ...overrides,
-    }) as MeetingProposal;
+    });
 
   it("places proposals the mentor still answers and a new request's future slots", () => {
     const entries = mentorAwaitingEntries(

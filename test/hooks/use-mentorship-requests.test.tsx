@@ -5,11 +5,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   useMentorMessageForm,
-  useRequestFileUpload,
   useReplyForm,
+  useRequestFileUpload,
   useSlotBooking,
 } from "@/hooks/use-mentorship-requests";
 import { UserRole } from "@/interfaces/session";
+import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   postMentorMessage,
@@ -17,8 +19,8 @@ import {
   scheduleMeeting,
   type ScheduledMeeting,
 } from "@/lib/client/mentor-requests";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
 import { createTestQueryClient } from "@test/test-utils";
-import { ToastTone } from "@/interfaces/toast";
 
 vi.mock("@/lib/client/mentor-requests", () => ({
   postMentorMessage: vi.fn(),
@@ -80,9 +82,9 @@ describe("useReplyForm", () => {
   });
 
   it("sends the trimmed reply and clears the field on success", async () => {
-    vi.mocked(replyToMentorRequest).mockResolvedValue({
-      id: "request-1",
-    } as never);
+    vi.mocked(replyToMentorRequest).mockResolvedValue(
+      mentorshipRequest({ id: "request-1" }),
+    );
 
     const { result } = renderHook(() => useReplyForm("request-1"), {
       wrapper: wrapperFor(createTestQueryClient()),
@@ -192,9 +194,9 @@ describe("useMentorMessageForm", () => {
   });
 
   it("sends the trimmed message and clears the field on success", async () => {
-    vi.mocked(postMentorMessage).mockResolvedValue({
-      id: "request-1",
-    } as never);
+    vi.mocked(postMentorMessage).mockResolvedValue(
+      mentorshipRequest({ id: "request-1" }),
+    );
 
     const { result } = renderHook(() => useMentorMessageForm("request-1"), {
       wrapper: wrapperFor(createTestQueryClient()),
@@ -242,13 +244,13 @@ describe("useRequestFileUpload", () => {
   it("stores the document and posts its filename to the conversation", async () => {
     vi.mocked(uploadDocument).mockResolvedValue({
       id: "document-1",
-      kind: "other",
+      kind: DocumentKind.Other,
       originalFilename: "financial-model.pdf",
       sizeBytes: 12,
     });
-    vi.mocked(replyToMentorRequest).mockResolvedValue({
-      id: "request-1",
-    } as never);
+    vi.mocked(replyToMentorRequest).mockResolvedValue(
+      mentorshipRequest({ id: "request-1" }),
+    );
     const file = new File(["financial data"], "financial-model.pdf", {
       type: "application/pdf",
     });
@@ -270,13 +272,13 @@ describe("useRequestFileUpload", () => {
   it("posts an uploaded document as a mentor message for mentor threads", async () => {
     vi.mocked(uploadDocument).mockResolvedValue({
       id: "document-2",
-      kind: "other",
+      kind: DocumentKind.Other,
       originalFilename: "research-notes.docx",
       sizeBytes: 24,
     });
-    vi.mocked(postMentorMessage).mockResolvedValue({
-      id: "request-1",
-    } as never);
+    vi.mocked(postMentorMessage).mockResolvedValue(
+      mentorshipRequest({ id: "request-1" }),
+    );
     const file = new File(["notes"], "research-notes.docx", {
       type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     });

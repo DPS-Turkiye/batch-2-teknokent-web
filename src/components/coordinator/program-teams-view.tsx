@@ -9,14 +9,14 @@ import {
   QueryNotice,
   StatusChip,
 } from "@/components/admin/admin-ui";
-import { ProgramWithoutTeam } from "@/components/coordinator/program-without-team";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { ProgramWithoutTeam } from "@/components/coordinator/program-without-team";
 import { TeamDetailDrawer } from "@/components/coordinator/team-detail-drawer";
 import { useProgramTeams } from "@/hooks/use-program-teams";
 import {
   ProgramLifecycle,
-  type ProgramTeam,
   TeamJoinStatus,
+  type ProgramTeam,
 } from "@/interfaces/coordinator-program";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import {
@@ -134,7 +134,7 @@ function TeamsBody({
             </thead>
             <tbody>
               {teams.visible.map((team) =>
-                teams.editing && teams.editing.key === team.inviteId ? (
+                teams.editing?.key === team.inviteId ? (
                   <tr key={team.inviteId}>
                     <td colSpan={6} className="p-3">
                       <TeamForm
@@ -229,7 +229,7 @@ function TeamRow({
             <button
               type="button"
               aria-label={t("copyCode", { name: team.name })}
-              onClick={() => void teams.copyCode(team.code as string)}
+              onClick={() => void teams.copyCode(team.code!)}
               className="grid size-7 place-items-center rounded-full text-[#858c96] hover:bg-[#f4f5f7]"
             >
               <Copy aria-hidden className="size-3.5" />
@@ -279,7 +279,7 @@ function TeamRow({
               type="button"
               aria-label={t("remove", { name: team.name })}
               disabled={teams.busy}
-              onClick={() => teams.remove(team.inviteId as string)}
+              onClick={() => teams.remove(team.inviteId!)}
               className="grid size-8 place-items-center rounded-full text-[#d9464b] hover:bg-[#fff1f0] disabled:opacity-40"
             >
               <Trash2 aria-hidden className="size-4" />
@@ -289,7 +289,7 @@ function TeamRow({
           <span className="flex justify-end">
             <button
               type="button"
-              onClick={() => teams.openDetail(team.organizationId as string)}
+              onClick={() => teams.openDetail(team.organizationId!)}
               className="rounded-full border border-[#e9ecef] px-3.5 py-2 text-[12.5px] font-medium text-[#22262b]"
             >
               {t("detail")}

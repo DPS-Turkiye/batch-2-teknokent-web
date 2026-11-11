@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { OnboardingTopbar } from "@/components/onboarding/onboarding-layout";
@@ -9,7 +10,6 @@ import {
 } from "@/components/onboarding/onboarding-tone";
 import { useOnboardingExit } from "@/hooks/use-onboarding-exit";
 import { SignupRole } from "@/interfaces/signup";
-import { useTranslations } from "next-intl";
 
 const ROLE_CARDS = [
   { role: SignupRole.Founder, tone: OnboardingTone.Mentee, copy: "founder" },

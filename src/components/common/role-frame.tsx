@@ -1,26 +1,26 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { LogOut, Menu, Settings, X } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState, type ReactNode } from "react";
 
 import { AdminIcon } from "@/components/admin/admin-ui";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
+import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
+import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
 import {
   useAppSession,
   useSession,
 } from "@/components/providers/session-provider";
-import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { useRoleGate } from "@/hooks/use-role-gate";
 import { UserRole } from "@/interfaces/session";
 import type { Workspace } from "@/interfaces/workspace";
-import type messages from "@/messages/tr.json";
-import { useRoleGate } from "@/hooks/use-role-gate";
-import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { initials } from "@/lib/utils";
+import type messages from "@/messages/tr.json";
 
 export type RoleMenuLabel = Extract<
   keyof (typeof messages)["roleFrame"],
@@ -58,7 +58,7 @@ export function RoleFrame({
   homeHref: string;
   menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
-  roleLabel?: string;
+  roleLabel?: string | undefined;
   children: ReactNode;
 }) {
   const t = useTranslations("common");
@@ -94,7 +94,7 @@ function RoleShell({
   homeHref: string;
   menuLabel: RoleMenuLabel;
   nav: RoleNavItem[];
-  roleLabel?: string;
+  roleLabel?: string | undefined;
   children: ReactNode;
 }) {
   const pathname = usePathname();

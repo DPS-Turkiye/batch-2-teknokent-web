@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import {
   exchangeInstitutionCode,
@@ -15,16 +16,16 @@ import {
   pendingInstitutionLogin,
 } from "@/lib/server/institution-login-cookie";
 import { toInstitutionProvider } from "@/lib/server/institution-provider";
+import { readJsonBody } from "@/lib/server/request-body";
 
-type CompleteBody = { state?: unknown; params?: unknown };
-
-function stringParams(value: unknown): Record<string, string> | null {
-  if (!value || typeof value !== "object") return null;
-  const entries = Object.entries(value);
-  return entries.every(([, item]) => typeof item === "string")
-    ? (Object.fromEntries(entries) as Record<string, string>)
-    : null;
-}
+/** What the institution sent back to the callback page: the state, and its other query parameters if any. */
+const completeSchema = z.object({
+  state: z.string().min(1),
+  params: z
+    .record(z.string(), z.string())
+    .nullish()
+    .transform((params) => params ?? {}),
+});
 
 /**
  * Hands what the institution sent back to the backend and trades the one-time code it returns for a Firebase
@@ -43,18 +44,11 @@ export async function POST(
         { status: 404 },
       );
     }
-    const body = (await request.json().catch(() => ({}))) as CompleteBody;
-    const callbackParams = stringParams(body.params ?? {});
-    if (typeof body.state !== "string" || !body.state || !callbackParams) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("institutionLoginFailed"),
-        },
-        { status: 400 },
-      );
-    }
-    const pending = pendingInstitutionLogin(request, provider, body.state);
+    const body = await readJsonBody(request, completeSchema, {
+      invalidMessage: "institutionLoginFailed",
+    });
+    if (!body.ok) return body.response;
+    const pending = pendingInstitutionLogin(request, provider, body.data.state);
     if (!pending) {
       return forgetInstitutionLogin(
         NextResponse.json(
@@ -68,8 +62,8 @@ export async function POST(
     }
     const callback = await finishInstitutionCallback(
       provider,
-      body.state,
-      callbackParams,
+      body.data.state,
+      body.data.params,
     );
     if (callback.status !== 200) {
       return forgetInstitutionLogin(backendResponse(callback));

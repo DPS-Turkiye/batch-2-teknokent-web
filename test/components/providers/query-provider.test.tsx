@@ -3,7 +3,7 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import { QueryProvider } from "@/components/providers/query-provider";
-import { polling, POLL_INTERVAL, recordActivity } from "@/lib/poll";
+import { POLL_INTERVAL, polling, recordActivity } from "@/lib/poll";
 
 function Screen({
   polled,

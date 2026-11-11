@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   foundersFirst,
-  type MemberDraft,
   memberDraftError,
   MemberFormMode,
+  type MemberDraft,
 } from "@/lib/startup-team";
 import { memberFixture } from "@test/fixtures/startup-team";
 

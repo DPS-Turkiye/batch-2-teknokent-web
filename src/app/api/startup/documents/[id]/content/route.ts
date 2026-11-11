@@ -1,5 +1,4 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { fetchDocumentDownloadUrl } from "@/lib/api/startup-documents";
 import { contentDispositionHeader } from "@/lib/content-disposition";

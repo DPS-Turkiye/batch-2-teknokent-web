@@ -4,17 +4,14 @@ import { GET } from "@/app/api/programs/mine/this-week/route";
 import { UserRole } from "@/interfaces/session";
 import { fetchProgramThisWeek } from "@/lib/api/program-weeks";
 import { getSessionUser } from "@/lib/session";
+import { answerEachWith } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/program-weeks", () => ({ fetchProgramThisWeek: vi.fn() }));
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(fetchProgramThisWeek).mockResolvedValue({
-    data: {},
-    headers: {},
-    status: 200,
-  } as never);
+  answerEachWith([fetchProgramThisWeek]);
 });
 
 it("needs a session", async () => {

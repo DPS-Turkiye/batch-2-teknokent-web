@@ -1,13 +1,13 @@
-import type {
-  OcrMode,
-  ProfileAnalysis,
-  ProfileType,
+import { clientText } from "@/i18n/client-texts";
+import {
+  ProfileAnalysisType,
+  type ProfileAnalysis,
+  type ProfileOcrMode,
 } from "@/interfaces/profile-analysis";
 import { requireSuccess } from "@/lib/client/api";
 import { getPublicBackendUrl } from "@/lib/const";
 import { currentIdToken } from "@/lib/firebase/auth";
-import { UPLOAD_TIMEOUT_MS, httpClient } from "@/lib/http-client";
-import { clientText } from "@/i18n/client-texts";
+import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 
 async function uploadConfig() {
   const token = await currentIdToken();
@@ -30,8 +30,8 @@ export async function getLatestProfileAnalysis(appUserId?: string) {
 
 export async function uploadProfileAnalysis(input: {
   file: File;
-  ocrMode: OcrMode;
-  profileType: ProfileType;
+  ocrMode: ProfileOcrMode;
+  profileType: ProfileAnalysisType;
   appUserId?: string;
 }) {
   const data = new FormData();
@@ -53,7 +53,7 @@ export async function uploadProfileAnalysis(input: {
 
 export async function createManualProfile(input: {
   profile: Record<string, unknown>;
-  profileType: ProfileType;
+  profileType: ProfileAnalysisType;
   appUserId?: string;
 }) {
   return requireSuccess(
@@ -119,7 +119,7 @@ export type CvSource = File | { documentId: string };
 /** A new file is sent along; a stored CV is read where it already is. */
 export function readCv(
   source: CvSource,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   return source instanceof File
     ? parseCv(source, profileType)
@@ -129,7 +129,7 @@ export function readCv(
 /** Parses a CV the person already uploaded, so it does not travel again. */
 export async function parseStoredCv(
   documentId: string,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const query = new URLSearchParams({
     profileType,
@@ -146,7 +146,7 @@ export async function parseStoredCv(
 
 export async function parseCv(
   file: File,
-  profileType: ProfileType = "individual_mentee",
+  profileType: ProfileAnalysisType = ProfileAnalysisType.Personal,
 ) {
   const data = new FormData();
   data.set("file", file);

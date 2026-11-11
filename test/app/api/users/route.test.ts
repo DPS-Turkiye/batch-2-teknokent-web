@@ -1,14 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/users/route";
-import { fetchUsers } from "@/lib/api/accounts";
-import { requireAdminSession } from "@/lib/server/require-admin";
 import {
   UserAccountStatus,
   UserRole,
   type AppSession,
 } from "@/interfaces/session";
-import { NextResponse } from "next/server";
+import { fetchUsers } from "@/lib/api/accounts";
+import { requireAdminSession } from "@/lib/server/require-admin";
+import { guardRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/accounts", () => ({
   fetchUsers: vi.fn(),
@@ -34,13 +34,7 @@ describe("GET /api/users", () => {
   });
 
   it("rejects a missing session", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json(
-        { code: "SESSION_REQUIRED" },
-        { status: 401 },
-      ),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(401));
 
     const response = await GET();
 
@@ -49,10 +43,7 @@ describe("GET /api/users", () => {
   });
 
   it("rejects a non-admin session", async () => {
-    vi.mocked(requireAdminSession).mockResolvedValue({
-      ok: false,
-      response: NextResponse.json({ code: "FORBIDDEN" }, { status: 403 }),
-    });
+    vi.mocked(requireAdminSession).mockResolvedValue(guardRefusal(403));
 
     const response = await GET();
 

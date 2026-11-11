@@ -1,4 +1,5 @@
 import { DocumentKind } from "@/interfaces/startup-document";
+import type { Keyed } from "@/lib/keyed-list";
 
 /** The `?role=` value on /signup; the role page sets it. */
 export enum SignupRole {
@@ -59,13 +60,18 @@ export const SUPPORT_AREA_OPTIONS = [
   "Yatırım",
 ] as const;
 
-/** The four documents the signup wizard asks a startup for. */
-export enum StartupDocumentKind {
-  Canvas = DocumentKind.Canvas,
-  PitchDeck = DocumentKind.PitchDeck,
-  Mvp = DocumentKind.Mvp,
-  Validation = DocumentKind.Validation,
-}
+/**
+ * The four documents the signup wizard asks a startup for. A subset of DocumentKind rather than an enum of its own,
+ * so a signup file's kind is a DocumentKind wherever stored documents are looked up or uploaded.
+ */
+export const StartupDocumentKind = {
+  Canvas: DocumentKind.Canvas,
+  PitchDeck: DocumentKind.PitchDeck,
+  Mvp: DocumentKind.Mvp,
+  Validation: DocumentKind.Validation,
+} as const;
+export type StartupDocumentKind =
+  (typeof StartupDocumentKind)[keyof typeof StartupDocumentKind];
 
 export interface UploadedFile {
   name: string;
@@ -100,7 +106,8 @@ export interface StartupProfileDraft {
   /** "Startup'ı daha sonra oluşturacağım": sign up into the program without a startup. */
   startupLater?: boolean;
   maturity: string;
-  teamMembers: TeamMemberDraft[];
+  /** Rows carry React keys while edited (see keyed-list); the saved draft and the payloads leave them out. */
+  teamMembers: Keyed<TeamMemberDraft>[];
   supportAreas: string[];
   logo: UploadedFile | null;
 }

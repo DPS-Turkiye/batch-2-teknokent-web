@@ -3,12 +3,12 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import {
   useCreateOfficeHoursRequest,
   useInstructorSlots,
 } from "@/hooks/use-office-hours-booking";
 import type { OfficeHoursPerson } from "@/interfaces/office-hours";
+import { ToastTone } from "@/interfaces/toast";
 import {
   emptyPreferredSlots,
   hasPreferredSlots,
@@ -17,7 +17,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { asAvailabilitySlots } from "@/lib/office-hours-booking";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export function useOfficeHoursRequestForm(
   courseId: string,

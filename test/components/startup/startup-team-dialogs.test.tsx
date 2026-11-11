@@ -14,9 +14,15 @@ import { memberFixture } from "@test/fixtures/startup-team";
 
 type Team = ReturnType<typeof useStartupTeam>;
 
-function team(overrides: Partial<Team> = {}) {
+/** What useStartupTeam returns with the add form open and empty; every action is a spy. */
+function team(overrides: Partial<Team> = {}): Team {
   return {
-    closeForm: vi.fn(),
+    askRemove: vi.fn<Team["askRemove"]>(),
+    canEdit: vi.fn<Team["canEdit"]>(),
+    canRemove: vi.fn<Team["canRemove"]>(),
+    cancelRemove: vi.fn<Team["cancelRemove"]>(),
+    closeForm: vi.fn<Team["closeForm"]>(),
+    confirmRemove: vi.fn<Team["confirmRemove"]>(),
     draft: {
       mode: MemberFormMode.Add,
       memberId: null,
@@ -24,12 +30,21 @@ function team(overrides: Partial<Team> = {}) {
       email: "",
       jobTitle: "",
     },
+    error: null,
     formError: null,
+    isLoading: false,
+    isRemoving: false,
     isSaving: false,
-    setField: vi.fn(),
-    submitForm: vi.fn(),
+    members: [],
+    removalNeedsApproval: false,
+    openAdd: vi.fn<Team["openAdd"]>(),
+    openEdit: vi.fn<Team["openEdit"]>(),
+    removingMember: null,
+    setField: vi.fn<Team["setField"]>(),
+    submitForm: vi.fn<Team["submitForm"]>(),
+    viewerIsFounder: true,
     ...overrides,
-  } as unknown as Team;
+  };
 }
 
 describe("MemberFormDialog", () => {
@@ -112,19 +127,29 @@ describe("MemberFormDialog keyboard", () => {
 
 type Changes = ReturnType<typeof useTeamChanges>;
 
-function changes(overrides: Partial<Changes> = {}) {
+/** What useTeamChanges returns for a member asked to confirm leaving; every action is a spy. */
+function changes(overrides: Partial<Changes> = {}): Changes {
   return {
     alone: false,
-    closeLeave: vi.fn(),
-    confirmLeave: vi.fn(),
+    canLeave: true,
+    cancel: vi.fn<Changes["cancel"]>(),
+    cancellingId: null,
+    changeFor: vi.fn<Changes["changeFor"]>(() => null),
+    closeLeave: vi.fn<Changes["closeLeave"]>(),
+    confirmLeave: vi.fn<Changes["confirmLeave"]>(),
     confirmingLeave: true,
+    inProgram: true,
     isLeaving: false,
-    setSuccessorId: vi.fn(),
+    myChange: null,
+    openLeave: vi.fn<Changes["openLeave"]>(),
+    refresh: vi.fn<Changes["refresh"]>(),
+    requestedByMe: vi.fn<Changes["requestedByMe"]>(() => false),
+    setSuccessorId: vi.fn<Changes["setSuccessorId"]>(),
     successorId: "",
     successors: [memberFixture("cto")],
     viewerIsLeader: false,
     ...overrides,
-  } as unknown as Changes;
+  };
 }
 
 describe("LeaveTeamDialog", () => {

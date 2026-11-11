@@ -3,12 +3,12 @@
 import { useTranslations } from "next-intl";
 
 import { LanguageSwitch } from "@/components/common/language-switch";
-import { ENGLISH_ENABLED } from "@/lib/i18n";
 import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileToggle } from "@/components/mobile/mobile-toggle";
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar";
 import { useMobileAccount } from "@/hooks/use-mobile-account";
 import { PushDeviceState } from "@/hooks/use-push-device";
+import { ENGLISH_ENABLED } from "@/lib/i18n";
 
 const CARD_CLASS = "w-full rounded-[24px] bg-white";
 

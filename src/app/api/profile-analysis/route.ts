@@ -1,4 +1,4 @@
-import { NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { fetchLatestProfileAnalysis } from "@/lib/api/profile-analysis";
 import {
@@ -6,8 +6,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
 import { forbiddenWithoutOrganization } from "@/lib/server/without-organization";
+import { getSessionIds } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {

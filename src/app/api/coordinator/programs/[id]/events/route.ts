@@ -4,25 +4,22 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { createProgramEventSchema } from "@/lib/server/coordinator-program-schemas";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const body = await readJsonBody(request, createProgramEventSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await createCoordinatorProgramEvent(auth.session.userId, id, {
-        title: body.title,
-        kind: body.kind,
-        startsAt: body.startsAt,
-        endsAt: body.endsAt ?? null,
-        description: body.description ?? null,
-      }),
+      await createCoordinatorProgramEvent(auth.session.userId, id, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {

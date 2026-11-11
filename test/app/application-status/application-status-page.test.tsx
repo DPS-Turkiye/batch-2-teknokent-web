@@ -7,6 +7,7 @@ import { useAccountStatus } from "@/hooks/use-account-status";
 import { useSubmittedProfile } from "@/hooks/use-submitted-profile";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import { ContactPreference } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 
 vi.mock("@/hooks/use-account-status", () => ({
   useAccountStatus: vi.fn(),
@@ -44,7 +45,7 @@ function mockStatus(overrides: Partial<ReturnType<typeof useAccountStatus>>) {
     isSignedOut: false,
     error: null,
     ...overrides,
-  } as ReturnType<typeof useAccountStatus>);
+  });
 }
 
 beforeEach(() => {
@@ -169,7 +170,7 @@ describe("ApplicationStatusPage", () => {
       documents: [
         {
           id: "d1",
-          kind: "pitch-deck",
+          kind: DocumentKind.PitchDeck,
           originalFilename: "deck.pdf",
           sizeBytes: 2048,
         },

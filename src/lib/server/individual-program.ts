@@ -1,14 +1,13 @@
-import "server-only";
-
 import { redirect } from "next/navigation";
 import { cache } from "react";
+import "server-only";
 
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchOrganizationPrograms } from "@/lib/api/programs";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
+import { hasPermission } from "@/lib/permissions";
 import { getSessionUser } from "@/lib/session";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";
-import { hasPermission } from "@/lib/permissions";
 
 const currentProgramIsIndividual = cache(async (userId: string) => {
   try {

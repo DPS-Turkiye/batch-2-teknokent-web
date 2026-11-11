@@ -1,12 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { UserRole } from "@/interfaces/session";
 import {
   fetchMentorRequests,
   isMentorRequestAction,
-  mutateMentorRequest,
   MentorRequestAction,
+  mutateMentorRequest,
 } from "@/lib/api/mentor-requests";
-import { UserRole } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 

@@ -12,8 +12,8 @@ import {
   fetchHealthClient,
   HEALTH_API_PATH,
   HealthFetchError,
-  HealthStatus,
   healthKeys,
+  HealthStatus,
   isHealthUp,
   isValidHealthResponse,
 } from "@/lib/health";

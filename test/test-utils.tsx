@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, type RenderOptions } from "@testing-library/react";
+import { NextIntlClientProvider } from "next-intl";
 import type { ReactElement, ReactNode } from "react";
 import { vi } from "vitest";
+
 import { DocumentPreviewHost } from "@/components/common/document-preview-host";
 import { Toaster } from "@/components/common/toaster";
-import { NextIntlClientProvider } from "next-intl";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { appMessages, asLocale, type TestLocale } from "@test/i18n";
 
 /**
  * Fixes "now" for code that checks how far away a time is. Only Date is faked, so
@@ -54,13 +54,13 @@ export function InLocale({
   locale,
   children,
 }: {
-  locale: "tr" | "en";
+  locale: TestLocale;
   children: ReactNode;
 }) {
   return (
     <NextIntlClientProvider
-      locale={locale}
-      messages={locale === "en" ? en : tr}
+      locale={asLocale(locale)}
+      messages={appMessages(locale)}
     >
       {children}
     </NextIntlClientProvider>

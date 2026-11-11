@@ -1,7 +1,6 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useTranslations } from "next-intl";
 
 /** Loading and load-failure states shared by the academician screens; renders nothing once loaded. */

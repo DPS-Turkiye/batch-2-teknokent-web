@@ -20,6 +20,7 @@ import {
   revokeGateBadge,
 } from "@/lib/api/badges";
 import { getSessionUser } from "@/lib/session";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("next-intl/server", () => ({
   getTranslations: async () => (key: string) => key,
@@ -35,7 +36,7 @@ vi.mock("@/lib/api/badges", () => ({
   revokeGateBadge: vi.fn(),
 }));
 
-const ok = { status: 200, data: [], headers: {} };
+const ok = backendResponse([]);
 
 function as(role: UserRole): AppSession {
   return {
@@ -56,17 +57,18 @@ function post(url: string, body: unknown) {
 describe("badge routes", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    for (const call of [
-      awardGateBadge,
-      fetchAdminStudents,
-      fetchMyAchievements,
-      fetchMyBadges,
-      fetchProgramBadgeRoster,
-      fetchUserBadges,
-      revokeGateBadge,
-    ]) {
-      vi.mocked(call).mockResolvedValue(ok as never);
-    }
+    answerEachWith(
+      [
+        awardGateBadge,
+        fetchAdminStudents,
+        fetchMyAchievements,
+        fetchMyBadges,
+        fetchProgramBadgeRoster,
+        fetchUserBadges,
+        revokeGateBadge,
+      ],
+      ok,
+    );
   });
 
   it("asks for the signed-in person's own badges and a session for anyone else's", async () => {

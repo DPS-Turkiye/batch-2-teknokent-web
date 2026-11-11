@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import type { FormEvent } from "react";
+import type { SubmitEvent } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { EditableChips } from "@/components/common/editable-chips";
@@ -41,7 +41,9 @@ describe("EditableChips", () => {
 
   it("adds on Enter without submitting the surrounding form", async () => {
     const user = userEvent.setup();
-    const onSubmit = vi.fn((event: FormEvent) => event.preventDefault());
+    const onSubmit = vi.fn((event: SubmitEvent) => {
+      event.preventDefault();
+    });
     render(
       <form onSubmit={onSubmit}>
         <EditableChips

@@ -5,12 +5,13 @@ import { useCallback, type Dispatch, type SetStateAction } from "react";
 import type { CreateStartupInput } from "@/interfaces/organization";
 import {
   MAX_SUPPORT_AREAS,
-  StartupDocumentKind,
   type SignupDraft,
+  type StartupDocumentKind,
   type StartupProfileDraft,
   type TeamMemberDraft,
   type UploadedFile,
 } from "@/interfaces/signup";
+import { withKey } from "@/lib/keyed-list";
 
 export function emptySignupDraft(): SignupDraft {
   return {
@@ -112,7 +113,7 @@ export function useStartupDraftEditors(
         ...current,
         startup: {
           ...current.startup,
-          teamMembers: [...current.startup.teamMembers, member],
+          teamMembers: [...current.startup.teamMembers, withKey(member)],
         },
       }));
     },

@@ -86,6 +86,28 @@ const rate = vi.fn();
 const submit = vi.fn();
 const toggleBenefit = vi.fn();
 
+/** The evaluation form with every question rated and one benefit picked. */
+function feedbackForm(
+  overrides: Partial<ReturnType<typeof useMeetingFeedback>> = {},
+): ReturnType<typeof useMeetingFeedback> {
+  return {
+    canSubmit: true,
+    isFeedbackLoading: false,
+    nextMeetingNote: "",
+    rate,
+    ratings: [4, 4, 5, 4],
+    readOnly: false,
+    selectedBenefits: new Set(["Finansal modeli anlamak"]),
+    setNextMeetingNote: vi.fn(),
+    submit,
+    submitError: "",
+    submitted: false,
+    submitting: false,
+    toggleBenefit,
+    ...overrides,
+  };
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useMeetingLifecycle).mockReturnValue({
@@ -114,19 +136,7 @@ beforeEach(() => {
     setNotes: vi.fn(),
     setOutcomes: vi.fn(),
   });
-  vi.mocked(useMeetingFeedback).mockReturnValue({
-    canSubmit: true,
-    nextMeetingNote: "",
-    rate,
-    ratings: [4, 4, 5, 4],
-    selectedBenefits: new Set(["Finansal modeli anlamak"]),
-    setNextMeetingNote: vi.fn(),
-    submit,
-    submitError: "",
-    submitted: false,
-    submitting: false,
-    toggleBenefit,
-  });
+  vi.mocked(useMeetingFeedback).mockReturnValue(feedbackForm());
 });
 
 describe("meeting lifecycle pages", () => {
@@ -245,19 +255,13 @@ describe("meeting lifecycle pages", () => {
   });
 
   it("will not submit an evaluation until every question is rated", async () => {
-    vi.mocked(useMeetingFeedback).mockReturnValue({
-      canSubmit: false,
-      nextMeetingNote: "",
-      rate,
-      ratings: [4, 0, 0, 0],
-      selectedBenefits: new Set<string>(),
-      setNextMeetingNote: vi.fn(),
-      submit,
-      submitError: "",
-      submitted: false,
-      submitting: false,
-      toggleBenefit,
-    });
+    vi.mocked(useMeetingFeedback).mockReturnValue(
+      feedbackForm({
+        canSubmit: false,
+        ratings: [4, 0, 0, 0],
+        selectedBenefits: new Set<string>(),
+      }),
+    );
     const user = userEvent.setup();
     render(<MeetingFeedbackPage />);
 

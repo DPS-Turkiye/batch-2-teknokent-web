@@ -1,14 +1,29 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+  type Mock,
+} from "vitest";
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
 
 describe("S3 Upload - Error Handling & Edge Cases", () => {
-  let fetchMock: ReturnType<typeof vi.fn>;
+  let fetchMock: Mock<typeof fetch>;
 
   beforeEach(() => {
-    fetchMock = vi.fn();
-    global.fetch = fetchMock as unknown as typeof fetch;
+    fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
   });
 
   afterEach(() => {
+    vi.unstubAllGlobals();
     vi.restoreAllMocks();
   });
 
@@ -43,7 +58,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
         }
 
         if (i < maxRetries - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
+          await wait(100);
         }
       }
 
@@ -71,11 +86,9 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
       type: "text/plain",
     });
 
-    try {
-      await validateAndUpload(largeFile);
-    } catch (error) {
-      expect((error as Error).message).toContain("exceeds 500MB limit");
-    }
+    await expect(validateAndUpload(largeFile)).rejects.toThrow(
+      "exceeds 500MB limit",
+    );
   });
 
   it("should handle S3 access denied errors", async () => {
@@ -107,7 +120,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
         const percent = Math.min((uploadedBytes / totalSize) * 100, 100);
         onProgress(percent);
 
-        await new Promise((resolve) => setTimeout(resolve, 10));
+        await wait(10);
       }
 
       return { url: "https://s3.amazonaws.com/large-file" };
@@ -154,11 +167,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
       return response.json();
     };
 
-    try {
-      await parseS3Response();
-    } catch (error) {
-      expect(error).toBeDefined();
-    }
+    await expect(parseS3Response()).rejects.toThrow(SyntaxError);
   });
 
   it("should validate file MIME type before upload", async () => {
@@ -184,7 +193,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
 
     fetchMock.mockImplementation(async () => {
       uploadCount++;
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await wait(50);
       return new Response(
         JSON.stringify({
           url: `https://s3.amazonaws.com/file-${uploadCount}`,
@@ -240,7 +249,7 @@ describe("S3 Upload - Error Handling & Edge Cases", () => {
 
         if (i < 2) {
           const delay = Math.pow(2, i) * 50;
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await wait(delay);
         }
       }
 

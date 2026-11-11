@@ -1,5 +1,5 @@
-import { NextRequest } from "next/server";
 import { getLocale } from "next-intl/server";
+import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { POST } from "@/app/api/session/route";
@@ -55,6 +55,13 @@ function backendUser(status: UserAccountStatus): BackendUser {
     role: UserRole.Mentor,
     status,
   };
+}
+
+/** The user the last sign-in saved into the session cookie. */
+function savedSessionUser() {
+  const [user] = vi.mocked(saveSessionUser).mock.lastCall ?? [];
+  if (!user) throw new Error("The sign-in did not save a session user.");
+  return user;
 }
 
 function answers(user: BackendUser) {
@@ -118,16 +125,12 @@ describe("POST /api/session", () => {
     cookieValues.set(LAST_WORKSPACE_COOKIE, Workspace.OdtuStudent);
 
     await signIn();
-    expect(vi.mocked(saveSessionUser).mock.calls[0][0].activeWorkspace).toBe(
-      Workspace.OdtuStudent,
-    );
+    expect(savedSessionUser().activeWorkspace).toBe(Workspace.OdtuStudent);
 
     vi.mocked(saveSessionUser).mockClear();
     cookieValues.set(LAST_WORKSPACE_COOKIE, Workspace.Admin);
     await signIn();
-    expect(
-      vi.mocked(saveSessionUser).mock.calls[0][0].activeWorkspace,
-    ).toBeUndefined();
+    expect(savedSessionUser().activeWorkspace).toBeUndefined();
     cookieValues.clear();
   });
 });

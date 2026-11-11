@@ -11,6 +11,7 @@ import {
   getOfficeHoursMeetings,
   getOfficeHoursRequests,
 } from "@/lib/client/office-hours-booking";
+import { officeHoursRequest } from "@test/fixtures/office-hours";
 import { renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/office-hours-booking", () => ({
@@ -35,7 +36,9 @@ describe("CourseOfficeHours", () => {
 
   it("shows a student the course's academics and sends a request with a typed time", async () => {
     const user = userEvent.setup();
-    vi.mocked(createOfficeHoursRequest).mockResolvedValue({} as never);
+    vi.mocked(createOfficeHoursRequest).mockResolvedValue(
+      officeHoursRequest({ topic: "Ödev 2" }),
+    );
     renderWithQueryClient(
       <CourseOfficeHours
         courseId="course-1"

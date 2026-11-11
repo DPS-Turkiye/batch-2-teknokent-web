@@ -12,7 +12,8 @@ export type RegularMentorship = {
   mentorId: string;
   mentorName: string;
   organizationId: string;
-  organizationName: string;
+  /** Null for a personal team (Organization.visibleName), which is never shown as a team. */
+  organizationName: string | null;
   status: string;
   startDate: string;
   endDate: string | null;
@@ -24,7 +25,8 @@ export type RegularMentorship = {
 
 export type MentorshipWeekCheck = {
   mentorshipId: string;
-  organizationName: string;
+  /** Null for a personal team (Organization.visibleName), which is never shown as a team. */
+  organizationName: string | null;
   daysPerWeek: number;
   startDate: string;
   endDate: string | null;

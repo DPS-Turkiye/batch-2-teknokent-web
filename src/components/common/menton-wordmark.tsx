@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 /** The gray "menton" wordmark every workspace header uses. */
 export function MentonWordmark({ href = "/" }: { href?: string }) {

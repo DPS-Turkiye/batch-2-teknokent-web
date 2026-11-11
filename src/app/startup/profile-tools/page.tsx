@@ -1,8 +1,9 @@
 import { redirect } from "next/navigation";
+
 import { StartupProfileToolsView } from "@/components/startup/startup-profile-tools-view";
 import { UserRole } from "@/interfaces/session";
-import { roleWorkspace } from "@/lib/role-workspace";
 import { loginPathFor } from "@/lib/public-paths";
+import { roleWorkspace } from "@/lib/role-workspace";
 import { isIndividualMentee } from "@/lib/server/individual-program";
 import { getSessionUser } from "@/lib/session";
 import { STUDENT_PROJECT_HREF } from "@/lib/startup-tabs";

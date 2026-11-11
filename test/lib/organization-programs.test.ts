@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import type { OrganizationProgram } from "@/interfaces/program";
 import { currentOrganizationProgram } from "@/lib/organization-programs";
 
-const alpha = { id: "p-1", name: "Alpha", coordinatorName: "Elif" };
-const beta = { id: "p-2", name: "Beta", coordinatorName: "Burcu" };
+const alpha: OrganizationProgram = {
+  id: "p-1",
+  name: "Alpha",
+  coordinatorName: "Elif",
+  individualMentees: false,
+};
+const beta: OrganizationProgram = {
+  id: "p-2",
+  name: "Beta",
+  coordinatorName: "Burcu",
+  individualMentees: false,
+};
 
 describe("currentOrganizationProgram", () => {
   it("uses the program the startup chose", () => {

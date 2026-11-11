@@ -1,9 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
 import { getLocale } from "next-intl/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import { fetchSignedInUser, saveSignedInLanguage } from "@/lib/api/auth";
 import { isLocale } from "@/lib/i18n";
+import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import { readBearerToken } from "@/lib/server/bearer-token";
 import {
   destroySession,
   getSessionUser,
@@ -11,8 +13,6 @@ import {
   saveSessionUser,
   toSession,
 } from "@/lib/session";
-import { apiErrorResponse, apiText } from "@/lib/server/api-response";
-import { readBearerToken } from "@/lib/server/bearer-token";
 import { workspacesOf } from "@/lib/workspaces";
 
 async function readRememberMe(request: NextRequest): Promise<boolean> {

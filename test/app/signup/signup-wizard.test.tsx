@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SignupWizardView } from "@/components/signup/signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { ContactPreference } from "@/interfaces/signup";
+import { DocumentKind } from "@/interfaces/startup-document";
 import { getProgramEligibility, registerFounder } from "@/lib/client/auth";
 import { listDocuments, uploadDocument } from "@/lib/client/documents";
 import { parseCv } from "@/lib/client/profile-analysis";
@@ -168,7 +169,7 @@ describe("Signup wizard", () => {
     vi.mocked(listDocuments).mockResolvedValue([
       {
         id: "doc-1",
-        kind: "cv",
+        kind: DocumentKind.Cv,
         originalFilename: "gulse-cv.pdf",
         sizeBytes: 1024,
       },
@@ -198,8 +199,8 @@ describe("Signup wizard", () => {
 
   it("offers only the coordinator's real programs", async () => {
     vi.mocked(getProgramNames).mockResolvedValue([
-      { id: "prog-1", name: "metustarts 2026" },
-      { id: "prog-2", name: "Seed 2026" },
+      { id: "prog-1", name: "metustarts 2026", individualMentees: false },
+      { id: "prog-2", name: "Seed 2026", individualMentees: false },
     ]);
     const user = userEvent.setup();
     render(<SignupWizardView account={ACCOUNT} />);
@@ -311,7 +312,7 @@ describe("Signup wizard", () => {
     await reachReview(user);
     const personal = screen
       .getByRole("heading", { name: "Kişisel profil" })
-      .closest("section") as HTMLElement;
+      .closest("section")!;
     await user.click(within(personal).getByRole("button", { name: "Düzenle" }));
 
     expect(

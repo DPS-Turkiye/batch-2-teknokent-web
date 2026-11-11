@@ -1,6 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
+  ProfileAnalysisType,
+  ProfileOcrMode,
+} from "@/interfaces/profile-analysis";
+import {
   parseCv,
   parseStoredCv,
   readCv,
@@ -8,6 +12,7 @@ import {
 } from "@/lib/client/profile-analysis";
 import { currentIdToken } from "@/lib/firebase/auth";
 import { httpClient } from "@/lib/http-client";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 vi.mock("@/lib/http-client", () => ({
   httpClient: { post: vi.fn() },
@@ -31,11 +36,11 @@ describe("profile analysis uploads", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 200,
       data: { current_role: "Ürün Yöneticisi" },
-    } as never);
+    });
 
     await parseCv(file);
 
-    const [url, , config] = vi.mocked(httpClient.post).mock.calls[0];
+    const [url, , config] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).toContain("http://localhost:8080/api/profile-analyses/preview");
     expect(config).toMatchObject({
       headers: { Authorization: "Bearer fresh-token" },
@@ -47,11 +52,14 @@ describe("profile analysis uploads", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 200,
       data: { current_role: "Ürün Yöneticisi" },
-    } as never);
+    });
 
     await parseStoredCv("cv-1");
 
-    const [url, body, config] = vi.mocked(httpClient.post).mock.calls[0];
+    const [url, body, config] = itemAt(
+      vi.mocked(httpClient.post).mock.calls,
+      0,
+    );
     expect(url).toContain(
       "http://localhost:8080/api/profile-analyses/preview/documents/cv-1?",
     );
@@ -68,13 +76,13 @@ describe("profile analysis uploads", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 200,
       data: {},
-    } as never);
+    });
 
-    await readCv(file, "mentor");
-    await readCv({ documentId: "cv-1" }, "mentor");
+    await readCv(file, ProfileAnalysisType.Mentor);
+    await readCv({ documentId: "cv-1" }, ProfileAnalysisType.Mentor);
 
-    const [newUrl, newBody] = vi.mocked(httpClient.post).mock.calls[0];
-    const [storedUrl] = vi.mocked(httpClient.post).mock.calls[1];
+    const [newUrl, newBody] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
+    const [storedUrl] = itemAt(vi.mocked(httpClient.post).mock.calls, 1);
     expect(newUrl).toContain("/api/profile-analyses/preview?");
     expect(newBody).toBeInstanceOf(FormData);
     expect(storedUrl).toContain(
@@ -91,16 +99,16 @@ describe("profile analysis uploads", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,
       data: { id: "analysis-1" },
-    } as never);
+    });
 
     await uploadProfileAnalysis({
       file,
-      ocrMode: "force",
-      profileType: "individual_mentee",
+      ocrMode: ProfileOcrMode.Force,
+      profileType: ProfileAnalysisType.Personal,
       appUserId: "user-1",
     });
 
-    const [url, , config] = vi.mocked(httpClient.post).mock.calls[0];
+    const [url, , config] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).toContain("http://localhost:8080/api/profile-analyses?");
     const query = new URLSearchParams(url.split("?")[1]);
     expect(query.get("profileType")).toBe("individual_mentee");
@@ -116,15 +124,15 @@ describe("profile analysis uploads", () => {
     vi.mocked(httpClient.post).mockResolvedValue({
       status: 201,
       data: { id: "analysis-1" },
-    } as never);
+    });
 
     await uploadProfileAnalysis({
       file,
-      ocrMode: "auto",
-      profileType: "mentee",
+      ocrMode: ProfileOcrMode.Auto,
+      profileType: ProfileAnalysisType.Startup,
     });
 
-    const [url] = vi.mocked(httpClient.post).mock.calls[0];
+    const [url] = itemAt(vi.mocked(httpClient.post).mock.calls, 0);
     expect(url).not.toContain("organizationId");
   });
 

@@ -1,11 +1,12 @@
 import "server-only";
+import { z } from "zod";
 
+import type { Weekday } from "@/interfaces/mentor";
 import type {
   LtiLaunchResult,
   OfficeHoursCourse,
 } from "@/interfaces/office-hours";
 import { backendRequest } from "@/lib/server/backend-client";
-import { z } from "zod";
 
 /**
  * Moodle posts these forms straight from the browser, so a field that is missing or malformed means the Moodle
@@ -80,7 +81,8 @@ export function fetchOfficeHoursCourse(userId: string, courseId: string) {
 export type BackendOfficeHoursAvailability = {
   rules: {
     id: string;
-    dayOfWeek: string;
+    /** Java's DayOfWeek, which Jackson writes as MONDAY … SUNDAY: the same values as Weekday. */
+    dayOfWeek: Weekday;
     startTime: string;
     endTime: string;
     slotMinutes: number;

@@ -1,12 +1,12 @@
 import type { useTranslations } from "next-intl";
 
 import {
-  type CoordinatorConversation,
   CoordinatorConversationCounterpart,
+  type CoordinatorConversation,
 } from "@/interfaces/coordinator-conversation";
 import {
-  type CoordinatorMentorship,
   CoordinatorMentorshipHealth,
+  type CoordinatorMentorship,
 } from "@/interfaces/coordinator-mentorship";
 import { formatDayMonth, relativeDayLabel } from "@/lib/utils";
 

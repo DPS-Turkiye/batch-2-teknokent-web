@@ -114,7 +114,7 @@ export interface OfficeHoursMeeting {
 export interface CreateOfficeHoursRequestPayload {
   instructorId: string;
   topic: string;
-  expectedOutcome?: string;
+  expectedOutcome?: string | undefined;
   preferredSlots: string[];
 }
 
@@ -122,12 +122,12 @@ export type OfficeHoursDecisionPayload =
   | {
       status: OfficeHoursRequestStatus.Accepted;
       slot: string;
-      message?: string;
+      message?: string | undefined;
     }
-  | { status: OfficeHoursRequestStatus.Declined; message?: string }
+  | { status: OfficeHoursRequestStatus.Declined; message?: string | undefined }
   | { status: OfficeHoursRequestStatus.MoreInfoRequested; message: string }
   | {
       status: OfficeHoursRequestStatus.CounterProposed;
       proposedSlots: string[];
-      message?: string;
+      message?: string | undefined;
     };

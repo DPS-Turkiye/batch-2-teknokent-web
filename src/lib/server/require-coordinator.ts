@@ -1,14 +1,18 @@
+import { NextResponse } from "next/server";
 import "server-only";
 
-import { NextResponse } from "next/server";
-
 import { UserRole } from "@/interfaces/session";
-import { getSessionUser } from "@/lib/session";
-import { apiText } from "@/lib/server/api-response";
 import { hasPermission } from "@/lib/permissions";
+import { apiText, type ApiTextKey } from "@/lib/server/api-response";
+import { getSessionUser } from "@/lib/session";
 
-/** Coordinators run their programs; an admin may open any coordinator screen too. */
-export async function requireCoordinatorSession() {
+/**
+ * Coordinators run their programs; an admin may open any coordinator screen too. `forbidden` is the message for a
+ * signed-in user who is neither.
+ */
+export async function requireCoordinatorOrAdminSession(
+  forbidden: ApiTextKey = "coordinatorsOnlyPage",
+) {
   const session = await getSessionUser();
   if (!session) {
     return {
@@ -28,7 +32,7 @@ export async function requireCoordinatorSession() {
       response: NextResponse.json(
         {
           code: "FORBIDDEN",
-          message: await apiText("coordinatorsOnlyPage"),
+          message: await apiText(forbidden),
         },
         { status: 403 },
       ),

@@ -1,4 +1,4 @@
-import { type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { fetchMeetingNoteDocument } from "@/lib/api/meeting-notes";
 import {

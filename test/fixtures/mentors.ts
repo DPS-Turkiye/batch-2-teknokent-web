@@ -1,6 +1,7 @@
 import type { AxiosResponse } from "axios";
 
 import type { MentorProfile } from "@/interfaces/mentor";
+import { createAxiosResponse } from "@test/fixtures/health";
 
 export const mentorProfile: MentorProfile = {
   id: "00000000-0000-0000-0000-000000000002",
@@ -35,11 +36,5 @@ export function createMentorResponse(
   data: unknown,
   status = 200,
 ): AxiosResponse {
-  return {
-    data,
-    status,
-    statusText: status === 200 ? "OK" : "Error",
-    headers: {},
-    config: { headers: {} } as AxiosResponse["config"],
-  };
+  return createAxiosResponse(data, status);
 }

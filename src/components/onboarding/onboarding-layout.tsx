@@ -1,24 +1,23 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import type { ReactNode } from "react";
 
 import { MentonWordmark } from "@/components/common/menton-wordmark";
-
 import {
   ONBOARDING_HELP_HREF,
   ONBOARDING_TONES,
-  OnboardingTone,
+  type OnboardingTone,
 } from "@/components/onboarding/onboarding-tone";
-import { useTranslations } from "next-intl";
 
 export function OnboardingTopbar({
   exitLabel,
   onExit,
   exiting = false,
 }: {
-  exitLabel?: string;
-  onExit?: () => void;
+  exitLabel?: string | undefined;
+  onExit?: (() => void) | undefined;
   exiting?: boolean;
 }) {
   const copy = useTranslations("onboarding");

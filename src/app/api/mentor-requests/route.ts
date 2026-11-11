@@ -11,11 +11,12 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds, getSessionMentorId } from "@/lib/session";
+import { jsonObjectSchema, readJsonBody } from "@/lib/server/request-body";
 import {
   emptyListWithoutOrganization,
   emptyPageWithoutOrganization,
 } from "@/lib/server/without-organization";
+import { getSessionIds, getSessionMentorId } from "@/lib/session";
 
 export async function GET(request: NextRequest) {
   try {
@@ -75,8 +76,9 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const session = await getSessionIds();
-    const payload = (await request.json()) as Record<string, unknown>;
-    return backendResponse(await createMentorRequest(session, payload));
+    const body = await readJsonBody(request, jsonObjectSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(await createMentorRequest(session, body.data));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("mentorRequestCreateFailed"),

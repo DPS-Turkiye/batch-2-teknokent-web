@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramMentorStatus, type Program } from "@/interfaces/program";
 import type { RegularMentorship } from "@/interfaces/regular-mentorship";
+import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchMeetings } from "@/lib/api/meetings";
 import {
   fetchMentorRequest,
@@ -12,7 +13,6 @@ import { fetchRegularMentorships } from "@/lib/api/mentorships";
 import { fetchPrograms } from "@/lib/api/programs";
 import { hasPermission } from "@/lib/permissions";
 import { apiText, backendResponse } from "@/lib/server/api-response";
-import { UserRole, type AppSession } from "@/interfaces/session";
 
 export async function resolveMentorMeetingOrganization(
   payload: Record<string, unknown>,
@@ -168,7 +168,7 @@ export async function requireMeetingAccess(
 }
 
 async function findMeetingIn(
-  scope: { mentorId?: string; organizationId?: string },
+  scope: { mentorId?: string | undefined; organizationId?: string | undefined },
   meetingId: string,
 ) {
   const list = await fetchMeetings(scope);
