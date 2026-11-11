@@ -74,6 +74,7 @@ const newProgram: CreateProgramInput = {
   startDate: null,
   endDate: null,
   coordinatorIds: [ACTOR],
+  newCoordinators: [{ fullName: "Yeni Kişi", email: "yeni@teknokent.org" }],
 };
 
 type RequestCase = [

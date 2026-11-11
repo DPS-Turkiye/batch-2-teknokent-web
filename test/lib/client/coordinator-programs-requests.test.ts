@@ -93,6 +93,7 @@ const NEW_PROGRAM: CreateProgramInput = {
   startDate: null,
   endDate: null,
   coordinatorIds: ["coord-1"],
+  newCoordinators: [],
 };
 const SYLLABUS = { documentId: "doc-1", startDate: null, endDate: null };
 

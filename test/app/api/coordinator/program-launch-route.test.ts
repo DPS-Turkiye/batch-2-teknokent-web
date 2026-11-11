@@ -74,6 +74,9 @@ describe("coordinator program launch routes", () => {
         name: "METU BİGG 2026",
         startDate: "2026-09-01",
         coordinatorIds: ["coordinator-2"],
+        newCoordinators: [
+          { fullName: "Yeni Kişi", email: "yeni@teknokent.org", role: "ADMIN" },
+        ],
         meetingFrequencyDays: 14,
         defaultMentorCapacity: null,
         teams: [{ teamName: "Kavşak", leadEmail: "deniz@kavsak.co" }],
@@ -89,6 +92,7 @@ describe("coordinator program launch routes", () => {
       startDate: "2026-09-01",
       endDate: null,
       coordinatorIds: ["coordinator-2"],
+      newCoordinators: [{ fullName: "Yeni Kişi", email: "yeni@teknokent.org" }],
       defaultMentorCapacity: undefined,
       meetingFrequencyDays: 14,
       communicationGapDays: undefined,
@@ -103,6 +107,11 @@ describe("coordinator program launch routes", () => {
     ["an unknown type", { type: "HACKATHON" }],
     ["no type", { type: undefined }],
     ["a coordinator id that is not a string", { coordinatorIds: ["c-2", 7] }],
+    [
+      "an invited coordinator without an email",
+      { newCoordinators: [{ fullName: "Yeni Kişi" }] },
+    ],
+    ["an invited coordinator given as text", { newCoordinators: ["a@b.co"] }],
     ["a rule given as text", { meetingFrequencyDays: "14" }],
     ["a team that is not an object", { teams: ["bad"] }],
   ])("refuses a program with %s instead of guessing", async (_case, change) => {

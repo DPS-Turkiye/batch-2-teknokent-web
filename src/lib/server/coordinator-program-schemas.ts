@@ -36,6 +36,9 @@ export const createProgramSchema = z.object({
   startDate: stringOrNullSchema,
   endDate: stringOrNullSchema,
   coordinatorIds: z.array(z.string()),
+  newCoordinators: z
+    .array(z.object({ fullName: z.string(), email: z.string() }))
+    .default([]),
   defaultMentorCapacity: optionalNumberSchema,
   meetingFrequencyDays: optionalNumberSchema,
   communicationGapDays: optionalNumberSchema,

@@ -4769,6 +4769,33 @@
     "reactivate": "Reactivate",
     "resendSetup": "Send the password email again"
   },
+  "coordinatorPicker": {
+    "label": "Coordinator e-mail",
+    "placeholder": "name@organization.com",
+    "hint": "Type at least {min} characters to search.",
+    "searching": "Searching…",
+    "searchFailed": "Could not search coordinators.",
+    "noMatches": "No coordinator's e-mail starts with this. To invite someone without a menton account, type the whole e-mail address.",
+    "results": "Matching coordinators",
+    "add": "Add",
+    "addNamed": "Add {name}",
+    "inviteTitle": "{email} has no menton account. You can invite them as a coordinator.",
+    "inviteNote": "When the program is saved, a coordinator account is created and an e-mail is sent so they can set a password. The link works once and for about 1 hour; after that they can get a new one with \"Forgot password?\" on the sign-in page.",
+    "inviteName": "Full name",
+    "invite": "Invite",
+    "chosen": "Chosen coordinators",
+    "invitedTag": "To be invited",
+    "remove": "Remove {name}",
+    "someone": "user",
+    "refusal": {
+      "PROMOTABLE": "{name} is registered on menton as a {role}. To make them a coordinator, use Users › Add coordinator first.",
+      "REACTIVATABLE": "{name} is a deactivated coordinator. Reactivate them under Users first.",
+      "ALREADY_COORDINATOR": "{name} already coordinates this program.",
+      "ADMIN": "This e-mail belongs to an admin.",
+      "TEAM_MEMBER": "{name} is in a startup team. Team members cannot become coordinators.",
+      "MENTOR_IN_MENTORSHIP": "{name} has a planned or active mentorship and cannot become a coordinator until it ends."
+    }
+  },
   "adminUsers": {
     "tabs": {
       "coordinators": "Coordinators",
@@ -5946,6 +5973,7 @@
     "inviteRenewFailed": "Could not renew the invitation.",
     "noteDeleteFailed": "Could not delete the note.",
     "emailCheckFailed": "Could not check the e-mail address.",
+    "coordinatorSearchFailed": "Could not search coordinators.",
     "profileSaveFailed": "Could not save the profile.",
     "startupAddFailed": "Could not add the startup to the program.",
     "documentRequestTargetRequired": "A meetingId, mentorshipRequestId or mentorshipId is required.",
@@ -6255,7 +6283,7 @@
         "label": "Coordinator",
         "hint": "Who runs the program",
         "title": "Assign coordinators",
-        "note": "Choose one or more coordinators. Coordinators set up the program’s conditions."
+        "note": "Search for a coordinator by e-mail, or invite someone without a menton account by e-mail. Coordinators set up the program's rules."
       },
       "SUMMARY": {
         "label": "Summary",
@@ -6276,21 +6304,19 @@
     "start": "Start",
     "end": "End",
     "coordinatorsLabel": "Coordinators",
-    "coordinatorsFailed": "Couldn’t load the coordinators.",
-    "retry": "Try again",
-    "noCoordinators": "There is no approved coordinator. Add one under Users › Coordinators first.",
     "summaryType": "Program type",
     "summaryName": "Program name",
     "summaryDates": "Dates",
     "noDates": "Not set",
     "summaryCoordinators": "Coordinators",
+    "invitedTag": "To be invited",
     "summaryStatus": "Status",
     "draft": "Draft",
     "problems": {
       "TYPE_REQUIRED": "Choose a program type.",
       "NAME_REQUIRED": "Enter the program name.",
       "DATES_ORDER": "The end date cannot be before the start date.",
-      "COORDINATOR_REQUIRED": "Choose at least one coordinator."
+      "COORDINATOR_REQUIRED": "Add at least one coordinator."
     },
     "cancel": "Cancel",
     "back": "Back",

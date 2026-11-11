@@ -1,3 +1,4 @@
+import type { NewCoordinatorInput } from "@/interfaces/admin-coordinator";
 import type { CoordinatorMentorship } from "@/interfaces/coordinator-mentorship";
 import type { ProgramStatus, ProgramType } from "@/interfaces/program";
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
@@ -215,6 +216,8 @@ export type CreateProgramInput = {
   startDate: string | null;
   endDate: string | null;
   coordinatorIds: string[];
+  /** Emails with no account yet: the backend opens a coordinator account and mails a password link. */
+  newCoordinators: NewCoordinatorInput[];
   defaultMentorCapacity?: number | undefined;
   meetingFrequencyDays?: number | undefined;
   communicationGapDays?: number | undefined;
