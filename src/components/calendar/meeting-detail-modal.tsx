@@ -1,11 +1,11 @@
 "use client";
 
-import Link from "next/link";
 import { ClipboardList } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
-import { ModalDialog } from "@/components/common/modal-dialog";
 import { SyncMeetingActions } from "@/components/calendar/sync-meeting-actions";
+import { ModalDialog } from "@/components/common/modal-dialog";
 import type { MeetingItem } from "@/interfaces/meeting";
 import { meetingNotebookHref } from "@/lib/startup-meetings";
 

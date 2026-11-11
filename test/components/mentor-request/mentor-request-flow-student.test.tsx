@@ -7,6 +7,7 @@ import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
 import { getOrganizationPrograms } from "@/lib/client/programs";
 import { MENTOR_REQUEST_NEED_DRAFT_KEY } from "@/lib/mentor-request-need";
+import { organizationProgram } from "@test/fixtures/organization-programs";
 import { renderWithQueryClient } from "@test/test-utils";
 
 const push = vi.fn();
@@ -57,7 +58,9 @@ describe("MentorRequestFlow — a student of an individual program", () => {
     push.mockReset();
     sessionStorage.clear();
     vi.mocked(getOrganizationPrograms).mockResolvedValue({
-      programs: [{ id: "iskur", name: "İŞKUR", coordinatorName: "Elif" }],
+      programs: [
+        organizationProgram("iskur", "İŞKUR", { individualMentees: true }),
+      ],
       activeProgramId: "iskur",
     });
   });

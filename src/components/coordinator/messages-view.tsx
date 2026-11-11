@@ -1,14 +1,10 @@
 "use client";
 
 import { ArrowRight, SendHorizontal, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 
-import {
-  AnnouncementPane,
-  AnnouncementThreadList,
-} from "@/components/announcements";
 import {
   Avatar,
   EmptyNote,
@@ -19,15 +15,19 @@ import {
   SolidButton,
   StatusChip,
 } from "@/components/admin/admin-ui";
+import {
+  AnnouncementPane,
+  AnnouncementThreadList,
+} from "@/components/announcements";
 import { PillSelect } from "@/components/coordinator/pill-select";
 import {
-  type MessagesDeepLink,
   useConversationTargets,
   useCoordinatorMessages,
+  type MessagesDeepLink,
 } from "@/hooks/use-coordinator-messages";
 import {
-  type CoordinatorConversation,
   CoordinatorConversationCounterpart,
+  type CoordinatorConversation,
   type CoordinatorMessage,
   type StartCoordinatorConversationInput,
 } from "@/interfaces/coordinator-conversation";
@@ -326,8 +326,9 @@ function Thread({
       ) : null}
       {messages.map((message, index) => {
         const day = dayOf(message.createdAt);
+        const previous = messages[index - 1];
         const showDay =
-          index === 0 || dayOf(messages[index - 1].createdAt) !== day;
+          index === 0 || !previous || dayOf(previous.createdAt) !== day;
         return (
           <div key={message.id}>
             {showDay ? (

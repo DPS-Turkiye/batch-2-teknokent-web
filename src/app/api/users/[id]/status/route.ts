@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import { decideAccountStatus } from "@/lib/api/accounts";
@@ -7,7 +8,12 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireAdminSession } from "@/lib/server/require-admin";
+
+const decisionSchema = z.object({
+  status: z.enum([UserAccountStatus.Approved, UserAccountStatus.Rejected]),
+});
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -18,24 +24,14 @@ export async function PATCH(request: NextRequest, context: RouteContext) {
     const auth = await requireAdminSession();
     if (!auth.ok) return auth.response;
 
-    const body = (await request.json()) as { status?: string };
-    const status =
-      body.status === UserAccountStatus.Approved
-        ? UserAccountStatus.Approved
-        : body.status === UserAccountStatus.Rejected
-          ? UserAccountStatus.Rejected
-          : null;
-    if (!status) {
-      return apiErrorResponse(new Error("Invalid status"), {
-        code: "INVALID_REQUEST",
-        message: await apiText("statusMustBeDecision"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, decisionSchema, {
+      invalidMessage: "statusMustBeDecision",
+    });
+    if (!body.ok) return body.response;
 
     const { id } = await context.params;
     return backendResponse(
-      await decideAccountStatus(id, auth.session.userId, status),
+      await decideAccountStatus(id, auth.session.userId, body.data.status),
     );
   } catch (error) {
     return apiErrorResponse(error, {

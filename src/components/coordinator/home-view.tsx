@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-
 import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState, type ReactNode } from "react";
 
 import {
@@ -338,7 +337,7 @@ function ActionsSection({
               title={t("awaitingTeams")}
               summary={t("awaitingTeamsSummary", {
                 count: awaitingTeams.length,
-                days: awaitingTeams[0].waitingDays,
+                days: awaitingTeams[0]?.waitingDays ?? 0,
               })}
               chip={t("waiting")}
             >

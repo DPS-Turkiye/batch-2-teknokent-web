@@ -1,8 +1,9 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useSession } from "@/components/providers/session-provider";
 import { roleWorkspace } from "@/lib/role-workspace";
-import { useTranslations } from "next-intl";
 
 export function usePublicSessionDestination() {
   const t = useTranslations();

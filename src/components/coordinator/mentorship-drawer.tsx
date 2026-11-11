@@ -1,8 +1,8 @@
 "use client";
 
 import { Flag, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useEffect, type ReactNode } from "react";
 
 import {
@@ -15,9 +15,9 @@ import { CoordinatorNotesSection } from "@/components/coordinator/coordinator-no
 import { MeetingProposalPanel } from "@/components/coordinator/meeting-proposal-panel";
 import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useCoordinatorMentorshipDrawer } from "@/hooks/use-coordinator-mentorships";
-import { useOptionLabel } from "@/hooks/use-option-label";
 import type { CoordinatorNotes } from "@/hooks/use-coordinator-notes";
 import type { MentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type { CoordinatorMentorshipDetail } from "@/interfaces/coordinator-mentorship";
 import { MeetingStatus } from "@/interfaces/meeting";
 import {
@@ -25,10 +25,10 @@ import {
   coordinatorMessageHref,
   goalPercent,
   HEALTH_TONES,
-  MentorshipDrawerTab,
   mentorLoadLabel,
-  type MentorshipTexts,
+  MentorshipDrawerTab,
   notesSummary,
+  type MentorshipTexts,
 } from "@/lib/coordinator-mentorships";
 import { formatDateTime, formatShortDate, initials } from "@/lib/utils";
 

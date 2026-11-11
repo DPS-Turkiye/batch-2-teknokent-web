@@ -4,20 +4,20 @@ import type { ReactNode } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useMobileCalendar } from "@/hooks/use-mobile-calendar";
-import {
-  type MeetingProposal,
-  MeetingProposalStatus,
-} from "@/interfaces/meeting-proposal";
+import { MeetingProposalStatus } from "@/interfaces/meeting-proposal";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getOrganizationMembersById } from "@/lib/client/organization-members";
 import { getMemberProgramEvents } from "@/lib/client/programs";
+import { itemAt } from "@test/fixtures/list-assertions";
+import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import {
   menteeMeetingFixture,
   menteeRequestFixture,
 } from "@test/fixtures/mentee-home";
+import { memberFixture } from "@test/fixtures/startup-team";
 import { createTestQueryClient } from "@test/test-utils";
 
 let search = new URLSearchParams();
@@ -82,10 +82,10 @@ beforeEach(() => {
     }),
   ]);
   vi.mocked(getOrganizationMembersById).mockResolvedValue([
-    { id: "u1", fullName: "Gülse Buran", founder: true },
-    { id: "u2", fullName: "Can Er" },
-    { id: "u3", fullName: "Ada Su" },
-  ] as never);
+    memberFixture("u1", { fullName: "Gülse Buran", founder: true }),
+    memberFixture("u2", { fullName: "Can Er" }),
+    memberFixture("u3", { fullName: "Ada Su" }),
+  ]);
 });
 
 afterEach(() => {
@@ -215,7 +215,7 @@ describe("useMobileCalendar", () => {
       }),
     ]);
     const proposal = (id: string, canRespond: boolean) =>
-      ({
+      meetingProposal({
         id,
         organizationName: "Atlas AI",
         scheduledAt: new Date(2026, 8, 24, 11, 0).toISOString(),
@@ -223,7 +223,7 @@ describe("useMobileCalendar", () => {
         agenda: "Yeni saat",
         status: MeetingProposalStatus.Pending,
         canRespond,
-      }) as MeetingProposal;
+      });
     vi.mocked(getMyMeetingProposals).mockResolvedValue([
       proposal("p1", true),
       proposal("p2", false),
@@ -256,7 +256,7 @@ describe("useMobileCalendar", () => {
     });
 
     act(() => result.current.selectDay(new Date(2026, 8, 23)));
-    const pending = result.current.agenda[0]?.entries[0]?.id as string;
+    const pending = itemAt(itemAt(result.current.agenda, 0).entries, 0).id;
     act(() => result.current.openEntry(pending));
     expect(result.current.detail?.messageHref).toContain("r2");
   });

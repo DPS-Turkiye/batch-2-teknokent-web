@@ -50,7 +50,7 @@ describe("SessionProvider on a page that needs a session", () => {
   // Reported: a page left open after the session ended kept rendering, with
   // the user shown as "Kullanıcı".
   it("sends a signed-out visitor to login and shows nothing meanwhile", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 } as never);
+    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
     renderSession(new QueryClient());
 
     await waitFor(() =>
@@ -63,7 +63,7 @@ describe("SessionProvider on a page that needs a session", () => {
 
   it("leaves public pages alone", async () => {
     navigation.pathname = "/login";
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 } as never);
+    vi.mocked(httpClient.get).mockResolvedValue({ status: 401 });
     renderSession(new QueryClient());
 
     expect(await screen.findByText("no session")).toBeInTheDocument();
@@ -71,7 +71,7 @@ describe("SessionProvider on a page that needs a session", () => {
   });
 
   it("does not sign someone out over a failed check", async () => {
-    vi.mocked(httpClient.get).mockResolvedValue({ status: 503 } as never);
+    vi.mocked(httpClient.get).mockResolvedValue({ status: 503 });
     renderSession(
       new QueryClient({ defaultOptions: { queries: { retry: false } } }),
     );
@@ -88,7 +88,7 @@ describe("SessionProvider cross-tab freshness", () => {
     vi.mocked(httpClient.get).mockResolvedValueOnce({
       status: 200,
       data: { fullName: "Leyla Aksoy" },
-    } as never);
+    });
 
     const first = renderSession(queryClient);
     await waitFor(() =>
@@ -99,7 +99,7 @@ describe("SessionProvider cross-tab freshness", () => {
     vi.mocked(httpClient.get).mockResolvedValueOnce({
       status: 200,
       data: { fullName: "Ayşe Kaya" },
-    } as never);
+    });
 
     renderSession(queryClient);
     await waitFor(() =>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+
 import { fieldClass, labelClass } from "@/components/common/form-field";
 import { PrimaryButton } from "@/components/common/primary-button";
 import { SecondaryButton } from "@/components/common/secondary-button";

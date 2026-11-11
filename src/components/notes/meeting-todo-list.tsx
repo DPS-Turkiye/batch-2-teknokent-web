@@ -2,7 +2,7 @@
 
 import { Pencil, Sparkles, Trash2 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, type FormEvent } from "react";
+import { useState, type SubmitEvent } from "react";
 
 import {
   TodoBlankRows,
@@ -33,7 +33,7 @@ export function MeetingTodoList({ meetingId }: MeetingTodoListProps) {
 
   const todos = todosQuery.data ?? [];
 
-  function addTodo(event: FormEvent) {
+  function addTodo(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
     const trimmed = title.trim();
     if (!trimmed || createTodo.isPending) return;

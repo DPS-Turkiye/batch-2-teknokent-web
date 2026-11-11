@@ -20,7 +20,7 @@ export function NumberStepper({
   value: string;
   min: number;
   max: number;
-  unit?: string;
+  unit?: string | undefined;
   onChange: (value: string) => void;
   onStep: (direction: 1 | -1) => void;
 }) {
@@ -34,7 +34,7 @@ export function NumberStepper({
         type="button"
         aria-label={t("decrease", { label })}
         onClick={() => onStep(-1)}
-        disabled={filled && number <= min}
+        disabled={filled ? number <= min : false}
         className={stepButtonClass}
       >
         <Image src="/mentor-profile/remove.svg" alt="" width={18} height={18} />
@@ -56,7 +56,7 @@ export function NumberStepper({
         type="button"
         aria-label={t("increase", { label })}
         onClick={() => onStep(1)}
-        disabled={filled && number >= max}
+        disabled={filled ? number >= max : false}
         className={stepButtonClass}
       >
         <Image src="/mentor-profile/add.svg" alt="" width={18} height={18} />

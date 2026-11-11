@@ -1,36 +1,31 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { CalendarFilter } from "@/lib/calendar";
 import {
-  type CalendarTexts,
   CalendarEntryKind,
   DAY_HEADER_HEIGHT,
   deliverableEntries,
   entryWhenLabel,
   eventBox,
   filterEntries,
-  layoutDay,
   HOUR_ROW_HEIGHT,
+  layoutDay,
   meetingEntries,
   prepHeading,
   PrepStatus,
   prepStatus,
   upcomingEntries,
   weekSummary,
+  type CalendarTexts,
 } from "@/lib/mentee-calendar";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
+import { translatorIn } from "@test/translators";
 
 function calendarTexts(locale: "tr" | "en"): CalendarTexts {
   return {
-    t: createTranslator({
-      locale,
-      messages: locale === "en" ? en : tr,
-      namespace: "calendar",
-    }),
+    t: translatorIn(locale, "calendar"),
     locale,
   };
 }
@@ -85,7 +80,7 @@ describe("mentee calendar entries", () => {
       texts,
     );
 
-    expect(entries).toHaveLength(1);
+    expectLength(entries, 1);
     expect(entries[0].startsAt).toEqual(new Date(2026, 7, 27, 17, 0));
     expect(entries[0].gridLabel).toBe("Teslim");
   });
@@ -104,19 +99,25 @@ describe("mentee calendar entries", () => {
   });
 
   it("places an event by its start time and length, pinning out-of-hours ones to the edge", () => {
-    const [entry] = meetingEntries([meeting()], texts);
+    const entry = itemAt(meetingEntries([meeting()], texts), 0);
 
     expect(eventBox(entry)).toEqual({
       top: DAY_HEADER_HEIGHT + 5 * HOUR_ROW_HEIGHT,
       height: 0.75 * HOUR_ROW_HEIGHT,
     });
-    const [early] = meetingEntries(
-      [meeting({ scheduledAt: new Date(2026, 7, 28, 7, 30).toISOString() })],
-      texts,
+    const early = itemAt(
+      meetingEntries(
+        [meeting({ scheduledAt: new Date(2026, 7, 28, 7, 30).toISOString() })],
+        texts,
+      ),
+      0,
     );
-    const [late] = meetingEntries(
-      [meeting({ scheduledAt: new Date(2026, 7, 28, 20, 0).toISOString() })],
-      texts,
+    const late = itemAt(
+      meetingEntries(
+        [meeting({ scheduledAt: new Date(2026, 7, 28, 20, 0).toISOString() })],
+        texts,
+      ),
+      0,
     );
     expect(eventBox(early).top).toBe(DAY_HEADER_HEIGHT);
     const gridBottom = DAY_HEADER_HEIGHT + 10 * HOUR_ROW_HEIGHT;
@@ -212,10 +213,10 @@ describe("mentee calendar entries", () => {
     expect(weekSummary(entries, english)).toBe(
       "This week: 1 mentoring session · 1 deliverable",
     );
-    expect(entries[0].detail).toBe("Nihan Öztürk · mentoring");
+    expect(entries[0]?.detail).toBe("Nihan Öztürk · mentoring");
     expect(prepHeading(meeting(), english)).toBe(
       "Friday, August 28 · Meeting with Nihan Öztürk",
     );
-    expect(entryWhenLabel(entries[0], "en")).toBe("Fri 28 · 02:00 PM");
+    expect(entryWhenLabel(itemAt(entries, 0), "en")).toBe("Fri 28 · 02:00 PM");
   });
 });

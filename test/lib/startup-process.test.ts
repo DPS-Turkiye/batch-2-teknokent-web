@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { UserRole } from "@/interfaces/session";
 import {
-  type ProcessAssignment,
-  type StartupProcess,
   StartupStage,
   StartupStageState,
+  type ProcessAssignment,
+  type StartupProcess,
 } from "@/interfaces/startup-process";
 import {
   ASSIGNMENT_STATUS_TONES,

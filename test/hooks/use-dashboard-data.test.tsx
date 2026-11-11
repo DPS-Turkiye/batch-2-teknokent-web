@@ -6,14 +6,14 @@ import { describe, expect, it, vi } from "vitest";
 import { useDashboardData } from "@/hooks/use-dashboard-data";
 import { ActionItemStatus } from "@/interfaces/action-item";
 import { MeetingStatus } from "@/interfaces/meeting";
-import {
-  getOrganizationActionItems,
-  getActionItems,
-} from "@/lib/client/action-items";
-import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
-import { getMeetingTodos } from "@/lib/client/meeting-notes";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import {
+  getActionItems,
+  getOrganizationActionItems,
+} from "@/lib/client/action-items";
+import { getMeetingTodos } from "@/lib/client/meeting-notes";
+import { getMyMeetingProposals } from "@/lib/client/meeting-proposals";
 import { createTestQueryClient } from "@test/test-utils";
 
 const mockUseSession = vi.fn();
@@ -191,7 +191,7 @@ describe("useDashboardData", () => {
 
     expect(result.current.isFallback).toBe(false);
     expect(result.current.requests).toHaveLength(1);
-    expect(result.current.requests[0].mentorName).toBe("Gerçek Mentor");
+    expect(result.current.requests[0]?.mentorName).toBe("Gerçek Mentor");
     expect(result.current.nextMeeting?.agenda).toBe("Gerçek toplantı");
     expect(result.current.nextMeeting?.meetLink).toBe(
       "https://meet.google.com/abc-defg-hij",
@@ -307,7 +307,9 @@ describe("useDashboardData", () => {
     });
     let answer: (value: []) => void = () => {};
     vi.mocked(getMyMeetingProposals).mockReturnValueOnce(
-      new Promise((resolve) => (answer = resolve)),
+      new Promise((resolve) => {
+        answer = resolve;
+      }),
     );
 
     const { result } = renderHook(() => useDashboardData(), { wrapper });

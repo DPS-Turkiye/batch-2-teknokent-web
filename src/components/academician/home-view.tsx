@@ -1,13 +1,11 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 
-import { PageHeading } from "@/components/admin/admin-ui";
-import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
 import { SampleDataNotice } from "@/components/academician/sample-data-notice";
+import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import {
   EmptyLine,
   PersonLine,
@@ -16,7 +14,8 @@ import {
   WorkspaceRow,
   WorkspaceSection,
 } from "@/components/academician/workspace-ui";
-import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
+import { PageHeading } from "@/components/admin/admin-ui";
+import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
 import { useAcademicianHome } from "@/hooks/use-academician-home";
 import { formatTimeRange } from "@/lib/utils";
 

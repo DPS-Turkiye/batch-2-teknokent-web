@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import {
   useInstructorSlots,
   useOfficeHoursRequestAction,
@@ -16,6 +15,7 @@ import {
   OPEN_OFFICE_HOURS_REQUEST_STATUSES,
   type OfficeHoursRequest,
 } from "@/interfaces/office-hours";
+import { ToastTone } from "@/interfaces/toast";
 import type { OfficeHoursRequestAction } from "@/lib/client/office-hours-booking";
 import {
   emptyPreferredSlots,
@@ -25,7 +25,7 @@ import {
 } from "@/lib/mentor-availability-days";
 import { asAvailabilitySlots, counterpartOf } from "@/lib/office-hours-booking";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export type DecisionMode = "accept" | "decline" | "question" | "propose";
 

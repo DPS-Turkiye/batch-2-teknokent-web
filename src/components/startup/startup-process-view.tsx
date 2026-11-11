@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, ChevronRight } from "lucide-react";
-import Image from "next/image";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { ProgramWeekCard } from "@/components/startup/program-week-card";
 import {
@@ -12,11 +12,11 @@ import {
 import { WeeklyCheckIn } from "@/components/startup/weekly-check-in";
 import { useStartupProcess } from "@/hooks/use-startup-process";
 import { ActionItemStatus } from "@/interfaces/action-item";
-import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   StartupStageState,
   type ProcessAssignment,
 } from "@/interfaces/startup-process";
+import { DOCUMENT_UPLOAD_ACCEPT } from "@/lib/const";
 import {
   ASSIGNMENT_STATUS_TONES,
   assignmentSourceKind,

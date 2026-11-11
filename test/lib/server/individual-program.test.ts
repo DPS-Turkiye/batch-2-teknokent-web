@@ -26,13 +26,15 @@ const program = (id: string, individualMentees: boolean) => ({
 });
 
 function answer(status: number, activeProgramId: string | null = "iskur") {
-  vi.mocked(fetchOrganizationPrograms).mockResolvedValue({
+  const response: Programs = {
     status,
+    headers: {},
     data: {
       programs: [program("growth", false), program("iskur", true)],
       activeProgramId,
     },
-  } as Programs);
+  };
+  vi.mocked(fetchOrganizationPrograms).mockResolvedValue(response);
 }
 
 // Each test signs in a different user, since the answer is cached per user for one request.
@@ -70,9 +72,8 @@ describe("isIndividualMentee", () => {
     expect(
       await isIndividualMentee({ ...mentee("e"), role: UserRole.Mentor }),
     ).toBe(false);
-    expect(
-      await isIndividualMentee({ ...mentee("f"), organizationId: undefined }),
-    ).toBe(false);
+    const { organizationId: _organizationId, ...withoutTeam } = mentee("f");
+    expect(await isIndividualMentee(withoutTeam)).toBe(false);
     expect(await isIndividualMentee(null)).toBe(false);
     expect(fetchOrganizationPrograms).not.toHaveBeenCalled();
   });

@@ -4,11 +4,11 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ToastTone } from "@/interfaces/toast";
 import {
   extractSyllabusPhases,
   replaceCoordinatorProgramPhases,
@@ -18,10 +18,10 @@ import { isoDay } from "@/lib/coordinator-calendar";
 import {
   emptyPhase,
   MAX_PHASES,
-  type PhaseDraft,
   phaseDraftError,
   phasesInput,
   savedPhases,
+  type PhaseDraft,
 } from "@/lib/coordinator-program-detail";
 import {
   curriculumError,
@@ -36,7 +36,7 @@ import {
   type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 type Editing = { index: number | null; draft: WizardPhase };
 type Review = { documentId: string; phases: WizardPhase[] };
@@ -217,7 +217,9 @@ export function useProgramCurriculum(
     editError,
     openPhase: (index: number) => {
       setEditError(null);
-      setEditing({ index, draft: { ...listed[index] } });
+      const phase = listed[index];
+      if (!phase) return;
+      setEditing({ index, draft: { ...phase } });
     },
     openNew: () => {
       setEditError(null);

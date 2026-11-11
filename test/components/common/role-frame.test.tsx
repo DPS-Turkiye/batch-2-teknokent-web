@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { RoleFrame } from "@/components/common/role-frame";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { renderWithQueryClient } from "@test/test-utils";
 
 let pathname = "/admin";
@@ -121,7 +122,7 @@ describe("RoleFrame desktop nav between lg and xl", () => {
       'button[aria-haspopup="menu"]',
     )!;
     expect(
-      within(account).getAllByText("Admin")[0].closest("span.hidden"),
+      itemAt(within(account).getAllByText("Admin"), 0).closest("span.hidden"),
     ).toHaveClass("lg:hidden", "xl:block");
   });
 });

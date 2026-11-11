@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AMPLIFY_BLOCKED_MESSAGE,
   AMPLIFY_SAFE_JSON_CHARS,
   amplifyBlockedMessage,
-  AMPLIFY_BLOCKED_MESSAGE,
   jsonFitsAmplifyWaf,
 } from "@/lib/amplify-safe-body";
 

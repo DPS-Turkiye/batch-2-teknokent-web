@@ -1,4 +1,3 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import { CoordinatorConversationCounterpart } from "@/interfaces/coordinator-conversation";
@@ -8,27 +7,18 @@ import {
   counterpartSubtitle,
   filterConversations,
   isUnread,
-  MessageFilter,
   messageDayLabel,
+  MessageFilter,
   messageFilterOptions,
   messagesSubtitle,
   relatedMentorships,
 } from "@/lib/coordinator-messages";
 import { coordinatorConversation } from "@test/fixtures/coordinator-conversations";
 import { coordinatorMentorship } from "@test/fixtures/coordinator-mentorships";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "coordinatorMessages",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "coordinatorMessages",
-});
+const t = translatorIn("tr", "coordinatorMessages");
+const tEn = translatorIn("en", "coordinatorMessages");
 
 const ayse = coordinatorConversation();
 const lumen = coordinatorConversation({
@@ -100,7 +90,7 @@ describe("coordinator messages", () => {
     expect(counterpartSubtitle(ayse, mentorships, t)).toBe(
       "Mentor · Lumen, Kavun",
     );
-    expect(counterpartSubtitle(lumen, [mentorships[0]], t)).toBe(
+    expect(counterpartSubtitle(lumen, mentorships.slice(0, 1), t)).toBe(
       "Takım · Ayşe Demir",
     );
     expect(counterpartSubtitle(terra, [], t)).toBe("Takım");

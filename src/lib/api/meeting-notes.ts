@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { AssistantShareKind } from "@/interfaces/meeting-note";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 
@@ -67,7 +68,7 @@ export function updateMeetingTodo(
   meetingId: string,
   todoId: string,
   organizationId: string,
-  payload: { title?: string; done?: boolean },
+  payload: { title?: string | undefined; done?: boolean | undefined },
 ) {
   return backendRequest({
     method: HttpMethod.Patch,
@@ -121,7 +122,7 @@ export function publishAssistantShare(
   meetingId: string,
   actorId: string,
   payload: {
-    kind: "TRANSCRIPT" | "TRANSCRIPT_S3" | "REPORT" | "REPORT_S3";
+    kind: Exclude<AssistantShareKind, AssistantShareKind.ProviderTranscript>;
     transcript?: unknown;
     report?: unknown;
   },

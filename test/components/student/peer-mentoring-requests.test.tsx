@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { PeerMentoringRequests } from "@/components/student/peer-mentoring-requests";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
-  type PeerMentoringRequest,
   PeerTopicCategory,
+  type PeerMentoringRequest,
 } from "@/interfaces/peer-mentoring";
 import { ClientApiError } from "@/lib/client/api";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/lib/client/mentor-requests";
 import { getPeerMentoringRequests } from "@/lib/client/peer-mentoring";
 import { getStudentAppointments } from "@/lib/client/student-appointments";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 import { peerAppointment } from "@test/fixtures/student-appointments";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -77,10 +78,16 @@ async function rows() {
   return within(await screen.findByRole("list")).getAllByRole("listitem");
 }
 
+async function firstRow() {
+  return itemAt(await rows(), 0);
+}
+
 describe("Mentorluk Al › Taleplerim booking", () => {
   it("offers a booking only on an accepted request without a session, and shows the booked one", async () => {
     renderWithQueryClient(<PeerMentoringRequests />);
-    const [unbooked, booked, pending] = await rows();
+    const items = await rows();
+    expectLength(items, 3);
+    const [unbooked, booked, pending] = items;
 
     expect(
       await within(unbooked).findByRole("button", { name: "Randevu al" }),
@@ -97,7 +104,7 @@ describe("Mentorluk Al › Taleplerim booking", () => {
   it("books one of the mentor's open times, then refreshes the appointments and closes", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<PeerMentoringRequests />);
-    const [unbooked] = await rows();
+    const unbooked = await firstRow();
     await user.click(
       await within(unbooked).findByRole("button", { name: "Randevu al" }),
     );
@@ -128,7 +135,7 @@ describe("Mentorluk Al › Taleplerim booking", () => {
     vi.mocked(getMentorAvailability).mockResolvedValueOnce([]);
     const user = userEvent.setup();
     const { unmount } = renderWithQueryClient(<PeerMentoringRequests />);
-    let [unbooked] = await rows();
+    let unbooked = await firstRow();
     await user.click(
       await within(unbooked).findByRole("button", { name: "Randevu al" }),
     );
@@ -144,7 +151,7 @@ describe("Mentorluk Al › Taleplerim booking", () => {
       ),
     );
     renderWithQueryClient(<PeerMentoringRequests />);
-    [unbooked] = await rows();
+    unbooked = await firstRow();
     await user.click(
       await within(unbooked).findByRole("button", { name: "Randevu al" }),
     );

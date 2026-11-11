@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import { transcriptQuerySchema } from "@/lib/assistant-schemas";
 import { generateMeetingReportBackend } from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
@@ -14,7 +15,7 @@ export async function POST(request: NextRequest) {
   try {
     await getSessionIds();
     const idToken = readBearerToken(request);
-    if (!idToken) return assistantSignInRequired();
+    if (!idToken) return await assistantSignInRequired();
     const { searchParams } = request.nextUrl;
     const query = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),

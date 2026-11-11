@@ -4,14 +4,14 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string; mentorId: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id, mentorId } = await params;
     return backendResponse(

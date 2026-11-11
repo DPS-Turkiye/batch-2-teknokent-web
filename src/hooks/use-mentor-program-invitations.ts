@@ -4,16 +4,16 @@ import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/stores/toast-store";
 import {
   useDecideProgramInvitation,
   useProgramInvitations,
   usePrograms,
 } from "@/hooks/use-programs";
 import type { ProgramInvitation } from "@/interfaces/program";
+import { ToastTone } from "@/interfaces/toast";
 import { programsAwaitingReview } from "@/lib/program-invitations";
 import { errorMessage } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** A mentor's program invitations from coordinators, answered from the dashboard, and their own pending joins. */
 export function useMentorProgramInvitations() {
@@ -55,9 +55,7 @@ export function useMentorProgramInvitations() {
     awaitingReview,
     isLoading: invitations.isLoading,
     error: invitations.error,
-    answeringId: decide.isPending
-      ? (decide.variables?.programId ?? null)
-      : null,
+    answeringId: decide.isPending ? decide.variables.programId : null,
     accept: (invitation: ProgramInvitation) => answer(invitation, true),
     decline: (invitation: ProgramInvitation) => answer(invitation, false),
   };

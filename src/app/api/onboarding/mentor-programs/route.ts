@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+import { z } from "zod";
 
 import {
   fetchMentorPrograms,
@@ -10,6 +11,9 @@ import {
   backendResponse,
 } from "@/lib/server/api-response";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
+
+const programIdsSchema = z.object({ programIds: z.array(z.string()) });
 
 // Mentor onboarding runs before the account is approved, so there is no session cookie; only the Firebase token counts.
 async function requireIdToken(request: NextRequest) {
@@ -40,11 +44,11 @@ export async function PUT(request: NextRequest) {
   try {
     const idToken = await requireIdToken(request);
     if (idToken instanceof NextResponse) return idToken;
-    const body = (await request.json()) as { programIds?: unknown };
-    const programIds = Array.isArray(body.programIds)
-      ? body.programIds.filter((id): id is string => typeof id === "string")
-      : [];
-    return backendResponse(await saveMentorPrograms(idToken, programIds));
+    const body = await readJsonBody(request, programIdsSchema);
+    if (!body.ok) return body.response;
+    return backendResponse(
+      await saveMentorPrograms(idToken, body.data.programIds),
+    );
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("mentorProgramsSaveFailed"),

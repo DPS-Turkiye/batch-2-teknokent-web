@@ -71,7 +71,14 @@
     "newHere": "Menton’a yeni misin?",
     "signUp": "Kayıt Ol",
     "invite": "Bir davet aldın mı? Davet kodunla devam et",
-    "odtu": "ODTÜ Hesabıyla Giriş Yap"
+    "odtu": "ODTÜ Hesabıyla Giriş Yap",
+    "otg": "ODTÜ TEKNOKENT Girişimcilik ile giriş yap"
+  },
+  "otgLogin": {
+    "signingIn": "ODTÜ TEKNOKENT Girişimcilik hesabınla giriş yapılıyor…",
+    "cancelled": "Girişi iptal ettin. İstersen yeniden deneyebilirsin.",
+    "failed": "ODTÜ TEKNOKENT Girişimcilik ile giriş tamamlanamadı. Lütfen yeniden dene.",
+    "backToLogin": "Giriş sayfasına dön"
   },
   "workspaceSwitch": {
     "label": "Çalışma alanı",
@@ -5708,6 +5715,7 @@
     "workspaceSwitchFailed": "Çalışma alanı değiştirilemedi.",
     "institutionUnknown": "Bu kurumla giriş yapılamıyor.",
     "institutionLoginFailed": "Kurum girişi tamamlanamadı. Lütfen yeniden dene.",
+    "institutionLoginExpired": "Giriş bağlantısının süresi doldu ya da başka bir tarayıcıda başlatıldı. Lütfen yeniden giriş yap.",
     "institutionRecordLoadFailed": "Kurumsal bilgiler yüklenemedi.",
     "eligibleEmailsLoadFailed": "İzinli liste yüklenemedi.",
     "eligibleEmailsSaveFailed": "İzinli liste güncellenemedi.",
@@ -5960,6 +5968,7 @@
     "peerMentoringRequestFailed": "Talep gönderilemedi.",
     "officeHoursFailed": "Ofis saatleri işlemi tamamlanamadı.",
     "invalidRequestBody": "İstek gövdesi okunamadı.",
+    "invalidRequestFields": "İstekteki bazı bilgiler eksik ya da geçersiz.",
     "peerMentorProfileSaveFailed": "Mentor profilin kaydedilemedi.",
     "peerCategoriesLoadFailed": "Kategoriler yüklenemedi.",
     "peerCategoriesSaveFailed": "Kategoriler kaydedilemedi.",

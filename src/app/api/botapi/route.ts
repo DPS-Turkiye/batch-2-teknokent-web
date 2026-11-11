@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import {
   addBotBodySchema,
   transcriptQuerySchema,
@@ -10,6 +11,7 @@ import {
   assistantSignInRequired,
 } from "@/lib/server/assistant-caller";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 // The backend also passes on the provider's own 409 (a bot is already in that meeting), so match the cap's text.
@@ -19,21 +21,13 @@ export async function POST(request: NextRequest) {
   try {
     await getSessionIds();
     const idToken = readBearerToken(request);
-    if (!idToken) return assistantSignInRequired();
-    const body = await request.json();
-    const parsed = addBotBodySchema.safeParse(body);
+    if (!idToken) return await assistantSignInRequired();
+    const body = await readJsonBody(request, addBotBodySchema, {
+      invalidMessage: "meetingLinkRequired",
+    });
+    if (!body.ok) return body.response;
 
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("meetingLinkRequired"),
-        },
-        { status: 400 },
-      );
-    }
-
-    const { data, status } = await createMeetingBot(parsed.data, idToken);
+    const { data, status } = await createMeetingBot(body.data, idToken);
     const refusal = await assistantMeetingRefusal(status);
     if (refusal) return refusal;
     if (
@@ -61,7 +55,7 @@ export async function DELETE(request: NextRequest) {
   try {
     await getSessionIds();
     const idToken = readBearerToken(request);
-    if (!idToken) return assistantSignInRequired();
+    if (!idToken) return await assistantSignInRequired();
     const { searchParams } = request.nextUrl;
     const parsed = transcriptQuerySchema.safeParse({
       platform: searchParams.get("platform"),

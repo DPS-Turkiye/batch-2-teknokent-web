@@ -1,5 +1,6 @@
 import type { AppSession, SessionData } from "@/interfaces/session";
 import { isMobilePath, MOBILE_LOGIN } from "@/lib/mobile";
+import { OTG_CALLBACK_PATH, OTG_START_PATH } from "@/lib/otg-login";
 
 export const SESSION_COOKIE = "teknokent_session";
 
@@ -30,6 +31,8 @@ const PUBLIC_PATHS = new Set([
   "/invite",
   "/application-status",
   "/login/odtu/dev",
+  OTG_START_PATH,
+  OTG_CALLBACK_PATH,
   MOBILE_LOGIN,
 ]);
 
@@ -56,10 +59,17 @@ export function isPublicPath(pathname: string) {
 
 /**
  * A ?next= that is not an in-app path — an absolute URL, or //evil.example —
- * would turn a redirect into an open redirect.
+ * would turn a redirect into an open redirect. Browsers also read a backslash as
+ * a slash and drop tabs and newlines, so /\evil.example and /<tab>/evil.example
+ * are the same trick.
  */
 export function safeNextPath(next: string | null) {
-  return next && next.startsWith("/") && !next.startsWith("//") ? next : null;
+  return next &&
+    next.startsWith("/") &&
+    !next.startsWith("//") &&
+    !/[\\\u0000-\u001f\u007f]/.test(next)
+    ? next
+    : null;
 }
 
 /** Where a signed-out visitor is sent, remembering where they were headed. */

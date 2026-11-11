@@ -14,15 +14,15 @@ import { getMentorRequests } from "@/lib/client/mentor-requests";
 import { getMyAnnouncements } from "@/lib/client/program-announcements";
 import { hasMobileApp } from "@/lib/mobile";
 import {
-  type MessagingRole,
+  announcementConversation,
   groupedMentorshipConversations,
   newestFirst,
   programConversation,
   searchConversations,
-  announcementConversation,
+  type MessagingRole,
 } from "@/lib/mobile-messages";
-import { announcementThreads } from "@/lib/program-announcements";
 import { POLL_INTERVAL, polling } from "@/lib/poll";
+import { announcementThreads } from "@/lib/program-announcements";
 
 export function messagingRoleFor(role?: UserRole | null): MessagingRole {
   return role === UserRole.Mentor ? UserRole.Mentor : UserRole.Mentee;

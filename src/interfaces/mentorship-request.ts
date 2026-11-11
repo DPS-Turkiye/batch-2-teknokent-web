@@ -28,6 +28,15 @@ export enum MentorshipRequestMessageType {
   MentorMessage = "MENTOR_MESSAGE",
 }
 
+/**
+ * How a recommendation was made. The backend stores it as free text: it reports its own method in a header, and a
+ * request started from a startup's profile is marked by this app.
+ */
+export const MatchingMethod = {
+  Deterministic: "DETERMINISTIC",
+  Profile: "PROFILE",
+} as const;
+
 export type RequestMessage = {
   id: string;
   authorId: string;
@@ -55,13 +64,14 @@ export type MentorshipRequest = {
   requesterId: string;
   requesterName?: string;
   organizationId: string;
-  organizationName?: string;
+  /** Null for a personal team (Organization.visibleName), which is never shown as a team. */
+  organizationName?: string | null;
   mentorId: string;
   mentorName: string;
   requestedForName?: string;
   supportArea: string;
   summary?: string;
-  requesterMessage?: string;
+  requesterMessage?: string | null;
   /** The mentee's "BEKLENEN ÇIKTI"; null on requests sent before it had its own field. */
   expectedOutcome?: string | null;
   status: MentorshipRequestStatus;

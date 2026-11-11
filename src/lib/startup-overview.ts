@@ -1,7 +1,7 @@
-import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
-  type MentorshipRequest,
   MentorshipRequestStatus,
+  type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import {
   meetingsForRequest,

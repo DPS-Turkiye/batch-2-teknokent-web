@@ -1,9 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 
+import { MobileButtonLink } from "@/components/mobile/mobile-button";
 import {
   HomeHeader,
   HomeMessageRow,
@@ -11,7 +12,6 @@ import {
   QuietLine,
 } from "@/components/mobile/mobile-home-parts";
 import { MobileMentorHomeView } from "@/components/mobile/mobile-mentor-home-view";
-import { MobileButtonLink } from "@/components/mobile/mobile-button";
 import {
   MobileEmptyState,
   MobileErrorState,

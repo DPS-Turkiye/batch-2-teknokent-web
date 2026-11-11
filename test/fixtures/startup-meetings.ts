@@ -1,5 +1,5 @@
-import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { MeetingDetails } from "@/hooks/use-startup-meetings";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   DocumentKind,
   type StartupDocument,
@@ -40,6 +40,9 @@ export function meetingFileFixture(
     meetingId,
     meetingAgenda: "MVP Scope & User Flow",
     meetingScheduledAt: "2026-08-18T09:00:00Z",
+    reviewedAt: null,
+    reviewedById: null,
+    reviewedByName: null,
     shares: [],
   };
 }

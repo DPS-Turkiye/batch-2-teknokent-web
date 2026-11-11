@@ -22,7 +22,7 @@ export function NeedSummaryStep({
   onEditNeed: () => void;
   onEditProblem: () => void;
   onEditOutcome: () => void;
-  onSelectStep?: (index: number) => void;
+  onSelectStep?: ((index: number) => void) | undefined;
 }) {
   const t = useTranslations("mentorRequest.summaryStep");
   return (

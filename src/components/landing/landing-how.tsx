@@ -1,11 +1,10 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
 
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
 import { useLandingSteps } from "@/hooks/use-landing";
-import { LANDING_MENTOR_STEPS, LANDING_STEP_MS } from "@/lib/const/landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import { LANDING_MENTOR_STEPS, LANDING_STEP_MS } from "@/lib/const/landing";
 
 export function LandingHow() {
   const landing = useLandingContent();
@@ -39,18 +38,12 @@ export function LandingHow() {
               <span>{landing.ui.howTitleEnd}</span>
             </span>
           </h2>
-          <p
-            className={cx("lead", "rv")}
-            style={{ "--d": "120ms" } as CSSProperties}
-          >
+          <p className={cx("lead", "rv")} style={{ "--d": "120ms" }}>
             {landing.ui.howLead}
           </p>
         </div>
         <div className={cx("how-grid")} data-role={role.key}>
-          <div
-            className={cx("rv")}
-            style={{ "--dur": `${LANDING_STEP_MS}ms` } as CSSProperties}
-          >
+          <div className={cx("rv")} style={{ "--dur": `${LANDING_STEP_MS}ms` }}>
             <div className={cx(!playing && "paused")}>
               <div
                 className={cx("steps")}
@@ -121,7 +114,7 @@ export function LandingHow() {
             ref={stageRef}
             className={cx("stage", "rv")}
             data-s={current}
-            style={{ "--d": "150ms" } as CSSProperties}
+            style={{ "--d": "150ms" }}
           >
             <div className={cx("skin", "o")} />
             <div className={cx("skin", "b")} />

@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
+import Image from "next/image";
 
 import { NumberStepper } from "@/components/common/number-stepper";
 import { ToggleSwitch } from "@/components/common/toggle-switch";
@@ -173,10 +173,10 @@ export function WeeklyAvailabilityEditor({
                   className="flex items-center justify-between gap-4"
                 >
                   <span className="text-[13px] leading-5 text-[#4a5059]">
-                    {editor.numberFieldLabels?.[field] ?? t(field)}
+                    {editor.numberFieldLabels[field] ?? t(field)}
                   </span>
                   <NumberStepper
-                    label={editor.numberFieldLabels?.[field] ?? t(field)}
+                    label={editor.numberFieldLabels[field] ?? t(field)}
                     value={draft[field]}
                     min={min}
                     max={max}

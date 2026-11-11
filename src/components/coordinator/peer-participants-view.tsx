@@ -7,12 +7,12 @@ import { useId } from "react";
 import { GateBadgeStateChip } from "@/components/badges/gate-badge-state-chip";
 import { ModalDialog } from "@/components/common/modal-dialog";
 import { ProgramDetailFrame } from "@/components/coordinator/program-detail-frame";
+import { useProgramBadges } from "@/hooks/use-program-badges";
 import {
   GateBadgeState,
   inTraining,
   type GateBadgeRow,
 } from "@/interfaces/badges";
-import { useProgramBadges } from "@/hooks/use-program-badges";
 import { ProgramTab } from "@/lib/coordinator-program-detail";
 import { errorMessage, formatLongDate } from "@/lib/utils";
 

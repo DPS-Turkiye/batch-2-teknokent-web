@@ -1,13 +1,12 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { CalendarRange } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 
 import { useProgramThisWeek } from "@/hooks/use-program-this-week";
-import { formatLongDate } from "@/lib/utils";
 import { dayRangeLabel, ProgramWeekCardState } from "@/lib/program-week";
+import { formatLongDate } from "@/lib/utils";
 
 const LIST_KEYS = ["topics", "activities", "deliverables"] as const;
 

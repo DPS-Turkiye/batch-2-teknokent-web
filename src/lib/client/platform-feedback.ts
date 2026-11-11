@@ -3,8 +3,8 @@ import type {
   PlatformFeedbackInbox,
   SubmitPlatformFeedback,
 } from "@/interfaces/platform-feedback";
-import { requireSuccess } from "@/lib/client/api";
 import type { ProgramType } from "@/interfaces/program";
+import { requireSuccess } from "@/lib/client/api";
 import { httpClient } from "@/lib/http-client";
 
 export async function submitPlatformFeedback(feedback: SubmitPlatformFeedback) {

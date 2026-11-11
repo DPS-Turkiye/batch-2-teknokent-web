@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
+import { AssistantShareKind } from "@/interfaces/meeting-note";
 import { UserRole } from "@/interfaces/session";
 import {
   fetchAssistantShare,
@@ -16,9 +17,10 @@ import {
   assistantSignInRequired,
 } from "@/lib/server/assistant-caller";
 import { readBearerToken } from "@/lib/server/bearer-token";
+import { readJsonBody } from "@/lib/server/request-body";
 import { requireMentorSession } from "@/lib/server/require-program-access";
 import { SessionRequiredError } from "@/lib/server/session-error";
-import { SIDE_PARAM, sessionSide } from "@/lib/server/session-side";
+import { sessionSide, SIDE_PARAM } from "@/lib/server/session-side";
 import { getSessionUser } from "@/lib/session";
 import { fetchMeetingTranscript } from "@/lib/transcriptapi";
 
@@ -55,23 +57,17 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const auth = await requireMentorSession();
     if (!auth.ok) return auth.response;
     const { id } = await context.params;
-    const parsed = publishAssistantShareBodySchema.safeParse(
-      await request.json(),
+    const parsed = await readJsonBody(
+      request,
+      publishAssistantShareBodySchema,
+      { invalidMessage: "transcriptOrReportRequired" },
     );
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("transcriptOrReportRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    if (!parsed.ok) return parsed.response;
     const body = parsed.data;
-    if (body.kind === "PROVIDER_TRANSCRIPT") {
+    if (body.kind === AssistantShareKind.ProviderTranscript) {
       // The backend lets only that Meet code's participants read its transcript.
       const idToken = readBearerToken(request);
-      if (!idToken) return assistantSignInRequired();
+      if (!idToken) return await assistantSignInRequired();
       const transcript = await fetchMeetingTranscript(
         body.platform,
         body.nativeMeetingId,
@@ -96,7 +92,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
       }
       return backendResponse(
         await publishAssistantShare(id, auth.session.userId, {
-          kind: "TRANSCRIPT",
+          kind: AssistantShareKind.Transcript,
           transcript: segments,
         }),
       );

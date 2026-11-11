@@ -1,8 +1,8 @@
 "use client";
 
 import { Check, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import { useState } from "react";
 
 import { AdminOverlay } from "@/components/admin/admin-ui";

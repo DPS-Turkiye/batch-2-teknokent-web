@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Test for Rate Limit Error Handling (PR #36)
@@ -71,7 +71,9 @@ describe("Rate Limit Retry Logic", () => {
         }
         if (i < maxRetries - 1) {
           const delay = Math.pow(2, i + 1) * 1000; // 2s, 4s, 8s
-          await new Promise((resolve) => setTimeout(resolve, delay));
+          await new Promise((resolve) => {
+            setTimeout(resolve, delay);
+          });
         }
       }
       return new Response(JSON.stringify({ error: "Max retries exceeded" }), {
@@ -95,14 +97,13 @@ describe("Rate Limit Retry Logic", () => {
       },
     );
 
-    if (response.status === 429) {
-      const retryAfter =
-        response.headers.get("X-Rate-Limit-Retry-After-Seconds") || "60";
-      const errorMessage = `Çok fazla istek gönderildi. Lütfen ${retryAfter} saniye bekleyiniz.`;
+    expect(response.status).toBe(429);
+    const retryAfter =
+      response.headers.get("X-Rate-Limit-Retry-After-Seconds") || "60";
+    const errorMessage = `Çok fazla istek gönderildi. Lütfen ${retryAfter} saniye bekleyiniz.`;
 
-      expect(errorMessage).toContain("Çok fazla istek");
-      expect(errorMessage).toContain(retryAfter);
-    }
+    expect(errorMessage).toContain("Çok fazla istek");
+    expect(errorMessage).toContain(retryAfter);
   });
 
   it("should track rate limit remaining tokens", async () => {

@@ -1,32 +1,22 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
 import {
-  type CoordinatorCandidate,
   CoordinatorCandidateStatus,
+  type CoordinatorCandidate,
 } from "@/interfaces/admin-coordinator";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
   addedMessage,
-  programCoordinatorLabel,
   candidateMessage,
   isAssignable,
   nameRequired,
+  programCoordinatorLabel,
 } from "@/lib/admin-coordinators";
 import { isEmailAddress } from "@/lib/utils";
-import en from "@/messages/en.json";
-import tr from "@/messages/tr.json";
+import { translatorIn } from "@test/translators";
 
-const t = createTranslator({
-  locale: "tr",
-  messages: tr,
-  namespace: "adminCoordinators",
-});
-const tEn = createTranslator({
-  locale: "en",
-  messages: en,
-  namespace: "adminCoordinators",
-});
+const t = translatorIn("tr", "adminCoordinators");
+const tEn = translatorIn("en", "adminCoordinators");
 
 function candidate(
   status: CoordinatorCandidateStatus,

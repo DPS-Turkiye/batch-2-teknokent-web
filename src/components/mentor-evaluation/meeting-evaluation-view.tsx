@@ -1,8 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
@@ -242,6 +242,8 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
           </legend>
           <div className="flex flex-wrap gap-2">
             {MENTOR_EVALUATION_QUALITIES.map((quality, index) => {
+              const qualityId = MENTOR_EVALUATION_QUALITY_IDS[index];
+              if (!qualityId) return null;
               const selected = answers.qualities.includes(quality);
               return (
                 <button
@@ -251,7 +253,7 @@ export function MeetingEvaluationView({ meetingId }: { meetingId: string }) {
                   onClick={() => evaluation.toggleQuality(quality)}
                   className={`rounded-full border px-3.5 py-2 text-[12.5px] font-medium transition ${selected ? "border-[#26a4ff] bg-[#26a4ff] text-white" : "border-[#d4d8dd] bg-white text-[#4a5059] hover:border-[#26a4ff]"}`}
                 >
-                  {t(`quality.${MENTOR_EVALUATION_QUALITY_IDS[index]}`)}
+                  {t(`quality.${qualityId}`)}
                 </button>
               );
             })}

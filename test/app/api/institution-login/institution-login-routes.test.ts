@@ -11,6 +11,8 @@ import {
   finishInstitutionCallback,
   startInstitutionLogin,
 } from "@/lib/api/institution-login";
+import { INSTITUTION_LOGIN_COOKIE } from "@/lib/server/institution-login-cookie";
+import { backendRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/institution-login", () => ({
   startInstitutionLogin: vi.fn(),
@@ -23,14 +25,33 @@ const provider = (name: string) => ({
   params: Promise.resolve({ provider: name }),
 });
 
-function completeRequest(body: unknown) {
+/** The cookie the start route left in the browser that began the login. */
+function startedHere(
+  state: string,
+  provider = "odtu",
+  next: string | null = null,
+) {
+  return `${INSTITUTION_LOGIN_COOKIE}=${encodeURIComponent(
+    JSON.stringify({ provider, state, next }),
+  )}`;
+}
+
+function completeRequest(
+  body: unknown,
+  cookie: string | null = startedHere("s-1"),
+) {
   return new NextRequest(
     "http://localhost/api/institution-login/odtu/complete",
     {
       method: "POST",
       body: JSON.stringify(body),
+      headers: cookie ? { cookie } : {},
     },
   );
+}
+
+function bindingCookie(response: Response) {
+  return response.headers.get("set-cookie") ?? "";
 }
 
 describe("institution login routes", () => {
@@ -57,6 +78,11 @@ describe("institution login routes", () => {
     expect(startInstitutionLogin).toHaveBeenCalledWith(
       InstitutionProvider.Odtu,
     );
+    const cookie = bindingCookie(response);
+    expect(cookie).toContain(`${INSTITUTION_LOGIN_COOKIE}=`);
+    expect(cookie).toContain(encodeURIComponent('"state":"s-1"'));
+    expect(cookie.toLowerCase()).toContain("httponly");
+    expect(cookie.toLowerCase()).toContain("samesite=lax");
 
     expect(
       (await start(new Request("http://localhost"), provider("boun"))).status,
@@ -81,7 +107,13 @@ describe("institution login routes", () => {
       provider("odtu"),
     );
 
-    expect(await response.json()).toEqual({ customToken: "custom-1" });
+    expect(await response.json()).toEqual({
+      customToken: "custom-1",
+      next: null,
+    });
+    expect(bindingCookie(response)).toContain(`${INSTITUTION_LOGIN_COOKIE}=;`);
+    // Whoever was signed in on this browser before is signed out first.
+    expect(bindingCookie(response)).toContain("teknokent_session=;");
     expect(finishInstitutionCallback).toHaveBeenCalledWith(
       InstitutionProvider.Odtu,
       "s-1",
@@ -91,11 +123,11 @@ describe("institution login routes", () => {
   });
 
   it("passes the backend's refusal through without asking for a token", async () => {
-    vi.mocked(finishInstitutionCallback).mockResolvedValue({
-      status: 403,
-      data: { message: "Bu hesap için menton erişimi bulunamadı." },
-      headers: {},
-    });
+    vi.mocked(finishInstitutionCallback).mockResolvedValue(
+      backendRefusal(403, {
+        message: "Bu hesap için menton erişimi bulunamadı.",
+      }),
+    );
 
     const response = await complete(
       completeRequest({ state: "s-1", params: { persona: "dev-personel-1" } }),
@@ -123,6 +155,70 @@ describe("institution login routes", () => {
       ).status,
     ).toBe(400);
     expect(finishInstitutionCallback).not.toHaveBeenCalled();
+  });
+
+  // Login CSRF: a callback link from someone else's login carries a valid state, but this browser never started it.
+  it("refuses a completion this browser did not start", async () => {
+    for (const cookie of [
+      null,
+      startedHere("someone-elses-state"),
+      startedHere("s-1", "otg"),
+      `${INSTITUTION_LOGIN_COOKIE}=not-json`,
+    ]) {
+      const response = await complete(
+        completeRequest({ state: "s-1", params: { persona: "p" } }, cookie),
+        provider("odtu"),
+      );
+      expect(response.status).toBe(400);
+      expect(bindingCookie(response)).toContain(
+        `${INSTITUTION_LOGIN_COOKIE}=;`,
+      );
+    }
+    expect(finishInstitutionCallback).not.toHaveBeenCalled();
+  });
+
+  it("forgets the login when the backend cannot be reached", async () => {
+    vi.mocked(finishInstitutionCallback).mockRejectedValue(new Error("down"));
+
+    const response = await complete(
+      completeRequest({ state: "s-1", params: { persona: "p" } }),
+      provider("odtu"),
+    );
+
+    expect(response.status).toBeGreaterThanOrEqual(500);
+    expect(bindingCookie(response)).toContain(`${INSTITUTION_LOGIN_COOKIE}=;`);
+    expect(bindingCookie(response)).not.toContain("teknokent_session");
+  });
+
+  it("hands back the in-app path the login was started for, never another site", async () => {
+    vi.mocked(finishInstitutionCallback).mockResolvedValue({
+      status: 200,
+      data: { code: "code-1" },
+      headers: {},
+    });
+    vi.mocked(exchangeInstitutionCode).mockResolvedValue({
+      status: 200,
+      data: { customToken: "custom-1" },
+      headers: {},
+    });
+
+    const toProgram = await complete(
+      completeRequest(
+        { state: "s-1", params: { code: "c" } },
+        startedHere("s-1", "otg", "/programs/42"),
+      ),
+      provider("otg"),
+    );
+    expect((await toProgram.json()).next).toBe("/programs/42");
+
+    const elsewhere = await complete(
+      completeRequest(
+        { state: "s-1", params: { code: "c" } },
+        startedHere("s-1", "otg", "/\\evil.example"),
+      ),
+      provider("otg"),
+    );
+    expect((await elsewhere.json()).next).toBeNull();
   });
 
   it("lists the dev personas only while the dev login is switched on", async () => {

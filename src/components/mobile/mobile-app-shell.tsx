@@ -1,6 +1,6 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 
 import { MobileListSkeleton } from "@/components/mobile/mobile-states";
 import { MobileTabBar } from "@/components/mobile/mobile-tab-bar";
@@ -20,7 +20,7 @@ export function MobileAppShell({
     return (
       <div
         className="mx-auto min-h-dvh w-full max-w-[480px] bg-white"
-        style={{ "--mobile-accent": accent } as CSSProperties}
+        style={{ "--mobile-accent": accent }}
       >
         {isReady ? children : <MobileListSkeleton />}
       </div>
@@ -30,7 +30,7 @@ export function MobileAppShell({
   return (
     <div
       className="mx-auto min-h-dvh w-full max-w-[480px] bg-white"
-      style={{ "--mobile-accent": accent } as CSSProperties}
+      style={{ "--mobile-accent": accent }}
     >
       {/* Room for the floating tab bar, so the last row is never hidden under it. */}
       <main className="px-5 pt-[calc(16px+env(safe-area-inset-top))] pb-[calc(110px+env(safe-area-inset-bottom))]">

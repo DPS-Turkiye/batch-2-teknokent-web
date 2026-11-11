@@ -17,11 +17,11 @@ import { PillSelect } from "@/components/coordinator/pill-select";
 import { ProgramTypeChip } from "@/components/coordinator/program-type-chip";
 import { useCoordinatorMentorshipList } from "@/hooks/use-coordinator-mentorships";
 import { useOptionLabel } from "@/hooks/use-option-label";
-import type { ProgramType } from "@/interfaces/program";
 import {
-  type CoordinatorMentorship,
   CoordinatorMentorshipHealth,
+  type CoordinatorMentorship,
 } from "@/interfaces/coordinator-mentorship";
+import type { ProgramType } from "@/interfaces/program";
 import {
   actionsLabel,
   ALL_TOPICS,
@@ -31,10 +31,8 @@ import {
   needsIntervention,
   nextMeetingLabel,
 } from "@/lib/coordinator-mentorships";
-import {
-  PROGRAM_TYPE_FILTERS,
-  type ProgramTypeFilter,
-} from "@/lib/program-types";
+import { isEnumValue } from "@/lib/enum";
+import { isProgramTypeFilter, PROGRAM_TYPE_FILTERS } from "@/lib/program-types";
 import { initials } from "@/lib/utils";
 
 const GRID =
@@ -79,7 +77,9 @@ export function CoordinatorMentorshipsView({
           <PillSelect
             label={t("sortBy")}
             value={list.sort}
-            onChange={(value) => list.setSort(value as MentorshipSort)}
+            onChange={(value) => {
+              if (isEnumValue(MentorshipSort, value)) list.setSort(value);
+            }}
             options={Object.values(MentorshipSort).map((sort) => ({
               value: sort,
               label: t(`sort.${sort}`),
@@ -89,7 +89,9 @@ export function CoordinatorMentorshipsView({
           <PillSelect
             label={tType("label")}
             value={list.type}
-            onChange={(value) => list.setType(value as ProgramTypeFilter)}
+            onChange={(value) => {
+              if (isProgramTypeFilter(value)) list.setType(value);
+            }}
             options={PROGRAM_TYPE_FILTERS.map((value) => ({
               value,
               label: tType(value),

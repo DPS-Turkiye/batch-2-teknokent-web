@@ -4,6 +4,16 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -14,6 +24,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+        with:
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@v5
@@ -22,19 +34,19 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --cache .npm --prefer-offline
+        run: npm ci
 
       - name: Lint
-        run: npm run lint --if-present
+        run: npm run lint
 
       - name: Format check
-        run: npm run format:check --if-present
+        run: npm run format:check
 
       - name: Typecheck
-        run: npm run typecheck --if-present
+        run: npm run typecheck
 
-      - name: Test
-        run: npm run test --if-present
+      - name: Test with coverage thresholds
+        run: npm run test:coverage
 
       - name: Build
         run: npm run build

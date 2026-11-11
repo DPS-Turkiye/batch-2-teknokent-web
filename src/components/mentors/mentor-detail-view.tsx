@@ -1,13 +1,15 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { MentorRequestDialog } from "@/components/mentors/mentor-request-dialog";
 import { MentorStudentProfile } from "@/components/mentors/mentor-student-profile";
 import { useAppSession } from "@/components/providers/session-provider";
+import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import type {
   MentorAvailabilitySlot,
   MentorProfile,
@@ -15,8 +17,6 @@ import type {
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { UserRole } from "@/interfaces/session";
 import type { StartupContext } from "@/interfaces/startup";
-import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { useOptionLabel } from "@/hooks/use-option-label";
 import {
   availabilityColumns,
   slotTimeLabel,
@@ -232,8 +232,11 @@ export function MentorDetailView({
           <section className={cardClass}>
             <h2 className={cardHeadingClass}>{t("experience")}</h2>
             {experiences.length > 0 ? (
-              experiences.map((experience, index) => (
-                <div key={index} className="space-y-[3px]">
+              experiences.map((experience) => (
+                <div
+                  key={`${experienceHeading(experience)}|${experienceDetail(experience)}`}
+                  className="space-y-[3px]"
+                >
                   <p className="text-[13px] font-medium text-[#22262b]">
                     {experienceHeading(experience)}
                   </p>
@@ -263,8 +266,11 @@ export function MentorDetailView({
           {educations.length > 0 ? (
             <section className={cardClass}>
               <h2 className={cardHeadingClass}>{t("education")}</h2>
-              {educations.map((education, index) => (
-                <p key={index} className="text-[13px] text-[#22262b]">
+              {educations.map((education) => (
+                <p
+                  key={educationLine(education)}
+                  className="text-[13px] text-[#22262b]"
+                >
                   {educationLine(education)}
                 </p>
               ))}

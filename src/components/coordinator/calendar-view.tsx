@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight, ChevronLeft, ChevronRight, X } from "lucide-react";
-import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import {
@@ -11,8 +11,8 @@ import {
   QueryNotice,
   SolidButton,
 } from "@/components/admin/admin-ui";
-import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { PillSelect } from "@/components/coordinator/pill-select";
+import { ProposeMeetingDialog } from "@/components/propose-meeting-dialog";
 import { useCoordinatorCalendar } from "@/hooks/use-coordinator-calendar";
 import { useMentorshipMeetingProposals } from "@/hooks/use-meeting-proposals";
 import type {
@@ -21,19 +21,17 @@ import type {
 } from "@/interfaces/coordinator-calendar";
 import { CoordinatorAgendaKind } from "@/interfaces/coordinator-overview";
 import {
-  type CoordinatorProgram,
   ProgramEventKind,
+  type CoordinatorProgram,
 } from "@/interfaces/coordinator-program";
 import {
-  type CalendarTexts,
   CalendarView,
   conflictSummary,
-  type EventDraft,
   fullRecordingCount,
   GRID_HOURS,
   GRID_START_HOUR,
-  itemsOnDay,
   isRecordingFull,
+  itemsOnDay,
   longDayLabel,
   mentorshipHref,
   placeDayItems,
@@ -42,6 +40,8 @@ import {
   slotLabel,
   timeLabel,
   weekdayLabel,
+  type CalendarTexts,
+  type EventDraft,
 } from "@/lib/coordinator-calendar";
 import { coordinatorMessageHref } from "@/lib/coordinator-mentorships";
 import { initials } from "@/lib/utils";
@@ -140,7 +140,11 @@ export function CoordinatorCalendarView() {
             ) : calendar.view === CalendarView.Month ? (
               <MonthGrid
                 days={calendar.days}
-                month={calendar.days[10].getMonth()}
+                month={(
+                  calendar.days[10] ??
+                  calendar.days[0] ??
+                  new Date()
+                ).getMonth()}
                 items={calendar.items}
                 onSelect={calendar.select}
               />

@@ -3,7 +3,7 @@ import { useLocale, useTranslations } from "next-intl";
 
 import { AppointmentRoleLabel } from "@/components/appointments/appointment-role-label";
 import { AppointmentStatusChip } from "@/components/appointments/appointment-status-chip";
-import { type Appointment, AppointmentStatus } from "@/interfaces/appointment";
+import { AppointmentStatus, type Appointment } from "@/interfaces/appointment";
 import { timeLabel } from "@/lib/calendar";
 import { formatDateTime, httpUrlOrNull } from "@/lib/utils";
 

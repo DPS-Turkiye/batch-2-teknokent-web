@@ -1,8 +1,8 @@
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
 "use client";
 
-import { useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 
 import { AuthShell } from "@/components/auth/auth-shell";
 import { useOdtuDevLogin } from "@/hooks/use-odtu-dev-login";

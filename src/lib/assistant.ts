@@ -2,13 +2,13 @@ import axios, { type AxiosRequestConfig, type AxiosResponse } from "axios";
 
 import { clientText } from "@/i18n/client-texts";
 import { amplifyBlockedMessage } from "@/lib/amplify-safe-body";
+import { bearerHeader } from "@/lib/client/bearer";
 import {
   getBotApiUrl,
   getMeetingReportApiUrl,
   getStopBotApiUrl,
   getTranscriptApiUrl,
 } from "@/lib/const";
-import { bearerHeader } from "@/lib/client/bearer";
 import { httpClient, UPLOAD_TIMEOUT_MS } from "@/lib/http-client";
 import type {
   AddBotResult,
@@ -111,7 +111,8 @@ export async function fetchTranscript(
 ): Promise<TranscriptSegment[]> {
   try {
     const data = requireAssistantOk(
-      await httpClient.get<{ segments?: TranscriptSegment[] }>(
+      // The bot API may answer an unknown meeting with an empty body.
+      await httpClient.get<{ segments?: TranscriptSegment[] } | null>(
         getTranscriptApiUrl(platform, nativeMeetingId),
         await signedIn(),
       ),

@@ -1,6 +1,6 @@
 import "server-only";
 
-import { UserAccountStatus, type BackendUser } from "@/interfaces/session";
+import type { BackendUser, UserAccountStatus } from "@/interfaces/session";
 import { HttpMethod } from "@/lib/http-method";
 import { backendRequest } from "@/lib/server/backend-client";
 

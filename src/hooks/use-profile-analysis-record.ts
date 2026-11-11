@@ -1,10 +1,11 @@
 "use client";
 
-import { useAppSession } from "@/components/providers/session-provider";
 import { useQuery } from "@tanstack/react-query";
+
+import { useAppSession } from "@/components/providers/session-provider";
+import { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
 import { ClientApiError } from "@/lib/client/api";
 import { getProfileAnalysisRecord } from "@/lib/client/profile-analysis-records";
-import { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
 
 export const PROFILE_ANALYSIS_MUTATION_KEY = [
   "startup-profile-analysis",

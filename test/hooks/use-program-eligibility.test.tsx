@@ -7,10 +7,10 @@ import {
   useProgramEligibility,
   useSignupCanContinue,
 } from "@/hooks/use-program-eligibility";
-import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { SignupStep } from "@/interfaces/signup";
 import { getProgramEligibility } from "@/lib/client/auth";
 import { currentIdToken } from "@/lib/firebase/auth";
+import { signupDraft, signupWizardStub } from "@test/fixtures/signup-wizard";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/auth", () => ({ getProgramEligibility: vi.fn() }));
@@ -25,11 +25,11 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 function wizard(step: SignupStep, programId: string | null) {
-  return {
+  return signupWizardStub({
     step,
     canContinue: true,
-    draft: { startup: { programId } },
-  } as unknown as SignupWizard;
+    draft: signupDraft({ startup: { programId } }),
+  });
 }
 
 describe("useProgramEligibility", () => {

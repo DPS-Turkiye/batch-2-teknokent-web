@@ -8,6 +8,7 @@ import {
 } from "@/components/student/student-frame";
 import { useStudentHome } from "@/hooks/use-student-home";
 import type { StudentHome } from "@/interfaces/student-home";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 import { STUDENT_APPOINTMENTS } from "@test/fixtures/student-appointments";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
@@ -23,7 +24,10 @@ function homeReturns(data: StudentHome | undefined, extra = {}) {
 
 const HOME: StudentHome = {
   profileCompleted: false,
-  upcomingAppointments: [STUDENT_APPOINTMENTS[1], STUDENT_APPOINTMENTS[0]],
+  upcomingAppointments: [
+    itemAt(STUDENT_APPOINTMENTS, 1),
+    itemAt(STUDENT_APPOINTMENTS, 0),
+  ],
 };
 
 describe("StudentHomeView", () => {
@@ -33,7 +37,7 @@ describe("StudentHomeView", () => {
     renderWithQueryClient(<StudentHomeView />);
 
     const rows = screen.getAllByRole("listitem");
-    expect(rows).toHaveLength(2);
+    expectLength(rows, 2);
     expect(within(rows[0]).getByText("Uluslararası Fırsatlar")).toBeVisible();
     expect(within(rows[0]).getByText("Mentor olarak")).toBeVisible();
     expect(within(rows[1]).getByText("Kariyer ve Staj")).toBeVisible();

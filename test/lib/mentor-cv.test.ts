@@ -4,12 +4,13 @@ import {
   EMPTY_STUDENT_DRAFT,
   PLACEHOLDER_PARSED_PROFILE,
 } from "@/interfaces/mentor-onboarding";
+import { withKeys } from "@/lib/keyed-list";
 import {
   applyMentorCv,
   fillOnboardingProfile,
   fillStudies,
-  type MentorCvResult,
   toMentorCvResult,
+  type MentorCvResult,
 } from "@/lib/mentor-cv";
 
 const cv: MentorCvResult = {
@@ -103,17 +104,17 @@ describe("applyMentorCv", () => {
     experienceLevel: "",
     sectorExperience: "B2C",
     specialties: ["UX"],
-    experiences: [
+    experiences: withKeys([
       {
         title: "head of design",
         organization: "looply",
         period: "",
         summary: "",
       },
-    ],
-    educations: [
+    ]),
+    educations: withKeys([
       { school: "odtü", degree: "lisans, endüstriyel tasarım", period: "" },
-    ],
+    ]),
     menteeCapacity: 3,
   };
 
@@ -173,14 +174,17 @@ describe("fillOnboardingProfile", () => {
       title: "Kurucu",
       company: "Looply",
       totalExperience: "12 yıl",
-      history: cv.history,
-      education: cv.education,
+      history: cv.history.map((role) => ({ ...role, key: expect.any(String) })),
+      education: cv.education.map((school) => ({
+        ...school,
+        key: expect.any(String),
+      })),
       inferredAreas: ["UX", "Design Systems"],
     });
   });
 
   it("keeps schools the applicant already typed", () => {
-    const typed = [{ school: "Bilkent", degree: "", period: "" }];
+    const typed = withKeys([{ school: "Bilkent", degree: "", period: "" }]);
     expect(
       fillOnboardingProfile(
         { ...PLACEHOLDER_PARSED_PROFILE, education: typed },

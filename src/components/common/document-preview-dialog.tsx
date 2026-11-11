@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 
 import type { DocumentDownload } from "@/interfaces/startup-document";
@@ -131,7 +132,7 @@ export function DocumentPreviewDialog({
             </button>
           </div>
         </header>
-        <div className="min-h-0 flex-1 bg-[#f7f8f9]">
+        <div className="relative min-h-0 flex-1 bg-[#f7f8f9]">
           {error ? (
             <p role="alert" className="p-6 text-sm text-[#676e78]">
               {t("previewFailed")}
@@ -145,12 +146,14 @@ export function DocumentPreviewDialog({
           ) : !objectUrl ? (
             <p className="p-6 text-sm text-[#858c96]">{t("fileLoading")}</p>
           ) : isImage(file.contentType) ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            // A blob: URL of the downloaded file; there is nothing for the optimizer to fetch.
+            <Image
               src={objectUrl}
               alt={file.filename}
+              fill
+              unoptimized
               draggable={false}
-              className="mx-auto h-full w-full object-contain select-none"
+              className="object-contain select-none"
             />
           ) : (
             <object

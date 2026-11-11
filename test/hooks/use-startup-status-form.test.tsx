@@ -5,8 +5,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { Toaster } from "@/components/common/toaster";
 import { useStartupStatusForm } from "@/hooks/use-startup-status-form";
-import type { StartupProfile } from "@/interfaces/organization";
 import { saveStartupStatus } from "@/lib/client/organization";
+import { startupProfile } from "@test/fixtures/startup-profile";
 import { createTestQueryClient } from "@test/test-utils";
 
 vi.mock("@/lib/client/organization", () => ({
@@ -15,13 +15,11 @@ vi.mock("@/lib/client/organization", () => ({
   saveStartupStatus: vi.fn(),
 }));
 
-const profile = {
-  id: "org-1",
-  name: "Döngü",
+const profile = startupProfile({
   statusVersion: "v0.9.2",
   statusSummary: "Öğretmen modülü geliştirme aşamasında.",
   completionPercent: 72,
-} as StartupProfile;
+});
 
 function setup(queryClient = createTestQueryClient()) {
   function wrapper({ children }: { children: ReactNode }) {
@@ -80,7 +78,7 @@ describe("useStartupStatusForm", () => {
     act(() => result.current.submit());
 
     await waitFor(() => expect(result.current.isOpen).toBe(false));
-    expect(vi.mocked(saveStartupStatus).mock.calls[0][0]).toEqual({
+    expect(vi.mocked(saveStartupStatus).mock.calls[0]?.[0]).toEqual({
       statusVersion: null,
       statusSummary: "Öğretmen modülü geliştirme aşamasında.",
       completionPercent: 80,

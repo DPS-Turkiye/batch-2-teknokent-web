@@ -63,7 +63,7 @@ export function upcomingFor(
       .filter(
         (meeting) =>
           meeting.organizationId === organizationId &&
-          String(meeting.status).toUpperCase() === MeetingStatus.Scheduled &&
+          meeting.status === MeetingStatus.Scheduled &&
           endOf(meeting) > now.getTime(),
       )
       .sort((left, right) =>

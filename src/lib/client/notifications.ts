@@ -1,10 +1,10 @@
 import axios from "axios";
 
-import type { NotificationPreferences } from "@/interfaces/notification";
-import type { DashboardNotification } from "@/types/landing";
-import { getPublicBackendUrl } from "@/lib/const";
-import { bearerHeader } from "@/lib/client/bearer";
 import { clientText } from "@/i18n/client-texts";
+import type { NotificationPreferences } from "@/interfaces/notification";
+import { bearerHeader } from "@/lib/client/bearer";
+import { getPublicBackendUrl } from "@/lib/const";
+import type { DashboardNotification } from "@/types/landing";
 
 function authorization() {
   return bearerHeader(clientText("notificationsSignIn"));

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 
 import { UserAccountStatus } from "@/interfaces/session";
 import { fetchSignedInUser } from "@/lib/api/auth";

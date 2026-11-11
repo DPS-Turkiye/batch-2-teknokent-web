@@ -80,10 +80,8 @@ function MeetingSummaryContent() {
                 <div className="flex justify-between">
                   <dt>{t("status")}</dt>
                   <dd className="font-semibold text-white">
-                    {Object.values(MeetingStatus).includes(
-                      meeting.status as MeetingStatus,
-                    )
-                      ? tStatus(meeting.status as MeetingStatus)
+                    {Object.values(MeetingStatus).includes(meeting.status)
+                      ? tStatus(meeting.status)
                       : meeting.status}
                   </dd>
                 </div>

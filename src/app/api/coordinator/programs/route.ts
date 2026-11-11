@@ -7,11 +7,13 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { createProgramSchema } from "@/lib/server/coordinator-program-schemas";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 export async function GET() {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     return backendResponse(await fetchCoordinatorPrograms(auth.session.userId));
   } catch (error) {
@@ -23,11 +25,12 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
-    const body = await request.json();
+    const body = await readJsonBody(request, createProgramSchema);
+    if (!body.ok) return body.response;
     return backendResponse(
-      await createCoordinatorProgram(auth.session.userId, body),
+      await createCoordinatorProgram(auth.session.userId, body.data),
     );
   } catch (error) {
     return apiErrorResponse(error, {
