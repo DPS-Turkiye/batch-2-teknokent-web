@@ -5978,7 +5978,8 @@
     "weekPlanSaveFailed": "Haftalık plan kaydedilemedi.",
     "programThisWeekLoadFailed": "Bu haftanın planı yüklenemedi.",
     "sessionRefreshFailed": "Oturum bilgilerin güncellenemedi.",
-    "personSummaryLoadFailed": "Profil yüklenemedi."
+    "personSummaryLoadFailed": "Profil yüklenemedi.",
+    "personIdInvalid": "Geçerli bir kişi seçin."
   },
   "startupStart": {
     "title": "Startup'ım",

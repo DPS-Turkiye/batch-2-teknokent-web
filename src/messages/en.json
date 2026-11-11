@@ -5978,7 +5978,8 @@
     "weekPlanSaveFailed": "Couldn't save the weekly plan.",
     "programThisWeekLoadFailed": "Couldn't load this week's plan.",
     "sessionRefreshFailed": "Couldn't update your session.",
-    "personSummaryLoadFailed": "Could not load the profile."
+    "personSummaryLoadFailed": "Could not load the profile.",
+    "personIdInvalid": "Choose a valid person."
   },
   "startupStart": {
     "title": "My startup",
