@@ -9,6 +9,7 @@ import {
   MobileButton,
   MobileButtonLink,
 } from "@/components/mobile/mobile-button";
+import { OtgLoginButton } from "@/components/login/otg-login-button";
 import { MobileLoginSheet, useMobileLogin } from "@/hooks/use-mobile-login";
 import { MobileButtonVariant } from "@/interfaces/mobile";
 import { SIGNUP_ON_WEB_HREF } from "@/lib/mobile";
@@ -178,6 +179,9 @@ export function MobileLoginView() {
             {login.isVerifying ? t("submitting") : t("submit")}
           </MobileButton>
         </form>
+
+        {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+        <OtgLoginButton next={login.next} />
 
         <div className="flex flex-col items-center gap-2 border-t border-[#f0f2f4] pt-[18px]">
           <button
