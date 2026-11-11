@@ -17,7 +17,7 @@ export async function GET(
     const session = await getSessionUser();
     if (!session) throw new SessionRequiredError();
     const { id } = await params;
-    return backendResponse(await fetchUserProfile(id));
+    return backendResponse(await fetchUserProfile(id, session.userId));
   } catch (error) {
     return apiErrorResponse(error, {
       message: await apiText("profileLoadFailed"),

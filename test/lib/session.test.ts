@@ -292,7 +292,11 @@ describe("getSessionUser account re-check", () => {
     await expect(getSessionUser()).resolves.toEqual(signedIn);
 
     // Well under the backend client's 15 s, so a hung backend can't stall every request.
-    expect(fetchUser).toHaveBeenCalledWith(signedIn.userId, 3000);
+    expect(fetchUser).toHaveBeenCalledWith(
+      signedIn.userId,
+      signedIn.userId,
+      3000,
+    );
     expect(savedSession.checkedAt).toBeGreaterThanOrEqual(before);
     expect(savedSession.issuedAt).toBe(issuedAt);
     expect(savedSession.save).toHaveBeenCalledOnce();

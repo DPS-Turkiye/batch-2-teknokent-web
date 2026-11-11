@@ -9,24 +9,31 @@ export type AccountDecision = {
   inviteCode: string | null;
 };
 
-export function fetchUsers(options?: {
-  role?: BackendUser["role"];
-  status?: UserAccountStatus;
-}) {
+/** Admins only; the backend checks `actorId`. */
+export function fetchUsers(
+  actorId: string,
+  options?: {
+    role?: BackendUser["role"];
+    status?: UserAccountStatus;
+  },
+) {
   return backendRequest<BackendUser[]>({
-    method: "GET",
+    method: HttpMethod.Get,
     url: "/api/users",
     params: {
+      actorId,
       ...(options?.role ? { role: options.role } : {}),
       ...(options?.status ? { status: options.status } : {}),
     },
   });
 }
 
-export function fetchUser(userId: string, timeout?: number) {
+/** The backend answers 404 unless `actorId` is the person, an admin, or related to them. */
+export function fetchUser(userId: string, actorId: string, timeout?: number) {
   return backendRequest<BackendUser>({
-    method: "GET",
+    method: HttpMethod.Get,
     url: `/api/users/${encodeURIComponent(userId)}`,
+    params: { actorId },
     ...(timeout ? { timeout } : {}),
   });
 }

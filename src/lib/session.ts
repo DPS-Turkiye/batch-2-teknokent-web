@@ -123,7 +123,11 @@ const ACCOUNT_RECHECK_TIMEOUT_MS = 3000;
  */
 async function accountStillMatches(user: AppSession, issuedAt: number) {
   try {
-    const response = await fetchUser(user.userId, ACCOUNT_RECHECK_TIMEOUT_MS);
+    const response = await fetchUser(
+      user.userId,
+      user.userId,
+      ACCOUNT_RECHECK_TIMEOUT_MS,
+    );
     if (response.status === 404) return false;
     if (response.status === 401 || response.status === 403) {
       // The service credential was refused: the check is off for everyone.

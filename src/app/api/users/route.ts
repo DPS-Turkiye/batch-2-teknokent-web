@@ -12,7 +12,9 @@ export async function GET() {
     const auth = await requireAdminSession();
     if (!auth.ok) return auth.response;
     return backendResponse(
-      await fetchUsers({ status: UserAccountStatus.Pending }),
+      await fetchUsers(auth.session.userId, {
+        status: UserAccountStatus.Pending,
+      }),
     );
   } catch (error) {
     return apiErrorResponse(error, {
