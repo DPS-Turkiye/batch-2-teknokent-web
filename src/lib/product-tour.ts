@@ -201,7 +201,8 @@ export function placeCard(
   cardHeight: number,
   viewport: Viewport,
 ): CardPosition {
-  const width = Math.min(CARD_WIDTH, viewport.width - MARGIN * 2);
+  // Never negative: the first render can see a zero-sized screen (the server snapshot).
+  const width = Math.max(0, Math.min(CARD_WIDTH, viewport.width - MARGIN * 2));
   const docked = {
     top: Math.max(MARGIN, viewport.height - cardHeight - MARGIN),
     left: MARGIN,
@@ -219,7 +220,7 @@ export function placeCard(
     };
   }
   if (viewport.width < DOCK_BELOW_WIDTH) {
-    return { ...docked, width: viewport.width - MARGIN * 2 };
+    return { ...docked, width: Math.max(0, viewport.width - MARGIN * 2) };
   }
 
   const centerX = target.left + target.width / 2;
@@ -230,6 +231,8 @@ export function placeCard(
     MARGIN,
     viewport.width - width - MARGIN,
   );
+  // Beside the element the card must fit the screen's height; otherwise it goes above, below or docked.
+  const fitsBeside = cardHeight + MARGIN * 2 <= viewport.height;
   const sideTop = clamp(
     anchorY - ARROW_INSET - 8,
     MARGIN,
@@ -263,7 +266,9 @@ export function placeCard(
       },
     },
     [CardPlacement.Right]: {
-      fits: target.left + target.width + GAP + width <= viewport.width - MARGIN,
+      fits:
+        fitsBeside &&
+        target.left + target.width + GAP + width <= viewport.width - MARGIN,
       position: {
         top: sideTop,
         left: target.left + target.width + GAP,
@@ -273,7 +278,7 @@ export function placeCard(
       },
     },
     [CardPlacement.Left]: {
-      fits: target.left - GAP - width >= MARGIN,
+      fits: fitsBeside && target.left - GAP - width >= MARGIN,
       position: {
         top: sideTop,
         left: target.left - GAP - width,

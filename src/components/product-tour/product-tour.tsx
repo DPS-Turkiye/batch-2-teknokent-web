@@ -33,7 +33,11 @@ export function ProductTour({ workspace }: { workspace: Workspace }) {
           : ""}
       </p>
       {tour.phase === TourPhase.Welcome ? (
-        <TourWelcomeDialog role={role} onStart={tour.start} onSkip={tour.skip} />
+        <TourWelcomeDialog
+          role={role}
+          onStart={tour.start}
+          onSkip={tour.skip}
+        />
       ) : null}
       {step ? (
         <>

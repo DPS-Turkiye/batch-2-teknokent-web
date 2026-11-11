@@ -56,6 +56,17 @@ describe("tour outcome", () => {
 });
 
 describe("tour run", () => {
+  it("is null when the tab's storage is blocked, and saving does not throw", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    expect(readTourRun("user-1")).toBeNull();
+    expect(() => writeTourRun("user-1", null)).not.toThrow();
+  });
+
   it("comes back as it was saved, and is gone once cleared", () => {
     const run = {
       role: TourRole.IskurStudent,
@@ -106,6 +117,14 @@ describe("tour run", () => {
         role: TourRole.Student,
         phase: TourPhase.Step,
         stepIndex: 1.5,
+      }),
+    ],
+    [
+      "a step the tour no longer has",
+      JSON.stringify({
+        role: TourRole.Academician,
+        phase: TourPhase.Step,
+        stepIndex: 4,
       }),
     ],
   ])("refuses a saved run with %s", (_name, saved) => {

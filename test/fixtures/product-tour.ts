@@ -40,10 +40,14 @@ export function odtuSession(overrides: Partial<AppSession> = {}): AppSession {
 export function resetProductTour() {
   window.localStorage.clear();
   window.sessionStorage.clear();
-  useProductTourStore.setState({ userId: null, run: null });
+  useProductTourStore.setState({ userId: null, run: null, dismissed: [] });
 }
 
 /** A tour left open at a step, as a reload finds it in the tab. */
-export function seedTourStep(userId: string, role: TourRole, stepIndex: number) {
+export function seedTourStep(
+  userId: string,
+  role: TourRole,
+  stepIndex: number,
+) {
   writeTourRun(userId, { role, phase: TourPhase.Step, stepIndex });
 }

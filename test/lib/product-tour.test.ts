@@ -30,9 +30,7 @@ function box(left: number, top: number, width: number, height: number): Box {
 describe("tourRoleOf", () => {
   it("gives ODTÜ students the appointment tour and İŞKUR participants the peer-mentoring one", () => {
     expect(tourRoleOf(Workspace.OdtuStudent, false)).toBe(TourRole.Student);
-    expect(tourRoleOf(Workspace.OdtuStudent, true)).toBe(
-      TourRole.IskurStudent,
-    );
+    expect(tourRoleOf(Workspace.OdtuStudent, true)).toBe(TourRole.IskurStudent);
   });
 
   it("gives academicians their tour whatever the İŞKUR flag says", () => {
@@ -131,9 +129,7 @@ describe("isInteractiveElement", () => {
   });
 
   it("accepts elements with an interactive role or a tab stop", () => {
-    expect(isInteractiveElement(element('<div role="tab">x</div>'))).toBe(
-      true,
-    );
+    expect(isInteractiveElement(element('<div role="tab">x</div>'))).toBe(true);
     expect(isInteractiveElement(element('<div tabindex="0">x</div>'))).toBe(
       true,
     );
@@ -199,6 +195,22 @@ describe("placeCard", () => {
     expect(placeCard(box(72, 700, 1296, 84), 230, DESKTOP).placement).toBe(
       CardPlacement.Above,
     );
+  });
+
+  it("never gives the card a negative width on a zero-sized first render", () => {
+    expect(placeCard(null, 210, { width: 0, height: 0 }).width).toBe(0);
+    expect(
+      placeCard(box(0, 0, 10, 10), 210, { width: 20, height: 400 }).width,
+    ).toBe(0);
+  });
+
+  it("does not put a card taller than the screen beside the element", () => {
+    const position = placeCard(box(72, 300, 200, 60), 1000, {
+      width: 1440,
+      height: 800,
+    });
+    expect(position.placement).toBe(CardPlacement.Docked);
+    expect(position.top).toBe(16);
   });
 
   it("keeps the card on screen when the element fills it", () => {

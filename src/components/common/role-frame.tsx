@@ -10,9 +10,9 @@ import { AdminIcon } from "@/components/admin/admin-ui";
 import { MentonWordmark } from "@/components/common/menton-wordmark";
 import { NotificationMenu } from "@/components/common/notification-menu";
 import { FeedbackButton } from "@/components/dashboard/feedback-button";
-import { ProductTour } from "@/components/product-tour/product-tour";
 import { AccountSettingsDialog } from "@/components/hoc/account-dialogs";
 import { WorkspaceSwitcher } from "@/components/hoc/workspace-switcher";
+import { ProductTour } from "@/components/product-tour/product-tour";
 import {
   useAppSession,
   useSession,

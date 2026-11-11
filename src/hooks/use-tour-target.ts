@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useEffectEvent,
-  useMemo,
   useState,
   useSyncExternalStore,
 } from "react";
@@ -40,15 +39,33 @@ function boxOf(element: Element | null): Box | null {
   return box;
 }
 
+// Watches the whole page: a step's element can appear anywhere (a list filling, a dialog opening). A tour runs for
+// a minute or so, and each change costs one querySelectorAll.
 function subscribeToDom(onChange: () => void) {
   const observer = new MutationObserver(onChange);
   observer.observe(document.body, {
     childList: true,
     subtree: true,
     attributes: true,
-    attributeFilter: ["data-tour"],
+    attributeFilter: ["data-tour", "class", "style", "hidden"],
   });
   return () => observer.disconnect();
+}
+
+/** The page changes, and so does which copy of an element is shown (the desktop menu hides on a phone). */
+function subscribeToPage(onChange: () => void) {
+  const unsubscribeDom = subscribeToDom(onChange);
+  window.addEventListener("resize", onChange);
+  return () => {
+    unsubscribeDom();
+    window.removeEventListener("resize", onChange);
+  };
+}
+
+/** The first shown element with this anchor: a hidden copy (the desktop menu on a phone) does not count. */
+function visibleAnchor(anchor: TourAnchor) {
+  const matches = document.querySelectorAll<HTMLElement>(anchorSelector(anchor));
+  return [...matches].find((element) => element.checkVisibility()) ?? null;
 }
 
 function subscribeToViewport(onChange: () => void) {
@@ -86,14 +103,11 @@ export function useTourTarget(
   onTargetClick: (() => void) | null,
 ) {
   const findElement = useCallback(
-    () =>
-      anchor === null
-        ? null
-        : document.querySelector<HTMLElement>(anchorSelector(anchor)),
+    () => (anchor === null ? null : visibleAnchor(anchor)),
     [anchor],
   );
   const element = useSyncExternalStore(
-    subscribeToDom,
+    subscribeToPage,
     findElement,
     serverNothing,
   );
@@ -121,6 +135,12 @@ export function useTourTarget(
   const box = useSyncExternalStore(
     subscribeToLayout,
     () => boxOf(element),
+    serverNothing,
+  );
+  // The highlight follows the element's own corners (a pill in the menu, a rounded card).
+  const radius = useSyncExternalStore(
+    subscribeToLayout,
+    () => (element === null ? null : getComputedStyle(element).borderRadius),
     serverNothing,
   );
   const width = useSyncExternalStore(
@@ -168,12 +188,6 @@ export function useTourTarget(
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
   }, [element, listens]);
-
-  // The highlight follows the element's own corners (a pill in the menu, a rounded card).
-  const radius = useMemo(
-    () => (element === null ? null : getComputedStyle(element).borderRadius),
-    [element],
-  );
 
   return {
     element,

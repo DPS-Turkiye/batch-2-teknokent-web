@@ -1,4 +1,5 @@
 import { isEnumValue } from "@/lib/enum";
+import { TOURS } from "@/lib/product-tour";
 import {
   TourOutcome,
   TourPhase,
@@ -74,7 +75,9 @@ export function readTourRun(userId: string): TourRun | null {
     !isEnumValue(TourPhase, phase) ||
     typeof stepIndex !== "number" ||
     !Number.isInteger(stepIndex) ||
-    stepIndex < 0
+    stepIndex < 0 ||
+    // A tour shortened since it was saved: start afresh rather than keep a step that no longer exists.
+    stepIndex >= TOURS[role].steps.length
   ) {
     return null;
   }

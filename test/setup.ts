@@ -70,6 +70,14 @@ if (typeof window.matchMedia !== "function") {
   };
 }
 
+// jsdom has no checkVisibility. Without layout, an element counts as shown unless it or a parent is `hidden` or
+// has an inline `display: none`, which is how tests hide a copy (the desktop menu on a phone).
+if (typeof Element.prototype.checkVisibility !== "function") {
+  Element.prototype.checkVisibility = function checkVisibility(this: Element) {
+    return this.closest('[hidden], [style*="display: none"]') === null;
+  };
+}
+
 // jsdom has no layout, so nothing ever resizes; observers only need to exist.
 if (typeof globalThis.ResizeObserver !== "function") {
   globalThis.ResizeObserver = class {

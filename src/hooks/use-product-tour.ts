@@ -64,13 +64,16 @@ export function useProductTour(workspace: Workspace) {
     ) {
       return;
     }
-    actions.open(role);
+    // The store decides with what it holds now: the run hydrated a moment ago in this same commit wins.
+    actions.openIfIdle(userId, role);
   }, [actions, definition, pathname, role, storedRun, userId]);
 
+  const stepIndex = run?.stepIndex ?? -1;
+  const next = () => actions.next(stepCount, stepIndex);
   const target = useTourTarget(
     step?.anchor ?? null,
-    `${role ?? ""}:${run?.stepIndex ?? -1}`,
-    step?.advance === TourAdvance.Click ? () => actions.next(stepCount) : null,
+    `${role ?? ""}:${stepIndex}`,
+    step?.advance === TourAdvance.Click ? next : null,
   );
 
   // The step's own page, when its element did not turn up where the user is (a reload, a page that does not
@@ -83,10 +86,9 @@ export function useProductTour(workspace: Workspace) {
   }, [pathname, route, router, target.missing]);
 
   function leave(outcome: TourOutcome) {
-    if (userId !== null && role !== null) {
-      writeTourOutcome(userId, role, outcome);
-    }
-    actions.clear();
+    if (role === null) return;
+    if (userId !== null) writeTourOutcome(userId, role, outcome);
+    actions.dismiss(role);
   }
 
   return {
@@ -104,7 +106,7 @@ export function useProductTour(workspace: Workspace) {
       (target.missing || (target.element !== null && !target.interactive)),
     focusTarget: () => target.element?.focus(),
     start: actions.start,
-    next: () => actions.next(stepCount),
+    next,
     finish: actions.finish,
     skip: () => leave(TourOutcome.Skipped),
     close: () => leave(TourOutcome.Completed),

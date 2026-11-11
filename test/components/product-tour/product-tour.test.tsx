@@ -6,14 +6,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ProductTour } from "@/components/product-tour/product-tour";
 import { ProductTourReplayButton } from "@/components/product-tour/product-tour-replay-button";
 import { TARGET_WAIT_MS } from "@/hooks/use-tour-target";
-import type { AppSession } from "@/interfaces/session";
-import { IdentityKind, UserRole } from "@/interfaces/session";
+import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { Workspace } from "@/interfaces/workspace";
 import { fetchInstitutionRecord } from "@/lib/client/institution";
-import {
-  readTourOutcome,
-  writeTourOutcome,
-} from "@/lib/product-tour-storage";
+import { readTourOutcome, writeTourOutcome } from "@/lib/product-tour-storage";
 import { TourOutcome, TourRole } from "@/types/product-tour";
 import {
   institutionRecord,
@@ -57,7 +53,9 @@ function renderTour(workspace: Workspace, page: ReactNode = null) {
 /** Lets the institution record arrive and the tour decide. */
 async function flushQueries() {
   await act(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 0));
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0);
+    });
   });
 }
 
@@ -77,6 +75,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
+  vi.restoreAllMocks();
 });
 
 describe("ProductTour welcome", () => {
@@ -284,7 +283,9 @@ describe("ProductTour end", () => {
     const user = userEvent.setup();
     renderTour(
       Workspace.OdtuStudent,
-      <div data-tour="appointment-request-sent">Randevu talebin gönderildi</div>,
+      <div data-tour="appointment-request-sent">
+        Randevu talebin gönderildi
+      </div>,
     );
     const card = await screen.findByRole("dialog", {
       name: "Talebin gönderildi",
@@ -343,6 +344,105 @@ describe("ProductTour end", () => {
     expect(readTourOutcome("student-1", TourRole.Student)).toBe(
       TourOutcome.Completed,
     );
+  });
+});
+
+describe("ProductTour after the reviewers' cases", () => {
+  it("keeps the step saved before a reload on the home page instead of reopening the welcome", async () => {
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    seedTourStep("academic-1", TourRole.Academician, 2);
+    renderTour(Workspace.OdtuAcademician);
+    expect(
+      await screen.findByRole("dialog", { name: "Gelen talebi aç" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("dialog", { name: "Office Hours'a hazırlanalım" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("does not bring the welcome back after Şimdilik Atla when the browser refuses to save", async () => {
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    const user = userEvent.setup();
+    renderTour(Workspace.OdtuAcademician);
+    await user.click(
+      await screen.findByRole("button", { name: "Şimdilik Atla" }),
+    );
+    await flushQueries();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("treats a hidden copy of the element (the desktop menu on a phone) as missing", () => {
+    vi.useFakeTimers();
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    seedTourStep("academic-1", TourRole.Academician, 0);
+    renderTour(
+      Workspace.OdtuAcademician,
+      <nav hidden>
+        <button type="button" data-tour="availability-add">
+          Müsaitlik Ekle
+        </button>
+      </nav>,
+    );
+    expect(screen.queryByTestId("tour-pane-top")).not.toBeInTheDocument();
+    act(() => {
+      vi.advanceTimersByTime(TARGET_WAIT_MS);
+    });
+    expect(screen.getByTestId("tour-backdrop")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "İleri" })).toBeInTheDocument();
+  });
+
+  it("skips with Escape wherever focus is, but leaves Escape to an open page dialog", async () => {
+    session = ACADEMICIAN;
+    pathname = "/academician/appointments";
+    seedTourStep("academic-1", TourRole.Academician, 3);
+    const { rerender } = renderTour(
+      Workspace.OdtuAcademician,
+      <div role="dialog" aria-modal="true" aria-label="Randevu talebi">
+        <button type="button" data-tour="request-drawer-accept">
+          Kabul Et
+        </button>
+      </div>,
+    );
+    await screen.findByRole("dialog", { name: "Talebi yanıtla" });
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(
+      screen.getByRole("dialog", { name: "Talebi yanıtla" }),
+    ).toBeInTheDocument();
+
+    rerender(
+      <InLocale locale="tr">
+        <ProductTour workspace={Workspace.OdtuAcademician} />
+      </InLocale>,
+    );
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(readTourOutcome("academic-1", TourRole.Academician)).toBe(
+      TourOutcome.Skipped,
+    );
+  });
+
+  it("moves one step on a double click", async () => {
+    session = ACADEMICIAN;
+    pathname = "/academician";
+    seedTourStep("academic-1", TourRole.Academician, 0);
+    const user = userEvent.setup();
+    renderTour(
+      Workspace.OdtuAcademician,
+      <button type="button" data-tour="availability-add">
+        Müsaitlik Ekle
+      </button>,
+    );
+    await screen.findByRole("dialog", { name: "Müsaitliğini ekle" });
+    await user.dblClick(screen.getByRole("button", { name: "Müsaitlik Ekle" }));
+    expect(
+      screen.getByRole("dialog", { name: "Haftalık saatlerini ekle" }),
+    ).toBeInTheDocument();
   });
 });
 

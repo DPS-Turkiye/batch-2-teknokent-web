@@ -7,8 +7,8 @@ import {
   useId,
   useRef,
   useState,
+  useEffectEvent,
   type CSSProperties,
-  type KeyboardEvent,
 } from "react";
 
 import { Button, ButtonSize } from "@/components/ia/button";
@@ -45,7 +45,7 @@ function arrowStyle(
 
 /**
  * The "Tur / Adım kartı": step count, progress, what this place is for, and how to go on. A non-modal dialog, so
- * the highlighted element stays reachable; Escape inside it skips the tour.
+ * the highlighted element stays reachable; Escape skips the tour.
  */
 export function TourStepCard({
   stepKey,
@@ -93,9 +93,20 @@ export function TourStepCard({
   const position = placeCard(box, height, viewport);
   const arrow = arrowStyle(position.placement, position.arrowOffset);
 
-  function onKeyDown(event: KeyboardEvent<HTMLElement>) {
-    if (event.key === "Escape") onSkip();
-  }
+  // Escape skips the tour wherever focus is (it usually stays on the page), except while a page dialog is open:
+  // there Escape closes that dialog, and the tour carries on.
+  const skipOnEscape = useEffectEvent((event: KeyboardEvent) => {
+    if (event.key !== "Escape") return;
+    if (document.querySelector('[aria-modal="true"]') !== null) return;
+    onSkip();
+  });
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      skipOnEscape(event);
+    }
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   return (
     <section
@@ -104,7 +115,6 @@ export function TourStepCard({
       aria-modal="false"
       aria-labelledby={titleId}
       aria-describedby={bodyId}
-      onKeyDown={onKeyDown}
       className="fixed z-[72] flex flex-col gap-3 rounded-[20px] bg-background-surface p-5 shadow-modal motion-safe:transition-[top,left] motion-safe:duration-200"
       style={{ top: position.top, left: position.left, width: position.width }}
     >
