@@ -353,7 +353,9 @@ function HomeWithoutAvailability({ home }: { home: AcademicianHome }) {
           muted
           label={t("stats.pending")}
           value={stats.pending.value}
-          hint={t("stats.pendingEmpty")}
+          hint={
+            home.pendingCount > 0 ? stats.pending.hint : t("stats.pendingEmpty")
+          }
         />
         <StatCard
           muted
@@ -368,6 +370,8 @@ function HomeWithoutAvailability({ home }: { home: AcademicianHome }) {
           hint={t("stats.adviseesHint")}
         />
       </div>
+      {/* Requests sent before the hours were cleared still need an answer. */}
+      {home.pendingCount > 0 ? <PendingRequests home={home} /> : null}
     </>
   );
 }

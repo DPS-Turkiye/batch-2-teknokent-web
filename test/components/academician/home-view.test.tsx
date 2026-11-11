@@ -207,6 +207,24 @@ describe("AcademicianHomeView", () => {
     ).not.toBeInTheDocument();
   });
 
+  it("still lists waiting requests when the hours were cleared", async () => {
+    const { availability } = sampleState();
+    saveSampleAvailability({ ...availability, rules: [], oneOffs: [] });
+    renderWithQueryClient(<AcademicianHomeView />);
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Öğrencilerin senden randevu alabilmesi için müsaitlik ekle",
+      }),
+    ).toBeVisible();
+    expect(statCard("Bekleyen talepler")).toHaveTextContent("2en eskisi dün");
+    expect(await requestCard("Deniz Kaya")).toBeVisible();
+    expect(
+      screen.getByRole("heading", { name: "Yanıt bekleyen talepler" }),
+    ).toBeVisible();
+  });
+
   it("greets without a name when ODTÜ has no record, and reads in English", async () => {
     // The backend answers 404 when no institution vouches for the caller.
     vi.mocked(fetchInstitutionRecord).mockRejectedValue(

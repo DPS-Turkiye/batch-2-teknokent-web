@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
 
+import { OfficeHoursRequestAction } from "@/interfaces/academician-office-hours";
 import { AppointmentStatus } from "@/interfaces/appointment";
+import { Weekday } from "@/interfaces/mentor";
 import {
+  acceptableTime,
+  daysBetween,
   groupAppointments,
   rangeMinutes,
+  shiftDay,
   slotWhenLabel,
+  turkeyDay,
+  turkeyTime,
   turkeyTimeRange,
   waitsForAcademician,
+  weekdayOfDay,
 } from "@/lib/academician-office-hours";
 import { formatTimeRange } from "@/lib/utils";
 import {
@@ -75,5 +83,62 @@ describe("slotWhenLabel", () => {
     expect(slotWhenLabel(halfHour("2026-11-12T14:00"), "en")).toMatch(
       /^November 12, /,
     );
+  });
+});
+
+describe("Turkey days", () => {
+  it("counts a moment on its Turkey day, whatever the browser's zone", () => {
+    // 22:30 in Istanbul on the 10th is still the 10th in UTC, but 21:30 UTC is already the 11th in Istanbul.
+    expect(turkeyDay("2026-11-10T22:30:00+03:00")).toBe("2026-11-10");
+    expect(turkeyDay(new Date("2026-11-10T21:30:00Z"))).toBe("2026-11-11");
+  });
+
+  it("steps and measures days across a month end", () => {
+    expect(shiftDay("2026-11-30", 1)).toBe("2026-12-01");
+    expect(shiftDay("2026-03-01", -1)).toBe("2026-02-28");
+    expect(daysBetween("2026-11-28", "2026-12-02")).toBe(4);
+  });
+
+  it("names a day's weekday with the week starting on Monday", () => {
+    expect(weekdayOfDay("2026-11-09")).toBe(Weekday.Monday);
+    expect(weekdayOfDay("2026-11-15")).toBe(Weekday.Sunday);
+  });
+});
+
+describe("acceptableTime", () => {
+  it("gives the one requested time when accepting is allowed", () => {
+    const time = halfHour("2026-11-17T11:00");
+    expect(
+      acceptableTime(academicianRequest({ requestedTimes: [time] })),
+    ).toEqual(time);
+  });
+
+  it("waits for a choice among several times, and gives nothing without Accept", () => {
+    expect(
+      acceptableTime(
+        academicianRequest({
+          requestedTimes: [
+            halfHour("2026-11-17T11:00"),
+            halfHour("2026-11-18T11:00"),
+          ],
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      acceptableTime(
+        academicianRequest({
+          allowedActions: [OfficeHoursRequestAction.Decline],
+        }),
+      ),
+    ).toBeNull();
+    expect(
+      acceptableTime(academicianRequest({ requestedTimes: [] })),
+    ).toBeNull();
+  });
+});
+
+describe("turkeyTime", () => {
+  it("shows a moment in Turkey time", () => {
+    expect(turkeyTime("2026-11-10T07:00:00Z", "tr")).toBe("10:00");
   });
 });

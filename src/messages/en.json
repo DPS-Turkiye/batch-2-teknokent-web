@@ -6542,11 +6542,6 @@
       "question": "Your question to the student",
       "needTime": "Pick at least one time.",
       "needQuestion": "Write your question.",
-      "accepted": "Request accepted; the appointment is in My appointments.",
-      "declined": "Request declined.",
-      "proposed": "Your times were sent to the student.",
-      "asked": "Your question was sent to the student.",
-      "failed": "The request could not be answered; the list was refreshed.",
       "noteLabel": "Student note",
       "proposedPast": "A time in the past cannot be offered.",
       "pickOne": "Pick a time."

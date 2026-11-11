@@ -37,8 +37,9 @@ export function useRequestAnswer() {
   });
 
   return {
-    answer: (id: string, answer: OfficeHoursAnswer) => {
-      mutation.mutate({ id, answer });
+    /** `onDone` runs after the source accepted the answer, e.g. to close the drawer it came from. */
+    answer: (id: string, answer: OfficeHoursAnswer, onDone?: () => void) => {
+      mutation.mutate({ id, answer }, { onSuccess: () => onDone?.() });
     },
     /** The request being answered, so only its buttons wait. */
     answeringId: mutation.isPending ? mutation.variables.id : null,
