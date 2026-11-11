@@ -108,5 +108,38 @@
       "save": "Save",
       "saving": "Saving…"
     }
+  },
+  "home": {
+    "giving": {
+      "title": "Mentoring I give",
+      "hint": "As a peer mentor",
+      "all": "Give mentoring",
+      "empty": "No requests waiting for an answer.",
+      "new": "New request",
+      "sentAt": "{topic} · {date}",
+      "accept": "Accept",
+      "decline": "Decline",
+      "more": "+{count} more requests"
+    },
+    "mentor": {
+      "title": "Your mentor profile",
+      "active": "Active",
+      "badge": "Badge",
+      "badgeVerified": "Verified",
+      "capacity": "Capacity",
+      "capacityValue": "{used} / {capacity} mentees",
+      "noCapacity": "Not set",
+      "open": "My mentor profile"
+    },
+    "training": {
+      "title": "Become a peer mentor",
+      "body": "Complete your program's training, earn your badge and mentor other students.",
+      "action": "Go to Give mentoring"
+    },
+    "createProfile": {
+      "title": "Your badge is verified",
+      "body": "Create your mentor profile; once it's published, students can discover you.",
+      "action": "Create your mentor profile"
+    }
   }
 }

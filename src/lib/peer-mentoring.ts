@@ -8,7 +8,7 @@ import {
   PeerMentorGateState,
   type PeerTopicCategory,
 } from "@/interfaces/peer-mentoring";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import { IskurHomeMode, PeerCapacityNote } from "@/types/iskur-student";
 
 type Tone = ComponentProps<typeof StatusChip>["tone"];
 
@@ -129,4 +129,14 @@ export function peerMentorCapacity(
     percent: Math.floor((filled / capacity) * 100),
     note,
   };
+}
+
+/** Which İŞKUR blocks the home shows; a session that lags behind a new badge waits like a missing profile. */
+export function iskurHomeMode(
+  gate: PeerMentorGateState,
+  hasProfile: boolean,
+): IskurHomeMode {
+  if (gate === PeerMentorGateState.NoBadge) return IskurHomeMode.Training;
+  if (gate !== PeerMentorGateState.Earned) return IskurHomeMode.None;
+  return hasProfile ? IskurHomeMode.Mentor : IskurHomeMode.CreateProfile;
 }

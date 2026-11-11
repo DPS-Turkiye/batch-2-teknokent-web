@@ -5,13 +5,14 @@ import { BadgeCode, BadgeStatus } from "@/interfaces/badges";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { PeerMentorGateState } from "@/interfaces/peer-mentoring";
 import {
+  iskurHomeMode,
   latestGateAward,
   PEER_REQUEST_STATUS_TONE,
   peerMentorCapacity,
   peerMentorGateState,
   peerMentoringSide,
 } from "@/lib/peer-mentoring";
-import { PeerCapacityNote } from "@/types/iskur-student";
+import { IskurHomeMode, PeerCapacityNote } from "@/types/iskur-student";
 
 describe("peerMentoringSide", () => {
   it("opens Mentorluk Ver only for as=MENTOR", () => {
@@ -157,5 +158,28 @@ describe("peerMentorCapacity", () => {
       percent: 100,
       note: PeerCapacityNote.Full,
     });
+  });
+});
+
+describe("iskurHomeMode", () => {
+  it("adds nothing for students who cannot give peer mentoring or lost the badge", () => {
+    expect(iskurHomeMode(PeerMentorGateState.Hidden, false)).toBe(
+      IskurHomeMode.None,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Revoked, true)).toBe(
+      IskurHomeMode.None,
+    );
+  });
+
+  it("points to the training, then the wizard, then shows the mentor blocks", () => {
+    expect(iskurHomeMode(PeerMentorGateState.NoBadge, false)).toBe(
+      IskurHomeMode.Training,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, false)).toBe(
+      IskurHomeMode.CreateProfile,
+    );
+    expect(iskurHomeMode(PeerMentorGateState.Earned, true)).toBe(
+      IskurHomeMode.Mentor,
+    );
   });
 });

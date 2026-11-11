@@ -1,5 +1,5 @@
-import { StudentHomeView } from "@/components/student/home-view";
+import { IskurHomeView } from "@/components/student/iskur-home-view";
 
 export default function StudentHomePage() {
-  return <StudentHomeView />;
+  return <IskurHomeView />;
 }
