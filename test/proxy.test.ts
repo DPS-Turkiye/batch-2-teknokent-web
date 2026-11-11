@@ -75,7 +75,9 @@ function request(
 }
 
 function clearsTheCookie(response: Response) {
-  return /teknokent_session=;/.test(response.headers.get("set-cookie") ?? "");
+  return (response.headers.get("set-cookie") ?? "").includes(
+    "teknokent_session=;",
+  );
 }
 
 describe("proxy", () => {

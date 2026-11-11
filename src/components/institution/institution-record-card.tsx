@@ -1,7 +1,6 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useLocale, useTranslations } from "next-intl";
 
 import type { InstitutionRecord } from "@/interfaces/institution";

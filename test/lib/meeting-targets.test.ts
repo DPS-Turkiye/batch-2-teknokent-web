@@ -4,13 +4,16 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  ProgramStatus,
   type Program,
 } from "@/interfaces/program";
 import {
   groupMeetingTargets,
   meetingRecipient,
+  meetingTargetLabel,
   programsMentorHasJoined,
 } from "@/lib/meeting-targets";
+import { expectLength, itemAt } from "@test/fixtures/list-assertions";
 
 const program: Program = {
   id: "prog-1",
@@ -18,6 +21,7 @@ const program: Program = {
   coordinatorId: "coord-1",
   coordinatorName: "Koordinatör",
   createdAt: "2026-09-01T00:00:00.000Z",
+  status: ProgramStatus.Active,
   startups: [{ id: "org-1", name: "Döngü" }],
   mentors: [
     {
@@ -38,7 +42,7 @@ describe("programsMentorHasJoined", () => {
       id: "prog-2",
       mentors: [
         {
-          ...program.mentors[0],
+          ...itemAt(program.mentors, 0),
           status: ProgramMentorStatus.Pending,
         },
       ],
@@ -117,7 +121,7 @@ describe("groupMeetingTargets", () => {
       ],
     );
 
-    expect(grouped.regular).toHaveLength(1);
+    expectLength(grouped.regular, 1);
     expect(grouped.regular[0]).toMatchObject({
       key: "regular:reg-1",
       organizationId: "org-9",
@@ -141,5 +145,26 @@ describe("meetingRecipient", () => {
         programId: "prog-1",
       }),
     ).toEqual({ mentorshipRequestId: "req-1" });
+  });
+});
+
+describe("meetingTargetLabel", () => {
+  const target = {
+    key: "regular:1",
+    organizationId: "org-1",
+    subtitle: "",
+    requesterName: "Ayşe Yılmaz",
+  };
+
+  it("joins the startup and the requester", () => {
+    expect(meetingTargetLabel({ ...target, organizationName: "Döngü" })).toBe(
+      "Döngü · Ayşe Yılmaz",
+    );
+  });
+
+  it("shows only the requester for a personal team, which has no name", () => {
+    expect(meetingTargetLabel({ ...target, organizationName: null })).toBe(
+      "Ayşe Yılmaz",
+    );
   });
 });

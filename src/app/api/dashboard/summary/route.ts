@@ -4,8 +4,8 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { getSessionIds } from "@/lib/session";
 import { forbiddenWithoutOrganization } from "@/lib/server/without-organization";
+import { getSessionIds } from "@/lib/session";
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
-import { Suspense } from "react";
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
+import { Suspense } from "react";
 
 import { MentorRequestFlow } from "@/components/mentor-request/mentor-request-flow";
 import { loadMentors } from "@/lib/mentors";

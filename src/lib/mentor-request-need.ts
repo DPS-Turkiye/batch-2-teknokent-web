@@ -222,10 +222,10 @@ export const MAX_NEED_GOALS = 2;
 export type MentorRequestNeedDraft = {
   topicId: MentorRequestNeedTopicId;
   otherSummary: string;
-  situationId?: MentorRequestNeedSituationId;
-  noneSummary?: string;
-  goalIds?: MentorRequestNeedGoalId[];
-  goalNote?: string;
+  situationId?: MentorRequestNeedSituationId | undefined;
+  noneSummary?: string | undefined;
+  goalIds?: MentorRequestNeedGoalId[] | undefined;
+  goalNote?: string | undefined;
 };
 
 const TOPIC_IDS = new Set<string>(
@@ -518,6 +518,12 @@ function forAudience<T extends { audience: NeedAudience }>(
   );
 }
 
+function requiredHead<T>(items: readonly T[]): T {
+  const item = items[0];
+  if (item === undefined) throw new Error("Choice list is empty");
+  return item;
+}
+
 /** The topics and situations a mentee is offered: students of an individual program get their own. */
 export function needChoices(student: boolean) {
   const topics = forAudience(MENTOR_REQUEST_NEED_TOPICS, student);
@@ -525,8 +531,10 @@ export function needChoices(student: boolean) {
   return {
     topics,
     situations,
-    defaultTopicId: topics[0].id,
-    defaultSituationId: student ? situations[0].id : DEFAULT_NEED_SITUATION_ID,
+    defaultTopicId: requiredHead(topics).id,
+    defaultSituationId: student
+      ? requiredHead(situations).id
+      : DEFAULT_NEED_SITUATION_ID,
   };
 }
 

@@ -9,8 +9,8 @@ import {
 } from "@/hooks/use-stored-documents";
 import type { UploadedFile } from "@/interfaces/signup";
 import { DocumentKind } from "@/interfaces/startup-document";
-import type { CvSource } from "@/lib/client/profile-analysis";
 import { uploadDocument } from "@/lib/client/documents";
+import type { CvSource } from "@/lib/client/profile-analysis";
 
 /**
  * A profile's CV in edit mode: the one on file, replacing it, and reading it.

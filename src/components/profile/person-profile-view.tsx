@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { PhotoAvatar } from "@/components/common/avatar";
 import { ProfileCard } from "@/components/profile/profile-card";

@@ -1,9 +1,9 @@
 import type { useTranslations } from "next-intl";
 
 import {
+  CoordinatorCandidateStatus,
   type CoordinatorAccount,
   type CoordinatorCandidate,
-  CoordinatorCandidateStatus,
 } from "@/interfaces/admin-coordinator";
 
 const ASSIGNABLE = new Set([
@@ -13,7 +13,7 @@ const ASSIGNABLE = new Set([
 ]);
 
 export function isAssignable(candidate: CoordinatorCandidate | undefined) {
-  return !!candidate && ASSIGNABLE.has(candidate.status);
+  return candidate !== undefined && ASSIGNABLE.has(candidate.status);
 }
 
 export type CoordinatorsT = ReturnType<

@@ -1,17 +1,16 @@
-import { createTranslator } from "next-intl";
 import { describe, expect, it } from "vitest";
 
-import { type MeetingItem, MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import {
   MeetingFrequency,
   MentorLanguage,
-  type MentorProfile,
   PrepFileRequirement,
   Weekday,
+  type MentorProfile,
 } from "@/interfaces/mentor";
 import {
-  type MentorshipRequest,
   MentorshipRequestStatus,
+  type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { ProgramStatus } from "@/interfaces/program";
 import {
@@ -20,31 +19,28 @@ import {
   meetingPreferenceRows,
   mentorshipDurationLabel,
   mentorshipHistory,
-  ratingLabel,
-  programDetail,
   profileSubtitle,
+  programDetail,
+  ratingLabel,
   weeklyAvailabilityRows,
   workingStyleBullets,
   type MentorProfileTexts,
 } from "@/lib/mentor-profile-overview";
-import en from "@/messages/en.json";
 import tr from "@/messages/tr.json";
+import { menteeRequestFixture } from "@test/fixtures/mentee-home";
+import { asLocale, type TestLocale } from "@test/i18n";
+import { translatorIn } from "@test/translators";
 
-function profileTexts(locale: "tr" | "en"): MentorProfileTexts {
-  const messages = locale === "en" ? en : tr;
-  const optionValues = createTranslator({
-    locale,
-    messages,
-    namespace: "optionValues",
-  });
+function profileTexts(locale: TestLocale): MentorProfileTexts {
+  const optionValues = translatorIn(locale, "optionValues");
   return {
-    t: createTranslator({ locale, messages, namespace: "mentorProfile" }),
-    tOptions: createTranslator({ locale, messages, namespace: "options" }),
+    t: translatorIn(locale, "mentorProfile"),
+    tOptions: translatorIn(locale, "options"),
     optionLabel: (group, value) => {
       const key = `${group}.${value}` as Parameters<typeof optionValues>[0];
       return optionValues.has(key) ? optionValues(key) : value;
     },
-    locale,
+    locale: asLocale(locale),
   };
 }
 const texts = profileTexts("tr");
@@ -74,7 +70,7 @@ function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
 }
 
 function request(id: string, createdAt: string): MentorshipRequest {
-  return {
+  return menteeRequestFixture({
     id,
     createdAt,
     organizationId: "org-1",
@@ -83,7 +79,7 @@ function request(id: string, createdAt: string): MentorshipRequest {
     mentorId: "mentor-1",
     supportArea: "Product Design",
     status: MentorshipRequestStatus.Accepted,
-  } as MentorshipRequest;
+  });
 }
 
 function meeting(
@@ -197,7 +193,7 @@ describe("mentorshipHistory", () => {
         meetings,
         texts,
         { r1: 4.25 },
-      )[0].rating,
+      )[0]?.rating,
     ).toBe("4,3");
     expect(
       mentorshipHistory(
@@ -218,11 +214,11 @@ describe("mentorshipHistory", () => {
         [request("r1", "2025-11-10T09:00:00Z")],
         [meeting("m1", "2026-02-12T10:00:00Z", MeetingStatus.Completed)],
         texts,
-      )[0].detail,
+      )[0]?.detail,
     ).toMatch(/^Kas 2025\s–\sŞub 2026 · 1 seans$/);
     expect(
       mentorshipHistory([request("r1", "2026-09-10T09:00:00Z")], [], texts)[0]
-        .detail,
+        ?.detail,
     ).toBe("Eyl 2026 · 0 seans");
   });
 });

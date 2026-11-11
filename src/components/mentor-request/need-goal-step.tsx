@@ -17,7 +17,7 @@ export function NeedGoalStep({
   goalNote: string;
   onToggleGoal: (id: MentorRequestNeedGoalId) => void;
   onGoalNoteChange: (value: string) => void;
-  onSelectStep?: (index: number) => void;
+  onSelectStep?: ((index: number) => void) | undefined;
 }) {
   const t = useTranslations("mentorRequest");
   return (

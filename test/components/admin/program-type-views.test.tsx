@@ -4,13 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import { MentorshipsView } from "@/components/admin/mentorships-view";
 import { ReportingView } from "@/components/admin/reporting-view";
-import type { AdminOverview, AdminProgram } from "@/interfaces/admin-overview";
-import { ProgramStatus, ProgramType } from "@/interfaces/program";
-import { renderWithQueryClient } from "@test/test-utils";
+import type { AdminOverview } from "@/interfaces/admin-overview";
+import { ProgramType } from "@/interfaces/program";
+import { MentorshipTab } from "@/types/admin-mentorships";
+import { adminProgram } from "@test/fixtures/admin-programs";
 import {
   meetingFeedbackState,
   reportOverview,
 } from "@test/fixtures/program-report";
+import { renderWithQueryClient } from "@test/test-utils";
 
 const state = vi.hoisted(() => ({ overview: null as AdminOverview | null }));
 
@@ -40,24 +42,21 @@ vi.mock("@/hooks/use-program-report", () => ({
 
 function withPrograms(): AdminOverview {
   const base = reportOverview();
-  const startup = base.programs[0];
-  const peer: AdminProgram = {
-    ...startup,
+  const peer = adminProgram({
     id: "program-peer",
     name: "İŞKUR Akran 2026",
     type: ProgramType.PeerMentoring,
-    status: ProgramStatus.Active,
-    startups: [],
-    mentors: [],
-  };
-  return { ...base, programs: [startup, peer] };
+    coordinatorId: "coord-1",
+    coordinatorName: "Deniz Acar",
+  });
+  return { ...base, programs: [...base.programs, peer] };
 }
 
 describe("program type on admin Mentorluklar and Raporlama", () => {
   it("labels each program with its type and narrows Mentorluklar to one type", async () => {
     state.overview = withPrograms();
     const user = userEvent.setup();
-    renderWithQueryClient(<MentorshipsView tab="overview" />);
+    renderWithQueryClient(<MentorshipsView tab={MentorshipTab.Overview} />);
 
     expect(
       screen.getByText("İŞKUR Akran 2026", { selector: "span" }),

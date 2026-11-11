@@ -8,12 +8,12 @@ import {
   ApprovalKind,
   type ProgramApprovals,
 } from "@/interfaces/program-approvals";
+import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import {
   decideProgramApproval,
   getCoordinatorProgram,
   getProgramApprovals,
 } from "@/lib/client/coordinator-programs";
-import { TeamChangeKind, TeamChangeStatus } from "@/interfaces/team-change";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 

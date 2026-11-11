@@ -1,5 +1,5 @@
 import { act, renderHook } from "@testing-library/react";
-import type { FormEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { usePlatformFeedback } from "@/hooks/use-platform-feedback";
@@ -13,17 +13,13 @@ import {
   FEEDBACK_MESSAGE_LIMIT,
   FEEDBACK_SUBJECT_LIMIT,
 } from "@/lib/platform-feedback";
+import { formSubmitEvent } from "@test/fixtures/form-events";
 import { platformFeedback } from "@test/fixtures/platform-feedback";
 import { InLocale } from "@test/test-utils";
 
 vi.mock("@/lib/client/platform-feedback", () => ({
   submitPlatformFeedback: vi.fn(),
 }));
-
-const event = () =>
-  new Event("submit", {
-    cancelable: true,
-  }) as unknown as FormEvent<HTMLFormElement>;
 
 function fill(result: { current: ReturnType<typeof usePlatformFeedback> }) {
   act(() => {
@@ -52,7 +48,7 @@ describe("usePlatformFeedback", () => {
 
   it("rejects blank and oversized submissions without making a request", async () => {
     const { result } = renderHook(() => usePlatformFeedback());
-    const submitEvent = event();
+    const submitEvent = formSubmitEvent();
     await act(() => result.current.submit(submitEvent));
     expect(submitEvent.defaultPrevented).toBe(true);
     expect(result.current.subjectRequired).toBe(true);
@@ -62,12 +58,12 @@ describe("usePlatformFeedback", () => {
       result.current.setSubject("x".repeat(FEEDBACK_SUBJECT_LIMIT + 1)),
     );
     expect(result.current.canSubmit).toBe(false);
-    await act(() => result.current.submit(event()));
+    await act(() => result.current.submit(formSubmitEvent()));
     act(() => {
       result.current.setSubject("Valid subject");
       result.current.setMessage("x".repeat(FEEDBACK_MESSAGE_LIMIT + 1));
     });
-    await act(() => result.current.submit(event()));
+    await act(() => result.current.submit(formSubmitEvent()));
     expect(submitPlatformFeedback).not.toHaveBeenCalled();
   });
 
@@ -77,7 +73,7 @@ describe("usePlatformFeedback", () => {
     );
     const { result } = renderHook(() => usePlatformFeedback(), { wrapper });
     fill(result);
-    await act(() => result.current.submit(event()));
+    await act(() => result.current.submit(formSubmitEvent()));
 
     expect(submitPlatformFeedback).toHaveBeenCalledWith({
       kind: PlatformFeedbackKind.Suggestion,
@@ -103,11 +99,11 @@ describe("usePlatformFeedback", () => {
       vi.mocked(submitPlatformFeedback).mockRejectedValueOnce(error);
       const { result } = renderHook(() => usePlatformFeedback());
       fill(result);
-      await act(() => result.current.submit(event()));
+      await act(() => result.current.submit(formSubmitEvent()));
       expect(result.current.error).toBe(expected);
       expect(result.current.message).toBe("  Please add a shortcut.  ");
       expect(result.current.canSubmit).toBe(true);
-      await act(() => result.current.submit(event()));
+      await act(() => result.current.submit(formSubmitEvent()));
       expect(result.current.error).toBeNull();
       expect(result.current.submitted).toBe(true);
     },
@@ -125,8 +121,8 @@ describe("usePlatformFeedback", () => {
     fill(result);
     let pending!: Promise<void>;
     act(() => {
-      pending = result.current.submit(event());
-      void result.current.submit(event());
+      pending = result.current.submit(formSubmitEvent());
+      void result.current.submit(formSubmitEvent());
     });
     expect(submitPlatformFeedback).toHaveBeenCalledTimes(1);
     expect(result.current.isSubmitting).toBe(true);

@@ -3,28 +3,38 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import MentorProfilePage from "@/app/mentor-profile/page";
+import { useMentorCv } from "@/hooks/use-mentor-cv";
 import {
   useAvailabilitySettingsForm,
   useMentorProfile,
   useMentorProfileForm,
 } from "@/hooks/use-mentor-profile";
-import { useMentorCv } from "@/hooks/use-mentor-cv";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
 import {
   MeetingFrequency,
   MentorLanguage,
-  type MentorProfile,
   PrepFileRequirement,
-  WEEKDAY_ORDER,
   Weekday,
+  WEEKDAY_ORDER,
+  type MentorProfile,
 } from "@/interfaces/mentor";
 import { ProgramStatus } from "@/interfaces/program";
+import { withKey, withKeys } from "@/lib/keyed-list";
 import {
   AVAILABILITY_NUMBER_FIELDS,
   type AvailabilityDraft,
 } from "@/lib/mentor-availability";
 import tr from "@/messages/tr.json";
+import {
+  failedQuery,
+  loadingQuery,
+  successQuery,
+} from "@test/mocks/query-results";
 import { InLocale } from "@test/test-utils";
+
+type ProfileForm = ReturnType<typeof useMentorProfileForm>;
+type ProfileOverview = ReturnType<typeof useMentorProfileOverview>;
+type AvailabilityForm = ReturnType<typeof useAvailabilitySettingsForm>;
 
 vi.mock("@/components/hoc/app-shell", () => ({
   AppShell: ({ children }: { children: React.ReactNode }) => (
@@ -83,25 +93,29 @@ function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
 }
 
 const formActions = {
-  addExperience: vi.fn(),
-  applyCv: vi.fn(),
-  addSpecialty: vi.fn(),
-  cancelEditing: vi.fn(),
-  handleSave: vi.fn(),
-  removeExperience: vi.fn(),
-  removeSpecialty: vi.fn(),
-  saveAndFinish: vi.fn(),
-  setSpecialtyInput: vi.fn(),
-  startEditing: vi.fn(),
-  updateCapacity: vi.fn(),
-  updateExperience: vi.fn(),
-  updateField: vi.fn(),
-  setMeetingFrequency: vi.fn(),
-  setPrepFileRequirement: vi.fn(),
-  toggleLanguage: vi.fn(),
-  updateProgramRole: vi.fn(),
-  programRole: vi.fn(() => "Design mentor"),
-};
+  addExperience: vi.fn<ProfileForm["addExperience"]>(),
+  applyCv: vi.fn<ProfileForm["applyCv"]>(),
+  addSpecialty: vi.fn<ProfileForm["addSpecialty"]>(),
+  cancelEditing: vi.fn<ProfileForm["cancelEditing"]>(),
+  handleSave: vi.fn<ProfileForm["handleSave"]>(),
+  removeExperience: vi.fn<ProfileForm["removeExperience"]>(),
+  removeSpecialty: vi.fn<ProfileForm["removeSpecialty"]>(),
+  saveAndFinish: vi.fn<ProfileForm["saveAndFinish"]>(),
+  setSpecialtyInput: vi.fn<ProfileForm["setSpecialtyInput"]>(),
+  startEditing: vi.fn<ProfileForm["startEditing"]>(),
+  updateCapacity: vi.fn<ProfileForm["updateCapacity"]>(),
+  updateExperience: vi.fn<ProfileForm["updateExperience"]>(),
+  updateField: vi.fn<ProfileForm["updateField"]>(),
+  updateStudent: vi.fn<ProfileForm["updateStudent"]>(),
+  setMeetingFrequency: vi.fn<ProfileForm["setMeetingFrequency"]>(),
+  setPrepFileRequirement: vi.fn<ProfileForm["setPrepFileRequirement"]>(),
+  toggleLanguage: vi.fn<ProfileForm["toggleLanguage"]>(),
+  updateProgramRole: vi.fn<ProfileForm["updateProgramRole"]>(),
+  programRole: vi.fn<ProfileForm["programRole"]>(() => "Design mentor"),
+  addEducation: vi.fn<ProfileForm["addEducation"]>(),
+  updateEducation: vi.fn<ProfileForm["updateEducation"]>(),
+  removeEducation: vi.fn<ProfileForm["removeEducation"]>(),
+} satisfies Partial<ProfileForm>;
 
 const availabilityActions = {
   addException: vi.fn(),
@@ -151,7 +165,7 @@ const activeProgram = {
   detail: "Aktif · Design mentor",
 };
 
-const overview = {
+const overview: ProfileOverview = {
   subtitle: "Design / UX Mentor · 12 yıl",
   activePrograms: [activeProgram],
   programs: [
@@ -191,56 +205,70 @@ const overview = {
       id: "r1",
       title: "NovaTech · Zeynep Er",
       detail: "Mar – Haz 2026 · 8 seans",
+      rating: null,
     },
   ],
 };
 
-function mockAll(
-  overrides: {
-    profileQuery?: object;
-    form?: object;
-    overview?: object;
-    availabilityForm?: object;
-  } = {},
-) {
-  vi.mocked(useMentorProfile).mockReturnValue({
-    data: profile(),
-    isLoading: false,
-    error: null,
-    ...overrides.profileQuery,
-  } as unknown as ReturnType<typeof useMentorProfile>);
-  vi.mocked(useMentorProfileForm).mockReturnValue({
+/** The form's draft of the profile before any edit. */
+function editableProfile(
+  overrides: Partial<ProfileForm["form"]> = {},
+): ProfileForm["form"] {
+  return {
+    ...profile(),
+    about: "Erken aşama ürün ekipleriyle çalışıyorum.",
+    menteeCapacity: 5,
+    experiences: withKeys([
+      {
+        title: "METU Stars Mentoru",
+        organization: "",
+        period: "",
+        summary: "",
+      },
+    ]),
+    meetingFrequency: MeetingFrequency.Biweekly,
+    prepFileRequirement: null,
+    languages: [MentorLanguage.Turkish],
+    offerings: [],
+    programRoles: [{ programId: "p1", role: "Design mentor" }],
+    educations: [],
+    ...overrides,
+  };
+}
+
+/** What useMentorProfileForm hands the page: the untouched draft, not editing. */
+function profileForm(overrides: Partial<ProfileForm> = {}): ProfileForm {
+  return {
     ...formActions,
-    form: {
-      ...profile(),
-      about: "Erken aşama ürün ekipleriyle çalışıyorum.",
-      menteeCapacity: 5,
-      experiences: [
-        {
-          title: "METU Stars Mentoru",
-          organization: "",
-          period: "",
-          summary: "",
-        },
-      ],
-      meetingFrequency: MeetingFrequency.Biweekly,
-      prepFileRequirement: null,
-      languages: [MentorLanguage.Turkish],
-      programRoles: [{ programId: "p1", role: "Design mentor" }],
-      educations: [],
-    },
+    form: editableProfile(),
     specialtyInput: "",
     saveError: "",
     saveSuccess: false,
     isSaving: false,
     isEditing: false,
+    student: null,
     canAddExperience: true,
-    ...overrides.form,
-  } as unknown as ReturnType<typeof useMentorProfileForm>);
+    canAddEducation: true,
+    ...overrides,
+  };
+}
+
+function mockAll(
+  overrides: {
+    profileQuery?: ReturnType<typeof useMentorProfile>;
+    form?: Partial<ProfileForm>;
+    overview?: Partial<ProfileOverview>;
+    availabilityForm?: Partial<AvailabilityForm>;
+  } = {},
+) {
+  vi.mocked(useMentorProfile).mockReturnValue(
+    overrides.profileQuery ?? successQuery(profile()),
+  );
+  vi.mocked(useMentorProfileForm).mockReturnValue(profileForm(overrides.form));
   vi.mocked(useMentorProfileOverview).mockReturnValue({
     ...overview,
     ...overrides.overview,
-  } as unknown as ReturnType<typeof useMentorProfileOverview>);
+  });
   vi.mocked(useAvailabilitySettingsForm).mockReturnValue({
     ...availabilityActions,
     days: WEEKDAY_ORDER.map((day) => ({
@@ -255,8 +283,9 @@ function mockAll(
     isSaving: false,
     loadError: null,
     numberFields: AVAILABILITY_NUMBER_FIELDS.map((item) => item.field),
+    numberFieldLabels: {},
     ...overrides.availabilityForm,
-  } as unknown as ReturnType<typeof useAvailabilitySettingsForm>);
+  });
 }
 
 async function openEditor(user: ReturnType<typeof userEvent.setup>) {
@@ -312,12 +341,12 @@ describe("MentorProfilePage", () => {
   });
 
   it("reports while the profile loads, and when it cannot be loaded", () => {
-    mockAll({ profileQuery: { data: undefined, isLoading: true } });
+    mockAll({ profileQuery: loadingQuery() });
     const { unmount } = render(<MentorProfilePage />);
     expect(screen.getByText("Yükleniyor...")).toBeInTheDocument();
     unmount();
 
-    mockAll({ profileQuery: { data: undefined, error: new Error("x") } });
+    mockAll({ profileQuery: failedQuery(new Error("x")) });
     render(<MentorProfilePage />);
     expect(screen.getByText("Mentor profili yüklenemedi.")).toBeInTheDocument();
   });
@@ -418,6 +447,7 @@ describe("MentorProfilePage", () => {
           id: `r${index + 1}`,
           title: `Girişim ${index + 1}`,
           detail: `Eyl 2026 · ${index} seans`,
+          rating: null,
         })),
       },
     });
@@ -556,8 +586,10 @@ describe("MentorProfilePage", () => {
     );
     const roles = screen.getAllByLabelText("Bu programdaki rolün");
     expect(roles).toHaveLength(2);
-    expect(roles[0]).toHaveValue("Design mentor");
-    await user.type(roles[0], "!");
+    const [activeRole] = roles;
+    if (!activeRole) throw new Error("Expected a role field.");
+    expect(activeRole).toHaveValue("Design mentor");
+    await user.type(activeRole, "!");
 
     expect(formActions.toggleLanguage).toHaveBeenCalledWith(
       MentorLanguage.English,
@@ -770,18 +802,15 @@ describe("MentorProfilePage schools", () => {
     const user = userEvent.setup();
     const school = { school: "ODTÜ", degree: "Lisans", period: "2022 – 2026" };
     const educationActions = {
-      addEducation: vi.fn(),
-      updateEducation: vi.fn(),
-      removeEducation: vi.fn(),
+      addEducation: vi.fn<ProfileForm["addEducation"]>(),
+      updateEducation: vi.fn<ProfileForm["updateEducation"]>(),
+      removeEducation: vi.fn<ProfileForm["removeEducation"]>(),
     };
     mockAll();
     mockAll({
       form: {
         ...educationActions,
-        form: {
-          ...vi.mocked(useMentorProfileForm)().form,
-          educations: [school],
-        },
+        form: editableProfile({ educations: [withKey(school)] }),
       },
     });
     const { unmount } = render(<MentorProfilePage />);
@@ -793,10 +822,7 @@ describe("MentorProfilePage schools", () => {
         ...educationActions,
         isEditing: true,
         canAddEducation: true,
-        form: {
-          ...vi.mocked(useMentorProfileForm)().form,
-          educations: [school],
-        },
+        form: editableProfile({ educations: [withKey(school)] }),
       },
     });
     render(<MentorProfilePage />);
@@ -824,12 +850,14 @@ describe("MentorProfilePage student studies", () => {
     projects: ["Kampüs uygulaması"],
     erasmus: null,
   };
-  const updateStudent = vi.fn();
+  const updateStudent = vi.fn<ProfileForm["updateStudent"]>();
 
   beforeEach(() => updateStudent.mockReset());
 
   it("shows a student mentor's studies, and nothing for other mentors", () => {
-    mockAll({ profileQuery: { data: profile({ studentProfile: studies }) } });
+    mockAll({
+      profileQuery: successQuery(profile({ studentProfile: studies })),
+    });
     const { unmount } = render(<MentorProfilePage />);
     expect(
       screen.getByRole("heading", { name: "Öğrenim" }),
@@ -847,7 +875,7 @@ describe("MentorProfilePage student studies", () => {
   it("edits the studies through the form hook", async () => {
     const user = userEvent.setup();
     mockAll({
-      profileQuery: { data: profile({ studentProfile: studies }) },
+      profileQuery: successQuery(profile({ studentProfile: studies })),
       form: {
         isEditing: true,
         updateStudent,

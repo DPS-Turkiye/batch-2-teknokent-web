@@ -46,12 +46,12 @@ export function ProgramThreadList({
                   className="grid size-[34px] shrink-0 place-items-center rounded-full bg-[#f3f4f6] text-[10px] font-semibold"
                   style={{ color: accent.strong }}
                 >
-                  {initials(thread.programName) || "PR"}
+                  {initials(thread.programName ?? "") || "PR"}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex justify-between gap-2">
                     <b className="truncate text-[13px] font-semibold">
-                      {thread.programName}
+                      {thread.programName ?? t("title")}
                     </b>
                     <span className="shrink-0 text-[10px] text-[#858c96]">
                       {conversationTime(
@@ -61,9 +61,11 @@ export function ProgramThreadList({
                       )}
                     </span>
                   </span>
-                  <span className="mt-0.5 block truncate text-[10.5px] text-[#676e78]">
-                    {t("coordinator", { name: thread.coordinatorName })}
-                  </span>
+                  {thread.coordinatorName ? (
+                    <span className="mt-0.5 block truncate text-[10.5px] text-[#676e78]">
+                      {t("coordinator", { name: thread.coordinatorName })}
+                    </span>
+                  ) : null}
                   <span className="mt-1 block truncate text-[10.5px] text-[#858c96]">
                     {thread.lastMessagePreview ?? t("noMessages")}
                   </span>
@@ -103,10 +105,14 @@ export function ProgramThreadPane({
   return (
     <section className={`flex min-h-0 flex-col bg-white ${className}`}>
       <header className="border-b border-[#e4e7ea] px-6 py-4">
-        <h2 className="text-[15px] font-semibold">{thread.programName}</h2>
-        <p className="mt-0.5 text-[12px] text-[#676e78]">
-          {t("coordinator", { name: thread.coordinatorName })}
-        </p>
+        <h2 className="text-[15px] font-semibold">
+          {thread.programName ?? t("title")}
+        </h2>
+        {thread.coordinatorName ? (
+          <p className="mt-0.5 text-[12px] text-[#676e78]">
+            {t("coordinator", { name: thread.coordinatorName })}
+          </p>
+        ) : null}
       </header>
       <div className="min-h-[240px] flex-1 space-y-4 overflow-y-auto px-6 py-5">
         {threads.messagesLoading ? (

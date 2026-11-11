@@ -1,7 +1,10 @@
 import type { useTranslations } from "next-intl";
 
 import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import {
+  MatchingMethod,
+  type MentorshipRequest,
+} from "@/interfaces/mentorship-request";
 import type { Program } from "@/interfaces/program";
 import { CALENDAR_SUPPORT_AREA } from "@/lib/const";
 import { requestOutcomeFromMessage } from "@/lib/mentor-availability-days";
@@ -21,9 +24,11 @@ export function isCalendarOriginRequest(
 ) {
   if (!request) return true;
   if (request.mentorMessage?.trim() === "Takvimden oluşturuldu") return true;
-  const area = request.supportArea?.trim() ?? "";
+  const area = request.supportArea.trim();
   if (!area || area === CALENDAR_SUPPORT_AREA) return true;
-  if (request.recommendationSnapshot?.matchingMethod === "PROFILE") {
+  if (
+    request.recommendationSnapshot?.matchingMethod === MatchingMethod.Profile
+  ) {
     return false;
   }
   const summary = request.summary?.trim() ?? "";
@@ -69,7 +74,7 @@ export function meetingScheduleLabel(
     minute: "2-digit",
   });
   const range = `${time.format(start)}–${time.format(end)}`;
-  const status = String(meeting.status).toUpperCase();
+  const status = meeting.status;
   const statusLabel =
     status === MeetingStatus.Completed
       ? t("completed")
@@ -142,7 +147,7 @@ export function isFirstMeetingWithMentor(
       item.id !== meeting.id &&
       item.mentorId === mentorId &&
       item.organizationId === organizationId &&
-      String(item.status).toUpperCase() === MeetingStatus.Completed,
+      item.status === MeetingStatus.Completed,
   );
 }
 

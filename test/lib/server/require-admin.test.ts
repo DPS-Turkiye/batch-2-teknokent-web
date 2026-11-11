@@ -16,6 +16,13 @@ function as(role: AppSession["role"]): AppSession {
   };
 }
 
+/** The response the guard turned the caller away with; fails the test when it let them through. */
+async function refusal(): Promise<Response> {
+  const result = await requireAdminSession();
+  if (result.ok) throw new Error("Expected requireAdminSession to refuse");
+  return result.response;
+}
+
 describe("requireAdminSession", () => {
   beforeEach(() => {
     vi.mocked(getSessionUser).mockReset();
@@ -23,23 +30,18 @@ describe("requireAdminSession", () => {
 
   it("answers 401 without a session", async () => {
     vi.mocked(getSessionUser).mockResolvedValue(null);
-    const result = await requireAdminSession();
-    expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.response.status).toBe(401);
+    expect((await refusal()).status).toBe(401);
   });
 
   it.each([UserRole.Coordinator, UserRole.Mentor, UserRole.Mentee] as const)(
     "refuses a %s with 403",
     async (role) => {
       vi.mocked(getSessionUser).mockResolvedValue(as(role));
-      const result = await requireAdminSession();
-      expect(result.ok).toBe(false);
-      if (!result.ok) {
-        expect(result.response.status).toBe(403);
-        await expect(result.response.json()).resolves.toMatchObject({
-          code: "FORBIDDEN",
-        });
-      }
+      const response = await refusal();
+      expect(response.status).toBe(403);
+      await expect(response.json()).resolves.toMatchObject({
+        code: "FORBIDDEN",
+      });
     },
   );
 

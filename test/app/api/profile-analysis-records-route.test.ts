@@ -1,14 +1,16 @@
 import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PATCH } from "@/app/api/profile-analysis/records/[id]/route";
 import { GET, POST } from "@/app/api/profile-analysis/records/route";
-import { getSessionUser } from "@/lib/session";
+import { UserRole } from "@/interfaces/session";
 import {
-  fetchProfileAnalysisRecord,
-  createStartupProfileRecord,
   confirmStartupProfileRecord,
+  createStartupProfileRecord,
+  fetchProfileAnalysisRecord,
 } from "@/lib/api/profile-analysis-records";
-import { UserRole, type AppSession } from "@/interfaces/session";
+import { getSessionUser } from "@/lib/session";
+import { appSession } from "@test/fixtures/session";
 
 vi.mock("@/lib/session", () => ({ getSessionUser: vi.fn() }));
 vi.mock("@/lib/api/profile-analysis-records", () => ({
@@ -18,11 +20,13 @@ vi.mock("@/lib/api/profile-analysis-records", () => ({
 }));
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.mocked(getSessionUser).mockResolvedValue({
-    userId: "me",
-    organizationId: "team",
-    role: UserRole.Mentee,
-  } as AppSession);
+  vi.mocked(getSessionUser).mockResolvedValue(
+    appSession({
+      userId: "me",
+      organizationId: "team",
+      role: UserRole.Mentee,
+    }),
+  );
 });
 const request = (query: string) =>
   new NextRequest("http://localhost/api/profile-analysis/records?" + query);
@@ -54,9 +58,11 @@ describe("scoped profile record proxy", () => {
   });
   it("requires a session, startup membership and a recognized scope", async () => {
     expect((await GET(request("scope=unknown"))).status).toBe(400);
-    vi.mocked(getSessionUser).mockResolvedValue({
-      role: UserRole.Mentor,
-    } as AppSession);
+    vi.mocked(getSessionUser).mockResolvedValue(
+      appSession({
+        role: UserRole.Mentor,
+      }),
+    );
     expect((await GET(request("scope=PERSONAL"))).status).toBe(403);
     vi.mocked(getSessionUser).mockResolvedValue(null);
     expect((await GET(request("scope=PERSONAL"))).status).toBe(401);

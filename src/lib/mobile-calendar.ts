@@ -34,7 +34,7 @@ export type MobileAgendaEntry = {
   /** A time the mentor has been offered but not yet approved; not a booked meeting. */
   awaitingApproval?: boolean;
   /** The request whose chat answers it, for times that are not a meeting yet. */
-  requestId?: string;
+  requestId?: string | undefined;
 };
 
 export type MobileCalendarDay = {
@@ -154,10 +154,7 @@ export function agendaEntries(
 ) {
   return [
     ...meetings
-      .filter(
-        (meeting) =>
-          String(meeting.status).toUpperCase() !== MeetingStatus.Cancelled,
-      )
+      .filter((meeting) => meeting.status !== MeetingStatus.Cancelled)
       .map((meeting) => meetingEntry(meeting, texts)),
     ...events.map((event) => programEntry(event, texts)),
   ].sort((left, right) => left.startsAt.getTime() - right.startsAt.getTime());

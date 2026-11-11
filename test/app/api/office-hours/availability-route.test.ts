@@ -2,12 +2,14 @@ import { NextRequest } from "next/server";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET, PUT } from "@/app/api/office-hours/availability/route";
+import { Weekday } from "@/interfaces/mentor";
 import {
   fetchOfficeHoursAvailability,
   saveOfficeHoursAvailability,
 } from "@/lib/api/lti";
 import { requireOfficeHoursUser } from "@/lib/server/office-hours-session";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { backendRefusal } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/lti", () => ({
   fetchOfficeHoursAvailability: vi.fn(),
@@ -21,7 +23,7 @@ const backendSettings = {
   rules: [
     {
       id: "r1",
-      dayOfWeek: "TUESDAY",
+      dayOfWeek: Weekday.Tuesday,
       startTime: "14:00:00",
       endTime: "16:00:00",
       slotMinutes: 30,
@@ -47,7 +49,7 @@ describe("office-hours availability route", () => {
       status: 200,
       headers: {},
       data: backendSettings,
-    } as never);
+    });
 
     const body = await (await GET()).json();
 
@@ -62,7 +64,7 @@ describe("office-hours availability route", () => {
       status: 200,
       headers: {},
       data: backendSettings,
-    } as never);
+    });
 
     await PUT(
       new NextRequest("http://localhost", {
@@ -87,11 +89,9 @@ describe("office-hours availability route", () => {
   });
 
   it("passes the backend's refusal on, such as a student trying to edit", async () => {
-    vi.mocked(fetchOfficeHoursAvailability).mockResolvedValue({
-      status: 403,
-      headers: {},
-      data: { message: "Only academics set office hours." },
-    } as never);
+    vi.mocked(fetchOfficeHoursAvailability).mockResolvedValue(
+      backendRefusal(403, { message: "Only academics set office hours." }),
+    );
 
     expect((await GET()).status).toBe(403);
   });

@@ -2,8 +2,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { GET } from "@/app/api/mentors/route";
 import { fetchMentorDirectory } from "@/lib/api/mentors";
-import { getSessionIds } from "@/lib/session";
 import { SessionRequiredError } from "@/lib/server/session-error";
+import { getSessionIds } from "@/lib/session";
 
 vi.mock("@/lib/api/mentors", () => ({
   fetchMentorDirectory: vi.fn(),

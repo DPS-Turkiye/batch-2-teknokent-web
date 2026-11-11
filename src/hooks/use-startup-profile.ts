@@ -1,10 +1,10 @@
 "use client";
 
+import { useEditableProfile } from "@/hooks/use-editable-profile";
 import type {
   StartupProfile,
   StartupProfileInput,
 } from "@/interfaces/organization";
-import { useEditableProfile } from "@/hooks/use-editable-profile";
 import {
   getStartupProfile,
   saveStartupProfile,

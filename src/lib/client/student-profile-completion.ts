@@ -1,5 +1,5 @@
-import type { StudentProfileCompletion } from "@/interfaces/student-profile-completion";
 import { UserRole } from "@/interfaces/session";
+import type { StudentProfileCompletion } from "@/interfaces/student-profile-completion";
 import { requireSuccess } from "@/lib/client/api";
 import { PROFILE_COMPLETION_CATEGORIES } from "@/lib/client/fixtures/student-profile-completion";
 import { getPeerCategories } from "@/lib/client/peer-mentoring";

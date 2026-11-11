@@ -1,7 +1,7 @@
 import { clientText } from "@/i18n/client-texts";
 import {
-  type CoordinatorProgramDetail,
   ProgramLifecycle,
+  type CoordinatorProgramDetail,
   type ProgramPhaseInput,
   type ProgramRules,
   type UpdateProgramDetailsInput,
@@ -23,14 +23,19 @@ export enum ProgramTab {
   Settings = "SETTINGS",
 }
 
-/** The sub-tabs under Katılımcılar; Girişim's two and the peer program's two have screens so far. */
-export enum ParticipantTab {
-  Teams = "TEAMS",
-  MentorPool = "MENTOR_POOL",
-  Students = "STUDENTS",
-  PeerMentors = "PEER_MENTORS",
-  Academics = "ACADEMICS",
-}
+/**
+ * The sub-tabs under Katılımcılar; Girişim's two and the peer program's two have screens so far.
+ * They are program tabs too, so the sub-tab row can compare one with the current tab.
+ */
+export const ParticipantTab = {
+  Teams: ProgramTab.Teams,
+  MentorPool: ProgramTab.MentorPool,
+  Students: ProgramTab.Students,
+  PeerMentors: ProgramTab.PeerMentors,
+  Academics: ProgramTab.Academics,
+} as const;
+export type ParticipantTab =
+  (typeof ParticipantTab)[keyof typeof ParticipantTab];
 
 export enum SettingsSection {
   General = "GENERAL",

@@ -1,5 +1,6 @@
+/** The bot API's answer; it may leave out the id, and the assistant then makes one up. */
 export type AddBotResult = {
-  id: string;
+  id?: string;
   platform: string;
   nativeMeetingId: string;
   status: string;
@@ -87,3 +88,19 @@ export type MeetingReport = {
   nextSteps: string[];
   model: string;
 };
+
+type MeetingReportList =
+  | "topicsDiscussed"
+  | "decisions"
+  | "actionItems"
+  | "risksOrBlockers"
+  | "nextSteps";
+
+/**
+ * A report as a view receives it: the AI backend's JSON reaches the page unvalidated, so any of
+ * its lists may be missing. Views read reports through this type and fall back to an empty list.
+ */
+export type ReceivedMeetingReport = Omit<MeetingReport, MeetingReportList> &
+  Partial<{
+    [List in MeetingReportList]: MeetingReport[List] | null;
+  }>;

@@ -5,14 +5,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import MentorshipsPage from "@/app/mentorships/page";
 import { useMeetings } from "@/hooks/use-meetings";
 import { useMentors } from "@/hooks/use-mentors";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import type { MentorProfile } from "@/interfaces/mentor";
-import { MeetingStatus } from "@/interfaces/meeting";
 import {
   MentorshipRequestStatus,
   type MentorshipRequest,
 } from "@/interfaces/mentorship-request";
 import { getMentorRequestsPage } from "@/lib/client/mentor-requests";
 import { mentorProfile } from "@test/fixtures/mentors";
+import { loadingQuery, successQuery } from "@test/mocks/query-results";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 const pagesByTab = vi.hoisted(() => ({
@@ -59,7 +60,7 @@ vi.mock("@/lib/client/meetings", () => ({
 vi.mock("@/lib/client/mentor-requests", () => ({
   getMentorRequestsPage: vi.fn(
     async ({ tab }: { tab: keyof typeof pagesByTab }) => {
-      const content = pagesByTab[tab] ?? [];
+      const content = pagesByTab[tab];
       return {
         content,
         page: 0,
@@ -99,16 +100,12 @@ function mockPage(tab: keyof typeof pagesByTab, data: MentorshipRequest[]) {
   pagesByTab[tab] = data;
 }
 
-function mockMentors(
-  data: MentorProfile[],
-  overrides: Partial<ReturnType<typeof useMentors>> = {},
-) {
-  vi.mocked(useMentors).mockReturnValue({
-    data,
-    isLoading: false,
-    error: null,
-    ...overrides,
-  } as unknown as ReturnType<typeof useMentors>);
+function mockMentors(data: MentorProfile[]) {
+  vi.mocked(useMentors).mockReturnValue(successQuery(data));
+}
+
+function mockMeetings(data: MeetingItem[]) {
+  vi.mocked(useMeetings).mockReturnValue(successQuery(data));
 }
 
 describe("MentorshipsPage", () => {
@@ -119,11 +116,7 @@ describe("MentorshipsPage", () => {
     mockPage("active", []);
     mockPage("requests", []);
     mockPage("history", []);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([]);
   });
 
   it("reads in English", async () => {
@@ -144,8 +137,8 @@ describe("MentorshipsPage", () => {
 
   function openMeeting(
     requestId: string,
-    overrides: Record<string, unknown> = {},
-  ) {
+    overrides: Partial<MeetingItem> = {},
+  ): MeetingItem {
     return {
       id: `meeting-${requestId}`,
       organizationId: "org-1",
@@ -165,15 +158,11 @@ describe("MentorshipsPage", () => {
       request({ id: "2", mentorName: "Ece Demir", mentorId: "mentor-2" }),
       request({ id: "3", mentorName: "Burak Yalçın", mentorId: "mentor-3" }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
-        openMeeting("1"),
-        openMeeting("2", { mentorId: "mentor-2" }),
-        openMeeting("3", { mentorId: "mentor-3" }),
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([
+      openMeeting("1"),
+      openMeeting("2", { mentorId: "mentor-2" }),
+      openMeeting("3", { mentorId: "mentor-3" }),
+    ]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -201,11 +190,7 @@ describe("MentorshipsPage", () => {
         },
       }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [openMeeting("req-42")],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([openMeeting("req-42")]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -223,11 +208,7 @@ describe("MentorshipsPage", () => {
         mentorMessage: "Takvimden oluşturuldu",
       }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [openMeeting("req-cal", { id: "meeting-cal" })],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([openMeeting("req-cal", { id: "meeting-cal" })]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -238,16 +219,12 @@ describe("MentorshipsPage", () => {
 
   it("shows the meeting link on the Aktif tab for the whole startup", async () => {
     mockPage("active", [request({ id: "req-42" })]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
-        openMeeting("req-42", {
-          id: "meeting-1",
-          meetLink: "https://meet.google.com/abc-defg-hij",
-        }),
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([
+      openMeeting("req-42", {
+        id: "meeting-1",
+        meetLink: "https://meet.google.com/abc-defg-hij",
+      }),
+    ]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -260,16 +237,12 @@ describe("MentorshipsPage", () => {
 
   it("links the active meeting time to the call context page", async () => {
     mockPage("active", [request({ id: "req-42" })]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
-        openMeeting("req-42", {
-          id: "meeting-9",
-          scheduledAt: "2099-08-30T11:00:00.000Z",
-        }),
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([
+      openMeeting("req-42", {
+        id: "meeting-9",
+        scheduledAt: "2099-08-30T11:00:00.000Z",
+      }),
+    ]);
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -302,11 +275,7 @@ describe("MentorshipsPage", () => {
   });
 
   it("shows a loading state while the query is in flight", () => {
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [],
-      isLoading: true,
-      error: null,
-    } as never);
+    vi.mocked(useMeetings).mockReturnValue(loadingQuery());
 
     renderWithQueryClient(<MentorshipsPage />);
 
@@ -371,22 +340,18 @@ describe("MentorshipsPage", () => {
         status: MentorshipRequestStatus.Withdrawn,
       }),
     ]);
-    vi.mocked(useMeetings).mockReturnValue({
-      data: [
-        openMeeting("active-1"),
-        {
-          id: "ended-meeting",
-          organizationId: "org-1",
-          mentorId: "mentor-past",
-          mentorshipRequestId: "past-1",
-          scheduledAt: "2020-01-01T10:00:00.000Z",
-          durationMinutes: 45,
-          status: MeetingStatus.Completed,
-        },
-      ],
-      isLoading: false,
-      error: null,
-    } as never);
+    mockMeetings([
+      openMeeting("active-1"),
+      {
+        id: "ended-meeting",
+        organizationId: "org-1",
+        mentorId: "mentor-past",
+        mentorshipRequestId: "past-1",
+        scheduledAt: "2020-01-01T10:00:00.000Z",
+        durationMinutes: 45,
+        status: MeetingStatus.Completed,
+      },
+    ]);
 
     renderWithQueryClient(<MentorshipsPage />);
 

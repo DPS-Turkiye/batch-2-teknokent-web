@@ -1,9 +1,8 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { PageHeading } from "@/components/admin/admin-ui";
 import { AppointmentCard } from "@/components/appointments/appointment-card";

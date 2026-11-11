@@ -3,12 +3,12 @@ import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import localFont from "next/font/local";
 
-import { ClientTexts } from "@/i18n/client-texts";
+import { DocumentPreviewHost } from "@/components/common/document-preview-host";
+import { Toaster } from "@/components/common/toaster";
 import { AccountTypeProvider } from "@/components/providers/account-type-provider";
 import { QueryProvider } from "@/components/providers/query-provider";
 import { SessionProvider } from "@/components/providers/session-provider";
-import { DocumentPreviewHost } from "@/components/common/document-preview-host";
-import { Toaster } from "@/components/common/toaster";
+import { ClientTexts } from "@/i18n/client-texts";
 import { getAccountType } from "@/lib/server/account-type";
 
 import "./globals.css";

@@ -1,17 +1,18 @@
 "use client";
 
+import { useLocale, useTranslations } from "next-intl";
+
+import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import {
   OnboardingConsent,
   OnboardingNote,
   OnboardingReviewCard,
 } from "@/components/onboarding/onboarding-ui";
-import { OnboardingTone } from "@/components/onboarding/onboarding-tone";
 import type { MentorOnboarding } from "@/hooks/use-mentor-onboarding";
-import { MentorOnboardingStep } from "@/interfaces/mentor-onboarding";
-import { weekSummary, weeklyCapacity } from "@/lib/mentor-onboarding";
-import { truncate } from "@/lib/utils";
 import { useOptionLabel } from "@/hooks/use-option-label";
-import { useLocale, useTranslations } from "next-intl";
+import { MentorOnboardingStep } from "@/interfaces/mentor-onboarding";
+import { weeklyCapacity, weekSummary } from "@/lib/mentor-onboarding";
+import { truncate } from "@/lib/utils";
 
 const TONE = OnboardingTone.Mentor;
 

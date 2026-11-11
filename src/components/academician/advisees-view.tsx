@@ -1,20 +1,19 @@
 "use client";
 
 // TEST UI: placeholder until the design team's screen; replace when it arrives.
-
 import { useTranslations } from "next-intl";
 
-import {
-  PageHeading,
-  SearchField,
-  StatusChip,
-} from "@/components/admin/admin-ui";
+import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
 import {
   PersonLine,
   WorkspaceList,
   WorkspaceRow,
 } from "@/components/academician/workspace-ui";
-import { WorkspaceQueryState } from "@/components/academician/workspace-query-state";
+import {
+  PageHeading,
+  SearchField,
+  StatusChip,
+} from "@/components/admin/admin-ui";
 import { EmptyState } from "@/components/common/empty-state";
 import { useAcademicianAdvisees } from "@/hooks/use-academician-advisees";
 

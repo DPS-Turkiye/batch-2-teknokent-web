@@ -12,6 +12,7 @@ import {
   startCoordinatorConversation,
 } from "@/lib/api/coordinator-conversations";
 import { getSessionIds } from "@/lib/session";
+import { answerEachWith, backendResponse } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/coordinator-conversations", () => ({
   fetchCoordinatorConversations: vi.fn(),
@@ -24,7 +25,7 @@ vi.mock("@/lib/session", () => ({
   getSessionIds: vi.fn(),
 }));
 
-const ok = { data: [], headers: {}, status: 200 } as never;
+const ok = backendResponse([]);
 const params = { params: Promise.resolve({ id: "conversation-1" }) };
 
 function post(body: unknown) {
@@ -44,8 +45,10 @@ describe("coordinator conversation routes", () => {
   });
 
   it("lists and starts threads as the signed-in user", async () => {
-    vi.mocked(fetchCoordinatorConversations).mockResolvedValue(ok);
-    vi.mocked(startCoordinatorConversation).mockResolvedValue(ok);
+    answerEachWith(
+      [fetchCoordinatorConversations, startCoordinatorConversation],
+      ok,
+    );
 
     expect((await GET()).status).toBe(200);
     expect(fetchCoordinatorConversations).toHaveBeenCalledWith("coordinator-1");
@@ -61,8 +64,7 @@ describe("coordinator conversation routes", () => {
   });
 
   it("reads and sends messages in one thread", async () => {
-    vi.mocked(fetchCoordinatorMessages).mockResolvedValue(ok);
-    vi.mocked(sendCoordinatorMessage).mockResolvedValue(ok);
+    answerEachWith([fetchCoordinatorMessages, sendCoordinatorMessage], ok);
 
     await getMessages(new Request("http://localhost"), params);
     expect(fetchCoordinatorMessages).toHaveBeenCalledWith(

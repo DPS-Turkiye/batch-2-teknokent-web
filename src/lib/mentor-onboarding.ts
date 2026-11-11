@@ -1,9 +1,9 @@
 import {
+  Weekday,
+  WEEKDAY_ORDER,
   type StudentProfile,
   type UpdateMentorAvailabilitySettingsPayload,
   type UpdateMentorProfilePayload,
-  WEEKDAY_ORDER,
-  Weekday,
 } from "@/interfaces/mentor";
 import type {
   MentorOnboardingDraft,
@@ -22,7 +22,7 @@ const SHORT_DAY: Record<Weekday, string> = {
 };
 
 function minutesOf(time: string) {
-  const [hours, minutes] = time.split(":").map(Number);
+  const [hours = 0, minutes = 0] = time.split(":").map(Number);
   return hours * 60 + (minutes || 0);
 }
 

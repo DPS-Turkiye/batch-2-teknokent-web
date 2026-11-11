@@ -34,7 +34,7 @@ describe("/api/organization-members/[memberId]", () => {
       status: 200,
       data: { id: "cto" },
       headers: {},
-    } as never);
+    });
 
     const response = await PATCH(
       new NextRequest(url, {
@@ -61,7 +61,7 @@ describe("/api/organization-members/[memberId]", () => {
       status: 204,
       data: null,
       headers: {},
-    } as never);
+    });
 
     const response = await DELETE(new NextRequest(url), context);
 
@@ -80,7 +80,7 @@ describe("/api/organization-members/[memberId]", () => {
         message: "Only the organization founder can remove team members",
       },
       headers: {},
-    } as never);
+    });
 
     const response = await DELETE(new NextRequest(url), context);
 
@@ -92,7 +92,7 @@ describe("/api/organization-members/[memberId]", () => {
       status: 200,
       data: { id: "cto" },
       headers: {},
-    } as never);
+    });
 
     await PATCH(
       new NextRequest(url, {
@@ -107,7 +107,9 @@ describe("/api/organization-members/[memberId]", () => {
       context,
     );
 
-    expect(vi.mocked(updateOrganizationMember).mock.calls[0][3]).toEqual({
+    const [, , , forwarded] =
+      vi.mocked(updateOrganizationMember).mock.lastCall ?? [];
+    expect(forwarded).toEqual({
       fullName: "Kerem",
       jobTitle: "CTO",
     });

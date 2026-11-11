@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { MeetingEvaluationView } from "@/components/mentor-evaluation/meeting-evaluation-view";
 import { useMentorMeetingEvaluation } from "@/hooks/use-mentor-meeting-evaluation";
+import { MeetingStatus } from "@/interfaces/meeting";
 import { OutcomeClarity } from "@/types/mentor-evaluation";
 import { InLocale } from "@test/test-utils";
 
@@ -40,7 +41,7 @@ function state(overrides: Partial<Evaluation> = {}): Evaluation {
       organizationId: "org-1",
       scheduledAt: "2026-09-05T11:00:00Z",
       durationMinutes: 45,
-      status: "COMPLETED",
+      status: MeetingStatus.Completed,
     },
     meta: "Döngü · Gülse · UX Flow Review · 5 Eylül · 14:00 · 45 dk",
     startupInitials: "DÖ",

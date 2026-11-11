@@ -1,4 +1,4 @@
-import { NextResponse, type NextRequest } from "next/server";
+import type { NextRequest } from "next/server";
 
 import { deleteMeetingTodo, updateMeetingTodo } from "@/lib/api/meeting-notes";
 import { updateMeetingTodoBodySchema } from "@/lib/notes-schemas";
@@ -7,6 +7,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 type RouteContext = {
@@ -16,16 +17,10 @@ type RouteContext = {
 export async function PATCH(request: NextRequest, context: RouteContext) {
   try {
     const { id, todoId } = await context.params;
-    const body = updateMeetingTodoBodySchema.safeParse(await request.json());
-    if (!body.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("taskTitleOrDoneRequired"),
-        },
-        { status: 400 },
-      );
-    }
+    const body = await readJsonBody(request, updateMeetingTodoBodySchema, {
+      invalidMessage: "taskTitleOrDoneRequired",
+    });
+    if (!body.ok) return body.response;
 
     const { organizationId } = await getSessionIds();
     return backendResponse(

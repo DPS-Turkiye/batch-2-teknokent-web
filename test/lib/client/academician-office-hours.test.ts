@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   OfficeHoursAppointmentAction,
   OfficeHoursRequestAction,
 } from "@/interfaces/academician-office-hours";
+import { AppointmentStatus } from "@/interfaces/appointment";
 import {
   answerAcademicianRequest,
   cancelAcademicianAppointment,
@@ -17,19 +17,20 @@ import {
 } from "@/lib/client/academician-office-hours";
 import { sampleTime } from "@/lib/client/fixtures/academician-office-hours";
 import { resetAcademicianSample } from "@/lib/client/fixtures/academician-office-hours-store";
+import { itemAt } from "@test/fixtures/list-assertions";
 
 beforeEach(() => resetAcademicianSample());
 
 describe("academician Office Hours sample source", () => {
   it("hands out copies, so a screen cannot change the sample", async () => {
-    const first = await getAcademicianRequests();
-    first[0].topic = "değişti";
-    expect((await getAcademicianRequests())[0].topic).not.toBe("değişti");
+    const first = itemAt(await getAcademicianRequests(), 0);
+    first.topic = "değişti";
+    expect(itemAt(await getAcademicianRequests(), 0).topic).not.toBe("değişti");
   });
 
   it("turns an accepted request into a confirmed appointment at the chosen time", async () => {
-    const [request] = await getAcademicianRequests();
-    const time = request.requestedTimes[0];
+    const request = itemAt(await getAcademicianRequests(), 0);
+    const time = itemAt(request.requestedTimes, 0);
     await answerAcademicianRequest(request.id, {
       action: OfficeHoursRequestAction.Accept,
       time,
@@ -48,7 +49,7 @@ describe("academician Office Hours sample source", () => {
   });
 
   it("keeps a request open with the offered times, and refuses a second answer", async () => {
-    const [request] = await getAcademicianRequests();
+    const request = itemAt(await getAcademicianRequests(), 0);
     const offered = {
       startsAt: sampleTime(5, 9),
       endsAt: sampleTime(5, 9, 30),

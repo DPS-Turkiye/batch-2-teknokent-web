@@ -5,6 +5,7 @@ import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import {
   ProgramMentorInvitedBy,
   ProgramMentorStatus,
+  ProgramStatus,
   type Program,
 } from "@/interfaces/program";
 import {
@@ -38,6 +39,7 @@ describe("describeMeetingParticipants", () => {
       coordinatorId: "coord-1",
       coordinatorName: "Koordinatör",
       createdAt: "2026-01-01T00:00:00.000Z",
+      status: ProgramStatus.Active,
       startups: [{ id: "org-1", name: "Döngü" }],
       mentors: [
         {

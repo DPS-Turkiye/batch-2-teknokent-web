@@ -4,28 +4,28 @@ import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 
 import { useAppSession } from "@/components/providers/session-provider";
-import { useToast } from "@/stores/toast-store";
 import { useIndividualProgram } from "@/hooks/use-individual-program";
 import { useOpenActionCounts } from "@/hooks/use-open-action-counts";
+import { useOptionLabel } from "@/hooks/use-option-label";
 import { useOrganizationMembers } from "@/hooks/use-organization-members";
 import { usePasswordReset } from "@/hooks/use-password-reset";
 import { usePersonalProfile } from "@/hooks/use-personal-profile";
-import { useOptionLabel } from "@/hooks/use-option-label";
 import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { useStartupHeader } from "@/hooks/use-startup-header";
 import { useStartupOverview } from "@/hooks/use-startup-overview";
+import { ToastTone } from "@/interfaces/toast";
 import { requestStatusHref } from "@/lib/mentee-home";
 import {
-  type ProfileChip,
-  ProfileChipTone,
   mentorshipRowStatus,
   mentorshipSessionLabel,
   personalRoleLabel,
   personalSubtitle,
+  ProfileChipTone,
   startupSummary,
+  type ProfileChip,
 } from "@/lib/personal-profile";
 import { initials } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 /** Everything the mentee's personal profile page shows and does. */
 export function usePersonalProfilePage() {

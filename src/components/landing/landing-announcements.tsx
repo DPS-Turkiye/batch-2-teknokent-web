@@ -1,11 +1,10 @@
 import Image from "next/image";
-import type { CSSProperties } from "react";
 
 import { ArrowIcon, CheckIcon } from "@/components/landing/landing-icons";
 import { cx } from "@/components/landing/landing-styles";
-import { LANDING_PHOTOS } from "@/lib/const/landing";
-import { type LandingAnnouncement, LandingMock } from "@/types/landing";
 import { useLandingContent } from "@/hooks/use-landing-content";
+import { LANDING_PHOTOS } from "@/lib/const/landing";
+import { LandingMock, type LandingAnnouncement } from "@/types/landing";
 
 const CALENDAR_DAYS = 21;
 const CALENDAR_TODAY = 12;
@@ -113,9 +112,15 @@ function AnnouncementCard({
 }
 
 /** The track holds the list four times over: two visible copies and two for the seamless loop. */
+const TRACK_COPIES = [
+  { id: "visible-1", hidden: false },
+  { id: "visible-2", hidden: false },
+  { id: "loop-1", hidden: true },
+  { id: "loop-2", hidden: true },
+] as const;
+
 export function LandingAnnouncements() {
   const landing = useLandingContent();
-  const rows = [false, false, true, true];
   return (
     <section className={cx("ann")} id="duyurular">
       <div className={cx("wrap", "ann-head")}>
@@ -128,10 +133,7 @@ export function LandingAnnouncements() {
               <span>{landing.ui.announcementsTitle}</span>
             </span>
           </h2>
-          <p
-            className={cx("lead", "rv")}
-            style={{ "--d": "120ms" } as CSSProperties}
-          >
+          <p className={cx("lead", "rv")} style={{ "--d": "120ms" }}>
             {landing.ui.announcementsLead}
           </p>
         </div>
@@ -141,12 +143,12 @@ export function LandingAnnouncements() {
       </div>
       <div className={cx("marquee")} aria-label={landing.ui.announcementsLabel}>
         <div className={cx("track")}>
-          {rows.flatMap((hidden, copy) =>
+          {TRACK_COPIES.flatMap((copy) =>
             landing.announcements.map((item) => (
               <AnnouncementCard
-                key={`${copy}-${item.title}`}
+                key={`${copy.id}-${item.title}`}
                 item={item}
-                hidden={hidden}
+                hidden={copy.hidden}
               />
             )),
           )}

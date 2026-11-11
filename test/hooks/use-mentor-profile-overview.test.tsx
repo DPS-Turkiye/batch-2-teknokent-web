@@ -6,10 +6,12 @@ import { useMentorAvailabilitySettings } from "@/hooks/use-mentor-profile";
 import { useMentorProfileOverview } from "@/hooks/use-mentor-profile-overview";
 import { useMentorRating } from "@/hooks/use-mentor-rating";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
-import { MeetingStatus } from "@/interfaces/meeting";
+import { MeetingStatus, type MeetingItem } from "@/interfaces/meeting";
 import { MentorLanguage, type MentorProfile } from "@/interfaces/mentor";
 import { MentorshipRequestStatus } from "@/interfaces/mentorship-request";
 import { ProgramStatus } from "@/interfaces/program";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
+import { loadingQuery, successQuery } from "@test/mocks/query-results";
 
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
 vi.mock("@/hooks/use-mentor-rating", () => ({ useMentorRating: vi.fn() }));
@@ -44,58 +46,54 @@ function profile(overrides: Partial<MentorProfile> = {}): MentorProfile {
   };
 }
 
+/** The mentor's meetings, requests, availability and rating, or all of them still loading. */
 function mockQueries({ loading = false } = {}) {
-  vi.mocked(useMeetings).mockReturnValue({
-    data: loading
-      ? undefined
-      : [
-          {
-            id: "m1",
-            organizationId: "org-1",
-            mentorshipRequestId: "r1",
-            scheduledAt: "2026-06-01T10:00:00Z",
-            durationMinutes: 45,
-            status: MeetingStatus.Completed,
-          },
-        ],
-    isLoading: loading,
-  } as unknown as ReturnType<typeof useMeetings>);
-  vi.mocked(useMentorshipRequests).mockReturnValue({
-    data: loading
-      ? undefined
-      : ["r1", "r2", "r3"].map((id) => ({
-          id,
-          organizationId: "org-1",
-          organizationName: "NovaTech",
-          mentorId: "mentor-1",
-          supportArea: "Product Design",
-          status: MentorshipRequestStatus.Accepted,
-          createdAt: "2026-03-10T09:00:00Z",
-        })),
-    isLoading: loading,
-  } as unknown as ReturnType<typeof useMentorshipRequests>);
-  vi.mocked(useMentorAvailabilitySettings).mockReturnValue({
-    data: {
+  const meetings: MeetingItem[] = [
+    {
+      id: "m1",
+      organizationId: "org-1",
+      mentorshipRequestId: "r1",
+      scheduledAt: "2026-06-01T10:00:00Z",
+      durationMinutes: 45,
+      status: MeetingStatus.Completed,
+    },
+  ];
+  const requests = ["r1", "r2", "r3"].map((id) =>
+    mentorshipRequest({
+      id,
+      organizationId: "org-1",
+      organizationName: "NovaTech",
+      mentorId: "mentor-1",
+      supportArea: "Product Design",
+      status: MentorshipRequestStatus.Accepted,
+      createdAt: "2026-03-10T09:00:00Z",
+    }),
+  );
+  const rating = {
+    average: 4.75,
+    feedbackCount: 2,
+    mentorships: [
+      { mentorshipRequestId: "r1", average: 4.5, feedbackCount: 1 },
+    ],
+  };
+  vi.mocked(useMeetings).mockReturnValue(
+    loading ? loadingQuery() : successQuery(meetings),
+  );
+  vi.mocked(useMentorshipRequests).mockReturnValue(
+    loading ? loadingQuery() : successQuery(requests),
+  );
+  vi.mocked(useMentorAvailabilitySettings).mockReturnValue(
+    successQuery({
       rules: [],
       exceptions: [],
       menteeCapacity: 5,
       defaultMeetingDurationMinutes: 45,
       meetingBufferMinutes: 15,
-    },
-    isLoading: false,
-  } as unknown as ReturnType<typeof useMentorAvailabilitySettings>);
-  vi.mocked(useMentorRating).mockReturnValue({
-    data: loading
-      ? undefined
-      : {
-          average: 4.75,
-          feedbackCount: 2,
-          mentorships: [
-            { mentorshipRequestId: "r1", average: 4.5, feedbackCount: 1 },
-          ],
-        },
-    isLoading: loading,
-  } as unknown as ReturnType<typeof useMentorRating>);
+    }),
+  );
+  vi.mocked(useMentorRating).mockReturnValue(
+    loading ? loadingQuery() : successQuery(rating),
+  );
 }
 
 function statValue(stats: { label: string; value: string }[], label: string) {

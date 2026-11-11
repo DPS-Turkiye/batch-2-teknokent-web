@@ -138,8 +138,8 @@ export function entriesOnDay(entries: CalendarEntry[], day: Date) {
  * the nearest edge rather than dropped, so nothing the summary counts goes missing.
  */
 export function eventBox(entry: CalendarEntry) {
-  const firstHour = MENTEE_WEEK_HOURS[0];
-  const endHour = MENTEE_WEEK_HOURS[MENTEE_WEEK_HOURS.length - 1] + 1;
+  const firstHour = MENTEE_WEEK_HOURS[0] ?? 8;
+  const endHour = (MENTEE_WEEK_HOURS.at(-1) ?? firstHour) + 1;
   const gridBottom =
     DAY_HEADER_HEIGHT + (endHour - firstHour) * HOUR_ROW_HEIGHT;
   const hours = entry.startsAt.getHours() + entry.startsAt.getMinutes() / 60;

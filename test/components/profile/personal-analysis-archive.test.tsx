@@ -1,12 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import { PersonalAnalysisArchive } from "@/components/profile/personal-analysis-archive";
 import { useAppSession } from "@/components/providers/session-provider";
+import {
+  ProfileAnalysisRecordScope,
+  ProfileAnalysisStatus,
+  ProfileAnalysisType,
+} from "@/interfaces/profile-analysis";
 import { UserRole, type AppSession } from "@/interfaces/session";
-import { ProfileAnalysisRecordScope } from "@/interfaces/profile-analysis";
-import { getProfileAnalysisRecord } from "@/lib/client/profile-analysis-records";
 import { ClientApiError } from "@/lib/client/api";
+import { getProfileAnalysisRecord } from "@/lib/client/profile-analysis-records";
 import { analysis, profileToolsWrapper } from "@test/fixtures/profile-tools";
 
 vi.mock("@/components/providers/session-provider", () => ({
@@ -29,9 +34,9 @@ function setup(locale: "en" | "tr" = "en") {
 }
 const personal = () =>
   analysis({
-    profileType: "individual_mentee",
+    profileType: ProfileAnalysisType.Personal,
     sourceFilename: "earlier-cv.pdf",
-    status: "CONFIRMED",
+    status: ProfileAnalysisStatus.Confirmed,
     profile: JSON.stringify({
       professional_summary: "Prior career summary",
       technologies: ["Java"],

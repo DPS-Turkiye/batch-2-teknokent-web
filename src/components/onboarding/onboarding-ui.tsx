@@ -1,7 +1,8 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { ChangeEvent, type ReactNode, useRef, useState } from "react";
+import { useRef, useState, type ChangeEvent, type ReactNode } from "react";
 
 import {
   ONBOARDING_TONES,
@@ -11,7 +12,6 @@ import { useObjectUrl } from "@/hooks/use-object-url";
 import type { UploadedFile } from "@/interfaces/signup";
 import { DOCUMENT_MAX_BYTES } from "@/lib/const";
 import { formatFileSize } from "@/lib/utils";
-import { useTranslations } from "next-intl";
 
 export const onboardingInputClass =
   "w-full rounded-lg border border-[#d4d8dd] bg-white px-3.5 py-[11px] text-[13px] leading-5 text-[#22262b] outline-none placeholder:text-[#858c96]";
@@ -283,7 +283,7 @@ export function OnboardingFileField({
               aria-label={
                 file
                   ? copy("removeFile", { name: shownName })
-                  : copy("change", { label: label })
+                  : copy("change", { label })
               }
             >
               {file ? copy("remove") : copy("changeShort")}
@@ -302,7 +302,7 @@ export function OnboardingFileField({
           onDrop={(event) => {
             event.preventDefault();
             setDragging(false);
-            takeFile(event.dataTransfer.files?.[0]);
+            takeFile(event.dataTransfer.files[0]);
           }}
           className={`flex w-full flex-col items-center justify-center gap-1.5 rounded-[10px] border border-dashed px-[18px] py-6 ${
             dragging
@@ -466,20 +466,18 @@ export function OnboardingImagePicker({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        aria-label={
-          file
-            ? copy("change", { label: label })
-            : copy("pick", { label: label })
-        }
+        aria-label={file ? copy("change", { label }) : copy("pick", { label })}
         className="relative"
         style={{ width: size, height: size }}
       >
         {preview ? (
-          // eslint-disable-next-line @next/next/no-img-element -- a local blob preview, not an optimisable asset
-          <img
+          // A local blob: preview; there is nothing for the optimizer to fetch.
+          <Image
             src={preview}
             alt=""
-            className={`size-full object-cover ${shape}`}
+            fill
+            unoptimized
+            className={`object-cover ${shape}`}
           />
         ) : (
           <span

@@ -7,6 +7,7 @@ import {
 } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useRef, useState } from "react";
+
 import {
   PROFILE_ANALYSIS_MUTATION_KEY,
   useProfileAnalysisRecord,

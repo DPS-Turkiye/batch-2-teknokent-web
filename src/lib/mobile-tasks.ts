@@ -18,8 +18,8 @@ import { meetingFeedbackHref } from "@/lib/mentorship-workspace";
 import {
   mobileChatHref,
   mobileDayMonth,
-  type MobileTexts,
   webHref,
+  type MobileTexts,
 } from "@/lib/mobile";
 import { calendarDay, relativeDayLabel } from "@/lib/utils";
 

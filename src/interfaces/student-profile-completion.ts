@@ -1,5 +1,5 @@
-import type messages from "@/messages/tr.json";
 import type { PeerTopicCategory } from "@/interfaces/peer-mentoring";
+import type messages from "@/messages/tr.json";
 
 /**
  * The student's saved interests and goal (`GET`/`PUT /api/student/profile-completion`). Topics are the program's

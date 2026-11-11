@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { ChevronDown, Search } from "lucide-react";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { useEffect, type ReactNode } from "react";
 
 type AdminIconProps = {

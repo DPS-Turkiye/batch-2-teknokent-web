@@ -1,10 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
 
-import type { RegisterForm, RegisteredAccount } from "@/interfaces/auth";
+import type { RegisteredAccount, RegisterForm } from "@/interfaces/auth";
 import { UserRole } from "@/interfaces/session";
 import { SignupRole } from "@/interfaces/signup";
 import { ClientApiError } from "@/lib/client/api";
@@ -62,7 +62,8 @@ export function useSignupFlow() {
 
   useEffect(() => {
     if (!isResuming) return;
-    let active = true;
+    // Aborted when the effect is cleaned up; a flag set in the cleanup closure would read as always true here.
+    const cancellation = new AbortController();
     void (async () => {
       const firebaseAccount = await currentFirebaseAccount();
       // Signup never sets the Firebase display name, so the name lives on the
@@ -70,16 +71,14 @@ export function useSignupFlow() {
       const fullName =
         firebaseAccount?.fullName.trim() ||
         (firebaseAccount ? await registeredFullName() : "");
-      if (!active) return;
+      if (cancellation.signal.aborted) return;
       if (firebaseAccount) {
         setNeedsEmailVerification(!firebaseAccount.verified);
         setAccount({ email: firebaseAccount.email, fullName, phone: "" });
       }
       setAuthReady(true);
     })();
-    return () => {
-      active = false;
-    };
+    return () => cancellation.abort();
   }, [isResuming]);
 
   const chooseRole = useCallback(
@@ -93,8 +92,9 @@ export function useSignupFlow() {
     [isResuming, programInvite, router],
   );
 
-  const finishAfterEmail = useCallback(async () => {
+  const finishAfterEmail = useCallback(() => {
     setNeedsEmailVerification(false);
+    return Promise.resolve();
   }, []);
 
   const ensureMentorRegistration = useCallback(async () => {

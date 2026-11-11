@@ -5,17 +5,17 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ProgramMatchingView } from "@/components/coordinator/program-matching-view";
 import { MentorshipStatus } from "@/interfaces/coordinator-mentorship";
 import {
+  MatchNeedSource,
   type MatchCandidate,
   type MatchingOverview,
-  MatchNeedSource,
 } from "@/interfaces/program-matching";
+import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
 import {
   createMatch,
   getCoordinatorProgram,
   getMatching,
   getMatchSuggestions,
 } from "@/lib/client/coordinator-programs";
-import { addCoordinatorNote } from "@/lib/client/coordinator-notes";
 import {
   getMentorshipMeetingProposals,
   proposeMeeting,
@@ -23,6 +23,12 @@ import {
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { meetingProposal } from "@test/fixtures/meeting-proposals";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
+
+// Rendered outside the App Router, the real usePathname returns null.
+vi.mock("next/navigation", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("next/navigation")>()),
+  usePathname: () => "/coordinator/programs/program-1",
+}));
 
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),

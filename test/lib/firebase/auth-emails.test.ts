@@ -16,7 +16,11 @@ const firebase = vi.hoisted(() => ({
   sendEmailVerification: vi.fn(),
   sendPasswordResetEmail: vi.fn(),
 }));
-const auth = vi.hoisted(() => ({ currentUser: null as unknown }));
+/** The part of a Firebase user these functions read. */
+type FakeUser = { email: string; getIdToken: () => Promise<string> };
+const auth = vi.hoisted((): { currentUser: FakeUser | null } => ({
+  currentUser: null,
+}));
 
 vi.mock("firebase/auth", async (importOriginal) => ({
   ...(await importOriginal<typeof import("firebase/auth")>()),
@@ -28,7 +32,7 @@ vi.mock("@/lib/client/auth-email", () => ({
   requestVerificationEmail: vi.fn(),
 }));
 
-const mentor = {
+const mentor: FakeUser = {
   email: "mentor@bilkent.edu.tr",
   getIdToken: async () => "token-1",
 };

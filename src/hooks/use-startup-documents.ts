@@ -1,16 +1,16 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { useCallback } from "react";
 
-import { useShowDocumentPreview } from "@/stores/document-preview-store";
-import { useToast } from "@/stores/toast-store";
+import { ToastTone } from "@/interfaces/toast";
 import {
   getDocumentDownloadUrl,
   getStartupDocuments,
 } from "@/lib/client/startup-documents";
-import { ToastTone } from "@/interfaces/toast";
+import { useShowDocumentPreview } from "@/stores/document-preview-store";
+import { useToast } from "@/stores/toast-store";
 
 export const STARTUP_DOCUMENTS_QUERY_KEY = ["startup-documents"] as const;
 
@@ -32,7 +32,7 @@ export function useStartupDocuments() {
 export function useDocumentUrl(documentId: string | undefined) {
   return useQuery({
     queryKey: documentUrlQueryKey(documentId ?? ""),
-    queryFn: () => getDocumentDownloadUrl(documentId as string),
+    queryFn: () => getDocumentDownloadUrl(documentId!),
     enabled: Boolean(documentId),
     staleTime: DOCUMENT_URL_STALE_MS,
   });
@@ -47,7 +47,7 @@ export function useOpenDocument() {
   return useCallback(
     async (documentId: string) => {
       try {
-        const link = await queryClient.fetchQuery({
+        const link = await queryClient.query({
           queryKey: documentUrlQueryKey(documentId),
           queryFn: () => getDocumentDownloadUrl(documentId),
           staleTime: DOCUMENT_URL_STALE_MS,

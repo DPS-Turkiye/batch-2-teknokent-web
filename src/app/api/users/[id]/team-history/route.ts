@@ -6,7 +6,7 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
 
 /** For admins and the person's coordinators; the backend checks the program. */
 export async function GET(
@@ -14,7 +14,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(await fetchTeamHistory(id, auth.session.userId));

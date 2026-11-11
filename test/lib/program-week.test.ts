@@ -6,17 +6,19 @@ import {
   programWeekCardState,
   ProgramWeekCardState,
   programWeekDays,
-  type WeekDraft,
   weekDraftOf,
   weekInputOf,
   weekPhase,
   weekPlanProblem,
   WeekPlanProblem,
+  type WeekDraft,
 } from "@/lib/program-week";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { planWeek, thisWeek } from "@test/fixtures/program-week";
 
 function draft(week: number, title = `Hafta ${week}`): WeekDraft {
   return {
+    key: `week-${week}`,
     week,
     title,
     topics: "",
@@ -44,7 +46,7 @@ describe("the Bu hafta card state", () => {
   });
 
   it("names the phase running today, else the first one in the week", () => {
-    const [first] = thisWeek().phases;
+    const first = itemAt(thisWeek().phases, 0);
     const later = { ...first, id: "phase-2", name: "Prototip", current: false };
     expect(
       weekPhase(

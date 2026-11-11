@@ -1,8 +1,8 @@
 import type { useTranslations } from "next-intl";
 
 import {
-  type CoordinatorProgram,
   ProgramLifecycle,
+  type CoordinatorProgram,
   type ProgramPhase,
 } from "@/interfaces/coordinator-program";
 import {

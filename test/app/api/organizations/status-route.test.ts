@@ -4,6 +4,7 @@ import { PUT } from "@/app/api/organizations/status/route";
 import { updateOrganizationStatus } from "@/lib/api/organization";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { getSessionIds } from "@/lib/session";
+import { answerEachWith } from "@test/fixtures/route-handlers";
 
 vi.mock("@/lib/api/organization", () => ({
   updateOrganizationStatus: vi.fn(),
@@ -37,11 +38,7 @@ describe("/api/organizations/status", () => {
       userId: "user-1",
       organizationId: "org-1",
     });
-    vi.mocked(updateOrganizationStatus).mockResolvedValue({
-      status: 200,
-      data: { id: "org-1", ...status },
-      headers: {},
-    } as never);
+    answerEachWith([updateOrganizationStatus]);
 
     const response = await PUT(request());
 

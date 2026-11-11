@@ -1,8 +1,11 @@
 "use client";
+
 import { useTranslations } from "next-intl";
+
 import { EmptyNote, Panel, QueryNotice } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
 import { useProgramWithoutTeam } from "@/hooks/use-program-without-team";
+
 export function ProgramWithoutTeam({ programId }: { programId: string }) {
   const t = useTranslations("programApprovals");
   const query = useProgramWithoutTeam(programId);

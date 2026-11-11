@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { RestoredDraftNotice } from "@/components/common/restored-draft-notice";
 import {
   OnboardingFooter,
@@ -22,7 +24,7 @@ import { useSignupCanContinue } from "@/hooks/use-program-eligibility";
 import { useSignupWizard } from "@/hooks/use-signup-wizard";
 import type { RegisteredAccount } from "@/interfaces/auth";
 import { SIGNUP_STEPS, SignupStep } from "@/interfaces/signup";
-import { useTranslations } from "next-intl";
+import { stringList } from "@/lib/string-list";
 
 const TONE = OnboardingTone.Mentee;
 
@@ -67,7 +69,9 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
         }
         submittedAt={submittedAt ?? new Date()}
         lastStepLabel={copy(solo ? "soloLastStepLabel" : "lastStepLabel")}
-        nextSteps={copy.raw(solo ? "soloNextSteps" : "nextSteps")}
+        nextSteps={stringList(
+          copy.raw(solo ? "soloNextSteps" : "nextSteps") as unknown,
+        )}
         onSignOut={exit}
         signingOut={exiting}
       />
@@ -91,7 +95,10 @@ export function SignupWizardView({ account }: { account: RegisteredAccount }) {
           steps={railSteps}
           currentIndex={currentIndex}
           note={copy("railNote")}
-          onStepClick={(index) => wizard.goToStep(steps[index])}
+          onStepClick={(index) => {
+            const next = steps[index];
+            if (next) wizard.goToStep(next);
+          }}
         />
       }
       title={stepText(step, "title")}

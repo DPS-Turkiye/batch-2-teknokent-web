@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { useTranslations } from "next-intl";
+import Link from "next/link";
 
 import { Avatar } from "@/components/common/avatar";
 import { SectionHeader } from "@/components/mentee-home/section-header";
@@ -71,14 +71,14 @@ export function SentRequests({
                 {t(`sent.state.${state}`)}
               </span>
             </div>
-            {needsAction && (
+            {needsAction ? (
               <Link
                 href={requestStatusHref(request.id)}
                 className="flex h-8 w-full items-center justify-center rounded-xl bg-[#e86f22] px-3 text-xs font-semibold text-white hover:bg-[#d9631c]"
               >
                 {t("sent.reply")}
               </Link>
-            )}
+            ) : null}
           </article>
         );
       })}

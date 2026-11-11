@@ -37,10 +37,11 @@ describe("WorkspaceSwitcher", () => {
 
   it("is not there for an account with one workspace", () => {
     session = {
-      ...assistant,
+      userId: assistant.userId,
+      email: assistant.email,
+      fullName: assistant.fullName,
+      jobTitle: assistant.jobTitle,
       role: UserRole.Mentor,
-      permissions: undefined,
-      institutionKinds: undefined,
     };
     renderWithQueryClient(<WorkspaceSwitcher itemClassName="" />);
     expect(screen.queryByRole("group")).not.toBeInTheDocument();

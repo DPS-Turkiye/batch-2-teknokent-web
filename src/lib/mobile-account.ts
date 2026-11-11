@@ -2,8 +2,8 @@ import type {
   NotificationPreferenceKey,
   NotificationPreferences,
 } from "@/interfaces/notification";
-import { type AppSession, UserRole } from "@/interfaces/session";
-import { type MobileTexts, webHref } from "@/lib/mobile";
+import { UserRole, type AppSession } from "@/interfaces/session";
+import { webHref, type MobileTexts } from "@/lib/mobile";
 
 /** A switch's label and hint are `accountDialogs.preferences.{key}`, shared with the web menu. */
 export type PreferenceRow = { key: NotificationPreferenceKey };
@@ -48,7 +48,7 @@ export function accountChip(session: AppSession, t: MobileTexts["t"]) {
       .join(" · ");
   }
   // A mentor whose title is just "Mentor" would read "Mentor · Mentor".
-  const title = session.jobTitle?.trim();
+  const title = session.jobTitle.trim();
   const mentor = t("meeting.mentor");
   return title && title.toLocaleLowerCase("tr-TR") !== "mentor"
     ? `${mentor} · ${title}`

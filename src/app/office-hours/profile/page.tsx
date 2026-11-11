@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { redirect } from "next/navigation";
 
 import { AcademicProfileView } from "@/components/office-hours/academic-profile-view";
 import { OfficeHoursFrame } from "@/components/office-hours/office-hours-frame";

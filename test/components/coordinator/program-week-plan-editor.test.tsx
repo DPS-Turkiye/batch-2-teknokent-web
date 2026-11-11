@@ -9,6 +9,7 @@ import {
   getProgramWeekPlan,
   saveProgramWeekPlan,
 } from "@/lib/client/program-weeks";
+import { itemAt } from "@test/fixtures/list-assertions";
 import { planWeek } from "@test/fixtures/program-week";
 import { renderWithQueryClient } from "@test/test-utils";
 
@@ -61,6 +62,10 @@ function weekRows() {
   ).getAllByRole("listitem");
 }
 
+function weekRow(index: number) {
+  return itemAt(weekRows(), index);
+}
+
 describe("ProgramWeekPlanEditor", () => {
   it("shows the saved weeks with their days, and no save button until something changes", async () => {
     renderWithQueryClient(<Harness />);
@@ -75,6 +80,21 @@ describe("ProgramWeekPlanEditor", () => {
     ).toBeNull();
   });
 
+  it("keeps a week's own row when a new week is sorted in above it", async () => {
+    const user = userEvent.setup();
+    renderWithQueryClient(<Harness />);
+    const savedTitle = await screen.findByDisplayValue("Kullanıcı görüşmeleri");
+
+    await user.click(screen.getByRole("button", { name: "Hafta ekle" }));
+
+    // Week 1 is free, so it lands first. Keyed by position, week 2's input would now be reused for it.
+    expect(weekRows()).toHaveLength(2);
+    expect(screen.getByDisplayValue("Kullanıcı görüşmeleri")).toBe(savedTitle);
+    expect(within(weekRow(1)).getByDisplayValue("Kullanıcı görüşmeleri")).toBe(
+      savedTitle,
+    );
+  });
+
   it("puts the AI's weeks up for review, marks the inferred ones and saves the edited plan", async () => {
     const user = userEvent.setup();
     renderWithQueryClient(<Harness />);
@@ -84,9 +104,9 @@ describe("ProgramWeekPlanEditor", () => {
     expect(
       await screen.findByText(/AI'nin müfredattan çıkardığı haftalar/),
     ).toBeVisible();
-    expect(within(weekRows()[1]).getByText("Fazdan bölündü")).toBeVisible();
+    expect(within(weekRow(1)).getByText("Fazdan bölündü")).toBeVisible();
 
-    const topics = within(weekRows()[0]).getByRole("textbox", {
+    const topics = within(weekRow(0)).getByRole("textbox", {
       name: "Konular",
     });
     await user.type(topics, "Program tanıtımı{enter}Ekip kurma");
@@ -122,7 +142,7 @@ describe("ProgramWeekPlanEditor", () => {
 
     await user.click(screen.getByRole("button", { name: "Hafta ekle" }));
     expect(weekRows()).toHaveLength(2);
-    expect(within(weekRows()[0]).getByRole("spinbutton")).toHaveValue(1);
+    expect(within(weekRow(0)).getByRole("spinbutton")).toHaveValue(1);
     await user.click(
       screen.getByRole("button", { name: "Haftalık planı kaydet" }),
     );

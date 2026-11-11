@@ -1,15 +1,15 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 
+import { HealthChip } from "@/components/mobile/mobile-startups-view";
 import {
   MobileErrorState,
   MobileListSkeleton,
 } from "@/components/mobile/mobile-states";
-import { HealthChip } from "@/components/mobile/mobile-startups-view";
 import { MobileTopBar } from "@/components/mobile/mobile-top-bar";
 import { useMobileStartup } from "@/hooks/use-mobile-startup";
 

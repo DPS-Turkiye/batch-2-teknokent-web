@@ -4,9 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useToast } from "@/stores/toast-store";
 import { coordinatorProgramQueryKey } from "@/hooks/use-coordinator-program";
 import type { MentorPoolRow } from "@/interfaces/mentor-pool";
+import { ToastTone } from "@/interfaces/toast";
 import {
   cancelMentorInvite,
   decideProgramMentor,
@@ -25,7 +25,7 @@ import {
   poolFilterOptions,
 } from "@/lib/mentor-pool";
 import { errorMessage, isEmailAddress } from "@/lib/utils";
-import { ToastTone } from "@/interfaces/toast";
+import { useToast } from "@/stores/toast-store";
 
 export const mentorPoolQueryKey = (programId: string) =>
   [...coordinatorProgramQueryKey(programId), "mentors"] as const;
@@ -94,10 +94,10 @@ export function useMentorPool(programId: string) {
   });
   const renew = useMutation({
     mutationFn: (row: MentorPoolRow) =>
-      renewMentorInvite(programId, row.inviteId as string),
+      renewMentorInvite(programId, row.inviteId!),
     onSuccess: async (rows, row) => {
       saved(rows);
-      await copyInviteLink(row.inviteCode as string);
+      await copyInviteLink(row.inviteCode!);
       showToast({
         message: t("renewed"),
         tone: ToastTone.Success,
@@ -109,7 +109,7 @@ export function useMentorPool(programId: string) {
     mutationFn: (row: MentorPoolRow) =>
       row.inviteId
         ? cancelMentorInvite(programId, row.inviteId)
-        : withdrawProgramMentorInvite(programId, row.mentorId as string),
+        : withdrawProgramMentorInvite(programId, row.mentorId!),
     onSuccess: (rows) => {
       saved(rows);
       showToast({ message: t("takenBack"), tone: ToastTone.Success });

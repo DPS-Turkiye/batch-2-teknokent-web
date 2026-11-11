@@ -1,10 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
+
 import {
   generateMeetingReportBodySchema,
   transcriptQuerySchema,
 } from "@/lib/assistant-schemas";
 import { generateMeetingReportBackend } from "@/lib/botapi";
 import { apiErrorResponse, apiText } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionIds } from "@/lib/session";
 
 export async function POST(request: NextRequest) {
@@ -26,23 +28,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    let body: unknown = {};
-    try {
-      body = await request.json();
-    } catch {
-      body = {};
-    }
-
-    const parsedBody = generateMeetingReportBodySchema.safeParse(body);
-    if (!parsedBody.success) {
-      return NextResponse.json(
-        {
-          code: "INVALID_REQUEST",
-          message: await apiText("reportRequestInvalid"),
-        },
-        { status: 400 },
-      );
-    }
+    const parsedBody = await readJsonBody(
+      request,
+      generateMeetingReportBodySchema.default({}),
+      { invalidMessage: "reportRequestInvalid" },
+    );
+    if (!parsedBody.ok) return parsedBody.response;
 
     const { platform, nativeMeetingId } = query.data;
     const { data, status } = await generateMeetingReportBackend(

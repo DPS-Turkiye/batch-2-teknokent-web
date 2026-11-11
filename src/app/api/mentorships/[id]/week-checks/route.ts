@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+import { z } from "zod";
 
 import { upsertMentorshipWeekCheck } from "@/lib/api/mentorships";
 import {
@@ -6,7 +7,13 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
+import { readJsonBody } from "@/lib/server/request-body";
 import { getSessionMentorId } from "@/lib/session";
+
+const weekCheckSchema = z.object({
+  weekStart: z.string().min(1),
+  completed: z.boolean(),
+});
 
 type RouteContext = {
   params: Promise<{ id: string }>;
@@ -16,22 +23,16 @@ export async function PUT(request: NextRequest, context: RouteContext) {
   try {
     const { id } = await context.params;
     const actorId = await getSessionMentorId();
-    const body = (await request.json()) as {
-      weekStart?: string;
-      completed?: boolean;
-    };
-    if (!body.weekStart) {
-      return apiErrorResponse(new Error("weekStart required"), {
-        message: await apiText("weekStartRequired"),
-        status: 400,
-      });
-    }
+    const body = await readJsonBody(request, weekCheckSchema, {
+      invalidMessage: "weekStartRequired",
+    });
+    if (!body.ok) return body.response;
     return backendResponse(
       await upsertMentorshipWeekCheck({
         mentorshipId: id,
         actorId,
-        weekStart: body.weekStart,
-        completed: Boolean(body.completed),
+        weekStart: body.data.weekStart,
+        completed: body.data.completed,
       }),
     );
   } catch (error) {

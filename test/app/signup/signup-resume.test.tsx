@@ -7,6 +7,7 @@ import { UserRole } from "@/interfaces/session";
 import { ClientApiError } from "@/lib/client/api";
 import { fetchAccountStatus, registerMentor } from "@/lib/client/auth";
 import { currentFirebaseAccount } from "@/lib/firebase/auth";
+import { backendUser } from "@test/fixtures/session";
 
 const searchParams = new URLSearchParams();
 const replace = vi.fn();
@@ -53,7 +54,9 @@ beforeEach(() => {
   searchParams.delete("resume");
   searchParams.delete("programInvite");
   vi.mocked(currentFirebaseAccount).mockResolvedValue(null);
-  vi.mocked(registerMentor).mockResolvedValue({} as never);
+  vi.mocked(registerMentor).mockResolvedValue(
+    backendUser({ role: UserRole.Mentor }),
+  );
 });
 
 describe("SignupFlow resume", () => {

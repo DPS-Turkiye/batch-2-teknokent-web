@@ -6,13 +6,15 @@ import { useMentors } from "@/hooks/use-mentors";
 import { useMentorshipRequests } from "@/hooks/use-mentorship-requests";
 import { useStartupDocuments } from "@/hooks/use-startup-documents";
 import { useStartupMeetings } from "@/hooks/use-startup-meetings";
-import type { MentorProfile } from "@/interfaces/mentor";
-import type { MentorshipRequest } from "@/interfaces/mentorship-request";
 import { StartupMeetingView } from "@/lib/startup-meetings";
+import { itemAt } from "@test/fixtures/list-assertions";
+import { mentorProfile } from "@test/fixtures/mentors";
+import { mentorshipRequest } from "@test/fixtures/mentorship-requests";
 import {
   meetingFileFixture,
   meetingFixture,
 } from "@test/fixtures/startup-meetings";
+import { successQuery } from "@test/mocks/query-results";
 
 vi.mock("@/hooks/use-meetings", () => ({ useMeetings: vi.fn() }));
 vi.mock("@/hooks/use-mentors", () => ({ useMentors: vi.fn() }));
@@ -34,31 +36,27 @@ const meetings = [
   }),
 ];
 
-function query<T>(data: T) {
-  return { data, isLoading: false, error: null } as never;
-}
-
 describe("useStartupMeetings", () => {
   beforeEach(() => {
     vi.useFakeTimers({ toFake: ["Date"] });
     vi.setSystemTime(new Date("2026-09-11T12:00:00Z"));
-    vi.mocked(useMeetings).mockReturnValue(query(meetings));
+    vi.mocked(useMeetings).mockReturnValue(successQuery(meetings));
     vi.mocked(useMentors).mockReturnValue(
-      query([
-        { id: "mentor-1", professionalTitle: "UX/UI Mentor" } as MentorProfile,
+      successQuery([
+        { ...mentorProfile, id: "mentor-1", professionalTitle: "UX/UI Mentor" },
       ]),
     );
     vi.mocked(useMentorshipRequests).mockReturnValue(
-      query([
-        {
+      successQuery([
+        mentorshipRequest({
           id: "req-mvp",
           summary: "MVP kapsamını daraltmak",
           supportArea: "Ürün",
-        } as MentorshipRequest,
+        }),
       ]),
     );
     vi.mocked(useStartupDocuments).mockReturnValue(
-      query([meetingFileFixture("user-flow", "mvp-held")]),
+      successQuery([meetingFileFixture("user-flow", "mvp-held")]),
     );
   });
 
@@ -74,18 +72,18 @@ describe("useStartupMeetings", () => {
       "req-mvp",
       "req-finance",
     ]);
-    expect(result.current.topics[0].upcoming?.id).toBe("mvp-next");
+    expect(result.current.topics[0]?.upcoming?.id).toBe("mvp-next");
   });
 
   it("gathers each meeting's mentor title, summary and files", () => {
     const { result } = renderHook(() => useStartupMeetings());
 
-    expect(result.current.details(meetings[0])).toEqual({
+    expect(result.current.details(itemAt(meetings, 0))).toEqual({
       mentorTitle: "UX/UI Mentor",
       summary: "MVP kapsamını daraltmak",
       files: [meetingFileFixture("user-flow", "mvp-held")],
     });
-    expect(result.current.details(meetings[2]).mentorTitle).toBeNull();
+    expect(result.current.details(itemAt(meetings, 2)).mentorTitle).toBeNull();
   });
 
   it("groups meetings by mentor, the one with a meeting ahead first", () => {
@@ -95,7 +93,7 @@ describe("useStartupMeetings", () => {
       "Nihan Öztürk",
       "Ahmet Yılmaz",
     ]);
-    expect(result.current.mentors[0].meetings.map((item) => item.id)).toEqual([
+    expect(result.current.mentors[0]?.meetings.map((item) => item.id)).toEqual([
       "mvp-next",
       "mvp-held",
     ]);

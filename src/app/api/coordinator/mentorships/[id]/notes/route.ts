@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 import {
   addCoordinatorNote,
   fetchCoordinatorNotes,
@@ -7,13 +9,16 @@ import {
   apiText,
   backendResponse,
 } from "@/lib/server/api-response";
-import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { readJsonBody } from "@/lib/server/request-body";
+import { requireCoordinatorOrAdminSession } from "@/lib/server/require-coordinator";
+
+const noteSchema = z.object({ body: z.string() });
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
     return backendResponse(
@@ -28,12 +33,13 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function POST(request: Request, { params }: Params) {
   try {
-    const auth = await requireCoordinatorSession();
+    const auth = await requireCoordinatorOrAdminSession();
     if (!auth.ok) return auth.response;
     const { id } = await params;
-    const body = await request.json();
+    const note = await readJsonBody(request, noteSchema);
+    if (!note.ok) return note.response;
     return backendResponse(
-      await addCoordinatorNote(auth.session.userId, id, body.body),
+      await addCoordinatorNote(auth.session.userId, id, note.data.body),
     );
   } catch (error) {
     return apiErrorResponse(error, {

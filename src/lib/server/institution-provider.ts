@@ -1,11 +1,10 @@
 import "server-only";
 
 import { InstitutionProvider } from "@/interfaces/institution-login";
+import { isEnumValue } from "@/lib/enum";
 
 export function toInstitutionProvider(
   value: string,
 ): InstitutionProvider | null {
-  return (Object.values(InstitutionProvider) as string[]).includes(value)
-    ? (value as InstitutionProvider)
-    : null;
+  return isEnumValue(InstitutionProvider, value) ? value : null;
 }

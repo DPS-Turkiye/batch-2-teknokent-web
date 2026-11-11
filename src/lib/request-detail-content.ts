@@ -1,9 +1,9 @@
 import type { MentorshipRequest } from "@/interfaces/mentorship-request";
+import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   parsePreferredSlotsFromMessage,
   type ParsedPreferredSlot,
 } from "@/lib/mentor-availability-days";
-import { requestExpectedOutcome } from "@/lib/meeting-context";
 import {
   MENTOR_REQUEST_NEED_GOALS,
   MENTOR_REQUEST_NEED_SITUATIONS,
@@ -68,7 +68,7 @@ function presetSummary(summary: string, labels?: NeedLabels) {
 
 function presetOutcome(outcome: string, labels?: NeedLabels) {
   if (!labels) return outcome;
-  const [goals, ...note] = outcome.split("\n");
+  const [goals = "", ...note] = outcome.split("\n");
   const shown = goals
     .split(", ")
     .map((part) => {

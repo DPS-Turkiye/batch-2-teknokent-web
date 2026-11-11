@@ -1,6 +1,5 @@
-import "server-only";
-
 import { cookies } from "next/headers";
+import "server-only";
 
 import type { AccountType } from "@/interfaces/account-type";
 import {

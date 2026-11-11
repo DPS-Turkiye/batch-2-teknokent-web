@@ -1,5 +1,5 @@
 import { RoleOptionCard } from "@/components/login/role-option-card";
-import { LoginRoleId, type LoginRoleGroup } from "@/interfaces/login";
+import type { LoginRoleGroup, LoginRoleId } from "@/interfaces/login";
 
 export function RoleGroupSection({
   group,

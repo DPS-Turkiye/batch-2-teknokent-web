@@ -172,11 +172,12 @@ export function programConversation(
   { t, locale }: MobileTexts,
   now = new Date(),
 ): MobileConversation {
+  const name = conversation.programName ?? t("messages.programTag");
   return {
     id: conversation.id,
     kind: MobileConversationKind.Program,
-    name: conversation.programName,
-    initials: initials(conversation.programName),
+    name,
+    initials: initials(name),
     tag: t("messages.programTag"),
     isStartup: false,
     lastAt: conversation.lastMessageAt ?? "",
