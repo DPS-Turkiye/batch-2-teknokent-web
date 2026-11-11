@@ -12,10 +12,10 @@ export function Card({
   labelledBy,
 }: {
   children: ReactNode;
-  featured?: boolean;
-  compact?: boolean;
-  className?: string;
-  labelledBy?: string;
+  featured?: boolean | undefined;
+  compact?: boolean | undefined;
+  className?: string | undefined;
+  labelledBy?: string | undefined;
 }) {
   return (
     <section
