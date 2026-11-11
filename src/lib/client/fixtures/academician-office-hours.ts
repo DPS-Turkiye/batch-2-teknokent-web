@@ -6,6 +6,7 @@ import {
   type AcademicianAvailability,
   type OfficeHoursProfileSettings,
   type OfficeHoursRequest,
+  type OfficeHoursStudent,
 } from "@/interfaces/academician-office-hours";
 import {
   AppointmentKind,
@@ -43,29 +44,44 @@ function student(
   userId: string,
   fullName: string,
   department: string,
-): AppointmentCounterpart {
-  return { userId, fullName, title: null, department };
+  classYear: number,
+): OfficeHoursStudent {
+  return { userId, fullName, title: null, department, classYear };
+}
+
+/** The same person as an appointment's counterpart, which carries no class year. */
+export function asCounterpart({
+  userId,
+  fullName,
+  title,
+  department,
+}: OfficeHoursStudent): AppointmentCounterpart {
+  return { userId, fullName, title, department };
 }
 
 const DENIZ = student(
   "sample-student-deniz",
   "Deniz Kaya",
   "Bilgisayar Mühendisliği",
+  3,
 );
 const ECE = student(
   "sample-student-ece",
   "Ece Aksoy",
   "Bilgisayar Mühendisliği",
+  2,
 );
 const MERT = student(
   "sample-student-mert",
   "Mert Demir",
   "Elektrik-Elektronik Mühendisliği",
+  3,
 );
 const ZEYNEP = student(
   "sample-student-zeynep",
   "Zeynep Arslan",
   "Bilgisayar Mühendisliği",
+  4,
 );
 
 const ANSWERS = [
@@ -141,7 +157,7 @@ export const ACADEMICIAN_REQUESTS_SAMPLE: OfficeHoursRequest[] = [
 
 function appointment(
   id: string,
-  counterpart: AppointmentCounterpart,
+  person: OfficeHoursStudent,
   topic: string,
   time: AppointmentTime,
   status: AppointmentStatus,
@@ -155,7 +171,7 @@ function appointment(
     side: AppointmentSide.Mentor,
     status,
     topic,
-    counterpart,
+    counterpart: asCounterpart(person),
     place: "A-204",
     onlineUrl: null,
     alternative: null,

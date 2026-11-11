@@ -16,7 +16,10 @@
     },
     "oneOff": "{date} · tek seferlik",
     "unavailable": "{days} · Müsait değilim",
-    "unavailableBecause": "{days} · Müsait değilim ({reason})"
+    "unavailableBecause": "{days} · Müsait değilim ({reason})",
+    "everyWeekday": "Her {weekday}",
+    "classYear": "{year}. sınıf",
+    "close": "Kapat"
   },
   "answer": {
     "done": {
@@ -76,5 +79,107 @@
       "unavailableTitle": "Belirli bir gün · Tüm gün",
       "unavailableHint": "Müsait değilim (istisna)"
     }
+  },
+  "appointments": {
+    "title": "Randevularım",
+    "subtitle": "Onaylı randevuların, yanıt bekleyen talepler ve müsaitliğin tek takvimde.",
+    "editAvailability": "Müsaitliği Düzenle",
+    "filtersLabel": "Takvimde göster",
+    "filters": {
+      "all": "Tümü",
+      "appointments": "Randevular",
+      "requests": "Talepler · {count}",
+      "availability": "Müsaitlik"
+    },
+    "viewsLabel": "Takvim görünümü",
+    "views": {
+      "day": "Gün",
+      "week": "Hafta",
+      "month": "Ay"
+    },
+    "today": "Bugün",
+    "previous": "Önceki",
+    "next": "Sonraki",
+    "legendLabel": "Renklerin anlamı",
+    "legend": {
+      "recurring": "Tekrarlanan",
+      "oneOff": "Tek seferlik",
+      "confirmed": "Onaylı randevu",
+      "pendingRequest": "Onay bekliyor (soluk)",
+      "awaitingStudent": "Öğrenci yanıtı bekleniyor",
+      "unavailable": "Müsait değil"
+    },
+    "entry": {
+      "confirmed": "Onaylandı",
+      "pendingRequest": "Onay Bekliyor",
+      "awaitingStudent": "Öneri · öğrenci yanıtı",
+      "recurring": "Müsait",
+      "oneOff": "Müsait",
+      "unavailable": "Müsait değilim"
+    },
+    "entryDetail": {
+      "recurring": "Her {weekday} · tekrarlanan müsaitlik",
+      "oneOff": "Tek seferlik müsaitlik"
+    },
+    "available": "Müsait {hours}",
+    "blockLabel": "{name}, {hours}, {status}",
+    "more": "+{count} daha",
+    "openDay": "{day} gününü aç",
+    "rail": {
+      "pendingTitle": "Yanıt bekleyen talepler",
+      "all": "Tümü",
+      "hint": "Talepler takvimde kesikli çerçeveyle görünür. Detayı açmak için talebe tıkla.",
+      "pendingEmpty": "Yanıt bekleyen talep yok.",
+      "awaitingTitle": "Öğrenci yanıtı bekleniyor",
+      "proposed": "Önerdiğin saat: {when}",
+      "asked": "Sorunu yanıtlaması bekleniyor",
+      "proposedBadge": "Alternatif Saat Önerildi",
+      "askedBadge": "Soru soruldu",
+      "availabilityTitle": "Müsaitliğim",
+      "availabilityEmpty": "Henüz müsait saat yok."
+    }
+  },
+  "requestDrawer": {
+    "title": "Randevu talebi",
+    "date": "Tarih",
+    "time": "Saat",
+    "course": "Ders",
+    "pickTime": "Hangi saati kabul ediyorsun?",
+    "note": "Açıklama · yalnızca sen görürsün",
+    "messages": "Mesajlar",
+    "fit": {
+      "fits": "Bu saat {weekday} müsaitliğinle uyumlu; çakışma yok.",
+      "outside": "Bu saat {weekday} müsaitliğinin dışında.",
+      "clash": "Bu saatte onaylı bir randevun var.",
+      "dayOff": "Bu gün müsait değilsin olarak işaretli.",
+      "past": "Bu saat geçti."
+    },
+    "decline": "Reddet",
+    "propose": "Alternatif Saat Öner",
+    "accept": "Kabul Et",
+    "declineTitle": "Talebi reddet",
+    "declineReason": "Öğrenciye not (opsiyonel)",
+    "confirmDecline": "Talebi Reddet",
+    "back": "Vazgeç",
+    "gone": "Bu talep artık yanıtını beklemiyor; liste güncellendi."
+  },
+  "appointmentDrawer": {
+    "title": "Randevu",
+    "date": "Tarih",
+    "time": "Saat",
+    "place": "Yer",
+    "online": "Çevrim içi bağlantı",
+    "course": "Ders",
+    "cancel": "Randevuyu iptal et",
+    "cancelTitle": "Randevuyu iptal et",
+    "reason": "Öğrenciye gerekçe",
+    "reasonOptional": "Öğrenciye gerekçe (opsiyonel)",
+    "reasonRequired": "Başlamasına 24 saatten az kaldı; öğrenciye bir gerekçe yazmalısın.",
+    "confirmCancel": "İptal et",
+    "back": "Vazgeç",
+    "cannotCancel": "Bu randevu buradan iptal edilemiyor.",
+    "cancelled": "Randevu iptal edildi.",
+    "failed": "Randevu iptal edilemedi; liste yenilendi.",
+    "gone": "Bu randevu artık takviminde yok."
   }
 }

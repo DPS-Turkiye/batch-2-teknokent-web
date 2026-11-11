@@ -6,6 +6,7 @@ import {
   isSameDay,
   monthGridCells,
   monthLabel,
+  placeInLanes,
   startOfWeek,
   timeLabel,
   upcomingHourColumns,
@@ -91,5 +92,40 @@ describe("week and month grid helpers", () => {
   it("labels the month in Turkish and English", () => {
     expect(monthLabel(new Date(2026, 8, 15), "tr")).toBe("Eylül 2026");
     expect(monthLabel(new Date(2026, 8, 15), "en")).toBe("September 2026");
+  });
+});
+
+describe("placeInLanes", () => {
+  const grid = { startHour: 9, hours: 9 };
+  const at = (hour: number, hours: number) => ({
+    start: new Date(2026, 10, 10, Math.floor(hour), (hour % 1) * 60),
+    hours,
+  });
+
+  it("orders by start, clamps into the grid and side-steps overlaps", () => {
+    const placed = placeInLanes(
+      [
+        { id: "second", ...at(10.5, 1) },
+        { id: "first", ...at(10, 1) },
+        { id: "early", ...at(7, 3) },
+        { id: "tiny", ...at(12, 0) },
+      ],
+      (item) => ({ start: item.start, hours: item.hours }),
+      grid,
+    );
+    expect(
+      placed.map(({ item, top, height, lane, lanes }) => [
+        item.id,
+        top,
+        height,
+        lane,
+        lanes,
+      ]),
+    ).toEqual([
+      ["early", 0, 3, 0, 3],
+      ["first", 1, 1, 1, 3],
+      ["second", 1.5, 1, 2, 3],
+      ["tiny", 3, 0.75, 0, 1],
+    ]);
   });
 });

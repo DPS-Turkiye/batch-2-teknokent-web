@@ -145,3 +145,59 @@ export function upcomingHourColumns(
   }
   return columns;
 }
+
+export type GridHours = { startHour: number; hours: number };
+
+export type Placed<T> = {
+  item: T;
+  /** Hours from the grid's first row, clamped into the grid. */
+  top: number;
+  height: number;
+  /** Items overlapping an earlier one shift right so both stay visible. */
+  lane: number;
+  /** Lanes in this item's overlap group, so a block that overlaps nothing keeps the full width. */
+  lanes: number;
+};
+
+/** The shortest block a grid draws, so a short or zero-length item stays clickable. */
+const MIN_BLOCK_HOURS = 0.75;
+
+/**
+ * Places a day's items on an hourly grid: each one's top and height in hours from the first row, and a lane so
+ * overlapping items sit side by side. `span` gives an item's start and length in hours.
+ */
+export function placeInLanes<T>(
+  items: readonly T[],
+  span: (item: T) => { start: Date; hours: number },
+  grid: GridHours,
+): Placed<T>[] {
+  const sorted = items
+    .map((item) => ({ item, ...span(item) }))
+    .toSorted((a, b) => a.start.getTime() - b.start.getTime());
+  const placed: Omit<Placed<T>, "lanes">[] = [];
+  for (const { item, start, hours } of sorted) {
+    const startHours = start.getHours() + start.getMinutes() / 60;
+    const top = Math.min(
+      Math.max(startHours - grid.startHour, 0),
+      grid.hours - MIN_BLOCK_HOURS,
+    );
+    const height = Math.max(Math.min(hours, grid.hours - top), MIN_BLOCK_HOURS);
+    const lane = placed.filter(
+      (other) => other.top + other.height > top,
+    ).length;
+    placed.push({ item, top, height, lane });
+  }
+  return placed.map((block) => ({
+    ...block,
+    lanes:
+      Math.max(
+        ...placed
+          .filter(
+            (other) =>
+              other.top < block.top + block.height &&
+              block.top < other.top + other.height,
+          )
+          .map((other) => other.lane),
+      ) + 1,
+  }));
+}
