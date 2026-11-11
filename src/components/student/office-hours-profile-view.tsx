@@ -14,7 +14,7 @@ import {
   STUDENT_OFFICE_HOURS_HREF,
   useOfficeHoursProfile,
 } from "@/hooks/use-student-office-hours";
-import { shortWeekday, timeLabel } from "@/lib/calendar";
+import { shortWeekday, timeLabel, weekdayName } from "@/lib/calendar";
 import { academicianName } from "@/lib/student-office-hours";
 import { formatDayMonth, initials } from "@/lib/utils";
 
@@ -92,9 +92,7 @@ export function OfficeHoursProfileView({
           <p className="type-caption text-text-secondary">
             {profile.nearest
               ? t("nearest", {
-                  day: new Intl.DateTimeFormat(locale, {
-                    weekday: "long",
-                  }).format(new Date(profile.nearest.startsAt)),
+                  day: weekdayName(new Date(profile.nearest.startsAt), locale),
                   time: timeLabel(profile.nearest.startsAt, locale),
                 })
               : t("noSlots")}

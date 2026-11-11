@@ -29,12 +29,14 @@ import {
   getOfficeHoursSlots,
   requestOfficeHours,
 } from "@/lib/client/student-office-hours";
+import { startOfDay } from "@/lib/mobile-calendar";
 import {
   academicianName,
   ADVISOR_ACADEMICIAN_ID,
   ADVISOR_SLOT_PREVIEW,
   advisorAcademician,
   filterAcademicians,
+  firstBookableWeekDay,
   freeSlots,
   OFFICE_HOURS_DESCRIPTION_MAX,
   OFFICE_HOURS_LOOKAHEAD_DAYS,
@@ -66,9 +68,7 @@ export function officeHoursBookingHref(id: string) {
 }
 
 function startOfToday() {
-  const day = new Date();
-  day.setHours(0, 0, 0, 0);
-  return day;
+  return startOfDay(new Date());
 }
 
 function slotsQuery(
@@ -76,23 +76,21 @@ function slotsQuery(
   from: Date,
   days: number,
 ) {
+  const id = academician?.id ?? null;
+  const duration = academician?.durationMinutes ?? null;
   return {
     queryKey: [
       ...OFFICE_HOURS_SLOTS_QUERY_KEY,
-      academician,
+      id,
+      duration,
       from.toISOString(),
       days,
     ],
     queryFn: (): Promise<StudentOfficeHoursSlot[]> =>
-      academician
-        ? getOfficeHoursSlots(
-            academician.id,
-            from,
-            days,
-            academician.durationMinutes,
-          )
+      id !== null && duration !== null
+        ? getOfficeHoursSlots(id, from, days, duration)
         : Promise.resolve([]),
-    enabled: academician !== null,
+    enabled: id !== null,
   };
 }
 
@@ -113,6 +111,8 @@ function useAcademicianEntry(id: string) {
     : (sample.data ?? null);
   return {
     academician,
+    /** Whose appointments are "with them": the advisor's own account id, not the route's "advisor". */
+    counterpartId: isAdvisor ? (record.data?.advisor?.userId ?? null) : id,
     isLoading: source.isLoading,
     error: source.error,
     notFound: source.isSuccess && academician === null,
@@ -154,6 +154,8 @@ export function useStudentOfficeHours() {
 
   return {
     isLoading: academicians.isLoading,
+    // "Müsait saati olanlar" decides on the slots, so the list waits for them before it can say "none".
+    isLoadingSlots: slots.some((query) => query.isPending),
     error: academicians.error,
     advisor: advisor
       ? {
@@ -209,7 +211,7 @@ export function useOfficeHoursProfile(id: string) {
   const withThem = (appointments.data ?? []).filter(
     (item) =>
       item.kind === AppointmentKind.OfficeHours &&
-      item.counterpart.userId === id,
+      item.counterpart.userId === entry.counterpartId,
   );
   return {
     ...entry,
@@ -230,7 +232,8 @@ export function useOfficeHoursBooking(id: string) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [anchor, setAnchor] = useState(startOfToday);
+  const [firstDay] = useState(() => firstBookableWeekDay(new Date()));
+  const [anchor, setAnchor] = useState(firstDay);
   const [pickedDay, setPickedDay] = useState<Date | null>(null);
   const [selected, setSelected] = useState<StudentOfficeHoursSlot | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -271,8 +274,19 @@ export function useOfficeHoursBooking(id: string) {
           queryKey: STUDENT_APPOINTMENTS_QUERY_KEY,
         }),
         queryClient.invalidateQueries({ queryKey: STUDENT_HOME_QUERY_KEY }),
+        queryClient.invalidateQueries({
+          queryKey: OFFICE_HOURS_SLOTS_QUERY_KEY,
+        }),
       ]),
   });
+
+  const resetForm = () => {
+    setFormOpen(false);
+    setTitle("");
+    setDescription("");
+    setErrors(null);
+    setFailure(null);
+  };
 
   const moveWeek = (step: 1 | -1) => {
     setAnchor((current) => {
@@ -306,7 +320,11 @@ export function useOfficeHoursBooking(id: string) {
     weekStart,
     weekEnd: week.at(-1)?.day ?? weekStart,
     isLoadingSlots: slots.isLoading,
-    previousWeek: () => moveWeek(-1),
+    /** Weeks before the first bookable one have nothing left to ask for. */
+    canGoBack: weekStart > startOfWeek(firstDay),
+    previousWeek: () => {
+      if (weekStart > startOfWeek(firstDay)) moveWeek(-1);
+    },
     nextWeek: () => moveWeek(1),
     day,
     pickDay: (next: Date) => {
@@ -320,7 +338,7 @@ export function useOfficeHoursBooking(id: string) {
     openForm: () => {
       if (selected) setFormOpen(true);
     },
-    closeForm: () => setFormOpen(false),
+    closeForm: resetForm,
     title,
     setTitle: (value: string) => {
       setTitle(value);

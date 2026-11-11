@@ -9,6 +9,7 @@ import {
   advisorAcademician,
   canAnswerAlternative,
   filterAcademicians,
+  firstBookableWeekDay,
   freeSlots,
   officeHoursRequestErrors,
   officeHoursWeek,
@@ -171,5 +172,19 @@ describe("canAnswerAlternative", () => {
         kind: AppointmentKind.PeerMentoring,
       }),
     ).toBe(false);
+  });
+});
+
+describe("firstBookableWeekDay", () => {
+  it("opens on today during the week and on the coming Monday at the weekend", () => {
+    expect(firstBookableWeekDay(new Date(2026, 10, 12, 15))).toEqual(
+      new Date(2026, 10, 12),
+    );
+    expect(firstBookableWeekDay(new Date(2026, 10, 14, 9))).toEqual(
+      new Date(2026, 10, 16),
+    );
+    expect(firstBookableWeekDay(new Date(2026, 10, 15, 9))).toEqual(
+      new Date(2026, 10, 16),
+    );
   });
 });

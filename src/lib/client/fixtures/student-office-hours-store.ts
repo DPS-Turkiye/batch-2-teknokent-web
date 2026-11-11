@@ -68,6 +68,9 @@ export function addSampleOfficeHoursRequest(
   input: StudentOfficeHoursRequestInput,
   academician: OfficeHoursAcademician,
 ): Appointment {
+  if (sampleSlotRequested(academician.id, input.slot.startsAt)) {
+    throw new Error("Bu saat için zaten bir talebin var.");
+  }
   const created: Appointment = {
     id: `sample-office-hours-request-${next++}`,
     requestId: null,
@@ -109,4 +112,14 @@ export function answerSampleOfficeHoursAlternative(
     : { ...found, status: AppointmentStatus.Withdrawn };
   appointments = appointments.map((item) => (item.id === id ? answered : item));
   return structuredClone(answered);
+}
+
+/** Whether the student already asked this academician for this time (and has not taken it back). */
+export function sampleSlotRequested(academicianId: string, startsAt: string) {
+  return appointments.some(
+    (item) =>
+      item.counterpart.userId === academicianId &&
+      item.startsAt === startsAt &&
+      item.status !== AppointmentStatus.Withdrawn,
+  );
 }

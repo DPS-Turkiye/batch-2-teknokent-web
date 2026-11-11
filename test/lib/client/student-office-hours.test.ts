@@ -58,6 +58,27 @@ describe("sample Office Hours client", () => {
     ).toEqual([]);
   });
 
+  it("decides a slot's availability by its own day, whatever window is asked", async () => {
+    const monday = new Date(2026, 10, 16);
+    const week = await getOfficeHoursSlots(
+      "sample-academician-kaya",
+      monday,
+      5,
+      30,
+    );
+    const fortnight = await getOfficeHoursSlots(
+      "sample-academician-kaya",
+      new Date(2026, 10, 11),
+      14,
+      30,
+    );
+    for (const slot of week) {
+      expect(
+        fortnight.find((other) => other.startsAt === slot.startsAt)?.available,
+      ).toBe(slot.available);
+    }
+  });
+
   it("keeps a sent request as a pending Office Hours appointment", async () => {
     const academician = await getOfficeHoursAcademician(
       "sample-academician-kaya",
@@ -81,6 +102,27 @@ describe("sample Office Hours client", () => {
     expect(
       (await getStudentOfficeHoursAppointments()).map((item) => item.id),
     ).toContain(created.id);
+
+    const after = await getOfficeHoursSlots(
+      academician.id,
+      new Date(2026, 10, 9),
+      5,
+      30,
+    );
+    expect(
+      after.find((item) => item.startsAt === slot.startsAt)?.available,
+    ).toBe(false);
+    await expect(
+      requestOfficeHours(
+        {
+          academicianId: academician.id,
+          slot,
+          title: "CV",
+          description: "Staj",
+        },
+        academician,
+      ),
+    ).rejects.toThrow("Bu saat için zaten bir talebin var.");
   });
 
   it("confirms the proposed time when accepted and withdraws when declined", async () => {

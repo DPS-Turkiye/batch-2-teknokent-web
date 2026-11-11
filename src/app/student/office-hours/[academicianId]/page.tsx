@@ -6,7 +6,5 @@ export default async function StudentOfficeHoursProfilePage({
   params: Promise<{ academicianId: string }>;
 }) {
   const { academicianId } = await params;
-  return (
-    <OfficeHoursProfileView academicianId={decodeURIComponent(academicianId)} />
-  );
+  return <OfficeHoursProfileView academicianId={academicianId} />;
 }

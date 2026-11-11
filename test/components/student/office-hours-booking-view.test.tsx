@@ -124,8 +124,21 @@ describe("OfficeHoursBookingView", () => {
 
     await pickFirstFreeTime();
     await userEvent.click(screen.getByRole("button", { name: "Devam Et" }));
+    await userEvent.type(screen.getByLabelText(/Görüşme başlığı/), "Yarım");
     await userEvent.click(screen.getByRole("button", { name: "Vazgeç" }));
     expect(screen.queryByRole("dialog")).toBeNull();
+
+    await userEvent.click(screen.getByRole("button", { name: "Devam Et" }));
+    expect(screen.getByLabelText(/Görüşme başlığı/)).toHaveValue("");
+  });
+
+  it("cannot go back before the first bookable week, and opens on Monday at the weekend", async () => {
+    vi.setSystemTime(new Date(2026, 10, 14, 10));
+    renderWithQueryClient(
+      <OfficeHoursBookingView academicianId="sample-academician-kaya" />,
+    );
+    expect(await screen.findByText("16 – 20 Kasım 2026")).toBeVisible();
+    expect(screen.getByRole("button", { name: "Önceki hafta" })).toBeDisabled();
   });
 
   it("books the advisor from the institutional record", async () => {

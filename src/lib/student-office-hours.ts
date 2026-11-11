@@ -131,3 +131,16 @@ export function canAnswerAlternative(appointment: Appointment) {
     appointment.status === AppointmentStatus.AlternativeProposed
   );
 }
+
+const SUNDAY = 0;
+const SATURDAY = 6;
+
+/** The day the booking week opens on: today, or the coming Monday when today is a weekend. */
+export function firstBookableWeekDay(today: Date) {
+  const day = new Date(today);
+  day.setHours(0, 0, 0, 0);
+  const weekday = day.getDay();
+  if (weekday === SATURDAY) day.setDate(day.getDate() + 2);
+  if (weekday === SUNDAY) day.setDate(day.getDate() + 1);
+  return day;
+}

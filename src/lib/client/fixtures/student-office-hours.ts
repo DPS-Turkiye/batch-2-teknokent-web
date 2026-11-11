@@ -128,7 +128,6 @@ const WEEKLY_PATTERNS: { weekday: number; hour: number; minute: number }[][] = [
     { weekday: 3, hour: 15, minute: 30 },
     { weekday: 3, hour: 16, minute: 0 },
   ],
-  [],
 ];
 
 function patternFor(id: string) {
@@ -138,12 +137,13 @@ function patternFor(id: string) {
     OFFICE_HOURS_ACADEMICIANS_SAMPLE.findIndex((item) => item.id === id),
     0,
   );
-  return WEEKLY_PATTERNS[index % (WEEKLY_PATTERNS.length - 1)] ?? [];
+  return WEEKLY_PATTERNS[index % WEEKLY_PATTERNS.length] ?? [];
 }
 
 /**
  * The sample slots of one academician from `from` for `days` days. A slot in the past is not available, and so is
- * every fourth one (as if another student had it), so the screens show both states.
+ * one in four by its date (as if another student had it), so the screens show both states. The pick depends on
+ * the slot's own day, never on the window asked for, so the list and the booking screen agree.
  */
 export function sampleOfficeHoursSlots(
   academicianId: string,
@@ -170,7 +170,7 @@ export function sampleOfficeHoursSlots(
         };
         slots.push({
           ...time,
-          available: start > now && (offset + index) % 4 !== 3,
+          available: start > now && (day.getDate() + index) % 4 !== 3,
         });
       });
   }

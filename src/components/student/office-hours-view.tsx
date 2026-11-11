@@ -15,7 +15,7 @@ import type {
   OfficeHoursAcademician,
   StudentOfficeHoursSlot,
 } from "@/interfaces/student-office-hours";
-import { shortWeekday, timeLabel } from "@/lib/calendar";
+import { shortWeekday, timeLabel, weekdayName } from "@/lib/calendar";
 import { academicianName } from "@/lib/student-office-hours";
 
 /** Office Hours (Figma 80:400): the advisor first, then every ODTÜ academician with their nearest free time. */
@@ -79,8 +79,12 @@ export function StudentOfficeHoursView() {
           {t("count", { count: office.total })}
         </p>
       </div>
-      <QueryNotice isLoading={office.isLoading} error={office.error} />
-      {office.isLoading || office.error ? null : office.cards.length === 0 ? (
+      <QueryNotice
+        isLoading={office.isLoading || office.isLoadingSlots}
+        error={office.error}
+      />
+      {office.isLoading || office.isLoadingSlots || office.error ? null : office
+          .cards.length === 0 ? (
         <p className="rounded-card border border-dashed border-border-default p-6 type-body-sm text-text-muted">
           {t("empty")}
         </p>
@@ -195,9 +199,7 @@ function AcademicianCard({
   const locale = useLocale();
   const nearestLabel = nearest
     ? t("nearest", {
-        day: new Intl.DateTimeFormat(locale, { weekday: "long" }).format(
-          new Date(nearest.startsAt),
-        ),
+        day: weekdayName(new Date(nearest.startsAt), locale),
         time: timeLabel(nearest.startsAt, locale),
       })
     : t("noSlots");

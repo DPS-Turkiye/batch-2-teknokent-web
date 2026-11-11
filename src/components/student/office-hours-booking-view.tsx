@@ -19,13 +19,15 @@ import {
   useOfficeHoursBooking,
 } from "@/hooks/use-student-office-hours";
 import {
+  formatWeekdayDate,
   isSameDay,
   shortWeekday,
   timeLabel,
+  weekdayName,
   weekRangeLabel,
 } from "@/lib/calendar";
 import { academicianName } from "@/lib/student-office-hours";
-import { formatDayMonth } from "@/lib/utils";
+import { formatLongDate } from "@/lib/utils";
 
 type Booking = ReturnType<typeof useOfficeHoursBooking>;
 
@@ -131,8 +133,9 @@ function SlotPicker({ booking }: { booking: Booking }) {
           <button
             type="button"
             aria-label={t("previousWeek")}
+            disabled={!booking.canGoBack}
             onClick={booking.previousWeek}
-            className="grid size-9 place-items-center rounded-full border border-border-default text-icon-default"
+            className="grid size-9 place-items-center rounded-full border border-border-default text-icon-default disabled:opacity-40"
           >
             <ChevronLeft aria-hidden className="size-4" strokeWidth={1.5} />
           </button>
@@ -188,11 +191,7 @@ function SlotPicker({ booking }: { booking: Booking }) {
       {booking.day ? (
         <>
           <p className="mt-6 type-label text-text-secondary">
-            {new Intl.DateTimeFormat(locale, {
-              weekday: "long",
-              day: "numeric",
-              month: "long",
-            }).format(booking.day.day)}
+            {formatWeekdayDate(booking.day.day, locale)}
           </p>
           <div
             role="group"
@@ -234,13 +233,7 @@ function SlotPicker({ booking }: { booking: Booking }) {
           <p className="type-caption text-text-secondary">{t("selected")}</p>
           <p className="type-label-lg text-text-primary">
             {booking.selected
-              ? `${new Intl.DateTimeFormat(locale, {
-                  day: "numeric",
-                  month: "long",
-                  weekday: "long",
-                }).format(
-                  new Date(booking.selected.startsAt),
-                )} · ${timeLabel(booking.selected.startsAt, locale)} – ${timeLabel(booking.selected.endsAt, locale)}`
+              ? `${formatWeekdayDate(new Date(booking.selected.startsAt), locale)} · ${timeLabel(booking.selected.startsAt, locale)} – ${timeLabel(booking.selected.endsAt, locale)}`
               : t("nothingSelected")}
           </p>
         </div>
@@ -295,7 +288,7 @@ function RequestDialog({ booking }: { booking: Booking }) {
             {academicianName(academician)}
           </InfoRow>
           <InfoRow label={t("date")}>
-            {`${formatDayMonth(start, locale)} ${start.getFullYear()}, ${new Intl.DateTimeFormat(locale, { weekday: "long" }).format(start)}`}
+            {`${formatLongDate(selected.startsAt, locale)}, ${weekdayName(start, locale)}`}
           </InfoRow>
           <InfoRow label={t("time")}>
             {`${timeLabel(selected.startsAt, locale)} – ${timeLabel(selected.endsAt, locale)}`}
@@ -311,6 +304,7 @@ function RequestDialog({ booking }: { booking: Booking }) {
             id="office-hours-request-subject"
             value={booking.title}
             maxLength={booking.titleMax}
+            aria-required="true"
             aria-invalid={booking.errors?.title === true}
             aria-describedby="office-hours-request-subject-note"
             onChange={(event) => booking.setTitle(event.target.value)}
@@ -336,6 +330,7 @@ function RequestDialog({ booking }: { booking: Booking }) {
             value={booking.description}
             maxLength={booking.descriptionMax}
             rows={4}
+            aria-required="true"
             aria-invalid={booking.errors?.description === true}
             aria-describedby="office-hours-request-description-note"
             onChange={(event) => booking.setDescription(event.target.value)}
@@ -390,6 +385,7 @@ function Field({
       {children}
       <p
         id={`${id}-note`}
+        aria-live="polite"
         className={`flex items-center gap-1.5 type-caption ${error ? "text-status-error-text" : "text-text-muted"}`}
       >
         <Info aria-hidden className="size-3.5" strokeWidth={1.5} />

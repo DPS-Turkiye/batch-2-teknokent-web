@@ -6,7 +6,5 @@ export default async function StudentOfficeHoursBookingPage({
   params: Promise<{ academicianId: string }>;
 }) {
   const { academicianId } = await params;
-  return (
-    <OfficeHoursBookingView academicianId={decodeURIComponent(academicianId)} />
-  );
+  return <OfficeHoursBookingView academicianId={academicianId} />;
 }

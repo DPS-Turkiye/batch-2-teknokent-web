@@ -12,6 +12,7 @@ import {
 import {
   addSampleOfficeHoursRequest,
   answerSampleOfficeHoursAlternative,
+  sampleSlotRequested,
   sampleStudentOfficeHoursAppointments,
 } from "@/lib/client/fixtures/student-office-hours-store";
 
@@ -32,7 +33,7 @@ export function getOfficeHoursAcademician(
   );
 }
 
-/** The academician's slots from `from` for `days` days. */
+/** The academician's slots from `from` for `days` days; a time the student already asked for is not free. */
 export function getOfficeHoursSlots(
   academicianId: string,
   from: Date,
@@ -46,11 +47,15 @@ export function getOfficeHoursSlots(
       days,
       durationMinutes,
       new Date(),
+    ).map((slot) =>
+      sampleSlotRequested(academicianId, slot.startsAt)
+        ? { ...slot, available: false }
+        : slot,
     ),
   );
 }
 
-export function requestOfficeHours(
+export async function requestOfficeHours(
   input: StudentOfficeHoursRequestInput,
   academician: OfficeHoursAcademician,
 ): Promise<Appointment> {
