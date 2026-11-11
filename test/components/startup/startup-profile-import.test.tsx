@@ -4,13 +4,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAppSession } from "@/components/providers/session-provider";
 import { StartupProfileImport } from "@/components/startup/startup-profile-import";
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { BackendErrorCode } from "@/interfaces/ai-features";
 import {
   ProfileAnalysisStatus,
   ProfileAnalysisType,
 } from "@/interfaces/profile-analysis";
 import { UserRole, type AppSession } from "@/interfaces/session";
+import { isAiFeatureDisabledError } from "@/lib/ai-features";
 import { ClientApiError } from "@/lib/client/api";
 import { uploadProfileAnalysis } from "@/lib/client/profile-analysis";
 import {
@@ -21,7 +22,13 @@ import {
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { analysis, profileToolsWrapper } from "@test/fixtures/profile-tools";
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: vi.fn(),
+}));
+
+/** What a screen does with a failure; a switched-off refusal answers true. */
+const refused = vi.fn((error: unknown) => isAiFeatureDisabledError(error));
 vi.mock("@/components/providers/session-provider", () => ({
   useAppSession: vi.fn(),
 }));
@@ -36,6 +43,7 @@ vi.mock("@/lib/client/profile-analysis", () => ({
 beforeEach(() => {
   vi.clearAllMocks();
   vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
+  vi.mocked(useAiFeatureRefusal).mockReturnValue(refused);
   vi.mocked(useAppSession).mockReturnValue({
     role: UserRole.Mentee,
     userId: "me",

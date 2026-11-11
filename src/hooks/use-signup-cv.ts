@@ -1,6 +1,6 @@
 "use client";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useCvParse } from "@/hooks/use-cv-parse";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
 import { BIO_MAX_LENGTH, type UploadedFile } from "@/interfaces/signup";
@@ -12,6 +12,7 @@ import { applyCvParse } from "@/lib/cv-suggestions";
  */
 export function useSignupCv(wizard: SignupWizard) {
   const canRead = useAiFeatures().profileParsing;
+  const refused = useAiFeatureRefusal();
   const cvParse = useCvParse();
   const { draft, updatePersonal } = wizard;
   const { personal } = draft;
@@ -29,6 +30,9 @@ export function useSignupCv(wizard: SignupWizard) {
         );
         if (next.role !== personal.role) updatePersonal("role", next.role);
         if (next.bio !== personal.bio) updatePersonal("bio", next.bio);
+      },
+      onError: (error) => {
+        refused(error);
       },
     });
   }

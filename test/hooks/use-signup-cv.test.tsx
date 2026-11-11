@@ -3,15 +3,24 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useSignupCv } from "@/hooks/use-signup-cv";
 import type { SignupWizard } from "@/hooks/use-signup-wizard";
+import { BackendErrorCode } from "@/interfaces/ai-features";
+import { isAiFeatureDisabledError } from "@/lib/ai-features";
+import { ClientApiError } from "@/lib/client/api";
 import { parseCv } from "@/lib/client/profile-analysis";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { signupDraft, signupWizardStub } from "@test/fixtures/signup-wizard";
 import { createTestQueryClient } from "@test/test-utils";
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: vi.fn(),
+}));
+
+/** What a screen does with a failure; a switched-off refusal answers true. */
+const refused = vi.fn((error: unknown) => isAiFeatureDisabledError(error));
 vi.mock("@/lib/client/profile-analysis", () => ({
   parseCv: vi.fn(),
   parseStoredCv: vi.fn(),
@@ -41,6 +50,7 @@ describe("useSignupCv", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
+    vi.mocked(useAiFeatureRefusal).mockReturnValue(refused);
   });
 
   it("keeps the CV and suggests the role and bio from it", async () => {
@@ -83,9 +93,25 @@ describe("useSignupCv", () => {
 
     act(() => result.current.choose(upload));
 
-    await waitFor(() => expect(result.current.isReading).toBe(false));
     await waitFor(() => expect(parseCv).toHaveBeenCalled());
+    await waitFor(() => expect(result.current.isReading).toBe(false));
     expect(updatePersonal).not.toHaveBeenCalledWith("role", "Başka rol");
+  });
+
+  it("hands a switched-off refusal on so the switches are read again", async () => {
+    const refusal = new ClientApiError(
+      "off",
+      403,
+      BackendErrorCode.AiFeatureDisabled,
+    );
+    vi.mocked(parseCv).mockRejectedValue(refusal);
+    const { wizard } = wizardWith();
+    const { result } = renderHook(() => useSignupCv(wizard), { wrapper });
+
+    act(() => result.current.choose(upload));
+
+    await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
+    await waitFor(() => expect(result.current.error).toBe("off"));
   });
 
   it("does nothing more when the CV is removed", () => {

@@ -1,8 +1,9 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useMentorOnboarding } from "@/hooks/use-mentor-onboarding";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import { Weekday } from "@/interfaces/mentor";
 import {
   IntroPhase,
@@ -11,6 +12,8 @@ import {
   MentorOnboardingStep,
 } from "@/interfaces/mentor-onboarding";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { isAiFeatureDisabledError } from "@/lib/ai-features";
+import { ClientApiError } from "@/lib/client/api";
 import { uploadDocument } from "@/lib/client/documents";
 import {
   updateAvailabilitySettings,
@@ -32,7 +35,13 @@ import { currentIdToken } from "@/lib/firebase/auth";
 import { STUDENT_LEVELS, STUDENT_TOPICS } from "@/lib/student-topics";
 import { aiFeatures } from "@test/fixtures/ai-features";
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: vi.fn(),
+}));
+
+/** What a screen does with a failure; a switched-off refusal answers true. */
+const refused = vi.fn((error: unknown) => isAiFeatureDisabledError(error));
 vi.mock("@/lib/client/documents", () => ({ uploadDocument: vi.fn() }));
 vi.mock("@/lib/client/profile-analysis", () => ({ parseStoredCv: vi.fn() }));
 vi.mock("@/lib/client/mentor-profile", () => ({
@@ -73,6 +82,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   stored = null;
   vi.mocked(useAiFeatures).mockReturnValue(aiFeatures());
+  vi.mocked(useAiFeatureRefusal).mockReturnValue(refused);
   vi.mocked(currentIdToken).mockResolvedValue("id-token");
   vi.mocked(updateMentorProfile).mockResolvedValue(
     {} as Awaited<ReturnType<typeof updateMentorProfile>>,
@@ -462,6 +472,29 @@ describe("useMentorOnboarding — reading the CV", () => {
     await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
     expect(result.current.parseNote).toContain("CV’nizi okuyamadık");
     expect(result.current.draft.profile.title).toBe("");
+  });
+
+  it("hands a switched-off refusal on so the switches are read again", async () => {
+    const refusal = new ClientApiError(
+      "off",
+      403,
+      BackendErrorCode.AiFeatureDisabled,
+    );
+    vi.mocked(parseStoredCv).mockRejectedValue(refusal);
+    const { result } = renderHook(() => useMentorOnboarding());
+
+    act(
+      () =>
+        void result.current.uploadCv({
+          name: cvFile.name,
+          size: 5,
+          file: cvFile,
+        }),
+    );
+
+    await waitFor(() => expect(result.current.phase).toBe(IntroPhase.Review));
+    expect(refused).toHaveBeenCalledWith(refusal);
+    expect(result.current.parseNote).toContain("CV’nizi okuyamadık");
   });
 
   it("goes back to the upload screen when the upload itself fails", async () => {
