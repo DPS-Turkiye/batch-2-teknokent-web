@@ -47,7 +47,7 @@ export function InlineAlert({
   tone: StatusTone;
   title?: ReactNode;
   children?: ReactNode;
-  className?: string;
+  className?: string | undefined;
 }) {
   const style = TONES[tone];
   return (
