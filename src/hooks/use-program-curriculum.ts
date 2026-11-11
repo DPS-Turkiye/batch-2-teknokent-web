@@ -4,7 +4,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
 import type { ProgramPlanWeek } from "@/interfaces/program-week";
@@ -58,6 +58,7 @@ export function useProgramCurriculum(
   const cache = useProgramCache(programId);
   const { showToast } = useToast();
   const canReadFile = useAiFeatures().syllabus;
+  const refused = useAiFeatureRefusal();
   const today = isoDay(new Date());
   const saved = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -106,7 +107,10 @@ export function useProgramCurriculum(
       startReview({ documentId, phases: proposedPhases(result.phases) });
       if (result.weeks?.length) onWeeksProposed?.(result.weeks);
     },
-    onError: fail(t("readFailed")),
+    onError: (failure) => {
+      refused(failure);
+      fail(t("readFailed"))(failure);
+    },
   });
 
   const upload = useMutation({

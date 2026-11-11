@@ -41,7 +41,12 @@ vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: vi.fn(),
 }));
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 
 vi.mock("@/lib/firebase/auth", () => ({ currentIdToken: vi.fn() }));
 

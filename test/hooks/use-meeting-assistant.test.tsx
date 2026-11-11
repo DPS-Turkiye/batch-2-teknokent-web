@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetingAssistant } from "@/hooks/use-meeting-assistant";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import {
   MeetingStatus as CalendarStatus,
   type MeetingItem,
@@ -15,6 +16,7 @@ import {
   generateMeetingReport,
   stopMeetingBot,
 } from "@/lib/assistant";
+import { ClientApiError } from "@/lib/client/api";
 import {
   getAssistantShare,
   publishReportShare,
@@ -36,7 +38,12 @@ const calendar = vi.hoisted(() => ({
   refetch: vi.fn(),
 }));
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 vi.mock("@/hooks/use-meetings", () => ({
   useMeetings: () => ({
     data: calendar.meetings,
@@ -444,6 +451,21 @@ describe("useMeetingAssistant", () => {
       expect(generateMeetingReport).not.toHaveBeenCalled();
       await flush(6_000);
       expect(result.current.reportStatus).toBeNull();
+    });
+
+    it("hands a switched-off refusal of the report on so the switches are read again", async () => {
+      const refusal = new ClientApiError(
+        "off",
+        403,
+        BackendErrorCode.AiFeatureDisabled,
+      );
+      vi.mocked(fetchTranscript).mockResolvedValue([segment("a", "Merhaba")]);
+      vi.mocked(generateMeetingReport).mockRejectedValue(refusal);
+      renderAssistant("cal-1");
+      await flush();
+      await flush(4_000);
+
+      expect(refused).toHaveBeenCalledWith(refusal);
     });
 
     it("shows why the report failed and lets it be tried again", async () => {

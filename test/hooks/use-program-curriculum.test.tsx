@@ -5,15 +5,22 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useAiFeatures } from "@/hooks/use-ai-features";
 import { useProgramCurriculum } from "@/hooks/use-program-curriculum";
+import { BackendErrorCode } from "@/interfaces/ai-features";
 import type { ProgramSyllabus } from "@/interfaces/coordinator-program";
 import { DocumentKind } from "@/interfaces/startup-document";
+import { ClientApiError } from "@/lib/client/api";
 import { extractSyllabusPhases } from "@/lib/client/coordinator-programs";
 import { uploadDocument } from "@/lib/client/documents";
 import { aiFeatures } from "@test/fixtures/ai-features";
 import { coordinatorProgramDetail } from "@test/fixtures/coordinator-programs";
 import { createTestQueryClient, InLocale } from "@test/test-utils";
 
-vi.mock("@/hooks/use-ai-features", () => ({ useAiFeatures: vi.fn() }));
+vi.mock("@/hooks/use-ai-features", () => ({
+  useAiFeatures: vi.fn(),
+  useAiFeatureRefusal: () => refused,
+}));
+
+const refused = vi.fn();
 vi.mock("@/lib/client/coordinator-programs", () => ({
   extractSyllabusPhases: vi.fn(),
   replaceCoordinatorProgramPhases: vi.fn(),
@@ -75,6 +82,20 @@ describe("useProgramCurriculum syllabus reading", () => {
         expect.objectContaining({ documentId: "doc-2" }),
       ),
     );
+  });
+
+  it("hands a switched-off refusal of the read on so the switches are read again", async () => {
+    const refusal = new ClientApiError(
+      "off",
+      403,
+      BackendErrorCode.AiFeatureDisabled,
+    );
+    vi.mocked(extractSyllabusPhases).mockRejectedValue(refusal);
+    const { result } = renderCurriculum();
+
+    act(() => result.current.reread());
+
+    await waitFor(() => expect(refused).toHaveBeenCalledWith(refusal));
   });
 
   it("neither uploads nor reads a syllabus when syllabus reading is switched off", () => {

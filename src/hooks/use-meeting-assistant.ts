@@ -8,7 +8,7 @@ import {
   type SubmitEvent,
 } from "react";
 
-import { useAiFeatures } from "@/hooks/use-ai-features";
+import { useAiFeatureRefusal, useAiFeatures } from "@/hooks/use-ai-features";
 import { useMeetings } from "@/hooks/use-meetings";
 import { MeetingStatus as CalendarMeetingStatus } from "@/interfaces/meeting";
 import {
@@ -142,6 +142,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
   const t = useTranslations("assistant");
   // Off: no report is asked for, automatically or by hand; the transcript is still kept.
   const canReport = useAiFeatures().meetingReport;
+  const refused = useAiFeatureRefusal();
   const locale = useLocale();
   const meetingTexts = useMemo(
     () => ({ meetingFallback: t("meetingFallback"), locale }),
@@ -525,6 +526,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
           setReportStatus(BotStatus.Ok);
           window.setTimeout(() => setReportStatus(null), 4000);
         } catch (error) {
+          refused(error);
           autoReportAttemptedRef.current[target.id] = false;
           setReportStatus(BotStatus.Err);
           setReportError(
@@ -538,7 +540,7 @@ export function useMeetingAssistant(requestedMeetingId?: string) {
       reportInFlightRef.current[target.id] = run;
       return run;
     },
-    [selected, t, canReport],
+    [selected, t, canReport, refused],
   );
 
   const selectedTranscriptFingerprint = selectedTranscript
