@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
@@ -22,6 +22,7 @@ import { AddCoordinatorDialog } from "@/components/admin/add-coordinator-dialog"
 import { AssignToProgram } from "@/components/admin/assign-to-program";
 import { RevokeSignInsButton } from "@/components/admin/revoke-sign-ins-button";
 import { TeamHistory } from "@/components/common/team-history";
+import { ProfileLink } from "@/components/people/profile-link";
 import { AdminIcon, EmptyNote, QueryNotice } from "@/components/admin/admin-ui";
 import { CoordinatorAccessControl } from "@/components/admin/coordinator-access-control";
 import {
@@ -32,6 +33,7 @@ import { useToast } from "@/stores/toast-store";
 import { useCoordinatorAccess } from "@/hooks/use-admin-coordinators";
 import { useAdminOverview } from "@/hooks/use-admin-overview";
 import { useOptionLabel } from "@/hooks/use-option-label";
+import { usePersonProfileHref } from "@/hooks/use-person-profile-href";
 import { useDecidePendingAccount } from "@/hooks/use-pending-accounts";
 import {
   ProgramMemberKind,
@@ -435,6 +437,9 @@ function MentorsTable({
   focusUserId: string | null;
 }) {
   const t = useTranslations("adminUsers");
+  const tProfile = useTranslations("personSummary");
+  const router = useRouter();
+  const profileHref = usePersonProfileHref();
   const optionLabel = useOptionLabel();
   const users = mentorsOf(data);
   const decide = useDecidePendingAccount();
@@ -614,6 +619,11 @@ function MentorsTable({
                       {
                         label: t("detail"),
                         onClick: () => setSelectedId(user.id),
+                      },
+                      // TEST UI: placeholder until the design team's screen; replace when it arrives.
+                      {
+                        label: tProfile("open"),
+                        onClick: () => router.push(profileHref(user.id)),
                       },
                     ]}
                   />
@@ -1040,6 +1050,10 @@ function MentorDrawer({
                 {t("mentorshipCount", { count: mentorships.length })}
                 {activity ? t("registered", { when: activity.label }) : ""}
               </p>
+              {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+              <div className="mt-2">
+                <ProfileLink userId={user.id} name={user.fullName} />
+              </div>
             </div>
           </div>
           <button
@@ -1313,11 +1327,17 @@ function TeamDrawer({
                     key={member.id}
                     className="rounded-[20px] border border-[#e9ecef] px-4 py-3"
                   >
-                    <p className="font-medium">{member.fullName}</p>
-                    <p className="text-[12.5px] text-[#858c96]">
-                      {member.email}
-                      {member.jobTitle ? ` · ${member.jobTitle}` : ""}
-                    </p>
+                    {/* TEST UI: placeholder until the design team's screen; replace when it arrives. */}
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="font-medium">{member.fullName}</p>
+                        <p className="text-[12.5px] text-[#858c96]">
+                          {member.email}
+                          {member.jobTitle ? ` · ${member.jobTitle}` : ""}
+                        </p>
+                      </div>
+                      <ProfileLink userId={member.id} name={member.fullName} />
+                    </div>
                     <TeamHistory userId={member.id} />
                   </li>
                 ))}
