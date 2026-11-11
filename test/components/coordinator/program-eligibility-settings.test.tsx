@@ -26,7 +26,6 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   addProgramCoordinator: vi.fn(),
   removeProgramCoordinator: vi.fn(),
   getProgramTeams: vi.fn(),
-  extractSyllabusPhases: vi.fn(),
   getProgramEligibleEmails: vi.fn(),
   addProgramEligibleEmails: vi.fn(),
   removeProgramEligibleEmail: vi.fn(),

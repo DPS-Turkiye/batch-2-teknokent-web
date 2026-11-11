@@ -4,6 +4,7 @@ import type {
   WeeklyProgramPhase,
   WeeklyProgramPhaseInput,
 } from "@/interfaces/weekly-program";
+import { ClientApiError } from "@/lib/client/api";
 import { MAX_PHASES } from "@/lib/coordinator-program-detail";
 import { withKeys, withoutKeys, type Keyed } from "@/lib/keyed-list";
 import { weekInputOf, type WeekDraft } from "@/lib/program-week";
@@ -137,4 +138,18 @@ export function weeklyProgramSaveInput({
     seenWeekCount: existing.weekCount,
     keepPast,
   };
+}
+
+const CONFLICT = 409;
+
+/** The save was refused because the program's plan changed after the file was read. */
+export function isStalePlanError(failure: unknown) {
+  return failure instanceof ClientApiError && failure.status === CONFLICT;
+}
+
+/** "8 ve 10" for the weeks a warning is about. */
+export function weekListLabel(weeks: readonly number[], locale: string) {
+  return new Intl.ListFormat(locale, { type: "conjunction" }).format(
+    weeks.map(String),
+  );
 }

@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import type { WeeklyProgramPhaseInput } from "@/interfaces/weekly-program";
+import { ClientApiError } from "@/lib/client/api";
 import { weekDraftOf } from "@/lib/program-week";
 import {
+  isStalePlanError,
   lastKeptWeek,
   moveWeekToPhase,
   phaseIndexOfWeek,
@@ -10,6 +12,7 @@ import {
   PhaseRangeProblem,
   phaseRangeProblem,
   replacesExistingPlan,
+  weekListLabel,
   weeklyProgramSaveInput,
 } from "@/lib/weekly-program";
 import { planWeek, weeklyProgramProposal } from "@test/fixtures/weekly-program";
@@ -184,5 +187,21 @@ describe("weeklyProgramSaveInput", () => {
         keepPast: false,
       }),
     ).toMatchObject({ seenPhaseCount: 3, seenWeekCount: 0 });
+  });
+});
+
+describe("isStalePlanError", () => {
+  it("is a 409 from the save, nothing else", () => {
+    expect(isStalePlanError(new ClientApiError("changed", 409))).toBe(true);
+    expect(isStalePlanError(new ClientApiError("bad", 400))).toBe(false);
+    expect(isStalePlanError(new Error("network"))).toBe(false);
+  });
+});
+
+describe("weekListLabel", () => {
+  it("lists the weeks a warning is about in the reader's language", () => {
+    expect(weekListLabel([8, 10], "tr")).toBe("8 ve 10");
+    expect(weekListLabel([3, 8, 10], "en")).toBe("3, 8, and 10");
+    expect(weekListLabel([5], "tr")).toBe("5");
   });
 });

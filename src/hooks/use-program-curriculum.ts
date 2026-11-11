@@ -6,14 +6,8 @@ import { useState } from "react";
 
 import { useProgramCache } from "@/hooks/use-coordinator-program";
 import type { CoordinatorProgramDetail } from "@/interfaces/coordinator-program";
-import type { ProgramPlanWeek } from "@/interfaces/program-week";
-import { DocumentKind } from "@/interfaces/startup-document";
 import { ToastTone } from "@/interfaces/toast";
-import {
-  extractSyllabusPhases,
-  replaceCoordinatorProgramPhases,
-} from "@/lib/client/coordinator-programs";
-import { uploadDocument } from "@/lib/client/documents";
+import { replaceCoordinatorProgramPhases } from "@/lib/client/coordinator-programs";
 import { isoDay } from "@/lib/coordinator-calendar";
 import {
   emptyPhase,
@@ -24,33 +18,25 @@ import {
   type PhaseDraft,
 } from "@/lib/coordinator-program-detail";
 import {
-  curriculumError,
   dayShift,
   phaseDateLocks,
   phaseStatus,
   PhaseStatus,
-  proposedPhases,
   reorderPhases,
-  SyllabusFileProblem,
-  syllabusFileProblem,
-  type WizardPhase,
 } from "@/lib/program-phases";
 import { errorMessage } from "@/lib/utils";
 import { useToast } from "@/stores/toast-store";
 
-type Editing = { index: number | null; draft: WizardPhase };
-type Review = { documentId: string; phases: WizardPhase[] };
+type Editing = { index: number | null; draft: PhaseDraft };
 
 /**
- * Müfredat & fazlar: each phase is edited in its own drawer and saved on its own. Phases are
- * replaced as a whole, so every save sends the full list with the one change applied.
- * While phases read from the file are under review, edits stay in the review until it is saved,
- * and it cannot be saved while a phase from the file has no dates (as in the launch wizard).
+ * Haftalık program & fazlar: each phase is edited in its own drawer and saved on its own. Phases are
+ * replaced as a whole, so every save sends the full list with the one change applied. Phases read from a
+ * weekly program file are reviewed and saved by useWeeklyProgramImport.
  */
 export function useProgramCurriculum(
   programId: string,
   detail: CoordinatorProgramDetail,
-  onWeeksProposed?: (weeks: ProgramPlanWeek[]) => void,
 ) {
   const t = useTranslations("programCurriculum");
   const cache = useProgramCache(programId);
@@ -58,11 +44,8 @@ export function useProgramCurriculum(
   const today = isoDay(new Date());
   const saved = savedPhases(detail);
   const [editing, setEditing] = useState<Editing | null>(null);
-  const [review, setReview] = useState<Review | null>(null);
-  const [reviewError, setReviewError] = useState<string | null>(null);
   const [editError, setEditError] = useState<string | null>(null);
-  const listed: WizardPhase[] =
-    review?.phases ?? saved.map((phase) => ({ ...phase, fromFile: false }));
+  const listed = saved;
 
   const fail = (fallback: string) => (failure: Error) =>
     showToast({
@@ -71,60 +54,17 @@ export function useProgramCurriculum(
     });
 
   const save = useMutation({
-    mutationFn: ({
-      phases,
-      documentId,
-    }: {
-      phases: PhaseDraft[];
-      documentId: string | null;
-    }) =>
-      replaceCoordinatorProgramPhases(
-        programId,
-        phasesInput(phases),
-        documentId,
-      ),
+    mutationFn: (phases: PhaseDraft[]) =>
+      replaceCoordinatorProgramPhases(programId, phasesInput(phases), null),
     onSuccess: (next) => {
       cache.put(next);
       setEditing(null);
-      startReview(null);
       showToast({ message: t("saved"), tone: ToastTone.Success });
     },
     onError: fail(t("saveFailed")),
   });
 
-  const extract = useMutation({
-    mutationFn: (documentId: string) =>
-      extractSyllabusPhases({
-        documentId,
-        startDate: detail.program.startDate,
-        endDate: detail.program.endDate,
-      }),
-    onSuccess: (result, documentId) => {
-      startReview({ documentId, phases: proposedPhases(result.phases) });
-      if (result.weeks?.length) onWeeksProposed?.(result.weeks);
-    },
-    onError: fail(t("readFailed")),
-  });
-
-  const upload = useMutation({
-    mutationFn: (file: File) => uploadDocument(file, DocumentKind.Syllabus),
-    onSuccess: (stored) => extract.mutate(stored.id),
-    onError: fail(t("uploadFailed")),
-  });
-
-  const startReview = (next: Review | null) => {
-    setReview(next);
-    setReviewError(null);
-  };
-  /** Applies a list change to the review, or saves it when nothing is under review. */
-  const commit = (phases: WizardPhase[]) => {
-    if (!review) {
-      save.mutate({ phases, documentId: null });
-      return;
-    }
-    startReview({ ...review, phases });
-    setEditing(null);
-  };
+  const commit = (phases: PhaseDraft[]) => save.mutate(phases);
 
   const statusOf = (phase: PhaseDraft) => phaseStatus(phase, today);
   const before = editing?.index != null ? listed[editing.index] : null;
@@ -140,35 +80,6 @@ export function useProgramCurriculum(
     today,
     phases: listed,
     statusOf,
-    syllabus: detail.syllabus,
-    reviewing: review !== null,
-    reviewError,
-    confirmReview: () => {
-      if (!review) return;
-      const problem = curriculumError(review.phases);
-      setReviewError(problem);
-      if (problem) return;
-      save.mutate({ phases: review.phases, documentId: review.documentId });
-    },
-    discardReview: () => startReview(null),
-    readingFile: upload.isPending || extract.isPending,
-    chooseFile: (file: File) => {
-      const problem = syllabusFileProblem(file);
-      if (problem) {
-        showToast({
-          message:
-            problem === SyllabusFileProblem.NotPdf
-              ? t("pdfOnly")
-              : t("tooLarge"),
-          tone: ToastTone.Error,
-        });
-        return;
-      }
-      upload.mutate(file);
-    },
-    reread: () => {
-      if (detail.syllabus) extract.mutate(detail.syllabus.id);
-    },
     canAdd: listed.length < MAX_PHASES,
     move: (from: number, to: number) => {
       const moved = reorderPhases(listed, from, to);
@@ -181,7 +92,7 @@ export function useProgramCurriculum(
     locks: status ? phaseDateLocks(status) : null,
     /** What the drawer's "Bu değişikliğin etkisi" box lists; null until a date changes. */
     effects:
-      editing && before && !review
+      editing && before
         ? {
             startShift:
               before.startDate &&
@@ -223,7 +134,7 @@ export function useProgramCurriculum(
     },
     openNew: () => {
       setEditError(null);
-      setEditing({ index: null, draft: { ...emptyPhase(), fromFile: false } });
+      setEditing({ index: null, draft: emptyPhase() });
     },
     close: () => setEditing(null),
     update: (patch: Partial<PhaseDraft>) => {

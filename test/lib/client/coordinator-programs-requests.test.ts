@@ -18,7 +18,6 @@ import {
   createMatch,
   decideProgramApproval,
   decideProgramMentor,
-  extractSyllabusPhases,
   getCoordinatorProgram,
   getCoordinatorPrograms,
   getMatching,
@@ -94,7 +93,6 @@ const NEW_PROGRAM: CreateProgramInput = {
   endDate: null,
   coordinatorIds: ["coord-1"],
 };
-const SYLLABUS = { documentId: "doc-1", startDate: null, endDate: null };
 
 const calls: ClientCall[] = [
   {
@@ -134,12 +132,6 @@ const calls: ClientCall[] = [
     call: () => replaceCoordinatorProgramPhases(PROGRAM, [PHASE], "doc-1"),
     method: "put",
     args: [`${P}/phases`, { phases: [PHASE], syllabusDocumentId: "doc-1" }],
-  },
-  {
-    title: "extractSyllabusPhases asks the shared syllabus endpoint",
-    call: () => extractSyllabusPhases(SYLLABUS),
-    method: "post",
-    args: ["/api/coordinator/programs/syllabus/phases", SYLLABUS],
   },
   {
     title: "launchCoordinatorProgram posts an empty body to launch",

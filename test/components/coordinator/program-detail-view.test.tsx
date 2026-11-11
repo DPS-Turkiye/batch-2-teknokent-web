@@ -10,7 +10,6 @@ import { ProgramStatus, ProgramType } from "@/interfaces/program";
 import { DocumentKind } from "@/interfaces/startup-document";
 import {
   addProgramCoordinator,
-  extractSyllabusPhases,
   getCoordinatorProgram,
   getProgramCoordinatorCandidates,
   getProgramTeams,
@@ -20,9 +19,14 @@ import {
   updateCoordinatorProgram,
 } from "@/lib/client/coordinator-programs";
 import {
+  readWeeklyProgram,
+  saveWeeklyProgram,
+} from "@/lib/client/weekly-program";
+import {
   coordinatorProgramDetail,
   phase,
 } from "@test/fixtures/coordinator-programs";
+import { weeklyProgramProposal } from "@test/fixtures/weekly-program";
 import { InLocale, renderWithQueryClient } from "@test/test-utils";
 
 vi.mock("next/navigation", () => ({
@@ -41,6 +45,10 @@ vi.mock("@/lib/client/program-weeks", () => ({
   getProgramWeekPlan: vi.fn(async () => ({ totalWeeks: null, weeks: [] })),
   saveProgramWeekPlan: vi.fn(),
 }));
+vi.mock("@/lib/client/weekly-program", () => ({
+  readWeeklyProgram: vi.fn(),
+  saveWeeklyProgram: vi.fn(),
+}));
 vi.mock("@/lib/client/coordinator-programs", () => ({
   getCoordinatorProgram: vi.fn(),
   updateCoordinatorProgram: vi.fn(),
@@ -51,7 +59,6 @@ vi.mock("@/lib/client/coordinator-programs", () => ({
   removeProgramCoordinator: vi.fn(),
   getProgramTeams: vi.fn(),
   launchCoordinatorProgram: vi.fn(),
-  extractSyllabusPhases: vi.fn(),
 }));
 
 describe("coordinator program detail", () => {
@@ -373,130 +380,177 @@ describe("coordinator program detail", () => {
     vi.useRealTimers();
   });
 
-  it("puts the weeks the AI read from the syllabus into the weekly plan for review", async () => {
-    const detail = coordinatorProgramDetail({
-      syllabus: {
-        id: "doc-syllabus",
-        filename: "mufredat.pdf",
-        sizeBytes: 19_540,
-        uploadedAt: "2026-06-01T09:00:00Z",
-        kind: DocumentKind.Syllabus,
-      },
-    });
-    vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
-    vi.mocked(extractSyllabusPhases).mockResolvedValue({
-      pageCount: 1,
-      phases: [],
-      weeks: [
-        {
-          week: 1,
-          startDate: null,
-          endDate: null,
-          title: "Tanışma ve hedefler",
-          topics: ["Program kuralları"],
-          activities: [],
-          deliverables: [],
-          inferred: true,
+  it("shows an older syllabus file read-only, without reading it again", async () => {
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-syllabus",
+          filename: "mufredat.pdf",
+          sizeBytes: 19_540,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.Syllabus,
         },
-      ],
-    });
-    const user = userEvent.setup();
+      }),
+    );
     renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
 
-    await user.click(
-      await screen.findByRole("button", { name: /Fazları yeniden çıkar/ }),
-    );
-
+    expect(await screen.findByText("mufredat.pdf")).toBeVisible();
     expect(
-      await screen.findByDisplayValue("Tanışma ve hedefler"),
+      screen.getByText("Önceki müfredat dosyası · yalnızca görüntülenir"),
     ).toBeVisible();
+    expect(screen.queryByRole("button", { name: /Yeniden oku/ })).toBeNull();
     expect(
-      screen.getByText(/AI'nin müfredattan çıkardığı haftalar/),
-    ).toBeVisible();
-    expect(screen.getByText("Fazdan bölündü")).toBeVisible();
+      screen.getByRole("button", { name: "Yeni PDF yükle" }),
+    ).toBeEnabled();
   });
 
-  it("keeps a re-read syllabus unsaved until every phase from the file has dates", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    vi.setSystemTime(new Date("2026-06-10T12:00:00"));
+  it("reads the weekly program again and saves the reviewed weeks and phases in one step", async () => {
     const detail = coordinatorProgramDetail({
       syllabus: {
-        id: "doc-syllabus",
-        filename: "mufredat.pdf",
-        sizeBytes: 19_540,
+        id: "doc-weekly",
+        filename: "haftalik-program.pdf",
+        sizeBytes: 70_000,
         uploadedAt: "2026-06-01T09:00:00Z",
-        kind: DocumentKind.Syllabus,
+        kind: DocumentKind.WeeklyProgram,
       },
     });
     vi.mocked(getCoordinatorProgram).mockResolvedValue(detail);
-    vi.mocked(extractSyllabusPhases).mockResolvedValue({
-      pageCount: 1,
-      weeks: [],
-      phases: [
-        {
-          name: "Keşif",
-          startDate: "2026-07-01",
-          endDate: "2026-08-31",
-          expectedOutput: "Problem raporu",
-        },
-        {
-          name: "Demo Day",
-          startDate: null,
-          endDate: null,
-          expectedOutput: "Final sunum",
-        },
-      ],
+    vi.mocked(readWeeklyProgram).mockResolvedValue(weeklyProgramProposal());
+    vi.mocked(saveWeeklyProgram).mockResolvedValue({
+      program: detail,
+      plan: { totalWeeks: 11, weeks: [] },
     });
-    vi.mocked(replaceCoordinatorProgramPhases).mockResolvedValue(detail);
     const user = userEvent.setup();
     renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
 
     await user.click(
-      await screen.findByRole("button", { name: /Fazları yeniden çıkar/ }),
+      await screen.findByRole("button", { name: /Yeniden oku/ }),
+    );
+    const review = await screen.findByRole("region", {
+      name: "Dosyadan okunan plan",
+    });
+    expect(readWeeklyProgram).toHaveBeenCalledWith("program-1", "doc-weekly");
+    expect(
+      within(review).getByText(/program takvimine uymuyor: hafta 8 ve 10/),
+    ).toBeVisible();
+    expect(
+      within(review).getByText("9 Ocak Cumartesi — Demo Day"),
+    ).toBeVisible();
+
+    const name = within(review).getByRole("textbox", { name: "1. faz adı" });
+    await user.clear(name);
+    await user.type(name, "Problem");
+    await user.selectOptions(
+      within(review).getByRole("combobox", { name: "Hafta 4 fazı" }),
+      "Problem",
     );
     await user.click(
-      await screen.findByRole("button", { name: "Fazları kaydet" }),
+      within(review).getByRole("button", { name: "Planı kaydet" }),
     );
-    expect(screen.getByRole("alert")).toHaveTextContent(
-      "“Demo Day” fazının tarihlerini gir.",
-    );
-    expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
 
-    const list = screen.getByRole("list", { name: "Program fazları" });
-    await user.click(
-      within(list).getByRole("button", { name: "Demo Day fazını düzenle" }),
-    );
-    const drawer = screen.getByRole("dialog", { name: "Fazı düzenle" });
-    fireEvent.change(within(drawer).getByLabelText("Başlangıç"), {
-      target: { value: "2026-09-15" },
-    });
-    fireEvent.change(within(drawer).getByLabelText("Bitiş"), {
-      target: { value: "2026-09-15" },
-    });
-    await user.click(within(drawer).getByRole("button", { name: "Kaydet" }));
-    expect(replaceCoordinatorProgramPhases).not.toHaveBeenCalled();
-    expect(screen.queryByRole("alert")).toBeNull();
-
-    await user.click(screen.getByRole("button", { name: "Fazları kaydet" }));
-    expect(replaceCoordinatorProgramPhases).toHaveBeenCalledWith(
+    expect(saveWeeklyProgram).toHaveBeenCalledWith(
       "program-1",
-      [
-        {
-          name: "Keşif",
-          startDate: "2026-07-01",
-          endDate: "2026-08-31",
-          expectedOutput: "Problem raporu",
-        },
-        {
-          name: "Demo Day",
-          startDate: "2026-09-15",
-          endDate: "2026-09-15",
-          expectedOutput: "Final sunum",
-        },
-      ],
-      "doc-syllabus",
+      expect.objectContaining({
+        documentId: "doc-weekly",
+        seenPhaseCount: 0,
+        seenWeekCount: 0,
+        keepPast: false,
+        phases: [
+          {
+            name: "Problem",
+            expectedOutput: "Problem tanımı",
+            firstWeek: 1,
+            lastWeek: 4,
+          },
+          {
+            name: "Fikir ve Değer",
+            expectedOutput: null,
+            firstWeek: 5,
+            lastWeek: 5,
+          },
+          {
+            name: "Pazar ve İş Modeli",
+            expectedOutput: null,
+            firstWeek: 6,
+            lastWeek: 8,
+          },
+          {
+            name: "Doğrula ve Sun",
+            expectedOutput: "Sunum ve 90 günlük plan",
+            firstWeek: 9,
+            lastWeek: 10,
+          },
+        ],
+      }),
     );
-    vi.useRealTimers();
+    expect(
+      await screen.findByText("Haftalık program ve fazlar kaydedildi."),
+    ).toBeVisible();
+    expect(
+      screen.queryByRole("region", { name: "Dosyadan okunan plan" }),
+    ).toBeNull();
+  });
+
+  it("asks before a read plan replaces the saved one, keeping the past of a running program", async () => {
+    vi.mocked(getCoordinatorProgram).mockResolvedValue(
+      coordinatorProgramDetail({
+        syllabus: {
+          id: "doc-weekly",
+          filename: "haftalik-program.pdf",
+          sizeBytes: 70_000,
+          uploadedAt: "2026-06-01T09:00:00Z",
+          kind: DocumentKind.WeeklyProgram,
+        },
+      }),
+    );
+    vi.mocked(readWeeklyProgram).mockResolvedValue(
+      weeklyProgramProposal({
+        existing: { phaseCount: 3, weekCount: 6, currentWeek: 4 },
+      }),
+    );
+    const user = userEvent.setup();
+    renderWithQueryClient(<ProgramSettingsView programId="program-1" />);
+
+    await user.click(
+      await screen.findByRole("button", { name: /Yeniden oku/ }),
+    );
+    const review = await screen.findByRole("region", {
+      name: "Dosyadan okunan plan",
+    });
+    expect(within(review).getByText(/3 faz ve 6 hafta kayıtlı/)).toBeVisible();
+    expect(
+      within(review).getByRole("checkbox", {
+        name: /Geçmiş haftaları ve tamamlanan fazları koru/,
+      }),
+    ).toBeChecked();
+    expect(
+      within(review).getByText(/Hafta 1–3 ve bitmiş fazlar/),
+    ).toBeVisible();
+
+    await user.click(
+      within(review).getByRole("button", { name: "Planı kaydet" }),
+    );
+    expect(within(review).getByRole("alert")).toHaveTextContent(
+      "Kaydetmeden önce kayıtlı planın yerini almasını onayla.",
+    );
+    expect(saveWeeklyProgram).not.toHaveBeenCalled();
+
+    await user.click(
+      within(review).getByRole("checkbox", {
+        name: "Kayıtlı planın yerini almasını onaylıyorum",
+      }),
+    );
+    await user.click(
+      within(review).getByRole("button", { name: "Planı kaydet" }),
+    );
+    expect(saveWeeklyProgram).toHaveBeenCalledWith(
+      "program-1",
+      expect.objectContaining({
+        seenPhaseCount: 3,
+        seenWeekCount: 6,
+        keepPast: true,
+      }),
+    );
   });
 
   it("lets the admin add a coordinator from the approved ones", async () => {
@@ -588,7 +642,9 @@ describe("coordinator program detail", () => {
     expect(
       screen.getByRole("button", { name: "Değişiklikleri kaydet" }),
     ).toBeDisabled();
-    expect(screen.getByLabelText("Müfredat PDF dosyası seç")).toBeDisabled();
+    expect(
+      screen.getByLabelText("Haftalık program PDF dosyası seç"),
+    ).toBeDisabled();
     expect(
       screen.getByRole("button", { name: "Programı arşivle" }),
     ).toBeDisabled();
