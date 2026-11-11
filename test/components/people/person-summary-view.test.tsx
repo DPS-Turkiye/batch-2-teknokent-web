@@ -79,11 +79,7 @@ describe("PersonSummaryView", () => {
     expect(
       screen.getByText("Yerel üreticileri alıcılarla buluşturuyor."),
     ).toBeInTheDocument();
-    const startup = screen
-      .getByRole("heading", { name: "Girişim" })
-      .closest("section");
-    expect(startup).not.toBeNull();
-    const card = within(startup as HTMLElement);
+    const card = within(screen.getByRole("region", { name: "Girişim" }));
     expect(card.getByText("Pazar Lab")).toBeInTheDocument();
     expect(
       card.getByText("Üreticiler alıcıya ulaşamıyor."),

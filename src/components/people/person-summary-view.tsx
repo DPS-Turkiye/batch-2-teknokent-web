@@ -4,7 +4,7 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
-import type { ReactNode } from "react";
+import { useId, type ReactNode } from "react";
 
 import { Avatar, Panel, StatusChip } from "@/components/admin/admin-ui";
 import { TeamHistory } from "@/components/common/team-history";
@@ -17,6 +17,7 @@ import {
   type PersonSummaryProgram,
   type PersonSummaryStartup,
 } from "@/interfaces/person-summary";
+import type { MentorExperience } from "@/interfaces/mentor";
 import { ProgramMentorStatus } from "@/interfaces/program";
 import { UserAccountStatus, UserRole } from "@/interfaces/session";
 import {
@@ -24,7 +25,12 @@ import {
   experienceDetail,
   experienceHeading,
 } from "@/lib/mentor-detail";
-import { formatShortDate, httpUrlOrNull, initials } from "@/lib/utils";
+import {
+  distinctBy,
+  formatShortDate,
+  httpUrlOrNull,
+  initials,
+} from "@/lib/utils";
 
 const STATUS_TONE = {
   [UserAccountStatus.Approved]: "green",
@@ -33,6 +39,10 @@ const STATUS_TONE = {
 } as const;
 
 type Fact = [label: string, value: string | null];
+
+function experienceKey(experience: MentorExperience) {
+  return `${experienceHeading(experience)}\n${experienceDetail(experience)}`;
+}
 
 /** "Profili gör": who a mentor or mentee is and what they do, for admins and their coordinators. */
 export function PersonSummaryView({ userId }: { userId: string }) {
@@ -230,26 +240,26 @@ function MentorSections({ mentor }: { mentor: PersonSummaryMentor }) {
       {mentor.experiences.length > 0 ? (
         <Section title={t("experience")}>
           <ul className="space-y-3">
-            {mentor.experiences.map((experience, index) => (
-              <li key={`${experience.title}-${index}`}>
-                <p className="text-[13.5px] font-medium text-[#22262b]">
-                  {experienceHeading(experience)}
-                </p>
-                <p className="text-[12.5px] text-[#676e78]">
-                  {experienceDetail(experience)}
-                </p>
-              </li>
-            ))}
+            {distinctBy(mentor.experiences, experienceKey).map(
+              ({ key, item: experience }) => (
+                <li key={key}>
+                  <p className="text-[13.5px] font-medium text-[#22262b]">
+                    {experienceHeading(experience)}
+                  </p>
+                  <p className="text-[12.5px] text-[#676e78]">
+                    {experienceDetail(experience)}
+                  </p>
+                </li>
+              ),
+            )}
           </ul>
         </Section>
       ) : null}
       {mentor.educations.length > 0 ? (
         <Section title={t("education")}>
           <ul className="space-y-2 text-[13.5px] text-[#22262b]">
-            {mentor.educations.map((education, index) => (
-              <li key={`${education.school}-${index}`}>
-                {educationLine(education)}
-              </li>
+            {distinctBy(mentor.educations, educationLine).map(({ key }) => (
+              <li key={key}>{key}</li>
             ))}
           </ul>
         </Section>
@@ -389,10 +399,14 @@ function ActivitySection({ summary }: { summary: PersonSummary }) {
 }
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
+  const headingId = useId();
   return (
     <Panel>
-      <section className="px-6 py-5">
-        <h2 className="mb-3 text-[15px] font-semibold text-[#22262b]">
+      <section aria-labelledby={headingId} className="px-6 py-5">
+        <h2
+          id={headingId}
+          className="mb-3 text-[15px] font-semibold text-[#22262b]"
+        >
           {title}
         </h2>
         {children}
@@ -421,9 +435,9 @@ function Facts({ facts }: { facts: Fact[] }) {
 function Chips({ items }: { items: string[] }) {
   return (
     <div className="flex flex-wrap gap-1.5">
-      {items.map((item, index) => (
+      {distinctBy(items, (item) => item).map(({ key: item }) => (
         <span
-          key={`${item}-${index}`}
+          key={item}
           className="rounded-full bg-[#fff1ec] px-2.5 py-1 text-[11.5px] font-medium text-[#e0522a]"
         >
           {item}

@@ -119,6 +119,16 @@ export function httpUrlOrNull(value: string | null | undefined) {
   return /^https?:\/\/\S+$/i.test(trimmed) ? trimmed : null;
 }
 
+/** Each distinct item once, keyed by `keyOf`: stable React keys for read-only lists without index keys. */
+export function distinctBy<T>(items: readonly T[], keyOf: (item: T) => string) {
+  const byKey = new Map<string, T>();
+  for (const item of items) {
+    const key = keyOf(item);
+    if (!byKey.has(key)) byKey.set(key, item);
+  }
+  return [...byKey].map(([key, item]) => ({ key, item }));
+}
+
 /** A backend id; anything else (say `..`) never reaches a backend URL. */
 export function isUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(

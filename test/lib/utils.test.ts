@@ -8,6 +8,7 @@ import {
   formatShortDate,
   formatFileSize,
   httpUrlOrNull,
+  distinctBy,
   isAdminArea,
   isUuid,
 } from "@/lib/utils";
@@ -101,5 +102,14 @@ describe("isAdminArea", () => {
     expect(isAdminArea("/coordinator/people/u1")).toBe(false);
     expect(isAdminArea("/administration")).toBe(false);
     expect(isAdminArea(null)).toBe(false);
+  });
+});
+
+describe("distinctBy", () => {
+  it("keeps the first of each key, in order, with the key alongside", () => {
+    expect(distinctBy(["b", "a", "b"], (item) => item)).toEqual([
+      { key: "b", item: "b" },
+      { key: "a", item: "a" },
+    ]);
   });
 });

@@ -5,6 +5,7 @@ import { GET } from "@/app/api/users/[id]/summary/route";
 import { UserRole, type AppSession } from "@/interfaces/session";
 import { fetchPersonSummary } from "@/lib/api/person-summary";
 import { requireCoordinatorSession } from "@/lib/server/require-coordinator";
+import { mentorSummary } from "@test/fixtures/person-summary";
 
 vi.mock("@/lib/api/person-summary", () => ({ fetchPersonSummary: vi.fn() }));
 
@@ -42,7 +43,7 @@ describe("GET /api/users/[id]/summary", () => {
 
   it("asks the backend as the signed-in coordinator, never a named actor", async () => {
     vi.mocked(fetchPersonSummary).mockResolvedValue({
-      data: { id: USER_ID, fullName: "Deniz Yıldız" },
+      data: mentorSummary({ id: USER_ID }),
       headers: {},
       status: 200,
     });
