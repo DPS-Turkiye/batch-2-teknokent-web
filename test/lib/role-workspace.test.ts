@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { Edition } from "@/interfaces/edition";
 import { IdentityKind, UserRole, type AppSession } from "@/interfaces/session";
 import { roleWorkspace, workspaceForSession } from "@/lib/role-workspace";
 
@@ -58,6 +59,7 @@ describe("ODTÜ workspaces", () => {
       workspaceForSession(
         session(UserRole.Mentee, {
           institutionKinds: [IdentityKind.Student],
+          edition: Edition.Odtu,
           permissions: [UserRole.Mentee, UserRole.Mentor],
         }),
       ).homeHref,
@@ -69,6 +71,7 @@ describe("ODTÜ workspaces", () => {
       workspaceForSession(
         session(UserRole.Academician, {
           institutionKinds: [IdentityKind.Student, IdentityKind.Academic],
+          edition: Edition.Odtu,
         }),
       ).homeHref,
     ).toBe("/academician");

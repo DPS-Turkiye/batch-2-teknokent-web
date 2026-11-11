@@ -20,6 +20,7 @@ import {
   currentSessionUser,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/public-paths";
+import { appEdition } from "@/lib/server/edition";
 import { SessionRequiredError } from "@/lib/server/session-error";
 import { isWorkspace, workspacesOf } from "@/lib/workspaces";
 
@@ -59,6 +60,7 @@ export function toSession(user: BackendUser): AppSession | null {
     jobTitle: user.jobTitle ?? jobTitle,
     role: user.role,
     permissions: permissionsOf(user),
+    edition: appEdition(),
   };
   if (user.institutionKinds?.length) {
     session.institutionKinds = user.institutionKinds;

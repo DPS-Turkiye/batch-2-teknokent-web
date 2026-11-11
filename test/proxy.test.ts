@@ -1,6 +1,14 @@
 import { sealData } from "iron-session";
 import { NextRequest } from "next/server";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { UserRole } from "@/interfaces/session";
 import { proxy } from "@/proxy";
@@ -315,5 +323,78 @@ describe("proxy on a phone", () => {
   it("sends a signed-in visitor away from the phone login to the phone home", async () => {
     const response = await request("/m/login", signedIn, IPHONE);
     expect(location(response)).toBe("http://localhost:3000/m");
+  });
+});
+
+describe("proxy per edition", () => {
+  const ODTU_PAGES = [
+    "/student",
+    "/student/peer-mentoring",
+    "/academician/requests",
+    "/office-hours/profile",
+    "/lti/launch",
+    "/login/odtu/dev",
+  ];
+  const TEKNOKENT_PAGES = ["/m", "/m/login", "/assistant", "/auth/otg/start"];
+
+  function rewrittenTo(response: Response) {
+    return response.headers.get("x-middleware-rewrite");
+  }
+
+  afterEach(() => vi.stubEnv("APP_EDITION", undefined));
+
+  it.each(ODTU_PAGES)(
+    "answers %s like a missing page in the Teknokent edition, even signed in",
+    async (path) => {
+      vi.stubEnv("APP_EDITION", "TEKNOKENT");
+      for (const cookie of [undefined, signedIn]) {
+        const response = await request(path, cookie);
+        expect(rewrittenTo(response)).toBe(
+          "http://localhost:3000/_edition-closed",
+        );
+        expect(response.headers.get("location")).toBeNull();
+      }
+    },
+  );
+
+  it.each(TEKNOKENT_PAGES)(
+    "answers %s like a missing page in the ODTÜ edition",
+    async (path) => {
+      vi.stubEnv("APP_EDITION", "ODTU");
+      const response = await request(path, signedIn, IPHONE);
+      expect(rewrittenTo(response)).toBe(
+        "http://localhost:3000/_edition-closed",
+      );
+    },
+  );
+
+  it("treats an unset edition as Teknokent", async () => {
+    vi.stubEnv("APP_EDITION", undefined);
+    const response = await request("/student");
+    expect(rewrittenTo(response)).toBe("http://localhost:3000/_edition-closed");
+  });
+
+  it("serves the ODTÜ pages in the ODTÜ edition behind the usual sign-in", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    const response = await request("/student");
+    expect(rewrittenTo(response)).toBeNull();
+    expect(response.headers.get("location")).toBe(
+      "http://localhost:3000/login?next=%2Fstudent",
+    );
+  });
+
+  it("never sends a phone to the Teknokent phone app in the ODTÜ edition", async () => {
+    vi.stubEnv("APP_EDITION", "ODTU");
+    const signedOut = await request("/login", undefined, IPHONE);
+    expect(signedOut.headers.get("location")).toBeNull();
+    expect(signedOut.status).toBe(200);
+  });
+
+  it("still sends a phone to the phone app in the Teknokent edition", async () => {
+    vi.stubEnv("APP_EDITION", "TEKNOKENT");
+    const signedOut = await request("/login", undefined, IPHONE);
+    expect(signedOut.headers.get("location")).toBe(
+      "http://localhost:3000/m/login",
+    );
   });
 });
