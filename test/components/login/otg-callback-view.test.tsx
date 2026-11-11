@@ -109,7 +109,7 @@ describe("OTG callback", () => {
     renderCallback();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "OTG girişini iptal ettin.",
+      "Girişi iptal ettin.",
     );
     expect(
       screen.getByRole("link", { name: "Giriş sayfasına dön" }),
@@ -165,7 +165,7 @@ describe("OTG callback", () => {
     renderCallback();
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "OTG ile giriş tamamlanamadı.",
+      "ODTÜ TEKNOKENT Girişimcilik ile giriş tamamlanamadı.",
     );
     expect(completeInstitutionLogin).not.toHaveBeenCalled();
   });
