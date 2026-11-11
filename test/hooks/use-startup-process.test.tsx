@@ -134,6 +134,17 @@ describe("useStartupProcess", () => {
     await waitFor(() => expect(result.current.selectedPhaseId).toBe("problem"));
   });
 
+  it("falls back to the current phase when the picked one is gone", async () => {
+    vi.mocked(getStartupProcess).mockResolvedValue(process());
+    const { result } = renderHook(() => useStartupProcess(), { wrapper });
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    act(() => result.current.selectPhase("removed-phase"));
+
+    expect(result.current.selectedPhaseId).toBe("mvp");
+    expect(result.current.assignments.map((item) => item.id)).toEqual(["mvp"]);
+  });
+
   it("lists the Ödevler no phase covers on their own", async () => {
     vi.mocked(getStartupProcess).mockResolvedValue(process());
     const { result } = renderHook(() => useStartupProcess(), { wrapper });

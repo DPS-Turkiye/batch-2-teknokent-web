@@ -61,9 +61,12 @@ export function useStartupProcess() {
 
   const process = query.data ?? null;
   const hasPhases = (process?.phases.length ?? 0) > 0;
-  // The current phase is open until a card is picked.
+  // The current phase is open until a card is picked; a picked phase that is gone falls back to it.
+  const picked = process?.phases.some((phase) => phase.id === pickedPhaseId)
+    ? pickedPhaseId
+    : null;
   const selectedPhaseId =
-    pickedPhaseId ?? process?.currentPhaseId ?? process?.phases[0]?.id ?? null;
+    picked ?? process?.currentPhaseId ?? process?.phases[0]?.id ?? null;
   const allAssignments = useMemo(() => process?.assignments ?? [], [process]);
   const unphased = useMemo(
     () => unphasedAssignments(allAssignments),
